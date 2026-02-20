@@ -1,0 +1,5 @@
+E:/NamaMedical/build/CMakeFiles/NamaMedical.dir
+E:/NamaMedical/build/CMakeFiles/edit_cache.dir
+E:/NamaMedical/build/CMakeFiles/rebuild_cache.dir
+E:/NamaMedical/build/CMakeFiles/NamaMedical_autogen_timestamp_deps.dir
+E:/NamaMedical/build/CMakeFiles/NamaMedical_autogen.dir
