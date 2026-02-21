@@ -1304,6 +1304,7 @@ CMakeFiles/NamaMedical.dir/mainwindow.cpp.obj
  E:/Qt/6.6.3/msvc2019_64/include/QtCore/qcalendar.h
  E:/Qt/6.6.3/msvc2019_64/include/QtCore/QDateTime
  E:/Qt/6.6.3/msvc2019_64/include/QtGui/QFont
+ E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/QMessageBox
  E:/Qt/6.6.3/msvc2019_64/include/QtGui/QPainter
  E:/Qt/6.6.3/msvc2019_64/include/QtSql/QSqlQuery
  E:/Qt/6.6.3/msvc2019_64/include/QtCore/QString
@@ -1322,6 +1323,8 @@ CMakeFiles/NamaMedical.dir/mainwindow.cpp.obj
  E:/Qt/6.6.3/msvc2019_64/include/QtGui/qpagesize.h
  E:/Qt/6.6.3/msvc2019_64/include/QtGui/qpageranges.h
  E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/QApplication
+ E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/QCheckBox
+ E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/qcheckbox.h
  E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/QComboBox
  E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/QCompleter
  E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/qcompleter.h
@@ -1369,6 +1372,8 @@ CMakeFiles/NamaMedical.dir/mainwindow.cpp.obj
  C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/MSVC/14.50.35717/include/__msvc_int128.hpp
  E:/Qt/6.6.3/msvc2019_64/include/QtCore/QRegularExpression
  E:/Qt/6.6.3/msvc2019_64/include/QtGui/QRegularExpressionValidator
+ E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/QScrollArea
+ E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/qscrollarea.h
  E:/Qt/6.6.3/msvc2019_64/include/QtSql/QSqlQuery
  E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/QTabWidget
  E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/QTextEdit

@@ -1303,6 +1303,7 @@ CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\Q
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtCore\qcalendar.h
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtCore\QDateTime
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtGui\QFont
+CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\QMessageBox
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtGui\QPainter
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtSql\QSqlQuery
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtCore\QString
@@ -1321,6 +1322,8 @@ CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\Q
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtGui\qpagesize.h
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtGui\qpageranges.h
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\QApplication
+CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\QCheckBox
+CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\qcheckbox.h
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\QComboBox
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\QCompleter
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\qcompleter.h
@@ -1368,6 +1371,8 @@ CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: "C:\Program Files\Microsoft Visua
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.50.35717\include\__msvc_int128.hpp"
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtCore\QRegularExpression
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtGui\QRegularExpressionValidator
+CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\QScrollArea
+CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\qscrollarea.h
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtSql\QSqlQuery
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\QTabWidget
 CMakeFiles\NamaMedical.dir\mainwindow.cpp.obj: E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\QTextEdit
@@ -2342,6 +2347,8 @@ E:\Qt\6.6.3\msvc2019_64\include\QtGui\qtextoption.h:
 
 "C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\corecrt_terminate.h":
 
+E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\QScrollArea:
+
 "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.50.35717\include\xsmf_control.h":
 
 E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\qabstractitemview.h:
@@ -2355,8 +2362,6 @@ E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\qtabwidget.h:
 "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.50.35717\include\cstring":
 
 "C:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\shared\specstrings.h":
-
-"C:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\um\wincontypes.h":
 
 "C:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\shared\rpcnterr.h":
 
@@ -2930,9 +2935,9 @@ E:\Qt\6.6.3\msvc2019_64\include\QtGui\qrgba64.h:
 
 "C:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\um\errhandlingapi.h":
 
-E:\Qt\6.6.3\msvc2019_64\include\QtGui\qpolygon.h:
-
 "C:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\um\wincon.h":
+
+E:\Qt\6.6.3\msvc2019_64\include\QtGui\qpolygon.h:
 
 E:\Qt\6.6.3\msvc2019_64\include\QtGui\qregion.h:
 
@@ -3190,6 +3195,14 @@ E:\Qt\6.6.3\msvc2019_64\lib\cmake\Qt6PrintSupport\Qt6PrintSupportTargets.cmake:
 
 E:\Qt\6.6.3\msvc2019_64\include\QtGui\qpagesize.h:
 
+E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\QCheckBox:
+
+"C:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\um\profileapi.h":
+
+E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\qcheckbox.h:
+
+"C:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\um\fibersapi.h":
+
 E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\QCompleter:
 
 E:\Qt\6.6.3\msvc2019_64\include\QtCore\QFile:
@@ -3211,6 +3224,8 @@ E:\Qt\6.6.3\msvc2019_64\include\QtGui\QPixmap:
 E:\Qt\6.6.3\msvc2019_64\include\QtCore\QRandomGenerator:
 
 "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.50.35717\include\random":
+
+E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\qscrollarea.h:
 
 E:\Qt\6.6.3\msvc2019_64\include\QtWidgets\QTextEdit:
 
@@ -3256,10 +3271,6 @@ E:\Qt\6.6.3\msvc2019_64\lib\cmake\Qt6Sql\Qt6QODBCDriverPluginTargets.cmake:
 
 "C:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\um\fileapi.h":
 
-"C:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\um\profileapi.h":
-
-"C:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\um\fibersapi.h":
-
 E:\Qt\6.6.3\msvc2019_64\lib\cmake\Qt6GuiTools\Qt6GuiToolsTargets.cmake:
 
 "C:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\um\heapapi.h":
@@ -3289,6 +3300,8 @@ E:\Qt\6.6.3\msvc2019_64\lib\cmake\Qt6Gui\Qt6GuiTargets.cmake:
 "C:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\um\winuser.h":
 
 "C:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\um\stringapiset.h":
+
+"C:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\um\wincontypes.h":
 
 "C:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\um\consoleapi.h":
 

@@ -5,19 +5,20 @@
 // and QPrintPreviewDialog for print/PDF export.
 // ============================================================
 
+#include "database.h"
 #include "qrcode.h"
 #include <QApplication>
 #include <QByteArray>
 #include <QDate>
 #include <QDateTime>
 #include <QFont>
+#include <QMessageBox>
 #include <QPainter>
 #include <QSqlQuery>
 #include <QString>
 #include <QWidget>
 #include <QtPrintSupport/QPrintPreviewDialog>
 #include <QtPrintSupport/QPrinter>
-
 
 struct InvoiceLineItem {
   int lineNo;
@@ -79,6 +80,7 @@ public:
     inv.companyAddress = getSetting("address");
     inv.companyPhone = getSetting("phone");
     inv.companyTaxNumber = getSetting("tax_number");
+    inv.companyCR = getSetting("cr_number");
 
     // Defaults if empty
     if (inv.companyNameAr.isEmpty())
@@ -164,8 +166,8 @@ public:
     int margin = W / 20;
     int contentW = W - 2 * margin;
 
-    // Scale factor for fonts (high-res printing)
-    double sf = W / 2480.0; // normalize to ~A4 at 300dpi
+    // Scale factor for rendering (logical width = 800px)
+    double sf = W / 800.0;
 
     // Colors
     QColor headerBg(55, 65, 81); // dark gray
@@ -173,18 +175,31 @@ public:
     QColor tableHeaderBg(245, 245, 245);
     QColor accentColor(180, 150, 90); // gold accent
 
-    // Fonts
-    QFont fontTitleAr("Arial", (int)(24 * sf));
+    // Fonts using PixelSize to prevent high-DPI scaling bugs
+    QFont fontTitleAr("Arial");
+    fontTitleAr.setPixelSize((int)(18 * sf));
     fontTitleAr.setBold(true);
-    QFont fontTitleEn("Arial", (int)(20 * sf));
+
+    QFont fontTitleEn("Arial");
+    fontTitleEn.setPixelSize((int)(16 * sf));
     fontTitleEn.setBold(true);
-    QFont fontHeader("Arial", (int)(10 * sf));
+
+    QFont fontHeader("Arial");
+    fontHeader.setPixelSize((int)(11 * sf));
     fontHeader.setBold(true);
-    QFont fontNormal("Arial", (int)(9 * sf));
-    QFont fontSmall("Arial", (int)(7 * sf));
-    QFont fontBold("Arial", (int)(9 * sf));
+
+    QFont fontNormal("Arial");
+    fontNormal.setPixelSize((int)(10 * sf));
+
+    QFont fontSmall("Arial");
+    fontSmall.setPixelSize((int)(9 * sf));
+
+    QFont fontBold("Arial");
+    fontBold.setPixelSize((int)(10 * sf));
     fontBold.setBold(true);
-    QFont fontBigTitle("Arial", (int)(18 * sf));
+
+    QFont fontBigTitle("Arial");
+    fontBigTitle.setPixelSize((int)(16 * sf));
     fontBigTitle.setBold(true);
 
     int y = margin;
@@ -205,18 +220,18 @@ public:
     p.setFont(fontTitleEn);
     QRect enNameRect(margin, y, contentW / 2, (int)(35 * sf));
     p.drawText(enNameRect, Qt::AlignLeft | Qt::AlignVCenter, inv.companyNameEn);
-    y += (int)(38 * sf);
+    y += (int)(55 * sf);
 
     // Company details (Arabic right, English left)
     p.setFont(fontSmall);
-    int lineH = (int)(14 * sf);
+    int lineH = (int)(24 * sf); // Increased line height to avoid overlap
 
     // Address
     p.drawText(QRect(margin, y, contentW / 2, lineH), Qt::AlignLeft,
                inv.companyAddress);
     p.drawText(QRect(margin + contentW / 2, y, contentW / 2, lineH),
                Qt::AlignRight, inv.companyAddress);
-    y += lineH;
+    y += lineH + (int)(5 * sf);
 
     // Tax number
     p.drawText(QRect(margin, y, contentW / 2, lineH), Qt::AlignLeft,
@@ -228,7 +243,7 @@ public:
             "\xd8\xa7\xd9\x84\xd8\xaa\xd8\xb3\xd8\xac\xd9\x8a\xd9\x84 "
             "\xd8\xa7\xd9\x84\xd8\xb6\xd8\xb1\xd9\x8a\xd8\xa8\xd9\x8a ") +
             inv.companyTaxNumber);
-    y += lineH;
+    y += lineH + (int)(5 * sf);
 
     // CR number
     p.drawText(QRect(margin, y, contentW / 2, lineH), Qt::AlignLeft,
@@ -239,7 +254,7 @@ public:
             "\xd8\xb1\xd9\x82\xd9\x85 \xd8\xa7\xd9\x84\xd8\xb3\xd8\xac\xd9\x84 "
             "\xd8\xa7\xd9\x84\xd8\xaa\xd8\xac\xd8\xa7\xd8\xb1\xd9\x8a ") +
             inv.companyCR);
-    y += (int)(25 * sf);
+    y += lineH + (int)(25 * sf);
 
     // Separator line
     p.setPen(QPen(accentColor, 2 * sf));
@@ -292,19 +307,19 @@ public:
         "Customer",
         QString::fromUtf8("\xd8\xa7\xd9\x84\xd8\xb9\xd9\x85\xd9\x8a\xd9\x84"),
         inv.customerName, y);
-    y += custH;
+    y += custH + (int)(5 * sf);
     drawInfoRow("Address",
                 QString::fromUtf8(
                     "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x86\xd9\x88\xd8\xa7\xd9\x86"),
                 inv.customerAddress, y);
-    y += custH;
+    y += custH + (int)(5 * sf);
     drawInfoRow("VAT number",
                 QString::fromUtf8(
                     "\xd8\xb1\xd9\x82\xd9\x85 "
                     "\xd8\xa7\xd9\x84\xd8\xaa\xd8\xb3\xd8\xac\xd9\x8a\xd9\x84 "
                     "\xd8\xa7\xd9\x84\xd8\xb6\xd8\xb1\xd9\x8a\xd8\xa8\xd9\x8a"),
                 inv.customerVatNumber, y);
-    y += custH;
+    y += custH + (int)(15 * sf);
 
     // Number and Date row
     p.setPen(QPen(tableBorderColor, 1));
@@ -556,7 +571,8 @@ public:
                                               const QString &patientNameEn,
                                               const QString &department,
                                               double amount,
-                                              const QString &paymentMethod) {
+                                              const QString &paymentMethod,
+                                              bool isSaudi = false) {
 
     InvoiceData inv;
     loadCompanySettings(inv);
@@ -584,7 +600,7 @@ public:
     item.qty = 1;
     item.unitPrice = amount;
     item.taxableAmount = amount;
-    item.vatAmount = amount * 0.15;
+    item.vatAmount = isSaudi ? 0.0 : (amount * 0.15);
     item.lineTotal = amount + item.vatAmount;
     inv.items.append(item);
 
@@ -634,5 +650,143 @@ public:
     inv.grandTotal = total;
 
     return inv;
+  }
+
+  // ========================
+  // HELPER: Print Barcode Sticker (Lab/Radiology)
+  // ========================
+  static void printLabBarcode(int patientId, int orderId = -1) {
+    QSqlQuery qp = Database::instance().exec(
+        QString(
+            "SELECT name_en, name_ar, dob, dob_hijri FROM patients WHERE id=%1")
+            .arg(patientId));
+    QString pName = "";
+    QString pDob = "";
+    if (qp.next()) {
+      pName = qp.value(0).toString();
+      if (pName.isEmpty())
+        pName = qp.value(1).toString();
+      pDob = qp.value(2).toString();
+      if (pDob.isEmpty())
+        pDob = qp.value(3).toString();
+    }
+
+    QString ageStr = "N/A";
+    if (!pDob.isEmpty() && pDob.contains("-")) {
+      QDate dob = QDate::fromString(pDob, Qt::ISODate);
+      if (dob.isValid()) {
+        int age = dob.daysTo(QDate::currentDate()) / 365;
+        ageStr = QString::number(age) + " Y";
+      } else {
+        ageStr = pDob;
+      }
+    }
+
+    QString qStr =
+        QString("SELECT id, description, order_type FROM lab_radiology_orders "
+                "WHERE patient_id=%1 AND status='Pending Result'")
+            .arg(patientId);
+    if (orderId != -1) {
+      qStr += QString(" AND id=%1").arg(orderId);
+    }
+    QSqlQuery qt = Database::instance().exec(qStr);
+
+    QList<QMap<QString, QString>> testsToPrint;
+    while (qt.next()) {
+      QMap<QString, QString> item;
+      item["id"] = qt.value(0).toString();
+      item["desc"] = qt.value(1).toString();
+      item["type"] = qt.value(2).toString();
+      testsToPrint.append(item);
+    }
+
+    if (testsToPrint.isEmpty()) {
+      QMessageBox::information(
+          nullptr, "Barcode",
+          QString::fromUtf8("\xd9\x84\xd8\xa7 \xd9\x8a\xd9\x88\xd8\xac\xd8\xaf "
+                            "\xd9\x81\xd8\xad\xd9\x88\xd8\xb5\xd8\xa7\xd8\xaa "
+                            "\xd9\x85\xd8\xb9\xd9\x84\xd9\x82\xd8\xa9"));
+      return;
+    }
+
+    QPrinter *printer = new QPrinter(QPrinter::HighResolution);
+    printer->setPageSize(QPageSize(QSizeF(50, 25), QPageSize::Millimeter));
+    printer->setFullPage(true);
+
+    QPrintPreviewDialog *preview = new QPrintPreviewDialog(printer);
+    preview->setWindowTitle(QString::fromUtf8(
+        "\xd9\x85\xd8\xb9\xd8\xa7\xd9\x8a\xd9\x86\xd8\xa9 "
+        "\xd8\xa7\xd9\x84\xd8\xa8\xd8\xa7\xd8\xb1\xd9\x83\xd9\x88\xd8\xaf"));
+    QObject::connect(
+        preview, &QPrintPreviewDialog::paintRequested,
+        [testsToPrint, pName, ageStr, patientId](QPrinter *p) {
+          QPainter painter(p);
+          if (!painter.isActive())
+            return;
+
+          QRect r = p->pageRect(QPrinter::DevicePixel).toRect();
+          double sf = r.width() / 400.0;
+
+          int i = 0;
+          for (const auto &item : testsToPrint) {
+            if (i > 0)
+              p->newPage();
+
+            QFont fn("Arial");
+            fn.setPixelSize((int)(16 * sf));
+            fn.setBold(true);
+            painter.setFont(fn);
+            painter.setPen(Qt::black);
+
+            painter.drawText(QRect((int)(10 * sf), (int)(10 * sf),
+                                   r.width() - (int)(20 * sf), (int)(25 * sf)),
+                             Qt::AlignLeft | Qt::AlignVCenter, pName);
+
+            fn.setPixelSize((int)(12 * sf));
+            fn.setBold(false);
+            painter.setFont(fn);
+            painter.drawText(QRect((int)(10 * sf), (int)(40 * sf),
+                                   r.width() - (int)(120 * sf), (int)(18 * sf)),
+                             Qt::AlignLeft, "Age: " + ageStr);
+            painter.drawText(QRect((int)(10 * sf), (int)(60 * sf),
+                                   r.width() - (int)(120 * sf), (int)(18 * sf)),
+                             Qt::AlignLeft, item["type"]);
+
+            fn.setPixelSize((int)(14 * sf));
+            fn.setBold(true);
+            painter.setFont(fn);
+            painter.drawText(QRect((int)(10 * sf), (int)(85 * sf),
+                                   r.width() - (int)(120 * sf), (int)(40 * sf)),
+                             Qt::AlignLeft | Qt::TextWordWrap, item["desc"]);
+
+            // Draw QR Code
+            QString qrStr =
+                "PAT:" + QString::number(patientId) + " ORD:" + item["id"];
+            QByteArray qrData = qrStr.toUtf8();
+            QImage qrImg = QrCode::encode(qrData, 2);
+            int qrSize = (int)(90 * sf);
+            int qrX = r.width() - qrSize - (int)(10 * sf);
+            int qrY = (int)(40 * sf);
+            painter.drawImage(QRect(qrX, qrY, qrSize, qrSize), qrImg);
+
+            fn.setPixelSize((int)(9 * sf));
+            fn.setBold(false);
+            painter.setFont(fn);
+            painter.drawText(
+                QRect(qrX, qrY + qrSize + 2, qrSize, (int)(15 * sf)),
+                Qt::AlignCenter, item["id"]);
+
+            i++;
+          }
+          painter.end();
+        });
+
+    QObject::connect(preview, &QPrintPreviewDialog::finished,
+                     [printer, preview]() {
+                       preview->deleteLater();
+                       delete printer;
+                     });
+
+    preview->exec();
   }
 };

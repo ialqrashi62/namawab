@@ -44,7 +44,6 @@ private:
   QWidget *createRadiologyPage();
   QWidget *createSettingsPage();
   QWidget *createWaitingQueuePage();
-  QWidget *createNursingPage();
   QWidget *createPharmacyPage();
   QWidget *createPatientAccountsPage();
   QWidget *createPatientPortalPage();

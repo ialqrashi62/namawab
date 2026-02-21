@@ -2,6 +2,7 @@
 #include "database.h"
 #include "invoice_generator.h"
 #include <QApplication>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QCompleter>
 #include <QDateEdit>
@@ -22,7 +23,6 @@
 #include <QTimeEdit>
 #include <QTimer>
 #include <windows.h>
-
 
 QString MainWindow::tr2(const QString &en, const QString &ar) const {
   return isArabic ? ar : en;
@@ -312,9 +312,8 @@ void MainWindow::setupUI() {
   pages->addWidget(wrapInScroll(createPatientPortalPage()));   // 4
   pages->addWidget(wrapInScroll(createWaitingQueuePage()));    // 5
   pages->addWidget(wrapInScroll(createDoctorStationPage()));   // 6
-  pages->addWidget(wrapInScroll(createNursingPage()));         // 7
-  pages->addWidget(wrapInScroll(createFinancePage()));         // 8
-  pages->addWidget(wrapInScroll(createAccountingPage()));      // 9
+  pages->addWidget(wrapInScroll(createFinancePage()));         // 7
+  pages->addWidget(wrapInScroll(createAccountingPage()));      // 8
   pages->addWidget(wrapInScroll(createInsurancePage()));       // 10
   pages->addWidget(wrapInScroll(createPharmacyPage()));        // 11
   pages->addWidget(wrapInScroll(createLabPage()));             // 12
@@ -463,14 +462,11 @@ void MainWindow::setupSidebar() {
                           "\xd8\xa7\xd9\x84\xd8\xa7\xd9\x86\xd8\xaa\xd8\xb8\xd8"
                           "\xa7\xd8\xb1"); // row 9 -> page 5
   addNav(
-      "Doctor Station",
+      "Doctor/Nursing Station",
       "\xd9\x85\xd8\xad\xd8\xb7\xd8\xa9 "
-      "\xd8\xa7\xd9\x84\xd8\xb7\xd8\xa8\xd9\x8a\xd8\xa8"); // row 10 -> page 6
-  addNav(
-      "Nursing Station",
-      "\xd9\x85\xd8\xad\xd8\xb7\xd8\xa9 "
-      "\xd8\xa7\xd9\x84\xd8\xaa\xd9\x85\xd8\xb1\xd9\x8a\xd8\xb6"); // row 11 ->
-                                                                   // page 7
+      "\xd8\xa7\xd9\x84\xd8\xb7\xd8\xa8\xd9\x8a\xd8\xa8 / "
+      "\xd8\xa7\xd9\x84\xd8\xaa\xd9\x85\xd8\xb1\xd9\x8a\xd8\xb6"); // row 10 ->
+                                                                   // page 6
   addSep();                                                        // row 12
   addHdr("FINANCE",
          "\xd8\xa7\xd9\x84\xd9\x85\xd8\xa7\xd9\x84\xd9\x8a\xd8\xa9"); // row 13
@@ -545,9 +541,9 @@ void MainWindow::setupSidebar() {
 
   // Hide sidebar items based on role
   if (currentUserRole != "Admin") {
-    int pageMapArr2[] = {-1, -1, -1, -1, 0,  1,  2,  3,  4,  5,  6,
-                         7,  -1, -1, 8,  9,  10, -1, -1, 11, 12, 13,
-                         -1, -1, 14, 15, 16, 17, 18, 19, 20};
+    int pageMapArr2[] = {-1, -1, -1, -1, 0,  1,  2,  3,  4,  5,
+                         6,  -1, -1, 8,  9,  10, -1, -1, 11, 12,
+                         13, -1, 14, 15, 16, 17, 18, 19, 20};
     for (int i = 0; i < (int)(sizeof(pageMapArr2) / sizeof(int)); i++) {
       if (pageMapArr2[i] >= 0 && !isPageAllowed(pageMapArr2[i])) {
         QListWidgetItem *item = navList->item(i);
@@ -560,14 +556,14 @@ void MainWindow::setupSidebar() {
 
 void MainWindow::onNavChanged(int row) {
   int pageMap[] = {
-      -1, -1, -1, -1,               // Logo, version, sep, clinical
-      0,  1,  2,  3,  4,  5,  6, 7, // Patient pages 0-7
-      -1, -1,                       // Sep, Finance header
-      8,  9,  10,                   // Finance pages 8-10
-      -1, -1,                       // Sep, Pharma header
-      11, 12, 13,                   // Pharma pages 11-13
-      -1, -1,                       // Sep, Admin
-      14, 15, 16, 17, 18, 19, 20    // Admin pages 14-20
+      -1, -1, -1, -1,            // Logo, version, sep, clinical
+      0,  1,  2,  3,  4,  5,  6, // Patient pages 0-6
+      -1, -1,                    // Sep, Finance header
+      8,  9,  10,                // Finance pages 8-10
+      -1, -1,                    // Sep, Pharma header
+      11, 12, 13,                // Pharma pages 11-13
+      -1, -1,                    // Sep, Admin
+      14, 15, 16, 17, 18, 19, 20 // Admin pages 14-20
   };
   if (row >= 0 && row < (int)(sizeof(pageMap) / sizeof(pageMap[0])) &&
       pageMap[row] >= 0) {
@@ -611,9 +607,7 @@ void MainWindow::onNavChanged(int row) {
     case 6:
       newPage = createDoctorStationPage();
       break;
-    case 7:
-      newPage = createNursingPage();
-      break;
+
     case 8:
       newPage = createFinancePage();
       break;
@@ -668,8 +662,10 @@ void MainWindow::onNavChanged(int row) {
       sa->setFrameShape(QFrame::NoFrame);
       // Replace old page with fresh one
       QWidget *oldPage = pages->widget(idx);
-      pages->removeWidget(oldPage);
-      oldPage->deleteLater();
+      if (oldPage) {
+        pages->removeWidget(oldPage);
+        oldPage->deleteLater();
+      }
       pages->insertWidget(idx, sa);
       pages->setCurrentIndex(idx);
     }
@@ -1208,8 +1204,48 @@ QWidget *MainWindow::createReceptionPage() {
                            KLF_SETFORPROCESS);
   });
 
+  // Prevent auto-translation if the user manually typed into English field
+  bool *nameEnModified = new bool(false);
+
+  connect(nameEn, &QLineEdit::textEdited, [=]() { *nameEnModified = true; });
+
   // Auto-transliterate Arabic name to English
   connect(nameAr, &QLineEdit::textChanged, [=](const QString &text) {
+    if (*nameEnModified && !text.isEmpty())
+      return; // Do not overwrite if English was manually changed, unless
+              // cleared
+
+    if (text.isEmpty()) {
+      nameEn->clear();
+      *nameEnModified = false;
+      return;
+    }
+
+    static QMap<QString, QString> wholeWords = {
+        {QString::fromUtf8("\xd9\x85\xd8\xad\xd9\x85\xd8\xaf"),
+         "Mohammed"}, // محمد
+        {QString::fromUtf8("\xd8\xa7\xd8\xad\xd9\x85\xd8\xaf"),
+         "Ahmed"}, // احمد
+        {QString::fromUtf8("\xd8\xa3\xd8\xad\xd9\x85\xd8\xaf"),
+         "Ahmed"},                                              // أحمد
+        {QString::fromUtf8("\xd8\xb9\xd8\xa8\xd8\xaf"), "Abd"}, // عبد
+        {QString::fromUtf8("\xd8\xa7\xd8\xa8\xd9\x88"), "Abu"}, // ابو
+        {QString::fromUtf8("\xd8\xa3\xd8\xa8\xd9\x88"), "Abu"}, // أبو
+        {QString::fromUtf8("\xd8\xa7\xd9\x84\xd9\x84\xd9\x87"),
+         "Allah"},                                               // الله
+        {QString::fromUtf8("\xd8\xa8\xd9\x86"), "Bin"},          // بن
+        {QString::fromUtf8("\xd8\xa8\xd9\x86\xd8\xaa"), "Bint"}, // بنت
+        {QString::fromUtf8("\xd8\xae\xd8\xa7\xd9\x84\xd8\xaf"),
+         "Khaled"},                                                // خالد
+        {QString::fromUtf8("\xd8\xb9\xd9\x84\xd9\x8a"), "Ali"},    // علي
+        {QString::fromUtf8("\xd8\xad\xd8\xb3\xd9\x86"), "Hassan"}, // حسن
+        {QString::fromUtf8("\xd8\xad\xd8\xb3\xd9\x8a\xd9\x86"),
+         "Hussein"},                                                    // حسين
+        {QString::fromUtf8("\xd8\xb9\xd9\x85\xd8\xb1"), "Omar"},        // عمر
+        {QString::fromUtf8("\xd9\x81\xd9\x87\xd8\xaf"), "Fahad"},       // فهد
+        {QString::fromUtf8("\xd8\xb3\xd8\xb9\xd9\x88\xd8\xaf"), "Saud"} // سعود
+    };
+
     static QMap<QChar, QString> arToEn = {
         {QChar(0x0627), "a"},  // ا
         {QChar(0x0628), "b"},  // ب
@@ -1219,15 +1255,15 @@ QWidget *MainWindow::createReceptionPage() {
         {QChar(0x062D), "h"},  // ح
         {QChar(0x062E), "kh"}, // خ
         {QChar(0x062F), "d"},  // د
-        {QChar(0x0630), "th"}, // ذ
+        {QChar(0x0630), "dh"}, // ذ
         {QChar(0x0631), "r"},  // ر
         {QChar(0x0632), "z"},  // ز
         {QChar(0x0633), "s"},  // س
         {QChar(0x0634), "sh"}, // ش
         {QChar(0x0635), "s"},  // ص
-        {QChar(0x0636), "d"},  // ض
+        {QChar(0x0636), "dh"}, // ض
         {QChar(0x0637), "t"},  // ط
-        {QChar(0x0638), "z"},  // ظ
+        {QChar(0x0638), "zh"}, // ظ
         {QChar(0x0639), "a"},  // ع
         {QChar(0x063A), "gh"}, // غ
         {QChar(0x0641), "f"},  // ف
@@ -1240,7 +1276,7 @@ QWidget *MainWindow::createReceptionPage() {
         {QChar(0x0648), "w"},  // و
         {QChar(0x064A), "y"},  // ي
         {QChar(0x0629), "h"},  // ة
-        {QChar(0x0621), "'"},  // ء
+        {QChar(0x0621), ""},   // ء (ignore)
         {QChar(0x0623), "a"},  // أ
         {QChar(0x0625), "e"},  // إ
         {QChar(0x0624), "o"},  // ؤ
@@ -1248,25 +1284,48 @@ QWidget *MainWindow::createReceptionPage() {
         {QChar(0x0622), "aa"}, // آ
         {QChar(0x0649), "a"},  // ى
     };
-    QString result;
-    bool wordStart = true;
-    for (const QChar &ch : text) {
-      if (ch == ' ') {
-        result += ' ';
-        wordStart = true;
-      } else if (arToEn.contains(ch)) {
-        QString mapped = arToEn[ch];
-        if (wordStart && !mapped.isEmpty()) {
-          mapped[0] = mapped[0].toUpper();
-          wordStart = false;
-        }
-        result += mapped;
+
+    QStringList words = text.split(" ", Qt::SkipEmptyParts);
+    QStringList translatedWords;
+
+    for (const QString &word : words) {
+      if (wholeWords.contains(word)) {
+        translatedWords.append(wholeWords[word]);
       } else {
-        result += ch;
-        wordStart = false;
+        QString transWord;
+        bool isFirstChar = true;
+
+        // Handle definite article 'ال' explicitly at start of word
+        QString w = word;
+        if (w.startsWith(QString::fromUtf8("\xd8\xa7\xd9\x84"))) { // 'ال'
+          transWord += "Al";
+          w = w.mid(2);
+          isFirstChar = false;
+        } else if (w.startsWith(QString::fromUtf8(
+                       "\xd9\x88\xd8\xa7\xd9\x84"))) { // 'وال'
+          transWord += "Wal";
+          w = w.mid(3);
+          isFirstChar = false;
+        }
+
+        for (const QChar &ch : w) {
+          if (arToEn.contains(ch)) {
+            QString mapped = arToEn[ch];
+            if (isFirstChar && !mapped.isEmpty()) {
+              mapped[0] = mapped[0].toUpper();
+            }
+            transWord += mapped;
+          } else {
+            transWord += ch;
+          }
+          isFirstChar = false;
+        }
+        translatedWords.append(transWord);
       }
     }
-    nameEn->setText(result);
+
+    QString finalTrans = translatedWords.join(" ");
+    nameEn->setText(finalTrans);
   });
 
   formLay->addWidget(new QLabel(tr2(
@@ -1292,6 +1351,74 @@ QWidget *MainWindow::createReceptionPage() {
       tr2("Phone Number", "\xd8\xb1\xd9\x82\xd9\x85 "
                           "\xd8\xa7\xd9\x84\xd8\xac\xd9\x88\xd8\xa7\xd9\x84")));
   formLay->addWidget(phone);
+
+  // --- Nationality ---
+  formLay->addWidget(new QLabel(
+      tr2("Nationality",
+          "\xd8\xa7\xd9\x84\xd8\xac\xd9\x86\xd8\xb3\xd9\x8a\xd8\xa9")));
+  QComboBox *natCombo = new QComboBox();
+  natCombo->setFixedHeight(28);
+  QStringList nationalities = {
+      tr2("Saudi Arabia",
+          "\xd8\xa7\xd9\x84\xd8\xb3\xd8\xb9\xd9\x88\xd8\xaf\xd9\x8a\xd8\xa9"),
+      tr2("Egypt", "\xd9\x85\xd8\xb5\xd8\xb1"),
+      tr2("Yemen", "\xd8\xa7\xd9\x84\xd9\x8a\xd9\x85\xd9\x86"),
+      tr2("Syria", "\xd8\xb3\xd9\x88\xd8\xb1\xd9\x8a\xd8\xa7"),
+      tr2("Sudan", "\xd8\xa7\xd9\x84\xd8\xb3\xd9\x88\xd8\xaf\xd8\xa7\xd9\x86"),
+      tr2("Jordan", "\xd8\xa7\xd9\x84\xd8\xa3\xd8\xb1\xd8\xaf\xd9\x86"),
+      tr2("India", "\xd8\xa7\xd9\x84\xd9\x87\xd9\x86\xd8\xaf"),
+      tr2("Pakistan",
+          "\xd8\xa8\xd8\xa7\xd9\x83\xd8\xb3\xd8\xaa\xd8\xa7\xd9\x86"),
+      tr2("Philippines",
+          "\xd8\xa7\xd9\x84\xd9\x81\xd9\x84\xd8\xa8\xd9\x8a\xd9\x86"),
+      tr2("Other", "\xd8\xa3\xd8\xae\xd8\xb1\xd9\x89")};
+  natCombo->addItems(nationalities);
+  formLay->addWidget(natCombo);
+
+  // --- Date of Birth (Gregorian & Hijri) & Age ---
+  QHBoxLayout *dobLay = new QHBoxLayout();
+
+  QVBoxLayout *gregLay = new QVBoxLayout();
+  gregLay->addWidget(new QLabel(
+      tr2("DOB", "\xd8\xaa\xd8\xa7\xd8\xb1\xd9\x8a\xd8\xae "
+                 "\xd8\xa7\xd9\x84\xd9\x85\xd9\x8a\xd9\x84\xd8\xa7\xd8\xaf")));
+  QDateEdit *dobGreg = new QDateEdit(QDate::currentDate());
+  dobGreg->setCalendarPopup(true);
+  dobGreg->setDisplayFormat("yyyy-MM-dd");
+  dobGreg->setFixedHeight(28);
+  gregLay->addWidget(dobGreg);
+  dobLay->addLayout(gregLay);
+
+  QVBoxLayout *hijriLay = new QVBoxLayout();
+  hijriLay->addWidget(new QLabel(
+      tr2("DOB (Hijri)", "\xd8\xa7\xd9\x84\xd9\x85\xd9\x8a\xd9\x84\xd8\xa7\xd8"
+                         "\xaf (\xd9\x87\xd8\xac\xd8\xb1\xd9\x8a)")));
+  QLineEdit *dobHijri = new QLineEdit();
+  dobHijri->setPlaceholderText("YYYY-MM-DD");
+  dobHijri->setFixedHeight(28);
+  hijriLay->addWidget(dobHijri);
+  dobLay->addLayout(hijriLay);
+
+  QVBoxLayout *ageLay = new QVBoxLayout();
+  ageLay->addWidget(
+      new QLabel(tr2("Age", "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x85\xd8\xb1")));
+  QLineEdit *ageEdit = new QLineEdit("0");
+  ageEdit->setReadOnly(true);
+  ageEdit->setFixedHeight(28);
+  ageEdit->setStyleSheet("background-color: rgba(255,255,255,0.03); color: "
+                         "#60a5fa; font-weight: bold;");
+  ageLay->addWidget(ageEdit);
+  dobLay->addLayout(ageLay);
+
+  formLay->addLayout(dobLay);
+
+  // Auto age calculation
+  connect(dobGreg, &QDateEdit::dateChanged, [=](const QDate &date) {
+    int age = date.daysTo(QDate::currentDate()) / 365;
+    if (age < 0)
+      age = 0;
+    ageEdit->setText(QString::number(age));
+  });
 
   // Referral department
   formLay->addWidget(
@@ -1544,13 +1671,17 @@ QWidget *MainWindow::createReceptionPage() {
     int fn = fileNumEdit->text().toInt();
     QSqlQuery ins = Database::instance().prepare(
         "INSERT INTO patients (file_number, name_ar, name_en, "
-        "national_id, phone, department, amount, payment_method) VALUES "
-        "(?,?,?,?,?,?,?,?)");
+        "national_id, phone, dob, dob_hijri, nationality, department, amount, "
+        "payment_method) VALUES "
+        "(?,?,?,?,?,?,?,?,?,?,?)");
     ins.addBindValue(fn);
     ins.addBindValue(nameAr->text());
     ins.addBindValue(nameEn->text());
     ins.addBindValue(natId->text());
     ins.addBindValue(phone->text());
+    ins.addBindValue(dobGreg->text());
+    ins.addBindValue(dobHijri->text());
+    ins.addBindValue(natCombo->currentText());
     ins.addBindValue(deptCombo->currentText());
     ins.addBindValue(amountEdit->text().toDouble());
     ins.addBindValue(payMethodCombo->currentText());
@@ -1609,11 +1740,15 @@ QWidget *MainWindow::createReceptionPage() {
     QString savedNameAr = nameAr->text();
     QString savedNameEn = nameEn->text();
     QString savedDept = deptCombo->currentText();
+    bool isSaudi = (natCombo->currentIndex() == 0); // Saudi Arabia is index 0
 
     nameAr->clear();
     nameEn->clear();
     natId->clear();
     phone->clear();
+    dobHijri->clear();
+    dobGreg->setDate(QDate::currentDate());
+    natCombo->setCurrentIndex(0);
     amountEdit->setText("0.00");
     nextFileNum = fn + 1;
     fileNumEdit->setText(QString::number(nextFileNum));
@@ -1630,7 +1765,25 @@ QWidget *MainWindow::createReceptionPage() {
     // Generate and show invoice
     if (patAmount > 0) {
       InvoiceData invData = InvoiceGenerator::createFileOpeningInvoice(
-          savedNameAr, savedNameEn, savedDept, patAmount, "");
+          savedNameAr, savedNameEn, savedDept, patAmount, "", isSaudi);
+
+      // Ensure the invoice is also strictly written to the database for Patient
+      // Accounts ledger
+      QSqlQuery invIns = Database::instance().prepare(
+          "INSERT INTO invoices (patient_id, patient_name, order_id, "
+          "service_type, "
+          "invoice_number, description, amount, vat_amount, total, paid) "
+          "VALUES "
+          "(?, ?, 0, 'File Opening', ?, 'File Opening Fee', ?, ?, ?, 1)");
+
+      invIns.addBindValue(newPatId);
+      invIns.addBindValue(savedNameEn.isEmpty() ? savedNameAr : savedNameEn);
+      invIns.addBindValue(invData.invoiceNumber);
+      invIns.addBindValue(invData.subtotal);
+      invIns.addBindValue(invData.totalVat);
+      invIns.addBindValue(invData.grandTotal);
+      invIns.exec();
+
       InvoiceGenerator::showPrintPreview(invData, nullptr);
     }
   });
@@ -1716,24 +1869,98 @@ QWidget *MainWindow::createReceptionPage() {
       appTable->setCellWidget(row, 5, rejBtn);
 
       connect(appBtn, &QPushButton::clicked, [=]() {
-        bool ok;
-        double baseAmount = QInputDialog::getDouble(
-            nullptr,
-            tr2("Collect Payment",
-                "\xd8\xaa\xd8\xad\xd8\xb5\xd9\x8a\xd9\x84 "
-                "\xd8\xa7\xd9\x84\xd9\x85\xd8\xa8\xd9\x84\xd8\xba"),
-            tr2("Enter fee (before VAT 15%):",
-                "\xd8\xa3\xd8\xaf\xd8\xae\xd9\x84 "
-                "\xd8\xa7\xd9\x84\xd9\x85\xd8\xa8\xd9\x84\xd8\xba "
-                "(\xd9\x82\xd8\xa8\xd9\x84 "
-                "\xd8\xa7\xd9\x84\xd8\xb6\xd8\xb1\xd9\x8a\xd8\xa8\xd8\xa9 "
-                "15%):"),
-            100.0, 0, 100000, 2, &ok);
-        if (!ok)
-          return;
+        // Get patient name for the invoice
+        QString approvedPatient =
+            appTable->item(row, 1) ? appTable->item(row, 1)->text() : "";
+        QString approvedDesc =
+            appTable->item(row, 3) ? appTable->item(row, 3)->text() : "";
+        QString approvedType =
+            appTable->item(row, 2) ? appTable->item(row, 2)->text() : "";
+
+        // Common mapping for automatic pricing
+        static QMap<QString, double> examPrices = {
+            // Lab Tests
+            {"CBC (Complete Blood Count)", 80.0},
+            {"Fasting Blood Sugar (FBS)", 40.0},
+            {"Random Blood Sugar (RBS)", 40.0},
+            {"HbA1c", 120.0},
+            {"Lipid Profile", 150.0},
+            {"Liver Function Test (LFT)", 140.0},
+            {"Kidney Function Test (KFT)", 130.0},
+            {"Uric Acid", 50.0},
+            {"Calcium", 50.0},
+            {"Magnesium", 60.0},
+            {"Sodium", 40.0},
+            {"Potassium", 40.0},
+            {"Chloride", 40.0},
+            {"ESR", 40.0},
+            {"CRP", 80.0},
+            {"Thyroid Function (TSH/T3/T4)", 200.0},
+            {"Hormones Panel", 300.0},
+            {"Vitamin D", 180.0},
+            {"Vitamin B12", 150.0},
+            {"Iron & Ferritin", 120.0},
+            {"Urine Analysis", 40.0},
+            {"Stool Analysis", 40.0},
+            {"Blood Culture", 150.0},
+            {"Urine Culture", 120.0},
+            {"HBsAg - Hepatitis B", 100.0},
+            {"HCV Ab - Hepatitis C", 100.0},
+            {"HIV Test", 120.0},
+            {"ANA - Antinuclear Antibody", 150.0},
+            {"RF - Rheumatoid Factor", 80.0},
+            {"PSA - Prostate Antigen", 150.0},
+            {"Tumor Markers", 400.0},
+            {"Troponin", 180.0},
+            {"Pregnancy Test (Beta-hCG)", 80.0},
+            {"Semen Analysis", 150.0},
+
+            // Radiology Exams
+            {"X-Ray Chest", 150.0},
+            {"X-Ray Abdomen", 150.0},
+            {"X-Ray Spine (Cervical)", 150.0},
+            {"X-Ray Spine (Lumbar)", 150.0},
+            {"X-Ray Pelvis", 150.0},
+            {"X-Ray Extremities", 150.0},
+            {"X-Ray Skull", 150.0},
+            {"CT Brain", 700.0},
+            {"CT Chest", 800.0},
+            {"CT Abdomen & Pelvis", 1200.0},
+            {"CT Spine", 800.0},
+            {"CT Angiography", 1500.0},
+            {"MRI Brain", 1200.0},
+            {"MRI Spine (Cervical)", 1200.0},
+            {"MRI Spine (Lumbar)", 1200.0},
+            {"MRI Knee", 1500.0},
+            {"MRI Shoulder", 1500.0},
+            {"MRI Abdomen", 1800.0},
+            {"MRI Pelvis", 1500.0},
+            {"Ultrasound Abdomen", 350.0},
+            {"Ultrasound Pelvis", 350.0},
+            {"Ultrasound Thyroid", 350.0},
+            {"Ultrasound Breast", 400.0},
+            {"Ultrasound Pregnancy (OB)", 300.0},
+            {"Doppler Ultrasound", 500.0},
+            {"Mammography", 450.0},
+            {"Fluoroscopy", 600.0},
+            {"Bone Densitometry (DEXA)", 350.0},
+            {"Panoramic Dental X-Ray", 250.0},
+            {"Echocardiography", 650.0}};
+
+        // Determine base amount
+        double baseAmount = 100.0; // Fallback
+        for (auto it = examPrices.begin(); it != examPrices.end(); ++it) {
+          if (approvedDesc.contains(it.key(), Qt::CaseInsensitive)) {
+            baseAmount = it.value();
+            break;
+          }
+        }
+
         double vat = baseAmount * 0.15;
         double totalAmount = baseAmount + vat;
         QString confirmMsg =
+            tr2("Exam: ", "\xd8\xa7\xd9\x84\xd9\x81\xd8\xad\xd8\xb5: ") +
+            approvedDesc + "\n\n" +
             tr2("Base Amount: ",
                 "\xd8\xa7\xd9\x84\xd9\x85\xd8\xa8\xd9\x84\xd8\xba: ") +
             QString::number(baseAmount, 'f', 2) + " SAR\n" +
@@ -1742,7 +1969,14 @@ QWidget *MainWindow::createReceptionPage() {
             tr2("Total: ", "\xd8\xa7\xd9\x84\xd8\xa5\xd8\xac\xd9\x85\xd8\xa7"
                            "\xd9\x84\xd9\x8a: ") +
             QString::number(totalAmount, 'f', 2) + " SAR\n\n" +
-            tr2("Confirm?", "\xd8\xaa\xd8\xa3\xd9\x83\xd9\x8a\xd8\xaf\xd8\x9f");
+            tr2("Approve and print invoice?",
+                "\xd9\x87\xd9\x84 \xd8\xaa\xd8\xb1\xd9\x8a\xd8\xaf "
+                "\xd8\xa7\xd9\x84\xd9\x85\xd9\x88\xd8\xa7\xd9\x81\xd9\x82\xd8"
+                "\xa9 "
+                "\xd9\x88\xd8\xb7\xd8\xa8\xd8\xa7\xd8\xb9\xd8\xa9 "
+                "\xd8\xa7\xd9\x84\xd9\x81\xd8\xa7\xd8\xaa\xd9\x88\xd8\xb1\xd8"
+                "\xa9\xd8\x9f");
+
         if (QMessageBox::question(
                 nullptr,
                 tr2("Payment + VAT",
@@ -1750,48 +1984,54 @@ QWidget *MainWindow::createReceptionPage() {
                     "\xd8\xa7\xd9\x84\xd8\xb6\xd8\xb1\xd9\x8a\xd8\xa8\xd8\xa9"),
                 confirmMsg) != QMessageBox::Yes)
           return;
+
+        // Mark as approved AND change status to 'Pending Result' so Lab/Rad
+        // sees it
         Database::instance().exec(
             QString("UPDATE lab_radiology_orders SET "
-                    "approval_status='Approved', price=%1 WHERE id=%2")
+                    "approval_status='Approved', status='Pending Result', "
+                    "price=%1 WHERE id=%2")
                 .arg(totalAmount)
                 .arg(orderId));
-        Database::instance().exec(
-            QString(
-                "INSERT INTO invoices (patient_id, amount, description, "
-                "order_id, service_type, status) "
-                "SELECT patient_id, %1, description, %2, order_type, 'Paid' "
-                "FROM lab_radiology_orders WHERE id=%2")
-                .arg(totalAmount)
-                .arg(orderId));
-        // Get patient name for the invoice
-        QString approvedPatient =
-            appTable->item(appTable->indexAt(appBtn->pos()).row(), 1)
-                ? appTable->item(appTable->indexAt(appBtn->pos()).row(), 1)
-                      ->text()
-                : "";
-        QString approvedDesc =
-            appTable->item(appTable->indexAt(appBtn->pos()).row(), 3)
-                ? appTable->item(appTable->indexAt(appBtn->pos()).row(), 3)
-                      ->text()
-                : "";
-        QString approvedType =
-            appTable->item(appTable->indexAt(appBtn->pos()).row(), 2)
-                ? appTable->item(appTable->indexAt(appBtn->pos()).row(), 2)
-                      ->text()
-                : "";
 
+        // Create matching invoice in DB
+        QSqlQuery invQ = Database::instance().exec(
+            QString("SELECT patient_id FROM lab_radiology_orders WHERE id=%1")
+                .arg(orderId));
+        int patIdForInv = 0;
+        if (invQ.next())
+          patIdForInv = invQ.value(0).toInt();
+
+        QSqlQuery insInv = Database::instance().prepare(
+            "INSERT INTO invoices (patient_id, patient_name, order_id, "
+            "service_type, "
+            "invoice_number, description, amount, vat_amount, total, paid) "
+            "VALUES "
+            "(?, ?, ?, ?, ?, ?, ?, ?, ?, 1)");
+
+        InvoiceData invData = InvoiceGenerator::createOrderInvoice(
+            approvedPatient, approvedDesc, approvedType, baseAmount, vat,
+            totalAmount);
+
+        insInv.addBindValue(patIdForInv);
+        insInv.addBindValue(approvedPatient);
+        insInv.addBindValue(orderId);
+        insInv.addBindValue(approvedType);
+        insInv.addBindValue(invData.invoiceNumber);
+        insInv.addBindValue(approvedDesc);
+        insInv.addBindValue(baseAmount);
+        insInv.addBindValue(vat);
+        insInv.addBindValue(totalAmount);
+        insInv.exec();
+
+        // Remove row from UI
         for (int r = 0; r < appTable->rowCount(); r++) {
           if (appTable->cellWidget(r, 4) == appBtn) {
-            if (approvedPatient.isEmpty() && appTable->item(r, 1))
-              approvedPatient = appTable->item(r, 1)->text();
-            if (approvedDesc.isEmpty() && appTable->item(r, 3))
-              approvedDesc = appTable->item(r, 3)->text();
-            if (approvedType.isEmpty() && appTable->item(r, 2))
-              approvedType = appTable->item(r, 2)->text();
             appTable->removeRow(r);
             break;
           }
         }
+
         QMessageBox::information(
             nullptr,
             tr2("Approved", "\xd8\xaa\xd9\x85\xd8\xaa "
@@ -1799,15 +2039,14 @@ QWidget *MainWindow::createReceptionPage() {
                             "\xd9\x82\xd8\xa9"),
             tr2("Collected: ",
                 "\xd8\xa7\xd9\x84\xd9\x85\xd8\xad\xd8\xb5\xd9\x84: ") +
-                QString::number(totalAmount, 'f', 2) + " SAR " +
-                tr2("(incl. 15% VAT)", "(\xd8\xb4\xd8\xa7\xd9\x85\xd9\x84 "
-                                       "\xd8\xa7\xd9\x84\xd8\xb6\xd8\xb1\xd9"
-                                       "\x8a\xd8\xa8\xd8\xa9 15%)"));
+                QString::number(totalAmount, 'f', 2) + " SAR\n" +
+                tr2("The order has been sent to the lab/radiology department.",
+                    "\xd8\xaa\xd9\x85 \xd8\xa5\xd8\xb1\xd8\xb3\xd8\xa7\xd9\x84 "
+                    "\xd8\xa7\xd9\x84\xd8\xb7\xd9\x84\xd8\xa8 "
+                    "\xd9\x84\xd9\x84\xd9\x82\xd8\xb3\xd9\x85 "
+                    "\xd8\xa7\xd9\x84\xd9\x85\xd8\xae\xd8\xaa\xd8\xb5."));
 
-        // Generate and show invoice for the approved order
-        InvoiceData invData = InvoiceGenerator::createOrderInvoice(
-            approvedPatient, approvedDesc, approvedType, baseAmount, vat,
-            totalAmount);
+        // Show invoice preview
         InvoiceGenerator::showPrintPreview(invData, nullptr);
       });
 
@@ -2703,7 +2942,8 @@ QWidget *MainWindow::createDoctorStationPage() {
     // Previous lab/radiology orders
     QSqlQuery ql = Database::instance().exec(
         QString(
-            "SELECT order_type, description, approval_status, created_at "
+            "SELECT order_type, description, status, created_at, results, "
+            "structured_report "
             "FROM lab_radiology_orders WHERE patient_id=%1 ORDER BY id DESC")
             .arg(patId));
     if (ql.next()) {
@@ -2716,6 +2956,15 @@ QWidget *MainWindow::createDoctorStationPage() {
         history += ql.value(3).toString() + ": " + ql.value(0).toString() +
                    " - " + ql.value(1).toString() + " [" +
                    ql.value(2).toString() + "]\n";
+
+        QString resText = ql.value(4).toString();
+        if (!resText.isEmpty())
+          history += "  » Result: " + resText + "\n";
+
+        QString radText = ql.value(5).toString();
+        if (!radText.isEmpty())
+          history += "  » Report: " + radText + "\n";
+
       } while (ql.next());
     }
 
@@ -2810,6 +3059,125 @@ QWidget *MainWindow::createDoctorStationPage() {
           "\xd9\x82\xd8\xa7\xd8\xa6\xd9\x85\xd8\xa9 "
           "\xd8\xa7\xd9\x84\xd8\xa7\xd9\x86\xd8\xaa\xd8\xb8\xd8\xa7\xd8\xb1"));
 
+  // --- Tab 1b: Vital Signs ---
+  QWidget *tabVitals = new QWidget();
+  QHBoxLayout *layVitals = new QHBoxLayout(tabVitals);
+
+  // Vitals form
+  QGroupBox *formBox = new QGroupBox(
+      tr2("Record Vital Signs",
+          "\xd8\xaa\xd8\xb3\xd8\xac\xd9\x8a\xd9\x84 "
+          "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x84\xd8\xa7\xd9\x85\xd8\xa7\xd8\xaa "
+          "\xd8\xa7\xd9\x84\xd8\xad\xd9\x8a\xd9\x88\xd9\x8a\xd8\xa9"));
+  formBox->setObjectName("card");
+  QVBoxLayout *fl = new QVBoxLayout(formBox);
+
+  auto addDrVitalField = [&](const QString &en, const QString &ar,
+                             const QString &ph) -> QLineEdit * {
+    fl->addWidget(new QLabel(tr2(en, ar)));
+    QLineEdit *e = new QLineEdit();
+    e->setFixedHeight(36);
+    e->setPlaceholderText(ph);
+    fl->addWidget(e);
+    return e;
+  };
+
+  QLineEdit *bp = addDrVitalField(
+      "Blood Pressure",
+      "\xd8\xb6\xd8\xba\xd8\xb7 \xd8\xa7\xd9\x84\xd8\xaf\xd9\x85", "120/80");
+  QLineEdit *temp = addDrVitalField(
+      "Temperature (C)",
+      "\xd8\xa7\xd9\x84\xd8\xad\xd8\xb1\xd8\xa7\xd8\xb1\xd8\xa9", "37.0");
+  QLineEdit *pulse = addDrVitalField(
+      "Pulse (bpm)", "\xd8\xa7\xd9\x84\xd9\x86\xd8\xa8\xd8\xb6", "72");
+  QLineEdit *weight = addDrVitalField(
+      "Weight (kg)", "\xd8\xa7\xd9\x84\xd9\x88\xd8\xb2\xd9\x86", "70");
+  QLineEdit *height = addDrVitalField(
+      "Height (cm)", "\xd8\xa7\xd9\x84\xd8\xb7\xd9\x88\xd9\x84", "170");
+
+  QPushButton *saveVitalsBtn = new QPushButton(
+      tr2("Save Vitals",
+          "\xd8\xad\xd9\x81\xd8\xb8 "
+          "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x84\xd8\xa7\xd9\x85\xd8\xa7\xd8\xaa"));
+  saveVitalsBtn->setObjectName("primaryBtn");
+  saveVitalsBtn->setFixedHeight(45);
+  fl->addWidget(saveVitalsBtn);
+  fl->addStretch();
+
+  // Vitals log table
+  QGroupBox *logBox = new QGroupBox(
+      tr2("Recent Vitals Log",
+          "\xd8\xb3\xd8\xac\xd9\x84 "
+          "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x84\xd8\xa7\xd9\x85\xd8\xa7\xd8\xaa"));
+  logBox->setObjectName("card");
+  QVBoxLayout *ll = new QVBoxLayout(logBox);
+  QTableWidget *logTable = new QTableWidget();
+  logTable->setColumnCount(6);
+  logTable->setHorizontalHeaderLabels(
+      {tr2("Date", "\xd8\xa7\xd9\x84\xd8\xaa\xd8\xa7\xd8\xb1\xd9\x8a\xd8\xae"),
+       tr2("BP", "\xd8\xa7\xd9\x84\xd8\xb6\xd8\xba\xd8\xb7"),
+       tr2("Temp", "\xd8\xa7\xd9\x84\xd8\xad\xd8\xb1\xd8\xa7\xd8\xb1\xd8\xa9"),
+       tr2("Pulse", "\xd8\xa7\xd9\x84\xd9\x86\xd8\xa8\xd8\xb6"),
+       tr2("Weight", "\xd8\xa7\xd9\x84\xd9\x88\xd8\xb2\xd9\x86"),
+       tr2("Height", "\xd8\xa7\xd9\x84\xd8\xb7\xd9\x88\xd9\x84")});
+  logTable->horizontalHeader()->setStretchLastSection(true);
+  logTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+  logTable->verticalHeader()->setVisible(false);
+
+  connect(saveVitalsBtn, &QPushButton::clicked, [=]() {
+    int pid = selectedPatId->text().toInt();
+    if (pid == 0) {
+      QMessageBox::warning(
+          nullptr, tr2("Error", "\xd8\xae\xd8\xb7\xd8\xa3"),
+          tr2("Please load a patient first.",
+              "\xd9\x8a\xd8\xb1\xd8\xac\xd9\x89 "
+              "\xd8\xaa\xd8\xad\xd9\x85\xd9\x8a\xd9\x84 "
+              "\xd9\x85\xd9\x84\xd9\x81 "
+              "\xd8\xa7\xd9\x84\xd9\x85\xd8\xb1\xd9\x8a\xd8\xb6 "
+              "\xd8\xa3\xd9\x88\xd9\x84\xd8\xa7\xd9\x8b."));
+      return;
+    }
+    if (bp->text().isEmpty())
+      return;
+
+    // Save to DB (Optional, assuming vitals table or using medical_records
+    // notes) For now, we just add it to the local log table.
+
+    int r = logTable->rowCount();
+    logTable->insertRow(r);
+    logTable->setItem(
+        r, 0,
+        new QTableWidgetItem(
+            QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm")));
+    logTable->setItem(r, 1, new QTableWidgetItem(bp->text()));
+    logTable->setItem(r, 2, new QTableWidgetItem(temp->text()));
+    logTable->setItem(r, 3, new QTableWidgetItem(pulse->text()));
+    logTable->setItem(r, 4, new QTableWidgetItem(weight->text()));
+    logTable->setItem(r, 5, new QTableWidgetItem(height->text()));
+
+    bp->clear();
+    temp->clear();
+    pulse->clear();
+    weight->clear();
+    height->clear();
+    QMessageBox::information(
+        nullptr, tr2("Saved", "\xd8\xaa\xd9\x85"),
+        tr2("Vitals recorded successfully",
+            "\xd8\xaa\xd9\x85 \xd8\xaa\xd8\xb3\xd8\xac\xd9\x8a\xd9\x84 "
+            "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x84\xd8\xa7\xd9\x85\xd8\xa7\xd8"
+            "\xaa"));
+  });
+
+  ll->addWidget(logTable);
+  layVitals->addWidget(formBox, 1);
+  layVitals->addWidget(logBox, 2);
+
+  tabs->addTab(
+      tabVitals,
+      tr2("Vital Signs",
+          "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x84\xd8\xa7\xd9\x85\xd8\xa7\xd8\xaa "
+          "\xd8\xa7\xd9\x84\xd8\xad\xd9\x8a\xd9\x88\xd9\x8a\xd8\xa9"));
+
   // --- Tab 2: Diagnosis & Medical Report ---
   QWidget *tabDiag = new QWidget();
   QVBoxLayout *layDiag = new QVBoxLayout(tabDiag);
@@ -2902,33 +3270,244 @@ QWidget *MainWindow::createDoctorStationPage() {
   QWidget *tabOrders = new QWidget();
   QVBoxLayout *layOrders = new QVBoxLayout(tabOrders);
 
-  QHBoxLayout *orderBtns = new QHBoxLayout();
-  QComboBox *orderType = new QComboBox();
-  orderType->setFixedHeight(38);
-  orderType->addItem(tr2("Lab Test",
-                         "\xd8\xaa\xd8\xad\xd9\x84\xd9\x8a\xd9\x84 "
-                         "\xd9\x85\xd8\xae\xd8\xaa\xd8\xa8\xd8\xb1"),
-                     "Lab");
-  orderType->addItem(tr2("Radiology", "\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9"),
-                     "Radiology");
-  orderBtns->addWidget(orderType);
+  // Two side-by-side checkbox panels
+  QHBoxLayout *checkPanels = new QHBoxLayout();
 
-  QLineEdit *orderDesc = new QLineEdit();
-  orderDesc->setFixedHeight(38);
-  orderDesc->setPlaceholderText(
-      tr2("Test/Scan description...",
-          "\xd9\x88\xd8\xb5\xd9\x81 "
-          "\xd8\xa7\xd9\x84\xd8\xaa\xd8\xad\xd9\x84\xd9\x8a\xd9\x84 / "
-          "\xd8\xa7\xd9\x84\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9..."));
-  orderBtns->addWidget(orderDesc, 1);
+  // === LAB TESTS PANEL ===
+  QGroupBox *labBox = new QGroupBox(tr2(
+      "Lab Tests", "\xd8\xaa\xd8\xad\xd8\xa7\xd9\x84\xd9\x8a\xd9\x84 "
+                   "\xd8\xa7\xd9\x84\xd9\x85\xd8\xae\xd8\xaa\xd8\xa8\xd8\xb1"));
+  labBox->setObjectName("card");
+  QVBoxLayout *labLay = new QVBoxLayout();
+  QList<QCheckBox *> *labChecks = new QList<QCheckBox *>();
 
+  auto addLabCB = [&](const QString &en, const QString &ar) {
+    QCheckBox *cb = new QCheckBox(tr2(en, ar));
+    cb->setStyleSheet(
+        "QCheckBox { spacing: 6px; font-size: 13px; padding: 3px 0; }"
+        "QCheckBox::indicator { width: 18px; height: 18px; }");
+    labLay->addWidget(cb);
+    labChecks->append(cb);
+  };
+  addLabCB("CBC - Complete Blood Count",
+           "CBC - \xd8\xb5\xd9\x88\xd8\xb1\xd8\xa9 \xd8\xaf\xd9\x85 "
+           "\xd8\xb4\xd8\xa7\xd9\x85\xd9\x84\xd8\xa9");
+  addLabCB("ESR - Sedimentation Rate",
+           "ESR - \xd8\xb3\xd8\xb1\xd8\xb9\xd8\xa9 "
+           "\xd8\xaa\xd8\xb1\xd8\xb3\xd9\x8a\xd8\xa8");
+  addLabCB("Coagulation (PT/INR)", "\xd8\xaa\xd8\xae\xd8\xab\xd8\xb1 "
+                                   "\xd8\xa7\xd9\x84\xd8\xaf\xd9\x85 (PT/INR)");
+  addLabCB("D-Dimer",
+           "\xd8\xaf\xd9\x8a \xd8\xaf\xd8\xa7\xd9\x8a\xd9\x85\xd8\xb1");
+  addLabCB("Blood Group & Rh", "\xd9\x81\xd8\xb5\xd9\x8a\xd9\x84\xd8\xa9 "
+                               "\xd8\xa7\xd9\x84\xd8\xaf\xd9\x85");
+  addLabCB("Blood Glucose (Fasting)",
+           "\xd8\xb3\xd9\x83\xd8\xb1 \xd8\xb5\xd8\xa7\xd8\xa6\xd9\x85");
+  addLabCB("Blood Glucose (Random)",
+           "\xd8\xb3\xd9\x83\xd8\xb1 "
+           "\xd8\xb9\xd8\xb4\xd9\x88\xd8\xa7\xd8\xa6\xd9\x8a");
+  addLabCB("HbA1c - Glycated Hemoglobin",
+           "HbA1c - \xd8\xa7\xd9\x84\xd8\xb3\xd9\x83\xd8\xb1 "
+           "\xd8\xa7\xd9\x84\xd8\xaa\xd8\xb1\xd8\xa7\xd9\x83\xd9\x85\xd9\x8a");
+  addLabCB("Lipid Profile",
+           "\xd8\xaf\xd9\x87\xd9\x88\xd9\x86 \xd8\xa7\xd9\x84\xd8\xaf\xd9\x85");
+  addLabCB("Liver Function (LFT)", "\xd9\x88\xd8\xb8\xd8\xa7\xd8\xa6\xd9\x81 "
+                                   "\xd8\xa7\xd9\x84\xd9\x83\xd8\xa8\xd8\xaf");
+  addLabCB("Kidney Function (KFT)", "\xd9\x88\xd8\xb8\xd8\xa7\xd8\xa6\xd9\x81 "
+                                    "\xd8\xa7\xd9\x84\xd9\x83\xd9\x84\xd9\x89");
+  addLabCB("Uric Acid",
+           "\xd8\xad\xd9\x85\xd8\xb6 "
+           "\xd8\xa7\xd9\x84\xd9\x8a\xd9\x88\xd8\xb1\xd9\x8a\xd9\x83");
+  addLabCB("Electrolytes (Na/K/Cl)",
+           "\xd8\xa7\xd9\x84\xd9\x83\xd9\x87\xd8\xa7\xd8\xb1\xd9\x84");
+  addLabCB(
+      "Calcium & Phosphorus",
+      "\xd8\xa7\xd9\x84\xd9\x83\xd8\xa7\xd9\x84\xd8\xb3\xd9\x8a\xd9\x88\xd9\x85"
+      " \xd9\x88\xd8\xa7\xd9\x84\xd9\x81\xd8\xb3\xd9\x81\xd9\x88\xd8\xb1");
+  addLabCB(
+      "CRP - C-Reactive Protein",
+      "CRP - \xd8\xa8\xd8\xb1\xd9\x88\xd8\xaa\xd9\x8a\xd9\x86 \xd8\xb3\xd9\x8a "
+      "\xd8\xa7\xd9\x84\xd8\xaa\xd9\x81\xd8\xa7\xd8\xb9\xd9\x84\xd9\x8a");
+  addLabCB("Thyroid Function (TSH/T3/T4)",
+           "\xd9\x88\xd8\xb8\xd8\xa7\xd8\xa6\xd9\x81 "
+           "\xd8\xa7\xd9\x84\xd8\xba\xd8\xaf\xd8\xa9 "
+           "\xd8\xa7\xd9\x84\xd8\xaf\xd8\xb1\xd9\x82\xd9\x8a\xd8\xa9");
+  addLabCB("Hormones Panel", "\xd9\x81\xd8\xad\xd8\xb5 "
+                             "\xd8\xa7\xd9\x84\xd9\x87\xd8\xb1\xd9\x85\xd9\x88"
+                             "\xd9\x86\xd8\xa7\xd8\xaa");
+  addLabCB("Vitamin D",
+           "\xd9\x81\xd9\x8a\xd8\xaa\xd8\xa7\xd9\x85\xd9\x8a\xd9\x86 \xd8\xaf");
+  addLabCB("Vitamin B12",
+           "\xd9\x81\xd9\x8a\xd8\xaa\xd8\xa7\xd9\x85\xd9\x8a\xd9\x86 \xd8\xa8"
+           "12");
+  addLabCB("Iron & Ferritin", "\xd8\xa7\xd9\x84\xd8\xad\xd8\xaf\xd9\x8a\xd8\xaf"
+                              " \xd9\x88\xd8\xa7\xd9\x84\xd9\x81\xd9\x8a\xd8"
+                              "\xb1\xd9\x8a\xd8\xaa\xd9\x8a\xd9\x86");
+  addLabCB("Urine Analysis",
+           "\xd8\xaa\xd8\xad\xd9\x84\xd9\x8a\xd9\x84 \xd8\xa8\xd9\x88\xd9\x84");
+  addLabCB("Stool Analysis", "\xd8\xaa\xd8\xad\xd9\x84\xd9\x8a\xd9\x84 "
+                             "\xd8\xa8\xd8\xb1\xd8\xa7\xd8\xb2");
+  addLabCB("Blood Culture",
+           "\xd9\x85\xd8\xb2\xd8\xb1\xd8\xb9\xd8\xa9 \xd8\xaf\xd9\x85");
+  addLabCB("Urine Culture",
+           "\xd9\x85\xd8\xb2\xd8\xb1\xd8\xb9\xd8\xa9 \xd8\xa8\xd9\x88\xd9\x84");
+  addLabCB("HBsAg - Hepatitis B",
+           "HBsAg - \xd8\xa7\xd9\x84\xd8\xaa\xd9\x87\xd8\xa7\xd8\xa8 "
+           "\xd8\xa7\xd9\x84\xd9\x83\xd8\xa8\xd8\xaf B");
+  addLabCB("HCV Ab - Hepatitis C",
+           "HCV Ab - \xd8\xa7\xd9\x84\xd8\xaa\xd9\x87\xd8\xa7\xd8\xa8 "
+           "\xd8\xa7\xd9\x84\xd9\x83\xd8\xa8\xd8\xaf C");
+  addLabCB("HIV Test",
+           "HIV - \xd9\x81\xd8\xad\xd8\xb5 \xd9\x86\xd9\x82\xd8\xb5 "
+           "\xd8\xa7\xd9\x84\xd9\x85\xd9\x86\xd8\xa7\xd8\xb9\xd8\xa9");
+  addLabCB("ANA - Antinuclear Antibody",
+           "ANA - \xd8\xa7\xd9\x84\xd8\xa3\xd8\xac\xd8\xb3\xd8\xa7\xd9\x85 "
+           "\xd8\xa7\xd9\x84\xd9\x85\xd8\xb6\xd8\xa7\xd8\xaf\xd8\xa9");
+  addLabCB("RF - Rheumatoid Factor",
+           "RF - \xd8\xa7\xd9\x84\xd8\xb9\xd8\xa7\xd9\x85\xd9\x84 "
+           "\xd8\xa7\xd9\x84\xd8\xb1\xd9\x88\xd9\x85\xd8\xa7\xd8\xaa\xd9\x88"
+           "\xd9\x8a\xd8\xaf\xd9\x8a");
+  addLabCB("PSA - Prostate Antigen",
+           "PSA - \xd9\x85\xd8\xb3\xd8\xaa\xd8\xb6\xd8\xaf "
+           "\xd8\xa7\xd9\x84\xd8\xa8\xd8\xb1\xd9\x88\xd8\xb3\xd8\xaa\xd8\xa7"
+           "\xd8\xaa\xd8\xa7");
+  addLabCB("Tumor Markers",
+           "\xd8\xaf\xd9\x84\xd8\xa7\xd9\x84\xd8\xa7\xd8\xaa "
+           "\xd8\xa7\xd9\x84\xd8\xa3\xd9\x88\xd8\xb1\xd8\xa7\xd9\x85");
+  addLabCB("Troponin",
+           "\xd8\xaa\xd8\xb1\xd9\x88\xd8\xa8\xd9\x88\xd9\x86\xd9\x8a\xd9\x86");
+  addLabCB("Pregnancy Test (Beta-hCG)",
+           "\xd8\xa7\xd8\xae\xd8\xaa\xd8\xa8\xd8\xa7\xd8\xb1 "
+           "\xd8\xa7\xd9\x84\xd8\xad\xd9\x85\xd9\x84");
+  addLabCB("Semen Analysis",
+           "\xd8\xaa\xd8\xad\xd9\x84\xd9\x8a\xd9\x84 "
+           "\xd8\xa7\xd9\x84\xd8\xb3\xd8\xa7\xd8\xa6\xd9\x84 "
+           "\xd8\xa7\xd9\x84\xd9\x85\xd9\x86\xd9\x88\xd9\x8a");
+  labLay->addStretch();
+
+  QWidget *labScrollW = new QWidget();
+  labScrollW->setLayout(labLay);
+  QScrollArea *labScroll = new QScrollArea();
+  labScroll->setWidget(labScrollW);
+  labScroll->setWidgetResizable(true);
+  labScroll->setStyleSheet("QScrollArea { border: none; }");
+  QVBoxLayout *labBoxLay = new QVBoxLayout(labBox);
+  labBoxLay->addWidget(labScroll);
+  checkPanels->addWidget(labBox);
+
+  // === RADIOLOGY PANEL ===
+  QGroupBox *radBox = new QGroupBox(
+      tr2("Radiology & Imaging",
+          "\xd8\xa7\xd9\x84\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 "
+          "\xd9\x88\xd8\xa7\xd9\x84\xd8\xaa\xd8\xb5\xd9\x88\xd9\x8a\xd8\xb1"));
+  radBox->setObjectName("card");
+  QVBoxLayout *radLay = new QVBoxLayout();
+  QList<QCheckBox *> *radChecks = new QList<QCheckBox *>();
+
+  auto addRadCB = [&](const QString &en, const QString &ar) {
+    QCheckBox *cb = new QCheckBox(tr2(en, ar));
+    cb->setStyleSheet(
+        "QCheckBox { spacing: 6px; font-size: 13px; padding: 3px 0; }"
+        "QCheckBox::indicator { width: 18px; height: 18px; }");
+    radLay->addWidget(cb);
+    radChecks->append(cb);
+  };
+  addRadCB("X-Ray Chest",
+           "\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 \xd8\xb5\xd8\xaf\xd8\xb1");
+  addRadCB("X-Ray Abdomen",
+           "\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 \xd8\xa8\xd8\xb7\xd9\x86");
+  addRadCB("X-Ray Spine (Cervical)",
+           "\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 "
+           "\xd8\xb9\xd9\x86\xd9\x82\xd9\x8a\xd8\xa9");
+  addRadCB("X-Ray Spine (Lumbar)", "\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 "
+                                   "\xd9\x82\xd8\xb7\xd9\x86\xd9\x8a\xd8\xa9");
+  addRadCB("X-Ray Pelvis",
+           "\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 \xd8\xad\xd9\x88\xd8\xb6");
+  addRadCB("X-Ray Extremities", "\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 "
+                                "\xd8\xa3\xd8\xb7\xd8\xb1\xd8\xa7\xd9\x81");
+  addRadCB("X-Ray Skull", "\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 "
+                          "\xd8\xac\xd9\x85\xd8\xac\xd9\x85\xd8\xa9");
+  addRadCB("CT Brain", "\xd9\x85\xd9\x82\xd8\xb7\xd8\xb9\xd9\x8a\xd8\xa9 "
+                       "\xd8\xa7\xd9\x84\xd9\x85\xd8\xae");
+  addRadCB("CT Chest", "\xd9\x85\xd9\x82\xd8\xb7\xd8\xb9\xd9\x8a\xd8\xa9 "
+                       "\xd8\xa7\xd9\x84\xd8\xb5\xd8\xaf\xd8\xb1");
+  addRadCB("CT Abdomen & Pelvis",
+           "\xd9\x85\xd9\x82\xd8\xb7\xd8\xb9\xd9\x8a\xd8\xa9 "
+           "\xd8\xa8\xd8\xb7\xd9\x86 \xd9\x88\xd8\xad\xd9\x88\xd8\xb6");
+  addRadCB("CT Spine", "\xd9\x85\xd9\x82\xd8\xb7\xd8\xb9\xd9\x8a\xd8\xa9 "
+                       "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x85\xd9\x88\xd8\xaf "
+                       "\xd8\xa7\xd9\x84\xd9\x81\xd9\x82\xd8\xb1\xd9\x8a");
+  addRadCB("CT Angiography",
+           "\xd8\xaa\xd8\xb5\xd9\x88\xd9\x8a\xd8\xb1 "
+           "\xd9\x85\xd9\x82\xd8\xb7\xd8\xb9\xd9\x8a "
+           "\xd9\x84\xd9\x84\xd8\xa3\xd9\x88\xd8\xb9\xd9\x8a\xd8\xa9");
+  addRadCB("MRI Brain", "\xd8\xb1\xd9\x86\xd9\x8a\xd9\x86 "
+                        "\xd9\x85\xd8\xba\xd9\x86\xd8\xa7\xd8\xb7\xd9\x8a\xd8"
+                        "\xb3\xd9\x8a \xd9\x84\xd9\x84\xd9\x85\xd8\xae");
+  addRadCB("MRI Spine (Cervical)",
+           "\xd8\xb1\xd9\x86\xd9\x8a\xd9\x86 \xd8\xb9\xd9\x86\xd9\x82\xd9\x8a");
+  addRadCB("MRI Spine (Lumbar)",
+           "\xd8\xb1\xd9\x86\xd9\x8a\xd9\x86 \xd9\x82\xd8\xb7\xd9\x86\xd9\x8a");
+  addRadCB("MRI Knee", "\xd8\xb1\xd9\x86\xd9\x8a\xd9\x86 "
+                       "\xd8\xa7\xd9\x84\xd8\xb1\xd9\x83\xd8\xa8\xd8\xa9");
+  addRadCB("MRI Shoulder", "\xd8\xb1\xd9\x86\xd9\x8a\xd9\x86 "
+                           "\xd8\xa7\xd9\x84\xd9\x83\xd8\xaa\xd9\x81");
+  addRadCB("MRI Abdomen", "\xd8\xb1\xd9\x86\xd9\x8a\xd9\x86 "
+                          "\xd8\xa7\xd9\x84\xd8\xa8\xd8\xb7\xd9\x86");
+  addRadCB("MRI Pelvis", "\xd8\xb1\xd9\x86\xd9\x8a\xd9\x86 "
+                         "\xd8\xa7\xd9\x84\xd8\xad\xd9\x88\xd8\xb6");
+  addRadCB("Ultrasound Abdomen", "\xd8\xb3\xd9\x88\xd9\x86\xd8\xa7\xd8\xb1 "
+                                 "\xd8\xa7\xd9\x84\xd8\xa8\xd8\xb7\xd9\x86");
+  addRadCB("Ultrasound Pelvis", "\xd8\xb3\xd9\x88\xd9\x86\xd8\xa7\xd8\xb1 "
+                                "\xd8\xa7\xd9\x84\xd8\xad\xd9\x88\xd8\xb6");
+  addRadCB("Ultrasound Thyroid",
+           "\xd8\xb3\xd9\x88\xd9\x86\xd8\xa7\xd8\xb1 "
+           "\xd8\xa7\xd9\x84\xd8\xba\xd8\xaf\xd8\xa9 "
+           "\xd8\xa7\xd9\x84\xd8\xaf\xd8\xb1\xd9\x82\xd9\x8a\xd8\xa9");
+  addRadCB("Ultrasound Breast", "\xd8\xb3\xd9\x88\xd9\x86\xd8\xa7\xd8\xb1 "
+                                "\xd8\xa7\xd9\x84\xd8\xab\xd8\xaf\xd9\x8a");
+  addRadCB("Ultrasound Pregnancy (OB)",
+           "\xd8\xb3\xd9\x88\xd9\x86\xd8\xa7\xd8\xb1 "
+           "\xd8\xa7\xd9\x84\xd8\xad\xd9\x85\xd9\x84");
+  addRadCB("Doppler Ultrasound",
+           "\xd8\xaf\xd9\x88\xd8\xa8\xd9\x84\xd8\xb1 "
+           "\xd8\xa7\xd9\x84\xd8\xa3\xd9\x88\xd8\xb9\xd9\x8a\xd8\xa9");
+  addRadCB("Mammography", "\xd8\xaa\xd8\xb5\xd9\x88\xd9\x8a\xd8\xb1 "
+                          "\xd8\xa7\xd9\x84\xd8\xab\xd8\xaf\xd9\x8a");
+  addRadCB("Fluoroscopy", "\xd8\xaa\xd9\x86\xd8\xb8\xd9\x8a\xd8\xb1 "
+                          "\xd8\xb4\xd8\xb9\xd8\xa7\xd8\xb9\xd9\x8a");
+  addRadCB("Bone Densitometry (DEXA)",
+           "\xd9\x82\xd9\x8a\xd8\xa7\xd8\xb3 "
+           "\xd9\x83\xd8\xab\xd8\xa7\xd9\x81\xd8\xa9 "
+           "\xd8\xa7\xd9\x84\xd8\xb9\xd8\xb8\xd8\xa7\xd9\x85");
+  addRadCB("Panoramic Dental X-Ray",
+           "\xd8\xa8\xd8\xa7\xd9\x86\xd9\x88\xd8\xb1\xd8\xa7\xd9\x85\xd8\xa7 "
+           "\xd8\xa3\xd8\xb3\xd9\x86\xd8\xa7\xd9\x86");
+  addRadCB("Echocardiography", "\xd8\xa5\xd9\x8a\xd9\x83\xd9\x88 "
+                               "\xd8\xa7\xd9\x84\xd9\x82\xd9\x84\xd8\xa8");
+  radLay->addStretch();
+
+  QWidget *radScrollW = new QWidget();
+  radScrollW->setLayout(radLay);
+  QScrollArea *radScroll = new QScrollArea();
+  radScroll->setWidget(radScrollW);
+  radScroll->setWidgetResizable(true);
+  radScroll->setStyleSheet("QScrollArea { border: none; }");
+  QVBoxLayout *radBoxLay = new QVBoxLayout(radBox);
+  radBoxLay->addWidget(radScroll);
+  checkPanels->addWidget(radBox);
+
+  layOrders->addLayout(checkPanels);
+
+  // Send button
   QPushButton *sendOrderBtn = new QPushButton(
-      tr2("Send Order", "\xd8\xa5\xd8\xb1\xd8\xb3\xd8\xa7\xd9\x84 "
-                        "\xd8\xa7\xd9\x84\xd8\xb7\xd9\x84\xd8\xa8"));
+      tr2("Send Selected Orders",
+          "\xd8\xa5\xd8\xb1\xd8\xb3\xd8\xa7\xd9\x84 "
+          "\xd8\xa7\xd9\x84\xd8\xb7\xd9\x84\xd8\xa8\xd8\xa7\xd8\xaa "
+          "\xd8\xa7\xd9\x84\xd9\x85\xd8\xad\xd8\xaf\xd8\xaf\xd8\xa9"));
   sendOrderBtn->setObjectName("primaryBtn");
-  sendOrderBtn->setFixedHeight(38);
-  orderBtns->addWidget(sendOrderBtn);
-  layOrders->addLayout(orderBtns);
+  sendOrderBtn->setFixedHeight(42);
+  layOrders->addWidget(sendOrderBtn);
 
   // Orders table
   QTableWidget *tblOrders = new QTableWidget();
@@ -2957,48 +3536,91 @@ QWidget *MainWindow::createDoctorStationPage() {
               "\xd8\xa3\xd9\x88\xd9\x84\xd8\xa7\xd9\x8b."));
       return;
     }
-    if (orderDesc->text().trimmed().isEmpty())
+    int sent = 0;
+    // Send lab orders
+    for (QCheckBox *cb : *labChecks) {
+      if (!cb->isChecked())
+        continue;
+      QString desc = cb->text();
+      Database::instance().exec(
+          QString("INSERT INTO lab_radiology_orders (patient_id, doctor_id, "
+                  "order_type, description, status, is_radiology, "
+                  "approval_status) VALUES (%1,0,N'Lab',N'%2','Pending "
+                  "Payment',0,N'Pending Approval')")
+              .arg(pid)
+              .arg(desc.replace("'", "''")));
+      int nr = tblOrders->rowCount();
+      tblOrders->insertRow(nr);
+      tblOrders->setItem(
+          nr, 0,
+          new QTableWidgetItem(
+              tr2("Lab Test", "\xd8\xaa\xd8\xad\xd9\x84\xd9\x8a\xd9\x84 "
+                              "\xd9\x85\xd8\xae\xd8\xaa\xd8\xa8\xd8\xb1")));
+      tblOrders->setItem(nr, 1, new QTableWidgetItem(cb->text()));
+      QTableWidgetItem *st = new QTableWidgetItem(tr2(
+          "Pending Approval",
+          "\xd8\xa8\xd8\xa7\xd9\x86\xd8\xaa\xd8\xb8\xd8\xa7\xd8\xb1 "
+          "\xd8\xa7\xd9\x84\xd9\x85\xd9\x88\xd8\xa7\xd9\x81\xd9\x82\xd8\xa9"));
+      st->setForeground(QColor("#f59e0b")); // Orange color for pending approval
+      tblOrders->setItem(nr, 2, st);
+      tblOrders->setItem(nr, 3, new QTableWidgetItem("-"));
+      cb->setChecked(false);
+      sent++;
+    }
+    // Send radiology orders
+    for (QCheckBox *cb : *radChecks) {
+      if (!cb->isChecked())
+        continue;
+      QString desc = cb->text();
+      Database::instance().exec(
+          QString("INSERT INTO lab_radiology_orders (patient_id, doctor_id, "
+                  "order_type, description, status, is_radiology, "
+                  "approval_status) VALUES (%1,0,N'Radiology',N'%2','Pending "
+                  "Payment',1,N'Pending Approval')")
+              .arg(pid)
+              .arg(desc.replace("'", "''")));
+      int nr = tblOrders->rowCount();
+      tblOrders->insertRow(nr);
+      tblOrders->setItem(nr, 0,
+                         new QTableWidgetItem(tr2(
+                             "Radiology", "\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9")));
+      tblOrders->setItem(nr, 1, new QTableWidgetItem(cb->text()));
+      QTableWidgetItem *st = new QTableWidgetItem(tr2(
+          "Pending Approval",
+          "\xd8\xa8\xd8\xa7\xd9\x86\xd8\xaa\xd8\xb8\xd8\xa7\xd8\xb1 "
+          "\xd8\xa7\xd9\x84\xd9\x85\xd9\x88\xd8\xa7\xd9\x81\xd9\x82\xd8\xa9"));
+      st->setForeground(QColor("#f59e0b"));
+      tblOrders->setItem(nr, 2, st);
+      tblOrders->setItem(nr, 3, new QTableWidgetItem("-"));
+      cb->setChecked(false);
+      sent++;
+    }
+    if (sent == 0) {
+      QMessageBox::warning(
+          nullptr, tr2("Error", "\xd8\xae\xd8\xb7\xd8\xa3"),
+          tr2("Please select at least one test or exam.",
+              "\xd9\x8a\xd8\xb1\xd8\xac\xd9\x89 "
+              "\xd8\xa7\xd8\xae\xd8\xaa\xd9\x8a\xd8\xa7\xd8\xb1 "
+              "\xd9\x81\xd8\xad\xd8\xb5 \xd9\x88\xd8\xa7\xd8\xad\xd8\xaf "
+              "\xd8\xb9\xd9\x84\xd9\x89 "
+              "\xd8\xa7\xd9\x84\xd8\xa3\xd9\x82\xd9\x84."));
       return;
-    bool isRad = orderType->currentData().toString() == "Radiology";
-    Database::instance().exec(
-        QString("INSERT INTO lab_radiology_orders (patient_id, doctor_id, "
-                "order_type, description, status, is_radiology, "
-                "approval_status) VALUES (%1,0,N'%2',N'%3','Pending "
-                "Approval',%4,N'Pending Approval')")
-            .arg(pid)
-            .arg(orderType->currentData().toString())
-            .arg(orderDesc->text().trimmed().replace("'", "''"))
-            .arg(isRad ? 1 : 0));
-
-    int nr = tblOrders->rowCount();
-    tblOrders->insertRow(nr);
-    tblOrders->setItem(nr, 0, new QTableWidgetItem(orderType->currentText()));
-    tblOrders->setItem(nr, 1,
-                       new QTableWidgetItem(orderDesc->text().trimmed()));
-    QTableWidgetItem *stItem = new QTableWidgetItem(tr2(
-        "Pending Approval",
-        "\xd8\xa8\xd8\xa7\xd9\x86\xd8\xaa\xd8\xb8\xd8\xa7\xd8\xb1 "
-        "\xd8\xa7\xd9\x84\xd9\x85\xd9\x88\xd8\xa7\xd9\x81\xd9\x82\xd8\xa9"));
-    stItem->setForeground(QColor("#f59e0b"));
-    tblOrders->setItem(nr, 2, stItem);
-    tblOrders->setItem(nr, 3, new QTableWidgetItem("-"));
-    orderDesc->clear();
-
+    }
     QMessageBox::information(
         nullptr,
         tr2("Sent", "\xd8\xaa\xd9\x85 "
                     "\xd8\xa7\xd9\x84\xd8\xa5\xd8\xb1\xd8\xb3\xd8\xa7\xd9\x84"),
-        tr2("Order sent to Reception for approval.",
+        tr2("Order sent to Lab/Radiology.",
             "\xd8\xaa\xd9\x85 \xd8\xa5\xd8\xb1\xd8\xb3\xd8\xa7\xd9\x84 "
-            "\xd8\xa7\xd9\x84\xd8\xb7\xd9\x84\xd8\xa8 "
-            "\xd9\x84\xd9\x84\xd8\xa7\xd8\xb3\xd8\xaa\xd9\x82\xd8\xa8\xd8\xa7"
-            "\xd9\x84 "
-            "\xd9\x84\xd9\x84\xd9\x85\xd9\x88\xd8\xa7\xd9\x81\xd9\x82\xd8\xa9"
-            "."));
+            "\xd8\xa7\xd9\x84\xd8\xb7\xd9\x84\xd8\xa8 \xd8\xa5\xd9\x84\xd9\x89 "
+            "\xd8\xa7\xd9\x84\xd9\x85\xd8\xae\xd8\xaa\xd8\xa8\xd8\xb1 "
+            "\xd9\x88\xd8\xa7\xd9\x84\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 "
+            "مباشرة."));
   });
 
   tabs->addTab(tabOrders,
-               tr2("Lab & Radiology",
+               tr2("Lab & Radiology Orders",
+                   "\xd8\xb7\xd9\x84\xd8\xa8\xd8\xa7\xd8\xaa "
                    "\xd8\xa7\xd9\x84\xd9\x85\xd8\xae\xd8\xaa\xd8\xa8\xd8\xb1 "
                    "\xd9\x88\xd8\xa7\xd9\x84\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9"));
 
@@ -3007,11 +3629,22 @@ QWidget *MainWindow::createDoctorStationPage() {
   QVBoxLayout *layRx = new QVBoxLayout(tabRx);
 
   QHBoxLayout *rxForm = new QHBoxLayout();
-  QLineEdit *rxDrug = new QLineEdit();
+  QComboBox *rxDrug = new QComboBox();
   rxDrug->setFixedHeight(38);
-  rxDrug->setPlaceholderText(tr2(
-      "Drug name...", "\xd8\xa7\xd8\xb3\xd9\x85 "
-                      "\xd8\xa7\xd9\x84\xd8\xaf\xd9\x88\xd8\xa7\xd8\xa1..."));
+  rxDrug->setEditable(true);
+  rxDrug->setPlaceholderText(
+      tr2("Select or type drug name...",
+          "\xd8\xa7\xd8\xae\xd8\xaa\xd8\xb1 \xd8\xa3\xd9\x88 "
+          "\xd8\xa7\xd9\x83\xd8\xaa\xd8\xa8 \xd8\xa7\xd8\xb3\xd9\x85 "
+          "\xd8\xa7\xd9\x84\xd8\xaf\xd9\x88\xd8\xa7\xd8\xa1..."));
+
+  // Load drugs into the combo box
+  QSqlQuery qDrugs =
+      Database::instance().exec("SELECT name FROM drugs ORDER BY name ASC");
+  while (qDrugs.next()) {
+    rxDrug->addItem(qDrugs.value(0).toString());
+  }
+  rxDrug->setCurrentIndex(-1); // Start empty
   QLineEdit *rxDosage = new QLineEdit();
   rxDosage->setFixedHeight(38);
   rxDosage->setPlaceholderText(
@@ -3051,14 +3684,14 @@ QWidget *MainWindow::createDoctorStationPage() {
   layRx->addWidget(sendRxBtn);
 
   connect(rxAddBtn, &QPushButton::clicked, [=]() {
-    if (rxDrug->text().trimmed().isEmpty())
+    if (rxDrug->currentText().trimmed().isEmpty())
       return;
     int nr = tblRx->rowCount();
     tblRx->insertRow(nr);
-    tblRx->setItem(nr, 0, new QTableWidgetItem(rxDrug->text()));
+    tblRx->setItem(nr, 0, new QTableWidgetItem(rxDrug->currentText()));
     tblRx->setItem(nr, 1, new QTableWidgetItem(rxDosage->text()));
     tblRx->setItem(nr, 2, new QTableWidgetItem(rxDuration->text()));
-    rxDrug->clear();
+    rxDrug->setCurrentText("");
     rxDosage->clear();
     rxDuration->clear();
   });
@@ -3141,20 +3774,63 @@ QWidget *MainWindow::createLabPage() {
       "(\xd9\x85\xd9\x86 "
       "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x8a\xd8\xa7\xd8\xaf\xd8\xa7\xd8\xaa)")));
   sampTop->addStretch();
-  QPushButton *btnCollect = new QPushButton(
-      tr2("Collect Sample & Print Barcode",
-          "\xd8\xac\xd9\x85\xd8\xb9 "
-          "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x8a\xd9\x86\xd8\xa9 "
-          "\xd9\x88\xd8\xb7\xd8\xa8\xd8\xa7\xd8\xb9\xd8\xa9 "
-          "\xd8\xa7\xd9\x84\xd8\xa8\xd8\xa7\xd8\xb1\xd9\x83\xd9\x88\xd8\xaf"));
-  btnCollect->setObjectName("primaryBtn");
-  sampTop->addWidget(btnCollect);
+  QComboBox *comboPatientLab = new QComboBox();
+  comboPatientLab->addItem(tr2("Select Patient...",
+                               "\xd8\xa7\xd8\xae\xd8\xaa\xd8\xb1 "
+                               "\xd8\xa7\xd9\x84\xd9\x85"
+                               "\xd8\xb1\xd9\x8a\xd8\xb6..."),
+                           -1);
+  QSqlQuery qPatLab = Database::instance().exec(
+      "SELECT DISTINCT p.id, COALESCE(p.name_en, p.name_ar) FROM "
+      "lab_radiology_orders o JOIN patients p ON p.id = o.patient_id WHERE "
+      "o.is_radiology = 0 AND o.status = 'Pending Result'");
+  while (qPatLab.next()) {
+    comboPatientLab->addItem(qPatLab.value(1).toString(),
+                             qPatLab.value(0).toInt());
+  }
+  sampTop->addWidget(comboPatientLab);
+  QPushButton *btnPrintSelLab =
+      new QPushButton(tr2("Print Selected Barcode",
+                          "\xd8\xb7\xd8\xa8\xd8\xa7\xd8\xb9\xd8\xa9 "
+                          "\xd8\xa8\xd8\xa7\xd8\xb1\xd9\x83\xd9\x88\xd8\xaf "
+                          "\xd8\xa7\xd9\x84\xd9\x81\xd8\xad\xd8\xb5"));
+  QPushButton *btnPrintAllLab =
+      new QPushButton(tr2("Print All for Patient",
+                          "\xd8\xb7\xd8\xa8\xd8\xa7\xd8\xb9\xd8\xa9 "
+                          "\xd8\xa7\xd9\x84\xd9\x83\xd9\x84 "
+                          "\xd9\x84\xd9\x84\xd9\x85\xd8\xb1\xd9\x8a\xd8\xb6"));
+  btnPrintAllLab->setObjectName("primaryBtn");
+  sampTop->addWidget(btnPrintSelLab);
+  sampTop->addWidget(btnPrintAllLab);
   laySamples->addLayout(sampTop);
-  QTableWidget *tblSamp = new QTableWidget(0, 5);
-  tblSamp->setHorizontalHeaderLabels(
-      {"Order ID", "Patient Name", "Test Type", "Request Date", "Status"});
+  QTableWidget *tblSamp = new QTableWidget(0, 6);
+  tblSamp->setHorizontalHeaderLabels({"Order ID", "Patient Name", "Test Type",
+                                      "Request Date", "Status", "Patient ID"});
   tblSamp->horizontalHeader()->setStretchLastSection(true);
   tblSamp->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+  tblSamp->setColumnHidden(5, true);
+
+  QSqlQuery qLab = Database::instance().exec(
+      "SELECT o.id, COALESCE(p.name_en, p.name_ar), o.description, "
+      "o.created_at, o.status, o.patient_id "
+      "FROM lab_radiology_orders o "
+      "LEFT JOIN patients p ON p.id = o.patient_id "
+      "WHERE o.is_radiology = 0 AND o.status = 'Pending Result' "
+      "ORDER BY o.id DESC");
+  int rNum = 0;
+  while (qLab.next()) {
+    tblSamp->insertRow(rNum);
+    tblSamp->setItem(rNum, 0, new QTableWidgetItem(qLab.value(0).toString()));
+    tblSamp->setItem(rNum, 1, new QTableWidgetItem(qLab.value(1).toString()));
+    tblSamp->setItem(rNum, 2, new QTableWidgetItem(qLab.value(2).toString()));
+    tblSamp->setItem(rNum, 3, new QTableWidgetItem(qLab.value(3).toString()));
+    QTableWidgetItem *st = new QTableWidgetItem(qLab.value(4).toString());
+    st->setForeground(QColor("#3b82f6"));
+    tblSamp->setItem(rNum, 4, st);
+    tblSamp->setItem(rNum, 5, new QTableWidgetItem(qLab.value(5).toString()));
+    rNum++;
+  }
+
   laySamples->addWidget(tblSamp);
   tabs->addTab(
       tabSamples,
@@ -3200,6 +3876,62 @@ QWidget *MainWindow::createLabPage() {
                    "\xd8\xa5\xd8\xaf\xd8\xae\xd8\xa7\xd9\x84 "
                    "\xd8\xa7\xd9\x84\xd9\x86\xd8\xaa\xd8\xa7\xd8\xa6\xd8\xac"));
 
+  connect(btnLoadResult, &QPushButton::clicked, [=]() {
+    QString sid = searchSerial->text().trimmed().replace("'", "''");
+    if (sid.isEmpty())
+      return;
+    QSqlQuery q = Database::instance().exec(
+        QString("SELECT description FROM lab_radiology_orders WHERE id=%1 AND "
+                "is_radiology=0")
+            .arg(sid));
+    if (q.next()) {
+      tblResults->setRowCount(0);
+      tblResults->insertRow(0);
+      tblResults->setItem(0, 0, new QTableWidgetItem(q.value(0).toString()));
+      tblResults->setItem(0, 1, new QTableWidgetItem(""));
+      tblResults->setItem(0, 2, new QTableWidgetItem("N/A"));
+      tblResults->setItem(0, 3, new QTableWidgetItem("N/A"));
+      tblResults->setItem(0, 4, new QTableWidgetItem("No"));
+    } else {
+      QMessageBox::warning(nullptr, "Not Found",
+                           "Order ID not found or not a Lab Test.");
+    }
+  });
+
+  connect(btnApprove, &QPushButton::clicked, [=]() {
+    QString sid = searchSerial->text().trimmed().replace("'", "''");
+    if (sid.isEmpty() || tblResults->rowCount() == 0)
+      return;
+
+    QString resultVal =
+        tblResults->item(0, 1) ? tblResults->item(0, 1)->text() : "";
+    QString testName =
+        tblResults->item(0, 0) ? tblResults->item(0, 0)->text() : "";
+    QString finalResult = testName + ": " + resultVal;
+
+    Database::instance().exec(
+        QString("UPDATE lab_radiology_orders SET status='Completed', "
+                "results=N'%1' WHERE id=%2")
+            .arg(finalResult.replace("'", "''"))
+            .arg(sid));
+
+    QMessageBox::information(
+        nullptr, "Results Approved",
+        tr2("Results archived in EMR successfully.\n\nSMS notification "
+            "dispatched to patient.",
+            "\xd8\xaa\xd9\x85 \xd8\xa7\xd8\xb9\xd8\xaa\xd9\x85\xd8\xa7\xd8\xaf "
+            "\xd8\xa7\xd9\x84\xd9\x86\xd8\xaa\xd8\xa7\xd8\xa6\xd8\xac "
+            "\xd9\x88\xd8\xa3\xd8\xb1\xd8\xb4\xd9\x81\xd8\xaa\xd9\x87\xd8\xa7 "
+            "\xd9\x81\xd9\x8a \xd9\x85\xd9\x84\xd9\x81 "
+            "\xd8\xa7\xd9\x84\xd9\x85\xd8\xb1\xd9\x8a\xd8\xb6."
+            "\n\n\xd8\xaa\xd9\x85 \xd8\xa5\xd8\xb1\xd8\xb3\xd8\xa7\xd9\x84 "
+            "\xd8\xb1\xd8\xb3\xd8\xa7\xd9\x84\xd8\xa9 SMS "
+            "\xd9\x84\xd9\x84\xd9\x85\xd8\xb1\xd9\x8a\xd8\xb6."));
+
+    tblResults->setRowCount(0);
+    searchSerial->clear();
+  });
+
   // --- Tab 3: Patient EMR Access ---
   QWidget *tabEMR = new QWidget();
   QVBoxLayout *layEMR = new QVBoxLayout(tabEMR);
@@ -3222,6 +3954,31 @@ QWidget *MainWindow::createLabPage() {
   tblEMR->horizontalHeader()->setStretchLastSection(true);
   tblEMR->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   layEMR->addWidget(tblEMR);
+
+  connect(btnViewEMR, &QPushButton::clicked, [=]() {
+    QString patFile = searchEMR->text().trimmed().replace("'", "''");
+    if (patFile.isEmpty())
+      return;
+    QSqlQuery q = Database::instance().exec(
+        QString("SELECT m.visit_date, m.diagnosis, e.name "
+                "FROM medical_records m "
+                "JOIN patients p ON p.id=m.patient_id "
+                "LEFT JOIN employees e ON e.id=m.doctor_id "
+                "WHERE p.file_number='%1' ORDER BY m.id DESC")
+            .arg(patFile));
+    tblEMR->setRowCount(0);
+    int r = 0;
+    while (q.next()) {
+      tblEMR->insertRow(r);
+      tblEMR->setItem(r, 0, new QTableWidgetItem(q.value(0).toString()));
+      tblEMR->setItem(r, 1, new QTableWidgetItem(q.value(1).toString()));
+      tblEMR->setItem(r, 2, new QTableWidgetItem(q.value(2).toString()));
+      r++;
+    }
+    if (r == 0)
+      QMessageBox::information(nullptr, "Info", "No history found.");
+  });
+
   tabs->addTab(tabEMR,
                tr2("EMR Access", "\xd8\xa7\xd9\x84\xd8\xb3\xd8\xac\xd9\x84 "
                                  "\xd8\xa7\xd9\x84\xd8\xb7\xd8\xa8\xd9\x8a"));
@@ -3250,14 +4007,40 @@ QWidget *MainWindow::createLabPage() {
   tblRep->horizontalHeader()->setStretchLastSection(true);
   tblRep->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   layRep->addWidget(tblRep);
-  QPushButton *btnPrintAll =
+
+  connect(btnRptSearch, &QPushButton::clicked, [=]() {
+    QString qry = searchRptId->text().trimmed();
+    if (qry.isEmpty())
+      return;
+    QSqlQuery q = Database::instance().exec(
+        QString("SELECT o.id, COALESCE(p.name_en, p.name_ar), o.description, "
+                "o.result_date, o.results, 'Archive' "
+                "FROM lab_radiology_orders o "
+                "LEFT JOIN patients p ON p.id=o.patient_id "
+                "WHERE (p.file_number='%1' OR p.name_en LIKE '%%1%' OR "
+                "o.description LIKE '%%1%') AND o.is_radiology=0 AND "
+                "o.status='Completed' "
+                "ORDER BY o.id DESC")
+            .arg(qry.replace("'", "''")));
+    tblRep->setRowCount(0);
+    int r = 0;
+    while (q.next()) {
+      tblRep->insertRow(r);
+      for (int i = 0; i < 6; i++) {
+        tblRep->setItem(r, i, new QTableWidgetItem(q.value(i).toString()));
+      }
+      r++;
+    }
+  });
+
+  QPushButton *btnPrintRep =
       new QPushButton(tr2("Print All Results (Consolidated)",
                           "\xd8\xb7\xd8\xa8\xd8\xa7\xd8\xb9\xd8\xa9 "
                           "\xd8\xac\xd9\x85\xd8\xaa\xd8\xb9 "
                           "\xd8\xa7\xd9\x84\xd9\x86\xd8\xaa\xd8\xa7\xd8\xa6\xd8"
                           "\xac (\xd8\xaa\xd9\x82\xd8\xb1\xd9\x8a\xd8\xb1 "
                           "\xd9\x85\xd9\x88\xd8\xad\xd8\xaf)"));
-  layRep->addWidget(btnPrintAll);
+  layRep->addWidget(btnPrintRep); // Changed from btnPrintAll to btnPrintRep
   tabs->addTab(
       tabRep,
       tr2("Reports & Archive",
@@ -3267,43 +4050,55 @@ QWidget *MainWindow::createLabPage() {
   layout->addWidget(tabs);
 
   // Connections
-  connect(btnCollect, &QPushButton::clicked, [=]() {
-    QMessageBox::information(
-        nullptr, "Barcode",
-        tr2("Sample registered. Barcode sent to printer.",
-            "\xd8\xaa\xd9\x85 \xd8\xaa\xd8\xb3\xd8\xac\xd9\x8a\xd9\x84 "
-            "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x8a\xd9\x86\xd8\xa9 "
-            "\xd9\x88\xd8\xa5\xd8\xb1\xd8\xb3\xd8\xa7\xd9\x84 "
-            "\xd8\xa3\xd9\x85\xd8\xb1 \xd8\xb7\xd8\xa8\xd8\xa7\xd8\xb9\xd8\xa9 "
-            "\xd8\xa7\xd9\x84\xd8\xa8\xd8\xa7\xd8\xb1\xd9\x83\xd9\x88\xd8\xaf"
-            "."));
+  connect(btnPrintSelLab, &QPushButton::clicked, [=]() {
+    int row = tblSamp->currentRow();
+    if (row < 0) {
+      QMessageBox::warning(
+          nullptr, "Warning",
+          QString::fromUtf8("\xd8\xa7\xd8\xb1\xd8\xac\xd9\x88 "
+                            "\xd8\xaa\xd8\xad\xd8\xaf\xd9\x8a\xd8\xaf "
+                            "\xd9\x81\xd8\xad\xd8\xb5 "
+                            "\xd8\xa3\xd9\x88\xd9\x84\xd8\xa7\xd9\x8b"));
+      return;
+    }
+    int orderId =
+        tblSamp->item(row, 0) ? tblSamp->item(row, 0)->text().toInt() : 0;
+    int patientId =
+        tblSamp->item(row, 5) ? tblSamp->item(row, 5)->text().toInt() : 0;
+    InvoiceGenerator::printLabBarcode(patientId, orderId);
   });
 
-  connect(btnApprove, &QPushButton::clicked, [=]() {
-    QMessageBox::information(
-        nullptr, "Results Approved",
-        tr2("Results archived in EMR successfully.\n\nSMS notification "
-            "dispatched to patient.",
-            "\xd8\xaa\xd9\x85 \xd8\xa7\xd8\xb9\xd8\xaa\xd9\x85\xd8\xa7\xd8\xaf "
-            "\xd8\xa7\xd9\x84\xd9\x86\xd8\xaa\xd8\xa7\xd8\xa6\xd8\xac "
-            "\xd9\x88\xd8\xa3\xd8\xb1\xd8\xb4\xd9\x81\xd8\xaa\xd9\x87\xd8\xa7 "
-            "\xd9\x81\xd9\x8a \xd9\x85\xd9\x84\xd9\x81 "
-            "\xd8\xa7\xd9\x84\xd9\x85\xd8\xb1\xd9\x8a\xd8\xb6."
-            "\n\n\xd8\xaa\xd9\x85 \xd8\xa5\xd8\xb1\xd8\xb3\xd8\xa7\xd9\x84 "
-            "\xd8\xb1\xd8\xb3\xd8\xa7\xd9\x84\xd8\xa9 SMS "
-            "\xd9\x84\xd9\x84\xd9\x85\xd8\xb1\xd9\x8a\xd8\xb6."));
+  connect(btnPrintAllLab, &QPushButton::clicked, [=]() {
+    int patientId = comboPatientLab->currentData().toInt();
+    if (patientId == -1) {
+      int row = tblSamp->currentRow();
+      if (row < 0) {
+        QMessageBox::warning(
+            nullptr, "Warning",
+            QString::fromUtf8(
+                "\xd8\xa7\xd8\xb1\xd8\xac\xd9\x88 "
+                "\xd8\xa7\xd8\xae\xd8\xaa\xd9\x8a\xd8\xa7\xd8\xb1 "
+                "\xd8\xa7\xd9\x84\xd9\x85\xd8\xb1\xd9\x8a\xd8\xb6 "
+                "\xd8\xa3\xd9\x88\xd9\x84\xd9\x8b"));
+        return;
+      }
+      patientId =
+          tblSamp->item(row, 5) ? tblSamp->item(row, 5)->text().toInt() : 0;
+    }
+    InvoiceGenerator::printLabBarcode(patientId, -1);
   });
 
-  connect(btnPrintAll, &QPushButton::clicked, [=]() {
-    QMessageBox::information(
-        nullptr, "Print",
-        tr2("Printing consolidated laboratory report.",
-            "\xd8\xac\xd8\xa7\xd8\xb1\xd9\x8a "
-            "\xd8\xb7\xd8\xa8\xd8\xa7\xd8\xb9\xd8\xa9 "
-            "\xd8\xaa\xd9\x82\xd8\xb1\xd9\x8a\xd8\xb1 "
-            "\xd8\xa7\xd9\x84\xd9\x85\xd8\xae\xd8\xaa\xd8\xa8\xd8\xb1 "
-            "\xd8\xa7\xd9\x84\xd9\x85\xd9\x88\xd8\xad\xd8\xaf."));
-  });
+  connect(btnPrintRep, &QPushButton::clicked,
+          [=]() { // Changed from btnApprove to btnPrintRep
+            QMessageBox::information(
+                nullptr, "Print",
+                tr2("Printing consolidated laboratory report.",
+                    "\xd8\xac\xd8\xa7\xd8\xb1\xd9\x8a "
+                    "\xd8\xb7\xd8\xa8\xd8\xa7\xd8\xb9\xd8\xa9 "
+                    "\xd8\xaa\xd9\x82\xd8\xb1\xd9\x8a\xd8\xb1 "
+                    "\xd8\xa7\xd9\x84\xd9\x85\xd8\xae\xd8\xaa\xd8\xa8\xd8\xb1 "
+                    "\xd8\xa7\xd9\x84\xd9\x85\xd9\x88\xd8\xad\xd8\xaf."));
+          });
 
   // ===== SAMPLE MANAGEMENT =====
   QGroupBox *smpBox = new QGroupBox(
@@ -3375,22 +4170,73 @@ QWidget *MainWindow::createRadiologyPage() {
   ordTop->addWidget(new QLabel(
       tr2("Pending Scans",
           "\xd8\xb7\xd9\x84\xd8\xa8\xd8\xa7\xd8\xaa "
-          "\xd8\xa7\xd9\x84\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 "
+          "\xd8\xa7\xd9\x84\xd8\xa3\xd8\xb4\xd8\xa9 "
           "\xd8\xa7\xd9\x84\xd9\x85\xd8\xb9\xd9\x84\xd9\x82\xd8\xa9")));
   ordTop->addStretch();
+  QComboBox *comboPatientRad = new QComboBox();
+  comboPatientRad->addItem(tr2("Select Patient...",
+                               "\xd8\xa7\xd8\xae\xd8\xaa\xd8\xb1 "
+                               "\xd8\xa7\xd9\x84\xd9\x85"
+                               "\xd8\xb1\xd9\x8a\xd8\xb6..."),
+                           -1);
+  QSqlQuery qPatRad = Database::instance().exec(
+      "SELECT DISTINCT p.id, COALESCE(p.name_en, p.name_ar) FROM "
+      "lab_radiology_orders o JOIN patients p ON p.id = o.patient_id WHERE "
+      "o.is_radiology = 1 AND o.status = 'Pending Result'");
+  while (qPatRad.next()) {
+    comboPatientRad->addItem(qPatRad.value(1).toString(),
+                             qPatRad.value(0).toInt());
+  }
+  ordTop->addWidget(comboPatientRad);
+  QPushButton *btnPrintSelRad =
+      new QPushButton(tr2("Print Selected Barcode",
+                          "\xd8\xb7\xd8\xa8\xd8\xa7\xd8\xb9\xd8\xa9 "
+                          "\xd8\xa8\xd8\xa7\xd8\xb1\xd9\x83\xd9\x88\xd8\xaf "
+                          "\xd8\xa7\xd9\x84\xd9\x81\xd8\xad\xd8\xb5"));
+  QPushButton *btnPrintAllRad =
+      new QPushButton(tr2("Print All for Patient",
+                          "\xd8\xb7\xd8\xa8\xd8\xa7\xd8\xb9\xd8\xa9 "
+                          "\xd8\xa7\xd9\x84\xd9\x83\xd9\x84 "
+                          "\xd9\x84\xd9\x84\xd9\x85\xd8\xb1\xd9\x8a\xd8\xb6"));
+  btnPrintAllRad->setObjectName("primaryBtn");
+  ordTop->addWidget(btnPrintSelRad);
+  ordTop->addWidget(btnPrintAllRad);
+
   QPushButton *btnStart = new QPushButton(
       tr2("Start Imaging Session",
           "\xd8\xa8\xd8\xaf\xd8\xa1 \xd8\xac\xd9\x84\xd8\xb3\xd8\xa9 "
           "\xd8\xa7\xd9\x84\xd8\xaa\xd8\xb5\xd9\x88\xd9\x8a\xd8\xb1"));
-  btnStart->setObjectName("primaryBtn");
   ordTop->addWidget(btnStart);
   layOrders->addLayout(ordTop);
-  QTableWidget *tblOrders = new QTableWidget(0, 5);
+  QTableWidget *tblOrders = new QTableWidget(0, 6);
   tblOrders->setHorizontalHeaderLabels({"Order ID", "Patient Name",
                                         "Modality (X-Ray/MRI)", "Request Date",
-                                        "Status"});
+                                        "Status", "Patient ID"});
   tblOrders->horizontalHeader()->setStretchLastSection(true);
   tblOrders->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+  tblOrders->setColumnHidden(5, true);
+
+  QSqlQuery qRad = Database::instance().exec(
+      "SELECT o.id, COALESCE(p.name_en, p.name_ar), o.description, "
+      "o.created_at, o.status, o.patient_id "
+      "FROM lab_radiology_orders o "
+      "LEFT JOIN patients p ON p.id = o.patient_id "
+      "WHERE o.is_radiology = 1 AND o.status = 'Pending Result' "
+      "ORDER BY o.id DESC");
+  int rNum = 0;
+  while (qRad.next()) {
+    tblOrders->insertRow(rNum);
+    tblOrders->setItem(rNum, 0, new QTableWidgetItem(qRad.value(0).toString()));
+    tblOrders->setItem(rNum, 1, new QTableWidgetItem(qRad.value(1).toString()));
+    tblOrders->setItem(rNum, 2, new QTableWidgetItem(qRad.value(2).toString()));
+    tblOrders->setItem(rNum, 3, new QTableWidgetItem(qRad.value(3).toString()));
+    QTableWidgetItem *st = new QTableWidgetItem(qRad.value(4).toString());
+    st->setForeground(QColor("#3b82f6"));
+    tblOrders->setItem(rNum, 4, st);
+    tblOrders->setItem(rNum, 5, new QTableWidgetItem(qRad.value(5).toString()));
+    rNum++;
+  }
+
   layOrders->addWidget(tblOrders);
   tabs->addTab(tabOrders,
                tr2("Active Orders",
@@ -3405,7 +4251,7 @@ QWidget *MainWindow::createRadiologyPage() {
       new QLabel(tr2("Upload DICOM/Image Files",
                      "\xd8\xa5\xd8\xb1\xd9\x81\xd8\xa7\xd9\x82 "
                      "\xd9\x85\xd9\x84\xd9\x81\xd8\xa7\xd8\xaa "
-                     "\xd8\xa7\xd9\x84\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 (DICOM "
+                     "\xd8\xa7\xd9\x84\xd8\xa3\xd8\xb4\xd8\xa9 (DICOM "
                      "\xd8\xa3\xd9\x88 \xd8\xb5\xd9\x88\xd8\xb1)")));
   imgTop->addStretch();
   QPushButton *btnBrowse = new QPushButton(
@@ -3427,18 +4273,125 @@ QWidget *MainWindow::createRadiologyPage() {
   QWidget *tabWrite = new QWidget();
   QVBoxLayout *layWrite = new QVBoxLayout(tabWrite);
   QHBoxLayout *writeTop = new QHBoxLayout();
+
+  QLineEdit *searchRadSerial = new QLineEdit();
+  searchRadSerial->setPlaceholderText(
+      tr2("Enter Order ID...",
+          "\xd8\xa3\xd8\xaf\xd8\xae\xd9\x84 \xd8\xb1\xd9\x82\xd9\x85 "
+          "\xd8\xa7\xd9\x84\xd8\xb7\xd9\x84\xd8\xa8..."));
+  writeTop->addWidget(searchRadSerial);
+
   QComboBox *comboTemplate = new QComboBox();
   comboTemplate->addItem(
       tr2("Select Report Template...",
           "\xd8\xa7\xd8\xae\xd8\xaa\xd8\xb1 "
           "\xd9\x86\xd9\x85\xd9\x88\xd8\xb0\xd8\xac\xd8\xa7\xd9\x8b..."));
+  // X-Ray Templates
   comboTemplate->addItem(
-      "Normal Chest X-Ray / \xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 "
-      "\xd8\xb5\xd8\xaf\xd8\xb1 \xd8\xb3\xd9\x84\xd9\x8a\xd9\x85\xd8\xa9");
+      tr2("X-Ray Chest",
+          "\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 \xd8\xb5\xd8\xaf\xd8\xb1"));
   comboTemplate->addItem(
-      "CT Brain (Without Contrast) / \xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 "
-      "\xd9\x85\xd9\x82\xd8\xb7\xd8\xb9\xd9\x8a\xd8\xa9 "
-      "\xd9\x84\xd9\x84\xd9\x85\xd8\xae");
+      tr2("X-Ray Abdomen",
+          "\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 \xd8\xa8\xd8\xb7\xd9\x86"));
+  comboTemplate->addItem(tr2("X-Ray Spine (Cervical)",
+                             "\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 "
+                             "\xd8\xb9\xd9\x86\xd9\x82\xd9\x8a\xd8\xa9"));
+  comboTemplate->addItem(tr2("X-Ray Spine (Lumbar)",
+                             "\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 "
+                             "\xd9\x82\xd8\xb7\xd9\x86\xd9\x8a\xd8\xa9"));
+  comboTemplate->addItem(
+      tr2("X-Ray Pelvis",
+          "\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 \xd8\xad\xd9\x88\xd8\xb6"));
+  comboTemplate->addItem(tr2("X-Ray Extremities",
+                             "\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 "
+                             "\xd8\xa3\xd8\xb7\xd8\xb1\xd8\xa7\xd9\x81"));
+  comboTemplate->addItem(tr2("X-Ray Skull",
+                             "\xd8\xa3\xd8\xb4\xd8\xb9\xd8\xa9 "
+                             "\xd8\xac\xd9\x85\xd8\xac\xd9\x85\xd8\xa9"));
+  // CT Templates
+  comboTemplate->addItem(tr2("CT Brain",
+                             "\xd9\x85\xd9\x82\xd8\xb7\xd8\xb9\xd9\x8a\xd8\xa9 "
+                             "\xd8\xa7\xd9\x84\xd9\x85\xd8\xae"));
+  comboTemplate->addItem(tr2("CT Chest",
+                             "\xd9\x85\xd9\x82\xd8\xb7\xd8\xb9\xd9\x8a\xd8\xa9 "
+                             "\xd8\xa7\xd9\x84\xd8\xb5\xd8\xaf\xd8\xb1"));
+  comboTemplate->addItem(
+      tr2("CT Abdomen & Pelvis",
+          "\xd9\x85\xd9\x82\xd8\xb7\xd8\xb9\xd9\x8a\xd8\xa9 "
+          "\xd8\xa8\xd8\xb7\xd9\x86 \xd9\x88\xd8\xad\xd9\x88\xd8\xb6"));
+  comboTemplate->addItem(
+      tr2("CT Spine", "\xd9\x85\xd9\x82\xd8\xb7\xd8\xb9\xd9\x8a\xd8\xa9 "
+                      "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x85\xd9\x88\xd8\xaf "
+                      "\xd8\xa7\xd9\x84\xd9\x81\xd9\x82\xd8\xb1\xd9\x8a"));
+  comboTemplate->addItem(
+      tr2("CT Angiography",
+          "\xd8\xaa\xd8\xb5\xd9\x88\xd9\x8a\xd8\xb1 "
+          "\xd9\x85\xd9\x82\xd8\xb7\xd8\xb9\xd9\x8a "
+          "\xd9\x84\xd9\x84\xd8\xa3\xd9\x88\xd8\xb9\xd9\x8a\xd8\xa9"));
+  // MRI Templates
+  comboTemplate->addItem(
+      tr2("MRI Brain", "\xd8\xb1\xd9\x86\xd9\x8a\xd9\x86 "
+                       "\xd9\x85\xd8\xba\xd9\x86\xd8\xa7\xd8\xb7\xd9\x8a\xd8"
+                       "\xb3\xd9\x8a \xd9\x84\xd9\x84\xd9\x85\xd8\xae"));
+  comboTemplate->addItem(
+      tr2("MRI Spine (Cervical)",
+          "\xd8\xb1\xd9\x86\xd9\x8a\xd9\x86 \xd8\xb9\xd9\x86\xd9\x82\xd9\x8a"));
+  comboTemplate->addItem(
+      tr2("MRI Spine (Lumbar)",
+          "\xd8\xb1\xd9\x86\xd9\x8a\xd9\x86 \xd9\x82\xd8\xb7\xd9\x86\xd9\x8a"));
+  comboTemplate->addItem(
+      tr2("MRI Knee", "\xd8\xb1\xd9\x86\xd9\x8a\xd9\x86 "
+                      "\xd8\xa7\xd9\x84\xd8\xb1\xd9\x83\xd8\xa8\xd8\xa9"));
+  comboTemplate->addItem(tr2("MRI Shoulder",
+                             "\xd8\xb1\xd9\x86\xd9\x8a\xd9\x86 "
+                             "\xd8\xa7\xd9\x84\xd9\x83\xd8\xaa\xd9\x81"));
+  comboTemplate->addItem(tr2("MRI Abdomen",
+                             "\xd8\xb1\xd9\x86\xd9\x8a\xd9\x86 "
+                             "\xd8\xa7\xd9\x84\xd8\xa8\xd8\xb7\xd9\x86"));
+  comboTemplate->addItem(tr2("MRI Pelvis",
+                             "\xd8\xb1\xd9\x86\xd9\x8a\xd9\x86 "
+                             "\xd8\xa7\xd9\x84\xd8\xad\xd9\x88\xd8\xb6"));
+  // Ultrasound Templates
+  comboTemplate->addItem(tr2("Ultrasound Abdomen",
+                             "\xd8\xb3\xd9\x88\xd9\x86\xd8\xa7\xd8\xb1 "
+                             "\xd8\xa7\xd9\x84\xd8\xa8\xd8\xb7\xd9\x86"));
+  comboTemplate->addItem(tr2("Ultrasound Pelvis",
+                             "\xd8\xb3\xd9\x88\xd9\x86\xd8\xa7\xd8\xb1 "
+                             "\xd8\xa7\xd9\x84\xd8\xad\xd9\x88\xd8\xb6"));
+  comboTemplate->addItem(
+      tr2("Ultrasound Thyroid",
+          "\xd8\xb3\xd9\x88\xd9\x86\xd8\xa7\xd8\xb1 "
+          "\xd8\xa7\xd9\x84\xd8\xba\xd8\xaf\xd8\xa9 "
+          "\xd8\xa7\xd9\x84\xd8\xaf\xd8\xb1\xd9\x82\xd9\x8a\xd8\xa9"));
+  comboTemplate->addItem(tr2("Ultrasound Breast",
+                             "\xd8\xb3\xd9\x88\xd9\x86\xd8\xa7\xd8\xb1 "
+                             "\xd8\xa7\xd9\x84\xd8\xab\xd8\xaf\xd9\x8a"));
+  comboTemplate->addItem(tr2("Ultrasound Pregnancy (OB)",
+                             "\xd8\xb3\xd9\x88\xd9\x86\xd8\xa7\xd8\xb1 "
+                             "\xd8\xa7\xd9\x84\xd8\xad\xd9\x85\xd9\x84"));
+  comboTemplate->addItem(
+      tr2("Doppler Ultrasound",
+          "\xd8\xaf\xd9\x88\xd8\xa8\xd9\x84\xd8\xb1 "
+          "\xd8\xa7\xd9\x84\xd8\xa3\xd9\x88\xd8\xb9\xd9\x8a\xd8\xa9"));
+  // Special Modalities
+  comboTemplate->addItem(tr2("Mammography",
+                             "\xd8\xaa\xd8\xb5\xd9\x88\xd9\x8a\xd8\xb1 "
+                             "\xd8\xa7\xd9\x84\xd8\xab\xd8\xaf\xd9\x8a"));
+  comboTemplate->addItem(tr2("Fluoroscopy",
+                             "\xd8\xaa\xd9\x86\xd8\xb8\xd9\x8a\xd8\xb1 "
+                             "\xd8\xb4\xd8\xb9\xd8\xa7\xd8\xb9\xd9\x8a"));
+  comboTemplate->addItem(
+      tr2("Bone Densitometry (DEXA)",
+          "\xd9\x82\xd9\x8a\xd8\xa7\xd8\xb3 "
+          "\xd9\x83\xd8\xab\xd8\xa7\xd9\x81\xd8\xa9 "
+          "\xd8\xa7\xd9\x84\xd8\xb9\xd8\xb8\xd8\xa7\xd9\x85"));
+  comboTemplate->addItem(
+      tr2("Panoramic Dental X-Ray",
+          "\xd8\xa8\xd8\xa7\xd9\x86\xd9\x88\xd8\xb1\xd8\xa7\xd9\x85\xd8\xa7 "
+          "\xd8\xa3\xd8\xb3\xd9\x86\xd8\xa7\xd9\x86"));
+  comboTemplate->addItem(tr2("Echocardiography",
+                             "\xd8\xa5\xd9\x8a\xd9\x83\xd9\x88 "
+                             "\xd8\xa7\xd9\x84\xd9\x82\xd9\x84\xd8\xa8"));
   writeTop->addWidget(comboTemplate);
   QPushButton *btnLoadTpl = new QPushButton(
       tr2("Load Template",
@@ -3526,6 +4479,44 @@ QWidget *MainWindow::createRadiologyPage() {
   layout->addWidget(tabs);
 
   // Connections
+  connect(btnPrintSelRad, &QPushButton::clicked, [=]() {
+    int row = tblOrders->currentRow();
+    if (row < 0) {
+      QMessageBox::warning(
+          nullptr, "Warning",
+          QString::fromUtf8("\xd8\xa7\xd8\xb1\xd8\xac\xd9\x88 "
+                            "\xd8\xaa\xd8\xad\xd8\xaf\xd9\x8a\xd8\xaf "
+                            "\xd9\x81\xd8\xad\xd8\xb5 "
+                            "\xd8\xa3\xd9\x88\xd9\x84\xd8\xa7\xd9\x8b"));
+      return;
+    }
+    int orderId =
+        tblOrders->item(row, 0) ? tblOrders->item(row, 0)->text().toInt() : 0;
+    int patientId =
+        tblOrders->item(row, 5) ? tblOrders->item(row, 5)->text().toInt() : 0;
+    InvoiceGenerator::printLabBarcode(patientId, orderId);
+  });
+
+  connect(btnPrintAllRad, &QPushButton::clicked, [=]() {
+    int patientId = comboPatientRad->currentData().toInt();
+    if (patientId == -1) {
+      int row = tblOrders->currentRow();
+      if (row < 0) {
+        QMessageBox::warning(
+            nullptr, "Warning",
+            QString::fromUtf8(
+                "\xd8\xa7\xd8\xb1\xd8\xac\xd9\x88 "
+                "\xd8\xa7\xd8\xae\xd8\xaa\xd9\x8a\xd8\xa7\xd8\xb1 "
+                "\xd8\xa7\xd9\x84\xd9\x85\xd8\xb1\xd9\x8a\xd8\xb6 "
+                "\xd8\xa3\xd9\x88\xd9\x84\xd9\x8b"));
+        return;
+      }
+      patientId =
+          tblOrders->item(row, 5) ? tblOrders->item(row, 5)->text().toInt() : 0;
+    }
+    InvoiceGenerator::printLabBarcode(patientId, -1);
+  });
+
   connect(btnBrowse, &QPushButton::clicked, [=]() {
     QMessageBox::information(
         nullptr, "Upload",
@@ -3549,16 +4540,75 @@ QWidget *MainWindow::createRadiologyPage() {
   });
 
   connect(btnSendRep, &QPushButton::clicked, [=]() {
+    QString sid = searchRadSerial->text().trimmed().replace("'", "''");
+    QString report = reportEditor->toPlainText().trimmed();
+
+    if (sid.isEmpty() || report.isEmpty()) {
+      QMessageBox::warning(nullptr, "Warning",
+                           "Please enter an Order ID and write a report.");
+      return;
+    }
+
+    QSqlQuery q =
+        Database::instance().exec(QString("SELECT id FROM lab_radiology_orders "
+                                          "WHERE id=%1 AND is_radiology=1")
+                                      .arg(sid));
+
+    if (!q.next()) {
+      QMessageBox::warning(nullptr, "Error", "Radiology Order ID not found.");
+      return;
+    }
+
+    Database::instance().exec(
+        QString("UPDATE lab_radiology_orders SET status='Completed', "
+                "structured_report=N'%1' WHERE id=%2")
+            .arg(report.replace("'", "''"))
+            .arg(sid));
+
     QMessageBox::information(
         nullptr, "Success",
         tr2("Report & Images pushed to Doctor Station (EMR) successfully!",
             "\xd8\xaa\xd9\x85 \xd8\xa7\xd8\xb9\xd8\xaa\xd9\x85\xd8\xa7\xd8\xaf "
-            "\xd8\xa7\xd9\x84\xd8\xaa\xd9\x82\xd8\xb1\xd9\x8a\xd8\xb1 "
+            "\xd8\xa7\xd9\x84\xd9\x86\xd8\xaa\xd8\xa7\xd8\xa6\xd8\xac "
             "\xd9\x88\xd8\xa7\xd9\x84\xd8\xb5\xd9\x88\xd8\xb1 "
             "\xd9\x88\xd8\xa5\xd8\xb1\xd8\xb3\xd8\xa7\xd9\x84\xd9\x87\xd8\xa7 "
             "\xd9\x84\xd9\x85\xd9\x84\xd9\x81 "
             "\xd8\xa7\xd9\x84\xd9\x85\xd8\xb1\xd9\x8a\xd8\xb6 "
             "\xd8\xa8\xd9\x86\xd8\xac\xd8\xa7\xd8\xad!"));
+
+    searchRadSerial->clear();
+    reportEditor->clear();
+  });
+
+  connect(btnStart, &QPushButton::clicked, [=]() {
+    QMessageBox::information(
+        nullptr, "Session Started",
+        "Imaging session started. Please prepare the patient.");
+  });
+
+  connect(btnFetchHist, &QPushButton::clicked, [=]() {
+    QString patFile = searchEMR->text().trimmed().replace("'", "''");
+    if (patFile.isEmpty())
+      return;
+    QSqlQuery q = Database::instance().exec(
+        QString("SELECT m.visit_date, m.diagnosis, e.name "
+                "FROM medical_records m "
+                "JOIN patients p ON p.id=m.patient_id "
+                "LEFT JOIN employees e ON e.id=m.doctor_id "
+                "WHERE p.file_number='%1' ORDER BY m.id DESC")
+            .arg(patFile));
+    tblEMR->setRowCount(0);
+    int r = 0;
+    while (q.next()) {
+      tblEMR->insertRow(r);
+      tblEMR->setItem(r, 0, new QTableWidgetItem(q.value(0).toString()));
+      tblEMR->setItem(r, 1, new QTableWidgetItem(q.value(1).toString()));
+      tblEMR->setItem(r, 2, new QTableWidgetItem(q.value(2).toString()));
+      r++;
+    }
+    if (r == 0)
+      QMessageBox::information(nullptr, "Info",
+                               "No medical history found for this patient.");
   });
 
   return page;
@@ -4545,124 +5595,6 @@ QWidget *MainWindow::createWaitingQueuePage() {
   return page;
 }
 
-// ===== NURSING STATION =====
-QWidget *MainWindow::createNursingPage() {
-  QWidget *page = new QWidget();
-  QVBoxLayout *layout = new QVBoxLayout(page);
-  QLabel *title = new QLabel(
-      tr2("Nursing Station",
-          "\xd9\x85\xd8\xad\xd8\xb7\xd8\xa9 "
-          "\xd8\xa7\xd9\x84\xd8\xaa\xd9\x85\xd8\xb1\xd9\x8a\xd8\xb6"));
-  title->setObjectName("pageTitle");
-  layout->addWidget(title);
-
-  QHBoxLayout *mainLay = new QHBoxLayout();
-
-  // Vitals form
-  QGroupBox *formBox = new QGroupBox(
-      tr2("Record Vital Signs",
-          "\xd8\xaa\xd8\xb3\xd8\xac\xd9\x8a\xd9\x84 "
-          "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x84\xd8\xa7\xd9\x85\xd8\xa7\xd8\xaa "
-          "\xd8\xa7\xd9\x84\xd8\xad\xd9\x8a\xd9\x88\xd9\x8a\xd8\xa9"));
-  formBox->setObjectName("card");
-  QVBoxLayout *fl = new QVBoxLayout(formBox);
-
-  // Patient selector
-  fl->addWidget(new QLabel(
-      tr2("Patient", "\xd8\xa7\xd9\x84\xd9\x85\xd8\xb1\xd9\x8a\xd8\xb6")));
-  QComboBox *patCombo = new QComboBox();
-  patCombo->setFixedHeight(36);
-  QSqlQuery qp = Database::instance().exec(
-      "SELECT id, name_en, name_ar FROM patients ORDER BY id DESC");
-  while (qp.next())
-    patCombo->addItem(isArabic ? qp.value(2).toString()
-                               : qp.value(1).toString(),
-                      qp.value(0));
-  fl->addWidget(patCombo);
-
-  auto addVitalField = [&](const QString &en, const QString &ar,
-                           const QString &ph) -> QLineEdit * {
-    fl->addWidget(new QLabel(tr2(en, ar)));
-    QLineEdit *e = new QLineEdit();
-    e->setFixedHeight(36);
-    e->setPlaceholderText(ph);
-    fl->addWidget(e);
-    return e;
-  };
-
-  QLineEdit *bp = addVitalField(
-      "Blood Pressure",
-      "\xd8\xb6\xd8\xba\xd8\xb7 \xd8\xa7\xd9\x84\xd8\xaf\xd9\x85", "120/80");
-  QLineEdit *temp = addVitalField(
-      "Temperature (C)",
-      "\xd8\xa7\xd9\x84\xd8\xad\xd8\xb1\xd8\xa7\xd8\xb1\xd8\xa9", "37.0");
-  QLineEdit *pulse = addVitalField(
-      "Pulse (bpm)", "\xd8\xa7\xd9\x84\xd9\x86\xd8\xa8\xd8\xb6", "72");
-  QLineEdit *weight = addVitalField(
-      "Weight (kg)", "\xd8\xa7\xd9\x84\xd9\x88\xd8\xb2\xd9\x86", "70");
-  QLineEdit *height = addVitalField(
-      "Height (cm)", "\xd8\xa7\xd9\x84\xd8\xb7\xd9\x88\xd9\x84", "170");
-
-  QPushButton *saveBtn = new QPushButton(
-      tr2("Save Vitals",
-          "\xd8\xad\xd9\x81\xd8\xb8 "
-          "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x84\xd8\xa7\xd9\x85\xd8\xa7\xd8\xaa"));
-  saveBtn->setObjectName("primaryBtn");
-  saveBtn->setFixedHeight(45);
-  fl->addWidget(saveBtn);
-  fl->addStretch();
-
-  // Vitals log table
-  QGroupBox *logBox = new QGroupBox(
-      tr2("Recent Vitals Log",
-          "\xd8\xb3\xd8\xac\xd9\x84 "
-          "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x84\xd8\xa7\xd9\x85\xd8\xa7\xd8\xaa"));
-  logBox->setObjectName("card");
-  QVBoxLayout *ll = new QVBoxLayout(logBox);
-  QTableWidget *logTable = new QTableWidget();
-  logTable->setColumnCount(6);
-  logTable->setHorizontalHeaderLabels(
-      {tr2("Patient", "\xd8\xa7\xd9\x84\xd9\x85\xd8\xb1\xd9\x8a\xd8\xb6"),
-       tr2("BP", "\xd8\xa7\xd9\x84\xd8\xb6\xd8\xba\xd8\xb7"),
-       tr2("Temp", "\xd8\xa7\xd9\x84\xd8\xad\xd8\xb1\xd8\xa7\xd8\xb1\xd8\xa9"),
-       tr2("Pulse", "\xd8\xa7\xd9\x84\xd9\x86\xd8\xa8\xd8\xb6"),
-       tr2("Weight", "\xd8\xa7\xd9\x84\xd9\x88\xd8\xb2\xd9\x86"),
-       tr2("Height", "\xd8\xa7\xd9\x84\xd8\xb7\xd9\x88\xd9\x84")});
-  logTable->horizontalHeader()->setStretchLastSection(true);
-  logTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-  logTable->verticalHeader()->setVisible(false);
-
-  connect(saveBtn, &QPushButton::clicked, [=]() {
-    if (bp->text().isEmpty())
-      return;
-    int r = logTable->rowCount();
-    logTable->insertRow(r);
-    logTable->setItem(r, 0, new QTableWidgetItem(patCombo->currentText()));
-    logTable->setItem(r, 1, new QTableWidgetItem(bp->text()));
-    logTable->setItem(r, 2, new QTableWidgetItem(temp->text()));
-    logTable->setItem(r, 3, new QTableWidgetItem(pulse->text()));
-    logTable->setItem(r, 4, new QTableWidgetItem(weight->text()));
-    logTable->setItem(r, 5, new QTableWidgetItem(height->text()));
-    bp->clear();
-    temp->clear();
-    pulse->clear();
-    weight->clear();
-    height->clear();
-    QMessageBox::information(
-        nullptr, tr2("Saved", "\xd8\xaa\xd9\x85"),
-        tr2("Vitals recorded successfully",
-            "\xd8\xaa\xd9\x85 \xd8\xaa\xd8\xb3\xd8\xac\xd9\x8a\xd9\x84 "
-            "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x84\xd8\xa7\xd9\x85\xd8\xa7\xd8"
-            "\xaa"));
-  });
-
-  ll->addWidget(logTable);
-  mainLay->addWidget(formBox, 1);
-  mainLay->addWidget(logBox, 2);
-  layout->addLayout(mainLay);
-  return page;
-}
-
 // ===== PHARMACY =====
 QWidget *MainWindow::createPharmacyPage() {
   QWidget *page = new QWidget();
@@ -4798,13 +5730,11 @@ QWidget *MainWindow::createPharmacyPage() {
 
   // Drug catalog
   QGroupBox *drugBox = new QGroupBox(
-      tr2("Drug Catalog",
-          "\xd9\x82\xd8\xa7\xd8\xa6\xd9\x85\xd8\xa9 "
-          "\xd8\xa7\xd9\x84\xd8\xa3\xd8\xaf\xd9\x88\xd9\x8a\xd8\xa9"));
+      tr2("Drug Catalog", "\xd9\x82\xd8\xa7\xd9\x84\xd9\x85\xd8\xa9 "
+                          "\xd8\xa7\xd9\x84\xd8\xa3\xd9\x88\xd9\x8a\xd8\xa9"));
   drugBox->setObjectName("card");
   QVBoxLayout *dl = new QVBoxLayout(drugBox);
-  QTableWidget *drugTable = new QTableWidget();
-  drugTable->setColumnCount(4);
+  QTableWidget *drugTable = new QTableWidget(0, 4);
   drugTable->setHorizontalHeaderLabels(
       {tr2("Drug Name", "\xd8\xa7\xd9\x84\xd8\xaf\xd9\x88\xd8\xa7\xd8\xa1"),
        tr2("Category", "\xd8\xa7\xd9\x84\xd9\x81\xd8\xa6\xd8\xa9"),
@@ -4814,14 +5744,16 @@ QWidget *MainWindow::createPharmacyPage() {
   drugTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   drugTable->verticalHeader()->setVisible(false);
 
-  QSqlQuery qd =
-      Database::instance().exec("SELECT drug_name, category, stock_qty, "
-                                "selling_price FROM pharmacy_drug_catalog");
+  QSqlQuery qt = Database::instance().exec(
+      "SELECT name, category, stock, price FROM drugs ORDER BY name ASC");
   int dr = 0;
-  while (qd.next()) {
+  while (qt.next()) {
     drugTable->insertRow(dr);
-    for (int c = 0; c < 4; c++)
-      drugTable->setItem(dr, c, new QTableWidgetItem(qd.value(c).toString()));
+    drugTable->setItem(dr, 0, new QTableWidgetItem(qt.value(0).toString()));
+    drugTable->setItem(dr, 1, new QTableWidgetItem(qt.value(1).toString()));
+    drugTable->setItem(dr, 2, new QTableWidgetItem(qt.value(2).toString()));
+    drugTable->setItem(dr, 3,
+                       new QTableWidgetItem(qt.value(3).toString() + " SAR"));
     dr++;
   }
   dl->addWidget(drugTable);
@@ -5071,7 +6003,7 @@ QWidget *MainWindow::createPatientAccountsPage() {
 
     // 3. Invoices
     QSqlQuery qInv = Database::instance().exec(
-        QString("SELECT total, paid, created_at "
+        QString("SELECT total, paid, created_at, description "
                 "FROM invoices WHERE patient_name LIKE '%%1%' "
                 "ORDER BY id DESC")
             .arg(nameEn.replace("'", "''")));
@@ -5086,10 +6018,13 @@ QWidget *MainWindow::createPatientAccountsPage() {
           row, 0,
           new QTableWidgetItem(tr2(
               "Invoice", "\xd9\x81\xd8\xa7\xd8\xaa\xd9\x88\xd8\xb1\xd8\xa9")));
-      journeyTable->setItem(row, 1,
-                            new QTableWidgetItem(tr2(
-                                "Medical services",
-                                "\xd8\xae\xd8\xaf\xd9\x85\xd8\xa7\xd8\xaa ")));
+      QString invoiceDesc = qInv.value(3).toString();
+      if (invoiceDesc.isEmpty())
+        invoiceDesc = "Medical services";
+      journeyTable->setItem(
+          row, 1,
+          new QTableWidgetItem(tr2(invoiceDesc.toUtf8().constData(),
+                                   invoiceDesc.toUtf8().constData())));
       journeyTable->setItem(row, 2,
                             new QTableWidgetItem(qInv.value(2).toString()));
       journeyTable->setItem(
@@ -5458,6 +6393,12 @@ QWidget *MainWindow::createSettingsPage() {
                "\xd8\xa7\xd9\x84\xd8\xb6\xd8\xb1\xd9\x8a\xd8\xa8\xd9\x8a",
                "3XXXXXXXXXX0003");
 
+  QLineEdit *crNum = addField(
+      "CR Number",
+      "\xd8\xb1\xd9\x82\xd9\x85 \xd8\xa7\xd9\x84\xd8\xb3\xd8\xac\xd9\x84 "
+      "\xd8\xa7\xd9\x84\xd8\xaa\xd8\xac\xd8\xa7\xd8\xb1\xd9\x8a",
+      "1010XXXXXX");
+
   QLineEdit *address = addField(
       "Address", "\xd8\xa7\xd9\x84\xd8\xb9\xd9\x86\xd9\x88\xd8\xa7\xd9\x86",
       tr2("Enter address...",
@@ -5539,6 +6480,7 @@ QWidget *MainWindow::createSettingsPage() {
   nameAr->setText(loadSetting("company_name_ar"));
   nameEn->setText(loadSetting("company_name_en"));
   taxNum->setText(loadSetting("tax_number"));
+  crNum->setText(loadSetting("cr_number"));
   address->setText(loadSetting("address"));
   phone->setText(loadSetting("phone"));
   QString savedLogo = loadSetting("logo_path");
@@ -5571,6 +6513,7 @@ QWidget *MainWindow::createSettingsPage() {
     saveSetting("company_name_ar", nameAr->text());
     saveSetting("company_name_en", nameEn->text());
     saveSetting("tax_number", taxNum->text());
+    saveSetting("cr_number", crNum->text());
     saveSetting("address", address->text());
     saveSetting("phone", phone->text());
     saveSetting("logo_path", logoPathEdit->text());

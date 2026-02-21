@@ -21,6 +21,28 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  // ==== E2E TEMP SEEDING ====
+  // Automatically inject a test patient to allow E2E workflow testing
+  // matching the exact schema defined in database.h
+  Database::instance().exec("DELETE FROM patients WHERE id = 9999");
+
+  // Create patient 9999 using the correct columns (no gender, is_insured, etc.)
+  Database::instance().exec(
+      "SET IDENTITY_INSERT patients ON; "
+      "INSERT INTO patients (id, file_number, name_ar, name_en, national_id, "
+      "phone, "
+      "dob, nationality, department, notes, amount, payment_method, status, "
+      "created_at) "
+      "VALUES (9999, 9999, "
+      "N'\xd8\xa7\xd8\xae\xd8\xaa\xd8\xa8\xd8\xa7\xd8\xb1 "
+      "\xd8\xa2\xd9\x84\xd9\x8a', 'E2E Test Patient', '1234567890', "
+      "'0500000000', "
+      "'1990-01-01', 'Saudi Arabia', 'General Practice', 'E2E Automated Test', "
+      "0, '', "
+      "'Waiting', GETDATE()); "
+      "SET IDENTITY_INSERT patients OFF;");
+  // ============================
+
   // ===== LOGIN DIALOG =====
   // Read saved theme from DB to style login page
   int savedTheme = 0;

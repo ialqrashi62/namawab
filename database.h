@@ -132,6 +132,12 @@ private:
     addColumnIfMissing("invoices", "amount", "DECIMAL(18,2) DEFAULT 0");
     addColumnIfMissing("invoices", "vat_amount", "DECIMAL(18,2) DEFAULT 0");
     addColumnIfMissing("invoices", "patient_id", "INT DEFAULT 0");
+
+    // Patient demographic columns
+    addColumnIfMissing("patients", "dob", "NVARCHAR(255) DEFAULT ''");
+    addColumnIfMissing("patients", "dob_hijri", "NVARCHAR(255) DEFAULT ''");
+    addColumnIfMissing("patients", "nationality",
+                       "NVARCHAR(255) DEFAULT N'Saudi Arabia'");
     // Backfill file_number for existing patients that have 0
     exec("UPDATE patients SET file_number = 1000 + id WHERE file_number = 0 OR "
          "file_number IS NULL");
@@ -157,6 +163,8 @@ private:
     createTable("patients",
                 QString("id %1, file_number INT DEFAULT 0, name_ar %2, name_en "
                         "%2, national_id %2, phone %2, "
+                        "dob %2 DEFAULT '', dob_hijri %2 DEFAULT '', "
+                        "nationality %2 DEFAULT N'Saudi Arabia', "
                         "department %2 DEFAULT '', notes %2 DEFAULT '', "
                         "amount %3 DEFAULT 0, payment_method %2 DEFAULT '', "
                         "status %2 DEFAULT 'Waiting', created_at %4")
@@ -630,6 +638,120 @@ private:
            "WHERE setting_key='sample_data_inserted' "
            "AND setting_value='' "
            "AND EXISTS (SELECT 1 FROM employees)");
+    }
+
+    createTable("hospital_inventory",
+                QString("id %1, item_name %2, category %2, quantity %3 "
+                        "DEFAULT 0, minimum_stock %3 DEFAULT 0, unit_price "
+                        "%3 DEFAULT 0, "
+                        "expiry_date %2, last_updated %4")
+                    .arg(autoInc, textType, realType, dateType));
+
+    createTable("drugs", QString("id %1, name %2, scientific_name %2, category "
+                                 "%2, stock %3 DEFAULT 100, price %3 DEFAULT 0")
+                             .arg(autoInc, textType, realType));
+
+    // Pre-populate drug catalog with top Saudi medications if empty
+    QSqlQuery qDrugs = exec("SELECT COUNT(*) FROM drugs");
+    if (qDrugs.next() && qDrugs.value(0).toInt() == 0) {
+      QStringList allDrugs = {
+          "Panadol 500mg (Paracetamol) - Analgesic",
+          "Fevadol 500mg (Paracetamol) - Analgesic",
+          "Brufen 400mg (Ibuprofen) - NSAID",
+          "Profenal 400mg (Ibuprofen) - NSAID",
+          "Voltaren 50mg (Diclofenac) - NSAID",
+          "Cataflam 50mg (Diclofenac Potassium) - NSAID",
+          "Aspirin Protect 100mg (Acetylsalicylic acid) - Blood Thinner",
+          "Jusprin 81mg (Aspirin) - Blood Thinner",
+          "Nexium 40mg (Esomeprazole) - PPI / Antacid",
+          "Pariet 20mg (Rabeprazole) - PPI / Antacid",
+          "Gaviscon Advance (Sodium Alginate) - Antacid Liquid",
+          "Augmentin 1g (Amoxicillin/Clavulanate) - Antibiotic",
+          "Klavox 1g (Amoxicillin/Clavulanate) - Antibiotic",
+          "Suprax 400mg (Cefixime) - Antibiotic",
+          "Zinnat 500mg (Cefuroxime) - Antibiotic",
+          "Zithromax 500mg (Azithromycin) - Antibiotic",
+          "Ciprofloxacin 500mg (Ciprofloxacin) - Antibiotic",
+          "Tavanic 500mg (Levofloxacin) - Antibiotic",
+          "Flagyl 500mg (Metronidazole) - Antiprotozoal",
+          "Amoxil 500mg (Amoxicillin) - Antibiotic",
+          "Lipitor 20mg (Atorvastatin) - Cholesterol",
+          "Crestor 10mg (Rosuvastatin) - Cholesterol",
+          "Glucophage 500mg (Metformin) - Diabetes",
+          "Diamicron MR 60mg (Gliclazide) - Diabetes",
+          "Januvia 100mg (Sitagliptin) - Diabetes",
+          "Amaryl 2mg (Glimepiride) - Diabetes",
+          "Concor 5mg (Bisoprolol) - Blood Pressure",
+          "Diovan 160mg (Valsartan) - Blood Pressure",
+          "Exforge 5/160mg (Amlodipine/Valsartan) - Blood Pressure",
+          "Micardis 80mg (Telmisartan) - Blood Pressure",
+          "Amlor 5mg (Amlodipine) - Blood Pressure",
+          "Lasix 40mg (Furosemide) - Diuretic",
+          "Zyrtec 10mg (Cetirizine) - Antihistamine",
+          "Clarinex 5mg (Desloratadine) - Antihistamine",
+          "Aerius 5mg (Desloratadine) - Antihistamine",
+          "Telfast 120mg (Fexofenadine) - Antihistamine",
+          "Singulair 10mg (Montelukast) - Asthma",
+          "Symbicort 160/4.5 (Budesonide/Formoterol) - Asthma Inhaler",
+          "Ventolin Evohaler 100mcg (Salbutamol) - Asthma Inhaler",
+          "Eltroxin 50mcg (Thyroxine) - Thyroid",
+          "Cortiment 9mg (Budesonide) - Corticosteroid",
+          "Predo 5mg (Prednisolone) - Corticosteroid",
+          "Rinza (Paracetamol/Pseudoephedrine) - Cold & Flu",
+          "Fludrex (Paracetamol/Chlorpheniramine) - Cold & Flu"};
+      for (const QString &d : allDrugs) {
+        QStringList parts = d.split(" - ");
+        if (parts.size() == 2) {
+          QString name = parts[0];
+          QString cat = parts[1];
+          float price =
+              (rand() % 100) + 15.0; // Random price between 15-115 SAR
+          exec(QString("INSERT INTO drugs (name, category, price) VALUES "
+                       "(N'%1', N'%2', %3)")
+                   .arg(name.replace("'", "''"))
+                   .arg(cat.replace("'", "''"))
+                   .arg(price));
+        }
+      }
+    }
+
+    // Inject Nahdi Online Real-World Scraped Saudi Drugs (Checks existence
+    // first)
+    QStringList nahdiDrugs = {
+        "بانادول اكسترا 24 قرص|مسكنات الألم والحمى|8.00",
+        "بانادول أدفانس باراسيتامول 500 مجم 24 قرص|مسكنات الألم والحمى|6.05",
+        "أدول باراسيتامول 500 مجم – 24 كبسولة|مسكنات الألم والحمى|5.05",
+        "بانادول نايت 20 قرص|مسكنات الألم والحمى|11.60",
+        "سولبادين فوار 20 قرص|مسكنات الألم والحمى|13.15",
+        "فيفادول 500 مجم 30 قرص|مسكنات الألم والحمى|6.30",
+        "كتافاست 50 مجم 9 اكياس|مسكنات الألم والحمى|18.00",
+        "فيفادول بلص 20 قرص|مسكنات الألم والحمى|9.65",
+        "رابيدوس 50 مجم 20 قرص|مسكنات الألم والحمى|29.10",
+        "بانادول اكتيفاست 500 مجم 20 قرص|مسكنات الألم والحمى|9.15",
+        "بانادريكس باراسيتامول 500 مجم – 48 قرص|مسكنات الألم والحمى|9.40",
+        "بروفين 400مجم 30 قرص|مسكنات الألم والحمى|13.60",
+        "سالون باس لصقة للالام صغير 20 حبة|مسكنات الألم والحمى|13.00",
+        "بانادول مايجرين 24 قرص|مسكنات الألم والحمى|38.94",
+        "روفيناك - د 50 مجم 20 قرص|مسكنات الألم والحمى|29.55",
+        "بروفين 600مجم 30قرص|مسكنات الألم والحمى|19.55",
+        "ادول اكسترا 24 قرص|مسكنات الألم والحمى|6.40",
+        "سولبادين كبسول 20 كبسولة|مسكنات الألم والحمى|13.15",
+        "فيفادول اكسترا 20 قرص|مسكنات الألم والحمى|5.80",
+        "فولتارين 100 مجم 5تحاميل|مسكنات الألم والحمى|18.20"};
+    for (const QString &nd : nahdiDrugs) {
+      QStringList parts = nd.split("|");
+      if (parts.size() == 3) {
+        QString nameStr = QString(parts[0]).replace("'", "''");
+        QSqlQuery check =
+            exec(QString("SELECT id FROM drugs WHERE name=N'%1'").arg(nameStr));
+        if (!check.next()) {
+          exec(QString("INSERT INTO drugs (name, category, price) VALUES "
+                       "(N'%1', N'%2', %3)")
+                   .arg(nameStr)
+                   .arg(QString(parts[1]).replace("'", "''"))
+                   .arg(parts[2].toFloat()));
+        }
+      }
     }
 
     // =============================================

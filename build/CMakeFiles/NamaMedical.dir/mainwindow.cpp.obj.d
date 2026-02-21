@@ -433,6 +433,7 @@ E:/Qt/6.6.3/msvc2019_64/include/QtCore/qdatetime.h
 E:/Qt/6.6.3/msvc2019_64/include/QtCore/qcalendar.h
 E:/Qt/6.6.3/msvc2019_64/include/QtCore/QDateTime
 E:/Qt/6.6.3/msvc2019_64/include/QtGui/QFont
+E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/QMessageBox
 E:/Qt/6.6.3/msvc2019_64/include/QtGui/QPainter
 E:/Qt/6.6.3/msvc2019_64/include/QtSql/QSqlQuery
 E:/Qt/6.6.3/msvc2019_64/include/QtCore/QString
@@ -451,6 +452,8 @@ E:/Qt/6.6.3/msvc2019_64/include/QtGui/qpagelayout.h
 E:/Qt/6.6.3/msvc2019_64/include/QtGui/qpagesize.h
 E:/Qt/6.6.3/msvc2019_64/include/QtGui/qpageranges.h
 E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/QApplication
+E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/QCheckBox
+E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/qcheckbox.h
 E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/QComboBox
 E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/QCompleter
 E:/Qt/6.6.3/msvc2019_64/include/QtWidgets/qcompleter.h
