@@ -443,3 +443,31 @@ node import_drugs.js   # Reads from E:\NamaMedical\drugs_export.txt
 8. Create `import_drugs.js` for bulk drug import
 9. Run `node server.js`
 10. Open http://localhost:3000, login with admin/admin
+
+---
+
+## 🐘 المهمة التالية: تحويل إلى PostgreSQL — Migration to PostgreSQL
+
+### الوضع الحالي:
+- النظام يعمل على **SQLite** (better-sqlite3) — sync API
+- PostgreSQL 16 **مثبت وشغال** على الجهاز
+- مكتبة `pg` **مثبتة** في المشروع
+- قاعدة بيانات `nama_medical_web` **منشأة وفاضية** في PostgreSQL
+- ملف `db_postgres.js` جاهز (جداول + اتصال)
+
+### PostgreSQL Connection:
+```
+Host: localhost
+Port: 5432
+Database: nama_medical_web
+User: postgres
+Password: postgres
+```
+
+### المطلوب:
+1. تحويل `server.js` من sync (better-sqlite3) إلى async (pg Pool) — كل route يستخدم `await`
+2. تحويل `database.js` seed data (300+ lab, 178 radiology, 338 services, 90+ drugs) إلى PostgreSQL INSERT
+3. تحويل `import_drugs.js` لـ PostgreSQL
+4. SQLite syntax → PostgreSQL: `INTEGER PRIMARY KEY AUTOINCREMENT` → `SERIAL PRIMARY KEY`, `?` → `$1,$2...`
+5. الفرونت إند (app.js, style.css, index.html) **لا يتغير** — نفسه بالضبط
+

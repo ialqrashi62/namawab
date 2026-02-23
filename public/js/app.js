@@ -24,6 +24,7 @@ const NAV_ITEMS = [
   { icon: '📋', en: 'Reports', ar: 'التقارير' },
   { icon: '✉️', en: 'Messaging', ar: 'الرسائل' },
   { icon: '📂', en: 'Catalog', ar: 'الأصناف' },
+  { icon: '📤', en: 'Dept Requests', ar: 'طلبات الأقسام' },
   { icon: '⚙️', en: 'Settings', ar: 'الإعدادات' },
 ];
 
@@ -165,14 +166,32 @@ function statusBadge(status) {
 async function loadPage(page) {
   const el = document.getElementById('pageContent');
   el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
-  const pages = [renderDashboard, renderReception, renderAppointments, renderDoctor, renderLab, renderRadiology, renderPharmacy, renderHR, renderFinance, renderInsurance, renderInventory, renderNursing, renderWaitingQueue, renderPatientAccounts, renderReports, renderMessaging, renderCatalog, renderSettings];
+  const pages = [renderDashboard, renderReception, renderAppointments, renderDoctor, renderLab, renderRadiology, renderPharmacy, renderHR, renderFinance, renderInsurance, renderInventory, renderNursing, renderWaitingQueue, renderPatientAccounts, renderReports, renderMessaging, renderCatalog, renderDeptRequests, renderSettings];
   if (pages[page]) await pages[page](el);
   else el.innerHTML = `<div class="page-title">${NAV_ITEMS[page]?.icon} ${tr(NAV_ITEMS[page]?.en, NAV_ITEMS[page]?.ar)}</div><div class="card"><p>${tr('Coming soon...', 'قريباً...')}</p></div>`;
 }
 
 // ===== DASHBOARD =====
 async function renderDashboard(el) {
-  const s = await API.get('/api/dashboard/stats');
+  const [s, enhanced] = await Promise.all([
+    API.get('/api/dashboard/stats'),
+    API.get('/api/dashboard/enhanced').catch(() => ({}))
+  ]);
+  let topDrHtml = '';
+  if (enhanced.topDoctors && enhanced.topDoctors.length) {
+    topDrHtml = enhanced.topDoctors.map(d => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--hover);border-radius:8px;margin:4px 0">
+      <span>👨‍⚕️ <strong>${d.display_name || tr('Unknown', 'غير معروف')}</strong> <span class="badge badge-info" style="font-size:10px">${d.patients} ${tr('patients', 'مريض')}</span></span>
+      <span style="font-weight:600;color:var(--accent)">${Number(d.revenue).toLocaleString()} SAR</span>
+    </div>`).join('');
+  }
+  let revTypeHtml = '';
+  if (enhanced.revenueByType && enhanced.revenueByType.length) {
+    const typeIcons = { 'File Opening': '📁', 'Lab Test': '🔬', 'Radiology': '📡', 'Consultation': '🩺', 'Pharmacy': '💊', 'Appointment': '📅' };
+    revTypeHtml = enhanced.revenueByType.map(r => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--hover);border-radius:8px;margin:4px 0">
+      <span>${typeIcons[r.service_type] || '📄'} ${r.service_type} <span class="badge badge-info" style="font-size:10px">${r.cnt}</span></span>
+      <span style="font-weight:600">${Number(r.total).toLocaleString()} SAR</span>
+    </div>`).join('');
+  }
   el.innerHTML = `
     <div class="page-title">📊 ${tr('System Dashboard', 'لوحة التحكم')}</div>
     <div class="stats-grid">
@@ -180,8 +199,26 @@ async function renderDashboard(el) {
       <div class="stat-card" style="--stat-color:#4ade80"><span class="stat-icon">💵</span><div class="stat-label">${tr('Revenue', 'الإيرادات')}</div><div class="stat-value">${Number(s.revenue).toLocaleString()} SAR</div></div>
       <div class="stat-card" style="--stat-color:#f59e0b"><span class="stat-icon">⏳</span><div class="stat-label">${tr('Waiting', 'بانتظار')}</div><div class="stat-value">${s.waiting}</div></div>
       <div class="stat-card" style="--stat-color:#f87171"><span class="stat-icon">📄</span><div class="stat-label">${tr('Pending Claims', 'مطالبات معلقة')}</div><div class="stat-value">${s.pendingClaims}</div></div>
-      <div class="stat-card" style="--stat-color:#a78bfa"><span class="stat-icon">📅</span><div class="stat-label">${tr("Today's Appts", 'مواعيد اليوم')}</div><div class="stat-value">${s.todayAppts}</div></div>
+      <div class="stat-card" style="--stat-color:#a78bfa"><span class="stat-icon">📅</span><div class="stat-label">${tr("Today's Appts", 'مواعيد اليوم')}</div><div class="stat-value">${enhanced.todayAppts || s.todayAppts}</div></div>
       <div class="stat-card" style="--stat-color:#38bdf8"><span class="stat-icon">👨‍💼</span><div class="stat-label">${tr('Employees', 'الموظفين')}</div><div class="stat-value">${s.employees}</div></div>
+    </div>
+    <div class="stats-grid" style="margin-top:16px">
+      <div class="stat-card" style="--stat-color:#22c55e"><span class="stat-icon">💰</span><div class="stat-label">${tr("Today's Revenue", 'إيراد اليوم')}</div><div class="stat-value">${Number(enhanced.todayRevenue || 0).toLocaleString()} SAR</div></div>
+      <div class="stat-card" style="--stat-color:#3b82f6"><span class="stat-icon">📈</span><div class="stat-label">${tr('Monthly Revenue', 'إيراد الشهر')}</div><div class="stat-value">${Number(enhanced.monthRevenue || 0).toLocaleString()} SAR</div></div>
+      <div class="stat-card" style="--stat-color:#ef4444"><span class="stat-icon">⚠️</span><div class="stat-label">${tr('Unpaid', 'غير مدفوع')}</div><div class="stat-value">${Number(enhanced.unpaidTotal || 0).toLocaleString()} SAR</div></div>
+      <div class="stat-card" style="--stat-color:#8b5cf6"><span class="stat-icon">🔬</span><div class="stat-label">${tr('Pending Lab', 'مختبر معلق')}</div><div class="stat-value">${enhanced.pendingLab || 0}</div></div>
+      <div class="stat-card" style="--stat-color:#06b6d4"><span class="stat-icon">📡</span><div class="stat-label">${tr('Pending Rad', 'أشعة معلقة')}</div><div class="stat-value">${enhanced.pendingRad || 0}</div></div>
+      <div class="stat-card" style="--stat-color:#ec4899"><span class="stat-icon">💊</span><div class="stat-label">${tr('Pending Rx', 'وصفات معلقة')}</div><div class="stat-value">${enhanced.pendingRx || 0}</div></div>
+    </div>
+    <div class="grid-equal" style="margin-top:16px">
+      <div class="card">
+        <div class="card-title">🏆 ${tr('Top Doctors (This Month)', 'أفضل الأطباء (هذا الشهر)')}</div>
+        ${topDrHtml || `<div class="empty-state"><p>${tr('No data yet', 'لا توجد بيانات')}</p></div>`}
+      </div>
+      <div class="card">
+        <div class="card-title">📊 ${tr('Revenue by Service Type', 'الإيرادات حسب نوع الخدمة')}</div>
+        ${revTypeHtml || `<div class="empty-state"><p>${tr('No data yet', 'لا توجد بيانات')}</p></div>`}
+      </div>
     </div>`;
 }
 
@@ -202,14 +239,128 @@ async function renderReception(el) {
         <div class="form-group mb-12"><label>${tr('Full Name (English)', 'الاسم بالإنجليزية')}</label><input class="form-input" id="rNameEn" placeholder="${tr('Enter English name', 'ادخل الاسم بالإنجليزية')}"></div>
         <div class="form-group mb-12"><label>${tr('National ID', 'رقم الهوية')}</label><input class="form-input" id="rNatId"></div>
         <div class="form-group mb-12"><label>${tr('Phone', 'الجوال')}</label><input class="form-input" id="rPhone" placeholder="05XXXXXXXX"></div>
+        <div class="form-group mb-12"><label>${tr('Nationality', 'الجنسية')}</label><select class="form-input" id="rNationality">
+          <option value="سعودي">🇸🇦 ${tr('Saudi', 'سعودي')}</option>
+          <option value="يمني">🇾🇪 ${tr('Yemeni', 'يمني')}</option>
+          <option value="إماراتي">🇦🇪 ${tr('Emirati', 'إماراتي')}</option>
+          <option value="كويتي">🇰🇼 ${tr('Kuwaiti', 'كويتي')}</option>
+          <option value="بحريني">🇧🇭 ${tr('Bahraini', 'بحريني')}</option>
+          <option value="قطري">🇶🇦 ${tr('Qatari', 'قطري')}</option>
+          <option value="عماني">🇴🇲 ${tr('Omani', 'عماني')}</option>
+          <option value="عراقي">🇮🇶 ${tr('Iraqi', 'عراقي')}</option>
+          <option value="أردني">🇯🇴 ${tr('Jordanian', 'أردني')}</option>
+          <option value="سوري">🇸🇾 ${tr('Syrian', 'سوري')}</option>
+          <option value="لبناني">🇱🇧 ${tr('Lebanese', 'لبناني')}</option>
+          <option value="فلسطيني">🇵🇸 ${tr('Palestinian', 'فلسطيني')}</option>
+          <option value="مصري">🇪🇬 ${tr('Egyptian', 'مصري')}</option>
+          <option value="سوداني">🇸🇩 ${tr('Sudanese', 'سوداني')}</option>
+          <option value="ليبي">🇱🇾 ${tr('Libyan', 'ليبي')}</option>
+          <option value="تونسي">🇹🇳 ${tr('Tunisian', 'تونسي')}</option>
+          <option value="جزائري">🇩🇿 ${tr('Algerian', 'جزائري')}</option>
+          <option value="مغربي">🇲🇦 ${tr('Moroccan', 'مغربي')}</option>
+          <option value="موريتاني">🇲🇷 ${tr('Mauritanian', 'موريتاني')}</option>
+          <option value="صومالي">🇸🇴 ${tr('Somali', 'صومالي')}</option>
+          <option value="جيبوتي">🇩🇯 ${tr('Djiboutian', 'جيبوتي')}</option>
+          <option value="جزر القمر">🇰🇲 ${tr('Comoran', 'جزر القمر')}</option>
+          <option value="تركي">🇹🇷 ${tr('Turkish', 'تركي')}</option>
+          <option value="إيراني">🇮🇷 ${tr('Iranian', 'إيراني')}</option>
+          <option value="أفغاني">🇦🇫 ${tr('Afghan', 'أفغاني')}</option>
+          <option value="باكستاني">🇵🇰 ${tr('Pakistani', 'باكستاني')}</option>
+          <option value="هندي">🇮🇳 ${tr('Indian', 'هندي')}</option>
+          <option value="بنغلاديشي">🇧🇩 ${tr('Bangladeshi', 'بنغلاديشي')}</option>
+          <option value="سريلانكي">🇱🇰 ${tr('Sri Lankan', 'سريلانكي')}</option>
+          <option value="نيبالي">🇳🇵 ${tr('Nepali', 'نيبالي')}</option>
+          <option value="فلبيني">🇵🇭 ${tr('Filipino', 'فلبيني')}</option>
+          <option value="إندونيسي">🇮🇩 ${tr('Indonesian', 'إندونيسي')}</option>
+          <option value="ماليزي">🇲🇾 ${tr('Malaysian', 'ماليزي')}</option>
+          <option value="تايلاندي">🇹🇭 ${tr('Thai', 'تايلاندي')}</option>
+          <option value="فيتنامي">🇻🇳 ${tr('Vietnamese', 'فيتنامي')}</option>
+          <option value="ميانماري">🇲🇲 ${tr('Myanmar', 'ميانماري')}</option>
+          <option value="صيني">🇨🇳 ${tr('Chinese', 'صيني')}</option>
+          <option value="ياباني">🇯🇵 ${tr('Japanese', 'ياباني')}</option>
+          <option value="كوري">🇰🇷 ${tr('Korean', 'كوري')}</option>
+          <option value="أمريكي">🇺🇸 ${tr('American', 'أمريكي')}</option>
+          <option value="كندي">🇨🇦 ${tr('Canadian', 'كندي')}</option>
+          <option value="مكسيكي">🇲🇽 ${tr('Mexican', 'مكسيكي')}</option>
+          <option value="برازيلي">🇧🇷 ${tr('Brazilian', 'برازيلي')}</option>
+          <option value="أرجنتيني">🇦🇷 ${tr('Argentine', 'أرجنتيني')}</option>
+          <option value="كولومبي">🇨🇴 ${tr('Colombian', 'كولومبي')}</option>
+          <option value="بريطاني">🇬🇧 ${tr('British', 'بريطاني')}</option>
+          <option value="فرنسي">🇫🇷 ${tr('French', 'فرنسي')}</option>
+          <option value="ألماني">🇩🇪 ${tr('German', 'ألماني')}</option>
+          <option value="إيطالي">🇮🇹 ${tr('Italian', 'إيطالي')}</option>
+          <option value="إسباني">🇪🇸 ${tr('Spanish', 'إسباني')}</option>
+          <option value="برتغالي">🇵🇹 ${tr('Portuguese', 'برتغالي')}</option>
+          <option value="هولندي">🇳🇱 ${tr('Dutch', 'هولندي')}</option>
+          <option value="بلجيكي">🇧🇪 ${tr('Belgian', 'بلجيكي')}</option>
+          <option value="سويسري">🇨🇭 ${tr('Swiss', 'سويسري')}</option>
+          <option value="نمساوي">🇦🇹 ${tr('Austrian', 'نمساوي')}</option>
+          <option value="سويدي">🇸🇪 ${tr('Swedish', 'سويدي')}</option>
+          <option value="نرويجي">🇳🇴 ${tr('Norwegian', 'نرويجي')}</option>
+          <option value="دنماركي">🇩🇰 ${tr('Danish', 'دنماركي')}</option>
+          <option value="فنلندي">🇫🇮 ${tr('Finnish', 'فنلندي')}</option>
+          <option value="بولندي">🇵🇱 ${tr('Polish', 'بولندي')}</option>
+          <option value="روسي">🇷🇺 ${tr('Russian', 'روسي')}</option>
+          <option value="أوكراني">🇺🇦 ${tr('Ukrainian', 'أوكراني')}</option>
+          <option value="روماني">🇷🇴 ${tr('Romanian', 'روماني')}</option>
+          <option value="يوناني">🇬🇷 ${tr('Greek', 'يوناني')}</option>
+          <option value="أسترالي">🇦🇺 ${tr('Australian', 'أسترالي')}</option>
+          <option value="نيوزيلندي">🇳🇿 ${tr('New Zealander', 'نيوزيلندي')}</option>
+          <option value="جنوب أفريقي">🇿🇦 ${tr('South African', 'جنوب أفريقي')}</option>
+          <option value="نيجيري">🇳🇬 ${tr('Nigerian', 'نيجيري')}</option>
+          <option value="كيني">🇰🇪 ${tr('Kenyan', 'كيني')}</option>
+          <option value="إثيوبي">🇪🇹 ${tr('Ethiopian', 'إثيوبي')}</option>
+          <option value="أوغندي">🇺🇬 ${tr('Ugandan', 'أوغندي')}</option>
+          <option value="تانزاني">🇹🇿 ${tr('Tanzanian', 'تانزاني')}</option>
+          <option value="غاني">🇬🇭 ${tr('Ghanaian', 'غاني')}</option>
+          <option value="سنغالي">🇸🇳 ${tr('Senegalese', 'سنغالي')}</option>
+          <option value="كاميروني">🇨🇲 ${tr('Cameroonian', 'كاميروني')}</option>
+          <option value="تشادي">🇹🇩 ${tr('Chadian', 'تشادي')}</option>
+          <option value="مالي">🇲🇱 ${tr('Malian', 'مالي')}</option>
+          <option value="إريتري">🇪🇷 ${tr('Eritrean', 'إريتري')}</option>
+          <option value="أذربيجاني">🇦🇿 ${tr('Azerbaijani', 'أذربيجاني')}</option>
+          <option value="أوزبكي">🇺🇿 ${tr('Uzbek', 'أوزبكي')}</option>
+          <option value="كازاخي">🇰🇿 ${tr('Kazakh', 'كازاخي')}</option>
+          <option value="تركمانستاني">🇹🇲 ${tr('Turkmen', 'تركمانستاني')}</option>
+          <option value="قرغيزي">🇰🇬 ${tr('Kyrgyz', 'قرغيزي')}</option>
+          <option value="طاجيكي">🇹🇯 ${tr('Tajik', 'طاجيكي')}</option>
+          <option value="أخرى">🌍 ${tr('Other', 'أخرى')}</option>
+        </select></div>
         <div class="flex gap-16 mb-12" style="flex-wrap:wrap">
-          <div class="form-group" style="flex:2;min-width:120px"><label>${tr('DOB (Gregorian)', 'تاريخ الميلاد (ميلادي)')}</label><input class="form-input" type="date" id="rDob"></div>
-          <div class="form-group" style="flex:2;min-width:120px"><label>${tr('DOB (Hijri)', 'تاريخ الميلاد (هجري)')}</label><input class="form-input" type="text" id="rDobHijri" placeholder="1400/01/01" pattern="[0-9]{4}/[0-9]{2}/[0-9]{2}"></div>
+          <div class="form-group" style="flex:3;min-width:220px"><label>${tr('DOB (Gregorian)', 'تاريخ الميلاد (ميلادي)')}</label>
+            <div class="flex gap-4">
+              <select class="form-input" id="rGregDay" style="flex:0.8"><option value="">${tr('Day', 'يوم')}</option>${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}</select>
+              <select class="form-input" id="rGregMonth" style="flex:1.5"><option value="">${tr('Month', 'شهر')}</option>
+                <option value="1">${tr('January', 'يناير')}</option><option value="2">${tr('February', 'فبراير')}</option><option value="3">${tr('March', 'مارس')}</option>
+                <option value="4">${tr('April', 'أبريل')}</option><option value="5">${tr('May', 'مايو')}</option><option value="6">${tr('June', 'يونيو')}</option>
+                <option value="7">${tr('July', 'يوليو')}</option><option value="8">${tr('August', 'أغسطس')}</option><option value="9">${tr('September', 'سبتمبر')}</option>
+                <option value="10">${tr('October', 'أكتوبر')}</option><option value="11">${tr('November', 'نوفمبر')}</option><option value="12">${tr('December', 'ديسمبر')}</option>
+              </select>
+              <select class="form-input" id="rGregYear" style="flex:1"><option value="">${tr('Year', 'سنة')}</option>${Array.from({ length: 97 }, (_, i) => `<option value="${2026 - i}">${2026 - i}</option>`).join('')}</select>
+            </div>
+          </div>
+          <div class="form-group" style="flex:3;min-width:220px"><label>${tr('DOB (Hijri)', 'تاريخ الميلاد (هجري)')}</label>
+            <div class="flex gap-4">
+              <select class="form-input" id="rHijriDay" style="flex:0.8"><option value="">${tr('Day', 'يوم')}</option>${Array.from({ length: 30 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}</select>
+              <select class="form-input" id="rHijriMonth" style="flex:1.5"><option value="">${tr('Month', 'شهر')}</option>
+                <option value="1">محرم</option><option value="2">صفر</option><option value="3">ربيع الأول</option><option value="4">ربيع الثاني</option>
+                <option value="5">جمادى الأولى</option><option value="6">جمادى الثانية</option><option value="7">رجب</option><option value="8">شعبان</option>
+                <option value="9">رمضان</option><option value="10">شوال</option><option value="11">ذو القعدة</option><option value="12">ذو الحجة</option>
+              </select>
+              <select class="form-input" id="rHijriYear" style="flex:1"><option value="">${tr('Year', 'سنة')}</option>${Array.from({ length: 101 }, (_, i) => `<option value="${1350 + i}">${1350 + i}</option>`).join('')}</select>
+            </div>
+          </div>
           <div class="form-group" style="flex:1;min-width:70px"><label>${tr('Age', 'العمر')}</label><input class="form-input form-input-readonly" id="rAge" readonly></div>
         </div>
         <div class="form-group mb-12"><label>${tr('Department', 'القسم')}</label><select class="form-input" id="rDept">${depts.map((d, i) => `<option value="${isArabic ? d : deptsEn[i]}">${isArabic ? d : deptsEn[i]}</option>`).join('')}</select></div>
         <div class="form-group mb-12"><label>${tr('Amount', 'المبلغ')}</label><input class="form-input" id="rAmount" value="0.00" type="number"></div>
-        <div class="form-group mb-16"><label>${tr('Payment', 'طريقة السداد')}</label><select class="form-input" id="rPay"><option>${tr('Cash', 'كاش')}</option><option>${tr('POS/Card', 'شبكة')}</option><option>${tr('Transfer', 'حوالة بنكية')}</option></select></div>
+        <div class="form-group mb-16"><label>${tr('Payment', 'طريقة السداد')}</label>
+          <div class="flex gap-16" style="margin-top:6px">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px"><input type="radio" name="rPay" value="${tr('Cash', 'كاش')}" checked style="width:18px;height:18px;accent-color:var(--accent,#6c5ce7)"> 💵 ${tr('Cash', 'كاش')}</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px"><input type="radio" name="rPay" value="${tr('POS/Card', 'شبكة')}" style="width:18px;height:18px;accent-color:var(--accent,#6c5ce7)"> 💳 ${tr('POS/Card', 'شبكة')}</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px"><input type="radio" name="rPay" value="${tr('Transfer', 'حوالة بنكية')}" style="width:18px;height:18px;accent-color:var(--accent,#6c5ce7)"> 🏦 ${tr('Transfer', 'حوالة بنكية')}</label>
+          </div>
+        </div>
         <button class="btn btn-primary w-full" id="rSaveBtn" style="height:44px;font-size:15px">💾 ${tr('Save & Generate File', 'حفظ وإنشاء ملف')}</button>
       </div>
       <div class="card">
@@ -221,15 +372,58 @@ async function renderReception(el) {
 
   renderPatientTable(patients);
 
-  // Arabic to English transliteration
-  const arToEn = { 'ا': 'a', 'ب': 'b', 'ت': 't', 'ث': 'th', 'ج': 'j', 'ح': 'h', 'خ': 'kh', 'د': 'd', 'ذ': 'th', 'ر': 'r', 'ز': 'z', 'س': 's', 'ش': 'sh', 'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'z', 'ع': 'a', 'غ': 'gh', 'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n', 'ه': 'h', 'و': 'w', 'ي': 'y', 'ة': 'h', 'ء': "'", 'أ': 'a', 'إ': 'e', 'ؤ': 'o', 'ئ': 'e', 'آ': 'aa', 'ى': 'a' };
+  // Arabic to English transliteration (improved)
+  const commonNames = {
+    'محمد': 'Mohammed', 'أحمد': 'Ahmed', 'علي': 'Ali', 'عبدالله': 'Abdullah', 'عبد الله': 'Abdullah',
+    'عبدالرحمن': 'Abdulrahman', 'عبد الرحمن': 'Abdulrahman', 'عبدالعزيز': 'Abdulaziz', 'عبد العزيز': 'Abdulaziz',
+    'عبدالملك': 'Abdulmalik', 'عبد الملك': 'Abdulmalik', 'عبدالرحيم': 'Abdulrahim', 'عبد الرحيم': 'Abdulrahim',
+    'فهد': 'Fahad', 'سعود': 'Saud', 'خالد': 'Khalid', 'سلطان': 'Sultan', 'تركي': 'Turki',
+    'سعد': 'Saad', 'نايف': 'Naif', 'بندر': 'Bandar', 'فيصل': 'Faisal', 'سلمان': 'Salman',
+    'ناصر': 'Nasser', 'صالح': 'Saleh', 'يوسف': 'Yousef', 'إبراهيم': 'Ibrahim', 'ابراهيم': 'Ibrahim',
+    'حسن': 'Hassan', 'حسين': 'Hussein', 'عمر': 'Omar', 'عثمان': 'Othman', 'طلال': 'Talal',
+    'ماجد': 'Majed', 'وليد': 'Waleed', 'مشعل': 'Mishal', 'منصور': 'Mansour', 'سارة': 'Sarah',
+    'نورة': 'Noura', 'فاطمة': 'Fatimah', 'عائشة': 'Aisha', 'مريم': 'Mariam', 'هند': 'Hind',
+    'لطيفة': 'Latifah', 'منيرة': 'Munirah', 'هيا': 'Haya', 'لمياء': 'Lamia', 'ريم': 'Reem',
+    'دانة': 'Dana', 'لين': 'Leen', 'جواهر': 'Jawaher', 'بدور': 'Badoor', 'العنزي': 'Al-Anzi',
+    'الشمري': 'Al-Shammari', 'الحربي': 'Al-Harbi', 'القحطاني': 'Al-Qahtani', 'الغامدي': 'Al-Ghamdi',
+    'الدوسري': 'Al-Dosari', 'المطيري': 'Al-Mutairi', 'الزهراني': 'Al-Zahrani', 'العتيبي': 'Al-Otaibi',
+    'السبيعي': 'Al-Subaie', 'الرشيدي': 'Al-Rashidi', 'البلوي': 'Al-Balawi', 'الجهني': 'Al-Juhani',
+    'السعدي': 'Al-Saadi', 'المالكي': 'Al-Malki'
+  };
+  const arToEn = {
+    'ا': 'a', 'أ': 'a', 'إ': 'e', 'آ': 'aa', 'ب': 'b', 'ت': 't', 'ث': 'th',
+    'ج': 'j', 'ح': 'h', 'خ': 'kh', 'د': 'd', 'ذ': 'dh', 'ر': 'r', 'ز': 'z',
+    'س': 's', 'ش': 'sh', 'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'dh',
+    'ع': 'a', 'غ': 'gh', 'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm',
+    'ن': 'n', 'ه': 'h', 'و': 'w', 'ي': 'y', 'ة': 'ah', 'ى': 'a',
+    'ء': "'", 'ؤ': 'o', 'ئ': 'e', 'ّ': '', 'َ': 'a', 'ُ': 'u', 'ِ': 'i', 'ْ': '', 'ً': '', 'ٌ': '', 'ٍ': ''
+  };
   document.getElementById('rNameAr').addEventListener('input', (e) => {
-    let result = '', wordStart = true;
-    for (const ch of e.target.value) {
-      if (ch === ' ') { result += ' '; wordStart = true; }
-      else if (arToEn[ch]) { let m = arToEn[ch]; if (wordStart) { m = m.charAt(0).toUpperCase() + m.slice(1); wordStart = false; } result += m; }
-      else { result += ch; wordStart = false; }
-    }
+    const words = e.target.value.trim().split(/\s+/);
+    const result = words.map(word => {
+      // Check common names first
+      if (commonNames[word]) return commonNames[word];
+      // Handle ال prefix
+      let prefix = '';
+      let w = word;
+      if (w.startsWith('ال') && w.length > 2) {
+        prefix = 'Al-';
+        w = w.substring(2);
+      }
+      let trans = '';
+      for (let i = 0; i < w.length; i++) {
+        const ch = w[i];
+        if (arToEn[ch] !== undefined) {
+          trans += arToEn[ch];
+        } else if (ch.match(/[a-zA-Z0-9]/)) {
+          trans += ch;
+        }
+      }
+      if (trans.length > 0) {
+        trans = trans.charAt(0).toUpperCase() + trans.slice(1);
+      }
+      return prefix + trans;
+    }).filter(w => w.length > 0).join(' ');
     document.getElementById('rNameEn').value = result;
   });
 
@@ -238,49 +432,81 @@ async function renderReception(el) {
     try { return new Intl.DateTimeFormat('ar-SA-u-ca-islamic', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(g).replace(/هـ/g, '').trim(); } catch (e) { return ''; }
   };
   const hToG = (hY, hM, hD) => {
-    // Approximate conversion for input (1 Hijri year ≈ 354.36 days)
-    // A more accurate method is to just rely on the API or a library, but here's a basic client-side approximation
-    const hDays = (hY - 1) * 354.36 + (hM - 1) * 29.53 + hD;
-    const gDate = new Date(19456200000 + hDays * 86400000); // Base epoch approx
-    // Modern Intl check (doesn't parse back natively, so we approximate the year roughly to calculate age)
+    // Proper Hijri to Gregorian conversion using tabular Islamic calendar
+    const a = Math.floor((11 * hY + 3) / 30);
+    const b = Math.floor(hY / 100);
+    const c = Math.floor(hY - 100 * b);
+    const d = Math.floor(b / 4);
+    const e1 = Math.floor((8 * (b + 1)) / 25) - 1;
+    // Calculate Julian Day Number from Hijri date
+    const jd = Math.floor(29.5001 * (hM - 1 + 12 * (hY - 1))) + hD + 1948439.5 - Math.floor((3 * (Math.floor((hY - 1) / 100) + 1)) / 4) + Math.floor((hY - 1) / 100) - Math.floor((hY - 1) / 400);
+    // Simpler and more reliable method: iterate from a known epoch
+    // Hijri epoch: July 16, 622 CE (Julian) = July 19, 622 CE (Gregorian)
+    const hijriEpoch = 1948439.5; // Julian Day for 1/1/1 Hijri
+    const monthDays = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
+    // Leap year adds 1 day to month 12
+    const isLeapYear = (y) => (11 * y + 14) % 30 < 11;
+    let totalDays = 0;
+    for (let y = 1; y < hY; y++) {
+      totalDays += isLeapYear(y) ? 355 : 354;
+    }
+    for (let m = 1; m < hM; m++) {
+      totalDays += monthDays[m - 1];
+    }
+    if (hM === 12 && isLeapYear(hY)) totalDays += 0; // already counted
+    totalDays += hD - 1;
+    // Hijri epoch in JavaScript Date: July 19, 622 CE
+    const epochMs = new Date(622, 6, 19).getTime();
+    const gDate = new Date(epochMs + totalDays * 86400000);
+    // Fix JS Date quirk for years < 100
+    if (gDate.getFullYear() < 100) gDate.setFullYear(gDate.getFullYear());
     const age = Math.abs(new Date(Date.now() - gDate.getTime()).getUTCFullYear() - 1970);
-    return { gDate: gDate.toISOString().split('T')[0], age };
+    const y = gDate.getFullYear();
+    const m = String(gDate.getMonth() + 1).padStart(2, '0');
+    const day = String(gDate.getDate()).padStart(2, '0');
+    return { gDate: `${y}-${m}-${day}`, age };
   };
 
-  document.getElementById('rDob').addEventListener('change', (e) => {
-    if (!e.target.value) { document.getElementById('rAge').value = ''; document.getElementById('rDobHijri').value = ''; return; }
-    const dob = new Date(e.target.value);
+  // Gregorian dropdowns -> convert to Hijri
+  const gregChange = () => {
+    const gY = parseInt(document.getElementById('rGregYear').value);
+    const gM = parseInt(document.getElementById('rGregMonth').value);
+    const gD = parseInt(document.getElementById('rGregDay').value);
+    if (!gY || !gM || !gD) return;
+    const dob = new Date(gY, gM - 1, gD);
     const diff = Date.now() - dob.getTime();
     document.getElementById('rAge').value = Math.abs(new Date(diff).getUTCFullYear() - 1970);
-    document.getElementById('rDobHijri').value = gToH(dob);
-  });
-
-  // Initialize Flatpickr for Hijri date
-  flatpickr('#rDobHijri', {
-    locale: 'ar',
-    dateFormat: "Y/m/d",
-    allowInput: true,
-    onChange: function (selectedDates, dateStr) {
-      if (!dateStr || !dateStr.includes('/')) return;
-      const parts = dateStr.split('/');
+    const hStr = gToH(dob);
+    if (hStr) {
+      const parts = hStr.replace(/[^0-9/]/g, '').split('/');
       if (parts.length === 3) {
-        const res = hToG(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]));
-        document.getElementById('rDob').value = res.gDate;
-        document.getElementById('rAge').value = res.age;
+        document.getElementById('rHijriDay').value = parseInt(parts[0]);
+        document.getElementById('rHijriMonth').value = parseInt(parts[1]);
+        document.getElementById('rHijriYear').value = parseInt(parts[2]);
       }
     }
-  });
+  };
+  document.getElementById('rGregYear').addEventListener('change', gregChange);
+  document.getElementById('rGregMonth').addEventListener('change', gregChange);
+  document.getElementById('rGregDay').addEventListener('change', gregChange);
 
-  document.getElementById('rDobHijri').addEventListener('blur', (e) => {
-    const v = e.target.value;
-    if (!v || !v.includes('/')) return;
-    const parts = v.split('/');
-    if (parts.length === 3) {
-      const res = hToG(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]));
-      document.getElementById('rDob').value = res.gDate;
-      document.getElementById('rAge').value = res.age;
-    }
-  });
+  // Hijri dropdowns -> convert to Gregorian
+  const hijriChange = () => {
+    const hY = parseInt(document.getElementById('rHijriYear').value);
+    const hM = parseInt(document.getElementById('rHijriMonth').value);
+    const hD = parseInt(document.getElementById('rHijriDay').value);
+    if (!hY || !hM || !hD) return;
+    const res = hToG(hY, hM, hD);
+    // Populate Gregorian dropdowns
+    const gd = new Date(res.gDate);
+    document.getElementById('rGregDay').value = gd.getDate();
+    document.getElementById('rGregMonth').value = gd.getMonth() + 1;
+    document.getElementById('rGregYear').value = gd.getFullYear();
+    document.getElementById('rAge').value = res.age;
+  };
+  document.getElementById('rHijriYear').addEventListener('change', hijriChange);
+  document.getElementById('rHijriMonth').addEventListener('change', hijriChange);
+  document.getElementById('rHijriDay').addEventListener('change', hijriChange);
 
   document.getElementById('rSaveBtn').addEventListener('click', async () => {
     const nameAr = document.getElementById('rNameAr').value.trim();
@@ -290,12 +516,13 @@ async function renderReception(el) {
       await API.post('/api/patients', {
         name_ar: nameAr, name_en: nameEn,
         national_id: document.getElementById('rNatId').value,
+        nationality: document.getElementById('rNationality').value,
         phone: document.getElementById('rPhone').value,
-        dob: document.getElementById('rDob').value,
-        dob_hijri: document.getElementById('rDobHijri').value,
+        dob: (document.getElementById('rGregYear').value && document.getElementById('rGregMonth').value && document.getElementById('rGregDay').value) ? `${document.getElementById('rGregYear').value}-${String(document.getElementById('rGregMonth').value).padStart(2, '0')}-${String(document.getElementById('rGregDay').value).padStart(2, '0')}` : '',
+        dob_hijri: (document.getElementById('rHijriYear').value && document.getElementById('rHijriMonth').value && document.getElementById('rHijriDay').value) ? `${document.getElementById('rHijriYear').value}/${String(document.getElementById('rHijriMonth').value).padStart(2, '0')}/${String(document.getElementById('rHijriDay').value).padStart(2, '0')}` : '',
         department: document.getElementById('rDept').value,
         amount: parseFloat(document.getElementById('rAmount').value) || 0,
-        payment_method: document.getElementById('rPay').value
+        payment_method: document.querySelector('input[name="rPay"]:checked')?.value || ''
       });
       showToast(tr('Patient saved!', 'تم حفظ المريض!'));
       await navigateTo(1);
@@ -339,11 +566,12 @@ async function renderAppointments(el) {
     <div class="split-layout">
       <div class="card">
         <div class="card-title">📝 ${tr('Book Appointment', 'حجز موعد')}</div>
-        <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="aPatient"><option value="">${tr('Select patient', 'اختر مريض')}</option>${patients.map(p => `<option value="${p.name_en}">${isArabic ? p.name_ar : p.name_en} (#${p.file_number})</option>`).join('')}</select></div>
+        <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="aPatient"><option value="">${tr('Select patient', 'اختر مريض')}</option>${patients.map(p => `<option value="${p.name_en}" data-pid="${p.id}">${isArabic ? p.name_ar : p.name_en} (#${p.file_number})</option>`).join('')}</select></div>
         <div class="form-group mb-12"><label>${tr('Doctor', 'الطبيب')}</label><select class="form-input" id="aDoctor"><option value="">${tr('Select doctor', 'اختر طبيب')}</option>${emps.map(d => `<option>${d.name}</option>`).join('')}</select></div>
         <div class="form-group mb-12"><label>${tr('Date', 'التاريخ')}</label><input class="form-input" type="date" id="aDate" value="${new Date().toISOString().split('T')[0]}"></div>
         <div class="form-group mb-12"><label>${tr('Time', 'الوقت')}</label><input class="form-input" type="time" id="aTime" value="${new Date().toTimeString().slice(0, 5)}"></div>
-        <div class="form-group mb-16"><label>${tr('Notes', 'ملاحظات')}</label><input class="form-input" id="aNotes"></div>
+        <div class="form-group mb-12"><label>${tr('Notes', 'ملاحظات')}</label><input class="form-input" id="aNotes"></div>
+        <div class="form-group mb-16"><label>${tr('Appointment Fee', 'رسوم الموعد')}</label><input class="form-input" id="aFee" type="number" value="0" placeholder="0.00"></div>
         <button class="btn btn-primary w-full" onclick="bookAppt()" style="height:44px">📅 ${tr('Book', 'حجز')}</button>
       </div>
       <div class="card">
@@ -358,10 +586,12 @@ async function renderAppointments(el) {
     </div>`;
 }
 window.bookAppt = async () => {
-  const p = document.getElementById('aPatient').value;
-  if (!p) { showToast(tr('Select patient', 'اختر مريض'), 'error'); return; }
+  const pSelect = document.getElementById('aPatient');
+  const pName = pSelect.value;
+  const pId = pSelect.options[pSelect.selectedIndex]?.dataset?.pid || '';
+  if (!pName) { showToast(tr('Select patient', 'اختر مريض'), 'error'); return; }
   try {
-    await API.post('/api/appointments', { patient_name: p, doctor_name: document.getElementById('aDoctor').value, department: '', appt_date: document.getElementById('aDate').value, appt_time: document.getElementById('aTime').value, notes: document.getElementById('aNotes').value });
+    await API.post('/api/appointments', { patient_name: pName, patient_id: pId, doctor_name: document.getElementById('aDoctor').value, department: '', appt_date: document.getElementById('aDate').value, appt_time: document.getElementById('aTime').value, notes: document.getElementById('aNotes').value, fee: parseFloat(document.getElementById('aFee').value) || 0 });
     showToast(tr('Appointment booked!', 'تم حجز الموعد!'));
     await navigateTo(2);
   } catch (e) { showToast(tr('Error booking', 'خطأ في الحجز'), 'error'); }
@@ -417,6 +647,7 @@ async function renderDoctor(el) {
           </div>
           <div id="drSvcTags" class="flex gap-8" style="flex-wrap:wrap;margin-bottom:12px"></div>
           <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">${tr('Available categories', 'التصنيفات المتاحة')}: <strong>${Object.keys(svcCategories).join(', ') || tr('All', 'الكل')}</strong></div>
+          <button class="btn btn-success w-full" onclick="billDrProcedures()" id="drBillBtn" style="height:40px;margin-top:8px">💵 ${tr('Bill Selected Procedures', 'فوتر الإجراءات المختارة')}</button>
           <input type="hidden" id="drSvcData" value='${JSON.stringify(filteredServices)}'>
         </div>
         <div class="card mb-16">
@@ -659,6 +890,52 @@ async function renderDoctor(el) {
           </div>
           <button class="btn btn-primary w-full" onclick="sendRx()">💊 ${tr('Issue Prescription → Pharmacy', 'إصدار وصفة → الصيدلية')}</button>
         </div>
+        <div class="card mb-16">
+          <div class="card-title">📋 ${tr('Medical Certificate', 'التقارير الطبية')}</div>
+          <div class="form-group mb-12"><label>${tr('Certificate Type', 'نوع التقرير')}</label>
+            <select class="form-input" id="drCertType">
+              <option value="sick_leave">🩺 ${tr('Sick Leave', 'إجازة مرضية')}</option>
+              <option value="medical_report">📄 ${tr('Medical Report', 'تقرير طبي')}</option>
+              <option value="fitness">✅ ${tr('Fitness Certificate', 'شهادة لياقة')}</option>
+            </select>
+          </div>
+          <div class="form-group mb-12"><label>${tr('Diagnosis/Reason', 'التشخيص/السبب')}</label><input class="form-input" id="drCertDiag"></div>
+          <div class="flex gap-8 mb-12">
+            <div class="form-group" style="flex:1"><label>${tr('From', 'من')}</label><input class="form-input" type="date" id="drCertFrom" value="${new Date().toISOString().split('T')[0]}"></div>
+            <div class="form-group" style="flex:1"><label>${tr('To', 'إلى')}</label><input class="form-input" type="date" id="drCertTo"></div>
+            <div class="form-group" style="flex:0.5"><label>${tr('Days', 'أيام')}</label><input class="form-input" type="number" id="drCertDays" value="1" min="1"></div>
+          </div>
+          <div class="form-group mb-12"><label>${tr('Notes', 'ملاحظات')}</label><input class="form-input" id="drCertNotes"></div>
+          <button class="btn btn-primary w-full" onclick="issueCertificate()">📋 ${tr('Issue Certificate', 'إصدار التقرير')}</button>
+        </div>
+        <div class="card mb-16">
+          <div class="card-title">🔄 ${tr('Referral to Department', 'تحويل لقسم آخر')}</div>
+          <div class="form-group mb-12"><label>${tr('To Department', 'إلى القسم')}</label>
+            <select class="form-input" id="drRefDept">
+              <option>الباطنية</option><option>الأطفال</option><option>العظام</option><option>الجلدية</option>
+              <option>الأنف والأذن</option><option>العيون</option><option>الأسنان</option><option>النساء والولادة</option>
+              <option>المخ والأعصاب</option><option>القلب</option><option>المسالك البولية</option><option>الطوارئ</option><option>الجراحة</option>
+            </select>
+          </div>
+          <div class="form-group mb-12"><label>${tr('Reason', 'السبب')}</label><input class="form-input" id="drRefReason"></div>
+          <div class="form-group mb-12"><label>${tr('Urgency', 'الأولوية')}</label>
+            <select class="form-input" id="drRefUrg">
+              <option value="Normal">🟢 ${tr('Normal', 'عادي')}</option>
+              <option value="Urgent">🟠 ${tr('Urgent', 'عاجل')}</option>
+              <option value="Emergency">🔴 ${tr('Emergency', 'طارئ')}</option>
+            </select>
+          </div>
+          <button class="btn btn-warning w-full" onclick="sendReferral()">🔄 ${tr('Send Referral', 'إرسال التحويل')}</button>
+        </div>
+        <div class="card mb-16">
+          <div class="card-title">📅 ${tr('Schedule Follow-up', 'جدولة متابعة')}</div>
+          <div class="flex gap-8 mb-12">
+            <div class="form-group" style="flex:1"><label>${tr('Date', 'التاريخ')}</label><input class="form-input" type="date" id="drFollowDate"></div>
+            <div class="form-group" style="flex:1"><label>${tr('Time', 'الوقت')}</label><input class="form-input" type="time" id="drFollowTime" value="09:00"></div>
+          </div>
+          <div class="form-group mb-12"><label>${tr('Notes', 'ملاحظات')}</label><input class="form-input" id="drFollowNotes"></div>
+          <button class="btn btn-info w-full" onclick="scheduleFollowup()">📅 ${tr('Book Follow-up', 'حجز موعد متابعة')}</button>
+        </div>
       </div>
       <div class="card">
         <div class="card-title">📋 ${tr('Medical Records', 'السجلات الطبية')}</div>
@@ -674,7 +951,30 @@ window.loadPatientInfo = async () => {
   try {
     await API.put(`/api/patients/${pid}`, { status: 'With Doctor' });
     const p = (await API.get('/api/patients')).find(x => x.id == pid);
-    document.getElementById('drPatientInfo').innerHTML = `<div class="flex gap-8 mt-16" style="flex-wrap:wrap"><span class="badge badge-info">📁 ${p.file_number}</span><span class="badge badge-warning">🎂 ${tr('Age', 'العمر')}: ${p.age || '?'}</span><span class="badge badge-success">📞 ${p.phone}</span><span class="badge badge-purple">🆔 ${p.national_id}</span><button class="btn btn-sm btn-primary" onclick="viewPatientResults(${p.id})" style="margin-right:auto">📋 ${tr('View Lab & Radiology Results', 'استعراض نتائج الفحوصات والأشعة')}</button></div><div id="drResultsPanel"></div>`;
+    const vitals = await API.get(`/api/nursing/vitals/${pid}`).catch(() => []);
+    const v = vitals.length > 0 ? vitals[0] : null;
+    let vitalsHtml = '';
+    if (v) {
+      vitalsHtml = `<div style="margin-top:12px;padding:12px;border:1px solid var(--border-color,#e5e7eb);border-radius:10px;background:var(--card-bg,#fff)">
+        <div style="font-weight:600;margin-bottom:8px;font-size:13px">🌡️ ${tr('Vitals from Nursing', 'العلامات الحيوية من التمريض')}</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:12px">
+          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">🩸 ${tr('BP', 'الضغط')}<br><strong>${v.bp || '-'}</strong></div>
+          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">🌡️ ${tr('Temp', 'حرارة')}<br><strong>${v.temp ? v.temp + '°' : '-'}</strong></div>
+          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">❤️ ${tr('Pulse', 'نبض')}<br><strong>${v.pulse || '-'}</strong></div>
+          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">💨 ${tr('O2', 'أكسجين')}<br><strong>${v.o2_sat ? v.o2_sat + '%' : '-'}</strong></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:12px;margin-top:6px">
+          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">💪 ${tr('Weight', 'وزن')}<br><strong>${v.weight ? v.weight + ' kg' : '-'}</strong></div>
+          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">📏 ${tr('Height', 'طول')}<br><strong>${v.height ? v.height + ' cm' : '-'}</strong></div>
+          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">🩸 ${tr('Sugar', 'سكر')}<br><strong>${v.blood_sugar || '-'}</strong></div>
+          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">🌬️ ${tr('Resp', 'تنفس')}<br><strong>${v.respiratory_rate || '-'}</strong></div>
+        </div>
+        ${v.allergies ? `<div style="margin-top:6px"><span class="badge badge-danger">⚠️ ${tr('Allergies', 'حساسية')}: ${v.allergies}</span></div>` : ''}
+        ${v.chronic_diseases ? `<div style="margin-top:4px"><span class="badge badge-warning">🏥 ${tr('Chronic', 'أمراض مزمنة')}: ${v.chronic_diseases}</span></div>` : ''}
+        ${v.current_medications ? `<div style="margin-top:4px"><span class="badge badge-info">💊 ${tr('Medications', 'أدوية')}: ${v.current_medications}</span></div>` : ''}
+      </div>`;
+    }
+    document.getElementById('drPatientInfo').innerHTML = `<div class="flex gap-8 mt-16" style="flex-wrap:wrap"><span class="badge badge-info">📁 ${p.file_number}</span><span class="badge badge-warning">🎂 ${tr('Age', 'العمر')}: ${p.age || '?'}</span><span class="badge badge-success">📞 ${p.phone}</span><span class="badge badge-purple">🆔 ${p.national_id}</span><button class="btn btn-sm btn-primary" onclick="viewPatientResults(${p.id})" style="margin-right:auto">📋 ${tr('View Lab & Radiology Results', 'استعراض نتائج الفحوصات والأشعة')}</button></div>${vitalsHtml}<div id="drResultsPanel"></div>`;
   } catch (e) { }
 };
 window.viewPatientResults = async (pid) => {
@@ -746,8 +1046,56 @@ window.sendRx = async () => {
     showToast(tr('Prescription sent to Pharmacy!', 'تم إرسال الوصفة للصيدلية!'));
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
-
-// ===== PROCEDURES AUTOCOMPLETE =====
+window.issueCertificate = async () => {
+  const pid = document.getElementById('drPatient').value;
+  if (!pid) { showToast(tr('Select patient first', 'اختر المريض أولاً'), 'error'); return; }
+  const pSelect = document.getElementById('drPatient');
+  const pName = pSelect.options[pSelect.selectedIndex]?.text?.split(' - ')[1]?.split(' (')[0] || '';
+  try {
+    await API.post('/api/medical/certificates', {
+      patient_id: pid, patient_name: pName,
+      cert_type: document.getElementById('drCertType').value,
+      diagnosis: document.getElementById('drCertDiag').value,
+      start_date: document.getElementById('drCertFrom').value,
+      end_date: document.getElementById('drCertTo').value,
+      days: parseInt(document.getElementById('drCertDays').value) || 1,
+      notes: document.getElementById('drCertNotes').value
+    });
+    showToast(tr('Certificate issued!', 'تم إصدار التقرير!'));
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+window.sendReferral = async () => {
+  const pid = document.getElementById('drPatient').value;
+  if (!pid) { showToast(tr('Select patient first', 'اختر المريض أولاً'), 'error'); return; }
+  const pSelect = document.getElementById('drPatient');
+  const pName = pSelect.options[pSelect.selectedIndex]?.text?.split(' - ')[1]?.split(' (')[0] || '';
+  try {
+    await API.post('/api/referrals', {
+      patient_id: pid, patient_name: pName,
+      to_department: document.getElementById('drRefDept').value,
+      reason: document.getElementById('drRefReason').value,
+      urgency: document.getElementById('drRefUrg').value
+    });
+    showToast(tr('Referral sent!', 'تم إرسال التحويل!'));
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+window.scheduleFollowup = async () => {
+  const pid = document.getElementById('drPatient').value;
+  if (!pid) { showToast(tr('Select patient first', 'اختر المريض أولاً'), 'error'); return; }
+  const followDate = document.getElementById('drFollowDate').value;
+  if (!followDate) { showToast(tr('Select date', 'اختر التاريخ'), 'error'); return; }
+  const pSelect = document.getElementById('drPatient');
+  const pName = pSelect.options[pSelect.selectedIndex]?.text?.split(' - ')[1]?.split(' (')[0] || '';
+  try {
+    await API.post('/api/appointments/followup', {
+      patient_id: pid, patient_name: pName,
+      appt_date: followDate,
+      appt_time: document.getElementById('drFollowTime').value,
+      notes: document.getElementById('drFollowNotes').value
+    });
+    showToast(tr('Follow-up booked!', 'تم حجز موعد المتابعة!'));
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
 let selectedServices = [];
 window.filterDrServices = () => {
   const q = document.getElementById('drSvcSearch').value.toLowerCase().trim();
@@ -780,6 +1128,17 @@ function renderSvcTags() {
   c.innerHTML = selectedServices.map(s => `<span class="badge badge-info" style="font-size:12px;padding:6px 10px">${isArabic ? s.nameAr : s.nameEn} (${s.price} ${tr('SAR', 'ر.س')}) <span onclick="removeDrService(${s.id})" style="cursor:pointer;margin-right:4px;font-weight:bold">\u2715</span></span>`).join('') +
     `<span class="badge badge-success" style="font-size:12px;padding:6px 10px;margin-right:auto">\ud83d\udcb0 ${tr('Total', 'الإجمالي')}: ${total} ${tr('SAR', 'ر.س')}</span>`;
 }
+window.billDrProcedures = async () => {
+  const pid = document.getElementById('drPatient').value;
+  if (!pid) { showToast(tr('Select patient first', 'اختر المريض أولاً'), 'error'); return; }
+  if (!selectedServices.length) { showToast(tr('Select procedures first', 'اختر الإجراءات أولاً'), 'error'); return; }
+  try {
+    const result = await API.post('/api/medical/bill-procedures', { patient_id: pid, services: selectedServices });
+    showToast(`${tr('Billed successfully', 'تم إصدار الفاتورة')}: ${result.totalBilled} ${tr('SAR', 'ر.س')}`);
+    selectedServices = [];
+    renderSvcTags();
+  } catch (e) { showToast(tr('Error billing', 'خطأ في الفوترة'), 'error'); }
+};
 
 // ===== LAB =====
 async function renderLab(el) {
@@ -1249,7 +1608,19 @@ async function renderHR(el) {
       <input class="form-input" id="hrSalary" placeholder="${tr('Salary', 'الراتب')}" type="number" style="flex:1">
       <button class="btn btn-primary" onclick="addEmp()">➕</button>
     </div>
-    <div id="hrTable">${makeTable([tr('Name', 'الاسم'), tr('Role', 'الوظيفة'), tr('Department', 'القسم'), tr('Salary', 'الراتب'), tr('Status', 'الحالة'), tr('Delete', 'حذف')], emps.map(e => ({ cells: [isArabic ? e.name_ar : e.name_en, e.role, isArabic ? e.department_ar : e.department_en, e.salary?.toLocaleString(), statusBadge(e.status)], id: e.id })), r => `<button class="btn btn-danger btn-sm" onclick="delEmp(${r.id})">🗑</button>`)}</div></div>`;
+    <div class="flex gap-8 mb-12" id="hrCommRow" style="display:none">
+      <select class="form-input" id="hrCommType" style="flex:1">
+        <option value="percentage">💰 ${tr('Commission %', 'عمولة %')}</option>
+        <option value="fixed">💰 ${tr('Fixed per Patient', 'مبلغ ثابت/مريض')}</option>
+      </select>
+      <input class="form-input" id="hrCommValue" placeholder="${tr('Commission Value', 'قيمة العمولة')}" type="number" step="0.5" value="0" style="flex:1">
+    </div>
+    <div id="hrTable">${makeTable([tr('Name', 'الاسم'), tr('Role', 'الوظيفة'), tr('Department', 'القسم'), tr('Salary', 'الراتب'), tr('Commission', 'العمولة'), tr('Status', 'الحالة'), tr('Delete', 'حذف')], emps.map(e => ({ cells: [isArabic ? e.name_ar : e.name_en, e.role, isArabic ? e.department_ar : e.department_en, e.salary?.toLocaleString(), e.role === 'Doctor' ? `${e.commission_value || 0}${e.commission_type === 'percentage' ? '%' : ' SAR'}` : '-', statusBadge(e.status)], id: e.id })), r => `<button class="btn btn-danger btn-sm" onclick="delEmp(${r.id})">🗑</button>`)}</div></div>`;
+  // Show/hide commission row when role changes
+  const hrRoleEl = document.getElementById('hrRole');
+  const showCommRow = () => { document.getElementById('hrCommRow').style.display = hrRoleEl.value === 'Doctor' ? 'flex' : 'none'; };
+  hrRoleEl.addEventListener('change', showCommRow);
+  showCommRow(); // Check on page load
 }
 window.addEmp = async () => {
   const nameEn = document.getElementById('hrNameEn').value.trim();
@@ -1259,13 +1630,18 @@ window.addEmp = async () => {
 
   if (!nameEn && !nameAr) { showToast(tr('Enter employee name', 'ادخل اسم الموظف'), 'error'); return; }
   try {
+    const role = document.getElementById('hrRole').value;
+    const commType = role === 'Doctor' ? (document.getElementById('hrCommType')?.value || 'percentage') : 'percentage';
+    const commValue = role === 'Doctor' ? (parseFloat(document.getElementById('hrCommValue')?.value) || 0) : 0;
     await API.post('/api/employees', {
       name_ar: nameAr,
       name_en: nameEn,
-      role: document.getElementById('hrRole').value,
+      role,
       department_en: deptSel.value,
       department_ar: opt ? (opt.getAttribute('data-ar') || '') : '',
-      salary: document.getElementById('hrSalary').value
+      salary: document.getElementById('hrSalary').value,
+      commission_type: commType,
+      commission_value: commValue
     });
     showToast(tr('Employee added!', 'تمت الإضافة!'));
     await navigateTo(7);
@@ -1466,30 +1842,70 @@ async function renderNursing(el) {
   el.innerHTML = `
     <div class="page-title">👩‍⚕️ ${tr('Nursing Station', 'محطة التمريض')}</div>
     <div class="split-layout">
-      <div class="card">
-        <div class="card-title">🌡️ ${tr('Record Patient Vitals', 'تسجيل العلامات الحيوية')}</div>
-        <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="nsPatient"><option value="">${tr('-- Select --', '-- اختر مريض --')}</option>${patients.map(p => `<option value="${p.id}" data-name="${p.name_en}">${p.file_number} - ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</option>`).join('')}</select></div>
-        <div class="flex gap-8 mb-12">
-          <div class="form-group" style="flex:1"><label>${tr('Blood Pressure', 'ضغط الدم')}</label><input class="form-input" id="nsBp" placeholder="120/80"></div>
-          <div class="form-group" style="flex:1"><label>${tr('Temp (°C)', 'الحرارة')}</label><input class="form-input" id="nsTemp" type="number" step="0.1" placeholder="37.0"></div>
+      <div>
+        <div class="card mb-16">
+          <div class="card-title">🌡️ ${tr('Record Patient Vitals', 'تسجيل العلامات الحيوية')}</div>
+          <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="nsPatient"><option value="">${tr('-- Select --', '-- اختر مريض --')}</option>${patients.map(p => `<option value="${p.id}" data-name="${p.name_en || p.name_ar}">${p.file_number} - ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</option>`).join('')}</select></div>
+          <div class="flex gap-8 mb-12">
+            <div class="form-group" style="flex:1"><label>🩸 ${tr('Blood Pressure', 'ضغط الدم')}</label><input class="form-input" id="nsBp" placeholder="120/80"></div>
+            <div class="form-group" style="flex:1"><label>🌡️ ${tr('Temp (°C)', 'الحرارة')}</label><input class="form-input" id="nsTemp" type="number" step="0.1" placeholder="37.0"></div>
+          </div>
+          <div class="flex gap-8 mb-12">
+            <div class="form-group" style="flex:1"><label>❤️ ${tr('Pulse (bpm)', 'النبض')}</label><input class="form-input" id="nsPulse" type="number" placeholder="75"></div>
+            <div class="form-group" style="flex:1"><label>💨 ${tr('O2 Sat (%)', 'الأكسجين')}</label><input class="form-input" id="nsO2" type="number" placeholder="98"></div>
+          </div>
+          <div class="flex gap-8 mb-12">
+            <div class="form-group" style="flex:1"><label>💪 ${tr('Weight (kg)', 'الوزن')}</label><input class="form-input" id="nsWeight" type="number" step="0.1" placeholder="70.5"></div>
+            <div class="form-group" style="flex:1"><label>📏 ${tr('Height (cm)', 'الطول')}</label><input class="form-input" id="nsHeight" type="number" placeholder="170"></div>
+          </div>
+          <div class="flex gap-8 mb-12">
+            <div class="form-group" style="flex:1"><label>🌬️ ${tr('Respiratory Rate', 'معدل التنفس')}</label><input class="form-input" id="nsResp" type="number" placeholder="18"></div>
+            <div class="form-group" style="flex:1"><label>🩸 ${tr('Blood Sugar', 'السكر')}</label><input class="form-input" id="nsSugar" type="number" placeholder="100"></div>
+          </div>
         </div>
-        <div class="flex gap-8 mb-12">
-          <div class="form-group" style="flex:1"><label>${tr('Weight (kg)', 'الوزن')}</label><input class="form-input" id="nsWeight" type="number" step="0.1" placeholder="70.5"></div>
-          <div class="form-group" style="flex:1"><label>${tr('Pulse (bpm)', 'النبض')}</label><input class="form-input" id="nsPulse" type="number" placeholder="75"></div>
-          <div class="form-group" style="flex:1"><label>${tr('O2 Sat (%)', 'الأكسجين')}</label><input class="form-input" id="nsO2" type="number" placeholder="98"></div>
+        <div class="card mb-16">
+          <div class="card-title">📋 ${tr('Medical History', 'التاريخ المرضي')}</div>
+          <div class="form-group mb-12"><label>🏥 ${tr('Chronic Diseases', 'الأمراض المزمنة')}</label><textarea class="form-input form-textarea" id="nsChronic" placeholder="${tr('e.g. Diabetes, Hypertension, Asthma...', 'مثلاً: سكري، ضغط، ربو...')}"></textarea></div>
+          <div class="form-group mb-12"><label>💊 ${tr('Current Medications', 'الأدوية الحالية')}</label><textarea class="form-input form-textarea" id="nsMeds" placeholder="${tr('e.g. Metformin 500mg, Aspirin 100mg...', 'مثلاً: ميتفورمين 500مج، أسبرين 100مج...')}"></textarea></div>
+          <div class="form-group mb-12"><label>⚠️ ${tr('Allergies', 'الحساسية')}</label><textarea class="form-input form-textarea" id="nsAllergies" placeholder="${tr('e.g. Penicillin, Peanuts, Latex...', 'مثلاً: بنسلين، فول سوداني، لاتكس...')}"></textarea></div>
+          <div class="form-group mb-16"><label>📝 ${tr('Notes / Triage', 'ملاحظات / فرز')}</label><textarea class="form-input form-textarea" id="nsNotes"></textarea></div>
+          <button class="btn btn-primary w-full" style="height:44px" onclick="saveVitals()">💾 ${tr('Save Vitals & Send to Doctor', 'حفظ وإرسال للطبيب')}</button>
         </div>
-        <div class="form-group mb-16"><label>${tr('Notes / Triage', 'ملاحظات / فرز')}</label><textarea class="form-input form-textarea" id="nsNotes"></textarea></div>
-        <button class="btn btn-primary w-full" id="nsSaveSaveBtn" style="height:44px" onclick="saveVitals()">💾 ${tr('Save Vitals & Send to Doctor', 'حفظ وإرسال للطبيب')}</button>
       </div>
       <div class="card">
         <div class="card-title">📋 ${tr('Recent Vitals Registry', 'سجل العلامات الحيوية')}</div>
-        <input class="search-filter" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'nsTable')">
-        <div id="nsTable">${makeTable(
-    [tr('Patient', 'المريض'), tr('BP', 'الضغط'), tr('Temp', 'الحرارة'), tr('Pulse', 'النبض'), tr('O2', 'الأكسجين'), tr('Date', 'التاريخ')],
-    vitals.map(v => ({ cells: [v.patient_name || v.patient_id, v.bp, v.temp + ' °C', v.pulse, v.o2_sat + '%', v.created_at?.split('T')[0] || ''] }))
-  )}</div>
+        <input class="search-filter" id="nsSearch" placeholder="${tr('Search...', 'بحث...')}">
+        <div id="nsTable">${vitals.length === 0 ? `<div class="empty-state"><div class="empty-icon">📭</div><p>${tr('No data found', 'لا توجد بيانات')}</p></div>` : vitals.map(v => `
+          <div class="card mb-12" style="padding:12px;border:1px solid var(--border-color,#e5e7eb);border-radius:10px;background:var(--card-bg,#fff)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <strong style="font-size:14px">👤 ${v.patient_name || v.patient_id}</strong>
+              <span style="font-size:12px;color:var(--text-muted,#999)">📅 ${v.created_at?.split('T')[0] || ''}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:13px">
+              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">🩸 ${tr('BP', 'الضغط')}<br><strong>${v.bp || '-'}</strong></div>
+              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">🌡️ ${tr('Temp', 'حرارة')}<br><strong>${v.temp ? v.temp + '°' : '-'}</strong></div>
+              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">❤️ ${tr('Pulse', 'نبض')}<br><strong>${v.pulse || '-'}</strong></div>
+              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">💨 ${tr('O2', 'أكسجين')}<br><strong>${v.o2_sat ? v.o2_sat + '%' : '-'}</strong></div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:13px;margin-top:6px">
+              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">💪 ${tr('Weight', 'وزن')}<br><strong>${v.weight ? v.weight + ' kg' : '-'}</strong></div>
+              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">📏 ${tr('Height', 'طول')}<br><strong>${v.height ? v.height + ' cm' : '-'}</strong></div>
+              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">🌬️ ${tr('Resp', 'تنفس')}<br><strong>${v.respiratory_rate || '-'}</strong></div>
+              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">🩸 ${tr('Sugar', 'سكر')}<br><strong>${v.blood_sugar || '-'}</strong></div>
+            </div>
+            ${v.allergies ? `<div style="margin-top:6px"><span class="badge badge-danger">⚠️ ${v.allergies}</span></div>` : ''}
+            ${v.chronic_diseases ? `<div style="margin-top:4px;font-size:12px;color:var(--text-muted,#888)">🏥 ${v.chronic_diseases}</div>` : ''}
+          </div>
+        `).join('')}</div>
       </div>
     </div>`;
+  // Search filter for vitals cards
+  document.getElementById('nsSearch')?.addEventListener('input', (e) => {
+    const txt = e.target.value.toLowerCase();
+    document.querySelectorAll('#nsTable .card').forEach(c => {
+      c.style.display = c.textContent.toLowerCase().includes(txt) ? '' : 'none';
+    });
+  });
 }
 
 window.saveVitals = async () => {
@@ -1503,8 +1919,14 @@ window.saveVitals = async () => {
       bp: document.getElementById('nsBp').value,
       temp: parseFloat(document.getElementById('nsTemp').value) || 0,
       weight: parseFloat(document.getElementById('nsWeight').value) || 0,
+      height: parseFloat(document.getElementById('nsHeight').value) || 0,
       pulse: parseInt(document.getElementById('nsPulse').value) || 0,
       o2_sat: parseInt(document.getElementById('nsO2').value) || 0,
+      respiratory_rate: parseInt(document.getElementById('nsResp').value) || 0,
+      blood_sugar: parseInt(document.getElementById('nsSugar').value) || 0,
+      chronic_diseases: document.getElementById('nsChronic').value,
+      current_medications: document.getElementById('nsMeds').value,
+      allergies: document.getElementById('nsAllergies').value,
       notes: document.getElementById('nsNotes').value
     });
     showToast(tr('Vitals recorded and patient routed to doctor!', 'تم تسجيل العلامات الحيوية وتحويل المريض!'));
@@ -1536,37 +1958,52 @@ window.loadPatientAccount = async () => {
   const pid = document.getElementById('paPatient').value;
   if (!pid) return;
   try {
-    const data = await API.get(`/api/patients/${pid}/account`);
-    const p = data.patient;
+    const data = await API.get(`/api/billing/summary/${pid}`);
+    const pInfo = await API.get(`/api/patients/${pid}/account`);
+    const p = pInfo.patient;
+    // Build billing breakdown by service type
+    let breakdownHtml = '';
+    const typeIcons = { 'File Opening': '📁', 'Lab Test': '🔬', 'Radiology': '📡', 'Consultation': '🩺', 'Pharmacy': '💊', 'Appointment': '📅', 'Medical Services': '🏥', 'Other': '📄' };
+    const typeNames = { 'File Opening': tr('File Opening', 'فتح ملف'), 'Lab Test': tr('Lab Tests', 'فحوصات المختبر'), 'Radiology': tr('Radiology', 'الأشعة'), 'Consultation': tr('Consultation', 'الكشفية'), 'Pharmacy': tr('Pharmacy/Drugs', 'الصيدلية/الأدوية'), 'Appointment': tr('Appointments', 'المواعيد'), 'Medical Services': tr('Medical Services', 'خدمات طبية') };
+    for (const [type, info] of Object.entries(data.byType)) {
+      breakdownHtml += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--hover);border-radius:8px;margin:6px 0">
+        <span>${typeIcons[type] || '📄'} <strong>${typeNames[type] || type}</strong> <span class="badge badge-info" style="font-size:11px">${info.count}</span></span>
+        <span style="font-weight:600">${info.total.toLocaleString()} ${tr('SAR', 'ر.س')}</span>
+      </div>`;
+    }
     document.getElementById('paResult').innerHTML = `
         <div class="card mb-16">
           <div class="card-title">👤 ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)} - #${p.file_number}</div>
           <div class="stats-grid">
             <div class="stat-card" style="--stat-color:#3b82f6"><div class="stat-label">${tr('Total Billed', 'إجمالي الفواتير')}</div><div class="stat-value">${data.totalBilled.toLocaleString()} SAR</div></div>
             <div class="stat-card" style="--stat-color:#4ade80"><div class="stat-label">${tr('Total Paid', 'المدفوع')}</div><div class="stat-value">${data.totalPaid.toLocaleString()} SAR</div></div>
-            <div class="stat-card" style="--stat-color:${data.balance > 0 ? '#f87171' : '#4ade80'}"><div class="stat-label">${tr('Balance', 'الرصيد')}</div><div class="stat-value">${data.balance.toLocaleString()} SAR</div></div>
+            <div class="stat-card" style="--stat-color:${data.balance > 0 ? '#f87171' : '#4ade80'}"><div class="stat-label">${tr('Balance Due', 'المتبقي')}</div><div class="stat-value">${data.balance.toLocaleString()} SAR</div></div>
           </div>
         </div>
-        <div class="card mb-16"><div class="card-title">🧾 ${tr('Invoices', 'الفواتير')} (${data.invoices.length})</div>
-        ${makeTable([tr('Description', 'الوصف'), tr('Amount', 'المبلغ'), tr('Status', 'الحالة'), tr('Date', 'التاريخ')], data.invoices.map(i => ({ cells: [i.description || i.service_type, `${i.total} SAR`, i.paid ? badge(tr('Paid', 'مدفوع'), 'success') : badge(tr('Unpaid', 'غير مدفوع'), 'danger'), i.created_at?.split('T')[0] || ''] })))}</div>
-        <div class="card mb-16"><div class="card-title">🩺 ${tr('Medical Records', 'السجلات الطبية')} (${data.records.length})</div>
-        ${makeTable([tr('Diagnosis', 'التشخيص'), tr('Symptoms', 'الأعراض'), tr('Date', 'التاريخ')], data.records.map(r => ({ cells: [r.diagnosis, r.symptoms, r.visit_date?.split('T')[0] || ''] })))}</div>
-        <div class="card mb-16"><div class="card-title">🔬 ${tr('Lab Orders', 'فحوصات المختبر')} (${data.labOrders.length})</div>
-        ${makeTable([tr('Type', 'النوع'), tr('Status', 'الحالة'), tr('Date', 'التاريخ')], data.labOrders.map(o => ({ cells: [o.order_type, statusBadge(o.status), o.created_at?.split('T')[0] || ''] })))}</div>
-        <div class="card mb-16"><div class="card-title">📡 ${tr('Radiology', 'الأشعة')} (${data.radOrders.length})</div>
-        ${makeTable([tr('Type', 'النوع'), tr('Status', 'الحالة'), tr('Date', 'التاريخ')], data.radOrders.map(o => ({ cells: [o.order_type, statusBadge(o.status), o.created_at?.split('T')[0] || ''] })))}</div>
-        <div class="card"><div class="card-title">💊 ${tr('Prescriptions', 'الوصفات')} (${data.prescriptions.length})</div>
-        ${makeTable([tr('Medication', 'الدواء'), tr('Status', 'الحالة'), tr('Date', 'التاريخ')], data.prescriptions.map(rx => ({ cells: [rx.dosage || '', statusBadge(rx.status), rx.created_at?.split('T')[0] || ''] })))}</div>`;
+        <div class="card mb-16">
+          <div class="card-title">📊 ${tr('Billing Breakdown', 'تفصيل الفوترة')}</div>
+          ${breakdownHtml || `<div class="empty-state"><p>${tr('No billing data', 'لا توجد فوترة')}</p></div>`}
+        </div>
+        <div class="card mb-16"><div class="card-title">🧾 ${tr('All Invoices', 'جميع الفواتير')} (${data.invoices.length})</div>
+        ${makeTable([tr('Type', 'النوع'), tr('Description', 'الوصف'), tr('Amount', 'المبلغ'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', 'إجراءات')],
+      data.invoices.map(i => ({ cells: [i.service_type || '', i.description || '', `${i.total} SAR`, i.paid ? badge(tr('Paid', 'مدفوع'), 'success') : badge(tr('Unpaid', 'غير مدفوع'), 'danger'), i.created_at?.split('T')[0] || ''], id: i.id, paid: i.paid })),
+      (row) => !row.paid ? `<button class="btn btn-sm btn-success" onclick="payInvoicePA(${row.id})">💵 ${tr('Pay', 'تسديد')}</button>` : `<span class="badge badge-success">✅</span>`
+    )}</div>`;
   } catch (e) { showToast(tr('Error loading account', 'خطأ في تحميل الحساب'), 'error'); }
+};
+window.payInvoicePA = async (id) => {
+  try { await API.put(`/api/invoices/${id}/pay`, { payment_method: 'Cash' }); showToast(tr('Paid!', 'تم الدفع!')); loadPatientAccount(); }
+  catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
 async function renderReports(el) {
-  const [fin, pat, lab, invoices, emps] = await Promise.all([
+  const [fin, pat, lab, invoices, emps, commissions] = await Promise.all([
     API.get('/api/reports/financial').catch(() => ({ totalRevenue: 0, totalPending: 0, invoiceCount: 0, monthlyRevenue: 0 })),
     API.get('/api/reports/patients').catch(() => ({ totalPatients: 0, todayPatients: 0, deptStats: [], statusStats: [] })),
     API.get('/api/reports/lab').catch(() => ({ totalOrders: 0, pendingOrders: 0, completedOrders: 0 })),
     API.get('/api/invoices').catch(() => []),
-    API.get('/api/employees').catch(() => [])
+    API.get('/api/employees').catch(() => []),
+    API.get('/api/reports/commissions').catch(() => [])
   ]);
   el.innerHTML = `<div class="page-title">📋 ${tr('Reports & Analytics', 'التقارير والتحليلات')}</div>
     <div class="stats-grid">
@@ -1607,6 +2044,14 @@ async function renderReports(el) {
         <div class="stat-card" style="--stat-color:#f59e0b"><div class="stat-label">${tr('Pending', 'بالانتظار')}</div><div class="stat-value">${lab.pendingOrders}</div></div>
         <div class="stat-card" style="--stat-color:#4ade80"><div class="stat-label">${tr('Completed', 'مكتمل')}</div><div class="stat-value">${lab.completedOrders}</div></div>
       </div>
+    </div>
+    <div class="card">
+      <div class="card-title">\ud83d\udcb0 ${tr('Doctor Commission Report', '\u062a\u0642\u0631\u064a\u0631 \u0639\u0645\u0648\u0644\u0627\u062a \u0627\u0644\u0623\u0637\u0628\u0627\u0621')}</div>
+      ${commissions.length ? makeTable(
+      [tr('Doctor', '\u0627\u0644\u0637\u0628\u064a\u0628'), tr('Speciality', '\u0627\u0644\u062a\u062e\u0635\u0635'), tr('Revenue', '\u0627\u0644\u0625\u064a\u0631\u0627\u062f\u0627\u062a'), tr('Type', '\u0627\u0644\u0646\u0648\u0639'), tr('Rate', '\u0627\u0644\u0645\u0639\u062f\u0644'), tr('Commission', '\u0627\u0644\u0639\u0645\u0648\u0644\u0629')],
+      commissions.map(c => ({ cells: [c.doctor_name, c.speciality || '-', Number(c.totalRevenue).toLocaleString() + ' SAR', c.commission_type === 'percentage' ? badge('%', 'info') : badge('SAR', 'warning'), c.commission_type === 'percentage' ? c.commission_value + '%' : c.commission_value + ' SAR/' + tr('patient', '\u0645\u0631\u064a\u0636'), '<strong style="color:var(--accent)">' + c.commission.toLocaleString() + ' SAR</strong>'] }))
+    ) : '<div class="empty-state"><p>' + tr('No doctors configured', '\u0644\u0645 \u064a\u062a\u0645 \u0625\u0639\u062f\u0627\u062f \u0623\u0637\u0628\u0627\u0621') + '</p></div>'}
+      ${commissions.length ? '<div style="margin-top:12px;padding:12px;background:var(--hover);border-radius:8px;display:flex;justify-content:space-between;font-weight:600"><span>\ud83d\udcb0 ' + tr('Total Commissions', '\u0625\u062c\u0645\u0627\u0644\u064a \u0627\u0644\u0639\u0645\u0648\u0644\u0627\u062a') + '</span><span style="color:var(--accent)">' + commissions.reduce((s, c) => s + c.commission, 0).toLocaleString() + ' SAR</span></div>' : ''}
     </div>`;
 }
 
@@ -1677,6 +2122,16 @@ async function renderSettings(el) {
             <option value="Emergency">${tr('Emergency', 'الطوارئ')}</option>
           </select>
         </div>
+        <div class="form-group mb-12" id="suCommDiv" style="display:none">
+          <label>💰 ${tr('Commission Setting', 'إعداد العمولة')}</label>
+          <div class="flex gap-8">
+            <select class="form-input" id="suCommType" style="flex:1">
+              <option value="percentage">${tr('Percentage (%)', 'نسبة مئوية (%)')}</option>
+              <option value="fixed">${tr('Fixed Amount per Patient (SAR)', 'مبلغ ثابت لكل مريض (ر.س)')}</option>
+            </select>
+            <input class="form-input" id="suCommValue" type="number" placeholder="${tr('Value', 'القيمة')}" value="0" step="0.5" style="flex:1">
+          </div>
+        </div>
         <div class="form-group mb-12">
           <label>${tr('Module Permissions (for non-admins)', 'صلاحيات الأقسام (لغير الإداريين)')}</label>
           <div class="card" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));gap:8px" id="suPerms">
@@ -1687,9 +2142,14 @@ async function renderSettings(el) {
           <button class="btn btn-primary" id="suAddBtn" onclick="addOrUpdateUser()">➕ ${tr('Save User', 'حفظ المستخدم')}</button>
           <button class="btn btn-secondary" id="suCancelBtn" style="display:none" onclick="cancelEditUser()">❌ ${tr('Cancel', 'إلغاء')}</button>
         </div>
-        <div id="suTable">${makeTable([tr('Username', 'المستخدم'), tr('Name', 'الاسم'), tr('Role', 'الدور'), tr('Speciality', 'التخصص'), tr('Active', 'نشط'), tr('Actions', 'إجراءات')], users.map(u => ({ cells: [u.username, u.display_name, badge(u.role, 'info'), u.role === 'Doctor' ? u.speciality || '-' : '-', u.is_active ? '✅' : '❌', `<div class="flex gap-4"><button class="btn btn-sm btn-info" onclick="editUser(${u.id})">✏️</button><button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id})">🗑️</button></div>`] })))}</div>
+        <div id="suTable">${makeTable([tr('Username', 'المستخدم'), tr('Name', 'الاسم'), tr('Role', 'الدور'), tr('Speciality', 'التخصص'), tr('Commission', 'العمولة'), tr('Active', 'نشط'), tr('Actions', 'إجراءات')], users.map(u => ({ cells: [u.username, u.display_name, badge(u.role, 'info'), u.role === 'Doctor' ? u.speciality || '-' : '-', u.role === 'Doctor' ? `${u.commission_value || 0}${u.commission_type === 'percentage' ? '%' : ' SAR'}` : '-', u.is_active ? '✅' : '❌', `<div class="flex gap-4"><button class="btn btn-sm btn-info" onclick="editUser(${u.id})">✏️</button><button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id})">🗑️</button></div>`] })))}</div>
       </div>
     </div>`;
+  // Show commission div when role is Doctor
+  document.getElementById('suRole').addEventListener('change', function () {
+    document.getElementById('suSpecDiv').style.display = this.value === 'Doctor' ? 'block' : 'none';
+    document.getElementById('suCommDiv').style.display = this.value === 'Doctor' ? 'block' : 'none';
+  });
 }
 window.saveSettings = async () => {
   try {
@@ -1705,19 +2165,22 @@ window.addOrUpdateUser = async () => {
   if (!editingUserId && !password) { showToast(tr('Enter password for new user', 'ادخل كلمة المرور للمستخدم الجديد'), 'error'); return; }
 
   try {
-    const spec = document.getElementById('suRole').value === 'Doctor' ? document.getElementById('suSpec').value : '';
+    const role = document.getElementById('suRole').value;
+    const spec = role === 'Doctor' ? document.getElementById('suSpec').value : '';
     const perms = Array.from(document.querySelectorAll('#suPerms input:checked')).map(cb => cb.value).join(',');
+    const commType = role === 'Doctor' ? (document.getElementById('suCommType')?.value || 'percentage') : 'percentage';
+    const commValue = role === 'Doctor' ? (parseFloat(document.getElementById('suCommValue')?.value) || 0) : 0;
 
     if (editingUserId) {
-      await API.put(`/api/settings/users/${editingUserId}`, { username, password: password || undefined, display_name: document.getElementById('suName').value, role: document.getElementById('suRole').value, speciality: spec, permissions: perms, is_active: 1 });
+      await API.put(`/api/settings/users/${editingUserId}`, { username, password: password || undefined, display_name: document.getElementById('suName').value, role, speciality: spec, permissions: perms, commission_type: commType, commission_value: commValue, is_active: 1 });
       showToast(tr('User updated!', 'تم تحديث المستخدم!'));
     } else {
-      await API.post('/api/settings/users', { username, password, display_name: document.getElementById('suName').value, role: document.getElementById('suRole').value, speciality: spec, permissions: perms });
+      await API.post('/api/settings/users', { username, password, display_name: document.getElementById('suName').value, role, speciality: spec, permissions: perms, commission_type: commType, commission_value: commValue });
       showToast(tr('User added!', 'تم إنشاء المستخدم!'));
     }
 
     editingUserId = null;
-    await navigateTo(17);
+    await navigateTo(18);
   } catch (e) { showToast(e.message || tr('Error saving user', 'خطأ في عملية الحفظ'), 'error'); }
 };
 
@@ -1733,8 +2196,12 @@ window.editUser = (id) => {
   if (user.role === 'Doctor') {
     document.getElementById('suSpecDiv').style.display = 'block';
     document.getElementById('suSpec').value = user.speciality || 'General Clinic';
+    document.getElementById('suCommDiv').style.display = 'block';
+    document.getElementById('suCommType').value = user.commission_type || 'percentage';
+    document.getElementById('suCommValue').value = user.commission_value || 0;
   } else {
     document.getElementById('suSpecDiv').style.display = 'none';
+    document.getElementById('suCommDiv').style.display = 'none';
   }
 
   document.querySelectorAll('#suPerms input').forEach(cb => cb.checked = false);
@@ -1755,7 +2222,8 @@ window.cancelEditUser = () => {
   document.getElementById('suPass').value = '';
   document.getElementById('suRole').value = 'Reception';
   document.getElementById('suSpecDiv').style.display = 'none';
-  document.querySelectorAll('#suPerms input').forEach(cb => cb.checked = true); // Check all by default
+  document.getElementById('suCommDiv').style.display = 'none';
+  document.querySelectorAll('#suPerms input').forEach(cb => cb.checked = true);
   document.getElementById('suCancelBtn').style.display = 'none';
   document.getElementById('suAddBtn').innerHTML = `➕ ${tr('Save User', 'حفظ المستخدم')}`;
 };
@@ -1765,7 +2233,7 @@ window.deleteUser = async (id) => {
   try {
     await API.delete(`/api/settings/users/${id}`);
     showToast(tr('User deleted!', 'تم الحذف بنجاح!'));
-    await navigateTo(17);
+    await navigateTo(18);
   } catch (e) { showToast(e.message || tr('Error deleting', 'خطأ في الحذف'), 'error'); }
 };
 
@@ -1931,4 +2399,93 @@ window.saveCatPrice = async (type, id) => {
     await API.put(url, { price });
     showToast(tr('Price saved!', 'تم حفظ السعر!'));
   } catch (e) { showToast(tr('Error saving', 'خطأ في الحفظ'), 'error'); }
+};
+
+// ===== DEPARTMENT RESOURCE REQUESTS =====
+async function renderDeptRequests(el) {
+  const [requests, items] = await Promise.all([
+    API.get('/api/dept-requests').catch(() => []),
+    API.get('/api/inventory/items').catch(() => [])
+  ]);
+  const depts = ['الاستقبال', 'العيادة العامة', 'الباطنية', 'الأطفال', 'العظام', 'الجلدية', 'الأنف والأذن', 'العيون', 'الأسنان', 'الطوارئ', 'المختبر', 'الأشعة', 'الصيدلية', 'التمريض', 'الإدارة'];
+  const deptsEn = ['Reception', 'General Clinic', 'Internal Medicine', 'Pediatrics', 'Orthopedics', 'Dermatology', 'ENT', 'Ophthalmology', 'Dental', 'Emergency', 'Laboratory', 'Radiology', 'Pharmacy', 'Nursing', 'Administration'];
+  const pending = requests.filter(r => r.status === 'Pending');
+  const approved = requests.filter(r => r.status === 'Approved');
+  el.innerHTML = `<div class="page-title">📤 ${tr('Department Resource Requests', 'طلبات موارد الأقسام')}</div>
+    <div class="stats-grid">
+      <div class="stat-card" style="--stat-color:#f59e0b"><div class="stat-label">${tr('Pending Requests', 'طلبات معلقة')}</div><div class="stat-value">${pending.length}</div></div>
+      <div class="stat-card" style="--stat-color:#4ade80"><div class="stat-label">${tr('Approved', 'معتمدة')}</div><div class="stat-value">${approved.length}</div></div>
+      <div class="stat-card" style="--stat-color:#3b82f6"><div class="stat-label">${tr('Total Requests', 'إجمالي الطلبات')}</div><div class="stat-value">${requests.length}</div></div>
+    </div>
+    <div class="split-layout">
+      <div class="card">
+        <div class="card-title">➕ ${tr('New Resource Request', 'طلب موارد جديد')}</div>
+        <div class="form-group mb-12"><label>${tr('Department', 'القسم')}</label>
+          <select class="form-input" id="drqDept">${depts.map((d, i) => `<option value="${isArabic ? d : deptsEn[i]}">${isArabic ? d : deptsEn[i]}</option>`).join('')}</select>
+        </div>
+        <div class="form-group mb-12"><label>${tr('Select Item', 'اختر الصنف')}</label>
+          <select class="form-input" id="drqItem">${items.map(i => `<option value="${i.id}">${i.item_name} (${tr('Stock', 'المخزون')}: ${i.stock_qty})</option>`).join('')}</select>
+        </div>
+        <div class="flex gap-8 mb-12">
+          <div class="form-group" style="flex:1"><label>${tr('Quantity', 'الكمية')}</label><input class="form-input" id="drqQty" type="number" value="1" min="1"></div>
+          <div class="form-group" style="flex:1;align-self:end"><button class="btn btn-primary w-full" onclick="addDrqItem()" style="height:40px">➕ ${tr('Add Item', 'إضافة صنف')}</button></div>
+        </div>
+        <div id="drqItemsList" style="margin-bottom:12px"><span style="color:var(--text-dim);font-size:13px">${tr('No items added', 'لم تتم إضافة أصناف')}</span></div>
+        <div class="form-group mb-12"><label>${tr('Notes', 'ملاحظات')}</label><textarea class="form-input" id="drqNotes" rows="2"></textarea></div>
+        <button class="btn btn-success w-full" onclick="submitDrq()" style="height:44px">📤 ${tr('Submit Request', 'إرسال الطلب')}</button>
+      </div>
+      <div class="card">
+        <div class="card-title">📋 ${tr('All Requests', 'جميع الطلبات')}</div>
+        <input class="search-filter" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'drqTable')">
+        <div id="drqTable">${makeTable(
+    [tr('Department', 'القسم'), tr('Requested By', 'مقدم الطلب'), tr('Date', 'التاريخ'), tr('Status', 'الحالة'), tr('Actions', 'إجراءات')],
+    requests.map(r => ({
+      cells: [r.department, r.requested_by, r.request_date || '', statusBadge(r.status)],
+      id: r.id, status: r.status
+    })),
+    (row) => row.status === 'Pending' ? `<div class="flex gap-4"><button class="btn btn-sm btn-success" onclick="approveDrq(${row.id})">✅ ${tr('Approve', 'اعتماد')}</button><button class="btn btn-sm btn-danger" onclick="rejectDrq(${row.id})">❌ ${tr('Reject', 'رفض')}</button></div>` : `<span class="badge badge-${row.status === 'Approved' ? 'success' : 'danger'}">${row.status}</span>`
+  )}</div>
+      </div>
+    </div>`;
+}
+let drqItems = [];
+window.addDrqItem = () => {
+  const sel = document.getElementById('drqItem');
+  const itemId = parseInt(sel.value);
+  const itemName = sel.options[sel.selectedIndex]?.text || '';
+  const qty = parseInt(document.getElementById('drqQty').value) || 1;
+  if (!itemId) return;
+  if (drqItems.find(x => x.item_id === itemId)) { showToast(tr('Item already added', 'الصنف مضاف مسبقاً'), 'error'); return; }
+  drqItems.push({ item_id: itemId, name: itemName, qty });
+  renderDrqItems();
+};
+function renderDrqItems() {
+  const c = document.getElementById('drqItemsList');
+  if (!drqItems.length) { c.innerHTML = `<span style="color:var(--text-dim);font-size:13px">${tr('No items added', 'لم تتم إضافة أصناف')}</span>`; return; }
+  c.innerHTML = drqItems.map((item, i) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--hover);border-radius:8px;margin:4px 0">
+    <span>${item.name} × <strong>${item.qty}</strong></span>
+    <button class="btn btn-danger btn-sm" onclick="drqItems.splice(${i},1);renderDrqItems()">🗑</button>
+  </div>`).join('');
+}
+window.submitDrq = async () => {
+  if (!drqItems.length) { showToast(tr('Add items first', 'أضف أصناف أولاً'), 'error'); return; }
+  try {
+    await API.post('/api/dept-requests', {
+      department: document.getElementById('drqDept').value,
+      requested_by: currentUser?.name || '',
+      items: drqItems,
+      notes: document.getElementById('drqNotes').value
+    });
+    showToast(tr('Request submitted!', 'تم إرسال الطلب!'));
+    drqItems = [];
+    await navigateTo(17);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+window.approveDrq = async (id) => {
+  try { await API.put(`/api/dept-requests/${id}`, { status: 'Approved' }); showToast(tr('Approved!', 'تم الاعتماد!')); await navigateTo(17); }
+  catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+window.rejectDrq = async (id) => {
+  try { await API.put(`/api/dept-requests/${id}`, { status: 'Rejected' }); showToast(tr('Rejected', 'تم الرفض')); await navigateTo(17); }
+  catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
