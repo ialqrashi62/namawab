@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول - Nama Medical</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Tajawal', 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      color: var(--text);
+      transition: all 0.4s ease;
+    }
+
+    /* Variables are now populated by styles.css */
+
+    .login-container {
+      width: 420px;
+      padding: 45px 40px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.08);
+      animation: slideUp 0.6s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .logo-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+      object-fit: cover;
+    }
+
+    .logo h1 {
+      font-size: 28px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo p {
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .form-group {
+      margin-top: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .form-group input {
+      width: 100%;
+      height: 48px;
+      background: var(--input);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0 16px;
+      font-size: 15px;
+      color: var(--text);
+      font-family: inherit;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .form-group input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .form-group input::placeholder {
+      color: var(--text-dim);
+      opacity: 0.6;
+    }
+
+    .login-btn {
+      width: 100%;
+      height: 52px;
+      margin-top: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+    }
+
+    .login-btn:active {
+      transform: translateY(0);
+    }
+
+    .login-btn.loading {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    .error-msg {
+      margin-top: 16px;
+      padding: 12px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 10px;
+      color: #f87171;
+      font-size: 14px;
+      text-align: center;
+      display: none;
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-8px);
+      }
+
+      75% {
+        transform: translateX(8px);
+      }
+    }
+
+    .error-msg.show {
+      display: block;
+    }
+
+    .bg-decoration {
+      position: fixed;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.03;
+      filter: blur(100px);
+    }
+
+    .bg-decoration.top {
+      top: -100px;
+      right: -100px;
+    }
+
+    .bg-decoration.bottom {
+      bottom: -100px;
+      left: -100px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-decoration top"></div>
+  <div class="bg-decoration bottom"></div>
+  <div class="login-container">
+    <div class="logo">
+      <img src="/img/logo.svg" alt="Nama Medical" class="logo-icon">
+      <h1>نما الطبي</h1>
+      <p>Nama Medical ERP</p>
+    </div>
+    <form id="loginForm">
+      <div class="form-group">
+        <label>اسم المستخدم:</label>
+        <input type="text" id="username" placeholder="Username" autocomplete="username" autofocus>
+      </div>
+      <div class="form-group">
+        <label>كلمة المرور:</label>
+        <input type="password" id="password" placeholder="Password" autocomplete="current-password">
+      </div>
+      <div class="error-msg" id="errorMsg"></div>
+      <button type="submit" class="login-btn" id="loginBtn">دخول</button>
+    </form>
+  </div>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('loginBtn');
+      const errEl = document.getElementById('errorMsg');
+      btn.classList.add('loading');
+      btn.textContent = '...';
+      errEl.classList.remove('show');
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('username').value.trim(),
+            password: document.getElementById('password').value.trim()
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          window.location.href = '/';
+        } else {
+          errEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة!';
+          errEl.classList.add('show');
+        }
+      } catch (err) {
+        errEl.textContent = 'خطأ في الاتصال بالخادم';
+        errEl.classList.add('show');
+      }
+      btn.classList.remove('loading');
+      btn.textContent = 'دخول';
+    });
+    // Check if already logged in
+    fetch('/api/auth/me').then(r => r.json()).then(d => {
+      if (d.user) window.location.href = '/';
+    }).catch(() => { });
+
+    // Load Theme
+    fetch('/api/settings').then(r => r.json()).then(s => {
+      if (s.theme) document.documentElement.setAttribute('data-theme', s.theme);
+    }).catch(() => {});
+  </script>
+</body>
+
+</html>

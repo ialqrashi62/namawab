@@ -1,0 +1,5 @@
+node_modules/
+nama_medical_web.db
+nama_medical_web.db-shm
+nama_medical_web.db-wal
+*.db-journal

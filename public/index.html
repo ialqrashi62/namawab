@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="5">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نما الطبي - Nama Medical ERP</title>
+    <meta name="description" content="Nama Medical ERP - نظام نما الطبي لإدارة المستشفيات والعيادات">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <link rel="stylesheet" href="/css/styles.css">
+    <!-- Flatpickr Datepicker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <!-- Sidebar -->
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <img src="/img/logo.svg" alt="Nama Medical" class="sidebar-logo-img">
+                <h2 class="sidebar-title">نما الطبي</h2>
+                <p class="sidebar-subtitle">Nama Medical</p>
+            </div>
+            <nav id="navList"></nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <div>
+                        <div class="user-name" id="userName">Admin</div>
+                        <div class="user-role" id="userRole">مدير</div>
+                    </div>
+                </div>
+                <button class="logout-btn" id="logoutBtn" title="تسجيل الخروج">⏻</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="mainContent">
+            <header id="topHeader">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">☰</button>
+                    <h1 class="header-title" id="headerTitle">لوحة التحكم</h1>
+                </div>
+                <div class="header-right">
+                    <input type="text" class="search-box" id="globalSearch"
+                        placeholder="بحث بالاسم، الهوية، الجوال، رقم الملف...">
+                    <select class="lang-select" id="langSelect" title="اختر اللغة">
+                        <option value="ar">العربية</option>
+                        <option value="en">English</option>
+                    </select>
+                    <select class="theme-select" id="themeSelect" title="اختر السمة">
+                        <option value="0">🔵 أزرق داكن</option>
+                        <option value="1">🟢 أخضر داكن</option>
+                        <option value="2">🟣 بنفسجي</option>
+                        <option value="3">🔴 أحمر</option>
+                        <option value="4">🟡 ذهبي</option>
+                        <option value="5" selected>⬜ فاتح كلاسيك</option>
+                        <option value="6">🔷 فاتح أزرق</option>
+                        <option value="7">🟩 فاتح أخضر</option>
+                    </select>
+                </div>
+            </header>
+            <div id="pageContent" class="page-content"></div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+
+</html>
