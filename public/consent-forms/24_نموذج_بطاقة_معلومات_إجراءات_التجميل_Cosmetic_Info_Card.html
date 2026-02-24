@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>نموذج بطاقة معلومات إجراءات التجميل - Cosmetic Procedures Info Card</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            padding: 20px;
+            color: #222;
+            direction: rtl;
+            line-height: 1.6;
+            font-size: 12px
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px double #1a365d;
+            padding-bottom: 12px;
+            margin-bottom: 15px
+        }
+
+        .header h1 {
+            font-size: 18px;
+            color: #1a365d;
+            margin-bottom: 4px
+        }
+
+        .header h2 {
+            font-size: 13px;
+            color: #555;
+            font-weight: 500
+        }
+
+        .logo-area {
+            font-size: 24px;
+            margin-bottom: 6px
+        }
+
+        .hospital-name {
+            font-size: 11px;
+            color: #888
+        }
+
+        .section {
+            margin: 10px 0;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px
+        }
+
+        .section h3 {
+            color: #1a365d;
+            font-size: 13px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-bottom: 8px
+        }
+
+        .section h3 span {
+            font-size: 11px;
+            color: #777;
+            font-weight: normal;
+            display: block;
+            direction: ltr;
+            text-align: left
+        }
+
+        .field {
+            margin: 6px 0;
+            font-size: 12px
+        }
+
+        .field label {
+            font-weight: 700;
+            min-width: 150px;
+            display: inline-block
+        }
+
+        .field .line {
+            border-bottom: 1px dotted #999;
+            display: inline-block;
+            min-width: 200px;
+            height: 20px
+        }
+
+        .treatment-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+            font-size: 11px
+        }
+
+        .treatment-table th,
+        .treatment-table td {
+            border: 1px solid #ddd;
+            padding: 5px 8px;
+            text-align: right
+        }
+
+        .treatment-table th {
+            background: #f0f4f8;
+            color: #1a365d
+        }
+
+        .sig-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 15px
+        }
+
+        .sig-box {
+            text-align: center
+        }
+
+        .sig-line {
+            border-top: 2px solid #333;
+            margin-top: 40px;
+            padding-top: 6px;
+            font-size: 12px
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 9px;
+            color: #999;
+            border-top: 1px solid #ddd;
+            padding-top: 8px
+        }
+
+        @media print {
+            body {
+                padding: 10px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="logo-area">💎📋</div>
+        <h1>نموذج بطاقة معلومات إجراءات التجميل</h1>
+        <h2>Cosmetic Procedures Information Card</h2>
+        <div class="hospital-name">نما الطبي — Nama Medical</div>
+    </div>
+
+    <div class="section">
+        <h3>📋 بيانات المريض <span>Patient Information</span></h3>
+        <div class="field"><label>اسم المريض / Name:</label> <span class="line"></span></div>
+        <div class="field"><label>رقم الملف / File #:</label> <span class="line"></span></div>
+        <div class="field"><label>تاريخ الميلاد / DOB:</label> <span class="line"></span></div>
+        <div class="field"><label>رقم الهوية / ID #:</label> <span class="line"></span></div>
+        <div class="field"><label>الجوال / Phone:</label> <span class="line"></span></div>
+        <div class="field"><label>فصيلة الدم / Blood Type:</label> <span class="line"></span></div>
+        <div class="field"><label>حساسية معروفة / Known Allergies:</label> <span class="line"></span></div>
+        <div class="field"><label>أمراض مزمنة / Chronic Diseases:</label> <span class="line"></span></div>
+        <div class="field"><label>أدوية حالية / Current Medications:</label> <span class="line"></span></div>
+    </div>
+
+    <div class="section">
+        <h3>📊 التاريخ التجميلي <span>Cosmetic History</span></h3>
+        <div class="field"><label>إجراءات سابقة / Previous Procedures:</label> ☐ لا None ☐ نعم Yes (التفاصيل / Details:)
+        </div>
+        <div style="border:1px solid #ddd;border-radius:6px;min-height:40px;padding:6px;margin:4px 0"></div>
+        <div class="field"><label>نوع البشرة / Skin Type:</label> ☐ I ☐ II ☐ III ☐ IV ☐ V ☐ VI</div>
+        <div class="field"><label>مشاكل جلدية / Skin Concerns:</label> ☐ حب شباب Acne ☐ تجاعيد Wrinkles ☐ تصبغات
+            Pigmentation ☐ ندبات Scars ☐ ترهل Sagging ☐ أخرى: ____</div>
+    </div>
+
+    <div class="section">
+        <h3>💉 سجل الإجراءات التجميلية <span>Cosmetic Procedures Log</span></h3>
+        <table class="treatment-table">
+            <tr>
+                <th>التاريخ<br>Date</th>
+                <th>الإجراء<br>Procedure</th>
+                <th>المنطقة<br>Area</th>
+                <th>المنتج/الجهاز<br>Product/Device</th>
+                <th>الكمية/الإعدادات<br>Amount/Settings</th>
+                <th>الطبيب<br>Physician</th>
+                <th>الجلسة القادمة<br>Next Session</th>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>📝 خطة العلاج التجميلي <span>Cosmetic Treatment Plan</span></h3>
+        <div style="border:1px solid #ddd;border-radius:6px;min-height:60px;padding:8px;margin:4px 0"></div>
+    </div>
+
+    <div class="section">
+        <h3>📝 ملاحظات عامة <span>General Notes</span></h3>
+        <div style="border:1px solid #ddd;border-radius:6px;min-height:50px;padding:8px;margin:4px 0"></div>
+    </div>
+
+    <div class="sig-grid">
+        <div class="sig-box">
+            <div class="sig-line"><strong>توقيع المريض / Patient</strong></div>
+        </div>
+        <div class="sig-box">
+            <div class="sig-line"><strong>توقيع الطبيب / Physician</strong></div>
+        </div>
+    </div>
+    <div class="footer">بطاقة رقم: COS-024 | نما الطبي — Nama Medical | يرجى إحضار هذه البطاقة في كل زيارة / Please
+        bring this card to every visit</div>
+</body>
+
+</html>

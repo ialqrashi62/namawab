@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>إقرار خروج ضد المشورة الطبية - Discharge Against Medical Advice</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            padding: 25px;
+            color: #222;
+            direction: rtl;
+            line-height: 1.7;
+            font-size: 13px;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px double #c0392b;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 19px;
+            color: #c0392b;
+            margin-bottom: 4px;
+        }
+
+        .header h2 {
+            font-size: 14px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .logo-area {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .hospital-name {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .section {
+            margin: 14px 0;
+            padding: 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            page-break-inside: avoid;
+        }
+
+        .section h3 {
+            color: #1a365d;
+            font-size: 14px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+        }
+
+        .section h3 span {
+            font-size: 12px;
+            color: #777;
+            font-weight: normal;
+            display: block;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .field {
+            margin: 8px 0;
+        }
+
+        .field label {
+            font-weight: 700;
+            min-width: 180px;
+            display: inline-block;
+        }
+
+        .field .line {
+            border-bottom: 1px dotted #999;
+            display: inline-block;
+            min-width: 300px;
+            height: 22px;
+        }
+
+        .field-row {
+            display: flex;
+            gap: 20px;
+            margin: 8px 0;
+        }
+
+        .field-row .field {
+            flex: 1;
+        }
+
+        .checkbox-item {
+            margin: 6px 0;
+            font-size: 13px;
+        }
+
+        .declaration {
+            background: #fdf2f2;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 12px;
+            border: 2px solid #e74c3c;
+        }
+
+        .declaration p {
+            margin-bottom: 10px;
+        }
+
+        .sig-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .sig-box {
+            text-align: center;
+        }
+
+        .sig-line {
+            border-top: 2px solid #333;
+            margin-top: 60px;
+            padding-top: 8px;
+        }
+
+        .sig-box p {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 10px;
+            color: #999;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+
+        .danger-box {
+            background: #fdf2f2;
+            border: 2px solid #e74c3c;
+            border-radius: 8px;
+            padding: 14px;
+            margin: 14px 0;
+            font-size: 13px;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+            }
+
+            .section {
+                border-color: #999;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="logo-area">🚪⚠️</div>
+        <h1>نموذج إقرار خروج ضد المشورة الطبية</h1>
+        <h2>Discharge Against Medical Advice (AMA / DAMA) Form</h2>
+        <div class="hospital-name">نما الطبي — Nama Medical</div>
+    </div>
+
+    <div class="section">
+        <h3>📋 بيانات المريض <span>Patient Information</span></h3>
+        <div class="field-row">
+            <div class="field"><label>اسم المريض / Name:</label> <span class="line"></span></div>
+            <div class="field"><label>رقم الملف / File #:</label> <span class="line"></span></div>
+        </div>
+        <div class="field-row">
+            <div class="field"><label>رقم الهوية / ID #:</label> <span class="line"></span></div>
+            <div class="field"><label>العمر / Age:</label> <span class="line"></span></div>
+        </div>
+        <div class="field-row">
+            <div class="field"><label>تاريخ الدخول / Admission Date:</label> <span class="line"></span></div>
+            <div class="field"><label>تاريخ الخروج / Discharge Date:</label> <span class="line"></span></div>
+        </div>
+        <div class="field-row">
+            <div class="field"><label>القسم / Department:</label> <span class="line"></span></div>
+            <div class="field"><label>الطبيب المعالج / Attending Doctor:</label> <span class="line"></span></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>🩺 التشخيص والحالة الطبية <span>Diagnosis & Medical Condition</span></h3>
+        <div class="field"><label>التشخيص / Diagnosis:</label></div>
+        <div style="border: 1px solid #ddd; border-radius: 6px; min-height: 40px; padding: 8px; margin-top: 4px;"></div>
+        <div class="field" style="margin-top: 10px;"><label>خطة العلاج الموصى بها / Recommended Treatment Plan:</label>
+        </div>
+        <div style="border: 1px solid #ddd; border-radius: 6px; min-height: 40px; padding: 8px; margin-top: 4px;"></div>
+        <div class="field" style="margin-top: 10px;"><label>المدة المتبقية المتوقعة للعلاج / Expected Remaining
+                Treatment Duration:</label> <span class="line"></span></div>
+    </div>
+
+    <div class="danger-box">
+        <strong>⚠️ تحذير هام / IMPORTANT WARNING:</strong><br><br>
+        تم إبلاغ المريض بأن الخروج من المستشفى في هذه المرحلة <strong>ضد المشورة الطبية</strong> وقد يؤدي إلى:<br>
+        <ul style="margin: 8px 20px;">
+            <li>تدهور الحالة الصحية بشكل كبير / Significant health deterioration</li>
+            <li>مضاعفات خطيرة تهدد الحياة / Life-threatening complications</li>
+            <li>الحاجة لإعادة الدخول بحالة أسوأ / Readmission in worse condition</li>
+            <li>إعاقة دائمة / Permanent disability</li>
+            <li>الوفاة / Death</li>
+        </ul>
+        <br>
+        <span style="direction: ltr; display: block; text-align: left;">The patient has been informed that discharge at
+            this stage is <strong>against medical advice</strong> and may result in significant health deterioration,
+            life-threatening complications, readmission, permanent disability, or death.</span>
+    </div>
+
+    <div class="section">
+        <h3>📋 ما تم شرحه للمريض <span>Explained to Patient</span></h3>
+        <div class="checkbox-item">☐ تم شرح التشخيص وخطة العلاج الحالية / Diagnosis and current treatment plan explained
+        </div>
+        <div class="checkbox-item">☐ تم شرح مخاطر الخروج المبكر / Risks of early discharge explained</div>
+        <div class="checkbox-item">☐ تم شرح المضاعفات المحتملة / Possible complications explained</div>
+        <div class="checkbox-item">☐ تم نصح المريض بالبقاء لاستكمال العلاج / Patient advised to stay for treatment
+            completion</div>
+        <div class="checkbox-item">☐ تم تقديم بدائل (مثل التحويل لمستشفى آخر) / Alternatives offered (e.g., transfer to
+            another facility)</div>
+        <div class="checkbox-item">☐ تم إعطاء تعليمات ما بعد الخروج / Post-discharge instructions provided</div>
+        <div class="checkbox-item">☐ تم وصف أدوية للمريض / Medications prescribed</div>
+    </div>
+
+    <div class="section">
+        <h3>💬 سبب رغبة المريض في الخروج <span>Patient's Reason for Leaving</span></h3>
+        <div style="border: 1px solid #ddd; border-radius: 6px; min-height: 60px; padding: 8px;"></div>
+    </div>
+
+    <div class="section">
+        <h3>📝 تعليمات ما بعد الخروج <span>Post-Discharge Instructions</span></h3>
+        <div style="border: 1px solid #ddd; border-radius: 6px; min-height: 60px; padding: 8px;"></div>
+        <div class="field" style="margin-top: 10px;"><label>موعد المراجعة / Follow-up Date:</label> <span
+                class="line"></span></div>
+        <div class="field"><label>الأدوية الموصوفة / Prescribed Medications:</label></div>
+        <div style="border: 1px solid #ddd; border-radius: 6px; min-height: 35px; padding: 8px; margin-top: 4px;"></div>
+    </div>
+
+    <div class="declaration">
+        <h3 style="color: #c0392b; margin-bottom: 10px;">📝 الإقرار والتوقيع / Declaration & Signature</h3>
+        <p>
+            أقر أنا الموقع أدناه بأنني أرغب في الخروج من المستشفى <strong>ضد المشورة الطبية</strong> وبكامل إرادتي. تم
+            إبلاغي بشكل واضح ومفصل بالمخاطر والمضاعفات المحتملة الناجمة عن الخروج المبكر بما في ذلك تدهور الحالة
+            والوفاة. أتحمل كامل المسؤولية القانونية والصحية عن قراري وأعفي المستشفى وجميع العاملين فيها من أي مسؤولية
+            ناجمة عن خروجي ضد المشورة الطبية.
+        </p>
+        <p style="direction: ltr; text-align: left; font-style: italic;">
+            I, the undersigned, declare my wish to leave the hospital <strong>against medical advice</strong> of my own
+            free will. I have been clearly informed of the risks and complications of early discharge including
+            deterioration and death. I accept full legal and medical responsibility and release the hospital and all
+            staff from any liability arising from my leaving against medical advice.
+        </p>
+    </div>
+
+    <div class="sig-grid">
+        <div class="sig-box">
+            <div class="sig-line"><strong>توقيع المريض</strong></div>
+            <p>Patient Signature</p>
+            <p>الاسم / Name: _____________</p>
+        </div>
+        <div class="sig-box">
+            <div class="sig-line"><strong>توقيع الطبيب المعالج</strong></div>
+            <p>Attending Physician Signature</p>
+            <p>الاسم / Name: _____________</p>
+        </div>
+        <div class="sig-box">
+            <div class="sig-line"><strong>توقيع الشاهد / ولي الأمر</strong></div>
+            <p>Witness / Guardian Signature</p>
+            <p>الاسم / Name: _____________</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        نموذج رقم: AMA-001 | الإصدار: 1.0 | التاريخ: 2026 | نما الطبي — Nama Medical<br>
+        Form No: AMA-001 | Version: 1.0 | Required when patient leaves against medical advice
+    </div>
+
+</body>
+
+</html>

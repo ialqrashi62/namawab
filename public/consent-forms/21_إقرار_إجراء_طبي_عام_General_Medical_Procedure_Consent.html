@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>إقرار عام لإجراء طبي - General Medical Procedure Consent</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            padding: 25px;
+            color: #222;
+            direction: rtl;
+            line-height: 1.7;
+            font-size: 13px
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px double #1a365d;
+            padding-bottom: 15px;
+            margin-bottom: 20px
+        }
+
+        .header h1 {
+            font-size: 19px;
+            color: #1a365d;
+            margin-bottom: 4px
+        }
+
+        .header h2 {
+            font-size: 14px;
+            color: #555;
+            font-weight: 500
+        }
+
+        .logo-area {
+            font-size: 28px;
+            margin-bottom: 8px
+        }
+
+        .hospital-name {
+            font-size: 12px;
+            color: #888
+        }
+
+        .section {
+            margin: 14px 0;
+            padding: 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px
+        }
+
+        .section h3 {
+            color: #1a365d;
+            font-size: 14px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 6px;
+            margin-bottom: 10px
+        }
+
+        .section h3 span {
+            font-size: 12px;
+            color: #777;
+            font-weight: normal;
+            display: block;
+            direction: ltr;
+            text-align: left
+        }
+
+        .field {
+            margin: 8px 0
+        }
+
+        .field label {
+            font-weight: 700;
+            min-width: 180px;
+            display: inline-block
+        }
+
+        .field .line {
+            border-bottom: 1px dotted #999;
+            display: inline-block;
+            min-width: 300px;
+            height: 22px
+        }
+
+        .checkbox-item {
+            margin: 6px 0;
+            font-size: 13px
+        }
+
+        .declaration {
+            background: #f7f8fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 12px
+        }
+
+        .sig-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 30px
+        }
+
+        .sig-box {
+            text-align: center
+        }
+
+        .sig-line {
+            border-top: 2px solid #333;
+            margin-top: 60px;
+            padding-top: 8px
+        }
+
+        .sig-box p {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 10px;
+            color: #999;
+            border-top: 1px solid #ddd;
+            padding-top: 10px
+        }
+
+        @media print {
+            body {
+                padding: 0
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="logo-area">📋🏥</div>
+        <h1>نموذج إقرار وتعليمات إجراء طبي عام</h1>
+        <h2>General Medical Procedure Consent & Instructions Form</h2>
+        <div class="hospital-name">نما الطبي — Nama Medical</div>
+    </div>
+    <div class="section">
+        <h3>📋 بيانات المريض <span>Patient Information</span></h3>
+        <div class="field"><label>اسم المريض / Name:</label> <span class="line"></span></div>
+        <div class="field"><label>رقم الملف / File #:</label> <span class="line"></span></div>
+        <div class="field"><label>رقم الهوية / ID #:</label> <span class="line"></span></div>
+        <div class="field"><label>التاريخ / Date:</label> <span class="line"></span></div>
+    </div>
+    <div class="section">
+        <h3>🔬 وصف الإجراء <span>Procedure Description</span></h3>
+        <div class="field"><label>اسم الإجراء / Procedure Name:</label> <span class="line"></span></div>
+        <div class="field"><label>وصف الإجراء / Description:</label></div>
+        <div style="border:1px solid #ddd;border-radius:6px;min-height:60px;padding:8px;margin:4px 0"></div>
+        <div class="field"><label>اسم الطبيب / Physician:</label> <span class="line"></span></div>
+        <div class="field"><label>نوع التخدير / Anesthesia:</label> ☐ بدون None ☐ موضعي Local ☐ تسكين Sedation ☐ أخرى:
+            ____</div>
+    </div>
+    <div class="section">
+        <h3>⚠️ المخاطر <span>Risks</span></h3>
+        <div style="border:1px solid #ddd;border-radius:6px;min-height:80px;padding:8px;margin:4px 0"></div>
+    </div>
+    <div class="section">
+        <h3>📝 البدائل المتاحة <span>Available Alternatives</span></h3>
+        <div style="border:1px solid #ddd;border-radius:6px;min-height:50px;padding:8px;margin:4px 0"></div>
+    </div>
+    <div class="section">
+        <h3>📋 تعليمات ما قبل الإجراء <span>Pre-Procedure Instructions</span></h3>
+        <div style="border:1px solid #ddd;border-radius:6px;min-height:50px;padding:8px;margin:4px 0"></div>
+    </div>
+    <div class="section">
+        <h3>📋 تعليمات ما بعد الإجراء <span>Post-Procedure Instructions</span></h3>
+        <div style="border:1px solid #ddd;border-radius:6px;min-height:50px;padding:8px;margin:4px 0"></div>
+    </div>
+    <div class="section">
+        <h3>📋 موافقات إضافية <span>Additional Consents</span></h3>
+        <div class="checkbox-item">☐ أوافق على التصوير / I consent to photography</div>
+        <div class="checkbox-item">☐ أوافق على التخدير / I consent to anesthesia</div>
+        <div class="checkbox-item">☐ تمت الإجابة على جميع أسألتي / All my questions have been answered</div>
+    </div>
+    <div class="declaration">
+        <p>أقر أنا الموقع أدناه بأنه تم شرح طبيعة الإجراء الطبي والمخاطر والبدائل والتعليمات. أوافق بكامل إرادتي.</p>
+        <p style="direction:ltr;text-align:left;font-style:italic;">I declare that the procedure, risks, alternatives,
+            and instructions have been explained. I consent voluntarily.</p>
+    </div>
+    <div class="sig-grid">
+        <div class="sig-box">
+            <div class="sig-line"><strong>توقيع المريض</strong></div>
+            <p>Patient</p>
+        </div>
+        <div class="sig-box">
+            <div class="sig-line"><strong>توقيع الطبيب</strong></div>
+            <p>Physician</p>
+        </div>
+        <div class="sig-box">
+            <div class="sig-line"><strong>توقيع الشاهد</strong></div>
+            <p>Witness</p>
+        </div>
+    </div>
+    <div class="footer">نموذج رقم: COS-021 | نما الطبي — Nama Medical</div>
+</body>
+
+</html>

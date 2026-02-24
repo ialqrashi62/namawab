@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>إقرار موافقة على علاجات الليزر - Laser Treatment Consent Form</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            padding: 25px;
+            color: #222;
+            direction: rtl;
+            line-height: 1.7;
+            font-size: 13px;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px double #1a365d;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 19px;
+            color: #1a365d;
+            margin-bottom: 4px;
+        }
+
+        .header h2 {
+            font-size: 14px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .logo-area {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .hospital-name {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .section {
+            margin: 14px 0;
+            padding: 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            page-break-inside: avoid;
+        }
+
+        .section h3 {
+            color: #1a365d;
+            font-size: 14px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+        }
+
+        .section h3 span {
+            font-size: 12px;
+            color: #777;
+            font-weight: normal;
+            display: block;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .field {
+            margin: 8px 0;
+        }
+
+        .field label {
+            font-weight: 700;
+            min-width: 180px;
+            display: inline-block;
+        }
+
+        .field .line {
+            border-bottom: 1px dotted #999;
+            display: inline-block;
+            min-width: 300px;
+            height: 22px;
+        }
+
+        .field-row {
+            display: flex;
+            gap: 20px;
+            margin: 8px 0;
+        }
+
+        .field-row .field {
+            flex: 1;
+        }
+
+        .risks-list li {
+            margin: 5px 0;
+            font-size: 12.5px;
+        }
+
+        .checkbox-item {
+            margin: 6px 0;
+            font-size: 13px;
+        }
+
+        .declaration {
+            background: #f7f8fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 12px;
+        }
+
+        .sig-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .sig-box {
+            text-align: center;
+        }
+
+        .sig-line {
+            border-top: 2px solid #333;
+            margin-top: 60px;
+            padding-top: 8px;
+        }
+
+        .sig-box p {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .bilingual {
+            color: #555;
+            font-size: 11px;
+            direction: ltr;
+            display: block;
+            text-align: left;
+            margin-top: 2px;
+            font-style: italic;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 10px;
+            color: #999;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+
+        .warning-box {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-right: 4px solid #ef4444;
+        }
+
+        .treatment-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+
+        .treatment-table th,
+        .treatment-table td {
+            border: 1px solid #ddd;
+            padding: 6px 10px;
+            text-align: right;
+        }
+
+        .treatment-table th {
+            background: #f0f4f8;
+            color: #1a365d;
+        }
+
+        .skin-type {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+            margin: 8px 0;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .skin-type div {
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="logo-area">✨🔬</div>
+        <h1>نموذج إقرار وموافقة على علاجات الليزر التجميلية</h1>
+        <h2>Cosmetic Laser Treatment Consent Form</h2>
+        <div class="hospital-name">نما الطبي — Nama Medical</div>
+    </div>
+
+    <div class="section">
+        <h3>📋 بيانات المريض <span>Patient Information</span></h3>
+        <div class="field-row">
+            <div class="field"><label>اسم المريض / Name:</label> <span class="line"></span></div>
+            <div class="field"><label>رقم الملف / File #:</label> <span class="line"></span></div>
+        </div>
+        <div class="field-row">
+            <div class="field"><label>رقم الهوية / ID #:</label> <span class="line"></span></div>
+            <div class="field"><label>العمر / Age:</label> <span class="line"></span></div>
+        </div>
+        <div class="field"><label>نوع البشرة (Fitzpatrick) / Skin Type:</label></div>
+        <div class="skin-type">
+            <div>☐ I<br>فاتحة جداً<br>Very Fair</div>
+            <div>☐ II<br>فاتحة<br>Fair</div>
+            <div>☐ III<br>متوسطة<br>Medium</div>
+            <div>☐ IV<br>زيتونية<br>Olive</div>
+            <div>☐ V<br>بنية<br>Brown</div>
+            <div>☐ VI<br>داكنة<br>Dark</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>🔬 نوع العلاج بالليزر <span>Laser Treatment Type</span></h3>
+        <div class="checkbox-item">☐ <strong>إزالة الشعر بالليزر / Laser Hair Removal</strong></div>
+        <div class="checkbox-item">☐ <strong>تقشير البشرة بالليزر / Laser Skin Resurfacing</strong> (☐ CO2 &nbsp; ☐
+            Erbium &nbsp; ☐ Fractional)</div>
+        <div class="checkbox-item">☐ <strong>إزالة التصبغات / Pigmentation Removal</strong> (☐ Q-Switched &nbsp; ☐ IPL)
+        </div>
+        <div class="checkbox-item">☐ <strong>إزالة الوشم / Tattoo Removal</strong></div>
+        <div class="checkbox-item">☐ <strong>علاج الأوعية الدموية / Vascular Treatment</strong></div>
+        <div class="checkbox-item">☐ <strong>شد الجلد / Skin Tightening</strong> (☐ RF &nbsp; ☐ HIFU &nbsp; ☐ Thermage)
+        </div>
+        <div class="checkbox-item">☐ <strong>علاج ندبات حب الشباب / Acne Scar Treatment</strong></div>
+        <div class="checkbox-item">☐ <strong>تجديد البشرة / Skin Rejuvenation</strong></div>
+
+        <h4 style="margin-top: 12px; color: #555;">تفاصيل الجلسة / Session Details:</h4>
+        <table class="treatment-table">
+            <tr>
+                <th>البيان / Detail</th>
+                <th>القيمة / Value</th>
+            </tr>
+            <tr>
+                <td>المنطقة المعالجة / Treatment Area</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>نوع الجهاز / Device Name</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>الطول الموجي / Wavelength (nm)</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>شدة الطاقة / Energy Level (J/cm²)</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>حجم البقعة / Spot Size (mm)</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>عدد النبضات / Number of Pulses</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>رقم الجلسة / Session Number</td>
+                <td>&nbsp;&nbsp;&nbsp;&nbsp; / &nbsp;&nbsp;&nbsp;&nbsp; (إجمالي)</td>
+            </tr>
+        </table>
+        <div class="field"><label>اسم الطبيب / Physician:</label> <span class="line"></span></div>
+    </div>
+
+    <div class="section">
+        <h3>⚠️ المخاطر والمضاعفات المحتملة <span>Risks & Complications</span></h3>
+        <ul class="risks-list">
+            <li>🔥 <strong>حروق جلدية / Skin Burns:</strong> احمرار، تقرحات، أو حروق — Redness, blistering, or burns
+            </li>
+            <li>🎨 <strong>فرط التصبغ / Hyperpigmentation:</strong> اسمرار المنطقة المعالجة — Darkening of treated area
+            </li>
+            <li>⚪ <strong>نقص التصبغ / Hypopigmentation:</strong> ابيضاض المنطقة المعالجة — Lightening of treated area
+            </li>
+            <li>🩹 <strong>تندب / Scarring:</strong> ندبات بارزة أو مسطحة — Raised or flat scars</li>
+            <li>🔴 <strong>احمرار مستمر / Persistent Redness:</strong> قد يستمر لأسابيع — May last for weeks</li>
+            <li>🦠 <strong>عدوى / Infection:</strong> بكتيرية أو فيروسية (هربس) — Bacterial or viral (herpes)</li>
+            <li>👁️ <strong>إصابة العين / Eye Injury:</strong> عند عدم ارتداء النظارات الواقية — If protective eyewear
+                not worn</li>
+            <li>🔁 <strong>نمو شعر عكسي / Paradoxical Hair Growth:</strong> نمو شعر أكثر (نادر) — More hair growth
+                (rare)</li>
+            <li>💢 <strong>ألم وتورم / Pain & Swelling:</strong> مؤقت ومتوقع — Temporary and expected</li>
+            <li>📐 <strong>نتائج غير متساوية / Uneven Results:</strong> اختلاف الاستجابة — Variable response</li>
+        </ul>
+    </div>
+
+    <div class="warning-box">
+        <strong>🚫 موانع ومحاذير / Contraindications:</strong><br>
+        ☐ أؤكد عدم تعرضي للشمس أو أسرّة التسمير خلال 4 أسابيع الأخيرة<br>
+        ☐ لا أستخدم حالياً كريمات الريتينويد أو مقشرات كيميائية<br>
+        ☐ لست حاملاً أو مرضعة<br>
+        ☐ لا أعاني من أمراض جلدية نشطة في المنطقة المعالجة<br>
+        ☐ لا أتناول أدوية تزيد حساسية الضوء (مضادات حيوية معينة)<br>
+        <span class="bilingual">I confirm no sun/tanning exposure for 4 weeks, no retinoids, not pregnant, no active
+            skin diseases, no photosensitizing medications.</span>
+    </div>
+
+    <div class="section">
+        <h3>📝 تعليمات ما بعد العلاج <span>Post-Treatment Instructions</span></h3>
+        <ul style="font-size: 12px;">
+            <li>استخدام واقي الشمس SPF 50+ يومياً / Apply SPF 50+ sunscreen daily</li>
+            <li>تجنب الشمس المباشرة لمدة 4 أسابيع / Avoid direct sun for 4 weeks</li>
+            <li>عدم استخدام مستحضرات مهيجة / Avoid irritating products</li>
+            <li>استخدام المرطب الموصوف / Use prescribed moisturizer</li>
+            <li>عدم حلق المنطقة المعالجة لمدة أسبوع / Do not shave treated area for 1 week</li>
+            <li>الاتصال بالعيادة فوراً عند ظهور تقرحات أو بثور / Contact clinic immediately if blisters develop</li>
+        </ul>
+    </div>
+
+    <div class="declaration">
+        <h3 style="color: #1a365d; margin-bottom: 10px;">📝 الإقرار / Declaration</h3>
+        <p>أقر بأنني فهمت طبيعة العلاج بالليزر وجميع مخاطره. أدرك أنني قد أحتاج لعدة جلسات وأن النتائج تختلف من شخص
+            لآخر. أوافق على العلاج بكامل إرادتي.</p>
+        <p style="direction: ltr; text-align: left; font-style: italic;">I understand the laser treatment, its risks,
+            that multiple sessions may be needed, and results vary. I consent voluntarily.</p>
+    </div>
+
+    <div class="sig-grid">
+        <div class="sig-box">
+            <div class="sig-line"><strong>توقيع المريض</strong></div>
+            <p>Patient Signature</p>
+        </div>
+        <div class="sig-box">
+            <div class="sig-line"><strong>توقيع الطبيب</strong></div>
+            <p>Physician Signature</p>
+        </div>
+        <div class="sig-box">
+            <div class="sig-line"><strong>توقيع الشاهد</strong></div>
+            <p>Witness Signature</p>
+        </div>
+    </div>
+
+    <div class="footer">نموذج رقم: COS-005 | الإصدار: 1.0 | نما الطبي — Nama Medical | Form No: COS-005</div>
+</body>
+
+</html>

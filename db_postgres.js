@@ -515,6 +515,617 @@ CREATE TABLE IF NOT EXISTS patient_referrals (
 );
         `);
 
+        // ===== SURGICAL & BLOOD BANK TABLES =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS surgeries (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    surgeon_id INTEGER, surgeon_name TEXT DEFAULT '',
+    anesthetist_id INTEGER, anesthetist_name TEXT DEFAULT '',
+    procedure_name TEXT DEFAULT '', procedure_name_ar TEXT DEFAULT '',
+    surgery_type TEXT DEFAULT 'Elective',
+    operating_room TEXT DEFAULT '', priority TEXT DEFAULT 'Normal',
+    scheduled_date TEXT DEFAULT '', scheduled_time TEXT DEFAULT '',
+    estimated_duration INTEGER DEFAULT 60,
+    actual_start TEXT DEFAULT '', actual_end TEXT DEFAULT '',
+    status TEXT DEFAULT 'Scheduled',
+    preop_status TEXT DEFAULT 'Pending',
+    notes TEXT DEFAULT '', post_op_notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS surgery_preop_assessments (
+    id SERIAL PRIMARY KEY,
+    surgery_id INTEGER, patient_id INTEGER,
+    npo_confirmed INTEGER DEFAULT 0,
+    allergies_reviewed INTEGER DEFAULT 0, allergies_notes TEXT DEFAULT '',
+    medications_reviewed INTEGER DEFAULT 0, medications_notes TEXT DEFAULT '',
+    labs_reviewed INTEGER DEFAULT 0, labs_notes TEXT DEFAULT '',
+    imaging_reviewed INTEGER DEFAULT 0, imaging_notes TEXT DEFAULT '',
+    blood_type_confirmed INTEGER DEFAULT 0, blood_reserved INTEGER DEFAULT 0,
+    consent_signed INTEGER DEFAULT 0,
+    anesthesia_clearance INTEGER DEFAULT 0,
+    nursing_assessment INTEGER DEFAULT 0, nursing_notes TEXT DEFAULT '',
+    cardiac_clearance INTEGER DEFAULT 0, cardiac_notes TEXT DEFAULT '',
+    pulmonary_clearance INTEGER DEFAULT 0,
+    infection_screening INTEGER DEFAULT 0,
+    dvt_prophylaxis INTEGER DEFAULT 0,
+    overall_status TEXT DEFAULT 'Incomplete',
+    assessed_by TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS surgery_preop_tests (
+    id SERIAL PRIMARY KEY,
+    surgery_id INTEGER, patient_id INTEGER,
+    test_type TEXT DEFAULT '', test_name TEXT DEFAULT '',
+    is_required INTEGER DEFAULT 1, is_completed INTEGER DEFAULT 0,
+    result_summary TEXT DEFAULT '', order_id INTEGER DEFAULT 0,
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS surgery_anesthesia_records (
+    id SERIAL PRIMARY KEY,
+    surgery_id INTEGER, patient_id INTEGER,
+    anesthetist_name TEXT DEFAULT '',
+    asa_class TEXT DEFAULT 'ASA I',
+    anesthesia_type TEXT DEFAULT 'General',
+    airway_assessment TEXT DEFAULT '',
+    mallampati_score TEXT DEFAULT '',
+    premedication TEXT DEFAULT '',
+    induction_agents TEXT DEFAULT '',
+    maintenance_agents TEXT DEFAULT '',
+    muscle_relaxants TEXT DEFAULT '',
+    monitors_used TEXT DEFAULT '',
+    iv_access TEXT DEFAULT '',
+    fluid_given TEXT DEFAULT '',
+    blood_loss_ml INTEGER DEFAULT 0,
+    complications TEXT DEFAULT '',
+    recovery_notes TEXT DEFAULT '',
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS operating_rooms (
+    id SERIAL PRIMARY KEY,
+    room_name TEXT DEFAULT '', room_name_ar TEXT DEFAULT '',
+    location TEXT DEFAULT '',
+    equipment TEXT DEFAULT '',
+    status TEXT DEFAULT 'Available',
+    notes TEXT DEFAULT ''
+);
+        `);
+
+        await client.query(`
+CREATE TABLE IF NOT EXISTS blood_bank_donors (
+    id SERIAL PRIMARY KEY,
+    donor_name TEXT DEFAULT '', donor_name_ar TEXT DEFAULT '',
+    national_id TEXT DEFAULT '', phone TEXT DEFAULT '',
+    blood_type TEXT DEFAULT '', rh_factor TEXT DEFAULT '+',
+    age INTEGER DEFAULT 0, gender TEXT DEFAULT '',
+    last_donation_date TEXT DEFAULT '',
+    is_eligible INTEGER DEFAULT 1,
+    medical_history TEXT DEFAULT '', notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS blood_bank_units (
+    id SERIAL PRIMARY KEY,
+    bag_number TEXT DEFAULT '',
+    blood_type TEXT DEFAULT '', rh_factor TEXT DEFAULT '+',
+    component TEXT DEFAULT 'Whole Blood',
+    donor_id INTEGER DEFAULT 0,
+    collection_date TEXT DEFAULT '', expiry_date TEXT DEFAULT '',
+    volume_ml INTEGER DEFAULT 450,
+    status TEXT DEFAULT 'Available',
+    storage_location TEXT DEFAULT '',
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS blood_bank_crossmatch (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    patient_blood_type TEXT DEFAULT '',
+    units_needed INTEGER DEFAULT 1,
+    unit_id INTEGER DEFAULT 0,
+    lab_technician TEXT DEFAULT '',
+    result TEXT DEFAULT 'Pending',
+    surgery_id INTEGER DEFAULT 0,
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS blood_bank_transfusions (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    unit_id INTEGER, bag_number TEXT DEFAULT '',
+    blood_type TEXT DEFAULT '', component TEXT DEFAULT '',
+    administered_by TEXT DEFAULT '',
+    start_time TEXT DEFAULT '', end_time TEXT DEFAULT '',
+    volume_ml INTEGER DEFAULT 0,
+    adverse_reaction INTEGER DEFAULT 0,
+    reaction_details TEXT DEFAULT '',
+    vital_signs_before TEXT DEFAULT '', vital_signs_after TEXT DEFAULT '',
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS consent_forms (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    form_type TEXT DEFAULT 'general',
+    form_title TEXT DEFAULT '', form_title_ar TEXT DEFAULT '',
+    content TEXT DEFAULT '',
+    doctor_name TEXT DEFAULT '',
+    patient_signature TEXT DEFAULT '',
+    witness_name TEXT DEFAULT '', witness_signature TEXT DEFAULT '',
+    signed_at TEXT DEFAULT '',
+    language TEXT DEFAULT 'ar',
+    status TEXT DEFAULT 'Pending',
+    surgery_id INTEGER DEFAULT 0,
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== EMERGENCY DEPARTMENT TABLES =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS emergency_visits (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    arrival_mode TEXT DEFAULT 'Walk-in',
+    arrival_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    chief_complaint TEXT DEFAULT '', chief_complaint_ar TEXT DEFAULT '',
+    triage_level INTEGER DEFAULT 3,
+    triage_color TEXT DEFAULT 'Yellow',
+    triage_nurse TEXT DEFAULT '',
+    triage_vitals TEXT DEFAULT '',
+    assigned_doctor TEXT DEFAULT '', assigned_bed TEXT DEFAULT '',
+    disposition TEXT DEFAULT 'Pending',
+    disposition_time TEXT DEFAULT '',
+    acuity_notes TEXT DEFAULT '',
+    status TEXT DEFAULT 'Active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS emergency_trauma_assessments (
+    id SERIAL PRIMARY KEY,
+    visit_id INTEGER, patient_id INTEGER,
+    airway TEXT DEFAULT '', breathing TEXT DEFAULT '',
+    circulation TEXT DEFAULT '', disability TEXT DEFAULT '',
+    exposure TEXT DEFAULT '',
+    gcs_eye INTEGER DEFAULT 4, gcs_verbal INTEGER DEFAULT 5, gcs_motor INTEGER DEFAULT 6,
+    gcs_total INTEGER DEFAULT 15,
+    mechanism_of_injury TEXT DEFAULT '',
+    trauma_team_activated INTEGER DEFAULT 0,
+    assessed_by TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS emergency_beds (
+    id SERIAL PRIMARY KEY,
+    bed_name TEXT DEFAULT '', bed_name_ar TEXT DEFAULT '',
+    zone TEXT DEFAULT 'General', zone_ar TEXT DEFAULT '',
+    status TEXT DEFAULT 'Available',
+    current_patient_id INTEGER DEFAULT 0,
+    notes TEXT DEFAULT ''
+);
+        `);
+
+        // ===== INPATIENT ADT TABLES =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS wards (
+    id SERIAL PRIMARY KEY,
+    ward_name TEXT DEFAULT '', ward_name_ar TEXT DEFAULT '',
+    ward_type TEXT DEFAULT 'General',
+    floor TEXT DEFAULT '', building TEXT DEFAULT '',
+    total_beds INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'Active',
+    notes TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS beds (
+    id SERIAL PRIMARY KEY,
+    ward_id INTEGER, bed_number TEXT DEFAULT '',
+    bed_type TEXT DEFAULT 'Standard',
+    room_number TEXT DEFAULT '',
+    status TEXT DEFAULT 'Available',
+    current_patient_id INTEGER DEFAULT 0,
+    current_admission_id INTEGER DEFAULT 0,
+    isolation_type TEXT DEFAULT '',
+    notes TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS admissions (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    admission_type TEXT DEFAULT 'Regular',
+    admission_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    admitting_doctor TEXT DEFAULT '', attending_doctor TEXT DEFAULT '',
+    department TEXT DEFAULT '', ward_id INTEGER, bed_id INTEGER,
+    diagnosis TEXT DEFAULT '', icd10_code TEXT DEFAULT '',
+    admission_orders TEXT DEFAULT '',
+    diet_order TEXT DEFAULT 'Regular',
+    activity_level TEXT DEFAULT 'Bed Rest',
+    dvt_prophylaxis TEXT DEFAULT '',
+    expected_los INTEGER DEFAULT 3,
+    insurance_auth TEXT DEFAULT '',
+    status TEXT DEFAULT 'Active',
+    discharge_date TEXT DEFAULT '', discharge_type TEXT DEFAULT '',
+    discharge_summary TEXT DEFAULT '', discharge_instructions TEXT DEFAULT '',
+    discharge_medications TEXT DEFAULT '',
+    followup_date TEXT DEFAULT '', followup_doctor TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS admission_daily_rounds (
+    id SERIAL PRIMARY KEY,
+    admission_id INTEGER, patient_id INTEGER,
+    round_date TEXT DEFAULT '', round_time TEXT DEFAULT '',
+    doctor_name TEXT DEFAULT '',
+    subjective TEXT DEFAULT '', objective TEXT DEFAULT '',
+    assessment TEXT DEFAULT '', plan TEXT DEFAULT '',
+    vitals_summary TEXT DEFAULT '',
+    orders TEXT DEFAULT '', diet_changes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS bed_transfers (
+    id SERIAL PRIMARY KEY,
+    admission_id INTEGER, patient_id INTEGER,
+    from_ward INTEGER, from_bed INTEGER,
+    to_ward INTEGER, to_bed INTEGER,
+    transfer_reason TEXT DEFAULT '',
+    transferred_by TEXT DEFAULT '',
+    transfer_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== ICU TABLES =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS icu_monitoring (
+    id SERIAL PRIMARY KEY,
+    admission_id INTEGER, patient_id INTEGER,
+    monitor_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    hr INTEGER DEFAULT 0, sbp INTEGER DEFAULT 0, dbp INTEGER DEFAULT 0, map INTEGER DEFAULT 0,
+    rr INTEGER DEFAULT 0, spo2 INTEGER DEFAULT 0, temp REAL DEFAULT 0,
+    etco2 INTEGER DEFAULT 0, cvp INTEGER DEFAULT 0,
+    fio2 INTEGER DEFAULT 0, peep INTEGER DEFAULT 0,
+    urine_output INTEGER DEFAULT 0,
+    notes TEXT DEFAULT '', recorded_by TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS icu_ventilator (
+    id SERIAL PRIMARY KEY,
+    admission_id INTEGER, patient_id INTEGER,
+    vent_mode TEXT DEFAULT '', fio2 INTEGER DEFAULT 21,
+    tidal_volume INTEGER DEFAULT 0, respiratory_rate INTEGER DEFAULT 0,
+    peep INTEGER DEFAULT 0, pip INTEGER DEFAULT 0,
+    ie_ratio TEXT DEFAULT '1:2', ps INTEGER DEFAULT 0,
+    started_at TEXT DEFAULT '', ended_at TEXT DEFAULT '',
+    ett_size TEXT DEFAULT '', ett_position TEXT DEFAULT '',
+    cuff_pressure INTEGER DEFAULT 0,
+    notes TEXT DEFAULT '', recorded_by TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS icu_scores (
+    id SERIAL PRIMARY KEY,
+    admission_id INTEGER, patient_id INTEGER,
+    score_date TEXT DEFAULT '',
+    apache_ii INTEGER DEFAULT 0, sofa INTEGER DEFAULT 0,
+    gcs INTEGER DEFAULT 15, rass INTEGER DEFAULT 0,
+    cam_icu INTEGER DEFAULT 0, braden INTEGER DEFAULT 23,
+    morse_fall INTEGER DEFAULT 0, pain_score INTEGER DEFAULT 0,
+    calculated_by TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS icu_fluid_balance (
+    id SERIAL PRIMARY KEY,
+    admission_id INTEGER, patient_id INTEGER,
+    balance_date TEXT DEFAULT '', shift TEXT DEFAULT 'Day',
+    iv_fluids INTEGER DEFAULT 0, oral_intake INTEGER DEFAULT 0,
+    blood_products INTEGER DEFAULT 0, medications_iv INTEGER DEFAULT 0,
+    total_intake INTEGER DEFAULT 0,
+    urine INTEGER DEFAULT 0, drains INTEGER DEFAULT 0,
+    ngt_output INTEGER DEFAULT 0, stool INTEGER DEFAULT 0,
+    vomit INTEGER DEFAULT 0, insensible INTEGER DEFAULT 0,
+    total_output INTEGER DEFAULT 0,
+    net_balance INTEGER DEFAULT 0,
+    recorded_by TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== CSSD / STERILIZATION TABLES =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS cssd_instrument_sets (
+    id SERIAL PRIMARY KEY,
+    set_name TEXT DEFAULT '', set_name_ar TEXT DEFAULT '',
+    set_code TEXT DEFAULT '', category TEXT DEFAULT '',
+    instrument_count INTEGER DEFAULT 0,
+    instruments_list TEXT DEFAULT '',
+    department TEXT DEFAULT '',
+    status TEXT DEFAULT 'Available',
+    notes TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS cssd_sterilization_cycles (
+    id SERIAL PRIMARY KEY,
+    cycle_number TEXT DEFAULT '',
+    machine_name TEXT DEFAULT '',
+    cycle_type TEXT DEFAULT 'Steam Autoclave',
+    temperature REAL DEFAULT 0, pressure REAL DEFAULT 0,
+    duration_minutes INTEGER DEFAULT 0,
+    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    end_time TEXT DEFAULT '',
+    operator TEXT DEFAULT '',
+    bi_test_result TEXT DEFAULT 'Pending',
+    ci_result TEXT DEFAULT '',
+    status TEXT DEFAULT 'In Progress',
+    notes TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS cssd_load_items (
+    id SERIAL PRIMARY KEY,
+    cycle_id INTEGER, set_id INTEGER,
+    set_name TEXT DEFAULT '', barcode TEXT DEFAULT '',
+    status TEXT DEFAULT 'Processing',
+    used_in_surgery_id INTEGER DEFAULT 0,
+    used_date TEXT DEFAULT '',
+    notes TEXT DEFAULT ''
+);
+        `);
+
+        // ===== DIETARY / NUTRITION TABLES =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS diet_orders (
+    id SERIAL PRIMARY KEY,
+    admission_id INTEGER, patient_id INTEGER, patient_name TEXT DEFAULT '',
+    diet_type TEXT DEFAULT 'Regular',
+    diet_type_ar TEXT DEFAULT 'عادي',
+    texture TEXT DEFAULT 'Normal', fluid TEXT DEFAULT 'Normal',
+    allergies TEXT DEFAULT '', restrictions TEXT DEFAULT '',
+    supplements TEXT DEFAULT '',
+    ordered_by TEXT DEFAULT '',
+    meal_preferences TEXT DEFAULT '',
+    start_date TEXT DEFAULT '', end_date TEXT DEFAULT '',
+    status TEXT DEFAULT 'Active',
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS diet_meals (
+    id SERIAL PRIMARY KEY,
+    order_id INTEGER, patient_id INTEGER,
+    meal_type TEXT DEFAULT 'Lunch',
+    meal_date TEXT DEFAULT '',
+    items TEXT DEFAULT '',
+    calories INTEGER DEFAULT 0,
+    delivered INTEGER DEFAULT 0, delivered_by TEXT DEFAULT '',
+    consumed_percentage INTEGER DEFAULT 0,
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS nutrition_assessments (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    assessment_date TEXT DEFAULT '',
+    height_cm REAL DEFAULT 0, weight_kg REAL DEFAULT 0,
+    bmi REAL DEFAULT 0, bmi_category TEXT DEFAULT '',
+    ideal_body_weight REAL DEFAULT 0,
+    caloric_needs INTEGER DEFAULT 0, protein_needs REAL DEFAULT 0,
+    screening_score INTEGER DEFAULT 0,
+    malnutrition_risk TEXT DEFAULT 'Low',
+    plan TEXT DEFAULT '',
+    assessed_by TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== INFECTION CONTROL TABLES =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS infection_surveillance (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    infection_type TEXT DEFAULT '',
+    infection_site TEXT DEFAULT '',
+    organism TEXT DEFAULT '', sensitivity TEXT DEFAULT '',
+    detection_date TEXT DEFAULT '',
+    hai_category TEXT DEFAULT '',
+    device_related INTEGER DEFAULT 0, device_type TEXT DEFAULT '',
+    ward TEXT DEFAULT '', bed TEXT DEFAULT '',
+    isolation_type TEXT DEFAULT '',
+    outcome TEXT DEFAULT '',
+    reported_by TEXT DEFAULT '',
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS infection_outbreaks (
+    id SERIAL PRIMARY KEY,
+    outbreak_name TEXT DEFAULT '', organism TEXT DEFAULT '',
+    start_date TEXT DEFAULT '', end_date TEXT DEFAULT '',
+    affected_ward TEXT DEFAULT '',
+    total_cases INTEGER DEFAULT 0,
+    investigation_notes TEXT DEFAULT '',
+    control_measures TEXT DEFAULT '',
+    status TEXT DEFAULT 'Active',
+    reported_by TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS employee_exposures (
+    id SERIAL PRIMARY KEY,
+    employee_id INTEGER, employee_name TEXT DEFAULT '',
+    exposure_type TEXT DEFAULT '',
+    exposure_date TEXT DEFAULT '',
+    source_patient TEXT DEFAULT '',
+    body_fluid TEXT DEFAULT '',
+    ppe_worn TEXT DEFAULT '',
+    action_taken TEXT DEFAULT '',
+    followup_date TEXT DEFAULT '',
+    result TEXT DEFAULT 'Pending',
+    reported_by TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS hand_hygiene_audits (
+    id SERIAL PRIMARY KEY,
+    audit_date TEXT DEFAULT '', auditor TEXT DEFAULT '',
+    department TEXT DEFAULT '',
+    moments_observed INTEGER DEFAULT 0,
+    moments_compliant INTEGER DEFAULT 0,
+    compliance_rate REAL DEFAULT 0,
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== QUALITY & PATIENT SAFETY TABLES =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS quality_incidents (
+    id SERIAL PRIMARY KEY,
+    incident_type TEXT DEFAULT '',
+    severity TEXT DEFAULT 'Minor',
+    incident_date TEXT DEFAULT '', incident_time TEXT DEFAULT '',
+    department TEXT DEFAULT '', location TEXT DEFAULT '',
+    patient_id INTEGER DEFAULT 0, patient_name TEXT DEFAULT '',
+    description TEXT DEFAULT '',
+    immediate_action TEXT DEFAULT '',
+    reported_by TEXT DEFAULT '',
+    assigned_to TEXT DEFAULT '',
+    root_cause TEXT DEFAULT '',
+    corrective_action TEXT DEFAULT '',
+    preventive_action TEXT DEFAULT '',
+    status TEXT DEFAULT 'Open',
+    closed_date TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS quality_patient_satisfaction (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER DEFAULT 0, patient_name TEXT DEFAULT '',
+    department TEXT DEFAULT '',
+    survey_date TEXT DEFAULT '',
+    overall_rating INTEGER DEFAULT 0,
+    cleanliness INTEGER DEFAULT 0, staff_courtesy INTEGER DEFAULT 0,
+    wait_time INTEGER DEFAULT 0, communication INTEGER DEFAULT 0,
+    pain_management INTEGER DEFAULT 0, food_quality INTEGER DEFAULT 0,
+    comments TEXT DEFAULT '',
+    would_recommend INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS quality_kpis (
+    id SERIAL PRIMARY KEY,
+    kpi_name TEXT DEFAULT '', kpi_name_ar TEXT DEFAULT '',
+    category TEXT DEFAULT '',
+    target_value REAL DEFAULT 0, actual_value REAL DEFAULT 0,
+    unit TEXT DEFAULT '%',
+    period TEXT DEFAULT '',
+    department TEXT DEFAULT '',
+    status TEXT DEFAULT 'On Track',
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== MAINTENANCE & BIOMEDICAL TABLES =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS maintenance_work_orders (
+    id SERIAL PRIMARY KEY,
+    wo_number TEXT DEFAULT '',
+    request_type TEXT DEFAULT 'Corrective',
+    priority TEXT DEFAULT 'Normal',
+    department TEXT DEFAULT '', location TEXT DEFAULT '',
+    equipment_id INTEGER DEFAULT 0,
+    description TEXT DEFAULT '', description_ar TEXT DEFAULT '',
+    requested_by TEXT DEFAULT '',
+    assigned_to TEXT DEFAULT '',
+    scheduled_date TEXT DEFAULT '',
+    completed_date TEXT DEFAULT '',
+    cost REAL DEFAULT 0,
+    status TEXT DEFAULT 'Open',
+    resolution TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS maintenance_equipment (
+    id SERIAL PRIMARY KEY,
+    equipment_name TEXT DEFAULT '', equipment_name_ar TEXT DEFAULT '',
+    equipment_code TEXT DEFAULT '',
+    category TEXT DEFAULT '',
+    manufacturer TEXT DEFAULT '', model TEXT DEFAULT '',
+    serial_number TEXT DEFAULT '',
+    department TEXT DEFAULT '', location TEXT DEFAULT '',
+    purchase_date TEXT DEFAULT '', warranty_end TEXT DEFAULT '',
+    last_calibration TEXT DEFAULT '', next_calibration TEXT DEFAULT '',
+    last_pm TEXT DEFAULT '', next_pm TEXT DEFAULT '',
+    status TEXT DEFAULT 'Active',
+    notes TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS maintenance_pm_schedules (
+    id SERIAL PRIMARY KEY,
+    equipment_id INTEGER,
+    pm_type TEXT DEFAULT '',
+    frequency TEXT DEFAULT 'Monthly',
+    last_done TEXT DEFAULT '', next_due TEXT DEFAULT '',
+    performed_by TEXT DEFAULT '',
+    checklist TEXT DEFAULT '',
+    status TEXT DEFAULT 'Pending',
+    notes TEXT DEFAULT ''
+);
+        `);
+
+        // ===== PATIENT TRANSPORT TABLES =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS transport_requests (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    from_location TEXT DEFAULT '', to_location TEXT DEFAULT '',
+    transport_type TEXT DEFAULT 'Wheelchair',
+    priority TEXT DEFAULT 'Routine',
+    requested_by TEXT DEFAULT '',
+    assigned_porter TEXT DEFAULT '',
+    request_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    pickup_time TEXT DEFAULT '', dropoff_time TEXT DEFAULT '',
+    special_needs TEXT DEFAULT '',
+    status TEXT DEFAULT 'Pending',
+    notes TEXT DEFAULT ''
+);
+        `);
+
+        // ===== AUDIT TRAIL =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS audit_trail (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER, username TEXT DEFAULT '',
+    action TEXT DEFAULT '',
+    module TEXT DEFAULT '',
+    record_id INTEGER DEFAULT 0,
+    old_values TEXT DEFAULT '', new_values TEXT DEFAULT '',
+    ip_address TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // Seed emergency beds
+        const ebCount = (await client.query('SELECT COUNT(*) as cnt FROM emergency_beds')).rows[0].cnt;
+        if (parseInt(ebCount) === 0) {
+            await client.query(`INSERT INTO emergency_beds (bed_name, bed_name_ar, zone, zone_ar, status) VALUES
+                ('ER-1', 'طوارئ-1', 'Resuscitation', 'الإنعاش', 'Available'),
+                ('ER-2', 'طوارئ-2', 'Resuscitation', 'الإنعاش', 'Available'),
+                ('ER-3', 'طوارئ-3', 'Critical', 'الحرجة', 'Available'),
+                ('ER-4', 'طوارئ-4', 'Critical', 'الحرجة', 'Available'),
+                ('ER-5', 'طوارئ-5', 'Acute', 'الحادة', 'Available'),
+                ('ER-6', 'طوارئ-6', 'Acute', 'الحادة', 'Available'),
+                ('ER-7', 'طوارئ-7', 'Observation', 'المراقبة', 'Available'),
+                ('ER-8', 'طوارئ-8', 'Observation', 'المراقبة', 'Available')
+            `);
+        }
+
+        // Seed default wards and beds
+        const wardCount = (await client.query('SELECT COUNT(*) as cnt FROM wards')).rows[0].cnt;
+        if (parseInt(wardCount) === 0) {
+            await client.query(`INSERT INTO wards (ward_name, ward_name_ar, ward_type, floor, total_beds) VALUES
+                ('Medical Ward', 'جناح الباطنة', 'Medical', '2nd Floor', 20),
+                ('Surgical Ward', 'جناح الجراحة', 'Surgical', '3rd Floor', 20),
+                ('Pediatric Ward', 'جناح الأطفال', 'Pediatric', '4th Floor', 15),
+                ('Maternity Ward', 'جناح الولادة', 'Maternity', '4th Floor', 10),
+                ('ICU', 'العناية المركزة', 'ICU', '2nd Floor', 8),
+                ('NICU', 'عناية الأطفال المركزة', 'NICU', '4th Floor', 6),
+                ('CCU', 'عناية القلب', 'CCU', '2nd Floor', 6),
+                ('VIP Ward', 'جناح كبار الشخصيات', 'VIP', '5th Floor', 10)
+            `);
+            // Seed beds for each ward
+            const wards = (await client.query('SELECT id, total_beds, ward_type FROM wards')).rows;
+            for (const w of wards) {
+                for (let i = 1; i <= w.total_beds; i++) {
+                    const bedType = w.ward_type === 'ICU' || w.ward_type === 'NICU' || w.ward_type === 'CCU' ? 'ICU' : w.ward_type === 'VIP' ? 'VIP' : 'Standard';
+                    const room = Math.ceil(i / 2);
+                    await client.query('INSERT INTO beds (ward_id, bed_number, bed_type, room_number, status) VALUES ($1, $2, $3, $4, $5)', [w.id, `${i}`, bedType, `${room}`, 'Available']);
+                }
+            }
+        }
+
         // Migration: add commission columns to existing system_users table
         await client.query(`
             DO $$ BEGIN
@@ -552,11 +1163,449 @@ CREATE TABLE IF NOT EXISTS patient_referrals (
         // Migration: add vat_amount column to invoices table
         await client.query(`DO $$ BEGIN ALTER TABLE invoices ADD COLUMN vat_amount REAL DEFAULT 0; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`);
 
+        // Migration: add blood_type and gender columns to patients table
+        await client.query(`DO $$ BEGIN ALTER TABLE patients ADD COLUMN blood_type TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`);
+        await client.query(`DO $$ BEGIN ALTER TABLE patients ADD COLUMN gender TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`);
+
+        // Seed default operating rooms
+        const orCount = (await client.query('SELECT COUNT(*) as cnt FROM operating_rooms')).rows[0].cnt;
+        if (parseInt(orCount) === 0) {
+            await client.query(`INSERT INTO operating_rooms (room_name, room_name_ar, location, equipment, status) VALUES
+                ('OR-1', 'غرفة عمليات 1', 'الطابق الثاني', 'General Surgery Equipment', 'Available'),
+                ('OR-2', 'غرفة عمليات 2', 'الطابق الثاني', 'Orthopedic Equipment', 'Available'),
+                ('OR-3', 'غرفة عمليات 3', 'الطابق الثالث', 'Cardiac Equipment', 'Available'),
+                ('Minor OR', 'غرفة عمليات صغرى', 'الطابق الأول', 'Minor Procedures Equipment', 'Available')
+            `);
+        }
+
         // Default settings
         const settingKeys = ['company_name_ar', 'company_name_en', 'tax_number', 'address', 'phone', 'logo_path', 'sample_data_inserted', 'theme'];
         for (const key of settingKeys) {
             await client.query('INSERT INTO company_settings (setting_key, setting_value) VALUES ($1, $2) ON CONFLICT (setting_key) DO NOTHING', [key, '']);
         }
+
+        // ===== MEDICAL RECORDS / HIM =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS medical_records_files (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, file_number TEXT DEFAULT '',
+    location TEXT DEFAULT 'Archive', shelf_number TEXT DEFAULT '',
+    status TEXT DEFAULT 'In Archive',
+    last_requested_by TEXT DEFAULT '', last_requested_at TEXT DEFAULT '',
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS medical_records_requests (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, file_number TEXT DEFAULT '',
+    requested_by TEXT DEFAULT '', department TEXT DEFAULT '',
+    purpose TEXT DEFAULT 'Clinic Visit',
+    status TEXT DEFAULT 'Pending',
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    delivered_at TEXT DEFAULT '', returned_at TEXT DEFAULT '',
+    notes TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS medical_records_coding (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, visit_id INTEGER,
+    primary_diagnosis TEXT DEFAULT '', primary_icd10 TEXT DEFAULT '',
+    secondary_diagnoses TEXT DEFAULT '',
+    drg_code TEXT DEFAULT '', coder TEXT DEFAULT '',
+    coding_date TEXT DEFAULT '', status TEXT DEFAULT 'Pending',
+    notes TEXT DEFAULT ''
+);
+        `);
+
+        // ===== CLINICAL PHARMACY =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS clinical_pharmacy_reviews (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    prescription_id INTEGER,
+    review_type TEXT DEFAULT 'Medication Review',
+    pharmacist TEXT DEFAULT '',
+    findings TEXT DEFAULT '', recommendations TEXT DEFAULT '',
+    interventions TEXT DEFAULT '',
+    outcome TEXT DEFAULT 'Pending',
+    severity TEXT DEFAULT 'Low',
+    status TEXT DEFAULT 'Open',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS drug_interactions (
+    id SERIAL PRIMARY KEY,
+    drug_a TEXT DEFAULT '', drug_b TEXT DEFAULT '',
+    interaction_type TEXT DEFAULT '', severity TEXT DEFAULT 'Moderate',
+    description TEXT DEFAULT '', clinical_action TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS patient_drug_education (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    medication TEXT DEFAULT '', instructions TEXT DEFAULT '',
+    side_effects TEXT DEFAULT '', precautions TEXT DEFAULT '',
+    educated_by TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== REHABILITATION / PT =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS rehab_patients (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    diagnosis TEXT DEFAULT '', referral_source TEXT DEFAULT '',
+    therapist TEXT DEFAULT '', therapy_type TEXT DEFAULT 'Physical Therapy',
+    start_date TEXT DEFAULT '', target_end_date TEXT DEFAULT '',
+    status TEXT DEFAULT 'Active',
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS rehab_sessions (
+    id SERIAL PRIMARY KEY,
+    rehab_patient_id INTEGER, patient_id INTEGER,
+    session_date TEXT DEFAULT '', session_number INTEGER DEFAULT 1,
+    therapist TEXT DEFAULT '',
+    session_type TEXT DEFAULT 'Individual',
+    exercises TEXT DEFAULT '', duration_minutes INTEGER DEFAULT 30,
+    pain_before INTEGER DEFAULT 0, pain_after INTEGER DEFAULT 0,
+    progress_notes TEXT DEFAULT '', status TEXT DEFAULT 'Completed',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS rehab_goals (
+    id SERIAL PRIMARY KEY,
+    rehab_patient_id INTEGER,
+    goal_description TEXT DEFAULT '',
+    target_date TEXT DEFAULT '',
+    progress INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'In Progress',
+    notes TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS rehab_assessments (
+    id SERIAL PRIMARY KEY,
+    rehab_patient_id INTEGER, patient_id INTEGER,
+    assessment_type TEXT DEFAULT '',
+    rom_scores TEXT DEFAULT '', strength_scores TEXT DEFAULT '',
+    functional_scores TEXT DEFAULT '', balance_scores TEXT DEFAULT '',
+    pain_level INTEGER DEFAULT 0,
+    assessor TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== eMAR (Electronic Medication Administration Record) =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS emar_orders (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    admission_id INTEGER,
+    medication TEXT DEFAULT '', dose TEXT DEFAULT '',
+    route TEXT DEFAULT 'Oral', frequency TEXT DEFAULT 'TID',
+    start_date TEXT DEFAULT '', end_date TEXT DEFAULT '',
+    prescriber TEXT DEFAULT '', status TEXT DEFAULT 'Active',
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS emar_administrations (
+    id SERIAL PRIMARY KEY,
+    emar_order_id INTEGER, patient_id INTEGER,
+    medication TEXT DEFAULT '', dose TEXT DEFAULT '',
+    scheduled_time TEXT DEFAULT '', actual_time TEXT DEFAULT '',
+    administered_by TEXT DEFAULT '',
+    status TEXT DEFAULT 'Given',
+    reason_not_given TEXT DEFAULT '',
+    vital_signs TEXT DEFAULT '',
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== NURSING CARE PLAN =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS nursing_care_plans (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    admission_id INTEGER,
+    diagnosis TEXT DEFAULT '', priority TEXT DEFAULT 'Medium',
+    goals TEXT DEFAULT '', interventions TEXT DEFAULT '',
+    expected_outcomes TEXT DEFAULT '',
+    nurse TEXT DEFAULT '', status TEXT DEFAULT 'Active',
+    review_date TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS nursing_assessments (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    assessment_type TEXT DEFAULT 'General',
+    fall_risk_score INTEGER DEFAULT 0,
+    braden_score INTEGER DEFAULT 23,
+    pain_score INTEGER DEFAULT 0,
+    gcs_score INTEGER DEFAULT 15,
+    nurse TEXT DEFAULT '', shift TEXT DEFAULT 'Morning',
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== FINANCIAL DAILY CLOSE =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS daily_close (
+    id SERIAL PRIMARY KEY,
+    close_date TEXT DEFAULT '',
+    cashier TEXT DEFAULT '',
+    total_cash NUMERIC(12,2) DEFAULT 0,
+    total_card NUMERIC(12,2) DEFAULT 0,
+    total_insurance NUMERIC(12,2) DEFAULT 0,
+    total_transactions INTEGER DEFAULT 0,
+    opening_balance NUMERIC(12,2) DEFAULT 0,
+    closing_balance NUMERIC(12,2) DEFAULT 0,
+    variance NUMERIC(12,2) DEFAULT 0,
+    notes TEXT DEFAULT '', status TEXT DEFAULT 'Open',
+    closed_by TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== PATIENT PORTAL =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS portal_users (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER UNIQUE, username TEXT DEFAULT '',
+    password_hash TEXT DEFAULT '', email TEXT DEFAULT '',
+    phone TEXT DEFAULT '', is_active INTEGER DEFAULT 1,
+    last_login TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS portal_appointments (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, portal_user_id INTEGER,
+    department TEXT DEFAULT '', preferred_date TEXT DEFAULT '',
+    preferred_time TEXT DEFAULT '', reason TEXT DEFAULT '',
+    status TEXT DEFAULT 'Requested',
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== ZATCA E-INVOICING =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS zatca_invoices (
+    id SERIAL PRIMARY KEY,
+    invoice_id INTEGER, invoice_number TEXT DEFAULT '',
+    invoice_type TEXT DEFAULT 'Standard',
+    seller_name TEXT DEFAULT '', seller_vat TEXT DEFAULT '',
+    buyer_name TEXT DEFAULT '', buyer_vat TEXT DEFAULT '',
+    total_before_vat NUMERIC(12,2) DEFAULT 0,
+    vat_amount NUMERIC(12,2) DEFAULT 0,
+    total_with_vat NUMERIC(12,2) DEFAULT 0,
+    qr_code TEXT DEFAULT '', xml_hash TEXT DEFAULT '',
+    submission_status TEXT DEFAULT 'Pending',
+    submission_date TEXT DEFAULT '',
+    zatca_response TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== TELEMEDICINE =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS telemedicine_sessions (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    doctor TEXT DEFAULT '', speciality TEXT DEFAULT '',
+    session_type TEXT DEFAULT 'Video',
+    scheduled_date TEXT DEFAULT '', scheduled_time TEXT DEFAULT '',
+    duration_minutes INTEGER DEFAULT 15,
+    meeting_link TEXT DEFAULT '',
+    diagnosis TEXT DEFAULT '', prescription TEXT DEFAULT '',
+    status TEXT DEFAULT 'Scheduled',
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== PATHOLOGY =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS pathology_cases (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    specimen_type TEXT DEFAULT '', collection_date TEXT DEFAULT '',
+    received_date TEXT DEFAULT '',
+    pathologist TEXT DEFAULT '',
+    gross_description TEXT DEFAULT '',
+    microscopic_findings TEXT DEFAULT '',
+    diagnosis TEXT DEFAULT '', icd_code TEXT DEFAULT '',
+    stage TEXT DEFAULT '', grade TEXT DEFAULT '',
+    status TEXT DEFAULT 'Received',
+    report_date TEXT DEFAULT '',
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== SOCIAL WORK =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS social_work_cases (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    case_type TEXT DEFAULT 'General',
+    social_worker TEXT DEFAULT '',
+    assessment TEXT DEFAULT '', plan TEXT DEFAULT '',
+    interventions TEXT DEFAULT '',
+    referrals TEXT DEFAULT '',
+    status TEXT DEFAULT 'Open',
+    priority TEXT DEFAULT 'Medium',
+    follow_up_date TEXT DEFAULT '',
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== MORTUARY =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS mortuary_cases (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, deceased_name TEXT DEFAULT '',
+    date_of_death TEXT DEFAULT '', time_of_death TEXT DEFAULT '',
+    cause_of_death TEXT DEFAULT '', icd_code TEXT DEFAULT '',
+    attending_physician TEXT DEFAULT '',
+    next_of_kin TEXT DEFAULT '', next_of_kin_phone TEXT DEFAULT '',
+    autopsy_required INTEGER DEFAULT 0,
+    body_location TEXT DEFAULT '',
+    release_status TEXT DEFAULT 'Pending',
+    released_to TEXT DEFAULT '', released_date TEXT DEFAULT '',
+    death_certificate_number TEXT DEFAULT '',
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // ===== CME (Continuing Medical Education) =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS cme_activities (
+    id SERIAL PRIMARY KEY,
+    title TEXT DEFAULT '', category TEXT DEFAULT 'Conference',
+    provider TEXT DEFAULT '', credit_hours NUMERIC(4,1) DEFAULT 0,
+    activity_date TEXT DEFAULT '',
+    location TEXT DEFAULT '',
+    max_participants INTEGER DEFAULT 50,
+    registered INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'Upcoming',
+    description TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS cme_registrations (
+    id SERIAL PRIMARY KEY,
+    activity_id INTEGER, employee_id INTEGER,
+    employee_name TEXT DEFAULT '',
+    registration_date TEXT DEFAULT '',
+    attendance_status TEXT DEFAULT 'Registered',
+    certificate_issued INTEGER DEFAULT 0,
+    notes TEXT DEFAULT ''
+);
+        `);
+
+        // ===== COSMETIC / PLASTIC SURGERY =====
+        await client.query(`
+CREATE TABLE IF NOT EXISTS cosmetic_procedures (
+    id SERIAL PRIMARY KEY,
+    name_en TEXT DEFAULT '', name_ar TEXT DEFAULT '',
+    category TEXT DEFAULT 'Face',
+    description TEXT DEFAULT '',
+    estimated_duration INTEGER DEFAULT 60,
+    anesthesia_type TEXT DEFAULT 'Local',
+    average_cost NUMERIC(12,2) DEFAULT 0,
+    risks TEXT DEFAULT '',
+    recovery_days INTEGER DEFAULT 7,
+    is_active INTEGER DEFAULT 1
+);
+CREATE TABLE IF NOT EXISTS cosmetic_cases (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    procedure_id INTEGER, procedure_name TEXT DEFAULT '',
+    surgeon TEXT DEFAULT '', assistant TEXT DEFAULT '',
+    anesthetist TEXT DEFAULT '',
+    surgery_date TEXT DEFAULT '', surgery_time TEXT DEFAULT '',
+    duration_minutes INTEGER DEFAULT 60,
+    anesthesia_type TEXT DEFAULT 'Local',
+    operating_room TEXT DEFAULT '',
+    pre_op_notes TEXT DEFAULT '',
+    operative_notes TEXT DEFAULT '',
+    post_op_notes TEXT DEFAULT '',
+    complications TEXT DEFAULT '',
+    total_cost NUMERIC(12,2) DEFAULT 0,
+    payment_status TEXT DEFAULT 'Pending',
+    status TEXT DEFAULT 'Scheduled',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS cosmetic_consents (
+    id SERIAL PRIMARY KEY,
+    case_id INTEGER, patient_id INTEGER,
+    patient_name TEXT DEFAULT '',
+    procedure_name TEXT DEFAULT '',
+    consent_type TEXT DEFAULT 'Surgery',
+    surgeon TEXT DEFAULT '',
+    risks_explained TEXT DEFAULT '',
+    alternatives_explained TEXT DEFAULT '',
+    expected_results TEXT DEFAULT '',
+    limitations TEXT DEFAULT '',
+    patient_questions TEXT DEFAULT '',
+    is_photography_consent INTEGER DEFAULT 0,
+    is_anesthesia_consent INTEGER DEFAULT 0,
+    is_blood_transfusion_consent INTEGER DEFAULT 0,
+    witness_name TEXT DEFAULT '',
+    consent_date TEXT DEFAULT '',
+    consent_time TEXT DEFAULT '',
+    patient_signature TEXT DEFAULT '',
+    witness_signature TEXT DEFAULT '',
+    status TEXT DEFAULT 'Pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS cosmetic_photos (
+    id SERIAL PRIMARY KEY,
+    case_id INTEGER, patient_id INTEGER,
+    photo_type TEXT DEFAULT 'Before',
+    photo_angle TEXT DEFAULT 'Front',
+    photo_date TEXT DEFAULT '',
+    photo_path TEXT DEFAULT '',
+    notes TEXT DEFAULT '',
+    taken_by TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS cosmetic_followups (
+    id SERIAL PRIMARY KEY,
+    case_id INTEGER, patient_id INTEGER,
+    patient_name TEXT DEFAULT '',
+    followup_date TEXT DEFAULT '',
+    days_post_op INTEGER DEFAULT 0,
+    healing_status TEXT DEFAULT 'Good',
+    pain_level INTEGER DEFAULT 0,
+    swelling TEXT DEFAULT 'Mild',
+    complications TEXT DEFAULT '',
+    patient_satisfaction INTEGER DEFAULT 0,
+    surgeon_notes TEXT DEFAULT '',
+    next_followup TEXT DEFAULT '',
+    surgeon TEXT DEFAULT '',
+    status TEXT DEFAULT 'Completed',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+        `);
+
+        // Seed cosmetic procedures catalog
+        await client.query(`INSERT INTO cosmetic_procedures (name_en, name_ar, category, description, estimated_duration, anesthesia_type, average_cost, risks, recovery_days) VALUES
+            ('Rhinoplasty', 'تجميل الأنف', 'Face', 'Reshaping of the nose for aesthetic or functional purposes', 120, 'General', 15000, 'Bleeding, infection, asymmetry, breathing difficulties, numbness', 14),
+            ('Blepharoplasty', 'شد الجفون', 'Face', 'Upper and/or lower eyelid surgery to remove excess skin and fat', 90, 'Local', 8000, 'Dry eyes, blurred vision, asymmetry, scarring', 10),
+            ('Facelift (Rhytidectomy)', 'شد الوجه', 'Face', 'Lifting and tightening facial tissues to reduce sagging', 180, 'General', 25000, 'Hematoma, nerve injury, scarring, hair loss near incisions', 21),
+            ('Otoplasty', 'تجميل الأذن', 'Face', 'Reshaping or repositioning of the ears', 90, 'Local', 7000, 'Asymmetry, infection, overcorrection, scarring', 7),
+            ('Lip Augmentation', 'تكبير الشفاه', 'Face', 'Enhancement of lip volume using fillers or implants', 30, 'Local', 3000, 'Swelling, bruising, asymmetry, allergic reaction', 3),
+            ('Botox Injection', 'حقن البوتوكس', 'Non-Surgical', 'Wrinkle relaxation using botulinum toxin', 15, 'None', 1500, 'Bruising, headache, drooping, temporary weakness', 0),
+            ('Dermal Fillers', 'حقن الفيلر', 'Non-Surgical', 'Volume restoration using hyaluronic acid fillers', 30, 'Local', 2500, 'Swelling, bruising, lumps, vascular occlusion', 2),
+            ('Chemical Peel', 'التقشير الكيميائي', 'Non-Surgical', 'Chemical solution applied to improve skin texture', 45, 'None', 1000, 'Redness, peeling, pigmentation changes, scarring', 5),
+            ('Breast Augmentation', 'تكبير الثدي', 'Body', 'Enlargement using implants or fat transfer', 120, 'General', 20000, 'Capsular contracture, implant rupture, asymmetry, infection', 14),
+            ('Liposuction', 'شفط الدهون', 'Body', 'Removal of excess fat deposits from specific body areas', 120, 'General', 12000, 'Contour irregularities, fluid accumulation, numbness', 14),
+            ('Abdominoplasty', 'شد البطن', 'Body', 'Removal of excess skin and fat from the abdomen', 180, 'General', 18000, 'Seroma, wound healing issues, scarring, numbness', 21),
+            ('Laser Hair Removal', 'إزالة الشعر بالليزر', 'Laser', 'Permanent hair reduction using laser technology', 30, 'None', 500, 'Burns, pigmentation changes, paradoxical growth', 0),
+            ('Laser Skin Resurfacing', 'تقشير البشرة بالليزر', 'Laser', 'Laser treatment to improve skin texture and reduce wrinkles', 60, 'Local', 3000, 'Redness, swelling, infection, pigmentation changes', 7),
+            ('Hair Transplant (FUE)', 'زراعة الشعر', 'Hair', 'Follicular unit extraction for hair restoration', 360, 'Local', 15000, 'Infection, scarring, graft failure, temporary shock loss', 14),
+            ('PRP Therapy', 'علاج البلازما', 'Non-Surgical', 'Platelet-rich plasma injections for skin rejuvenation', 30, 'None', 1500, 'Bruising, swelling, infection, minimal pain', 1)
+        ON CONFLICT DO NOTHING`);
 
         // Default admin
         await client.query(`INSERT INTO system_users (username, password_hash, display_name, role) VALUES ('admin', 'admin', 'المدير العام', 'Admin') ON CONFLICT (username) DO NOTHING`);
