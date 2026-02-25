@@ -4540,4 +4540,41 @@ app.get('/api/admin/backups', requireAuth, async (req, res) => {
     } catch(e) { res.status(500).json({ error: 'Server error' }); }
 });
 
+
+// ===== FINANCE SUMMARY =====
+app.get('/api/finance/summary', requireAuth, async (req, res) => {
+    try {
+        const { from, to } = req.query;
+        let where = "WHERE total > 0";
+        let p = [];
+        if (from) { where += " AND created_at >= $" + (p.length+1); p.push(from); }
+        if (to) { where += " AND created_at <= $" + (p.length+1); p.push(to + ' 23:59:59'); }
+        
+        const total = (await pool.query("SELECT COALESCE(SUM(total),0) as revenue, COUNT(*) as count FROM invoices " + where, p)).rows[0];
+        const paid = (await pool.query("SELECT COALESCE(SUM(total),0) as paid FROM invoices " + where + " AND paid=true", p)).rows[0];
+        const unpaid = (await pool.query("SELECT COALESCE(SUM(total),0) as unpaid FROM invoices " + where + " AND (paid=false OR paid IS NULL)", p)).rows[0];
+        const byMethod = (await pool.query("SELECT COALESCE(payment_method,'Cash') as method, SUM(total) as amount, COUNT(*) as cnt FROM invoices " + where + " AND paid=true GROUP BY payment_method ORDER BY amount DESC", p)).rows;
+        const byService = (await pool.query("SELECT COALESCE(service_type,description,'Other') as service, SUM(total) as amount, COUNT(*) as cnt FROM invoices " + where + " GROUP BY COALESCE(service_type,description,'Other') ORDER BY amount DESC LIMIT 10", p)).rows;
+        const daily = (await pool.query("SELECT DATE(created_at) as day, SUM(total) as amount FROM invoices " + where + " GROUP BY DATE(created_at) ORDER BY day", p)).rows;
+        
+        res.json({ revenue: total.revenue, count: total.count, paid: paid.paid, unpaid: unpaid.unpaid, byMethod, byService, daily });
+    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== INVENTORY LOW STOCK =====
+app.get('/api/inventory/low-stock', requireAuth, async (req, res) => {
+    try {
+        const items = (await pool.query("SELECT * FROM inventory WHERE CAST(quantity AS INTEGER) <= CAST(COALESCE(reorder_level,'10') AS INTEGER) ORDER BY CAST(quantity AS INTEGER) ASC")).rows;
+        res.json(items);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== MEDICAL RECORDS BY PATIENT =====
+app.get('/api/medical-records/patient/:patientId', requireAuth, async (req, res) => {
+    try {
+        const records = (await pool.query("SELECT * FROM medical_records WHERE patient_id=$1 ORDER BY created_at DESC", [req.params.patientId])).rows;
+        res.json(records);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
 startServer();

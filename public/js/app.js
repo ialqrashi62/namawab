@@ -3709,42 +3709,66 @@ window.delEmp = async (id) => {
 
 // ===== FINANCE =====
 async function renderFinance(el) {
-  const [invoices, patients] = await Promise.all([API.get('/api/invoices'), API.get('/api/patients')]);
-  const total = invoices.reduce((s, i) => s + (i.total || 0), 0);
-  const paid = invoices.filter(i => i.paid).reduce((s, i) => s + (i.total || 0), 0);
-  el.innerHTML = `<div class="page-title">💰 ${tr('Finance & Accounting', 'المالية والمحاسبة')}</div>
-    <div class="stats-grid">
-      <div class="stat-card" style="--stat-color:#3b82f6"><div class="stat-label">${tr('Total Invoices', 'إجمالي الفواتير')}</div><div class="stat-value">${total.toLocaleString()} SAR</div></div>
-      <div class="stat-card" style="--stat-color:#4ade80"><div class="stat-label">${tr('Paid', 'المدفوع')}</div><div class="stat-value">${paid.toLocaleString()} SAR</div></div>
-      <div class="stat-card" style="--stat-color:#f87171"><div class="stat-label">${tr('Outstanding', 'المتبقي')}</div><div class="stat-value">${(total - paid).toLocaleString()} SAR</div></div>
-    </div>
-    <div class="card mb-16"><div class="card-title">🧾 ${tr('Generate Invoice', 'إصدار فاتورة')}</div>
-      <div class="flex gap-8 mb-12">
-        <select class="form-input" id="invPatient" style="flex:2">${patients.map(p => `<option value="${p.id}">${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</option>`).join('')}</select>
-        <input class="form-input" id="invDesc" placeholder="${tr('Service description', 'وصف الخدمة')}" style="flex:2">
-        <input class="form-input" id="invAmt" placeholder="${tr('Amount', 'المبلغ')}" type="number" style="flex:1">
-        <button class="btn btn-primary" onclick="generateInvoice()">🧾 ${tr('Issue', 'إصدار')}</button>
+
+    const today = new Date().toISOString().slice(0,10);
+    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0,10);
+    content.innerHTML = `
+    <h2>${tr('Finance','المالية')}</h2>
+    <div class="card" style="padding:16px;margin-bottom:16px">
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <label style="font-weight:600">${tr('Date Range:','الفترة:')}</label>
+        <input type="date" class="form-input" id="finFrom" value="${monthStart}" style="width:auto">
+        <span>→</span>
+        <input type="date" class="form-input" id="finTo" value="${today}" style="width:auto">
+        <button class="btn btn-primary btn-sm" onclick="loadFinance()">🔍 ${tr('Filter','فلترة')}</button>
+        <button class="btn btn-sm" onclick="exportToCSV(window._finInvoices||[],'finance')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export','تصدير')}</button>
+        <button class="btn btn-sm" onclick="window.print()" style="background:#f3e5f5;color:#7b1fa2">🖨️ ${tr('Print','طباعة')}</button>
       </div>
     </div>
-    <div class="card"><div class="card-title">📋 ${tr('Invoices', 'الفواتير')}</div>
-    <input class="search-filter" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'finTable')">
-    <div id="finTable">${makeTable(
-    [tr('Patient', 'المريض'), tr('Description', 'الوصف'), tr('Total', 'الإجمالي'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', 'إجراءات')],
-    invoices.map(i => ({ cells: [i.patient_name, i.description || '', `${i.total} SAR`, i.paid ? badge(tr('Paid', 'مدفوع'), 'success') : badge(tr('Unpaid', 'غير مدفوع'), 'danger'), i.created_at?.split('T')[0] || ''], id: i.id, paid: i.paid })),
-    (row) => !row.paid ? `<button class="btn btn-sm btn-success" onclick="payInvoice(${row.id})">💵 ${tr('Pay', 'تسديد')}</button>` : `<span class="badge badge-success">✅</span>`
-  )}</div></div>
-    <div class="card mt-16">
-      <div class="card-title">🔒 ${tr('Daily Cash Close', 'الإغلاق اليومي')}</div>
-      <div class="flex gap-8 mb-12">
-        <div class="form-group" style="flex:1"><label>${tr('Opening Balance', 'الرصيد الافتتاحي')}</label><input class="form-input" id="dcOpen" type="number" placeholder="0"></div>
-        <div class="form-group" style="flex:1"><label>${tr('Closing Balance', 'الرصيد الختامي')}</label><input class="form-input" id="dcClose" type="number" placeholder="0"></div>
-        <div class="form-group" style="flex:1"><label>${tr('Notes', 'ملاحظات')}</label><input class="form-input" id="dcNotes"></div>
-        <button class="btn btn-primary" onclick="performDailyClose()" style="align-self:flex-end">🔒 ${tr('Close Day', 'إغلاق اليوم')}</button>
-      </div>
+    <div id="finStats"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+      <div class="card" style="padding:20px"><h4 style="margin:0 0 12px">${tr('Revenue Trend','منحنى الإيرادات')}</h4><canvas id="finRevenueChart" height="200"></canvas></div>
+      <div class="card" style="padding:20px"><h4 style="margin:0 0 12px">${tr('By Service','حسب الخدمة')}</h4><canvas id="finServiceChart" height="200"></canvas></div>
     </div>
-    <div style="margin-top:12px;display:flex;gap:8px">
-      <button class="btn" onclick="exportTableCSV('invoices_export')">📥 ${tr('Export CSV', 'تصدير CSV')}</button>
+    <div class="card" style="padding:20px;margin-top:16px">
+      <h4 style="margin:0 0 12px">${tr('Recent Invoices','الفواتير الأخيرة')}</h4>
+      <div id="finTable"></div>
     </div>`;
+    loadFinance();
+    
+    window.loadFinance = async () => {
+      const from = document.getElementById('finFrom')?.value || '';
+      const to = document.getElementById('finTo')?.value || '';
+      try {
+        const data = await API.get('/api/finance/summary?from=' + from + '&to=' + to);
+        const statsEl = document.getElementById('finStats');
+        if (statsEl) {
+          statsEl.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">' +
+            '<div class="card" style="padding:20px;text-align:center;background:linear-gradient(135deg,#e8f5e9,#c8e6c9)"><h2 style="margin:0;color:#2e7d32">' + parseFloat(data.revenue||0).toLocaleString() + '</h2><p style="margin:4px 0 0;color:#666">' + tr('Total Revenue','إجمالي الإيرادات') + ' (' + tr('SAR','ريال') + ')</p></div>' +
+            '<div class="card" style="padding:20px;text-align:center;background:linear-gradient(135deg,#e3f2fd,#bbdefb)"><h2 style="margin:0;color:#1565c0">' + parseFloat(data.paid||0).toLocaleString() + '</h2><p style="margin:4px 0 0;color:#666">' + tr('Collected','المحصّل') + '</p></div>' +
+            '<div class="card" style="padding:20px;text-align:center;background:linear-gradient(135deg,#fce4ec,#f8bbd0)"><h2 style="margin:0;color:#c62828">' + parseFloat(data.unpaid||0).toLocaleString() + '</h2><p style="margin:4px 0 0;color:#666">' + tr('Outstanding','المتبقي') + '</p></div>' +
+            '<div class="card" style="padding:20px;text-align:center;background:linear-gradient(135deg,#fff3e0,#ffe0b2)"><h2 style="margin:0;color:#e65100">' + (data.count||0) + '</h2><p style="margin:4px 0 0;color:#666">' + tr('Invoice Count','عدد الفواتير') + '</p></div></div>';
+        }
+        // Revenue chart
+        if (typeof Chart !== 'undefined' && data.daily?.length > 0) {
+          const revCtx = document.getElementById('finRevenueChart');
+          if (revCtx) { Chart.getChart(revCtx)?.destroy(); new Chart(revCtx, { type:'line', data:{ labels:data.daily.map(d=>new Date(d.day).toLocaleDateString('ar-SA',{day:'numeric',month:'short'})), datasets:[{label:tr('Revenue','إيرادات'), data:data.daily.map(d=>parseFloat(d.amount)), borderColor:'#1a73e8', backgroundColor:'rgba(26,115,232,0.1)', fill:true, tension:0.4}] }, options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}} }); }
+          const svcCtx = document.getElementById('finServiceChart');
+          if (svcCtx && data.byService?.length > 0) { Chart.getChart(svcCtx)?.destroy(); new Chart(svcCtx, { type:'doughnut', data:{ labels:data.byService.map(s=>s.service), datasets:[{data:data.byService.map(s=>parseFloat(s.amount)), backgroundColor:['#1a73e8','#34a853','#fbbc04','#ea4335','#ff6d01','#46bdc6','#7baaf7','#f07b72','#fcd04f','#71c287']}] }, options:{responsive:true, plugins:{legend:{position:'right',labels:{font:{size:11}}}}} }); }
+        }
+        // Load invoices table
+        const invoices = await API.get('/api/invoices');
+        window._finInvoices = invoices;
+        const ft = document.getElementById('finTable');
+        if (ft && invoices.length) {
+          createTable(ft, 'finTbl',
+            [tr('#','#'), tr('Patient','المريض'), tr('Service','الخدمة'), tr('Amount','المبلغ'), tr('Status','الحالة'), tr('Date','التاريخ')],
+            invoices.slice(0,50).map(i => ({ cells: [i.invoice_number||i.id, i.patient_name||'', i.description||i.service_type||'', parseFloat(i.total||0).toFixed(2)+' '+tr('SAR','ريال'), statusBadge(i.paid?'Paid':'Unpaid'), i.created_at?new Date(i.created_at).toLocaleDateString('ar-SA'):''], id:i.id }))
+          );
+        }
+      } catch(e) { console.error(e); }
+    };
+
 }
 window.generateInvoice = async () => {
   const pid = document.getElementById('invPatient').value;
@@ -3850,50 +3874,48 @@ window.addInsCompany = async () => {
 
 // ===== INVENTORY =====
 async function renderInventory(el) {
-  const items = await API.get('/api/inventory/items');
-  const lowStock = items.filter(i => i.stock_qty <= i.min_qty);
-  const totalValue = items.reduce((s, i) => s + (i.cost_price * i.stock_qty), 0);
-  el.innerHTML = `<div class="page-title">📦 ${tr('Inventory Management', 'إدارة المخازن')}</div>
-    <div class="stats-grid">
-      <div class="stat-card" style="--stat-color:#3b82f6"><div class="stat-label">${tr('Total Items', 'إجمالي الأصناف')}</div><div class="stat-value">${items.length}</div></div>
-      <div class="stat-card" style="--stat-color:#4ade80"><div class="stat-label">${tr('Stock Value', 'قيمة المخزون')}</div><div class="stat-value">${totalValue.toLocaleString()} SAR</div></div>
-      <div class="stat-card" style="--stat-color:#f87171"><div class="stat-label">${tr('Low Stock Items', 'أصناف منخفضة')}</div><div class="stat-value">${lowStock.length}</div></div>
+
+    const items = await API.get('/api/inventory').catch(()=>[]);
+    const lowStock = items.filter(i => parseInt(i.quantity||0) <= parseInt(i.reorder_level||10));
+    content.innerHTML = `
+    <h2>${tr('Inventory','المخزون')}</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${items.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Items','إجمالي الأصناف')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:${lowStock.length > 0 ? '#fce4ec' : '#e8f5e9'}"><h3 style="margin:0;color:${lowStock.length > 0 ? '#c62828' : '#2e7d32'}">${lowStock.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Low Stock','مخزون منخفض')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${items.length - lowStock.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('OK Stock','مخزون كافي')}</p></div>
     </div>
-    ${lowStock.length > 0 ? `<div class="card mb-16" style="border-left:4px solid #f87171">
-      <div class="card-title">⚠️ ${tr('Low Stock Alert', 'تنبيه نقص المخزون')}</div>
-      ${makeTable([tr('Item', 'الصنف'), tr('Code', 'الرمز'), tr('Current', 'الحالي'), tr('Minimum', 'الحد الأدنى')],
-    lowStock.map(i => ({ cells: [i.item_name, i.item_code, `<span style="color:#f87171;font-weight:bold">${i.stock_qty}</span>`, i.min_qty] })))}
-    </div>` : ''}
-    <div class="card mb-16">
-      <div class="card-title">➕ ${tr('Add New Item', 'إضافة صنف جديد')}</div>
-      <div class="flex gap-8 mb-12">
-        <input class="form-input" id="invName" placeholder="${tr('Item name', 'اسم الصنف')}" style="flex:2">
-        <input class="form-input" id="invCode" placeholder="${tr('Code', 'الرمز')}" style="flex:1">
-        <select class="form-input" id="invCat" style="flex:1">
-          <option value="Medical Supplies">${tr('Medical Supplies', 'مستلزمات طبية')}</option>
-          <option value="Office Supplies">${tr('Office Supplies', 'مستلزمات مكتبية')}</option>
-          <option value="Cleaning">${tr('Cleaning', 'تنظيف')}</option>
-          <option value="Equipment">${tr('Equipment', 'معدات')}</option>
-          <option value="Other">${tr('Other', 'أخرى')}</option>
-        </select>
-        <input class="form-input" id="invCost" placeholder="${tr('Cost', 'التكلفة')}" type="number" style="flex:1">
-        <input class="form-input" id="invQty" placeholder="${tr('Qty', 'الكمية')}" type="number" style="flex:1">
-        <input class="form-input" id="invMin" placeholder="${tr('Min', 'الحد')}" type="number" value="5" style="flex:0.7">
-        <button class="btn btn-primary" onclick="addInvItem()">➕</button>
-      </div>
+    <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+      <input class="form-input" id="invSearch" placeholder="${tr('Search items...','بحث في الأصناف...')}" style="max-width:300px" oninput="filterInvTable()">
+      <button class="btn btn-sm" onclick="exportToCSV(window._invData||[],'inventory')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export','تصدير')}</button>
+      ${lowStock.length > 0 ? '<button class="btn btn-sm" onclick="showLowStock()" style="background:#fce4ec;color:#c62828;animation:pulse 2s infinite">⚠️ ' + tr('Low Stock Alert','تنبيه مخزون','') + ' (' + lowStock.length + ')</button>' : ''}
     </div>
-    <div class="card">
-      <div class="card-title">📦 ${tr('All Stock Items', 'جميع الأصناف')}</div>
-      <input class="search-filter" placeholder="${tr('Search items...', 'بحث في الأصناف...')}" oninput="filterTable(this,'invTable')">
-      <div id="invTable">${makeTable(
-      [tr('Name', 'الاسم'), tr('Code', 'الرمز'), tr('Category', 'التصنيف'), tr('Cost', 'التكلفة'), tr('Stock', 'المخزون'), tr('Min', 'الحد'), tr('Value', 'القيمة')],
-      items.map(i => ({
-        cells: [i.item_name, i.item_code, i.category || '', (i.cost_price || 0).toLocaleString(),
-        i.stock_qty <= i.min_qty ? `<span style="color:#f87171;font-weight:bold">${i.stock_qty}</span>` : i.stock_qty,
-        i.min_qty, ((i.cost_price || 0) * (i.stock_qty || 0)).toLocaleString() + ' SAR']
-      }))
-    )}</div>
-    </div>`;
+    <div id="invTableDiv"></div>`;
+    
+    window._invData = items;
+    const it = document.getElementById('invTableDiv');
+    if (it && items.length) {
+      createTable(it, 'invTbl',
+        [tr('Name','الاسم'), tr('Category','الفئة'), tr('Qty','الكمية'), tr('Reorder','إعادة الطلب'), tr('Unit','الوحدة'), tr('Status','الحالة')],
+        items.map(i => {
+          const isLow = parseInt(i.quantity||0) <= parseInt(i.reorder_level||10);
+          return { cells: [i.name, i.category||'', '<span style="font-weight:bold;color:' + (isLow?'#c62828':'#2e7d32') + '">' + (i.quantity||0) + '</span>', i.reorder_level||10, i.unit||'', isLow ? '<span style="color:#c62828;font-weight:bold">⚠️ '+tr('Low','منخفض')+'</span>' : '<span style="color:#2e7d32">✅</span>'], id: i.id };
+        })
+      );
+    }
+    
+    window.filterInvTable = () => {
+      const txt = (document.getElementById('invSearch')?.value || '').toLowerCase();
+      document.querySelectorAll('#invTbl tbody tr').forEach(r => r.style.display = r.textContent.toLowerCase().includes(txt) ? '' : 'none');
+    };
+    window.showLowStock = () => {
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+      const lowItems = (window._invData||[]).filter(i => parseInt(i.quantity||0) <= parseInt(i.reorder_level||10));
+      modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:500px;direction:rtl;max-height:80vh;overflow:auto"><h3 style="margin:0 0 16px;color:#c62828">⚠️ ' + tr('Low Stock Items','أصناف مخزونها منخفض') + ' (' + lowItems.length + ')</h3>' + lowItems.map(i => '<div style="padding:10px;margin:4px 0;background:#fce4ec;border-radius:8px;display:flex;justify-content:space-between"><strong>' + i.name + '</strong><span style="color:#c62828;font-weight:bold">' + i.quantity + ' / ' + (i.reorder_level||10) + '</span></div>').join('') + '<button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:16px">' + tr('Close','إغلاق') + '</button></div>';
+      document.body.appendChild(modal);
+      modal.onclick = e => { if (e.target === modal) modal.remove(); };
+    };
+
 }
 window.addInvItem = async () => {
   const name = document.getElementById('invName').value.trim();
@@ -4238,62 +4260,104 @@ window.payInvoicePA = async (id) => {
 };
 
 async function renderReports(el) {
-  const [fin, pat, lab, invoices, emps, commissions] = await Promise.all([
-    API.get('/api/reports/financial').catch(() => ({ totalRevenue: 0, totalPending: 0, invoiceCount: 0, monthlyRevenue: 0 })),
-    API.get('/api/reports/patients').catch(() => ({ totalPatients: 0, todayPatients: 0, deptStats: [], statusStats: [] })),
-    API.get('/api/reports/lab').catch(() => ({ totalOrders: 0, pendingOrders: 0, completedOrders: 0 })),
-    API.get('/api/invoices').catch(() => []),
-    API.get('/api/employees').catch(() => []),
-    API.get('/api/reports/commissions').catch(() => [])
-  ]);
-  el.innerHTML = `<div class="page-title">📋 ${tr('Reports & Analytics', 'التقارير والتحليلات')}</div>
-    <div class="stats-grid">
-      <div class="stat-card" style="--stat-color:#3b82f6"><div class="stat-label">${tr('Total Revenue', 'إجمالي الإيرادات')}</div><div class="stat-value">${fin.totalRevenue.toLocaleString()} SAR</div></div>
-      <div class="stat-card" style="--stat-color:#f59e0b"><div class="stat-label">${tr('Monthly Revenue', 'إيرادات الشهر')}</div><div class="stat-value">${fin.monthlyRevenue.toLocaleString()} SAR</div></div>
-      <div class="stat-card" style="--stat-color:#f87171"><div class="stat-label">${tr('Pending Payments', 'مبالغ معلقة')}</div><div class="stat-value">${fin.totalPending.toLocaleString()} SAR</div></div>
-      <div class="stat-card" style="--stat-color:#4ade80"><div class="stat-label">${tr('Total Patients', 'إجمالي المرضى')}</div><div class="stat-value">${pat.totalPatients}</div></div>
+
+    content.innerHTML = `
+    <h2>${tr('Reports','التقارير')}</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-bottom:20px">
+      <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('patients')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+        <div style="font-size:36px;margin-bottom:8px">👥</div>
+        <h4 style="margin:0 0 4px">${tr('Patient Report','تقرير المرضى')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('All registered patients','جميع المرضى المسجلين')}</p>
+      </div>
+      <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('invoices')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+        <div style="font-size:36px;margin-bottom:8px">💰</div>
+        <h4 style="margin:0 0 4px">${tr('Financial Report','التقرير المالي')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('Revenue and invoices','الإيرادات والفواتير')}</p>
+      </div>
+      <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('appointments')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+        <div style="font-size:36px;margin-bottom:8px">📅</div>
+        <h4 style="margin:0 0 4px">${tr('Appointments Report','تقرير المواعيد')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('Bookings and attendance','الحجوزات والحضور')}</p>
+      </div>
+      <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('lab')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+        <div style="font-size:36px;margin-bottom:8px">🔬</div>
+        <h4 style="margin:0 0 4px">${tr('Lab Report','تقرير المختبر')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('Test orders and results','الطلبات والنتائج')}</p>
+      </div>
+      <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('pharmacy')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+        <div style="font-size:36px;margin-bottom:8px">💊</div>
+        <h4 style="margin:0 0 4px">${tr('Pharmacy Report','تقرير الصيدلية')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('Dispensing and stock','الصرف والمخزون')}</p>
+      </div>
+      <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('inventory')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+        <div style="font-size:36px;margin-bottom:8px">📦</div>
+        <h4 style="margin:0 0 4px">${tr('Inventory Report','تقرير المخزون')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('Stock levels and low items','مستويات المخزون')}</p>
+      </div>
     </div>
-    <div class="grid-equal">
-      <div class="card">
-        <div class="card-title">💰 ${tr('Financial Summary', 'الملخص المالي')}</div>
-        <div class="stats-grid">
-          <div class="stat-card" style="--stat-color:#3b82f6"><div class="stat-label">${tr('Total Invoices', 'عدد الفواتير')}</div><div class="stat-value">${fin.invoiceCount}</div></div>
-          <div class="stat-card" style="--stat-color:#4ade80"><div class="stat-label">${tr('Paid', 'مدفوعة')}</div><div class="stat-value">${invoices.filter(i => i.paid).length}</div></div>
-          <div class="stat-card" style="--stat-color:#f87171"><div class="stat-label">${tr('Unpaid', 'غير مدفوعة')}</div><div class="stat-value">${invoices.filter(i => !i.paid).length}</div></div>
+    <div id="reportOutput" class="card" style="padding:20px;display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h4 id="reportTitle" style="margin:0"></h4>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm" onclick="exportToCSV(window._reportData||[],'report')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export CSV','تصدير CSV')}</button>
+          <button class="btn btn-sm" onclick="window.print()" style="background:#f3e5f5;color:#7b1fa2">🖨️ ${tr('Print','طباعة')}</button>
         </div>
-        <div class="card-title mt-16">📊 ${tr('Recent Invoices', 'آخر الفواتير')}</div>
-        ${makeTable([tr('Patient', 'المريض'), tr('Amount', 'المبلغ'), tr('Status', 'الحالة'), tr('Date', 'التاريخ')],
-    invoices.slice(0, 10).map(i => ({ cells: [i.patient_name, i.total + ' SAR', i.paid ? badge(tr('Paid', 'مدفوع'), 'success') : badge(tr('Unpaid', 'غير مدفوع'), 'danger'), i.created_at?.split('T')[0] || ''] })))}
       </div>
-      <div class="card">
-        <div class="card-title">👥 ${tr('Patient Statistics', 'إحصائيات المرضى')}</div>
-        <div class="stats-grid">
-          <div class="stat-card" style="--stat-color:#8b5cf6"><div class="stat-label">${tr('Today', 'اليوم')}</div><div class="stat-value">${pat.todayPatients}</div></div>
-          <div class="stat-card" style="--stat-color:#3b82f6"><div class="stat-label">${tr('Total', 'الإجمالي')}</div><div class="stat-value">${pat.totalPatients}</div></div>
-          <div class="stat-card" style="--stat-color:#06b6d4"><div class="stat-label">${tr('Employees', 'الموظفين')}</div><div class="stat-value">${emps.length}</div></div>
-        </div>
-        <div class="card-title mt-16">📊 ${tr('By Department', 'حسب القسم')}</div>
-        ${makeTable([tr('Department', 'القسم'), tr('Count', 'العدد')], pat.deptStats.map(d => ({ cells: [d.department || tr('Unassigned', 'غير محدد'), d.cnt] })))}
-        <div class="card-title mt-16">📊 ${tr('By Status', 'حسب الحالة')}</div>
-        ${makeTable([tr('Status', 'الحالة'), tr('Count', 'العدد')], pat.statusStats.map(s => ({ cells: [statusBadge(s.status), s.cnt] })))}
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">🔬 ${tr('Lab & Radiology Summary', 'ملخص المختبر والأشعة')}</div>
-      <div class="stats-grid">
-        <div class="stat-card" style="--stat-color:#3b82f6"><div class="stat-label">${tr('Total Lab Orders', 'إجمالي طلبات المختبر')}</div><div class="stat-value">${lab.totalOrders}</div></div>
-        <div class="stat-card" style="--stat-color:#f59e0b"><div class="stat-label">${tr('Pending', 'بالانتظار')}</div><div class="stat-value">${lab.pendingOrders}</div></div>
-        <div class="stat-card" style="--stat-color:#4ade80"><div class="stat-label">${tr('Completed', 'مكتمل')}</div><div class="stat-value">${lab.completedOrders}</div></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">\ud83d\udcb0 ${tr('Doctor Commission Report', '\u062a\u0642\u0631\u064a\u0631 \u0639\u0645\u0648\u0644\u0627\u062a \u0627\u0644\u0623\u0637\u0628\u0627\u0621')}</div>
-      ${commissions.length ? makeTable(
-      [tr('Doctor', '\u0627\u0644\u0637\u0628\u064a\u0628'), tr('Speciality', '\u0627\u0644\u062a\u062e\u0635\u0635'), tr('Revenue', '\u0627\u0644\u0625\u064a\u0631\u0627\u062f\u0627\u062a'), tr('Type', '\u0627\u0644\u0646\u0648\u0639'), tr('Rate', '\u0627\u0644\u0645\u0639\u062f\u0644'), tr('Commission', '\u0627\u0644\u0639\u0645\u0648\u0644\u0629')],
-      commissions.map(c => ({ cells: [c.doctor_name, c.speciality || '-', Number(c.totalRevenue).toLocaleString() + ' SAR', c.commission_type === 'percentage' ? badge('%', 'info') : badge('SAR', 'warning'), c.commission_type === 'percentage' ? c.commission_value + '%' : c.commission_value + ' SAR/' + tr('patient', '\u0645\u0631\u064a\u0636'), '<strong style="color:var(--accent)">' + c.commission.toLocaleString() + ' SAR</strong>'] }))
-    ) : '<div class="empty-state"><p>' + tr('No doctors configured', '\u0644\u0645 \u064a\u062a\u0645 \u0625\u0639\u062f\u0627\u062f \u0623\u0637\u0628\u0627\u0621') + '</p></div>'}
-      ${commissions.length ? '<div style="margin-top:12px;padding:12px;background:var(--hover);border-radius:8px;display:flex;justify-content:space-between;font-weight:600"><span>\ud83d\udcb0 ' + tr('Total Commissions', '\u0625\u062c\u0645\u0627\u0644\u064a \u0627\u0644\u0639\u0645\u0648\u0644\u0627\u062a') + '</span><span style="color:var(--accent)">' + commissions.reduce((s, c) => s + c.commission, 0).toLocaleString() + ' SAR</span></div>' : ''}
+      <div id="reportTable"></div>
     </div>`;
+    
+    window.genReport = async (type) => {
+      const output = document.getElementById('reportOutput');
+      const title = document.getElementById('reportTitle');
+      const table = document.getElementById('reportTable');
+      if (!output || !table) return;
+      output.style.display = '';
+      
+      try {
+        let data, headers, rows;
+        switch(type) {
+          case 'patients':
+            data = await API.get('/api/patients');
+            title.textContent = tr('Patient Report','تقرير المرضى') + ' (' + data.length + ')';
+            headers = [tr('MRN','الملف'),tr('Name','الاسم'),tr('Phone','الجوال'),tr('ID','الهوية'),tr('Nationality','الجنسية'),tr('Registered','التسجيل')];
+            rows = data.map(p=>({cells:[p.mrn||p.file_number, isArabic?(p.name_ar||p.name_en):(p.name_en||p.name_ar), p.phone, p.national_id, p.nationality, p.created_at?new Date(p.created_at).toLocaleDateString('ar-SA'):''],id:p.id}));
+            break;
+          case 'invoices':
+            data = await API.get('/api/invoices');
+            title.textContent = tr('Financial Report','التقرير المالي') + ' (' + data.length + ')';
+            headers = [tr('#','#'),tr('Patient','المريض'),tr('Service','الخدمة'),tr('Amount','المبلغ'),tr('Paid','مدفوع'),tr('Date','التاريخ')];
+            rows = data.map(i=>({cells:[i.invoice_number||i.id, i.patient_name, i.description||i.service_type, parseFloat(i.total||0).toFixed(2), i.paid?'✅':'❌', i.created_at?new Date(i.created_at).toLocaleDateString('ar-SA'):''],id:i.id}));
+            break;
+          case 'appointments':
+            data = await API.get('/api/appointments');
+            title.textContent = tr('Appointments Report','تقرير المواعيد') + ' (' + data.length + ')';
+            headers = [tr('Patient','المريض'),tr('Doctor','الطبيب'),tr('Department','القسم'),tr('Date','التاريخ'),tr('Time','الوقت'),tr('Status','الحالة')];
+            rows = data.map(a=>({cells:[a.patient_name, a.doctor_name||a.doctor, a.department, a.appt_date||a.date, a.appt_time||a.time, statusBadge(a.status)],id:a.id}));
+            break;
+          case 'lab':
+            data = await API.get('/api/lab/orders');
+            title.textContent = tr('Lab Report','تقرير المختبر') + ' (' + data.length + ')';
+            headers = [tr('Patient','المريض'),tr('Test','الفحص'),tr('Doctor','الطبيب'),tr('Status','الحالة'),tr('Date','التاريخ')];
+            rows = data.map(l=>({cells:[l.patient_name, l.test_name||l.test_type, l.doctor, statusBadge(l.status), l.created_at?new Date(l.created_at).toLocaleDateString('ar-SA'):''],id:l.id}));
+            break;
+          case 'pharmacy':
+            data = await API.get('/api/pharmacy/prescriptions');
+            title.textContent = tr('Pharmacy Report','تقرير الصيدلية') + ' (' + data.length + ')';
+            headers = [tr('Patient','المريض'),tr('Medication','الدواء'),tr('Doctor','الطبيب'),tr('Status','الحالة'),tr('Date','التاريخ')];
+            rows = data.map(p=>({cells:[p.patient_name, p.medication||p.drug_name, p.doctor, statusBadge(p.status), p.created_at?new Date(p.created_at).toLocaleDateString('ar-SA'):''],id:p.id}));
+            break;
+          case 'inventory':
+            data = await API.get('/api/inventory');
+            title.textContent = tr('Inventory Report','تقرير المخزون') + ' (' + data.length + ')';
+            headers = [tr('Item','الصنف'),tr('Category','الفئة'),tr('Qty','الكمية'),tr('Reorder','إعادة الطلب'),tr('Unit','الوحدة'),tr('Status','الحالة')];
+            rows = data.map(i=>({cells:[i.name, i.category, i.quantity, i.reorder_level||10, i.unit, parseInt(i.quantity)<=parseInt(i.reorder_level||10)?'<span style="color:#cc0000;font-weight:bold">⚠️ '+tr('Low','منخفض')+'</span>':'<span style="color:#2e7d32">✅ '+tr('OK','جيد')+'</span>'],id:i.id}));
+            break;
+        }
+        window._reportData = data;
+        createTable(table, 'rptTbl', headers, rows);
+      } catch(e) { table.innerHTML = '<p style="color:#cc0000">' + tr('Error loading report','خطأ في تحميل التقرير') + '</p>'; }
+    };
+
 }
 
 let msgTab = 'inbox';
