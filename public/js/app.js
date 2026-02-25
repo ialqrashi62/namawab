@@ -626,9 +626,9 @@ async function loadPage(page) {
 
 // ===== MEDICAL REPORT / SICK LEAVE =====
 window.showMedicalReportForm = (type) => {
-  const patientId = document.getElementById('drPatientSelect')?.value || window._selectedPatientId;
+  const patientId = document.getElementById('drPatient')?.value || window._selectedPatientId;
   if (!patientId) return showToast(tr('Select patient first', 'اختر مريض أولاً'), 'error');
-  const patientName = document.getElementById('drPatientSelect')?.selectedOptions[0]?.text || window._selectedPatientName || '';
+  const patientName = document.getElementById('drPatient')?.selectedOptions[0]?.text || window._selectedPatientName || '';
 
   const typeLabels = {
     sick_leave: { en: 'Sick Leave', ar: 'إجازة مرضية' },
@@ -865,7 +865,7 @@ window.callNextPatient = async () => {
 
 window.selectPatientFromQueue = (patientId) => {
   if (!patientId) return;
-  const select = document.getElementById('drPatientSelect');
+  const select = document.getElementById('drPatient');
   if (select) {
     select.value = patientId;
     select.dispatchEvent(new Event('change'));
@@ -1232,18 +1232,18 @@ window.setLang = (lang) => {
 
 
 window.sendDirectRad = async () => {
-  const patientId = document.getElementById('drPatientSelect')?.value || window._selectedPatientId;
-  if (!patientId) return showToast(tr('Select patient first','اختر مريض أولاً'), 'error');
-  const patientName = document.getElementById('drPatientSelect')?.selectedOptions[0]?.text || window._selectedPatientName || '';
+  const patientId = document.getElementById('drPatient')?.value || window._selectedPatientId;
+  if (!patientId) return showToast(tr('Select patient first', 'اختر مريض أولاً'), 'error');
+  const patientName = document.getElementById('drPatient')?.selectedOptions[0]?.text || window._selectedPatientName || '';
   const examType = document.getElementById('radDirectType')?.value || '';
   const details = document.getElementById('radDirectDesc')?.value || '';
   const priority = document.getElementById('radDirectPriority')?.value || 'routine';
   try {
     await API.post('/api/radiology/orders', { patient_id: patientId, patient_name: patientName, exam_type: examType, details: details, priority: priority, status: 'Pending' });
-    showToast(tr('Radiology order sent!','تم إرسال طلب الأشعة!'));
+    showToast(tr('Radiology order sent!', 'تم إرسال طلب الأشعة!'));
     document.getElementById('radDirectType') && (document.getElementById('radDirectType').value = '');
     document.getElementById('radDirectDesc') && (document.getElementById('radDirectDesc').value = '');
-  } catch(e) { showToast(tr('Error','خطأ'), 'error'); }
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
 async function renderDashboard(el) {
