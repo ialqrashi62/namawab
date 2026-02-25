@@ -162,7 +162,7 @@ app.get('/api/patients', requireAuth, async (req, res) => {
 
 app.post('/api/patients', requireAuth, async (req, res) => {
     try {
-        const { name_ar, name_en, national_id, nationality, phone, department, amount, payment_method, dob, dob_hijri } = req.body;
+        const { name_ar, name_en, national_id, nationality, gender, phone, department, amount, payment_method, dob, dob_hijri } = req.body;
         const maxFile = (await pool.query('SELECT COALESCE(MAX(file_number), 1000) as mf FROM patients')).rows[0].mf;
         let age = 0;
         if (dob) {
@@ -172,8 +172,8 @@ app.post('/api/patients', requireAuth, async (req, res) => {
             age = Math.abs(ageDate.getUTCFullYear() - 1970);
         }
         const fileOpenFee = parseFloat(amount) || 0;
-        const result = await pool.query('INSERT INTO patients (file_number, name_ar, name_en, national_id, nationality, phone, department, amount, payment_method, dob, dob_hijri, age) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id',
-            [maxFile + 1, name_ar || '', name_en || '', national_id || '', nationality || '', phone || '', department || '', fileOpenFee, payment_method || '', dob || '', dob_hijri || '', age || 0]);
+        const result = await pool.query('INSERT INTO patients (file_number, name_ar, name_en, national_id, nationality, gender, phone, department, amount, payment_method, dob, dob_hijri, age) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id',
+            [maxFile + 1, name_ar || '', name_en || '', national_id || '', nationality || '', gender || '', phone || '', department || '', fileOpenFee, payment_method || '', dob || '', dob_hijri || '', age || 0]);
         const patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [result.rows[0].id])).rows[0];
         // Auto-create invoice for file opening fee (with VAT for non-Saudis)
         if (fileOpenFee > 0) {
@@ -189,9 +189,22 @@ app.post('/api/patients', requireAuth, async (req, res) => {
 
 app.put('/api/patients/:id', requireAuth, async (req, res) => {
     try {
-        const { department, status } = req.body;
-        if (department !== undefined) await pool.query('UPDATE patients SET department=$1 WHERE id=$2', [department, req.params.id]);
-        if (status !== undefined) await pool.query('UPDATE patients SET status=$1 WHERE id=$2', [status, req.params.id]);
+        const { name_ar, name_en, national_id, nationality, gender, phone, dob, dob_hijri, department, status } = req.body;
+        const sets = []; const vals = []; let i = 1;
+        if (name_ar !== undefined) { sets.push(`name_ar=$${i++}`); vals.push(name_ar); }
+        if (name_en !== undefined) { sets.push(`name_en=$${i++}`); vals.push(name_en); }
+        if (national_id !== undefined) { sets.push(`national_id=$${i++}`); vals.push(national_id); }
+        if (nationality !== undefined) { sets.push(`nationality=$${i++}`); vals.push(nationality); }
+        if (gender !== undefined) { sets.push(`gender=$${i++}`); vals.push(gender); }
+        if (phone !== undefined) { sets.push(`phone=$${i++}`); vals.push(phone); }
+        if (dob !== undefined) { sets.push(`dob=$${i++}`); vals.push(dob); }
+        if (dob_hijri !== undefined) { sets.push(`dob_hijri=$${i++}`); vals.push(dob_hijri); }
+        if (department !== undefined) { sets.push(`department=$${i++}`); vals.push(department); }
+        if (status !== undefined) { sets.push(`status=$${i++}`); vals.push(status); }
+        if (sets.length > 0) {
+            vals.push(req.params.id);
+            await pool.query(`UPDATE patients SET ${sets.join(',')} WHERE id=$${i}`, vals);
+        }
         const patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [req.params.id])).rows[0];
         res.json(patient);
     } catch (e) { res.status(500).json({ error: e.message }); }
@@ -1740,7 +1753,8 @@ app.post('/api/emergency/visits', requireAuth, async (req, res) => {
 });
 app.put('/api/emergency/visits/:id', requireAuth, async (req, res) => {
     try {
-        const { status, disposition, assigned_doctor, assigned_bed, triage_level, triage_color } = req.body;
+        const { status, disposition, assigned_doctor, assigned_bed, triage_level, triage_color,
+            discharge_diagnosis, discharge_instructions, discharge_medications, followup_date } = req.body;
         const sets = []; const vals = []; let i = 1;
         if (status) { sets.push(`status=$${i++}`); vals.push(status); }
         if (disposition) { sets.push(`disposition=$${i++}`); vals.push(disposition); sets.push(`disposition_time=$${i++}`); vals.push(new Date().toISOString()); }
@@ -1748,6 +1762,11 @@ app.put('/api/emergency/visits/:id', requireAuth, async (req, res) => {
         if (assigned_bed) { sets.push(`assigned_bed=$${i++}`); vals.push(assigned_bed); }
         if (triage_level) { sets.push(`triage_level=$${i++}`); vals.push(triage_level); }
         if (triage_color) { sets.push(`triage_color=$${i++}`); vals.push(triage_color); }
+        if (discharge_diagnosis) { sets.push(`discharge_diagnosis=$${i++}`); vals.push(discharge_diagnosis); }
+        if (discharge_instructions) { sets.push(`discharge_instructions=$${i++}`); vals.push(discharge_instructions); }
+        if (discharge_medications) { sets.push(`discharge_medications=$${i++}`); vals.push(discharge_medications); }
+        if (followup_date) { sets.push(`followup_date=$${i++}`); vals.push(followup_date); }
+        if (status === 'Discharged') { sets.push(`discharge_time=$${i++}`); vals.push(new Date().toISOString()); }
         vals.push(req.params.id);
         await pool.query(`UPDATE emergency_visits SET ${sets.join(',')} WHERE id=$${i}`, vals);
         if (status === 'Discharged' || status === 'Admitted') {

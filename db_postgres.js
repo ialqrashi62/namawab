@@ -678,6 +678,11 @@ CREATE TABLE IF NOT EXISTS emergency_visits (
     disposition TEXT DEFAULT 'Pending',
     disposition_time TEXT DEFAULT '',
     acuity_notes TEXT DEFAULT '',
+    discharge_time TEXT DEFAULT '',
+    discharge_diagnosis TEXT DEFAULT '',
+    discharge_instructions TEXT DEFAULT '',
+    discharge_medications TEXT DEFAULT '',
+    followup_date TEXT DEFAULT '',
     status TEXT DEFAULT 'Active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -1609,6 +1614,17 @@ CREATE TABLE IF NOT EXISTS cosmetic_followups (
 
         // Default admin
         await client.query(`INSERT INTO system_users (username, password_hash, display_name, role) VALUES ('admin', 'admin', 'المدير العام', 'Admin') ON CONFLICT (username) DO NOTHING`);
+
+        // ===== MIGRATIONS: Add missing columns to existing tables =====
+        try {
+            await client.query(`
+                ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS discharge_time TEXT DEFAULT '';
+                ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS discharge_diagnosis TEXT DEFAULT '';
+                ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS discharge_instructions TEXT DEFAULT '';
+                ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS discharge_medications TEXT DEFAULT '';
+                ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS followup_date TEXT DEFAULT '';
+            `);
+        } catch (e) { /* columns may already exist */ }
 
         console.log('  ✅ PostgreSQL tables created');
     } finally {

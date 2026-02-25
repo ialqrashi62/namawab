@@ -355,7 +355,7 @@ async function renderDashboard(el) {
 
 // ===== RECEPTION =====
 async function renderReception(el) {
-  const patients = await API.get('/api/patients');
+  const [patients, doctors] = await Promise.all([API.get('/api/patients'), API.get('/api/employees?role=Doctor')]);
   const depts = ['العيادة العامة', 'الباطنية', 'الأطفال', 'العظام', 'الجلدية', 'الأنف والأذن', 'العيون', 'الأسنان', 'الطوارئ'];
   const deptsEn = ['General Clinic', 'Internal Medicine', 'Pediatrics', 'Orthopedics', 'Dermatology', 'ENT', 'Ophthalmology', 'Dental', 'Emergency'];
   const maxFile = patients.length ? Math.max(...patients.map(p => p.file_number || 1000)) + 1 : 1001;
@@ -457,6 +457,10 @@ async function renderReception(el) {
           <option value="طاجيكي">🇹🇯 ${tr('Tajik', 'طاجيكي')}</option>
           <option value="أخرى">🌍 ${tr('Other', 'أخرى')}</option>
         </select></div>
+        <div class="form-group mb-12"><label>${tr('Gender', 'الجنس')}</label><select class="form-input" id="rGender">
+          <option value="ذكر">👨 ${tr('Male', 'ذكر')}</option>
+          <option value="أنثى">👩 ${tr('Female', 'أنثى')}</option>
+        </select></div>
         <div class="flex gap-16 mb-12" style="flex-wrap:wrap">
           <div class="form-group" style="flex:3;min-width:220px"><label>${tr('DOB (Gregorian)', 'تاريخ الميلاد (ميلادي)')}</label>
             <div class="flex gap-4">
@@ -483,26 +487,76 @@ async function renderReception(el) {
           </div>
           <div class="form-group" style="flex:1;min-width:70px"><label>${tr('Age', 'العمر')}</label><input class="form-input form-input-readonly" id="rAge" readonly></div>
         </div>
-        <div class="form-group mb-12"><label>${tr('Department', 'القسم')}</label><select class="form-input" id="rDept">${depts.map((d, i) => `<option value="${isArabic ? d : deptsEn[i]}">${isArabic ? d : deptsEn[i]}</option>`).join('')}</select></div>
-        <div class="form-group mb-12"><label>${tr('Amount', 'المبلغ')}</label><input class="form-input" id="rAmount" value="0.00" type="number"></div>
-        <div class="form-group mb-16"><label>${tr('Payment', 'طريقة السداد')}</label>
-          <div class="flex gap-16" style="margin-top:6px">
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px"><input type="radio" name="rPay" value="${tr('Cash', 'كاش')}" checked style="width:18px;height:18px;accent-color:var(--accent,#6c5ce7)"> 💵 ${tr('Cash', 'كاش')}</label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px"><input type="radio" name="rPay" value="${tr('POS/Card', 'شبكة')}" style="width:18px;height:18px;accent-color:var(--accent,#6c5ce7)"> 💳 ${tr('POS/Card', 'شبكة')}</label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px"><input type="radio" name="rPay" value="${tr('Transfer', 'حوالة بنكية')}" style="width:18px;height:18px;accent-color:var(--accent,#6c5ce7)"> 🏦 ${tr('Transfer', 'حوالة بنكية')}</label>
-          </div>
-        </div>
+
         <button class="btn btn-primary w-full" id="rSaveBtn" style="height:44px;font-size:15px">💾 ${tr('Save & Generate File', 'حفظ وإنشاء ملف')}</button>
       </div>
-      <div class="card">
-        <div class="card-title">📋 ${tr('Patient Queue', 'قائمة المرضى')}</div>
-        <input class="search-filter" id="rSearch" placeholder="${tr('Search by name, ID, phone, file#...', 'بحث بالاسم، الهوية، الجوال، رقم الملف...')}">
-        <div id="rTable"></div>
-      </div>
+    </div>
+    <div class="card mt-16">
+      <div class="card-title">📋 ${tr('Patient Queue', 'قائمة المرضى')}</div>
+      <input class="search-filter" id="rSearch" placeholder="${tr('Search by name, ID, phone, file#...', 'بحث بالاسم، الهوية، الجوال، رقم الملف...')}">
+      <div id="rTable"></div>
     </div>
     <div class="card mt-16" id="pendingPaymentCard">
       <div class="card-title">💳 ${tr('Pending Payment Orders (Lab / Radiology)', 'طلبات فحوصات بانتظار السداد (مختبر / أشعة)')}</div>
       <div id="pendingPaymentTable"></div>
+    </div>
+    <div id="editPatientModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
+      <div style="background:#fff;padding:30px;border-radius:16px;width:550px;max-width:90%;max-height:85vh;overflow-y:auto;direction:rtl">
+        <h3 style="margin-bottom:16px">✏️ ${tr('Edit Patient', 'تعديل بيانات المريض')}</h3>
+        <input type="hidden" id="editPId">
+        <div class="form-grid" style="gap:12px">
+          <div><label>${tr('Name (Arabic)', 'الاسم بالعربية')}</label><input id="editPNameAr" class="form-control"></div>
+          <div><label>${tr('Name (English)', 'الاسم بالإنجليزية')}</label><input id="editPNameEn" class="form-control"></div>
+          <div><label>${tr('National ID', 'رقم الهوية')}</label><input id="editPNatId" class="form-control"></div>
+          <div><label>${tr('Phone', 'الجوال')}</label><input id="editPPhone" class="form-control"></div>
+          <div><label>${tr('Nationality', 'الجنسية')}</label><input id="editPNationality" class="form-control"></div>
+          <div><label>${tr('DOB', 'تاريخ الميلاد')}</label><input id="editPDob" type="date" class="form-control"></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button class="btn btn-primary" onclick="saveEditPatient()" style="flex:1">💾 ${tr('Save', 'حفظ')}</button>
+          <button class="btn" onclick="document.getElementById('editPatientModal').style.display='none'" style="flex:1">❌ ${tr('Cancel', 'إلغاء')}</button>
+        </div>
+      </div>
+    </div>
+    <div id="newInvoiceModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
+      <div style="background:#fff;padding:30px;border-radius:16px;width:450px;max-width:90%;direction:rtl">
+        <h3 style="margin-bottom:16px">🧾 ${tr('New Service Invoice', 'فاتورة خدمة جديدة')}</h3>
+        <input type="hidden" id="invPId">
+        <input type="hidden" id="invPName">
+        <p id="invPLabel" style="font-weight:700;margin-bottom:12px"></p>
+        <div class="form-grid" style="gap:12px">
+          <div><label>${tr('Service Type', 'نوع الخدمة')}</label><select id="invServiceType" class="form-control" onchange="var v=this.value==='\u0643\u0634\u0641';document.getElementById('invDeptRow').style.display=v?'block':'none';document.getElementById('invDoctorRow').style.display=v?'block':'none'">
+            <option value="كشف">🩺 ${tr('Consultation', 'كشف')}</option>
+            <option value="مختبر">🧪 ${tr('Laboratory', 'مختبر')}</option>
+            <option value="أشعة">📷 ${tr('Radiology', 'أشعة')}</option>
+            <option value="إجراء">🏥 ${tr('Procedure', 'إجراء')}</option>
+            <option value="أدوية">💊 ${tr('Medications', 'أدوية')}</option>
+            <option value="عملية">🩸 ${tr('Surgery', 'عملية')}</option>
+            <option value="تمريض">👩‍⚕️ ${tr('Nursing', 'تمريض')}</option>
+            <option value="أخرى">📋 ${tr('Other', 'أخرى')}</option>
+          </select></div>
+          <div id="invDeptRow"><label>${tr('Department', 'القسم')}</label><select id="invDept" class="form-control">
+            ${depts.map((d, i) => `<option value="${isArabic ? d : deptsEn[i]}">${isArabic ? d : deptsEn[i]}</option>`).join('')}
+          </select></div>
+          <div id="invDoctorRow"><label>${tr('Doctor', 'الطبيب')}</label><select id="invDoctor" class="form-control">
+            <option value="">${tr('Select Doctor', 'اختر الطبيب')}</option>
+            ${(doctors || []).map(d => `<option value="${d.name}">${d.name}</option>`).join('')}
+          </select></div>
+          <div><label>${tr('Description', 'الوصف')}</label><input id="invDescription" class="form-control" placeholder="${tr('Service details', 'تفاصيل الخدمة')}"></div>
+          <div><label>${tr('Amount (SAR)', 'المبلغ (ر.س)')}</label><input id="invAmount" type="number" step="0.01" class="form-control" placeholder="0.00"></div>
+          <div><label>${tr('Payment Method', 'طريقة السداد')}</label><select id="invPayMethod" class="form-control">
+            <option value="كاش">💵 ${tr('Cash', 'كاش')}</option>
+            <option value="صرافة">💳 ${tr('Card/POS', 'صرافة')}</option>
+            <option value="تحويل بنكي">🏦 ${tr('Bank Transfer', 'تحويل بنكي')}</option>
+            <option value="تابي">🔵 ${tr('Tabby', 'تابي')}</option>
+            <option value="تمارا">🟣 ${tr('Tamara', 'تمارا')}</option>
+          </select></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button class="btn btn-primary" onclick="confirmNewInvoice()" style="flex:1">✅ ${tr('Create Invoice', 'إنشاء فاتورة')}</button>
+          <button class="btn" onclick="document.getElementById('newInvoiceModal').style.display='none'" style="flex:1">❌ ${tr('Cancel', 'إلغاء')}</button>
+        </div>
+      </div>
     </div>`;
 
   renderPatientTable(patients);
@@ -653,12 +707,10 @@ async function renderReception(el) {
         name_ar: nameAr, name_en: nameEn,
         national_id: document.getElementById('rNatId').value,
         nationality: document.getElementById('rNationality').value,
+        gender: document.getElementById('rGender').value,
         phone: document.getElementById('rPhone').value,
         dob: (document.getElementById('rGregYear').value && document.getElementById('rGregMonth').value && document.getElementById('rGregDay').value) ? `${document.getElementById('rGregYear').value}-${String(document.getElementById('rGregMonth').value).padStart(2, '0')}-${String(document.getElementById('rGregDay').value).padStart(2, '0')}` : '',
-        dob_hijri: (document.getElementById('rHijriYear').value && document.getElementById('rHijriMonth').value && document.getElementById('rHijriDay').value) ? `${document.getElementById('rHijriYear').value}/${String(document.getElementById('rHijriMonth').value).padStart(2, '0')}/${String(document.getElementById('rHijriDay').value).padStart(2, '0')}` : '',
-        department: document.getElementById('rDept').value,
-        amount: parseFloat(document.getElementById('rAmount').value) || 0,
-        payment_method: document.querySelector('input[name="rPay"]:checked')?.value || ''
+        dob_hijri: (document.getElementById('rHijriYear').value && document.getElementById('rHijriMonth').value && document.getElementById('rHijriDay').value) ? `${document.getElementById('rHijriYear').value}/${String(document.getElementById('rHijriMonth').value).padStart(2, '0')}/${String(document.getElementById('rHijriDay').value).padStart(2, '0')}` : ''
       });
       showToast(tr('Patient saved!', 'تم حفظ المريض!'));
       await navigateTo(1);
@@ -674,13 +726,13 @@ async function renderReception(el) {
 }
 
 function renderPatientTable(patients) {
-  const headers = [tr('File#', 'رقم الملف'), tr('Name', 'الاسم'), tr('ID', 'الهوية'), tr('Phone', 'الجوال'), tr('Dept', 'القسم'), tr('Status', 'الحالة'), tr('Delete', 'حذف')];
+  const headers = [tr('File#', 'رقم الملف'), tr('Name', 'الاسم'), tr('ID', 'الهوية'), tr('Phone', 'الجوال'), tr('Dept', 'القسم'), tr('Date/Time', 'التاريخ/الوقت'), tr('Status', 'الحالة'), tr('Actions', 'إجراءات')];
   const rows = patients.map(p => ({
-    cells: [p.file_number, isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar), p.national_id, p.phone, p.department, statusBadge(p.status)],
-    id: p.id
+    cells: [p.file_number, isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar), p.national_id, p.phone, p.department || '-', p.created_at ? new Date(p.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : '-', statusBadge(p.status)],
+    id: p.id, raw: p
   }));
   document.getElementById('rTable').innerHTML = makeTable(headers, rows, (row) =>
-    `<button class="btn btn-danger btn-sm" onclick="deletePatient(${row.id})">🗑 ${tr('Delete', 'حذف')}</button>`
+    `<button class="btn btn-sm" onclick="editPatient(${row.id})" title="${tr('Edit', 'تعديل')}">✏️</button> <button class="btn btn-sm btn-success" onclick="showNewInvoiceModal(${row.id},'${(row.raw.name_ar || row.raw.name_en || '').replace(/'/g, "\\'")}')" title="${tr('Invoice', 'فاتورة')}">🧾</button> <button class="btn btn-danger btn-sm" onclick="deletePatient(${row.id})" title="${tr('Delete', 'حذف')}">🗑</button>`
   );
 }
 
@@ -691,6 +743,73 @@ window.deletePatient = async (id) => {
     showToast(tr('Patient deleted', 'تم حذف المريض'));
     await navigateTo(1);
   } catch (e) { showToast(tr('Error deleting', 'خطأ في الحذف'), 'error'); }
+};
+
+window.editPatient = async function (id) {
+  try {
+    const patients = await API.get('/api/patients');
+    const p = patients.find(x => x.id === id);
+    if (!p) return showToast(tr('Patient not found', 'المريض غير موجود'), 'error');
+    document.getElementById('editPId').value = id;
+    document.getElementById('editPNameAr').value = p.name_ar || '';
+    document.getElementById('editPNameEn').value = p.name_en || '';
+    document.getElementById('editPNatId').value = p.national_id || '';
+    document.getElementById('editPPhone').value = p.phone || '';
+    document.getElementById('editPNationality').value = p.nationality || '';
+    document.getElementById('editPDob').value = p.dob || '';
+    document.getElementById('editPatientModal').style.display = 'flex';
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+window.saveEditPatient = async function () {
+  const id = document.getElementById('editPId').value;
+  try {
+    await API.put('/api/patients/' + id, {
+      name_ar: document.getElementById('editPNameAr').value,
+      name_en: document.getElementById('editPNameEn').value,
+      national_id: document.getElementById('editPNatId').value,
+      phone: document.getElementById('editPPhone').value,
+      nationality: document.getElementById('editPNationality').value,
+      dob: document.getElementById('editPDob').value
+    });
+    document.getElementById('editPatientModal').style.display = 'none';
+    showToast(tr('Patient updated!', 'تم تحديث بيانات المريض!'));
+    await navigateTo(1);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+window.showNewInvoiceModal = function (id, name) {
+  document.getElementById('invPId').value = id;
+  document.getElementById('invPName').value = name;
+  document.getElementById('invPLabel').textContent = name;
+  document.getElementById('invDescription').value = '';
+  document.getElementById('invAmount').value = '';
+  document.getElementById('newInvoiceModal').style.display = 'flex';
+};
+window.confirmNewInvoice = async function () {
+  const id = document.getElementById('invPId').value;
+  const name = document.getElementById('invPName').value;
+  const amount = parseFloat(document.getElementById('invAmount').value);
+  const serviceType = document.getElementById('invServiceType').value;
+  if (!amount || amount <= 0) return showToast(tr('Enter amount', 'ادخل المبلغ'), 'error');
+  try {
+    let desc = document.getElementById('invDescription').value;
+    if (serviceType === 'كشف') {
+      const dept = document.getElementById('invDept').value;
+      const doctor = document.getElementById('invDoctor').value;
+      const parts = [dept, doctor, desc].filter(x => x);
+      desc = parts.join(' - ');
+      await API.put('/api/patients/' + id, { department: dept });
+    }
+    await API.post('/api/invoices', {
+      patient_id: id, patient_name: name,
+      total: amount,
+      description: desc,
+      service_type: serviceType,
+      payment_method: document.getElementById('invPayMethod').value
+    });
+    document.getElementById('newInvoiceModal').style.display = 'none';
+    showToast(tr('Invoice created!', 'تم إنشاء الفاتورة!'));
+    await navigateTo(1);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
 // ===== APPOINTMENTS =====
@@ -830,17 +949,25 @@ async function renderDoctor(el) {
                 <option>ACTH</option>
                 <option>C-Peptide</option>
                 <option>Anti-Mullerian Hormone (AMH)</option>
+                <option>Aldosterone / Renin</option>
+                <option>DHEA-S (Dehydroepiandrosterone Sulfate)</option>
+                <option>17-OH Progesterone</option>
+                <option>Calcitonin</option>
               </optgroup>
               <optgroup label="${tr('Immunology & Serology', 'المناعة والأمصال')}">
                 <option>CRP (C-Reactive Protein - Qualitative/Quantitative)</option>
                 <option>Rheumatoid Factor (RF)</option>
+                <option>Anti-CCP (Anti-Cyclic Citrullinated Peptide)</option>
                 <option>ANA (Anti-Nuclear Antibody) / Anti-dsDNA</option>
+                <option>ANCA (Anti-Neutrophil Cytoplasmic Antibody)</option>
+                <option>Anti-Scl-70 / Anti-Centromere</option>
                 <option>ASO Titer</option>
                 <option>Hepatitis Profile (HBsAg, HBsAb, HCV Ab, HAV IgM/IgG)</option>
                 <option>HIV 1 & 2 Abs/Ag</option>
                 <option>VDRL / RPR (Syphilis)</option>
                 <option>Widal Test (Typhoid)</option>
                 <option>Brucella (Abortus/Melitensis)</option>
+                <option>Dengue NS1 Ag / IgM / IgG</option>
                 <option>Toxoplasmosis (IgG/IgM)</option>
                 <option>Rubella (IgG/IgM)</option>
                 <option>Cytomegalovirus CMV (IgG/IgM)</option>
@@ -849,6 +976,7 @@ async function renderDoctor(el) {
                 <option>Celiac Disease Panel (Anti-tTG, Anti-Endomysial)</option>
                 <option>Food Allergy Panel (IgE)</option>
                 <option>Inhalant Allergy Panel (IgE)</option>
+                <option>Flow Cytometry (Immunophenotyping / CD4 Count)</option>
               </optgroup>
               <optgroup label="${tr('Microbiology & Parasitology', 'الأحياء الدقيقة والطفيليات')}">
                 <option>Urine Analysis (Routine & Microscopic)</option>
@@ -866,6 +994,12 @@ async function renderDoctor(el) {
                 <option>Urethral Swab Culture</option>
                 <option>Fungal Culture (Skin/Nail/Hair)</option>
                 <option>Malaria Film</option>
+                <option>QuantiFERON-TB Gold / TB Spot</option>
+                <option>Chlamydia trachomatis (PCR/Ag)</option>
+                <option>Neisseria Gonorrhoeae (PCR/Culture)</option>
+                <option>CSF Analysis (Cell Count, Protein, Glucose)</option>
+                <option>Synovial Fluid Analysis</option>
+                <option>Semen Analysis (Spermogram)</option>
               </optgroup>
               <optgroup label="${tr('Tumor Markers', 'دلالات الأورام')}">
                 <option>PSA (Prostate Specific Antigen - Total/Free)</option>
@@ -890,6 +1024,63 @@ async function renderDoctor(el) {
                 <option>Biopsy Specimen Examination</option>
                 <option>FNAC (Fine Needle Aspiration Cytology)</option>
                 <option>Fluid Cytology (Pleural, Ascitic, CSF)</option>
+              </optgroup>
+              <optgroup label="${tr('Blood Bank / Transfusion', 'بنك الدم / نقل الدم')}">
+                <option>Blood Group (ABO) & Rh Typing</option>
+                <option>Crossmatch (Major & Minor)</option>
+                <option>Direct Coombs Test (DAT)</option>
+                <option>Indirect Coombs Test (IAT)</option>
+                <option>Antibody Screening Panel</option>
+                <option>Cold Agglutinins</option>
+              </optgroup>
+              <optgroup label="${tr('Blood Gas & Electrolytes', 'غازات الدم والشوارد')}">
+                <option>Arterial Blood Gas (ABG)</option>
+                <option>Venous Blood Gas (VBG)</option>
+                <option>Lactate (Lactic Acid)</option>
+                <option>Ionized Calcium</option>
+                <option>Methemoglobin / Carboxyhemoglobin</option>
+              </optgroup>
+              <optgroup label="${tr('Therapeutic Drug Monitoring', 'مراقبة مستوى الأدوية')}">
+                <option>Digoxin Level</option>
+                <option>Phenytoin (Dilantin) Level</option>
+                <option>Valproic Acid Level</option>
+                <option>Carbamazepine Level</option>
+                <option>Lithium Level</option>
+                <option>Vancomycin Level (Trough/Peak)</option>
+                <option>Gentamicin / Amikacin Level</option>
+                <option>Theophylline Level</option>
+                <option>Methotrexate Level</option>
+                <option>Tacrolimus / Cyclosporine Level</option>
+              </optgroup>
+              <optgroup label="${tr('Special Chemistry', 'كيمياء متخصصة')}">
+                <option>Protein Electrophoresis (SPEP)</option>
+                <option>Immunoglobulins (IgA, IgG, IgM, IgE)</option>
+                <option>Complement C3 / C4</option>
+                <option>Ammonia Level</option>
+                <option>Homocysteine</option>
+                <option>Ceruloplasmin / Copper</option>
+                <option>Lactate Dehydrogenase (LDH)</option>
+                <option>Haptoglobin</option>
+                <option>Procalcitonin (PCT)</option>
+                <option>BNP / NT-proBNP</option>
+                <option>Fibrinogen</option>
+                <option>Anti-Xa (Heparin) Assay</option>
+                <option>Cystatin C</option>
+                <option>Microalbumin (Urine)</option>
+                <option>24hr Urine Protein / Creatinine Clearance</option>
+                <option>Serum Free Light Chains (Kappa/Lambda)</option>
+              </optgroup>
+              <optgroup label="${tr('Toxicology & Trace Elements', 'السموم والعناصر الدقيقة')}">
+                <option>Myoglobin</option>
+                <option>Vitamin A (Retinol)</option>
+                <option>Zinc Level</option>
+                <option>Selenium Level</option>
+                <option>Lead Level (Blood)</option>
+                <option>Mercury Level (Blood)</option>
+                <option>Urine Drug Screen (UDS)</option>
+                <option>Serum Ethanol (Alcohol) Level</option>
+                <option>Acetaminophen (Paracetamol) Level</option>
+                <option>Salicylate (Aspirin) Level</option>
               </optgroup>
               <optgroup label="${tr('Other', 'أخرى')}">
                 <option>${tr('Other Specific Test (Specify in details)', 'فحص آخر (حدد في التفاصيل)')}</option>
@@ -1079,7 +1270,7 @@ async function renderDoctor(el) {
       <div class="card">
         <div class="card-title">📋 ${tr('Medical Records', 'السجلات الطبية')}</div>
         <input class="search-filter" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'drTable')">
-        <div id="drTable">${makeTable([tr('Patient', 'المريض'), tr('Diagnosis', 'التشخيص'), tr('Symptoms', 'الأعراض'), tr('Date', 'التاريخ')], records.map(r => ({ cells: [r.patient_name || '', r.diagnosis, r.symptoms, r.visit_date?.split('T')[0] || ''] })))}</div>
+        <div id="drTable">${makeTable([tr('Patient', 'المريض'), tr('Diagnosis', 'التشخيص'), tr('Symptoms', 'الأعراض'), tr('Date/Time', 'التاريخ/الوقت')], records.map(r => ({ cells: [r.patient_name || '', r.diagnosis, r.symptoms, r.visit_date ? new Date(r.visit_date).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : ''] })))}</div>
       </div>
     </div>`;
 }
@@ -1091,11 +1282,12 @@ window.loadPatientInfo = async () => {
     await API.put(`/api/patients/${pid}`, { status: 'With Doctor' });
     const p = (await API.get('/api/patients')).find(x => x.id == pid);
     const vitals = await API.get(`/api/nursing/vitals/${pid}`).catch(() => []);
+    const account = await API.get(`/api/patients/${pid}/account`).catch(() => null);
     const v = vitals.length > 0 ? vitals[0] : null;
     let vitalsHtml = '';
     if (v) {
       vitalsHtml = `<div style="margin-top:12px;padding:12px;border:1px solid var(--border-color,#e5e7eb);border-radius:10px;background:var(--card-bg,#fff)">
-        <div style="font-weight:600;margin-bottom:8px;font-size:13px">🌡️ ${tr('Vitals from Nursing', 'العلامات الحيوية من التمريض')}</div>
+        <div style="font-weight:600;margin-bottom:8px;font-size:13px">🌡️ ${tr('Vitals from Nursing', 'العلامات الحيوية من التمريض')} <span style="font-weight:400;font-size:11px;color:var(--text-dim)">${v.created_at ? new Date(v.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span></div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:12px">
           <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">🩸 ${tr('BP', 'الضغط')}<br><strong>${v.bp || '-'}</strong></div>
           <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">🌡️ ${tr('Temp', 'حرارة')}<br><strong>${v.temp ? v.temp + '°' : '-'}</strong></div>
@@ -1113,7 +1305,28 @@ window.loadPatientInfo = async () => {
         ${v.current_medications ? `<div style="margin-top:4px"><span class="badge badge-info">💊 ${tr('Medications', 'أدوية')}: ${v.current_medications}</span></div>` : ''}
       </div>`;
     }
-    document.getElementById('drPatientInfo').innerHTML = `<div class="flex gap-8 mt-16" style="flex-wrap:wrap;align-items:center"><span class="badge badge-info">📁 ${p.file_number}</span><span class="badge badge-warning">🎂 ${tr('Age', 'العمر')}: ${p.age || '?'}</span><span class="badge badge-success">📞 ${p.phone}</span><span class="badge badge-purple">🆔 ${p.national_id}</span><button class="btn btn-sm btn-primary" onclick="viewPatientResults(${p.id})">📋 ${tr('View Lab & Radiology Results', 'استعراض نتائج الفحوصات والأشعة')}</button><button class="btn btn-sm" onclick="dischargePatient(${p.id})" style="margin-right:auto;background:#dc3545;color:#fff;font-weight:600">🚪 ${tr('Patient Done', 'المريض طلع')}</button></div>${vitalsHtml}<div id="drResultsPanel"></div>`;
+    // Build patient history timeline
+    let historyHtml = '';
+    if (account) {
+      const events = [];
+      (account.records || []).forEach(r => events.push({ type: 'record', icon: '🩺', color: '#6366f1', label: tr('Visit/Diagnosis', 'زيارة/تشخيص'), detail: `${r.diagnosis || '-'}${r.symptoms ? ' | ' + r.symptoms : ''}${r.doctor_name ? ' | 👨‍⚕️ ' + r.doctor_name : ''}`, date: r.visit_date || r.created_at }));
+      (account.labOrders || []).forEach(o => events.push({ type: 'lab', icon: '🔬', color: '#f59e0b', label: tr('Lab', 'مختبر'), detail: `${o.order_type} ${o.status === 'Done' ? '✅' : '⏳'} ${o.results ? '| ' + o.results.substring(0, 80) : ''}`, date: o.created_at }));
+      (account.radOrders || []).forEach(o => events.push({ type: 'rad', icon: '📡', color: '#0ea5e9', label: tr('Radiology', 'أشعة'), detail: `${o.order_type} ${o.status === 'Done' ? '✅' : '⏳'}`, date: o.created_at }));
+      (account.prescriptions || []).forEach(rx => events.push({ type: 'rx', icon: '💊', color: '#10b981', label: tr('Prescription', 'وصفة'), detail: `${rx.drug_name || rx.medication || '-'} | ${rx.dosage || ''} ${rx.frequency || ''}`, date: rx.created_at }));
+      (account.invoices || []).forEach(inv => events.push({ type: 'inv', icon: '🧾', color: '#8b5cf6', label: tr('Invoice', 'فاتورة'), detail: `${inv.description || inv.service_type || '-'} | ${inv.total || 0} ${tr('SAR', 'ر.س')} ${inv.paid ? '✅' : '⏳'}`, date: inv.created_at }));
+      events.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+      if (events.length > 0) {
+        historyHtml = `<div style="margin-top:12px;padding:12px;border:1px solid var(--border-color,#e5e7eb);border-radius:10px;background:var(--card-bg,#fff);max-height:350px;overflow-y:auto">
+          <div style="font-weight:600;margin-bottom:10px;font-size:14px">📜 ${tr('Patient Full History', 'السجل الكامل للمريض')} (${events.length})</div>
+          ${events.map(e => `<div style="display:flex;gap:10px;padding:8px;margin:4px 0;border-radius:8px;border-right:4px solid ${e.color};background:var(--hover,#f8f9fa);font-size:12px;align-items:flex-start">
+            <span style="font-size:18px;min-width:24px">${e.icon}</span>
+            <div style="flex:1"><strong style="color:${e.color}">${e.label}</strong><div style="margin-top:2px;color:var(--text)">${e.detail}</div></div>
+            <span style="color:var(--text-dim);font-size:11px;white-space:nowrap">${e.date ? new Date(e.date).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : '-'}</span>
+          </div>`).join('')}
+        </div>`;
+      }
+    }
+    document.getElementById('drPatientInfo').innerHTML = `<div class="flex gap-8 mt-16" style="flex-wrap:wrap;align-items:center"><span class="badge badge-info">📁 ${p.file_number}</span><span class="badge badge-warning">🎂 ${tr('Age', 'العمر')}: ${p.age || '?'}</span><span class="badge badge-success">📞 ${p.phone}</span><span class="badge badge-purple">🆔 ${p.national_id}</span><span class="badge" style="background:#0ea5e9;color:#fff">📅 ${tr('Visit', 'الزيارة')}: ${new Date().toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</span>${p.created_at ? `<span class="badge" style="background:#64748b;color:#fff">📋 ${tr('Registered', 'التسجيل')}: ${new Date(p.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</span>` : ''}<button class="btn btn-sm btn-primary" onclick="viewPatientResults(${p.id})">📋 ${tr('View Lab & Radiology Results', 'استعراض نتائج الفحوصات والأشعة')}</button><button class="btn btn-sm" onclick="dischargePatient(${p.id})" style="margin-right:auto;background:#dc3545;color:#fff;font-weight:600">🚪 ${tr('Patient Done', 'المريض طلع')}</button></div>${vitalsHtml}${historyHtml}<div id="drResultsPanel"></div>`;
   } catch (e) { }
 };
 window.dischargePatient = async (pid) => {
@@ -1135,7 +1348,7 @@ window.viewPatientResults = async (pid) => {
       html += `<div class="mb-16"><h4 style="color:var(--accent);margin:0 0 8px">🔬 ${tr('Lab Results', 'نتائج المختبر')} (${data.labOrders.length})</h4>`;
       data.labOrders.forEach(o => {
         html += `<div style="padding:10px;margin:6px 0;background:var(--hover);border-radius:8px;border-right:4px solid ${o.status === 'Done' ? '#4ade80' : '#f59e0b'}">
-                  <div class="flex gap-8" style="flex-wrap:wrap;align-items:center"><strong>${o.order_type}</strong> ${statusBadge(o.status)} <span style="color:var(--text-dim);font-size:12px">${o.created_at?.split('T')[0] || ''}</span></div>
+                  <div class="flex gap-8" style="flex-wrap:wrap;align-items:center"><strong>${o.order_type}</strong> ${statusBadge(o.status)} <span style="color:var(--text-dim);font-size:12px">${o.created_at ? new Date(o.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span></div>
                   ${o.results ? `<div style="margin-top:8px;padding:8px;background:var(--bg);border-radius:6px;font-size:13px;white-space:pre-wrap">${o.results}</div>` : `<div style="margin-top:4px;color:var(--text-dim);font-size:12px">${tr('No results yet', 'لا توجد نتائج بعد')}</div>`}
                 </div>`;
       });
@@ -1148,7 +1361,7 @@ window.viewPatientResults = async (pid) => {
       html += `<div class="mb-16"><h4 style="color:var(--accent);margin:0 0 8px">📡 ${tr('Radiology Results', 'نتائج الأشعة')} (${data.radOrders.length})</h4>`;
       data.radOrders.forEach(o => {
         html += `<div style="padding:10px;margin:6px 0;background:var(--hover);border-radius:8px;border-right:4px solid ${o.status === 'Done' ? '#4ade80' : '#f59e0b'}">
-                  <div class="flex gap-8" style="flex-wrap:wrap;align-items:center"><strong>${o.order_type}</strong> ${statusBadge(o.status)} <span style="color:var(--text-dim);font-size:12px">${o.created_at?.split('T')[0] || ''}</span></div>
+                  <div class="flex gap-8" style="flex-wrap:wrap;align-items:center"><strong>${o.order_type}</strong> ${statusBadge(o.status)} <span style="color:var(--text-dim);font-size:12px">${o.created_at ? new Date(o.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span></div>
                   ${o.results ? `<div style="margin-top:8px">${renderRadResults(o.results)}</div>` : `<div style="margin-top:4px;color:var(--text-dim);font-size:12px">${tr('No results yet', 'لا توجد نتائج بعد')}</div>`}
                 </div>`;
       });
@@ -1289,6 +1502,172 @@ window.billDrProcedures = async () => {
 };
 
 // ===== LAB =====
+// ===== LAB NORMAL RANGES (Gender-Specific: m=male, f=female) =====
+const LAB_NORMAL_RANGES = {
+  'CBC (Complete Blood Count)': {
+    m: 'WBC: 4.5-11.0 ×10³/µL | RBC: 4.5-5.5 ×10⁶/µL | Hgb: 13.5-17.5 g/dL | Hct: 38-50% | Platelets: 150-400 ×10³/µL | MCV: 80-100 fL | MCH: 27-33 pg',
+    f: 'WBC: 4.5-11.0 ×10³/µL | RBC: 4.0-5.0 ×10⁶/µL | Hgb: 12.0-16.0 g/dL | Hct: 36-44% | Platelets: 150-400 ×10³/µL | MCV: 80-100 fL | MCH: 27-33 pg'
+  },
+  'ESR (Erythrocyte Sedimentation Rate)': { m: '0-15 mm/hr', f: '0-20 mm/hr' },
+  'Coagulation Profile (PT, PTT, INR)': 'PT: 11-13.5 sec | INR: 0.8-1.2 | PTT (aPTT): 25-35 sec',
+  'Blood Film / Reticulocyte Count': 'Reticulocyte: 0.5-2.5%',
+  'Hemoglobin Electrophoresis': 'HbA: 95-98% | HbA2: 1.5-3.5% | HbF: <2%',
+  'G6PD Deficiency Test': 'Normal: 4.6-13.5 U/g Hb',
+  'Sickle Cell Test': 'Negative (Normal)',
+  'Bleeding Time / Clotting Time': 'Bleeding Time: 2-7 min | Clotting Time: 4-10 min',
+  'D-Dimer': '<0.5 µg/mL (or <500 ng/mL)',
+  'Comprehensive Metabolic Panel (CMP)': 'Glucose: 70-100 mg/dL | BUN: 7-20 mg/dL | Creatinine: 0.6-1.2 mg/dL | Na: 136-145 mEq/L | K: 3.5-5.0 mEq/L | Cl: 98-106 mEq/L | CO2: 23-29 mEq/L | Ca: 8.5-10.5 mg/dL | Total Protein: 6.0-8.3 g/dL | Albumin: 3.5-5.5 g/dL | Bilirubin(T): 0.1-1.2 mg/dL | ALP: 44-147 IU/L | ALT: 7-56 IU/L | AST: 10-40 IU/L',
+  'Basic Metabolic Panel (BMP)': 'Glucose: 70-100 mg/dL | BUN: 7-20 mg/dL | Creatinine: 0.6-1.2 mg/dL | Na: 136-145 | K: 3.5-5.0 | Cl: 98-106 | CO2: 23-29 mEq/L | Ca: 8.5-10.5 mg/dL',
+  'Fasting Blood Sugar (FBS)': 'Normal: 70-100 mg/dL (3.9-5.6 mmol/L) | Pre-diabetes: 100-125 | Diabetes: ≥126',
+  'Random Blood Sugar (RBS)': 'Normal: <140 mg/dL (7.8 mmol/L) | Diabetes: ≥200',
+  'Oral Glucose Tolerance Test (OGTT)': 'Fasting: <100 | 1hr: <180 | 2hr: <140 mg/dL | Diabetes 2hr: ≥200',
+  'HbA1c (Glycated Hemoglobin)': 'Normal: <5.7% | Pre-diabetes: 5.7-6.4% | Diabetes: ≥6.5%',
+  'Lipid Profile (Total Cholesterol, HDL, LDL, Triglycerides)': { m: 'Total Cholesterol: <200 | LDL: <100 | HDL: >40 mg/dL | Triglycerides: <150 | VLDL: 5-40', f: 'Total Cholesterol: <200 | LDL: <100 | HDL: >50 mg/dL | Triglycerides: <150 | VLDL: 5-40' },
+  'Renal Profile (Urea, Creatinine, Electrolytes: Na, K, Cl)': { m: 'BUN: 7-20 | Creatinine: 0.7-1.3 mg/dL | eGFR: >90 | Na: 136-145 | K: 3.5-5.0 | Cl: 98-106', f: 'BUN: 7-20 | Creatinine: 0.6-1.1 mg/dL | eGFR: >90 | Na: 136-145 | K: 3.5-5.0 | Cl: 98-106' },
+  'Liver Function Test (LFT: ALT, AST, ALP, Total/Direct Bilirubin, Albumin, Total Protein)': { m: 'ALT: 7-56 | AST: 10-40 | ALP: 44-147 | GGT: 8-61 IU/L | Bilirubin(T): 0.1-1.2 | Direct: 0-0.3 | Albumin: 3.5-5.5 | Protein: 6.0-8.3', f: 'ALT: 7-45 | AST: 10-35 | ALP: 44-147 | GGT: 5-36 IU/L | Bilirubin(T): 0.1-1.2 | Direct: 0-0.3 | Albumin: 3.5-5.5 | Protein: 6.0-8.3' },
+  'Cardiac Enzymes (Troponin T/I, CK-MB, CK-Total, LDH)': { m: 'Troponin I: <0.04 ng/mL | CK-Total: 39-308 IU/L | CK-MB: <25 | LDH: 140-280 | BNP: <100 pg/mL', f: 'Troponin I: <0.04 ng/mL | CK-Total: 26-192 IU/L | CK-MB: <25 | LDH: 140-280 | BNP: <100 pg/mL' },
+  'Uric Acid': { m: '3.4-7.0 mg/dL', f: '2.4-6.0 mg/dL' },
+  'Calcium / Phosphorus / Magnesium': 'Ca: 8.5-10.5 mg/dL | Ionized Ca: 4.5-5.6 mg/dL | Phosphorus: 2.5-4.5 mg/dL | Magnesium: 1.7-2.2 mg/dL',
+  'Iron Profile (Serum Iron, TIBC, Ferritin, Transferrin)': { m: 'Serum Iron: 65-175 µg/dL | TIBC: 250-370 | Ferritin: 12-300 ng/mL | Transferrin Sat: 20-50%', f: 'Serum Iron: 50-170 µg/dL | TIBC: 250-370 | Ferritin: 12-150 ng/mL | Transferrin Sat: 20-50%' },
+  'Vitamin D3 (25-OH Cholecalciferol)': 'Deficient: <20 ng/mL | Insufficient: 20-29 | Sufficient: 30-100 | Toxic: >100 ng/mL',
+  'Vitamin B12 / Folate': 'B12: 200-900 pg/mL | Folate: 2.7-17.0 ng/mL',
+  'Amylase / Lipase': 'Amylase: 28-100 U/L | Lipase: 0-160 U/L',
+  'Serum Osmolality': '275-295 mOsm/kg',
+  'Thyroid Profile (TSH, Free T3, Free T4, Total T3, Total T4)': 'TSH: 0.27-4.2 mIU/L | Free T4: 0.93-1.7 ng/dL | Free T3: 2.0-4.4 pg/mL | Total T4: 5.1-14.1 µg/dL | Total T3: 80-200 ng/dL',
+  'Fertility Hormones (FSH, LH, Prolactin, Testosterone (Free/Total), Estradiol E2, Progesterone)': { m: 'FSH: 1.5-12.4 | LH: 1.7-8.6 mIU/mL | Prolactin: 4-15 ng/mL | Testosterone: 270-1070 ng/dL | Free Testosterone: 8.7-25.1 pg/mL | Estradiol: 10-40 pg/mL', f: 'FSH(follicular): 3.5-12.5 | LH(follicular): 2.4-12.6 mIU/mL | Prolactin: 4-23 ng/mL | Testosterone: 15-70 ng/dL | Estradiol(follicular): 12.5-166 pg/mL | Progesterone(luteal): 1.8-24 ng/mL' },
+  'Beta-hCG (Pregnancy Test - Blood Qualitative/Quantitative)': { m: 'Normal: <2 mIU/mL', f: 'Non-pregnant: <5 mIU/mL | Pregnant: >25 mIU/mL' },
+  'Cortisol (AM/PM)': 'AM (6-8am): 6.2-19.4 µg/dL | PM (4pm): 2.3-11.9 µg/dL',
+  'Insulin (Fasting/Random)': 'Fasting: 2.6-24.9 µIU/mL',
+  'Parathyroid Hormone (PTH)': '15-65 pg/mL',
+  'Growth Hormone (GH)': { m: '0-5 ng/mL', f: '0-10 ng/mL' },
+  'ACTH': 'AM: 10-60 pg/mL',
+  'C-Peptide': '0.5-2.0 ng/mL (fasting)',
+  'Anti-Mullerian Hormone (AMH)': { m: '1.4-14.0 ng/mL', f: 'Reproductive: 1.0-10.0 ng/mL | Low reserve: <1.0 | High (PCOS): >10' },
+  'CRP (C-Reactive Protein - Qualitative/Quantitative)': 'Normal: <3 mg/L | Mild inflammation: 3-10 | Moderate: 10-100 | Severe: >100',
+  'Rheumatoid Factor (RF)': 'Normal: <14 IU/mL',
+  'ANA (Anti-Nuclear Antibody) / Anti-dsDNA': 'ANA: Negative (<1:40) | Anti-dsDNA: <30 IU/mL',
+  'ASO Titer': 'Adults: <200 IU/mL | Children: <100 IU/mL',
+  'Hepatitis Profile (HBsAg, HBsAb, HCV Ab, HAV IgM/IgG)': 'HBsAg: Negative | HBsAb: >10 mIU/mL (immune) | HCV Ab: Negative | HAV IgM: Negative',
+  'HIV 1 & 2 Abs/Ag': 'Negative (Non-reactive)',
+  'VDRL / RPR (Syphilis)': 'Non-reactive (Negative)',
+  'Widal Test (Typhoid)': 'O & H Titers: <1:80 (Normal)',
+  'Brucella (Abortus/Melitensis)': 'Titer: <1:80 (Negative)',
+  'Toxoplasmosis (IgG/IgM)': 'IgG: <1.0 IU/mL (Negative) | IgM: Negative',
+  'Rubella (IgG/IgM)': 'IgG: >10 IU/mL (Immune) | IgM: Negative',
+  'Cytomegalovirus CMV (IgG/IgM)': 'IgG: Negative (<6 AU/mL) | IgM: Negative',
+  'Herpes Simplex Virus HSV 1/2 (IgG/IgM)': 'IgG: <0.9 (Negative) | IgM: Negative',
+  'EBV (Epstein-Barr Virus)': 'VCA IgM: Negative | VCA IgG: Negative | EBNA: Negative',
+  'Celiac Disease Panel (Anti-tTG, Anti-Endomysial)': 'Anti-tTG IgA: <4 U/mL (Negative) | Anti-Endomysial: Negative',
+  'Food Allergy Panel (IgE)': 'Total IgE: <100 IU/mL (Adults) | Specific IgE: <0.35 kU/L per allergen',
+  'Inhalant Allergy Panel (IgE)': 'Total IgE: <100 IU/mL | Specific IgE: Class 0 (<0.35 kU/L)',
+  'Urine Analysis (Routine & Microscopic)': 'pH: 4.6-8.0 | Specific Gravity: 1.005-1.030 | Protein: Negative | Glucose: Negative | Blood: Negative | WBC: 0-5/HPF | RBC: 0-2/HPF | Bacteria: None',
+  'Urine Culture & Sensitivity': 'Negative: <10,000 CFU/mL | Positive: ≥100,000 CFU/mL',
+  'Stool Analysis (Routine & Microscopic)': 'Color: Brown | Consistency: Formed | Occult Blood: Negative | WBC: None | RBC: None | Parasites: None',
+  'Stool Culture': 'No pathogenic organisms',
+  'Stool Occult Blood': 'Negative',
+  'H. Pylori (Ag in Stool / Ab in Blood)': 'Stool Ag: Negative | Serum Ab: Negative',
+  'Throat Swab Culture': 'Normal Flora | No Group A Strep',
+  'Sputum Culture & AFB (Tuberculosis)': 'Culture: Normal flora | AFB Smear: Negative',
+  'Wound/Pus Swab Culture': 'No pathogenic growth',
+  'Blood Culture (Aerobic/Anaerobic)': 'No growth after 5 days',
+  'PSA (Prostate Specific Antigen - Total/Free)': { m: 'Total PSA: <4.0 ng/mL | Free/Total ratio: >25%', f: 'N/A (خاص بالذكور)' },
+  'CEA (Carcinoembryonic Antigen)': 'Non-smoker: <2.5 ng/mL | Smoker: <5.0 ng/mL',
+  'CA 125 (Ovarian)': '<35 U/mL',
+  'CA 15-3 (Breast)': '<30 U/mL',
+  'CA 19-9 (Pancreatic/GI)': '<37 U/mL',
+  'AFP (Alpha-Fetoprotein)': '<10 ng/mL (Adults)',
+  'Beta-2 Microglobulin': '0.8-2.2 mg/L',
+  'Thyroglobulin': '1.5-38.5 ng/mL (pre-thyroidectomy)',
+  'COVID-19 PCR': 'Negative (Not Detected)',
+  'HCV RNA PCR (Quantitative)': 'Not Detected (<15 IU/mL)',
+  'HBV DNA PCR (Quantitative)': 'Not Detected (<10 IU/mL)',
+  'HIV RNA PCR (Quantitative)': 'Not Detected (<20 copies/mL)',
+  'Respiratory Pathogen Panel (PCR)': 'Negative for all targets',
+  'HPV DNA Typing': 'Negative (No high-risk HPV detected)',
+  'Pap Smear': 'NILM (Negative for Intraepithelial Lesion or Malignancy)',
+  'Malaria Film': 'No parasites seen',
+  // Blood Bank
+  'Blood Group (ABO) & Rh Typing': 'A/B/AB/O | Rh+ or Rh-',
+  'Crossmatch (Major & Minor)': 'Compatible (No agglutination)',
+  'Direct Coombs Test (DAT)': 'Negative',
+  'Indirect Coombs Test (IAT)': 'Negative',
+  'Antibody Screening Panel': 'Negative (No clinically significant antibodies)',
+  'Cold Agglutinins': 'Titer: <1:64',
+  // Blood Gas
+  'Arterial Blood Gas (ABG)': 'pH: 7.35-7.45 | pCO2: 35-45 mmHg | pO2: 80-100 mmHg | HCO3: 22-26 mEq/L | BE: -2 to +2 | O2 Sat: 95-100%',
+  'Venous Blood Gas (VBG)': 'pH: 7.31-7.41 | pCO2: 41-51 mmHg | HCO3: 22-26 mEq/L',
+  'Lactate (Lactic Acid)': 'Venous: 0.5-2.2 mmol/L | Arterial: 0.5-1.6 mmol/L | Critical: >4 mmol/L',
+  'Ionized Calcium': '4.5-5.6 mg/dL (1.12-1.40 mmol/L)',
+  'Methemoglobin / Carboxyhemoglobin': 'MetHb: <1.5% | COHb: Non-smoker: <2%, Smoker: <10%',
+  // TDM
+  'Digoxin Level': 'Therapeutic: 0.8-2.0 ng/mL | Toxic: >2.0',
+  'Phenytoin (Dilantin) Level': 'Therapeutic: 10-20 µg/mL | Toxic: >20',
+  'Valproic Acid Level': 'Therapeutic: 50-100 µg/mL | Toxic: >100',
+  'Carbamazepine Level': 'Therapeutic: 4-12 µg/mL | Toxic: >12',
+  'Lithium Level': 'Therapeutic: 0.6-1.2 mEq/L | Toxic: >1.5',
+  'Vancomycin Level (Trough/Peak)': 'Trough: 10-20 µg/mL | Peak: 20-40 µg/mL',
+  'Gentamicin / Amikacin Level': 'Gentamicin - Trough: <2 | Peak: 5-10 µg/mL | Amikacin - Trough: <10 | Peak: 20-30',
+  'Theophylline Level': 'Therapeutic: 10-20 µg/mL | Toxic: >20',
+  'Methotrexate Level': '24hr: <10 µmol/L | 48hr: <1 | 72hr: <0.1',
+  'Tacrolimus / Cyclosporine Level': 'Tacrolimus: 5-20 ng/mL | Cyclosporine: 100-300 ng/mL (varies by transplant)',
+  // Special Chemistry
+  'Protein Electrophoresis (SPEP)': 'Albumin: 3.5-5.5 g/dL | Alpha-1: 0.1-0.3 | Alpha-2: 0.6-1.0 | Beta: 0.7-1.2 | Gamma: 0.7-1.6 g/dL',
+  'Immunoglobulins (IgA, IgG, IgM, IgE)': 'IgG: 700-1600 mg/dL | IgA: 70-400 | IgM: 40-230 | IgE: <100 IU/mL',
+  'Complement C3 / C4': 'C3: 90-180 mg/dL | C4: 10-40 mg/dL',
+  'Ammonia Level': '15-45 µg/dL (11-32 µmol/L)',
+  'Homocysteine': '5-15 µmol/L | High risk: >15',
+  'Ceruloplasmin / Copper': 'Ceruloplasmin: 20-35 mg/dL | Serum Copper: 70-155 µg/dL | Wilson Disease: Ceruloplasmin <20',
+  'Lactate Dehydrogenase (LDH)': '140-280 IU/L',
+  'Haptoglobin': { m: '30-200 mg/dL', f: '30-200 mg/dL' },
+  'Procalcitonin (PCT)': 'Normal: <0.1 ng/mL | Bacterial unlikely: <0.25 | Likely: 0.25-0.5 | Severe sepsis: >2.0',
+  'BNP / NT-proBNP': 'BNP: <100 pg/mL (no HF) | NT-proBNP: <300 pg/mL (<50y), <900 (50-75y), <1800 (>75y)',
+  'Fibrinogen': '200-400 mg/dL',
+  'Anti-Xa (Heparin) Assay': 'LMWH prophylaxis: 0.2-0.5 IU/mL | Treatment: 0.5-1.0 | UFH: 0.3-0.7',
+  'Cystatin C': '0.6-1.0 mg/L',
+  'Microalbumin (Urine)': 'Normal: <30 mg/day | Microalbuminuria: 30-300 | Macroalbuminuria: >300',
+  'Serum Free Light Chains (Kappa/Lambda)': 'Kappa: 3.3-19.4 mg/L | Lambda: 5.7-26.3 | Ratio: 0.26-1.65',
+  '24hr Urine Protein / Creatinine Clearance': { m: 'Protein: <150 mg/24hr | Creatinine Clearance: 97-137 mL/min', f: 'Protein: <150 mg/24hr | Creatinine Clearance: 88-128 mL/min' },
+  // Immunology additions
+  'Anti-CCP (Anti-Cyclic Citrullinated Peptide)': 'Negative: <20 U/mL | Positive: ≥20',
+  'ANCA (Anti-Neutrophil Cytoplasmic Antibody)': 'Negative (<1:20) | c-ANCA & p-ANCA',
+  'Anti-Scl-70 / Anti-Centromere': 'Negative (<1.0 U) | Anti-Scl-70: Scleroderma | Anti-Centromere: CREST',
+  'Dengue NS1 Ag / IgM / IgG': 'NS1 Ag: Negative | IgM: Negative | IgG: Negative',
+  'Flow Cytometry (Immunophenotyping / CD4 Count)': 'CD4: 500-1500 cells/µL | CD4/CD8 ratio: 1.0-3.0',
+  // Microbiology additions
+  'QuantiFERON-TB Gold / TB Spot': 'Negative (<0.35 IU/mL) | Borderline: 0.35-0.50 | Positive: ≥0.35',
+  'Chlamydia trachomatis (PCR/Ag)': 'Not Detected (Negative)',
+  'Neisseria Gonorrhoeae (PCR/Culture)': 'Not Detected (Negative)',
+  'CSF Analysis (Cell Count, Protein, Glucose)': 'WBC: 0-5/µL | RBC: 0 | Protein: 15-45 mg/dL | Glucose: 40-70 mg/dL | Opening pressure: 6-20 cmH2O',
+  'Synovial Fluid Analysis': 'Color: Clear/Yellow | WBC: <200/µL | Crystals: None | Culture: No growth',
+  'Semen Analysis (Spermogram)': { m: 'Volume: 1.5-5 mL | Count: ≥15 million/mL | Total: ≥39 million | Motility: ≥40% | Morphology: ≥4% normal | pH: 7.2-8.0', f: 'N/A' },
+  // Hormones additions
+  'Aldosterone / Renin': 'Aldosterone (upright): 7-30 ng/dL | Renin (upright): 0.5-4.0 ng/mL/hr | Ratio: <30',
+  'DHEA-S (Dehydroepiandrosterone Sulfate)': { m: '80-560 µg/dL (varies by age)', f: '35-430 µg/dL (varies by age)' },
+  'Calcitonin': { m: '<8.4 pg/mL', f: '<5.0 pg/mL' },
+  '17-OH Progesterone': { m: '0.5-2.1 ng/mL', f: 'Follicular: 0.2-1.0 | Luteal: 1.0-4.0 ng/mL' },
+  // Toxicology & Trace Elements
+  'Myoglobin': { m: '28-72 ng/mL', f: '25-58 ng/mL' },
+  'Vitamin A (Retinol)': '30-65 µg/dL (1.05-2.27 µmol/L)',
+  'Zinc Level': '60-120 µg/dL (9.2-18.4 µmol/L)',
+  'Selenium Level': '70-150 µg/L',
+  'Lead Level (Blood)': 'Normal: <5 µg/dL | Action: ≥5 | Toxic: >70',
+  'Mercury Level (Blood)': 'Normal: <10 µg/L | At risk: 10-50 | Toxic: >50',
+  'Urine Drug Screen (UDS)': 'Negative for all classes (Amphetamines, Barbiturates, Benzodiazepines, Cannabinoids, Cocaine, Opiates)',
+  'Serum Ethanol (Alcohol) Level': 'Negative: 0 | Legal limit: <80 mg/dL | Lethal: >400 mg/dL',
+  'Acetaminophen (Paracetamol) Level': 'Therapeutic: 10-30 µg/mL | Toxic (4hr): >150 µg/mL',
+  'Salicylate (Aspirin) Level': 'Therapeutic: 15-30 mg/dL | Toxic: >30 | Lethal: >60'
+};
+window.getLabNormalRange = (testName, gender) => {
+  let entry = LAB_NORMAL_RANGES[testName];
+  if (!entry) { for (const key in LAB_NORMAL_RANGES) { if (testName.includes(key) || key.includes(testName)) { entry = LAB_NORMAL_RANGES[key]; break; } } }
+  if (!entry) return '';
+  if (typeof entry === 'string') return entry;
+  const g = (gender || '').trim();
+  if (g === 'ذكر' || g === 'Male' || g === 'male' || g === 'M') return '👨 ' + (entry.m || '');
+  if (g === 'أنثى' || g === 'Female' || g === 'female' || g === 'F') return '👩 ' + (entry.f || '');
+  return '👨 ' + entry.m + '\n👩 ' + entry.f;
+};
+
 async function renderLab(el) {
   const [orders, patients] = await Promise.all([API.get('/api/lab/orders'), API.get('/api/patients')]);
   el.innerHTML = `<div class="page-title">🔬 ${tr('Laboratory', 'المختبر')}</div>
@@ -1346,17 +1725,25 @@ async function renderLab(el) {
               <option>ACTH</option>
               <option>C-Peptide</option>
               <option>Anti-Mullerian Hormone (AMH)</option>
+              <option>Aldosterone / Renin</option>
+              <option>DHEA-S (Dehydroepiandrosterone Sulfate)</option>
+              <option>17-OH Progesterone</option>
+              <option>Calcitonin</option>
             </optgroup>
             <optgroup label="${tr('Immunology & Serology', 'المناعة والأمصال')}">
               <option>CRP (C-Reactive Protein - Qualitative/Quantitative)</option>
               <option>Rheumatoid Factor (RF)</option>
+              <option>Anti-CCP (Anti-Cyclic Citrullinated Peptide)</option>
               <option>ANA (Anti-Nuclear Antibody) / Anti-dsDNA</option>
+              <option>ANCA (Anti-Neutrophil Cytoplasmic Antibody)</option>
+              <option>Anti-Scl-70 / Anti-Centromere</option>
               <option>ASO Titer</option>
               <option>Hepatitis Profile (HBsAg, HBsAb, HCV Ab, HAV IgM/IgG)</option>
               <option>HIV 1 & 2 Abs/Ag</option>
               <option>VDRL / RPR (Syphilis)</option>
               <option>Widal Test (Typhoid)</option>
               <option>Brucella (Abortus/Melitensis)</option>
+              <option>Dengue NS1 Ag / IgM / IgG</option>
               <option>Toxoplasmosis (IgG/IgM)</option>
               <option>Rubella (IgG/IgM)</option>
               <option>Cytomegalovirus CMV (IgG/IgM)</option>
@@ -1365,6 +1752,7 @@ async function renderLab(el) {
               <option>Celiac Disease Panel (Anti-tTG, Anti-Endomysial)</option>
               <option>Food Allergy Panel (IgE)</option>
               <option>Inhalant Allergy Panel (IgE)</option>
+              <option>Flow Cytometry (Immunophenotyping / CD4 Count)</option>
             </optgroup>
             <optgroup label="${tr('Microbiology & Parasitology', 'الأحياء الدقيقة والطفيليات')}">
               <option>Urine Analysis (Routine & Microscopic)</option>
@@ -1382,6 +1770,12 @@ async function renderLab(el) {
               <option>Urethral Swab Culture</option>
               <option>Fungal Culture (Skin/Nail/Hair)</option>
               <option>Malaria Film</option>
+              <option>QuantiFERON-TB Gold / TB Spot</option>
+              <option>Chlamydia trachomatis (PCR/Ag)</option>
+              <option>Neisseria Gonorrhoeae (PCR/Culture)</option>
+              <option>CSF Analysis (Cell Count, Protein, Glucose)</option>
+              <option>Synovial Fluid Analysis</option>
+              <option>Semen Analysis (Spermogram)</option>
             </optgroup>
             <optgroup label="${tr('Tumor Markers', 'دلالات الأورام')}">
               <option>PSA (Prostate Specific Antigen - Total/Free)</option>
@@ -1407,6 +1801,63 @@ async function renderLab(el) {
               <option>FNAC (Fine Needle Aspiration Cytology)</option>
               <option>Fluid Cytology (Pleural, Ascitic, CSF)</option>
             </optgroup>
+            <optgroup label="${tr('Blood Bank / Transfusion', 'بنك الدم / نقل الدم')}">
+              <option>Blood Group (ABO) & Rh Typing</option>
+              <option>Crossmatch (Major & Minor)</option>
+              <option>Direct Coombs Test (DAT)</option>
+              <option>Indirect Coombs Test (IAT)</option>
+              <option>Antibody Screening Panel</option>
+              <option>Cold Agglutinins</option>
+            </optgroup>
+            <optgroup label="${tr('Blood Gas & Electrolytes', 'غازات الدم والشوارد')}">
+              <option>Arterial Blood Gas (ABG)</option>
+              <option>Venous Blood Gas (VBG)</option>
+              <option>Lactate (Lactic Acid)</option>
+              <option>Ionized Calcium</option>
+              <option>Methemoglobin / Carboxyhemoglobin</option>
+            </optgroup>
+            <optgroup label="${tr('Therapeutic Drug Monitoring', 'مراقبة مستوى الأدوية')}">
+              <option>Digoxin Level</option>
+              <option>Phenytoin (Dilantin) Level</option>
+              <option>Valproic Acid Level</option>
+              <option>Carbamazepine Level</option>
+              <option>Lithium Level</option>
+              <option>Vancomycin Level (Trough/Peak)</option>
+              <option>Gentamicin / Amikacin Level</option>
+              <option>Theophylline Level</option>
+              <option>Methotrexate Level</option>
+              <option>Tacrolimus / Cyclosporine Level</option>
+            </optgroup>
+            <optgroup label="${tr('Special Chemistry', 'كيمياء متخصصة')}">
+              <option>Protein Electrophoresis (SPEP)</option>
+              <option>Immunoglobulins (IgA, IgG, IgM, IgE)</option>
+              <option>Complement C3 / C4</option>
+              <option>Ammonia Level</option>
+              <option>Homocysteine</option>
+              <option>Ceruloplasmin / Copper</option>
+              <option>Lactate Dehydrogenase (LDH)</option>
+              <option>Haptoglobin</option>
+              <option>Procalcitonin (PCT)</option>
+              <option>BNP / NT-proBNP</option>
+              <option>Fibrinogen</option>
+              <option>Anti-Xa (Heparin) Assay</option>
+              <option>Cystatin C</option>
+              <option>Microalbumin (Urine)</option>
+              <option>24hr Urine Protein / Creatinine Clearance</option>
+              <option>Serum Free Light Chains (Kappa/Lambda)</option>
+            </optgroup>
+            <optgroup label="${tr('Toxicology & Trace Elements', 'السموم والعناصر الدقيقة')}">
+              <option>Myoglobin</option>
+              <option>Vitamin A (Retinol)</option>
+              <option>Zinc Level</option>
+              <option>Selenium Level</option>
+              <option>Lead Level (Blood)</option>
+              <option>Mercury Level (Blood)</option>
+              <option>Urine Drug Screen (UDS)</option>
+              <option>Serum Ethanol (Alcohol) Level</option>
+              <option>Acetaminophen (Paracetamol) Level</option>
+              <option>Salicylate (Aspirin) Level</option>
+            </optgroup>
             <optgroup label="${tr('Other', 'أخرى')}">
               <option>${tr('Other Specific Test (Specify in details)', 'فحص آخر (حدد في التفاصيل)')}</option>
             </optgroup>
@@ -1425,15 +1876,19 @@ async function renderLab(el) {
           <div class="card-title">📋 ${tr('Lab Orders', 'طلبات المختبر')}</div>
           <input class="search-filter" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'labT')">
           <div id="labT"><div class="table-wrapper"><table class="data-table"><thead><tr>
-            <th>${tr('Barcode', 'الباركود')}</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Type', 'النوع')}</th><th>${tr('Status', 'الحالة')}</th><th>${tr('Date', 'التاريخ')}</th><th>${tr('Report & Results', 'التقرير والنتائج')}</th><th>${tr('Actions', 'إجراءات')}</th>
+            <th>${tr('Barcode', 'الباركود')}</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Type', 'النوع')}</th><th>${tr('Normal Range', 'المعدل الطبيعي')}</th><th>${tr('Status', 'الحالة')}</th><th>${tr('Date', 'التاريخ')}</th><th>${tr('Report & Results', 'التقرير والنتائج')}</th><th>${tr('Actions', 'إجراءات')}</th>
           </tr></thead><tbody>
-          ${orders.length === 0 ? `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-dim)">📭 ${tr('No orders', 'لا توجد طلبات')}</td></tr>` : orders.map(o => `<tr>
-            <td><svg id="labBC${o.id}" class="barcode-svg"></svg><br><button class="btn btn-sm btn-info" onclick="printLabBarcode(${o.id}, '${(o.patient_name || '').replace(/'/g, '\\&#39;')}', '${(o.order_type || '').replace(/'/g, '\\&#39;')}')" style="margin-top:4px;font-size:11px">🖨️ ${tr('Print', 'طباعة')}</button></td>
+          ${orders.length === 0 ? `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-dim)">📭 ${tr('No orders', 'لا توجد طلبات')}</td></tr>` : orders.map(o => {
+    const pt = patients.find(p => p.id == o.patient_id);
+    const nRange = getLabNormalRange(o.order_type, pt ? pt.gender : ''); return `<tr>
+            <td><svg id="labBC${o.id}" class="barcode-svg"></svg><br><button class="btn btn-sm btn-info" onclick="printLabBarcode(${o.id}, '${(o.patient_name || '').replace(/'/g, '\\')}', '${(o.order_type || '').replace(/'/g, '\\')}')" style="margin-top:4px;font-size:11px">🖨️ ${tr('Print', 'طباعة')}</button></td>
             <td>${o.patient_name || ''}</td><td>${o.order_type}</td>
-            <td>${statusBadge(o.status)}</td><td>${o.created_at?.split('T')[0] || ''}</td>
+            <td style="font-size:11px;max-width:200px;color:var(--text-dim);white-space:pre-wrap">${nRange || '-'}</td>
+            <td>${statusBadge(o.status)}</td><td>${o.created_at ? new Date(o.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : ''}</td>
             <td>${o.status === 'Done' && o.results ? `<div style="max-width:200px;padding:6px 10px;background:var(--hover);border-radius:6px;font-size:12px;white-space:pre-wrap">${o.results}</div>` : o.status !== 'Requested' ? `<textarea class="form-input form-textarea" id="labRpt${o.id}" rows="2" placeholder="${tr('Write report...', 'اكتب التقرير...')}" style="min-height:60px;font-size:12px">${o.results || ''}</textarea><button class="btn btn-sm btn-primary mt-8" onclick="saveLabReport(${o.id})">💾 ${tr('Save', 'حفظ')}</button>` : `<span style="color:var(--text-dim)">—</span>`}</td>
             <td>${o.status !== 'Done' ? `<button class="btn btn-sm btn-success" onclick="updateLabStatus(${o.id},'${o.status === 'Requested' ? 'In Progress' : 'Done'}')">▶ ${o.status === 'Requested' ? tr('Start', 'بدء') : tr('Complete', 'إتمام')}</button>` : `<span class="badge badge-success">✅</span>`}</td>
-          </tr>`).join('')}
+          </tr>`;
+  }).join('')}
           </tbody></table></div></div>
         </div>
       </div>
@@ -1530,7 +1985,7 @@ window.scanLabBarcode = async () => {
   const m = code.match(/LAB-(\d+)/); const oid = m ? m[1] : code;
   try {
     const orders = await API.get('/api/lab/orders'); const o = orders.find(x => x.id == oid);
-    document.getElementById('labScanResult').innerHTML = o ? `<div class="card" style="border:2px solid var(--accent);margin-top:12px"><div class="card-title">🔍 ${tr('Order Found', 'تم العثور على الطلب')} #${o.id}</div><div class="flex gap-8" style="flex-wrap:wrap"><span class="badge badge-info">👤 ${o.patient_name}</span><span class="badge badge-purple">🔬 ${o.order_type}</span>${statusBadge(o.status)}</div>${o.results ? `<div class="mt-16" style="padding:12px;background:var(--hover);border-radius:8px"><strong>${tr('Report:', 'التقرير:')}</strong><br><pre style="white-space:pre-wrap;margin:4px 0 0">${o.results}</pre></div>` : ''}</div>` : `<div class="badge badge-danger mt-16">${tr('Order not found', 'الطلب غير موجود')}</div>`;
+    document.getElementById('labScanResult').innerHTML = o ? `<div class="card" style="border:2px solid var(--accent);margin-top:12px"><div class="card-title">🔍 ${tr('Order Found', 'تم العثور على الطلب')} #${o.id}</div><div class="flex gap-8" style="flex-wrap:wrap"><span class="badge badge-info">👤 ${o.patient_name}</span><span class="badge badge-purple">🔬 ${o.order_type}</span>${statusBadge(o.status)}</div>${getLabNormalRange(o.order_type) ? `<div style="margin-top:8px;padding:8px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-size:11px">📊 <strong>${tr('Normal Range', 'المعدل الطبيعي')}:</strong> ${getLabNormalRange(o.order_type)}</div>` : ''}${o.results ? `<div class="mt-16" style="padding:12px;background:var(--hover);border-radius:8px"><strong>${tr('Report:', 'التقرير:')}</strong><br><pre style="white-space:pre-wrap;margin:4px 0 0">${o.results}</pre></div>` : ''}</div>` : `<div class="badge badge-danger mt-16">${tr('Order not found', 'الطلب غير موجود')}</div>`;
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
@@ -3588,8 +4043,8 @@ window.loadConsentForSign = async () => {
   if (!fid) { document.getElementById('cfSignArea').style.display = 'none'; return; }
   document.getElementById('cfSignArea').style.display = 'block';
   try {
-    const f = await API.get(`/ api / consent - forms / ${ fid } `);
-    document.getElementById('cfSignContent').innerHTML = `< h3 > ${ isArabic ? (f.form_title_ar || f.form_title) : f.form_title }</h3 ><p>${f.content}</p><p><strong>${tr('Patient', 'المريض')}:</strong> ${f.patient_name}<br><strong>${tr('Doctor', 'الطبيب')}:</strong> ${f.doctor_name}</p>`;
+    const f = await API.get(`/ api / consent - forms / ${fid} `);
+    document.getElementById('cfSignContent').innerHTML = `< h3 > ${isArabic ? (f.form_title_ar || f.form_title) : f.form_title}</h3 ><p>${f.content}</p><p><strong>${tr('Patient', 'المريض')}:</strong> ${f.patient_name}<br><strong>${tr('Doctor', 'الطبيب')}:</strong> ${f.doctor_name}</p>`;
     // Setup canvas
     setTimeout(() => {
       const canvas = document.getElementById('cfSigCanvas');
@@ -3613,10 +4068,10 @@ window.signConsentForm = async () => {
   const canvas = document.getElementById('cfSigCanvas');
   const sig = canvas ? canvas.toDataURL('image/png') : '';
   try {
-    await API.put(`/ api / consent - forms / ${ fid }/sign`, {
-patient_signature: sig, witness_name: document.getElementById('cfWitness').value
-});
-showToast(tr('Consent signed!', 'تم توقيع الإقرار!')); await navigateTo(20);
+    await API.put(`/ api / consent - forms / ${fid}/sign`, {
+      patient_signature: sig, witness_name: document.getElementById('cfWitness').value
+    });
+    showToast(tr('Consent signed!', 'تم توقيع الإقرار!')); await navigateTo(20);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
@@ -3629,29 +4084,49 @@ async function renderEmergency(el) {
   ]);
   const drs = (doctors || []).filter(d => d.role === 'Doctor' || d.department_en === 'Emergency');
   const triageColors = { Red: '#e74c3c', Orange: '#e67e22', Yellow: '#f1c40f', Green: '#2ecc71', Blue: '#3498db' };
+  const active = (visits || []).filter(v => v.status === 'Active');
+  const discharged = (visits || []).filter(v => v.status === 'Discharged');
+  const admitted = (visits || []).filter(v => v.status === 'Admitted');
   el.innerHTML = `<div class="page-title">🚨 ${tr('Emergency Department', 'الطوارئ')}</div>
     <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
       <div class="stat-card"><div class="stat-icon" style="background:#e74c3c22;color:#e74c3c">🚨</div><div class="stat-value" style="color:#e74c3c">${stats.active}</div><div class="stat-label">${tr('Active Cases', 'حالات نشطة')}</div></div>
       <div class="stat-card"><div class="stat-icon" style="background:#e67e2222;color:#e67e22">⚠️</div><div class="stat-value" style="color:#e67e22">${stats.critical}</div><div class="stat-label">${tr('Critical', 'حرجة')}</div></div>
       <div class="stat-card"><div class="stat-icon" style="background:#3498db22;color:#3498db">📊</div><div class="stat-value" style="color:#3498db">${stats.today}</div><div class="stat-label">${tr('Today', 'اليوم')}</div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#2ecc7122;color:#2ecc71">🛏️</div><div class="stat-value" style="color:#2ecc71">${stats.availableBeds}</div><div class="stat-label">${tr('Beds Free', 'أسرّة متاحة')}</div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#9b59b622;color:#9b59b6">🏥</div><div class="stat-value" style="color:#9b59b6">${stats.totalBeds}</div><div class="stat-label">${tr('Total Beds', 'إجمالي الأسرّة')}</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#2ecc7122;color:#2ecc71">✅</div><div class="stat-value" style="color:#2ecc71">${discharged.length}</div><div class="stat-label">${tr('Discharged', 'خارجين')}</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#9b59b622;color:#9b59b6">🏥</div><div class="stat-value" style="color:#9b59b6">${admitted.length}</div><div class="stat-label">${tr('Transferred', 'محولين')}</div></div>
     </div>
     <div class="tab-bar"><button class="tab-btn ${erTab === 'board' ? 'active' : ''}" onclick="erTab='board';navigateTo(21)">🏥 ${tr('ER Board', 'لوحة الطوارئ')}</button>
       <button class="tab-btn ${erTab === 'register' ? 'active' : ''}" onclick="erTab='register';navigateTo(21)">➕ ${tr('Register', 'تسجيل حالة')}</button>
+      <button class="tab-btn ${erTab === 'discharged' ? 'active' : ''}" onclick="erTab='discharged';navigateTo(21)">🚪 ${tr('Discharged', 'الخارجين')}</button>
+      <button class="tab-btn ${erTab === 'transferred' ? 'active' : ''}" onclick="erTab='transferred';navigateTo(21)">🔄 ${tr('Transferred', 'المحولين للتنويم')}</button>
       <button class="tab-btn ${erTab === 'beds' ? 'active' : ''}" onclick="erTab='beds';navigateTo(21)">🛏️ ${tr('Bed Map', 'خريطة الأسرّة')}</button></div>
-    <div class="card" id="erContent"></div>`;
+    <div class="card" id="erContent"></div>
+    <div id="erDischargeModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
+      <div style="background:#fff;padding:30px;border-radius:16px;width:500px;max-width:90%;max-height:80vh;overflow-y:auto;direction:rtl">
+        <h3 style="margin-bottom:16px">🚪 ${tr('Discharge from ER', 'خروج من الطوارئ')}</h3>
+        <input type="hidden" id="erDischargeId">
+        <div class="form-grid" style="gap:12px">
+          <div><label>${tr('Diagnosis', 'التشخيص')}</label><textarea id="erDischargeDiag" class="form-control" rows="2"></textarea></div>
+          <div><label>${tr('Instructions', 'تعليمات الخروج')}</label><textarea id="erDischargeInst" class="form-control" rows="2"></textarea></div>
+          <div><label>${tr('Medications', 'الأدوية')}</label><input id="erDischargeMeds" class="form-control"></div>
+          <div><label>${tr('Follow-up Date', 'موعد المراجعة')}</label><input id="erDischargeFollowup" type="date" class="form-control"></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button class="btn btn-primary" onclick="confirmERDischarge()" style="flex:1">✅ ${tr('Confirm Discharge', 'تأكيد الخروج')}</button>
+          <button class="btn" onclick="document.getElementById('erDischargeModal').style.display='none'" style="flex:1">❌ ${tr('Cancel', 'إلغاء')}</button>
+        </div>
+      </div>
+    </div>`;
   const c = document.getElementById('erContent');
   if (erTab === 'board') {
-    const active = (visits || []).filter(v => v.status === 'Active');
-    c.innerHTML = `<h3>🚨 ${tr('Active ER Cases', 'حالات الطوارئ النشطة')}</h3>
+    c.innerHTML = `<h3>🚨 ${tr('Active ER Cases', 'حالات الطوارئ النشطة')} (${active.length})</h3>
       <input class="form-control" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'erTable')" style="margin-bottom:12px">
       ${active.length ? `<table class="data-table" id="erTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Complaint', 'الشكوى')}</th><th>${tr('Triage', 'الفرز')}</th><th>${tr('Arrival', 'الوصول')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Bed', 'السرير')}</th><th>${tr('Actions', 'إجراءات')}</th></tr></thead><tbody>${active.map(v => {
       const tc = triageColors[v.triage_color] || '#999';
       return `<tr><td>${v.id}</td><td>${v.patient_name}</td><td>${v.chief_complaint_ar || v.chief_complaint}</td>
           <td><span style="background:${tc};color:#fff;padding:2px 10px;border-radius:12px;font-weight:700">${tr('ESI ' + v.triage_level, 'ESI ' + v.triage_level)} ${v.triage_color}</span></td>
           <td>${new Date(v.arrival_time).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</td><td>${v.assigned_doctor || '-'}</td><td>${v.assigned_bed || '-'}</td>
-          <td><button class="btn btn-sm" onclick="updateERVisit(${v.id},'Discharged')">${tr('Discharge', 'خروج')}</button> <button class="btn btn-sm btn-success" onclick="updateERVisit(${v.id},'Admitted')">${tr('Admit', 'تنويم')}</button></td></tr>`;
+          <td><button class="btn btn-sm" onclick="showERDischargeModal(${v.id})">🚪 ${tr('Discharge', 'خروج')}</button> <button class="btn btn-sm btn-success" onclick="transferERToInpatient(${v.id},'${(v.patient_name || '').replace(/'/g, "\\'")}',${v.patient_id},'${(v.assigned_doctor || '').replace(/'/g, "\\'")}','${v.chief_complaint_ar || v.chief_complaint || ''}')">${tr('Admit', 'تنويم')}</button></td></tr>`;
     }).join('')}</tbody></table>` : `<div class="empty-state"><div class="empty-icon">✅</div><p>${tr('No active cases', 'لا توجد حالات نشطة')}</p></div>`}`;
   } else if (erTab === 'register') {
     c.innerHTML = `<h3>➕ ${tr('Register ER Visit', 'تسجيل حالة طوارئ')}</h3>
@@ -3667,6 +4142,28 @@ async function renderEmergency(el) {
         <div><label>${tr('ER Bed', 'سرير الطوارئ')}</label><select id="erBed" class="form-control"><option value="">${tr('None', 'بدون')}</option>${(beds || []).filter(b => b.status === 'Available').map(b => `<option value="${b.bed_name}">${b.bed_name_ar} (${b.zone_ar})</option>`).join('')}</select></div>
       </div>
       <button class="btn btn-primary" onclick="registerERVisit()" style="margin-top:16px">🚨 ${tr('Register', 'تسجيل')}</button>`;
+  } else if (erTab === 'discharged') {
+    c.innerHTML = `<h3>🚪 ${tr('Discharged from ER', 'الخارجين من الطوارئ')} (${discharged.length})</h3>
+      <input class="form-control" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'erDischTable')" style="margin-bottom:12px">
+      ${discharged.length ? `<table class="data-table" id="erDischTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Complaint', 'الشكوى')}</th><th>${tr('Triage', 'الفرز')}</th><th>${tr('Arrival', 'الوصول')}</th><th>${tr('Discharge', 'الخروج')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Diagnosis', 'التشخيص')}</th></tr></thead><tbody>${discharged.map(v => {
+      const tc = triageColors[v.triage_color] || '#999';
+      return `<tr><td>${v.id}</td><td>${v.patient_name}</td><td>${v.chief_complaint_ar || v.chief_complaint || '-'}</td>
+        <td><span style="background:${tc};color:#fff;padding:2px 8px;border-radius:12px;font-size:.85em">${v.triage_color}</span></td>
+        <td>${v.arrival_time ? new Date(v.arrival_time).toLocaleString('ar-SA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}</td>
+        <td>${v.discharge_time ? new Date(v.discharge_time).toLocaleString('ar-SA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}</td>
+        <td>${v.assigned_doctor || '-'}</td><td>${v.discharge_diagnosis || '-'}</td></tr>`;
+    }).join('')}</tbody></table>` : `<div class="empty-state"><div class="empty-icon">📋</div><p>${tr('No discharged patients', 'لا يوجد مرضى خارجين')}</p></div>`}`;
+  } else if (erTab === 'transferred') {
+    c.innerHTML = `<h3>🔄 ${tr('Transferred to Inpatient', 'المحولين للتنويم')} (${admitted.length})</h3>
+      <input class="form-control" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'erTransTable')" style="margin-bottom:12px">
+      ${admitted.length ? `<table class="data-table" id="erTransTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Complaint', 'الشكوى')}</th><th>${tr('Triage', 'الفرز')}</th><th>${tr('ER Doctor', 'طبيب الطوارئ')}</th><th>${tr('Arrival', 'الوصول')}</th><th>${tr('Status', 'الحالة')}</th></tr></thead><tbody>${admitted.map(v => {
+      const tc = triageColors[v.triage_color] || '#999';
+      return `<tr><td>${v.id}</td><td>${v.patient_name}</td><td>${v.chief_complaint_ar || v.chief_complaint || '-'}</td>
+        <td><span style="background:${tc};color:#fff;padding:2px 8px;border-radius:12px;font-size:.85em">${v.triage_color}</span></td>
+        <td>${v.assigned_doctor || '-'}</td>
+        <td>${v.arrival_time ? new Date(v.arrival_time).toLocaleString('ar-SA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}</td>
+        <td>${badge(tr('Admitted', 'تم التنويم'), 'success')}</td></tr>`;
+    }).join('')}</tbody></table>` : `<div class="empty-state"><div class="empty-icon">🏥</div><p>${tr('No transferred patients', 'لا يوجد مرضى محولين')}</p></div>`}`;
   } else {
     const zones = ['Resuscitation', 'Critical', 'Acute', 'Observation'];
     c.innerHTML = `<h3>🛏️ ${tr('ER Bed Map', 'خريطة أسرّة الطوارئ')}</h3>
@@ -3682,6 +4179,42 @@ window.registerERVisit = async function () {
     showToast(tr('ER visit registered!', 'تم تسجيل حالة الطوارئ!')); erTab = 'board'; await navigateTo(21);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
+window.showERDischargeModal = function (id) {
+  document.getElementById('erDischargeId').value = id;
+  document.getElementById('erDischargeDiag').value = '';
+  document.getElementById('erDischargeInst').value = '';
+  document.getElementById('erDischargeMeds').value = '';
+  document.getElementById('erDischargeFollowup').value = '';
+  document.getElementById('erDischargeModal').style.display = 'flex';
+};
+window.confirmERDischarge = async function () {
+  const id = document.getElementById('erDischargeId').value;
+  try {
+    await API.put('/api/emergency/visits/' + id, {
+      status: 'Discharged',
+      discharge_diagnosis: document.getElementById('erDischargeDiag').value,
+      discharge_instructions: document.getElementById('erDischargeInst').value,
+      discharge_medications: document.getElementById('erDischargeMeds').value,
+      followup_date: document.getElementById('erDischargeFollowup').value
+    });
+    document.getElementById('erDischargeModal').style.display = 'none';
+    showToast(tr('Patient discharged from ER!', 'تم خروج المريض من الطوارئ!'));
+    erTab = 'discharged'; await navigateTo(21);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+window.transferERToInpatient = async function (visitId, patientName, patientId, doctor, complaint) {
+  if (!confirm(tr('Transfer this patient to inpatient?', 'هل تريد تحويل هذا المريض للتنويم؟'))) return;
+  try {
+    await API.put('/api/emergency/visits/' + visitId, { status: 'Admitted' });
+    await API.post('/api/admissions', {
+      patient_id: patientId, patient_name: patientName,
+      admission_type: 'Emergency', admitting_doctor: doctor, attending_doctor: doctor,
+      department: 'Emergency', diagnosis: complaint
+    });
+    showToast(tr('Patient transferred to inpatient!', 'تم تحويل المريض للتنويم!'));
+    erTab = 'transferred'; await navigateTo(21);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
 window.updateERVisit = async function (id, status) {
   try { await API.put('/api/emergency/visits/' + id, { status }); showToast(tr('Updated', 'تم التحديث')); await navigateTo(21); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
@@ -3689,21 +4222,45 @@ window.updateERVisit = async function (id, status) {
 // ===== INPATIENT ADT =====
 let adtTab = 'census';
 async function renderInpatient(el) {
-  const [census, admissions, patients, doctors, wards] = await Promise.all([
-    API.get('/api/beds/census'), API.get('/api/admissions?status=Active'), API.get('/api/patients'), API.get('/api/employees'), API.get('/api/wards')
+  const [census, activeAdm, dischargedAdm, patients, doctors, wards] = await Promise.all([
+    API.get('/api/beds/census'), API.get('/api/admissions?status=Active'),
+    API.get('/api/admissions?status=Discharged'),
+    API.get('/api/patients'), API.get('/api/employees'), API.get('/api/wards')
   ]);
   const drs = (doctors || []).filter(d => d.role === 'Doctor');
   el.innerHTML = `<div class="page-title">🛏️ ${tr('Inpatient ADT', 'التنويم')}</div>
-    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
       <div class="stat-card"><div class="stat-value" style="color:#2ecc71">${census.available || 0}</div><div class="stat-label">${tr('Available Beds', 'أسرّة متاحة')}</div></div>
       <div class="stat-card"><div class="stat-value" style="color:#e74c3c">${census.occupied || 0}</div><div class="stat-label">${tr('Occupied', 'مشغولة')}</div></div>
-      <div class="stat-card"><div class="stat-value" style="color:#3498db">${census.total || 0}</div><div class="stat-label">${tr('Total Beds', 'إجمالي')}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:#3498db">${(activeAdm || []).length}</div><div class="stat-label">${tr('Current Patients', 'المنومين')}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:#27ae60">${(dischargedAdm || []).length}</div><div class="stat-label">${tr('Discharged', 'الخارجين')}</div></div>
       <div class="stat-card"><div class="stat-value" style="color:#9b59b6">${census.occupancyRate || 0}%</div><div class="stat-label">${tr('Occupancy', 'نسبة الإشغال')}</div></div>
     </div>
     <div class="tab-bar"><button class="tab-btn ${adtTab === 'census' ? 'active' : ''}" onclick="adtTab='census';navigateTo(22)">🗺️ ${tr('Census', 'الإشغال')}</button>
       <button class="tab-btn ${adtTab === 'admit' ? 'active' : ''}" onclick="adtTab='admit';navigateTo(22)">➕ ${tr('Admit', 'تنويم')}</button>
-      <button class="tab-btn ${adtTab === 'patients' ? 'active' : ''}" onclick="adtTab='patients';navigateTo(22)">📋 ${tr('Patients', 'المنومين')}</button></div>
-    <div class="card" id="adtContent"></div>`;
+      <button class="tab-btn ${adtTab === 'patients' ? 'active' : ''}" onclick="adtTab='patients';navigateTo(22)">📋 ${tr('Patients', 'المنومين')}</button>
+      <button class="tab-btn ${adtTab === 'discharged' ? 'active' : ''}" onclick="adtTab='discharged';navigateTo(22)">🚪 ${tr('Discharged', 'الخارجين')}</button></div>
+    <div class="card" id="adtContent"></div>
+    <div id="adtDischargeModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
+      <div style="background:#fff;padding:30px;border-radius:16px;width:550px;max-width:90%;max-height:85vh;overflow-y:auto;direction:rtl">
+        <h3 style="margin-bottom:16px">🚪 ${tr('Discharge Patient', 'خروج مريض')}</h3>
+        <input type="hidden" id="adtDischargeId">
+        <div class="form-grid" style="gap:12px">
+          <div><label>${tr('Discharge Type', 'نوع الخروج')}</label><select id="adtDischargeType" class="form-control">
+            <option value="Regular">${tr('Regular', 'عادي')}</option><option value="AMA">${tr('Against Medical Advice', 'ضد المشورة الطبية')}</option>
+            <option value="Transfer">${tr('Transfer', 'تحويل')}</option><option value="Death">${tr('Death', 'وفاة')}</option></select></div>
+          <div style="grid-column:span 2"><label>${tr('Discharge Summary', 'ملخص الخروج')}</label><textarea id="adtDischargeSummary" class="form-control" rows="3"></textarea></div>
+          <div style="grid-column:span 2"><label>${tr('Instructions', 'تعليمات للمريض')}</label><textarea id="adtDischargeInst" class="form-control" rows="2"></textarea></div>
+          <div><label>${tr('Medications', 'أدوية الخروج')}</label><textarea id="adtDischargeMeds" class="form-control" rows="2"></textarea></div>
+          <div><label>${tr('Follow-up Date', 'موعد المراجعة')}</label><input id="adtFollowupDate" type="date" class="form-control"></div>
+          <div><label>${tr('Follow-up Doctor', 'طبيب المتابعة')}</label><select id="adtFollowupDoctor" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${drs.map(d => `<option value="${d.name_ar || d.name}">${d.name_ar || d.name}</option>`).join('')}</select></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button class="btn btn-primary" onclick="confirmInpatientDischarge()" style="flex:1">✅ ${tr('Confirm Discharge', 'تأكيد الخروج')}</button>
+          <button class="btn" onclick="document.getElementById('adtDischargeModal').style.display='none'" style="flex:1">❌ ${tr('Cancel', 'إلغاء')}</button>
+        </div>
+      </div>
+    </div>`;
   const c = document.getElementById('adtContent');
   if (adtTab === 'census') {
     c.innerHTML = (census.wards || []).map(w => {
@@ -3725,10 +4282,26 @@ async function renderInpatient(el) {
       <div><label>${tr('Diet', 'الحمية')}</label><select id="admDiet" class="form-control"><option value="Regular">${tr('Regular', 'عادية')}</option><option value="Diabetic">${tr('Diabetic', 'سكري')}</option><option value="Renal">${tr('Renal', 'كلوي')}</option><option value="Cardiac">${tr('Cardiac', 'قلبي')}</option><option value="NPO">${tr('NPO', 'صائم')}</option><option value="Liquid">${tr('Liquid', 'سوائل')}</option></select></div>
       <div><label>${tr('Expected LOS', 'مدة الإقامة المتوقعة')}</label><input id="admLOS" type="number" value="3" class="form-control"></div>
     </div><button class="btn btn-primary" onclick="admitPatient()" style="margin-top:16px">🛏️ ${tr('Admit', 'تنويم')}</button>`;
-  } else {
-    c.innerHTML = `<h3>📋 ${tr('Current Inpatients', 'المنومين الحاليين')}</h3>
-      ${(admissions || []).length ? `<table class="data-table"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Diagnosis', 'التشخيص')}</th><th>${tr('Date', 'التاريخ')}</th><th>${tr('Actions', 'إجراءات')}</th></tr></thead><tbody>${(admissions || []).map(a => `<tr><td>${a.id}</td><td>${a.patient_name}</td><td>${a.attending_doctor}</td><td>${a.diagnosis || '-'}</td><td>${new Date(a.admission_date).toLocaleDateString('ar-SA')}</td>
-        <td><button class="btn btn-sm" onclick="dischargePatient(${a.id})">${tr('Discharge', 'خروج')}</button></td></tr>`).join('')}</tbody></table>` : `<div class="empty-state"><div class="empty-icon">🛏️</div><p>${tr('No inpatients', 'لا يوجد منومين')}</p></div>`}`;
+  } else if (adtTab === 'patients') {
+    c.innerHTML = `<h3>📋 ${tr('Current Inpatients', 'المنومين الحاليين')} (${(activeAdm || []).length})</h3>
+      <input class="form-control" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'adtPatientsTable')" style="margin-bottom:12px">
+      ${(activeAdm || []).length ? `<table class="data-table" id="adtPatientsTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Type', 'النوع')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Diagnosis', 'التشخيص')}</th><th>${tr('Admission Date', 'تاريخ التنويم')}</th><th>${tr('Days', 'أيام')}</th><th>${tr('Actions', 'إجراءات')}</th></tr></thead><tbody>${(activeAdm || []).map(a => {
+      const days = Math.floor((new Date() - new Date(a.admission_date)) / 86400000);
+      const typeBadge = a.admission_type === 'Emergency' ? badge(tr('ER', 'طوارئ'), 'danger') : a.admission_type === 'Transfer' ? badge(tr('Transfer', 'تحويل'), 'warning') : badge(tr('Regular', 'عادي'), 'info');
+      return `<tr><td>${a.id}</td><td><strong>${a.patient_name}</strong></td><td>${typeBadge}</td><td>${a.attending_doctor || '-'}</td><td>${a.diagnosis || '-'}</td><td>${new Date(a.admission_date).toLocaleDateString('ar-SA')}</td><td><span style="font-weight:700;color:${days > 7 ? '#e74c3c' : '#2ecc71'}">${days}</span></td>
+        <td><button class="btn btn-sm" onclick="showInpatientDischargeModal(${a.id})">🚪 ${tr('Discharge', 'خروج')}</button></td></tr>`;
+    }).join('')}</tbody></table>` : `<div class="empty-state"><div class="empty-icon">🛏️</div><p>${tr('No inpatients', 'لا يوجد منومين')}</p></div>`}`;
+  } else if (adtTab === 'discharged') {
+    c.innerHTML = `<h3>🚪 ${tr('Discharged Patients', 'الخارجين من التنويم')} (${(dischargedAdm || []).length})</h3>
+      <input class="form-control" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'adtDischTable')" style="margin-bottom:12px">
+      ${(dischargedAdm || []).length ? `<table class="data-table" id="adtDischTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Type', 'نوع الخروج')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Diagnosis', 'التشخيص')}</th><th>${tr('Admitted', 'التنويم')}</th><th>${tr('Discharged', 'الخروج')}</th><th>${tr('LOS', 'المدة')}</th></tr></thead><tbody>${(dischargedAdm || []).map(a => {
+      const los = a.discharge_date && a.admission_date ? Math.floor((new Date(a.discharge_date) - new Date(a.admission_date)) / 86400000) : '-';
+      const dtBadge = a.discharge_type === 'AMA' ? badge(tr('AMA', 'ضد المشورة'), 'danger') : a.discharge_type === 'Death' ? badge(tr('Death', 'وفاة'), 'danger') : a.discharge_type === 'Transfer' ? badge(tr('Transfer', 'تحويل'), 'warning') : badge(tr('Regular', 'عادي'), 'success');
+      return `<tr><td>${a.id}</td><td>${a.patient_name}</td><td>${dtBadge}</td><td>${a.attending_doctor || '-'}</td><td>${a.diagnosis || '-'}</td>
+        <td>${a.admission_date ? new Date(a.admission_date).toLocaleDateString('ar-SA') : '-'}</td>
+        <td>${a.discharge_date ? new Date(a.discharge_date).toLocaleDateString('ar-SA') : '-'}</td>
+        <td><strong>${los}</strong> ${tr('days', 'يوم')}</td></tr>`;
+    }).join('')}</tbody></table>` : `<div class="empty-state"><div class="empty-icon">📋</div><p>${tr('No discharged patients', 'لا يوجد مرضى خارجين')}</p></div>`}`;
   }
 }
 window.loadWardBeds = async function (wardId) {
@@ -3744,30 +4317,72 @@ window.admitPatient = async function () {
     showToast(tr('Patient admitted!', 'تم التنويم!')); adtTab = 'patients'; await navigateTo(22);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
-window.dischargePatient = async function (id) {
-  if (!confirm(tr('Discharge this patient?', 'هل تريد خروج هذا المريض؟'))) return;
-  try { await API.put('/api/admissions/' + id + '/discharge', { discharge_type: 'Regular' }); showToast(tr('Discharged!', 'تم الخروج!')); await navigateTo(22); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+window.showInpatientDischargeModal = function (id) {
+  document.getElementById('adtDischargeId').value = id;
+  document.getElementById('adtDischargeSummary').value = '';
+  document.getElementById('adtDischargeInst').value = '';
+  document.getElementById('adtDischargeMeds').value = '';
+  document.getElementById('adtFollowupDate').value = '';
+  document.getElementById('adtDischargeModal').style.display = 'flex';
 };
-
+window.confirmInpatientDischarge = async function () {
+  const id = document.getElementById('adtDischargeId').value;
+  try {
+    await API.put('/api/admissions/' + id + '/discharge', {
+      discharge_type: document.getElementById('adtDischargeType').value,
+      discharge_summary: document.getElementById('adtDischargeSummary').value,
+      discharge_instructions: document.getElementById('adtDischargeInst').value,
+      discharge_medications: document.getElementById('adtDischargeMeds').value,
+      followup_date: document.getElementById('adtFollowupDate').value,
+      followup_doctor: document.getElementById('adtFollowupDoctor').value
+    });
+    document.getElementById('adtDischargeModal').style.display = 'none';
+    showToast(tr('Patient discharged!', 'تم خروج المريض!'));
+    adtTab = 'discharged'; await navigateTo(22);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+window.dischargePatient = async function (id) {
+  showInpatientDischargeModal(id);
+};
+// ===== ICU =====
 // ===== ICU =====
 let icuTab = 'patients';
 async function renderICU(el) {
-  const icuPatients = await API.get('/api/icu/patients');
+  const [icuPatients, allAdmissions] = await Promise.all([
+    API.get('/api/icu/patients'),
+    API.get('/api/admissions')
+  ]);
+  const discharged = (allAdmissions || []).filter(a => a.status === 'Discharged' && a.department === 'ICU');
+  const totalICU = (icuPatients || []).length;
+  const onVent = (icuPatients || []).filter(p => p.activity_level === 'Ventilated' || p.dvt_prophylaxis).length;
   el.innerHTML = `<div class="page-title">🫀 ${tr('ICU / Critical Care', 'العناية المركزة')}</div>
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card"><div class="stat-icon" style="background:#e74c3c22;color:#e74c3c">🫀</div><div class="stat-value" style="color:#e74c3c">${totalICU}</div><div class="stat-label">${tr('Current Patients', 'المرضى الحاليين')}</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#3498db22;color:#3498db">🫁</div><div class="stat-value" style="color:#3498db">${onVent}</div><div class="stat-label">${tr('On Ventilator', 'على التنفس')}</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#2ecc7122;color:#2ecc71">✅</div><div class="stat-value" style="color:#2ecc71">${discharged.length}</div><div class="stat-label">${tr('Discharged', 'خارجين')}</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#9b59b622;color:#9b59b6">📊</div><div class="stat-value" style="color:#9b59b6">${totalICU > 0 ? Math.round((totalICU / (totalICU + discharged.length || 1)) * 100) : 0}%</div><div class="stat-label">${tr('Occupancy', 'الإشغال')}</div></div>
+    </div>
     <div class="tab-bar"><button class="tab-btn ${icuTab === 'patients' ? 'active' : ''}" onclick="icuTab='patients';navigateTo(23)">👥 ${tr('Patients', 'المرضى')}</button>
       <button class="tab-btn ${icuTab === 'monitor' ? 'active' : ''}" onclick="icuTab='monitor';navigateTo(23)">📊 ${tr('Monitoring', 'المراقبة')}</button>
       <button class="tab-btn ${icuTab === 'ventilator' ? 'active' : ''}" onclick="icuTab='ventilator';navigateTo(23)">🫁 ${tr('Ventilator', 'التنفس')}</button>
       <button class="tab-btn ${icuTab === 'scores' ? 'active' : ''}" onclick="icuTab='scores';navigateTo(23)">📋 ${tr('Scores', 'المقاييس')}</button>
-      <button class="tab-btn ${icuTab === 'fluid' ? 'active' : ''}" onclick="icuTab='fluid';navigateTo(23)">💧 ${tr('Fluid Balance', 'توازن السوائل')}</button></div>
+      <button class="tab-btn ${icuTab === 'fluid' ? 'active' : ''}" onclick="icuTab='fluid';navigateTo(23)">💧 ${tr('Fluid Balance', 'توازن السوائل')}</button>
+      <button class="tab-btn ${icuTab === 'discharged' ? 'active' : ''}" onclick="icuTab='discharged';navigateTo(23)">🚪 ${tr('Discharged', 'الخارجين')}</button></div>
     <div class="card" id="icuContent"></div>`;
   const c = document.getElementById('icuContent');
   if (icuTab === 'patients') {
-    c.innerHTML = `<h3>👥 ${tr('ICU Patients', 'مرضى العناية المركزة')}</h3>
-      ${(icuPatients || []).length ? `<table class="data-table"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Ward', 'الجناح')}</th><th>${tr('Bed', 'السرير')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Diagnosis', 'التشخيص')}</th><th>${tr('Admitted', 'تاريخ الدخول')}</th></tr></thead><tbody>${(icuPatients || []).map(p => `<tr><td>${p.id}</td><td><strong>${p.patient_name}</strong></td><td>${p.ward_name_ar}</td><td>${p.bed_number}</td><td>${p.attending_doctor}</td><td>${p.diagnosis || '-'}</td><td>${new Date(p.admission_date).toLocaleDateString('ar-SA')}</td></tr>`).join('')}</tbody></table>` : `<div class="empty-state"><div class="empty-icon">🫀</div><p>${tr('No ICU patients', 'لا يوجد مرضى بالعناية')}</p></div>`}`;
+    c.innerHTML = `<h3>👥 ${tr('ICU Patients', 'مرضى العناية المركزة')} (${totalICU})</h3>
+      <input class="form-control" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'icuPTable')" style="margin-bottom:12px">
+      ${totalICU ? `<table class="data-table" id="icuPTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Ward', 'الجناح')}</th><th>${tr('Bed', 'السرير')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Diagnosis', 'التشخيص')}</th><th>${tr('Days', 'أيام')}</th><th>${tr('Actions', 'إجراءات')}</th></tr></thead><tbody>${(icuPatients || []).map(p => {
+      const days = Math.floor((new Date() - new Date(p.admission_date)) / 86400000);
+      return `<tr><td>${p.id}</td><td><strong>${p.patient_name}</strong></td><td>${p.ward_name_ar || '-'}</td><td>${tr('Bed', 'سرير')} ${p.bed_number || '-'}</td><td>${p.attending_doctor || '-'}</td><td>${p.diagnosis || '-'}</td>
+        <td><span style="font-weight:700;color:${days > 7 ? '#e74c3c' : '#2ecc71'}">${days}</span></td>
+        <td><button class="btn btn-sm" onclick="showInpatientDischargeModal(${p.id})">🚪 ${tr('Discharge', 'خروج')}</button></td></tr>`;
+    }).join('')}</tbody></table>` : `<div class="empty-state"><div class="empty-icon">🫀</div><p>${tr('No ICU patients', 'لا يوجد مرضى بالعناية')}</p></div>`}`;
   } else if (icuTab === 'monitor') {
     c.innerHTML = `<h3>📊 ${tr('Record Vitals', 'تسجيل العلامات الحيوية')}</h3>
       <div class="form-grid">
-        <div><label>${tr('Patient', 'المريض')}</label><select id="icuPatientMon" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(icuPatients || []).map(p => `<option value="${p.id}" data-pid="${p.patient_id}">${p.patient_name} - ${p.ward_name_ar} ${tr('Bed', 'سرير')} ${p.bed_number}</option>`).join('')}</select></div>
+        <div><label>${tr('Patient', 'المريض')}</label><select id="icuPatientMon" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(icuPatients || []).map(p => `<option value="${p.id}" data-pid="${p.patient_id}">${p.patient_name} - ${p.ward_name_ar || ''} ${tr('Bed', 'سرير')} ${p.bed_number || ''}</option>`).join('')}</select></div>
         <div><label>HR</label><input id="icuHR" type="number" class="form-control" placeholder="bpm"></div>
         <div><label>SBP/DBP</label><div style="display:flex;gap:4px"><input id="icuSBP" type="number" class="form-control" placeholder="SBP"><input id="icuDBP" type="number" class="form-control" placeholder="DBP"></div></div>
         <div><label>SpO2</label><input id="icuSpO2" type="number" class="form-control" placeholder="%"></div>
@@ -3801,7 +4416,7 @@ async function renderICU(el) {
         <div><label>Morse Fall</label><input id="scoreMorse" type="number" class="form-control"></div>
         <div><label>Pain (0-10)</label><input id="scorePain" type="number" class="form-control"></div>
       </div><button class="btn btn-primary" onclick="saveICUScores()" style="margin-top:12px">💾 ${tr('Save', 'حفظ')}</button>`;
-  } else {
+  } else if (icuTab === 'fluid') {
     c.innerHTML = `<h3>💧 ${tr('Fluid Balance', 'توازن السوائل')}</h3>
       <div class="form-grid">
         <div><label>${tr('Patient', 'المريض')}</label><select id="icuPatientFluid" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(icuPatients || []).map(p => `<option value="${p.id}" data-pid="${p.patient_id}">${p.patient_name}</option>`).join('')}</select></div>
@@ -3817,6 +4432,17 @@ async function renderICU(el) {
         <div><label>NGT (ml)</label><input id="fluidNGT" type="number" class="form-control"></div>
         <div><label>Vomit (ml)</label><input id="fluidVomit" type="number" class="form-control"></div>
       </div><button class="btn btn-primary" onclick="saveFluidBalance()" style="margin-top:12px">💾 ${tr('Save', 'حفظ')}</button>`;
+  } else if (icuTab === 'discharged') {
+    c.innerHTML = `<h3>🚪 ${tr('Discharged from ICU', 'الخارجين من العناية المركزة')} (${discharged.length})</h3>
+      <input class="form-control" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'icuDischTable')" style="margin-bottom:12px">
+      ${discharged.length ? `<table class="data-table" id="icuDischTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Discharge Type', 'نوع الخروج')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Diagnosis', 'التشخيص')}</th><th>${tr('Admitted', 'التنويم')}</th><th>${tr('Discharged', 'الخروج')}</th><th>${tr('LOS', 'المدة')}</th></tr></thead><tbody>${discharged.map(a => {
+      const los = a.discharge_date && a.admission_date ? Math.floor((new Date(a.discharge_date) - new Date(a.admission_date)) / 86400000) : '-';
+      const dtBadge = a.discharge_type === 'AMA' ? badge(tr('AMA', 'ضد المشورة'), 'danger') : a.discharge_type === 'Death' ? badge(tr('Death', 'وفاة'), 'danger') : a.discharge_type === 'Transfer' ? badge(tr('Transfer', 'تحويل'), 'warning') : badge(tr('Regular', 'عادي'), 'success');
+      return `<tr><td>${a.id}</td><td>${a.patient_name}</td><td>${dtBadge}</td><td>${a.attending_doctor || '-'}</td><td>${a.diagnosis || '-'}</td>
+        <td>${a.admission_date ? new Date(a.admission_date).toLocaleDateString('ar-SA') : '-'}</td>
+        <td>${a.discharge_date ? new Date(a.discharge_date).toLocaleDateString('ar-SA') : '-'}</td>
+        <td><strong>${los}</strong> ${tr('days', 'يوم')}</td></tr>`;
+    }).join('')}</tbody></table>` : `<div class="empty-state"><div class="empty-icon">📋</div><p>${tr('No discharged patients', 'لا يوجد مرضى خارجين')}</p></div>`}`;
   }
 }
 window.saveICUMonitor = async function () {
@@ -3847,7 +4473,6 @@ window.saveFluidBalance = async function () {
     showToast(tr('Saved!', 'تم الحفظ!'));
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
-
 // ===== CSSD =====
 async function renderCSSD(el) {
   const [instruments, cycles] = await Promise.all([API.get('/api/cssd/instruments'), API.get('/api/cssd/cycles')]);
