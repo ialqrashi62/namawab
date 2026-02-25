@@ -301,6 +301,7 @@ window.exportTableCSV = function (filename) {
 
 // ===== CONSENT FORMS =====
 async function renderConsentForms(el) {
+    const content = el;
 
     const visits = await API.get('/api/visits').catch(()=>[]);
     const consentTypes = [
@@ -3734,6 +3735,7 @@ window.delEmp = async (id) => {
 
 // ===== FINANCE =====
 async function renderFinance(el) {
+    const content = el;
 
   const today = new Date().toISOString().slice(0, 10);
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
@@ -3899,6 +3901,7 @@ window.addInsCompany = async () => {
 
 // ===== INVENTORY =====
 async function renderInventory(el) {
+    const content = el;
 
   const items = await API.get('/api/inventory').catch(() => []);
   const lowStock = items.filter(i => parseInt(i.quantity || 0) <= parseInt(i.reorder_level || 10));
@@ -4125,6 +4128,7 @@ window.saveCarePlan = async function () {
 };
 
 async function renderWaitingQueue(el) {
+    const content = el;
 
     const [patients, appointments] = await Promise.all([
       API.get('/api/queue/patients').catch(()=>[]),
@@ -4266,6 +4270,7 @@ window.payInvoicePA = async (id) => {
 };
 
 async function renderReports(el) {
+    const content = el;
 
   content.innerHTML = `
     <h2>${tr('Reports', 'التقارير')}</h2>
@@ -4368,6 +4373,7 @@ async function renderReports(el) {
 
 let msgTab = 'inbox';
 async function renderMessaging(el) {
+    const content = el;
 
     const messages = await API.get('/api/messages').catch(()=>[]);
     const users = await API.get('/api/users').catch(()=>[]);
@@ -4495,6 +4501,7 @@ async function loadDashboardCharts() {
 
 
 async function renderSettings(el) {
+    const content = el;
 
     content.innerHTML = `
     <h2>${tr('Settings','الإعدادات')}</h2>
@@ -4791,6 +4798,7 @@ window.saveCatPrice = async (type, id) => {
 
 // ===== DEPARTMENT RESOURCE REQUESTS =====
 async function renderDeptRequests(el) {
+    const content = el;
 
     const requests = await API.get('/api/dept-requests').catch(()=>[]);
     const pending = requests.filter(r=>r.status==='pending').length;
@@ -5811,6 +5819,7 @@ window.saveFluidBalance = async function () {
 };
 // ===== CSSD =====
 async function renderCSSD(el) {
+    const content = el;
 
     const batches = await API.get('/api/cssd/batches').catch(()=>[]);
     const processing = batches.filter(b=>b.status==='processing').length;
@@ -5933,6 +5942,7 @@ window.addDietOrder = async function () {
 // ===== INFECTION CONTROL =====
 let icTab = 'surveillance';
 async function renderInfectionControl(el) {
+    const content = el;
 
     const reports = await API.get('/api/infection-control/reports').catch(()=>[]);
     const active = reports.filter(r=>r.status==='active').length;
@@ -5998,6 +6008,7 @@ window.addHHAudit = async function () {
 // ===== QUALITY =====
 let qTab = 'incidents';
 async function renderQuality(el) {
+    const content = el;
 
     const [incidents, satisfaction, kpis] = await Promise.all([
       API.get('/api/quality/incidents').catch(()=>[]),
@@ -6053,6 +6064,7 @@ window.addKPI = async function () {
 // ===== MAINTENANCE =====
 let mtTab = 'orders';
 async function renderMaintenance(el) {
+    const content = el;
 
     const orders = await API.get('/api/maintenance/orders').catch(()=>[]);
     const pending = orders.filter(o=>o.status==='pending').length;
@@ -6153,6 +6165,7 @@ window.completeTransport = async function (id) {
 // ===== MEDICAL RECORDS / HIM =====
 let mrTab = 'requests';
 async function renderMedicalRecords(el) {
+    const content = el;
 
     const patients = await API.get('/api/patients').catch(()=>[]);
     
@@ -6205,6 +6218,7 @@ window.updateMRRequest = async function (id, status) {
 // ===== CLINICAL PHARMACY =====
 let cpTab = 'reviews';
 async function renderClinicalPharmacy(el) {
+    const content = el;
 
     const prescriptions = await API.get('/api/pharmacy/prescriptions').catch(()=>[]);
     const pending = prescriptions.filter(p=>p.status==='pending').length;
@@ -6345,6 +6359,7 @@ window.viewRehabSessions = async function (id) {
 
 // ===== PATIENT PORTAL =====
 async function renderPatientPortal(el) {
+    const content = el;
 
     const patients = await API.get('/api/patients').catch(()=>[]);
     const appointments = await API.get('/api/appointments').catch(()=>[]);
@@ -6437,6 +6452,7 @@ async function renderZATCA(el) {
 // ===== TELEMEDICINE =====
 let teleTab = 'sessions';
 async function renderTelemedicine(el) {
+    const content = el;
 
     const sessions = await API.get('/api/telemedicine/sessions').catch(()=>[]);
     const active = sessions.filter(s=>s.status==='active').length;
@@ -6485,6 +6501,7 @@ window.scheduleTele = async function () {
 
 // ===== PATHOLOGY =====
 async function renderPathology(el) {
+    const content = el;
 
     const [specimens, labOrders] = await Promise.all([
       API.get('/api/pathology/specimens').catch(()=>[]),
@@ -6652,6 +6669,7 @@ async function renderMortuary(el) {
 // ===== CME (Continuing Medical Education) =====
 let cmeTab = 'activities';
 async function renderCME(el) {
+    const content = el;
 
     const events = await API.get('/api/cme/events').catch(()=>[]);
     const totalHours = events.reduce((s,e)=>s+parseFloat(e.cme_hours||0),0);
