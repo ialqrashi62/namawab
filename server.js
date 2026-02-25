@@ -4683,4 +4683,68 @@ app.get('/api/insurance/policies', requireAuth, async (req, res) => {
     } catch(e) { res.status(500).json({ error: 'Server error' }); }
 });
 
+
+// ===== INVENTORY ITEMS =====
+app.get('/api/inventory', requireAuth, async (req, res) => {
+    try {
+        await pool.query(`CREATE TABLE IF NOT EXISTS inventory (
+            id SERIAL PRIMARY KEY, name VARCHAR(200), category VARCHAR(100),
+            quantity INTEGER DEFAULT 0, unit VARCHAR(50), reorder_level INTEGER DEFAULT 10,
+            location VARCHAR(100), supplier VARCHAR(200), cost NUMERIC(10,2),
+            expiry_date DATE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
+        res.json((await pool.query('SELECT * FROM inventory ORDER BY name ASC')).rows);
+    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+});
+app.post('/api/inventory', requireAuth, async (req, res) => {
+    try {
+        const { name, category, quantity, unit, reorder_level, location, supplier, cost, expiry_date } = req.body;
+        const r = await pool.query('INSERT INTO inventory (name,category,quantity,unit,reorder_level,location,supplier,cost,expiry_date) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+            [name, category, quantity||0, unit, reorder_level||10, location, supplier, cost, expiry_date]);
+        res.json(r.rows[0]);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.put('/api/inventory/:id', requireAuth, async (req, res) => {
+    try {
+        const { name, category, quantity, unit, reorder_level, location, supplier, cost, expiry_date } = req.body;
+        const r = await pool.query('UPDATE inventory SET name=$1,category=$2,quantity=$3,unit=$4,reorder_level=$5,location=$6,supplier=$7,cost=$8,expiry_date=$9 WHERE id=$10 RETURNING *',
+            [name, category, quantity, unit, reorder_level, location, supplier, cost, expiry_date, req.params.id]);
+        res.json(r.rows[0]);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.delete('/api/inventory/:id', requireAuth, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM inventory WHERE id=$1', [req.params.id]);
+        res.json({ success: true });
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== PHARMACY PRESCRIPTIONS =====
+app.get('/api/pharmacy/prescriptions', requireAuth, async (req, res) => {
+    try {
+        await pool.query(`CREATE TABLE IF NOT EXISTS pharmacy_prescriptions (
+            id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name VARCHAR(200),
+            medication VARCHAR(200), drug_name VARCHAR(200), dosage VARCHAR(100),
+            frequency VARCHAR(100), duration VARCHAR(100), quantity INTEGER,
+            doctor VARCHAR(200), status VARCHAR(30) DEFAULT 'pending',
+            notes TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
+        res.json((await pool.query('SELECT * FROM pharmacy_prescriptions ORDER BY created_at DESC')).rows);
+    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+});
+app.post('/api/pharmacy/prescriptions', requireAuth, async (req, res) => {
+    try {
+        const { patient_id, patient_name, medication, drug_name, dosage, frequency, duration, quantity, doctor, status, notes } = req.body;
+        const r = await pool.query('INSERT INTO pharmacy_prescriptions (patient_id,patient_name,medication,drug_name,dosage,frequency,duration,quantity,doctor,status,notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
+            [patient_id, patient_name, medication||drug_name, drug_name||medication, dosage, frequency, duration, quantity, doctor, status||'pending', notes]);
+        res.json(r.rows[0]);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.put('/api/pharmacy/prescriptions/:id', requireAuth, async (req, res) => {
+    try {
+        const { status } = req.body;
+        const r = await pool.query('UPDATE pharmacy_prescriptions SET status=$1 WHERE id=$2 RETURNING *', [status, req.params.id]);
+        res.json(r.rows[0]);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
 startServer();
