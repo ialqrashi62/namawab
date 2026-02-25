@@ -1230,6 +1230,22 @@ window.setLang = (lang) => {
 };
 
 
+
+window.sendDirectRad = async () => {
+  const patientId = document.getElementById('drPatientSelect')?.value || window._selectedPatientId;
+  if (!patientId) return showToast(tr('Select patient first','اختر مريض أولاً'), 'error');
+  const patientName = document.getElementById('drPatientSelect')?.selectedOptions[0]?.text || window._selectedPatientName || '';
+  const examType = document.getElementById('radDirectType')?.value || '';
+  const details = document.getElementById('radDirectDesc')?.value || '';
+  const priority = document.getElementById('radDirectPriority')?.value || 'routine';
+  try {
+    await API.post('/api/radiology/orders', { patient_id: patientId, patient_name: patientName, exam_type: examType, details: details, priority: priority, status: 'Pending' });
+    showToast(tr('Radiology order sent!','تم إرسال طلب الأشعة!'));
+    document.getElementById('radDirectType') && (document.getElementById('radDirectType').value = '');
+    document.getElementById('radDirectDesc') && (document.getElementById('radDirectDesc').value = '');
+  } catch(e) { showToast(tr('Error','خطأ'), 'error'); }
+};
+
 async function renderDashboard(el) {
   const [s, enhanced] = await Promise.all([
     API.get('/api/dashboard/stats'),
@@ -5289,49 +5305,7 @@ window.recordTransfusion = async () => {
 };
 
 // ===== CONSENT FORMS =====
-async function renderConsentForms(el) {
-  const [forms, patients, templates] = await Promise.all([
-    API.get('/api/consent-forms'), API.get('/api/patients'),
-    API.get('/api/consent-forms/templates/list')
-  ]);
-  el.innerHTML = `
-    <div class="page-title">📜 ${tr('Electronic Consent Forms', 'الإقرارات الإلكترونية')}</div>
-    <div class="split-layout"><div class="card">
-      <div class="card-title">📝 ${tr('Create Consent Form', 'إنشاء إقرار')}</div>
-      <div class="form-group mb-12"><label>${tr('Template', 'القالب')}</label>
-        <select class="form-input" id="cfTemplate" onchange="loadConsentTemplate()">
-          <option value="">${tr('-- Select Template --', '-- اختر القالب --')}</option>
-          ${templates.map(t => `<option value="${t.type}" data-title="${t.title}" data-title-ar="${t.title_ar}" data-content="${t.content}">${isArabic ? t.title_ar : t.title}</option>`).join('')}
-        </select></div>
-      <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="cfPatient">${patients.map(p => `<option value="${p.id}" data-name="${p.name_en || p.name_ar}">${p.file_number} - ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</option>`).join('')}</select></div>
-      <div class="form-group mb-12"><label>${tr('Title', 'العنوان')}</label><input class="form-input" id="cfTitle"></div>
-      <div class="form-group mb-12"><label>${tr('Content', 'المحتوى')}</label><textarea class="form-input form-textarea" id="cfContent" rows="6"></textarea></div>
-      <div class="form-group mb-12"><label>${tr('Doctor', 'الطبيب')}</label><input class="form-input" id="cfDoctor"></div>
-      <button class="btn btn-primary w-full" onclick="createConsentForm()" style="height:44px">📝 ${tr('Create Form', 'إنشاء الإقرار')}</button>
-    </div><div>
-      <div class="card mb-16">
-        <div class="card-title">✍️ ${tr('Sign Consent Form', 'توقيع الإقرار')}</div>
-        <div class="form-group mb-12"><label>${tr('Select Form', 'اختر الإقرار')}</label>
-          <select class="form-input" id="cfSignSelect" onchange="loadConsentForSign()">
-            <option value="">${tr('-- Select --', '-- اختر --')}</option>
-            ${forms.filter(f => f.status === 'Pending').map(f => `<option value="${f.id}">#${f.id} - ${f.patient_name} - ${isArabic ? (f.form_title_ar || f.form_title) : f.form_title}</option>`).join('')}
-          </select></div>
-        <div id="cfSignArea" style="display:none">
-          <div id="cfSignContent" class="card mb-12" style="background:var(--hover);padding:16px;font-size:14px;line-height:1.8;max-height:200px;overflow-y:auto"></div>
-          <div class="form-group mb-12"><label>✍️ ${tr('Patient Signature', 'توقيع المريض')}</label>
-            <canvas id="cfSigCanvas" width="400" height="150" style="border:2px solid var(--border);border-radius:8px;background:#fff;cursor:crosshair;touch-action:none;width:100%;max-width:400px"></canvas>
-            <button class="btn btn-secondary btn-sm mt-8" onclick="clearSigCanvas()">🗑 ${tr('Clear', 'مسح')}</button></div>
-          <div class="form-group mb-12"><label>${tr('Witness Name', 'اسم الشاهد')}</label><input class="form-input" id="cfWitness"></div>
-          <button class="btn btn-success w-full" onclick="signConsentForm()" style="height:44px">✅ ${tr('Sign & Confirm', 'توقيع وتأكيد')}</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">📋 ${tr('All Consent Forms', 'جميع الإقرارات')}</div>
-        <div id="cfTable">${makeTable([tr('ID', '#'), tr('Patient', 'المريض'), tr('Type', 'النوع'), tr('Title', 'العنوان'), tr('Doctor', 'الطبيب'), tr('Status', 'الحالة'), tr('Signed', 'التوقيع'), tr('Actions', 'إجراءات')],
-    forms.map(f => ({ cells: [f.id, f.patient_name, f.form_type, isArabic ? (f.form_title_ar || f.form_title) : f.form_title, f.doctor_name, f.status === 'Signed' ? badge(tr('Signed', 'موقع'), 'success') : badge(tr('Pending', 'معلق'), 'warning'), f.signed_at || '-', `<button class="btn btn-sm" onclick="printConsentForm(${f.id})" title="${tr('Print', 'طباعة')}">🖨️</button>`] })))}</div>
-      </div>
-    </div></div>`;
-}
+
 window.printConsentForm = async (formId) => {
   try {
     const [form, settings] = await Promise.all([

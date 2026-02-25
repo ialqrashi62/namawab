@@ -4577,4 +4577,110 @@ app.get('/api/medical-records/patient/:patientId', requireAuth, async (req, res)
     } catch(e) { res.status(500).json({ error: 'Server error' }); }
 });
 
+
+
+// ===== PATHOLOGY SPECIMENS =====
+app.get('/api/pathology/specimens', requireAuth, async (req, res) => {
+    try {
+        await pool.query(`CREATE TABLE IF NOT EXISTS pathology_specimens (id SERIAL PRIMARY KEY, patient_name VARCHAR(200), specimen_type VARCHAR(100), site VARCHAR(200), doctor VARCHAR(200), clinical_details TEXT, priority VARCHAR(30), status VARCHAR(30) DEFAULT 'received', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        res.json((await pool.query('SELECT * FROM pathology_specimens ORDER BY created_at DESC')).rows);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.post('/api/pathology/specimens', requireAuth, async (req, res) => {
+    try {
+        const { patient_name, specimen_type, site, doctor, clinical_details, priority, status } = req.body;
+        const r = await pool.query('INSERT INTO pathology_specimens (patient_name,specimen_type,site,doctor,clinical_details,priority,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [patient_name, specimen_type, site, doctor, clinical_details, priority, status||'received']);
+        res.json(r.rows[0]);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== CSSD BATCHES =====
+app.get('/api/cssd/batches', requireAuth, async (req, res) => {
+    try {
+        await pool.query(`CREATE TABLE IF NOT EXISTS cssd_batches (id SERIAL PRIMARY KEY, batch_number VARCHAR(50), items TEXT, department VARCHAR(100), method VARCHAR(50), temperature VARCHAR(20), operator VARCHAR(100), status VARCHAR(30) DEFAULT 'processing', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        res.json((await pool.query('SELECT * FROM cssd_batches ORDER BY created_at DESC')).rows);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.post('/api/cssd/batches', requireAuth, async (req, res) => {
+    try {
+        const { batch_number, items, department, method, temperature, operator, status } = req.body;
+        const r = await pool.query('INSERT INTO cssd_batches (batch_number,items,department,method,temperature,operator,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [batch_number, items, department, method, temperature, operator, status||'processing']);
+        res.json(r.rows[0]);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.put('/api/cssd/batches/:id', requireAuth, async (req, res) => {
+    try {
+        const { status } = req.body;
+        const r = await pool.query('UPDATE cssd_batches SET status=$1 WHERE id=$2 RETURNING *', [status, req.params.id]);
+        res.json(r.rows[0]);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== CME EVENTS =====
+app.get('/api/cme/events', requireAuth, async (req, res) => {
+    try {
+        await pool.query(`CREATE TABLE IF NOT EXISTS cme_events (id SERIAL PRIMARY KEY, title VARCHAR(300), speaker VARCHAR(200), event_date DATE, cme_hours NUMERIC(4,1), category VARCHAR(50), department VARCHAR(100), status VARCHAR(30) DEFAULT 'upcoming', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        res.json((await pool.query('SELECT * FROM cme_events ORDER BY event_date DESC')).rows);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.post('/api/cme/events', requireAuth, async (req, res) => {
+    try {
+        const { title, speaker, event_date, cme_hours, category, department, status } = req.body;
+        const r = await pool.query('INSERT INTO cme_events (title,speaker,event_date,cme_hours,category,department,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [title, speaker, event_date, cme_hours||0, category, department, status||'upcoming']);
+        res.json(r.rows[0]);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== INFECTION CONTROL REPORTS =====
+app.get('/api/infection-control/reports', requireAuth, async (req, res) => {
+    try {
+        await pool.query(`CREATE TABLE IF NOT EXISTS infection_control_reports (id SERIAL PRIMARY KEY, patient_name VARCHAR(200), infection_type VARCHAR(100), ward VARCHAR(100), isolation_type VARCHAR(50), culture_results TEXT, action_taken TEXT, status VARCHAR(30) DEFAULT 'active', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        res.json((await pool.query('SELECT * FROM infection_control_reports ORDER BY created_at DESC')).rows);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.post('/api/infection-control/reports', requireAuth, async (req, res) => {
+    try {
+        const { patient_name, infection_type, ward, isolation_type, culture_results, action_taken, status } = req.body;
+        const r = await pool.query('INSERT INTO infection_control_reports (patient_name,infection_type,ward,isolation_type,culture_results,action_taken,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [patient_name, infection_type, ward, isolation_type, culture_results, action_taken, status||'active']);
+        res.json(r.rows[0]);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.put('/api/infection-control/reports/:id', requireAuth, async (req, res) => {
+    try {
+        const { status } = req.body;
+        const r = await pool.query('UPDATE infection_control_reports SET status=$1 WHERE id=$2 RETURNING *', [status, req.params.id]);
+        res.json(r.rows[0]);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== MAINTENANCE ORDERS =====
+app.get('/api/maintenance/orders', requireAuth, async (req, res) => {
+    try {
+        await pool.query(`CREATE TABLE IF NOT EXISTS maintenance_orders (id SERIAL PRIMARY KEY, equipment VARCHAR(200), location VARCHAR(100), maintenance_type VARCHAR(50), priority VARCHAR(30), description TEXT, requested_by VARCHAR(100), status VARCHAR(30) DEFAULT 'pending', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        res.json((await pool.query('SELECT * FROM maintenance_orders ORDER BY created_at DESC')).rows);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.post('/api/maintenance/orders', requireAuth, async (req, res) => {
+    try {
+        const { equipment, location, maintenance_type, priority, description, requested_by, status } = req.body;
+        const r = await pool.query('INSERT INTO maintenance_orders (equipment,location,maintenance_type,priority,description,requested_by,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [equipment, location, maintenance_type, priority, description, requested_by, status||'pending']);
+        res.json(r.rows[0]);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.put('/api/maintenance/orders/:id', requireAuth, async (req, res) => {
+    try {
+        const { status } = req.body;
+        const r = await pool.query('UPDATE maintenance_orders SET status=$1 WHERE id=$2 RETURNING *', [status, req.params.id]);
+        res.json(r.rows[0]);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== INSURANCE POLICIES =====
+app.get('/api/insurance/policies', requireAuth, async (req, res) => {
+    try {
+        await pool.query(`CREATE TABLE IF NOT EXISTS insurance_policies (id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name VARCHAR(200), company VARCHAR(200), policy_number VARCHAR(100), class VARCHAR(50), coverage_percent NUMERIC(5,2) DEFAULT 80, start_date DATE, end_date DATE, status VARCHAR(30) DEFAULT 'active', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        res.json((await pool.query('SELECT * FROM insurance_policies ORDER BY created_at DESC')).rows);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
 startServer();
