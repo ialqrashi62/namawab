@@ -566,6 +566,11 @@ app.put('/api/lab/orders/:id', requireAuth, async (req, res) => {
     try {
         const { status, result: testResult } = req.body;
         if (status) await pool.query('UPDATE lab_radiology_orders SET status=$1 WHERE id=$2', [status, req.params.id]);
+        // Notify doctor when result is ready
+        if (status === 'Completed') {
+            const order = (await pool.query('SELECT * FROM lab_radiology_orders WHERE id=$1', [req.params.id])).rows[0];
+            if (order) await pool.query('INSERT INTO notifications (user_id, title, message, type, module) VALUES ($1,$2,$3,$4,$5)', [order.doctor_id, (order.is_radiology ? 'Radiology' : 'Lab') + ' Result Ready', order.order_type + ' for patient #' + order.patient_id + ' is complete', 'success', 'Lab']);
+        }
         if (testResult) await pool.query('UPDATE lab_radiology_orders SET results=$1 WHERE id=$2', [testResult, req.params.id]);
         res.json((await pool.query('SELECT * FROM lab_radiology_orders WHERE id=$1', [req.params.id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -3500,6 +3505,122 @@ app.get('/api/consent/patient/:patient_id', requireAuth, async (req, res) => {
 app.get('/api/consent/recent', requireAuth, async (req, res) => {
     try {
         res.json((await pool.query('SELECT pc.*, cft.title_ar as template_title, cft.category FROM patient_consents pc LEFT JOIN consent_form_templates cft ON pc.template_id=cft.id ORDER BY pc.created_at DESC LIMIT 50')).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+
+// ===== DAILY CASH RECONCILIATION =====
+app.get('/api/reports/daily-cash', requireAuth, async (req, res) => {
+    try {
+        const date = req.query.date || new Date().toISOString().split('T')[0];
+        const byCash = (await pool.query("SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE payment_method='Cash' AND DATE(created_at)=$1 AND cancelled=0", [date])).rows[0].total;
+        const byCard = (await pool.query("SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE payment_method IN ('Card','POS','شبكة') AND DATE(created_at)=$1 AND cancelled=0", [date])).rows[0].total;
+        const byTransfer = (await pool.query("SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE payment_method IN ('Transfer','تحويل') AND DATE(created_at)=$1 AND cancelled=0", [date])).rows[0].total;
+        const byInsurance = (await pool.query("SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE payment_method='Insurance' AND DATE(created_at)=$1 AND cancelled=0", [date])).rows[0].total;
+        const total = (await pool.query("SELECT COALESCE(SUM(total),0) as total, COUNT(*) as cnt FROM invoices WHERE DATE(created_at)=$1 AND cancelled=0", [date])).rows[0];
+        const byCreator = (await pool.query("SELECT COALESCE(created_by,'Unknown') as staff, COUNT(*) as cnt, COALESCE(SUM(total),0) as total FROM invoices WHERE DATE(created_at)=$1 AND cancelled=0 GROUP BY created_by ORDER BY total DESC", [date])).rows;
+        const byService = (await pool.query("SELECT service_type, COUNT(*) as cnt, COALESCE(SUM(total),0) as total FROM invoices WHERE DATE(created_at)=$1 AND cancelled=0 GROUP BY service_type ORDER BY total DESC", [date])).rows;
+        res.json({ date, totalRevenue: parseFloat(total.total), invoiceCount: parseInt(total.cnt), cash: parseFloat(byCash), card: parseFloat(byCard), transfer: parseFloat(byTransfer), insurance: parseFloat(byInsurance), byStaff: byCreator, byService });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== DOCTOR REVENUE + COMMISSIONS =====
+app.get('/api/reports/doctor-revenue', requireAuth, async (req, res) => {
+    try {
+        const { from, to } = req.query;
+        let dateFilter = '', params = [];
+        if (from && to) { dateFilter = " AND i.created_at BETWEEN $1 AND ($2::text || ' 23:59:59')::timestamp"; params = [from, to]; }
+        const doctors = (await pool.query(`SELECT su.id, su.display_name, su.speciality, su.commission_type, su.commission_value,
+            COALESCE(COUNT(DISTINCT i.id),0) as invoice_count,
+            COALESCE(SUM(i.total),0) as total_revenue
+            FROM system_users su
+            LEFT JOIN invoices i ON i.description LIKE '%' || su.display_name || '%' AND i.cancelled=0 ${dateFilter}
+            WHERE su.role='Doctor' AND su.is_active=1
+            GROUP BY su.id ORDER BY total_revenue DESC`, params)).rows;
+        doctors.forEach(d => {
+            d.total_revenue = parseFloat(d.total_revenue);
+            if (d.commission_type === 'percentage') d.commission = (d.total_revenue * (d.commission_value || 0) / 100);
+            else d.commission = parseFloat(d.commission_value || 0) * parseInt(d.invoice_count || 0);
+        });
+        res.json(doctors);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== AGING REPORT (30/60/90/120 days) =====
+app.get('/api/reports/aging', requireAuth, async (req, res) => {
+    try {
+        const current = (await pool.query("SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at >= CURRENT_DATE - 30 ORDER BY created_at DESC")).rows;
+        const d30 = (await pool.query("SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at BETWEEN CURRENT_DATE - 60 AND CURRENT_DATE - 30 ORDER BY created_at DESC")).rows;
+        const d60 = (await pool.query("SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at BETWEEN CURRENT_DATE - 90 AND CURRENT_DATE - 60 ORDER BY created_at DESC")).rows;
+        const d90 = (await pool.query("SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at < CURRENT_DATE - 90 ORDER BY created_at DESC")).rows;
+        const sum = arr => arr.reduce((s, r) => s + parseFloat(r.total), 0);
+        res.json({
+            current: { items: current, total: sum(current), count: current.length },
+            days30: { items: d30, total: sum(d30), count: d30.length },
+            days60: { items: d60, total: sum(d60), count: d60.length },
+            days90plus: { items: d90, total: sum(d90), count: d90.length },
+            grandTotal: sum(current) + sum(d30) + sum(d60) + sum(d90)
+        });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== REFERRAL SYSTEM =====
+app.post('/api/referrals', requireAuth, async (req, res) => {
+    try {
+        const { patient_id, patient_name, from_doctor, from_dept, to_dept, to_doctor, reason, urgency, notes } = req.body;
+        await pool.query(`CREATE TABLE IF NOT EXISTS referrals (
+            id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name TEXT DEFAULT '', from_doctor TEXT DEFAULT '', from_dept TEXT DEFAULT '',
+            to_dept TEXT DEFAULT '', to_doctor TEXT DEFAULT '', reason TEXT DEFAULT '', urgency TEXT DEFAULT 'Routine',
+            notes TEXT DEFAULT '', status TEXT DEFAULT 'Pending', response TEXT DEFAULT '', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        const result = await pool.query('INSERT INTO referrals (patient_id, patient_name, from_doctor, from_dept, to_dept, to_doctor, reason, urgency, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+            [patient_id, patient_name || '', from_doctor || req.session.user?.display_name || '', from_dept || '', to_dept || '', to_doctor || '', reason || '', urgency || 'Routine', notes || '']);
+        await pool.query('INSERT INTO notifications (target_role, title, message, type, module) VALUES ($1,$2,$3,$4,$5)',
+            ['Doctor', 'New Referral', 'Patient: ' + patient_name + ' referred to ' + to_dept + ' - ' + reason, 'info', 'Referrals']);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'REFERRAL', 'Doctor', 'Referred ' + patient_name + ' to ' + to_dept, req.ip);
+        res.json(result.rows[0]);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.get('/api/referrals', requireAuth, async (req, res) => {
+    try {
+        await pool.query(`CREATE TABLE IF NOT EXISTS referrals (
+            id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name TEXT DEFAULT '', from_doctor TEXT DEFAULT '', from_dept TEXT DEFAULT '',
+            to_dept TEXT DEFAULT '', to_doctor TEXT DEFAULT '', reason TEXT DEFAULT '', urgency TEXT DEFAULT 'Routine',
+            notes TEXT DEFAULT '', status TEXT DEFAULT 'Pending', response TEXT DEFAULT '', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        const { patient_id } = req.query;
+        if (patient_id) res.json((await pool.query('SELECT * FROM referrals WHERE patient_id=$1 ORDER BY created_at DESC', [patient_id])).rows);
+        else res.json((await pool.query('SELECT * FROM referrals ORDER BY created_at DESC LIMIT 100')).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== ENHANCED DASHBOARD STATS (today KPIs) =====
+app.get('/api/dashboard/today', requireAuth, async (req, res) => {
+    try {
+        const todayRev = (await pool.query("SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE DATE(created_at)=CURRENT_DATE AND cancelled=0")).rows[0].total;
+        const todayPatients = (await pool.query("SELECT COUNT(DISTINCT patient_id) as cnt FROM invoices WHERE DATE(created_at)=CURRENT_DATE")).rows[0].cnt;
+        const todayInvoices = (await pool.query("SELECT COUNT(*) as cnt FROM invoices WHERE DATE(created_at)=CURRENT_DATE AND cancelled=0")).rows[0].cnt;
+        const pendingLab = (await pool.query("SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE status='Requested' AND is_radiology=0")).rows[0].cnt;
+        const pendingRad = (await pool.query("SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE status='Requested' AND is_radiology=1")).rows[0].cnt;
+        const pendingRx = (await pool.query("SELECT COUNT(*) as cnt FROM pharmacy_prescriptions_queue WHERE status='Pending'")).rows[0].cnt;
+        const waitingPatients = (await pool.query("SELECT COUNT(*) as cnt FROM patients WHERE status='Waiting'")).rows[0].cnt;
+        res.json({ todayRevenue: parseFloat(todayRev), todayPatients: parseInt(todayPatients), todayInvoices: parseInt(todayInvoices), pendingLab: parseInt(pendingLab), pendingRad: parseInt(pendingRad), pendingRx: parseInt(pendingRx), waitingPatients: parseInt(waitingPatients) });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== PATIENT FULL SUMMARY (for Doctor) =====
+app.get('/api/patients/:id/summary', requireAuth, async (req, res) => {
+    try {
+        const pid = req.params.id;
+        const patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [pid])).rows[0];
+        if (!patient) return res.status(404).json({ error: 'Not found' });
+        const records = (await pool.query('SELECT * FROM medical_records WHERE patient_id=$1 ORDER BY created_at DESC LIMIT 10', [pid])).rows;
+        const labs = (await pool.query("SELECT * FROM lab_radiology_orders WHERE patient_id=$1 AND is_radiology=0 ORDER BY created_at DESC LIMIT 10", [pid])).rows;
+        const rads = (await pool.query("SELECT * FROM lab_radiology_orders WHERE patient_id=$1 AND is_radiology=1 ORDER BY created_at DESC LIMIT 5", [pid])).rows;
+        const rxs = (await pool.query('SELECT * FROM prescriptions WHERE patient_id=$1 ORDER BY created_at DESC LIMIT 10', [pid])).rows;
+        const invoices = (await pool.query('SELECT * FROM invoices WHERE patient_id=$1 AND cancelled=0 ORDER BY created_at DESC LIMIT 10', [pid])).rows;
+        const visits = (await pool.query('SELECT * FROM patient_visits WHERE patient_id=$1 ORDER BY created_at DESC LIMIT 10', [pid])).rows;
+        const consents = (await pool.query('SELECT pc.*, cft.title_ar FROM patient_consents pc LEFT JOIN consent_form_templates cft ON pc.template_id=cft.id WHERE pc.patient_id=$1 ORDER BY pc.created_at DESC LIMIT 5', [pid])).rows;
+        res.json({ patient, records, labs, rads, prescriptions: rxs, invoices, visits, consents });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 

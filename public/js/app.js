@@ -94,6 +94,17 @@ function buildNav() {
   });
 }
 
+
+  // Add notification bell to header
+  const headerR = document.querySelector('.header-right') || document.querySelector('.header');
+  if (headerR) {
+    const bellSpan = document.createElement('span');
+    bellSpan.id = 'notifBell';
+    bellSpan.style.cssText = 'cursor:pointer;font-size:20px;position:relative;margin-left:12px;margin-right:12px';
+    bellSpan.innerHTML = '🔔';
+    headerR.prepend(bellSpan);
+  }
+
 function setupEvents() {
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await API.post('/api/auth/logout');
@@ -442,11 +453,152 @@ window.printSignedConsent = async function(id) {
 };
 
 
+
+// ===== OB/GYN DEPARTMENT PAGE =====
+async function renderOBGYN(el) {
+  let stats = { activePregnancies: 0, highRisk: 0, dueThisWeek: 0, deliveredThisMonth: 0 };
+  try { stats = await API.get('/api/obgyn/stats'); } catch(e) {}
+  const patients = await API.get('/api/patients');
+  let patOpts = patients.map(p => '<option value="' + p.id + '" data-name="' + (p.name_ar || p.name_en) + '">' + (p.name_ar || p.name_en) + ' (' + p.file_number + ')</option>').join('');
+
+  el.innerHTML = '<div class="page-title">🤰 ' + tr('OB/GYN Department', 'قسم النساء والتوليد') + '</div>' +
+    '<div class="stats-grid">' +
+    '<div class="stat-card" style="--stat-color:#ec4899"><div class="stat-label">' + tr('Active Pregnancies', 'حمل نشط') + '</div><div class="stat-value">' + stats.activePregnancies + '</div></div>' +
+    '<div class="stat-card" style="--stat-color:#ef4444"><div class="stat-label">' + tr('High Risk', 'عالي الخطورة') + '</div><div class="stat-value">' + stats.highRisk + '</div></div>' +
+    '<div class="stat-card" style="--stat-color:#f59e0b"><div class="stat-label">' + tr('Due This Week', 'ولادة هذا الأسبوع') + '</div><div class="stat-value">' + stats.dueThisWeek + '</div></div>' +
+    '<div class="stat-card" style="--stat-color:#22c55e"><div class="stat-label">' + tr('Delivered This Month', 'ولادات هذا الشهر') + '</div><div class="stat-value">' + stats.deliveredThisMonth + '</div></div>' +
+    '</div>' +
+
+    '<div class="card" style="margin-top:16px"><h3 style="margin-bottom:12px">📋 ' + tr('New Pregnancy Record', 'سجل حمل جديد') + '</h3>' +
+    '<div class="form-grid" style="gap:10px">' +
+    '<div class="form-group"><label>' + tr('Patient', 'المريضة') + '</label><select id="obPatient" class="form-control"><option value="">' + tr('-- Select --', '-- اختري --') + '</option>' + patOpts + '</select></div>' +
+    '<div class="form-group"><label>' + tr('LMP (Last Menstrual Period)', 'آخر دورة شهرية') + '</label><input type="date" id="obLMP" class="form-control"></div>' +
+    '<div class="form-group"><label>G (Gravida)</label><input type="number" id="obGravida" class="form-control" value="1" min="1"></div>' +
+    '<div class="form-group"><label>P (Para)</label><input type="number" id="obPara" class="form-control" value="0" min="0"></div>' +
+    '<div class="form-group"><label>A (Abortions)</label><input type="number" id="obAbort" class="form-control" value="0" min="0"></div>' +
+    '<div class="form-group"><label>' + tr('Blood Group', 'فصيلة الدم') + '</label><select id="obBlood" class="form-control"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div>' +
+    '<div class="form-group"><label>Rh</label><select id="obRh" class="form-control"><option>Positive</option><option>Negative</option></select></div>' +
+    '<div class="form-group"><label>' + tr('Risk Level', 'مستوى الخطورة') + '</label><select id="obRisk" class="form-control"><option value="Low">' + tr('Low', 'منخفض') + '</option><option value="Medium">' + tr('Medium', 'متوسط') + '</option><option value="High">' + tr('High', 'عالي') + '</option></select></div>' +
+    '<div class="form-group"><label>' + tr('Previous C-Sections', 'قيصريات سابقة') + '</label><input type="number" id="obPrevCS" class="form-control" value="0" min="0"></div>' +
+    '<div class="form-group"><label>' + tr('Chronic Conditions', 'أمراض مزمنة') + '</label><input id="obChronic" class="form-control" placeholder="' + tr('DM, HTN, etc', 'سكري، ضغط...') + '"></div>' +
+    '<div class="form-group"><label>' + tr('Allergies', 'حساسية') + '</label><input id="obAllergy" class="form-control"></div>' +
+    '<div class="form-group"><label>' + tr('Attending Doctor', 'الطبيب المعالج') + '</label><input id="obDoctor" class="form-control" value="' + (currentUser?.display_name || '') + '"></div>' +
+    '</div>' +
+    '<button class="btn btn-primary" onclick="createPregnancy()" style="margin-top:12px">✅ ' + tr('Create Record', 'إنشاء السجل') + '</button></div>' +
+
+    '<div class="card" style="margin-top:16px"><h3 style="margin-bottom:12px">📊 ' + tr('Active Pregnancies', 'الحالات النشطة') + '</h3><div id="obActiveList">' + tr('Loading...', 'جاري التحميل...') + '</div></div>' +
+
+    '<div class="card" style="margin-top:16px"><h3 style="margin-bottom:12px">🧪 ' + tr('Lab Panels', 'حزم الفحوصات') + '</h3><div id="obLabPanels">' + tr('Loading...', 'جاري التحميل...') + '</div></div>';
+
+  // Load active pregnancies
+  try {
+    const preg = await API.get('/api/obgyn/pregnancies?status=Active');
+    const list = document.getElementById('obActiveList');
+    if (preg.length === 0) { list.innerHTML = '<p style="color:var(--text-muted)">' + tr('No active pregnancies', 'لا توجد حالات نشطة') + '</p>'; }
+    else {
+      let html = '<table class="data-table"><thead><tr><th>' + tr('Patient', 'المريضة') + '</th><th>GPAL</th><th>' + tr('EDD', 'تاريخ الولادة المتوقع') + '</th><th>' + tr('Risk', 'الخطورة') + '</th><th>' + tr('Doctor', 'الطبيب') + '</th><th>' + tr('Actions', 'إجراءات') + '</th></tr></thead><tbody>';
+      preg.forEach(p => {
+        const riskColor = p.risk_level === 'High' ? '#ef4444' : p.risk_level === 'Medium' ? '#f59e0b' : '#22c55e';
+        html += '<tr><td>' + p.patient_name + '</td><td>G' + p.gravida + 'P' + p.para + 'A' + p.abortions + 'L' + p.living_children + '</td><td>' + (p.edd || '-') + '</td><td><span style="color:' + riskColor + ';font-weight:700">' + p.risk_level + '</span></td><td>' + (p.attending_doctor || '-') + '</td><td><button class="btn btn-sm" onclick="showAntenatalForm(' + p.id + ',' + p.patient_id + ')">📋 ' + tr('Antenatal', 'متابعة') + '</button></td></tr>';
+      });
+      html += '</tbody></table>';
+      list.innerHTML = html;
+    }
+  } catch(e) { document.getElementById('obActiveList').innerHTML = '<p style="color:red">Error loading</p>'; }
+
+  // Load lab panels
+  try {
+    const panels = await API.get('/api/obgyn/lab-panels');
+    let ph = '<div style="display:grid;gap:8px">';
+    panels.forEach(p => {
+      ph += '<div style="padding:12px;border-radius:8px;background:var(--hover);border-right:3px solid #ec4899"><strong>' + p.panel_name_ar + '</strong> (' + p.trimester + ')<br><small style="color:var(--text-muted)">' + p.tests + '</small></div>';
+    });
+    ph += '</div>';
+    document.getElementById('obLabPanels').innerHTML = ph;
+  } catch(e) {}
+}
+
+window.createPregnancy = async () => {
+  const patSel = document.getElementById('obPatient');
+  const pid = patSel.value;
+  if (!pid) return showToast(tr('Select patient', 'اختري مريضة'), 'error');
+  const lmp = document.getElementById('obLMP').value;
+  if (!lmp) return showToast(tr('Enter LMP date', 'أدخلي تاريخ آخر دورة'), 'error');
+  try {
+    await API.post('/api/obgyn/pregnancies', {
+      patient_id: pid,
+      patient_name: patSel.options[patSel.selectedIndex]?.dataset?.name || '',
+      lmp, gravida: parseInt(document.getElementById('obGravida').value) || 1,
+      para: parseInt(document.getElementById('obPara').value) || 0,
+      abortions: parseInt(document.getElementById('obAbort').value) || 0,
+      blood_group: document.getElementById('obBlood').value,
+      rh_factor: document.getElementById('obRh').value,
+      risk_level: document.getElementById('obRisk').value,
+      previous_cs: parseInt(document.getElementById('obPrevCS').value) || 0,
+      chronic_conditions: document.getElementById('obChronic').value,
+      allergies: document.getElementById('obAllergy').value,
+      attending_doctor: document.getElementById('obDoctor').value
+    });
+    showToast(tr('Pregnancy record created!', 'تم إنشاء سجل الحمل!'));
+    navigateTo(currentPage);
+  } catch(e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+window.showAntenatalForm = async (pregId, patientId) => {
+  const visits = await API.get('/api/obgyn/antenatal/' + pregId);
+  let vRows = visits.map(v => '<tr><td>' + v.visit_number + '</td><td>' + (v.gestational_age || '-') + '</td><td>' + v.blood_pressure + '</td><td>' + v.fetal_heart_rate + '</td><td>' + v.weight + 'kg</td><td>' + (v.risk_flags || '✅') + '</td></tr>').join('');
+
+  let html = '<h4 style="margin-bottom:8px">' + tr('Previous Visits', 'الزيارات السابقة') + '</h4>' +
+    (visits.length ? '<table class="data-table" style="margin-bottom:16px"><thead><tr><th>#</th><th>GA</th><th>BP</th><th>FHR</th><th>Wt</th><th>Flags</th></tr></thead><tbody>' + vRows + '</tbody></table>' : '<p style="color:var(--text-muted);margin-bottom:16px">' + tr('No visits yet', 'لا زيارات') + '</p>') +
+    '<h4 style="margin-bottom:8px">' + tr('New Visit', 'زيارة جديدة') + '</h4>' +
+    '<div class="form-grid" style="gap:8px">' +
+    '<div class="form-group"><label>GA (weeks)</label><input id="antGA" class="form-control" placeholder="e.g. 28+3"></div>' +
+    '<div class="form-group"><label>Weight (kg)</label><input type="number" id="antWt" class="form-control" step="0.1"></div>' +
+    '<div class="form-group"><label>BP</label><input id="antBP" class="form-control" placeholder="120/80"></div>' +
+    '<div class="form-group"><label>Systolic</label><input type="number" id="antSys" class="form-control"></div>' +
+    '<div class="form-group"><label>Diastolic</label><input type="number" id="antDia" class="form-control"></div>' +
+    '<div class="form-group"><label>FHR</label><input type="number" id="antFHR" class="form-control" placeholder="110-160"></div>' +
+    '<div class="form-group"><label>Fundal Height</label><input type="number" id="antFH" class="form-control" step="0.5"></div>' +
+    '<div class="form-group"><label>Hb</label><input type="number" id="antHb" class="form-control" step="0.1"></div>' +
+    '<div class="form-group"><label>Presentation</label><select id="antPres" class="form-control"><option>Cephalic</option><option>Breech</option><option>Transverse</option></select></div>' +
+    '<div class="form-group"><label>Edema</label><select id="antEdema" class="form-control"><option>None</option><option>Mild +</option><option>Moderate ++</option><option>Severe +++</option></select></div>' +
+    '</div>' +
+    '<div class="form-group" style="margin-top:8px"><label>Complaints</label><textarea id="antComp" class="form-control" rows="2"></textarea></div>' +
+    '<div class="form-group"><label>Plan</label><textarea id="antPlan" class="form-control" rows="2"></textarea></div>' +
+    '<button class="btn btn-primary" onclick="saveAntenatal(' + pregId + ',' + patientId + ')" style="margin-top:8px">💾 ' + tr('Save Visit', 'حفظ الزيارة') + '</button>';
+  showModal(tr('Antenatal Visit', 'زيارة متابعة الحمل') + ' #' + pregId, html);
+};
+
+window.saveAntenatal = async (pregId, patientId) => {
+  const bp = document.getElementById('antBP').value;
+  try {
+    await API.post('/api/obgyn/antenatal', {
+      pregnancy_id: pregId, patient_id: patientId,
+      gestational_age: document.getElementById('antGA').value,
+      weight: parseFloat(document.getElementById('antWt').value) || 0,
+      blood_pressure: bp,
+      systolic: parseInt(document.getElementById('antSys').value) || (bp ? parseInt(bp.split('/')[0]) : 0),
+      diastolic: parseInt(document.getElementById('antDia').value) || (bp ? parseInt(bp.split('/')[1]) : 0),
+      fetal_heart_rate: parseInt(document.getElementById('antFHR').value) || 0,
+      fundal_height: parseFloat(document.getElementById('antFH').value) || 0,
+      hemoglobin: parseFloat(document.getElementById('antHb').value) || 0,
+      fetal_presentation: document.getElementById('antPres').value,
+      edema: document.getElementById('antEdema').value,
+      complaints: document.getElementById('antComp').value,
+      plan: document.getElementById('antPlan').value
+    });
+    showToast(tr('Visit saved!', 'تم حفظ الزيارة!'));
+    document.querySelector('.modal-overlay')?.remove();
+    navigateTo(currentPage);
+  } catch(e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+
 // ===== PAGE LOADER =====
 async function loadPage(page) {
   const el = document.getElementById('pageContent');
   el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
-  const pages = [renderDashboard, renderReception, renderAppointments, renderDoctor, renderLab, renderRadiology, renderPharmacy, renderHR, renderFinance, renderInsurance, renderInventory, renderNursing, renderWaitingQueue, renderPatientAccounts, renderReports, renderMessaging, renderCatalog, renderDeptRequests, renderSurgery, renderBloodBank, renderConsentForms, renderEmergency, renderInpatient, renderICU, renderCSSD, renderDietary, renderInfectionControl, renderQuality, renderMaintenance, renderTransport, renderMedicalRecords, renderClinicalPharmacy, renderRehabilitation, renderPatientPortal, renderZATCA, renderTelemedicine, renderPathology, renderSocialWork, renderMortuary, renderCME, renderCosmeticSurgery, renderSettings];
+  const pages = [renderDashboard, renderReception, renderAppointments, renderDoctor, renderLab, renderRadiology, renderPharmacy, renderHR, renderFinance, renderInsurance, renderInventory, renderNursing, renderWaitingQueue, renderPatientAccounts, renderReports, renderMessaging, renderCatalog, renderDeptRequests, renderSurgery, renderBloodBank, renderConsentForms, renderEmergency, renderInpatient, renderICU, renderCSSD, renderDietary, renderInfectionControl, renderQuality, renderMaintenance, renderTransport, renderMedicalRecords, renderClinicalPharmacy, renderRehabilitation, renderPatientPortal, renderZATCA, renderTelemedicine, renderPathology, renderSocialWork, renderMortuary, renderCME, renderCosmeticSurgery, renderOBGYN, renderSettings];
   if (pages[page]) await pages[page](el);
   else el.innerHTML = `<div class="page-title">${NAV_ITEMS[page]?.icon} ${tr(NAV_ITEMS[page]?.en, NAV_ITEMS[page]?.ar)}</div><div class="card"><p>${tr('Coming soon...', 'قريباً...')}</p></div>`;
 }
@@ -2784,6 +2936,10 @@ window.confirmDispense = async (id, patientName, med, dose, qty, freq, dur, pati
   const payMethod = document.querySelector('input[name="dispPay"]:checked')?.value || 'Cash';
   try {
     await API.put(`/api/pharmacy/queue/${id}`, { status: 'Dispensed', price: priceNum, payment_method: payMethod, patient_id: patientId });
+    // Auto-create invoice for pharmacy sale
+    if (priceNum > 0) {
+      try { await API.post('/api/invoices', { patient_id: patientId, patient_name: patientName, total: priceNum, description: med + (dose ? ' ' + dose : '') + ' - ' + freq + ' - ' + dur, service_type: 'Pharmacy', payment_method: payMethod }); } catch(ie) { console.log('Invoice error:', ie); }
+    }
     showToast(`✅ ${tr('Dispensed & sold!', 'تم الصرف والبيع!')} ${priceNum > 0 ? priceNum + ' ' + tr('SAR', 'ر.س') : tr('Free', 'مجاني')}`, 'success');
     // Auto-print barcode label with all doctor data
     printRxLabel(id, patientName, age, dept, med, dose, qty, freq, dur);
