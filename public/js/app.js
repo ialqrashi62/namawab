@@ -1177,9 +1177,17 @@ window.exportAppointments = async () => {
 window.toggleLanguage = () => {
   isArabic = !isArabic;
   localStorage.setItem('namaLang', isArabic ? 'ar' : 'en');
+  // Update document direction
   document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
   document.documentElement.lang = isArabic ? 'ar' : 'en';
-  // Re-render current page
+  document.body.style.direction = isArabic ? 'rtl' : 'ltr';
+  document.body.style.textAlign = isArabic ? 'right' : 'left';
+  // Rebuild sidebar navigation in new language
+  if (typeof buildNav === 'function') buildNav();
+  // Update header text if exists
+  const headerTitle = document.querySelector('.header h1, .app-title, .logo-text');
+  if (headerTitle) headerTitle.textContent = isArabic ? 'نما الطبي' : 'Nama Medical';
+  // Re-render current page content
   if (typeof navigateTo === 'function') navigateTo(currentPage);
   // Update the lang button text
   const langBtn = document.getElementById('langToggleBtn');
@@ -1211,8 +1219,11 @@ window.setLang = (lang) => {
   isArabic = lang === 'ar';
   document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
   document.documentElement.lang = isArabic ? 'ar' : 'en';
+  document.body.style.direction = isArabic ? 'rtl' : 'ltr';
+  document.body.style.textAlign = isArabic ? 'right' : 'left';
   const prompt = document.getElementById('mobileLangPrompt');
   if (prompt) prompt.remove();
+  if (typeof buildNav === 'function') buildNav();
   if (typeof navigateTo === 'function') navigateTo(currentPage);
   const langBtn = document.getElementById('langToggleBtn');
   if (langBtn) langBtn.textContent = isArabic ? '🌐 EN' : '🌐 عربي';
