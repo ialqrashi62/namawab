@@ -56,15 +56,15 @@ function requireAuth(req, res, next) {
     if (req.session && req.session.user) return next();
     res.status(401).json({ error: 'Unauthorized' });
 
-// ===== CATALOG EDIT RESTRICTION (Admin/Manager only) =====
-const requireCatalogAccess = (req, res, next) => {
-    const role = (req.session.user?.role || '').toLowerCase();
-    if (['admin', 'manager', 'administrator'].includes(role)) return next();
-    return res.status(403).json({ error: 'Access denied. Only Admin/Manager can edit catalog items.' });
-};
+    // ===== CATALOG EDIT RESTRICTION (Admin/Manager only) =====
+    const requireCatalogAccess = (req, res, next) => {
+        const role = (req.session.user?.role || '').toLowerCase();
+        if (['admin', 'manager', 'administrator'].includes(role)) return next();
+        return res.status(403).json({ error: 'Access denied. Only Admin/Manager can edit catalog items.' });
+    };
 
-// ===== DISCOUNT LIMIT BY ROLE =====
-const MAX_DISCOUNT_BY_ROLE = { admin: 100, manager: 50, cashier: 10, receptionist: 10, doctor: 20 };
+    // ===== DISCOUNT LIMIT BY ROLE =====
+    const MAX_DISCOUNT_BY_ROLE = { admin: 100, manager: 50, cashier: 10, receptionist: 10, doctor: 20 };
 
 }
 
@@ -3054,18 +3054,41 @@ app.get('/api/diagnosis-templates', requireAuth, async (req, res) => {
             'Cardiology / القلب': [
                 { name: 'Stable Angina', name_ar: 'ذبحة صدرية مستقرة', icd: 'I20.9', symptoms: 'Exertional chest pain, relieved by rest/nitroglycerin', treatment: 'Aspirin 81mg, Atenolol 50mg, Nitroglycerin SL PRN, stress test' },
                 { name: 'Atrial Fibrillation', name_ar: 'رجفان أذيني', icd: 'I48.9', symptoms: 'Palpitations, irregular pulse, fatigue, dyspnea', treatment: 'Metoprolol 50mg BID, Rivaroxaban 20mg if CHA2DS2-VASc 2+, echo' },
-                { name: 'Hypertensive Crisis', name_ar: 'نوبة ارتفاع ضغط حادة', icd: 'I16.0', symptoms: 'BP >180/120, headache, visual changes, chest pain', treatment: 'Nicardipine IV, lower BP 25% in first hour, ICU/CCU monitoring' }
+                { name: 'Hypertensive Crisis', name_ar: 'نوبة ارتفاع ضغط حادة', icd: 'I16.0', symptoms: 'BP >180/120, headache, visual changes, chest pain', treatment: 'Nicardipine IV, lower BP 25% in first hour, ICU/CCU monitoring' },
+                { name: 'Acute Coronary Syndrome - NSTEMI', name_ar: 'متلازمة شريانية حادة - احتشاء بدون ارتفاع ST', icd: 'I21.4', symptoms: 'Chest pain at rest, troponin elevated, ST depression/T-wave inversion, GRACE score', treatment: 'Aspirin 300mg + Clopidogrel 300mg, Enoxaparin, Atorvastatin 80mg, cardiology/cath within 72hrs' },
+                { name: 'Acute MI - STEMI', name_ar: 'احتشاء حاد مع ارتفاع ST', icd: 'I21.9', symptoms: 'Severe crushing chest pain >20min, ST elevation ≥2 leads, troponin rising, diaphoresis', treatment: 'EMERGENCY: Aspirin+Clopidogrel+Heparin, primary PCI <90min or thrombolysis <30min, CCU admission' },
+                { name: 'Heart Failure - Acute Decompensated', name_ar: 'فشل قلبي حاد', icd: 'I50.9', symptoms: 'Acute dyspnea, orthopnea, PND, bilateral crackles, elevated JVP, peripheral edema, BNP elevated', treatment: 'IV Furosemide 40-80mg, O2, Nitroglycerin if SBP>110, restrict fluids, ACEi, monitor UO, cardiology' },
+                { name: 'Heart Failure - Chronic', name_ar: 'فشل قلبي مزمن', icd: 'I50.0', symptoms: 'Exertional dyspnea, fatigue, bilateral ankle edema, NYHA classification, reduced EF', treatment: 'ACEi/ARB, Bisoprolol, Spironolactone, Furosemide, SGLT2i (Dapagliflozin), fluid restriction, cardiac rehab' },
+                { name: 'Atrial Fibrillation', name_ar: 'رجفان أذيني', icd: 'I48.9', symptoms: 'Irregular palpitations, dyspnea, dizziness, irregularly irregular pulse, absent P waves on ECG', treatment: 'Rate control: Bisoprolol/Diltiazem, CHA2DS2-VASc score, Rivaroxaban/Warfarin if ≥2, cardioversion if acute' },
+                { name: 'Supraventricular Tachycardia', name_ar: 'تسارع فوق بطيني', icd: 'I47.1', symptoms: 'Sudden palpitations, regular tachycardia >150bpm, lightheadedness, narrow QRS, abrupt onset/offset', treatment: 'Vagal maneuvers first, Adenosine 6mg IV rapid push (12mg if no response), Verapamil, electrophysiology' },
+                { name: 'Hypertensive Crisis', name_ar: 'أزمة ارتفاع ضغط الدم', icd: 'I16.1', symptoms: 'SBP>180 or DBP>120, headache, visual changes, chest pain, end-organ damage signs', treatment: 'IV Labetalol or Nicardipine if emergency, Amlodipine 10mg PO if urgency, gradual reduction, monitor q15min' },
+                { name: 'Pericarditis - Acute', name_ar: 'التهاب التامور الحاد', icd: 'I30.9', symptoms: 'Sharp pleuritic chest pain worse supine/improved sitting forward, pericardial rub, diffuse ST elevation', treatment: 'Ibuprofen 600mg TID + Colchicine 0.5mg BD x3months, avoid exercise, Echo if effusion suspected' },
+                { name: 'Valvular Heart Disease - Aortic Stenosis', name_ar: 'تضيق الصمام الأبهري', icd: 'I35.0', symptoms: 'Exertional dyspnea, angina, syncope, systolic ejection murmur radiating to carotids, narrow pulse pressure', treatment: 'Echo assessment, TAVR or surgical AVR if symptomatic/severe, avoid vasodilators, regular follow-up' }
             ],
             'Urology / المسالك البولية': [
                 { name: 'Renal Colic', name_ar: 'مغص كلوي (حصوات)', icd: 'N20.0', symptoms: 'Severe colicky flank pain to groin, hematuria, nausea', treatment: 'Ketorolac 30mg IV, Tamsulosin 0.4mg, hydration, CT KUB, urology referral if >6mm' },
                 { name: 'BPH', name_ar: 'تضخم البروستاتا', icd: 'N40.0', symptoms: 'Frequency, urgency, nocturia, weak stream, incomplete emptying', treatment: 'Tamsulosin 0.4mg HS, Finasteride 5mg, PSA, IPSS, urology F/U' },
-                { name: 'Acute Pyelonephritis', name_ar: 'التهاب الكلى الحاد', icd: 'N10', symptoms: 'High fever, chills, flank pain, CVA tenderness, dysuria', treatment: 'Ciprofloxacin 500mg BID x14d, blood/urine cultures, hydration' }
+                { name: 'Acute Pyelonephritis', name_ar: 'التهاب الكلى الحاد', icd: 'N10', symptoms: 'High fever, chills, flank pain, CVA tenderness, dysuria', treatment: 'Ciprofloxacin 500mg BID x14d, blood/urine cultures, hydration' },
+                { name: 'Benign Prostatic Hyperplasia', name_ar: 'تضخم البروستات الحميد', icd: 'N40.0', symptoms: 'Frequency, urgency, weak stream, nocturia, incomplete emptying, IPSS score', treatment: 'Tamsulosin 0.4mg nocte, Finasteride 5mg if large, IPSS monitoring, TURP if severe, PSA screening' },
+                { name: 'Prostatitis - Acute', name_ar: 'التهاب البروستات الحاد', icd: 'N41.0', symptoms: 'Fever, perineal pain, dysuria, frequency, tender boggy prostate on DRE, elevated WBC', treatment: 'Ciprofloxacin 500mg BD x4wks or TMP/SMX, Paracetamol, sitz baths, urine culture' },
+                { name: 'Erectile Dysfunction', name_ar: 'ضعف الانتصاب', icd: 'N52.9', symptoms: 'Inability to achieve/maintain erection, associated with DM, HTN, smoking, medications', treatment: 'Sildenafil 50mg PRN (1hr before), lifestyle changes, testosterone if low, screen CVD, psychology' },
+                { name: 'Testicular Torsion', name_ar: 'التواء الخصية', icd: 'N44.0', symptoms: 'EMERGENCY: Sudden severe testicular pain, nausea, high-riding testis, absent cremasteric reflex', treatment: 'EMERGENCY: Manual detorsion attempt, surgical exploration within 6hrs, US Doppler, urology stat' },
+                { name: 'Hydrocele', name_ar: 'قيلة مائية', icd: 'N43.3', symptoms: 'Painless scrotal swelling, transilluminant, fluctuant, no tenderness usually', treatment: 'Observation if small/asymptomatic, surgical hydrocelectomy if large/symptomatic, US scrotum' },
+                { name: 'Varicocele', name_ar: 'دوالي الخصية', icd: 'I86.1', symptoms: 'Scrotal heaviness/dull ache, "bag of worms" palpation, worse standing, may cause infertility', treatment: 'Observation if mild, surgical varicocelectomy if symptomatic/infertility, semen analysis' }
             ],
             'Psychiatry / الطب النفسي': [
                 { name: 'Major Depressive Disorder', name_ar: 'اضطراب اكتئابي رئيسي', icd: 'F32.9', symptoms: 'Depressed mood >2w, anhedonia, sleep/appetite changes, hopelessness', treatment: 'Sertraline 50mg daily, CBT referral, safety assessment, F/U 2 weeks' },
                 { name: 'Generalized Anxiety Disorder', name_ar: 'اضطراب القلق العام', icd: 'F41.1', symptoms: 'Excessive worry >6m, restlessness, muscle tension, insomnia', treatment: 'Escitalopram 10mg daily, CBT, relaxation, regular exercise' },
                 { name: 'Insomnia', name_ar: 'اضطراب الأرق', icd: 'G47.0', symptoms: 'Difficulty initiating/maintaining sleep, daytime impairment', treatment: 'Sleep hygiene, CBT-I, Melatonin 3mg HS, Trazodone 50mg if persistent' },
-                { name: 'Panic Disorder', name_ar: 'اضطراب الهلع', icd: 'F41.0', symptoms: 'Recurrent panic attacks: palpitations, sweating, trembling, SOB', treatment: 'Sertraline 25-100mg, Alprazolam 0.25mg PRN short-term, CBT' }
+                { name: 'Panic Disorder', name_ar: 'اضطراب الهلع', icd: 'F41.0', symptoms: 'Recurrent panic attacks: palpitations, sweating, trembling, SOB', treatment: 'Sertraline 25-100mg, Alprazolam 0.25mg PRN short-term, CBT' },
+                { name: 'Major Depressive Disorder', name_ar: 'اكتئاب شديد', icd: 'F32.2', symptoms: 'Persistent low mood, anhedonia, sleep/appetite change, fatigue, worthlessness, suicidal ideation, PHQ-9>15', treatment: 'Sertraline 50mg or Escitalopram 10mg, CBT referral, safety plan, follow-up 2wks, PHQ-9 monitoring' },
+                { name: 'Bipolar Disorder', name_ar: 'اضطراب ثنائي القطب', icd: 'F31.9', symptoms: 'Alternating mania (grandiosity, decreased sleep, pressured speech) and depression episodes', treatment: 'Lithium 300mg BD (monitor levels), Valproate, Quetiapine, mood charting, psychiatry referral' },
+                { name: 'Panic Disorder', name_ar: 'اضطراب الهلع', icd: 'F41.0', symptoms: 'Recurrent unexpected panic attacks, palpitations, chest pain, SOB, dizziness, derealization, fear of dying', treatment: 'Sertraline 50mg, CBT with exposure, breathing retraining, Alprazolam 0.5mg PRN (short-term only)' },
+                { name: 'PTSD', name_ar: 'اضطراب ما بعد الصدمة', icd: 'F43.1', symptoms: 'Flashbacks, nightmares, avoidance, hypervigilance, emotional numbing, after traumatic event', treatment: 'Trauma-focused CBT, EMDR, Sertraline 50-200mg, Prazosin for nightmares, psychology referral' },
+                { name: 'ADHD', name_ar: 'اضطراب فرط الحركة وتشتت الانتباه', icd: 'F90.0', symptoms: 'Inattention, hyperactivity, impulsivity, onset before 12yo, symptoms in 2+ settings', treatment: 'Methylphenidate 10mg AM, behavioral strategies, school accommodation, parental training, monitor growth' },
+                { name: 'Autism Spectrum Disorder', name_ar: 'اضطراب طيف التوحد', icd: 'F84.0', symptoms: 'Social communication deficits, restricted/repetitive behaviors, early onset, developmental delay', treatment: 'ABA therapy, speech therapy, OT, social skills training, special education, psychiatry if comorbid' },
+                { name: 'Schizophrenia', name_ar: 'انفصام الشخصية', icd: 'F20.9', symptoms: 'Hallucinations, delusions, disorganized thinking/behavior, negative symptoms, onset 15-35yo', treatment: 'Risperidone 2mg daily or Olanzapine 10mg, CBT for psychosis, family psychoeducation, monitor metabolic' },
+                { name: 'Eating Disorder - Anorexia', name_ar: 'فقدان الشهية العصبي', icd: 'F50.0', symptoms: 'BMI<17.5, fear of weight gain, body image distortion, amenorrhea, restrictive eating', treatment: 'Medical stabilization, nutritional rehabilitation, FBT (adolescents), CBT-E, psychiatry, monitor BMI/labs' }
             ],
             'OB/GYN / النساء والتوليد': [
                 { name: 'Dysmenorrhea', name_ar: 'عسر الطمث', icd: 'N94.6', symptoms: 'Crampy lower abdominal pain with menses, backache, nausea', treatment: 'Ibuprofen 400mg TID before menses, heat pad, OCP if recurrent' },
@@ -3103,6 +3126,119 @@ app.get('/api/diagnosis-templates', requireAuth, async (req, res) => {
                 { name: 'Menopause', name_ar: 'سن اليأس', icd: 'N95.1', symptoms: 'Hot flashes, night sweats, vaginal dryness, mood changes, irregular menses >12m', treatment: 'HRT (if indicated), vaginal estrogen for atrophy, calcium+Vit D, DEXA scan, lifestyle modification' },
                 { name: 'Cervical Dysplasia (CIN)', name_ar: 'خلل التنسج العنقي', icd: 'N87.9', symptoms: 'Abnormal Pap smear, HPV positive, usually asymptomatic', treatment: 'Colposcopy + biopsy, CIN1: follow-up, CIN2-3: LEEP/cone biopsy, HPV vaccination' },
                 { name: 'Breast Lump Evaluation', name_ar: 'تقييم كتلة بالثدي', icd: 'N63', symptoms: 'Palpable breast mass, +/- pain, nipple discharge', treatment: 'Triple assessment: clinical exam + US/mammogram + FNA/core biopsy, refer if suspicious' }
+            ],
+            'Neurology / الأعصاب': [
+                { name: 'Migraine without Aura', name_ar: 'صداع نصفي بدون هالة', icd: 'G43.0', symptoms: 'Unilateral throbbing headache, nausea, photophobia, phonophobia, 4-72hrs', treatment: 'Sumatriptan 50mg PRN, Paracetamol 1g, dark room, prophylaxis: Propranolol 40mg BD' },
+                { name: 'Migraine with Aura', name_ar: 'صداع نصفي مع هالة', icd: 'G43.1', symptoms: 'Visual aura (zigzag lines, scotoma) 20-60min before headache, unilateral', treatment: 'Sumatriptan 50mg at aura onset, avoid triggers, prophylaxis: Topiramate 25mg' },
+                { name: 'Tension-Type Headache', name_ar: 'صداع التوتر', icd: 'G44.2', symptoms: 'Bilateral pressing/tightening, mild-moderate, no nausea/vomiting', treatment: 'Paracetamol 1g or Ibuprofen 400mg, stress management, physiotherapy' },
+                { name: 'Cluster Headache', name_ar: 'صداع عنقودي', icd: 'G44.0', symptoms: 'Severe unilateral orbital/temporal pain, lacrimation, rhinorrhea, 15-180min, clusters', treatment: 'O2 100% 12L/min via mask, Sumatriptan 6mg SC, Verapamil prophylaxis' },
+                { name: 'Epilepsy - Generalized Tonic-Clonic', name_ar: 'صرع توتري رمعي معمم', icd: 'G40.3', symptoms: 'Loss of consciousness, tonic stiffening, clonic jerking, postictal confusion', treatment: 'Valproate 500mg BD or Levetiracetam 500mg BD, seizure precautions, EEG' },
+                { name: 'Epilepsy - Absence Seizures', name_ar: 'صرع غيابي', icd: 'G40.0', symptoms: 'Brief staring episodes, eyelid fluttering, unresponsive 10-30sec, mainly children', treatment: 'Ethosuximide 250mg BD or Valproate, EEG with hyperventilation' },
+                { name: 'Stroke - Ischemic', name_ar: 'سكتة دماغية إقفارية', icd: 'I63.9', symptoms: 'Sudden hemiparesis, facial droop, speech difficulty, FAST positive', treatment: 'EMERGENCY: tPA if <4.5hrs, Aspirin 300mg, CT head stat, admission, Neurology' },
+                { name: 'Stroke - Hemorrhagic', name_ar: 'سكتة دماغية نزفية', icd: 'I61.9', symptoms: 'Sudden severe headache, vomiting, rapidly deteriorating consciousness, hypertension', treatment: 'EMERGENCY: CT stat, BP control, reverse anticoagulants, Neurosurgery consult' },
+                { name: 'TIA - Transient Ischemic Attack', name_ar: 'نوبة إقفارية عابرة', icd: 'G45.9', symptoms: 'Transient neurological deficit <24hrs, hemiparesis, speech, vision, fully resolves', treatment: 'Aspirin 300mg, Clopidogrel 75mg, CT/MRI, carotid duplex, ABCD2 score' },
+                { name: 'Bell Palsy', name_ar: 'شلل بل (شلل العصب الوجهي)', icd: 'G51.0', symptoms: 'Acute unilateral facial weakness, inability to close eye, drooling, taste loss', treatment: 'Prednisolone 50mg x 10 days, eye protection, artificial tears, Acyclovir if HSV' },
+                { name: 'Carpal Tunnel Syndrome', name_ar: 'متلازمة النفق الرسغي', icd: 'G56.0', symptoms: 'Numbness/tingling in thumb, index, middle fingers, worse at night, Tinel/Phalen positive', treatment: 'Wrist splint at night, NSAIDs, steroid injection, NCS/EMG, surgery if severe' },
+                { name: 'Parkinson Disease', name_ar: 'مرض باركنسون', icd: 'G20', symptoms: 'Resting tremor, bradykinesia, rigidity, postural instability, masked facies', treatment: 'Levodopa/Carbidopa 100/25 TID, Pramipexole, physiotherapy, OT referral' },
+                { name: 'Multiple Sclerosis', name_ar: 'التصلب اللويحي المتعدد', icd: 'G35', symptoms: 'Optic neuritis, limb weakness, sensory changes, fatigue, Lhermitte sign, relapsing-remitting', treatment: 'IV Methylprednisolone for relapse, DMT: Interferon beta/Fingolimod, MRI monitoring' },
+                { name: 'Trigeminal Neuralgia', name_ar: 'ألم العصب الثلاثي التوائم', icd: 'G50.0', symptoms: 'Electric shock-like facial pain, V2/V3 distribution, triggered by touch/eating/wind', treatment: 'Carbamazepine 100mg BD titrate up, Gabapentin, MRI brain, surgical options' },
+                { name: 'Sciatica', name_ar: 'عرق النسا', icd: 'M54.3', symptoms: 'Radiating pain from lower back to leg, positive SLR, dermatomal distribution, weakness', treatment: 'NSAIDs, Pregabalin 75mg BD, physiotherapy, MRI if red flags, epidural injection' },
+                { name: 'Meningitis - Bacterial', name_ar: 'التهاب السحايا الجرثومي', icd: 'G00.9', symptoms: 'Fever, severe headache, neck stiffness, photophobia, rash (Meningococcal), Kernig/Brudzinski', treatment: 'EMERGENCY: Ceftriaxone 2g IV stat, Dexamethasone, LP, blood cultures, admission ICU' },
+                { name: 'Vertigo - BPPV', name_ar: 'دوار وضعي انتيابي حميد', icd: 'H81.1', symptoms: 'Brief spinning with head position change, positive Dix-Hallpike, nystagmus, no hearing loss', treatment: 'Epley maneuver, Brandt-Daroff exercises, Betahistine 16mg TID, avoid triggers' },
+                { name: 'Myasthenia Gravis', name_ar: 'الوهن العضلي الوبيل', icd: 'G70.0', symptoms: 'Fluctuating weakness, ptosis, diplopia, dysphagia, worse with exertion, improves with rest', treatment: 'Pyridostigmine 60mg TID, Prednisolone, Azathioprine, CT chest (thymoma), crisis plan' }
+            ],
+            'Pulmonology / الصدرية': [
+                { name: 'Asthma - Mild Intermittent', name_ar: 'ربو متقطع خفيف', icd: 'J45.0', symptoms: 'Wheeze <2x/week, night symptoms <2x/month, normal FEV1, no activity limitation', treatment: 'SABA PRN (Salbutamol 2 puffs), no controller needed, peak flow monitoring' },
+                { name: 'Asthma - Moderate Persistent', name_ar: 'ربو مستمر متوسط', icd: 'J45.1', symptoms: 'Daily symptoms, night symptoms >1x/week, FEV1 60-80%, some activity limitation', treatment: 'ICS/LABA (Seretide 250/50 BD), SABA PRN, spacer device, action plan' },
+                { name: 'Asthma - Acute Exacerbation', name_ar: 'نوبة ربو حادة', icd: 'J46', symptoms: 'Severe dyspnea, wheeze, unable to complete sentences, tachycardia, low O2 sat', treatment: 'Salbutamol nebulizer 5mg q20min x3, Ipratropium, Prednisolone 40mg, O2, admit if severe' },
+                { name: 'COPD', name_ar: 'مرض الانسداد الرئوي المزمن', icd: 'J44.1', symptoms: 'Chronic cough, sputum, dyspnea on exertion, smoking history, barrel chest, decreased air entry', treatment: 'Tiotropium 18mcg daily, ICS/LABA, Salbutamol PRN, smoking cessation, pulmonary rehab' },
+                { name: 'COPD Acute Exacerbation', name_ar: 'تفاقم حاد للانسداد الرئوي', icd: 'J44.0', symptoms: 'Increased dyspnea, increased sputum volume/purulence, wheeze, hypoxia', treatment: 'Nebulized bronchodilators, Prednisolone 40mg x5d, Antibiotics (Amoxicillin-Clav), O2 target 88-92%' },
+                { name: 'Pneumonia - Community Acquired', name_ar: 'التهاب رئوي مكتسب من المجتمع', icd: 'J18.9', symptoms: 'Fever, productive cough, dyspnea, pleuritic pain, crackles, consolidation on CXR', treatment: 'Amoxicillin 1g TID + Azithromycin 500mg daily, or Levofloxacin 750mg daily, CXR, CBC' },
+                { name: 'Pneumonia - Hospital Acquired', name_ar: 'التهاب رئوي مكتسب من المستشفى', icd: 'J18.1', symptoms: 'New fever/infiltrate >48hrs after admission, purulent sputum, hypoxia', treatment: 'Piperacillin-Tazobactam + Vancomycin, cultures before antibiotics, CXR, procalcitonin' },
+                { name: 'Pulmonary Embolism', name_ar: 'انسداد رئوي (جلطة رئوية)', icd: 'I26.9', symptoms: 'Sudden dyspnea, pleuritic chest pain, tachycardia, hemoptysis, DVT risk factors, Wells score', treatment: 'EMERGENCY: CTPA, Heparin/Enoxaparin, Warfarin/DOAC, thrombolysis if massive, O2' },
+                { name: 'Pleural Effusion', name_ar: 'انصباب جنبي', icd: 'J90', symptoms: 'Dyspnea, decreased breath sounds, dullness to percussion, CXR: meniscus sign', treatment: 'Diagnostic thoracentesis, treat underlying cause, therapeutic drainage if large, CT chest' },
+                { name: 'Pneumothorax', name_ar: 'استرواح صدري', icd: 'J93.9', symptoms: 'Sudden pleuritic pain, dyspnea, decreased breath sounds, hyperresonant, tracheal deviation if tension', treatment: 'Small: observation + O2, Large: chest tube, Tension: needle decompression + chest tube stat' },
+                { name: 'Tuberculosis - Pulmonary', name_ar: 'سل رئوي', icd: 'A15.0', symptoms: 'Chronic cough >2wks, hemoptysis, night sweats, weight loss, upper lobe infiltrates', treatment: 'RIPE: Rifampin+Isoniazid+Pyrazinamide+Ethambutol x2m then RI x4m, sputum AFB, isolation' },
+                { name: 'Sleep Apnea - Obstructive', name_ar: 'انقطاع النفس الانسدادي أثناء النوم', icd: 'G47.33', symptoms: 'Snoring, witnessed apneas, daytime somnolence, morning headache, BMI>30, Epworth >10', treatment: 'CPAP therapy, weight loss, sleep hygiene, polysomnography, ENT evaluation' },
+                { name: 'Bronchitis - Acute', name_ar: 'التهاب شعب هوائية حاد', icd: 'J20.9', symptoms: 'Cough with/without sputum, chest discomfort, low fever, no consolidation on CXR', treatment: 'Supportive: fluids, rest, honey, Dextromethorphan PRN, Albuterol if wheezing, NO antibiotics if viral' }
+            ],
+            'Gastroenterology / الجهاز الهضمي': [
+                { name: 'GERD', name_ar: 'ارتجاع المريء', icd: 'K21.0', symptoms: 'Heartburn, acid regurgitation, worse postprandial/supine, dysphagia, chronic cough', treatment: 'Omeprazole 20mg before breakfast x8wks, lifestyle: elevate HOB, avoid triggers, weight loss' },
+                { name: 'Peptic Ulcer - Gastric', name_ar: 'قرحة معدية', icd: 'K25.9', symptoms: 'Epigastric pain worse with meals, nausea, bloating, weight loss, NSAID/H.pylori history', treatment: 'Omeprazole 40mg BD x4wks, H.pylori triple therapy if positive, stop NSAIDs, endoscopy' },
+                { name: 'Peptic Ulcer - Duodenal', name_ar: 'قرحة اثني عشرية', icd: 'K26.9', symptoms: 'Epigastric pain relieved by meals/antacids, nocturnal pain, H.pylori common', treatment: 'Omeprazole 20mg BD + Amoxicillin 1g BD + Clarithromycin 500mg BD x14d, then PPI x4wks' },
+                { name: 'Acute Gastroenteritis', name_ar: 'التهاب معدي معوي حاد', icd: 'K52.9', symptoms: 'Diarrhea, vomiting, abdominal cramps, fever, dehydration', treatment: 'ORS, IV fluids if dehydrated, Ondansetron 4mg for vomiting, BRAT diet, stool culture if bloody' },
+                { name: 'Irritable Bowel Syndrome', name_ar: 'القولون العصبي', icd: 'K58.9', symptoms: 'Recurrent abdominal pain, bloating, altered bowel habit (constipation/diarrhea), relief with defecation', treatment: 'Mebeverine 135mg TID, fiber supplement, low FODMAP diet, CBT, Amitriptyline 10mg nocte' },
+                { name: 'Inflammatory Bowel Disease - Crohn', name_ar: 'داء كرون', icd: 'K50.9', symptoms: 'Chronic diarrhea, abdominal pain, weight loss, perianal disease, fistulae, skip lesions', treatment: 'Mesalazine, Prednisolone for flares, Azathioprine, Infliximab, colonoscopy, GI referral' },
+                { name: 'Inflammatory Bowel Disease - UC', name_ar: 'التهاب القولون التقرحي', icd: 'K51.9', symptoms: 'Bloody diarrhea, urgency, tenesmus, LLQ pain, continuous from rectum, toxic megacolon risk', treatment: 'Mesalazine 2.4g daily, Prednisolone for flares, Azathioprine, colonoscopy, GI referral' },
+                { name: 'Cholelithiasis / Biliary Colic', name_ar: 'حصوات المرارة / مغص مراري', icd: 'K80.2', symptoms: 'RUQ colicky pain after fatty meals, nausea, vomiting, Murphy sign, US gallstones', treatment: 'NSAIDs (Diclofenac 75mg IM), Hyoscine, elective cholecystectomy, US abdomen' },
+                { name: 'Acute Cholecystitis', name_ar: 'التهاب مرارة حاد', icd: 'K81.0', symptoms: 'RUQ pain >6hrs, fever, positive Murphy, elevated WBC, US: wall thickening/pericholecystic fluid', treatment: 'NPO, IV fluids, Ceftriaxone + Metronidazole, Piperacillin-Tazobactam, urgent cholecystectomy' },
+                { name: 'Acute Pancreatitis', name_ar: 'التهاب بنكرياس حاد', icd: 'K85.9', symptoms: 'Severe epigastric pain radiating to back, vomiting, elevated amylase/lipase >3x, Ranson criteria', treatment: 'NPO, aggressive IV fluids, pain control (Morphine), monitor organ failure, CT if no improvement 72hrs' },
+                { name: 'Hemorrhoids', name_ar: 'بواسير', icd: 'K64.9', symptoms: 'Rectal bleeding, anal itching/pain, prolapsing mass, constipation history', treatment: 'Fiber 25g/day, sitz baths, Daflon 1g BD x2wks, topical Proctosedyl, rubber band ligation if grade 2-3' },
+                { name: 'Hepatitis B - Chronic', name_ar: 'التهاب كبد بائي مزمن', icd: 'B18.1', symptoms: 'Often asymptomatic, fatigue, RUQ discomfort, HBsAg+, elevated ALT, fibrosis', treatment: 'Tenofovir 300mg daily or Entecavir 0.5mg daily, monitor HBV DNA, fibroscan, HCC screening' },
+                { name: 'Hepatitis C - Chronic', name_ar: 'التهاب كبد جيمي مزمن', icd: 'B18.2', symptoms: 'Often asymptomatic, fatigue, elevated ALT, HCV Ab+, HCV RNA detectable', treatment: 'Sofosbuvir/Ledipasvir (Harvoni) 1 tab daily x12wks, SVR12 check, genotype, fibroscan' },
+                { name: 'Liver Cirrhosis', name_ar: 'تليف الكبد', icd: 'K74.6', symptoms: 'Jaundice, ascites, spider angiomas, palmar erythema, hepatomegaly, varices, INR elevated', treatment: 'Treat cause, Spironolactone 100mg for ascites, Propranolol for varices, HCC screening q6m, transplant eval' },
+                { name: 'Celiac Disease', name_ar: 'مرض حساسية القمح (السيلياك)', icd: 'K90.0', symptoms: 'Chronic diarrhea, bloating, malabsorption, iron deficiency, dermatitis herpetiformis, failure to thrive in children', treatment: 'Strict gluten-free diet lifelong, nutritional supplementation, anti-tTG monitoring, dietitian referral' }
+            ],
+            'Nephrology / الكلى': [
+                { name: 'Acute Kidney Injury', name_ar: 'إصابة كلوية حادة', icd: 'N17.9', symptoms: 'Oliguria, elevated creatinine, fluid overload, hyperkalemia, metabolic acidosis', treatment: 'IV fluids (if prerenal), stop nephrotoxins, K+ management, monitor UO, dialysis if severe' },
+                { name: 'Chronic Kidney Disease', name_ar: 'فشل كلوي مزمن', icd: 'N18.9', symptoms: 'Fatigue, nausea, edema, hypertension, anemia, elevated creatinine/BUN, proteinuria', treatment: 'ACEi/ARB, BP control <130/80, DM control, low protein diet, EPO if anemic, dialysis planning' },
+                { name: 'Urinary Tract Infection - Lower', name_ar: 'التهاب مسالك بولية سفلي', icd: 'N39.0', symptoms: 'Dysuria, frequency, urgency, suprapubic pain, cloudy/malodorous urine, positive dip', treatment: 'Nitrofurantoin 100mg BD x5d or TMP/SMX DS BD x3d, fluids, urine culture' },
+                { name: 'Pyelonephritis', name_ar: 'التهاب الحويضة والكلية', icd: 'N10', symptoms: 'Fever, flank pain, CVA tenderness, nausea/vomiting, UTI symptoms, elevated WBC', treatment: 'Ciprofloxacin 500mg BD x7d or Ceftriaxone 1g IV, urine/blood cultures, US renal, IV fluids' },
+                { name: 'Nephrolithiasis (Renal Stone)', name_ar: 'حصوات الكلى', icd: 'N20.0', symptoms: 'Severe colicky flank pain radiating to groin, hematuria, nausea/vomiting, restless', treatment: 'Diclofenac 75mg IM, Tamsulosin 0.4mg daily (MET), CT KUB, strain urine, urology if >10mm' },
+                { name: 'Nephrotic Syndrome', name_ar: 'المتلازمة الكلوية', icd: 'N04.9', symptoms: 'Periorbital/peripheral edema, massive proteinuria >3.5g/day, hypoalbuminemia, hyperlipidemia', treatment: 'Prednisolone 1mg/kg, Furosemide, ACEi, low salt diet, anticoagulation, renal biopsy' },
+                { name: 'Diabetic Nephropathy', name_ar: 'اعتلال الكلى السكري', icd: 'E11.22', symptoms: 'Microalbuminuria progressing to proteinuria, declining GFR, hypertension, DM history', treatment: 'ACEi/ARB, HbA1c <7%, BP <130/80, SGLT2 inhibitor, low protein diet, monitor GFR/UACR' }
+            ],
+            'Endocrinology / الغدد الصماء': [
+                { name: 'Type 2 Diabetes Mellitus', name_ar: 'سكري النوع الثاني', icd: 'E11.9', symptoms: 'Polyuria, polydipsia, fatigue, blurred vision, HbA1c >6.5%, FBG >126', treatment: 'Metformin 500mg BD titrate, SGLT2i (Empagliflozin), lifestyle, HbA1c q3m, foot/eye screening' },
+                { name: 'Type 1 Diabetes Mellitus', name_ar: 'سكري النوع الأول', icd: 'E10.9', symptoms: 'Young onset, polyuria, polydipsia, weight loss, DKA, positive GAD/IA2 antibodies', treatment: 'Basal-bolus insulin (Lantus + NovoRapid), CGMS, carb counting, DKA education, HbA1c <7%' },
+                { name: 'Diabetic Ketoacidosis', name_ar: 'حماض كيتوني سكري', icd: 'E10.10', symptoms: 'Hyperglycemia >250, metabolic acidosis pH<7.3, ketonuria/ketonemia, Kussmaul breathing, dehydration', treatment: 'EMERGENCY: IV NS 1L/hr, Insulin infusion 0.1U/kg/hr, K+ replacement, monitor q1h, ICU admission' },
+                { name: 'Hypothyroidism', name_ar: 'قصور الغدة الدرقية', icd: 'E03.9', symptoms: 'Fatigue, weight gain, cold intolerance, constipation, dry skin, bradycardia, elevated TSH', treatment: 'Levothyroxine 50-100mcg AM empty stomach, TSH check q6-8wks, titrate dose' },
+                { name: 'Hyperthyroidism - Graves', name_ar: 'فرط نشاط الدرقية (قريفز)', icd: 'E05.0', symptoms: 'Weight loss, tremor, heat intolerance, palpitations, exophthalmos, goiter, low TSH, high T3/T4', treatment: 'Carbimazole 20mg daily, Propranolol 40mg TID, TFTs q4-6wks, consider RAI or surgery' },
+                { name: 'Thyroid Nodule', name_ar: 'عقدة درقية', icd: 'E04.1', symptoms: 'Palpable neck mass, usually asymptomatic, compression symptoms if large, TFTs usually normal', treatment: 'US thyroid, FNA if >1cm or suspicious, TFTs, monitor if benign, surgery if suspicious/large' },
+                { name: 'Cushing Syndrome', name_ar: 'متلازمة كوشنق', icd: 'E24.9', symptoms: 'Central obesity, moon face, buffalo hump, striae, hypertension, DM, proximal myopathy', treatment: '24hr cortisol, dexamethasone suppression test, MRI pituitary, CT adrenals, surgical excision' },
+                { name: 'Addison Disease', name_ar: 'قصور الغدة الكظرية (أديسون)', icd: 'E27.1', symptoms: 'Fatigue, weight loss, hyperpigmentation, hypotension, hyponatremia, hyperkalemia', treatment: 'Hydrocortisone 15-20mg AM + 5-10mg PM, Fludrocortisone 0.1mg, sick day rules, MedicAlert' },
+                { name: 'Hyperprolactinemia', name_ar: 'ارتفاع هرمون الحليب', icd: 'E22.1', symptoms: 'Galactorrhea, amenorrhea, infertility, decreased libido, visual field defects if macroadenoma', treatment: 'Cabergoline 0.25mg twice weekly, MRI pituitary, visual fields, prolactin level monitoring' },
+                { name: 'PCOS', name_ar: 'متلازمة تكيس المبايض', icd: 'E28.2', symptoms: 'Oligomenorrhea, hirsutism, acne, obesity, infertility, US: polycystic ovaries, elevated testosterone', treatment: 'OCP (Diane 35), Metformin 500mg BD, weight loss, Spironolactone for hirsutism, Clomiphene for fertility' },
+                { name: 'Osteoporosis', name_ar: 'هشاشة العظام', icd: 'M81.0', symptoms: 'Often asymptomatic until fracture, height loss, kyphosis, DEXA T-score ≤-2.5, fragility fractures', treatment: 'Alendronate 70mg weekly, Ca 1200mg + Vit D 800IU daily, weight-bearing exercise, fall prevention' }
+            ],
+            'Hematology / أمراض الدم': [
+                { name: 'Iron Deficiency Anemia', name_ar: 'فقر دم نقص الحديد', icd: 'D50.9', symptoms: 'Fatigue, pallor, dyspnea, pica, koilonychia, low MCV/MCH, low ferritin, low iron', treatment: 'Ferrous sulfate 200mg TID with Vit C, investigate cause (GI bleed, menorrhagia), CBC follow-up' },
+                { name: 'B12 Deficiency Anemia', name_ar: 'فقر دم نقص فيتامين ب12', icd: 'D51.9', symptoms: 'Fatigue, glossitis, neurological symptoms (numbness, ataxia), macrocytic anemia, low B12', treatment: 'Hydroxocobalamin 1mg IM alternate days x2wks then q2-3 months, B12 level monitoring' },
+                { name: 'Sickle Cell Disease', name_ar: 'مرض الخلايا المنجلية', icd: 'D57.1', symptoms: 'Painful crises, acute chest syndrome, splenomegaly (children), jaundice, chronic hemolysis', treatment: 'Hydroxyurea 15mg/kg, folic acid, pain management, transfusion for ACS, pneumococcal vaccine' },
+                { name: 'Thalassemia - Beta Major', name_ar: 'ثلاسيميا كبرى', icd: 'D56.1', symptoms: 'Severe anemia from 6 months, hepatosplenomegaly, bone deformities, transfusion dependent', treatment: 'Regular transfusions q3-4wks, Deferasirox chelation, folic acid, splenectomy if hypersplenism, BMT' },
+                { name: 'Thrombocytopenia - ITP', name_ar: 'نقص صفائح مناعي', icd: 'D69.3', symptoms: 'Petechiae, purpura, epistaxis, gum bleeding, platelets <100K, no splenomegaly', treatment: 'Observation if mild, Prednisolone 1mg/kg if <30K or bleeding, IVIG, Eltrombopag, splenectomy' },
+                { name: 'Deep Vein Thrombosis', name_ar: 'جلطة وريدية عميقة', icd: 'I82.4', symptoms: 'Unilateral leg swelling, pain, warmth, erythema, positive Wells score, US Doppler positive', treatment: 'Enoxaparin 1mg/kg SC BD, Warfarin/Rivaroxaban, compression stockings, 3-6 months anticoagulation' },
+                { name: 'G6PD Deficiency', name_ar: 'نقص إنزيم G6PD', icd: 'D55.0', symptoms: 'Episodic hemolysis triggered by fava beans/drugs, jaundice, dark urine, anemia, reticulocytosis', treatment: 'Avoid triggers (fava, sulfonamides, dapsone), transfusion if severe, list of prohibited drugs' },
+                { name: 'Leukemia - ALL (Acute)', name_ar: 'ابيضاض الدم الليمفاوي الحاد', icd: 'C91.0', symptoms: 'Fatigue, fever, bleeding, bone pain, lymphadenopathy, hepatosplenomegaly, pancytopenia', treatment: 'Urgent: Hematology referral, bone marrow biopsy, chemotherapy protocol, supportive care, transplant eval' }
+            ],
+            'Rheumatology / الروماتيزم': [
+                { name: 'Rheumatoid Arthritis', name_ar: 'التهاب المفاصل الروماتيزمي', icd: 'M05.9', symptoms: 'Symmetric polyarthritis, morning stiffness >1hr, MCP/PIP swelling, RF/Anti-CCP positive', treatment: 'Methotrexate 7.5-25mg weekly + Folic acid, Prednisolone bridge, Hydroxychloroquine, biologics' },
+                { name: 'Systemic Lupus Erythematosus', name_ar: 'الذئبة الحمراء', icd: 'M32.9', symptoms: 'Malar rash, joint pain, photosensitivity, oral ulcers, serositis, nephritis, ANA positive', treatment: 'Hydroxychloroquine 200mg BD, Prednisolone for flares, Mycophenolate for nephritis, sun protection' },
+                { name: 'Gout - Acute', name_ar: 'نقرس حاد', icd: 'M10.9', symptoms: 'Acute monoarthritis (1st MTP), severe pain, redness, swelling, elevated uric acid, tophi', treatment: 'Colchicine 0.5mg BD or Indomethacin 50mg TID, NOT allopurinol during acute, rest, ice' },
+                { name: 'Gout - Chronic/Prophylaxis', name_ar: 'نقرس مزمن / وقائي', icd: 'M10.0', symptoms: 'Recurrent gout attacks, tophi, elevated uric acid, renal stones', treatment: 'Allopurinol 100mg daily titrate to target urate <6, Colchicine 0.5mg daily prophylaxis x6m, diet' },
+                { name: 'Osteoarthritis', name_ar: 'خشونة المفاصل', icd: 'M15.9', symptoms: 'Joint pain worse with activity, morning stiffness <30min, crepitus, bony enlargement, Heberden nodes', treatment: 'Paracetamol 1g QID, Topical Diclofenac, physiotherapy, weight loss, IA steroid injection, joint replacement' },
+                { name: 'Ankylosing Spondylitis', name_ar: 'التهاب الفقار المقسط', icd: 'M45.9', symptoms: 'Low back pain/stiffness worse AM and improving with exercise, <40yo onset, HLA-B27, sacroiliitis', treatment: 'NSAIDs (Indomethacin), physiotherapy, Anti-TNF (Adalimumab) if inadequate response, MRI sacroiliac' },
+                { name: 'Fibromyalgia', name_ar: 'الفيبروميالجيا (ألم عضلي ليفي)', icd: 'M79.7', symptoms: 'Widespread pain >3months, fatigue, sleep disturbance, cognitive fog, tender points, normal labs', treatment: 'Pregabalin 75mg BD, Duloxetine 60mg, graded exercise, CBT, sleep hygiene, reassurance' },
+                { name: 'Psoriatic Arthritis', name_ar: 'التهاب مفاصل صدفي', icd: 'L40.50', symptoms: 'Asymmetric oligoarthritis, dactylitis, nail changes, psoriasis rash, enthesitis, DIP involvement', treatment: 'Methotrexate 15mg weekly, NSAIDs, Anti-TNF if inadequate, Apremilast, Dermatology co-management' }
+            ],
+            'Infectious Disease / الأمراض المعدية': [
+                { name: 'COVID-19', name_ar: 'كوفيد-19', icd: 'U07.1', symptoms: 'Fever, cough, dyspnea, anosmia, myalgia, fatigue, sore throat, GI symptoms', treatment: 'Supportive care, Paracetamol, O2 if SpO2<94%, Dexamethasone if severe, antivirals per protocol' },
+                { name: 'Influenza', name_ar: 'الإنفلونزا', icd: 'J10.1', symptoms: 'Sudden fever, myalgia, headache, cough, sore throat, fatigue, 3-7 day course', treatment: 'Oseltamivir 75mg BD x5d if <48hrs, Paracetamol, fluids, rest, influenza rapid test' },
+                { name: 'Dengue Fever', name_ar: 'حمى الضنك', icd: 'A90', symptoms: 'High fever, severe headache, retro-orbital pain, myalgia, rash, thrombocytopenia, hemoconcentration', treatment: 'Supportive: IV fluids, Paracetamol (NO NSAIDs), monitor platelets/hematocrit, warning signs education' },
+                { name: 'Malaria', name_ar: 'الملاريا', icd: 'B54', symptoms: 'Cyclic fever/chills/sweats, headache, hepatosplenomegaly, anemia, travel to endemic area', treatment: 'ACT (Artemether-Lumefantrine) x3d, thin/thick smear, species identification, G6PD if Primaquine needed' },
+                { name: 'Brucellosis', name_ar: 'الحمى المالطية (البروسيلا)', icd: 'A23.9', symptoms: 'Undulant fever, sweats, arthralgia, hepatosplenomegaly, exposure to livestock/unpasteurized dairy', treatment: 'Doxycycline 100mg BD + Rifampicin 600mg daily x6wks, or Doxy + Gentamicin x3wks, serology' },
+                { name: 'Cellulitis', name_ar: 'التهاب النسيج الخلوي', icd: 'L03.9', symptoms: 'Erythema, warmth, swelling, pain, well-demarcated border, fever, elevated WBC', treatment: 'Amoxicillin-Clavulanate 625mg TID or Cephalexin 500mg QID, mark borders, elevate limb, IV if severe' },
+                { name: 'Herpes Zoster (Shingles)', name_ar: 'الحزام الناري', icd: 'B02.9', symptoms: 'Painful vesicular rash in dermatomal distribution, prodromal pain, unilateral, postherpetic neuralgia risk', treatment: 'Acyclovir 800mg 5x/day x7d or Valacyclovir 1g TID, analgesics, Pregabalin if PHN, ophthalmology if V1' },
+                { name: 'Infectious Mononucleosis', name_ar: 'داء كثرة الوحيدات العدوائية', icd: 'B27.0', symptoms: 'Fever, pharyngitis, lymphadenopathy, fatigue, splenomegaly, atypical lymphocytes, positive monospot', treatment: 'Supportive: rest, Paracetamol, avoid contact sports x4wks (splenic rupture risk), NO Amoxicillin' }
+            ],
+            'Allergy & Immunology / الحساسية والمناعة': [
+                { name: 'Anaphylaxis', name_ar: 'صدمة تحسسية', icd: 'T78.2', symptoms: 'EMERGENCY: Urticaria, angioedema, bronchospasm, hypotension, airway compromise, rapid onset after exposure', treatment: 'IM Adrenaline 0.5mg (1:1000) mid-thigh, O2, IV fluids, Hydrocortisone 200mg IV, Chlorpheniramine, monitor 6hrs' },
+                { name: 'Allergic Rhinitis', name_ar: 'التهاب الأنف التحسسي', icd: 'J30.4', symptoms: 'Sneezing, rhinorrhea, nasal congestion, itchy nose/eyes, allergic shiners, pale turbinates', treatment: 'Intranasal Fluticasone 2 sprays BD, Cetirizine 10mg daily, allergen avoidance, consider immunotherapy' },
+                { name: 'Urticaria - Acute', name_ar: 'أرتيكاريا (شرى) حادة', icd: 'L50.9', symptoms: 'Pruritic wheals, migratory, resolve <24hrs each, may follow food/drug/infection trigger', treatment: 'Cetirizine 10mg or Loratadine 10mg, remove trigger, IM Adrenaline if anaphylaxis signs, short Prednisolone' },
+                { name: 'Urticaria - Chronic', name_ar: 'أرتيكاريا مزمنة', icd: 'L50.8', symptoms: 'Recurrent wheals >6 weeks, no clear trigger, autoimmune association, severely impacts QoL', treatment: 'Non-sedating H1 up to 4x dose, add H2 blocker, Montelukast, Omalizumab if refractory, autoimmune screen' },
+                { name: 'Drug Allergy', name_ar: 'حساسية دوائية', icd: 'T88.7', symptoms: 'Rash, urticaria, angioedema after drug exposure, may be immediate or delayed (7-14d), document drug', treatment: 'Stop offending drug, Cetirizine, Prednisolone if severe, allergy documentation in chart, MedicAlert, alternatives' },
+                { name: 'Food Allergy', name_ar: 'حساسية غذائية', icd: 'T78.1', symptoms: 'Urticaria, GI symptoms, anaphylaxis after food ingestion, common: nuts, shellfish, eggs, milk', treatment: 'Strict avoidance, EpiPen prescription + training, emergency action plan, dietitian, specific IgE/skin prick' },
+                { name: 'Angioedema', name_ar: 'وذمة وعائية', icd: 'T78.3', symptoms: 'Deep tissue swelling of face/lips/tongue/throat, non-pruritic, may compromise airway, ACEi-related or hereditary', treatment: 'Airway assessment FIRST, IM Adrenaline if airway risk, stop ACEi if culprit, ENT if stridor, C4/C1-INH if hereditary' }
             ]
         };
         res.json(templates);
@@ -3290,9 +3426,9 @@ app.get('/api/obgyn/pregnancies', requireAuth, async (req, res) => {
 app.post('/api/obgyn/pregnancies', requireAuth, async (req, res) => {
     try {
         const { patient_id, patient_name, lmp, gravida, para, abortions, living_children,
-                blood_group, rh_factor, risk_level, pre_pregnancy_weight, height,
-                allergies, chronic_conditions, previous_cs, previous_complications,
-                husband_name, husband_blood_group, attending_doctor } = req.body;
+            blood_group, rh_factor, risk_level, pre_pregnancy_weight, height,
+            allergies, chronic_conditions, previous_cs, previous_complications,
+            husband_name, husband_blood_group, attending_doctor } = req.body;
         // Calculate EDD (Naegele's rule: LMP + 280 days)
         let edd = null;
         if (lmp) {
@@ -3306,9 +3442,9 @@ app.post('/api/obgyn/pregnancies', requireAuth, async (req, res) => {
              previous_cs, previous_complications, husband_name, husband_blood_group, attending_doctor, created_by)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21) RETURNING *`,
             [patient_id, patient_name || '', lmp, edd, gravida || 1, para || 0, abortions || 0, living_children || 0,
-             blood_group || '', rh_factor || '', risk_level || 'Low', pre_pregnancy_weight || 0, height || 0,
-             allergies || '', chronic_conditions || '', previous_cs || 0, previous_complications || '',
-             husband_name || '', husband_blood_group || '', attending_doctor || '', req.session.user?.display_name || '']);
+                blood_group || '', rh_factor || '', risk_level || 'Low', pre_pregnancy_weight || 0, height || 0,
+                allergies || '', chronic_conditions || '', previous_cs || 0, previous_complications || '',
+                husband_name || '', husband_blood_group || '', attending_doctor || '', req.session.user?.display_name || '']);
         logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_PREGNANCY', 'OB/GYN', 'Pregnancy record for ' + patient_name, req.ip);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -3340,9 +3476,9 @@ app.get('/api/obgyn/antenatal/:pregnancy_id', requireAuth, async (req, res) => {
 app.post('/api/obgyn/antenatal', requireAuth, async (req, res) => {
     try {
         const { pregnancy_id, patient_id, gestational_age, weight, blood_pressure,
-                systolic, diastolic, fundal_height, fetal_heart_rate, fetal_presentation,
-                fetal_movement, edema, proteinuria, glucose_urine, hemoglobin,
-                complaints, examination_notes, plan, next_visit, risk_flags } = req.body;
+            systolic, diastolic, fundal_height, fetal_heart_rate, fetal_presentation,
+            fetal_movement, edema, proteinuria, glucose_urine, hemoglobin,
+            complaints, examination_notes, plan, next_visit, risk_flags } = req.body;
         const count = (await pool.query('SELECT COUNT(*) as cnt FROM obgyn_antenatal_visits WHERE pregnancy_id=$1', [pregnancy_id])).rows[0].cnt;
         // Calculate weight gain from first visit
         const firstVisit = (await pool.query('SELECT weight FROM obgyn_antenatal_visits WHERE pregnancy_id=$1 ORDER BY visit_number LIMIT 1', [pregnancy_id])).rows[0];
@@ -3353,10 +3489,10 @@ app.post('/api/obgyn/antenatal', requireAuth, async (req, res) => {
              fetal_movement, edema, proteinuria, glucose_urine, hemoglobin, complaints, examination_notes,
              plan, next_visit, doctor, risk_flags) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23) RETURNING *`,
             [pregnancy_id, patient_id, parseInt(count) + 1, gestational_age || '', weight || 0, wGain,
-             blood_pressure || '', systolic || 0, diastolic || 0, fundal_height || 0, fetal_heart_rate || 0,
-             fetal_presentation || '', fetal_movement || 'Active', edema || 'None', proteinuria || 'Negative',
-             glucose_urine || 'Negative', hemoglobin || 0, complaints || '', examination_notes || '',
-             plan || '', next_visit || null, req.session.user?.display_name || '', risk_flags || '']);
+                blood_pressure || '', systolic || 0, diastolic || 0, fundal_height || 0, fetal_heart_rate || 0,
+                fetal_presentation || '', fetal_movement || 'Active', edema || 'None', proteinuria || 'Negative',
+                glucose_urine || 'Negative', hemoglobin || 0, complaints || '', examination_notes || '',
+                plan || '', next_visit || null, req.session.user?.display_name || '', risk_flags || '']);
         // Check for risk flags
         let flags = [];
         if (systolic >= 140 || diastolic >= 90) flags.push('Hypertension');
@@ -3388,11 +3524,11 @@ app.post('/api/obgyn/ultrasounds', requireAuth, async (req, res) => {
              fetal_heart_rate, fetal_presentation, fetal_gender, number_of_fetuses, cervical_length,
              anomalies, findings, impression, performed_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21) RETURNING *`,
             [b.pregnancy_id, b.patient_id, b.scan_type || 'Routine', b.gestational_age || '',
-             b.bpd || 0, b.hc || 0, b.ac || 0, b.fl || 0, b.efw || 0, b.amniotic_fluid_index || 0,
-             b.placenta_location || '', b.placenta_grade || '', b.fetal_heart_rate || 0,
-             b.fetal_presentation || '', b.fetal_gender || 'Not determined', b.number_of_fetuses || 1,
-             b.cervical_length || 0, b.anomalies || '', b.findings || '', b.impression || '',
-             req.session.user?.display_name || '']);
+            b.bpd || 0, b.hc || 0, b.ac || 0, b.fl || 0, b.efw || 0, b.amniotic_fluid_index || 0,
+            b.placenta_location || '', b.placenta_grade || '', b.fetal_heart_rate || 0,
+            b.fetal_presentation || '', b.fetal_gender || 'Not determined', b.number_of_fetuses || 1,
+            b.cervical_length || 0, b.anomalies || '', b.findings || '', b.impression || '',
+            req.session.user?.display_name || '']);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -3410,13 +3546,13 @@ app.post('/api/obgyn/deliveries', requireAuth, async (req, res) => {
              baby_gender, baby_status, baby_anomalies, nicu_admission, nicu_reason, breastfeeding_initiated)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30) RETURNING *`,
             [b.pregnancy_id, b.patient_id, b.delivery_date || new Date(), b.gestational_age_at_delivery || '',
-             b.delivery_type || 'NVD', b.delivery_method || '', b.indication_for_cs || '', b.anesthesia_type || '',
-             b.labor_duration_hours || 0, b.episiotomy || 0, b.perineal_tear || 'None', b.blood_loss_ml || 0,
-             b.placenta_delivery || 'Complete', b.complications || '', b.attending_doctor || '',
-             b.assisting_nurse || '', b.anesthetist || '', b.pediatrician || '', b.notes || '',
-             b.apgar_1min || 0, b.apgar_5min || 0, b.baby_weight || 0, b.baby_length || 0,
-             b.baby_head_circumference || 0, b.baby_gender || '', b.baby_status || 'Alive',
-             b.baby_anomalies || '', b.nicu_admission || 0, b.nicu_reason || '', b.breastfeeding_initiated || 0]);
+            b.delivery_type || 'NVD', b.delivery_method || '', b.indication_for_cs || '', b.anesthesia_type || '',
+            b.labor_duration_hours || 0, b.episiotomy || 0, b.perineal_tear || 'None', b.blood_loss_ml || 0,
+            b.placenta_delivery || 'Complete', b.complications || '', b.attending_doctor || '',
+            b.assisting_nurse || '', b.anesthetist || '', b.pediatrician || '', b.notes || '',
+            b.apgar_1min || 0, b.apgar_5min || 0, b.baby_weight || 0, b.baby_length || 0,
+            b.baby_head_circumference || 0, b.baby_gender || '', b.baby_status || 'Alive',
+            b.baby_anomalies || '', b.nicu_admission || 0, b.nicu_reason || '', b.breastfeeding_initiated || 0]);
         // Update pregnancy status
         await pool.query('UPDATE obgyn_pregnancies SET status=$1, delivery_date=$2, delivery_type=$3, outcome=$4 WHERE id=$5',
             ['Delivered', b.delivery_date || new Date(), b.delivery_type || 'NVD', b.baby_status || 'Alive', b.pregnancy_id]);
@@ -3440,8 +3576,8 @@ app.post('/api/obgyn/nst', requireAuth, async (req, res) => {
              accelerations, decelerations, contractions, result, interpretation, action_taken, performed_by)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
             [b.pregnancy_id, b.patient_id, b.duration_minutes || 20, b.baseline_fhr || 0, b.variability || '',
-             b.accelerations || 0, b.decelerations || 'None', b.contractions || 0, b.result || 'Reactive',
-             b.interpretation || '', b.action_taken || '', req.session.user?.display_name || '']);
+            b.accelerations || 0, b.decelerations || 'None', b.contractions || 0, b.result || 'Reactive',
+            b.interpretation || '', b.action_taken || '', req.session.user?.display_name || '']);
         // Alert if non-reactive
         if (b.result === 'Non-Reactive') {
             await pool.query('INSERT INTO notifications (target_role, title, message, type, module) VALUES ($1,$2,$3,$4,$5)',
