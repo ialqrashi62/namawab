@@ -1347,3 +1347,66 @@ body {
   display: block;
   animation: fadeIn 0.3s ease;
 }
+
+/* ---------- RESPONSIVE DESIGN ---------- */
+@media (max-width: 1024px) {
+  .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .stat-value { font-size: 22px; }
+  .page-content { padding: 16px; }
+  .split-layout { grid-template-columns: 1fr !important; }
+  .grid-equal { grid-template-columns: 1fr !important; }
+  .search-box { width: 180px; }
+}
+
+@media (max-width: 768px) {
+  #sidebar {
+    position: fixed; top: 0; right: -280px;
+    width: 280px; min-width: 280px; height: 100vh;
+    z-index: 1000; transition: right 0.3s ease;
+    box-shadow: -5px 0 20px rgba(0,0,0,0.3);
+  }
+  [dir="ltr"] #sidebar { right: auto; left: -280px; transition: left 0.3s ease; }
+  #sidebar.open { right: 0; }
+  [dir="ltr"] #sidebar.open { left: 0; }
+  .sidebar-overlay.active {
+    display: block; position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); z-index: 999;
+  }
+  .menu-toggle { display: flex !important; }
+  #topHeader { padding: 0 12px; gap: 8px; }
+  .header-title { font-size: 14px; }
+  .search-box { width: 120px; height: 34px; font-size: 12px; }
+  .lang-select, .theme-select { height: 34px; font-size: 11px; }
+  .page-content { padding: 12px; }
+  .card { padding: 14px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .stat-card { padding: 12px; }
+  .stat-value { font-size: 20px; }
+  .data-table { min-width: 500px; }
+  .data-table thead th { padding: 6px 8px; font-size: 10px; }
+  .data-table tbody td { padding: 5px 8px; font-size: 11px; }
+  .btn { height: 34px; padding: 0 12px; font-size: 12px; }
+  .btn-sm { height: 28px; padding: 0 8px; font-size: 11px; }
+  .form-input, .form-select, .form-textarea { height: 36px; font-size: 12px; }
+  .flex { flex-wrap: wrap !important; }
+  .split-layout, .grid-equal { grid-template-columns: 1fr !important; }
+  .badge { font-size: 10px; padding: 2px 8px; }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .stat-value { font-size: 18px; }
+  .search-box { width: 90px; }
+  .header-title { font-size: 13px; }
+  .page-content { padding: 8px; }
+  .card { padding: 10px; margin-bottom: 10px; }
+}
+
+@media print {
+  #sidebar, #topHeader, .btn, .menu-toggle, .sidebar-overlay { display: none !important; }
+  #mainContent { margin: 0; }
+  .page-content { padding: 0; overflow: visible; }
+  .card { border: 1px solid #ddd; box-shadow: none; break-inside: avoid; }
+  body { background: #fff; color: #000; overflow: visible; }
+}

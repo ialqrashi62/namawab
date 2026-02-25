@@ -444,6 +444,96 @@ window.printPatientStatement = async (patientId) => {
   } catch (e) { showToast(tr('Error loading statement', 'خطأ في تحميل الكشف'), 'error'); }
 };
 
+// === DIAGNOSIS TEMPLATES ===
+let _diagTemplatesCache = null;
+window.loadDiagTemplates = async () => {
+  try {
+    const templates = await API.get('/api/diagnosis-templates');
+    _diagTemplatesCache = templates;
+    const sel = document.getElementById('drDiagTemplate');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">' + tr('-- Select Template --', '-- اختر قالب --') + '</option>';
+    for (const [specialty, items] of Object.entries(templates)) {
+      const group = document.createElement('optgroup');
+      group.label = specialty;
+      items.forEach((t, idx) => {
+        const opt = document.createElement('option');
+        opt.value = specialty + '|' + idx;
+        opt.textContent = (isArabic ? t.name_ar : t.name) + ' [' + t.icd + ']';
+        group.appendChild(opt);
+      });
+      sel.appendChild(group);
+    }
+    showToast(tr('Templates loaded!', 'تم تحميل القوالب!'));
+  } catch (e) { showToast(tr('Error loading templates', 'خطأ في تحميل القوالب'), 'error'); }
+};
+window.applyDiagTemplate = () => {
+  const val = document.getElementById('drDiagTemplate')?.value;
+  if (!val || !_diagTemplatesCache) return;
+  const [specialty, idx] = val.split('|');
+  const t = _diagTemplatesCache[specialty]?.[parseInt(idx)];
+  if (!t) return;
+  document.getElementById('drDiag').value = isArabic ? t.name_ar : t.name;
+  document.getElementById('drSymp').value = t.symptoms || '';
+  document.getElementById('drIcd').value = t.icd || '';
+  document.getElementById('drNotes').value = t.treatment || '';
+};
+
+// === PHARMACY LOW STOCK ALERTS ===
+window.showPharmacyStockAlerts = async () => {
+  try {
+    const lowStock = await API.get('/api/pharmacy/low-stock');
+    if (lowStock.length === 0) { showToast(tr('All stock levels OK!', 'جميع المخزونات بحالة جيدة!')); return; }
+    let html = '<div style="max-height:400px;overflow-y:auto">';
+    lowStock.forEach(d => {
+      const pct = d.min_stock_level > 0 ? Math.round((d.stock_qty / d.min_stock_level) * 100) : 0;
+      const color = d.stock_qty <= 0 ? '#dc2626' : d.stock_qty <= 5 ? '#f59e0b' : '#eab308';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;margin:4px 0;border-radius:8px;border-right:4px solid ' + color + ';background:var(--hover)">' +
+        '<div><strong>' + d.drug_name + '</strong>' + (d.category ? '<br><small>' + d.category + '</small>' : '') + '</div>' +
+        '<div style="text-align:center"><span style="font-size:20px;font-weight:700;color:' + color + '">' + d.stock_qty + '</span><br><small>' + tr('of', 'من') + ' ' + (d.min_stock_level || 10) + ' min</small></div></div>';
+    });
+    html += '</div>';
+    showModal(tr('Low Stock Alerts', 'تنبيهات المخزون المنخفض') + ' (' + lowStock.length + ')', html);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+// === P&L REPORT VIEWER ===
+window.renderPnlReport = async (fromDate, toDate) => {
+  try {
+    let url = '/api/reports/pnl';
+    if (fromDate && toDate) url += '?from=' + fromDate + '&to=' + toDate;
+    const data = await API.get(url);
+    const el = document.getElementById('pnlResult');
+    if (!el) return;
+    let typeRows = data.byType.map(t =>
+      '<tr><td>' + (t.service_type || '-') + '</td><td>' + t.cnt + '</td><td style="font-weight:600">' + Number(t.total).toLocaleString() + ' SAR</td></tr>'
+    ).join('');
+    el.innerHTML = '<div class="stats-grid" style="margin-bottom:16px">' +
+      '<div class="stat-card" style="--stat-color:#22c55e"><div class="stat-label">' + tr('Total Revenue', 'إجمالي الإيراد') + '</div><div class="stat-value">' + Number(data.totalRevenue).toLocaleString() + '</div></div>' +
+      '<div class="stat-card" style="--stat-color:#3b82f6"><div class="stat-label">' + tr('Collected', 'المحصل') + '</div><div class="stat-value">' + Number(data.totalCollected).toLocaleString() + '</div></div>' +
+      '<div class="stat-card" style="--stat-color:#f59e0b"><div class="stat-label">' + tr('Discounts', 'الخصومات') + '</div><div class="stat-value">' + Number(data.totalDiscounts).toLocaleString() + '</div></div>' +
+      '<div class="stat-card" style="--stat-color:#ef4444"><div class="stat-label">' + tr('Uncollected', 'غير محصل') + '</div><div class="stat-value">' + Number(data.totalUncollected).toLocaleString() + '</div></div>' +
+      '<div class="stat-card" style="--stat-color:#64748b"><div class="stat-label">' + tr('Est. Costs', 'تكاليف تقديرية') + '</div><div class="stat-value">' + Number(data.estimatedCosts).toLocaleString() + '</div></div>' +
+      '<div class="stat-card" style="--stat-color:' + (data.netProfit >= 0 ? '#10b981' : '#ef4444') + '"><div class="stat-label">' + tr('Net Profit', 'صافي الربح') + '</div><div class="stat-value">' + Number(data.netProfit).toLocaleString() + '</div></div>' +
+      '</div><table class="data-table"><thead><tr><th>' + tr('Service', 'الخدمة') + '</th><th>' + tr('Count', 'العدد') + '</th><th>' + tr('Revenue', 'الإيراد') + '</th></tr></thead><tbody>' + typeRows + '</tbody></table>';
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+// === SHOW MODAL HELPER ===
+window.showModal = (title, content) => {
+  let modal = document.getElementById('genericModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'genericModal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999';
+    modal.innerHTML = '<div style="background:var(--card-bg,#fff);border-radius:16px;padding:24px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)"><div class="flex" style="justify-content:space-between;align-items:center;margin-bottom:16px"><h3 id="genericModalTitle" style="margin:0"></h3><button onclick="this.closest(\'#genericModal\').style.display=\'none\'" style="border:none;background:none;font-size:20px;cursor:pointer">\u2715</button></div><div id="genericModalBody"></div></div>';
+    document.body.appendChild(modal);
+  }
+  document.getElementById('genericModalTitle').textContent = title;
+  document.getElementById('genericModalBody').innerHTML = content;
+  modal.style.display = 'flex';
+};
+
 async function renderReception(el) {
   const [patients, doctors] = await Promise.all([API.get('/api/patients'), API.get('/api/employees?role=Doctor')]);
   const depts = ['العيادة العامة', 'الباطنية', 'الأطفال', 'العظام', 'الجلدية', 'الأنف والأذن', 'العيون', 'الأسنان', 'الطوارئ'];
@@ -673,6 +763,10 @@ async function renderReception(el) {
           </select></div>
           <div><label>${tr('Description', 'الوصف')}</label><input id="invDescription" class="form-control" placeholder="${tr('Service details', 'تفاصيل الخدمة')}"></div>
           <div><label>${tr('Amount (SAR)', 'المبلغ (ر.س)')}</label><input id="invAmount" type="number" step="0.01" class="form-control" placeholder="0.00"></div>
+          <div class="flex gap-8" style="flex-wrap:wrap">
+            <div style="flex:1"><label>🏷️ ${tr('Discount (SAR)', 'الخصم (ر.س)')}</label><input id="invDiscount" type="number" step="0.01" class="form-control" placeholder="0" value="0"></div>
+            <div style="flex:2"><label>${tr('Discount Reason', 'سبب الخصم')}</label><input id="invDiscountReason" class="form-control" placeholder="${tr('e.g. Staff, Insurance, Coupon...', 'مثال: موظف، تأمين، كوبون...')}"></div>
+          </div>
           <div><label>${tr('Payment Method', 'طريقة السداد')}</label><select id="invPayMethod" class="form-control">
             <option value="كاش">💵 ${tr('Cash', 'كاش')}</option>
             <option value="صرافة">💳 ${tr('Card/POS', 'صرافة')}</option>
@@ -929,6 +1023,8 @@ window.showNewInvoiceModal = function (id, name) {
   document.getElementById('invPLabel').textContent = name;
   document.getElementById('invDescription').value = '';
   document.getElementById('invAmount').value = '';
+  if (document.getElementById('invDiscount')) document.getElementById('invDiscount').value = '0';
+  if (document.getElementById('invDiscountReason')) document.getElementById('invDiscountReason').value = '';
   document.getElementById('newInvoiceModal').style.display = 'flex';
 };
 window.confirmNewInvoice = async function () {
@@ -936,7 +1032,10 @@ window.confirmNewInvoice = async function () {
   const name = document.getElementById('invPName').value;
   const amount = parseFloat(document.getElementById('invAmount').value);
   const serviceType = document.getElementById('invServiceType').value;
+  const discount = parseFloat(document.getElementById('invDiscount')?.value) || 0;
+  const discountReason = document.getElementById('invDiscountReason')?.value || '';
   if (!amount || amount <= 0) return showToast(tr('Enter amount', 'ادخل المبلغ'), 'error');
+  if (discount > amount) return showToast(tr('Discount cannot exceed amount', 'الخصم لا يمكن أن يتجاوز المبلغ'), 'error');
   try {
     let desc = document.getElementById('invDescription').value;
     if (serviceType === 'كشف') {
@@ -946,15 +1045,18 @@ window.confirmNewInvoice = async function () {
       desc = parts.join(' - ');
       await API.put('/api/patients/' + id, { department: dept });
     }
+    const finalAmount = amount - discount;
     await API.post('/api/invoices', {
       patient_id: id, patient_name: name,
-      total: amount,
-      description: desc,
+      total: finalAmount,
+      description: desc + (discount > 0 ? ' (خصم: ' + discount + ' SAR' + (discountReason ? ' - ' + discountReason : '') + ')' : ''),
       service_type: serviceType,
-      payment_method: document.getElementById('invPayMethod').value
+      payment_method: document.getElementById('invPayMethod').value,
+      discount: discount,
+      discount_reason: discountReason
     });
     document.getElementById('newInvoiceModal').style.display = 'none';
-    showToast(tr('Invoice created!', 'تم إنشاء الفاتورة!'));
+    showToast(tr('Invoice created!', 'تم إنشاء الفاتورة!') + (discount > 0 ? ' (' + tr('Discount', 'خصم') + ': ' + discount + ')' : ''));
     await navigateTo(1);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
@@ -1035,6 +1137,14 @@ async function renderDoctor(el) {
         </div>
         <div class="card mb-16">
           <div class="card-title">🩺 ${tr('Diagnosis & Notes', 'التشخيص والملاحظات')}</div>
+          <div class="form-group mb-8"><label>📋 ${tr('Quick Diagnosis Template', 'قالب تشخيص سريع')}</label>
+            <div class="flex gap-8">
+              <select class="form-input" id="drDiagTemplate" style="flex:1" onchange="applyDiagTemplate()">
+                <option value="">${tr('-- Select Template --', '-- اختر قالب --')}</option>
+              </select>
+              <button class="btn btn-sm" onclick="loadDiagTemplates()" style="white-space:nowrap">📥 ${tr('Load', 'تحميل')}</button>
+            </div>
+          </div>
           <div class="form-group mb-12"><label>${tr('Diagnosis', 'التشخيص')}</label><input class="form-input" id="drDiag"></div>
           <div class="form-group mb-12"><label>${tr('Symptoms', 'الأعراض')}</label><input class="form-input" id="drSymp"></div>
           <div class="form-group mb-12"><label>${tr('ICD-10', 'رمز التشخيص')}</label><input class="form-input" id="drIcd"></div>

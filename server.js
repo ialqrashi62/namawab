@@ -323,9 +323,10 @@ app.get('/api/invoices', requireAuth, async (req, res) => {
 
 app.post('/api/invoices', requireAuth, async (req, res) => {
     try {
-        const { patient_name, total, description, service_type } = req.body;
-        const result = await pool.query('INSERT INTO invoices (patient_name, total, description, service_type) VALUES ($1,$2,$3,$4) RETURNING id',
-            [patient_name, total || 0, description || '', service_type || '']);
+        const { patient_id, patient_name, total, description, service_type, payment_method, discount, discount_reason } = req.body;
+        const result = await pool.query(
+            'INSERT INTO invoices (patient_id, patient_name, total, description, service_type, payment_method, discount, discount_reason) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
+            [patient_id || null, patient_name, total || 0, description || '', service_type || '', payment_method || '', discount || 0, discount_reason || '']);
         res.json((await pool.query('SELECT * FROM invoices WHERE id=$1', [result.rows[0].id])).rows[0]);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -2907,6 +2908,94 @@ app.post('/api/pharmacy/drugs', requireAuth, async (req, res) => {
             [drug_name || '', selling_price || 0, stock_qty || 0, category || '', active_ingredient || '']
         );
         res.json(r.rows[0]);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ===== P&L REPORT =====
+app.get('/api/reports/pnl', requireAuth, async (req, res) => {
+    try {
+        const { from, to } = req.query;
+        const dateFilter = from && to ? `WHERE created_at BETWEEN '${from}' AND '${to} 23:59:59'` : '';
+        const revenue = (await pool.query(`SELECT COALESCE(SUM(total),0) as total, COALESCE(SUM(CASE WHEN paid=1 THEN total ELSE 0 END),0) as collected, COALESCE(SUM(discount),0) as discounts FROM invoices ${dateFilter}`)).rows[0];
+        const byType = (await pool.query(`SELECT service_type, COUNT(*) as cnt, COALESCE(SUM(total),0) as total FROM invoices ${dateFilter} GROUP BY service_type ORDER BY total DESC`)).rows;
+        const expenses = (await pool.query(`SELECT COALESCE(SUM(cost_price * stock_qty),0) as drug_cost FROM pharmacy_drug_catalog WHERE is_active=1`)).rows[0];
+        res.json({
+            totalRevenue: parseFloat(revenue.total),
+            totalCollected: parseFloat(revenue.collected),
+            totalDiscounts: parseFloat(revenue.discounts),
+            totalUncollected: parseFloat(revenue.total) - parseFloat(revenue.collected),
+            estimatedCosts: parseFloat(expenses.drug_cost),
+            netProfit: parseFloat(revenue.collected) - parseFloat(expenses.drug_cost),
+            byType
+        });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ===== DIAGNOSIS TEMPLATES =====
+app.get('/api/diagnosis-templates', requireAuth, async (req, res) => {
+    try {
+        // Built-in diagnosis templates by specialty
+        const templates = {
+            'General': [
+                { name: 'Upper Respiratory Tract Infection', name_ar: 'التهاب الجهاز التنفسي العلوي', icd: 'J06.9', symptoms: 'Cough, runny nose, sore throat, fever', treatment: 'Paracetamol, rest, fluids' },
+                { name: 'Acute Gastroenteritis', name_ar: 'التهاب المعدة والأمعاء الحاد', icd: 'K52.9', symptoms: 'Nausea, vomiting, diarrhea, abdominal pain', treatment: 'ORS, anti-emetic, probiotics' },
+                { name: 'Urinary Tract Infection', name_ar: 'التهاب المسالك البولية', icd: 'N39.0', symptoms: 'Dysuria, frequency, urgency, suprapubic pain', treatment: 'Antibiotics (Ciprofloxacin/Nitrofurantoin)' },
+                { name: 'Tension Headache', name_ar: 'صداع توتري', icd: 'G44.2', symptoms: 'Bilateral headache, pressure-like, no nausea', treatment: 'Paracetamol, NSAIDs, stress management' },
+                { name: 'Essential Hypertension', name_ar: 'ارتفاع ضغط الدم', icd: 'I10', symptoms: 'Headache, dizziness, asymptomatic usually', treatment: 'Lifestyle modification, antihypertensives' },
+                { name: 'Type 2 Diabetes Mellitus', name_ar: 'السكري النوع الثاني', icd: 'E11.9', symptoms: 'Polyuria, polydipsia, fatigue, weight loss', treatment: 'Metformin, diet, exercise' },
+                { name: 'Acute Bronchitis', name_ar: 'التهاب الشعب الهوائية الحاد', icd: 'J20.9', symptoms: 'Cough with sputum, chest discomfort, wheezing', treatment: 'Bronchodilators, expectorants' },
+                { name: 'Allergic Rhinitis', name_ar: 'التهاب الأنف التحسسي', icd: 'J30.4', symptoms: 'Sneezing, nasal congestion, watery eyes', treatment: 'Antihistamines, nasal steroids' },
+                { name: 'Iron Deficiency Anemia', name_ar: 'فقر الدم بسبب نقص الحديد', icd: 'D50.9', symptoms: 'Fatigue, pallor, dyspnea on exertion', treatment: 'Iron supplements, dietary modification' },
+                { name: 'Low Back Pain', name_ar: 'ألم أسفل الظهر', icd: 'M54.5', symptoms: 'Lower back pain, muscle spasm, limited motion', treatment: 'NSAIDs, muscle relaxants, physiotherapy' }
+            ],
+            'Pediatrics': [
+                { name: 'Acute Otitis Media', name_ar: 'التهاب الأذن الوسطى الحاد', icd: 'H66.9', symptoms: 'Ear pain, fever, irritability, pulling ear', treatment: 'Amoxicillin, Paracetamol' },
+                { name: 'Viral Pharyngitis', name_ar: 'التهاب البلعوم الفيروسي', icd: 'J02.9', symptoms: 'Sore throat, fever, redness, no exudate', treatment: 'Supportive care, antipyretics' },
+                { name: 'Acute Gastroenteritis (Pediatric)', name_ar: 'نزلة معوية حادة', icd: 'A09', symptoms: 'Vomiting, diarrhea, dehydration', treatment: 'ORS, zinc supplements, ondansetron' },
+                { name: 'Asthma Exacerbation', name_ar: 'نوبة ربو', icd: 'J45.9', symptoms: 'Wheezing, dyspnea, cough, chest tightness', treatment: 'Salbutamol nebulizer, steroids' }
+            ],
+            'Dermatology': [
+                { name: 'Eczema / Atopic Dermatitis', name_ar: 'الإكزيما', icd: 'L30.9', symptoms: 'Itchy, dry, red patches on skin', treatment: 'Moisturizers, topical steroids, antihistamines' },
+                { name: 'Acne Vulgaris', name_ar: 'حب الشباب', icd: 'L70.0', symptoms: 'Comedones, papules, pustules on face', treatment: 'Benzoyl peroxide, retinoids, antibiotics' },
+                { name: 'Tinea (Fungal Infection)', name_ar: 'فطريات جلدية', icd: 'B35.9', symptoms: 'Ring-shaped red patch, itchy, scaly border', treatment: 'Topical antifungals (Clotrimazole)' }
+            ],
+            'Orthopedics': [
+                { name: 'Knee Osteoarthritis', name_ar: 'خشونة الركبة', icd: 'M17.9', symptoms: 'Knee pain, stiffness, crepitus, swelling', treatment: 'NSAIDs, physiotherapy, weight reduction' },
+                { name: 'Lumbar Disc Herniation', name_ar: 'انزلاق غضروفي قطني', icd: 'M51.1', symptoms: 'Sciatica, numbness, back pain radiating to leg', treatment: 'NSAIDs, physiotherapy, surgery if severe' }
+            ]
+        };
+        res.json(templates);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ===== NURSING ASSESSMENT SCALES =====
+app.post('/api/nursing/assessment', requireAuth, async (req, res) => {
+    try {
+        const { patient_id, pain_scale, fall_risk_score, braden_score, notes } = req.body;
+        // Store assessment in nursing vitals or as medical record note
+        const vitals = (await pool.query('SELECT * FROM nursing_vitals WHERE patient_id=$1 ORDER BY id DESC LIMIT 1', [patient_id])).rows[0];
+        if (vitals) {
+            await pool.query('UPDATE nursing_vitals SET notes=$1 WHERE id=$2', [
+                JSON.stringify({ pain_scale, fall_risk_score, braden_score, notes, assessed_at: new Date().toISOString() }),
+                vitals.id
+            ]);
+        }
+        res.json({ success: true, pain_scale, fall_risk_score, braden_score });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ===== BACKUP ENDPOINT =====
+app.get('/api/admin/backup-info', requireAuth, async (req, res) => {
+    try {
+        const tables = (await pool.query("SELECT tablename, pg_total_relation_size(quote_ident(tablename)) as size FROM pg_tables WHERE schemaname='public' ORDER BY size DESC")).rows;
+        const dbSize = (await pool.query("SELECT pg_database_size(current_database()) as size")).rows[0];
+        res.json({
+            database: process.env.DB_NAME || 'nama_medical_web',
+            totalSize: dbSize.size,
+            totalSizeMB: (dbSize.size / 1024 / 1024).toFixed(2),
+            tables: tables.map(t => ({ name: t.tablename, sizeMB: (t.size / 1024 / 1024).toFixed(2) })),
+            backupCommand: `pg_dump -U ${process.env.DB_USER || 'postgres'} -h ${process.env.DB_HOST || 'localhost'} ${process.env.DB_NAME || 'nama_medical_web'} > backup_$(date +%Y%m%d_%H%M%S).sql`
+        });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
