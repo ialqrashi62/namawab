@@ -75,21 +75,22 @@ const NAV_ITEMS = [
   setupEvents();
   navigateTo(0);
 
-    // Language: set direction + show toggle button + mobile prompt
-    setTimeout(() => {
-      document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
-      document.documentElement.lang = isArabic ? 'ar' : 'en';
-      if (typeof showMobileLangPrompt === 'function') showMobileLangPrompt();
-      const hdr = document.querySelector('.header-right') || document.querySelector('.header-actions') || document.querySelector('.header');
-      if (hdr && !document.getElementById('langToggleBtn')) {
-        const b = document.createElement('button');
-        b.id = 'langToggleBtn';
-        b.textContent = isArabic ? '🌐 EN' : '🌐 عربي';
-        b.style.cssText = 'background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;margin:0 8px;transition:all 0.3s';
-        b.onclick = () => { if (typeof toggleLanguage === 'function') toggleLanguage(); };
-        hdr.insertBefore(b, hdr.firstChild);
-      }
-    }, 400);})();
+  // Language: set direction + show toggle button + mobile prompt
+  setTimeout(() => {
+    document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+    document.documentElement.lang = isArabic ? 'ar' : 'en';
+    if (typeof showMobileLangPrompt === 'function') showMobileLangPrompt();
+    const hdr = document.querySelector('.header-right') || document.querySelector('.header-actions') || document.querySelector('.header');
+    if (hdr && !document.getElementById('langToggleBtn')) {
+      const b = document.createElement('button');
+      b.id = 'langToggleBtn';
+      b.textContent = isArabic ? '🌐 EN' : '🌐 عربي';
+      b.style.cssText = 'background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;margin:0 8px;transition:all 0.3s';
+      b.onclick = () => { if (typeof toggleLanguage === 'function') toggleLanguage(); };
+      hdr.insertBefore(b, hdr.firstChild);
+    }
+  }, 400);
+})();
 
 function buildNav() {
   const nav = document.getElementById('navList');
@@ -111,15 +112,15 @@ function buildNav() {
 }
 
 
-  // Add notification bell to header
-  const headerR = document.querySelector('.header-right') || document.querySelector('.header');
-  if (headerR) {
-    const bellSpan = document.createElement('span');
-    bellSpan.id = 'notifBell';
-    bellSpan.style.cssText = 'cursor:pointer;font-size:20px;position:relative;margin-left:12px;margin-right:12px';
-    bellSpan.innerHTML = '🔔';
-    headerR.prepend(bellSpan);
-  }
+// Add notification bell to header
+const headerR = document.querySelector('.header-right') || document.querySelector('.header');
+if (headerR) {
+  const bellSpan = document.createElement('span');
+  bellSpan.id = 'notifBell';
+  bellSpan.style.cssText = 'cursor:pointer;font-size:20px;position:relative;margin-left:12px;margin-right:12px';
+  bellSpan.innerHTML = '🔔';
+  headerR.prepend(bellSpan);
+}
 
 function setupEvents() {
   document.getElementById('logoutBtn').addEventListener('click', async () => {
@@ -216,6 +217,8 @@ function statusBadge(status) {
 window.printDocument = function (title, content, options = {}) {
   const rtl = isArabic ? 'dir="rtl"' : '';
   const w = window.open('', '_blank', 'width=800,height=600');
+  if (!w) { showToast(tr('Please allow pop-ups to print', 'يرجى السماح بالنوافذ المنبثقة للطباعة'), 'error'); return; }
+  const showHeader = options.showHeader !== false;
   w.document.write(`<!DOCTYPE html><html ${rtl}><head><meta charset="utf-8"><title>${title}</title>
     <style>
       *{margin:0;padding:0;box-sizing:border-box}
@@ -236,8 +239,7 @@ window.printDocument = function (title, content, options = {}) {
       .signature div{text-align:center;min-width:150px;border-top:1px solid #333;padding-top:4px;font-size:11px}
       @media print{body{padding:10px} .no-print{display:none!important}}
     </style></head><body>
-    <div class="header"><h1>${options.companyName || 'نما الطبي — Nama Medical'}</h1><p>${options.companyInfo || 'مستشفى نما الطبي | Nama Medical Hospital'}</p></div>
-    <h2 style="text-align:center;color:#1a5276;margin-bottom:16px">${title}</h2>
+    ${showHeader ? '<div class="header"><h1>' + (options.companyName || 'نما الطبي — Nama Medical') + '</h1><p>' + (options.companyInfo || 'مستشفى نما الطبي | Nama Medical Hospital') + '</p></div><h2 style="text-align:center;color:#1a5276;margin-bottom:16px">' + title + '</h2>' : ''}
     ${content}
     <div class="footer">${tr('Printed on', 'طُبع بتاريخ')}: ${new Date().toLocaleString('ar-SA')} | ${tr('Nama Medical ERP', 'نما الطبي')}</div>
     <button class="no-print" onclick="window.print()" style="position:fixed;top:10px;right:10px;padding:10px 24px;background:#1a5276;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">🖨️ ${tr('Print', 'طباعة')}</button>
@@ -424,7 +426,7 @@ async function submitConsent() {
 }
 window.submitConsent = submitConsent;
 
-window.viewSignedConsent = async function(id) {
+window.viewSignedConsent = async function (id) {
   try {
     const consents = await API.get('/api/consent/recent');
     const c = consents.find(x => x.id === id);
@@ -445,7 +447,7 @@ window.viewSignedConsent = async function(id) {
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
-window.printSignedConsent = async function(id) {
+window.printSignedConsent = async function (id) {
   try {
     const consents = await API.get('/api/consent/recent');
     const c = consents.find(x => x.id === id);
@@ -473,7 +475,7 @@ window.printSignedConsent = async function(id) {
 // ===== OB/GYN DEPARTMENT PAGE =====
 async function renderOBGYN(el) {
   let stats = { activePregnancies: 0, highRisk: 0, dueThisWeek: 0, deliveredThisMonth: 0 };
-  try { stats = await API.get('/api/obgyn/stats'); } catch(e) {}
+  try { stats = await API.get('/api/obgyn/stats'); } catch (e) { }
   const patients = await API.get('/api/patients');
   let patOpts = patients.map(p => '<option value="' + p.id + '" data-name="' + (p.name_ar || p.name_en) + '">' + (p.name_ar || p.name_en) + ' (' + p.file_number + ')</option>').join('');
 
@@ -520,7 +522,7 @@ async function renderOBGYN(el) {
       html += '</tbody></table>';
       list.innerHTML = html;
     }
-  } catch(e) { document.getElementById('obActiveList').innerHTML = '<p style="color:red">Error loading</p>'; }
+  } catch (e) { document.getElementById('obActiveList').innerHTML = '<p style="color:red">Error loading</p>'; }
 
   // Load lab panels
   try {
@@ -531,7 +533,7 @@ async function renderOBGYN(el) {
     });
     ph += '</div>';
     document.getElementById('obLabPanels').innerHTML = ph;
-  } catch(e) {}
+  } catch (e) { }
 }
 
 window.createPregnancy = async () => {
@@ -557,7 +559,7 @@ window.createPregnancy = async () => {
     });
     showToast(tr('Pregnancy record created!', 'تم إنشاء سجل الحمل!'));
     navigateTo(currentPage);
-  } catch(e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
 window.showAntenatalForm = async (pregId, patientId) => {
@@ -606,7 +608,7 @@ window.saveAntenatal = async (pregId, patientId) => {
     showToast(tr('Visit saved!', 'تم حفظ الزيارة!'));
     document.querySelector('.modal-overlay')?.remove();
     navigateTo(currentPage);
-  } catch(e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
 
@@ -624,17 +626,17 @@ async function loadPage(page) {
 
 // ===== MEDICAL REPORT / SICK LEAVE =====
 window.showMedicalReportForm = (type) => {
-  const patientId = document.getElementById('drPatientSelect')?.value;
+  const patientId = document.getElementById('drPatientSelect')?.value || window._selectedPatientId;
   if (!patientId) return showToast(tr('Select patient first', 'اختر مريض أولاً'), 'error');
-  const patientName = document.getElementById('drPatientSelect')?.selectedOptions[0]?.text || '';
-  
+  const patientName = document.getElementById('drPatientSelect')?.selectedOptions[0]?.text || window._selectedPatientName || '';
+
   const typeLabels = {
     sick_leave: { en: 'Sick Leave', ar: 'إجازة مرضية' },
     medical_report: { en: 'Medical Report', ar: 'تقرير طبي' },
     fitness: { en: 'Fitness Certificate', ar: 'شهادة لياقة' },
   };
   const label = typeLabels[type] || typeLabels.medical_report;
-  
+
   const modal = document.createElement('div');
   modal.className = 'modal-overlay';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
@@ -643,7 +645,7 @@ window.showMedicalReportForm = (type) => {
     '<div class="form-group"><label>' + tr('Patient', 'المريض') + '</label><input class="form-input" value="' + patientName + '" readonly></div>' +
     '<div class="form-group"><label>' + tr('Diagnosis', 'التشخيص') + '</label><input class="form-input" id="mrDiagnosis" placeholder="' + tr('Diagnosis', 'التشخيص') + '"></div>' +
     '<div class="form-group"><label>' + tr('ICD Code', 'رمز ICD') + '</label><input class="form-input" id="mrICD" placeholder="e.g. J06.9"></div>' +
-    (type === 'sick_leave' ? 
+    (type === 'sick_leave' ?
       '<div style="display:flex;gap:12px">' +
       '<div class="form-group" style="flex:1"><label>' + tr('From', 'من') + '</label><input type="date" class="form-input" id="mrFrom"></div>' +
       '<div class="form-group" style="flex:1"><label>' + tr('To', 'إلى') + '</label><input type="date" class="form-input" id="mrTo"></div>' +
@@ -675,20 +677,20 @@ window.saveMedicalReport = async (type, patientId, patientName) => {
       notes: document.getElementById('mrNotes')?.value || '',
       fitness_status: document.getElementById('mrFitness')?.value || null,
     };
-    
+
     const result = await API.post('/api/medical-reports', data);
     document.querySelector('.modal-overlay')?.remove();
     showToast(tr('Report saved!', 'تم حفظ التقرير!'));
-    
+
     // Print the report
     printMedicalReport(result, type);
-  } catch(e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  } catch (e) { console.error('Medical report error:', e); showToast(e?.message || tr('Error saving report', 'خطأ في حفظ التقرير'), 'error'); }
 };
 
 window.printMedicalReport = (report, type) => {
   const typeLabels = { sick_leave: { ar: 'إجازة مرضية', en: 'Sick Leave Certificate' }, medical_report: { ar: 'تقرير طبي', en: 'Medical Report' }, fitness: { ar: 'شهادة لياقة طبية', en: 'Fitness Certificate' } };
   const label = typeLabels[type] || typeLabels.medical_report;
-  
+
   let html = '<div style="font-family:Arial;padding:40px;direction:rtl;text-align:right;line-height:2">';
   html += '<div style="text-align:center;border-bottom:2px solid #1a73e8;padding-bottom:16px;margin-bottom:24px">';
   html += '<h2 style="color:#1a73e8;margin:0">نما الطبي - Nama Medical</h2>';
@@ -717,7 +719,7 @@ window.printMedicalReport = (report, type) => {
   html += '</div>';
   html += '<p style="text-align:center;margin-top:24px;font-size:11px;color:#999">تاريخ الإصدار: ' + new Date().toLocaleDateString('ar-SA') + ' | Report #' + (report.report_number || '') + '</p>';
   html += '</div>';
-  
+
   printDocument(label.ar, html, { showHeader: false });
 };
 
@@ -737,7 +739,7 @@ window.checkDrugInteractions = async (drugs) => {
         alertHtml += '</div>';
       });
       alertHtml += '</div>';
-      
+
       const modal = document.createElement('div');
       modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center';
       modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:500px;max-height:80vh;overflow-y:auto">' +
@@ -748,7 +750,7 @@ window.checkDrugInteractions = async (drugs) => {
         '</div></div>';
       document.body.appendChild(modal);
     }
-  } catch(e) { console.error('Interaction check failed:', e); }
+  } catch (e) { console.error('Interaction check failed:', e); }
 };
 
 // ===== ALLERGY CHECK =====
@@ -767,7 +769,7 @@ window.checkAllergyBeforePrescribe = async (patientId, drugs) => {
         alertHtml += '</div>';
       });
       alertHtml += '</div>';
-      
+
       const modal = document.createElement('div');
       modal.style.cssText = 'position:fixed;inset:0;background:rgba(200,0,0,0.3);z-index:9999;display:flex;align-items:center;justify-content:center';
       modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:500px">' +
@@ -779,7 +781,7 @@ window.checkAllergyBeforePrescribe = async (patientId, drugs) => {
       return false;
     }
     return true;
-  } catch(e) { return true; }
+  } catch (e) { return true; }
 };
 
 
@@ -795,7 +797,7 @@ window.checkInPatient = async (appointmentId) => {
       const el = document.getElementById('mainContent');
       if (el) renderAppointments(el);
     }
-  } catch(e) { showToast(tr('Check-in failed', 'فشل تسجيل الوصول'), 'error'); }
+  } catch (e) { showToast(tr('Check-in failed', 'فشل تسجيل الوصول'), 'error'); }
 };
 
 window.markNoShow = async (appointmentId) => {
@@ -807,7 +809,7 @@ window.markNoShow = async (appointmentId) => {
       const el = document.getElementById('mainContent');
       if (el) renderAppointments(el);
     }
-  } catch(e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
 // ===== NEXT PATIENT (Doctor) =====
@@ -818,12 +820,12 @@ window.callNextPatient = async () => {
       showToast(tr('No patients waiting', 'لا يوجد مرضى بالانتظار') + ' ✅', 'info');
       return;
     }
-    
+
     // Show patient info modal
     const p = result.patient || {};
     const v = result.vitals || {};
     const q = result.queue || {};
-    
+
     let modal = document.createElement('div');
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
     modal.innerHTML = '<div style="background:var(--bg-card,#fff);border-radius:16px;padding:28px;width:600px;direction:rtl;max-height:90vh;overflow-y:auto">' +
@@ -841,7 +843,7 @@ window.callNextPatient = async () => {
       (p.allergies ? '<span style="grid-column:1/-1;color:#cc0000;font-weight:bold">⚠️ ' + tr('Allergies:', 'حساسية:') + ' ' + p.allergies + '</span>' : '') +
       (p.chronic_diseases ? '<span style="grid-column:1/-1;color:#e65100">🏥 ' + tr('Chronic:', 'أمراض مزمنة:') + ' ' + p.chronic_diseases + '</span>' : '') +
       '</div></div>' +
-      (v.blood_pressure || v.temperature || v.pulse ? 
+      (v.blood_pressure || v.temperature || v.pulse ?
         '<div style="background:#e8f5e9;border-radius:12px;padding:12px;margin-bottom:16px">' +
         '<h5 style="margin:0 0 8px">' + tr('Latest Vitals', 'العلامات الحيوية') + '</h5>' +
         '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:14px">' +
@@ -857,8 +859,8 @@ window.callNextPatient = async () => {
       '</div></div>';
     document.body.appendChild(modal);
     modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-    
-  } catch(e) { showToast(tr('Error loading next patient', 'خطأ'), 'error'); console.error(e); }
+
+  } catch (e) { showToast(tr('Error loading next patient', 'خطأ'), 'error'); console.error(e); }
 };
 
 window.selectPatientFromQueue = (patientId) => {
@@ -910,7 +912,7 @@ window.saveTriageData = async (patientId) => {
     });
     document.querySelector('[style*="position:fixed"][style*="z-index:9999"]')?.remove();
     showToast(tr('Triage saved!', 'تم حفظ التصنيف!') + ' ✅');
-  } catch(e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
 // ===== DUPLICATE APPOINTMENT CHECK =====
@@ -922,7 +924,7 @@ window.checkDuplicateAppointment = async (patientId, date, doctor) => {
       return true;
     }
     return false;
-  } catch(e) { return false; }
+  } catch (e) { return false; }
 };
 
 
@@ -940,20 +942,20 @@ window.loadMyQueue = async () => {
     queue.forEach((q, i) => {
       const isActive = q.status === 'In Progress';
       html += '<div style="padding:12px;margin:8px 0;background:' + (isActive ? '#e8f5e9' : '#f5f5f5') + ';border-radius:8px;border-right:4px solid ' + (isActive ? '#4caf50' : '#ccc') + ';cursor:pointer" onclick="selectPatientFromQueue(' + q.patient_id + ');this.closest(\'[style*=position]\').remove()">' +
-        '<div style="display:flex;justify-content:space-between"><strong>' + (i+1) + '. ' + (q.patient_name || '') + '</strong><span style="font-size:12px;color:#666">' + (q.check_in_time ? new Date(q.check_in_time).toLocaleTimeString('ar-SA', {hour:'2-digit',minute:'2-digit'}) : '') + '</span></div>' +
-        '<span style="font-size:12px;color:' + (isActive ? '#2e7d32' : '#999') + '">' + (isActive ? '🟢 ' + tr('In Progress','جاري') : '⏳ ' + tr('Waiting','بالانتظار')) + '</span>' +
+        '<div style="display:flex;justify-content:space-between"><strong>' + (i + 1) + '. ' + (q.patient_name || '') + '</strong><span style="font-size:12px;color:#666">' + (q.check_in_time ? new Date(q.check_in_time).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) : '') + '</span></div>' +
+        '<span style="font-size:12px;color:' + (isActive ? '#2e7d32' : '#999') + '">' + (isActive ? '🟢 ' + tr('In Progress', 'جاري') : '⏳ ' + tr('Waiting', 'بالانتظار')) + '</span>' +
         '</div>';
     });
-    html += '<button class="btn btn-secondary" onclick="this.closest(\'[style*=position]\').remove()" style="width:100%;margin-top:12px">' + tr('Close','إغلاق') + '</button></div></div>';
+    html += '<button class="btn btn-secondary" onclick="this.closest(\'[style*=position]\').remove()" style="width:100%;margin-top:12px">' + tr('Close', 'إغلاق') + '</button></div></div>';
     document.body.insertAdjacentHTML('beforeend', html);
-  } catch(e) { showToast(tr('Error','خطأ'), 'error'); }
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
 
 
 // ===== CSV EXPORT UTILITY =====
 window.exportToCSV = (data, filename) => {
-  if (!data || data.length === 0) { showToast(tr('No data to export','لا توجد بيانات للتصدير'), 'info'); return; }
+  if (!data || data.length === 0) { showToast(tr('No data to export', 'لا توجد بيانات للتصدير'), 'info'); return; }
   const headers = Object.keys(data[0]);
   const csvRows = [headers.join(',')];
   data.forEach(row => {
@@ -968,10 +970,10 @@ window.exportToCSV = (data, filename) => {
   const blob = new Blob([bom + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = (filename || 'export') + '_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.href = url; a.download = (filename || 'export') + '_' + new Date().toISOString().slice(0, 10) + '.csv';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast(tr('Exported successfully!','تم التصدير بنجاح!') + ' 📥');
+  showToast(tr('Exported successfully!', 'تم التصدير بنجاح!') + ' 📥');
 };
 
 // ===== RECEIPT PRINT =====
@@ -982,30 +984,30 @@ window.printReceipt = (invoice) => {
   h += '<h3 style="margin:0">نما الطبي</h3><p style="margin:2px 0;font-size:12px">Nama Medical</p>';
   h += '<p style="margin:2px 0;font-size:11px;color:#666">المملكة العربية السعودية</p>';
   h += '</div>';
-  h += '<p style="margin:4px 0;font-size:13px"><strong>' + tr('Receipt','إيصال') + '</strong></p>';
-  h += '<p style="margin:4px 0;font-size:12px">' + tr('Invoice #:','رقم الفاتورة:') + ' ' + (invoice.invoice_number || invoice.id || '') + '</p>';
-  h += '<p style="margin:4px 0;font-size:12px">' + tr('Patient:','المريض:') + ' ' + (invoice.patient_name || '') + '</p>';
-  h += '<p style="margin:4px 0;font-size:12px">' + tr('Date:','التاريخ:') + ' ' + new Date(invoice.created_at || Date.now()).toLocaleDateString('ar-SA') + '</p>';
+  h += '<p style="margin:4px 0;font-size:13px"><strong>' + tr('Receipt', 'إيصال') + '</strong></p>';
+  h += '<p style="margin:4px 0;font-size:12px">' + tr('Invoice #:', 'رقم الفاتورة:') + ' ' + (invoice.invoice_number || invoice.id || '') + '</p>';
+  h += '<p style="margin:4px 0;font-size:12px">' + tr('Patient:', 'المريض:') + ' ' + (invoice.patient_name || '') + '</p>';
+  h += '<p style="margin:4px 0;font-size:12px">' + tr('Date:', 'التاريخ:') + ' ' + new Date(invoice.created_at || Date.now()).toLocaleDateString('ar-SA') + '</p>';
   h += '<div style="border-top:1px dashed #999;border-bottom:1px dashed #999;padding:8px 0;margin:8px 0">';
-  h += '<p style="margin:4px 0;font-size:12px">' + tr('Service:','الخدمة:') + ' ' + (invoice.description || invoice.service_type || '') + '</p>';
-  h += '<p style="margin:4px 0;font-size:14px;font-weight:bold">' + tr('Total:','المجموع:') + ' ' + parseFloat(invoice.total || 0).toFixed(2) + ' ' + tr('SAR','ريال') + '</p>';
+  h += '<p style="margin:4px 0;font-size:12px">' + tr('Service:', 'الخدمة:') + ' ' + (invoice.description || invoice.service_type || '') + '</p>';
+  h += '<p style="margin:4px 0;font-size:14px;font-weight:bold">' + tr('Total:', 'المجموع:') + ' ' + parseFloat(invoice.total || 0).toFixed(2) + ' ' + tr('SAR', 'ريال') + '</p>';
   if (invoice.vat_amount && parseFloat(invoice.vat_amount) > 0) {
-    h += '<p style="margin:4px 0;font-size:11px;color:#666">' + tr('Includes VAT:','شامل الضريبة:') + ' ' + parseFloat(invoice.vat_amount).toFixed(2) + '</p>';
+    h += '<p style="margin:4px 0;font-size:11px;color:#666">' + tr('Includes VAT:', 'شامل الضريبة:') + ' ' + parseFloat(invoice.vat_amount).toFixed(2) + '</p>';
   }
   if (invoice.amount_paid) {
-    h += '<p style="margin:4px 0;font-size:12px">' + tr('Paid:','المدفوع:') + ' ' + parseFloat(invoice.amount_paid).toFixed(2) + '</p>';
+    h += '<p style="margin:4px 0;font-size:12px">' + tr('Paid:', 'المدفوع:') + ' ' + parseFloat(invoice.amount_paid).toFixed(2) + '</p>';
   }
   if (invoice.balance_due && parseFloat(invoice.balance_due) > 0) {
-    h += '<p style="margin:4px 0;font-size:12px;color:#cc0000">' + tr('Balance:','المتبقي:') + ' ' + parseFloat(invoice.balance_due).toFixed(2) + '</p>';
+    h += '<p style="margin:4px 0;font-size:12px;color:#cc0000">' + tr('Balance:', 'المتبقي:') + ' ' + parseFloat(invoice.balance_due).toFixed(2) + '</p>';
   }
-  h += '<p style="margin:4px 0;font-size:12px">' + tr('Payment:','طريقة الدفع:') + ' ' + (invoice.payment_method || 'Cash') + '</p>';
+  h += '<p style="margin:4px 0;font-size:12px">' + tr('Payment:', 'طريقة الدفع:') + ' ' + (invoice.payment_method || 'Cash') + '</p>';
   h += '</div>';
-  h += '<p style="text-align:center;font-size:10px;color:#999;margin-top:12px">' + tr('Thank you for your visit','شكراً لزيارتكم') + '</p>';
+  h += '<p style="text-align:center;font-size:10px;color:#999;margin-top:12px">' + tr('Thank you for your visit', 'شكراً لزيارتكم') + '</p>';
   h += '<p style="text-align:center;font-size:10px;color:#999">www.nama-medical.com</p>';
   h += '</div>';
-  
+
   const w = window.open('', '_blank', 'width=350,height=500');
-  w.document.write('<html><head><title>' + tr('Receipt','إيصال') + '</title></head><body style="margin:0">' + h + '<script>setTimeout(()=>{window.print();},300);<\/script></body></html>');
+  w.document.write('<html><head><title>' + tr('Receipt', 'إيصال') + '</title></head><body style="margin:0">' + h + '<script>setTimeout(()=>{window.print();},300);<\/script></body></html>');
   w.document.close();
 };
 
@@ -1014,13 +1016,13 @@ window.showChangePassword = () => {
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
   modal.innerHTML = '<div style="background:var(--bg-card,#fff);border-radius:16px;padding:28px;width:400px;direction:rtl">' +
-    '<h3 style="margin:0 0 20px;color:var(--primary)">🔑 ' + tr('Change Password','تغيير كلمة المرور') + '</h3>' +
-    '<div class="form-group"><label>' + tr('Current Password','كلمة المرور الحالية') + '</label><input type="password" class="form-input" id="cpCurrent"></div>' +
-    '<div class="form-group"><label>' + tr('New Password','كلمة المرور الجديدة') + '</label><input type="password" class="form-input" id="cpNew" placeholder="' + tr('Min 6 characters','6 أحرف على الأقل') + '"></div>' +
-    '<div class="form-group"><label>' + tr('Confirm New','تأكيد الجديدة') + '</label><input type="password" class="form-input" id="cpConfirm"></div>' +
+    '<h3 style="margin:0 0 20px;color:var(--primary)">🔑 ' + tr('Change Password', 'تغيير كلمة المرور') + '</h3>' +
+    '<div class="form-group"><label>' + tr('Current Password', 'كلمة المرور الحالية') + '</label><input type="password" class="form-input" id="cpCurrent"></div>' +
+    '<div class="form-group"><label>' + tr('New Password', 'كلمة المرور الجديدة') + '</label><input type="password" class="form-input" id="cpNew" placeholder="' + tr('Min 6 characters', '6 أحرف على الأقل') + '"></div>' +
+    '<div class="form-group"><label>' + tr('Confirm New', 'تأكيد الجديدة') + '</label><input type="password" class="form-input" id="cpConfirm"></div>' +
     '<div style="display:flex;gap:12px;margin-top:16px">' +
-    '<button class="btn btn-primary" onclick="submitChangePassword()" style="flex:1">💾 ' + tr('Save','حفظ') + '</button>' +
-    '<button class="btn btn-secondary" onclick="this.closest(\'[style*=position]\').remove()" style="flex:1">' + tr('Cancel','إلغاء') + '</button>' +
+    '<button class="btn btn-primary" onclick="submitChangePassword()" style="flex:1">💾 ' + tr('Save', 'حفظ') + '</button>' +
+    '<button class="btn btn-secondary" onclick="this.closest(\'[style*=position]\').remove()" style="flex:1">' + tr('Cancel', 'إلغاء') + '</button>' +
     '</div></div>';
   document.body.appendChild(modal);
   modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
@@ -1030,31 +1032,31 @@ window.submitChangePassword = async () => {
   const current = document.getElementById('cpCurrent')?.value;
   const newPw = document.getElementById('cpNew')?.value;
   const confirm = document.getElementById('cpConfirm')?.value;
-  if (!current || !newPw) return showToast(tr('Fill all fields','أكمل جميع الحقول'), 'error');
-  if (newPw !== confirm) return showToast(tr('Passwords do not match','كلمات المرور غير متطابقة'), 'error');
-  if (newPw.length < 6) return showToast(tr('Min 6 characters','6 أحرف على الأقل'), 'error');
+  if (!current || !newPw) return showToast(tr('Fill all fields', 'أكمل جميع الحقول'), 'error');
+  if (newPw !== confirm) return showToast(tr('Passwords do not match', 'كلمات المرور غير متطابقة'), 'error');
+  if (newPw.length < 6) return showToast(tr('Min 6 characters', '6 أحرف على الأقل'), 'error');
   try {
     await API.put('/api/auth/change-password', { current_password: current, new_password: newPw });
     document.querySelector('[style*="position:fixed"][style*="z-index:9999"]')?.remove();
-    showToast(tr('Password changed!','تم تغيير كلمة المرور!') + ' ✅');
-  } catch(e) {
-    showToast(e.message || tr('Error','خطأ'), 'error');
+    showToast(tr('Password changed!', 'تم تغيير كلمة المرور!') + ' ✅');
+  } catch (e) {
+    showToast(e.message || tr('Error', 'خطأ'), 'error');
   }
 };
 
 // ===== DATABASE BACKUP =====
 window.startBackup = async () => {
-  showToast(tr('Creating backup...','جاري إنشاء النسخة الاحتياطية...') + ' ⏳');
+  showToast(tr('Creating backup...', 'جاري إنشاء النسخة الاحتياطية...') + ' ⏳');
   try {
     const response = await fetch('/api/admin/backup', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
     if (!response.ok) throw new Error('Backup failed');
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'nama_backup_' + new Date().toISOString().slice(0,10) + '.sql';
+    a.href = url; a.download = 'nama_backup_' + new Date().toISOString().slice(0, 10) + '.sql';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    showToast(tr('Backup downloaded!','تم تحميل النسخة الاحتياطية!') + ' ✅');
-  } catch(e) { showToast(tr('Backup failed','فشل النسخ الاحتياطي'), 'error'); }
+    showToast(tr('Backup downloaded!', 'تم تحميل النسخة الاحتياطية!') + ' ✅');
+  } catch (e) { showToast(tr('Backup failed', 'فشل النسخ الاحتياطي'), 'error'); }
 };
 
 // ===== KEYBOARD SHORTCUTS =====
@@ -1064,9 +1066,9 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') e.target.blur();
     return;
   }
-  
+
   if (e.ctrlKey || e.metaKey) {
-    switch(e.key.toLowerCase()) {
+    switch (e.key.toLowerCase()) {
       case 'k': // Search
         e.preventDefault();
         const searchInput = document.querySelector('.search-box input') || document.querySelector('input[type="search"]') || document.querySelector('#globalSearch');
@@ -1082,13 +1084,13 @@ document.addEventListener('keydown', (e) => {
         break;
     }
   }
-  
+
   // Escape → close any modal
   if (e.key === 'Escape') {
     const modal = document.querySelector('[style*="position:fixed"][style*="z-index:9999"]');
     if (modal) modal.remove();
   }
-  
+
   // Number keys 1-9 for quick nav (Alt+number)
   if (e.altKey && e.key >= '1' && e.key <= '9') {
     e.preventDefault();
@@ -1101,31 +1103,31 @@ document.addEventListener('keydown', (e) => {
 
 window.toggleCalendarView = async () => {
   const existing = document.getElementById('calendarGrid');
-  if (existing) { existing.remove(); document.getElementById('calToggleBtn').textContent = '📅 ' + tr('Calendar View','عرض التقويم'); return; }
-  document.getElementById('calToggleBtn').textContent = '📋 ' + tr('List View','عرض القائمة');
-  
+  if (existing) { existing.remove(); document.getElementById('calToggleBtn').textContent = '📅 ' + tr('Calendar View', 'عرض التقويم'); return; }
+  document.getElementById('calToggleBtn').textContent = '📋 ' + tr('List View', 'عرض القائمة');
+
   try {
     const appts = await API.get('/api/appointments');
     const today = new Date();
     const startOfWeek = new Date(today); startOfWeek.setDate(today.getDate() - today.getDay());
-    
+
     const days = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(startOfWeek); d.setDate(startOfWeek.getDate() + i);
       days.push(d);
     }
-    const dayNames = isArabic ? ['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'] : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    const hours = Array.from({length:12}, (_, i) => i + 8); // 8am to 7pm
-    
+    const dayNames = isArabic ? ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const hours = Array.from({ length: 12 }, (_, i) => i + 8); // 8am to 7pm
+
     let html = '<div id="calendarGrid" style="margin-top:12px;overflow-x:auto">';
     html += '<table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed">';
-    html += '<thead><tr><th style="width:60px;padding:8px;background:#f0f6ff;border:1px solid #e0e0e0">' + tr('Time','الوقت') + '</th>';
+    html += '<thead><tr><th style="width:60px;padding:8px;background:#f0f6ff;border:1px solid #e0e0e0">' + tr('Time', 'الوقت') + '</th>';
     days.forEach((d, i) => {
       const isToday = d.toDateString() === today.toDateString();
-      html += '<th style="padding:8px;background:' + (isToday ? '#1a73e8;color:#fff' : '#f0f6ff') + ';border:1px solid #e0e0e0;font-weight:' + (isToday ? 'bold' : 'normal') + '">' + dayNames[i] + '<br><span style="font-size:11px">' + d.toLocaleDateString('ar-SA',{day:'numeric',month:'short'}) + '</span></th>';
+      html += '<th style="padding:8px;background:' + (isToday ? '#1a73e8;color:#fff' : '#f0f6ff') + ';border:1px solid #e0e0e0;font-weight:' + (isToday ? 'bold' : 'normal') + '">' + dayNames[i] + '<br><span style="font-size:11px">' + d.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' }) + '</span></th>';
     });
     html += '</tr></thead><tbody>';
-    
+
     hours.forEach(h => {
       html += '<tr>';
       html += '<td style="padding:4px 8px;background:#f9f9f9;border:1px solid #e0e0e0;font-size:12px;text-align:center">' + (h < 10 ? '0' : '') + h + ':00</td>';
@@ -1140,33 +1142,33 @@ window.toggleCalendarView = async () => {
         html += '<td style="padding:2px;border:1px solid #e0e0e0;vertical-align:top;height:50px">';
         hourAppts.forEach(a => {
           const statusColor = a.status === 'Cancelled' ? '#ffcdd2' : a.status === 'Checked-In' ? '#c8e6c9' : a.status === 'No-Show' ? '#ffe0b2' : '#e3f2fd';
-          html += '<div style="background:' + statusColor + ';border-radius:4px;padding:2px 4px;margin:1px 0;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer" title="' + (a.patient_name||'') + ' - ' + (a.doctor_name||a.doctor||'') + '">' +
-            (a.patient_name||'').split(' ')[0] + ' <span style="color:#666">' + (a.doctor_name||a.doctor||'').split(' ').slice(-1)[0] + '</span></div>';
+          html += '<div style="background:' + statusColor + ';border-radius:4px;padding:2px 4px;margin:1px 0;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer" title="' + (a.patient_name || '') + ' - ' + (a.doctor_name || a.doctor || '') + '">' +
+            (a.patient_name || '').split(' ')[0] + ' <span style="color:#666">' + (a.doctor_name || a.doctor || '').split(' ').slice(-1)[0] + '</span></div>';
         });
         html += '</td>';
       });
       html += '</tr>';
     });
     html += '</tbody></table></div>';
-    
+
     const table = document.querySelector('.data-table') || document.querySelector('table');
     if (table) table.insertAdjacentHTML('beforebegin', html);
     else {
       const content = document.getElementById('mainContent');
       if (content) content.insertAdjacentHTML('beforeend', html);
     }
-  } catch(e) { console.error('Calendar error:', e); }
+  } catch (e) { console.error('Calendar error:', e); }
 };
 
 
 window.exportPatients = async () => {
-  try { const data = await API.get('/api/patients'); exportToCSV(data, 'patients'); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
+  try { const data = await API.get('/api/patients'); exportToCSV(data, 'patients'); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 window.exportInvoices = async () => {
-  try { const data = await API.get('/api/invoices'); exportToCSV(data, 'invoices'); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
+  try { const data = await API.get('/api/invoices'); exportToCSV(data, 'invoices'); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 window.exportAppointments = async () => {
-  try { const data = await API.get('/api/appointments'); exportToCSV(data, 'appointments'); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
+  try { const data = await API.get('/api/appointments'); exportToCSV(data, 'appointments'); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
 
@@ -1189,7 +1191,7 @@ window.showMobileLangPrompt = () => {
   // Only show on mobile if no lang preference saved
   const isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   if (!isMobile || localStorage.getItem('namaLang')) return;
-  
+
   const prompt = document.createElement('div');
   prompt.id = 'mobileLangPrompt';
   prompt.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;padding:16px 20px;z-index:99999;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,0.3);animation:slideUp 0.4s ease';
@@ -1197,7 +1199,7 @@ window.showMobileLangPrompt = () => {
     '<button onclick="setLang(\'en\')" style="padding:8px 20px;border:2px solid #fff;border-radius:8px;background:transparent;color:#fff;font-size:14px;font-weight:bold;cursor:pointer">🇬🇧 English</button>' +
     '<button onclick="setLang(\'ar\')" style="padding:8px 20px;border:2px solid #fff;border-radius:8px;background:rgba(255,255,255,0.2);color:#fff;font-size:14px;font-weight:bold;cursor:pointer">🇸🇦 عربي</button>';
   document.body.appendChild(prompt);
-  
+
   // Add slide-up animation
   const style = document.createElement('style');
   style.textContent = '@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}';
@@ -1292,7 +1294,8 @@ async function renderDashboard(el) {
       </div>
     </div>`;
 
-    loadDashboardCharts();}
+  loadDashboardCharts();
+}
 
 // === DASHBOARD CHARTS (Chart.js) ===
 function renderDashboardCharts(el, enhanced) {
@@ -2023,7 +2026,7 @@ async function renderAppointments(el) {
         <div id="aTable">${makeTable(
     [tr('Patient', 'المريض'), tr('Doctor', 'الطبيب'), tr('Dept', 'القسم'), tr('Date', 'التاريخ'), tr('Time', 'الوقت'), tr('Status', 'الحالة'), tr('Delete', 'حذف')],
     appts.map(a => ({ cells: [a.patient_name, a.doctor_name, a.department, a.appt_date, a.appt_time, statusBadge(a.status)], id: a.id })),
-    (row) => `<button class="btn btn-sm" onclick="checkInPatient(${row.id})" title="${tr('Check-in','تسجيل وصول')}" style="background:#e8f5e9;color:#2e7d32;margin:0 2px">✅</button><button class="btn btn-sm" onclick="markNoShow(${row.id})" title="${tr('No-Show','متغيب')}" style="background:#fff3e0;color:#e65100;margin:0 2px">⚠️</button><button class="btn btn-danger btn-sm" onclick="delAppt(${row.id})" style="margin:0 2px">🗑</button>`
+    (row) => `<button class="btn btn-sm" onclick="checkInPatient(${row.id})" title="${tr('Check-in', 'تسجيل وصول')}" style="background:#e8f5e9;color:#2e7d32;margin:0 2px">✅</button><button class="btn btn-sm" onclick="markNoShow(${row.id})" title="${tr('No-Show', 'متغيب')}" style="background:#fff3e0;color:#e65100;margin:0 2px">⚠️</button><button class="btn btn-danger btn-sm" onclick="delAppt(${row.id})" style="margin:0 2px">🗑</button>`
   )}</div>
       </div>
     </div>`;
@@ -2091,9 +2094,9 @@ async function renderDoctor(el) {
           <button class="btn btn-primary w-full" onclick="saveMedRecord()" style="height:44px">💾 ${tr('Save Record', 'حفظ السجل')}</button>
         </div>
           <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-            <button class="btn btn-sm" onclick="showMedicalReportForm('sick_leave')" style="flex:1;background:#fff3e0;border:1px solid #ff9800;color:#e65100;min-width:120px">🏥 ${tr('Sick Leave','إجازة مرضية')}</button>
-            <button class="btn btn-sm" onclick="showMedicalReportForm('medical_report')" style="flex:1;background:#e3f2fd;border:1px solid #1565c0;color:#1565c0;min-width:120px">📋 ${tr('Med Report','تقرير طبي')}</button>
-            <button class="btn btn-sm" onclick="showMedicalReportForm('fitness')" style="flex:1;background:#e8f5e9;border:1px solid #2e7d32;color:#2e7d32;min-width:120px">✅ ${tr('Fitness','شهادة لياقة')}</button>
+            <button class="btn btn-sm" onclick="showMedicalReportForm('sick_leave')" style="flex:1;background:#fff3e0;border:1px solid #ff9800;color:#e65100;min-width:120px">🏥 ${tr('Sick Leave', 'إجازة مرضية')}</button>
+            <button class="btn btn-sm" onclick="showMedicalReportForm('medical_report')" style="flex:1;background:#e3f2fd;border:1px solid #1565c0;color:#1565c0;min-width:120px">📋 ${tr('Med Report', 'تقرير طبي')}</button>
+            <button class="btn btn-sm" onclick="showMedicalReportForm('fitness')" style="flex:1;background:#e8f5e9;border:1px solid #2e7d32;color:#2e7d32;min-width:120px">✅ ${tr('Fitness', 'شهادة لياقة')}</button>
           </div>
         <div class="card mb-16">
           <div class="card-title">🏥 ${tr('Procedures / Services Performed', 'الإجراءات / الخدمات المنفذة')} ${drSpecialty ? `<span class="badge badge-info" style="font-size:11px;
@@ -3561,7 +3564,7 @@ window.confirmDispense = async (id, patientName, med, dose, qty, freq, dur, pati
     await API.put(`/api/pharmacy/queue/${id}`, { status: 'Dispensed', price: priceNum, payment_method: payMethod, patient_id: patientId });
     // Auto-create invoice for pharmacy sale
     if (priceNum > 0) {
-      try { await API.post('/api/invoices', { patient_id: patientId, patient_name: patientName, total: priceNum, description: med + (dose ? ' ' + dose : '') + ' - ' + freq + ' - ' + dur, service_type: 'Pharmacy', payment_method: payMethod }); } catch(ie) { console.log('Invoice error:', ie); }
+      try { await API.post('/api/invoices', { patient_id: patientId, patient_name: patientName, total: priceNum, description: med + (dose ? ' ' + dose : '') + ' - ' + freq + ' - ' + dur, service_type: 'Pharmacy', payment_method: payMethod }); } catch (ie) { console.log('Invoice error:', ie); }
     }
     showToast(`✅ ${tr('Dispensed & sold!', 'تم الصرف والبيع!')} ${priceNum > 0 ? priceNum + ' ' + tr('SAR', 'ر.س') : tr('Free', 'مجاني')}`, 'success');
     // Auto-print barcode label with all doctor data
@@ -3598,7 +3601,7 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:10px;direction:rtl;f
   <button onclick="window.close()" style="padding:10px 20px;font-size:14px;background:#dc3545;color:#fff;border:none;border-radius:8px;cursor:pointer;margin-right:8px">✕</button>
 </div>
 <div class="inv">
-  <div class="header"><h2>🏥 نما الطبي — فاتورة صيدلية</h2><div style="margin-bottom:12px"><button class="btn btn-sm" onclick="toggleCalendarView()" id="calToggleBtn" style="background:#e3f2fd;color:#1565c0">📅 ${tr("Calendar View","عرض التقويم")}</button></div><div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><button class="btn btn-primary" onclick="callNextPatient()" style="padding:8px 20px;font-size:15px;animation:pulse 2s infinite">🔔 ${tr("Next Patient","المريض التالي")}</button><button class="btn btn-sm" onclick="loadMyQueue()" style="background:#e3f2fd;color:#1565c0">📋 ${tr("My Queue","طابوري")}</button></div><small>Nama Medical — Pharmacy Invoice</small></div>
+  <div class="header"><h2>🏥 نما الطبي — فاتورة صيدلية</h2><div style="margin-bottom:12px"><button class="btn btn-sm" onclick="toggleCalendarView()" id="calToggleBtn" style="background:#e3f2fd;color:#1565c0">📅 ${tr("Calendar View", "عرض التقويم")}</button></div><div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><button class="btn btn-primary" onclick="callNextPatient()" style="padding:8px 20px;font-size:15px;animation:pulse 2s infinite">🔔 ${tr("Next Patient", "المريض التالي")}</button><button class="btn btn-sm" onclick="loadMyQueue()" style="background:#e3f2fd;color:#1565c0">📋 ${tr("My Queue", "طابوري")}</button></div><small>Nama Medical — Pharmacy Invoice</small></div>
   <div class="row"><span class="k">📄 رقم الفاتورة:</span><span>RX-${rxId}</span></div>
   <div class="row"><span class="k">👤 المريض:</span><span>${patientName}</span></div>
   <div class="row"><span class="k">📅 التاريخ:</span><span>${new Date().toLocaleDateString('ar-SA')} — ${new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span></div>
@@ -3710,64 +3713,64 @@ window.delEmp = async (id) => {
 // ===== FINANCE =====
 async function renderFinance(el) {
 
-    const today = new Date().toISOString().slice(0,10);
-    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0,10);
-    content.innerHTML = `
-    <h2>${tr('Finance','المالية')}</h2>
+  const today = new Date().toISOString().slice(0, 10);
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
+  content.innerHTML = `
+    <h2>${tr('Finance', 'المالية')}</h2>
     <div class="card" style="padding:16px;margin-bottom:16px">
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-        <label style="font-weight:600">${tr('Date Range:','الفترة:')}</label>
+        <label style="font-weight:600">${tr('Date Range:', 'الفترة:')}</label>
         <input type="date" class="form-input" id="finFrom" value="${monthStart}" style="width:auto">
         <span>→</span>
         <input type="date" class="form-input" id="finTo" value="${today}" style="width:auto">
-        <button class="btn btn-primary btn-sm" onclick="loadFinance()">🔍 ${tr('Filter','فلترة')}</button>
-        <button class="btn btn-sm" onclick="exportToCSV(window._finInvoices||[],'finance')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export','تصدير')}</button>
-        <button class="btn btn-sm" onclick="window.print()" style="background:#f3e5f5;color:#7b1fa2">🖨️ ${tr('Print','طباعة')}</button>
+        <button class="btn btn-primary btn-sm" onclick="loadFinance()">🔍 ${tr('Filter', 'فلترة')}</button>
+        <button class="btn btn-sm" onclick="exportToCSV(window._finInvoices||[],'finance')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export', 'تصدير')}</button>
+        <button class="btn btn-sm" onclick="window.print()" style="background:#f3e5f5;color:#7b1fa2">🖨️ ${tr('Print', 'طباعة')}</button>
       </div>
     </div>
     <div id="finStats"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
-      <div class="card" style="padding:20px"><h4 style="margin:0 0 12px">${tr('Revenue Trend','منحنى الإيرادات')}</h4><canvas id="finRevenueChart" height="200"></canvas></div>
-      <div class="card" style="padding:20px"><h4 style="margin:0 0 12px">${tr('By Service','حسب الخدمة')}</h4><canvas id="finServiceChart" height="200"></canvas></div>
+      <div class="card" style="padding:20px"><h4 style="margin:0 0 12px">${tr('Revenue Trend', 'منحنى الإيرادات')}</h4><canvas id="finRevenueChart" height="200"></canvas></div>
+      <div class="card" style="padding:20px"><h4 style="margin:0 0 12px">${tr('By Service', 'حسب الخدمة')}</h4><canvas id="finServiceChart" height="200"></canvas></div>
     </div>
     <div class="card" style="padding:20px;margin-top:16px">
-      <h4 style="margin:0 0 12px">${tr('Recent Invoices','الفواتير الأخيرة')}</h4>
+      <h4 style="margin:0 0 12px">${tr('Recent Invoices', 'الفواتير الأخيرة')}</h4>
       <div id="finTable"></div>
     </div>`;
-    loadFinance();
-    
-    window.loadFinance = async () => {
-      const from = document.getElementById('finFrom')?.value || '';
-      const to = document.getElementById('finTo')?.value || '';
-      try {
-        const data = await API.get('/api/finance/summary?from=' + from + '&to=' + to);
-        const statsEl = document.getElementById('finStats');
-        if (statsEl) {
-          statsEl.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">' +
-            '<div class="card" style="padding:20px;text-align:center;background:linear-gradient(135deg,#e8f5e9,#c8e6c9)"><h2 style="margin:0;color:#2e7d32">' + parseFloat(data.revenue||0).toLocaleString() + '</h2><p style="margin:4px 0 0;color:#666">' + tr('Total Revenue','إجمالي الإيرادات') + ' (' + tr('SAR','ريال') + ')</p></div>' +
-            '<div class="card" style="padding:20px;text-align:center;background:linear-gradient(135deg,#e3f2fd,#bbdefb)"><h2 style="margin:0;color:#1565c0">' + parseFloat(data.paid||0).toLocaleString() + '</h2><p style="margin:4px 0 0;color:#666">' + tr('Collected','المحصّل') + '</p></div>' +
-            '<div class="card" style="padding:20px;text-align:center;background:linear-gradient(135deg,#fce4ec,#f8bbd0)"><h2 style="margin:0;color:#c62828">' + parseFloat(data.unpaid||0).toLocaleString() + '</h2><p style="margin:4px 0 0;color:#666">' + tr('Outstanding','المتبقي') + '</p></div>' +
-            '<div class="card" style="padding:20px;text-align:center;background:linear-gradient(135deg,#fff3e0,#ffe0b2)"><h2 style="margin:0;color:#e65100">' + (data.count||0) + '</h2><p style="margin:4px 0 0;color:#666">' + tr('Invoice Count','عدد الفواتير') + '</p></div></div>';
-        }
-        // Revenue chart
-        if (typeof Chart !== 'undefined' && data.daily?.length > 0) {
-          const revCtx = document.getElementById('finRevenueChart');
-          if (revCtx) { Chart.getChart(revCtx)?.destroy(); new Chart(revCtx, { type:'line', data:{ labels:data.daily.map(d=>new Date(d.day).toLocaleDateString('ar-SA',{day:'numeric',month:'short'})), datasets:[{label:tr('Revenue','إيرادات'), data:data.daily.map(d=>parseFloat(d.amount)), borderColor:'#1a73e8', backgroundColor:'rgba(26,115,232,0.1)', fill:true, tension:0.4}] }, options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}} }); }
-          const svcCtx = document.getElementById('finServiceChart');
-          if (svcCtx && data.byService?.length > 0) { Chart.getChart(svcCtx)?.destroy(); new Chart(svcCtx, { type:'doughnut', data:{ labels:data.byService.map(s=>s.service), datasets:[{data:data.byService.map(s=>parseFloat(s.amount)), backgroundColor:['#1a73e8','#34a853','#fbbc04','#ea4335','#ff6d01','#46bdc6','#7baaf7','#f07b72','#fcd04f','#71c287']}] }, options:{responsive:true, plugins:{legend:{position:'right',labels:{font:{size:11}}}}} }); }
-        }
-        // Load invoices table
-        const invoices = await API.get('/api/invoices');
-        window._finInvoices = invoices;
-        const ft = document.getElementById('finTable');
-        if (ft && invoices.length) {
-          createTable(ft, 'finTbl',
-            [tr('#','#'), tr('Patient','المريض'), tr('Service','الخدمة'), tr('Amount','المبلغ'), tr('Status','الحالة'), tr('Date','التاريخ')],
-            invoices.slice(0,50).map(i => ({ cells: [i.invoice_number||i.id, i.patient_name||'', i.description||i.service_type||'', parseFloat(i.total||0).toFixed(2)+' '+tr('SAR','ريال'), statusBadge(i.paid?'Paid':'Unpaid'), i.created_at?new Date(i.created_at).toLocaleDateString('ar-SA'):''], id:i.id }))
-          );
-        }
-      } catch(e) { console.error(e); }
-    };
+  loadFinance();
+
+  window.loadFinance = async () => {
+    const from = document.getElementById('finFrom')?.value || '';
+    const to = document.getElementById('finTo')?.value || '';
+    try {
+      const data = await API.get('/api/finance/summary?from=' + from + '&to=' + to);
+      const statsEl = document.getElementById('finStats');
+      if (statsEl) {
+        statsEl.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">' +
+          '<div class="card" style="padding:20px;text-align:center;background:linear-gradient(135deg,#e8f5e9,#c8e6c9)"><h2 style="margin:0;color:#2e7d32">' + parseFloat(data.revenue || 0).toLocaleString() + '</h2><p style="margin:4px 0 0;color:#666">' + tr('Total Revenue', 'إجمالي الإيرادات') + ' (' + tr('SAR', 'ريال') + ')</p></div>' +
+          '<div class="card" style="padding:20px;text-align:center;background:linear-gradient(135deg,#e3f2fd,#bbdefb)"><h2 style="margin:0;color:#1565c0">' + parseFloat(data.paid || 0).toLocaleString() + '</h2><p style="margin:4px 0 0;color:#666">' + tr('Collected', 'المحصّل') + '</p></div>' +
+          '<div class="card" style="padding:20px;text-align:center;background:linear-gradient(135deg,#fce4ec,#f8bbd0)"><h2 style="margin:0;color:#c62828">' + parseFloat(data.unpaid || 0).toLocaleString() + '</h2><p style="margin:4px 0 0;color:#666">' + tr('Outstanding', 'المتبقي') + '</p></div>' +
+          '<div class="card" style="padding:20px;text-align:center;background:linear-gradient(135deg,#fff3e0,#ffe0b2)"><h2 style="margin:0;color:#e65100">' + (data.count || 0) + '</h2><p style="margin:4px 0 0;color:#666">' + tr('Invoice Count', 'عدد الفواتير') + '</p></div></div>';
+      }
+      // Revenue chart
+      if (typeof Chart !== 'undefined' && data.daily?.length > 0) {
+        const revCtx = document.getElementById('finRevenueChart');
+        if (revCtx) { Chart.getChart(revCtx)?.destroy(); new Chart(revCtx, { type: 'line', data: { labels: data.daily.map(d => new Date(d.day).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' })), datasets: [{ label: tr('Revenue', 'إيرادات'), data: data.daily.map(d => parseFloat(d.amount)), borderColor: '#1a73e8', backgroundColor: 'rgba(26,115,232,0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } }); }
+        const svcCtx = document.getElementById('finServiceChart');
+        if (svcCtx && data.byService?.length > 0) { Chart.getChart(svcCtx)?.destroy(); new Chart(svcCtx, { type: 'doughnut', data: { labels: data.byService.map(s => s.service), datasets: [{ data: data.byService.map(s => parseFloat(s.amount)), backgroundColor: ['#1a73e8', '#34a853', '#fbbc04', '#ea4335', '#ff6d01', '#46bdc6', '#7baaf7', '#f07b72', '#fcd04f', '#71c287'] }] }, options: { responsive: true, plugins: { legend: { position: 'right', labels: { font: { size: 11 } } } } } }); }
+      }
+      // Load invoices table
+      const invoices = await API.get('/api/invoices');
+      window._finInvoices = invoices;
+      const ft = document.getElementById('finTable');
+      if (ft && invoices.length) {
+        createTable(ft, 'finTbl',
+          [tr('#', '#'), tr('Patient', 'المريض'), tr('Service', 'الخدمة'), tr('Amount', 'المبلغ'), tr('Status', 'الحالة'), tr('Date', 'التاريخ')],
+          invoices.slice(0, 50).map(i => ({ cells: [i.invoice_number || i.id, i.patient_name || '', i.description || i.service_type || '', parseFloat(i.total || 0).toFixed(2) + ' ' + tr('SAR', 'ريال'), statusBadge(i.paid ? 'Paid' : 'Unpaid'), i.created_at ? new Date(i.created_at).toLocaleDateString('ar-SA') : ''], id: i.id }))
+        );
+      }
+    } catch (e) { console.error(e); }
+  };
 
 }
 window.generateInvoice = async () => {
@@ -3875,46 +3878,46 @@ window.addInsCompany = async () => {
 // ===== INVENTORY =====
 async function renderInventory(el) {
 
-    const items = await API.get('/api/inventory').catch(()=>[]);
-    const lowStock = items.filter(i => parseInt(i.quantity||0) <= parseInt(i.reorder_level||10));
-    content.innerHTML = `
-    <h2>${tr('Inventory','المخزون')}</h2>
+  const items = await API.get('/api/inventory').catch(() => []);
+  const lowStock = items.filter(i => parseInt(i.quantity || 0) <= parseInt(i.reorder_level || 10));
+  content.innerHTML = `
+    <h2>${tr('Inventory', 'المخزون')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${items.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Items','إجمالي الأصناف')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:${lowStock.length > 0 ? '#fce4ec' : '#e8f5e9'}"><h3 style="margin:0;color:${lowStock.length > 0 ? '#c62828' : '#2e7d32'}">${lowStock.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Low Stock','مخزون منخفض')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${items.length - lowStock.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('OK Stock','مخزون كافي')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${items.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Items', 'إجمالي الأصناف')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:${lowStock.length > 0 ? '#fce4ec' : '#e8f5e9'}"><h3 style="margin:0;color:${lowStock.length > 0 ? '#c62828' : '#2e7d32'}">${lowStock.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Low Stock', 'مخزون منخفض')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${items.length - lowStock.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('OK Stock', 'مخزون كافي')}</p></div>
     </div>
     <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-      <input class="form-input" id="invSearch" placeholder="${tr('Search items...','بحث في الأصناف...')}" style="max-width:300px" oninput="filterInvTable()">
-      <button class="btn btn-sm" onclick="exportToCSV(window._invData||[],'inventory')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export','تصدير')}</button>
-      ${lowStock.length > 0 ? '<button class="btn btn-sm" onclick="showLowStock()" style="background:#fce4ec;color:#c62828;animation:pulse 2s infinite">⚠️ ' + tr('Low Stock Alert','تنبيه مخزون','') + ' (' + lowStock.length + ')</button>' : ''}
+      <input class="form-input" id="invSearch" placeholder="${tr('Search items...', 'بحث في الأصناف...')}" style="max-width:300px" oninput="filterInvTable()">
+      <button class="btn btn-sm" onclick="exportToCSV(window._invData||[],'inventory')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export', 'تصدير')}</button>
+      ${lowStock.length > 0 ? '<button class="btn btn-sm" onclick="showLowStock()" style="background:#fce4ec;color:#c62828;animation:pulse 2s infinite">⚠️ ' + tr('Low Stock Alert', 'تنبيه مخزون', '') + ' (' + lowStock.length + ')</button>' : ''}
     </div>
     <div id="invTableDiv"></div>`;
-    
-    window._invData = items;
-    const it = document.getElementById('invTableDiv');
-    if (it && items.length) {
-      createTable(it, 'invTbl',
-        [tr('Name','الاسم'), tr('Category','الفئة'), tr('Qty','الكمية'), tr('Reorder','إعادة الطلب'), tr('Unit','الوحدة'), tr('Status','الحالة')],
-        items.map(i => {
-          const isLow = parseInt(i.quantity||0) <= parseInt(i.reorder_level||10);
-          return { cells: [i.name, i.category||'', '<span style="font-weight:bold;color:' + (isLow?'#c62828':'#2e7d32') + '">' + (i.quantity||0) + '</span>', i.reorder_level||10, i.unit||'', isLow ? '<span style="color:#c62828;font-weight:bold">⚠️ '+tr('Low','منخفض')+'</span>' : '<span style="color:#2e7d32">✅</span>'], id: i.id };
-        })
-      );
-    }
-    
-    window.filterInvTable = () => {
-      const txt = (document.getElementById('invSearch')?.value || '').toLowerCase();
-      document.querySelectorAll('#invTbl tbody tr').forEach(r => r.style.display = r.textContent.toLowerCase().includes(txt) ? '' : 'none');
-    };
-    window.showLowStock = () => {
-      const modal = document.createElement('div');
-      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
-      const lowItems = (window._invData||[]).filter(i => parseInt(i.quantity||0) <= parseInt(i.reorder_level||10));
-      modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:500px;direction:rtl;max-height:80vh;overflow:auto"><h3 style="margin:0 0 16px;color:#c62828">⚠️ ' + tr('Low Stock Items','أصناف مخزونها منخفض') + ' (' + lowItems.length + ')</h3>' + lowItems.map(i => '<div style="padding:10px;margin:4px 0;background:#fce4ec;border-radius:8px;display:flex;justify-content:space-between"><strong>' + i.name + '</strong><span style="color:#c62828;font-weight:bold">' + i.quantity + ' / ' + (i.reorder_level||10) + '</span></div>').join('') + '<button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:16px">' + tr('Close','إغلاق') + '</button></div>';
-      document.body.appendChild(modal);
-      modal.onclick = e => { if (e.target === modal) modal.remove(); };
-    };
+
+  window._invData = items;
+  const it = document.getElementById('invTableDiv');
+  if (it && items.length) {
+    createTable(it, 'invTbl',
+      [tr('Name', 'الاسم'), tr('Category', 'الفئة'), tr('Qty', 'الكمية'), tr('Reorder', 'إعادة الطلب'), tr('Unit', 'الوحدة'), tr('Status', 'الحالة')],
+      items.map(i => {
+        const isLow = parseInt(i.quantity || 0) <= parseInt(i.reorder_level || 10);
+        return { cells: [i.name, i.category || '', '<span style="font-weight:bold;color:' + (isLow ? '#c62828' : '#2e7d32') + '">' + (i.quantity || 0) + '</span>', i.reorder_level || 10, i.unit || '', isLow ? '<span style="color:#c62828;font-weight:bold">⚠️ ' + tr('Low', 'منخفض') + '</span>' : '<span style="color:#2e7d32">✅</span>'], id: i.id };
+      })
+    );
+  }
+
+  window.filterInvTable = () => {
+    const txt = (document.getElementById('invSearch')?.value || '').toLowerCase();
+    document.querySelectorAll('#invTbl tbody tr').forEach(r => r.style.display = r.textContent.toLowerCase().includes(txt) ? '' : 'none');
+  };
+  window.showLowStock = () => {
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+    const lowItems = (window._invData || []).filter(i => parseInt(i.quantity || 0) <= parseInt(i.reorder_level || 10));
+    modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:500px;direction:rtl;max-height:80vh;overflow:auto"><h3 style="margin:0 0 16px;color:#c62828">⚠️ ' + tr('Low Stock Items', 'أصناف مخزونها منخفض') + ' (' + lowItems.length + ')</h3>' + lowItems.map(i => '<div style="padding:10px;margin:4px 0;background:#fce4ec;border-radius:8px;display:flex;justify-content:space-between"><strong>' + i.name + '</strong><span style="color:#c62828;font-weight:bold">' + i.quantity + ' / ' + (i.reorder_level || 10) + '</span></div>').join('') + '<button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:16px">' + tr('Close', 'إغلاق') + '</button></div>';
+    document.body.appendChild(modal);
+    modal.onclick = e => { if (e.target === modal) modal.remove(); };
+  };
 
 }
 window.addInvItem = async () => {
@@ -4101,58 +4104,58 @@ window.saveCarePlan = async function () {
 
 async function renderWaitingQueue(el) {
 
-    const queue = await API.get('/api/queue/patients').catch(() => []);
-    const waiting = queue.filter(q => q.status === 'Waiting');
-    const inProgress = queue.filter(q => q.status === 'In Progress');
-    const doctors = [...new Set(queue.map(q => q.doctor).filter(Boolean))];
-    
-    content.innerHTML = `
-    <h2>${tr('Waiting Queue','قائمة الانتظار')}</h2>
+  const queue = await API.get('/api/queue/patients').catch(() => []);
+  const waiting = queue.filter(q => q.status === 'Waiting');
+  const inProgress = queue.filter(q => q.status === 'In Progress');
+  const doctors = [...new Set(queue.map(q => q.doctor).filter(Boolean))];
+
+  content.innerHTML = `
+    <h2>${tr('Waiting Queue', 'قائمة الانتظار')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${waiting.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Waiting','بانتظار')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${inProgress.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('In Progress','جاري')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${queue.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Today','الإجمالي اليوم')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#f3e5f5"><h3 style="margin:0;color:#7b1fa2">${doctors.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Active Doctors','أطباء نشطين')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${waiting.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Waiting', 'بانتظار')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${inProgress.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('In Progress', 'جاري')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${queue.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Today', 'الإجمالي اليوم')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#f3e5f5"><h3 style="margin:0;color:#7b1fa2">${doctors.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Active Doctors', 'أطباء نشطين')}</p></div>
     </div>
     <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-      <button class="btn btn-sm" onclick="refreshWQ()" style="background:#e3f2fd;color:#1565c0">🔄 ${tr('Refresh','تحديث')}</button>
-      <button class="btn btn-sm" onclick="exportToCSV(window._wqData||[],'waiting_queue')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export','تصدير')}</button>
+      <button class="btn btn-sm" onclick="refreshWQ()" style="background:#e3f2fd;color:#1565c0">🔄 ${tr('Refresh', 'تحديث')}</button>
+      <button class="btn btn-sm" onclick="exportToCSV(window._wqData||[],'waiting_queue')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export', 'تصدير')}</button>
     </div>
     <div id="wqByDoctor"></div>`;
-    
-    window._wqData = queue;
-    window.refreshWQ = () => renderWaitingQueue(content);
-    
-    const wqDiv = document.getElementById('wqByDoctor');
-    if (wqDiv) {
-      if (doctors.length === 0) {
-        wqDiv.innerHTML = '<div style="text-align:center;padding:60px;color:#999"><div style="font-size:60px;margin-bottom:16px">✅</div><h3>' + tr('No patients waiting','لا يوجد مرضى بالانتظار') + '</h3></div>';
-      } else {
-        let html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:16px">';
-        doctors.forEach(doc => {
-          const docQueue = queue.filter(q => q.doctor === doc && q.status !== 'Completed');
-          html += '<div class="card" style="padding:16px"><h4 style="margin:0 0 12px;color:var(--primary)">👨‍⚕️ ' + doc + ' <span style="font-size:12px;background:#e3f2fd;padding:2px 8px;border-radius:12px;color:#1565c0">' + docQueue.length + '</span></h4>';
-          docQueue.forEach((q, i) => {
-            const waitMin = q.check_in_time ? Math.round((Date.now() - new Date(q.check_in_time).getTime()) / 60000) : 0;
-            const isInProgress = q.status === 'In Progress';
-            html += '<div style="padding:10px;margin:4px 0;background:' + (isInProgress ? '#e8f5e9' : '#f8f9fa') + ';border-radius:8px;border-right:4px solid ' + (isInProgress ? '#4caf50' : waitMin > 30 ? '#cc0000' : '#ff9800') + ';display:flex;justify-content:space-between;align-items:center"><div><span style="font-weight:bold">' + (i+1) + '. ' + (q.patient_name||'') + '</span><br><span style="font-size:12px;color:#666">' + (isInProgress ? '🟢 ' + tr('In Progress','جاري') : '⏳ ' + waitMin + ' ' + tr('min','دقيقة')) + ' | ' + (q.department||'') + '</span></div>';
-            if (!isInProgress) html += '<button class="btn btn-sm" onclick="callFromQueue(' + q.id + ')" style="background:#e8f5e9;color:#2e7d32;font-size:12px">📤 ' + tr('Call','استدعاء') + '</button>';
-            html += '</div>';
-          });
+
+  window._wqData = queue;
+  window.refreshWQ = () => renderWaitingQueue(content);
+
+  const wqDiv = document.getElementById('wqByDoctor');
+  if (wqDiv) {
+    if (doctors.length === 0) {
+      wqDiv.innerHTML = '<div style="text-align:center;padding:60px;color:#999"><div style="font-size:60px;margin-bottom:16px">✅</div><h3>' + tr('No patients waiting', 'لا يوجد مرضى بالانتظار') + '</h3></div>';
+    } else {
+      let html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:16px">';
+      doctors.forEach(doc => {
+        const docQueue = queue.filter(q => q.doctor === doc && q.status !== 'Completed');
+        html += '<div class="card" style="padding:16px"><h4 style="margin:0 0 12px;color:var(--primary)">👨‍⚕️ ' + doc + ' <span style="font-size:12px;background:#e3f2fd;padding:2px 8px;border-radius:12px;color:#1565c0">' + docQueue.length + '</span></h4>';
+        docQueue.forEach((q, i) => {
+          const waitMin = q.check_in_time ? Math.round((Date.now() - new Date(q.check_in_time).getTime()) / 60000) : 0;
+          const isInProgress = q.status === 'In Progress';
+          html += '<div style="padding:10px;margin:4px 0;background:' + (isInProgress ? '#e8f5e9' : '#f8f9fa') + ';border-radius:8px;border-right:4px solid ' + (isInProgress ? '#4caf50' : waitMin > 30 ? '#cc0000' : '#ff9800') + ';display:flex;justify-content:space-between;align-items:center"><div><span style="font-weight:bold">' + (i + 1) + '. ' + (q.patient_name || '') + '</span><br><span style="font-size:12px;color:#666">' + (isInProgress ? '🟢 ' + tr('In Progress', 'جاري') : '⏳ ' + waitMin + ' ' + tr('min', 'دقيقة')) + ' | ' + (q.department || '') + '</span></div>';
+          if (!isInProgress) html += '<button class="btn btn-sm" onclick="callFromQueue(' + q.id + ')" style="background:#e8f5e9;color:#2e7d32;font-size:12px">📤 ' + tr('Call', 'استدعاء') + '</button>';
           html += '</div>';
         });
         html += '</div>';
-        wqDiv.innerHTML = html;
-      }
+      });
+      html += '</div>';
+      wqDiv.innerHTML = html;
     }
-    
-    window.callFromQueue = async (id) => {
-      try { await API.put('/api/queue/patients/' + id + '/status', { status: 'In Progress' }); showToast(tr('Patient called','تم استدعاء المريض')); renderWaitingQueue(content); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
-    
-    // Auto-refresh every 30 seconds
-    if (window._wqInterval) clearInterval(window._wqInterval);
-    window._wqInterval = setInterval(() => { if (document.getElementById('wqByDoctor')) renderWaitingQueue(content); else clearInterval(window._wqInterval); }, 30000);
+  }
+
+  window.callFromQueue = async (id) => {
+    try { await API.put('/api/queue/patients/' + id + '/status', { status: 'In Progress' }); showToast(tr('Patient called', 'تم استدعاء المريض')); renderWaitingQueue(content); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
+
+  // Auto-refresh every 30 seconds
+  if (window._wqInterval) clearInterval(window._wqInterval);
+  window._wqInterval = setInterval(() => { if (document.getElementById('wqByDoctor')) renderWaitingQueue(content); else clearInterval(window._wqInterval); }, 30000);
 
 }
 window.callPatient = async function (id) {
@@ -4164,53 +4167,53 @@ window.callPatient = async function (id) {
 
 async function renderPatientAccounts(el) {
 
-    content.innerHTML = `
-    <h2>${tr('Patient Accounts','حسابات المرضى')}</h2>
+  content.innerHTML = `
+    <h2>${tr('Patient Accounts', 'حسابات المرضى')}</h2>
     <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-      <input class="form-input" id="paSearch" placeholder="${tr('Search patient (name/MRN)...','بحث بالاسم أو رقم الملف...')}" style="max-width:300px" oninput="searchPatientAccounts()">
-      <button class="btn btn-sm" onclick="exportToCSV(window._paData||[],'patient_accounts')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export','تصدير')}</button>
+      <input class="form-input" id="paSearch" placeholder="${tr('Search patient (name/MRN)...', 'بحث بالاسم أو رقم الملف...')}" style="max-width:300px" oninput="searchPatientAccounts()">
+      <button class="btn btn-sm" onclick="exportToCSV(window._paData||[],'patient_accounts')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export', 'تصدير')}</button>
     </div>
     <div id="paResults"></div>`;
-    searchPatientAccounts();
+  searchPatientAccounts();
 
-    window.searchPatientAccounts = async () => {
-      const search = document.getElementById('paSearch')?.value || '';
-      const patients = await API.get('/api/patients?search=' + encodeURIComponent(search));
-      const el = document.getElementById('paResults');
-      if (!el) return;
-      if (!patients.length) { el.innerHTML = '<p style="color:#999;text-align:center;padding:40px">' + tr('No patients found','لم يتم العثور على مرضى') + '</p>'; return; }
-      
-      let invoiceData = [];
-      try { invoiceData = await API.get('/api/invoices'); } catch(e) {}
-      
-      window._paData = patients.map(p => {
-        const pInvoices = invoiceData.filter(i => i.patient_id === p.id);
-        const totalBilled = pInvoices.reduce((s,i) => s + parseFloat(i.total || 0), 0);
-        const totalPaid = pInvoices.filter(i => i.paid).reduce((s,i) => s + parseFloat(i.total || 0), 0);
-        return { ...p, total_billed: totalBilled.toFixed(2), total_paid: totalPaid.toFixed(2), balance: (totalBilled - totalPaid).toFixed(2), invoice_count: pInvoices.length };
-      });
-      
-      createTable(el, 'paTable',
-        [tr('MRN','الملف'), tr('Name','الاسم'), tr('Phone','الجوال'), tr('Invoices','فواتير'), tr('Billed','المفوتر'), tr('Paid','المدفوع'), tr('Balance','الرصيد')],
-        window._paData.map(p => ({
-          cells: [p.mrn || p.file_number, isArabic ? (p.name_ar||p.name_en) : (p.name_en||p.name_ar), p.phone, p.invoice_count,
-            p.total_billed + ' ' + tr('SAR','ريال'), p.total_paid + ' ' + tr('SAR','ريال'),
-            '<span style="color:' + (parseFloat(p.balance) > 0 ? '#cc0000;font-weight:bold' : '#2e7d32') + '">' + p.balance + ' ' + tr('SAR','ريال') + '</span>'],
-          id: p.id
-        })),
-        (row) => `<button class="btn btn-sm" onclick="viewPatientInvoices(${row.id})" style="background:#e3f2fd;color:#1565c0">📋 ${tr('Invoices','الفواتير')}</button>`
-      );
-    };
-    
-    window.viewPatientInvoices = async (pid) => {
-      const invoices = await API.get('/api/invoices?patient_id=' + pid);
-      const modal = document.createElement('div');
-      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
-      let rows = invoices.map(i => '<tr><td style="padding:6px;border-bottom:1px solid #eee">' + (i.invoice_number||i.id) + '</td><td style="padding:6px;border-bottom:1px solid #eee">' + (i.description||i.service_type||'') + '</td><td style="padding:6px;border-bottom:1px solid #eee">' + parseFloat(i.total||0).toFixed(2) + '</td><td style="padding:6px;border-bottom:1px solid #eee"><span style="color:' + (i.paid ? '#2e7d32' : '#cc0000') + '">' + (i.paid ? tr('Paid','مدفوع') : tr('Unpaid','غير مدفوع')) + '</span></td></tr>').join('');
-      modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:600px;direction:rtl;max-height:80vh;overflow:auto"><h3 style="margin:0 0 16px">' + tr('Patient Invoices','فواتير المريض') + '</h3><table style="width:100%"><thead><tr style="background:#f5f5f5"><th style="padding:8px;text-align:right">#</th><th style="padding:8px;text-align:right">' + tr('Service','الخدمة') + '</th><th style="padding:8px;text-align:right">' + tr('Amount','المبلغ') + '</th><th style="padding:8px;text-align:right">' + tr('Status','الحالة') + '</th></tr></thead><tbody>' + rows + '</tbody></table><button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()" style="margin-top:16px;width:100%">' + tr('Close','إغلاق') + '</button></div>';
-      document.body.appendChild(modal);
-      modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-    };
+  window.searchPatientAccounts = async () => {
+    const search = document.getElementById('paSearch')?.value || '';
+    const patients = await API.get('/api/patients?search=' + encodeURIComponent(search));
+    const el = document.getElementById('paResults');
+    if (!el) return;
+    if (!patients.length) { el.innerHTML = '<p style="color:#999;text-align:center;padding:40px">' + tr('No patients found', 'لم يتم العثور على مرضى') + '</p>'; return; }
+
+    let invoiceData = [];
+    try { invoiceData = await API.get('/api/invoices'); } catch (e) { }
+
+    window._paData = patients.map(p => {
+      const pInvoices = invoiceData.filter(i => i.patient_id === p.id);
+      const totalBilled = pInvoices.reduce((s, i) => s + parseFloat(i.total || 0), 0);
+      const totalPaid = pInvoices.filter(i => i.paid).reduce((s, i) => s + parseFloat(i.total || 0), 0);
+      return { ...p, total_billed: totalBilled.toFixed(2), total_paid: totalPaid.toFixed(2), balance: (totalBilled - totalPaid).toFixed(2), invoice_count: pInvoices.length };
+    });
+
+    createTable(el, 'paTable',
+      [tr('MRN', 'الملف'), tr('Name', 'الاسم'), tr('Phone', 'الجوال'), tr('Invoices', 'فواتير'), tr('Billed', 'المفوتر'), tr('Paid', 'المدفوع'), tr('Balance', 'الرصيد')],
+      window._paData.map(p => ({
+        cells: [p.mrn || p.file_number, isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar), p.phone, p.invoice_count,
+        p.total_billed + ' ' + tr('SAR', 'ريال'), p.total_paid + ' ' + tr('SAR', 'ريال'),
+        '<span style="color:' + (parseFloat(p.balance) > 0 ? '#cc0000;font-weight:bold' : '#2e7d32') + '">' + p.balance + ' ' + tr('SAR', 'ريال') + '</span>'],
+        id: p.id
+      })),
+      (row) => `<button class="btn btn-sm" onclick="viewPatientInvoices(${row.id})" style="background:#e3f2fd;color:#1565c0">📋 ${tr('Invoices', 'الفواتير')}</button>`
+    );
+  };
+
+  window.viewPatientInvoices = async (pid) => {
+    const invoices = await API.get('/api/invoices?patient_id=' + pid);
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+    let rows = invoices.map(i => '<tr><td style="padding:6px;border-bottom:1px solid #eee">' + (i.invoice_number || i.id) + '</td><td style="padding:6px;border-bottom:1px solid #eee">' + (i.description || i.service_type || '') + '</td><td style="padding:6px;border-bottom:1px solid #eee">' + parseFloat(i.total || 0).toFixed(2) + '</td><td style="padding:6px;border-bottom:1px solid #eee"><span style="color:' + (i.paid ? '#2e7d32' : '#cc0000') + '">' + (i.paid ? tr('Paid', 'مدفوع') : tr('Unpaid', 'غير مدفوع')) + '</span></td></tr>').join('');
+    modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:600px;direction:rtl;max-height:80vh;overflow:auto"><h3 style="margin:0 0 16px">' + tr('Patient Invoices', 'فواتير المريض') + '</h3><table style="width:100%"><thead><tr style="background:#f5f5f5"><th style="padding:8px;text-align:right">#</th><th style="padding:8px;text-align:right">' + tr('Service', 'الخدمة') + '</th><th style="padding:8px;text-align:right">' + tr('Amount', 'المبلغ') + '</th><th style="padding:8px;text-align:right">' + tr('Status', 'الحالة') + '</th></tr></thead><tbody>' + rows + '</tbody></table><button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()" style="margin-top:16px;width:100%">' + tr('Close', 'إغلاق') + '</button></div>';
+    document.body.appendChild(modal);
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+  };
 
 }
 window.loadPatientAccount = async () => {
@@ -4261,160 +4264,160 @@ window.payInvoicePA = async (id) => {
 
 async function renderReports(el) {
 
-    content.innerHTML = `
-    <h2>${tr('Reports','التقارير')}</h2>
+  content.innerHTML = `
+    <h2>${tr('Reports', 'التقارير')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-bottom:20px">
       <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('patients')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
         <div style="font-size:36px;margin-bottom:8px">👥</div>
-        <h4 style="margin:0 0 4px">${tr('Patient Report','تقرير المرضى')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('All registered patients','جميع المرضى المسجلين')}</p>
+        <h4 style="margin:0 0 4px">${tr('Patient Report', 'تقرير المرضى')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('All registered patients', 'جميع المرضى المسجلين')}</p>
       </div>
       <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('invoices')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
         <div style="font-size:36px;margin-bottom:8px">💰</div>
-        <h4 style="margin:0 0 4px">${tr('Financial Report','التقرير المالي')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('Revenue and invoices','الإيرادات والفواتير')}</p>
+        <h4 style="margin:0 0 4px">${tr('Financial Report', 'التقرير المالي')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('Revenue and invoices', 'الإيرادات والفواتير')}</p>
       </div>
       <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('appointments')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
         <div style="font-size:36px;margin-bottom:8px">📅</div>
-        <h4 style="margin:0 0 4px">${tr('Appointments Report','تقرير المواعيد')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('Bookings and attendance','الحجوزات والحضور')}</p>
+        <h4 style="margin:0 0 4px">${tr('Appointments Report', 'تقرير المواعيد')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('Bookings and attendance', 'الحجوزات والحضور')}</p>
       </div>
       <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('lab')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
         <div style="font-size:36px;margin-bottom:8px">🔬</div>
-        <h4 style="margin:0 0 4px">${tr('Lab Report','تقرير المختبر')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('Test orders and results','الطلبات والنتائج')}</p>
+        <h4 style="margin:0 0 4px">${tr('Lab Report', 'تقرير المختبر')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('Test orders and results', 'الطلبات والنتائج')}</p>
       </div>
       <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('pharmacy')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
         <div style="font-size:36px;margin-bottom:8px">💊</div>
-        <h4 style="margin:0 0 4px">${tr('Pharmacy Report','تقرير الصيدلية')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('Dispensing and stock','الصرف والمخزون')}</p>
+        <h4 style="margin:0 0 4px">${tr('Pharmacy Report', 'تقرير الصيدلية')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('Dispensing and stock', 'الصرف والمخزون')}</p>
       </div>
       <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('inventory')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
         <div style="font-size:36px;margin-bottom:8px">📦</div>
-        <h4 style="margin:0 0 4px">${tr('Inventory Report','تقرير المخزون')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('Stock levels and low items','مستويات المخزون')}</p>
+        <h4 style="margin:0 0 4px">${tr('Inventory Report', 'تقرير المخزون')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('Stock levels and low items', 'مستويات المخزون')}</p>
       </div>
     </div>
     <div id="reportOutput" class="card" style="padding:20px;display:none">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
         <h4 id="reportTitle" style="margin:0"></h4>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-sm" onclick="exportToCSV(window._reportData||[],'report')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export CSV','تصدير CSV')}</button>
-          <button class="btn btn-sm" onclick="window.print()" style="background:#f3e5f5;color:#7b1fa2">🖨️ ${tr('Print','طباعة')}</button>
+          <button class="btn btn-sm" onclick="exportToCSV(window._reportData||[],'report')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export CSV', 'تصدير CSV')}</button>
+          <button class="btn btn-sm" onclick="window.print()" style="background:#f3e5f5;color:#7b1fa2">🖨️ ${tr('Print', 'طباعة')}</button>
         </div>
       </div>
       <div id="reportTable"></div>
     </div>`;
-    
-    window.genReport = async (type) => {
-      const output = document.getElementById('reportOutput');
-      const title = document.getElementById('reportTitle');
-      const table = document.getElementById('reportTable');
-      if (!output || !table) return;
-      output.style.display = '';
-      
-      try {
-        let data, headers, rows;
-        switch(type) {
-          case 'patients':
-            data = await API.get('/api/patients');
-            title.textContent = tr('Patient Report','تقرير المرضى') + ' (' + data.length + ')';
-            headers = [tr('MRN','الملف'),tr('Name','الاسم'),tr('Phone','الجوال'),tr('ID','الهوية'),tr('Nationality','الجنسية'),tr('Registered','التسجيل')];
-            rows = data.map(p=>({cells:[p.mrn||p.file_number, isArabic?(p.name_ar||p.name_en):(p.name_en||p.name_ar), p.phone, p.national_id, p.nationality, p.created_at?new Date(p.created_at).toLocaleDateString('ar-SA'):''],id:p.id}));
-            break;
-          case 'invoices':
-            data = await API.get('/api/invoices');
-            title.textContent = tr('Financial Report','التقرير المالي') + ' (' + data.length + ')';
-            headers = [tr('#','#'),tr('Patient','المريض'),tr('Service','الخدمة'),tr('Amount','المبلغ'),tr('Paid','مدفوع'),tr('Date','التاريخ')];
-            rows = data.map(i=>({cells:[i.invoice_number||i.id, i.patient_name, i.description||i.service_type, parseFloat(i.total||0).toFixed(2), i.paid?'✅':'❌', i.created_at?new Date(i.created_at).toLocaleDateString('ar-SA'):''],id:i.id}));
-            break;
-          case 'appointments':
-            data = await API.get('/api/appointments');
-            title.textContent = tr('Appointments Report','تقرير المواعيد') + ' (' + data.length + ')';
-            headers = [tr('Patient','المريض'),tr('Doctor','الطبيب'),tr('Department','القسم'),tr('Date','التاريخ'),tr('Time','الوقت'),tr('Status','الحالة')];
-            rows = data.map(a=>({cells:[a.patient_name, a.doctor_name||a.doctor, a.department, a.appt_date||a.date, a.appt_time||a.time, statusBadge(a.status)],id:a.id}));
-            break;
-          case 'lab':
-            data = await API.get('/api/lab/orders');
-            title.textContent = tr('Lab Report','تقرير المختبر') + ' (' + data.length + ')';
-            headers = [tr('Patient','المريض'),tr('Test','الفحص'),tr('Doctor','الطبيب'),tr('Status','الحالة'),tr('Date','التاريخ')];
-            rows = data.map(l=>({cells:[l.patient_name, l.test_name||l.test_type, l.doctor, statusBadge(l.status), l.created_at?new Date(l.created_at).toLocaleDateString('ar-SA'):''],id:l.id}));
-            break;
-          case 'pharmacy':
-            data = await API.get('/api/pharmacy/prescriptions');
-            title.textContent = tr('Pharmacy Report','تقرير الصيدلية') + ' (' + data.length + ')';
-            headers = [tr('Patient','المريض'),tr('Medication','الدواء'),tr('Doctor','الطبيب'),tr('Status','الحالة'),tr('Date','التاريخ')];
-            rows = data.map(p=>({cells:[p.patient_name, p.medication||p.drug_name, p.doctor, statusBadge(p.status), p.created_at?new Date(p.created_at).toLocaleDateString('ar-SA'):''],id:p.id}));
-            break;
-          case 'inventory':
-            data = await API.get('/api/inventory');
-            title.textContent = tr('Inventory Report','تقرير المخزون') + ' (' + data.length + ')';
-            headers = [tr('Item','الصنف'),tr('Category','الفئة'),tr('Qty','الكمية'),tr('Reorder','إعادة الطلب'),tr('Unit','الوحدة'),tr('Status','الحالة')];
-            rows = data.map(i=>({cells:[i.name, i.category, i.quantity, i.reorder_level||10, i.unit, parseInt(i.quantity)<=parseInt(i.reorder_level||10)?'<span style="color:#cc0000;font-weight:bold">⚠️ '+tr('Low','منخفض')+'</span>':'<span style="color:#2e7d32">✅ '+tr('OK','جيد')+'</span>'],id:i.id}));
-            break;
-        }
-        window._reportData = data;
-        createTable(table, 'rptTbl', headers, rows);
-      } catch(e) { table.innerHTML = '<p style="color:#cc0000">' + tr('Error loading report','خطأ في تحميل التقرير') + '</p>'; }
-    };
+
+  window.genReport = async (type) => {
+    const output = document.getElementById('reportOutput');
+    const title = document.getElementById('reportTitle');
+    const table = document.getElementById('reportTable');
+    if (!output || !table) return;
+    output.style.display = '';
+
+    try {
+      let data, headers, rows;
+      switch (type) {
+        case 'patients':
+          data = await API.get('/api/patients');
+          title.textContent = tr('Patient Report', 'تقرير المرضى') + ' (' + data.length + ')';
+          headers = [tr('MRN', 'الملف'), tr('Name', 'الاسم'), tr('Phone', 'الجوال'), tr('ID', 'الهوية'), tr('Nationality', 'الجنسية'), tr('Registered', 'التسجيل')];
+          rows = data.map(p => ({ cells: [p.mrn || p.file_number, isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar), p.phone, p.national_id, p.nationality, p.created_at ? new Date(p.created_at).toLocaleDateString('ar-SA') : ''], id: p.id }));
+          break;
+        case 'invoices':
+          data = await API.get('/api/invoices');
+          title.textContent = tr('Financial Report', 'التقرير المالي') + ' (' + data.length + ')';
+          headers = [tr('#', '#'), tr('Patient', 'المريض'), tr('Service', 'الخدمة'), tr('Amount', 'المبلغ'), tr('Paid', 'مدفوع'), tr('Date', 'التاريخ')];
+          rows = data.map(i => ({ cells: [i.invoice_number || i.id, i.patient_name, i.description || i.service_type, parseFloat(i.total || 0).toFixed(2), i.paid ? '✅' : '❌', i.created_at ? new Date(i.created_at).toLocaleDateString('ar-SA') : ''], id: i.id }));
+          break;
+        case 'appointments':
+          data = await API.get('/api/appointments');
+          title.textContent = tr('Appointments Report', 'تقرير المواعيد') + ' (' + data.length + ')';
+          headers = [tr('Patient', 'المريض'), tr('Doctor', 'الطبيب'), tr('Department', 'القسم'), tr('Date', 'التاريخ'), tr('Time', 'الوقت'), tr('Status', 'الحالة')];
+          rows = data.map(a => ({ cells: [a.patient_name, a.doctor_name || a.doctor, a.department, a.appt_date || a.date, a.appt_time || a.time, statusBadge(a.status)], id: a.id }));
+          break;
+        case 'lab':
+          data = await API.get('/api/lab/orders');
+          title.textContent = tr('Lab Report', 'تقرير المختبر') + ' (' + data.length + ')';
+          headers = [tr('Patient', 'المريض'), tr('Test', 'الفحص'), tr('Doctor', 'الطبيب'), tr('Status', 'الحالة'), tr('Date', 'التاريخ')];
+          rows = data.map(l => ({ cells: [l.patient_name, l.test_name || l.test_type, l.doctor, statusBadge(l.status), l.created_at ? new Date(l.created_at).toLocaleDateString('ar-SA') : ''], id: l.id }));
+          break;
+        case 'pharmacy':
+          data = await API.get('/api/pharmacy/prescriptions');
+          title.textContent = tr('Pharmacy Report', 'تقرير الصيدلية') + ' (' + data.length + ')';
+          headers = [tr('Patient', 'المريض'), tr('Medication', 'الدواء'), tr('Doctor', 'الطبيب'), tr('Status', 'الحالة'), tr('Date', 'التاريخ')];
+          rows = data.map(p => ({ cells: [p.patient_name, p.medication || p.drug_name, p.doctor, statusBadge(p.status), p.created_at ? new Date(p.created_at).toLocaleDateString('ar-SA') : ''], id: p.id }));
+          break;
+        case 'inventory':
+          data = await API.get('/api/inventory');
+          title.textContent = tr('Inventory Report', 'تقرير المخزون') + ' (' + data.length + ')';
+          headers = [tr('Item', 'الصنف'), tr('Category', 'الفئة'), tr('Qty', 'الكمية'), tr('Reorder', 'إعادة الطلب'), tr('Unit', 'الوحدة'), tr('Status', 'الحالة')];
+          rows = data.map(i => ({ cells: [i.name, i.category, i.quantity, i.reorder_level || 10, i.unit, parseInt(i.quantity) <= parseInt(i.reorder_level || 10) ? '<span style="color:#cc0000;font-weight:bold">⚠️ ' + tr('Low', 'منخفض') + '</span>' : '<span style="color:#2e7d32">✅ ' + tr('OK', 'جيد') + '</span>'], id: i.id }));
+          break;
+      }
+      window._reportData = data;
+      createTable(table, 'rptTbl', headers, rows);
+    } catch (e) { table.innerHTML = '<p style="color:#cc0000">' + tr('Error loading report', 'خطأ في تحميل التقرير') + '</p>'; }
+  };
 
 }
 
 let msgTab = 'inbox';
 async function renderMessaging(el) {
 
-    const messages = await API.get('/api/messages').catch(() => []);
-    const unread = messages.filter(m => !m.read_at);
-    const sent = messages.filter(m => m.sender === (window._currentUser?.display_name || ''));
-    const inbox = messages.filter(m => m.recipient === (window._currentUser?.display_name || ''));
-    
-    content.innerHTML = `
-    <h2>${tr('Messaging','الرسائل')}</h2>
+  const messages = await API.get('/api/messages').catch(() => []);
+  const unread = messages.filter(m => !m.read_at);
+  const sent = messages.filter(m => m.sender === (window._currentUser?.display_name || ''));
+  const inbox = messages.filter(m => m.recipient === (window._currentUser?.display_name || ''));
+
+  content.innerHTML = `
+    <h2>${tr('Messaging', 'الرسائل')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${unread.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Unread','غير مقروءة')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${inbox.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Inbox','الوارد')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${sent.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Sent','المرسلة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${unread.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Unread', 'غير مقروءة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${inbox.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Inbox', 'الوارد')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${sent.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Sent', 'المرسلة')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('New Message','رسالة جديدة')}</h4>
-        <div class="form-group"><label>${tr('To','إلى')}</label><input class="form-input" id="msgTo" placeholder="${tr('Recipient name','اسم المستلم')}"></div>
-        <div class="form-group"><label>${tr('Priority','الأولوية')}</label>
-        <select class="form-input" id="msgPriority"><option value="normal">${tr('Normal','عادي')}</option><option value="urgent">${tr('Urgent','مستعجل')}</option></select></div>
-        <div class="form-group"><label>${tr('Subject','الموضوع')}</label><input class="form-input" id="msgSubject"></div>
-        <div class="form-group"><label>${tr('Message','الرسالة')}</label><textarea class="form-input" id="msgBody" rows="4"></textarea></div>
-        <button class="btn btn-primary w-full" onclick="sendMessage()">📤 ${tr('Send','إرسال')}</button>
+        <h4 style="margin:0 0 12px">${tr('New Message', 'رسالة جديدة')}</h4>
+        <div class="form-group"><label>${tr('To', 'إلى')}</label><input class="form-input" id="msgTo" placeholder="${tr('Recipient name', 'اسم المستلم')}"></div>
+        <div class="form-group"><label>${tr('Priority', 'الأولوية')}</label>
+        <select class="form-input" id="msgPriority"><option value="normal">${tr('Normal', 'عادي')}</option><option value="urgent">${tr('Urgent', 'مستعجل')}</option></select></div>
+        <div class="form-group"><label>${tr('Subject', 'الموضوع')}</label><input class="form-input" id="msgSubject"></div>
+        <div class="form-group"><label>${tr('Message', 'الرسالة')}</label><textarea class="form-input" id="msgBody" rows="4"></textarea></div>
+        <button class="btn btn-primary w-full" onclick="sendMessage()">📤 ${tr('Send', 'إرسال')}</button>
       </div>
       <div class="card" style="padding:20px">
         <div style="display:flex;gap:8px;margin-bottom:12px">
-          <button class="btn btn-sm" onclick="showMsgTab('inbox')" id="inboxBtn" style="flex:1;background:#e3f2fd;color:#1565c0">${tr('Inbox','الوارد')}</button>
-          <button class="btn btn-sm" onclick="showMsgTab('sent')" id="sentBtn" style="flex:1">${tr('Sent','المرسلة')}</button>
+          <button class="btn btn-sm" onclick="showMsgTab('inbox')" id="inboxBtn" style="flex:1;background:#e3f2fd;color:#1565c0">${tr('Inbox', 'الوارد')}</button>
+          <button class="btn btn-sm" onclick="showMsgTab('sent')" id="sentBtn" style="flex:1">${tr('Sent', 'المرسلة')}</button>
         </div>
-        <div id="msgInbox">${inbox.map(m => '<div style="padding:10px;margin:4px 0;background:' + (m.read_at ? '#f8f9fa' : '#e3f2fd') + ';border-radius:8px;cursor:pointer;border-right:4px solid ' + (m.priority==='urgent'?'#cc0000':'#1565c0') + '" onclick="readMsg(' + m.id + ')"><div style="display:flex;justify-content:space-between"><strong style="font-size:14px">' + (m.subject||tr('No subject','بدون موضوع')) + '</strong><span style="font-size:11px;color:#999">' + (m.created_at ? new Date(m.created_at).toLocaleDateString('ar-SA') : '') + '</span></div><span style="font-size:12px;color:#666">' + tr('From:','من:') + ' ' + (m.sender||'') + '</span></div>').join('') || '<p style="color:#999;text-align:center">' + tr('No messages','لا توجد رسائل') + '</p>'}</div>
-        <div id="msgSent" style="display:none">${sent.map(m => '<div style="padding:10px;margin:4px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid #4caf50"><div style="display:flex;justify-content:space-between"><strong style="font-size:14px">' + (m.subject||'') + '</strong><span style="font-size:11px;color:#999">' + (m.created_at ? new Date(m.created_at).toLocaleDateString('ar-SA') : '') + '</span></div><span style="font-size:12px;color:#666">' + tr('To:','إلى:') + ' ' + (m.recipient||'') + '</span></div>').join('') || '<p style="color:#999;text-align:center">' + tr('No messages','لا توجد رسائل') + '</p>'}</div>
+        <div id="msgInbox">${inbox.map(m => '<div style="padding:10px;margin:4px 0;background:' + (m.read_at ? '#f8f9fa' : '#e3f2fd') + ';border-radius:8px;cursor:pointer;border-right:4px solid ' + (m.priority === 'urgent' ? '#cc0000' : '#1565c0') + '" onclick="readMsg(' + m.id + ')"><div style="display:flex;justify-content:space-between"><strong style="font-size:14px">' + (m.subject || tr('No subject', 'بدون موضوع')) + '</strong><span style="font-size:11px;color:#999">' + (m.created_at ? new Date(m.created_at).toLocaleDateString('ar-SA') : '') + '</span></div><span style="font-size:12px;color:#666">' + tr('From:', 'من:') + ' ' + (m.sender || '') + '</span></div>').join('') || '<p style="color:#999;text-align:center">' + tr('No messages', 'لا توجد رسائل') + '</p>'}</div>
+        <div id="msgSent" style="display:none">${sent.map(m => '<div style="padding:10px;margin:4px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid #4caf50"><div style="display:flex;justify-content:space-between"><strong style="font-size:14px">' + (m.subject || '') + '</strong><span style="font-size:11px;color:#999">' + (m.created_at ? new Date(m.created_at).toLocaleDateString('ar-SA') : '') + '</span></div><span style="font-size:12px;color:#666">' + tr('To:', 'إلى:') + ' ' + (m.recipient || '') + '</span></div>').join('') || '<p style="color:#999;text-align:center">' + tr('No messages', 'لا توجد رسائل') + '</p>'}</div>
       </div>
     </div>`;
-    
-    window.showMsgTab = (tab) => {
-      document.getElementById('msgInbox').style.display = tab==='inbox' ? '' : 'none';
-      document.getElementById('msgSent').style.display = tab==='sent' ? '' : 'none';
-      document.getElementById('inboxBtn').style.background = tab==='inbox' ? '#e3f2fd' : '';
-      document.getElementById('sentBtn').style.background = tab==='sent' ? '#e3f2fd' : '';
-    };
-    window.sendMessage = async () => {
-      try { await API.post('/api/messages', { recipient: document.getElementById('msgTo')?.value, priority: document.getElementById('msgPriority')?.value, subject: document.getElementById('msgSubject')?.value, body: document.getElementById('msgBody')?.value }); showToast(tr('Message sent!','تم إرسال الرسالة!')); renderMessaging(content); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
-    window.readMsg = async (id) => {
-      try { await API.put('/api/messages/' + id + '/read', {}); } catch(e) {}
-      const msg = messages.find(m => m.id === id);
-      if (msg) {
-        const modal = document.createElement('div');
-        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
-        modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:500px;direction:rtl"><h3 style="margin:0 0 8px">' + (msg.subject||'') + '</h3><p style="font-size:12px;color:#666;margin:0 0 16px">' + tr('From:','من:') + ' ' + (msg.sender||'') + ' | ' + (msg.created_at ? new Date(msg.created_at).toLocaleString('ar-SA') : '') + '</p><div style="background:#f8f9fa;border-radius:8px;padding:16px;min-height:80px">' + (msg.body||'') + '</div><button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:16px">' + tr('Close','إغلاق') + '</button></div>';
-        document.body.appendChild(modal);
-        modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-      }
-    };
+
+  window.showMsgTab = (tab) => {
+    document.getElementById('msgInbox').style.display = tab === 'inbox' ? '' : 'none';
+    document.getElementById('msgSent').style.display = tab === 'sent' ? '' : 'none';
+    document.getElementById('inboxBtn').style.background = tab === 'inbox' ? '#e3f2fd' : '';
+    document.getElementById('sentBtn').style.background = tab === 'sent' ? '#e3f2fd' : '';
+  };
+  window.sendMessage = async () => {
+    try { await API.post('/api/messages', { recipient: document.getElementById('msgTo')?.value, priority: document.getElementById('msgPriority')?.value, subject: document.getElementById('msgSubject')?.value, body: document.getElementById('msgBody')?.value }); showToast(tr('Message sent!', 'تم إرسال الرسالة!')); renderMessaging(content); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
+  window.readMsg = async (id) => {
+    try { await API.put('/api/messages/' + id + '/read', {}); } catch (e) { }
+    const msg = messages.find(m => m.id === id);
+    if (msg) {
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+      modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:500px;direction:rtl"><h3 style="margin:0 0 8px">' + (msg.subject || '') + '</h3><p style="font-size:12px;color:#666;margin:0 0 16px">' + tr('From:', 'من:') + ' ' + (msg.sender || '') + ' | ' + (msg.created_at ? new Date(msg.created_at).toLocaleString('ar-SA') : '') + '</p><div style="background:#f8f9fa;border-radius:8px;padding:16px;min-height:80px">' + (msg.body || '') + '</div><button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:16px">' + tr('Close', 'إغلاق') + '</button></div>';
+      document.body.appendChild(modal);
+      modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+    }
+  };
 
 }
 window.sendMsg = async function () {
@@ -4439,14 +4442,14 @@ async function loadDashboardCharts() {
   try {
     if (typeof Chart === 'undefined') return;
     const data = await API.get('/api/dashboard/charts');
-    
+
     // Revenue trend line chart
     const revCtx = document.getElementById('revenueChart');
     if (revCtx && data.revenueTrend) {
       new Chart(revCtx, {
         type: 'line',
         data: {
-          labels: data.revenueTrend.map(d => new Date(d.day).toLocaleDateString('ar-SA', {day:'numeric',month:'short'})),
+          labels: data.revenueTrend.map(d => new Date(d.day).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' })),
           datasets: [{
             label: isArabic ? 'الإيرادات' : 'Revenue',
             data: data.revenueTrend.map(d => parseFloat(d.revenue)),
@@ -4458,11 +4461,11 @@ async function loadDashboardCharts() {
         options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
       });
     }
-    
+
     // Department pie chart
     const deptCtx = document.getElementById('deptChart');
     if (deptCtx && data.byDepartment && data.byDepartment.length > 0) {
-      const colors = ['#1a73e8','#34a853','#fbbc04','#ea4335','#ff6d01','#46bdc6','#7baaf7','#f07b72','#fcd04f','#71c287'];
+      const colors = ['#1a73e8', '#34a853', '#fbbc04', '#ea4335', '#ff6d01', '#46bdc6', '#7baaf7', '#f07b72', '#fcd04f', '#71c287'];
       new Chart(deptCtx, {
         type: 'doughnut',
         data: {
@@ -4472,20 +4475,20 @@ async function loadDashboardCharts() {
         options: { responsive: true, plugins: { legend: { position: 'right', labels: { font: { size: 11 } } } } }
       });
     }
-    
+
     // Top doctors bar chart
     const docCtx = document.getElementById('doctorChart');
     if (docCtx && data.topDoctors && data.topDoctors.length > 0) {
       new Chart(docCtx, {
         type: 'bar',
         data: {
-          labels: data.topDoctors.map(d => d.doctor?.split(' ').slice(0,2).join(' ') || ''),
+          labels: data.topDoctors.map(d => d.doctor?.split(' ').slice(0, 2).join(' ') || ''),
           datasets: [{ label: isArabic ? 'مرضى' : 'Patients', data: data.topDoctors.map(d => parseInt(d.patients)), backgroundColor: '#34a853', borderRadius: 6 }]
         },
         options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
       });
     }
-    
+
     // Payment methods pie
     const payCtx = document.getElementById('paymentChart');
     if (payCtx && data.paymentMethods && data.paymentMethods.length > 0) {
@@ -4493,13 +4496,13 @@ async function loadDashboardCharts() {
         type: 'pie',
         data: {
           labels: data.paymentMethods.map(d => d.method),
-          datasets: [{ data: data.paymentMethods.map(d => parseFloat(d.total)), backgroundColor: ['#34a853','#1a73e8','#fbbc04','#ea4335','#ff6d01'] }]
+          datasets: [{ data: data.paymentMethods.map(d => parseFloat(d.total)), backgroundColor: ['#34a853', '#1a73e8', '#fbbc04', '#ea4335', '#ff6d01'] }]
         },
         options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
       });
     }
-    
-  } catch(e) { console.error('Charts load error:', e); }
+
+  } catch (e) { console.error('Charts load error:', e); }
 }
 
 
@@ -4843,35 +4846,35 @@ window.saveCatPrice = async (type, id) => {
 // ===== DEPARTMENT RESOURCE REQUESTS =====
 async function renderDeptRequests(el) {
 
-    const requests = await API.get('/api/dept-requests').catch(() => []);
-    content.innerHTML = `
-    <h2>${tr('Department Requests','طلبات الأقسام')}</h2>
+  const requests = await API.get('/api/dept-requests').catch(() => []);
+  content.innerHTML = `
+    <h2>${tr('Department Requests', 'طلبات الأقسام')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${requests.filter?.(r=>r.status==='pending')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Pending','بانتظار')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${requests.filter?.(r=>r.status==='approved')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Approved','موافق عليها')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${requests.filter?.(r=>r.status==='rejected')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Rejected','مرفوضة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${requests.filter?.(r => r.status === 'pending')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Pending', 'بانتظار')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${requests.filter?.(r => r.status === 'approved')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Approved', 'موافق عليها')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${requests.filter?.(r => r.status === 'rejected')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Rejected', 'مرفوضة')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('New Request','طلب جديد')}</h4>
-        <div class="form-group"><label>${tr('From Department','من قسم')}</label><input class="form-input" id="drFrom"></div>
-        <div class="form-group"><label>${tr('Request Type','نوع الطلب')}</label>
-        <select class="form-input" id="drType"><option value="supplies">${tr('Supplies','مستلزمات')}</option><option value="equipment">${tr('Equipment','أجهزة')}</option><option value="maintenance">${tr('Maintenance','صيانة')}</option><option value="staffing">${tr('Staffing','توظيف')}</option><option value="other">${tr('Other','أخرى')}</option></select></div>
-        <div class="form-group"><label>${tr('Item Description','وصف الطلب')}</label><textarea class="form-input" id="drDesc" rows="2"></textarea></div>
-        <div class="form-group"><label>${tr('Quantity','الكمية')}</label><input type="number" class="form-input" id="drQty" min="1" value="1"></div>
-        <div class="form-group"><label>${tr('Urgency','الإلحاح')}</label>
-        <select class="form-input" id="drUrgency"><option value="normal">${tr('Normal','عادي')}</option><option value="urgent">${tr('Urgent','مستعجل')}</option></select></div>
-        <button class="btn btn-primary w-full" onclick="saveDeptReq()">📤 ${tr('Submit Request','إرسال الطلب')}</button>
+        <h4 style="margin:0 0 12px">${tr('New Request', 'طلب جديد')}</h4>
+        <div class="form-group"><label>${tr('From Department', 'من قسم')}</label><input class="form-input" id="drFrom"></div>
+        <div class="form-group"><label>${tr('Request Type', 'نوع الطلب')}</label>
+        <select class="form-input" id="drType"><option value="supplies">${tr('Supplies', 'مستلزمات')}</option><option value="equipment">${tr('Equipment', 'أجهزة')}</option><option value="maintenance">${tr('Maintenance', 'صيانة')}</option><option value="staffing">${tr('Staffing', 'توظيف')}</option><option value="other">${tr('Other', 'أخرى')}</option></select></div>
+        <div class="form-group"><label>${tr('Item Description', 'وصف الطلب')}</label><textarea class="form-input" id="drDesc" rows="2"></textarea></div>
+        <div class="form-group"><label>${tr('Quantity', 'الكمية')}</label><input type="number" class="form-input" id="drQty" min="1" value="1"></div>
+        <div class="form-group"><label>${tr('Urgency', 'الإلحاح')}</label>
+        <select class="form-input" id="drUrgency"><option value="normal">${tr('Normal', 'عادي')}</option><option value="urgent">${tr('Urgent', 'مستعجل')}</option></select></div>
+        <button class="btn btn-primary w-full" onclick="saveDeptReq()">📤 ${tr('Submit Request', 'إرسال الطلب')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Requests','الطلبات')}</h4>
-        <div id="drList">${requests.map(r => '<div style="padding:10px;margin:4px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (r.status==='approved'?'#4caf50':r.status==='rejected'?'#cc0000':'#ff9800') + '"><div style="display:flex;justify-content:space-between"><strong>' + (r.department||'') + ' - ' + (r.request_type||'') + '</strong><span style="font-size:11px;padding:2px 8px;border-radius:12px;background:' + (r.status==='approved'?'#e8f5e9':r.status==='rejected'?'#fce4ec':'#fff3e0') + '">' + (r.status||'') + '</span></div><span style="font-size:12px;color:#666">' + (r.description||'') + '</span></div>').join('') || '<p style="color:#999;text-align:center">' + tr('No requests','لا توجد طلبات') + '</p>'}</div>
+        <h4 style="margin:0 0 12px">${tr('Requests', 'الطلبات')}</h4>
+        <div id="drList">${requests.map(r => '<div style="padding:10px;margin:4px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (r.status === 'approved' ? '#4caf50' : r.status === 'rejected' ? '#cc0000' : '#ff9800') + '"><div style="display:flex;justify-content:space-between"><strong>' + (r.department || '') + ' - ' + (r.request_type || '') + '</strong><span style="font-size:11px;padding:2px 8px;border-radius:12px;background:' + (r.status === 'approved' ? '#e8f5e9' : r.status === 'rejected' ? '#fce4ec' : '#fff3e0') + '">' + (r.status || '') + '</span></div><span style="font-size:12px;color:#666">' + (r.description || '') + '</span></div>').join('') || '<p style="color:#999;text-align:center">' + tr('No requests', 'لا توجد طلبات') + '</p>'}</div>
       </div>
     </div>`;
-    
-    window.saveDeptReq = async () => {
-      try { await API.post('/api/dept-requests', { department: document.getElementById('drFrom')?.value, request_type: document.getElementById('drType')?.value, description: document.getElementById('drDesc')?.value, quantity: document.getElementById('drQty')?.value, urgency: document.getElementById('drUrgency')?.value, status: 'pending' }); showToast(tr('Request submitted','تم إرسال الطلب')); renderDeptRequests(content); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
+
+  window.saveDeptReq = async () => {
+    try { await API.post('/api/dept-requests', { department: document.getElementById('drFrom')?.value, request_type: document.getElementById('drType')?.value, description: document.getElementById('drDesc')?.value, quantity: document.getElementById('drQty')?.value, urgency: document.getElementById('drUrgency')?.value, status: 'pending' }); showToast(tr('Request submitted', 'تم إرسال الطلب')); renderDeptRequests(content); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
 
 }
 let drqItems = [];
@@ -5394,7 +5397,7 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:30px;color:#222;dire
 </div>
 <div class="header">
   <h1>${hospitalAr}</h1>
-  <h2>${hospitalEn}</h2><div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap"><button class="btn" onclick="showChangePassword()" style="background:#fff3e0;border:1px solid #ff9800;color:#e65100">🔑 ${tr("Change Password","تغيير كلمة المرور")}</button><button class="btn" onclick="startBackup()" style="background:#e8f5e9;border:1px solid #4caf50;color:#2e7d32">💾 ${tr("Database Backup","نسخة احتياطية")}</button></div>
+  <h2>${hospitalEn}</h2><div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap"><button class="btn" onclick="showChangePassword()" style="background:#fff3e0;border:1px solid #ff9800;color:#e65100">🔑 ${tr("Change Password", "تغيير كلمة المرور")}</button><button class="btn" onclick="startBackup()" style="background:#e8f5e9;border:1px solid #4caf50;color:#2e7d32">💾 ${tr("Database Backup", "نسخة احتياطية")}</button></div>
   <div class="hospital-info">
     ${phone ? '📞 ' + phone + ' | ' : ''}${address ? '📍 ' + address + ' | ' : ''}${taxNum ? 'الرقم الضريبي: ' + taxNum : ''}
   </div>
@@ -5896,38 +5899,38 @@ window.saveFluidBalance = async function () {
 // ===== CSSD =====
 async function renderCSSD(el) {
 
-    const batches = await API.get('/api/cssd/batches').catch(() => []);
-    content.innerHTML = `
-    <h2>${tr('CSSD - Central Sterilization','التعقيم المركزي')}</h2>
+  const batches = await API.get('/api/cssd/batches').catch(() => []);
+  content.innerHTML = `
+    <h2>${tr('CSSD - Central Sterilization', 'التعقيم المركزي')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0">${batches.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Batches','إجمالي الدفعات')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0">${batches.filter?.(b=>b.status==='processing')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('In Sterilization','قيد التعقيم')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0">${batches.filter?.(b=>b.status==='sterile')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Sterile','معقم')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0">${batches.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Batches', 'إجمالي الدفعات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0">${batches.filter?.(b => b.status === 'processing')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('In Sterilization', 'قيد التعقيم')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0">${batches.filter?.(b => b.status === 'sterile')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Sterile', 'معقم')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('New Batch','دفعة جديدة')}</h4>
-        <div class="form-group"><label>${tr('Batch Number','رقم الدفعة')}</label><input class="form-input" id="cssdBatch" value="CSSD-${Date.now().toString().slice(-6)}"></div>
-        <div class="form-group"><label>${tr('Items Description','وصف الأدوات')}</label><textarea class="form-input" id="cssdItems" rows="2" placeholder="${tr('e.g. Surgical set x5, Forceps x10','مثال: طقم جراحي x5')}"></textarea></div>
-        <div class="form-group"><label>${tr('Department','القسم')}</label><input class="form-input" id="cssdDept" placeholder="${tr('e.g. Surgery','مثال: الجراحة')}"></div>
-        <div class="form-group"><label>${tr('Sterilization Method','طريقة التعقيم')}</label>
-        <select class="form-input" id="cssdMethod"><option value="autoclave">${tr('Autoclave (Steam)','بخار (أوتوكليف)')}</option><option value="eto">${tr('ETO Gas','غاز ETO')}</option><option value="plasma">${tr('Plasma (H2O2)','بلازما')}</option><option value="dry_heat">${tr('Dry Heat','حرارة جافة')}</option></select></div>
-        <div class="form-group"><label>${tr('Cycle Temperature','حرارة الدورة')}</label><input class="form-input" id="cssdTemp" placeholder="134°C"></div>
-        <div class="form-group"><label>${tr('Operator','المشغل')}</label><input class="form-input" id="cssdOp"></div>
-        <button class="btn btn-primary w-full" onclick="saveCSSDBatch()">💾 ${tr('Start Cycle','بدء الدورة')}</button>
+        <h4 style="margin:0 0 12px">${tr('New Batch', 'دفعة جديدة')}</h4>
+        <div class="form-group"><label>${tr('Batch Number', 'رقم الدفعة')}</label><input class="form-input" id="cssdBatch" value="CSSD-${Date.now().toString().slice(-6)}"></div>
+        <div class="form-group"><label>${tr('Items Description', 'وصف الأدوات')}</label><textarea class="form-input" id="cssdItems" rows="2" placeholder="${tr('e.g. Surgical set x5, Forceps x10', 'مثال: طقم جراحي x5')}"></textarea></div>
+        <div class="form-group"><label>${tr('Department', 'القسم')}</label><input class="form-input" id="cssdDept" placeholder="${tr('e.g. Surgery', 'مثال: الجراحة')}"></div>
+        <div class="form-group"><label>${tr('Sterilization Method', 'طريقة التعقيم')}</label>
+        <select class="form-input" id="cssdMethod"><option value="autoclave">${tr('Autoclave (Steam)', 'بخار (أوتوكليف)')}</option><option value="eto">${tr('ETO Gas', 'غاز ETO')}</option><option value="plasma">${tr('Plasma (H2O2)', 'بلازما')}</option><option value="dry_heat">${tr('Dry Heat', 'حرارة جافة')}</option></select></div>
+        <div class="form-group"><label>${tr('Cycle Temperature', 'حرارة الدورة')}</label><input class="form-input" id="cssdTemp" placeholder="134°C"></div>
+        <div class="form-group"><label>${tr('Operator', 'المشغل')}</label><input class="form-input" id="cssdOp"></div>
+        <button class="btn btn-primary w-full" onclick="saveCSSDBatch()">💾 ${tr('Start Cycle', 'بدء الدورة')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Batches','الدفعات')}</h4>
-        <div id="cssdList">${batches.map(b => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (b.status==='sterile'?'#4caf50':b.status==='processing'?'#ff9800':'#2196f3') + '"><div style="display:flex;justify-content:space-between"><strong>' + (b.batch_number||'') + '</strong><span style="font-size:12px;padding:2px 8px;border-radius:12px;background:' + (b.status==='sterile'?'#e8f5e9':'#fff3e0') + '">' + (b.status||'') + '</span></div><span style="font-size:12px;color:#666">' + (b.items||'') + ' | ' + (b.method||'') + '</span>' + (b.status==='processing' ? '<br><button class="btn btn-sm" onclick="updateCSSDBatch(' + b.id + ',\'sterile\')" style="margin-top:6px;background:#e8f5e9;color:#2e7d32">✅ ' + tr('Mark Sterile','تحديد معقم') + '</button>' : '') + '</div>').join('') || '<p style="color:#999;text-align:center">' + tr('No batches','لا توجد دفعات') + '</p>'}</div>
+        <h4 style="margin:0 0 12px">${tr('Batches', 'الدفعات')}</h4>
+        <div id="cssdList">${batches.map(b => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (b.status === 'sterile' ? '#4caf50' : b.status === 'processing' ? '#ff9800' : '#2196f3') + '"><div style="display:flex;justify-content:space-between"><strong>' + (b.batch_number || '') + '</strong><span style="font-size:12px;padding:2px 8px;border-radius:12px;background:' + (b.status === 'sterile' ? '#e8f5e9' : '#fff3e0') + '">' + (b.status || '') + '</span></div><span style="font-size:12px;color:#666">' + (b.items || '') + ' | ' + (b.method || '') + '</span>' + (b.status === 'processing' ? '<br><button class="btn btn-sm" onclick="updateCSSDBatch(' + b.id + ',\'sterile\')" style="margin-top:6px;background:#e8f5e9;color:#2e7d32">✅ ' + tr('Mark Sterile', 'تحديد معقم') + '</button>' : '') + '</div>').join('') || '<p style="color:#999;text-align:center">' + tr('No batches', 'لا توجد دفعات') + '</p>'}</div>
       </div>
     </div>`;
-    
-    window.saveCSSDBatch = async () => {
-      try { await API.post('/api/cssd/batches', { batch_number: document.getElementById('cssdBatch')?.value, items: document.getElementById('cssdItems')?.value, department: document.getElementById('cssdDept')?.value, method: document.getElementById('cssdMethod')?.value, temperature: document.getElementById('cssdTemp')?.value, operator: document.getElementById('cssdOp')?.value, status: 'processing' }); showToast(tr('Batch started','تم بدء الدورة')); renderCSSD(content); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
-    window.updateCSSDBatch = async (id, status) => {
-      try { await API.put('/api/cssd/batches/' + id, { status }); showToast(tr('Updated','تم التحديث')); renderCSSD(content); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
+
+  window.saveCSSDBatch = async () => {
+    try { await API.post('/api/cssd/batches', { batch_number: document.getElementById('cssdBatch')?.value, items: document.getElementById('cssdItems')?.value, department: document.getElementById('cssdDept')?.value, method: document.getElementById('cssdMethod')?.value, temperature: document.getElementById('cssdTemp')?.value, operator: document.getElementById('cssdOp')?.value, status: 'processing' }); showToast(tr('Batch started', 'تم بدء الدورة')); renderCSSD(content); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
+  window.updateCSSDBatch = async (id, status) => {
+    try { await API.put('/api/cssd/batches/' + id, { status }); showToast(tr('Updated', 'تم التحديث')); renderCSSD(content); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
 
 }
 window.addInstrumentSet = async function () {
@@ -5943,53 +5946,53 @@ window.completeCycle = async function (id) {
 // ===== DIETARY =====
 async function renderDietary(el) {
 
-    const patients = await API.get('/api/dietary/orders').catch(() => []);
-    content.innerHTML = `
-    <h2>${tr('Dietary / Nutrition','التغذية')}</h2>
+  const patients = await API.get('/api/dietary/orders').catch(() => []);
+  content.innerHTML = `
+    <h2>${tr('Dietary / Nutrition', 'التغذية')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${patients.length || 0}</h3><p style="margin:4px 0 0;font-size:13px;color:#666">${tr('Active Orders','طلبات نشطة')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${patients.filter?.(p => p.diet_type === 'diabetic')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px;color:#666">${tr('Diabetic Diet','حمية سكري')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${patients.filter?.(p => p.diet_type === 'soft')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px;color:#666">${tr('Soft Diet','حمية لينة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${patients.length || 0}</h3><p style="margin:4px 0 0;font-size:13px;color:#666">${tr('Active Orders', 'طلبات نشطة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${patients.filter?.(p => p.diet_type === 'diabetic')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px;color:#666">${tr('Diabetic Diet', 'حمية سكري')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${patients.filter?.(p => p.diet_type === 'soft')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px;color:#666">${tr('Soft Diet', 'حمية لينة')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('New Diet Order','طلب حمية جديد')}</h4>
-        <div class="form-group"><label>${tr('Patient','المريض')}</label><input class="form-input" id="dietPatient" placeholder="${tr('Patient name','اسم المريض')}"></div>
-        <div class="form-group"><label>${tr('Ward/Room','الجناح/الغرفة')}</label><input class="form-input" id="dietRoom" placeholder="${tr('e.g. 3A-201','مثال: 3أ-201')}"></div>
-        <div class="form-group"><label>${tr('Diet Type','نوع الحمية')}</label>
+        <h4 style="margin:0 0 12px">${tr('New Diet Order', 'طلب حمية جديد')}</h4>
+        <div class="form-group"><label>${tr('Patient', 'المريض')}</label><input class="form-input" id="dietPatient" placeholder="${tr('Patient name', 'اسم المريض')}"></div>
+        <div class="form-group"><label>${tr('Ward/Room', 'الجناح/الغرفة')}</label><input class="form-input" id="dietRoom" placeholder="${tr('e.g. 3A-201', 'مثال: 3أ-201')}"></div>
+        <div class="form-group"><label>${tr('Diet Type', 'نوع الحمية')}</label>
         <select class="form-input" id="dietType">
-          <option value="regular">${tr('Regular','عادي')}</option>
-          <option value="diabetic">${tr('Diabetic','سكري')}</option>
-          <option value="soft">${tr('Soft','لينة')}</option>
-          <option value="liquid">${tr('Liquid','سائلة')}</option>
-          <option value="NPO">${tr('NPO (Nothing by mouth)','صائم')}</option>
-          <option value="low_sodium">${tr('Low Sodium','قليل الملح')}</option>
-          <option value="renal">${tr('Renal','كلوية')}</option>
-          <option value="gluten_free">${tr('Gluten Free','خالي جلوتين')}</option>
+          <option value="regular">${tr('Regular', 'عادي')}</option>
+          <option value="diabetic">${tr('Diabetic', 'سكري')}</option>
+          <option value="soft">${tr('Soft', 'لينة')}</option>
+          <option value="liquid">${tr('Liquid', 'سائلة')}</option>
+          <option value="NPO">${tr('NPO (Nothing by mouth)', 'صائم')}</option>
+          <option value="low_sodium">${tr('Low Sodium', 'قليل الملح')}</option>
+          <option value="renal">${tr('Renal', 'كلوية')}</option>
+          <option value="gluten_free">${tr('Gluten Free', 'خالي جلوتين')}</option>
         </select></div>
-        <div class="form-group"><label>${tr('Allergies/Notes','حساسية/ملاحظات')}</label><textarea class="form-input" id="dietNotes" rows="2"></textarea></div>
-        <div class="form-group"><label>${tr('Meal Time','وقت الوجبة')}</label>
-        <select class="form-input" id="dietMeal"><option value="breakfast">${tr('Breakfast','فطور')}</option><option value="lunch">${tr('Lunch','غداء')}</option><option value="dinner">${tr('Dinner','عشاء')}</option><option value="all">${tr('All Meals','كل الوجبات')}</option></select></div>
-        <button class="btn btn-primary w-full" onclick="saveDietOrder()">💾 ${tr('Save Order','حفظ الطلب')}</button>
+        <div class="form-group"><label>${tr('Allergies/Notes', 'حساسية/ملاحظات')}</label><textarea class="form-input" id="dietNotes" rows="2"></textarea></div>
+        <div class="form-group"><label>${tr('Meal Time', 'وقت الوجبة')}</label>
+        <select class="form-input" id="dietMeal"><option value="breakfast">${tr('Breakfast', 'فطور')}</option><option value="lunch">${tr('Lunch', 'غداء')}</option><option value="dinner">${tr('Dinner', 'عشاء')}</option><option value="all">${tr('All Meals', 'كل الوجبات')}</option></select></div>
+        <button class="btn btn-primary w-full" onclick="saveDietOrder()">💾 ${tr('Save Order', 'حفظ الطلب')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Active Diet Orders','طلبات الحمية النشطة')}</h4>
+        <h4 style="margin:0 0 12px">${tr('Active Diet Orders', 'طلبات الحمية النشطة')}</h4>
         <div id="dietOrdersList"></div>
       </div>
     </div>`;
-    
-    const list = document.getElementById('dietOrdersList');
-    if (list && patients.length > 0) {
-      list.innerHTML = patients.map(p => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (p.diet_type==='NPO'?'#cc0000':p.diet_type==='diabetic'?'#ff9800':'#4caf50') + '"><strong>' + (p.patient_name||'') + '</strong> - ' + (p.room||'') + '<br><span style="font-size:13px;color:#666">' + (p.diet_type||'') + ' | ' + (p.meal_time||'') + '</span></div>').join('');
-    } else if (list) { list.innerHTML = '<p style="color:#999;text-align:center">' + tr('No active orders','لا توجد طلبات') + '</p>'; }
-    
-    window.saveDietOrder = async () => {
-      try {
-        await API.post('/api/dietary/orders', { patient_name: document.getElementById('dietPatient')?.value, room: document.getElementById('dietRoom')?.value, diet_type: document.getElementById('dietType')?.value, meal_time: document.getElementById('dietMeal')?.value, notes: document.getElementById('dietNotes')?.value });
-        showToast(tr('Diet order saved!','تم حفظ طلب الحمية!'));
-        renderDietary(content);
-      } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
+
+  const list = document.getElementById('dietOrdersList');
+  if (list && patients.length > 0) {
+    list.innerHTML = patients.map(p => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (p.diet_type === 'NPO' ? '#cc0000' : p.diet_type === 'diabetic' ? '#ff9800' : '#4caf50') + '"><strong>' + (p.patient_name || '') + '</strong> - ' + (p.room || '') + '<br><span style="font-size:13px;color:#666">' + (p.diet_type || '') + ' | ' + (p.meal_time || '') + '</span></div>').join('');
+  } else if (list) { list.innerHTML = '<p style="color:#999;text-align:center">' + tr('No active orders', 'لا توجد طلبات') + '</p>'; }
+
+  window.saveDietOrder = async () => {
+    try {
+      await API.post('/api/dietary/orders', { patient_name: document.getElementById('dietPatient')?.value, room: document.getElementById('dietRoom')?.value, diet_type: document.getElementById('dietType')?.value, meal_time: document.getElementById('dietMeal')?.value, notes: document.getElementById('dietNotes')?.value });
+      showToast(tr('Diet order saved!', 'تم حفظ طلب الحمية!'));
+      renderDietary(content);
+    } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
 
 }
 window.addDietOrder = async function () {
@@ -6002,40 +6005,40 @@ window.addDietOrder = async function () {
 let icTab = 'surveillance';
 async function renderInfectionControl(el) {
 
-    const reports = await API.get('/api/infection-control/reports').catch(() => []);
-    const activeOutbreaks = reports.filter(r => r.status === 'active');
-    content.innerHTML = `
-    <h2>${tr('Infection Control','مكافحة العدوى')}</h2>
+  const reports = await API.get('/api/infection-control/reports').catch(() => []);
+  const activeOutbreaks = reports.filter(r => r.status === 'active');
+  content.innerHTML = `
+    <h2>${tr('Infection Control', 'مكافحة العدوى')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${activeOutbreaks.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Active Alerts','تنبيهات نشطة')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${reports.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Reports','إجمالي التقارير')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${reports.filter?.(r=>r.status==='resolved')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Resolved','تم حلها')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${activeOutbreaks.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Active Alerts', 'تنبيهات نشطة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${reports.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Reports', 'إجمالي التقارير')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${reports.filter?.(r => r.status === 'resolved')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Resolved', 'تم حلها')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('New Infection Report','تقرير عدوى جديد')}</h4>
-        <div class="form-group"><label>${tr('Patient','المريض')}</label><input class="form-input" id="icPatient"></div>
-        <div class="form-group"><label>${tr('Infection Type','نوع العدوى')}</label>
-        <select class="form-input" id="icType"><option value="hai">${tr('HAI (Hospital-Acquired)','عدوى مكتسبة من المستشفى')}</option><option value="ssi">${tr('SSI (Surgical Site)','موقع جراحي')}</option><option value="uti">${tr('UTI (Urinary Tract)','مسالك بولية')}</option><option value="bsi">${tr('BSI (Blood Stream)','مجرى الدم')}</option><option value="vap">${tr('VAP (Ventilator)','التهاب رئوي - الجهاز')}</option><option value="cdiff">${tr('C. difficile','كلوستريديوم')}</option><option value="mrsa">${tr('MRSA','ميرسا')}</option><option value="covid">${tr('COVID-19','كوفيد-19')}</option><option value="tb">${tr('TB','سل')}</option><option value="other">${tr('Other','أخرى')}</option></select></div>
-        <div class="form-group"><label>${tr('Ward/Department','الجناح/القسم')}</label><input class="form-input" id="icWard"></div>
-        <div class="form-group"><label>${tr('Isolation Required','عزل مطلوب')}</label>
-        <select class="form-input" id="icIsolation"><option value="no">${tr('No','لا')}</option><option value="contact">${tr('Contact Precautions','احتياطات تلامس')}</option><option value="droplet">${tr('Droplet Precautions','احتياطات رذاذ')}</option><option value="airborne">${tr('Airborne Precautions','احتياطات هوائية')}</option></select></div>
-        <div class="form-group"><label>${tr('Culture Results','نتائج الزراعة')}</label><input class="form-input" id="icCulture"></div>
-        <div class="form-group"><label>${tr('Action Taken','الإجراء المتخذ')}</label><textarea class="form-input" id="icAction" rows="2"></textarea></div>
-        <button class="btn btn-primary w-full" onclick="saveICReport()">📋 ${tr('Submit Report','إرسال التقرير')}</button>
+        <h4 style="margin:0 0 12px">${tr('New Infection Report', 'تقرير عدوى جديد')}</h4>
+        <div class="form-group"><label>${tr('Patient', 'المريض')}</label><input class="form-input" id="icPatient"></div>
+        <div class="form-group"><label>${tr('Infection Type', 'نوع العدوى')}</label>
+        <select class="form-input" id="icType"><option value="hai">${tr('HAI (Hospital-Acquired)', 'عدوى مكتسبة من المستشفى')}</option><option value="ssi">${tr('SSI (Surgical Site)', 'موقع جراحي')}</option><option value="uti">${tr('UTI (Urinary Tract)', 'مسالك بولية')}</option><option value="bsi">${tr('BSI (Blood Stream)', 'مجرى الدم')}</option><option value="vap">${tr('VAP (Ventilator)', 'التهاب رئوي - الجهاز')}</option><option value="cdiff">${tr('C. difficile', 'كلوستريديوم')}</option><option value="mrsa">${tr('MRSA', 'ميرسا')}</option><option value="covid">${tr('COVID-19', 'كوفيد-19')}</option><option value="tb">${tr('TB', 'سل')}</option><option value="other">${tr('Other', 'أخرى')}</option></select></div>
+        <div class="form-group"><label>${tr('Ward/Department', 'الجناح/القسم')}</label><input class="form-input" id="icWard"></div>
+        <div class="form-group"><label>${tr('Isolation Required', 'عزل مطلوب')}</label>
+        <select class="form-input" id="icIsolation"><option value="no">${tr('No', 'لا')}</option><option value="contact">${tr('Contact Precautions', 'احتياطات تلامس')}</option><option value="droplet">${tr('Droplet Precautions', 'احتياطات رذاذ')}</option><option value="airborne">${tr('Airborne Precautions', 'احتياطات هوائية')}</option></select></div>
+        <div class="form-group"><label>${tr('Culture Results', 'نتائج الزراعة')}</label><input class="form-input" id="icCulture"></div>
+        <div class="form-group"><label>${tr('Action Taken', 'الإجراء المتخذ')}</label><textarea class="form-input" id="icAction" rows="2"></textarea></div>
+        <button class="btn btn-primary w-full" onclick="saveICReport()">📋 ${tr('Submit Report', 'إرسال التقرير')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Recent Reports','التقارير الأخيرة')}</h4>
-        <div id="icList">${reports.slice(0,20).map(r => '<div style="padding:10px;margin:4px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (r.status==='active'?'#cc0000':'#4caf50') + '"><div style="display:flex;justify-content:space-between"><strong>' + (r.patient_name||'') + '</strong><span style="font-size:11px;padding:2px 8px;border-radius:12px;background:' + (r.status==='active'?'#fce4ec':'#e8f5e9') + ';color:' + (r.status==='active'?'#c62828':'#2e7d32') + '">' + (r.status||'') + '</span></div><span style="font-size:12px;color:#666">' + (r.infection_type||'') + ' | ' + (r.ward||'') + (r.isolation_type && r.isolation_type!=='no' ? ' | ⚠️ ' + r.isolation_type : '') + '</span>' + (r.status==='active' ? '<br><button class="btn btn-sm" onclick="resolveIC(' + r.id + ')" style="margin-top:6px;background:#e8f5e9;color:#2e7d32;font-size:11px">✅ ' + tr('Resolve','حل') + '</button>' : '') + '</div>').join('') || '<p style="color:#999;text-align:center">' + tr('No reports','لا توجد تقارير') + '</p>'}</div>
+        <h4 style="margin:0 0 12px">${tr('Recent Reports', 'التقارير الأخيرة')}</h4>
+        <div id="icList">${reports.slice(0, 20).map(r => '<div style="padding:10px;margin:4px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (r.status === 'active' ? '#cc0000' : '#4caf50') + '"><div style="display:flex;justify-content:space-between"><strong>' + (r.patient_name || '') + '</strong><span style="font-size:11px;padding:2px 8px;border-radius:12px;background:' + (r.status === 'active' ? '#fce4ec' : '#e8f5e9') + ';color:' + (r.status === 'active' ? '#c62828' : '#2e7d32') + '">' + (r.status || '') + '</span></div><span style="font-size:12px;color:#666">' + (r.infection_type || '') + ' | ' + (r.ward || '') + (r.isolation_type && r.isolation_type !== 'no' ? ' | ⚠️ ' + r.isolation_type : '') + '</span>' + (r.status === 'active' ? '<br><button class="btn btn-sm" onclick="resolveIC(' + r.id + ')" style="margin-top:6px;background:#e8f5e9;color:#2e7d32;font-size:11px">✅ ' + tr('Resolve', 'حل') + '</button>' : '') + '</div>').join('') || '<p style="color:#999;text-align:center">' + tr('No reports', 'لا توجد تقارير') + '</p>'}</div>
       </div>
     </div>`;
-    
-    window.saveICReport = async () => {
-      try { await API.post('/api/infection-control/reports', { patient_name: document.getElementById('icPatient')?.value, infection_type: document.getElementById('icType')?.value, ward: document.getElementById('icWard')?.value, isolation_type: document.getElementById('icIsolation')?.value, culture_results: document.getElementById('icCulture')?.value, action_taken: document.getElementById('icAction')?.value, status: 'active' }); showToast(tr('Report submitted','تم إرسال التقرير')); renderInfectionControl(content); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
-    window.resolveIC = async (id) => {
-      try { await API.put('/api/infection-control/reports/' + id, { status: 'resolved' }); showToast(tr('Resolved','تم الحل')); renderInfectionControl(content); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
+
+  window.saveICReport = async () => {
+    try { await API.post('/api/infection-control/reports', { patient_name: document.getElementById('icPatient')?.value, infection_type: document.getElementById('icType')?.value, ward: document.getElementById('icWard')?.value, isolation_type: document.getElementById('icIsolation')?.value, culture_results: document.getElementById('icCulture')?.value, action_taken: document.getElementById('icAction')?.value, status: 'active' }); showToast(tr('Report submitted', 'تم إرسال التقرير')); renderInfectionControl(content); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
+  window.resolveIC = async (id) => {
+    try { await API.put('/api/infection-control/reports/' + id, { status: 'resolved' }); showToast(tr('Resolved', 'تم الحل')); renderInfectionControl(content); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
 
 }
 window.reportInfection = async function () {
@@ -6049,40 +6052,40 @@ window.addHHAudit = async function () {
 let qTab = 'incidents';
 async function renderQuality(el) {
 
-    const incidents = await API.get('/api/quality/incidents').catch(() => []);
-    const surveys = await API.get('/api/quality/satisfaction').catch(() => []);
-    const kpis = await API.get('/api/quality/kpis').catch(() => []);
-    const avgSatisfaction = surveys.length ? (surveys.reduce((s,sv) => s + (parseInt(sv.rating)||0), 0) / surveys.length).toFixed(1) : '0';
-    
-    content.innerHTML = `
-    <h2>${tr('Quality / KPIs','الجودة / مؤشرات الأداء')}</h2>
+  const incidents = await API.get('/api/quality/incidents').catch(() => []);
+  const surveys = await API.get('/api/quality/satisfaction').catch(() => []);
+  const kpis = await API.get('/api/quality/kpis').catch(() => []);
+  const avgSatisfaction = surveys.length ? (surveys.reduce((s, sv) => s + (parseInt(sv.rating) || 0), 0) / surveys.length).toFixed(1) : '0';
+
+  content.innerHTML = `
+    <h2>${tr('Quality / KPIs', 'الجودة / مؤشرات الأداء')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${incidents.filter?.(i=>i.status==='open')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Open Incidents','حوادث مفتوحة')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${avgSatisfaction}⭐</h3><p style="margin:4px 0 0;font-size:13px">${tr('Avg Satisfaction','متوسط الرضا')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${surveys.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Surveys','إجمالي الاستبيانات')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${kpis.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('KPIs Tracked','مؤشرات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${incidents.filter?.(i => i.status === 'open')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Open Incidents', 'حوادث مفتوحة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${avgSatisfaction}⭐</h3><p style="margin:4px 0 0;font-size:13px">${tr('Avg Satisfaction', 'متوسط الرضا')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${surveys.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Surveys', 'إجمالي الاستبيانات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${kpis.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('KPIs Tracked', 'مؤشرات')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Report Incident','إبلاغ حادثة')}</h4>
-        <div class="form-group"><label>${tr('Type','النوع')}</label>
-        <select class="form-input" id="qiType"><option value="medication_error">${tr('Medication Error','خطأ دوائي')}</option><option value="fall">${tr('Patient Fall','سقوط مريض')}</option><option value="near_miss">${tr('Near Miss','شبه حادثة')}</option><option value="complaint">${tr('Complaint','شكوى')}</option><option value="needle_stick">${tr('Needle Stick','وخز إبرة')}</option><option value="delay">${tr('Treatment Delay','تأخير علاج')}</option><option value="other">${tr('Other','أخرى')}</option></select></div>
-        <div class="form-group"><label>${tr('Department','القسم')}</label><input class="form-input" id="qiDept"></div>
-        <div class="form-group"><label>${tr('Description','الوصف')}</label><textarea class="form-input" id="qiDesc" rows="3"></textarea></div>
-        <div class="form-group"><label>${tr('Severity','الشدة')}</label>
-        <select class="form-input" id="qiSeverity"><option value="low">${tr('Low','منخفضة')}</option><option value="medium" selected>${tr('Medium','متوسطة')}</option><option value="high">${tr('High','عالية')}</option><option value="critical">${tr('Critical','حرجة')}</option></select></div>
-        <div class="form-group"><label>${tr('Corrective Action','الإجراء التصحيحي')}</label><textarea class="form-input" id="qiAction" rows="2"></textarea></div>
-        <button class="btn btn-primary w-full" onclick="saveQI()">📋 ${tr('Submit','إرسال')}</button>
+        <h4 style="margin:0 0 12px">${tr('Report Incident', 'إبلاغ حادثة')}</h4>
+        <div class="form-group"><label>${tr('Type', 'النوع')}</label>
+        <select class="form-input" id="qiType"><option value="medication_error">${tr('Medication Error', 'خطأ دوائي')}</option><option value="fall">${tr('Patient Fall', 'سقوط مريض')}</option><option value="near_miss">${tr('Near Miss', 'شبه حادثة')}</option><option value="complaint">${tr('Complaint', 'شكوى')}</option><option value="needle_stick">${tr('Needle Stick', 'وخز إبرة')}</option><option value="delay">${tr('Treatment Delay', 'تأخير علاج')}</option><option value="other">${tr('Other', 'أخرى')}</option></select></div>
+        <div class="form-group"><label>${tr('Department', 'القسم')}</label><input class="form-input" id="qiDept"></div>
+        <div class="form-group"><label>${tr('Description', 'الوصف')}</label><textarea class="form-input" id="qiDesc" rows="3"></textarea></div>
+        <div class="form-group"><label>${tr('Severity', 'الشدة')}</label>
+        <select class="form-input" id="qiSeverity"><option value="low">${tr('Low', 'منخفضة')}</option><option value="medium" selected>${tr('Medium', 'متوسطة')}</option><option value="high">${tr('High', 'عالية')}</option><option value="critical">${tr('Critical', 'حرجة')}</option></select></div>
+        <div class="form-group"><label>${tr('Corrective Action', 'الإجراء التصحيحي')}</label><textarea class="form-input" id="qiAction" rows="2"></textarea></div>
+        <button class="btn btn-primary w-full" onclick="saveQI()">📋 ${tr('Submit', 'إرسال')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Recent Incidents','الحوادث الأخيرة')}</h4>
-        <div id="qiList">${incidents.slice(0,15).map(i => '<div style="padding:10px;margin:4px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (i.severity==='critical'?'#cc0000':i.severity==='high'?'#ff9800':'#2196f3') + '"><div style="display:flex;justify-content:space-between"><strong>' + (i.type||'') + '</strong><span style="font-size:11px;padding:2px 8px;border-radius:12px;background:' + (i.status==='open'?'#fce4ec':'#e8f5e9') + '">' + (i.status||'') + '</span></div><span style="font-size:12px;color:#666">' + (i.department||'') + ' | ' + (i.severity||'') + '</span></div>').join('') || '<p style="color:#999;text-align:center">' + tr('No incidents','لا توجد حوادث') + '</p>'}</div>
+        <h4 style="margin:0 0 12px">${tr('Recent Incidents', 'الحوادث الأخيرة')}</h4>
+        <div id="qiList">${incidents.slice(0, 15).map(i => '<div style="padding:10px;margin:4px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (i.severity === 'critical' ? '#cc0000' : i.severity === 'high' ? '#ff9800' : '#2196f3') + '"><div style="display:flex;justify-content:space-between"><strong>' + (i.type || '') + '</strong><span style="font-size:11px;padding:2px 8px;border-radius:12px;background:' + (i.status === 'open' ? '#fce4ec' : '#e8f5e9') + '">' + (i.status || '') + '</span></div><span style="font-size:12px;color:#666">' + (i.department || '') + ' | ' + (i.severity || '') + '</span></div>').join('') || '<p style="color:#999;text-align:center">' + tr('No incidents', 'لا توجد حوادث') + '</p>'}</div>
       </div>
     </div>`;
-    
-    window.saveQI = async () => {
-      try { await API.post('/api/quality/incidents', { type: document.getElementById('qiType')?.value, department: document.getElementById('qiDept')?.value, description: document.getElementById('qiDesc')?.value, severity: document.getElementById('qiSeverity')?.value, corrective_action: document.getElementById('qiAction')?.value, status: 'open' }); showToast(tr('Incident reported','تم الإبلاغ')); renderQuality(content); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
+
+  window.saveQI = async () => {
+    try { await API.post('/api/quality/incidents', { type: document.getElementById('qiType')?.value, department: document.getElementById('qiDept')?.value, description: document.getElementById('qiDesc')?.value, severity: document.getElementById('qiSeverity')?.value, corrective_action: document.getElementById('qiAction')?.value, status: 'open' }); showToast(tr('Incident reported', 'تم الإبلاغ')); renderQuality(content); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
 
 }
 window.reportIncident = async function () {
@@ -6099,39 +6102,39 @@ window.addKPI = async function () {
 let mtTab = 'orders';
 async function renderMaintenance(el) {
 
-    const orders = await API.get('/api/maintenance/orders').catch(() => []);
-    content.innerHTML = `
-    <h2>${tr('Maintenance','الصيانة')}</h2>
+  const orders = await API.get('/api/maintenance/orders').catch(() => []);
+  content.innerHTML = `
+    <h2>${tr('Maintenance', 'الصيانة')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${orders.filter?.(o=>o.status==='pending')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Pending','بانتظار')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${orders.filter?.(o=>o.status==='in_progress')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('In Progress','جاري')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${orders.filter?.(o=>o.status==='completed')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Completed','مكتمل')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${orders.filter?.(o => o.status === 'pending')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Pending', 'بانتظار')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${orders.filter?.(o => o.status === 'in_progress')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('In Progress', 'جاري')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${orders.filter?.(o => o.status === 'completed')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Completed', 'مكتمل')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('New Work Order','طلب صيانة جديد')}</h4>
-        <div class="form-group"><label>${tr('Equipment/Area','الجهاز/المنطقة')}</label><input class="form-input" id="mtEquip"></div>
-        <div class="form-group"><label>${tr('Location','الموقع')}</label><input class="form-input" id="mtLoc"></div>
-        <div class="form-group"><label>${tr('Type','النوع')}</label>
-        <select class="form-input" id="mtType"><option value="corrective">${tr('Corrective','تصحيحية')}</option><option value="preventive">${tr('Preventive','وقائية')}</option><option value="emergency">${tr('Emergency','طارئة')}</option></select></div>
-        <div class="form-group"><label>${tr('Priority','الأولوية')}</label>
-        <select class="form-input" id="mtPriority"><option value="low">${tr('Low','منخفضة')}</option><option value="medium" selected>${tr('Medium','متوسطة')}</option><option value="high">${tr('High','عالية')}</option><option value="critical">${tr('Critical','حرجة')}</option></select></div>
-        <div class="form-group"><label>${tr('Description','الوصف')}</label><textarea class="form-input" id="mtDesc" rows="2"></textarea></div>
-        <div class="form-group"><label>${tr('Requested By','الطالب')}</label><input class="form-input" id="mtBy"></div>
-        <button class="btn btn-primary w-full" onclick="saveMTOrder()">🔧 ${tr('Submit','إرسال')}</button>
+        <h4 style="margin:0 0 12px">${tr('New Work Order', 'طلب صيانة جديد')}</h4>
+        <div class="form-group"><label>${tr('Equipment/Area', 'الجهاز/المنطقة')}</label><input class="form-input" id="mtEquip"></div>
+        <div class="form-group"><label>${tr('Location', 'الموقع')}</label><input class="form-input" id="mtLoc"></div>
+        <div class="form-group"><label>${tr('Type', 'النوع')}</label>
+        <select class="form-input" id="mtType"><option value="corrective">${tr('Corrective', 'تصحيحية')}</option><option value="preventive">${tr('Preventive', 'وقائية')}</option><option value="emergency">${tr('Emergency', 'طارئة')}</option></select></div>
+        <div class="form-group"><label>${tr('Priority', 'الأولوية')}</label>
+        <select class="form-input" id="mtPriority"><option value="low">${tr('Low', 'منخفضة')}</option><option value="medium" selected>${tr('Medium', 'متوسطة')}</option><option value="high">${tr('High', 'عالية')}</option><option value="critical">${tr('Critical', 'حرجة')}</option></select></div>
+        <div class="form-group"><label>${tr('Description', 'الوصف')}</label><textarea class="form-input" id="mtDesc" rows="2"></textarea></div>
+        <div class="form-group"><label>${tr('Requested By', 'الطالب')}</label><input class="form-input" id="mtBy"></div>
+        <button class="btn btn-primary w-full" onclick="saveMTOrder()">🔧 ${tr('Submit', 'إرسال')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Work Orders','طلبات الصيانة')}</h4>
-        <div id="mtList">${orders.map(o => '<div style="padding:10px;margin:4px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (o.priority==='critical'?'#cc0000':o.priority==='high'?'#ff9800':'#2196f3') + ';display:flex;justify-content:space-between;align-items:center"><div><strong>' + (o.equipment||'') + '</strong><br><span style="font-size:12px;color:#666">' + (o.location||'') + ' | ' + (o.maintenance_type||'') + ' | ' + (o.status||'') + '</span></div>' + (o.status!=='completed' ? '<button class="btn btn-sm" onclick="completeMT(' + o.id + ')" style="background:#e8f5e9;color:#2e7d32;font-size:11px">✅</button>' : '') + '</div>').join('') || '<p style="color:#999;text-align:center">' + tr('No orders','لا توجد طلبات') + '</p>'}</div>
+        <h4 style="margin:0 0 12px">${tr('Work Orders', 'طلبات الصيانة')}</h4>
+        <div id="mtList">${orders.map(o => '<div style="padding:10px;margin:4px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (o.priority === 'critical' ? '#cc0000' : o.priority === 'high' ? '#ff9800' : '#2196f3') + ';display:flex;justify-content:space-between;align-items:center"><div><strong>' + (o.equipment || '') + '</strong><br><span style="font-size:12px;color:#666">' + (o.location || '') + ' | ' + (o.maintenance_type || '') + ' | ' + (o.status || '') + '</span></div>' + (o.status !== 'completed' ? '<button class="btn btn-sm" onclick="completeMT(' + o.id + ')" style="background:#e8f5e9;color:#2e7d32;font-size:11px">✅</button>' : '') + '</div>').join('') || '<p style="color:#999;text-align:center">' + tr('No orders', 'لا توجد طلبات') + '</p>'}</div>
       </div>
     </div>`;
-    
-    window.saveMTOrder = async () => {
-      try { await API.post('/api/maintenance/orders', { equipment: document.getElementById('mtEquip')?.value, location: document.getElementById('mtLoc')?.value, maintenance_type: document.getElementById('mtType')?.value, priority: document.getElementById('mtPriority')?.value, description: document.getElementById('mtDesc')?.value, requested_by: document.getElementById('mtBy')?.value, status: 'pending' }); showToast(tr('Order submitted','تم الإرسال')); renderMaintenance(content); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
-    window.completeMT = async (id) => {
-      try { await API.put('/api/maintenance/orders/' + id, { status: 'completed' }); showToast(tr('Completed','تم الإكمال')); renderMaintenance(content); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
+
+  window.saveMTOrder = async () => {
+    try { await API.post('/api/maintenance/orders', { equipment: document.getElementById('mtEquip')?.value, location: document.getElementById('mtLoc')?.value, maintenance_type: document.getElementById('mtType')?.value, priority: document.getElementById('mtPriority')?.value, description: document.getElementById('mtDesc')?.value, requested_by: document.getElementById('mtBy')?.value, status: 'pending' }); showToast(tr('Order submitted', 'تم الإرسال')); renderMaintenance(content); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
+  window.completeMT = async (id) => {
+    try { await API.put('/api/maintenance/orders/' + id, { status: 'completed' }); showToast(tr('Completed', 'تم الإكمال')); renderMaintenance(content); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
 
 }
 window.addWorkOrder = async function () {
@@ -6147,39 +6150,39 @@ window.addEquipment = async function () {
 // ===== TRANSPORT =====
 async function renderTransport(el) {
 
-    const requests = await API.get('/api/transport/requests').catch(() => []);
-    content.innerHTML = `
-    <h2>${tr('Transport','النقل')}</h2>
+  const requests = await API.get('/api/transport/requests').catch(() => []);
+  content.innerHTML = `
+    <h2>${tr('Transport', 'النقل')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${requests.filter?.(r=>r.status==='pending')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Pending','بانتظار')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${requests.filter?.(r=>r.status==='in_transit')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('In Transit','في الطريق')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${requests.filter?.(r=>r.status==='completed')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Completed','مكتمل')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${requests.filter?.(r => r.status === 'pending')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Pending', 'بانتظار')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${requests.filter?.(r => r.status === 'in_transit')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('In Transit', 'في الطريق')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${requests.filter?.(r => r.status === 'completed')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Completed', 'مكتمل')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('New Request','طلب جديد')}</h4>
-        <div class="form-group"><label>${tr('Patient','المريض')}</label><input class="form-input" id="trPatient"></div>
-        <div class="form-group"><label>${tr('From','من')}</label><input class="form-input" id="trFrom" placeholder="${tr('e.g. Ward 3A','مثال: جناح 3أ')}"></div>
-        <div class="form-group"><label>${tr('To','إلى')}</label><input class="form-input" id="trTo" placeholder="${tr('e.g. Radiology','مثال: الأشعة')}"></div>
-        <div class="form-group"><label>${tr('Type','النوع')}</label>
-        <select class="form-input" id="trType"><option value="wheelchair">${tr('Wheelchair','كرسي متحرك')}</option><option value="stretcher">${tr('Stretcher','نقالة')}</option><option value="ambulance">${tr('Ambulance','إسعاف')}</option><option value="walking">${tr('Walking Escort','مرافقة')}</option></select></div>
-        <div class="form-group"><label>${tr('Priority','الأولوية')}</label>
-        <select class="form-input" id="trPriority"><option value="routine">${tr('Routine','عادي')}</option><option value="urgent">${tr('Urgent','مستعجل')}</option><option value="emergency">${tr('Emergency','طوارئ')}</option></select></div>
-        <div class="form-group"><label>${tr('Notes','ملاحظات')}</label><input class="form-input" id="trNotes"></div>
-        <button class="btn btn-primary w-full" onclick="saveTransportReq()">📤 ${tr('Submit','إرسال')}</button>
+        <h4 style="margin:0 0 12px">${tr('New Request', 'طلب جديد')}</h4>
+        <div class="form-group"><label>${tr('Patient', 'المريض')}</label><input class="form-input" id="trPatient"></div>
+        <div class="form-group"><label>${tr('From', 'من')}</label><input class="form-input" id="trFrom" placeholder="${tr('e.g. Ward 3A', 'مثال: جناح 3أ')}"></div>
+        <div class="form-group"><label>${tr('To', 'إلى')}</label><input class="form-input" id="trTo" placeholder="${tr('e.g. Radiology', 'مثال: الأشعة')}"></div>
+        <div class="form-group"><label>${tr('Type', 'النوع')}</label>
+        <select class="form-input" id="trType"><option value="wheelchair">${tr('Wheelchair', 'كرسي متحرك')}</option><option value="stretcher">${tr('Stretcher', 'نقالة')}</option><option value="ambulance">${tr('Ambulance', 'إسعاف')}</option><option value="walking">${tr('Walking Escort', 'مرافقة')}</option></select></div>
+        <div class="form-group"><label>${tr('Priority', 'الأولوية')}</label>
+        <select class="form-input" id="trPriority"><option value="routine">${tr('Routine', 'عادي')}</option><option value="urgent">${tr('Urgent', 'مستعجل')}</option><option value="emergency">${tr('Emergency', 'طوارئ')}</option></select></div>
+        <div class="form-group"><label>${tr('Notes', 'ملاحظات')}</label><input class="form-input" id="trNotes"></div>
+        <button class="btn btn-primary w-full" onclick="saveTransportReq()">📤 ${tr('Submit', 'إرسال')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Active Requests','الطلبات النشطة')}</h4>
-        <div id="trList">${requests.filter(r=>r.status!=='completed').map(r => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (r.status==='in_transit'?'#1565c0':'#ff9800') + ';display:flex;justify-content:space-between;align-items:center"><div><strong>' + (r.patient_name||'') + '</strong><br><span style="font-size:12px;color:#666">' + (r.from_location||'') + ' → ' + (r.to_location||'') + ' | ' + (r.transport_type||'') + '</span></div><button class="btn btn-sm" onclick="updateTransport(' + r.id + ',\'completed\')" style="background:#e8f5e9;color:#2e7d32">✅</button></div>').join('') || '<p style="color:#999;text-align:center">' + tr('No active requests','لا توجد طلبات') + '</p>'}</div>
+        <h4 style="margin:0 0 12px">${tr('Active Requests', 'الطلبات النشطة')}</h4>
+        <div id="trList">${requests.filter(r => r.status !== 'completed').map(r => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (r.status === 'in_transit' ? '#1565c0' : '#ff9800') + ';display:flex;justify-content:space-between;align-items:center"><div><strong>' + (r.patient_name || '') + '</strong><br><span style="font-size:12px;color:#666">' + (r.from_location || '') + ' → ' + (r.to_location || '') + ' | ' + (r.transport_type || '') + '</span></div><button class="btn btn-sm" onclick="updateTransport(' + r.id + ',\'completed\')" style="background:#e8f5e9;color:#2e7d32">✅</button></div>').join('') || '<p style="color:#999;text-align:center">' + tr('No active requests', 'لا توجد طلبات') + '</p>'}</div>
       </div>
     </div>`;
-    
-    window.saveTransportReq = async () => {
-      try { await API.post('/api/transport/requests', { patient_name: document.getElementById('trPatient')?.value, from_location: document.getElementById('trFrom')?.value, to_location: document.getElementById('trTo')?.value, transport_type: document.getElementById('trType')?.value, priority: document.getElementById('trPriority')?.value, notes: document.getElementById('trNotes')?.value, status: 'pending' }); showToast(tr('Request submitted','تم إرسال الطلب')); renderTransport(content); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
-    window.updateTransport = async (id, status) => {
-      try { await API.put('/api/transport/requests/' + id, { status }); showToast(tr('Updated','تم التحديث')); renderTransport(content); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
+
+  window.saveTransportReq = async () => {
+    try { await API.post('/api/transport/requests', { patient_name: document.getElementById('trPatient')?.value, from_location: document.getElementById('trFrom')?.value, to_location: document.getElementById('trTo')?.value, transport_type: document.getElementById('trType')?.value, priority: document.getElementById('trPriority')?.value, notes: document.getElementById('trNotes')?.value, status: 'pending' }); showToast(tr('Request submitted', 'تم إرسال الطلب')); renderTransport(content); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
+  window.updateTransport = async (id, status) => {
+    try { await API.put('/api/transport/requests/' + id, { status }); showToast(tr('Updated', 'تم التحديث')); renderTransport(content); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
 
 }
 window.addTransport = async function () {
@@ -6387,62 +6390,62 @@ window.viewRehabSessions = async function (id) {
 // ===== PATIENT PORTAL =====
 async function renderPatientPortal(el) {
 
-    content.innerHTML = `
-    <h2>${tr('Patient Portal','بوابة المريض')}</h2>
+  content.innerHTML = `
+    <h2>${tr('Patient Portal', 'بوابة المريض')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:20px">
       <div class="card" style="padding:20px;text-align:center;cursor:pointer" onclick="portalSearch()">
         <div style="font-size:40px;margin-bottom:8px">🔍</div>
-        <h4 style="margin:0 0 4px">${tr('Search Patient','بحث عن مريض')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('Find patient records','البحث في سجلات المرضى')}</p>
+        <h4 style="margin:0 0 4px">${tr('Search Patient', 'بحث عن مريض')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('Find patient records', 'البحث في سجلات المرضى')}</p>
       </div>
       <div class="card" style="padding:20px;text-align:center;cursor:pointer" onclick="portalAppointments()">
         <div style="font-size:40px;margin-bottom:8px">📅</div>
-        <h4 style="margin:0 0 4px">${tr('Appointments','المواعيد')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('View upcoming appointments','عرض المواعيد القادمة')}</p>
+        <h4 style="margin:0 0 4px">${tr('Appointments', 'المواعيد')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('View upcoming appointments', 'عرض المواعيد القادمة')}</p>
       </div>
       <div class="card" style="padding:20px;text-align:center;cursor:pointer" onclick="portalLabResults()">
         <div style="font-size:40px;margin-bottom:8px">🔬</div>
-        <h4 style="margin:0 0 4px">${tr('Lab Results','نتائج المختبر')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('View lab test results','عرض نتائج الفحوصات')}</p>
+        <h4 style="margin:0 0 4px">${tr('Lab Results', 'نتائج المختبر')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('View lab test results', 'عرض نتائج الفحوصات')}</p>
       </div>
       <div class="card" style="padding:20px;text-align:center;cursor:pointer" onclick="portalInvoices()">
         <div style="font-size:40px;margin-bottom:8px">💰</div>
-        <h4 style="margin:0 0 4px">${tr('Invoices','الفواتير')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('View payment history','عرض سجل المدفوعات')}</p>
+        <h4 style="margin:0 0 4px">${tr('Invoices', 'الفواتير')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('View payment history', 'عرض سجل المدفوعات')}</p>
       </div>
       <div class="card" style="padding:20px;text-align:center;cursor:pointer" onclick="portalPrescriptions()">
         <div style="font-size:40px;margin-bottom:8px">💊</div>
-        <h4 style="margin:0 0 4px">${tr('Prescriptions','الوصفات')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('View medication history','عرض سجل الأدوية')}</p>
+        <h4 style="margin:0 0 4px">${tr('Prescriptions', 'الوصفات')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('View medication history', 'عرض سجل الأدوية')}</p>
       </div>
       <div class="card" style="padding:20px;text-align:center;cursor:pointer" onclick="portalMedRecords()">
         <div style="font-size:40px;margin-bottom:8px">📋</div>
-        <h4 style="margin:0 0 4px">${tr('Medical Records','السجل الطبي')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('View visit history','عرض تاريخ الزيارات')}</p>
+        <h4 style="margin:0 0 4px">${tr('Medical Records', 'السجل الطبي')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('View visit history', 'عرض تاريخ الزيارات')}</p>
       </div>
     </div>
     <div class="card" style="padding:20px">
-      <h4 style="margin:0 0 12px">${tr('Quick Patient Lookup','بحث سريع عن مريض')}</h4>
+      <h4 style="margin:0 0 12px">${tr('Quick Patient Lookup', 'بحث سريع عن مريض')}</h4>
       <div style="display:flex;gap:12px">
-        <input class="form-input" id="portalSearchInput" placeholder="${tr('Enter MRN, name, or phone...','أدخل رقم الملف أو الاسم أو الجوال...')}" style="flex:1" onkeyup="if(event.key==='Enter')portalSearch()">
-        <button class="btn btn-primary" onclick="portalSearch()">🔍 ${tr('Search','بحث')}</button>
+        <input class="form-input" id="portalSearchInput" placeholder="${tr('Enter MRN, name, or phone...', 'أدخل رقم الملف أو الاسم أو الجوال...')}" style="flex:1" onkeyup="if(event.key==='Enter')portalSearch()">
+        <button class="btn btn-primary" onclick="portalSearch()">🔍 ${tr('Search', 'بحث')}</button>
       </div>
       <div id="portalResults" style="margin-top:16px"></div>
     </div>`;
-    
-    window.portalSearch = async () => {
-      const q = document.getElementById('portalSearchInput')?.value || '';
-      if (!q) return;
-      const patients = await API.get('/api/patients?search=' + encodeURIComponent(q));
-      const el = document.getElementById('portalResults');
-      if (!el) return;
-      el.innerHTML = patients.map(p => '<div style="padding:12px;margin:6px 0;background:#f8f9fa;border-radius:8px;display:flex;justify-content:space-between;align-items:center"><div><strong>' + (isArabic ? (p.name_ar||p.name_en) : (p.name_en||p.name_ar)) + '</strong><br><span style="font-size:12px;color:#666">' + (p.mrn||p.file_number||'') + ' | ' + (p.phone||'') + '</span></div><button class="btn btn-sm" onclick="viewPatientInvoices(' + p.id + ')" style="background:#e3f2fd;color:#1565c0">📋 ' + tr('View Details','عرض التفاصيل') + '</button></div>').join('') || '<p style="color:#999">' + tr('No results','لا توجد نتائج') + '</p>';
-    };
-    window.portalAppointments = () => navigateTo(2);
-    window.portalLabResults = () => navigateTo(4);
-    window.portalInvoices = () => navigateTo(8);
-    window.portalPrescriptions = () => navigateTo(6);
-    window.portalMedRecords = () => navigateTo(30);
+
+  window.portalSearch = async () => {
+    const q = document.getElementById('portalSearchInput')?.value || '';
+    if (!q) return;
+    const patients = await API.get('/api/patients?search=' + encodeURIComponent(q));
+    const el = document.getElementById('portalResults');
+    if (!el) return;
+    el.innerHTML = patients.map(p => '<div style="padding:12px;margin:6px 0;background:#f8f9fa;border-radius:8px;display:flex;justify-content:space-between;align-items:center"><div><strong>' + (isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)) + '</strong><br><span style="font-size:12px;color:#666">' + (p.mrn || p.file_number || '') + ' | ' + (p.phone || '') + '</span></div><button class="btn btn-sm" onclick="viewPatientInvoices(' + p.id + ')" style="background:#e3f2fd;color:#1565c0">📋 ' + tr('View Details', 'عرض التفاصيل') + '</button></div>').join('') || '<p style="color:#999">' + tr('No results', 'لا توجد نتائج') + '</p>';
+  };
+  window.portalAppointments = () => navigateTo(2);
+  window.portalLabResults = () => navigateTo(4);
+  window.portalInvoices = () => navigateTo(8);
+  window.portalPrescriptions = () => navigateTo(6);
+  window.portalMedRecords = () => navigateTo(30);
 
 }
 window.approvePortalAppt = async function (id) { await API.put('/api/portal/appointments/' + id, { status: 'Approved' }); showToast(tr('Approved', 'تمت الموافقة')); navigateTo(33); };
@@ -6451,41 +6454,41 @@ window.rejectPortalAppt = async function (id) { await API.put('/api/portal/appoi
 // ===== ZATCA E-INVOICING =====
 async function renderZATCA(el) {
 
-    const invoices = await API.get('/api/zatca/invoices').catch(() => []);
-    content.innerHTML = `
-    <h2>${tr('ZATCA E-Invoice','الفاتورة الإلكترونية - زاتكا')}</h2>
+  const invoices = await API.get('/api/zatca/invoices').catch(() => []);
+  content.innerHTML = `
+    <h2>${tr('ZATCA E-Invoice', 'الفاتورة الإلكترونية - زاتكا')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${invoices.filter?.(i=>i.zatca_status==='submitted')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Submitted','مرسلة')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${invoices.filter?.(i=>!i.zatca_status||i.zatca_status==='pending')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Pending','بانتظار الإرسال')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${invoices.filter?.(i=>i.zatca_status==='rejected')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Rejected','مرفوضة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${invoices.filter?.(i => i.zatca_status === 'submitted')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Submitted', 'مرسلة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${invoices.filter?.(i => !i.zatca_status || i.zatca_status === 'pending')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Pending', 'بانتظار الإرسال')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${invoices.filter?.(i => i.zatca_status === 'rejected')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Rejected', 'مرفوضة')}</p></div>
     </div>
     <div class="card" style="padding:20px;margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <h4 style="margin:0">${tr('Invoices','الفواتير')}</h4>
+        <h4 style="margin:0">${tr('Invoices', 'الفواتير')}</h4>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-sm" onclick="generateZATCA()" style="background:#e8f5e9;color:#2e7d32">📤 ${tr('Submit Selected','إرسال المحددة')}</button>
-          <button class="btn btn-sm" onclick="exportToCSV(window._zatcaData||[],'zatca_invoices')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export','تصدير')}</button>
+          <button class="btn btn-sm" onclick="generateZATCA()" style="background:#e8f5e9;color:#2e7d32">📤 ${tr('Submit Selected', 'إرسال المحددة')}</button>
+          <button class="btn btn-sm" onclick="exportToCSV(window._zatcaData||[],'zatca_invoices')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export', 'تصدير')}</button>
         </div>
       </div>
       <div id="zatcaTable"></div>
     </div>`;
-    
-    window._zatcaData = invoices;
-    const zt = document.getElementById('zatcaTable');
-    if (zt && invoices.length > 0) {
-      createTable(zt, 'ztbl',
-        [tr('Invoice #','رقم الفاتورة'), tr('Patient','المريض'), tr('Amount','المبلغ'), tr('VAT','الضريبة'), tr('Date','التاريخ'), tr('Status','الحالة')],
-        invoices.map(i => ({
-          cells: [i.invoice_number||i.id, i.patient_name||'', parseFloat(i.total||0).toFixed(2), parseFloat(i.vat_amount||0).toFixed(2), i.created_at ? new Date(i.created_at).toLocaleDateString('ar-SA') : '', statusBadge(i.zatca_status||'pending')],
-          id: i.id
-        }))
-      );
-    } else if (zt) { zt.innerHTML = '<p style="color:#999;text-align:center;padding:20px">' + tr('No invoices','لا توجد فواتير') + '</p>'; }
-    
-    window.generateZATCA = async () => {
-      showToast(tr('Generating ZATCA submission...','جاري إنشاء إرسال زاتكا...'));
-      try { await API.post('/api/zatca/generate', {}); showToast(tr('ZATCA submitted!','تم الإرسال لزاتكا!')); renderZATCA(content); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
+
+  window._zatcaData = invoices;
+  const zt = document.getElementById('zatcaTable');
+  if (zt && invoices.length > 0) {
+    createTable(zt, 'ztbl',
+      [tr('Invoice #', 'رقم الفاتورة'), tr('Patient', 'المريض'), tr('Amount', 'المبلغ'), tr('VAT', 'الضريبة'), tr('Date', 'التاريخ'), tr('Status', 'الحالة')],
+      invoices.map(i => ({
+        cells: [i.invoice_number || i.id, i.patient_name || '', parseFloat(i.total || 0).toFixed(2), parseFloat(i.vat_amount || 0).toFixed(2), i.created_at ? new Date(i.created_at).toLocaleDateString('ar-SA') : '', statusBadge(i.zatca_status || 'pending')],
+        id: i.id
+      }))
+    );
+  } else if (zt) { zt.innerHTML = '<p style="color:#999;text-align:center;padding:20px">' + tr('No invoices', 'لا توجد فواتير') + '</p>'; }
+
+  window.generateZATCA = async () => {
+    showToast(tr('Generating ZATCA submission...', 'جاري إنشاء إرسال زاتكا...'));
+    try { await API.post('/api/zatca/generate', {}); showToast(tr('ZATCA submitted!', 'تم الإرسال لزاتكا!')); renderZATCA(content); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
 
 }
 
@@ -6493,35 +6496,35 @@ async function renderZATCA(el) {
 let teleTab = 'sessions';
 async function renderTelemedicine(el) {
 
-    const sessions = await API.get('/api/telemedicine/sessions').catch(() => []);
-    content.innerHTML = `
-    <h2>${tr('Telemedicine','الطب عن بُعد')}</h2>
+  const sessions = await API.get('/api/telemedicine/sessions').catch(() => []);
+  content.innerHTML = `
+    <h2>${tr('Telemedicine', 'الطب عن بُعد')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0">${sessions.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Sessions','إجمالي الجلسات')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0">${sessions.filter?.(s=>s.status==='scheduled')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Scheduled','مجدولة')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0">${sessions.filter?.(s=>s.status==='in_progress')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('In Progress','جارية')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0">${sessions.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Sessions', 'إجمالي الجلسات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0">${sessions.filter?.(s => s.status === 'scheduled')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Scheduled', 'مجدولة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0">${sessions.filter?.(s => s.status === 'in_progress')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('In Progress', 'جارية')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('New Session','جلسة جديدة')}</h4>
-        <div class="form-group"><label>${tr('Patient','المريض')}</label><input class="form-input" id="telePatient"></div>
-        <div class="form-group"><label>${tr('Doctor','الطبيب')}</label><input class="form-input" id="teleDoctor"></div>
-        <div class="form-group"><label>${tr('Date & Time','التاريخ والوقت')}</label><input type="datetime-local" class="form-input" id="teleDate"></div>
-        <div class="form-group"><label>${tr('Type','النوع')}</label>
-        <select class="form-input" id="teleType"><option value="video">${tr('Video Call','مكالمة فيديو')}</option><option value="audio">${tr('Audio Call','مكالمة صوتية')}</option><option value="chat">${tr('Chat','محادثة')}</option></select></div>
-        <div class="form-group"><label>${tr('Reason','السبب')}</label><input class="form-input" id="teleReason"></div>
-        <div class="form-group"><label>${tr('Meeting Link','رابط الاجتماع')}</label><input class="form-input" id="teleLink" placeholder="https://meet.google.com/..."></div>
-        <button class="btn btn-primary w-full" onclick="saveTeleSession()">📹 ${tr('Schedule Session','جدولة الجلسة')}</button>
+        <h4 style="margin:0 0 12px">${tr('New Session', 'جلسة جديدة')}</h4>
+        <div class="form-group"><label>${tr('Patient', 'المريض')}</label><input class="form-input" id="telePatient"></div>
+        <div class="form-group"><label>${tr('Doctor', 'الطبيب')}</label><input class="form-input" id="teleDoctor"></div>
+        <div class="form-group"><label>${tr('Date & Time', 'التاريخ والوقت')}</label><input type="datetime-local" class="form-input" id="teleDate"></div>
+        <div class="form-group"><label>${tr('Type', 'النوع')}</label>
+        <select class="form-input" id="teleType"><option value="video">${tr('Video Call', 'مكالمة فيديو')}</option><option value="audio">${tr('Audio Call', 'مكالمة صوتية')}</option><option value="chat">${tr('Chat', 'محادثة')}</option></select></div>
+        <div class="form-group"><label>${tr('Reason', 'السبب')}</label><input class="form-input" id="teleReason"></div>
+        <div class="form-group"><label>${tr('Meeting Link', 'رابط الاجتماع')}</label><input class="form-input" id="teleLink" placeholder="https://meet.google.com/..."></div>
+        <button class="btn btn-primary w-full" onclick="saveTeleSession()">📹 ${tr('Schedule Session', 'جدولة الجلسة')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Sessions','الجلسات')}</h4>
-        <div id="teleList">${sessions.map(s => '<div style="padding:12px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (s.status==='in_progress'?'#4caf50':s.status==='scheduled'?'#1565c0':'#999') + '"><strong>' + (s.patient_name||'') + '</strong> ↔ ' + (s.doctor||'') + '<br><span style="font-size:12px;color:#666">📅 ' + (s.session_date||'').substring(0,16) + ' | ' + (s.session_type||'') + ' | ' + (s.status||'') + '</span>' + (s.meeting_link ? '<br><a href="' + s.meeting_link + '" target="_blank" style="font-size:12px;color:#1565c0">🔗 ' + tr('Join','انضمام') + '</a>' : '') + '</div>').join('') || '<p style="color:#999;text-align:center">' + tr('No sessions','لا توجد جلسات') + '</p>'}</div>
+        <h4 style="margin:0 0 12px">${tr('Sessions', 'الجلسات')}</h4>
+        <div id="teleList">${sessions.map(s => '<div style="padding:12px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (s.status === 'in_progress' ? '#4caf50' : s.status === 'scheduled' ? '#1565c0' : '#999') + '"><strong>' + (s.patient_name || '') + '</strong> ↔ ' + (s.doctor || '') + '<br><span style="font-size:12px;color:#666">📅 ' + (s.session_date || '').substring(0, 16) + ' | ' + (s.session_type || '') + ' | ' + (s.status || '') + '</span>' + (s.meeting_link ? '<br><a href="' + s.meeting_link + '" target="_blank" style="font-size:12px;color:#1565c0">🔗 ' + tr('Join', 'انضمام') + '</a>' : '') + '</div>').join('') || '<p style="color:#999;text-align:center">' + tr('No sessions', 'لا توجد جلسات') + '</p>'}</div>
       </div>
     </div>`;
-    
-    window.saveTeleSession = async () => {
-      try { await API.post('/api/telemedicine/sessions', { patient_name: document.getElementById('telePatient')?.value, doctor: document.getElementById('teleDoctor')?.value, session_date: document.getElementById('teleDate')?.value, session_type: document.getElementById('teleType')?.value, reason: document.getElementById('teleReason')?.value, meeting_link: document.getElementById('teleLink')?.value, status: 'scheduled' }); showToast(tr('Session scheduled','تم جدولة الجلسة')); renderTelemedicine(content); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
+
+  window.saveTeleSession = async () => {
+    try { await API.post('/api/telemedicine/sessions', { patient_name: document.getElementById('telePatient')?.value, doctor: document.getElementById('teleDoctor')?.value, session_date: document.getElementById('teleDate')?.value, session_type: document.getElementById('teleType')?.value, reason: document.getElementById('teleReason')?.value, meeting_link: document.getElementById('teleLink')?.value, status: 'scheduled' }); showToast(tr('Session scheduled', 'تم جدولة الجلسة')); renderTelemedicine(content); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
 
 }
 window.scheduleTele = async function () {
@@ -6533,127 +6536,127 @@ window.scheduleTele = async function () {
 // ===== PATHOLOGY =====
 async function renderPathology(el) {
 
-    const specimens = await API.get('/api/pathology/specimens').catch(() => []);
-    content.innerHTML = `
-    <h2>${tr('Pathology','علم الأمراض')}</h2>
+  const specimens = await API.get('/api/pathology/specimens').catch(() => []);
+  content.innerHTML = `
+    <h2>${tr('Pathology', 'علم الأمراض')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0">${specimens.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Specimens','إجمالي العينات')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0">${specimens.filter?.(s=>s.status==='processing')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('In Progress','قيد المعالجة')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0">${specimens.filter?.(s=>s.status==='completed')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Completed','مكتملة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0">${specimens.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Specimens', 'إجمالي العينات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0">${specimens.filter?.(s => s.status === 'processing')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('In Progress', 'قيد المعالجة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0">${specimens.filter?.(s => s.status === 'completed')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Completed', 'مكتملة')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Register Specimen','تسجيل عينة')}</h4>
-        <div class="form-group"><label>${tr('Patient','المريض')}</label><input class="form-input" id="pathPatient"></div>
-        <div class="form-group"><label>${tr('Specimen Type','نوع العينة')}</label>
-        <select class="form-input" id="pathType"><option value="biopsy">${tr('Biopsy','خزعة')}</option><option value="cytology">${tr('Cytology','خلوية')}</option><option value="frozen_section">${tr('Frozen Section','مقطع مجمد')}</option><option value="bone_marrow">${tr('Bone Marrow','نخاع عظم')}</option><option value="fluid">${tr('Body Fluid','سائل جسمي')}</option></select></div>
-        <div class="form-group"><label>${tr('Site/Source','الموقع/المصدر')}</label><input class="form-input" id="pathSite"></div>
-        <div class="form-group"><label>${tr('Requesting Doctor','الطبيب الطالب')}</label><input class="form-input" id="pathDoctor"></div>
-        <div class="form-group"><label>${tr('Clinical Details','التفاصيل السريرية')}</label><textarea class="form-input" id="pathDetails" rows="2"></textarea></div>
-        <div class="form-group"><label>${tr('Priority','الأولوية')}</label>
-        <select class="form-input" id="pathPriority"><option value="routine">${tr('Routine','عادي')}</option><option value="urgent">${tr('Urgent','مستعجل')}</option><option value="stat">${tr('STAT','طارئ')}</option></select></div>
-        <button class="btn btn-primary w-full" onclick="savePathSpecimen()">💾 ${tr('Register','تسجيل')}</button>
+        <h4 style="margin:0 0 12px">${tr('Register Specimen', 'تسجيل عينة')}</h4>
+        <div class="form-group"><label>${tr('Patient', 'المريض')}</label><input class="form-input" id="pathPatient"></div>
+        <div class="form-group"><label>${tr('Specimen Type', 'نوع العينة')}</label>
+        <select class="form-input" id="pathType"><option value="biopsy">${tr('Biopsy', 'خزعة')}</option><option value="cytology">${tr('Cytology', 'خلوية')}</option><option value="frozen_section">${tr('Frozen Section', 'مقطع مجمد')}</option><option value="bone_marrow">${tr('Bone Marrow', 'نخاع عظم')}</option><option value="fluid">${tr('Body Fluid', 'سائل جسمي')}</option></select></div>
+        <div class="form-group"><label>${tr('Site/Source', 'الموقع/المصدر')}</label><input class="form-input" id="pathSite"></div>
+        <div class="form-group"><label>${tr('Requesting Doctor', 'الطبيب الطالب')}</label><input class="form-input" id="pathDoctor"></div>
+        <div class="form-group"><label>${tr('Clinical Details', 'التفاصيل السريرية')}</label><textarea class="form-input" id="pathDetails" rows="2"></textarea></div>
+        <div class="form-group"><label>${tr('Priority', 'الأولوية')}</label>
+        <select class="form-input" id="pathPriority"><option value="routine">${tr('Routine', 'عادي')}</option><option value="urgent">${tr('Urgent', 'مستعجل')}</option><option value="stat">${tr('STAT', 'طارئ')}</option></select></div>
+        <button class="btn btn-primary w-full" onclick="savePathSpecimen()">💾 ${tr('Register', 'تسجيل')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Recent Specimens','العينات الأخيرة')}</h4>
+        <h4 style="margin:0 0 12px">${tr('Recent Specimens', 'العينات الأخيرة')}</h4>
         <div id="pathList"></div>
       </div>
     </div>`;
-    
-    const pl = document.getElementById('pathList');
-    if (pl) { pl.innerHTML = specimens.length ? specimens.map(s => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (s.status==='completed'?'#4caf50':s.status==='processing'?'#ff9800':'#2196f3') + '"><strong>' + (s.patient_name||'') + '</strong> - ' + (s.specimen_type||'') + '<br><span style="font-size:12px;color:#666">' + (s.site||'') + ' | ' + (s.status||'') + ' | ' + (s.priority||'') + '</span></div>').join('') : '<p style="color:#999;text-align:center">' + tr('No specimens','لا توجد عينات') + '</p>'; }
-    
-    window.savePathSpecimen = async () => {
-      try {
-        await API.post('/api/pathology/specimens', { patient_name: document.getElementById('pathPatient')?.value, specimen_type: document.getElementById('pathType')?.value, site: document.getElementById('pathSite')?.value, doctor: document.getElementById('pathDoctor')?.value, clinical_details: document.getElementById('pathDetails')?.value, priority: document.getElementById('pathPriority')?.value, status: 'received' });
-        showToast(tr('Specimen registered','تم تسجيل العينة'));
-        renderPathology(content);
-      } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
+
+  const pl = document.getElementById('pathList');
+  if (pl) { pl.innerHTML = specimens.length ? specimens.map(s => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (s.status === 'completed' ? '#4caf50' : s.status === 'processing' ? '#ff9800' : '#2196f3') + '"><strong>' + (s.patient_name || '') + '</strong> - ' + (s.specimen_type || '') + '<br><span style="font-size:12px;color:#666">' + (s.site || '') + ' | ' + (s.status || '') + ' | ' + (s.priority || '') + '</span></div>').join('') : '<p style="color:#999;text-align:center">' + tr('No specimens', 'لا توجد عينات') + '</p>'; }
+
+  window.savePathSpecimen = async () => {
+    try {
+      await API.post('/api/pathology/specimens', { patient_name: document.getElementById('pathPatient')?.value, specimen_type: document.getElementById('pathType')?.value, site: document.getElementById('pathSite')?.value, doctor: document.getElementById('pathDoctor')?.value, clinical_details: document.getElementById('pathDetails')?.value, priority: document.getElementById('pathPriority')?.value, status: 'received' });
+      showToast(tr('Specimen registered', 'تم تسجيل العينة'));
+      renderPathology(content);
+    } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
 
 }
 
 // ===== SOCIAL WORK =====
 async function renderSocialWork(el) {
 
-    const cases = await API.get('/api/social-work/cases').catch(() => []);
-    content.innerHTML = `
-    <h2>${tr('Social Work','الخدمة الاجتماعية')}</h2>
+  const cases = await API.get('/api/social-work/cases').catch(() => []);
+  content.innerHTML = `
+    <h2>${tr('Social Work', 'الخدمة الاجتماعية')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0">${cases.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Cases','إجمالي الحالات')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0">${cases.filter?.(c=>c.status==='open')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Open','مفتوحة')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0">${cases.filter?.(c=>c.status==='resolved')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Resolved','تم حلها')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0">${cases.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Cases', 'إجمالي الحالات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0">${cases.filter?.(c => c.status === 'open')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Open', 'مفتوحة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0">${cases.filter?.(c => c.status === 'resolved')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Resolved', 'تم حلها')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('New Case','حالة جديدة')}</h4>
-        <div class="form-group"><label>${tr('Patient','المريض')}</label><input class="form-input" id="swPatient"></div>
-        <div class="form-group"><label>${tr('Case Type','نوع الحالة')}</label>
-        <select class="form-input" id="swType"><option value="financial">${tr('Financial Assistance','مساعدة مالية')}</option><option value="abuse">${tr('Abuse/Neglect','إساءة/إهمال')}</option><option value="discharge_planning">${tr('Discharge Planning','تخطيط الخروج')}</option><option value="counseling">${tr('Counseling','إرشاد')}</option><option value="legal">${tr('Legal Issues','قضايا قانونية')}</option><option value="housing">${tr('Housing','إسكان')}</option></select></div>
-        <div class="form-group"><label>${tr('Priority','الأولوية')}</label>
-        <select class="form-input" id="swPriority"><option value="low">${tr('Low','منخفضة')}</option><option value="medium" selected>${tr('Medium','متوسطة')}</option><option value="high">${tr('High','عالية')}</option><option value="urgent">${tr('Urgent','عاجلة')}</option></select></div>
-        <div class="form-group"><label>${tr('Description','الوصف')}</label><textarea class="form-input" id="swDesc" rows="3"></textarea></div>
-        <div class="form-group"><label>${tr('Assigned To','مسؤول الحالة')}</label><input class="form-input" id="swAssigned"></div>
-        <button class="btn btn-primary w-full" onclick="saveSWCase()">💾 ${tr('Create Case','إنشاء حالة')}</button>
+        <h4 style="margin:0 0 12px">${tr('New Case', 'حالة جديدة')}</h4>
+        <div class="form-group"><label>${tr('Patient', 'المريض')}</label><input class="form-input" id="swPatient"></div>
+        <div class="form-group"><label>${tr('Case Type', 'نوع الحالة')}</label>
+        <select class="form-input" id="swType"><option value="financial">${tr('Financial Assistance', 'مساعدة مالية')}</option><option value="abuse">${tr('Abuse/Neglect', 'إساءة/إهمال')}</option><option value="discharge_planning">${tr('Discharge Planning', 'تخطيط الخروج')}</option><option value="counseling">${tr('Counseling', 'إرشاد')}</option><option value="legal">${tr('Legal Issues', 'قضايا قانونية')}</option><option value="housing">${tr('Housing', 'إسكان')}</option></select></div>
+        <div class="form-group"><label>${tr('Priority', 'الأولوية')}</label>
+        <select class="form-input" id="swPriority"><option value="low">${tr('Low', 'منخفضة')}</option><option value="medium" selected>${tr('Medium', 'متوسطة')}</option><option value="high">${tr('High', 'عالية')}</option><option value="urgent">${tr('Urgent', 'عاجلة')}</option></select></div>
+        <div class="form-group"><label>${tr('Description', 'الوصف')}</label><textarea class="form-input" id="swDesc" rows="3"></textarea></div>
+        <div class="form-group"><label>${tr('Assigned To', 'مسؤول الحالة')}</label><input class="form-input" id="swAssigned"></div>
+        <button class="btn btn-primary w-full" onclick="saveSWCase()">💾 ${tr('Create Case', 'إنشاء حالة')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Cases','الحالات')}</h4>
+        <h4 style="margin:0 0 12px">${tr('Cases', 'الحالات')}</h4>
         <div id="swList"></div>
       </div>
     </div>`;
-    
-    const sl = document.getElementById('swList');
-    if (sl) { sl.innerHTML = cases.length ? cases.map(c => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (c.status==='resolved'?'#4caf50':c.priority==='urgent'?'#cc0000':'#ff9800') + '"><strong>' + (c.patient_name||'') + '</strong> - ' + (c.case_type||'') + '<br><span style="font-size:12px;color:#666">' + (c.status||'') + ' | ' + (c.priority||'') + (c.assigned_to ? ' | ' + c.assigned_to : '') + '</span></div>').join('') : '<p style="color:#999;text-align:center">' + tr('No cases','لا توجد حالات') + '</p>'; }
-    
-    window.saveSWCase = async () => {
-      try {
-        await API.post('/api/social-work/cases', { patient_name: document.getElementById('swPatient')?.value, case_type: document.getElementById('swType')?.value, priority: document.getElementById('swPriority')?.value, description: document.getElementById('swDesc')?.value, assigned_to: document.getElementById('swAssigned')?.value, status: 'open' });
-        showToast(tr('Case created','تم إنشاء الحالة'));
-        renderSocialWork(content);
-      } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
+
+  const sl = document.getElementById('swList');
+  if (sl) { sl.innerHTML = cases.length ? cases.map(c => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (c.status === 'resolved' ? '#4caf50' : c.priority === 'urgent' ? '#cc0000' : '#ff9800') + '"><strong>' + (c.patient_name || '') + '</strong> - ' + (c.case_type || '') + '<br><span style="font-size:12px;color:#666">' + (c.status || '') + ' | ' + (c.priority || '') + (c.assigned_to ? ' | ' + c.assigned_to : '') + '</span></div>').join('') : '<p style="color:#999;text-align:center">' + tr('No cases', 'لا توجد حالات') + '</p>'; }
+
+  window.saveSWCase = async () => {
+    try {
+      await API.post('/api/social-work/cases', { patient_name: document.getElementById('swPatient')?.value, case_type: document.getElementById('swType')?.value, priority: document.getElementById('swPriority')?.value, description: document.getElementById('swDesc')?.value, assigned_to: document.getElementById('swAssigned')?.value, status: 'open' });
+      showToast(tr('Case created', 'تم إنشاء الحالة'));
+      renderSocialWork(content);
+    } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
 
 }
 
 // ===== MORTUARY =====
 async function renderMortuary(el) {
 
-    const cases = await API.get('/api/mortuary/cases').catch(() => []);
-    content.innerHTML = `
-    <h2>${tr('Mortuary','المشرحة')}</h2>
+  const cases = await API.get('/api/mortuary/cases').catch(() => []);
+  content.innerHTML = `
+    <h2>${tr('Mortuary', 'المشرحة')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#f3e5f5"><h3 style="margin:0">${cases.length || 0}</h3><p style="margin:4px 0 0;font-size:13px;color:#666">${tr('Total Cases','إجمالي الحالات')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0">${cases.filter?.(c=>c.status==='pending')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px;color:#666">${tr('Pending Release','بانتظار التسليم')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#f3e5f5"><h3 style="margin:0">${cases.length || 0}</h3><p style="margin:4px 0 0;font-size:13px;color:#666">${tr('Total Cases', 'إجمالي الحالات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0">${cases.filter?.(c => c.status === 'pending')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px;color:#666">${tr('Pending Release', 'بانتظار التسليم')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Register Case','تسجيل حالة')}</h4>
-        <div class="form-group"><label>${tr('Deceased Name','اسم المتوفى')}</label><input class="form-input" id="mortName"></div>
-        <div class="form-group"><label>${tr('National ID','الهوية')}</label><input class="form-input" id="mortID"></div>
-        <div class="form-group"><label>${tr('Date/Time of Death','تاريخ ووقت الوفاة')}</label><input type="datetime-local" class="form-input" id="mortDate"></div>
-        <div class="form-group"><label>${tr('Cause of Death','سبب الوفاة')}</label><input class="form-input" id="mortCause"></div>
-        <div class="form-group"><label>${tr('Attending Doctor','الطبيب المعالج')}</label><input class="form-input" id="mortDoctor"></div>
-        <div class="form-group"><label>${tr('Next of Kin','أقرب الأقارب')}</label><input class="form-input" id="mortKin"></div>
-        <div class="form-group"><label>${tr('Contact Phone','هاتف التواصل')}</label><input class="form-input" id="mortPhone"></div>
-        <div class="form-group"><label>${tr('Storage Location','مكان التخزين')}</label><input class="form-input" id="mortLoc" placeholder="e.g. Unit-3"></div>
-        <button class="btn btn-primary w-full" onclick="saveMortuaryCase()">💾 ${tr('Register','تسجيل')}</button>
+        <h4 style="margin:0 0 12px">${tr('Register Case', 'تسجيل حالة')}</h4>
+        <div class="form-group"><label>${tr('Deceased Name', 'اسم المتوفى')}</label><input class="form-input" id="mortName"></div>
+        <div class="form-group"><label>${tr('National ID', 'الهوية')}</label><input class="form-input" id="mortID"></div>
+        <div class="form-group"><label>${tr('Date/Time of Death', 'تاريخ ووقت الوفاة')}</label><input type="datetime-local" class="form-input" id="mortDate"></div>
+        <div class="form-group"><label>${tr('Cause of Death', 'سبب الوفاة')}</label><input class="form-input" id="mortCause"></div>
+        <div class="form-group"><label>${tr('Attending Doctor', 'الطبيب المعالج')}</label><input class="form-input" id="mortDoctor"></div>
+        <div class="form-group"><label>${tr('Next of Kin', 'أقرب الأقارب')}</label><input class="form-input" id="mortKin"></div>
+        <div class="form-group"><label>${tr('Contact Phone', 'هاتف التواصل')}</label><input class="form-input" id="mortPhone"></div>
+        <div class="form-group"><label>${tr('Storage Location', 'مكان التخزين')}</label><input class="form-input" id="mortLoc" placeholder="e.g. Unit-3"></div>
+        <button class="btn btn-primary w-full" onclick="saveMortuaryCase()">💾 ${tr('Register', 'تسجيل')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Cases','الحالات')}</h4>
+        <h4 style="margin:0 0 12px">${tr('Cases', 'الحالات')}</h4>
         <div id="mortList"></div>
       </div>
     </div>`;
-    
-    const ml = document.getElementById('mortList');
-    if (ml) { ml.innerHTML = cases.length ? cases.map(c => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (c.status==='released'?'#4caf50':'#ff9800') + '"><strong>' + (c.name||'') + '</strong><br><span style="font-size:12px;color:#666">' + (c.cause_of_death||'') + ' | ' + (c.status||'') + '</span></div>').join('') : '<p style="color:#999;text-align:center">' + tr('No cases','لا توجد حالات') + '</p>'; }
-    
-    window.saveMortuaryCase = async () => {
-      try {
-        await API.post('/api/mortuary/cases', { name: document.getElementById('mortName')?.value, national_id: document.getElementById('mortID')?.value, death_datetime: document.getElementById('mortDate')?.value, cause_of_death: document.getElementById('mortCause')?.value, doctor: document.getElementById('mortDoctor')?.value, next_of_kin: document.getElementById('mortKin')?.value, contact_phone: document.getElementById('mortPhone')?.value, storage_location: document.getElementById('mortLoc')?.value, status: 'pending' });
-        showToast(tr('Case registered','تم تسجيل الحالة'));
-        renderMortuary(content);
-      } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
+
+  const ml = document.getElementById('mortList');
+  if (ml) { ml.innerHTML = cases.length ? cases.map(c => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (c.status === 'released' ? '#4caf50' : '#ff9800') + '"><strong>' + (c.name || '') + '</strong><br><span style="font-size:12px;color:#666">' + (c.cause_of_death || '') + ' | ' + (c.status || '') + '</span></div>').join('') : '<p style="color:#999;text-align:center">' + tr('No cases', 'لا توجد حالات') + '</p>'; }
+
+  window.saveMortuaryCase = async () => {
+    try {
+      await API.post('/api/mortuary/cases', { name: document.getElementById('mortName')?.value, national_id: document.getElementById('mortID')?.value, death_datetime: document.getElementById('mortDate')?.value, cause_of_death: document.getElementById('mortCause')?.value, doctor: document.getElementById('mortDoctor')?.value, next_of_kin: document.getElementById('mortKin')?.value, contact_phone: document.getElementById('mortPhone')?.value, storage_location: document.getElementById('mortLoc')?.value, status: 'pending' });
+      showToast(tr('Case registered', 'تم تسجيل الحالة'));
+      renderMortuary(content);
+    } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
 
 }
 
@@ -6661,35 +6664,35 @@ async function renderMortuary(el) {
 let cmeTab = 'activities';
 async function renderCME(el) {
 
-    const events = await API.get('/api/cme/events').catch(() => []);
-    content.innerHTML = `
-    <h2>${tr('CME - Continuing Medical Education','التعليم الطبي المستمر')}</h2>
+  const events = await API.get('/api/cme/events').catch(() => []);
+  content.innerHTML = `
+    <h2>${tr('CME - Continuing Medical Education', 'التعليم الطبي المستمر')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0">${events.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Events','إجمالي الفعاليات')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0">${events.filter?.(e=>e.status==='upcoming')?.length||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Upcoming','قادمة')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0">${events.reduce?.((s,e)=>s+(parseInt(e.cme_hours)||0),0)||0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total CME Hours','إجمالي الساعات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0">${events.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Events', 'إجمالي الفعاليات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0">${events.filter?.(e => e.status === 'upcoming')?.length || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Upcoming', 'قادمة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0">${events.reduce?.((s, e) => s + (parseInt(e.cme_hours) || 0), 0) || 0}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total CME Hours', 'إجمالي الساعات')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Add CME Event','إضافة فعالية')}</h4>
-        <div class="form-group"><label>${tr('Title','العنوان')}</label><input class="form-input" id="cmeTitle"></div>
-        <div class="form-group"><label>${tr('Speaker','المتحدث')}</label><input class="form-input" id="cmeSpeaker"></div>
-        <div class="form-group"><label>${tr('Date','التاريخ')}</label><input type="date" class="form-input" id="cmeDate"></div>
-        <div class="form-group"><label>${tr('CME Hours','الساعات المعتمدة')}</label><input type="number" class="form-input" id="cmeHours" min="0" step="0.5" value="1"></div>
-        <div class="form-group"><label>${tr('Category','الفئة')}</label>
-        <select class="form-input" id="cmeCat"><option value="lecture">${tr('Lecture','محاضرة')}</option><option value="workshop">${tr('Workshop','ورشة عمل')}</option><option value="conference">${tr('Conference','مؤتمر')}</option><option value="online">${tr('Online','عن بُعد')}</option><option value="grand_rounds">${tr('Grand Rounds','حالة سريرية')}</option></select></div>
-        <div class="form-group"><label>${tr('Department','القسم')}</label><input class="form-input" id="cmeDept"></div>
-        <button class="btn btn-primary w-full" onclick="saveCMEEvent()">💾 ${tr('Save Event','حفظ الفعالية')}</button>
+        <h4 style="margin:0 0 12px">${tr('Add CME Event', 'إضافة فعالية')}</h4>
+        <div class="form-group"><label>${tr('Title', 'العنوان')}</label><input class="form-input" id="cmeTitle"></div>
+        <div class="form-group"><label>${tr('Speaker', 'المتحدث')}</label><input class="form-input" id="cmeSpeaker"></div>
+        <div class="form-group"><label>${tr('Date', 'التاريخ')}</label><input type="date" class="form-input" id="cmeDate"></div>
+        <div class="form-group"><label>${tr('CME Hours', 'الساعات المعتمدة')}</label><input type="number" class="form-input" id="cmeHours" min="0" step="0.5" value="1"></div>
+        <div class="form-group"><label>${tr('Category', 'الفئة')}</label>
+        <select class="form-input" id="cmeCat"><option value="lecture">${tr('Lecture', 'محاضرة')}</option><option value="workshop">${tr('Workshop', 'ورشة عمل')}</option><option value="conference">${tr('Conference', 'مؤتمر')}</option><option value="online">${tr('Online', 'عن بُعد')}</option><option value="grand_rounds">${tr('Grand Rounds', 'حالة سريرية')}</option></select></div>
+        <div class="form-group"><label>${tr('Department', 'القسم')}</label><input class="form-input" id="cmeDept"></div>
+        <button class="btn btn-primary w-full" onclick="saveCMEEvent()">💾 ${tr('Save Event', 'حفظ الفعالية')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Events','الفعاليات')}</h4>
-        <div id="cmeList">${events.map(e => '<div style="padding:12px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid #1565c0"><strong>' + (e.title||'') + '</strong><br><span style="font-size:12px;color:#666">👤 ' + (e.speaker||'') + ' | 📅 ' + (e.event_date||'').substring(0,10) + ' | ⏱️ ' + (e.cme_hours||0) + ' hrs | ' + (e.category||'') + '</span></div>').join('') || '<p style="color:#999;text-align:center">' + tr('No events','لا توجد فعاليات') + '</p>'}</div>
+        <h4 style="margin:0 0 12px">${tr('Events', 'الفعاليات')}</h4>
+        <div id="cmeList">${events.map(e => '<div style="padding:12px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid #1565c0"><strong>' + (e.title || '') + '</strong><br><span style="font-size:12px;color:#666">👤 ' + (e.speaker || '') + ' | 📅 ' + (e.event_date || '').substring(0, 10) + ' | ⏱️ ' + (e.cme_hours || 0) + ' hrs | ' + (e.category || '') + '</span></div>').join('') || '<p style="color:#999;text-align:center">' + tr('No events', 'لا توجد فعاليات') + '</p>'}</div>
       </div>
     </div>`;
-    
-    window.saveCMEEvent = async () => {
-      try { await API.post('/api/cme/events', { title: document.getElementById('cmeTitle')?.value, speaker: document.getElementById('cmeSpeaker')?.value, event_date: document.getElementById('cmeDate')?.value, cme_hours: document.getElementById('cmeHours')?.value, category: document.getElementById('cmeCat')?.value, department: document.getElementById('cmeDept')?.value, status: 'upcoming' }); showToast(tr('Event saved','تم حفظ الفعالية')); renderCME(content); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
+
+  window.saveCMEEvent = async () => {
+    try { await API.post('/api/cme/events', { title: document.getElementById('cmeTitle')?.value, speaker: document.getElementById('cmeSpeaker')?.value, event_date: document.getElementById('cmeDate')?.value, cme_hours: document.getElementById('cmeHours')?.value, category: document.getElementById('cmeCat')?.value, department: document.getElementById('cmeDept')?.value, status: 'upcoming' }); showToast(tr('Event saved', 'تم حفظ الفعالية')); renderCME(content); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
 
 }
 window.addCME = async function () {
