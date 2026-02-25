@@ -1,6 +1,6 @@
 ﻿// ===== Nama Medical ERP - Main App =====
 let currentUser = null;
-let isArabic = true;
+let isArabic = localStorage.getItem('namaLang') === 'ar' ? true : (localStorage.getItem('namaLang') === 'en' ? false : false);
 let currentPage = 0;
 
 const tr = (en, ar) => isArabic ? ar : en;
@@ -74,7 +74,22 @@ const NAV_ITEMS = [
   buildNav();
   setupEvents();
   navigateTo(0);
-})();
+
+    // Language: set direction + show toggle button + mobile prompt
+    setTimeout(() => {
+      document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+      document.documentElement.lang = isArabic ? 'ar' : 'en';
+      if (typeof showMobileLangPrompt === 'function') showMobileLangPrompt();
+      const hdr = document.querySelector('.header-right') || document.querySelector('.header-actions') || document.querySelector('.header');
+      if (hdr && !document.getElementById('langToggleBtn')) {
+        const b = document.createElement('button');
+        b.id = 'langToggleBtn';
+        b.textContent = isArabic ? '🌐 EN' : '🌐 عربي';
+        b.style.cssText = 'background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;margin:0 8px;transition:all 0.3s';
+        b.onclick = () => { if (typeof toggleLanguage === 'function') toggleLanguage(); };
+        hdr.insertBefore(b, hdr.firstChild);
+      }
+    }, 400);})();
 
 function buildNav() {
   const nav = document.getElementById('navList');
@@ -1153,6 +1168,54 @@ window.exportInvoices = async () => {
 window.exportAppointments = async () => {
   try { const data = await API.get('/api/appointments'); exportToCSV(data, 'appointments'); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
 };
+
+
+
+// ===== LANGUAGE TOGGLE =====
+window.toggleLanguage = () => {
+  isArabic = !isArabic;
+  localStorage.setItem('namaLang', isArabic ? 'ar' : 'en');
+  document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+  document.documentElement.lang = isArabic ? 'ar' : 'en';
+  // Re-render current page
+  if (typeof navigateTo === 'function') navigateTo(currentPage);
+  // Update the lang button text
+  const langBtn = document.getElementById('langToggleBtn');
+  if (langBtn) langBtn.textContent = isArabic ? '🌐 EN' : '🌐 عربي';
+};
+
+// ===== MOBILE LANGUAGE PROMPT =====
+window.showMobileLangPrompt = () => {
+  // Only show on mobile if no lang preference saved
+  const isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (!isMobile || localStorage.getItem('namaLang')) return;
+  
+  const prompt = document.createElement('div');
+  prompt.id = 'mobileLangPrompt';
+  prompt.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;padding:16px 20px;z-index:99999;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,0.3);animation:slideUp 0.4s ease';
+  prompt.innerHTML = '<span style="font-size:15px;font-weight:500">Choose Language / اختر اللغة</span>' +
+    '<button onclick="setLang(\'en\')" style="padding:8px 20px;border:2px solid #fff;border-radius:8px;background:transparent;color:#fff;font-size:14px;font-weight:bold;cursor:pointer">🇬🇧 English</button>' +
+    '<button onclick="setLang(\'ar\')" style="padding:8px 20px;border:2px solid #fff;border-radius:8px;background:rgba(255,255,255,0.2);color:#fff;font-size:14px;font-weight:bold;cursor:pointer">🇸🇦 عربي</button>';
+  document.body.appendChild(prompt);
+  
+  // Add slide-up animation
+  const style = document.createElement('style');
+  style.textContent = '@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}';
+  document.head.appendChild(style);
+};
+
+window.setLang = (lang) => {
+  localStorage.setItem('namaLang', lang);
+  isArabic = lang === 'ar';
+  document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+  document.documentElement.lang = isArabic ? 'ar' : 'en';
+  const prompt = document.getElementById('mobileLangPrompt');
+  if (prompt) prompt.remove();
+  if (typeof navigateTo === 'function') navigateTo(currentPage);
+  const langBtn = document.getElementById('langToggleBtn');
+  if (langBtn) langBtn.textContent = isArabic ? '🌐 EN' : '🌐 عربي';
+};
+
 
 async function renderDashboard(el) {
   const [s, enhanced] = await Promise.all([
