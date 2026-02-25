@@ -1478,7 +1478,8 @@ async function renderDoctor(el) {
           <button class="btn btn-primary w-full" onclick="saveMedRecord()" style="height:44px">💾 ${tr('Save Record', 'حفظ السجل')}</button>
         </div>
         <div class="card mb-16">
-          <div class="card-title">🏥 ${tr('Procedures / Services Performed', 'الإجراءات / الخدمات المنفذة')} ${drSpecialty ? `<span class="badge badge-info" style="font-size:11px;margin-right:8px">${drSpecialty}</span>` : ''}</div>
+          <div class="card-title">🏥 ${tr('Procedures / Services Performed', 'الإجراءات / الخدمات المنفذة')} ${drSpecialty ? `<span class="badge badge-info" style="font-size:11px;
+margin-right:8px">${drSpecialty}</span>` : ''}</div>
           <div class="form-group mb-12"><label>${tr('Search Procedures', 'ابحث عن إجراء')}</label>
             <input class="form-input" id="drSvcSearch" placeholder="${tr('Type to search...', 'اكتب للبحث...')}" autocomplete="off" oninput="filterDrServices()">
             <div id="drSvcDropdown" style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;display:none;margin-top:4px;background:var(--card)"></div>
@@ -2256,6 +2257,9 @@ window.getLabNormalRange = (testName, gender) => {
   if (g === 'ذكر' || g === 'Male' || g === 'male' || g === 'M') return '👨 ' + (entry.m || '');
   if (g === 'أنثى' || g === 'Female' || g === 'female' || g === 'F') return '👩 ' + (entry.f || '');
   return '👨 ' + entry.m + '\n👩 ' + entry.f;
+
+  // Auto-load diagnosis templates on page render
+  setTimeout(() => { if (document.getElementById("drDiagTemplate")) loadDiagTemplates(); }, 500);
 };
 
 async function renderLab(el) {

@@ -2829,10 +2829,7 @@ app.get('/api/print/lab-report/:id', requireAuth, async (req, res) => {
 });
 
 // SPA fallback
-app.get('*', (req, res) => {
-    if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// [MOVED] catch-all to end of routes
 
 // ===== INIT & START =====
 async function startServer() {
@@ -3633,6 +3630,12 @@ app.get('/api/patients/:id/summary', requireAuth, async (req, res) => {
         const consents = (await pool.query('SELECT pc.*, cft.title_ar FROM patient_consents pc LEFT JOIN consent_form_templates cft ON pc.template_id=cft.id WHERE pc.patient_id=$1 ORDER BY pc.created_at DESC LIMIT 5', [pid])).rows;
         res.json({ patient, records, labs, rads, prescriptions: rxs, invoices, visits, consents });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== SPA CATCH-ALL (must be LAST route) =====
+app.get('*', (req, res) => {
+    if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 startServer();
