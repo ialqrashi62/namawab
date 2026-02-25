@@ -284,6 +284,8 @@ async function renderDashboard(el) {
     API.get('/api/dashboard/stats'),
     API.get('/api/dashboard/enhanced').catch(() => ({}))
   ]);
+  // Schedule chart rendering after HTML is set
+  setTimeout(() => renderDashboardCharts(el, enhanced), 50);
   let topDrHtml = '';
   if (enhanced.topDoctors && enhanced.topDoctors.length) {
     topDrHtml = enhanced.topDoctors.map(d => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--hover);border-radius:8px;margin:4px 0">
@@ -353,7 +355,95 @@ async function renderDashboard(el) {
     </div>`;
 }
 
-// ===== RECEPTION =====
+// === DASHBOARD CHARTS (Chart.js) ===
+function renderDashboardCharts(el, enhanced) {
+  try {
+    const revData = enhanced.revenueByType || [];
+    if (revData.length === 0 || typeof Chart === 'undefined') return;
+    const chartRow = document.createElement('div');
+    chartRow.className = 'grid-equal';
+    chartRow.style.marginTop = '16px';
+    const leftCard = document.createElement('div');
+    leftCard.className = 'card';
+    leftCard.innerHTML = '<div class="card-title">\u{1F4CA} ' + tr('Revenue by Service', '\u0627\u0644\u0625\u064a\u0631\u0627\u062f\u0627\u062a \u062d\u0633\u0628 \u0627\u0644\u062e\u062f\u0645\u0629') + '</div><div style="max-height:280px;display:flex;justify-content:center"><canvas id="dashDoughnut"></canvas></div>';
+    const rightCard = document.createElement('div');
+    rightCard.className = 'card';
+    rightCard.innerHTML = '<div class="card-title">\u{1F4C8} ' + tr('Revenue Breakdown', '\u062a\u0648\u0632\u064a\u0639 \u0627\u0644\u0625\u064a\u0631\u0627\u062f\u0627\u062a') + '</div><div style="max-height:280px"><canvas id="dashBar"></canvas></div>';
+    chartRow.appendChild(leftCard);
+    chartRow.appendChild(rightCard);
+    el.appendChild(chartRow);
+    const labels = revData.map(r => r.service_type);
+    const values = revData.map(r => parseFloat(r.total) || 0);
+    const clrs = ['#3b82f6', '#ef4444', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'];
+    new Chart(document.getElementById('dashDoughnut'), { type: 'doughnut', data: { labels, datasets: [{ data: values, backgroundColor: clrs.slice(0, labels.length), borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Tajawal', size: 11 }, padding: 10 } } } } });
+    new Chart(document.getElementById('dashBar'), { type: 'bar', data: { labels, datasets: [{ label: tr('Revenue', 'الإيراد'), data: values, backgroundColor: clrs.slice(0, labels.length), borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
+  } catch (e) { console.log('Chart error:', e); }
+}
+
+// === CRITICAL LAB VALUE DEFINITIONS ===
+const CRITICAL_LAB_VALUES = {
+  'Hemoglobin': { low: 7.0, high: 20.0, unit: 'g/dL' },
+  'Platelets': { low: 50, high: 1000, unit: 'x10³/µL' },
+  'WBC': { low: 2.0, high: 30.0, unit: 'x10³/µL' },
+  'Potassium': { low: 2.5, high: 6.5, unit: 'mEq/L' },
+  'Sodium': { low: 120, high: 160, unit: 'mEq/L' },
+  'Glucose': { low: 40, high: 500, unit: 'mg/dL' },
+  'Creatinine': { low: 0, high: 10.0, unit: 'mg/dL' },
+  'Troponin': { low: 0, high: 0.04, unit: 'ng/mL' },
+  'INR': { low: 0, high: 5.0, unit: '' },
+  'Lactate': { low: 0, high: 4.0, unit: 'mmol/L' }
+};
+window.checkCriticalLabValue = (testName, resultText) => {
+  const numMatch = resultText.match(/[\d.]+/);
+  if (!numMatch) return null;
+  const val = parseFloat(numMatch[0]);
+  for (const [key, range] of Object.entries(CRITICAL_LAB_VALUES)) {
+    if (testName.toLowerCase().includes(key.toLowerCase())) {
+      if (val < range.low) return { test: key, value: val, status: 'CRITICALLY LOW', range };
+      if (val > range.high) return { test: key, value: val, status: 'CRITICALLY HIGH', range };
+    }
+  }
+  return null;
+};
+
+// === DRUG ALLERGY CHECK ===
+window.checkDrugAllergy = async (patientId, drugName) => {
+  try {
+    const patients = await API.get('/api/patients');
+    const patient = patients.find(p => p.id == patientId);
+    if (!patient || !patient.allergies) return false;
+    const allergies = patient.allergies.toLowerCase().split(/[,،;]+/).map(a => a.trim());
+    const drug = drugName.toLowerCase();
+    for (const allergy of allergies) {
+      if (allergy && (drug.includes(allergy) || allergy.includes(drug))) {
+        return allergy;
+      }
+    }
+    return false;
+  } catch { return false; }
+};
+
+// === PATIENT STATEMENT (Printable Account) ===
+window.printPatientStatement = async (patientId) => {
+  try {
+    const account = await API.get('/api/patients/' + patientId + '/account');
+    const p = account.patient;
+    const invoices = account.invoices || [];
+    let rows = invoices.map(inv =>
+      '<tr><td>' + (inv.created_at ? new Date(inv.created_at).toLocaleDateString('ar-SA') : '-') +
+      '</td><td>' + (inv.description || inv.service_type || '-') +
+      '</td><td>' + (inv.total || 0) + ' SAR</td><td>' +
+      (inv.paid ? '\u2705 ' + tr('Paid', 'مدفوع') : '\u26A0\uFE0F ' + tr('Unpaid', 'غير مدفوع')) + '</td></tr>'
+    ).join('');
+    const content = '<div style="text-align:center;margin-bottom:20px"><h2>\u{1F3E5} ' + tr('Nama Medical', 'نما الطبي') + '</h2><h3>' + tr('Patient Financial Statement', 'كشف حساب المريض') + '</h3></div>' +
+      '<table style="width:100%;margin-bottom:15px"><tr><td><strong>' + tr('Name', 'الاسم') + ':</strong> ' + (p.name_ar || p.name_en) + '</td><td><strong>MRN:</strong> ' + (p.mrn || p.file_number) + '</td></tr>' +
+      '<tr><td><strong>' + tr('ID', 'الهوية') + ':</strong> ' + (p.national_id || '-') + '</td><td><strong>' + tr('Phone', 'الجوال') + ':</strong> ' + (p.phone || '-') + '</td></tr></table>' +
+      '<table border="1" cellpadding="6" cellspacing="0" style="width:100%;border-collapse:collapse"><thead><tr style="background:#f0f0f0"><th>' + tr('Date', 'التاريخ') + '</th><th>' + tr('Description', 'الوصف') + '</th><th>' + tr('Amount', 'المبلغ') + '</th><th>' + tr('Status', 'الحالة') + '</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+      '<div style="margin-top:20px;padding:10px;background:#f9f9f9;border-radius:8px"><strong>' + tr('Total Billed', 'إجمالي المبالغ') + ':</strong> ' + (account.totalBilled || 0) + ' SAR | <strong>' + tr('Total Paid', 'المدفوع') + ':</strong> ' + (account.totalPaid || 0) + ' SAR | <strong style="color:' + (account.balance > 0 ? 'red' : 'green') + '">' + tr('Balance', 'الرصيد') + ':</strong> ' + (account.balance || 0) + ' SAR</div>';
+    printDocument(tr('Patient Statement', 'كشف حساب المريض'), content);
+  } catch (e) { showToast(tr('Error loading statement', 'خطأ في تحميل الكشف'), 'error'); }
+};
+
 async function renderReception(el) {
   const [patients, doctors] = await Promise.all([API.get('/api/patients'), API.get('/api/employees?role=Doctor')]);
   const depts = ['العيادة العامة', 'الباطنية', 'الأطفال', 'العظام', 'الجلدية', 'الأنف والأذن', 'العيون', 'الأسنان', 'الطوارئ'];
@@ -1458,9 +1548,16 @@ window.sendToRad = async () => {
 window.sendRx = async () => {
   const pid = document.getElementById('drPatient').value;
   if (!pid) { showToast(tr('Select patient first', 'اختر المريض أولاً'), 'error'); return; }
+  const drugName = document.getElementById('drRxDrug').value;
+  // Check drug allergy before prescribing
+  const allergyMatch = await checkDrugAllergy(pid, drugName);
+  if (allergyMatch) {
+    const proceed = confirm('⚠️🚨 ' + tr('ALLERGY ALERT! Patient is allergic to: ', 'تنبيه حساسية! المريض لديه حساسية من: ') + allergyMatch.toUpperCase() + '\n\n' + tr('Drug: ', 'الدواء: ') + drugName + '\n\n' + tr('Do you want to proceed anyway?', 'هل تريد المتابعة رغم ذلك؟'));
+    if (!proceed) return;
+  }
   try {
     const qty = document.getElementById('drRxQty')?.value || '1';
-    await API.post('/api/prescriptions', { patient_id: pid, medication_name: document.getElementById('drRxDrug').value, dosage: document.getElementById('drRxDose').value, quantity_per_day: qty, frequency: document.getElementById('drRxFreq').value, duration: document.getElementById('drRxDur').value });
+    await API.post('/api/prescriptions', { patient_id: pid, medication_name: drugName, dosage: document.getElementById('drRxDose').value, quantity_per_day: qty, frequency: document.getElementById('drRxFreq').value, duration: document.getElementById('drRxDur').value });
     showToast(tr('Prescription sent to Pharmacy!', 'تم إرسال الوصفة للصيدلية!'));
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
@@ -1983,7 +2080,18 @@ window.updateLabStatus = async (id, status) => {
 window.saveLabReport = async (id) => {
   const rpt = document.getElementById('labRpt' + id).value.trim();
   if (!rpt) { showToast(tr('Write the report first', 'اكتب التقرير أولاً'), 'error'); return; }
-  try { await API.put(`/api/lab/orders/${id}`, { results: rpt }); showToast(tr('Report saved!', 'تم حفظ التقرير!')); await navigateTo(4); }
+  try {
+    // Get test name for critical value check
+    const orderRow = document.getElementById('labRpt' + id)?.closest('tr') || document.getElementById('labRpt' + id)?.closest('.card');
+    const testName = orderRow?.querySelector('td')?.textContent || orderRow?.querySelector('.badge')?.textContent || '';
+    const critical = checkCriticalLabValue(testName, rpt);
+    if (critical) {
+      alert('🚨🔴 ' + tr('CRITICAL VALUE ALERT!', 'تنبيه قيمة حرجة!') + '\n\n' + critical.test + ': ' + critical.value + ' ' + (critical.range.unit || '') + '\n' + tr('Status: ', 'الحالة: ') + critical.status + '\n' + tr('Normal range: ', 'المعدل الطبيعي: ') + critical.range.low + ' - ' + critical.range.high + ' ' + (critical.range.unit || '') + '\n\n' + tr('Please notify the attending physician immediately!', 'يرجى إبلاغ الطبيب المعالج فوراً!'));
+    }
+    await API.put(`/api/lab/orders/${id}`, { results: rpt });
+    showToast(critical ? tr('⚠️ Report saved - CRITICAL VALUE!', '⚠️ تم حفظ التقرير - قيمة حرجة!') : tr('Report saved!', 'تم حفظ التقرير!'), critical ? 'error' : 'success');
+    await navigateTo(4);
+  }
   catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 window.sendDirectLab = async () => {
@@ -2999,7 +3107,11 @@ window.loadPatientAccount = async () => {
         ${makeTable([tr('Type', 'النوع'), tr('Description', 'الوصف'), tr('Amount', 'المبلغ'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', 'إجراءات')],
       data.invoices.map(i => ({ cells: [i.service_type || '', i.description || '', `${i.total} SAR`, i.paid ? badge(tr('Paid', 'مدفوع'), 'success') : badge(tr('Unpaid', 'غير مدفوع'), 'danger'), i.created_at?.split('T')[0] || ''], id: i.id, paid: i.paid })),
       (row) => !row.paid ? `<button class="btn btn-sm btn-success" onclick="payInvoicePA(${row.id})">💵 ${tr('Pay', 'تسديد')}</button>` : `<span class="badge badge-success">✅</span>`
-    )}</div>`;
+    )}</div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-primary" onclick="printPatientStatement(${pid})">🖨️ ${tr('Print Statement', 'طباعة كشف الحساب')}</button>
+          <button class="btn" onclick="exportTableCSV('patient_account')">📥 ${tr('Export CSV', 'تصدير CSV')}</button>
+        </div>`;
   } catch (e) { showToast(tr('Error loading account', 'خطأ في تحميل الحساب'), 'error'); }
 };
 window.payInvoicePA = async (id) => {

@@ -627,6 +627,14 @@ app.get('/api/pharmacy/drugs', requireAuth, async (req, res) => {
     catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Pharmacy low stock alerts
+app.get('/api/pharmacy/low-stock', requireAuth, async (req, res) => {
+    try {
+        const lowStock = (await pool.query('SELECT * FROM pharmacy_drug_catalog WHERE is_active=1 AND stock_qty <= COALESCE(min_stock_level, 10) ORDER BY stock_qty ASC')).rows;
+        res.json(lowStock);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 app.post('/api/pharmacy/drugs', requireAuth, async (req, res) => {
     try {
         const { drug_name, active_ingredient, category, unit, selling_price, cost_price, stock_qty } = req.body;
