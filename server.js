@@ -27,7 +27,9 @@ const upload = multer({
     }
 });
 
+const compression = require('compression');
 const app = express();
+app.use(compression());
 const PORT = process.env.PORT || 3000;
 
 // Security Middleware
@@ -4423,6 +4425,118 @@ app.get('/api/doctor/my-queue', requireAuth, async (req, res) => {
             ['%' + doctorName + '%']
         )).rows;
         res.json(rows);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+
+// ===== PASSWORD CHANGE =====
+app.put('/api/auth/change-password', requireAuth, async (req, res) => {
+    try {
+        const { current_password, new_password } = req.body;
+        if (!current_password || !new_password) return res.status(400).json({ error: 'Missing fields' });
+        if (new_password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+        
+        const user = (await pool.query('SELECT * FROM users WHERE id=$1', [req.session.user.id])).rows[0];
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        
+        // Verify current password
+        const bcrypt = require('bcryptjs');
+        const valid = await bcrypt.compare(current_password, user.password);
+        if (!valid) return res.status(401).json({ error: 'Current password is incorrect', error_ar: 'كلمة المرور الحالية غير صحيحة' });
+        
+        // Hash and update
+        const hashed = await bcrypt.hash(new_password, 10);
+        await pool.query('UPDATE users SET password=$1 WHERE id=$2', [hashed, req.session.user.id]);
+        
+        logAudit(req.session.user.id, req.session.user.display_name, 'CHANGE_PASSWORD', 'Auth', 'Password changed', req.ip);
+        res.json({ success: true });
+    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+});
+
+
+// ===== DASHBOARD CHARTS DATA =====
+app.get('/api/dashboard/charts', requireAuth, async (req, res) => {
+    try {
+        // Revenue trend (last 30 days)
+        const revenueTrend = (await pool.query(`
+            SELECT DATE(created_at) as day, COALESCE(SUM(total),0) as revenue, COUNT(*) as count
+            FROM invoices WHERE created_at >= CURRENT_DATE - INTERVAL '30 days' AND total > 0
+            GROUP BY DATE(created_at) ORDER BY day
+        `)).rows;
+        
+        // Patients by department (this month)
+        const byDepartment = (await pool.query(`
+            SELECT COALESCE(department,'General') as dept, COUNT(*) as count
+            FROM appointments WHERE date >= DATE_TRUNC('month', CURRENT_DATE)
+            GROUP BY department ORDER BY count DESC LIMIT 10
+        `)).rows;
+        
+        // Top doctors by patient count (this month)
+        const topDoctors = (await pool.query(`
+            SELECT doctor, COUNT(*) as patients, COALESCE(SUM(i.total),0) as revenue
+            FROM appointments a LEFT JOIN invoices i ON i.description ILIKE '%' || a.doctor || '%'
+            AND i.created_at >= DATE_TRUNC('month', CURRENT_DATE)
+            WHERE a.date >= DATE_TRUNC('month', CURRENT_DATE)
+            GROUP BY a.doctor ORDER BY patients DESC LIMIT 8
+        `)).rows;
+        
+        // Patient flow by hour (today)
+        const hourlyFlow = (await pool.query(`
+            SELECT EXTRACT(HOUR FROM created_at) as hour, COUNT(*) as count
+            FROM appointments WHERE date = CURRENT_DATE
+            GROUP BY hour ORDER BY hour
+        `)).rows;
+        
+        // Payment methods breakdown (this month)
+        const paymentMethods = (await pool.query(`
+            SELECT COALESCE(payment_method,'Cash') as method, COUNT(*) as count, COALESCE(SUM(total),0) as total
+            FROM invoices WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE) AND total > 0
+            GROUP BY payment_method
+        `)).rows;
+        
+        // Weekly comparison
+        const thisWeek = (await pool.query("SELECT COUNT(*) as patients, COALESCE(SUM(total),0) as revenue FROM invoices WHERE created_at >= DATE_TRUNC('week', CURRENT_DATE) AND total > 0")).rows[0];
+        const lastWeek = (await pool.query("SELECT COUNT(*) as patients, COALESCE(SUM(total),0) as revenue FROM invoices WHERE created_at >= DATE_TRUNC('week', CURRENT_DATE) - INTERVAL '7 days' AND created_at < DATE_TRUNC('week', CURRENT_DATE) AND total > 0")).rows[0];
+        
+        res.json({ revenueTrend, byDepartment, topDoctors, hourlyFlow, paymentMethods, thisWeek, lastWeek });
+    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+});
+
+
+// ===== DATABASE BACKUP (Admin only) =====
+app.post('/api/admin/backup', requireAuth, async (req, res) => {
+    try {
+        if (req.session.user?.role !== 'Admin') return res.status(403).json({ error: 'Admin only' });
+        
+        const { execSync } = require('child_process');
+        const backupDir = require('path').join(__dirname, 'backups');
+        if (!require('fs').existsSync(backupDir)) require('fs').mkdirSync(backupDir, { recursive: true });
+        
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+        const filename = 'nama_backup_' + timestamp + '.sql';
+        const filepath = require('path').join(backupDir, filename);
+        
+        const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/nama_medical_web';
+        execSync('pg_dump "' + dbUrl + '" > "' + filepath + '"', { timeout: 60000 });
+        
+        logAudit(req.session.user.id, req.session.user.display_name, 'DATABASE_BACKUP', 'Admin', filename, req.ip);
+        
+        res.download(filepath, filename, (err) => {
+            if (err) res.status(500).json({ error: 'Download failed' });
+        });
+    } catch(e) { console.error(e); res.status(500).json({ error: 'Backup failed: ' + e.message }); }
+});
+
+app.get('/api/admin/backups', requireAuth, async (req, res) => {
+    try {
+        if (req.session.user?.role !== 'Admin') return res.status(403).json({ error: 'Admin only' });
+        const backupDir = require('path').join(__dirname, 'backups');
+        if (!require('fs').existsSync(backupDir)) return res.json([]);
+        const files = require('fs').readdirSync(backupDir).filter(f => f.endsWith('.sql')).map(f => {
+            const stat = require('fs').statSync(require('path').join(backupDir, f));
+            return { name: f, size: (stat.size / 1024 / 1024).toFixed(2) + ' MB', date: stat.mtime };
+        }).sort((a, b) => new Date(b.date) - new Date(a.date));
+        res.json(files);
     } catch(e) { res.status(500).json({ error: 'Server error' }); }
 });
 

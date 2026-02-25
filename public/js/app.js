@@ -934,6 +934,226 @@ window.loadMyQueue = async () => {
   } catch(e) { showToast(tr('Error','خطأ'), 'error'); }
 };
 
+
+
+// ===== CSV EXPORT UTILITY =====
+window.exportToCSV = (data, filename) => {
+  if (!data || data.length === 0) { showToast(tr('No data to export','لا توجد بيانات للتصدير'), 'info'); return; }
+  const headers = Object.keys(data[0]);
+  const csvRows = [headers.join(',')];
+  data.forEach(row => {
+    csvRows.push(headers.map(h => {
+      let val = row[h] !== null && row[h] !== undefined ? String(row[h]) : '';
+      val = val.replace(/"/g, '""');
+      if (val.includes(',') || val.includes('"') || val.includes('\n')) val = '"' + val + '"';
+      return val;
+    }).join(','));
+  });
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = (filename || 'export') + '_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(tr('Exported successfully!','تم التصدير بنجاح!') + ' 📥');
+};
+
+// ===== RECEIPT PRINT =====
+window.printReceipt = (invoice) => {
+  if (!invoice) return;
+  let h = '<div style="font-family:Arial;width:300px;margin:0 auto;padding:20px;direction:rtl;text-align:right">';
+  h += '<div style="text-align:center;border-bottom:2px dashed #333;padding-bottom:12px;margin-bottom:12px">';
+  h += '<h3 style="margin:0">نما الطبي</h3><p style="margin:2px 0;font-size:12px">Nama Medical</p>';
+  h += '<p style="margin:2px 0;font-size:11px;color:#666">المملكة العربية السعودية</p>';
+  h += '</div>';
+  h += '<p style="margin:4px 0;font-size:13px"><strong>' + tr('Receipt','إيصال') + '</strong></p>';
+  h += '<p style="margin:4px 0;font-size:12px">' + tr('Invoice #:','رقم الفاتورة:') + ' ' + (invoice.invoice_number || invoice.id || '') + '</p>';
+  h += '<p style="margin:4px 0;font-size:12px">' + tr('Patient:','المريض:') + ' ' + (invoice.patient_name || '') + '</p>';
+  h += '<p style="margin:4px 0;font-size:12px">' + tr('Date:','التاريخ:') + ' ' + new Date(invoice.created_at || Date.now()).toLocaleDateString('ar-SA') + '</p>';
+  h += '<div style="border-top:1px dashed #999;border-bottom:1px dashed #999;padding:8px 0;margin:8px 0">';
+  h += '<p style="margin:4px 0;font-size:12px">' + tr('Service:','الخدمة:') + ' ' + (invoice.description || invoice.service_type || '') + '</p>';
+  h += '<p style="margin:4px 0;font-size:14px;font-weight:bold">' + tr('Total:','المجموع:') + ' ' + parseFloat(invoice.total || 0).toFixed(2) + ' ' + tr('SAR','ريال') + '</p>';
+  if (invoice.vat_amount && parseFloat(invoice.vat_amount) > 0) {
+    h += '<p style="margin:4px 0;font-size:11px;color:#666">' + tr('Includes VAT:','شامل الضريبة:') + ' ' + parseFloat(invoice.vat_amount).toFixed(2) + '</p>';
+  }
+  if (invoice.amount_paid) {
+    h += '<p style="margin:4px 0;font-size:12px">' + tr('Paid:','المدفوع:') + ' ' + parseFloat(invoice.amount_paid).toFixed(2) + '</p>';
+  }
+  if (invoice.balance_due && parseFloat(invoice.balance_due) > 0) {
+    h += '<p style="margin:4px 0;font-size:12px;color:#cc0000">' + tr('Balance:','المتبقي:') + ' ' + parseFloat(invoice.balance_due).toFixed(2) + '</p>';
+  }
+  h += '<p style="margin:4px 0;font-size:12px">' + tr('Payment:','طريقة الدفع:') + ' ' + (invoice.payment_method || 'Cash') + '</p>';
+  h += '</div>';
+  h += '<p style="text-align:center;font-size:10px;color:#999;margin-top:12px">' + tr('Thank you for your visit','شكراً لزيارتكم') + '</p>';
+  h += '<p style="text-align:center;font-size:10px;color:#999">www.nama-medical.com</p>';
+  h += '</div>';
+  
+  const w = window.open('', '_blank', 'width=350,height=500');
+  w.document.write('<html><head><title>' + tr('Receipt','إيصال') + '</title></head><body style="margin:0">' + h + '<script>setTimeout(()=>{window.print();},300);<\/script></body></html>');
+  w.document.close();
+};
+
+// ===== PASSWORD CHANGE =====
+window.showChangePassword = () => {
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML = '<div style="background:var(--bg-card,#fff);border-radius:16px;padding:28px;width:400px;direction:rtl">' +
+    '<h3 style="margin:0 0 20px;color:var(--primary)">🔑 ' + tr('Change Password','تغيير كلمة المرور') + '</h3>' +
+    '<div class="form-group"><label>' + tr('Current Password','كلمة المرور الحالية') + '</label><input type="password" class="form-input" id="cpCurrent"></div>' +
+    '<div class="form-group"><label>' + tr('New Password','كلمة المرور الجديدة') + '</label><input type="password" class="form-input" id="cpNew" placeholder="' + tr('Min 6 characters','6 أحرف على الأقل') + '"></div>' +
+    '<div class="form-group"><label>' + tr('Confirm New','تأكيد الجديدة') + '</label><input type="password" class="form-input" id="cpConfirm"></div>' +
+    '<div style="display:flex;gap:12px;margin-top:16px">' +
+    '<button class="btn btn-primary" onclick="submitChangePassword()" style="flex:1">💾 ' + tr('Save','حفظ') + '</button>' +
+    '<button class="btn btn-secondary" onclick="this.closest(\'[style*=position]\').remove()" style="flex:1">' + tr('Cancel','إلغاء') + '</button>' +
+    '</div></div>';
+  document.body.appendChild(modal);
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+};
+
+window.submitChangePassword = async () => {
+  const current = document.getElementById('cpCurrent')?.value;
+  const newPw = document.getElementById('cpNew')?.value;
+  const confirm = document.getElementById('cpConfirm')?.value;
+  if (!current || !newPw) return showToast(tr('Fill all fields','أكمل جميع الحقول'), 'error');
+  if (newPw !== confirm) return showToast(tr('Passwords do not match','كلمات المرور غير متطابقة'), 'error');
+  if (newPw.length < 6) return showToast(tr('Min 6 characters','6 أحرف على الأقل'), 'error');
+  try {
+    await API.put('/api/auth/change-password', { current_password: current, new_password: newPw });
+    document.querySelector('[style*="position:fixed"][style*="z-index:9999"]')?.remove();
+    showToast(tr('Password changed!','تم تغيير كلمة المرور!') + ' ✅');
+  } catch(e) {
+    showToast(e.message || tr('Error','خطأ'), 'error');
+  }
+};
+
+// ===== DATABASE BACKUP =====
+window.startBackup = async () => {
+  showToast(tr('Creating backup...','جاري إنشاء النسخة الاحتياطية...') + ' ⏳');
+  try {
+    const response = await fetch('/api/admin/backup', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    if (!response.ok) throw new Error('Backup failed');
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'nama_backup_' + new Date().toISOString().slice(0,10) + '.sql';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    showToast(tr('Backup downloaded!','تم تحميل النسخة الاحتياطية!') + ' ✅');
+  } catch(e) { showToast(tr('Backup failed','فشل النسخ الاحتياطي'), 'error'); }
+};
+
+// ===== KEYBOARD SHORTCUTS =====
+document.addEventListener('keydown', (e) => {
+  // Don't trigger if user is typing in input/textarea
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+    if (e.key === 'Escape') e.target.blur();
+    return;
+  }
+  
+  if (e.ctrlKey || e.metaKey) {
+    switch(e.key.toLowerCase()) {
+      case 'k': // Search
+        e.preventDefault();
+        const searchInput = document.querySelector('.search-box input') || document.querySelector('input[type="search"]') || document.querySelector('#globalSearch');
+        if (searchInput) { searchInput.focus(); searchInput.select(); }
+        break;
+      case 'n': // New patient → go to reception
+        e.preventDefault();
+        if (typeof navigateTo === 'function') navigateTo(1);
+        break;
+      case 'p': // Print current page
+        e.preventDefault();
+        window.print();
+        break;
+    }
+  }
+  
+  // Escape → close any modal
+  if (e.key === 'Escape') {
+    const modal = document.querySelector('[style*="position:fixed"][style*="z-index:9999"]');
+    if (modal) modal.remove();
+  }
+  
+  // Number keys 1-9 for quick nav (Alt+number)
+  if (e.altKey && e.key >= '1' && e.key <= '9') {
+    e.preventDefault();
+    const pageIdx = parseInt(e.key) - 1;
+    if (typeof navigateTo === 'function') navigateTo(pageIdx);
+  }
+});
+
+
+
+window.toggleCalendarView = async () => {
+  const existing = document.getElementById('calendarGrid');
+  if (existing) { existing.remove(); document.getElementById('calToggleBtn').textContent = '📅 ' + tr('Calendar View','عرض التقويم'); return; }
+  document.getElementById('calToggleBtn').textContent = '📋 ' + tr('List View','عرض القائمة');
+  
+  try {
+    const appts = await API.get('/api/appointments');
+    const today = new Date();
+    const startOfWeek = new Date(today); startOfWeek.setDate(today.getDate() - today.getDay());
+    
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startOfWeek); d.setDate(startOfWeek.getDate() + i);
+      days.push(d);
+    }
+    const dayNames = isArabic ? ['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'] : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const hours = Array.from({length:12}, (_, i) => i + 8); // 8am to 7pm
+    
+    let html = '<div id="calendarGrid" style="margin-top:12px;overflow-x:auto">';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed">';
+    html += '<thead><tr><th style="width:60px;padding:8px;background:#f0f6ff;border:1px solid #e0e0e0">' + tr('Time','الوقت') + '</th>';
+    days.forEach((d, i) => {
+      const isToday = d.toDateString() === today.toDateString();
+      html += '<th style="padding:8px;background:' + (isToday ? '#1a73e8;color:#fff' : '#f0f6ff') + ';border:1px solid #e0e0e0;font-weight:' + (isToday ? 'bold' : 'normal') + '">' + dayNames[i] + '<br><span style="font-size:11px">' + d.toLocaleDateString('ar-SA',{day:'numeric',month:'short'}) + '</span></th>';
+    });
+    html += '</tr></thead><tbody>';
+    
+    hours.forEach(h => {
+      html += '<tr>';
+      html += '<td style="padding:4px 8px;background:#f9f9f9;border:1px solid #e0e0e0;font-size:12px;text-align:center">' + (h < 10 ? '0' : '') + h + ':00</td>';
+      days.forEach(d => {
+        const dateStr = d.toISOString().slice(0, 10);
+        const hourAppts = appts.filter(a => {
+          const aDate = (a.appt_date || a.date || '').substring(0, 10);
+          const aTime = a.appt_time || a.time || '';
+          const aHour = parseInt(aTime.split(':')[0]);
+          return aDate === dateStr && aHour === h;
+        });
+        html += '<td style="padding:2px;border:1px solid #e0e0e0;vertical-align:top;height:50px">';
+        hourAppts.forEach(a => {
+          const statusColor = a.status === 'Cancelled' ? '#ffcdd2' : a.status === 'Checked-In' ? '#c8e6c9' : a.status === 'No-Show' ? '#ffe0b2' : '#e3f2fd';
+          html += '<div style="background:' + statusColor + ';border-radius:4px;padding:2px 4px;margin:1px 0;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer" title="' + (a.patient_name||'') + ' - ' + (a.doctor_name||a.doctor||'') + '">' +
+            (a.patient_name||'').split(' ')[0] + ' <span style="color:#666">' + (a.doctor_name||a.doctor||'').split(' ').slice(-1)[0] + '</span></div>';
+        });
+        html += '</td>';
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    
+    const table = document.querySelector('.data-table') || document.querySelector('table');
+    if (table) table.insertAdjacentHTML('beforebegin', html);
+    else {
+      const content = document.getElementById('mainContent');
+      if (content) content.insertAdjacentHTML('beforeend', html);
+    }
+  } catch(e) { console.error('Calendar error:', e); }
+};
+
+
+window.exportPatients = async () => {
+  try { const data = await API.get('/api/patients'); exportToCSV(data, 'patients'); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
+};
+window.exportInvoices = async () => {
+  try { const data = await API.get('/api/invoices'); exportToCSV(data, 'invoices'); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
+};
+window.exportAppointments = async () => {
+  try { const data = await API.get('/api/appointments'); exportToCSV(data, 'appointments'); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
+};
+
 async function renderDashboard(el) {
   const [s, enhanced] = await Promise.all([
     API.get('/api/dashboard/stats'),
@@ -1008,7 +1228,8 @@ async function renderDashboard(el) {
         <button class="btn" onclick="navigateTo(8)">💰 ${tr('Finance', 'المالية')}</button>
       </div>
     </div>`;
-}
+
+    loadDashboardCharts();}
 
 // === DASHBOARD CHARTS (Chart.js) ===
 function renderDashboardCharts(el, enhanced) {
@@ -1090,7 +1311,7 @@ window.printPatientStatement = async (patientId) => {
       '</td><td>' + (inv.total || 0) + ' SAR</td><td>' +
       (inv.paid ? '\u2705 ' + tr('Paid', 'مدفوع') : '\u26A0\uFE0F ' + tr('Unpaid', 'غير مدفوع')) + '</td></tr>'
     ).join('');
-    const content = '<div style="text-align:center;margin-bottom:20px"><h2>\u{1F3E5} ' + tr('Nama Medical', 'نما الطبي') + '</h2><h3>' + tr('Patient Financial Statement', 'كشف حساب المريض') + '</h3></div>' +
+    const content = '<div style="text-align:center;margin-bottom:20px"><h2>\u{1F3E5} ' + tr('Nama Medical', 'نما الطبي') + '</h2><div style="margin-bottom:8px"><button class="btn btn-sm" onclick="exportPatients()" style="background:#e0f7fa;color:#00838f">📥 ${tr("Export CSV","تصدير CSV")}</button></div><h3>' + tr('Patient Financial Statement', 'كشف حساب المريض') + '</h3></div>' +
       '<table style="width:100%;margin-bottom:15px"><tr><td><strong>' + tr('Name', 'الاسم') + ':</strong> ' + (p.name_ar || p.name_en) + '</td><td><strong>MRN:</strong> ' + (p.mrn || p.file_number) + '</td></tr>' +
       '<tr><td><strong>' + tr('ID', 'الهوية') + ':</strong> ' + (p.national_id || '-') + '</td><td><strong>' + tr('Phone', 'الجوال') + ':</strong> ' + (p.phone || '-') + '</td></tr></table>' +
       '<table border="1" cellpadding="6" cellspacing="0" style="width:100%;border-collapse:collapse"><thead><tr style="background:#f0f0f0"><th>' + tr('Date', 'التاريخ') + '</th><th>' + tr('Description', 'الوصف') + '</th><th>' + tr('Amount', 'المبلغ') + '</th><th>' + tr('Status', 'الحالة') + '</th></tr></thead><tbody>' + rows + '</tbody></table>' +
@@ -3314,7 +3535,7 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:10px;direction:rtl;f
   <button onclick="window.close()" style="padding:10px 20px;font-size:14px;background:#dc3545;color:#fff;border:none;border-radius:8px;cursor:pointer;margin-right:8px">✕</button>
 </div>
 <div class="inv">
-  <div class="header"><h2>🏥 نما الطبي — فاتورة صيدلية</h2><div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><button class="btn btn-primary" onclick="callNextPatient()" style="padding:8px 20px;font-size:15px;animation:pulse 2s infinite">🔔 ${tr("Next Patient","المريض التالي")}</button><button class="btn btn-sm" onclick="loadMyQueue()" style="background:#e3f2fd;color:#1565c0">📋 ${tr("My Queue","طابوري")}</button></div><small>Nama Medical — Pharmacy Invoice</small></div>
+  <div class="header"><h2>🏥 نما الطبي — فاتورة صيدلية</h2><div style="margin-bottom:12px"><button class="btn btn-sm" onclick="toggleCalendarView()" id="calToggleBtn" style="background:#e3f2fd;color:#1565c0">📅 ${tr("Calendar View","عرض التقويم")}</button></div><div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><button class="btn btn-primary" onclick="callNextPatient()" style="padding:8px 20px;font-size:15px;animation:pulse 2s infinite">🔔 ${tr("Next Patient","المريض التالي")}</button><button class="btn btn-sm" onclick="loadMyQueue()" style="background:#e3f2fd;color:#1565c0">📋 ${tr("My Queue","طابوري")}</button></div><small>Nama Medical — Pharmacy Invoice</small></div>
   <div class="row"><span class="k">📄 رقم الفاتورة:</span><span>RX-${rxId}</span></div>
   <div class="row"><span class="k">👤 المريض:</span><span>${patientName}</span></div>
   <div class="row"><span class="k">📅 التاريخ:</span><span>${new Date().toLocaleDateString('ar-SA')} — ${new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span></div>
@@ -4016,6 +4237,76 @@ window.deleteMsg = async function (id) { if (confirm(tr('Delete?', 'حذف؟')))
 // ===== SETTINGS =====
 let settingsUsersList = [];
 let editingUserId = null;
+
+
+
+async function loadDashboardCharts() {
+  try {
+    if (typeof Chart === 'undefined') return;
+    const data = await API.get('/api/dashboard/charts');
+    
+    // Revenue trend line chart
+    const revCtx = document.getElementById('revenueChart');
+    if (revCtx && data.revenueTrend) {
+      new Chart(revCtx, {
+        type: 'line',
+        data: {
+          labels: data.revenueTrend.map(d => new Date(d.day).toLocaleDateString('ar-SA', {day:'numeric',month:'short'})),
+          datasets: [{
+            label: isArabic ? 'الإيرادات' : 'Revenue',
+            data: data.revenueTrend.map(d => parseFloat(d.revenue)),
+            borderColor: '#1a73e8',
+            backgroundColor: 'rgba(26,115,232,0.1)',
+            fill: true, tension: 0.4, pointRadius: 3
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+      });
+    }
+    
+    // Department pie chart
+    const deptCtx = document.getElementById('deptChart');
+    if (deptCtx && data.byDepartment && data.byDepartment.length > 0) {
+      const colors = ['#1a73e8','#34a853','#fbbc04','#ea4335','#ff6d01','#46bdc6','#7baaf7','#f07b72','#fcd04f','#71c287'];
+      new Chart(deptCtx, {
+        type: 'doughnut',
+        data: {
+          labels: data.byDepartment.map(d => d.dept),
+          datasets: [{ data: data.byDepartment.map(d => parseInt(d.count)), backgroundColor: colors.slice(0, data.byDepartment.length) }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right', labels: { font: { size: 11 } } } } }
+      });
+    }
+    
+    // Top doctors bar chart
+    const docCtx = document.getElementById('doctorChart');
+    if (docCtx && data.topDoctors && data.topDoctors.length > 0) {
+      new Chart(docCtx, {
+        type: 'bar',
+        data: {
+          labels: data.topDoctors.map(d => d.doctor?.split(' ').slice(0,2).join(' ') || ''),
+          datasets: [{ label: isArabic ? 'مرضى' : 'Patients', data: data.topDoctors.map(d => parseInt(d.patients)), backgroundColor: '#34a853', borderRadius: 6 }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+      });
+    }
+    
+    // Payment methods pie
+    const payCtx = document.getElementById('paymentChart');
+    if (payCtx && data.paymentMethods && data.paymentMethods.length > 0) {
+      new Chart(payCtx, {
+        type: 'pie',
+        data: {
+          labels: data.paymentMethods.map(d => d.method),
+          datasets: [{ data: data.paymentMethods.map(d => parseFloat(d.total)), backgroundColor: ['#34a853','#1a73e8','#fbbc04','#ea4335','#ff6d01'] }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+      });
+    }
+    
+  } catch(e) { console.error('Charts load error:', e); }
+}
+
 
 async function renderSettings(el) {
   const [settings, users] = await Promise.all([API.get('/api/settings'), API.get('/api/settings/users')]);
@@ -4921,7 +5212,7 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:30px;color:#222;dire
 </div>
 <div class="header">
   <h1>${hospitalAr}</h1>
-  <h2>${hospitalEn}</h2>
+  <h2>${hospitalEn}</h2><div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap"><button class="btn" onclick="showChangePassword()" style="background:#fff3e0;border:1px solid #ff9800;color:#e65100">🔑 ${tr("Change Password","تغيير كلمة المرور")}</button><button class="btn" onclick="startBackup()" style="background:#e8f5e9;border:1px solid #4caf50;color:#2e7d32">💾 ${tr("Database Backup","نسخة احتياطية")}</button></div>
   <div class="hospital-info">
     ${phone ? '📞 ' + phone + ' | ' : ''}${address ? '📍 ' + address + ' | ' : ''}${taxNum ? 'الرقم الضريبي: ' + taxNum : ''}
   </div>
