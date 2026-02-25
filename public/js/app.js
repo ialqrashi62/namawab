@@ -269,6 +269,179 @@ window.exportTableCSV = function (filename) {
   exportCSV(filename, headers, rows);
 };
 
+
+// ===== CONSENT FORMS =====
+async function renderConsentForms(el) {
+  const patients = await API.get('/api/patients');
+  const templates = await API.get('/api/consent/templates');
+  const recent = await API.get('/api/consent/recent');
+
+  // Group templates by category
+  const cats = {};
+  templates.forEach(t => { if (!cats[t.category]) cats[t.category] = []; cats[t.category].push(t); });
+
+  let catOptions = Object.keys(cats).map(c => '<option value="' + c + '">' + c + '</option>').join('');
+  let tmplOptions = templates.map(t => '<option value="' + t.id + '">' + t.title_ar + '</option>').join('');
+  let patientOptions = patients.map(p => '<option value="' + p.id + '">' + (p.name_ar || p.name_en) + ' (' + p.file_number + ')</option>').join('');
+
+  let recentRows = recent.map(r => '<tr><td>' + (r.patient_name || '-') + '</td><td>' + (r.template_title || r.title || '-') + '</td><td>' + (r.category || '-') + '</td><td>' + new Date(r.signed_at || r.created_at).toLocaleString('ar-SA') + '</td><td>' + (r.doctor_name || r.created_by || '-') + '</td><td><button class="btn btn-sm" onclick="viewSignedConsent(' + r.id + ')">' + tr('View', 'عرض') + '</button> <button class="btn btn-sm btn-danger" onclick="printSignedConsent(' + r.id + ')">' + tr('Print', 'طباعة') + '</button></td></tr>').join('');
+
+  el.innerHTML = '<div class="page-title">📜 ' + tr('Consent Forms', 'الإقرارات') + '</div>' +
+    '<div class="card" style="margin-bottom:16px"><h3 style="margin-bottom:12px">📝 ' + tr('New Consent', 'إقرار جديد') + '</h3>' +
+    '<div class="form-grid" style="gap:12px">' +
+    '<div class="form-group"><label>' + tr('Patient', 'المريض') + '</label><select id="consentPatient" class="form-control"><option value="">' + tr('-- Select --', '-- اختر --') + '</option>' + patientOptions + '</select></div>' +
+    '<div class="form-group"><label>' + tr('Consent Form', 'نوع الإقرار') + '</label><select id="consentTemplate" class="form-control" onchange="loadConsentText()"><option value="">' + tr('-- Select --', '-- اختر --') + '</option>' + tmplOptions + '</select></div>' +
+    '<div class="form-group"><label>' + tr('Doctor Name', 'اسم الطبيب') + '</label><input id="consentDoctor" class="form-control" value="' + (currentUser?.display_name || '') + '"></div>' +
+    '<div class="form-group"><label>' + tr('Procedure Details', 'تفاصيل الإجراء') + ' (' + tr('optional', 'اختياري') + ')</label><input id="consentProcedure" class="form-control" placeholder="' + tr('e.g. Appendectomy', 'مثال: استئصال الزائدة') + '"></div>' +
+    '</div></div>' +
+
+    '<div id="consentTextArea" style="display:none">' +
+    '<div class="card" style="margin-bottom:16px;border-right:4px solid var(--primary)">' +
+    '<h3 id="consentTitle" style="margin-bottom:12px;color:var(--primary)"></h3>' +
+    '<div id="consentBody" style="white-space:pre-wrap;line-height:2;font-size:15px;padding:16px;background:var(--hover);border-radius:8px;max-height:500px;overflow-y:auto"></div>' +
+    '</div>' +
+
+    '<div class="card" style="margin-bottom:16px">' +
+    '<h3 style="margin-bottom:12px">✍️ ' + tr('Patient Signature', 'توقيع المريض') + '</h3>' +
+    '<p style="margin-bottom:8px;color:var(--text-muted)">' + tr('Please sign below to confirm you have read and agree', 'الرجاء التوقيع أدناه لتأكيد قراءتك وموافقتك') + '</p>' +
+    '<canvas id="signaturePad" width="600" height="200" style="border:2px solid var(--border);border-radius:8px;background:#fff;cursor:crosshair;display:block;max-width:100%"></canvas>' +
+    '<div style="margin-top:8px;display:flex;gap:8px">' +
+    '<button class="btn btn-secondary" onclick="clearSignature()">' + tr('Clear', 'مسح') + '</button>' +
+    '</div>' +
+    '<div id="witnessSection" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">' +
+    '<h4 style="margin-bottom:8px">👤 ' + tr('Witness', 'الشاهد') + '</h4>' +
+    '<div class="form-grid"><div class="form-group"><label>' + tr('Witness Name', 'اسم الشاهد') + '</label><input id="witnessName" class="form-control"></div></div>' +
+    '</div>' +
+    '<div style="margin-top:16px;text-align:center">' +
+    '<button class="btn btn-primary btn-lg" onclick="submitConsent()" style="padding:12px 40px;font-size:16px">✅ ' + tr('Sign & Submit', 'توقيع وإرسال') + '</button>' +
+    '</div></div></div>' +
+
+    '<div class="card"><h3 style="margin-bottom:12px">📋 ' + tr('Recent Consents', 'الإقرارات الأخيرة') + '</h3>' +
+    '<table class="data-table"><thead><tr><th>' + tr('Patient', 'المريض') + '</th><th>' + tr('Form', 'الإقرار') + '</th><th>' + tr('Category', 'القسم') + '</th><th>' + tr('Date', 'التاريخ') + '</th><th>' + tr('Doctor', 'الطبيب') + '</th><th>' + tr('Actions', 'إجراءات') + '</th></tr></thead><tbody>' + (recentRows || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">' + tr('No consent forms yet', 'لا توجد إقرارات بعد') + '</td></tr>') + '</tbody></table></div>';
+
+  // Initialize signature pad
+  setTimeout(() => initSignaturePad(), 100);
+}
+
+let _signCtx = null, _signDrawing = false;
+function initSignaturePad() {
+  const canvas = document.getElementById('signaturePad');
+  if (!canvas) return;
+  _signCtx = canvas.getContext('2d');
+  _signCtx.strokeStyle = '#000';
+  _signCtx.lineWidth = 2;
+  _signCtx.lineCap = 'round';
+
+  canvas.addEventListener('mousedown', e => { _signDrawing = true; _signCtx.beginPath(); _signCtx.moveTo(e.offsetX, e.offsetY); });
+  canvas.addEventListener('mousemove', e => { if (_signDrawing) { _signCtx.lineTo(e.offsetX, e.offsetY); _signCtx.stroke(); } });
+  canvas.addEventListener('mouseup', () => _signDrawing = false);
+  canvas.addEventListener('mouseleave', () => _signDrawing = false);
+  // Touch support
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); _signDrawing = true; const r = canvas.getBoundingClientRect(); _signCtx.beginPath(); _signCtx.moveTo(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top); });
+  canvas.addEventListener('touchmove', e => { e.preventDefault(); if (_signDrawing) { const r = canvas.getBoundingClientRect(); _signCtx.lineTo(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top); _signCtx.stroke(); } });
+  canvas.addEventListener('touchend', () => _signDrawing = false);
+}
+
+function clearSignature() {
+  const canvas = document.getElementById('signaturePad');
+  if (canvas && _signCtx) _signCtx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+async function loadConsentText() {
+  const id = document.getElementById('consentTemplate')?.value;
+  const area = document.getElementById('consentTextArea');
+  if (!id) { area.style.display = 'none'; return; }
+  try {
+    const t = await API.get('/api/consent/templates/' + id);
+    document.getElementById('consentTitle').textContent = t.title_ar;
+    document.getElementById('consentBody').textContent = isArabic ? t.body_text_ar : t.body_text;
+    area.style.display = 'block';
+    // Show witness section if required
+    document.getElementById('witnessSection').style.display = t.requires_witness ? 'block' : 'none';
+    clearSignature();
+    setTimeout(() => initSignaturePad(), 50);
+  } catch (e) { showToast(tr('Error loading form', 'خطأ في تحميل الإقرار'), 'error'); }
+}
+
+window.loadConsentText = loadConsentText;
+window.clearSignature = clearSignature;
+
+async function submitConsent() {
+  const patientId = document.getElementById('consentPatient')?.value;
+  const templateId = document.getElementById('consentTemplate')?.value;
+  const canvas = document.getElementById('signaturePad');
+  if (!patientId) return showToast(tr('Select patient', 'اختر المريض'), 'error');
+  if (!templateId) return showToast(tr('Select consent form', 'اختر الإقرار'), 'error');
+  // Check if canvas has content
+  const sigData = canvas.toDataURL('image/png');
+  const emptyCanvas = document.createElement('canvas');
+  emptyCanvas.width = canvas.width; emptyCanvas.height = canvas.height;
+  if (sigData === emptyCanvas.toDataURL('image/png')) return showToast(tr('Please sign the form', 'الرجاء التوقيع على الإقرار'), 'error');
+
+  const patientSelect = document.getElementById('consentPatient');
+  const patientName = patientSelect.options[patientSelect.selectedIndex]?.text || '';
+
+  try {
+    await API.post('/api/consent/sign', {
+      template_id: templateId,
+      patient_id: patientId,
+      patient_name: patientName.split(' (')[0],
+      signature_data: sigData,
+      witness_name: document.getElementById('witnessName')?.value || '',
+      doctor_name: document.getElementById('consentDoctor')?.value || '',
+      procedure_details: document.getElementById('consentProcedure')?.value || ''
+    });
+    showToast(tr('Consent signed!', 'تم التوقيع على الإقرار!'));
+    renderConsentForms(document.getElementById('pageContent'));
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+}
+window.submitConsent = submitConsent;
+
+window.viewSignedConsent = async function(id) {
+  try {
+    const consents = await API.get('/api/consent/recent');
+    const c = consents.find(x => x.id === id);
+    if (!c) return;
+    const tmpl = await API.get('/api/consent/templates/' + c.template_id);
+    let html = '<div style="direction:rtl;text-align:right">' +
+      '<h3 style="margin-bottom:12px;color:var(--primary)">' + (tmpl.title_ar || c.title) + '</h3>' +
+      '<div style="white-space:pre-wrap;line-height:2;font-size:14px;padding:12px;background:var(--hover);border-radius:8px;max-height:300px;overflow-y:auto;margin-bottom:16px">' + tmpl.body_text_ar + '</div>' +
+      '<div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:12px">' +
+      '<div><strong>' + tr('Patient', 'المريض') + ':</strong> ' + c.patient_name + '</div>' +
+      '<div><strong>' + tr('Doctor', 'الطبيب') + ':</strong> ' + (c.doctor_name || c.created_by) + '</div>' +
+      '<div><strong>' + tr('Date', 'التاريخ') + ':</strong> ' + new Date(c.signed_at || c.created_at).toLocaleString('ar-SA') + '</div>' +
+      (c.witness_name ? '<div><strong>' + tr('Witness', 'الشاهد') + ':</strong> ' + c.witness_name + '</div>' : '') +
+      '</div>';
+    if (c.signature_data) html += '<div style="margin-top:12px"><strong>' + tr('Signature', 'التوقيع') + ':</strong><br><img src="' + c.signature_data + '" style="max-width:300px;border:1px solid var(--border);border-radius:4px;margin-top:4px"></div>';
+    html += '</div>';
+    showModal(tr('Signed Consent', 'الإقرار الموقع'), html);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+window.printSignedConsent = async function(id) {
+  try {
+    const consents = await API.get('/api/consent/recent');
+    const c = consents.find(x => x.id === id);
+    if (!c) return;
+    const tmpl = await API.get('/api/consent/templates/' + c.template_id);
+    let html = '<div style="direction:rtl;text-align:right;font-family:Arial,sans-serif">' +
+      '<div style="text-align:center;margin-bottom:20px"><h2>مركز نما الطبي</h2><h3 style="color:#1a56db">' + tmpl.title_ar + '</h3></div>' +
+      '<div style="white-space:pre-wrap;line-height:2.2;font-size:14px;margin-bottom:20px">' + tmpl.body_text_ar + '</div>' +
+      (c.procedure_details ? '<div style="margin-bottom:16px;padding:8px;border:1px solid #ccc;border-radius:4px"><strong>تفاصيل الإجراء:</strong> ' + c.procedure_details + '</div>' : '') +
+      '<div style="margin-top:30px;display:flex;justify-content:space-between">' +
+      '<div><strong>اسم المريض:</strong> ' + c.patient_name + '</div>' +
+      '<div><strong>التاريخ:</strong> ' + new Date(c.signed_at || c.created_at).toLocaleDateString('ar-SA') + '</div>' +
+      '</div>' +
+      '<div style="margin-top:10px"><strong>الطبيب:</strong> ' + (c.doctor_name || '-') + '</div>' +
+      (c.witness_name ? '<div style="margin-top:10px"><strong>الشاهد:</strong> ' + c.witness_name + '</div>' : '') +
+      '<div style="margin-top:20px"><strong>التوقيع:</strong><br>' +
+      (c.signature_data ? '<img src="' + c.signature_data + '" style="max-width:250px;margin-top:4px">' : '_______________') + '</div>' +
+      '</div>';
+    printDocument(tmpl.title_ar, html, { showHeader: false });
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+
 // ===== PAGE LOADER =====
 async function loadPage(page) {
   const el = document.getElementById('pageContent');

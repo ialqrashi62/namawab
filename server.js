@@ -3456,4 +3456,51 @@ app.get('/api/obgyn/stats', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
+
+// ===== CONSENT FORMS =====
+app.get('/api/consent/templates', requireAuth, async (req, res) => {
+    try {
+        const { category } = req.query;
+        let q = 'SELECT * FROM consent_form_templates WHERE is_active=1';
+        const params = [];
+        if (category) { q += ' AND category=$1'; params.push(category); }
+        q += ' ORDER BY category, id';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.get('/api/consent/templates/:id', requireAuth, async (req, res) => {
+    try {
+        const t = (await pool.query('SELECT * FROM consent_form_templates WHERE id=$1', [req.params.id])).rows[0];
+        if (!t) return res.status(404).json({ error: 'Not found' });
+        res.json(t);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/consent/sign', requireAuth, async (req, res) => {
+    try {
+        const { template_id, patient_id, patient_name, signature_data, witness_name, witness_signature, doctor_name, procedure_details, notes } = req.body;
+        if (!signature_data) return res.status(400).json({ error: 'Signature required' });
+        const tmpl = (await pool.query('SELECT * FROM consent_form_templates WHERE id=$1', [template_id])).rows[0];
+        if (!tmpl) return res.status(404).json({ error: 'Template not found' });
+        const result = await pool.query(
+            'INSERT INTO patient_consents (template_id, patient_id, patient_name, form_type, title, signature_data, witness_name, witness_signature, doctor_name, procedure_details, notes, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
+            [template_id, patient_id, patient_name || '', tmpl.form_type, tmpl.title_ar, signature_data, witness_name || '', witness_signature || '', doctor_name || '', procedure_details || '', notes || '', req.session.user?.display_name || '']);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'SIGN_CONSENT', 'Consent', tmpl.title_ar + ' - Patient: ' + patient_name, req.ip);
+        res.json(result.rows[0]);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.get('/api/consent/patient/:patient_id', requireAuth, async (req, res) => {
+    try {
+        res.json((await pool.query('SELECT pc.*, cft.title_ar as template_title, cft.category FROM patient_consents pc LEFT JOIN consent_form_templates cft ON pc.template_id=cft.id WHERE pc.patient_id=$1 ORDER BY pc.created_at DESC', [req.params.patient_id])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.get('/api/consent/recent', requireAuth, async (req, res) => {
+    try {
+        res.json((await pool.query('SELECT pc.*, cft.title_ar as template_title, cft.category FROM patient_consents pc LEFT JOIN consent_form_templates cft ON pc.template_id=cft.id ORDER BY pc.created_at DESC LIMIT 50')).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
 startServer();
