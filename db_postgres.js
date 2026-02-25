@@ -1,13 +1,14 @@
 // PostgreSQL Database Layer - Full schema matching database.js
 const { Pool } = require('pg');
+require('dotenv').config();
 
 const pool = new Pool({
-    host: 'localhost',
-    port: 5432,
-    database: 'nama_medical_web',
-    user: 'postgres',
-    password: 'postgres',
-    max: 20
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT) || 5432,
+    database: process.env.DB_NAME || 'nama_medical_web',
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || 'postgres',
+    max: parseInt(process.env.DB_MAX_CONNECTIONS) || 20
 });
 
 async function query(sql, params = []) {

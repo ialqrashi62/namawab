@@ -488,6 +488,45 @@ async function renderReception(el) {
           <div class="form-group" style="flex:1;min-width:70px"><label>${tr('Age', 'العمر')}</label><input class="form-input form-input-readonly" id="rAge" readonly></div>
         </div>
 
+        <div style="background:var(--hover);padding:12px;border-radius:8px;margin-bottom:12px">
+          <h4 style="margin:0 0 8px;font-size:13px;color:var(--accent)">🏥 ${tr('Medical Information', 'المعلومات الطبية')}</h4>
+          <div class="flex gap-8 mb-8" style="flex-wrap:wrap">
+            <div class="form-group" style="flex:1;min-width:120px"><label>${tr('Blood Type', 'فصيلة الدم')}</label>
+              <select class="form-input" id="rBloodType">
+                <option value="">--</option>
+                <option value="A+">A+</option><option value="A-">A-</option>
+                <option value="B+">B+</option><option value="B-">B-</option>
+                <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                <option value="O+">O+</option><option value="O-">O-</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex:2;min-width:200px"><label>⚠️ ${tr('Allergies', 'الحساسية')}</label><input class="form-input" id="rAllergies" placeholder="${tr('Drug allergies, food allergies...', 'حساسية أدوية، طعام...')}"></div>
+            <div class="form-group" style="flex:2;min-width:200px"><label>🩺 ${tr('Chronic Diseases', 'الأمراض المزمنة')}</label><input class="form-input" id="rChronicDiseases" placeholder="${tr('Diabetes, Hypertension, Asthma...', 'سكري، ضغط، ربو...')}"></div>
+          </div>
+          <div class="flex gap-8 mb-8" style="flex-wrap:wrap">
+            <div class="form-group" style="flex:1;min-width:150px"><label>🆘 ${tr('Emergency Contact Name', 'اسم جهة الطوارئ')}</label><input class="form-input" id="rEmergencyName"></div>
+            <div class="form-group" style="flex:1;min-width:120px"><label>📞 ${tr('Emergency Phone', 'هاتف الطوارئ')}</label><input class="form-input" id="rEmergencyPhone" type="tel"></div>
+            <div class="form-group" style="flex:2;min-width:200px"><label>📍 ${tr('Address', 'العنوان')}</label><input class="form-input" id="rAddress"></div>
+          </div>
+        </div>
+
+        <div style="background:var(--hover);padding:12px;border-radius:8px;margin-bottom:12px">
+          <h4 style="margin:0 0 8px;font-size:13px;color:var(--accent)">🏢 ${tr('Insurance Information', 'معلومات التأمين')}</h4>
+          <div class="flex gap-8" style="flex-wrap:wrap">
+            <div class="form-group" style="flex:2;min-width:180px"><label>${tr('Insurance Company', 'شركة التأمين')}</label><input class="form-input" id="rInsuranceCompany" placeholder="${tr('e.g. Bupa, Tawuniya, MedGulf...', 'مثال: بوبا، التعاونية...')}"></div>
+            <div class="form-group" style="flex:1;min-width:140px"><label>${tr('Policy Number', 'رقم البوليصة')}</label><input class="form-input" id="rInsurancePolicyNo"></div>
+            <div class="form-group" style="flex:1;min-width:120px"><label>${tr('Class', 'الفئة')}</label>
+              <select class="form-input" id="rInsuranceClass">
+                <option value="">--</option>
+                <option value="VIP">VIP</option>
+                <option value="A">A (Gold)</option>
+                <option value="B">B (Silver)</option>
+                <option value="C">C (Bronze)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <button class="btn btn-primary w-full" id="rSaveBtn" style="height:44px;font-size:15px">💾 ${tr('Save & Generate File', 'حفظ وإنشاء ملف')}</button>
       </div>
     </div>
@@ -709,6 +748,15 @@ async function renderReception(el) {
         nationality: document.getElementById('rNationality').value,
         gender: document.getElementById('rGender').value,
         phone: document.getElementById('rPhone').value,
+        blood_type: document.getElementById('rBloodType').value,
+        allergies: document.getElementById('rAllergies').value,
+        chronic_diseases: document.getElementById('rChronicDiseases').value,
+        emergency_contact_name: document.getElementById('rEmergencyName').value,
+        emergency_contact_phone: document.getElementById('rEmergencyPhone').value,
+        address: document.getElementById('rAddress').value,
+        insurance_company: document.getElementById('rInsuranceCompany').value,
+        insurance_policy_number: document.getElementById('rInsurancePolicyNo').value,
+        insurance_class: document.getElementById('rInsuranceClass').value,
         dob: (document.getElementById('rGregYear').value && document.getElementById('rGregMonth').value && document.getElementById('rGregDay').value) ? `${document.getElementById('rGregYear').value}-${String(document.getElementById('rGregMonth').value).padStart(2, '0')}-${String(document.getElementById('rGregDay').value).padStart(2, '0')}` : '',
         dob_hijri: (document.getElementById('rHijriYear').value && document.getElementById('rHijriMonth').value && document.getElementById('rHijriDay').value) ? `${document.getElementById('rHijriYear').value}/${String(document.getElementById('rHijriMonth').value).padStart(2, '0')}/${String(document.getElementById('rHijriDay').value).padStart(2, '0')}` : ''
       });
@@ -726,9 +774,18 @@ async function renderReception(el) {
 }
 
 function renderPatientTable(patients) {
-  const headers = [tr('File#', 'رقم الملف'), tr('Name', 'الاسم'), tr('ID', 'الهوية'), tr('Phone', 'الجوال'), tr('Dept', 'القسم'), tr('Date/Time', 'التاريخ/الوقت'), tr('Status', 'الحالة'), tr('Actions', 'إجراءات')];
+  const headers = [tr('MRN/File#', 'رقم الملف'), tr('Name', 'الاسم'), tr('ID', 'الهوية'), tr('Phone', 'الجوال'), tr('Blood', 'فصيلة'), tr('Insurance', 'التأمين'), tr('Date/Time', 'التاريخ/الوقت'), tr('Status', 'الحالة'), tr('Actions', 'إجراءات')];
   const rows = patients.map(p => ({
-    cells: [p.file_number, isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar), p.national_id, p.phone, p.department || '-', p.created_at ? new Date(p.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : '-', statusBadge(p.status)],
+    cells: [
+      p.mrn || p.file_number,
+      `${p.gender === 'ذكر' ? '👨' : '👩'} ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}${p.allergies ? ' <span style="color:#ef4444;font-weight:700" title="' + p.allergies + '">⚠️</span>' : ''}`,
+      p.national_id,
+      p.phone,
+      p.blood_type ? `<span class="badge" style="background:#dc2626;color:#fff;font-size:10px">${p.blood_type}</span>` : '-',
+      p.insurance_company ? `<span style="font-size:11px">${p.insurance_company}${p.insurance_class ? ' (' + p.insurance_class + ')' : ''}</span>` : '-',
+      p.created_at ? new Date(p.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : '-',
+      statusBadge(p.status)
+    ],
     id: p.id, raw: p
   }));
   document.getElementById('rTable').innerHTML = makeTable(headers, rows, (row) =>
@@ -1326,7 +1383,7 @@ window.loadPatientInfo = async () => {
         </div>`;
       }
     }
-    document.getElementById('drPatientInfo').innerHTML = `<div class="flex gap-8 mt-16" style="flex-wrap:wrap;align-items:center"><span class="badge badge-info">📁 ${p.file_number}</span><span class="badge badge-warning">🎂 ${tr('Age', 'العمر')}: ${p.age || '?'}</span><span class="badge badge-success">📞 ${p.phone}</span><span class="badge badge-purple">🆔 ${p.national_id}</span><span class="badge" style="background:#0ea5e9;color:#fff">📅 ${tr('Visit', 'الزيارة')}: ${new Date().toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</span>${p.created_at ? `<span class="badge" style="background:#64748b;color:#fff">📋 ${tr('Registered', 'التسجيل')}: ${new Date(p.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</span>` : ''}<button class="btn btn-sm btn-primary" onclick="viewPatientResults(${p.id})">📋 ${tr('View Lab & Radiology Results', 'استعراض نتائج الفحوصات والأشعة')}</button><button class="btn btn-sm" onclick="dischargePatient(${p.id})" style="margin-right:auto;background:#dc3545;color:#fff;font-weight:600">🚪 ${tr('Patient Done', 'المريض طلع')}</button></div>${vitalsHtml}${historyHtml}<div id="drResultsPanel"></div>`;
+    document.getElementById('drPatientInfo').innerHTML = `<div class="flex gap-8 mt-16" style="flex-wrap:wrap;align-items:center"><span class="badge badge-info">📁 ${p.mrn || p.file_number}</span><span class="badge badge-warning">🎂 ${tr('Age', 'العمر')}: ${p.age || '?'}</span>${p.blood_type ? `<span class="badge" style="background:#dc2626;color:#fff;font-weight:700">🩸 ${p.blood_type}</span>` : ''}<span class="badge badge-success">📞 ${p.phone}</span><span class="badge badge-purple">🆔 ${p.national_id}</span>${p.gender ? `<span class="badge" style="background:${p.gender === 'ذكر' ? '#3b82f6' : '#ec4899'};color:#fff">${p.gender === 'ذكر' ? '👨' : '👩'} ${p.gender}</span>` : ''}${p.insurance_company ? `<span class="badge" style="background:#0d9488;color:#fff">🏢 ${p.insurance_company}${p.insurance_class ? ' (' + p.insurance_class + ')' : ''}</span>` : ''}<span class="badge" style="background:#0ea5e9;color:#fff">📅 ${tr('Visit', 'الزيارة')}: ${new Date().toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</span><button class="btn btn-sm btn-primary" onclick="viewPatientResults(${p.id})">📋 ${tr('View Lab & Radiology Results', 'استعراض نتائج الفحوصات والأشعة')}</button><button class="btn btn-sm" onclick="dischargePatient(${p.id})" style="margin-right:auto;background:#dc3545;color:#fff;font-weight:600">🚪 ${tr('Patient Done', 'المريض طلع')}</button></div>${p.allergies ? `<div style="margin-top:8px;padding:10px;background:#fef2f2;border:2px solid #ef4444;border-radius:8px;font-size:13px;font-weight:600;color:#dc2626">⚠️ <strong>${tr('ALLERGIES', 'حساسية')}:</strong> ${p.allergies}</div>` : ''}${p.chronic_diseases ? `<div style="margin-top:6px;padding:8px;background:#fefce8;border:1px solid #facc15;border-radius:8px;font-size:12px;color:#854d0e">🩺 <strong>${tr('Chronic Diseases', 'أمراض مزمنة')}:</strong> ${p.chronic_diseases}</div>` : ''}${vitalsHtml}${historyHtml}<div id="drResultsPanel"></div>`;
   } catch (e) { }
 };
 window.dischargePatient = async (pid) => {

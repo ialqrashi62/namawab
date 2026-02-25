@@ -1,9 +1,12 @@
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { pool, initDatabase } = require('./db_postgres');
 const bcrypt = require('bcryptjs');
 const { insertSampleData, populateLabCatalog, populateRadiologyCatalog } = require('./seed_data_pg');
@@ -25,14 +28,20 @@ const upload = multer({
 });
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+// Security Middleware
+app.use(helmet({ contentSecurityPolicy: false }));
+
+// Rate limiting for login endpoint
+const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { error: 'Too many login attempts, please try again after 15 minutes' } });
 
 // Middleware
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
-    secret: 'nama-medical-secret-2024',
+    secret: process.env.SESSION_SECRET || 'nama-medical-erp-secret-x7k9m2p4q8w1',
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 24 * 60 * 60 * 1000 }
@@ -83,7 +92,7 @@ async function logAudit(userId, userName, action, module, details, ip) {
 }
 
 // ===== AUTH ROUTES =====
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', loginLimiter, async (req, res) => {
     try {
         const { username, password } = req.body;
         if (!username || !password) return res.status(400).json({ error: 'Missing credentials' });
@@ -162,7 +171,7 @@ app.get('/api/patients', requireAuth, async (req, res) => {
 
 app.post('/api/patients', requireAuth, async (req, res) => {
     try {
-        const { name_ar, name_en, national_id, nationality, gender, phone, department, amount, payment_method, dob, dob_hijri } = req.body;
+        const { name_ar, name_en, national_id, nationality, gender, phone, department, amount, payment_method, dob, dob_hijri, blood_type, allergies, chronic_diseases, emergency_contact_name, emergency_contact_phone, address, insurance_company, insurance_policy_number, insurance_class } = req.body;
         const maxFile = (await pool.query('SELECT COALESCE(MAX(file_number), 1000) as mf FROM patients')).rows[0].mf;
         let age = 0;
         if (dob) {
@@ -172,8 +181,10 @@ app.post('/api/patients', requireAuth, async (req, res) => {
             age = Math.abs(ageDate.getUTCFullYear() - 1970);
         }
         const fileOpenFee = parseFloat(amount) || 0;
-        const result = await pool.query('INSERT INTO patients (file_number, name_ar, name_en, national_id, nationality, gender, phone, department, amount, payment_method, dob, dob_hijri, age) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id',
-            [maxFile + 1, name_ar || '', name_en || '', national_id || '', nationality || '', gender || '', phone || '', department || '', fileOpenFee, payment_method || '', dob || '', dob_hijri || '', age || 0]);
+        const newFileNum = maxFile + 1;
+        const mrn = 'MRN-' + String(newFileNum).padStart(6, '0');
+        const result = await pool.query('INSERT INTO patients (file_number, mrn, name_ar, name_en, national_id, nationality, gender, phone, department, amount, payment_method, dob, dob_hijri, age, blood_type, allergies, chronic_diseases, emergency_contact_name, emergency_contact_phone, address, insurance_company, insurance_policy_number, insurance_class) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23) RETURNING id',
+            [newFileNum, mrn, name_ar || '', name_en || '', national_id || '', nationality || '', gender || '', phone || '', department || '', fileOpenFee, payment_method || '', dob || '', dob_hijri || '', age || 0, blood_type || '', allergies || '', chronic_diseases || '', emergency_contact_name || '', emergency_contact_phone || '', address || '', insurance_company || '', insurance_policy_number || '', insurance_class || '']);
         const patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [result.rows[0].id])).rows[0];
         // Auto-create invoice for file opening fee (with VAT for non-Saudis)
         if (fileOpenFee > 0) {
@@ -189,7 +200,7 @@ app.post('/api/patients', requireAuth, async (req, res) => {
 
 app.put('/api/patients/:id', requireAuth, async (req, res) => {
     try {
-        const { name_ar, name_en, national_id, nationality, gender, phone, dob, dob_hijri, department, status } = req.body;
+        const { name_ar, name_en, national_id, nationality, gender, phone, dob, dob_hijri, department, status, blood_type, allergies, chronic_diseases, emergency_contact_name, emergency_contact_phone, address, insurance_company, insurance_policy_number, insurance_class } = req.body;
         const sets = []; const vals = []; let i = 1;
         if (name_ar !== undefined) { sets.push(`name_ar=$${i++}`); vals.push(name_ar); }
         if (name_en !== undefined) { sets.push(`name_en=$${i++}`); vals.push(name_en); }
@@ -201,6 +212,15 @@ app.put('/api/patients/:id', requireAuth, async (req, res) => {
         if (dob_hijri !== undefined) { sets.push(`dob_hijri=$${i++}`); vals.push(dob_hijri); }
         if (department !== undefined) { sets.push(`department=$${i++}`); vals.push(department); }
         if (status !== undefined) { sets.push(`status=$${i++}`); vals.push(status); }
+        if (blood_type !== undefined) { sets.push(`blood_type=$${i++}`); vals.push(blood_type); }
+        if (allergies !== undefined) { sets.push(`allergies=$${i++}`); vals.push(allergies); }
+        if (chronic_diseases !== undefined) { sets.push(`chronic_diseases=$${i++}`); vals.push(chronic_diseases); }
+        if (emergency_contact_name !== undefined) { sets.push(`emergency_contact_name=$${i++}`); vals.push(emergency_contact_name); }
+        if (emergency_contact_phone !== undefined) { sets.push(`emergency_contact_phone=$${i++}`); vals.push(emergency_contact_phone); }
+        if (address !== undefined) { sets.push(`address=$${i++}`); vals.push(address); }
+        if (insurance_company !== undefined) { sets.push(`insurance_company=$${i++}`); vals.push(insurance_company); }
+        if (insurance_policy_number !== undefined) { sets.push(`insurance_policy_number=$${i++}`); vals.push(insurance_policy_number); }
+        if (insurance_class !== undefined) { sets.push(`insurance_class=$${i++}`); vals.push(insurance_class); }
         if (sets.length > 0) {
             vals.push(req.params.id);
             await pool.query(`UPDATE patients SET ${sets.join(',')} WHERE id=$${i}`, vals);
