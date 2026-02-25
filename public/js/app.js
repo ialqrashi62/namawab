@@ -605,6 +605,169 @@ async function loadPage(page) {
 }
 
 // ===== DASHBOARD =====
+
+
+// ===== MEDICAL REPORT / SICK LEAVE =====
+window.showMedicalReportForm = (type) => {
+  const patientId = document.getElementById('drPatientSelect')?.value;
+  if (!patientId) return showToast(tr('Select patient first', 'اختر مريض أولاً'), 'error');
+  const patientName = document.getElementById('drPatientSelect')?.selectedOptions[0]?.text || '';
+  
+  const typeLabels = {
+    sick_leave: { en: 'Sick Leave', ar: 'إجازة مرضية' },
+    medical_report: { en: 'Medical Report', ar: 'تقرير طبي' },
+    fitness: { en: 'Fitness Certificate', ar: 'شهادة لياقة' },
+  };
+  const label = typeLabels[type] || typeLabels.medical_report;
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML = '<div style="background:var(--bg-card,#fff);border-radius:16px;padding:24px;width:550px;max-height:90vh;overflow-y:auto;direction:rtl">' +
+    '<h3 style="margin:0 0 16px;color:var(--primary)">' + (isArabic ? label.ar : label.en) + '</h3>' +
+    '<div class="form-group"><label>' + tr('Patient', 'المريض') + '</label><input class="form-input" value="' + patientName + '" readonly></div>' +
+    '<div class="form-group"><label>' + tr('Diagnosis', 'التشخيص') + '</label><input class="form-input" id="mrDiagnosis" placeholder="' + tr('Diagnosis', 'التشخيص') + '"></div>' +
+    '<div class="form-group"><label>' + tr('ICD Code', 'رمز ICD') + '</label><input class="form-input" id="mrICD" placeholder="e.g. J06.9"></div>' +
+    (type === 'sick_leave' ? 
+      '<div style="display:flex;gap:12px">' +
+      '<div class="form-group" style="flex:1"><label>' + tr('From', 'من') + '</label><input type="date" class="form-input" id="mrFrom"></div>' +
+      '<div class="form-group" style="flex:1"><label>' + tr('To', 'إلى') + '</label><input type="date" class="form-input" id="mrTo"></div>' +
+      '<div class="form-group" style="flex:1"><label>' + tr('Days', 'أيام') + '</label><input type="number" class="form-input" id="mrDays" min="1"></div>' +
+      '</div>' : '') +
+    (type === 'fitness' ?
+      '<div class="form-group"><label>' + tr('Fitness Status', 'حالة اللياقة') + '</label>' +
+      '<select class="form-input" id="mrFitness"><option value="fit">' + tr('Fit', 'لائق') + '</option><option value="unfit">' + tr('Unfit', 'غير لائق') + '</option><option value="conditional">' + tr('Conditional', 'مشروط') + '</option></select></div>' : '') +
+    '<div class="form-group"><label>' + tr('Notes', 'ملاحظات') + '</label><textarea class="form-input" id="mrNotes" rows="3"></textarea></div>' +
+    '<div style="display:flex;gap:12px;margin-top:16px">' +
+    '<button class="btn btn-primary" onclick="saveMedicalReport(\'' + type + '\', ' + patientId + ', \'' + patientName.replace(/'/g, '') + '\')" style="flex:1">💾 ' + tr('Save & Print', 'حفظ وطباعة') + '</button>' +
+    '<button class="btn btn-secondary" onclick="this.closest(\'.modal-overlay\').remove()" style="flex:1">' + tr('Cancel', 'إلغاء') + '</button>' +
+    '</div></div>';
+  document.body.appendChild(modal);
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+};
+
+window.saveMedicalReport = async (type, patientId, patientName) => {
+  try {
+    const data = {
+      patient_id: patientId,
+      patient_name: patientName,
+      report_type: type,
+      diagnosis: document.getElementById('mrDiagnosis')?.value || '',
+      icd_code: document.getElementById('mrICD')?.value || '',
+      start_date: document.getElementById('mrFrom')?.value || null,
+      end_date: document.getElementById('mrTo')?.value || null,
+      duration_days: document.getElementById('mrDays')?.value || null,
+      notes: document.getElementById('mrNotes')?.value || '',
+      fitness_status: document.getElementById('mrFitness')?.value || null,
+    };
+    
+    const result = await API.post('/api/medical-reports', data);
+    document.querySelector('.modal-overlay')?.remove();
+    showToast(tr('Report saved!', 'تم حفظ التقرير!'));
+    
+    // Print the report
+    printMedicalReport(result, type);
+  } catch(e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+window.printMedicalReport = (report, type) => {
+  const typeLabels = { sick_leave: { ar: 'إجازة مرضية', en: 'Sick Leave Certificate' }, medical_report: { ar: 'تقرير طبي', en: 'Medical Report' }, fitness: { ar: 'شهادة لياقة طبية', en: 'Fitness Certificate' } };
+  const label = typeLabels[type] || typeLabels.medical_report;
+  
+  let html = '<div style="font-family:Arial;padding:40px;direction:rtl;text-align:right;line-height:2">';
+  html += '<div style="text-align:center;border-bottom:2px solid #1a73e8;padding-bottom:16px;margin-bottom:24px">';
+  html += '<h2 style="color:#1a73e8;margin:0">نما الطبي - Nama Medical</h2>';
+  html += '<p style="margin:4px 0;color:#666">المملكة العربية السعودية</p>';
+  html += '</div>';
+  html += '<h3 style="text-align:center;background:#f0f6ff;padding:12px;border-radius:8px;margin:20px 0">' + label.ar + ' / ' + label.en + '</h3>';
+  html += '<table style="width:100%;margin:16px 0;border-collapse:collapse">';
+  html += '<tr><td style="padding:8px;font-weight:bold;width:30%">رقم التقرير:</td><td style="padding:8px">' + (report.report_number || '') + '</td></tr>';
+  html += '<tr><td style="padding:8px;font-weight:bold">اسم المريض:</td><td style="padding:8px">' + (report.patient_name || '') + '</td></tr>';
+  html += '<tr><td style="padding:8px;font-weight:bold">التشخيص:</td><td style="padding:8px">' + (report.diagnosis || '') + '</td></tr>';
+  if (report.icd_code) html += '<tr><td style="padding:8px;font-weight:bold">رمز ICD:</td><td style="padding:8px">' + report.icd_code + '</td></tr>';
+  if (type === 'sick_leave') {
+    html += '<tr><td style="padding:8px;font-weight:bold">من تاريخ:</td><td style="padding:8px">' + (report.start_date || '') + '</td></tr>';
+    html += '<tr><td style="padding:8px;font-weight:bold">إلى تاريخ:</td><td style="padding:8px">' + (report.end_date || '') + '</td></tr>';
+    html += '<tr><td style="padding:8px;font-weight:bold">عدد الأيام:</td><td style="padding:8px">' + (report.duration_days || '') + ' ' + (isArabic ? 'يوم' : 'days') + '</td></tr>';
+  }
+  if (type === 'fitness') {
+    const statusAr = { fit: 'لائق طبياً', unfit: 'غير لائق', conditional: 'لائق بشروط' };
+    html += '<tr><td style="padding:8px;font-weight:bold">الحالة:</td><td style="padding:8px;font-weight:bold;color:' + (report.fitness_status === 'fit' ? 'green' : 'red') + '">' + (statusAr[report.fitness_status] || '') + '</td></tr>';
+  }
+  if (report.notes) html += '<tr><td style="padding:8px;font-weight:bold">ملاحظات:</td><td style="padding:8px">' + report.notes + '</td></tr>';
+  html += '</table>';
+  html += '<div style="margin-top:40px;display:flex;justify-content:space-between">';
+  html += '<div style="text-align:center"><p>_______________</p><p>توقيع الطبيب</p><p style="font-weight:bold">' + (report.doctor || '') + '</p></div>';
+  html += '<div style="text-align:center"><p>_______________</p><p>ختم المنشأة</p></div>';
+  html += '</div>';
+  html += '<p style="text-align:center;margin-top:24px;font-size:11px;color:#999">تاريخ الإصدار: ' + new Date().toLocaleDateString('ar-SA') + ' | Report #' + (report.report_number || '') + '</p>';
+  html += '</div>';
+  
+  printDocument(label.ar, html, { showHeader: false });
+};
+
+// ===== DRUG INTERACTION CHECK =====
+window.checkDrugInteractions = async (drugs) => {
+  try {
+    if (!drugs || drugs.length < 2) return;
+    const result = await API.post('/api/drug-interactions/check', { drugs });
+    if (result.interactions && result.interactions.length > 0) {
+      let alertHtml = '<div style="background:#fff3f3;border:2px solid #ff4444;border-radius:12px;padding:16px;direction:rtl">';
+      alertHtml += '<h4 style="color:#cc0000;margin:0 0 12px">⚠️ ' + tr('Drug Interactions Found!', 'تم العثور على تعارضات دوائية!') + '</h4>';
+      result.interactions.forEach(i => {
+        const color = i.severity === 'critical' ? '#cc0000' : i.severity === 'high' ? '#ff6600' : '#ff9900';
+        alertHtml += '<div style="margin:8px 0;padding:8px;background:#fff;border-right:4px solid ' + color + ';border-radius:4px">';
+        alertHtml += '<strong>' + i.drugs.join(' ↔ ') + '</strong><br>';
+        alertHtml += '<span style="color:' + color + '">[' + i.severity.toUpperCase() + '] ' + (isArabic ? i.message_ar : i.message_en) + '</span>';
+        alertHtml += '</div>';
+      });
+      alertHtml += '</div>';
+      
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center';
+      modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:500px;max-height:80vh;overflow-y:auto">' +
+        alertHtml +
+        '<div style="display:flex;gap:12px;margin-top:16px">' +
+        '<button class="btn btn-danger" onclick="this.closest(\'.modal-overlay\')?.remove();this.parentElement.parentElement.parentElement.remove()" style="flex:1;background:#cc0000;color:#fff">🚫 ' + tr('Cancel Prescription', 'إلغاء الوصفة') + '</button>' +
+        '<button class="btn" onclick="this.parentElement.parentElement.parentElement.remove()" style="flex:1">⚠️ ' + tr('Continue Anyway', 'متابعة رغم التحذير') + '</button>' +
+        '</div></div>';
+      document.body.appendChild(modal);
+    }
+  } catch(e) { console.error('Interaction check failed:', e); }
+};
+
+// ===== ALLERGY CHECK =====
+window.checkAllergyBeforePrescribe = async (patientId, drugs) => {
+  try {
+    if (!patientId || !drugs || drugs.length === 0) return true;
+    const result = await API.post('/api/allergy-check', { patient_id: patientId, drugs });
+    if (result.alerts && result.alerts.length > 0) {
+      let alertHtml = '<div style="background:#ffe0e0;border:3px solid #ff0000;border-radius:12px;padding:20px;direction:rtl">';
+      alertHtml += '<h3 style="color:#cc0000;margin:0 0 12px">🚨 ' + tr('ALLERGY ALERT!', 'تحذير حساسية!') + '</h3>';
+      alertHtml += '<p style="margin:0 0 12px">' + tr('Patient allergies:', 'حساسية المريض:') + ' <strong style="color:#cc0000">' + result.patient_allergies + '</strong></p>';
+      result.alerts.forEach(a => {
+        alertHtml += '<div style="margin:8px 0;padding:10px;background:#fff;border-right:5px solid #ff0000;border-radius:4px">';
+        alertHtml += '<strong style="color:#cc0000">💊 ' + a.drug + '</strong><br>';
+        alertHtml += '<span>' + (isArabic ? a.message_ar : a.message_en) + '</span>';
+        alertHtml += '</div>';
+      });
+      alertHtml += '</div>';
+      
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(200,0,0,0.3);z-index:9999;display:flex;align-items:center;justify-content:center';
+      modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:500px">' +
+        alertHtml +
+        '<div style="margin-top:16px;text-align:center">' +
+        '<button class="btn" onclick="this.parentElement.parentElement.parentElement.remove()" style="background:#cc0000;color:#fff;width:100%;padding:12px">❌ ' + tr('Understood - Review Prescription', 'مفهوم - مراجعة الوصفة') + '</button>' +
+        '</div></div>';
+      document.body.appendChild(modal);
+      return false;
+    }
+    return true;
+  } catch(e) { return true; }
+};
+
+
 async function renderDashboard(el) {
   const [s, enhanced] = await Promise.all([
     API.get('/api/dashboard/stats'),
@@ -1477,6 +1640,11 @@ async function renderDoctor(el) {
           <div class="form-group mb-16"><label>${tr('Notes', 'ملاحظات')}</label><textarea class="form-input form-textarea" id="drNotes"></textarea></div>
           <button class="btn btn-primary w-full" onclick="saveMedRecord()" style="height:44px">💾 ${tr('Save Record', 'حفظ السجل')}</button>
         </div>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <button class="btn btn-sm" onclick="showMedicalReportForm('sick_leave')" style="flex:1;background:#fff3e0;border:1px solid #ff9800;color:#e65100;min-width:120px">🏥 ${tr('Sick Leave','إجازة مرضية')}</button>
+            <button class="btn btn-sm" onclick="showMedicalReportForm('medical_report')" style="flex:1;background:#e3f2fd;border:1px solid #1565c0;color:#1565c0;min-width:120px">📋 ${tr('Med Report','تقرير طبي')}</button>
+            <button class="btn btn-sm" onclick="showMedicalReportForm('fitness')" style="flex:1;background:#e8f5e9;border:1px solid #2e7d32;color:#2e7d32;min-width:120px">✅ ${tr('Fitness','شهادة لياقة')}</button>
+          </div>
         <div class="card mb-16">
           <div class="card-title">🏥 ${tr('Procedures / Services Performed', 'الإجراءات / الخدمات المنفذة')} ${drSpecialty ? `<span class="badge badge-info" style="font-size:11px;
 margin-right:8px">${drSpecialty}</span>` : ''}</div>

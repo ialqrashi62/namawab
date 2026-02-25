@@ -296,6 +296,18 @@ app.post('/api/appointments', requireAuth, async (req, res) => {
                 [patient_id, patient_name, apptFee, `رسوم موعد: ${doctor_name} - ${appt_date}`, 'Appointment']);
         }
         const appt = (await pool.query('SELECT * FROM appointments WHERE id=$1', [result.rows[0].id])).rows[0];
+        
+        // AUTO: Add to waiting queue when appointment is today
+        try {
+            const apptDate = new Date(date);
+            const today = new Date();
+            if (apptDate.toDateString() === today.toDateString()) {
+                await pool.query(
+                    "INSERT INTO waiting_queue (patient_id, patient_name, doctor, department, status, check_in_time) VALUES ($1, $2, $3, $4, 'Waiting', CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING",
+                    [patient_id, patient_name, doctor, department || 'General']
+                );
+            }
+        } catch(qe) { console.error('Queue auto-insert:', qe.message); }
         res.json(appt);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -875,6 +887,18 @@ app.post('/api/prescriptions', requireAuth, async (req, res) => {
             await pool.query('INSERT INTO invoices (patient_id, patient_name, total, vat_amount, description, service_type, paid) VALUES ($1,$2,$3,$4,$5,$6,0)',
                 [patient_id, p?.name_en || p?.name_ar || '', finalTotal, vatAmount, desc, 'Pharmacy']);
         }
+        
+        // AUTO: Send prescription to pharmacy queue
+        try {
+            if (Array.isArray(items)) {
+                for (const item of items) {
+                    await pool.query(
+                        "INSERT INTO pharmacy_queue (patient_id, patient_name, drug_name, dosage, quantity, doctor, status, prescription_id) VALUES ($1, $2, $3, $4, $5, $6, 'Pending', $7)",
+                        [patient_id, patient_name || '', item.drug || item.name, item.dosage || '', item.quantity || 1, req.session.user?.display_name || '', result.rows[0]?.id || null]
+                    );
+                }
+            }
+        } catch(pe) { console.error('Pharmacy queue auto-insert:', pe.message); }
         res.json((await pool.query('SELECT * FROM prescriptions WHERE id=$1', [result.rows[0].id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -3772,6 +3796,298 @@ app.get('/api/patients/:id/summary', requireAuth, async (req, res) => {
 app.get('*', (req, res) => {
     if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+
+// ===== MEDICAL REPORTS & SICK LEAVE =====
+app.post('/api/medical-reports', requireAuth, async (req, res) => {
+    try {
+        const { patient_id, patient_name, report_type, diagnosis, icd_code, start_date, end_date, duration_days, notes, fitness_status } = req.body;
+        const doctor = req.session.user?.display_name || '';
+        const reportNum = 'MR-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-6);
+        
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS medical_reports (
+                id SERIAL PRIMARY KEY,
+                report_number VARCHAR(30),
+                patient_id INTEGER,
+                patient_name VARCHAR(200),
+                report_type VARCHAR(50),
+                diagnosis TEXT,
+                icd_code VARCHAR(20),
+                start_date DATE,
+                end_date DATE,
+                duration_days INTEGER,
+                notes TEXT,
+                fitness_status VARCHAR(50),
+                doctor VARCHAR(200),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        
+        const result = await pool.query(
+            'INSERT INTO medical_reports (report_number, patient_id, patient_name, report_type, diagnosis, icd_code, start_date, end_date, duration_days, notes, fitness_status, doctor) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
+            [reportNum, patient_id, patient_name, report_type, diagnosis, icd_code, start_date, end_date, duration_days || 0, notes, fitness_status, doctor]
+        );
+        
+        logAudit(req.session.user?.id, doctor, 'CREATE_MEDICAL_REPORT', 'MedReport', reportNum + ' - ' + report_type, req.ip);
+        res.json(result.rows[0]);
+    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+});
+
+app.get('/api/medical-reports', requireAuth, async (req, res) => {
+    try {
+        const { patient_id } = req.query;
+        let q = 'SELECT * FROM medical_reports';
+        let p = [];
+        if (patient_id) { q += ' WHERE patient_id=$1'; p = [patient_id]; }
+        q += ' ORDER BY created_at DESC LIMIT 100';
+        const rows = (await pool.query(q, p)).rows;
+        res.json(rows);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.get('/api/medical-reports/:id', requireAuth, async (req, res) => {
+    try {
+        const row = (await pool.query('SELECT * FROM medical_reports WHERE id=$1', [req.params.id])).rows[0];
+        if (!row) return res.status(404).json({ error: 'Not found' });
+        res.json(row);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+
+// ===== DRUG INTERACTION CHECK =====
+app.post('/api/drug-interactions/check', requireAuth, async (req, res) => {
+    try {
+        const { drugs } = req.body; // Array of drug names
+        if (!drugs || !Array.isArray(drugs)) return res.json({ interactions: [] });
+        
+        // Common drug interaction database
+        const INTERACTIONS = [
+            { drugs: ['Warfarin', 'Aspirin'], severity: 'high', message_ar: 'خطر نزيف شديد', message_en: 'High bleeding risk' },
+            { drugs: ['Warfarin', 'Ibuprofen'], severity: 'high', message_ar: 'خطر نزيف شديد', message_en: 'High bleeding risk' },
+            { drugs: ['Warfarin', 'Diclofenac'], severity: 'high', message_ar: 'خطر نزيف', message_en: 'Bleeding risk' },
+            { drugs: ['Warfarin', 'Omeprazole'], severity: 'moderate', message_ar: 'قد يزيد تأثير الوارفارين', message_en: 'May increase Warfarin effect' },
+            { drugs: ['Warfarin', 'Ciprofloxacin'], severity: 'high', message_ar: 'يزيد INR بشكل خطير', message_en: 'Dangerously increases INR' },
+            { drugs: ['Warfarin', 'Metronidazole'], severity: 'high', message_ar: 'يزيد تأثير الوارفارين', message_en: 'Increases Warfarin effect' },
+            { drugs: ['Metformin', 'Contrast'], severity: 'high', message_ar: 'خطر حماض لاكتيكي', message_en: 'Lactic acidosis risk' },
+            { drugs: ['ACE Inhibitor', 'Potassium'], severity: 'high', message_ar: 'خطر ارتفاع البوتاسيوم', message_en: 'Hyperkalemia risk' },
+            { drugs: ['Enalapril', 'Spironolactone'], severity: 'high', message_ar: 'خطر ارتفاع البوتاسيوم', message_en: 'Hyperkalemia risk' },
+            { drugs: ['Lisinopril', 'Spironolactone'], severity: 'high', message_ar: 'خطر ارتفاع البوتاسيوم', message_en: 'Hyperkalemia risk' },
+            { drugs: ['Digoxin', 'Amiodarone'], severity: 'high', message_ar: 'سمية الديجوكسين', message_en: 'Digoxin toxicity' },
+            { drugs: ['Digoxin', 'Verapamil'], severity: 'high', message_ar: 'سمية الديجوكسين', message_en: 'Digoxin toxicity' },
+            { drugs: ['Methotrexate', 'TMP/SMX'], severity: 'high', message_ar: 'سمية الميثوتركسات', message_en: 'Methotrexate toxicity' },
+            { drugs: ['Methotrexate', 'NSAIDs'], severity: 'high', message_ar: 'سمية كلوية', message_en: 'Renal toxicity' },
+            { drugs: ['Simvastatin', 'Clarithromycin'], severity: 'high', message_ar: 'خطر انحلال العضلات', message_en: 'Rhabdomyolysis risk' },
+            { drugs: ['Atorvastatin', 'Clarithromycin'], severity: 'moderate', message_ar: 'زيادة تأثير الستاتين', message_en: 'Increased statin effect' },
+            { drugs: ['Clopidogrel', 'Omeprazole'], severity: 'moderate', message_ar: 'يقلل فعالية كلوبيدوقرل', message_en: 'Reduces Clopidogrel efficacy' },
+            { drugs: ['Lithium', 'NSAIDs'], severity: 'high', message_ar: 'سمية الليثيوم', message_en: 'Lithium toxicity' },
+            { drugs: ['Lithium', 'ACE Inhibitor'], severity: 'high', message_ar: 'سمية الليثيوم', message_en: 'Lithium toxicity' },
+            { drugs: ['Ciprofloxacin', 'Theophylline'], severity: 'high', message_ar: 'سمية الثيوفيلين', message_en: 'Theophylline toxicity' },
+            { drugs: ['MAO Inhibitor', 'SSRI'], severity: 'critical', message_ar: 'متلازمة السيروتونين - مميت', message_en: 'Serotonin syndrome - FATAL' },
+            { drugs: ['Tramadol', 'SSRI'], severity: 'high', message_ar: 'خطر متلازمة السيروتونين', message_en: 'Serotonin syndrome risk' },
+            { drugs: ['Tramadol', 'Sertraline'], severity: 'high', message_ar: 'خطر متلازمة السيروتونين', message_en: 'Serotonin syndrome risk' },
+            { drugs: ['Sildenafil', 'Nitrate'], severity: 'critical', message_ar: 'انخفاض ضغط مميت', message_en: 'Fatal hypotension' },
+            { drugs: ['Sildenafil', 'Nitroglycerin'], severity: 'critical', message_ar: 'انخفاض ضغط مميت', message_en: 'Fatal hypotension' },
+            { drugs: ['Amlodipine', 'Simvastatin'], severity: 'moderate', message_ar: 'لا تتجاوز سيمفاستاتين 20مج', message_en: 'Do not exceed Simvastatin 20mg' },
+            { drugs: ['Carbamazepine', 'OCP'], severity: 'high', message_ar: 'يقلل فعالية حبوب منع الحمل', message_en: 'Reduces OCP efficacy' },
+            { drugs: ['Phenytoin', 'Warfarin'], severity: 'high', message_ar: 'تفاعل معقد - مراقبة', message_en: 'Complex interaction - monitor' },
+            { drugs: ['Erythromycin', 'Simvastatin'], severity: 'high', message_ar: 'انحلال عضلات', message_en: 'Rhabdomyolysis' },
+            { drugs: ['Fluconazole', 'Warfarin'], severity: 'high', message_ar: 'يزيد نزيف', message_en: 'Increases bleeding' },
+            { drugs: ['Amiodarone', 'Warfarin'], severity: 'high', message_ar: 'يزيد INR', message_en: 'Increases INR' },
+            { drugs: ['Aspirin', 'Ibuprofen'], severity: 'moderate', message_ar: 'يقلل تأثير الأسبرين القلبي', message_en: 'Reduces cardiac aspirin effect' },
+            { drugs: ['Metformin', 'Alcohol'], severity: 'moderate', message_ar: 'خطر حماض لاكتيكي', message_en: 'Lactic acidosis risk' },
+            { drugs: ['Insulin', 'Beta Blocker'], severity: 'moderate', message_ar: 'يخفي أعراض هبوط السكر', message_en: 'Masks hypoglycemia symptoms' },
+            { drugs: ['Potassium', 'Spironolactone'], severity: 'high', message_ar: 'خطر ارتفاع بوتاسيوم شديد', message_en: 'Severe hyperkalemia risk' },
+            { drugs: ['Azithromycin', 'Amiodarone'], severity: 'high', message_ar: 'إطالة QT', message_en: 'QT prolongation' },
+            { drugs: ['Domperidone', 'Clarithromycin'], severity: 'high', message_ar: 'إطالة QT', message_en: 'QT prolongation' },
+            { drugs: ['Metoclopramide', 'Haloperidol'], severity: 'moderate', message_ar: 'أعراض خارج هرمية', message_en: 'Extrapyramidal symptoms' },
+            { drugs: ['Rifampin', 'OCP'], severity: 'high', message_ar: 'يلغي فعالية حبوب منع الحمل', message_en: 'Eliminates OCP efficacy' },
+            { drugs: ['Rifampin', 'Warfarin'], severity: 'high', message_ar: 'يقلل فعالية الوارفارين بشدة', message_en: 'Greatly reduces Warfarin' },
+            { drugs: ['Ciprofloxacin', 'Antacid'], severity: 'moderate', message_ar: 'يقلل امتصاص سيبرو', message_en: 'Reduces Cipro absorption' },
+            { drugs: ['Tetracycline', 'Antacid'], severity: 'moderate', message_ar: 'يقلل الامتصاص', message_en: 'Reduces absorption' },
+            { drugs: ['Levothyroxine', 'Calcium'], severity: 'moderate', message_ar: 'يقلل امتصاص الثايروكسين', message_en: 'Reduces thyroxine absorption' },
+            { drugs: ['Levothyroxine', 'Iron'], severity: 'moderate', message_ar: 'يقلل امتصاص الثايروكسين', message_en: 'Reduces thyroxine absorption' },
+            { drugs: ['Bisoprolol', 'Verapamil'], severity: 'high', message_ar: 'بطء قلب خطير', message_en: 'Dangerous bradycardia' },
+            { drugs: ['Atenolol', 'Verapamil'], severity: 'high', message_ar: 'بطء قلب خطير', message_en: 'Dangerous bradycardia' },
+            { drugs: ['Clonidine', 'Beta Blocker'], severity: 'high', message_ar: 'ارتداد ارتفاع ضغط', message_en: 'Rebound hypertension' },
+            { drugs: ['Allopurinol', 'Azathioprine'], severity: 'critical', message_ar: 'سمية نخاع العظم', message_en: 'Bone marrow toxicity' },
+            { drugs: ['Clarithromycin', 'Colchicine'], severity: 'high', message_ar: 'سمية الكولشيسين', message_en: 'Colchicine toxicity' },
+        ];
+        
+        const found = [];
+        const drugNamesLower = drugs.map(d => d.toLowerCase());
+        
+        for (const interaction of INTERACTIONS) {
+            const [d1, d2] = interaction.drugs.map(d => d.toLowerCase());
+            const match1 = drugNamesLower.some(dn => dn.includes(d1) || d1.includes(dn));
+            const match2 = drugNamesLower.some(dn => dn.includes(d2) || d2.includes(dn));
+            if (match1 && match2) {
+                found.push(interaction);
+            }
+        }
+        
+        res.json({ interactions: found, total_checked: INTERACTIONS.length });
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== ALLERGY CROSS-CHECK =====
+app.post('/api/allergy-check', requireAuth, async (req, res) => {
+    try {
+        const { patient_id, drugs } = req.body;
+        if (!patient_id || !drugs) return res.json({ alerts: [] });
+        
+        const patient = (await pool.query('SELECT allergies FROM patients WHERE id=$1', [patient_id])).rows[0];
+        if (!patient || !patient.allergies) return res.json({ alerts: [] });
+        
+        const allergyGroups = {
+            'penicillin': ['amoxicillin', 'ampicillin', 'augmentin', 'amoxicillin-clavulanate', 'piperacillin', 'flucloxacillin'],
+            'sulfa': ['sulfamethoxazole', 'tmp/smx', 'co-trimoxazole', 'sulfasalazine', 'dapsone'],
+            'nsaid': ['ibuprofen', 'diclofenac', 'naproxen', 'ketorolac', 'indomethacin', 'piroxicam', 'meloxicam', 'celecoxib'],
+            'aspirin': ['aspirin', 'acetylsalicylic'],
+            'cephalosporin': ['cephalexin', 'cefuroxime', 'ceftriaxone', 'cefazolin', 'cefixime', 'ceftazidime'],
+            'macrolide': ['erythromycin', 'azithromycin', 'clarithromycin'],
+            'quinolone': ['ciprofloxacin', 'levofloxacin', 'moxifloxacin', 'ofloxacin'],
+            'tetracycline': ['doxycycline', 'tetracycline', 'minocycline'],
+            'codeine': ['codeine', 'tramadol', 'morphine', 'oxycodone'],
+            'contrast': ['iodine', 'contrast', 'gadolinium'],
+        };
+        
+        const allergies = patient.allergies.toLowerCase();
+        const alerts = [];
+        
+        for (const drug of drugs) {
+            const drugLower = drug.toLowerCase();
+            // Direct match
+            if (allergies.includes(drugLower)) {
+                alerts.push({ drug, severity: 'critical', message_ar: 'حساسية مباشرة مسجلة!', message_en: 'Direct allergy recorded!' });
+                continue;
+            }
+            // Group match
+            for (const [allergen, family] of Object.entries(allergyGroups)) {
+                if (allergies.includes(allergen) && family.some(f => drugLower.includes(f))) {
+                    alerts.push({ drug, severity: 'high', message_ar: 'ينتمي لعائلة ' + allergen + ' المسجل حساسية منها', message_en: 'Belongs to ' + allergen + ' family (allergy recorded)' });
+                }
+            }
+        }
+        
+        res.json({ alerts, patient_allergies: patient.allergies });
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== PARTIAL PAYMENT & REFUND =====
+app.put('/api/invoices/:id/partial-pay', requireAuth, async (req, res) => {
+    try {
+        const { amount_paid, payment_method } = req.body;
+        const invoice = (await pool.query('SELECT * FROM invoices WHERE id=$1', [req.params.id])).rows[0];
+        if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
+        
+        const prevPaid = parseFloat(invoice.amount_paid || 0);
+        const newPaid = prevPaid + parseFloat(amount_paid);
+        const total = parseFloat(invoice.total);
+        const balance = total - newPaid;
+        const isPaid = balance <= 0 ? 1 : 0;
+        
+        await pool.query(
+            'UPDATE invoices SET amount_paid=$1, balance_due=$2, paid=$3, payment_method=$4 WHERE id=$5',
+            [newPaid, Math.max(0, balance), isPaid, payment_method || invoice.payment_method, req.params.id]
+        );
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'PARTIAL_PAYMENT', 'Invoice', 
+            invoice.invoice_number + ' paid ' + amount_paid + ' (total paid: ' + newPaid + '/' + total + ')', req.ip);
+        
+        res.json({ success: true, amount_paid: newPaid, balance_due: Math.max(0, balance), fully_paid: isPaid });
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/invoices/:id/refund', requireAuth, async (req, res) => {
+    try {
+        const { amount, reason } = req.body;
+        const invoice = (await pool.query('SELECT * FROM invoices WHERE id=$1', [req.params.id])).rows[0];
+        if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
+        
+        const refundNum = 'REF-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-6);
+        await pool.query(
+            "INSERT INTO invoices (patient_id, patient_name, total, description, service_type, payment_method, invoice_number, created_by, discount_reason) VALUES ($1,$2,$3,$4,'Refund',$5,$6,$7,$8)",
+            [invoice.patient_id, invoice.patient_name, -(parseFloat(amount)), 'Refund for ' + invoice.invoice_number + ': ' + reason, invoice.payment_method, refundNum, req.session.user?.display_name, reason]
+        );
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'REFUND', 'Invoice', refundNum + ' amount: ' + amount + ' reason: ' + reason, req.ip);
+        res.json({ success: true, refund_number: refundNum });
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== CASH DRAWER =====
+app.post('/api/cash-drawer/open', requireAuth, async (req, res) => {
+    try {
+        const { opening_balance } = req.body;
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS cash_drawer (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER,
+                user_name VARCHAR(200),
+                opening_balance DECIMAL(12,2) DEFAULT 0,
+                closing_balance DECIMAL(12,2),
+                expected_balance DECIMAL(12,2),
+                difference DECIMAL(12,2),
+                status VARCHAR(20) DEFAULT 'open',
+                opened_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                closed_at TIMESTAMP,
+                notes TEXT
+            )
+        `);
+        
+        // Check if already open
+        const existing = (await pool.query("SELECT * FROM cash_drawer WHERE user_id=$1 AND status='open'", [req.session.user?.id])).rows[0];
+        if (existing) return res.status(400).json({ error: 'Drawer already open. Close current session first.' });
+        
+        const result = await pool.query(
+            'INSERT INTO cash_drawer (user_id, user_name, opening_balance) VALUES ($1,$2,$3) RETURNING *',
+            [req.session.user?.id, req.session.user?.display_name, opening_balance || 0]
+        );
+        res.json(result.rows[0]);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/cash-drawer/close', requireAuth, async (req, res) => {
+    try {
+        const { counted_cash, notes } = req.body;
+        const drawer = (await pool.query("SELECT * FROM cash_drawer WHERE user_id=$1 AND status='open'", [req.session.user?.id])).rows[0];
+        if (!drawer) return res.status(400).json({ error: 'No open drawer found' });
+        
+        // Calculate expected from invoices during session
+        const cashInvoices = (await pool.query(
+            "SELECT COALESCE(SUM(CASE WHEN total > 0 THEN total ELSE 0 END),0) as income, COALESCE(SUM(CASE WHEN total < 0 THEN ABS(total) ELSE 0 END),0) as refunds FROM invoices WHERE payment_method='Cash' AND created_at >= $1 AND created_by=$2",
+            [drawer.opened_at, drawer.user_name]
+        )).rows[0];
+        
+        const expected = parseFloat(drawer.opening_balance) + parseFloat(cashInvoices.income) - parseFloat(cashInvoices.refunds);
+        const difference = parseFloat(counted_cash) - expected;
+        
+        await pool.query(
+            "UPDATE cash_drawer SET closing_balance=$1, expected_balance=$2, difference=$3, status='closed', closed_at=CURRENT_TIMESTAMP, notes=$4 WHERE id=$5",
+            [counted_cash, expected, difference, notes, drawer.id]
+        );
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CLOSE_CASH_DRAWER', 'Finance',
+            'Expected: ' + expected.toFixed(2) + ' Counted: ' + counted_cash + ' Diff: ' + difference.toFixed(2), req.ip);
+        
+        res.json({ expected: expected.toFixed(2), counted: counted_cash, difference: difference.toFixed(2), income: cashInvoices.income, refunds: cashInvoices.refunds });
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.get('/api/cash-drawer/current', requireAuth, async (req, res) => {
+    try {
+        const drawer = (await pool.query("SELECT * FROM cash_drawer WHERE user_id=$1 AND status='open' ORDER BY id DESC LIMIT 1", [req.session.user?.id])).rows[0];
+        if (!drawer) return res.json({ open: false });
+        
+        const cashInvoices = (await pool.query(
+            "SELECT COALESCE(SUM(CASE WHEN total > 0 THEN total ELSE 0 END),0) as income, COUNT(CASE WHEN total > 0 THEN 1 END) as tx_count FROM invoices WHERE payment_method='Cash' AND created_at >= $1 AND created_by=$2",
+            [drawer.opened_at, drawer.user_name]
+        )).rows[0];
+        
+        res.json({ open: true, drawer, income: cashInvoices.income, tx_count: cashInvoices.tx_count });
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 startServer();
