@@ -768,6 +768,172 @@ window.checkAllergyBeforePrescribe = async (patientId, drugs) => {
 };
 
 
+
+
+// ===== APPOINTMENT CHECK-IN (Receptionist) =====
+window.checkInPatient = async (appointmentId) => {
+  try {
+    const result = await API.put('/api/appointments/' + appointmentId + '/checkin', {});
+    showToast(tr('Patient checked in! Added to waiting queue.', 'تم تسجيل وصول المريض! تمت إضافته لقائمة الانتظار') + ' ✅');
+    // Refresh the page
+    if (typeof renderAppointments === 'function') {
+      const el = document.getElementById('mainContent');
+      if (el) renderAppointments(el);
+    }
+  } catch(e) { showToast(tr('Check-in failed', 'فشل تسجيل الوصول'), 'error'); }
+};
+
+window.markNoShow = async (appointmentId) => {
+  if (!confirm(tr('Mark this patient as No-Show?', 'تحديد المريض كمتغيب؟'))) return;
+  try {
+    await API.put('/api/appointments/' + appointmentId + '/noshow', {});
+    showToast(tr('Marked as No-Show', 'تم التحديد كمتغيب') + ' ⚠️');
+    if (typeof renderAppointments === 'function') {
+      const el = document.getElementById('mainContent');
+      if (el) renderAppointments(el);
+    }
+  } catch(e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+// ===== NEXT PATIENT (Doctor) =====
+window.callNextPatient = async () => {
+  try {
+    const result = await API.get('/api/doctor/next-patient');
+    if (!result.hasNext) {
+      showToast(tr('No patients waiting', 'لا يوجد مرضى بالانتظار') + ' ✅', 'info');
+      return;
+    }
+    
+    // Show patient info modal
+    const p = result.patient || {};
+    const v = result.vitals || {};
+    const q = result.queue || {};
+    
+    let modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+    modal.innerHTML = '<div style="background:var(--bg-card,#fff);border-radius:16px;padding:28px;width:600px;direction:rtl;max-height:90vh;overflow-y:auto">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
+      '<h3 style="margin:0;color:var(--primary)">🔔 ' + tr('Next Patient', 'المريض التالي') + '</h3>' +
+      '<span style="background:#e3f2fd;padding:4px 12px;border-radius:20px;font-size:14px">⏳ ' + result.waiting_count + ' ' + tr('waiting', 'بالانتظار') + '</span>' +
+      '</div>' +
+      '<div style="background:#f8f9fa;border-radius:12px;padding:16px;margin-bottom:16px">' +
+      '<h4 style="margin:0 0 8px;font-size:18px">' + (p.name_ar || p.name_en || q.patient_name || '') + '</h4>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:14px">' +
+      '<span>📁 ' + tr('MRN:', 'الملف:') + ' <strong>' + (p.mrn || p.file_number || '') + '</strong></span>' +
+      '<span>🎂 ' + tr('Age:', 'العمر:') + ' <strong>' + (p.age || '') + '</strong></span>' +
+      '<span>📱 ' + tr('Phone:', 'الجوال:') + ' <strong>' + (p.phone || '') + '</strong></span>' +
+      '<span>🆔 ' + tr('ID:', 'الهوية:') + ' <strong>' + (p.national_id || '') + '</strong></span>' +
+      (p.allergies ? '<span style="grid-column:1/-1;color:#cc0000;font-weight:bold">⚠️ ' + tr('Allergies:', 'حساسية:') + ' ' + p.allergies + '</span>' : '') +
+      (p.chronic_diseases ? '<span style="grid-column:1/-1;color:#e65100">🏥 ' + tr('Chronic:', 'أمراض مزمنة:') + ' ' + p.chronic_diseases + '</span>' : '') +
+      '</div></div>' +
+      (v.blood_pressure || v.temperature || v.pulse ? 
+        '<div style="background:#e8f5e9;border-radius:12px;padding:12px;margin-bottom:16px">' +
+        '<h5 style="margin:0 0 8px">' + tr('Latest Vitals', 'العلامات الحيوية') + '</h5>' +
+        '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:14px">' +
+        (v.blood_pressure ? '<span>🩺 BP: <strong>' + v.blood_pressure + '</strong></span>' : '') +
+        (v.temperature ? '<span>🌡️ T: <strong>' + v.temperature + '°C</strong></span>' : '') +
+        (v.pulse ? '<span>❤️ P: <strong>' + v.pulse + '</strong></span>' : '') +
+        (v.spo2 ? '<span>🫁 SpO₂: <strong>' + v.spo2 + '%</strong></span>' : '') +
+        (v.weight ? '<span>⚖️ W: <strong>' + v.weight + 'kg</strong></span>' : '') +
+        '</div></div>' : '') +
+      '<div style="display:flex;gap:12px">' +
+      '<button class="btn btn-primary" onclick="selectPatientFromQueue(' + (p.id || 'null') + ');this.closest(\'div\').parentElement.remove()" style="flex:2;padding:12px">✅ ' + tr('Start Consultation', 'بدء الاستشارة') + '</button>' +
+      '<button class="btn btn-secondary" onclick="this.closest(\'div\').parentElement.remove()" style="flex:1">❌ ' + tr('Skip', 'تخطي') + '</button>' +
+      '</div></div>';
+    document.body.appendChild(modal);
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+    
+  } catch(e) { showToast(tr('Error loading next patient', 'خطأ'), 'error'); console.error(e); }
+};
+
+window.selectPatientFromQueue = (patientId) => {
+  if (!patientId) return;
+  const select = document.getElementById('drPatientSelect');
+  if (select) {
+    select.value = patientId;
+    select.dispatchEvent(new Event('change'));
+    showToast(tr('Patient loaded!', 'تم تحميل المريض!'));
+  }
+};
+
+// ===== TRIAGE (Nursing) =====
+window.showTriageForm = (patientId, patientName) => {
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML = '<div style="background:var(--bg-card,#fff);border-radius:16px;padding:24px;width:450px;direction:rtl">' +
+    '<h3 style="margin:0 0 16px;color:var(--primary)">🏥 ' + tr('Triage Assessment', 'تصنيف المريض') + '</h3>' +
+    '<p style="margin:0 0 12px;font-weight:bold">' + (patientName || '') + '</p>' +
+    '<div class="form-group"><label>' + tr('Triage Level', 'مستوى الفرز') + '</label>' +
+    '<select class="form-input" id="triageLevel">' +
+    '<option value="5" style="background:#4caf50;color:#fff">5 - ' + tr('Non-Urgent', 'غير طارئ') + '</option>' +
+    '<option value="4" style="background:#2196f3;color:#fff">4 - ' + tr('Less Urgent', 'أقل إلحاحاً') + '</option>' +
+    '<option value="3" selected style="background:#ff9800;color:#fff">3 - ' + tr('Urgent', 'مستعجل') + '</option>' +
+    '<option value="2" style="background:#ff5722;color:#fff">2 - ' + tr('Emergency', 'طوارئ') + '</option>' +
+    '<option value="1" style="background:#d50000;color:#fff">1 - ' + tr('Resuscitation', 'إنعاش') + '</option>' +
+    '</select></div>' +
+    '<div class="form-group"><label>' + tr('Pain Score (0-10)', 'مقياس الألم (0-10)') + '</label>' +
+    '<div style="display:flex;align-items:center;gap:12px">' +
+    '<input type="range" id="painScore" min="0" max="10" value="0" style="flex:1" oninput="document.getElementById(\'painValue\').textContent=this.value">' +
+    '<span id="painValue" style="font-size:24px;font-weight:bold;width:30px;text-align:center">0</span>' +
+    '</div>' +
+    '<div style="display:flex;justify-content:space-between;font-size:11px;color:#999"><span>😊 ' + tr('No Pain', 'لا ألم') + '</span><span>😖 ' + tr('Worst Pain', 'أسوأ ألم') + '</span></div></div>' +
+    '<div class="form-group"><label>' + tr('Chief Complaint', 'الشكوى الرئيسية') + '</label>' +
+    '<input class="form-input" id="chiefComplaint" placeholder="' + tr('Main reason for visit', 'سبب الزيارة الرئيسي') + '"></div>' +
+    '<button class="btn btn-primary" onclick="saveTriageData(' + patientId + ')" style="width:100%;padding:12px">💾 ' + tr('Save Triage', 'حفظ التصنيف') + '</button>' +
+    '</div>';
+  document.body.appendChild(modal);
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+};
+
+window.saveTriageData = async (patientId) => {
+  try {
+    await API.post('/api/nursing/triage', {
+      patient_id: patientId,
+      triage_level: document.getElementById('triageLevel')?.value,
+      pain_score: document.getElementById('painScore')?.value,
+      chief_complaint: document.getElementById('chiefComplaint')?.value,
+    });
+    document.querySelector('[style*="position:fixed"][style*="z-index:9999"]')?.remove();
+    showToast(tr('Triage saved!', 'تم حفظ التصنيف!') + ' ✅');
+  } catch(e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+// ===== DUPLICATE APPOINTMENT CHECK =====
+window.checkDuplicateAppointment = async (patientId, date, doctor) => {
+  try {
+    const result = await API.post('/api/appointments/check-duplicate', { patient_id: patientId, date, doctor });
+    if (result.duplicate) {
+      showToast(tr('Warning: Patient already has appointment with this doctor on this date!', 'تحذير: المريض لديه موعد مسبق مع نفس الطبيب بنفس التاريخ!') + ' ⚠️', 'warning');
+      return true;
+    }
+    return false;
+  } catch(e) { return false; }
+};
+
+
+
+window.loadMyQueue = async () => {
+  try {
+    const queue = await API.get('/api/doctor/my-queue');
+    if (!queue || queue.length === 0) {
+      showToast(tr('No patients in your queue', 'لا يوجد مرضى في طابورك'), 'info');
+      return;
+    }
+    let html = '<div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center">' +
+      '<div style="background:var(--bg-card,#fff);border-radius:16px;padding:24px;width:500px;direction:rtl;max-height:80vh;overflow-y:auto">' +
+      '<h3 style="margin:0 0 16px">📋 ' + tr('My Queue', 'طابوري') + ' (' + queue.length + ')</h3>';
+    queue.forEach((q, i) => {
+      const isActive = q.status === 'In Progress';
+      html += '<div style="padding:12px;margin:8px 0;background:' + (isActive ? '#e8f5e9' : '#f5f5f5') + ';border-radius:8px;border-right:4px solid ' + (isActive ? '#4caf50' : '#ccc') + ';cursor:pointer" onclick="selectPatientFromQueue(' + q.patient_id + ');this.closest(\'[style*=position]\').remove()">' +
+        '<div style="display:flex;justify-content:space-between"><strong>' + (i+1) + '. ' + (q.patient_name || '') + '</strong><span style="font-size:12px;color:#666">' + (q.check_in_time ? new Date(q.check_in_time).toLocaleTimeString('ar-SA', {hour:'2-digit',minute:'2-digit'}) : '') + '</span></div>' +
+        '<span style="font-size:12px;color:' + (isActive ? '#2e7d32' : '#999') + '">' + (isActive ? '🟢 ' + tr('In Progress','جاري') : '⏳ ' + tr('Waiting','بالانتظار')) + '</span>' +
+        '</div>';
+    });
+    html += '<button class="btn btn-secondary" onclick="this.closest(\'[style*=position]\').remove()" style="width:100%;margin-top:12px">' + tr('Close','إغلاق') + '</button></div></div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+  } catch(e) { showToast(tr('Error','خطأ'), 'error'); }
+};
+
 async function renderDashboard(el) {
   const [s, enhanced] = await Promise.all([
     API.get('/api/dashboard/stats'),
@@ -1573,7 +1739,7 @@ async function renderAppointments(el) {
         <div id="aTable">${makeTable(
     [tr('Patient', 'المريض'), tr('Doctor', 'الطبيب'), tr('Dept', 'القسم'), tr('Date', 'التاريخ'), tr('Time', 'الوقت'), tr('Status', 'الحالة'), tr('Delete', 'حذف')],
     appts.map(a => ({ cells: [a.patient_name, a.doctor_name, a.department, a.appt_date, a.appt_time, statusBadge(a.status)], id: a.id })),
-    (row) => `<button class="btn btn-danger btn-sm" onclick="delAppt(${row.id})">🗑</button>`
+    (row) => `<button class="btn btn-sm" onclick="checkInPatient(${row.id})" title="${tr('Check-in','تسجيل وصول')}" style="background:#e8f5e9;color:#2e7d32;margin:0 2px">✅</button><button class="btn btn-sm" onclick="markNoShow(${row.id})" title="${tr('No-Show','متغيب')}" style="background:#fff3e0;color:#e65100;margin:0 2px">⚠️</button><button class="btn btn-danger btn-sm" onclick="delAppt(${row.id})" style="margin:0 2px">🗑</button>`
   )}</div>
       </div>
     </div>`;
@@ -3148,7 +3314,7 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:10px;direction:rtl;f
   <button onclick="window.close()" style="padding:10px 20px;font-size:14px;background:#dc3545;color:#fff;border:none;border-radius:8px;cursor:pointer;margin-right:8px">✕</button>
 </div>
 <div class="inv">
-  <div class="header"><h2>🏥 نما الطبي — فاتورة صيدلية</h2><small>Nama Medical — Pharmacy Invoice</small></div>
+  <div class="header"><h2>🏥 نما الطبي — فاتورة صيدلية</h2><div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><button class="btn btn-primary" onclick="callNextPatient()" style="padding:8px 20px;font-size:15px;animation:pulse 2s infinite">🔔 ${tr("Next Patient","المريض التالي")}</button><button class="btn btn-sm" onclick="loadMyQueue()" style="background:#e3f2fd;color:#1565c0">📋 ${tr("My Queue","طابوري")}</button></div><small>Nama Medical — Pharmacy Invoice</small></div>
   <div class="row"><span class="k">📄 رقم الفاتورة:</span><span>RX-${rxId}</span></div>
   <div class="row"><span class="k">👤 المريض:</span><span>${patientName}</span></div>
   <div class="row"><span class="k">📅 التاريخ:</span><span>${new Date().toLocaleDateString('ar-SA')} — ${new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span></div>

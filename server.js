@@ -4090,4 +4090,340 @@ app.get('/api/cash-drawer/current', requireAuth, async (req, res) => {
     } catch(e) { res.status(500).json({ error: 'Server error' }); }
 });
 
+
+// ===== VISIT LIFECYCLE TRACKING =====
+app.post('/api/visits/lifecycle', requireAuth, async (req, res) => {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS visit_lifecycle (
+                id SERIAL PRIMARY KEY,
+                patient_id INTEGER,
+                patient_name VARCHAR(200),
+                appointment_id INTEGER,
+                doctor VARCHAR(200),
+                department VARCHAR(100),
+                status VARCHAR(30) DEFAULT 'arrived',
+                arrived_at TIMESTAMP,
+                triage_at TIMESTAMP,
+                consult_start TIMESTAMP,
+                consult_end TIMESTAMP,
+                lab_sent_at TIMESTAMP,
+                lab_done_at TIMESTAMP,
+                pharmacy_sent_at TIMESTAMP,
+                pharmacy_done_at TIMESTAMP,
+                payment_at TIMESTAMP,
+                completed_at TIMESTAMP,
+                wait_time_minutes INTEGER,
+                consult_duration_minutes INTEGER,
+                total_duration_minutes INTEGER,
+                triage_level VARCHAR(10),
+                pain_score INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        
+        const { patient_id, patient_name, appointment_id, doctor, department } = req.body;
+        const result = await pool.query(
+            'INSERT INTO visit_lifecycle (patient_id, patient_name, appointment_id, doctor, department, status, arrived_at) VALUES ($1,$2,$3,$4,$5,$6,CURRENT_TIMESTAMP) RETURNING *',
+            [patient_id, patient_name, appointment_id, doctor, department, 'arrived']
+        );
+        res.json(result.rows[0]);
+    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+});
+
+app.put('/api/visits/lifecycle/:id', requireAuth, async (req, res) => {
+    try {
+        const { status } = req.body;
+        const visit = (await pool.query('SELECT * FROM visit_lifecycle WHERE id=$1', [req.params.id])).rows[0];
+        if (!visit) return res.status(404).json({ error: 'Visit not found' });
+        
+        const timeFields = {
+            'triage': 'triage_at', 'in_consultation': 'consult_start', 'consultation_done': 'consult_end',
+            'lab_pending': 'lab_sent_at', 'lab_done': 'lab_done_at',
+            'pharmacy_pending': 'pharmacy_sent_at', 'pharmacy_done': 'pharmacy_done_at',
+            'payment': 'payment_at', 'completed': 'completed_at'
+        };
+        
+        const field = timeFields[status];
+        let extra = '';
+        if (status === 'in_consultation' && visit.arrived_at) {
+            const waitMs = Date.now() - new Date(visit.arrived_at).getTime();
+            extra = ', wait_time_minutes=' + Math.round(waitMs / 60000);
+        }
+        if (status === 'consultation_done' && visit.consult_start) {
+            const consultMs = Date.now() - new Date(visit.consult_start).getTime();
+            extra = ', consult_duration_minutes=' + Math.round(consultMs / 60000);
+        }
+        if (status === 'completed' && visit.arrived_at) {
+            const totalMs = Date.now() - new Date(visit.arrived_at).getTime();
+            extra = ', total_duration_minutes=' + Math.round(totalMs / 60000);
+        }
+        
+        await pool.query('UPDATE visit_lifecycle SET status=$1' + (field ? ', ' + field + '=CURRENT_TIMESTAMP' : '') + extra + ' WHERE id=$2', [status, req.params.id]);
+        const updated = (await pool.query('SELECT * FROM visit_lifecycle WHERE id=$1', [req.params.id])).rows[0];
+        res.json(updated);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.get('/api/visits/lifecycle/today', requireAuth, async (req, res) => {
+    try {
+        await pool.query('CREATE TABLE IF NOT EXISTS visit_lifecycle (id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name VARCHAR(200), appointment_id INTEGER, doctor VARCHAR(200), department VARCHAR(100), status VARCHAR(30), arrived_at TIMESTAMP, triage_at TIMESTAMP, consult_start TIMESTAMP, consult_end TIMESTAMP, lab_sent_at TIMESTAMP, lab_done_at TIMESTAMP, pharmacy_sent_at TIMESTAMP, pharmacy_done_at TIMESTAMP, payment_at TIMESTAMP, completed_at TIMESTAMP, wait_time_minutes INTEGER, consult_duration_minutes INTEGER, total_duration_minutes INTEGER, triage_level VARCHAR(10), pain_score INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)');
+        const { doctor } = req.query;
+        let q = "SELECT * FROM visit_lifecycle WHERE created_at::date = CURRENT_DATE";
+        let p = [];
+        if (doctor) { q += " AND doctor=$1"; p = [doctor]; }
+        q += " ORDER BY arrived_at DESC";
+        const rows = (await pool.query(q, p)).rows;
+        res.json(rows);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== APPOINTMENT CHECK-IN =====
+app.put('/api/appointments/:id/checkin', requireAuth, async (req, res) => {
+    try {
+        const appt = (await pool.query('SELECT * FROM appointments WHERE id=$1', [req.params.id])).rows[0];
+        if (!appt) return res.status(404).json({ error: 'Appointment not found' });
+        
+        // Update appointment status
+        await pool.query("UPDATE appointments SET status='Checked-In', check_in_time=CURRENT_TIMESTAMP WHERE id=$1", [req.params.id]);
+        
+        // Create visit lifecycle entry
+        await pool.query('CREATE TABLE IF NOT EXISTS visit_lifecycle (id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name VARCHAR(200), appointment_id INTEGER, doctor VARCHAR(200), department VARCHAR(100), status VARCHAR(30), arrived_at TIMESTAMP, triage_at TIMESTAMP, consult_start TIMESTAMP, consult_end TIMESTAMP, lab_sent_at TIMESTAMP, lab_done_at TIMESTAMP, pharmacy_sent_at TIMESTAMP, pharmacy_done_at TIMESTAMP, payment_at TIMESTAMP, completed_at TIMESTAMP, wait_time_minutes INTEGER, consult_duration_minutes INTEGER, total_duration_minutes INTEGER, triage_level VARCHAR(10), pain_score INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)');
+        const visit = await pool.query(
+            'INSERT INTO visit_lifecycle (patient_id, patient_name, appointment_id, doctor, department, status, arrived_at) VALUES ($1,$2,$3,$4,$5,$6,CURRENT_TIMESTAMP) RETURNING *',
+            [appt.patient_id, appt.patient_name, appt.id, appt.doctor, appt.department || 'General', 'arrived']
+        );
+        
+        // Auto-add to waiting queue
+        await pool.query(
+            "INSERT INTO waiting_queue (patient_id, patient_name, doctor, department, status, check_in_time) VALUES ($1,$2,$3,$4,'Waiting',CURRENT_TIMESTAMP)",
+            [appt.patient_id, appt.patient_name, appt.doctor, appt.department || 'General']
+        );
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CHECK_IN', 'Appointments', 
+            'Patient ' + appt.patient_name + ' checked in for Dr. ' + appt.doctor, req.ip);
+        
+        res.json({ success: true, visit_id: visit.rows[0].id });
+    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== NO-SHOW MARKING =====
+app.put('/api/appointments/:id/noshow', requireAuth, async (req, res) => {
+    try {
+        await pool.query("UPDATE appointments SET status='No-Show' WHERE id=$1", [req.params.id]);
+        const appt = (await pool.query('SELECT * FROM appointments WHERE id=$1', [req.params.id])).rows[0];
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'NO_SHOW', 'Appointments', 
+            'Patient ' + (appt?.patient_name || '') + ' marked as No-Show', req.ip);
+        res.json({ success: true });
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== DUPLICATE APPOINTMENT PREVENTION =====
+app.post('/api/appointments/check-duplicate', requireAuth, async (req, res) => {
+    try {
+        const { patient_id, date, doctor } = req.body;
+        const existing = (await pool.query(
+            "SELECT * FROM appointments WHERE patient_id=$1 AND date=$2 AND doctor=$3 AND status NOT IN ('Cancelled','No-Show')",
+            [patient_id, date, doctor]
+        )).rows;
+        res.json({ duplicate: existing.length > 0, existing });
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== LAB REFERENCE RANGES =====
+app.get('/api/lab/reference-ranges', requireAuth, async (req, res) => {
+    try {
+        const ranges = {
+            'CBC': {
+                'WBC': { unit: '10^3/uL', male: '4.5-11.0', female: '4.5-11.0', low: 4.5, high: 11.0 },
+                'RBC': { unit: '10^6/uL', male: '4.7-6.1', female: '4.2-5.4', low: 4.2, high: 6.1 },
+                'Hemoglobin': { unit: 'g/dL', male: '13.5-17.5', female: '12.0-16.0', low: 12.0, high: 17.5 },
+                'Hematocrit': { unit: '%', male: '38.3-48.6', female: '35.5-44.9', low: 35.5, high: 48.6 },
+                'Platelets': { unit: '10^3/uL', male: '150-400', female: '150-400', low: 150, high: 400 },
+                'MCV': { unit: 'fL', male: '80-100', female: '80-100', low: 80, high: 100 },
+                'MCH': { unit: 'pg', male: '27-33', female: '27-33', low: 27, high: 33 },
+                'MCHC': { unit: 'g/dL', male: '32-36', female: '32-36', low: 32, high: 36 },
+                'RDW': { unit: '%', male: '11.5-14.5', female: '11.5-14.5', low: 11.5, high: 14.5 },
+                'Neutrophils': { unit: '%', male: '40-70', female: '40-70', low: 40, high: 70 },
+                'Lymphocytes': { unit: '%', male: '20-40', female: '20-40', low: 20, high: 40 },
+                'Monocytes': { unit: '%', male: '2-8', female: '2-8', low: 2, high: 8 },
+                'Eosinophils': { unit: '%', male: '1-4', female: '1-4', low: 1, high: 4 },
+                'Basophils': { unit: '%', male: '0-1', female: '0-1', low: 0, high: 1 },
+                'ESR': { unit: 'mm/hr', male: '0-15', female: '0-20', low: 0, high: 20 },
+            },
+            'Chemistry': {
+                'Glucose (Fasting)': { unit: 'mg/dL', male: '70-100', female: '70-100', low: 70, high: 100 },
+                'Glucose (Random)': { unit: 'mg/dL', male: '70-140', female: '70-140', low: 70, high: 140 },
+                'HbA1c': { unit: '%', male: '4.0-5.6', female: '4.0-5.6', low: 4.0, high: 5.6 },
+                'BUN': { unit: 'mg/dL', male: '7-20', female: '7-20', low: 7, high: 20 },
+                'Creatinine': { unit: 'mg/dL', male: '0.7-1.3', female: '0.6-1.1', low: 0.6, high: 1.3 },
+                'Uric Acid': { unit: 'mg/dL', male: '3.4-7.0', female: '2.4-6.0', low: 2.4, high: 7.0 },
+                'Total Cholesterol': { unit: 'mg/dL', male: '<200', female: '<200', low: 0, high: 200 },
+                'LDL': { unit: 'mg/dL', male: '<100', female: '<100', low: 0, high: 100 },
+                'HDL': { unit: 'mg/dL', male: '>40', female: '>50', low: 40, high: 999 },
+                'Triglycerides': { unit: 'mg/dL', male: '<150', female: '<150', low: 0, high: 150 },
+                'AST (SGOT)': { unit: 'U/L', male: '10-40', female: '10-35', low: 10, high: 40 },
+                'ALT (SGPT)': { unit: 'U/L', male: '7-56', female: '7-45', low: 7, high: 56 },
+                'ALP': { unit: 'U/L', male: '44-147', female: '44-147', low: 44, high: 147 },
+                'GGT': { unit: 'U/L', male: '9-48', female: '9-36', low: 9, high: 48 },
+                'Total Bilirubin': { unit: 'mg/dL', male: '0.1-1.2', female: '0.1-1.2', low: 0.1, high: 1.2 },
+                'Direct Bilirubin': { unit: 'mg/dL', male: '0-0.3', female: '0-0.3', low: 0, high: 0.3 },
+                'Total Protein': { unit: 'g/dL', male: '6.0-8.3', female: '6.0-8.3', low: 6.0, high: 8.3 },
+                'Albumin': { unit: 'g/dL', male: '3.5-5.5', female: '3.5-5.5', low: 3.5, high: 5.5 },
+                'Calcium': { unit: 'mg/dL', male: '8.5-10.5', female: '8.5-10.5', low: 8.5, high: 10.5 },
+                'Phosphorus': { unit: 'mg/dL', male: '2.5-4.5', female: '2.5-4.5', low: 2.5, high: 4.5 },
+                'Magnesium': { unit: 'mg/dL', male: '1.7-2.2', female: '1.7-2.2', low: 1.7, high: 2.2 },
+                'Sodium': { unit: 'mEq/L', male: '136-145', female: '136-145', low: 136, high: 145 },
+                'Potassium': { unit: 'mEq/L', male: '3.5-5.0', female: '3.5-5.0', low: 3.5, high: 5.0 },
+                'Chloride': { unit: 'mEq/L', male: '98-106', female: '98-106', low: 98, high: 106 },
+                'Iron': { unit: 'ug/dL', male: '60-170', female: '50-170', low: 50, high: 170 },
+                'Ferritin': { unit: 'ng/mL', male: '20-300', female: '10-150', low: 10, high: 300 },
+                'TIBC': { unit: 'ug/dL', male: '250-370', female: '250-370', low: 250, high: 370 },
+                'Vitamin D': { unit: 'ng/mL', male: '30-100', female: '30-100', low: 30, high: 100 },
+                'Vitamin B12': { unit: 'pg/mL', male: '200-900', female: '200-900', low: 200, high: 900 },
+                'Folate': { unit: 'ng/mL', male: '3-17', female: '3-17', low: 3, high: 17 },
+                'LDH': { unit: 'U/L', male: '140-280', female: '140-280', low: 140, high: 280 },
+                'CRP': { unit: 'mg/L', male: '<10', female: '<10', low: 0, high: 10 },
+                'Amylase': { unit: 'U/L', male: '28-100', female: '28-100', low: 28, high: 100 },
+                'Lipase': { unit: 'U/L', male: '0-160', female: '0-160', low: 0, high: 160 },
+            },
+            'Thyroid': {
+                'TSH': { unit: 'mIU/L', male: '0.4-4.0', female: '0.4-4.0', low: 0.4, high: 4.0 },
+                'Free T3': { unit: 'pg/mL', male: '2.0-4.4', female: '2.0-4.4', low: 2.0, high: 4.4 },
+                'Free T4': { unit: 'ng/dL', male: '0.8-1.8', female: '0.8-1.8', low: 0.8, high: 1.8 },
+            },
+            'Coagulation': {
+                'PT': { unit: 'seconds', male: '11-13.5', female: '11-13.5', low: 11, high: 13.5 },
+                'INR': { unit: '', male: '0.9-1.1', female: '0.9-1.1', low: 0.9, high: 1.1 },
+                'aPTT': { unit: 'seconds', male: '25-35', female: '25-35', low: 25, high: 35 },
+                'D-Dimer': { unit: 'ng/mL', male: '<500', female: '<500', low: 0, high: 500 },
+                'Fibrinogen': { unit: 'mg/dL', male: '200-400', female: '200-400', low: 200, high: 400 },
+            },
+            'Urinalysis': {
+                'pH': { unit: '', male: '4.5-8.0', female: '4.5-8.0', low: 4.5, high: 8.0 },
+                'Specific Gravity': { unit: '', male: '1.005-1.030', female: '1.005-1.030', low: 1.005, high: 1.030 },
+                'Glucose': { unit: '', male: 'Negative', female: 'Negative', low: 0, high: 0 },
+                'Protein': { unit: '', male: 'Negative', female: 'Negative', low: 0, high: 0 },
+                'Blood': { unit: '', male: 'Negative', female: 'Negative', low: 0, high: 0 },
+                'WBC': { unit: '/HPF', male: '0-5', female: '0-5', low: 0, high: 5 },
+                'RBC': { unit: '/HPF', male: '0-2', female: '0-2', low: 0, high: 2 },
+            },
+            'Hormones': {
+                'Prolactin': { unit: 'ng/mL', male: '2-18', female: '2-29', low: 2, high: 29 },
+                'FSH': { unit: 'mIU/mL', male: '1.5-12.4', female: '3.5-12.5', low: 1.5, high: 12.5 },
+                'LH': { unit: 'mIU/mL', male: '1.7-8.6', female: '2.4-12.6', low: 1.7, high: 12.6 },
+                'Testosterone': { unit: 'ng/dL', male: '270-1070', female: '15-70', low: 15, high: 1070 },
+                'Estradiol': { unit: 'pg/mL', male: '10-40', female: '15-350', low: 10, high: 350 },
+                'Cortisol (AM)': { unit: 'ug/dL', male: '6-23', female: '6-23', low: 6, high: 23 },
+                'PSA': { unit: 'ng/mL', male: '0-4.0', female: '-', low: 0, high: 4.0 },
+                'HCG': { unit: 'mIU/mL', male: '<5', female: '<5 (non-pregnant)', low: 0, high: 5 },
+            },
+            'Cardiac': {
+                'Troponin I': { unit: 'ng/mL', male: '<0.04', female: '<0.04', low: 0, high: 0.04 },
+                'CK-MB': { unit: 'ng/mL', male: '0-5', female: '0-5', low: 0, high: 5 },
+                'BNP': { unit: 'pg/mL', male: '<100', female: '<100', low: 0, high: 100 },
+                'Procalcitonin': { unit: 'ng/mL', male: '<0.1', female: '<0.1', low: 0, high: 0.1 },
+            },
+        };
+        res.json(ranges);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== NURSING: TRIAGE + PAIN SCORE =====
+app.post('/api/nursing/triage', requireAuth, async (req, res) => {
+    try {
+        const { patient_id, patient_name, triage_level, pain_score, chief_complaint, notes, visit_id } = req.body;
+        
+        // Update visit lifecycle if visit_id provided
+        if (visit_id) {
+            await pool.query(
+                'UPDATE visit_lifecycle SET status=$1, triage_at=CURRENT_TIMESTAMP, triage_level=$2, pain_score=$3 WHERE id=$4',
+                ['triage', triage_level, pain_score, visit_id]
+            );
+        }
+        
+        // Also store in nursing vitals if that table exists
+        try {
+            await pool.query(
+                "UPDATE nursing_vitals SET triage_level=$1, pain_score=$2 WHERE patient_id=$3 AND created_at::date = CURRENT_DATE ORDER BY id DESC LIMIT 1",
+                [triage_level, pain_score, patient_id]
+            );
+        } catch(e) { /* table may not have these columns yet */ }
+        
+        res.json({ success: true, triage_level, pain_score });
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== DOCTOR: NEXT PATIENT =====
+app.get('/api/doctor/next-patient', requireAuth, async (req, res) => {
+    try {
+        const doctorName = req.session.user?.display_name || '';
+        
+        // Get next waiting patient for this doctor
+        const next = (await pool.query(
+            "SELECT * FROM waiting_queue WHERE doctor ILIKE $1 AND status='Waiting' ORDER BY check_in_time ASC LIMIT 1",
+            ['%' + doctorName + '%']
+        )).rows[0];
+        
+        if (!next) return res.json({ hasNext: false });
+        
+        // Update status to In-Progress
+        await pool.query("UPDATE waiting_queue SET status='In Progress' WHERE id=$1", [next.id]);
+        
+        // Get patient details
+        let patient = null;
+        if (next.patient_id) {
+            patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [next.patient_id])).rows[0];
+        }
+        
+        // Get visit lifecycle
+        let visit = null;
+        try {
+            visit = (await pool.query(
+                "SELECT * FROM visit_lifecycle WHERE patient_id=$1 AND created_at::date=CURRENT_DATE ORDER BY id DESC LIMIT 1",
+                [next.patient_id]
+            )).rows[0];
+            if (visit) {
+                await pool.query("UPDATE visit_lifecycle SET status='in_consultation', consult_start=CURRENT_TIMESTAMP WHERE id=$1", [visit.id]);
+            }
+        } catch(e) {}
+        
+        // Get recent vitals
+        let vitals = null;
+        try {
+            vitals = (await pool.query(
+                "SELECT * FROM nursing_vitals WHERE patient_id=$1 ORDER BY id DESC LIMIT 1",
+                [next.patient_id]
+            )).rows[0];
+        } catch(e) {}
+        
+        // Get waiting count
+        const waitingCount = (await pool.query(
+            "SELECT COUNT(*) as cnt FROM waiting_queue WHERE doctor ILIKE $1 AND status='Waiting'",
+            ['%' + doctorName + '%']
+        )).rows[0].cnt;
+        
+        res.json({ 
+            hasNext: true, 
+            queue: next, 
+            patient, 
+            vitals, 
+            visit,
+            waiting_count: parseInt(waitingCount) 
+        });
+    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== DOCTOR: MY QUEUE =====
+app.get('/api/doctor/my-queue', requireAuth, async (req, res) => {
+    try {
+        const doctorName = req.session.user?.display_name || '';
+        const rows = (await pool.query(
+            "SELECT * FROM waiting_queue WHERE doctor ILIKE $1 AND status IN ('Waiting','In Progress') ORDER BY CASE status WHEN 'In Progress' THEN 0 ELSE 1 END, check_in_time ASC",
+            ['%' + doctorName + '%']
+        )).rows;
+        res.json(rows);
+    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
 startServer();
