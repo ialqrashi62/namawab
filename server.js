@@ -55,6 +55,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 function requireAuth(req, res, next) {
     if (req.session && req.session.user) return next();
     res.status(401).json({ error: 'Unauthorized' });
+
+// ===== CATALOG EDIT RESTRICTION (Admin/Manager only) =====
+const requireCatalogAccess = (req, res, next) => {
+    const role = (req.session.user?.role || '').toLowerCase();
+    if (['admin', 'manager', 'administrator'].includes(role)) return next();
+    return res.status(403).json({ error: 'Access denied. Only Admin/Manager can edit catalog items.' });
+};
+
+// ===== DISCOUNT LIMIT BY ROLE =====
+const MAX_DISCOUNT_BY_ROLE = { admin: 100, manager: 50, cashier: 10, receptionist: 10, doctor: 20 };
+
 }
 
 // RBAC middleware - role-based access control
