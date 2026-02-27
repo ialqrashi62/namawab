@@ -429,7 +429,37 @@ body {
   opacity: 0.6;
 }
 
-.lang-select,
+.lang-toggle-btn {
+  height: 38px;
+  min-width: 38px;
+  background: var(--input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.lang-toggle-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+
+.lang-toggle-btn:active {
+  transform: scale(0.95);
+}
+
 .theme-select {
   height: 38px;
   background: var(--input);
@@ -444,7 +474,6 @@ body {
   transition: var(--transition);
 }
 
-.lang-select:focus,
 .theme-select:focus {
   border-color: var(--accent);
 }

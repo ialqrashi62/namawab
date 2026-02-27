@@ -45,31 +45,33 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
     secret: process.env.SESSION_SECRET || 'nama-medical-erp-secret-x7k9m2p4q8w1',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { maxAge: 8 * 60 * 60 * 1000 },
+    resave: true,
+    saveUninitialized: true,
+    cookie: {
+        maxAge: 8 * 60 * 60 * 1000,
+        httpOnly: false,
+        secure: false
+    },
     rolling: true
 }));
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Auth middleware
 function requireAuth(req, res, next) {
     if (req.session && req.session.user) return next();
     res.status(401).json({ error: 'Unauthorized' });
-
-    // ===== CATALOG EDIT RESTRICTION (Admin/Manager only) =====
-    const requireCatalogAccess = (req, res, next) => {
-        const role = (req.session.user?.role || '').toLowerCase();
-        if (['admin', 'manager', 'administrator'].includes(role)) return next();
-        return res.status(403).json({ error: 'Access denied. Only Admin/Manager can edit catalog items.' });
-    };
-
-    // ===== DISCOUNT LIMIT BY ROLE =====
-    const MAX_DISCOUNT_BY_ROLE = { admin: 100, manager: 50, cashier: 10, receptionist: 10, doctor: 20 };
-
 }
+
+// ===== CATALOG EDIT RESTRICTION (Admin/Manager only) =====
+const requireCatalogAccess = (req, res, next) => {
+    const role = (req.session.user?.role || '').toLowerCase();
+    if (['admin', 'manager', 'administrator'].includes(role)) return next();
+    return res.status(403).json({ error: 'Access denied. Only Admin/Manager can edit catalog items.' });
+};
+
+// ===== DISCOUNT LIMIT BY ROLE =====
+const MAX_DISCOUNT_BY_ROLE = { admin: 100, manager: 50, cashier: 10, receptionist: 10, doctor: 20 };
 
 // RBAC middleware - role-based access control
 const ROLE_PERMISSIONS = {
@@ -106,6 +108,10 @@ async function logAudit(userId, userName, action, module, details, ip) {
     } catch (e) { console.error('Audit log error:', e.message); }
 }
 
+// ===== SINGLE SESSION ENFORCEMENT =====
+// Track active session IDs per user to prevent concurrent logins
+const activeUserSessions = new Map(); // userId -> sessionId
+
 // ===== AUTH ROUTES =====
 app.post('/api/auth/login', loginLimiter, async (req, res) => {
     try {
@@ -127,7 +133,20 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
             }
         }
         if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+
+        // ===== SINGLE SESSION: Destroy previous session if exists =====
+        const previousSessionId = activeUserSessions.get(user.id);
+        if (previousSessionId && previousSessionId !== req.sessionID) {
+            // Destroy the old session from the store
+            req.sessionStore.destroy(previousSessionId, (err) => {
+                if (err) console.error('Error destroying old session:', err);
+            });
+        }
+
         req.session.user = { id: user.id, name: user.display_name, role: user.role, speciality: user.speciality || '', permissions: user.permissions || '' };
+        // Track this user's active session
+        activeUserSessions.set(user.id, req.sessionID);
+
         // Save last IP
         const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
         await pool.query('UPDATE system_users SET last_ip=$1 WHERE id=$2', [clientIp, user.id]).catch(() => { });
@@ -137,6 +156,10 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
 });
 
 app.post('/api/auth/logout', (req, res) => {
+    // Remove from single-session tracking
+    if (req.session && req.session.user) {
+        activeUserSessions.delete(req.session.user.id);
+    }
     req.session.destroy();
     res.json({ success: true });
 });
@@ -179,12 +202,12 @@ app.get('/api/patients', requireAuth, async (req, res) => {
         let rows;
         if (search) {
             const s = `%${search}%`;
-            rows = (await pool.query(`SELECT * FROM patients WHERE (is_deleted IS NULL OR is_deleted=0) AND (name_ar ILIKE $1 OR name_en ILIKE $2 OR national_id LIKE $3 OR phone LIKE $4 OR CAST(file_number AS TEXT) LIKE $5 OR COALESCE(mrn,'') ILIKE $6) ORDER BY id DESC LIMIT 200`, [s, s, s, s, s, s])).rows;
+            rows = (await pool.query(`SELECT * FROM patients WHERE (name_ar ILIKE $1 OR name_en ILIKE $2 OR national_id LIKE $3 OR phone LIKE $4 OR CAST(file_number AS TEXT) LIKE $5) ORDER BY id DESC LIMIT 200`, [s, s, s, s, s])).rows;
         } else {
-            rows = (await pool.query('SELECT * FROM patients WHERE (is_deleted IS NULL OR is_deleted=0) ORDER BY id DESC LIMIT 200')).rows;
+            rows = (await pool.query('SELECT * FROM patients ORDER BY id DESC LIMIT 200')).rows;
         }
         res.json(rows);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { console.error('Patients query error:', e.message); res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/api/patients', requireAuth, async (req, res) => {
@@ -533,22 +556,22 @@ app.get('/api/billing/summary/:patient_id', requireAuth, async (req, res) => {
 });
 
 // ===== CATALOG APIs =====
-app.get('/api/catalog/lab', requireAuth, async (req, res) => {
+app.get('/api/catalog/', requireAuth, requireCatalogAccess, async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM lab_tests_catalog ORDER BY category, test_name')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/catalog/lab/:id', requireAuth, async (req, res) => {
+app.get('/api/catalog/', requireAuth, requireCatalogAccess, async (req, res) => {
     try {
         const { price } = req.body;
         if (price !== undefined) await pool.query('UPDATE lab_tests_catalog SET price=$1 WHERE id=$2', [price, req.params.id]);
         res.json((await pool.query('SELECT * FROM lab_tests_catalog WHERE id=$1', [req.params.id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/catalog/radiology', requireAuth, async (req, res) => {
+app.get('/api/catalog/', requireAuth, requireCatalogAccess, async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM radiology_catalog ORDER BY modality, exact_name')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/catalog/radiology/:id', requireAuth, async (req, res) => {
+app.get('/api/catalog/', requireAuth, requireCatalogAccess, async (req, res) => {
     try {
         const { price } = req.body;
         if (price !== undefined) await pool.query('UPDATE radiology_catalog SET price=$1 WHERE id=$2', [price, req.params.id]);
@@ -717,12 +740,12 @@ app.post('/api/inventory/items', requireAuth, async (req, res) => {
 });
 
 // ===== HR =====
-app.get('/api/hr/employees', requireAuth, async (req, res) => {
+app.get('/api/hr/employees', requireAuth, requireRole('hr'), async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM hr_employees WHERE is_active=1 ORDER BY id DESC')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/hr/employees', requireAuth, async (req, res) => {
+app.post('/api/hr/employees', requireAuth, requireRole('hr'), async (req, res) => {
     try {
         const { emp_number, name_ar, name_en, national_id, phone, email, department, job_title, hire_date, basic_salary, housing_allowance, transport_allowance } = req.body;
         const result = await pool.query('INSERT INTO hr_employees (emp_number, name_ar, name_en, national_id, phone, email, department, job_title, hire_date, basic_salary, housing_allowance, transport_allowance) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id',
@@ -731,28 +754,28 @@ app.post('/api/hr/employees', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/hr/salaries', requireAuth, async (req, res) => {
+app.get('/api/hr/salaries', requireAuth, requireRole('hr'), async (req, res) => {
     try { res.json((await pool.query('SELECT hs.*, he.name_en as employee_name FROM hr_salaries hs LEFT JOIN hr_employees he ON hs.employee_id=he.id ORDER BY hs.id DESC')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/hr/leaves', requireAuth, async (req, res) => {
+app.get('/api/hr/leaves', requireAuth, requireRole('hr'), async (req, res) => {
     try { res.json((await pool.query('SELECT hl.*, he.name_en as employee_name FROM hr_leaves hl LEFT JOIN hr_employees he ON hl.employee_id=he.id ORDER BY hl.id DESC')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/hr/attendance', requireAuth, async (req, res) => {
+app.get('/api/hr/attendance', requireAuth, requireRole('hr'), async (req, res) => {
     try { res.json((await pool.query('SELECT ha.*, he.name_en as employee_name FROM hr_attendance ha LEFT JOIN hr_employees he ON ha.employee_id=he.id ORDER BY ha.id DESC')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== FINANCE =====
-app.get('/api/finance/accounts', requireAuth, async (req, res) => {
+app.get('/api/finance/accounts', requireAuth, requireRole('finance', 'accounts', 'invoices'), async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM finance_chart_of_accounts WHERE is_active=1 ORDER BY account_code')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/finance/accounts', requireAuth, async (req, res) => {
+app.post('/api/finance/accounts', requireAuth, requireRole('finance', 'accounts', 'invoices'), async (req, res) => {
     try {
         const { account_code, account_name_ar, account_name_en, parent_id, account_type } = req.body;
         const result = await pool.query('INSERT INTO finance_chart_of_accounts (account_code, account_name_ar, account_name_en, parent_id, account_type) VALUES ($1,$2,$3,$4,$5) RETURNING id',
@@ -761,17 +784,18 @@ app.post('/api/finance/accounts', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/finance/journal', requireAuth, async (req, res) => {
+app.get('/api/finance/journal', requireAuth, requireRole('finance', 'accounts', 'invoices'), async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM finance_journal_entries ORDER BY id DESC')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/finance/vouchers', requireAuth, async (req, res) => {
+app.get('/api/finance/vouchers', requireAuth, requireRole('finance', 'accounts', 'invoices'), async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM finance_vouchers ORDER BY id DESC')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== SETTINGS =====
+// GET settings is allowed for all authenticated users (needed for theme loading)
 app.get('/api/settings', requireAuth, async (req, res) => {
     try {
         const rows = (await pool.query('SELECT * FROM company_settings')).rows;
@@ -781,7 +805,7 @@ app.get('/api/settings', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.put('/api/settings', requireAuth, async (req, res) => {
+app.put('/api/settings', requireAuth, requireRole('settings'), async (req, res) => {
     try {
         const updates = req.body;
         for (const [key, value] of Object.entries(updates)) {
@@ -791,12 +815,12 @@ app.put('/api/settings', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/settings/users', requireAuth, async (req, res) => {
+app.get('/api/settings/users', requireAuth, requireRole('settings'), async (req, res) => {
     try { res.json((await pool.query('SELECT id, username, display_name, role, speciality, permissions, commission_type, commission_value, is_active, last_ip, created_at FROM system_users ORDER BY id')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/settings/users', requireAuth, async (req, res) => {
+app.post('/api/settings/users', requireAuth, requireRole('settings'), async (req, res) => {
     try {
         const { username, password, display_name, role, speciality, permissions, commission_type, commission_value } = req.body;
         const hash = await bcrypt.hash(password, 10);
@@ -2633,11 +2657,11 @@ app.post('/api/nursing/assessments', requireAuth, async (req, res) => {
 });
 
 // ===== FINANCIAL DAILY CLOSE =====
-app.get('/api/finance/daily-close', requireAuth, async (req, res) => {
+app.get('/api/finance/daily-close', requireAuth, requireRole('finance', 'accounts', 'invoices'), async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM daily_close ORDER BY created_at DESC LIMIT 30')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/finance/daily-close', requireAuth, async (req, res) => {
+app.post('/api/finance/daily-close', requireAuth, requireRole('finance', 'accounts', 'invoices'), async (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0];
         // Aggregate today's transactions
@@ -3802,12 +3826,6 @@ app.get('/api/patients/:id/summary', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-// ===== SPA CATCH-ALL (must be LAST route) =====
-app.get('*', (req, res) => {
-    if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
 
 // ===== MEDICAL REPORTS & SICK LEAVE =====
 app.post('/api/medical-reports', requireAuth, async (req, res) => {
@@ -4550,7 +4568,7 @@ app.get('/api/admin/backups', requireAuth, async (req, res) => {
 
 
 // ===== FINANCE SUMMARY =====
-app.get('/api/finance/summary', requireAuth, async (req, res) => {
+app.get('/api/finance/summary', requireAuth, requireRole('finance', 'accounts', 'invoices'), async (req, res) => {
     try {
         const { from, to } = req.query;
         let where = "WHERE total > 0";
@@ -4559,9 +4577,9 @@ app.get('/api/finance/summary', requireAuth, async (req, res) => {
         if (to) { where += " AND created_at <= $" + (p.length + 1); p.push(to + ' 23:59:59'); }
 
         const total = (await pool.query("SELECT COALESCE(SUM(total),0) as revenue, COUNT(*) as count FROM invoices " + where, p)).rows[0];
-        const paid = (await pool.query("SELECT COALESCE(SUM(total),0) as paid FROM invoices " + where + " AND paid=true", p)).rows[0];
-        const unpaid = (await pool.query("SELECT COALESCE(SUM(total),0) as unpaid FROM invoices " + where + " AND (paid=false OR paid IS NULL)", p)).rows[0];
-        const byMethod = (await pool.query("SELECT COALESCE(payment_method,'Cash') as method, SUM(total) as amount, COUNT(*) as cnt FROM invoices " + where + " AND paid=true GROUP BY payment_method ORDER BY amount DESC", p)).rows;
+        const paid = (await pool.query("SELECT COALESCE(SUM(total),0) as paid FROM invoices " + where + " AND paid=1", p)).rows[0];
+        const unpaid = (await pool.query("SELECT COALESCE(SUM(total),0) as unpaid FROM invoices " + where + " AND (paid=0 OR paid IS NULL)", p)).rows[0];
+        const byMethod = (await pool.query("SELECT COALESCE(payment_method,'Cash') as method, SUM(total) as amount, COUNT(*) as cnt FROM invoices " + where + " AND paid=1 GROUP BY payment_method ORDER BY amount DESC", p)).rows;
         const byService = (await pool.query("SELECT COALESCE(service_type,description,'Other') as service, SUM(total) as amount, COUNT(*) as cnt FROM invoices " + where + " GROUP BY COALESCE(service_type,description,'Other') ORDER BY amount DESC LIMIT 10", p)).rows;
         const daily = (await pool.query("SELECT DATE(created_at) as day, SUM(total) as amount FROM invoices " + where + " GROUP BY DATE(created_at) ORDER BY day", p)).rows;
 
@@ -4767,5 +4785,12 @@ app.put('/api/pharmacy/prescriptions/:id', requireAuth, async (req, res) => {
         await pool.query(`DO $$ BEGIN ALTER TABLE audit_trail ADD COLUMN details TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`);
     } catch (e) { }
 })();
+
+
+// ===== SPA CATCH-ALL (must be LAST route) =====
+app.get('*', (req, res) => {
+    if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 startServer();

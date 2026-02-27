@@ -1,4 +1,16 @@
-﻿// ===== Nama Medical ERP - Main App =====
+
+// --- SECURITY UTILS ---
+window.escapeHTML = function escapeHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
+// ===== Nama Medical ERP - Main App =====
 let currentUser = null;
 let isArabic = localStorage.getItem('namaLang') === 'ar' ? true : (localStorage.getItem('namaLang') === 'en' ? false : false);
 let currentPage = 0;
@@ -82,21 +94,14 @@ const NAV_ITEMS = [
   setupEvents();
   navigateTo(0);
 
-  // Language: set direction + show toggle button + mobile prompt
-  setTimeout(() => {
-    document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
-    document.documentElement.lang = isArabic ? 'ar' : 'en';
-    if (typeof showMobileLangPrompt === 'function') showMobileLangPrompt();
-    const hdr = document.querySelector('.header-right') || document.querySelector('.header-actions') || document.querySelector('.header');
-    if (hdr && !document.getElementById('langToggleBtn')) {
-      const b = document.createElement('button');
-      b.id = 'langToggleBtn';
-      b.textContent = isArabic ? '🌐 EN' : '🌐 عربي';
-      b.style.cssText = 'background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;margin:0 8px;transition:all 0.3s';
-      b.onclick = () => { if (typeof toggleLanguage === 'function') toggleLanguage(); };
-      hdr.insertBefore(b, hdr.firstChild);
-    }
-  }, 400);
+  // Language: set direction
+  document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+  document.documentElement.lang = isArabic ? 'ar' : 'en';
+  // Set initial toggle button text
+  const langBtn = document.getElementById('langToggleBtn');
+  if (langBtn) langBtn.textContent = isArabic ? '🌐 EN' : '🌐 عربي';
+  // Update all shell elements to match language
+  updateShellLanguage();
 })();
 
 function buildNav() {
@@ -141,10 +146,14 @@ function setupEvents() {
     document.documentElement.setAttribute('data-theme', e.target.value);
     API.put('/api/settings', { theme: e.target.value }).catch(() => { });
   });
-  document.getElementById('langSelect').addEventListener('change', (e) => {
-    isArabic = e.target.value === 'ar';
+  document.getElementById('langToggleBtn').addEventListener('click', () => {
+    isArabic = !isArabic;
+    localStorage.setItem('namaLang', isArabic ? 'ar' : 'en');
     document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
     document.documentElement.lang = isArabic ? 'ar' : 'en';
+    // Update toggle button text
+    document.getElementById('langToggleBtn').textContent = isArabic ? '🌐 EN' : '🌐 عربي';
+    updateShellLanguage();
     buildNav();
     navigateTo(currentPage);
   });
@@ -180,6 +189,54 @@ function setupEvents() {
       document.body.appendChild(div.firstElementChild);
     }
   });
+  // Set initial search placeholder based on language
+  const searchBox = document.getElementById('globalSearch');
+  if (searchBox) searchBox.placeholder = isArabic ? 'بحث بالاسم، الهوية، الجوال، رقم الملف...' : 'Search by name, ID, phone, file number...';
+}
+
+// ===== UPDATE SHELL LANGUAGE =====
+// Updates all static HTML elements that are hardcoded in index.html
+function updateShellLanguage() {
+  // Sidebar title & subtitle
+  const sidebarTitle = document.querySelector('.sidebar-title');
+  if (sidebarTitle) sidebarTitle.textContent = isArabic ? 'نما الطبي' : 'Nama Medical';
+  const sidebarSubtitle = document.querySelector('.sidebar-subtitle');
+  if (sidebarSubtitle) sidebarSubtitle.textContent = isArabic ? 'Nama Medical' : 'Medical ERP';
+
+  // Search placeholder
+  const searchBox = document.getElementById('globalSearch');
+  if (searchBox) searchBox.placeholder = isArabic ? 'بحث بالاسم، الهوية، الجوال، رقم الملف...' : 'Search by name, ID, phone, file number...';
+
+  // Logout button tooltip
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) logoutBtn.title = isArabic ? 'تسجيل الخروج' : 'Logout';
+
+  // Theme select options
+  const themeNames = [
+    { ar: '🔵 أزرق داكن', en: '🔵 Dark Blue' },
+    { ar: '🟢 أخضر داكن', en: '🟢 Dark Green' },
+    { ar: '🟣 بنفسجي', en: '🟣 Purple' },
+    { ar: '🔴 أحمر', en: '🔴 Red' },
+    { ar: '🟡 ذهبي', en: '🟡 Gold' },
+    { ar: '⬜ فاتح كلاسيك', en: '⬜ Light Classic' },
+    { ar: '🔷 فاتح أزرق', en: '🔷 Light Blue' },
+    { ar: '🟩 فاتح أخضر', en: '🟩 Light Green' }
+  ];
+  const themeSelect = document.getElementById('themeSelect');
+  if (themeSelect) {
+    themeSelect.title = isArabic ? 'اختر السمة' : 'Choose Theme';
+    Array.from(themeSelect.options).forEach((opt, i) => {
+      if (themeNames[i]) opt.textContent = isArabic ? themeNames[i].ar : themeNames[i].en;
+    });
+  }
+
+  // Language toggle button tooltip
+  const langBtn = document.getElementById('langToggleBtn');
+  if (langBtn) langBtn.title = isArabic ? 'تغيير اللغة' : 'Change Language';
+
+  // Page title
+  const pageTitle = document.querySelector('title');
+  if (pageTitle) pageTitle.textContent = isArabic ? 'نما الطبي - Nama Medical ERP' : 'Nama Medical ERP';
 }
 
 async function navigateTo(page) {
@@ -2564,7 +2621,7 @@ window.loadPatientInfo = async () => {
         </div>`;
       }
     }
-    document.getElementById('drPatientInfo').innerHTML = `<div class="flex gap-8 mt-16" style="flex-wrap:wrap;align-items:center"><span class="badge badge-info">📁 ${p.mrn || p.file_number}</span><span class="badge badge-warning">🎂 ${tr('Age', 'العمر')}: ${p.age || '?'}</span>${p.blood_type ? `<span class="badge" style="background:#dc2626;color:#fff;font-weight:700">🩸 ${p.blood_type}</span>` : ''}<span class="badge badge-success">📞 ${p.phone}</span><span class="badge badge-purple">🆔 ${p.national_id}</span>${p.gender ? `<span class="badge" style="background:${p.gender === 'ذكر' ? '#3b82f6' : '#ec4899'};color:#fff">${p.gender === 'ذكر' ? '👨' : '👩'} ${p.gender}</span>` : ''}${p.insurance_company ? `<span class="badge" style="background:#0d9488;color:#fff">🏢 ${p.insurance_company}${p.insurance_class ? ' (' + p.insurance_class + ')' : ''}</span>` : ''}<span class="badge" style="background:#0ea5e9;color:#fff">📅 ${tr('Visit', 'الزيارة')}: ${new Date().toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</span><button class="btn btn-sm btn-primary" onclick="viewPatientResults(${p.id})">📋 ${tr('View Lab & Radiology Results', 'استعراض نتائج الفحوصات والأشعة')}</button><button class="btn btn-sm" onclick="dischargePatient(${p.id})" style="margin-right:auto;background:#dc3545;color:#fff;font-weight:600">🚪 ${tr('Patient Done', 'المريض طلع')}</button></div>${p.allergies ? `<div style="margin-top:8px;padding:10px;background:#fef2f2;border:2px solid #ef4444;border-radius:8px;font-size:13px;font-weight:600;color:#dc2626">⚠️ <strong>${tr('ALLERGIES', 'حساسية')}:</strong> ${p.allergies}</div>` : ''}${p.chronic_diseases ? `<div style="margin-top:6px;padding:8px;background:#fefce8;border:1px solid #facc15;border-radius:8px;font-size:12px;color:#854d0e">🩺 <strong>${tr('Chronic Diseases', 'أمراض مزمنة')}:</strong> ${p.chronic_diseases}</div>` : ''}${vitalsHtml}${historyHtml}<div id="drResultsPanel"></div>`;
+    document.getElementById('drPatientInfo').innerHTML = `<div class="flex gap-8 mt-16" style="flex-wrap:wrap;align-items:center"><span class="badge badge-info">📁 ${p.mrn || p.file_number}</span><span class="badge badge-warning">🎂 ${tr('Age', 'العمر')}: ${p.age || '?'}</span>${p.blood_type ? `<span class="badge" style="background:#dc2626;color:#fff;font-weight:700">🩸 ${p.blood_type}</span>` : ''}<span class="badge badge-success">📞 ${p.phone}</span><span class="badge badge-purple">🆔 ${p.national_id}</span>${p.gender ? `<span class="badge" style="background:${p.gender === 'ذكر' ? '#3b82f6' : '#ec4899'};color:#fff">${p.gender === 'ذكر' ? '👨' : '👩'} ${p.gender}</span>` : ''}${p.insurance_company ? `<span class="badge" style="background:#0d9488;color:#fff">🏢 ${p.insurance_company}${p.insurance_class ? ' (' + p.insurance_class + ')' : ''}</span>` : ''}<span class="badge" style="background:#0ea5e9;color:#fff">📅 ${tr('Visit', 'الزيارة')}: ${new Date().toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</span><button class="btn btn-sm btn-primary" onclick="viewPatientResults(${p.id})">📋 ${tr('View Lab & Radiology Results', 'استعراض نتائج الفحوصات والأشعة')}</button><button class="btn btn-sm" onclick="dischargePatient(${p.id})" style="margin-right:auto;background:#dc3545;color:#fff;font-weight:600">🚪 ${tr('Patient Done', 'المريض طلع')}</button></div>${p.allergies ? `<div style="margin-top:8px;padding:10px;background:#fef2f2;border:2px solid #ef4444;border-radius:8px;font-size:13px;font-weight:600;color:#dc2626">⚠️ <strong>${tr('ALLERGIES', 'حساسية')}:</strong> </div>` : ''}${p.chronic_diseases ? `<div style="margin-top:6px;padding:8px;background:#fefce8;border:1px solid #facc15;border-radius:8px;font-size:12px;color:#854d0e">🩺 <strong>${tr('Chronic Diseases', 'أمراض مزمنة')}:</strong> </div>` : ''}${vitalsHtml}${historyHtml}<div id="drResultsPanel"></div>`;
   } catch (e) { }
 };
 window.dischargePatient = async (pid) => {
@@ -3244,7 +3301,7 @@ window.scanLabBarcode = async () => {
   const m = code.match(/LAB-(\d+)/); const oid = m ? m[1] : code;
   try {
     const orders = await API.get('/api/lab/orders'); const o = orders.find(x => x.id == oid);
-    document.getElementById('labScanResult').innerHTML = o ? `<div class="card" style="border:2px solid var(--accent);margin-top:12px"><div class="card-title">🔍 ${tr('Order Found', 'تم العثور على الطلب')} #${o.id}</div><div class="flex gap-8" style="flex-wrap:wrap"><span class="badge badge-info">👤 ${o.patient_name}</span><span class="badge badge-purple">🔬 ${o.order_type}</span>${statusBadge(o.status)}</div>${getLabNormalRange(o.order_type) ? `<div style="margin-top:8px;padding:8px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-size:11px">📊 <strong>${tr('Normal Range', 'المعدل الطبيعي')}:</strong> ${getLabNormalRange(o.order_type)}</div>` : ''}${o.results ? `<div class="mt-16" style="padding:12px;background:var(--hover);border-radius:8px"><strong>${tr('Report:', 'التقرير:')}</strong><br><pre style="white-space:pre-wrap;margin:4px 0 0">${o.results}</pre></div>` : ''}</div>` : `<div class="badge badge-danger mt-16">${tr('Order not found', 'الطلب غير موجود')}</div>`;
+    document.getElementById('labScanResult').innerHTML = o ? `<div class="card" style="border:2px solid var(--accent);margin-top:12px"><div class="card-title">🔍 ${tr('Order Found', 'تم العثور على الطلب')} #${o.id}</div><div class="flex gap-8" style="flex-wrap:wrap"><span class="badge badge-info">👤 </span><span class="badge badge-purple">🔬 ${o.order_type}</span>${statusBadge(o.status)}</div>${getLabNormalRange(o.order_type) ? `<div style="margin-top:8px;padding:8px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-size:11px">📊 <strong>${tr('Normal Range', 'المعدل الطبيعي')}:</strong> ${getLabNormalRange(o.order_type)}</div>` : ''}${o.results ? `<div class="mt-16" style="padding:12px;background:var(--hover);border-radius:8px"><strong>${tr('Report:', 'التقرير:')}</strong><br><pre style="white-space:pre-wrap;margin:4px 0 0">${o.results}</pre></div>` : ''}</div>` : `<div class="badge badge-danger mt-16">${tr('Order not found', 'الطلب غير موجود')}</div>`;
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
@@ -3446,7 +3503,7 @@ window.scanRadBarcode = async () => {
   const m = code.match(/RAD-(\d+)/); const oid = m ? m[1] : code;
   try {
     const orders = await API.get('/api/radiology/orders'); const o = orders.find(x => x.id == oid);
-    document.getElementById('radScanResult').innerHTML = o ? `<div class="card" style="border:2px solid var(--accent);margin-top:12px"><div class="card-title">🔍 ${tr('Order Found', 'تم العثور على الطلب')} #${o.id}</div><div class="flex gap-8" style="flex-wrap:wrap"><span class="badge badge-info">👤 ${o.patient_name}</span><span class="badge badge-purple">📡 ${o.order_type}</span>${statusBadge(o.status)}</div>${o.results ? `<div class="mt-16">${renderRadResults(o.results)}</div>` : ''}</div>` : `<div class="badge badge-danger mt-16">${tr('Order not found', 'الطلب غير موجود')}</div>`;
+    document.getElementById('radScanResult').innerHTML = o ? `<div class="card" style="border:2px solid var(--accent);margin-top:12px"><div class="card-title">🔍 ${tr('Order Found', 'تم العثور على الطلب')} #${o.id}</div><div class="flex gap-8" style="flex-wrap:wrap"><span class="badge badge-info">👤 </span><span class="badge badge-purple">📡 ${o.order_type}</span>${statusBadge(o.status)}</div>${o.results ? `<div class="mt-16">${renderRadResults(o.results)}</div>` : ''}</div>` : `<div class="badge badge-danger mt-16">${tr('Order not found', 'الطلب غير موجود')}</div>`;
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
@@ -4037,7 +4094,7 @@ async function renderNursing(el) {
       <div>
         <div class="card mb-16">
           <div class="card-title">🌡️ ${tr('Record Patient Vitals', 'تسجيل العلامات الحيوية')}</div>
-          <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="nsPatient"><option value="">${tr('-- Select --', '-- اختر مريض --')}</option>${patients.map(p => `<option value="${p.id}" data-name="${p.name_en || p.name_ar}">${p.file_number} - ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</option>`).join('')}</select></div>
+          <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="nsPatient"><option value="">${tr('-- Select --', '-- اختر مريض --')}</option>${patients.map(p => `<option value="${p.id}" data-name="">${p.file_number} - ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</option>`).join('')}</select></div>
           <div class="flex gap-8 mb-12">
             <div class="form-group" style="flex:1"><label>🩸 ${tr('Blood Pressure', 'ضغط الدم')}</label><input class="form-input" id="nsBp" placeholder="120/80"></div>
             <div class="form-group" style="flex:1"><label>🌡️ ${tr('Temp (°C)', 'الحرارة')}</label><input class="form-input" id="nsTemp" type="number" step="0.1" placeholder="37.0"></div>
@@ -4953,7 +5010,7 @@ async function renderSurgery(el) {
     cont.innerHTML = `
     <div class="split-layout"><div class="card">
       <div class="card-title">📝 ${tr('Schedule New Surgery', 'جدولة عملية جديدة')}</div>
-      <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="srgPatient">${patients.map(p => `<option value="${p.id}" data-name="${p.name_en || p.name_ar}">${p.file_number} - ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</option>`).join('')}</select></div>
+      <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="srgPatient">${patients.map(p => `<option value="${p.id}" data-name="">${p.file_number} - ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</option>`).join('')}</select></div>
       <div class="form-group mb-12"><label>${tr('Procedure', 'الإجراء')}</label><input class="form-input" id="srgProc" placeholder="${tr('e.g. Appendectomy', 'مثال: استئصال الزائدة')}"></div>
       <div class="form-group mb-12"><label>${tr('Procedure (Arabic)', 'الإجراء بالعربية')}</label><input class="form-input" id="srgProcAr"></div>
       <div class="form-group mb-12"><label>${tr('Surgeon', 'الجراح')}</label><select class="form-input" id="srgSurgeon"><option value="">${tr('Select', 'اختر')}</option>${doctors.map(d => `<option value="${d.id}" data-name="${d.name}">${d.name}</option>`).join('')}</select></div>
@@ -5229,7 +5286,7 @@ async function renderBloodBank(el) {
   } else if (bbTab === 'crossmatch') {
     cont.innerHTML = `<div class="split-layout"><div class="card">
       <div class="card-title">🧪 ${tr('Request Cross-Match', 'طلب فحص توافق')}</div>
-      <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="bbCMPatient">${patients.map(p => `<option value="${p.id}" data-name="${p.name_en || p.name_ar}">${p.file_number} - ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</option>`).join('')}</select></div>
+      <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="bbCMPatient">${patients.map(p => `<option value="${p.id}" data-name="">${p.file_number} - ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</option>`).join('')}</select></div>
       <div class="form-group mb-12"><label>${tr('Blood Type', 'فصيلة المريض')}</label><select class="form-input" id="bbCMBT"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div>
       <div class="form-group mb-12"><label>${tr('Units Needed', 'الوحدات المطلوبة')}</label><input class="form-input" type="number" id="bbCMUnits" value="1"></div>
       <button class="btn btn-primary w-full" onclick="requestCrossmatch()" style="height:44px">🧪 ${tr('Request', 'طلب')}</button>
@@ -5242,7 +5299,7 @@ async function renderBloodBank(el) {
   } else if (bbTab === 'transfusions') {
     cont.innerHTML = `<div class="split-layout"><div class="card">
       <div class="card-title">💉 ${tr('Record Transfusion', 'تسجيل نقل دم')}</div>
-      <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="bbTrPatient">${patients.map(p => `<option value="${p.id}" data-name="${p.name_en || p.name_ar}">${p.file_number} - ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</option>`).join('')}</select></div>
+      <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="bbTrPatient">${patients.map(p => `<option value="${p.id}" data-name="">${p.file_number} - ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</option>`).join('')}</select></div>
       <div class="form-group mb-12"><label>${tr('Blood Unit', 'وحدة الدم')}</label><select class="form-input" id="bbTrUnit">${units.filter(u => u.status === 'Available').map(u => `<option value="${u.id}" data-bag="${u.bag_number}" data-bt="${u.blood_type + u.rh_factor}" data-comp="${u.component}">${u.bag_number} (${u.blood_type}${u.rh_factor} - ${u.component})</option>`).join('')}</select></div>
       <div class="form-group mb-12"><label>${tr('Volume (ml)', 'الحجم (مل)')}</label><input class="form-input" type="number" id="bbTrVol" value="450"></div>
       <button class="btn btn-primary w-full" onclick="recordTransfusion()" style="height:44px">💉 ${tr('Record', 'تسجيل')}</button>
