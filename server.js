@@ -11,6 +11,7 @@ const { pool, initDatabase } = require('./db_postgres');
 const bcrypt = require('bcryptjs');
 const { insertSampleData, populateLabCatalog, populateRadiologyCatalog } = require('./seed_data_pg');
 const { populateMedicalServices, populateBaseDrugs } = require('./seed_services_pg');
+const { addExtraLabTests, addExtraRadiology } = require('./seed_extra_catalog');
 
 // Multer setup for radiology image uploads
 const uploadsDir = path.join(__dirname, 'public', 'uploads', 'radiology');
@@ -127,7 +128,10 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
         }
         if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
         req.session.user = { id: user.id, name: user.display_name, role: user.role, speciality: user.speciality || '', permissions: user.permissions || '' };
-        logAudit(user.id, user.display_name, 'LOGIN', 'Auth', `User logged in as ${user.role}`, req.ip);
+        // Save last IP
+        const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+        await pool.query('UPDATE system_users SET last_ip=$1 WHERE id=$2', [clientIp, user.id]).catch(() => { });
+        logAudit(user.id, user.display_name, 'LOGIN', 'Auth', `User logged in as ${user.role}`, clientIp);
         res.json({ success: true, user: req.session.user });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -298,7 +302,7 @@ app.post('/api/appointments', requireAuth, async (req, res) => {
                 [patient_id, patient_name, apptFee, `رسوم موعد: ${doctor_name} - ${appt_date}`, 'Appointment']);
         }
         const appt = (await pool.query('SELECT * FROM appointments WHERE id=$1', [result.rows[0].id])).rows[0];
-        
+
         // AUTO: Add to waiting queue when appointment is today
         try {
             const apptDate = new Date(date);
@@ -309,7 +313,7 @@ app.post('/api/appointments', requireAuth, async (req, res) => {
                     [patient_id, patient_name, doctor, department || 'General']
                 );
             }
-        } catch(qe) { console.error('Queue auto-insert:', qe.message); }
+        } catch (qe) { console.error('Queue auto-insert:', qe.message); }
         res.json(appt);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -788,7 +792,7 @@ app.put('/api/settings', requireAuth, async (req, res) => {
 });
 
 app.get('/api/settings/users', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT id, username, display_name, role, speciality, permissions, commission_type, commission_value, is_active, created_at FROM system_users ORDER BY id')).rows); }
+    try { res.json((await pool.query('SELECT id, username, display_name, role, speciality, permissions, commission_type, commission_value, is_active, last_ip, created_at FROM system_users ORDER BY id')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -889,7 +893,7 @@ app.post('/api/prescriptions', requireAuth, async (req, res) => {
             await pool.query('INSERT INTO invoices (patient_id, patient_name, total, vat_amount, description, service_type, paid) VALUES ($1,$2,$3,$4,$5,$6,0)',
                 [patient_id, p?.name_en || p?.name_ar || '', finalTotal, vatAmount, desc, 'Pharmacy']);
         }
-        
+
         // AUTO: Send prescription to pharmacy queue
         try {
             if (Array.isArray(items)) {
@@ -900,7 +904,7 @@ app.post('/api/prescriptions', requireAuth, async (req, res) => {
                     );
                 }
             }
-        } catch(pe) { console.error('Pharmacy queue auto-insert:', pe.message); }
+        } catch (pe) { console.error('Pharmacy queue auto-insert:', pe.message); }
         res.json((await pool.query('SELECT * FROM prescriptions WHERE id=$1', [result.rows[0].id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1683,8 +1687,9 @@ app.get('/api/consent-forms/render/:type', requireAuth, async (req, res) => {
 // Get lab orders (only paid/approved ones visible to lab)
 app.get('/api/lab/orders', requireAuth, async (req, res) => {
     try {
-        const rows = (await pool.query(`SELECT o.*, p.name_ar as patient_name, p.file_number, p.phone 
+        const rows = (await pool.query(`SELECT o.*, p.name_ar as patient_name, p.file_number, p.phone, su.display_name as doctor 
             FROM lab_radiology_orders o LEFT JOIN patients p ON o.patient_id = p.id 
+            LEFT JOIN system_users su ON o.doctor_id = su.id
             WHERE o.is_radiology = 0 AND o.approval_status IN ('Approved', 'Paid')
             ORDER BY o.id DESC`)).rows;
         res.json(rows);
@@ -1694,8 +1699,9 @@ app.get('/api/lab/orders', requireAuth, async (req, res) => {
 // Get radiology orders (only paid/approved ones visible to radiology)
 app.get('/api/radiology/orders', requireAuth, async (req, res) => {
     try {
-        const rows = (await pool.query(`SELECT o.*, p.name_ar as patient_name, p.file_number, p.phone 
+        const rows = (await pool.query(`SELECT o.*, p.name_ar as patient_name, p.file_number, p.phone, su.display_name as doctor 
             FROM lab_radiology_orders o LEFT JOIN patients p ON o.patient_id = p.id 
+            LEFT JOIN system_users su ON o.doctor_id = su.id
             WHERE o.is_radiology = 1 AND o.approval_status IN ('Approved', 'Paid')
             ORDER BY o.id DESC`)).rows;
         res.json(rows);
@@ -2865,6 +2871,8 @@ async function startServer() {
         await insertSampleData();
         await populateLabCatalog();
         await populateRadiologyCatalog();
+        await addExtraLabTests();
+        await addExtraRadiology();
         await populateMedicalServices();
         await populateBaseDrugs();
         app.listen(PORT, () => {
@@ -2902,7 +2910,7 @@ app.post('/api/prescriptions', requireAuth, async (req, res) => {
 // Get pharmacy prescriptions queue
 app.get('/api/pharmacy/queue', requireAuth, async (req, res) => {
     try {
-        const rows = (await pool.query(`SELECT q.*, p.name_ar as patient_name, p.file_number, p.phone, p.age, p.department
+        const rows = (await pool.query(`SELECT q.*, p.name_ar as patient_name, p.file_number, p.phone, p.age, p.department, q.doctor
             FROM pharmacy_prescriptions_queue q 
             LEFT JOIN patients p ON q.patient_id = p.id 
             ORDER BY q.id DESC`)).rows;
@@ -3807,7 +3815,7 @@ app.post('/api/medical-reports', requireAuth, async (req, res) => {
         const { patient_id, patient_name, report_type, diagnosis, icd_code, start_date, end_date, duration_days, notes, fitness_status } = req.body;
         const doctor = req.session.user?.display_name || '';
         const reportNum = 'MR-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-6);
-        
+
         await pool.query(`
             CREATE TABLE IF NOT EXISTS medical_reports (
                 id SERIAL PRIMARY KEY,
@@ -3826,15 +3834,15 @@ app.post('/api/medical-reports', requireAuth, async (req, res) => {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
-        
+
         const result = await pool.query(
             'INSERT INTO medical_reports (report_number, patient_id, patient_name, report_type, diagnosis, icd_code, start_date, end_date, duration_days, notes, fitness_status, doctor) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
             [reportNum, patient_id, patient_name, report_type, diagnosis, icd_code, start_date, end_date, duration_days || 0, notes, fitness_status, doctor]
         );
-        
+
         logAudit(req.session.user?.id, doctor, 'CREATE_MEDICAL_REPORT', 'MedReport', reportNum + ' - ' + report_type, req.ip);
         res.json(result.rows[0]);
-    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
 
 app.get('/api/medical-reports', requireAuth, async (req, res) => {
@@ -3846,7 +3854,7 @@ app.get('/api/medical-reports', requireAuth, async (req, res) => {
         q += ' ORDER BY created_at DESC LIMIT 100';
         const rows = (await pool.query(q, p)).rows;
         res.json(rows);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.get('/api/medical-reports/:id', requireAuth, async (req, res) => {
@@ -3854,7 +3862,7 @@ app.get('/api/medical-reports/:id', requireAuth, async (req, res) => {
         const row = (await pool.query('SELECT * FROM medical_reports WHERE id=$1', [req.params.id])).rows[0];
         if (!row) return res.status(404).json({ error: 'Not found' });
         res.json(row);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 
@@ -3863,7 +3871,7 @@ app.post('/api/drug-interactions/check', requireAuth, async (req, res) => {
     try {
         const { drugs } = req.body; // Array of drug names
         if (!drugs || !Array.isArray(drugs)) return res.json({ interactions: [] });
-        
+
         // Common drug interaction database
         const INTERACTIONS = [
             { drugs: ['Warfarin', 'Aspirin'], severity: 'high', message_ar: 'خطر نزيف شديد', message_en: 'High bleeding risk' },
@@ -3916,10 +3924,10 @@ app.post('/api/drug-interactions/check', requireAuth, async (req, res) => {
             { drugs: ['Allopurinol', 'Azathioprine'], severity: 'critical', message_ar: 'سمية نخاع العظم', message_en: 'Bone marrow toxicity' },
             { drugs: ['Clarithromycin', 'Colchicine'], severity: 'high', message_ar: 'سمية الكولشيسين', message_en: 'Colchicine toxicity' },
         ];
-        
+
         const found = [];
         const drugNamesLower = drugs.map(d => d.toLowerCase());
-        
+
         for (const interaction of INTERACTIONS) {
             const [d1, d2] = interaction.drugs.map(d => d.toLowerCase());
             const match1 = drugNamesLower.some(dn => dn.includes(d1) || d1.includes(dn));
@@ -3928,9 +3936,9 @@ app.post('/api/drug-interactions/check', requireAuth, async (req, res) => {
                 found.push(interaction);
             }
         }
-        
+
         res.json({ interactions: found, total_checked: INTERACTIONS.length });
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== ALLERGY CROSS-CHECK =====
@@ -3938,10 +3946,10 @@ app.post('/api/allergy-check', requireAuth, async (req, res) => {
     try {
         const { patient_id, drugs } = req.body;
         if (!patient_id || !drugs) return res.json({ alerts: [] });
-        
+
         const patient = (await pool.query('SELECT allergies FROM patients WHERE id=$1', [patient_id])).rows[0];
         if (!patient || !patient.allergies) return res.json({ alerts: [] });
-        
+
         const allergyGroups = {
             'penicillin': ['amoxicillin', 'ampicillin', 'augmentin', 'amoxicillin-clavulanate', 'piperacillin', 'flucloxacillin'],
             'sulfa': ['sulfamethoxazole', 'tmp/smx', 'co-trimoxazole', 'sulfasalazine', 'dapsone'],
@@ -3954,10 +3962,10 @@ app.post('/api/allergy-check', requireAuth, async (req, res) => {
             'codeine': ['codeine', 'tramadol', 'morphine', 'oxycodone'],
             'contrast': ['iodine', 'contrast', 'gadolinium'],
         };
-        
+
         const allergies = patient.allergies.toLowerCase();
         const alerts = [];
-        
+
         for (const drug of drugs) {
             const drugLower = drug.toLowerCase();
             // Direct match
@@ -3972,9 +3980,9 @@ app.post('/api/allergy-check', requireAuth, async (req, res) => {
                 }
             }
         }
-        
+
         res.json({ alerts, patient_allergies: patient.allergies });
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== PARTIAL PAYMENT & REFUND =====
@@ -3983,23 +3991,23 @@ app.put('/api/invoices/:id/partial-pay', requireAuth, async (req, res) => {
         const { amount_paid, payment_method } = req.body;
         const invoice = (await pool.query('SELECT * FROM invoices WHERE id=$1', [req.params.id])).rows[0];
         if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
-        
+
         const prevPaid = parseFloat(invoice.amount_paid || 0);
         const newPaid = prevPaid + parseFloat(amount_paid);
         const total = parseFloat(invoice.total);
         const balance = total - newPaid;
         const isPaid = balance <= 0 ? 1 : 0;
-        
+
         await pool.query(
             'UPDATE invoices SET amount_paid=$1, balance_due=$2, paid=$3, payment_method=$4 WHERE id=$5',
             [newPaid, Math.max(0, balance), isPaid, payment_method || invoice.payment_method, req.params.id]
         );
-        
-        logAudit(req.session.user?.id, req.session.user?.display_name, 'PARTIAL_PAYMENT', 'Invoice', 
+
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'PARTIAL_PAYMENT', 'Invoice',
             invoice.invoice_number + ' paid ' + amount_paid + ' (total paid: ' + newPaid + '/' + total + ')', req.ip);
-        
+
         res.json({ success: true, amount_paid: newPaid, balance_due: Math.max(0, balance), fully_paid: isPaid });
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/api/invoices/:id/refund', requireAuth, async (req, res) => {
@@ -4007,16 +4015,16 @@ app.post('/api/invoices/:id/refund', requireAuth, async (req, res) => {
         const { amount, reason } = req.body;
         const invoice = (await pool.query('SELECT * FROM invoices WHERE id=$1', [req.params.id])).rows[0];
         if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
-        
+
         const refundNum = 'REF-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-6);
         await pool.query(
             "INSERT INTO invoices (patient_id, patient_name, total, description, service_type, payment_method, invoice_number, created_by, discount_reason) VALUES ($1,$2,$3,$4,'Refund',$5,$6,$7,$8)",
             [invoice.patient_id, invoice.patient_name, -(parseFloat(amount)), 'Refund for ' + invoice.invoice_number + ': ' + reason, invoice.payment_method, refundNum, req.session.user?.display_name, reason]
         );
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name, 'REFUND', 'Invoice', refundNum + ' amount: ' + amount + ' reason: ' + reason, req.ip);
         res.json({ success: true, refund_number: refundNum });
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== CASH DRAWER =====
@@ -4038,17 +4046,17 @@ app.post('/api/cash-drawer/open', requireAuth, async (req, res) => {
                 notes TEXT
             )
         `);
-        
+
         // Check if already open
         const existing = (await pool.query("SELECT * FROM cash_drawer WHERE user_id=$1 AND status='open'", [req.session.user?.id])).rows[0];
         if (existing) return res.status(400).json({ error: 'Drawer already open. Close current session first.' });
-        
+
         const result = await pool.query(
             'INSERT INTO cash_drawer (user_id, user_name, opening_balance) VALUES ($1,$2,$3) RETURNING *',
             [req.session.user?.id, req.session.user?.display_name, opening_balance || 0]
         );
         res.json(result.rows[0]);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/api/cash-drawer/close', requireAuth, async (req, res) => {
@@ -4056,40 +4064,40 @@ app.post('/api/cash-drawer/close', requireAuth, async (req, res) => {
         const { counted_cash, notes } = req.body;
         const drawer = (await pool.query("SELECT * FROM cash_drawer WHERE user_id=$1 AND status='open'", [req.session.user?.id])).rows[0];
         if (!drawer) return res.status(400).json({ error: 'No open drawer found' });
-        
+
         // Calculate expected from invoices during session
         const cashInvoices = (await pool.query(
             "SELECT COALESCE(SUM(CASE WHEN total > 0 THEN total ELSE 0 END),0) as income, COALESCE(SUM(CASE WHEN total < 0 THEN ABS(total) ELSE 0 END),0) as refunds FROM invoices WHERE payment_method='Cash' AND created_at >= $1 AND created_by=$2",
             [drawer.opened_at, drawer.user_name]
         )).rows[0];
-        
+
         const expected = parseFloat(drawer.opening_balance) + parseFloat(cashInvoices.income) - parseFloat(cashInvoices.refunds);
         const difference = parseFloat(counted_cash) - expected;
-        
+
         await pool.query(
             "UPDATE cash_drawer SET closing_balance=$1, expected_balance=$2, difference=$3, status='closed', closed_at=CURRENT_TIMESTAMP, notes=$4 WHERE id=$5",
             [counted_cash, expected, difference, notes, drawer.id]
         );
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name, 'CLOSE_CASH_DRAWER', 'Finance',
             'Expected: ' + expected.toFixed(2) + ' Counted: ' + counted_cash + ' Diff: ' + difference.toFixed(2), req.ip);
-        
+
         res.json({ expected: expected.toFixed(2), counted: counted_cash, difference: difference.toFixed(2), income: cashInvoices.income, refunds: cashInvoices.refunds });
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.get('/api/cash-drawer/current', requireAuth, async (req, res) => {
     try {
         const drawer = (await pool.query("SELECT * FROM cash_drawer WHERE user_id=$1 AND status='open' ORDER BY id DESC LIMIT 1", [req.session.user?.id])).rows[0];
         if (!drawer) return res.json({ open: false });
-        
+
         const cashInvoices = (await pool.query(
             "SELECT COALESCE(SUM(CASE WHEN total > 0 THEN total ELSE 0 END),0) as income, COUNT(CASE WHEN total > 0 THEN 1 END) as tx_count FROM invoices WHERE payment_method='Cash' AND created_at >= $1 AND created_by=$2",
             [drawer.opened_at, drawer.user_name]
         )).rows[0];
-        
+
         res.json({ open: true, drawer, income: cashInvoices.income, tx_count: cashInvoices.tx_count });
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 
@@ -4123,14 +4131,14 @@ app.post('/api/visits/lifecycle', requireAuth, async (req, res) => {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
-        
+
         const { patient_id, patient_name, appointment_id, doctor, department } = req.body;
         const result = await pool.query(
             'INSERT INTO visit_lifecycle (patient_id, patient_name, appointment_id, doctor, department, status, arrived_at) VALUES ($1,$2,$3,$4,$5,$6,CURRENT_TIMESTAMP) RETURNING *',
             [patient_id, patient_name, appointment_id, doctor, department, 'arrived']
         );
         res.json(result.rows[0]);
-    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
 
 app.put('/api/visits/lifecycle/:id', requireAuth, async (req, res) => {
@@ -4138,14 +4146,14 @@ app.put('/api/visits/lifecycle/:id', requireAuth, async (req, res) => {
         const { status } = req.body;
         const visit = (await pool.query('SELECT * FROM visit_lifecycle WHERE id=$1', [req.params.id])).rows[0];
         if (!visit) return res.status(404).json({ error: 'Visit not found' });
-        
+
         const timeFields = {
             'triage': 'triage_at', 'in_consultation': 'consult_start', 'consultation_done': 'consult_end',
             'lab_pending': 'lab_sent_at', 'lab_done': 'lab_done_at',
             'pharmacy_pending': 'pharmacy_sent_at', 'pharmacy_done': 'pharmacy_done_at',
             'payment': 'payment_at', 'completed': 'completed_at'
         };
-        
+
         const field = timeFields[status];
         let extra = '';
         if (status === 'in_consultation' && visit.arrived_at) {
@@ -4160,11 +4168,11 @@ app.put('/api/visits/lifecycle/:id', requireAuth, async (req, res) => {
             const totalMs = Date.now() - new Date(visit.arrived_at).getTime();
             extra = ', total_duration_minutes=' + Math.round(totalMs / 60000);
         }
-        
+
         await pool.query('UPDATE visit_lifecycle SET status=$1' + (field ? ', ' + field + '=CURRENT_TIMESTAMP' : '') + extra + ' WHERE id=$2', [status, req.params.id]);
         const updated = (await pool.query('SELECT * FROM visit_lifecycle WHERE id=$1', [req.params.id])).rows[0];
         res.json(updated);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.get('/api/visits/lifecycle/today', requireAuth, async (req, res) => {
@@ -4177,7 +4185,7 @@ app.get('/api/visits/lifecycle/today', requireAuth, async (req, res) => {
         q += " ORDER BY arrived_at DESC";
         const rows = (await pool.query(q, p)).rows;
         res.json(rows);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== APPOINTMENT CHECK-IN =====
@@ -4185,28 +4193,28 @@ app.put('/api/appointments/:id/checkin', requireAuth, async (req, res) => {
     try {
         const appt = (await pool.query('SELECT * FROM appointments WHERE id=$1', [req.params.id])).rows[0];
         if (!appt) return res.status(404).json({ error: 'Appointment not found' });
-        
+
         // Update appointment status
         await pool.query("UPDATE appointments SET status='Checked-In', check_in_time=CURRENT_TIMESTAMP WHERE id=$1", [req.params.id]);
-        
+
         // Create visit lifecycle entry
         await pool.query('CREATE TABLE IF NOT EXISTS visit_lifecycle (id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name VARCHAR(200), appointment_id INTEGER, doctor VARCHAR(200), department VARCHAR(100), status VARCHAR(30), arrived_at TIMESTAMP, triage_at TIMESTAMP, consult_start TIMESTAMP, consult_end TIMESTAMP, lab_sent_at TIMESTAMP, lab_done_at TIMESTAMP, pharmacy_sent_at TIMESTAMP, pharmacy_done_at TIMESTAMP, payment_at TIMESTAMP, completed_at TIMESTAMP, wait_time_minutes INTEGER, consult_duration_minutes INTEGER, total_duration_minutes INTEGER, triage_level VARCHAR(10), pain_score INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)');
         const visit = await pool.query(
             'INSERT INTO visit_lifecycle (patient_id, patient_name, appointment_id, doctor, department, status, arrived_at) VALUES ($1,$2,$3,$4,$5,$6,CURRENT_TIMESTAMP) RETURNING *',
             [appt.patient_id, appt.patient_name, appt.id, appt.doctor, appt.department || 'General', 'arrived']
         );
-        
+
         // Auto-add to waiting queue
         await pool.query(
             "INSERT INTO waiting_queue (patient_id, patient_name, doctor, department, status, check_in_time) VALUES ($1,$2,$3,$4,'Waiting',CURRENT_TIMESTAMP)",
             [appt.patient_id, appt.patient_name, appt.doctor, appt.department || 'General']
         );
-        
-        logAudit(req.session.user?.id, req.session.user?.display_name, 'CHECK_IN', 'Appointments', 
+
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CHECK_IN', 'Appointments',
             'Patient ' + appt.patient_name + ' checked in for Dr. ' + appt.doctor, req.ip);
-        
+
         res.json({ success: true, visit_id: visit.rows[0].id });
-    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== NO-SHOW MARKING =====
@@ -4214,10 +4222,10 @@ app.put('/api/appointments/:id/noshow', requireAuth, async (req, res) => {
     try {
         await pool.query("UPDATE appointments SET status='No-Show' WHERE id=$1", [req.params.id]);
         const appt = (await pool.query('SELECT * FROM appointments WHERE id=$1', [req.params.id])).rows[0];
-        logAudit(req.session.user?.id, req.session.user?.display_name, 'NO_SHOW', 'Appointments', 
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'NO_SHOW', 'Appointments',
             'Patient ' + (appt?.patient_name || '') + ' marked as No-Show', req.ip);
         res.json({ success: true });
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== DUPLICATE APPOINTMENT PREVENTION =====
@@ -4229,7 +4237,7 @@ app.post('/api/appointments/check-duplicate', requireAuth, async (req, res) => {
             [patient_id, date, doctor]
         )).rows;
         res.json({ duplicate: existing.length > 0, existing });
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== LAB REFERENCE RANGES =====
@@ -4328,14 +4336,14 @@ app.get('/api/lab/reference-ranges', requireAuth, async (req, res) => {
             },
         };
         res.json(ranges);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== NURSING: TRIAGE + PAIN SCORE =====
 app.post('/api/nursing/triage', requireAuth, async (req, res) => {
     try {
         const { patient_id, patient_name, triage_level, pain_score, chief_complaint, notes, visit_id } = req.body;
-        
+
         // Update visit lifecycle if visit_id provided
         if (visit_id) {
             await pool.query(
@@ -4343,41 +4351,41 @@ app.post('/api/nursing/triage', requireAuth, async (req, res) => {
                 ['triage', triage_level, pain_score, visit_id]
             );
         }
-        
+
         // Also store in nursing vitals if that table exists
         try {
             await pool.query(
                 "UPDATE nursing_vitals SET triage_level=$1, pain_score=$2 WHERE patient_id=$3 AND created_at::date = CURRENT_DATE ORDER BY id DESC LIMIT 1",
                 [triage_level, pain_score, patient_id]
             );
-        } catch(e) { /* table may not have these columns yet */ }
-        
+        } catch (e) { /* table may not have these columns yet */ }
+
         res.json({ success: true, triage_level, pain_score });
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== DOCTOR: NEXT PATIENT =====
 app.get('/api/doctor/next-patient', requireAuth, async (req, res) => {
     try {
         const doctorName = req.session.user?.display_name || '';
-        
+
         // Get next waiting patient for this doctor
         const next = (await pool.query(
             "SELECT * FROM waiting_queue WHERE doctor ILIKE $1 AND status='Waiting' ORDER BY check_in_time ASC LIMIT 1",
             ['%' + doctorName + '%']
         )).rows[0];
-        
+
         if (!next) return res.json({ hasNext: false });
-        
+
         // Update status to In-Progress
         await pool.query("UPDATE waiting_queue SET status='In Progress' WHERE id=$1", [next.id]);
-        
+
         // Get patient details
         let patient = null;
         if (next.patient_id) {
             patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [next.patient_id])).rows[0];
         }
-        
+
         // Get visit lifecycle
         let visit = null;
         try {
@@ -4388,8 +4396,8 @@ app.get('/api/doctor/next-patient', requireAuth, async (req, res) => {
             if (visit) {
                 await pool.query("UPDATE visit_lifecycle SET status='in_consultation', consult_start=CURRENT_TIMESTAMP WHERE id=$1", [visit.id]);
             }
-        } catch(e) {}
-        
+        } catch (e) { }
+
         // Get recent vitals
         let vitals = null;
         try {
@@ -4397,23 +4405,23 @@ app.get('/api/doctor/next-patient', requireAuth, async (req, res) => {
                 "SELECT * FROM nursing_vitals WHERE patient_id=$1 ORDER BY id DESC LIMIT 1",
                 [next.patient_id]
             )).rows[0];
-        } catch(e) {}
-        
+        } catch (e) { }
+
         // Get waiting count
         const waitingCount = (await pool.query(
             "SELECT COUNT(*) as cnt FROM waiting_queue WHERE doctor ILIKE $1 AND status='Waiting'",
             ['%' + doctorName + '%']
         )).rows[0].cnt;
-        
-        res.json({ 
-            hasNext: true, 
-            queue: next, 
-            patient, 
-            vitals, 
+
+        res.json({
+            hasNext: true,
+            queue: next,
+            patient,
+            vitals,
             visit,
-            waiting_count: parseInt(waitingCount) 
+            waiting_count: parseInt(waitingCount)
         });
-    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== DOCTOR: MY QUEUE =====
@@ -4425,7 +4433,7 @@ app.get('/api/doctor/my-queue', requireAuth, async (req, res) => {
             ['%' + doctorName + '%']
         )).rows;
         res.json(rows);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 
@@ -4435,22 +4443,22 @@ app.put('/api/auth/change-password', requireAuth, async (req, res) => {
         const { current_password, new_password } = req.body;
         if (!current_password || !new_password) return res.status(400).json({ error: 'Missing fields' });
         if (new_password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
-        
+
         const user = (await pool.query('SELECT * FROM users WHERE id=$1', [req.session.user.id])).rows[0];
         if (!user) return res.status(404).json({ error: 'User not found' });
-        
+
         // Verify current password
         const bcrypt = require('bcryptjs');
         const valid = await bcrypt.compare(current_password, user.password);
         if (!valid) return res.status(401).json({ error: 'Current password is incorrect', error_ar: 'كلمة المرور الحالية غير صحيحة' });
-        
+
         // Hash and update
         const hashed = await bcrypt.hash(new_password, 10);
         await pool.query('UPDATE users SET password=$1 WHERE id=$2', [hashed, req.session.user.id]);
-        
+
         logAudit(req.session.user.id, req.session.user.display_name, 'CHANGE_PASSWORD', 'Auth', 'Password changed', req.ip);
         res.json({ success: true });
-    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
 
 
@@ -4463,14 +4471,14 @@ app.get('/api/dashboard/charts', requireAuth, async (req, res) => {
             FROM invoices WHERE created_at >= CURRENT_DATE - INTERVAL '30 days' AND total > 0
             GROUP BY DATE(created_at) ORDER BY day
         `)).rows;
-        
+
         // Patients by department (this month)
         const byDepartment = (await pool.query(`
             SELECT COALESCE(department,'General') as dept, COUNT(*) as count
             FROM appointments WHERE date >= DATE_TRUNC('month', CURRENT_DATE)
             GROUP BY department ORDER BY count DESC LIMIT 10
         `)).rows;
-        
+
         // Top doctors by patient count (this month)
         const topDoctors = (await pool.query(`
             SELECT doctor, COUNT(*) as patients, COALESCE(SUM(i.total),0) as revenue
@@ -4479,27 +4487,27 @@ app.get('/api/dashboard/charts', requireAuth, async (req, res) => {
             WHERE a.date >= DATE_TRUNC('month', CURRENT_DATE)
             GROUP BY a.doctor ORDER BY patients DESC LIMIT 8
         `)).rows;
-        
+
         // Patient flow by hour (today)
         const hourlyFlow = (await pool.query(`
             SELECT EXTRACT(HOUR FROM created_at) as hour, COUNT(*) as count
             FROM appointments WHERE date = CURRENT_DATE
             GROUP BY hour ORDER BY hour
         `)).rows;
-        
+
         // Payment methods breakdown (this month)
         const paymentMethods = (await pool.query(`
             SELECT COALESCE(payment_method,'Cash') as method, COUNT(*) as count, COALESCE(SUM(total),0) as total
             FROM invoices WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE) AND total > 0
             GROUP BY payment_method
         `)).rows;
-        
+
         // Weekly comparison
         const thisWeek = (await pool.query("SELECT COUNT(*) as patients, COALESCE(SUM(total),0) as revenue FROM invoices WHERE created_at >= DATE_TRUNC('week', CURRENT_DATE) AND total > 0")).rows[0];
         const lastWeek = (await pool.query("SELECT COUNT(*) as patients, COALESCE(SUM(total),0) as revenue FROM invoices WHERE created_at >= DATE_TRUNC('week', CURRENT_DATE) - INTERVAL '7 days' AND created_at < DATE_TRUNC('week', CURRENT_DATE) AND total > 0")).rows[0];
-        
+
         res.json({ revenueTrend, byDepartment, topDoctors, hourlyFlow, paymentMethods, thisWeek, lastWeek });
-    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
 
 
@@ -4507,24 +4515,24 @@ app.get('/api/dashboard/charts', requireAuth, async (req, res) => {
 app.post('/api/admin/backup', requireAuth, async (req, res) => {
     try {
         if (req.session.user?.role !== 'Admin') return res.status(403).json({ error: 'Admin only' });
-        
+
         const { execSync } = require('child_process');
         const backupDir = require('path').join(__dirname, 'backups');
         if (!require('fs').existsSync(backupDir)) require('fs').mkdirSync(backupDir, { recursive: true });
-        
+
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
         const filename = 'nama_backup_' + timestamp + '.sql';
         const filepath = require('path').join(backupDir, filename);
-        
+
         const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/nama_medical_web';
         execSync('pg_dump "' + dbUrl + '" > "' + filepath + '"', { timeout: 60000 });
-        
+
         logAudit(req.session.user.id, req.session.user.display_name, 'DATABASE_BACKUP', 'Admin', filename, req.ip);
-        
+
         res.download(filepath, filename, (err) => {
             if (err) res.status(500).json({ error: 'Download failed' });
         });
-    } catch(e) { console.error(e); res.status(500).json({ error: 'Backup failed: ' + e.message }); }
+    } catch (e) { console.error(e); res.status(500).json({ error: 'Backup failed: ' + e.message }); }
 });
 
 app.get('/api/admin/backups', requireAuth, async (req, res) => {
@@ -4537,7 +4545,7 @@ app.get('/api/admin/backups', requireAuth, async (req, res) => {
             return { name: f, size: (stat.size / 1024 / 1024).toFixed(2) + ' MB', date: stat.mtime };
         }).sort((a, b) => new Date(b.date) - new Date(a.date));
         res.json(files);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 
@@ -4547,18 +4555,18 @@ app.get('/api/finance/summary', requireAuth, async (req, res) => {
         const { from, to } = req.query;
         let where = "WHERE total > 0";
         let p = [];
-        if (from) { where += " AND created_at >= $" + (p.length+1); p.push(from); }
-        if (to) { where += " AND created_at <= $" + (p.length+1); p.push(to + ' 23:59:59'); }
-        
+        if (from) { where += " AND created_at >= $" + (p.length + 1); p.push(from); }
+        if (to) { where += " AND created_at <= $" + (p.length + 1); p.push(to + ' 23:59:59'); }
+
         const total = (await pool.query("SELECT COALESCE(SUM(total),0) as revenue, COUNT(*) as count FROM invoices " + where, p)).rows[0];
         const paid = (await pool.query("SELECT COALESCE(SUM(total),0) as paid FROM invoices " + where + " AND paid=true", p)).rows[0];
         const unpaid = (await pool.query("SELECT COALESCE(SUM(total),0) as unpaid FROM invoices " + where + " AND (paid=false OR paid IS NULL)", p)).rows[0];
         const byMethod = (await pool.query("SELECT COALESCE(payment_method,'Cash') as method, SUM(total) as amount, COUNT(*) as cnt FROM invoices " + where + " AND paid=true GROUP BY payment_method ORDER BY amount DESC", p)).rows;
         const byService = (await pool.query("SELECT COALESCE(service_type,description,'Other') as service, SUM(total) as amount, COUNT(*) as cnt FROM invoices " + where + " GROUP BY COALESCE(service_type,description,'Other') ORDER BY amount DESC LIMIT 10", p)).rows;
         const daily = (await pool.query("SELECT DATE(created_at) as day, SUM(total) as amount FROM invoices " + where + " GROUP BY DATE(created_at) ORDER BY day", p)).rows;
-        
+
         res.json({ revenue: total.revenue, count: total.count, paid: paid.paid, unpaid: unpaid.unpaid, byMethod, byService, daily });
-    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== INVENTORY LOW STOCK =====
@@ -4566,7 +4574,7 @@ app.get('/api/inventory/low-stock', requireAuth, async (req, res) => {
     try {
         const items = (await pool.query("SELECT * FROM inventory WHERE CAST(quantity AS INTEGER) <= CAST(COALESCE(reorder_level,'10') AS INTEGER) ORDER BY CAST(quantity AS INTEGER) ASC")).rows;
         res.json(items);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== MEDICAL RECORDS BY PATIENT =====
@@ -4574,7 +4582,7 @@ app.get('/api/medical-records/patient/:patientId', requireAuth, async (req, res)
     try {
         const records = (await pool.query("SELECT * FROM medical_records WHERE patient_id=$1 ORDER BY created_at DESC", [req.params.patientId])).rows;
         res.json(records);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 
@@ -4584,14 +4592,14 @@ app.get('/api/pathology/specimens', requireAuth, async (req, res) => {
     try {
         await pool.query(`CREATE TABLE IF NOT EXISTS pathology_specimens (id SERIAL PRIMARY KEY, patient_name VARCHAR(200), specimen_type VARCHAR(100), site VARCHAR(200), doctor VARCHAR(200), clinical_details TEXT, priority VARCHAR(30), status VARCHAR(30) DEFAULT 'received', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
         res.json((await pool.query('SELECT * FROM pathology_specimens ORDER BY created_at DESC')).rows);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 app.post('/api/pathology/specimens', requireAuth, async (req, res) => {
     try {
         const { patient_name, specimen_type, site, doctor, clinical_details, priority, status } = req.body;
-        const r = await pool.query('INSERT INTO pathology_specimens (patient_name,specimen_type,site,doctor,clinical_details,priority,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [patient_name, specimen_type, site, doctor, clinical_details, priority, status||'received']);
+        const r = await pool.query('INSERT INTO pathology_specimens (patient_name,specimen_type,site,doctor,clinical_details,priority,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [patient_name, specimen_type, site, doctor, clinical_details, priority, status || 'received']);
         res.json(r.rows[0]);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== CSSD BATCHES =====
@@ -4599,21 +4607,21 @@ app.get('/api/cssd/batches', requireAuth, async (req, res) => {
     try {
         await pool.query(`CREATE TABLE IF NOT EXISTS cssd_batches (id SERIAL PRIMARY KEY, batch_number VARCHAR(50), items TEXT, department VARCHAR(100), method VARCHAR(50), temperature VARCHAR(20), operator VARCHAR(100), status VARCHAR(30) DEFAULT 'processing', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
         res.json((await pool.query('SELECT * FROM cssd_batches ORDER BY created_at DESC')).rows);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 app.post('/api/cssd/batches', requireAuth, async (req, res) => {
     try {
         const { batch_number, items, department, method, temperature, operator, status } = req.body;
-        const r = await pool.query('INSERT INTO cssd_batches (batch_number,items,department,method,temperature,operator,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [batch_number, items, department, method, temperature, operator, status||'processing']);
+        const r = await pool.query('INSERT INTO cssd_batches (batch_number,items,department,method,temperature,operator,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [batch_number, items, department, method, temperature, operator, status || 'processing']);
         res.json(r.rows[0]);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 app.put('/api/cssd/batches/:id', requireAuth, async (req, res) => {
     try {
         const { status } = req.body;
         const r = await pool.query('UPDATE cssd_batches SET status=$1 WHERE id=$2 RETURNING *', [status, req.params.id]);
         res.json(r.rows[0]);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== CME EVENTS =====
@@ -4621,14 +4629,14 @@ app.get('/api/cme/events', requireAuth, async (req, res) => {
     try {
         await pool.query(`CREATE TABLE IF NOT EXISTS cme_events (id SERIAL PRIMARY KEY, title VARCHAR(300), speaker VARCHAR(200), event_date DATE, cme_hours NUMERIC(4,1), category VARCHAR(50), department VARCHAR(100), status VARCHAR(30) DEFAULT 'upcoming', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
         res.json((await pool.query('SELECT * FROM cme_events ORDER BY event_date DESC')).rows);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 app.post('/api/cme/events', requireAuth, async (req, res) => {
     try {
         const { title, speaker, event_date, cme_hours, category, department, status } = req.body;
-        const r = await pool.query('INSERT INTO cme_events (title,speaker,event_date,cme_hours,category,department,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [title, speaker, event_date, cme_hours||0, category, department, status||'upcoming']);
+        const r = await pool.query('INSERT INTO cme_events (title,speaker,event_date,cme_hours,category,department,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [title, speaker, event_date, cme_hours || 0, category, department, status || 'upcoming']);
         res.json(r.rows[0]);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== INFECTION CONTROL REPORTS =====
@@ -4636,21 +4644,21 @@ app.get('/api/infection-control/reports', requireAuth, async (req, res) => {
     try {
         await pool.query(`CREATE TABLE IF NOT EXISTS infection_control_reports (id SERIAL PRIMARY KEY, patient_name VARCHAR(200), infection_type VARCHAR(100), ward VARCHAR(100), isolation_type VARCHAR(50), culture_results TEXT, action_taken TEXT, status VARCHAR(30) DEFAULT 'active', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
         res.json((await pool.query('SELECT * FROM infection_control_reports ORDER BY created_at DESC')).rows);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 app.post('/api/infection-control/reports', requireAuth, async (req, res) => {
     try {
         const { patient_name, infection_type, ward, isolation_type, culture_results, action_taken, status } = req.body;
-        const r = await pool.query('INSERT INTO infection_control_reports (patient_name,infection_type,ward,isolation_type,culture_results,action_taken,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [patient_name, infection_type, ward, isolation_type, culture_results, action_taken, status||'active']);
+        const r = await pool.query('INSERT INTO infection_control_reports (patient_name,infection_type,ward,isolation_type,culture_results,action_taken,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [patient_name, infection_type, ward, isolation_type, culture_results, action_taken, status || 'active']);
         res.json(r.rows[0]);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 app.put('/api/infection-control/reports/:id', requireAuth, async (req, res) => {
     try {
         const { status } = req.body;
         const r = await pool.query('UPDATE infection_control_reports SET status=$1 WHERE id=$2 RETURNING *', [status, req.params.id]);
         res.json(r.rows[0]);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== MAINTENANCE ORDERS =====
@@ -4658,21 +4666,21 @@ app.get('/api/maintenance/orders', requireAuth, async (req, res) => {
     try {
         await pool.query(`CREATE TABLE IF NOT EXISTS maintenance_orders (id SERIAL PRIMARY KEY, equipment VARCHAR(200), location VARCHAR(100), maintenance_type VARCHAR(50), priority VARCHAR(30), description TEXT, requested_by VARCHAR(100), status VARCHAR(30) DEFAULT 'pending', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
         res.json((await pool.query('SELECT * FROM maintenance_orders ORDER BY created_at DESC')).rows);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 app.post('/api/maintenance/orders', requireAuth, async (req, res) => {
     try {
         const { equipment, location, maintenance_type, priority, description, requested_by, status } = req.body;
-        const r = await pool.query('INSERT INTO maintenance_orders (equipment,location,maintenance_type,priority,description,requested_by,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [equipment, location, maintenance_type, priority, description, requested_by, status||'pending']);
+        const r = await pool.query('INSERT INTO maintenance_orders (equipment,location,maintenance_type,priority,description,requested_by,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [equipment, location, maintenance_type, priority, description, requested_by, status || 'pending']);
         res.json(r.rows[0]);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 app.put('/api/maintenance/orders/:id', requireAuth, async (req, res) => {
     try {
         const { status } = req.body;
         const r = await pool.query('UPDATE maintenance_orders SET status=$1 WHERE id=$2 RETURNING *', [status, req.params.id]);
         res.json(r.rows[0]);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== INSURANCE POLICIES =====
@@ -4680,7 +4688,7 @@ app.get('/api/insurance/policies', requireAuth, async (req, res) => {
     try {
         await pool.query(`CREATE TABLE IF NOT EXISTS insurance_policies (id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name VARCHAR(200), company VARCHAR(200), policy_number VARCHAR(100), class VARCHAR(50), coverage_percent NUMERIC(5,2) DEFAULT 80, start_date DATE, end_date DATE, status VARCHAR(30) DEFAULT 'active', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
         res.json((await pool.query('SELECT * FROM insurance_policies ORDER BY created_at DESC')).rows);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 
@@ -4694,15 +4702,15 @@ app.get('/api/inventory', requireAuth, async (req, res) => {
             expiry_date DATE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`);
         res.json((await pool.query('SELECT * FROM inventory ORDER BY name ASC')).rows);
-    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
 app.post('/api/inventory', requireAuth, async (req, res) => {
     try {
         const { name, category, quantity, unit, reorder_level, location, supplier, cost, expiry_date } = req.body;
         const r = await pool.query('INSERT INTO inventory (name,category,quantity,unit,reorder_level,location,supplier,cost,expiry_date) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
-            [name, category, quantity||0, unit, reorder_level||10, location, supplier, cost, expiry_date]);
+            [name, category, quantity || 0, unit, reorder_level || 10, location, supplier, cost, expiry_date]);
         res.json(r.rows[0]);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 app.put('/api/inventory/:id', requireAuth, async (req, res) => {
     try {
@@ -4710,13 +4718,13 @@ app.put('/api/inventory/:id', requireAuth, async (req, res) => {
         const r = await pool.query('UPDATE inventory SET name=$1,category=$2,quantity=$3,unit=$4,reorder_level=$5,location=$6,supplier=$7,cost=$8,expiry_date=$9 WHERE id=$10 RETURNING *',
             [name, category, quantity, unit, reorder_level, location, supplier, cost, expiry_date, req.params.id]);
         res.json(r.rows[0]);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 app.delete('/api/inventory/:id', requireAuth, async (req, res) => {
     try {
         await pool.query('DELETE FROM inventory WHERE id=$1', [req.params.id]);
         res.json({ success: true });
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== PHARMACY PRESCRIPTIONS =====
@@ -4730,21 +4738,34 @@ app.get('/api/pharmacy/prescriptions', requireAuth, async (req, res) => {
             notes TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`);
         res.json((await pool.query('SELECT * FROM pharmacy_prescriptions ORDER BY created_at DESC')).rows);
-    } catch(e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
 app.post('/api/pharmacy/prescriptions', requireAuth, async (req, res) => {
     try {
         const { patient_id, patient_name, medication, drug_name, dosage, frequency, duration, quantity, doctor, status, notes } = req.body;
         const r = await pool.query('INSERT INTO pharmacy_prescriptions (patient_id,patient_name,medication,drug_name,dosage,frequency,duration,quantity,doctor,status,notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
-            [patient_id, patient_name, medication||drug_name, drug_name||medication, dosage, frequency, duration, quantity, doctor, status||'pending', notes]);
+            [patient_id, patient_name, medication || drug_name, drug_name || medication, dosage, frequency, duration, quantity, doctor, status || 'pending', notes]);
         res.json(r.rows[0]);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 app.put('/api/pharmacy/prescriptions/:id', requireAuth, async (req, res) => {
     try {
         const { status } = req.body;
         const r = await pool.query('UPDATE pharmacy_prescriptions SET status=$1 WHERE id=$2 RETURNING *', [status, req.params.id]);
         res.json(r.rows[0]);
-    } catch(e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
+
+// ===== MIGRATION: Add last_ip column to system_users =====
+(async () => { try { await pool.query(`DO $$ BEGIN ALTER TABLE system_users ADD COLUMN last_ip TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`); } catch (e) { } })();
+// ===== MIGRATION: Add doctor column to pharmacy_prescriptions_queue =====
+(async () => { try { await pool.query(`DO $$ BEGIN ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN doctor TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`); } catch (e) { } })();
+// ===== MIGRATION: Fix audit_trail schema (add user_name and details columns) =====
+(async () => {
+    try {
+        await pool.query(`DO $$ BEGIN ALTER TABLE audit_trail ADD COLUMN user_name TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`);
+        await pool.query(`DO $$ BEGIN ALTER TABLE audit_trail ADD COLUMN details TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`);
+    } catch (e) { }
+})();
+
 startServer();

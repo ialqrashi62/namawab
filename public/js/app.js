@@ -2,6 +2,12 @@
 let currentUser = null;
 let isArabic = localStorage.getItem('namaLang') === 'ar' ? true : (localStorage.getItem('namaLang') === 'en' ? false : false);
 let currentPage = 0;
+let facilityType = 'hospital';
+const FACILITY_ALLOWED = {
+  hospital: null, // null = all allowed
+  health_center: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 20, 21, 30, 33, 34, 35, 41, 42],
+  clinic: [0, 1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 15, 20, 30, 34, 42]
+};
 
 const tr = (en, ar) => isArabic ? ar : en;
 
@@ -65,10 +71,11 @@ const NAV_ITEMS = [
   document.getElementById('userRole').textContent = currentUser.role;
   document.getElementById('userAvatar').textContent = currentUser.name.charAt(0);
 
-  // Load saved theme
+  // Load saved theme + facility type
   try {
     const s = await API.get('/api/settings');
     if (s.theme) { document.documentElement.setAttribute('data-theme', s.theme); document.getElementById('themeSelect').value = s.theme; }
+    if (s.facility_type) facilityType = s.facility_type;
   } catch { }
 
   buildNav();
@@ -100,6 +107,9 @@ function buildNav() {
   nav.innerHTML = NAV_ITEMS.map((item, i) => {
     const hasPerm = isAdmin || i === 0 || userPerms.includes(i.toString());
     if (!hasPerm) return '';
+    // Filter by facility type
+    const allowed = FACILITY_ALLOWED[facilityType];
+    if (allowed && !allowed.includes(i)) return '';
     return `<div class="nav-item${i === currentPage ? ' active' : ''}" data-page="${i}">
       <span class="nav-icon">${item.icon}</span>
       <span class="nav-label">${tr(item.en, item.ar)}</span>
@@ -301,50 +311,50 @@ window.exportTableCSV = function (filename) {
 
 // ===== CONSENT FORMS =====
 async function renderConsentForms(el) {
-    const content = el;
+  const content = el;
 
-    const visits = await API.get('/api/visits').catch(()=>[]);
-    const consentTypes = [
-      { id: 'general', en: 'General Consent', ar: 'موافقة عامة', icon: '📋' },
-      { id: 'surgery', en: 'Surgical Consent', ar: 'موافقة جراحية', icon: '🏥' },
-      { id: 'anesthesia', en: 'Anesthesia Consent', ar: 'موافقة تخدير', icon: '💉' },
-      { id: 'blood', en: 'Blood Transfusion', ar: 'نقل دم', icon: '🩸' },
-      { id: 'discharge', en: 'Against Medical Advice', ar: 'خروج ضد النصيحة', icon: '🚪' },
-      { id: 'procedures', en: 'Procedures Consent', ar: 'موافقة إجراءات', icon: '⚕️' },
-    ];
-    
-    content.innerHTML = `
-    <h2>${tr('Consent Forms','نماذج الموافقة')}</h2>
+  const visits = await API.get('/api/visits').catch(() => []);
+  const consentTypes = [
+    { id: 'general', en: 'General Consent', ar: 'موافقة عامة', icon: '📋' },
+    { id: 'surgery', en: 'Surgical Consent', ar: 'موافقة جراحية', icon: '🏥' },
+    { id: 'anesthesia', en: 'Anesthesia Consent', ar: 'موافقة تخدير', icon: '💉' },
+    { id: 'blood', en: 'Blood Transfusion', ar: 'نقل دم', icon: '🩸' },
+    { id: 'discharge', en: 'Against Medical Advice', ar: 'خروج ضد النصيحة', icon: '🚪' },
+    { id: 'procedures', en: 'Procedures Consent', ar: 'موافقة إجراءات', icon: '⚕️' },
+  ];
+
+  content.innerHTML = `
+    <h2>${tr('Consent Forms', 'نماذج الموافقة')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px">
-      ${consentTypes.map(t => '<div class="card" style="padding:20px;text-align:center;cursor:pointer;transition:transform 0.2s" onclick="printConsentForm(\''+t.id+'\',\''+t.en+'\',\''+t.ar+'\')" onmouseover="this.style.transform=\'scale(1.02)\'" onmouseout="this.style.transform=\'scale(1)\'"><div style="font-size:36px;margin-bottom:8px">'+t.icon+'</div><h4 style="margin:0">'+tr(t.en,t.ar)+'</h4><p style="margin:4px 0 0;font-size:11px;color:#666">'+tr('Click to generate','اضغط لإنشاء')+'</p></div>').join('')}
+      ${consentTypes.map(t => '<div class="card" style="padding:20px;text-align:center;cursor:pointer;transition:transform 0.2s" onclick="printConsentForm(\'' + t.id + '\',\'' + t.en + '\',\'' + t.ar + '\')" onmouseover="this.style.transform=\'scale(1.02)\'" onmouseout="this.style.transform=\'scale(1)\'"><div style="font-size:36px;margin-bottom:8px">' + t.icon + '</div><h4 style="margin:0">' + tr(t.en, t.ar) + '</h4><p style="margin:4px 0 0;font-size:11px;color:#666">' + tr('Click to generate', 'اضغط لإنشاء') + '</p></div>').join('')}
     </div>
     <div class="card" style="padding:20px">
-      <h4 style="margin:0 0 12px">${tr('Generate Consent for Patient','إنشاء نموذج موافقة لمريض')}</h4>
+      <h4 style="margin:0 0 12px">${tr('Generate Consent for Patient', 'إنشاء نموذج موافقة لمريض')}</h4>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end">
-        <div class="form-group"><label>${tr('Patient Name','اسم المريض')}</label><input class="form-input" id="cfPatient"></div>
-        <div class="form-group"><label>${tr('MRN','رقم الملف')}</label><input class="form-input" id="cfMRN"></div>
-        <div class="form-group"><label>${tr('Consent Type','نوع الموافقة')}</label>
-          <select class="form-input" id="cfType">${consentTypes.map(t=>'<option value="'+t.id+'">'+tr(t.en,t.ar)+'</option>').join('')}</select></div>
-        <button class="btn btn-primary" onclick="generateConsent()">🖨️ ${tr('Generate & Print','إنشاء وطباعة')}</button>
+        <div class="form-group"><label>${tr('Patient Name', 'اسم المريض')}</label><input class="form-input" id="cfPatient"></div>
+        <div class="form-group"><label>${tr('MRN', 'رقم الملف')}</label><input class="form-input" id="cfMRN"></div>
+        <div class="form-group"><label>${tr('Consent Type', 'نوع الموافقة')}</label>
+          <select class="form-input" id="cfType">${consentTypes.map(t => '<option value="' + t.id + '">' + tr(t.en, t.ar) + '</option>').join('')}</select></div>
+        <button class="btn btn-primary" onclick="generateConsent()">🖨️ ${tr('Generate & Print', 'إنشاء وطباعة')}</button>
       </div>
     </div>`;
-    
-    window.printConsentForm = (type, en, ar) => {
-      const patientName = document.getElementById('cfPatient')?.value || '_______________';
-      const mrn = document.getElementById('cfMRN')?.value || '___________';
-      const now = new Date().toLocaleDateString('ar-SA');
-      const body = '<div style="text-align:center;border-bottom:3px double #1a5276;padding-bottom:16px;margin-bottom:20px"><h1 style="color:#1a5276;margin:0">نما الطبي — Nama Medical</h1><p style="color:#666;margin:4px 0">'+tr('Consent Form','نموذج موافقة')+'</p></div>' +
-        '<h2 style="text-align:center;color:#1a5276;margin-bottom:20px">'+tr(en,ar)+'</h2>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px"><div><strong>'+tr('Patient','المريض')+':</strong> '+patientName+'</div><div><strong>'+tr('MRN','رقم الملف')+':</strong> '+mrn+'</div><div><strong>'+tr('Date','التاريخ')+':</strong> '+now+'</div></div>' +
-        '<div style="border:1px solid #ddd;padding:20px;border-radius:8px;margin-bottom:20px;min-height:200px"><p>'+tr('I, the undersigned, hereby consent to...','أنا الموقع أدناه أوافق على...')+'</p><br><p style="color:#999;font-size:12px">'+tr('Patient has been informed about the procedure, risks, and alternatives.','تم إبلاغ المريض بالإجراء والمخاطر والبدائل.')+'</p></div>' +
-        '<div style="display:flex;justify-content:space-between;margin-top:60px"><div style="text-align:center;min-width:200px;border-top:1px solid #333;padding-top:8px">'+tr('Patient Signature','توقيع المريض')+'</div><div style="text-align:center;min-width:200px;border-top:1px solid #333;padding-top:8px">'+tr('Doctor Signature','توقيع الطبيب')+'</div><div style="text-align:center;min-width:200px;border-top:1px solid #333;padding-top:8px">'+tr('Witness','الشاهد')+'</div></div>';
-      printDocument(tr(en,ar), body);
-    };
-    window.generateConsent = () => {
-      const type = document.getElementById('cfType').value;
-      const ct = consentTypes.find(t=>t.id===type);
-      if (ct) window.printConsentForm(type, ct.en, ct.ar);
-    };
+
+  window.printConsentForm = (type, en, ar) => {
+    const patientName = document.getElementById('cfPatient')?.value || '_______________';
+    const mrn = document.getElementById('cfMRN')?.value || '___________';
+    const now = new Date().toLocaleDateString('ar-SA');
+    const body = '<div style="text-align:center;border-bottom:3px double #1a5276;padding-bottom:16px;margin-bottom:20px"><h1 style="color:#1a5276;margin:0">نما الطبي — Nama Medical</h1><p style="color:#666;margin:4px 0">' + tr('Consent Form', 'نموذج موافقة') + '</p></div>' +
+      '<h2 style="text-align:center;color:#1a5276;margin-bottom:20px">' + tr(en, ar) + '</h2>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px"><div><strong>' + tr('Patient', 'المريض') + ':</strong> ' + patientName + '</div><div><strong>' + tr('MRN', 'رقم الملف') + ':</strong> ' + mrn + '</div><div><strong>' + tr('Date', 'التاريخ') + ':</strong> ' + now + '</div></div>' +
+      '<div style="border:1px solid #ddd;padding:20px;border-radius:8px;margin-bottom:20px;min-height:200px"><p>' + tr('I, the undersigned, hereby consent to...', 'أنا الموقع أدناه أوافق على...') + '</p><br><p style="color:#999;font-size:12px">' + tr('Patient has been informed about the procedure, risks, and alternatives.', 'تم إبلاغ المريض بالإجراء والمخاطر والبدائل.') + '</p></div>' +
+      '<div style="display:flex;justify-content:space-between;margin-top:60px"><div style="text-align:center;min-width:200px;border-top:1px solid #333;padding-top:8px">' + tr('Patient Signature', 'توقيع المريض') + '</div><div style="text-align:center;min-width:200px;border-top:1px solid #333;padding-top:8px">' + tr('Doctor Signature', 'توقيع الطبيب') + '</div><div style="text-align:center;min-width:200px;border-top:1px solid #333;padding-top:8px">' + tr('Witness', 'الشاهد') + '</div></div>';
+    printDocument(tr(en, ar), body);
+  };
+  window.generateConsent = () => {
+    const type = document.getElementById('cfType').value;
+    const ct = consentTypes.find(t => t.id === type);
+    if (ct) window.printConsentForm(type, ct.en, ct.ar);
+  };
 
 }
 
@@ -3457,9 +3467,9 @@ async function renderPharmacy(el) {
     </div>
     <div class="card mb-16"><div class="card-title">📜 ${tr('Prescription Queue', 'قائمة الوصفات')}</div>
     <div id="rxQueue"><div class="table-wrapper"><table class="data-table"><thead><tr>
-      <th>${tr('Barcode', 'الباركود')}</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Prescription', 'الوصفة')}</th><th>${tr('Price', 'السعر')}</th><th>${tr('Status', 'الحالة')}</th><th>${tr('Date', 'التاريخ')}</th><th>${tr('Actions', 'إجراءات')}</th>
+      <th>${tr('Barcode', 'الباركود')}</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Prescription', 'الوصفة')}</th><th>${tr('Price', 'السعر')}</th><th>${tr('Status', 'الحالة')}</th><th>${tr('Date', 'التاريخ')}</th><th>${tr('Actions', 'إجراءات')}</th>
     </tr></thead><tbody>
-    ${queue.length === 0 ? `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-dim)">📭 ${tr('No prescriptions', 'لا توجد وصفات')}</td></tr>` : queue.map(q => {
+    ${queue.length === 0 ? `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-dim)">📭 ${tr('No prescriptions', 'لا توجد وصفات')}</td></tr>` : queue.map(q => {
     // Use individual columns if available, fallback to text parsing
     const txt = q.prescription_text || '';
     let parts = txt.includes(' | ') ? txt.split(' | ') : txt.split(' - ');
@@ -3474,6 +3484,7 @@ async function renderPharmacy(el) {
           <button class="btn btn-sm btn-info" onclick="printRxLabel(${q.id}, '${(q.patient_name || '').replace(/'/g, "\\'")}', '${(q.age || '').toString().replace(/'/g, "\\'")}', '${(q.department || '').replace(/'/g, "\\'")}', '${med.replace(/'/g, "\\'")}', '${dose.replace(/'/g, "\\'")}', '${qty.toString().replace(/'/g, "\\'")}', '${freq.replace(/'/g, "\\'")}', '${dur.replace(/'/g, "\\'")}')" style="margin-top:4px;font-size:11px">🖨️ ${tr('Print Label', 'طباعة')}</button>
         </td>
         <td><strong>${q.patient_name || '#' + q.patient_id}</strong>${q.age ? '<br><small>🎂 ' + q.age + '</small>' : ''}${q.department ? '<br><small>🏥 ' + q.department + '</small>' : ''}</td>
+        <td style="color:var(--accent);font-weight:600">${q.doctor || q.doctor_name || '—'}</td>
         <td><strong>${med}</strong>${dose ? '<br>💊 ' + dose : ''}${freq ? '<br>🔄 ' + freq : ''}${dur ? '<br>📅 ' + dur : ''}</td>
         <td style="font-weight:bold;color:var(--accent)">${autoPrice > 0 ? autoPrice + ' ' + tr('SAR', 'ر.س') : '-'}</td>
         <td>${statusBadge(q.status)}</td>
@@ -3735,7 +3746,7 @@ window.delEmp = async (id) => {
 
 // ===== FINANCE =====
 async function renderFinance(el) {
-    const content = el;
+  const content = el;
 
   const today = new Date().toISOString().slice(0, 10);
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
@@ -3901,7 +3912,7 @@ window.addInsCompany = async () => {
 
 // ===== INVENTORY =====
 async function renderInventory(el) {
-    const content = el;
+  const content = el;
 
   const items = await API.get('/api/inventory').catch(() => []);
   const lowStock = items.filter(i => parseInt(i.quantity || 0) <= parseInt(i.reorder_level || 10));
@@ -4128,41 +4139,41 @@ window.saveCarePlan = async function () {
 };
 
 async function renderWaitingQueue(el) {
-    const content = el;
+  const content = el;
 
-    const [patients, appointments] = await Promise.all([
-      API.get('/api/queue/patients').catch(()=>[]),
-      API.get('/api/appointments').catch(()=>[])
-    ]);
-    const today = new Date().toISOString().slice(0,10);
-    const todayAppts = appointments.filter(a=>(a.appt_date||a.date||'').includes(today));
-    
-    // Group by doctor
-    const byDoctor = {};
-    patients.forEach(p => { const d = p.doctor||p.doctor_name||tr('Unassigned','غير محدد'); if(!byDoctor[d]) byDoctor[d]=[]; byDoctor[d].push(p); });
-    
-    content.innerHTML = `
-    <h2>${tr('Waiting Queue','قائمة الانتظار')}</h2>
+  const [patients, appointments] = await Promise.all([
+    API.get('/api/queue/patients').catch(() => []),
+    API.get('/api/appointments').catch(() => [])
+  ]);
+  const today = new Date().toISOString().slice(0, 10);
+  const todayAppts = appointments.filter(a => (a.appt_date || a.date || '').includes(today));
+
+  // Group by doctor
+  const byDoctor = {};
+  patients.forEach(p => { const d = p.doctor || p.doctor_name || tr('Unassigned', 'غير محدد'); if (!byDoctor[d]) byDoctor[d] = []; byDoctor[d].push(p); });
+
+  content.innerHTML = `
+    <h2>${tr('Waiting Queue', 'قائمة الانتظار')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${patients.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('In Queue','في الانتظار')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${todayAppts.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Today Appointments','مواعيد اليوم')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${Object.keys(byDoctor).length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Active Doctors','أطباء نشطون')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${patients.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('In Queue', 'في الانتظار')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${todayAppts.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Today Appointments', 'مواعيد اليوم')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${Object.keys(byDoctor).length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Active Doctors', 'أطباء نشطون')}</p></div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <h4 style="margin:0">${tr('Queue by Doctor','الطابور حسب الطبيب')}</h4>
+      <h4 style="margin:0">${tr('Queue by Doctor', 'الطابور حسب الطبيب')}</h4>
       <div style="display:flex;gap:8px;align-items:center">
-        <span style="font-size:12px;color:#666" id="queueTimer">⏱️ ${tr('Auto-refresh: 30s','تحديث تلقائي: 30 ثانية')}</span>
-        <button class="btn btn-sm" onclick="navigateTo(currentPage)" style="background:#e3f2fd;color:#1565c0">🔄 ${tr('Refresh','تحديث')}</button>
+        <span style="font-size:12px;color:#666" id="queueTimer">⏱️ ${tr('Auto-refresh: 30s', 'تحديث تلقائي: 30 ثانية')}</span>
+        <button class="btn btn-sm" onclick="navigateTo(currentPage)" style="background:#e3f2fd;color:#1565c0">🔄 ${tr('Refresh', 'تحديث')}</button>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:16px">
-      ${Object.entries(byDoctor).map(([doc,pts])=>'<div class="card" style="padding:16px"><h4 style="margin:0 0 8px;color:#1565c0">👨‍⚕️ '+doc+' <span style="font-size:12px;color:#666">('+pts.length+')</span></h4>'+pts.map((p,i)=>'<div style="padding:8px;margin:4px 0;border-radius:8px;background:'+(i===0?'#e8f5e9':'#f5f5f5')+';display:flex;justify-content:space-between;align-items:center"><span>'+(i+1)+'. '+(p.patient_name||p.name||'')+'</span><span style="font-size:11px;color:#666">'+((p.queue_number||'')||'#'+(i+1))+'</span></div>').join('')+'</div>').join('')}
-      ${Object.keys(byDoctor).length===0?'<div class="card" style="padding:40px;text-align:center;color:#999;grid-column:1/-1">'+tr('No patients in queue','لا يوجد مرضى في الانتظار')+'</div>':''}
+      ${Object.entries(byDoctor).map(([doc, pts]) => '<div class="card" style="padding:16px"><h4 style="margin:0 0 8px;color:#1565c0">👨‍⚕️ ' + doc + ' <span style="font-size:12px;color:#666">(' + pts.length + ')</span></h4>' + pts.map((p, i) => '<div style="padding:8px;margin:4px 0;border-radius:8px;background:' + (i === 0 ? '#e8f5e9' : '#f5f5f5') + ';display:flex;justify-content:space-between;align-items:center"><span>' + (i + 1) + '. ' + (p.patient_name || p.name || '') + '</span><span style="font-size:11px;color:#666">' + ((p.queue_number || '') || '#' + (i + 1)) + '</span></div>').join('') + '</div>').join('')}
+      ${Object.keys(byDoctor).length === 0 ? '<div class="card" style="padding:40px;text-align:center;color:#999;grid-column:1/-1">' + tr('No patients in queue', 'لا يوجد مرضى في الانتظار') + '</div>' : ''}
     </div>`;
-    
-    // Auto-refresh every 30 seconds
-    if (window._queueInterval) clearInterval(window._queueInterval);
-    window._queueInterval = setInterval(()=>{ if(currentPage===NAV_ITEMS.findIndex(n=>n.en==='Waiting Queue')) navigateTo(currentPage); }, 30000);
+
+  // Auto-refresh every 30 seconds
+  if (window._queueInterval) clearInterval(window._queueInterval);
+  window._queueInterval = setInterval(() => { if (currentPage === NAV_ITEMS.findIndex(n => n.en === 'Waiting Queue')) navigateTo(currentPage); }, 30000);
 
 }
 window.callPatient = async function (id) {
@@ -4270,7 +4281,7 @@ window.payInvoicePA = async (id) => {
 };
 
 async function renderReports(el) {
-    const content = el;
+  const content = el;
 
   content.innerHTML = `
     <h2>${tr('Reports', 'التقارير')}</h2>
@@ -4304,6 +4315,16 @@ async function renderReports(el) {
         <div style="font-size:36px;margin-bottom:8px">📦</div>
         <h4 style="margin:0 0 4px">${tr('Inventory Report', 'تقرير المخزون')}</h4>
         <p style="margin:0;font-size:13px;color:#666">${tr('Stock levels and low items', 'مستويات المخزون')}</p>
+      </div>
+      <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('radiology')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+        <div style="font-size:36px;margin-bottom:8px">📡</div>
+        <h4 style="margin:0 0 4px">${tr('Radiology Report', 'تقرير الأشعة')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('Imaging orders and results', 'طلبات الأشعة والنتائج')}</p>
+      </div>
+      <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('medical_history')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+        <div style="font-size:36px;margin-bottom:8px">📁</div>
+        <h4 style="margin:0 0 4px">${tr('Medical History', 'السجل الطبي')}</h4>
+        <p style="margin:0;font-size:13px;color:#666">${tr('Previous reports, tests & prescriptions', 'التقارير والفحوصات والوصفات السابقة')}</p>
       </div>
     </div>
     <div id="reportOutput" class="card" style="padding:20px;display:none">
@@ -4363,6 +4384,30 @@ async function renderReports(el) {
           headers = [tr('Item', 'الصنف'), tr('Category', 'الفئة'), tr('Qty', 'الكمية'), tr('Reorder', 'إعادة الطلب'), tr('Unit', 'الوحدة'), tr('Status', 'الحالة')];
           rows = data.map(i => ({ cells: [i.name, i.category, i.quantity, i.reorder_level || 10, i.unit, parseInt(i.quantity) <= parseInt(i.reorder_level || 10) ? '<span style="color:#cc0000;font-weight:bold">⚠️ ' + tr('Low', 'منخفض') + '</span>' : '<span style="color:#2e7d32">✅ ' + tr('OK', 'جيد') + '</span>'], id: i.id }));
           break;
+        case 'radiology':
+          data = await API.get('/api/lab/orders');
+          data = data.filter(o => o.order_type === 'Radiology' || o.test_type === 'Radiology');
+          title.textContent = tr('Radiology Report', 'تقرير الأشعة') + ' (' + data.length + ')';
+          headers = [tr('Patient', 'المريض'), tr('Exam', 'الفحص'), tr('Doctor', 'الطبيب الطالب'), tr('Status', 'الحالة'), tr('Date', 'التاريخ')];
+          rows = data.map(r => ({ cells: [r.patient_name, r.test_name || r.test_type, r.doctor || '—', statusBadge(r.status), r.created_at ? new Date(r.created_at).toLocaleDateString('ar-SA') : ''], id: r.id }));
+          break;
+        case 'medical_history':
+          const [labH, rxH, apptH] = await Promise.all([
+            API.get('/api/lab/orders').catch(() => []),
+            API.get('/api/pharmacy/prescriptions').catch(() => []),
+            API.get('/api/appointments').catch(() => [])
+          ]);
+          // Merge all into single timeline
+          const allRecords = [];
+          labH.forEach(l => allRecords.push({ type: '🔬 ' + tr('Lab', 'مختبر'), patient: l.patient_name, detail: l.test_name || l.test_type, doctor: l.doctor || '—', status: l.status, date: l.created_at }));
+          rxH.forEach(p => allRecords.push({ type: '💊 ' + tr('Pharmacy', 'صيدلية'), patient: p.patient_name, detail: p.medication || p.drug_name, doctor: p.doctor || '—', status: p.status, date: p.created_at }));
+          apptH.forEach(a => allRecords.push({ type: '📅 ' + tr('Visit', 'زيارة'), patient: a.patient_name, detail: a.department || a.speciality || '', doctor: a.doctor_name || a.doctor || '—', status: a.status, date: a.appt_date || a.created_at }));
+          allRecords.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+          data = allRecords;
+          title.textContent = tr('Medical History', 'السجل الطبي') + ' (' + data.length + ')';
+          headers = [tr('Type', 'النوع'), tr('Patient', 'المريض'), tr('Detail', 'التفاصيل'), tr('Doctor', 'الطبيب'), tr('Status', 'الحالة'), tr('Date', 'التاريخ')];
+          rows = allRecords.map((r, i) => ({ cells: [r.type, r.patient, r.detail, r.doctor, statusBadge(r.status), r.date ? new Date(r.date).toLocaleDateString('ar-SA') : ''], id: i }));
+          break;
       }
       window._reportData = data;
       createTable(table, 'rptTbl', headers, rows);
@@ -4373,45 +4418,45 @@ async function renderReports(el) {
 
 let msgTab = 'inbox';
 async function renderMessaging(el) {
-    const content = el;
+  const content = el;
 
-    const messages = await API.get('/api/messages').catch(()=>[]);
-    const users = await API.get('/api/users').catch(()=>[]);
-    const myId = window.currentUser?.id;
-    const inbox = messages.filter(m=>m.to_user_id==myId);
-    const sent = messages.filter(m=>m.from_user_id==myId);
-    const unread = inbox.filter(m=>!m.read_at).length;
-    
-    content.innerHTML = `
-    <h2>${tr('Messaging','الرسائل')}</h2>
+  const messages = await API.get('/api/messages').catch(() => []);
+  const users = await API.get('/api/users').catch(() => []);
+  const myId = window.currentUser?.id;
+  const inbox = messages.filter(m => m.to_user_id == myId);
+  const sent = messages.filter(m => m.from_user_id == myId);
+  const unread = inbox.filter(m => !m.read_at).length;
+
+  content.innerHTML = `
+    <h2>${tr('Messaging', 'الرسائل')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${inbox.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Inbox','الوارد')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:${unread>0?'#fce4ec':'#e8f5e9'}"><h3 style="margin:0;color:${unread>0?'#c62828':'#2e7d32'}">${unread}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Unread','غير مقروءة')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${sent.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Sent','المرسلة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${inbox.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Inbox', 'الوارد')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:${unread > 0 ? '#fce4ec' : '#e8f5e9'}"><h3 style="margin:0;color:${unread > 0 ? '#c62828' : '#2e7d32'}">${unread}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Unread', 'غير مقروءة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${sent.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Sent', 'المرسلة')}</p></div>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:16px">
-      <button class="btn btn-primary" onclick="showComposeModal()">✏️ ${tr('Compose','رسالة جديدة')}</button>
-      <button class="btn btn-sm msgTab" onclick="showMsgTab('inbox')" style="background:#1a73e8;color:#fff">${tr('Inbox','الوارد')}</button>
-      <button class="btn btn-sm msgTab" onclick="showMsgTab('sent')" style="background:#e0e0e0;color:#333">${tr('Sent','المرسلة')}</button>
+      <button class="btn btn-primary" onclick="showComposeModal()">✏️ ${tr('Compose', 'رسالة جديدة')}</button>
+      <button class="btn btn-sm msgTab" onclick="showMsgTab('inbox')" style="background:#1a73e8;color:#fff">${tr('Inbox', 'الوارد')}</button>
+      <button class="btn btn-sm msgTab" onclick="showMsgTab('sent')" style="background:#e0e0e0;color:#333">${tr('Sent', 'المرسلة')}</button>
     </div>
     <div id="msgInbox" class="card" style="padding:16px"></div>
     <div id="msgSent" class="card" style="padding:16px;display:none"></div>`;
-    
-    // Render inbox
-    const ib = document.getElementById('msgInbox');
-    if (ib) { ib.innerHTML = inbox.length ? inbox.map(m=>'<div style="padding:12px;margin:4px 0;border-radius:8px;background:'+(m.read_at?'#fff':'#e3f2fd')+';cursor:pointer;border-left:4px solid '+(m.read_at?'#ccc':'#1a73e8')+'" onclick="readMsg('+m.id+')"><div style="display:flex;justify-content:space-between"><strong>'+(m.from_name||tr('System','النظام'))+'</strong><span style="font-size:11px;color:#666">'+(m.created_at?new Date(m.created_at).toLocaleString('ar-SA'):'')+'</span></div><p style="margin:4px 0 0;font-size:13px;color:#666">'+(m.subject||m.content||'').substring(0,80)+'</p></div>').join('') : '<p style="text-align:center;color:#999">'+tr('No messages','لا توجد رسائل')+'</p>'; }
-    
-    const st = document.getElementById('msgSent');
-    if (st) { st.innerHTML = sent.length ? sent.map(m=>'<div style="padding:12px;margin:4px 0;border-radius:8px;background:#f5f5f5;border-left:4px solid #4caf50"><div style="display:flex;justify-content:space-between"><strong>→ '+(m.to_name||'')+'</strong><span style="font-size:11px;color:#666">'+(m.created_at?new Date(m.created_at).toLocaleString('ar-SA'):'')+'</span></div><p style="margin:4px 0 0;font-size:13px;color:#666">'+(m.subject||m.content||'').substring(0,80)+'</p></div>').join('') : '<p style="text-align:center;color:#999">'+tr('No sent messages','لا توجد رسائل مرسلة')+'</p>'; }
-    
-    window.showMsgTab = (tab) => { document.getElementById('msgInbox').style.display=tab==='inbox'?'':'none'; document.getElementById('msgSent').style.display=tab==='sent'?'':'none'; };
-    window.readMsg = async (id) => { try { await API.put('/api/messages/'+id+'/read',{}); const m=messages.find(x=>x.id===id); if(m){const modal=document.createElement('div');modal.className='modal-overlay';modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';modal.innerHTML='<div style="background:#fff;border-radius:16px;padding:24px;width:500px;max-height:80vh;overflow:auto"><h3 style="margin:0 0 8px">'+( m.subject||tr('Message','رسالة'))+'</h3><p style="color:#666;font-size:12px;margin:0 0 16px">'+tr('From','من')+': '+(m.from_name||'')+' — '+(m.created_at?new Date(m.created_at).toLocaleString('ar-SA'):'')+'</p><div style="padding:12px;background:#f5f5f5;border-radius:8px;white-space:pre-wrap">'+(m.content||'')+'</div><button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:16px">'+tr('Close','إغلاق')+'</button></div>';document.body.appendChild(modal);modal.onclick=e=>{if(e.target===modal)modal.remove();}} } catch(e){} };
-    window.showComposeModal = () => {
-      const modal=document.createElement('div');modal.className='modal-overlay';modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
-      modal.innerHTML='<div style="background:#fff;border-radius:16px;padding:24px;width:500px"><h3 style="margin:0 0 16px">✏️ '+tr('New Message','رسالة جديدة')+'</h3><div class="form-group"><label>'+tr('To','إلى')+'</label><select class="form-input" id="msgTo">'+users.map(u=>'<option value="'+u.id+'">'+u.display_name+'</option>').join('')+'</select></div><div class="form-group"><label>'+tr('Subject','الموضوع')+'</label><input class="form-input" id="msgSubject"></div><div class="form-group"><label>'+tr('Message','الرسالة')+'</label><textarea class="form-input" id="msgContent" rows="4"></textarea></div><div style="display:flex;gap:8px"><button class="btn btn-primary" onclick="sendMessage()" style="flex:1">📤 '+tr('Send','إرسال')+'</button><button class="btn btn-secondary" onclick="this.parentElement.parentElement.parentElement.remove()" style="flex:1">'+tr('Cancel','إلغاء')+'</button></div></div>';
-      document.body.appendChild(modal);modal.onclick=e=>{if(e.target===modal)modal.remove();};
-    };
-    window.sendMessage = async () => { try { await API.post('/api/messages',{to_user_id:document.getElementById('msgTo').value, subject:document.getElementById('msgSubject').value, content:document.getElementById('msgContent').value}); document.querySelector('.modal-overlay')?.remove(); showToast(tr('Message sent!','تم إرسال الرسالة!')); navigateTo(currentPage); } catch(e) { showToast(tr('Error','خطأ'),'error'); } };
+
+  // Render inbox
+  const ib = document.getElementById('msgInbox');
+  if (ib) { ib.innerHTML = inbox.length ? inbox.map(m => '<div style="padding:12px;margin:4px 0;border-radius:8px;background:' + (m.read_at ? '#fff' : '#e3f2fd') + ';cursor:pointer;border-left:4px solid ' + (m.read_at ? '#ccc' : '#1a73e8') + '" onclick="readMsg(' + m.id + ')"><div style="display:flex;justify-content:space-between"><strong>' + (m.from_name || tr('System', 'النظام')) + '</strong><span style="font-size:11px;color:#666">' + (m.created_at ? new Date(m.created_at).toLocaleString('ar-SA') : '') + '</span></div><p style="margin:4px 0 0;font-size:13px;color:#666">' + (m.subject || m.content || '').substring(0, 80) + '</p></div>').join('') : '<p style="text-align:center;color:#999">' + tr('No messages', 'لا توجد رسائل') + '</p>'; }
+
+  const st = document.getElementById('msgSent');
+  if (st) { st.innerHTML = sent.length ? sent.map(m => '<div style="padding:12px;margin:4px 0;border-radius:8px;background:#f5f5f5;border-left:4px solid #4caf50"><div style="display:flex;justify-content:space-between"><strong>→ ' + (m.to_name || '') + '</strong><span style="font-size:11px;color:#666">' + (m.created_at ? new Date(m.created_at).toLocaleString('ar-SA') : '') + '</span></div><p style="margin:4px 0 0;font-size:13px;color:#666">' + (m.subject || m.content || '').substring(0, 80) + '</p></div>').join('') : '<p style="text-align:center;color:#999">' + tr('No sent messages', 'لا توجد رسائل مرسلة') + '</p>'; }
+
+  window.showMsgTab = (tab) => { document.getElementById('msgInbox').style.display = tab === 'inbox' ? '' : 'none'; document.getElementById('msgSent').style.display = tab === 'sent' ? '' : 'none'; };
+  window.readMsg = async (id) => { try { await API.put('/api/messages/' + id + '/read', {}); const m = messages.find(x => x.id === id); if (m) { const modal = document.createElement('div'); modal.className = 'modal-overlay'; modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center'; modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:500px;max-height:80vh;overflow:auto"><h3 style="margin:0 0 8px">' + (m.subject || tr('Message', 'رسالة')) + '</h3><p style="color:#666;font-size:12px;margin:0 0 16px">' + tr('From', 'من') + ': ' + (m.from_name || '') + ' — ' + (m.created_at ? new Date(m.created_at).toLocaleString('ar-SA') : '') + '</p><div style="padding:12px;background:#f5f5f5;border-radius:8px;white-space:pre-wrap">' + (m.content || '') + '</div><button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:16px">' + tr('Close', 'إغلاق') + '</button></div>'; document.body.appendChild(modal); modal.onclick = e => { if (e.target === modal) modal.remove(); } } } catch (e) { } };
+  window.showComposeModal = () => {
+    const modal = document.createElement('div'); modal.className = 'modal-overlay'; modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+    modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:500px"><h3 style="margin:0 0 16px">✏️ ' + tr('New Message', 'رسالة جديدة') + '</h3><div class="form-group"><label>' + tr('To', 'إلى') + '</label><select class="form-input" id="msgTo">' + users.map(u => '<option value="' + u.id + '">' + u.display_name + '</option>').join('') + '</select></div><div class="form-group"><label>' + tr('Subject', 'الموضوع') + '</label><input class="form-input" id="msgSubject"></div><div class="form-group"><label>' + tr('Message', 'الرسالة') + '</label><textarea class="form-input" id="msgContent" rows="4"></textarea></div><div style="display:flex;gap:8px"><button class="btn btn-primary" onclick="sendMessage()" style="flex:1">📤 ' + tr('Send', 'إرسال') + '</button><button class="btn btn-secondary" onclick="this.parentElement.parentElement.parentElement.remove()" style="flex:1">' + tr('Cancel', 'إلغاء') + '</button></div></div>';
+    document.body.appendChild(modal); modal.onclick = e => { if (e.target === modal) modal.remove(); };
+  };
+  window.sendMessage = async () => { try { await API.post('/api/messages', { to_user_id: document.getElementById('msgTo').value, subject: document.getElementById('msgSubject').value, content: document.getElementById('msgContent').value }); document.querySelector('.modal-overlay')?.remove(); showToast(tr('Message sent!', 'تم إرسال الرسالة!')); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); } };
 
 }
 window.sendMsg = async function () {
@@ -4501,46 +4546,46 @@ async function loadDashboardCharts() {
 
 
 async function renderSettings(el) {
-    const content = el;
+  const content = el;
 
-    content.innerHTML = `
-    <h2>${tr('Settings','الإعدادات')}</h2>
+  content.innerHTML = `
+    <h2>${tr('Settings', 'الإعدادات')}</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 16px">🏥 ${tr('Hospital Information','معلومات المستشفى')}</h4>
-        <div class="form-group"><label>${tr('Hospital Name (AR)','اسم المستشفى (عربي)')}</label><input class="form-input" id="setNameAr" value="نما الطبي"></div>
-        <div class="form-group"><label>${tr('Hospital Name (EN)','اسم المستشفى (إنجليزي)')}</label><input class="form-input" id="setNameEn" value="Nama Medical"></div>
-        <div class="form-group"><label>${tr('Phone','الهاتف')}</label><input class="form-input" id="setPhone"></div>
-        <div class="form-group"><label>${tr('Email','البريد')}</label><input class="form-input" id="setEmail"></div>
-        <div class="form-group"><label>${tr('Address','العنوان')}</label><textarea class="form-input" id="setAddress" rows="2"></textarea></div>
-        <div class="form-group"><label>${tr('CR Number','سجل تجاري')}</label><input class="form-input" id="setCR"></div>
-        <div class="form-group"><label>${tr('VAT Number','رقم ضريبي')}</label><input class="form-input" id="setVAT"></div>
-        <button class="btn btn-primary w-full" onclick="showToast(tr('Settings saved!','تم حفظ الإعدادات!'))">💾 ${tr('Save','حفظ')}</button>
+        <h4 style="margin:0 0 16px">🏥 ${tr('Hospital Information', 'معلومات المستشفى')}</h4>
+        <div class="form-group"><label>${tr('Hospital Name (AR)', 'اسم المستشفى (عربي)')}</label><input class="form-input" id="setNameAr" value="نما الطبي"></div>
+        <div class="form-group"><label>${tr('Hospital Name (EN)', 'اسم المستشفى (إنجليزي)')}</label><input class="form-input" id="setNameEn" value="Nama Medical"></div>
+        <div class="form-group"><label>${tr('Phone', 'الهاتف')}</label><input class="form-input" id="setPhone"></div>
+        <div class="form-group"><label>${tr('Email', 'البريد')}</label><input class="form-input" id="setEmail"></div>
+        <div class="form-group"><label>${tr('Address', 'العنوان')}</label><textarea class="form-input" id="setAddress" rows="2"></textarea></div>
+        <div class="form-group"><label>${tr('CR Number', 'سجل تجاري')}</label><input class="form-input" id="setCR"></div>
+        <div class="form-group"><label>${tr('VAT Number', 'رقم ضريبي')}</label><input class="form-input" id="setVAT"></div>
+        <button class="btn btn-primary w-full" onclick="showToast(tr('Settings saved!','تم حفظ الإعدادات!'))">💾 ${tr('Save', 'حفظ')}</button>
       </div>
       <div>
         <div class="card" style="padding:20px;margin-bottom:16px">
-          <h4 style="margin:0 0 16px">🎨 ${tr('Appearance','المظهر')}</h4>
-          <div class="form-group"><label>${tr('Language','اللغة')}</label>
-            <select class="form-input" onchange="setLang(this.value)"><option value="en" ${!isArabic?'selected':''}>English</option><option value="ar" ${isArabic?'selected':''}>العربية</option></select></div>
-          <div class="form-group"><label>${tr('Theme','السمة')}</label>
+          <h4 style="margin:0 0 16px">🎨 ${tr('Appearance', 'المظهر')}</h4>
+          <div class="form-group"><label>${tr('Language', 'اللغة')}</label>
+            <select class="form-input" onchange="setLang(this.value)"><option value="en" ${!isArabic ? 'selected' : ''}>English</option><option value="ar" ${isArabic ? 'selected' : ''}>العربية</option></select></div>
+          <div class="form-group"><label>${tr('Theme', 'السمة')}</label>
             <select class="form-input" id="setTheme" onchange="if(typeof changeTheme==='function')changeTheme(this.value)">
-              <option value="light-blue">${tr('Light Blue','فاتح أزرق')}</option>
-              <option value="dark">${tr('Dark','داكن')}</option>
-              <option value="green">${tr('Green','أخضر')}</option>
+              <option value="light-blue">${tr('Light Blue', 'فاتح أزرق')}</option>
+              <option value="dark">${tr('Dark', 'داكن')}</option>
+              <option value="green">${tr('Green', 'أخضر')}</option>
             </select></div>
         </div>
         <div class="card" style="padding:20px;margin-bottom:16px">
-          <h4 style="margin:0 0 16px">🔔 ${tr('Notifications','الإشعارات')}</h4>
-          <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><input type="checkbox" checked> ${tr('Lab results ready','نتائج المختبر جاهزة')}</label>
-          <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><input type="checkbox" checked> ${tr('New appointments','مواعيد جديدة')}</label>
-          <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><input type="checkbox" checked> ${tr('Low inventory alerts','تنبيه مخزون منخفض')}</label>
-          <label style="display:flex;align-items:center;gap:8px"><input type="checkbox"> ${tr('Email notifications','إشعارات بريد')}</label>
+          <h4 style="margin:0 0 16px">🔔 ${tr('Notifications', 'الإشعارات')}</h4>
+          <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><input type="checkbox" checked> ${tr('Lab results ready', 'نتائج المختبر جاهزة')}</label>
+          <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><input type="checkbox" checked> ${tr('New appointments', 'مواعيد جديدة')}</label>
+          <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><input type="checkbox" checked> ${tr('Low inventory alerts', 'تنبيه مخزون منخفض')}</label>
+          <label style="display:flex;align-items:center;gap:8px"><input type="checkbox"> ${tr('Email notifications', 'إشعارات بريد')}</label>
         </div>
         <div class="card" style="padding:20px">
-          <h4 style="margin:0 0 16px">🛡️ ${tr('System','النظام')}</h4>
-          <p style="font-size:13px;color:#666;margin-bottom:8px">${tr('Version','الإصدار')}: 3.0.0</p>
-          <p style="font-size:13px;color:#666;margin-bottom:8px">${tr('Database','قاعدة البيانات')}: PostgreSQL</p>
-          <p style="font-size:13px;color:#666">${tr('Server','الخادم')}: Node.js / Express</p>
+          <h4 style="margin:0 0 16px">🛡️ ${tr('System', 'النظام')}</h4>
+          <p style="font-size:13px;color:#666;margin-bottom:8px">${tr('Version', 'الإصدار')}: 3.0.0</p>
+          <p style="font-size:13px;color:#666;margin-bottom:8px">${tr('Database', 'قاعدة البيانات')}: PostgreSQL</p>
+          <p style="font-size:13px;color:#666">${tr('Server', 'الخادم')}: Node.js / Express</p>
         </div>
       </div>
     </div>`;
@@ -4798,46 +4843,46 @@ window.saveCatPrice = async (type, id) => {
 
 // ===== DEPARTMENT RESOURCE REQUESTS =====
 async function renderDeptRequests(el) {
-    const content = el;
+  const content = el;
 
-    const requests = await API.get('/api/dept-requests').catch(()=>[]);
-    const pending = requests.filter(r=>r.status==='pending').length;
-    
-    content.innerHTML = `
-    <h2>${tr('Department Requests','طلبات الأقسام')}</h2>
+  const requests = await API.get('/api/dept-requests').catch(() => []);
+  const pending = requests.filter(r => r.status === 'pending').length;
+
+  content.innerHTML = `
+    <h2>${tr('Department Requests', 'طلبات الأقسام')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${requests.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total','الإجمالي')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${pending}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Pending Approval','بانتظار الموافقة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${requests.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total', 'الإجمالي')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${pending}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Pending Approval', 'بانتظار الموافقة')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('New Request','طلب جديد')}</h4>
-        <div class="form-group"><label>${tr('Type','النوع')}</label>
-          <select class="form-input" id="drType"><option value="supplies">${tr('Supplies','مستلزمات')}</option><option value="equipment">${tr('Equipment','أجهزة')}</option><option value="maintenance">${tr('Maintenance','صيانة')}</option><option value="staffing">${tr('Staffing','توظيف')}</option><option value="other">${tr('Other','أخرى')}</option></select></div>
-        <div class="form-group"><label>${tr('Department','القسم')}</label><input class="form-input" id="drDept"></div>
-        <div class="form-group"><label>${tr('Item/Description','البند/الوصف')}</label><input class="form-input" id="drItem"></div>
-        <div class="form-group"><label>${tr('Quantity','الكمية')}</label><input type="number" class="form-input" id="drQty" value="1"></div>
-        <div class="form-group"><label>${tr('Priority','الأولوية')}</label>
-          <select class="form-input" id="drPriority"><option value="low">${tr('Low','منخفضة')}</option><option value="medium" selected>${tr('Medium','متوسطة')}</option><option value="high">${tr('High','عالية')}</option><option value="urgent">${tr('Urgent','عاجلة')}</option></select></div>
-        <div class="form-group"><label>${tr('Notes','ملاحظات')}</label><textarea class="form-input" id="drNotes" rows="2"></textarea></div>
-        <button class="btn btn-primary w-full" onclick="saveDeptReq()">📤 ${tr('Submit','تقديم')}</button>
+        <h4 style="margin:0 0 12px">${tr('New Request', 'طلب جديد')}</h4>
+        <div class="form-group"><label>${tr('Type', 'النوع')}</label>
+          <select class="form-input" id="drType"><option value="supplies">${tr('Supplies', 'مستلزمات')}</option><option value="equipment">${tr('Equipment', 'أجهزة')}</option><option value="maintenance">${tr('Maintenance', 'صيانة')}</option><option value="staffing">${tr('Staffing', 'توظيف')}</option><option value="other">${tr('Other', 'أخرى')}</option></select></div>
+        <div class="form-group"><label>${tr('Department', 'القسم')}</label><input class="form-input" id="drDept"></div>
+        <div class="form-group"><label>${tr('Item/Description', 'البند/الوصف')}</label><input class="form-input" id="drItem"></div>
+        <div class="form-group"><label>${tr('Quantity', 'الكمية')}</label><input type="number" class="form-input" id="drQty" value="1"></div>
+        <div class="form-group"><label>${tr('Priority', 'الأولوية')}</label>
+          <select class="form-input" id="drPriority"><option value="low">${tr('Low', 'منخفضة')}</option><option value="medium" selected>${tr('Medium', 'متوسطة')}</option><option value="high">${tr('High', 'عالية')}</option><option value="urgent">${tr('Urgent', 'عاجلة')}</option></select></div>
+        <div class="form-group"><label>${tr('Notes', 'ملاحظات')}</label><textarea class="form-input" id="drNotes" rows="2"></textarea></div>
+        <button class="btn btn-primary w-full" onclick="saveDeptReq()">📤 ${tr('Submit', 'تقديم')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Requests','الطلبات')}</h4>
+        <h4 style="margin:0 0 12px">${tr('Requests', 'الطلبات')}</h4>
         <div id="drTable"></div>
       </div>
     </div>`;
-    
-    const dt = document.getElementById('drTable');
-    if (dt) {
-      createTable(dt, 'drTbl',
-        [tr('Type','النوع'),tr('Dept','القسم'),tr('Item','البند'),tr('Qty','الكمية'),tr('Priority','الأولوية'),tr('Status','الحالة'),tr('Date','التاريخ'),tr('Actions','')],
-        requests.map(r=>({cells:[r.request_type||r.type||'', r.department||'', r.item||r.description||'', r.quantity||'', r.priority||'', statusBadge(r.status), r.created_at?new Date(r.created_at).toLocaleDateString('ar-SA'):'', r.status==='pending'?'<button class="btn btn-sm" style="background:#e8f5e9;color:#2e7d32" onclick="approveDeptReq('+r.id+')">✅ '+tr('Approve','موافقة')+'</button> <button class="btn btn-sm" style="background:#fce4ec;color:#c62828" onclick="rejectDeptReq('+r.id+')">❌</button>':''], id:r.id}))
-      );
-    }
-    window.saveDeptReq = async () => { try { await API.post('/api/dept-requests', { request_type:document.getElementById('drType').value, department:document.getElementById('drDept').value, item:document.getElementById('drItem').value, quantity:document.getElementById('drQty').value, priority:document.getElementById('drPriority').value, notes:document.getElementById('drNotes').value, requested_by:window.currentUser?.display_name||'' }); showToast(tr('Request submitted!','تم تقديم الطلب!')); navigateTo(currentPage); } catch(e) { showToast(tr('Error','خطأ'),'error'); } };
-    window.approveDeptReq = async (id) => { try { await API.put('/api/dept-requests/'+id, {status:'approved'}); showToast('✅'); navigateTo(currentPage); } catch(e) {} };
-    window.rejectDeptReq = async (id) => { try { await API.put('/api/dept-requests/'+id, {status:'rejected'}); showToast('❌'); navigateTo(currentPage); } catch(e) {} };
+
+  const dt = document.getElementById('drTable');
+  if (dt) {
+    createTable(dt, 'drTbl',
+      [tr('Type', 'النوع'), tr('Dept', 'القسم'), tr('Item', 'البند'), tr('Qty', 'الكمية'), tr('Priority', 'الأولوية'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', '')],
+      requests.map(r => ({ cells: [r.request_type || r.type || '', r.department || '', r.item || r.description || '', r.quantity || '', r.priority || '', statusBadge(r.status), r.created_at ? new Date(r.created_at).toLocaleDateString('ar-SA') : '', r.status === 'pending' ? '<button class="btn btn-sm" style="background:#e8f5e9;color:#2e7d32" onclick="approveDeptReq(' + r.id + ')">✅ ' + tr('Approve', 'موافقة') + '</button> <button class="btn btn-sm" style="background:#fce4ec;color:#c62828" onclick="rejectDeptReq(' + r.id + ')">❌</button>' : ''], id: r.id }))
+    );
+  }
+  window.saveDeptReq = async () => { try { await API.post('/api/dept-requests', { request_type: document.getElementById('drType').value, department: document.getElementById('drDept').value, item: document.getElementById('drItem').value, quantity: document.getElementById('drQty').value, priority: document.getElementById('drPriority').value, notes: document.getElementById('drNotes').value, requested_by: window.currentUser?.display_name || '' }); showToast(tr('Request submitted!', 'تم تقديم الطلب!')); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); } };
+  window.approveDeptReq = async (id) => { try { await API.put('/api/dept-requests/' + id, { status: 'approved' }); showToast('✅'); navigateTo(currentPage); } catch (e) { } };
+  window.rejectDeptReq = async (id) => { try { await API.put('/api/dept-requests/' + id, { status: 'rejected' }); showToast('❌'); navigateTo(currentPage); } catch (e) { } };
 
 }
 let drqItems = [];
@@ -5819,56 +5864,56 @@ window.saveFluidBalance = async function () {
 };
 // ===== CSSD =====
 async function renderCSSD(el) {
-    const content = el;
+  const content = el;
 
-    const batches = await API.get('/api/cssd/batches').catch(()=>[]);
-    const processing = batches.filter(b=>b.status==='processing').length;
-    const done = batches.filter(b=>b.status==='completed').length;
-    
-    content.innerHTML = `
-    <h2>${tr('CSSD - Sterilization','التعقيم المركزي')}</h2>
+  const batches = await API.get('/api/cssd/batches').catch(() => []);
+  const processing = batches.filter(b => b.status === 'processing').length;
+  const done = batches.filter(b => b.status === 'completed').length;
+
+  content.innerHTML = `
+    <h2>${tr('CSSD - Sterilization', 'التعقيم المركزي')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${batches.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Batches','إجمالي الدفعات')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${processing}</h3><p style="margin:4px 0 0;font-size:12px">${tr('In Process','قيد التعقيم')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${done}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Completed','مكتملة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${batches.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Batches', 'إجمالي الدفعات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${processing}</h3><p style="margin:4px 0 0;font-size:12px">${tr('In Process', 'قيد التعقيم')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${done}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Completed', 'مكتملة')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('New Batch','دفعة جديدة')}</h4>
-        <div class="form-group"><label>${tr('Batch #','رقم الدفعة')}</label><input class="form-input" id="cssdBatch" value="CSSD-${Date.now().toString().slice(-6)}"></div>
-        <div class="form-group"><label>${tr('Items','الأصناف')}</label><textarea class="form-input" id="cssdItems" rows="2" placeholder="${tr('Surgical instruments, trays...','أدوات جراحية، صواني...')}"></textarea></div>
-        <div class="form-group"><label>${tr('Department','القسم')}</label><input class="form-input" id="cssdDept" placeholder="${tr('Surgery, ER...','الجراحة، الطوارئ...')}"></div>
-        <div class="form-group"><label>${tr('Method','طريقة التعقيم')}</label>
+        <h4 style="margin:0 0 12px">${tr('New Batch', 'دفعة جديدة')}</h4>
+        <div class="form-group"><label>${tr('Batch #', 'رقم الدفعة')}</label><input class="form-input" id="cssdBatch" value="CSSD-${Date.now().toString().slice(-6)}"></div>
+        <div class="form-group"><label>${tr('Items', 'الأصناف')}</label><textarea class="form-input" id="cssdItems" rows="2" placeholder="${tr('Surgical instruments, trays...', 'أدوات جراحية، صواني...')}"></textarea></div>
+        <div class="form-group"><label>${tr('Department', 'القسم')}</label><input class="form-input" id="cssdDept" placeholder="${tr('Surgery, ER...', 'الجراحة، الطوارئ...')}"></div>
+        <div class="form-group"><label>${tr('Method', 'طريقة التعقيم')}</label>
           <select class="form-input" id="cssdMethod">
-            <option value="autoclave">${tr('Steam Autoclave','أوتوكلاف بخاري')}</option>
-            <option value="eto">${tr('ETO Gas','غاز ETO')}</option>
-            <option value="plasma">${tr('H2O2 Plasma','بلازما H2O2')}</option>
-            <option value="chemical">${tr('Chemical','كيميائي')}</option>
+            <option value="autoclave">${tr('Steam Autoclave', 'أوتوكلاف بخاري')}</option>
+            <option value="eto">${tr('ETO Gas', 'غاز ETO')}</option>
+            <option value="plasma">${tr('H2O2 Plasma', 'بلازما H2O2')}</option>
+            <option value="chemical">${tr('Chemical', 'كيميائي')}</option>
           </select></div>
-        <div class="form-group"><label>${tr('Temperature','الحرارة')}</label><input class="form-input" id="cssdTemp" placeholder="134°C"></div>
-        <div class="form-group"><label>${tr('Operator','المشغّل')}</label><input class="form-input" id="cssdOp"></div>
-        <button class="btn btn-primary w-full" onclick="saveCssdBatch()">💾 ${tr('Start Cycle','بدء الدورة')}</button>
+        <div class="form-group"><label>${tr('Temperature', 'الحرارة')}</label><input class="form-input" id="cssdTemp" placeholder="134°C"></div>
+        <div class="form-group"><label>${tr('Operator', 'المشغّل')}</label><input class="form-input" id="cssdOp"></div>
+        <button class="btn btn-primary w-full" onclick="saveCssdBatch()">💾 ${tr('Start Cycle', 'بدء الدورة')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Batch History','سجل الدفعات')}</h4>
+        <h4 style="margin:0 0 12px">${tr('Batch History', 'سجل الدفعات')}</h4>
         <div id="cssdTable"></div>
       </div>
     </div>`;
-    
-    const ct = document.getElementById('cssdTable');
-    if (ct) {
-      createTable(ct, 'cssdTbl',
-        [tr('Batch#','الدفعة'),tr('Items','الأصناف'),tr('Dept','القسم'),tr('Method','الطريقة'),tr('Temp','الحرارة'),tr('Status','الحالة'),tr('Date','التاريخ'),tr('Actions','إجراءات')],
-        batches.map(b => ({
-          cells: [b.batch_number, (b.items||'').substring(0,30), b.department||'', b.method||'', b.temperature||'', statusBadge(b.status), b.created_at?new Date(b.created_at).toLocaleDateString('ar-SA'):'',
-            b.status==='processing'?'<button class="btn btn-sm" onclick="completeCssd('+b.id+')">✅ '+tr('Complete','إكمال')+'</button>':'✅'], id:b.id
-        }))
-      );
-    }
-    window.saveCssdBatch = async () => {
-      try { await API.post('/api/cssd/batches', { batch_number:document.getElementById('cssdBatch').value, items:document.getElementById('cssdItems').value, department:document.getElementById('cssdDept').value, method:document.getElementById('cssdMethod').value, temperature:document.getElementById('cssdTemp').value, operator:document.getElementById('cssdOp').value }); showToast(tr('Cycle started!','بدأت الدورة!')); navigateTo(currentPage); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
-    window.completeCssd = async (id) => { try { await API.put('/api/cssd/batches/'+id, {status:'completed'}); showToast('✅'); navigateTo(currentPage); } catch(e) { showToast(tr('Error','خطأ'),'error'); } };
+
+  const ct = document.getElementById('cssdTable');
+  if (ct) {
+    createTable(ct, 'cssdTbl',
+      [tr('Batch#', 'الدفعة'), tr('Items', 'الأصناف'), tr('Dept', 'القسم'), tr('Method', 'الطريقة'), tr('Temp', 'الحرارة'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', 'إجراءات')],
+      batches.map(b => ({
+        cells: [b.batch_number, (b.items || '').substring(0, 30), b.department || '', b.method || '', b.temperature || '', statusBadge(b.status), b.created_at ? new Date(b.created_at).toLocaleDateString('ar-SA') : '',
+        b.status === 'processing' ? '<button class="btn btn-sm" onclick="completeCssd(' + b.id + ')">✅ ' + tr('Complete', 'إكمال') + '</button>' : '✅'], id: b.id
+      }))
+    );
+  }
+  window.saveCssdBatch = async () => {
+    try { await API.post('/api/cssd/batches', { batch_number: document.getElementById('cssdBatch').value, items: document.getElementById('cssdItems').value, department: document.getElementById('cssdDept').value, method: document.getElementById('cssdMethod').value, temperature: document.getElementById('cssdTemp').value, operator: document.getElementById('cssdOp').value }); showToast(tr('Cycle started!', 'بدأت الدورة!')); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
+  window.completeCssd = async (id) => { try { await API.put('/api/cssd/batches/' + id, { status: 'completed' }); showToast('✅'); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); } };
 
 }
 window.addInstrumentSet = async function () {
@@ -5942,60 +5987,60 @@ window.addDietOrder = async function () {
 // ===== INFECTION CONTROL =====
 let icTab = 'surveillance';
 async function renderInfectionControl(el) {
-    const content = el;
+  const content = el;
 
-    const reports = await API.get('/api/infection-control/reports').catch(()=>[]);
-    const active = reports.filter(r=>r.status==='active').length;
-    const resolved = reports.filter(r=>r.status==='resolved').length;
-    
-    // Group by infection type
-    const byType = {};
-    reports.forEach(r => { const t=r.infection_type||'Other'; byType[t]=(byType[t]||0)+1; });
-    
-    content.innerHTML = `
-    <h2>${tr('Infection Control','مكافحة العدوى')}</h2>
+  const reports = await API.get('/api/infection-control/reports').catch(() => []);
+  const active = reports.filter(r => r.status === 'active').length;
+  const resolved = reports.filter(r => r.status === 'resolved').length;
+
+  // Group by infection type
+  const byType = {};
+  reports.forEach(r => { const t = r.infection_type || 'Other'; byType[t] = (byType[t] || 0) + 1; });
+
+  content.innerHTML = `
+    <h2>${tr('Infection Control', 'مكافحة العدوى')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${reports.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Reports','إجمالي البلاغات')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${active}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Active Cases','حالات نشطة')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${resolved}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Resolved','محلولة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${reports.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Reports', 'إجمالي البلاغات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${active}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Active Cases', 'حالات نشطة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${resolved}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Resolved', 'محلولة')}</p></div>
     </div>
-    ${Object.keys(byType).length>0?'<div class="card" style="padding:16px;margin-bottom:16px"><h4 style="margin:0 0 8px">'+tr('By Infection Type','حسب نوع العدوى')+'</h4><div style="display:flex;gap:8px;flex-wrap:wrap">'+Object.entries(byType).map(([t,c])=>'<span style="padding:4px 12px;border-radius:16px;background:#fce4ec;font-size:12px">'+t+': <strong>'+c+'</strong></span>').join('')+'</div></div>':''}
+    ${Object.keys(byType).length > 0 ? '<div class="card" style="padding:16px;margin-bottom:16px"><h4 style="margin:0 0 8px">' + tr('By Infection Type', 'حسب نوع العدوى') + '</h4><div style="display:flex;gap:8px;flex-wrap:wrap">' + Object.entries(byType).map(([t, c]) => '<span style="padding:4px 12px;border-radius:16px;background:#fce4ec;font-size:12px">' + t + ': <strong>' + c + '</strong></span>').join('') + '</div></div>' : ''}
     <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Report Infection','إبلاغ عن عدوى')}</h4>
-        <div class="form-group"><label>${tr('Patient','المريض')}</label><input class="form-input" id="icPatient"></div>
-        <div class="form-group"><label>${tr('Infection Type','نوع العدوى')}</label>
+        <h4 style="margin:0 0 12px">${tr('Report Infection', 'إبلاغ عن عدوى')}</h4>
+        <div class="form-group"><label>${tr('Patient', 'المريض')}</label><input class="form-input" id="icPatient"></div>
+        <div class="form-group"><label>${tr('Infection Type', 'نوع العدوى')}</label>
           <select class="form-input" id="icType">
             <option value="MRSA">MRSA</option><option value="VRE">VRE</option><option value="C.diff">C. difficile</option>
             <option value="ESBL">ESBL</option><option value="TB">TB</option><option value="COVID-19">COVID-19</option>
             <option value="Influenza">Influenza</option><option value="UTI">UTI</option><option value="SSI">SSI</option>
-            <option value="Other">${tr('Other','أخرى')}</option>
+            <option value="Other">${tr('Other', 'أخرى')}</option>
           </select></div>
-        <div class="form-group"><label>${tr('Ward','الجناح')}</label><input class="form-input" id="icWard"></div>
-        <div class="form-group"><label>${tr('Isolation Type','نوع العزل')}</label>
-          <select class="form-input" id="icIsolation"><option value="none">${tr('None','بدون')}</option><option value="contact">${tr('Contact','تلامسي')}</option><option value="droplet">${tr('Droplet','رذاذي')}</option><option value="airborne">${tr('Airborne','هوائي')}</option><option value="protective">${tr('Protective','وقائي')}</option></select></div>
-        <div class="form-group"><label>${tr('Culture Results','نتائج الزراعة')}</label><textarea class="form-input" id="icCulture" rows="2"></textarea></div>
-        <div class="form-group"><label>${tr('Action Taken','الإجراء المتخذ')}</label><textarea class="form-input" id="icAction" rows="2"></textarea></div>
-        <button class="btn btn-primary w-full" onclick="saveIcReport()">🦠 ${tr('Submit Report','تقديم البلاغ')}</button>
+        <div class="form-group"><label>${tr('Ward', 'الجناح')}</label><input class="form-input" id="icWard"></div>
+        <div class="form-group"><label>${tr('Isolation Type', 'نوع العزل')}</label>
+          <select class="form-input" id="icIsolation"><option value="none">${tr('None', 'بدون')}</option><option value="contact">${tr('Contact', 'تلامسي')}</option><option value="droplet">${tr('Droplet', 'رذاذي')}</option><option value="airborne">${tr('Airborne', 'هوائي')}</option><option value="protective">${tr('Protective', 'وقائي')}</option></select></div>
+        <div class="form-group"><label>${tr('Culture Results', 'نتائج الزراعة')}</label><textarea class="form-input" id="icCulture" rows="2"></textarea></div>
+        <div class="form-group"><label>${tr('Action Taken', 'الإجراء المتخذ')}</label><textarea class="form-input" id="icAction" rows="2"></textarea></div>
+        <button class="btn btn-primary w-full" onclick="saveIcReport()">🦠 ${tr('Submit Report', 'تقديم البلاغ')}</button>
       </div>
       <div class="card" style="padding:20px">
         <div style="display:flex;justify-content:space-between;margin-bottom:12px">
-          <h4 style="margin:0">${tr('Reports','البلاغات')}</h4>
+          <h4 style="margin:0">${tr('Reports', 'البلاغات')}</h4>
           <button class="btn btn-sm" onclick="exportToCSV(reports,'infection_control')" style="background:#e0f7fa;color:#00838f">📥</button>
         </div>
         <div id="icTable"></div>
       </div>
     </div>`;
-    
-    const ict = document.getElementById('icTable');
-    if (ict) {
-      createTable(ict, 'icTbl',
-        [tr('Patient','المريض'),tr('Type','النوع'),tr('Ward','الجناح'),tr('Isolation','العزل'),tr('Status','الحالة'),tr('Date','التاريخ'),tr('Actions','')],
-        reports.map(r=>({cells:[r.patient_name, r.infection_type, r.ward||'', r.isolation_type||'', statusBadge(r.status), r.created_at?new Date(r.created_at).toLocaleDateString('ar-SA'):'', r.status==='active'?'<button class="btn btn-sm" onclick="resolveIc('+r.id+')">✅</button>':'✅'], id:r.id}))
-      );
-    }
-    window.saveIcReport = async () => { try { await API.post('/api/infection-control/reports', { patient_name:document.getElementById('icPatient').value, infection_type:document.getElementById('icType').value, ward:document.getElementById('icWard').value, isolation_type:document.getElementById('icIsolation').value, culture_results:document.getElementById('icCulture').value, action_taken:document.getElementById('icAction').value }); showToast(tr('Report submitted!','تم تقديم البلاغ!')); navigateTo(currentPage); } catch(e) { showToast(tr('Error','خطأ'),'error'); } };
-    window.resolveIc = async (id) => { try { await API.put('/api/infection-control/reports/'+id, {status:'resolved'}); showToast('✅'); navigateTo(currentPage); } catch(e) {} };
+
+  const ict = document.getElementById('icTable');
+  if (ict) {
+    createTable(ict, 'icTbl',
+      [tr('Patient', 'المريض'), tr('Type', 'النوع'), tr('Ward', 'الجناح'), tr('Isolation', 'العزل'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', '')],
+      reports.map(r => ({ cells: [r.patient_name, r.infection_type, r.ward || '', r.isolation_type || '', statusBadge(r.status), r.created_at ? new Date(r.created_at).toLocaleDateString('ar-SA') : '', r.status === 'active' ? '<button class="btn btn-sm" onclick="resolveIc(' + r.id + ')">✅</button>' : '✅'], id: r.id }))
+    );
+  }
+  window.saveIcReport = async () => { try { await API.post('/api/infection-control/reports', { patient_name: document.getElementById('icPatient').value, infection_type: document.getElementById('icType').value, ward: document.getElementById('icWard').value, isolation_type: document.getElementById('icIsolation').value, culture_results: document.getElementById('icCulture').value, action_taken: document.getElementById('icAction').value }); showToast(tr('Report submitted!', 'تم تقديم البلاغ!')); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); } };
+  window.resolveIc = async (id) => { try { await API.put('/api/infection-control/reports/' + id, { status: 'resolved' }); showToast('✅'); navigateTo(currentPage); } catch (e) { } };
 
 }
 window.reportInfection = async function () {
@@ -6008,47 +6053,47 @@ window.addHHAudit = async function () {
 // ===== QUALITY =====
 let qTab = 'incidents';
 async function renderQuality(el) {
-    const content = el;
+  const content = el;
 
-    const [incidents, satisfaction, kpis] = await Promise.all([
-      API.get('/api/quality/incidents').catch(()=>[]),
-      API.get('/api/quality/satisfaction').catch(()=>[]),
-      API.get('/api/quality/kpis').catch(()=>[])
-    ]);
-    const avgSat = satisfaction.length ? (satisfaction.reduce((s,x)=>s+(x.rating||0),0)/satisfaction.length).toFixed(1) : 'N/A';
-    
-    content.innerHTML = `
-    <h2>${tr('Quality & Safety','الجودة والسلامة')}</h2>
+  const [incidents, satisfaction, kpis] = await Promise.all([
+    API.get('/api/quality/incidents').catch(() => []),
+    API.get('/api/quality/satisfaction').catch(() => []),
+    API.get('/api/quality/kpis').catch(() => [])
+  ]);
+  const avgSat = satisfaction.length ? (satisfaction.reduce((s, x) => s + (x.rating || 0), 0) / satisfaction.length).toFixed(1) : 'N/A';
+
+  content.innerHTML = `
+    <h2>${tr('Quality & Safety', 'الجودة والسلامة')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${incidents.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Incidents','حوادث')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${avgSat}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Avg Satisfaction','متوسط الرضا')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${kpis.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Active KPIs','مؤشرات نشطة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${incidents.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Incidents', 'حوادث')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${avgSat}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Avg Satisfaction', 'متوسط الرضا')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${kpis.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Active KPIs', 'مؤشرات نشطة')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Report Incident','إبلاغ عن حادث')}</h4>
-        <div class="form-group"><label>${tr('Type','النوع')}</label>
-          <select class="form-input" id="qiType"><option value="medication_error">${tr('Medication Error','خطأ دوائي')}</option><option value="fall">${tr('Patient Fall','سقوط مريض')}</option><option value="infection">${tr('Infection','عدوى')}</option><option value="equipment">${tr('Equipment','أجهزة')}</option><option value="complaint">${tr('Complaint','شكوى')}</option><option value="other">${tr('Other','أخرى')}</option></select></div>
-        <div class="form-group"><label>${tr('Severity','الخطورة')}</label>
-          <select class="form-input" id="qiSeverity"><option value="low">🟢 ${tr('Low','منخفضة')}</option><option value="medium">🟡 ${tr('Medium','متوسطة')}</option><option value="high">🔴 ${tr('High','عالية')}</option><option value="critical">⚫ ${tr('Critical','حرجة')}</option></select></div>
-        <div class="form-group"><label>${tr('Department','القسم')}</label><input class="form-input" id="qiDept"></div>
-        <div class="form-group"><label>${tr('Description','الوصف')}</label><textarea class="form-input" id="qiDesc" rows="3"></textarea></div>
-        <button class="btn btn-primary w-full" onclick="saveQIncident()">📋 ${tr('Submit','تقديم')}</button>
+        <h4 style="margin:0 0 12px">${tr('Report Incident', 'إبلاغ عن حادث')}</h4>
+        <div class="form-group"><label>${tr('Type', 'النوع')}</label>
+          <select class="form-input" id="qiType"><option value="medication_error">${tr('Medication Error', 'خطأ دوائي')}</option><option value="fall">${tr('Patient Fall', 'سقوط مريض')}</option><option value="infection">${tr('Infection', 'عدوى')}</option><option value="equipment">${tr('Equipment', 'أجهزة')}</option><option value="complaint">${tr('Complaint', 'شكوى')}</option><option value="other">${tr('Other', 'أخرى')}</option></select></div>
+        <div class="form-group"><label>${tr('Severity', 'الخطورة')}</label>
+          <select class="form-input" id="qiSeverity"><option value="low">🟢 ${tr('Low', 'منخفضة')}</option><option value="medium">🟡 ${tr('Medium', 'متوسطة')}</option><option value="high">🔴 ${tr('High', 'عالية')}</option><option value="critical">⚫ ${tr('Critical', 'حرجة')}</option></select></div>
+        <div class="form-group"><label>${tr('Department', 'القسم')}</label><input class="form-input" id="qiDept"></div>
+        <div class="form-group"><label>${tr('Description', 'الوصف')}</label><textarea class="form-input" id="qiDesc" rows="3"></textarea></div>
+        <button class="btn btn-primary w-full" onclick="saveQIncident()">📋 ${tr('Submit', 'تقديم')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Recent Incidents','الحوادث الأخيرة')}</h4>
+        <h4 style="margin:0 0 12px">${tr('Recent Incidents', 'الحوادث الأخيرة')}</h4>
         <div id="qiTable"></div>
       </div>
     </div>`;
-    
-    const qit = document.getElementById('qiTable');
-    if (qit) {
-      createTable(qit, 'qiTbl',
-        [tr('Type','النوع'),tr('Severity','الخطورة'),tr('Dept','القسم'),tr('Status','الحالة'),tr('Date','التاريخ')],
-        incidents.map(i=>({cells:[i.type||i.incident_type||'', '<span style="padding:2px 8px;border-radius:4px;font-size:11px;background:'+(i.severity==='critical'?'#212121':i.severity==='high'?'#c62828':i.severity==='medium'?'#e65100':'#2e7d32')+';color:#fff">'+(i.severity||'')+'</span>', i.department||'', statusBadge(i.status), i.created_at?new Date(i.created_at).toLocaleDateString('ar-SA'):''], id:i.id}))
-      );
-    }
-    window.saveQIncident = async () => { try { await API.post('/api/quality/incidents', { incident_type:document.getElementById('qiType').value, severity:document.getElementById('qiSeverity').value, department:document.getElementById('qiDept').value, description:document.getElementById('qiDesc').value }); showToast(tr('Incident reported!','تم الإبلاغ!')); navigateTo(currentPage); } catch(e) { showToast(tr('Error','خطأ'),'error'); } };
+
+  const qit = document.getElementById('qiTable');
+  if (qit) {
+    createTable(qit, 'qiTbl',
+      [tr('Type', 'النوع'), tr('Severity', 'الخطورة'), tr('Dept', 'القسم'), tr('Status', 'الحالة'), tr('Date', 'التاريخ')],
+      incidents.map(i => ({ cells: [i.type || i.incident_type || '', '<span style="padding:2px 8px;border-radius:4px;font-size:11px;background:' + (i.severity === 'critical' ? '#212121' : i.severity === 'high' ? '#c62828' : i.severity === 'medium' ? '#e65100' : '#2e7d32') + ';color:#fff">' + (i.severity || '') + '</span>', i.department || '', statusBadge(i.status), i.created_at ? new Date(i.created_at).toLocaleDateString('ar-SA') : ''], id: i.id }))
+    );
+  }
+  window.saveQIncident = async () => { try { await API.post('/api/quality/incidents', { incident_type: document.getElementById('qiType').value, severity: document.getElementById('qiSeverity').value, department: document.getElementById('qiDept').value, description: document.getElementById('qiDesc').value }); showToast(tr('Incident reported!', 'تم الإبلاغ!')); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); } };
 
 }
 window.reportIncident = async function () {
@@ -6064,46 +6109,46 @@ window.addKPI = async function () {
 // ===== MAINTENANCE =====
 let mtTab = 'orders';
 async function renderMaintenance(el) {
-    const content = el;
+  const content = el;
 
-    const orders = await API.get('/api/maintenance/orders').catch(()=>[]);
-    const pending = orders.filter(o=>o.status==='pending').length;
-    const inProgress = orders.filter(o=>o.status==='in_progress').length;
-    
-    content.innerHTML = `
-    <h2>${tr('Maintenance','الصيانة')}</h2>
+  const orders = await API.get('/api/maintenance/orders').catch(() => []);
+  const pending = orders.filter(o => o.status === 'pending').length;
+  const inProgress = orders.filter(o => o.status === 'in_progress').length;
+
+  content.innerHTML = `
+    <h2>${tr('Maintenance', 'الصيانة')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${orders.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Orders','إجمالي الطلبات')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${pending}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Pending','بانتظار')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${inProgress}</h3><p style="margin:4px 0 0;font-size:12px">${tr('In Progress','قيد التنفيذ')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${orders.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Orders', 'إجمالي الطلبات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${pending}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Pending', 'بانتظار')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${inProgress}</h3><p style="margin:4px 0 0;font-size:12px">${tr('In Progress', 'قيد التنفيذ')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('New Work Order','طلب صيانة جديد')}</h4>
-        <div class="form-group"><label>${tr('Equipment','الجهاز/المعدة')}</label><input class="form-input" id="mntEquip"></div>
-        <div class="form-group"><label>${tr('Location','الموقع')}</label><input class="form-input" id="mntLoc"></div>
-        <div class="form-group"><label>${tr('Type','النوع')}</label>
-          <select class="form-input" id="mntType"><option value="corrective">${tr('Corrective','تصحيحية')}</option><option value="preventive">${tr('Preventive','وقائية')}</option><option value="emergency">${tr('Emergency','طارئة')}</option><option value="calibration">${tr('Calibration','معايرة')}</option></select></div>
-        <div class="form-group"><label>${tr('Priority','الأولوية')}</label>
-          <select class="form-input" id="mntPriority"><option value="low">${tr('Low','منخفضة')}</option><option value="medium">${tr('Medium','متوسطة')}</option><option value="high">${tr('High','عالية')}</option><option value="urgent">${tr('Urgent','عاجلة')}</option></select></div>
-        <div class="form-group"><label>${tr('Description','الوصف')}</label><textarea class="form-input" id="mntDesc" rows="2"></textarea></div>
-        <button class="btn btn-primary w-full" onclick="saveMntOrder()">🔧 ${tr('Submit','تقديم')}</button>
+        <h4 style="margin:0 0 12px">${tr('New Work Order', 'طلب صيانة جديد')}</h4>
+        <div class="form-group"><label>${tr('Equipment', 'الجهاز/المعدة')}</label><input class="form-input" id="mntEquip"></div>
+        <div class="form-group"><label>${tr('Location', 'الموقع')}</label><input class="form-input" id="mntLoc"></div>
+        <div class="form-group"><label>${tr('Type', 'النوع')}</label>
+          <select class="form-input" id="mntType"><option value="corrective">${tr('Corrective', 'تصحيحية')}</option><option value="preventive">${tr('Preventive', 'وقائية')}</option><option value="emergency">${tr('Emergency', 'طارئة')}</option><option value="calibration">${tr('Calibration', 'معايرة')}</option></select></div>
+        <div class="form-group"><label>${tr('Priority', 'الأولوية')}</label>
+          <select class="form-input" id="mntPriority"><option value="low">${tr('Low', 'منخفضة')}</option><option value="medium">${tr('Medium', 'متوسطة')}</option><option value="high">${tr('High', 'عالية')}</option><option value="urgent">${tr('Urgent', 'عاجلة')}</option></select></div>
+        <div class="form-group"><label>${tr('Description', 'الوصف')}</label><textarea class="form-input" id="mntDesc" rows="2"></textarea></div>
+        <button class="btn btn-primary w-full" onclick="saveMntOrder()">🔧 ${tr('Submit', 'تقديم')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Work Orders','طلبات الصيانة')}</h4>
+        <h4 style="margin:0 0 12px">${tr('Work Orders', 'طلبات الصيانة')}</h4>
         <div id="mntTable"></div>
       </div>
     </div>`;
-    
-    const mt = document.getElementById('mntTable');
-    if (mt) {
-      createTable(mt, 'mntTbl',
-        [tr('Equipment','الجهاز'),tr('Location','الموقع'),tr('Type','النوع'),tr('Priority','الأولوية'),tr('Status','الحالة'),tr('Date','التاريخ'),tr('Actions','')],
-        orders.map(o=>({cells:[o.equipment, o.location||'', o.maintenance_type||'', '<span style="padding:2px 8px;border-radius:4px;font-size:11px;background:'+(o.priority==='urgent'?'#c62828':o.priority==='high'?'#e65100':'#1565c0')+';color:#fff">'+(o.priority||'')+'</span>', statusBadge(o.status), o.created_at?new Date(o.created_at).toLocaleDateString('ar-SA'):'', o.status!=='completed'?'<button class="btn btn-sm" onclick="completeMnt('+o.id+')">✅</button>':''], id:o.id}))
-      );
-    }
-    window.saveMntOrder = async () => { try { await API.post('/api/maintenance/orders', { equipment:document.getElementById('mntEquip').value, location:document.getElementById('mntLoc').value, maintenance_type:document.getElementById('mntType').value, priority:document.getElementById('mntPriority').value, description:document.getElementById('mntDesc').value, requested_by:window.currentUser?.display_name||'' }); showToast(tr('Order submitted!','تم تقديم الطلب!')); navigateTo(currentPage); } catch(e) { showToast(tr('Error','خطأ'),'error'); } };
-    window.completeMnt = async (id) => { try { await API.put('/api/maintenance/orders/'+id, {status:'completed'}); showToast('✅'); navigateTo(currentPage); } catch(e) {} };
+
+  const mt = document.getElementById('mntTable');
+  if (mt) {
+    createTable(mt, 'mntTbl',
+      [tr('Equipment', 'الجهاز'), tr('Location', 'الموقع'), tr('Type', 'النوع'), tr('Priority', 'الأولوية'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', '')],
+      orders.map(o => ({ cells: [o.equipment, o.location || '', o.maintenance_type || '', '<span style="padding:2px 8px;border-radius:4px;font-size:11px;background:' + (o.priority === 'urgent' ? '#c62828' : o.priority === 'high' ? '#e65100' : '#1565c0') + ';color:#fff">' + (o.priority || '') + '</span>', statusBadge(o.status), o.created_at ? new Date(o.created_at).toLocaleDateString('ar-SA') : '', o.status !== 'completed' ? '<button class="btn btn-sm" onclick="completeMnt(' + o.id + ')">✅</button>' : ''], id: o.id }))
+    );
+  }
+  window.saveMntOrder = async () => { try { await API.post('/api/maintenance/orders', { equipment: document.getElementById('mntEquip').value, location: document.getElementById('mntLoc').value, maintenance_type: document.getElementById('mntType').value, priority: document.getElementById('mntPriority').value, description: document.getElementById('mntDesc').value, requested_by: window.currentUser?.display_name || '' }); showToast(tr('Order submitted!', 'تم تقديم الطلب!')); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); } };
+  window.completeMnt = async (id) => { try { await API.put('/api/maintenance/orders/' + id, { status: 'completed' }); showToast('✅'); navigateTo(currentPage); } catch (e) { } };
 
 }
 window.addWorkOrder = async function () {
@@ -6165,42 +6210,42 @@ window.completeTransport = async function (id) {
 // ===== MEDICAL RECORDS / HIM =====
 let mrTab = 'requests';
 async function renderMedicalRecords(el) {
-    const content = el;
+  const content = el;
 
-    const patients = await API.get('/api/patients').catch(()=>[]);
-    
-    content.innerHTML = `
-    <h2>${tr('Medical Records','السجلات الطبية')}</h2>
+  const patients = await API.get('/api/patients').catch(() => []);
+
+  content.innerHTML = `
+    <h2>${tr('Medical Records', 'السجلات الطبية')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${patients.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Records','إجمالي السجلات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${patients.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Records', 'إجمالي السجلات')}</p></div>
     </div>
     <div class="card" style="padding:20px;margin-bottom:16px">
-      <h4 style="margin:0 0 12px">🔍 ${tr('Search Medical Records','بحث في السجلات الطبية')}</h4>
+      <h4 style="margin:0 0 12px">🔍 ${tr('Search Medical Records', 'بحث في السجلات الطبية')}</h4>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end">
-        <div class="form-group"><label>${tr('Name','الاسم')}</label><input class="form-input" id="mrSearchName" oninput="filterMedRecords()"></div>
-        <div class="form-group"><label>${tr('MRN / File #','رقم الملف')}</label><input class="form-input" id="mrSearchMRN" oninput="filterMedRecords()"></div>
-        <div class="form-group"><label>${tr('ID / Iqama','الهوية/الإقامة')}</label><input class="form-input" id="mrSearchID" oninput="filterMedRecords()"></div>
+        <div class="form-group"><label>${tr('Name', 'الاسم')}</label><input class="form-input" id="mrSearchName" oninput="filterMedRecords()"></div>
+        <div class="form-group"><label>${tr('MRN / File #', 'رقم الملف')}</label><input class="form-input" id="mrSearchMRN" oninput="filterMedRecords()"></div>
+        <div class="form-group"><label>${tr('ID / Iqama', 'الهوية/الإقامة')}</label><input class="form-input" id="mrSearchID" oninput="filterMedRecords()"></div>
         <button class="btn btn-primary" onclick="filterMedRecords()">🔍</button>
       </div>
     </div>
     <div class="card" style="padding:20px">
       <div style="display:flex;justify-content:space-between;margin-bottom:12px">
-        <h4 style="margin:0">${tr('Patient Records','سجلات المرضى')}</h4>
-        <button class="btn btn-sm" onclick="exportToCSV(window._mrData||[],'medical_records')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export','تصدير')}</button>
+        <h4 style="margin:0">${tr('Patient Records', 'سجلات المرضى')}</h4>
+        <button class="btn btn-sm" onclick="exportToCSV(window._mrData||[],'medical_records')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export', 'تصدير')}</button>
       </div>
       <div id="mrTable"></div>
     </div>`;
-    
-    window._mrData = patients;
-    const mrt = document.getElementById('mrTable');
-    if (mrt) {
-      createTable(mrt, 'mrTbl',
-        [tr('File #','رقم الملف'),tr('Name (AR)','الاسم بالعربي'),tr('Name (EN)','الاسم بالإنجليزي'),tr('ID','الهوية'),tr('Phone','الجوال'),tr('DOB','تاريخ الميلاد'),tr('Nationality','الجنسية'),tr('Actions','')],
-        patients.slice(0,100).map(p=>({cells:[p.file_number||p.id, p.name_ar||'', p.name_en||'', p.id_number||'', p.phone||'', p.dob||'', p.nationality||'', '<button class="btn btn-sm" onclick="viewPatientRecord('+p.id+')">📂 '+tr('View','عرض')+'</button>'], id:p.id}))
-      );
-    }
-    window.filterMedRecords = () => { const n=(document.getElementById('mrSearchName')?.value||'').toLowerCase(); const mrn=(document.getElementById('mrSearchMRN')?.value||''); const sid=(document.getElementById('mrSearchID')?.value||''); document.querySelectorAll('#mrTbl tbody tr').forEach(r=>{ const t=r.textContent.toLowerCase(); r.style.display=(t.includes(n)&&(!mrn||t.includes(mrn))&&(!sid||t.includes(sid)))?'':'none'; }); };
-    window.viewPatientRecord = async (id) => { try { const visits=await API.get('/api/visits?patient_id='+id).catch(()=>[]); const p=patients.find(x=>x.id===id)||{}; const modal=document.createElement('div');modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';modal.innerHTML='<div style="background:#fff;border-radius:16px;padding:24px;width:700px;max-height:85vh;overflow:auto"><h3 style="margin:0 0 16px">📂 '+(p.name_ar||p.name_en||'')+'</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;font-size:13px"><div><strong>'+tr('File','ملف')+':</strong> '+(p.file_number||p.id)+'</div><div><strong>'+tr('ID','الهوية')+':</strong> '+(p.id_number||'')+'</div><div><strong>'+tr('Phone','الجوال')+':</strong> '+(p.phone||'')+'</div><div><strong>'+tr('DOB','الميلاد')+':</strong> '+(p.dob||'')+'</div></div><h4>'+tr('Visit History','سجل الزيارات')+' ('+visits.length+')</h4>'+(visits.length?visits.map(v=>'<div style="padding:8px;margin:4px 0;background:#f5f5f5;border-radius:8px"><strong>'+(v.visit_date||v.created_at?new Date(v.visit_date||v.created_at).toLocaleDateString('ar-SA'):'')+'</strong> — '+(v.diagnosis||v.complaint||tr('No details','بدون تفاصيل'))+'</div>').join(''):'<p style="color:#999">'+tr('No visits','لا توجد زيارات')+'</p>')+'<button class="btn btn-secondary w-full" onclick="this.parentElement.parentElement.remove()" style="margin-top:16px">'+tr('Close','إغلاق')+'</button></div>';document.body.appendChild(modal);modal.onclick=e=>{if(e.target===modal)modal.remove();}; } catch(e){} };
+
+  window._mrData = patients;
+  const mrt = document.getElementById('mrTable');
+  if (mrt) {
+    createTable(mrt, 'mrTbl',
+      [tr('File #', 'رقم الملف'), tr('Name (AR)', 'الاسم بالعربي'), tr('Name (EN)', 'الاسم بالإنجليزي'), tr('ID', 'الهوية'), tr('Phone', 'الجوال'), tr('DOB', 'تاريخ الميلاد'), tr('Nationality', 'الجنسية'), tr('Actions', '')],
+      patients.slice(0, 100).map(p => ({ cells: [p.file_number || p.id, p.name_ar || '', p.name_en || '', p.id_number || '', p.phone || '', p.dob || '', p.nationality || '', '<button class="btn btn-sm" onclick="viewPatientRecord(' + p.id + ')">📂 ' + tr('View', 'عرض') + '</button>'], id: p.id }))
+    );
+  }
+  window.filterMedRecords = () => { const n = (document.getElementById('mrSearchName')?.value || '').toLowerCase(); const mrn = (document.getElementById('mrSearchMRN')?.value || ''); const sid = (document.getElementById('mrSearchID')?.value || ''); document.querySelectorAll('#mrTbl tbody tr').forEach(r => { const t = r.textContent.toLowerCase(); r.style.display = (t.includes(n) && (!mrn || t.includes(mrn)) && (!sid || t.includes(sid))) ? '' : 'none'; }); };
+  window.viewPatientRecord = async (id) => { try { const visits = await API.get('/api/visits?patient_id=' + id).catch(() => []); const p = patients.find(x => x.id === id) || {}; const modal = document.createElement('div'); modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center'; modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:700px;max-height:85vh;overflow:auto"><h3 style="margin:0 0 16px">📂 ' + (p.name_ar || p.name_en || '') + '</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;font-size:13px"><div><strong>' + tr('File', 'ملف') + ':</strong> ' + (p.file_number || p.id) + '</div><div><strong>' + tr('ID', 'الهوية') + ':</strong> ' + (p.id_number || '') + '</div><div><strong>' + tr('Phone', 'الجوال') + ':</strong> ' + (p.phone || '') + '</div><div><strong>' + tr('DOB', 'الميلاد') + ':</strong> ' + (p.dob || '') + '</div></div><h4>' + tr('Visit History', 'سجل الزيارات') + ' (' + visits.length + ')</h4>' + (visits.length ? visits.map(v => '<div style="padding:8px;margin:4px 0;background:#f5f5f5;border-radius:8px"><strong>' + (v.visit_date || v.created_at ? new Date(v.visit_date || v.created_at).toLocaleDateString('ar-SA') : '') + '</strong> — ' + (v.diagnosis || v.complaint || tr('No details', 'بدون تفاصيل')) + '</div>').join('') : '<p style="color:#999">' + tr('No visits', 'لا توجد زيارات') + '</p>') + '<button class="btn btn-secondary w-full" onclick="this.parentElement.parentElement.remove()" style="margin-top:16px">' + tr('Close', 'إغلاق') + '</button></div>'; document.body.appendChild(modal); modal.onclick = e => { if (e.target === modal) modal.remove(); }; } catch (e) { } };
 
 }
 window.submitMRRequest = async function () {
@@ -6218,64 +6263,64 @@ window.updateMRRequest = async function (id, status) {
 // ===== CLINICAL PHARMACY =====
 let cpTab = 'reviews';
 async function renderClinicalPharmacy(el) {
-    const content = el;
+  const content = el;
 
-    const prescriptions = await API.get('/api/pharmacy/prescriptions').catch(()=>[]);
-    const pending = prescriptions.filter(p=>p.status==='pending').length;
-    
-    const interactions = [
-      { drug1:'Warfarin', drug2:'Aspirin', severity:'high', effect:tr('Increased bleeding risk','زيادة خطر النزيف') },
-      { drug1:'ACE Inhibitors', drug2:'Potassium', severity:'high', effect:tr('Hyperkalemia risk','خطر فرط البوتاسيوم') },
-      { drug1:'Metformin', drug2:'Contrast Dye', severity:'moderate', effect:tr('Lactic acidosis risk','خطر الحموضة اللبنية') },
-      { drug1:'SSRIs', drug2:'MAOIs', severity:'high', effect:tr('Serotonin syndrome','متلازمة السيروتونين') },
-      { drug1:'Statins', drug2:'Macrolides', severity:'moderate', effect:tr('Rhabdomyolysis risk','خطر انحلال العضلات') },
-      { drug1:'NSAIDs', drug2:'Anticoagulants', severity:'high', effect:tr('GI bleeding','نزيف هضمي') },
-      { drug1:'Digoxin', drug2:'Amiodarone', severity:'high', effect:tr('Digoxin toxicity','سمية الديجوكسين') },
-      { drug1:'Ciprofloxacin', drug2:'Theophylline', severity:'moderate', effect:tr('Theophylline toxicity','سمية الثيوفيلين') },
-    ];
-    
-    content.innerHTML = `
-    <h2>${tr('Clinical Pharmacy','الصيدلة الإكلينيكية')}</h2>
+  const prescriptions = await API.get('/api/pharmacy/prescriptions').catch(() => []);
+  const pending = prescriptions.filter(p => p.status === 'pending').length;
+
+  const interactions = [
+    { drug1: 'Warfarin', drug2: 'Aspirin', severity: 'high', effect: tr('Increased bleeding risk', 'زيادة خطر النزيف') },
+    { drug1: 'ACE Inhibitors', drug2: 'Potassium', severity: 'high', effect: tr('Hyperkalemia risk', 'خطر فرط البوتاسيوم') },
+    { drug1: 'Metformin', drug2: 'Contrast Dye', severity: 'moderate', effect: tr('Lactic acidosis risk', 'خطر الحموضة اللبنية') },
+    { drug1: 'SSRIs', drug2: 'MAOIs', severity: 'high', effect: tr('Serotonin syndrome', 'متلازمة السيروتونين') },
+    { drug1: 'Statins', drug2: 'Macrolides', severity: 'moderate', effect: tr('Rhabdomyolysis risk', 'خطر انحلال العضلات') },
+    { drug1: 'NSAIDs', drug2: 'Anticoagulants', severity: 'high', effect: tr('GI bleeding', 'نزيف هضمي') },
+    { drug1: 'Digoxin', drug2: 'Amiodarone', severity: 'high', effect: tr('Digoxin toxicity', 'سمية الديجوكسين') },
+    { drug1: 'Ciprofloxacin', drug2: 'Theophylline', severity: 'moderate', effect: tr('Theophylline toxicity', 'سمية الثيوفيلين') },
+  ];
+
+  content.innerHTML = `
+    <h2>${tr('Clinical Pharmacy', 'الصيدلة الإكلينيكية')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${prescriptions.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Prescriptions','إجمالي الوصفات')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${pending}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Pending Review','بانتظار المراجعة')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${interactions.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Known Interactions','تداخلات معروفة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${prescriptions.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Prescriptions', 'إجمالي الوصفات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${pending}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Pending Review', 'بانتظار المراجعة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${interactions.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Known Interactions', 'تداخلات معروفة')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">🔍 ${tr('Drug Interaction Checker','فحص تداخل الأدوية')}</h4>
-        <div class="form-group"><label>${tr('Drug 1','الدواء 1')}</label><input class="form-input" id="cpDrug1" placeholder="${tr('e.g. Warfarin','مثال: وارفارين')}"></div>
-        <div class="form-group"><label>${tr('Drug 2','الدواء 2')}</label><input class="form-input" id="cpDrug2" placeholder="${tr('e.g. Aspirin','مثال: أسبرين')}"></div>
-        <button class="btn btn-primary w-full" onclick="checkInteraction()">🔍 ${tr('Check Interaction','فحص التداخل')}</button>
+        <h4 style="margin:0 0 12px">🔍 ${tr('Drug Interaction Checker', 'فحص تداخل الأدوية')}</h4>
+        <div class="form-group"><label>${tr('Drug 1', 'الدواء 1')}</label><input class="form-input" id="cpDrug1" placeholder="${tr('e.g. Warfarin', 'مثال: وارفارين')}"></div>
+        <div class="form-group"><label>${tr('Drug 2', 'الدواء 2')}</label><input class="form-input" id="cpDrug2" placeholder="${tr('e.g. Aspirin', 'مثال: أسبرين')}"></div>
+        <button class="btn btn-primary w-full" onclick="checkInteraction()">🔍 ${tr('Check Interaction', 'فحص التداخل')}</button>
         <div id="cpResult" style="margin-top:12px"></div>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">⚠️ ${tr('Known Drug Interactions','التداخلات الدوائية المعروفة')}</h4>
-        <div style="max-height:300px;overflow-y:auto">${interactions.map(i=>'<div style="padding:8px;margin:4px 0;border-radius:8px;background:'+(i.severity==='high'?'#fce4ec':'#fff3e0')+'"><strong>'+i.drug1+' + '+i.drug2+'</strong><br><span style="font-size:12px;color:#666">'+i.effect+'</span><span style="float:left;font-size:11px;padding:2px 6px;border-radius:4px;background:'+(i.severity==='high'?'#c62828':'#e65100')+';color:#fff">'+i.severity+'</span></div>').join('')}</div>
+        <h4 style="margin:0 0 12px">⚠️ ${tr('Known Drug Interactions', 'التداخلات الدوائية المعروفة')}</h4>
+        <div style="max-height:300px;overflow-y:auto">${interactions.map(i => '<div style="padding:8px;margin:4px 0;border-radius:8px;background:' + (i.severity === 'high' ? '#fce4ec' : '#fff3e0') + '"><strong>' + i.drug1 + ' + ' + i.drug2 + '</strong><br><span style="font-size:12px;color:#666">' + i.effect + '</span><span style="float:left;font-size:11px;padding:2px 6px;border-radius:4px;background:' + (i.severity === 'high' ? '#c62828' : '#e65100') + ';color:#fff">' + i.severity + '</span></div>').join('')}</div>
       </div>
     </div>
     <div class="card" style="padding:20px;margin-top:16px">
-      <h4 style="margin:0 0 12px">${tr('Recent Prescriptions for Review','وصفات بانتظار المراجعة')}</h4>
+      <h4 style="margin:0 0 12px">${tr('Recent Prescriptions for Review', 'وصفات بانتظار المراجعة')}</h4>
       <div id="cpTable"></div>
     </div>`;
-    
-    const cpt = document.getElementById('cpTable');
-    if (cpt && prescriptions.length) {
-      createTable(cpt, 'cpTbl',
-        [tr('Patient','المريض'),tr('Medication','الدواء'),tr('Dosage','الجرعة'),tr('Doctor','الطبيب'),tr('Status','الحالة'),tr('Date','التاريخ')],
-        prescriptions.slice(0,20).map(p=>({cells:[p.patient_name||'', p.medication||p.drug_name||'', p.dosage||'', p.doctor||'', statusBadge(p.status), p.created_at?new Date(p.created_at).toLocaleDateString('ar-SA'):''], id:p.id}))
-      );
-    }
-    
-    window.checkInteraction = () => {
-      const d1 = (document.getElementById('cpDrug1')?.value||'').toLowerCase();
-      const d2 = (document.getElementById('cpDrug2')?.value||'').toLowerCase();
-      const res = document.getElementById('cpResult');
-      if (!d1||!d2) { res.innerHTML='<p style="color:#666">'+tr('Enter both drugs','أدخل الدوائين')+'</p>'; return; }
-      const found = interactions.find(i=>(i.drug1.toLowerCase().includes(d1)&&i.drug2.toLowerCase().includes(d2))||(i.drug1.toLowerCase().includes(d2)&&i.drug2.toLowerCase().includes(d1)));
-      if (found) { res.innerHTML='<div style="padding:12px;background:#fce4ec;border-radius:8px;border-left:4px solid #c62828"><strong>⚠️ '+tr('INTERACTION FOUND','تم اكتشاف تداخل')+'</strong><br>'+found.effect+'<br><span style="color:#c62828;font-weight:bold">'+tr('Severity','الخطورة')+': '+found.severity.toUpperCase()+'</span></div>'; }
-      else { res.innerHTML='<div style="padding:12px;background:#e8f5e9;border-radius:8px;border-left:4px solid #2e7d32"><strong>✅ '+tr('No known interaction','لا يوجد تداخل معروف')+'</strong></div>'; }
-    };
+
+  const cpt = document.getElementById('cpTable');
+  if (cpt && prescriptions.length) {
+    createTable(cpt, 'cpTbl',
+      [tr('Patient', 'المريض'), tr('Medication', 'الدواء'), tr('Dosage', 'الجرعة'), tr('Doctor', 'الطبيب'), tr('Status', 'الحالة'), tr('Date', 'التاريخ')],
+      prescriptions.slice(0, 20).map(p => ({ cells: [p.patient_name || '', p.medication || p.drug_name || '', p.dosage || '', p.doctor || '', statusBadge(p.status), p.created_at ? new Date(p.created_at).toLocaleDateString('ar-SA') : ''], id: p.id }))
+    );
+  }
+
+  window.checkInteraction = () => {
+    const d1 = (document.getElementById('cpDrug1')?.value || '').toLowerCase();
+    const d2 = (document.getElementById('cpDrug2')?.value || '').toLowerCase();
+    const res = document.getElementById('cpResult');
+    if (!d1 || !d2) { res.innerHTML = '<p style="color:#666">' + tr('Enter both drugs', 'أدخل الدوائين') + '</p>'; return; }
+    const found = interactions.find(i => (i.drug1.toLowerCase().includes(d1) && i.drug2.toLowerCase().includes(d2)) || (i.drug1.toLowerCase().includes(d2) && i.drug2.toLowerCase().includes(d1)));
+    if (found) { res.innerHTML = '<div style="padding:12px;background:#fce4ec;border-radius:8px;border-left:4px solid #c62828"><strong>⚠️ ' + tr('INTERACTION FOUND', 'تم اكتشاف تداخل') + '</strong><br>' + found.effect + '<br><span style="color:#c62828;font-weight:bold">' + tr('Severity', 'الخطورة') + ': ' + found.severity.toUpperCase() + '</span></div>'; }
+    else { res.innerHTML = '<div style="padding:12px;background:#e8f5e9;border-radius:8px;border-left:4px solid #2e7d32"><strong>✅ ' + tr('No known interaction', 'لا يوجد تداخل معروف') + '</strong></div>'; }
+  };
 
 }
 window.submitCPReview = async function () {
@@ -6359,49 +6404,49 @@ window.viewRehabSessions = async function (id) {
 
 // ===== PATIENT PORTAL =====
 async function renderPatientPortal(el) {
-    const content = el;
+  const content = el;
 
-    const patients = await API.get('/api/patients').catch(()=>[]);
-    const appointments = await API.get('/api/appointments').catch(()=>[]);
-    const recentCount = patients.filter(p=>{ const d=new Date(p.created_at); const week=new Date(); week.setDate(week.getDate()-7); return d>week; }).length;
-    
-    content.innerHTML = `
-    <h2>${tr('Patient Portal','بوابة المريض')}</h2>
+  const patients = await API.get('/api/patients').catch(() => []);
+  const appointments = await API.get('/api/appointments').catch(() => []);
+  const recentCount = patients.filter(p => { const d = new Date(p.created_at); const week = new Date(); week.setDate(week.getDate() - 7); return d > week; }).length;
+
+  content.innerHTML = `
+    <h2>${tr('Patient Portal', 'بوابة المريض')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px">
       <div class="card" style="padding:24px;text-align:center;background:linear-gradient(135deg,#e3f2fd,#bbdefb);cursor:pointer" onclick="navigateTo(1)">
         <div style="font-size:40px;margin-bottom:8px">🏥</div>
-        <h4 style="margin:0">${tr('Registration','التسجيل')}</h4>
-        <p style="margin:4px 0 0;font-size:12px;color:#666">${patients.length} ${tr('patients','مريض')}</p>
+        <h4 style="margin:0">${tr('Registration', 'التسجيل')}</h4>
+        <p style="margin:4px 0 0;font-size:12px;color:#666">${patients.length} ${tr('patients', 'مريض')}</p>
       </div>
       <div class="card" style="padding:24px;text-align:center;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);cursor:pointer" onclick="navigateTo(2)">
         <div style="font-size:40px;margin-bottom:8px">📅</div>
-        <h4 style="margin:0">${tr('Appointments','المواعيد')}</h4>
-        <p style="margin:4px 0 0;font-size:12px;color:#666">${appointments.length} ${tr('booked','محجوز')}</p>
+        <h4 style="margin:0">${tr('Appointments', 'المواعيد')}</h4>
+        <p style="margin:4px 0 0;font-size:12px;color:#666">${appointments.length} ${tr('booked', 'محجوز')}</p>
       </div>
       <div class="card" style="padding:24px;text-align:center;background:linear-gradient(135deg,#fce4ec,#f8bbd0);cursor:pointer" onclick="navigateTo(4)">
         <div style="font-size:40px;margin-bottom:8px">🔬</div>
-        <h4 style="margin:0">${tr('Lab Results','نتائج المختبر')}</h4>
-        <p style="margin:4px 0 0;font-size:12px;color:#666">${tr('View results','عرض النتائج')}</p>
+        <h4 style="margin:0">${tr('Lab Results', 'نتائج المختبر')}</h4>
+        <p style="margin:4px 0 0;font-size:12px;color:#666">${tr('View results', 'عرض النتائج')}</p>
       </div>
       <div class="card" style="padding:24px;text-align:center;background:linear-gradient(135deg,#fff3e0,#ffe0b2);cursor:pointer" onclick="navigateTo(5)">
         <div style="font-size:40px;margin-bottom:8px">📡</div>
-        <h4 style="margin:0">${tr('Radiology','الأشعة')}</h4>
-        <p style="margin:4px 0 0;font-size:12px;color:#666">${tr('View images','عرض الصور')}</p>
+        <h4 style="margin:0">${tr('Radiology', 'الأشعة')}</h4>
+        <p style="margin:4px 0 0;font-size:12px;color:#666">${tr('View images', 'عرض الصور')}</p>
       </div>
       <div class="card" style="padding:24px;text-align:center;background:linear-gradient(135deg,#e8eaf6,#c5cae9);cursor:pointer" onclick="navigateTo(6)">
         <div style="font-size:40px;margin-bottom:8px">💊</div>
-        <h4 style="margin:0">${tr('Pharmacy','الصيدلية')}</h4>
-        <p style="margin:4px 0 0;font-size:12px;color:#666">${tr('Prescriptions','الوصفات')}</p>
+        <h4 style="margin:0">${tr('Pharmacy', 'الصيدلية')}</h4>
+        <p style="margin:4px 0 0;font-size:12px;color:#666">${tr('Prescriptions', 'الوصفات')}</p>
       </div>
       <div class="card" style="padding:24px;text-align:center;background:linear-gradient(135deg,#f3e5f5,#ce93d8);cursor:pointer" onclick="navigateTo(8)">
         <div style="font-size:40px;margin-bottom:8px">💰</div>
-        <h4 style="margin:0">${tr('Billing','الفواتير')}</h4>
-        <p style="margin:4px 0 0;font-size:12px;color:#666">${tr('View invoices','عرض الفواتير')}</p>
+        <h4 style="margin:0">${tr('Billing', 'الفواتير')}</h4>
+        <p style="margin:4px 0 0;font-size:12px;color:#666">${tr('View invoices', 'عرض الفواتير')}</p>
       </div>
     </div>
     <div class="card" style="padding:20px">
-      <h4 style="margin:0 0 12px">${tr('Recent Patients','المرضى الأخيرون')} (${tr('Last 7 days', 'آخر 7 أيام')})</h4>
-      <p style="color:#666">${recentCount} ${tr('new registrations','تسجيل جديد')}</p>
+      <h4 style="margin:0 0 12px">${tr('Recent Patients', 'المرضى الأخيرون')} (${tr('Last 7 days', 'آخر 7 أيام')})</h4>
+      <p style="color:#666">${recentCount} ${tr('new registrations', 'تسجيل جديد')}</p>
     </div>`;
 
 }
@@ -6452,45 +6497,45 @@ async function renderZATCA(el) {
 // ===== TELEMEDICINE =====
 let teleTab = 'sessions';
 async function renderTelemedicine(el) {
-    const content = el;
+  const content = el;
 
-    const sessions = await API.get('/api/telemedicine/sessions').catch(()=>[]);
-    const active = sessions.filter(s=>s.status==='active').length;
-    
-    content.innerHTML = `
-    <h2>${tr('Telemedicine','الطب عن بُعد')}</h2>
+  const sessions = await API.get('/api/telemedicine/sessions').catch(() => []);
+  const active = sessions.filter(s => s.status === 'active').length;
+
+  content.innerHTML = `
+    <h2>${tr('Telemedicine', 'الطب عن بُعد')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${sessions.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Sessions','إجمالي الجلسات')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${active}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Active Now','نشطة الآن')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${sessions.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Sessions', 'إجمالي الجلسات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${active}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Active Now', 'نشطة الآن')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Schedule Session','جدولة جلسة')}</h4>
-        <div class="form-group"><label>${tr('Patient','المريض')}</label><input class="form-input" id="telePatient"></div>
-        <div class="form-group"><label>${tr('Doctor','الطبيب')}</label><input class="form-input" id="teleDoctor"></div>
-        <div class="form-group"><label>${tr('Date & Time','التاريخ والوقت')}</label><input type="datetime-local" class="form-input" id="teleDate"></div>
-        <div class="form-group"><label>${tr('Platform','المنصة')}</label>
-          <select class="form-input" id="telePlatform"><option value="zoom">Zoom</option><option value="teams">Microsoft Teams</option><option value="meet">Google Meet</option><option value="internal">${tr('Internal','داخلي')}</option></select></div>
-        <div class="form-group"><label>${tr('Meeting Link','رابط الاجتماع')}</label><input class="form-input" id="teleLink" placeholder="https://..."></div>
-        <div class="form-group"><label>${tr('Notes','ملاحظات')}</label><textarea class="form-input" id="teleNotes" rows="2"></textarea></div>
-        <button class="btn btn-primary w-full" onclick="saveTeleSession()">📡 ${tr('Schedule','جدولة')}</button>
+        <h4 style="margin:0 0 12px">${tr('Schedule Session', 'جدولة جلسة')}</h4>
+        <div class="form-group"><label>${tr('Patient', 'المريض')}</label><input class="form-input" id="telePatient"></div>
+        <div class="form-group"><label>${tr('Doctor', 'الطبيب')}</label><input class="form-input" id="teleDoctor"></div>
+        <div class="form-group"><label>${tr('Date & Time', 'التاريخ والوقت')}</label><input type="datetime-local" class="form-input" id="teleDate"></div>
+        <div class="form-group"><label>${tr('Platform', 'المنصة')}</label>
+          <select class="form-input" id="telePlatform"><option value="zoom">Zoom</option><option value="teams">Microsoft Teams</option><option value="meet">Google Meet</option><option value="internal">${tr('Internal', 'داخلي')}</option></select></div>
+        <div class="form-group"><label>${tr('Meeting Link', 'رابط الاجتماع')}</label><input class="form-input" id="teleLink" placeholder="https://..."></div>
+        <div class="form-group"><label>${tr('Notes', 'ملاحظات')}</label><textarea class="form-input" id="teleNotes" rows="2"></textarea></div>
+        <button class="btn btn-primary w-full" onclick="saveTeleSession()">📡 ${tr('Schedule', 'جدولة')}</button>
       </div>
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Sessions','الجلسات')}</h4>
+        <h4 style="margin:0 0 12px">${tr('Sessions', 'الجلسات')}</h4>
         <div id="teleTable"></div>
       </div>
     </div>`;
-    
-    const tt = document.getElementById('teleTable');
-    if (tt) {
-      createTable(tt, 'teleTbl',
-        [tr('Patient','المريض'),tr('Doctor','الطبيب'),tr('Date','التاريخ'),tr('Platform','المنصة'),tr('Link','الرابط'),tr('Status','الحالة')],
-        sessions.map(s=>({cells:[s.patient_name||'', s.doctor||'', s.session_date?new Date(s.session_date).toLocaleString('ar-SA'):'', s.platform||'', s.meeting_link?'<a href="'+s.meeting_link+'" target="_blank" style="color:#1a73e8">🔗 '+tr('Join','انضمام')+'</a>':'', statusBadge(s.status)], id:s.id}))
-      );
-    }
-    window.saveTeleSession = async () => {
-      try { await API.post('/api/telemedicine/sessions', { patient_name:document.getElementById('telePatient').value, doctor:document.getElementById('teleDoctor').value, session_date:document.getElementById('teleDate').value, platform:document.getElementById('telePlatform').value, meeting_link:document.getElementById('teleLink').value, notes:document.getElementById('teleNotes').value }); showToast(tr('Session scheduled!','تم جدولة الجلسة!')); navigateTo(currentPage); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
+
+  const tt = document.getElementById('teleTable');
+  if (tt) {
+    createTable(tt, 'teleTbl',
+      [tr('Patient', 'المريض'), tr('Doctor', 'الطبيب'), tr('Date', 'التاريخ'), tr('Platform', 'المنصة'), tr('Link', 'الرابط'), tr('Status', 'الحالة')],
+      sessions.map(s => ({ cells: [s.patient_name || '', s.doctor || '', s.session_date ? new Date(s.session_date).toLocaleString('ar-SA') : '', s.platform || '', s.meeting_link ? '<a href="' + s.meeting_link + '" target="_blank" style="color:#1a73e8">🔗 ' + tr('Join', 'انضمام') + '</a>' : '', statusBadge(s.status)], id: s.id }))
+    );
+  }
+  window.saveTeleSession = async () => {
+    try { await API.post('/api/telemedicine/sessions', { patient_name: document.getElementById('telePatient').value, doctor: document.getElementById('teleDoctor').value, session_date: document.getElementById('teleDate').value, platform: document.getElementById('telePlatform').value, meeting_link: document.getElementById('teleLink').value, notes: document.getElementById('teleNotes').value }); showToast(tr('Session scheduled!', 'تم جدولة الجلسة!')); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
 
 }
 window.scheduleTele = async function () {
@@ -6501,84 +6546,84 @@ window.scheduleTele = async function () {
 
 // ===== PATHOLOGY =====
 async function renderPathology(el) {
-    const content = el;
+  const content = el;
 
-    const [specimens, labOrders] = await Promise.all([
-      API.get('/api/pathology/specimens').catch(()=>[]),
-      API.get('/api/lab/orders').catch(()=>[])
-    ]);
-    const pending = specimens.filter(s=>s.status==='received').length;
-    const processing = specimens.filter(s=>s.status==='processing').length;
-    const completed = specimens.filter(s=>s.status==='completed').length;
-    
-    content.innerHTML = `
-    <h2>${tr('Pathology','علم الأمراض')}</h2>
+  const [specimens, labOrders] = await Promise.all([
+    API.get('/api/pathology/specimens').catch(() => []),
+    API.get('/api/lab/orders').catch(() => [])
+  ]);
+  const pending = specimens.filter(s => s.status === 'received').length;
+  const processing = specimens.filter(s => s.status === 'processing').length;
+  const completed = specimens.filter(s => s.status === 'completed').length;
+
+  content.innerHTML = `
+    <h2>${tr('Pathology', 'علم الأمراض')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${specimens.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Specimens','إجمالي العينات')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${pending}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Received','مستلمة')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${processing}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Processing','قيد المعالجة')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${completed}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Completed','مكتملة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${specimens.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Specimens', 'إجمالي العينات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${pending}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Received', 'مستلمة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${processing}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Processing', 'قيد المعالجة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${completed}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Completed', 'مكتملة')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Register Specimen','تسجيل عينة')}</h4>
-        <div class="form-group"><label>${tr('Patient','المريض')}</label><input class="form-input" id="pathPatient" placeholder="${tr('Patient Name','اسم المريض')}"></div>
-        <div class="form-group"><label>${tr('Specimen Type','نوع العينة')}</label>
+        <h4 style="margin:0 0 12px">${tr('Register Specimen', 'تسجيل عينة')}</h4>
+        <div class="form-group"><label>${tr('Patient', 'المريض')}</label><input class="form-input" id="pathPatient" placeholder="${tr('Patient Name', 'اسم المريض')}"></div>
+        <div class="form-group"><label>${tr('Specimen Type', 'نوع العينة')}</label>
           <select class="form-input" id="pathType">
-            <option value="biopsy">${tr('Biopsy','خزعة')}</option>
-            <option value="cytology">${tr('Cytology','خلوية')}</option>
-            <option value="surgical">${tr('Surgical','جراحية')}</option>
-            <option value="autopsy">${tr('Autopsy','تشريح')}</option>
-            <option value="frozen">${tr('Frozen Section','مقطع مجمد')}</option>
+            <option value="biopsy">${tr('Biopsy', 'خزعة')}</option>
+            <option value="cytology">${tr('Cytology', 'خلوية')}</option>
+            <option value="surgical">${tr('Surgical', 'جراحية')}</option>
+            <option value="autopsy">${tr('Autopsy', 'تشريح')}</option>
+            <option value="frozen">${tr('Frozen Section', 'مقطع مجمد')}</option>
           </select></div>
-        <div class="form-group"><label>${tr('Site','الموقع')}</label><input class="form-input" id="pathSite"></div>
-        <div class="form-group"><label>${tr('Doctor','الطبيب')}</label><input class="form-input" id="pathDoctor"></div>
-        <div class="form-group"><label>${tr('Clinical Details','التفاصيل السريرية')}</label><textarea class="form-input" id="pathDetails" rows="2"></textarea></div>
-        <div class="form-group"><label>${tr('Priority','الأولوية')}</label>
+        <div class="form-group"><label>${tr('Site', 'الموقع')}</label><input class="form-input" id="pathSite"></div>
+        <div class="form-group"><label>${tr('Doctor', 'الطبيب')}</label><input class="form-input" id="pathDoctor"></div>
+        <div class="form-group"><label>${tr('Clinical Details', 'التفاصيل السريرية')}</label><textarea class="form-input" id="pathDetails" rows="2"></textarea></div>
+        <div class="form-group"><label>${tr('Priority', 'الأولوية')}</label>
           <select class="form-input" id="pathPriority">
-            <option value="routine">${tr('Routine','عادي')}</option>
-            <option value="urgent">${tr('Urgent','عاجل')}</option>
-            <option value="stat">${tr('STAT','فوري')}</option>
+            <option value="routine">${tr('Routine', 'عادي')}</option>
+            <option value="urgent">${tr('Urgent', 'عاجل')}</option>
+            <option value="stat">${tr('STAT', 'فوري')}</option>
           </select></div>
-        <button class="btn btn-primary w-full" onclick="savePathSpecimen()">💾 ${tr('Register','تسجيل')}</button>
+        <button class="btn btn-primary w-full" onclick="savePathSpecimen()">💾 ${tr('Register', 'تسجيل')}</button>
       </div>
       <div class="card" style="padding:20px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <h4 style="margin:0">${tr('Specimen List','قائمة العينات')}</h4>
+          <h4 style="margin:0">${tr('Specimen List', 'قائمة العينات')}</h4>
           <div style="display:flex;gap:8px">
-            <input class="form-input" id="pathSearch" placeholder="${tr('Search...','بحث...')}" style="width:200px" oninput="filterPathTable()">
+            <input class="form-input" id="pathSearch" placeholder="${tr('Search...', 'بحث...')}" style="width:200px" oninput="filterPathTable()">
             <button class="btn btn-sm" onclick="exportToCSV(window._pathData||[],'pathology')" style="background:#e0f7fa;color:#00838f">📥</button>
           </div>
         </div>
         <div id="pathTable"></div>
       </div>
     </div>`;
-    
-    window._pathData = specimens;
-    const pt = document.getElementById('pathTable');
-    if (pt) {
-      createTable(pt, 'pathTbl',
-        [tr('Patient','المريض'),tr('Type','النوع'),tr('Site','الموقع'),tr('Doctor','الطبيب'),tr('Priority','الأولوية'),tr('Status','الحالة'),tr('Date','التاريخ'),tr('Actions','إجراءات')],
-        specimens.map(s => ({
-          cells: [s.patient_name, s.specimen_type, s.site||'', s.doctor||'', 
-            '<span style="padding:2px 8px;border-radius:4px;font-size:11px;background:' + (s.priority==='stat'?'#fce4ec':s.priority==='urgent'?'#fff3e0':'#e8f5e9') + '">' + (s.priority||'routine') + '</span>',
-            statusBadge(s.status), s.created_at?new Date(s.created_at).toLocaleDateString('ar-SA'):'',
-            s.status!=='completed'?'<button class="btn btn-sm" onclick="updatePathStatus('+s.id+')">✅ '+tr('Complete','إكمال')+'</button>':'✅'], id:s.id
-        }))
-      );
-    }
 
-    window.savePathSpecimen = async () => {
-      try {
-        await API.post('/api/pathology/specimens', { patient_name: document.getElementById('pathPatient').value, specimen_type: document.getElementById('pathType').value, site: document.getElementById('pathSite').value, doctor: document.getElementById('pathDoctor').value, clinical_details: document.getElementById('pathDetails').value, priority: document.getElementById('pathPriority').value });
-        showToast(tr('Specimen registered!','تم تسجيل العينة!'));
-        navigateTo(currentPage);
-      } catch(e) { showToast(tr('Error','خطأ'), 'error'); }
-    };
-    window.updatePathStatus = async (id) => {
-      try { await API.put('/api/pathology/specimens/'+id, { status:'completed' }); showToast('✅'); navigateTo(currentPage); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
-    window.filterPathTable = () => { const t=(document.getElementById('pathSearch')?.value||'').toLowerCase(); document.querySelectorAll('#pathTbl tbody tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(t)?'':'none'); };
+  window._pathData = specimens;
+  const pt = document.getElementById('pathTable');
+  if (pt) {
+    createTable(pt, 'pathTbl',
+      [tr('Patient', 'المريض'), tr('Type', 'النوع'), tr('Site', 'الموقع'), tr('Doctor', 'الطبيب'), tr('Priority', 'الأولوية'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', 'إجراءات')],
+      specimens.map(s => ({
+        cells: [s.patient_name, s.specimen_type, s.site || '', s.doctor || '',
+        '<span style="padding:2px 8px;border-radius:4px;font-size:11px;background:' + (s.priority === 'stat' ? '#fce4ec' : s.priority === 'urgent' ? '#fff3e0' : '#e8f5e9') + '">' + (s.priority || 'routine') + '</span>',
+        statusBadge(s.status), s.created_at ? new Date(s.created_at).toLocaleDateString('ar-SA') : '',
+        s.status !== 'completed' ? '<button class="btn btn-sm" onclick="updatePathStatus(' + s.id + ')">✅ ' + tr('Complete', 'إكمال') + '</button>' : '✅'], id: s.id
+      }))
+    );
+  }
+
+  window.savePathSpecimen = async () => {
+    try {
+      await API.post('/api/pathology/specimens', { patient_name: document.getElementById('pathPatient').value, specimen_type: document.getElementById('pathType').value, site: document.getElementById('pathSite').value, doctor: document.getElementById('pathDoctor').value, clinical_details: document.getElementById('pathDetails').value, priority: document.getElementById('pathPriority').value });
+      showToast(tr('Specimen registered!', 'تم تسجيل العينة!'));
+      navigateTo(currentPage);
+    } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
+  window.updatePathStatus = async (id) => {
+    try { await API.put('/api/pathology/specimens/' + id, { status: 'completed' }); showToast('✅'); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
+  window.filterPathTable = () => { const t = (document.getElementById('pathSearch')?.value || '').toLowerCase(); document.querySelectorAll('#pathTbl tbody tr').forEach(r => r.style.display = r.textContent.toLowerCase().includes(t) ? '' : 'none'); };
 
 }
 
@@ -6669,51 +6714,51 @@ async function renderMortuary(el) {
 // ===== CME (Continuing Medical Education) =====
 let cmeTab = 'activities';
 async function renderCME(el) {
-    const content = el;
+  const content = el;
 
-    const events = await API.get('/api/cme/events').catch(()=>[]);
-    const totalHours = events.reduce((s,e)=>s+parseFloat(e.cme_hours||0),0);
-    const upcoming = events.filter(e=>e.status==='upcoming').length;
-    
-    content.innerHTML = `
-    <h2>${tr('CME - Continuing Medical Education','التعليم الطبي المستمر')}</h2>
+  const events = await API.get('/api/cme/events').catch(() => []);
+  const totalHours = events.reduce((s, e) => s + parseFloat(e.cme_hours || 0), 0);
+  const upcoming = events.filter(e => e.status === 'upcoming').length;
+
+  content.innerHTML = `
+    <h2>${tr('CME - Continuing Medical Education', 'التعليم الطبي المستمر')}</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${events.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Events','إجمالي الفعاليات')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${totalHours.toFixed(1)}</h3><p style="margin:4px 0 0;font-size:12px">${tr('CME Hours','ساعات CME')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${upcoming}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Upcoming','قادمة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${events.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Events', 'إجمالي الفعاليات')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${totalHours.toFixed(1)}</h3><p style="margin:4px 0 0;font-size:12px">${tr('CME Hours', 'ساعات CME')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${upcoming}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Upcoming', 'قادمة')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Add Event','إضافة فعالية')}</h4>
-        <div class="form-group"><label>${tr('Title','العنوان')}</label><input class="form-input" id="cmeTitle"></div>
-        <div class="form-group"><label>${tr('Speaker','المتحدث')}</label><input class="form-input" id="cmeSpeaker"></div>
-        <div class="form-group"><label>${tr('Date','التاريخ')}</label><input type="date" class="form-input" id="cmeDate"></div>
-        <div class="form-group"><label>${tr('CME Hours','ساعات CME')}</label><input type="number" class="form-input" id="cmeHours" min="0.5" step="0.5" value="1"></div>
-        <div class="form-group"><label>${tr('Category','الفئة')}</label>
-          <select class="form-input" id="cmeCat"><option value="lecture">${tr('Lecture','محاضرة')}</option><option value="workshop">${tr('Workshop','ورشة عمل')}</option><option value="conference">${tr('Conference','مؤتمر')}</option><option value="online">${tr('Online','عن بُعد')}</option></select></div>
-        <div class="form-group"><label>${tr('Department','القسم')}</label><input class="form-input" id="cmeDept"></div>
-        <button class="btn btn-primary w-full" onclick="saveCmeEvent()">💾 ${tr('Save','حفظ')}</button>
+        <h4 style="margin:0 0 12px">${tr('Add Event', 'إضافة فعالية')}</h4>
+        <div class="form-group"><label>${tr('Title', 'العنوان')}</label><input class="form-input" id="cmeTitle"></div>
+        <div class="form-group"><label>${tr('Speaker', 'المتحدث')}</label><input class="form-input" id="cmeSpeaker"></div>
+        <div class="form-group"><label>${tr('Date', 'التاريخ')}</label><input type="date" class="form-input" id="cmeDate"></div>
+        <div class="form-group"><label>${tr('CME Hours', 'ساعات CME')}</label><input type="number" class="form-input" id="cmeHours" min="0.5" step="0.5" value="1"></div>
+        <div class="form-group"><label>${tr('Category', 'الفئة')}</label>
+          <select class="form-input" id="cmeCat"><option value="lecture">${tr('Lecture', 'محاضرة')}</option><option value="workshop">${tr('Workshop', 'ورشة عمل')}</option><option value="conference">${tr('Conference', 'مؤتمر')}</option><option value="online">${tr('Online', 'عن بُعد')}</option></select></div>
+        <div class="form-group"><label>${tr('Department', 'القسم')}</label><input class="form-input" id="cmeDept"></div>
+        <button class="btn btn-primary w-full" onclick="saveCmeEvent()">💾 ${tr('Save', 'حفظ')}</button>
       </div>
       <div class="card" style="padding:20px">
         <div style="display:flex;justify-content:space-between;margin-bottom:12px">
-          <h4 style="margin:0">${tr('Events','الفعاليات')}</h4>
-          <button class="btn btn-sm" onclick="exportToCSV(window._cmeData||[],'cme')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export','تصدير')}</button>
+          <h4 style="margin:0">${tr('Events', 'الفعاليات')}</h4>
+          <button class="btn btn-sm" onclick="exportToCSV(window._cmeData||[],'cme')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export', 'تصدير')}</button>
         </div>
         <div id="cmeTable"></div>
       </div>
     </div>`;
-    
-    window._cmeData = events;
-    const et = document.getElementById('cmeTable');
-    if (et) {
-      createTable(et, 'cmeTbl',
-        [tr('Title','العنوان'),tr('Speaker','المتحدث'),tr('Date','التاريخ'),tr('Hours','ساعات'),tr('Category','الفئة'),tr('Status','الحالة')],
-        events.map(e=>({cells:[e.title, e.speaker||'', e.event_date?new Date(e.event_date).toLocaleDateString('ar-SA'):'', e.cme_hours||0, e.category||'', statusBadge(e.status)], id:e.id}))
-      );
-    }
-    window.saveCmeEvent = async () => {
-      try { await API.post('/api/cme/events', { title:document.getElementById('cmeTitle').value, speaker:document.getElementById('cmeSpeaker').value, event_date:document.getElementById('cmeDate').value, cme_hours:document.getElementById('cmeHours').value, category:document.getElementById('cmeCat').value, department:document.getElementById('cmeDept').value }); showToast(tr('Event added!','تمت إضافة الفعالية!')); navigateTo(currentPage); } catch(e) { showToast(tr('Error','خطأ'),'error'); }
-    };
+
+  window._cmeData = events;
+  const et = document.getElementById('cmeTable');
+  if (et) {
+    createTable(et, 'cmeTbl',
+      [tr('Title', 'العنوان'), tr('Speaker', 'المتحدث'), tr('Date', 'التاريخ'), tr('Hours', 'ساعات'), tr('Category', 'الفئة'), tr('Status', 'الحالة')],
+      events.map(e => ({ cells: [e.title, e.speaker || '', e.event_date ? new Date(e.event_date).toLocaleDateString('ar-SA') : '', e.cme_hours || 0, e.category || '', statusBadge(e.status)], id: e.id }))
+    );
+  }
+  window.saveCmeEvent = async () => {
+    try { await API.post('/api/cme/events', { title: document.getElementById('cmeTitle').value, speaker: document.getElementById('cmeSpeaker').value, event_date: document.getElementById('cmeDate').value, cme_hours: document.getElementById('cmeHours').value, category: document.getElementById('cmeCat').value, department: document.getElementById('cmeDept').value }); showToast(tr('Event added!', 'تمت إضافة الفعالية!')); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
 
 }
 window.addCME = async function () {
