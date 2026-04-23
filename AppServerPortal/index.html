@@ -3,93 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APP SERVER | خادم التطبيقات</title>
-    
-    <!-- Google Fonts: Tajawal & Inter -->
+    <title>نظام إدارة المستشفيات | APP SERVER Portal</title>
+    <meta name="description" content="بوابة خادم التطبيقات المركزية - نظام إدارة المستشفيات المتقدم">
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- Icons -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-    <!-- Background Design Elements -->
-    <div class="bg-shape bg-shape-1"></div>
-    <div class="bg-shape bg-shape-2"></div>
 
-    <div class="app-container">
-        <!-- Header -->
+    <!-- Animated Background -->
+    <div class="bg-animated">
+        <div class="bg-grid"></div>
+        <div class="bg-glow bg-glow-1"></div>
+        <div class="bg-glow bg-glow-2"></div>
+        <div class="bg-glow bg-glow-3"></div>
+        <div class="floating-particles" id="particles"></div>
+    </div>
+
+    <!-- Scanline Effect -->
+    <div class="scanline"></div>
+
+    <div class="app-wrapper">
+
+        <!-- Top Status Bar -->
+        <div class="status-bar">
+            <div class="status-bar-item">
+                <i class="ri-server-line pulse-icon"></i>
+                <span>حالة الخادم: <strong class="text-success">متصل</strong></span>
+            </div>
+            <div class="status-bar-item">
+                <i class="ri-shield-check-line"></i>
+                <span>الأمان: <strong class="text-success">مشفر SSL</strong></span>
+            </div>
+            <div class="status-bar-item">
+                <i class="ri-wifi-line pulse-icon"></i>
+                <span>الشبكة: <strong class="text-success">نشطة</strong></span>
+            </div>
+            <div class="status-bar-center" id="dateDisplay"></div>
+            <div class="status-bar-item">
+                <i class="ri-time-line"></i>
+                <span id="timeDisplay"></span>
+            </div>
+        </div>
+
+        <!-- Main Header -->
         <header class="main-header">
-            <div class="logo-area">
-                <div class="logo-icon"><i class="ri-hospital-line"></i></div>
-                <div>
-                    <h1>APP SERVER</h1>
-                    <span>بوابة خادم التطبيقات المركزية</span>
+            <div class="header-brand">
+                <div class="brand-logo">
+                    <div class="logo-hexagon">
+                        <i class="ri-hospital-line"></i>
+                    </div>
+                    <div class="logo-pulse-ring"></div>
                 </div>
-            </div>
-            
-            <div class="search-area">
-                <div class="search-box">
-                    <i class="ri-search-line"></i>
-                    <input type="text" id="searchInput" placeholder="ابحث عن خدمة، نظام، أو قسم...">
+                <div class="brand-text">
+                    <h1>APP SERVER</h1>
+                    <p>بوابة خادم التطبيقات المركزية</p>
                 </div>
             </div>
 
-            <div class="header-actions">
-                <div class="time-display" id="timeDisplay"></div>
+            <div class="header-search">
+                <div class="search-container">
+                    <i class="ri-search-line search-icon"></i>
+                    <input type="text" id="searchInput" placeholder="ابحث عن خدمة، نظام، أو قسم..." autocomplete="off">
+                    <kbd class="search-shortcut">Ctrl+K</kbd>
+                </div>
+            </div>
+
+            <div class="header-stats">
+                <div class="mini-stat">
+                    <div class="mini-stat-icon"><i class="ri-apps-2-line"></i></div>
+                    <div class="mini-stat-info">
+                        <span class="mini-stat-value" id="totalServices">41</span>
+                        <span class="mini-stat-label">خدمة</span>
+                    </div>
+                </div>
+                <div class="mini-stat">
+                    <div class="mini-stat-icon active-icon"><i class="ri-checkbox-circle-line"></i></div>
+                    <div class="mini-stat-info">
+                        <span class="mini-stat-value text-success" id="activeServices">41</span>
+                        <span class="mini-stat-label">نشطة</span>
+                    </div>
+                </div>
+                <div class="mini-stat">
+                    <div class="mini-stat-icon"><i class="ri-layout-grid-line"></i></div>
+                    <div class="mini-stat-info">
+                        <span class="mini-stat-value" id="categoryCount">8</span>
+                        <span class="mini-stat-label">قسم</span>
+                    </div>
+                </div>
             </div>
         </header>
 
-        <!-- Main Content Layout -->
-        <div class="content-layout">
-            
-            <!-- Sidebar / Categories -->
-            <aside class="categories-sidebar">
-                <nav id="categoryNav">
-                    <button class="cat-btn active" data-cat="all">
-                        <i class="ri-function-line"></i> جميع الخدمات
-                    </button>
-                    <button class="cat-btn" data-cat="clinical">
-                        <i class="ri-stethoscope-line"></i> الخدمات الطبية
-                    </button>
-                    <button class="cat-btn" data-cat="hr">
-                        <i class="ri-team-line"></i> الموارد البشرية
-                    </button>
-                    <button class="cat-btn" data-cat="quality">
-                        <i class="ri-shield-check-line"></i> الجودة والسلامة
-                    </button>
-                    <button class="cat-btn" data-cat="radiology">
-                        <i class="ri-x-ray-line"></i> أنظمة الأشعة (PACS)
-                    </button>
-                    <button class="cat-btn" data-cat="moh">
-                        <i class="ri-government-line"></i> بوابات الوزارة
-                    </button>
-                    <button class="cat-btn" data-cat="it">
-                        <i class="ri-computer-line"></i> تقنية المعلومات
-                    </button>
-                    <button class="cat-btn" data-cat="admin">
-                        <i class="ri-folder-open-line"></i> الإدارة العامة
-                    </button>
+        <!-- Main Content -->
+        <div class="main-content">
+
+            <!-- Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <i class="ri-dashboard-3-line"></i>
+                    <span>الأقسام</span>
+                </div>
+                <nav class="sidebar-nav" id="categoryNav">
+                    <!-- Categories populated by JS -->
                 </nav>
+                <div class="sidebar-footer">
+                    <div class="system-info">
+                        <div class="info-row">
+                            <span>الإصدار</span>
+                            <span class="badge">v3.2.1</span>
+                        </div>
+                        <div class="info-row">
+                            <span>آخر تحديث</span>
+                            <span class="badge">2026</span>
+                        </div>
+                    </div>
+                </div>
             </aside>
 
-            <!-- Cards Grid -->
-            <main class="services-main">
-                <div class="grid-header">
-                    <h2 id="currentCategoryTitle">جميع الخدمات</h2>
-                    <span id="serviceCount">41 خدمة</span>
+            <!-- Services Area -->
+            <main class="services-area">
+                <div class="area-header">
+                    <div class="area-title">
+                        <h2 id="currentCategoryTitle">جميع الخدمات</h2>
+                        <div class="title-line"></div>
+                    </div>
+                    <div class="area-meta">
+                        <span class="service-count-badge" id="serviceCount">
+                            <i class="ri-function-line"></i>
+                            <span>41</span> خدمة
+                        </span>
+                        <div class="view-toggle">
+                            <button class="view-btn active" data-view="grid" id="gridViewBtn">
+                                <i class="ri-grid-fill"></i>
+                            </button>
+                            <button class="view-btn" data-view="list" id="listViewBtn">
+                                <i class="ri-list-check"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                
+
                 <div class="services-grid" id="servicesGrid">
-                    <!-- Cards will be populated dynamically by JS -->
+                    <!-- Cards populated by JS -->
+                </div>
+
+                <!-- No Results -->
+                <div class="no-results hidden" id="noResults">
+                    <div class="no-results-icon">
+                        <i class="ri-search-eye-line"></i>
+                    </div>
+                    <h3>لم يتم العثور على نتائج</h3>
+                    <p>جرب البحث بكلمات مختلفة أو تصفح الأقسام</p>
                 </div>
             </main>
-
         </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <div class="footer-content">
+                <span>© 2026 APP SERVER - بوابة خادم التطبيقات المركزية</span>
+                <span class="footer-separator">|</span>
+                <span>قسم تقنية المعلومات</span>
+            </div>
+        </footer>
     </div>
 
     <script src="data.js"></script>

@@ -1,56 +1,491 @@
 const servicesData = [
-    // الخدمات الطبية
-    { id: 1, titleEn: 'Medical Report', titleAr: 'التقارير الطبية', category: 'clinical', icon: 'ri-file-list-3-line' },
-    { id: 2, titleEn: 'LAB Inventory', titleAr: 'مخزون المختبر', category: 'clinical', icon: 'ri-test-tube-line' },
-    { id: 3, titleEn: 'Wasfaty', titleAr: 'وصفتي', category: 'clinical', icon: 'ri-medicine-bottle-line' },
-    { id: 4, titleEn: 'REFERRALS', titleAr: 'الإحالات', category: 'clinical', icon: 'ri-arrow-left-right-line' },
-    { id: 5, titleEn: 'Medic Errors', titleAr: 'أخطاء الدواء', category: 'clinical', icon: 'ri-error-warning-line' },
-    { id: 6, titleEn: 'mortality programme', titleAr: 'برنامج الوفيات', category: 'clinical', icon: 'ri-heart-pulse-line' },
-    { id: 7, titleEn: 'IBM Micromedex', titleAr: 'قاعدة بيانات الأدوية', category: 'clinical', icon: 'ri-book-read-line' },
-    
-    // الموارد البشرية
-    { id: 8, titleEn: 'Mawared', titleAr: 'موارد', category: 'hr', icon: 'ri-group-line' },
-    { id: 9, titleEn: 'Mudeeri', titleAr: 'مديري', category: 'hr', icon: 'ri-user-settings-line' },
-    { id: 10, titleEn: 'Hudoor', titleAr: 'حضور', category: 'hr', icon: 'ri-fingerprint-line' },
-    { id: 11, titleEn: 'Doctors Privileges', titleAr: 'امتيازات الأطباء', category: 'hr', icon: 'ri-medal-line' },
-    { id: 12, titleEn: 'Doctors Privilege Admin', titleAr: 'ادمن امتيازات الاطباء', category: 'hr', icon: 'ri-admin-line' },
-    { id: 13, titleEn: 'Daily Rotations', titleAr: 'جدول المناوبات', category: 'hr', icon: 'ri-calendar-todo-line' },
+    // ═══════════════════════════════════════════
+    // الخدمات الطبية (Clinical)
+    // ═══════════════════════════════════════════
+    { 
+        id: 1, 
+        titleEn: 'Medical Report', 
+        titleAr: 'التقارير الطبية', 
+        descAr: 'إنشاء وإدارة التقارير الطبية للمرضى',
+        category: 'clinical', 
+        icon: 'ri-file-list-3-line',
+        url: 'http://10.10.10.5:8080/medical-reports',
+        status: 'active'
+    },
+    { 
+        id: 2, 
+        titleEn: 'LAB Inventory', 
+        titleAr: 'مخزون المختبر', 
+        descAr: 'إدارة مواد ومستلزمات المختبر',
+        category: 'clinical', 
+        icon: 'ri-test-tube-line',
+        url: 'http://10.10.10.5:8080/lab-inventory',
+        status: 'active'
+    },
+    { 
+        id: 3, 
+        titleEn: 'Wasfaty', 
+        titleAr: 'وصفتي', 
+        descAr: 'نظام الوصفات الإلكترونية',
+        category: 'clinical', 
+        icon: 'ri-medicine-bottle-line',
+        url: 'https://wasfaty.moh.gov.sa',
+        status: 'active'
+    },
+    { 
+        id: 4, 
+        titleEn: 'REFERRALS', 
+        titleAr: 'الإحالات', 
+        descAr: 'نظام إدارة الإحالات الطبية',
+        category: 'clinical', 
+        icon: 'ri-arrow-left-right-line',
+        url: 'https://referral.moh.gov.sa',
+        status: 'active'
+    },
+    { 
+        id: 5, 
+        titleEn: 'Medication Errors', 
+        titleAr: 'أخطاء الدواء', 
+        descAr: 'نظام الإبلاغ عن أخطاء الأدوية',
+        category: 'clinical', 
+        icon: 'ri-error-warning-line',
+        url: 'http://10.10.10.5:8080/medication-errors',
+        status: 'active'
+    },
+    { 
+        id: 6, 
+        titleEn: 'Mortality Programme', 
+        titleAr: 'برنامج الوفيات', 
+        descAr: 'تسجيل ومتابعة بيانات الوفيات',
+        category: 'clinical', 
+        icon: 'ri-heart-pulse-line',
+        url: 'http://10.10.10.5:8080/mortality',
+        status: 'active'
+    },
+    { 
+        id: 7, 
+        titleEn: 'IBM Micromedex', 
+        titleAr: 'قاعدة بيانات الأدوية', 
+        descAr: 'المرجع الشامل للأدوية والتفاعلات',
+        category: 'clinical', 
+        icon: 'ri-book-read-line',
+        url: 'https://www.micromedexsolutions.com',
+        status: 'active'
+    },
 
-    // الجودة والسلامة
-    { id: 14, titleEn: 'OVR', titleAr: 'الإبلاغ عن الحوادث والأخطاء', category: 'quality', icon: 'ri-alert-line' },
-    { id: 15, titleEn: 'OPS rounds', titleAr: 'جولات السلامة', category: 'quality', icon: 'ri-walk-line' },
-    { id: 16, titleEn: 'Regulatory guide to core standards', titleAr: 'الدليل التنظيمي للمعايير الأساسية', category: 'quality', icon: 'ri-book-mark-line' },
-    { id: 17, titleEn: 'Risk Minimization Measures List', titleAr: 'قائمة وسائل خفض المخاطر', category: 'quality', icon: 'ri-shield-cross-line' },
+    // ═══════════════════════════════════════════
+    // الموارد البشرية (HR)
+    // ═══════════════════════════════════════════
+    { 
+        id: 8, 
+        titleEn: 'Mawared', 
+        titleAr: 'موارد', 
+        descAr: 'نظام إدارة الموارد البشرية',
+        category: 'hr', 
+        icon: 'ri-group-line',
+        url: 'https://mawared.moh.gov.sa',
+        status: 'active'
+    },
+    { 
+        id: 9, 
+        titleEn: 'Mudeeri', 
+        titleAr: 'مديري', 
+        descAr: 'بوابة المدير للموافقات والمتابعة',
+        category: 'hr', 
+        icon: 'ri-user-settings-line',
+        url: 'https://mudeeri.moh.gov.sa',
+        status: 'active'
+    },
+    { 
+        id: 10, 
+        titleEn: 'Hudoor', 
+        titleAr: 'حضور', 
+        descAr: 'نظام الحضور والانصراف',
+        category: 'hr', 
+        icon: 'ri-fingerprint-line',
+        url: 'https://hudoor.moh.gov.sa',
+        status: 'active'
+    },
+    { 
+        id: 11, 
+        titleEn: 'Doctors Privileges', 
+        titleAr: 'امتيازات الأطباء', 
+        descAr: 'نظام إدارة صلاحيات وامتيازات الأطباء',
+        category: 'hr', 
+        icon: 'ri-medal-line',
+        url: 'http://10.10.10.5:8080/privileges',
+        status: 'active'
+    },
+    { 
+        id: 12, 
+        titleEn: 'Doctors Privilege Admin', 
+        titleAr: 'إدارة امتيازات الأطباء', 
+        descAr: 'لوحة التحكم الإدارية للامتيازات',
+        category: 'hr', 
+        icon: 'ri-admin-line',
+        url: 'http://10.10.10.5:8080/privileges-admin',
+        status: 'active'
+    },
+    { 
+        id: 13, 
+        titleEn: 'Daily Rotations', 
+        titleAr: 'جدول المناوبات', 
+        descAr: 'جدولة وتنظيم مناوبات الموظفين',
+        category: 'hr', 
+        icon: 'ri-calendar-todo-line',
+        url: 'http://10.10.10.5:8080/rotations',
+        status: 'active'
+    },
 
-    // تقنية المعلومات
-    { id: 18, titleEn: 'IT Orientation', titleAr: 'البوابة الإعدادية', category: 'it', icon: 'ri-macbook-line' },
-    { id: 19, titleEn: 'MOH reset', titleAr: 'استعادة البيانات', category: 'it', icon: 'ri-restart-line' },
-    { id: 20, titleEn: 'Domain Zoon', titleAr: 'اسماء النطاقات', category: 'it', icon: 'ri-global-line' },
-    { id: 21, titleEn: 'Card System', titleAr: 'نظام تفعيل الأبواب', category: 'it', icon: 'ri-pass-valid-line' },
-    { id: 22, titleEn: 'Master DB', titleAr: 'البيانات المركزية', category: 'it', icon: 'ri-database-2-line' },
+    // ═══════════════════════════════════════════
+    // الجودة والسلامة (Quality)
+    // ═══════════════════════════════════════════
+    { 
+        id: 14, 
+        titleEn: 'OVR', 
+        titleAr: 'الإبلاغ عن الحوادث', 
+        descAr: 'نظام الإبلاغ عن الحوادث والأخطاء الطبية',
+        category: 'quality', 
+        icon: 'ri-alert-line',
+        url: 'http://10.10.10.5:8080/ovr',
+        status: 'active'
+    },
+    { 
+        id: 15, 
+        titleEn: 'OPS Rounds', 
+        titleAr: 'جولات السلامة', 
+        descAr: 'نظام متابعة جولات السلامة التشغيلية',
+        category: 'quality', 
+        icon: 'ri-walk-line',
+        url: 'http://10.10.10.5:8080/ops-rounds',
+        status: 'active'
+    },
+    { 
+        id: 16, 
+        titleEn: 'Core Standards Guide', 
+        titleAr: 'دليل المعايير الأساسية', 
+        descAr: 'الدليل التنظيمي لمعايير الجودة',
+        category: 'quality', 
+        icon: 'ri-book-mark-line',
+        url: 'http://10.10.10.5:8080/standards',
+        status: 'active'
+    },
+    { 
+        id: 17, 
+        titleEn: 'Risk Minimization', 
+        titleAr: 'إدارة المخاطر', 
+        descAr: 'قائمة وسائل وإجراءات خفض المخاطر',
+        category: 'quality', 
+        icon: 'ri-shield-cross-line',
+        url: 'http://10.10.10.5:8080/risk-management',
+        status: 'active'
+    },
 
-    // الأشعة والباكس
-    { id: 23, titleEn: 'NNCH PACS', titleAr: 'باكس نجران العام (الشرقية)', category: 'radiology', icon: 'ri-body-scan-line' },
-    { id: 24, titleEn: 'Cardiac PACS', titleAr: 'باكس القلب', category: 'radiology', icon: 'ri-heart-add-line' },
-    { id: 25, titleEn: 'BADER PACS', titleAr: 'باكس بدر الجنوب', category: 'radiology', icon: 'ri-hospital-line' },
+    // ═══════════════════════════════════════════
+    // تقنية المعلومات (IT)
+    // ═══════════════════════════════════════════
+    { 
+        id: 18, 
+        titleEn: 'IT Orientation', 
+        titleAr: 'البوابة الإعدادية', 
+        descAr: 'دليل التهيئة والإعداد لتقنية المعلومات',
+        category: 'it', 
+        icon: 'ri-macbook-line',
+        url: 'http://10.10.10.5:8080/it-orientation',
+        status: 'active'
+    },
+    { 
+        id: 19, 
+        titleEn: 'MOH Reset', 
+        titleAr: 'استعادة البيانات', 
+        descAr: 'أداة استعادة وإعادة تعيين بيانات الوزارة',
+        category: 'it', 
+        icon: 'ri-restart-line',
+        url: 'http://10.10.10.5:8080/moh-reset',
+        status: 'active'
+    },
+    { 
+        id: 20, 
+        titleEn: 'Domain Zone', 
+        titleAr: 'أسماء النطاقات', 
+        descAr: 'إدارة نطاقات DNS والتوجيهات',
+        category: 'it', 
+        icon: 'ri-global-line',
+        url: 'http://10.10.10.5:8080/domain-zone',
+        status: 'active'
+    },
+    { 
+        id: 21, 
+        titleEn: 'Card System', 
+        titleAr: 'نظام البطاقات', 
+        descAr: 'نظام التحكم بالبطاقات وتفعيل الأبواب',
+        category: 'it', 
+        icon: 'ri-pass-valid-line',
+        url: 'http://10.10.10.5:8080/card-system',
+        status: 'active'
+    },
+    { 
+        id: 22, 
+        titleEn: 'Master DB', 
+        titleAr: 'البيانات المركزية', 
+        descAr: 'قاعدة البيانات المركزية الرئيسية',
+        category: 'it', 
+        icon: 'ri-database-2-line',
+        url: 'http://10.10.10.5:8080/master-db',
+        status: 'active'
+    },
 
-    // بوابات الوزارة
-    { id: 26, titleEn: 'MOH Unified portal', titleAr: 'البوابة الموحدة', category: 'moh', icon: 'ri-government-line' },
-    { id: 27, titleEn: 'MOH Update', titleAr: 'تحديث بوابات الوزارة', category: 'moh', icon: 'ri-refresh-line' },
-    { id: 28, titleEn: 'MoH email', titleAr: 'بريد الوزارة', category: 'moh', icon: 'ri-mail-send-line' },
-    { id: 29, titleEn: 'Mawid', titleAr: 'موعد', category: 'moh', icon: 'ri-calendar-check-line' },
-    { id: 30, titleEn: 'Saha', titleAr: 'صحة', category: 'moh', icon: 'ri-heart-pulse-line' },
-    { id: 31, titleEn: 'ANAT', titleAr: 'أناة', category: 'moh', icon: 'ri-nurse-line' },
-    { id: 32, titleEn: 'Shahm', titleAr: 'شهم', category: 'moh', icon: 'ri-sword-line' },
-    { id: 33, titleEn: 'BAIN', titleAr: 'بين', category: 'moh', icon: 'ri-exchange-line' },
-    { id: 34, titleEn: 'Health transformation journey guide', titleAr: 'دليل رحلة التحول الصحي', category: 'moh', icon: 'ri-route-line' },
+    // ═══════════════════════════════════════════
+    // أنظمة الأشعة (Radiology / PACS)
+    // ═══════════════════════════════════════════
+    { 
+        id: 23, 
+        titleEn: 'NNCH PACS', 
+        titleAr: 'باكس نجران العام', 
+        descAr: 'نظام أرشفة وتبادل الصور الطبية - الشرقية',
+        category: 'radiology', 
+        icon: 'ri-body-scan-line',
+        url: 'http://10.10.10.20:8080/pacs',
+        status: 'active'
+    },
+    { 
+        id: 24, 
+        titleEn: 'Cardiac PACS', 
+        titleAr: 'باكس القلب', 
+        descAr: 'نظام أرشفة صور القلب والقسطرة',
+        category: 'radiology', 
+        icon: 'ri-heart-add-line',
+        url: 'http://10.10.10.21:8080/cardiac-pacs',
+        status: 'active'
+    },
+    { 
+        id: 25, 
+        titleEn: 'BADER PACS', 
+        titleAr: 'باكس بدر الجنوب', 
+        descAr: 'نظام الأرشفة لمركز بدر الجنوب',
+        category: 'radiology', 
+        icon: 'ri-hospital-line',
+        url: 'http://10.10.10.22:8080/bader-pacs',
+        status: 'active'
+    },
 
-    // الإدارة العامة
-    { id: 35, titleEn: 'Policies and Procedures', titleAr: 'السياسات والإجراءات', category: 'admin', icon: 'ri-file-paper-2-line' },
-    { id: 36, titleEn: 'Hospital Forms', titleAr: 'نماذج المستشفى', category: 'admin', icon: 'ri-file-copy-2-line' },
-    { id: 37, titleEn: 'Phone dir', titleAr: 'دليل الهاتف', category: 'admin', icon: 'ri-contacts-book-2-line' },
-    { id: 38, titleEn: 'Intranet', titleAr: 'الانترانت', category: 'admin', icon: 'ri-wifi-line' },
-    { id: 39, titleEn: 'Archiving', titleAr: 'الأرشفة الإلكترونية', category: 'admin', icon: 'ri-archive-drawer-line' },
-    { id: 40, titleEn: 'Job Cards', titleAr: 'أوامر الصيانة', category: 'admin', icon: 'ri-tools-line' },
-    { id: 41, titleEn: 'OASIS+', titleAr: 'أوسيس+', category: 'admin', icon: 'ri-hospital-building-line' },
+    // ═══════════════════════════════════════════
+    // بوابات الوزارة (MOH)
+    // ═══════════════════════════════════════════
+    { 
+        id: 26, 
+        titleEn: 'MOH Unified Portal', 
+        titleAr: 'البوابة الموحدة', 
+        descAr: 'البوابة الإلكترونية الموحدة لوزارة الصحة',
+        category: 'moh', 
+        icon: 'ri-government-line',
+        url: 'https://portal.moh.gov.sa',
+        status: 'active'
+    },
+    { 
+        id: 27, 
+        titleEn: 'MOH Update', 
+        titleAr: 'تحديث بوابات الوزارة', 
+        descAr: 'تحديثات وتعليمات البوابات الإلكترونية',
+        category: 'moh', 
+        icon: 'ri-refresh-line',
+        url: 'https://update.moh.gov.sa',
+        status: 'active'
+    },
+    { 
+        id: 28, 
+        titleEn: 'MoH Email', 
+        titleAr: 'بريد الوزارة', 
+        descAr: 'خدمة البريد الإلكتروني لوزارة الصحة',
+        category: 'moh', 
+        icon: 'ri-mail-send-line',
+        url: 'https://mail.moh.gov.sa',
+        status: 'active'
+    },
+    { 
+        id: 29, 
+        titleEn: 'Mawid', 
+        titleAr: 'موعد', 
+        descAr: 'خدمة حجز المواعيد الإلكترونية',
+        category: 'moh', 
+        icon: 'ri-calendar-check-line',
+        url: 'https://mawid.moh.gov.sa',
+        status: 'active'
+    },
+    { 
+        id: 30, 
+        titleEn: 'Seha', 
+        titleAr: 'صحة', 
+        descAr: 'تطبيق الاستشارات الطبية عن بعد',
+        category: 'moh', 
+        icon: 'ri-heart-pulse-line',
+        url: 'https://seha.sa',
+        status: 'active'
+    },
+    { 
+        id: 31, 
+        titleEn: 'ANAT', 
+        titleAr: 'أناة', 
+        descAr: 'نظام متابعة التمريض وخطط الرعاية',
+        category: 'moh', 
+        icon: 'ri-nurse-line',
+        url: 'https://anat.moh.gov.sa',
+        status: 'active'
+    },
+    { 
+        id: 32, 
+        titleEn: 'Shahm', 
+        titleAr: 'شهم', 
+        descAr: 'نظام إدارة خدمات الطوارئ والإسعاف',
+        category: 'moh', 
+        icon: 'ri-sword-line',
+        url: 'https://shahm.moh.gov.sa',
+        status: 'active'
+    },
+    { 
+        id: 33, 
+        titleEn: 'BAIN', 
+        titleAr: 'بين', 
+        descAr: 'منصة التكامل بين الأنظمة الصحية',
+        category: 'moh', 
+        icon: 'ri-exchange-line',
+        url: 'https://bain.moh.gov.sa',
+        status: 'active'
+    },
+    { 
+        id: 34, 
+        titleEn: 'Health Transformation', 
+        titleAr: 'التحول الصحي', 
+        descAr: 'دليل رحلة التحول الصحي الشامل',
+        category: 'moh', 
+        icon: 'ri-route-line',
+        url: 'https://transformation.moh.gov.sa',
+        status: 'active'
+    },
+
+    // ═══════════════════════════════════════════
+    // الإدارة العامة (Admin)
+    // ═══════════════════════════════════════════
+    { 
+        id: 35, 
+        titleEn: 'Policies & Procedures', 
+        titleAr: 'السياسات والإجراءات', 
+        descAr: 'مكتبة السياسات والإجراءات المعتمدة',
+        category: 'admin', 
+        icon: 'ri-file-paper-2-line',
+        url: 'http://10.10.10.5:8080/policies',
+        status: 'active'
+    },
+    { 
+        id: 36, 
+        titleEn: 'Hospital Forms', 
+        titleAr: 'نماذج المستشفى', 
+        descAr: 'مستودع النماذج والمطبوعات الرسمية',
+        category: 'admin', 
+        icon: 'ri-file-copy-2-line',
+        url: 'http://10.10.10.5:8080/forms',
+        status: 'active'
+    },
+    { 
+        id: 37, 
+        titleEn: 'Phone Directory', 
+        titleAr: 'دليل الهاتف', 
+        descAr: 'دليل الهاتف الداخلي للمستشفى',
+        category: 'admin', 
+        icon: 'ri-contacts-book-2-line',
+        url: 'http://10.10.10.5:8080/phone-dir',
+        status: 'active'
+    },
+    { 
+        id: 38, 
+        titleEn: 'Intranet', 
+        titleAr: 'الشبكة الداخلية', 
+        descAr: 'بوابة الشبكة الداخلية للمستشفى',
+        category: 'admin', 
+        icon: 'ri-wifi-line',
+        url: 'http://10.10.10.5:80/intranet',
+        status: 'active'
+    },
+    { 
+        id: 39, 
+        titleEn: 'Archiving', 
+        titleAr: 'الأرشفة الإلكترونية', 
+        descAr: 'نظام الأرشفة والتوثيق الرقمي',
+        category: 'admin', 
+        icon: 'ri-archive-drawer-line',
+        url: 'http://10.10.10.5:8080/archiving',
+        status: 'active'
+    },
+    { 
+        id: 40, 
+        titleEn: 'Job Cards', 
+        titleAr: 'أوامر الصيانة', 
+        descAr: 'نظام إدارة أوامر العمل والصيانة',
+        category: 'admin', 
+        icon: 'ri-tools-line',
+        url: 'http://10.10.10.5:8080/job-cards',
+        status: 'active'
+    },
+    { 
+        id: 41, 
+        titleEn: 'OASIS+', 
+        titleAr: 'أوسيس+', 
+        descAr: 'نظام إدارة المستشفيات الشامل',
+        category: 'admin', 
+        icon: 'ri-hospital-line',
+        url: 'http://10.10.10.5:9090/oasis',
+        status: 'active'
+    },
 ];
+
+// Category metadata with colors and icons
+const categoriesConfig = {
+    all: { 
+        titleAr: 'جميع الخدمات', 
+        icon: 'ri-function-line', 
+        color: '#00d4ff',
+        gradient: 'linear-gradient(135deg, #00d4ff, #0099cc)'
+    },
+    clinical: { 
+        titleAr: 'الخدمات الطبية', 
+        icon: 'ri-stethoscope-line', 
+        color: '#00e5a0',
+        gradient: 'linear-gradient(135deg, #00e5a0, #00b37d)'
+    },
+    hr: { 
+        titleAr: 'الموارد البشرية', 
+        icon: 'ri-team-line', 
+        color: '#a78bfa',
+        gradient: 'linear-gradient(135deg, #a78bfa, #7c3aed)'
+    },
+    quality: { 
+        titleAr: 'الجودة والسلامة', 
+        icon: 'ri-shield-check-line', 
+        color: '#fbbf24',
+        gradient: 'linear-gradient(135deg, #fbbf24, #f59e0b)'
+    },
+    radiology: { 
+        titleAr: 'أنظمة الأشعة (PACS)', 
+        icon: 'ri-body-scan-line', 
+        color: '#f472b6',
+        gradient: 'linear-gradient(135deg, #f472b6, #ec4899)'
+    },
+    moh: { 
+        titleAr: 'بوابات الوزارة', 
+        icon: 'ri-government-line', 
+        color: '#38bdf8',
+        gradient: 'linear-gradient(135deg, #38bdf8, #0284c7)'
+    },
+    it: { 
+        titleAr: 'تقنية المعلومات', 
+        icon: 'ri-computer-line', 
+        color: '#fb923c',
+        gradient: 'linear-gradient(135deg, #fb923c, #ea580c)'
+    },
+    admin: { 
+        titleAr: 'الإدارة العامة', 
+        icon: 'ri-folder-open-line', 
+        color: '#94a3b8',
+        gradient: 'linear-gradient(135deg, #94a3b8, #64748b)'
+    }
+};
