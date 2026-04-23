@@ -333,6 +333,9 @@ body {
     gap: 16px;
 }
 .services-grid.list-view { grid-template-columns: 1fr; }
+.services-grid.list-view .service-card { padding: 16px 24px; }
+.services-grid.list-view .card-body .card-desc { -webkit-line-clamp: 2; }
+.services-grid.list-view .card-status { margin-right: 8px; margin-left: 12px; }
 
 .service-card {
     position: relative; display: flex; align-items: center; gap: 16px;
@@ -411,6 +414,7 @@ body {
 .card-icon-wrap.moh { background: rgba(56,189,248,0.1); color: #38bdf8; }
 .card-icon-wrap.it { background: rgba(251,146,60,0.1); color: var(--accent-orange); }
 .card-icon-wrap.admin { background: rgba(148,163,184,0.1); color: #94a3b8; }
+.card-icon-wrap.erp { background: rgba(34,211,238,0.1); color: #22d3ee; }
 
 .service-card:hover .card-icon-wrap.clinical { background: rgba(0,229,160,0.2); box-shadow: 0 0 15px rgba(0,229,160,0.2); }
 .service-card:hover .card-icon-wrap.hr { background: rgba(167,139,250,0.2); box-shadow: 0 0 15px rgba(167,139,250,0.2); }
@@ -419,6 +423,7 @@ body {
 .service-card:hover .card-icon-wrap.moh { background: rgba(56,189,248,0.2); box-shadow: 0 0 15px rgba(56,189,248,0.2); }
 .service-card:hover .card-icon-wrap.it { background: rgba(251,146,60,0.2); box-shadow: 0 0 15px rgba(251,146,60,0.2); }
 .service-card:hover .card-icon-wrap.admin { background: rgba(148,163,184,0.2); box-shadow: 0 0 15px rgba(148,163,184,0.2); }
+.service-card:hover .card-icon-wrap.erp { background: rgba(34,211,238,0.2); box-shadow: 0 0 15px rgba(34,211,238,0.2); }
 
 /* No Results */
 .no-results { text-align: center; padding: 60px 20px; }

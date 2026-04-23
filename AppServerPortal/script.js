@@ -42,6 +42,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // ═══ Build Sidebar Categories ═══
     function buildCategories() {
         const catKeys = Object.keys(categoriesConfig);
+        const totalServices = servicesData.length;
+        const totalCategories = catKeys.length - 1; // minus 'all'
+
+        // Update header stats dynamically
+        document.getElementById('totalServices').textContent = totalServices;
+        document.getElementById('activeServices').textContent = totalServices;
+        document.getElementById('categoryCount').textContent = totalCategories;
+
         catKeys.forEach(key => {
             const cat = categoriesConfig[key];
             const count = key === 'all' ? servicesData.length : servicesData.filter(s => s.category === key).length;
