@@ -1,0 +1,23 @@
+# Build artifacts
+build/
+.cache/
+
+# Database files
+*.db
+*.bak
+
+# Large data files
+pharmacy_global_products_*.json
+output.txt
+drugs_export.txt
+error_output.txt
+
+# IDE / Agents
+.agents/
+
+# Credentials (NEVER commit)
+algolia_creds.json
+config.ini
+
+# Node modules
+node_modules/

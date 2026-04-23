@@ -1,0 +1,89 @@
+{
+    "lab_tests": [
+        {
+            "test_name": "CBC (Complete Blood Count)",
+            "category": "Hematology",
+            "normal_range": "Normal",
+            "price": 150.0
+        },
+        {
+            "test_name": "Lipid Profile",
+            "category": "Biochemistry",
+            "normal_range": "Normal",
+            "price": 200.0
+        },
+        {
+            "test_name": "Fasting Blood Sugar (FBS)",
+            "category": "Biochemistry",
+            "normal_range": "70-100 mg/dL",
+            "price": 80.0
+        },
+        {
+            "test_name": "HbA1c",
+            "category": "Biochemistry",
+            "normal_range": "4.0-5.6%",
+            "price": 180.0
+        },
+        {
+            "test_name": "Vitamin D",
+            "category": "Endocrinology",
+            "normal_range": "30-100 ng/mL",
+            "price": 250.0
+        },
+        {
+            "test_name": "TSH",
+            "category": "Hormones",
+            "normal_range": "0.4-4.0 mIU/L",
+            "price": 150.0
+        },
+        {
+            "test_name": "Liver Function Test (LFT)",
+            "category": "Biochemistry",
+            "normal_range": "Normal",
+            "price": 220.0
+        },
+        {
+            "test_name": "Kidney Function Test (KFT)",
+            "category": "Biochemistry",
+            "normal_range": "Normal",
+            "price": 210.0
+        }
+    ],
+    "radiology": [
+        {
+            "exact_name": "Chest X-Ray (PA)",
+            "modality": "X-Ray",
+            "price": 150.0
+        },
+        {
+            "exact_name": "MRI Brain without contrast",
+            "modality": "MRI",
+            "price": 1200.0
+        },
+        {
+            "exact_name": "CT Brain without contrast",
+            "modality": "CT",
+            "price": 800.0
+        },
+        {
+            "exact_name": "Ultrasound Abdomen",
+            "modality": "Ultrasound",
+            "price": 400.0
+        },
+        {
+            "exact_name": "Ultrasound Pelvis",
+            "modality": "Ultrasound",
+            "price": 350.0
+        },
+        {
+            "exact_name": "X-Ray Knee Joint",
+            "modality": "X-Ray",
+            "price": 160.0
+        },
+        {
+            "exact_name": "MRI Cervical Spine",
+            "modality": "MRI",
+            "price": 1300.0
+        }
+    ]
+}

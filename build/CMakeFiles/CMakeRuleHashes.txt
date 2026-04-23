@@ -1,3 +1,0 @@
-# Hashes of file build rules.
-91003d7d375e58b71dfb4ee1fb35a905 CMakeFiles/NamaMedical_autogen
-338ed6d3ac7d1b5a36cde3f3d690620b NamaMedical_autogen/timestamp

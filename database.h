@@ -1,6 +1,8 @@
 #pragma once
+#include <QCoreApplication>
 #include <QDebug>
 #include <QMessageBox>
+#include <QSettings>
 #include <QSqlDatabase>
 #include <QSqlDriver>
 #include <QSqlError>
@@ -20,8 +22,7 @@ public:
       QMessageBox::critical(
           nullptr, "Database Error",
           "Failed to connect to SQL Server!\n\n"
-          "Please make sure SQL Server is running on localhost\n"
-          "and database NAMA_MEDICAL exists.\n\n" +
+          "Please check config.ini settings.\n\n" +
               m_debugLog);
       return false;
     }
@@ -61,17 +62,35 @@ private:
       return false;
     }
 
-    // Windows Authentication - ODBC Driver 17
-    QString connString = "DRIVER={ODBC Driver 17 for SQL Server};"
-                         "SERVER=localhost;"
-                         "DATABASE=NAMA_MEDICAL;"
-                         "Trusted_Connection=yes;";
+    // Read connection settings from config.ini
+    QString configPath = QCoreApplication::applicationDirPath() + "/config.ini";
+    QSettings settings(configPath, QSettings::IniFormat);
+    QString server = settings.value("Database/Server", "localhost").toString();
+    QString dbName = settings.value("Database/DatabaseName", "NAMA_MEDICAL").toString();
+    QString username = settings.value("Database/Username", "").toString();
+    QString password = settings.value("Database/Password", "").toString();
+
+    m_debugLog += "Server: " + server + "\nDatabase: " + dbName + "\n";
+
+    // Build connection string
+    QString connString;
+    if (username.isEmpty()) {
+      // Windows Authentication
+      connString = QString("DRIVER={ODBC Driver 17 for SQL Server};"
+                           "SERVER=%1;DATABASE=%2;Trusted_Connection=yes;")
+                       .arg(server, dbName);
+    } else {
+      // SQL Server Authentication
+      connString = QString("DRIVER={SQL Server};"
+                           "SERVER=%1;DATABASE=%2;UID=%3;PWD=%4;")
+                       .arg(server, dbName, username, password);
+    }
 
     m_db = QSqlDatabase::addDatabase("QODBC");
     m_db.setDatabaseName(connString);
 
     if (m_db.open()) {
-      qDebug() << "[DB] Connected to SQL Server (Windows Auth)";
+      qDebug() << "[DB] Connected to SQL Server at" << server;
       return true;
     }
 
@@ -267,6 +286,431 @@ private:
         "lab_tests_catalog",
         QString("id %1, test_name %2, category %2, normal_range %2, price %3")
             .arg(autoInc, textType, realType));
+
+    // =============================================
+    // PRE-POPULATE LAB TESTS CATALOG (Mayo Clinic Reference)
+    // =============================================
+    {
+      QSqlQuery qLabCount = exec("SELECT COUNT(*) FROM lab_tests_catalog");
+      if (qLabCount.next() && qLabCount.value(0).toInt() == 0) {
+        // Format: "TestName|Category|NormalRange|Price"
+        QStringList labTests = {
+            // ── HEMATOLOGY ──
+            "CBC - Complete Blood Count|Hematology|See components|100.00",
+            "WBC - White Blood Cell Count|Hematology|4.5-11.0 x10^9/L|50.00",
+            "RBC - Red Blood Cell Count|Hematology|M:4.7-6.1 F:4.2-5.4 x10^12/L|50.00",
+            "Hemoglobin (Hgb)|Hematology|M:13.5-17.5 F:12.0-16.0 g/dL|50.00",
+            "Hematocrit (Hct)|Hematology|M:38.3-48.6% F:35.5-44.9%|50.00",
+            "MCV - Mean Corpuscular Volume|Hematology|80-100 fL|40.00",
+            "MCH - Mean Corpuscular Hemoglobin|Hematology|27-33 pg|40.00",
+            "MCHC|Hematology|31.5-35.7 g/dL|40.00",
+            "RDW - Red Cell Distribution Width|Hematology|11.5-14.5%|40.00",
+            "Platelet Count|Hematology|150-400 x10^9/L|50.00",
+            "MPV - Mean Platelet Volume|Hematology|7.5-11.5 fL|40.00",
+            "ESR - Erythrocyte Sedimentation Rate|Hematology|M:0-15 F:0-20 mm/hr|60.00",
+            "Reticulocyte Count|Hematology|0.5-2.5%|80.00",
+            "Reticulocyte Absolute Count|Hematology|25-125 x10^9/L|80.00",
+            "Peripheral Blood Smear|Hematology|Normal morphology|120.00",
+            "Hemoglobin Electrophoresis|Hematology|HbA >95%, HbA2 2-3.5%|200.00",
+            "G6PD - Glucose-6-Phosphate Dehydrogenase|Hematology|4.6-13.5 U/g Hb|150.00",
+            "Sickle Cell Screen|Hematology|Negative|100.00",
+            "Direct Coombs Test (DAT)|Hematology|Negative|100.00",
+            "Indirect Coombs Test (IAT)|Hematology|Negative|100.00",
+            "Osmotic Fragility|Hematology|See reference|180.00",
+            "Haptoglobin|Hematology|30-200 mg/dL|120.00",
+            "Bone Marrow Biopsy Interpretation|Hematology|See report|500.00",
+            "CD4 Count (Flow Cytometry)|Hematology|500-1500 cells/uL|250.00",
+            "CD8 Count (Flow Cytometry)|Hematology|150-1000 cells/uL|250.00",
+
+            // ── COAGULATION ──
+            "PT - Prothrombin Time|Coagulation|11.0-13.5 seconds|80.00",
+            "INR - International Normalized Ratio|Coagulation|0.8-1.1|80.00",
+            "aPTT - Activated Partial Thromboplastin Time|Coagulation|25-35 seconds|80.00",
+            "D-Dimer|Coagulation|<0.50 mg/L FEU|120.00",
+            "Fibrinogen|Coagulation|200-400 mg/dL|100.00",
+            "Thrombin Time|Coagulation|14-19 seconds|100.00",
+            "Bleeding Time|Coagulation|2-7 minutes|60.00",
+            "Factor V Leiden Mutation|Coagulation|Not detected|300.00",
+            "Protein C Activity|Coagulation|70-140%|250.00",
+            "Protein S Activity|Coagulation|60-140%|250.00",
+            "Antithrombin III|Coagulation|80-120%|200.00",
+            "Lupus Anticoagulant|Coagulation|Negative|200.00",
+            "Anti-Cardiolipin Antibodies (IgG/IgM)|Coagulation|<12 GPL/MPL|200.00",
+            "Fibrin Degradation Products (FDP)|Coagulation|<5 ug/mL|120.00",
+            "von Willebrand Factor Antigen|Coagulation|50-150%|250.00",
+
+            // ── CHEMISTRY - GENERAL ──
+            "Glucose, Fasting|Chemistry|70-100 mg/dL|50.00",
+            "Glucose, Random|Chemistry|70-140 mg/dL|50.00",
+            "Glucose, 2-Hour Postprandial|Chemistry|<140 mg/dL|60.00",
+            "Oral Glucose Tolerance Test (OGTT)|Chemistry|<140 mg/dL at 2hr|120.00",
+            "BUN - Blood Urea Nitrogen|Chemistry|7-20 mg/dL|50.00",
+            "Creatinine, Serum|Chemistry|M:0.7-1.3 F:0.6-1.1 mg/dL|50.00",
+            "eGFR - Estimated Glomerular Filtration Rate|Chemistry|>60 mL/min/1.73m2|50.00",
+            "BUN/Creatinine Ratio|Chemistry|10:1-20:1|40.00",
+            "Uric Acid|Chemistry|M:3.4-7.0 F:2.4-6.0 mg/dL|60.00",
+            "Total Protein, Serum|Chemistry|6.0-8.3 g/dL|50.00",
+            "Albumin, Serum|Chemistry|3.5-5.5 g/dL|50.00",
+            "Globulin|Chemistry|2.0-3.5 g/dL|50.00",
+            "A/G Ratio|Chemistry|1.1-2.2|40.00",
+            "BMP - Basic Metabolic Panel|Chemistry|See components|150.00",
+            "CMP - Comprehensive Metabolic Panel|Chemistry|See components|200.00",
+            "Ammonia Level|Chemistry|15-45 mcg/dL|100.00",
+            "Lactate (Lactic Acid)|Chemistry|0.5-2.2 mmol/L|80.00",
+            "LDH - Lactate Dehydrogenase|Chemistry|140-280 U/L|70.00",
+            "CPK - Creatine Phosphokinase|Chemistry|M:39-308 F:26-192 U/L|80.00",
+            "Amylase|Chemistry|28-100 U/L|80.00",
+            "Lipase|Chemistry|0-160 U/L|80.00",
+
+            // ── CHEMISTRY - LIVER FUNCTION ──
+            "ALT (SGPT)|Liver Function|7-56 U/L|60.00",
+            "AST (SGOT)|Liver Function|10-40 U/L|60.00",
+            "ALP - Alkaline Phosphatase|Liver Function|44-147 U/L|60.00",
+            "GGT - Gamma-Glutamyl Transferase|Liver Function|M:9-48 F:9-36 U/L|60.00",
+            "Total Bilirubin|Liver Function|0.1-1.2 mg/dL|60.00",
+            "Direct Bilirubin|Liver Function|0.0-0.3 mg/dL|60.00",
+            "Indirect Bilirubin|Liver Function|0.1-0.9 mg/dL|50.00",
+            "LFT - Liver Function Panel|Liver Function|See components|150.00",
+            "Prealbumin (Transthyretin)|Liver Function|20-40 mg/dL|100.00",
+            "Alpha-Fetoprotein (Liver)|Liver Function|<10 ng/mL|150.00",
+
+            // ── CHEMISTRY - LIPID PANEL ──
+            "Total Cholesterol|Lipid Panel|<200 mg/dL desirable|60.00",
+            "LDL Cholesterol|Lipid Panel|<100 mg/dL optimal|60.00",
+            "HDL Cholesterol|Lipid Panel|M:>40 F:>50 mg/dL|60.00",
+            "Triglycerides|Lipid Panel|<150 mg/dL|60.00",
+            "VLDL Cholesterol|Lipid Panel|5-40 mg/dL|60.00",
+            "Non-HDL Cholesterol|Lipid Panel|<130 mg/dL|50.00",
+            "Lipid Panel (Complete)|Lipid Panel|See components|120.00",
+            "Apolipoprotein A1|Lipid Panel|M:104-202 F:108-225 mg/dL|150.00",
+            "Apolipoprotein B|Lipid Panel|<90 mg/dL|150.00",
+            "Lipoprotein(a)|Lipid Panel|<30 mg/dL|180.00",
+
+            // ── CHEMISTRY - ELECTROLYTES & MINERALS ──
+            "Sodium (Na)|Electrolytes|136-145 mEq/L|50.00",
+            "Potassium (K)|Electrolytes|3.5-5.0 mEq/L|50.00",
+            "Chloride (Cl)|Electrolytes|98-106 mEq/L|50.00",
+            "CO2 (Bicarbonate)|Electrolytes|22-29 mEq/L|50.00",
+            "Calcium, Total|Electrolytes|8.6-10.2 mg/dL|50.00",
+            "Calcium, Ionized|Electrolytes|4.5-5.6 mg/dL|80.00",
+            "Phosphorus (Phosphate)|Electrolytes|2.5-4.5 mg/dL|50.00",
+            "Magnesium|Electrolytes|1.7-2.2 mg/dL|60.00",
+            "Electrolyte Panel|Electrolytes|See components|100.00",
+            "Anion Gap|Electrolytes|8-12 mEq/L|40.00",
+            "Osmolality, Serum|Electrolytes|275-295 mOsm/kg|80.00",
+            "Zinc, Serum|Electrolytes|60-120 mcg/dL|100.00",
+            "Copper, Serum|Electrolytes|70-140 mcg/dL|100.00",
+            "Ceruloplasmin|Electrolytes|20-60 mg/dL|120.00",
+
+            // ── ENDOCRINOLOGY ──
+            "TSH - Thyroid Stimulating Hormone|Endocrinology|0.27-4.20 mIU/L|100.00",
+            "Free T4 (Thyroxine)|Endocrinology|0.93-1.70 ng/dL|100.00",
+            "Free T3 (Triiodothyronine)|Endocrinology|2.0-4.4 pg/mL|100.00",
+            "Total T4|Endocrinology|4.5-12.0 mcg/dL|80.00",
+            "Total T3|Endocrinology|80-200 ng/dL|80.00",
+            "Thyroglobulin|Endocrinology|<55 ng/mL|150.00",
+            "Anti-Thyroid Peroxidase (Anti-TPO)|Endocrinology|<35 IU/mL|120.00",
+            "Anti-Thyroglobulin Antibody|Endocrinology|<40 IU/mL|120.00",
+            "TSH Receptor Antibody (TRAb)|Endocrinology|<1.75 IU/L|180.00",
+            "HbA1c - Glycated Hemoglobin|Endocrinology|4.0-5.6% normal|100.00",
+            "Fasting Insulin|Endocrinology|2.6-24.9 mIU/L|120.00",
+            "C-Peptide|Endocrinology|1.1-4.4 ng/mL|150.00",
+            "Cortisol, Morning|Endocrinology|6.2-19.4 mcg/dL|120.00",
+            "Cortisol, Evening|Endocrinology|2.3-11.9 mcg/dL|120.00",
+            "ACTH - Adrenocorticotropic Hormone|Endocrinology|7.2-63.3 pg/mL|180.00",
+            "Aldosterone, Serum|Endocrinology|<21 ng/dL upright|180.00",
+            "Renin Activity (PRA)|Endocrinology|0.25-5.82 ng/mL/hr|180.00",
+            "PTH - Parathyroid Hormone|Endocrinology|15-65 pg/mL|150.00",
+            "Growth Hormone (GH)|Endocrinology|M:<5 F:<10 ng/mL|180.00",
+            "IGF-1 (Somatomedin C)|Endocrinology|Age-dependent|180.00",
+            "Prolactin|Endocrinology|M:4-15 F:4-23 ng/mL|120.00",
+            "DHEA-S|Endocrinology|Age/sex-dependent|120.00",
+            "17-Hydroxyprogesterone|Endocrinology|M:27-199 F:15-70 ng/dL|200.00",
+            "Catecholamines, Plasma|Endocrinology|See components|250.00",
+            "Metanephrines, Plasma|Endocrinology|Normetanephrine <0.90 nmol/L|250.00",
+            "Insulin Antibodies|Endocrinology|<0.4 U/mL|200.00",
+
+            // ── IMMUNOLOGY & SEROLOGY ──
+            "CRP - C-Reactive Protein|Immunology|<3.0 mg/L|80.00",
+            "hs-CRP - High Sensitivity CRP|Immunology|<1.0 mg/L low risk|100.00",
+            "RF - Rheumatoid Factor|Immunology|<14 IU/mL|80.00",
+            "Anti-CCP Antibodies|Immunology|<20 U/mL|150.00",
+            "ANA - Antinuclear Antibody|Immunology|Negative (<1:40)|120.00",
+            "Anti-dsDNA Antibodies|Immunology|<30 IU/mL|150.00",
+            "Anti-Smith Antibodies|Immunology|Negative|150.00",
+            "ENA Panel (Extractable Nuclear Antigen)|Immunology|Negative|250.00",
+            "Complement C3|Immunology|90-180 mg/dL|100.00",
+            "Complement C4|Immunology|10-40 mg/dL|100.00",
+            "CH50 - Total Complement|Immunology|31-60 U/mL|120.00",
+            "Immunoglobulin G (IgG)|Immunology|700-1600 mg/dL|100.00",
+            "Immunoglobulin A (IgA)|Immunology|70-400 mg/dL|100.00",
+            "Immunoglobulin M (IgM)|Immunology|40-230 mg/dL|100.00",
+            "Immunoglobulin E (IgE), Total|Immunology|<100 IU/mL|120.00",
+            "ANCA - Anti-Neutrophil Cytoplasmic Ab|Immunology|Negative|200.00",
+            "Anti-Phospholipid Antibodies Panel|Immunology|Negative|250.00",
+            "Cryoglobulins|Immunology|Not detected|200.00",
+            "ASO - Antistreptolysin O|Immunology|<200 IU/mL|80.00",
+            "Beta-2 Microglobulin|Immunology|0.7-1.8 mg/L|150.00",
+            "Serum Protein Electrophoresis (SPEP)|Immunology|See pattern|200.00",
+            "Immunofixation Electrophoresis (IFE)|Immunology|No monoclonal band|250.00",
+
+            // ── MICROBIOLOGY ──
+            "Blood Culture, Aerobic|Microbiology|No growth|150.00",
+            "Blood Culture, Anaerobic|Microbiology|No growth|150.00",
+            "Urine Culture & Sensitivity|Microbiology|<10,000 CFU/mL|120.00",
+            "Wound Culture & Sensitivity|Microbiology|See report|120.00",
+            "Throat Culture|Microbiology|Normal flora|100.00",
+            "Sputum Culture & Sensitivity|Microbiology|See report|120.00",
+            "Stool Culture|Microbiology|No pathogen|120.00",
+            "CSF Culture|Microbiology|No growth|150.00",
+            "Fungal Culture|Microbiology|No growth|150.00",
+            "AFB Culture (Tuberculosis)|Microbiology|No growth|200.00",
+            "AFB Smear (Acid-Fast Bacilli)|Microbiology|Negative|80.00",
+            "Gram Stain|Microbiology|See report|60.00",
+            "KOH Preparation|Microbiology|Negative|50.00",
+            "Chlamydia trachomatis PCR|Microbiology|Not detected|200.00",
+            "Neisseria gonorrhoeae PCR|Microbiology|Not detected|200.00",
+            "H. pylori Antigen, Stool|Microbiology|Negative|120.00",
+            "H. pylori Antibody, Serum|Microbiology|Negative|100.00",
+            "H. pylori Breath Test (Urea)|Microbiology|Negative|150.00",
+            "Clostridium difficile Toxin|Microbiology|Negative|150.00",
+            "MRSA Screen|Microbiology|Not detected|150.00",
+
+            // ── URINALYSIS ──
+            "Urinalysis, Complete|Urinalysis|See components|60.00",
+            "Urine Dipstick|Urinalysis|See components|40.00",
+            "Urine Microscopy|Urinalysis|See report|50.00",
+            "Urine Protein, Random|Urinalysis|<150 mg/day|60.00",
+            "Urine Protein/Creatinine Ratio|Urinalysis|<0.2 mg/mg|80.00",
+            "Urine Albumin/Creatinine Ratio (UACR)|Urinalysis|<30 mg/g|100.00",
+            "24-Hour Urine Protein|Urinalysis|<150 mg/24hr|100.00",
+            "24-Hour Urine Creatinine Clearance|Urinalysis|M:97-137 F:88-128 mL/min|120.00",
+            "Urine Electrolytes (Na, K, Cl)|Urinalysis|See components|100.00",
+            "Urine Calcium, 24-Hour|Urinalysis|100-300 mg/24hr|100.00",
+            "Urine Uric Acid, 24-Hour|Urinalysis|250-750 mg/24hr|100.00",
+            "Urine Osmolality|Urinalysis|300-900 mOsm/kg|80.00",
+            "Urine pH|Urinalysis|4.5-8.0|30.00",
+            "Urine Specific Gravity|Urinalysis|1.005-1.030|30.00",
+            "Urine Drug Screen|Urinalysis|Negative|150.00",
+
+            // ── TOXICOLOGY & DRUG MONITORING ──
+            "Urine Drug Screen Panel|Toxicology|Negative|200.00",
+            "Acetaminophen Level|Toxicology|10-30 mcg/mL therapeutic|100.00",
+            "Salicylate Level|Toxicology|15-30 mg/dL therapeutic|100.00",
+            "Ethanol (Alcohol) Level|Toxicology|0 mg/dL|80.00",
+            "Digoxin Level|Toxicology|0.8-2.0 ng/mL|120.00",
+            "Lithium Level|Toxicology|0.6-1.2 mEq/L|100.00",
+            "Valproic Acid Level|Toxicology|50-100 mcg/mL|120.00",
+            "Phenytoin Level|Toxicology|10-20 mcg/mL|120.00",
+            "Carbamazepine Level|Toxicology|4-12 mcg/mL|120.00",
+            "Theophylline Level|Toxicology|10-20 mcg/mL|120.00",
+            "Vancomycin Trough|Toxicology|15-20 mcg/mL|150.00",
+            "Gentamicin Level|Toxicology|Peak 5-10 mcg/mL|150.00",
+            "Methotrexate Level|Toxicology|See protocol|200.00",
+            "Tacrolimus (FK506) Level|Toxicology|5-15 ng/mL|200.00",
+            "Cyclosporine Level|Toxicology|150-300 ng/mL|200.00",
+            "Lead Level, Blood|Toxicology|<5 mcg/dL|150.00",
+            "Mercury Level, Blood|Toxicology|<10 mcg/L|200.00",
+
+            // ── TUMOR MARKERS ──
+            "PSA - Prostate Specific Antigen|Tumor Markers|<4.0 ng/mL|120.00",
+            "Free PSA / Total PSA Ratio|Tumor Markers|>25% low risk|150.00",
+            "AFP - Alpha-Fetoprotein|Tumor Markers|<10 ng/mL|150.00",
+            "CEA - Carcinoembryonic Antigen|Tumor Markers|<3.0 ng/mL non-smoker|150.00",
+            "CA-125|Tumor Markers|<35 U/mL|150.00",
+            "CA 19-9|Tumor Markers|<37 U/mL|150.00",
+            "CA 15-3|Tumor Markers|<30 U/mL|150.00",
+            "CA 72-4|Tumor Markers|<6.9 U/mL|180.00",
+            "HE4 (Human Epididymis Protein 4)|Tumor Markers|<70 pmol/L premenopause|200.00",
+            "Beta-hCG (Tumor Marker)|Tumor Markers|<5 mIU/mL non-pregnant|120.00",
+            "NSE - Neuron-Specific Enolase|Tumor Markers|<16.3 ng/mL|180.00",
+            "Chromogranin A|Tumor Markers|<93 ng/mL|200.00",
+            "5-HIAA, 24-Hour Urine|Tumor Markers|2-8 mg/24hr|200.00",
+            "Calcitonin|Tumor Markers|M:<8.4 F:<5.0 pg/mL|200.00",
+
+            // ── BLOOD BANK ──
+            "Blood Group & Rh Type|Blood Bank|A/B/AB/O, Rh+/-|50.00",
+            "Antibody Screen (Indirect Coombs)|Blood Bank|Negative|80.00",
+            "Crossmatch|Blood Bank|Compatible|100.00",
+            "Direct Antiglobulin Test (DAT)|Blood Bank|Negative|80.00",
+            "Antibody Identification Panel|Blood Bank|See report|200.00",
+            "Kleihauer-Betke Test|Blood Bank|See report|150.00",
+            "Cold Agglutinins|Blood Bank|<1:64|120.00",
+            "Warm Autoantibodies|Blood Bank|Negative|150.00",
+
+            // ── VITAMINS & NUTRITION ──
+            "Vitamin D, 25-Hydroxy|Vitamins|30-100 ng/mL|120.00",
+            "Vitamin D, 1,25-Dihydroxy|Vitamins|18-72 pg/mL|200.00",
+            "Vitamin B12 (Cobalamin)|Vitamins|200-900 pg/mL|100.00",
+            "Folate (Folic Acid), Serum|Vitamins|>3.0 ng/mL|80.00",
+            "Folate, RBC|Vitamins|>280 ng/mL|120.00",
+            "Iron, Serum|Vitamins|M:60-170 F:40-150 mcg/dL|60.00",
+            "TIBC - Total Iron Binding Capacity|Vitamins|250-400 mcg/dL|60.00",
+            "Transferrin Saturation|Vitamins|20-50%|60.00",
+            "Ferritin|Vitamins|M:12-300 F:12-150 ng/mL|80.00",
+            "Vitamin A (Retinol)|Vitamins|30-65 mcg/dL|150.00",
+            "Vitamin C (Ascorbic Acid)|Vitamins|0.2-2.0 mg/dL|120.00",
+            "Vitamin E (Alpha-Tocopherol)|Vitamins|5.5-17.0 mg/L|150.00",
+            "Vitamin B1 (Thiamine)|Vitamins|70-180 nmol/L|150.00",
+            "Vitamin B6 (Pyridoxine)|Vitamins|5-50 mcg/L|150.00",
+
+            // ── CARDIAC MARKERS ──
+            "Troponin I|Cardiac Markers|<0.04 ng/mL|120.00",
+            "Troponin T, High Sensitivity|Cardiac Markers|<14 ng/L|150.00",
+            "BNP - B-Type Natriuretic Peptide|Cardiac Markers|<100 pg/mL|150.00",
+            "NT-proBNP|Cardiac Markers|<125 pg/mL (<75yr)|180.00",
+            "CK-MB (Creatine Kinase-MB)|Cardiac Markers|<5.0 ng/mL|100.00",
+            "Myoglobin|Cardiac Markers|<90 ng/mL|100.00",
+            "Homocysteine|Cardiac Markers|5-15 umol/L|120.00",
+            "Lipoprotein-Associated Phospholipase A2|Cardiac Markers|<200 ng/mL|200.00",
+
+            // ── ALLERGY (IgE) ──
+            "Total IgE|Allergy|<100 IU/mL adult|100.00",
+            "Specific IgE - Dust Mite|Allergy|<0.35 kU/L|120.00",
+            "Specific IgE - Cat Dander|Allergy|<0.35 kU/L|120.00",
+            "Specific IgE - Dog Dander|Allergy|<0.35 kU/L|120.00",
+            "Specific IgE - Grass Pollen|Allergy|<0.35 kU/L|120.00",
+            "Specific IgE - Tree Pollen|Allergy|<0.35 kU/L|120.00",
+            "Specific IgE - Mold Mix|Allergy|<0.35 kU/L|120.00",
+            "Specific IgE - Milk|Allergy|<0.35 kU/L|120.00",
+            "Specific IgE - Egg White|Allergy|<0.35 kU/L|120.00",
+            "Specific IgE - Peanut|Allergy|<0.35 kU/L|120.00",
+            "Specific IgE - Wheat|Allergy|<0.35 kU/L|120.00",
+            "Specific IgE - Soybean|Allergy|<0.35 kU/L|120.00",
+            "Specific IgE - Fish Mix|Allergy|<0.35 kU/L|120.00",
+            "Specific IgE - Shellfish Mix|Allergy|<0.35 kU/L|120.00",
+            "Specific IgE - Latex|Allergy|<0.35 kU/L|120.00",
+            "Food Allergy Panel (Top 8)|Allergy|See components|400.00",
+            "Inhalant Allergy Panel|Allergy|See components|400.00",
+
+            // ── STOOL ANALYSIS ──
+            "Stool Analysis, Complete|Stool Analysis|See components|80.00",
+            "Stool Occult Blood (FOBT)|Stool Analysis|Negative|50.00",
+            "FIT - Fecal Immunochemical Test|Stool Analysis|Negative|80.00",
+            "Stool Ova & Parasites (O&P)|Stool Analysis|No parasites seen|80.00",
+            "Stool Reducing Substances|Stool Analysis|Negative|60.00",
+            "Fecal Calprotectin|Stool Analysis|<50 mcg/g|200.00",
+            "Fecal Elastase|Stool Analysis|>200 mcg/g normal|180.00",
+            "Stool Fat (Sudan Stain)|Stool Analysis|Negative|60.00",
+            "Fecal Fat, Quantitative (72-hr)|Stool Analysis|<7 g/24hr|200.00",
+            "Stool Lactoferrin|Stool Analysis|Negative|150.00",
+
+            // ── GENETICS & MOLECULAR ──
+            "COVID-19 PCR (SARS-CoV-2)|Molecular|Not detected|200.00",
+            "COVID-19 Rapid Antigen|Molecular|Negative|100.00",
+            "COVID-19 Antibody (IgG)|Molecular|See interpretation|150.00",
+            "Influenza A/B PCR|Molecular|Not detected|200.00",
+            "RSV PCR|Molecular|Not detected|200.00",
+            "Respiratory Pathogen Panel (RPP)|Molecular|See components|500.00",
+            "TB QuantiFERON (IGRA)|Molecular|Negative|250.00",
+            "TB Skin Test (PPD) Interpretation|Molecular|<5mm negative|50.00",
+            "Hepatitis B PCR (HBV DNA)|Molecular|Not detected|300.00",
+            "Hepatitis C PCR (HCV RNA)|Molecular|Not detected|300.00",
+            "Hepatitis C Genotype|Molecular|See report|400.00",
+            "HIV-1 RNA Viral Load|Molecular|Not detected|350.00",
+            "CMV PCR (Cytomegalovirus)|Molecular|Not detected|250.00",
+            "EBV PCR (Epstein-Barr Virus)|Molecular|Not detected|250.00",
+            "HPV DNA Test|Molecular|Not detected|200.00",
+            "BRCA1/BRCA2 Mutation Analysis|Molecular|No pathogenic variant|2000.00",
+            "Karyotype Analysis|Molecular|46,XX or 46,XY|500.00",
+            "Cystic Fibrosis Mutation Panel|Molecular|No mutations detected|400.00",
+
+            // ── CSF & BODY FLUIDS ──
+            "CSF Analysis (Cell Count, Protein, Glucose)|Body Fluids|See components|200.00",
+            "CSF Protein|Body Fluids|15-45 mg/dL|80.00",
+            "CSF Glucose|Body Fluids|40-70 mg/dL|60.00",
+            "CSF Cell Count & Differential|Body Fluids|0-5 WBC/uL|80.00",
+            "CSF Gram Stain|Body Fluids|No organisms|50.00",
+            "CSF Oligoclonal Bands|Body Fluids|Not detected|250.00",
+            "Pleural Fluid Analysis|Body Fluids|See components|200.00",
+            "Synovial Fluid Analysis|Body Fluids|See components|200.00",
+            "Ascitic Fluid Analysis|Body Fluids|See components|200.00",
+            "Pericardial Fluid Analysis|Body Fluids|See components|200.00",
+            "SAAG (Serum-Ascites Albumin Gradient)|Body Fluids|>1.1 g/dL portal HTN|80.00",
+
+            // ── REPRODUCTIVE HORMONES ──
+            "Estradiol (E2)|Reproductive Hormones|Phase-dependent|120.00",
+            "Progesterone|Reproductive Hormones|Phase-dependent|120.00",
+            "Testosterone, Total|Reproductive Hormones|M:264-916 ng/dL|120.00",
+            "Testosterone, Free|Reproductive Hormones|M:8.7-25.1 pg/mL|150.00",
+            "FSH - Follicle Stimulating Hormone|Reproductive Hormones|Phase/sex-dependent|120.00",
+            "LH - Luteinizing Hormone|Reproductive Hormones|Phase/sex-dependent|120.00",
+            "AMH - Anti-Mullerian Hormone|Reproductive Hormones|Age-dependent|200.00",
+            "Beta-hCG (Pregnancy)|Reproductive Hormones|<5 mIU/mL non-pregnant|100.00",
+            "Progesterone, 21-Day|Reproductive Hormones|>10 ng/mL ovulation|120.00",
+            "SHBG - Sex Hormone Binding Globulin|Reproductive Hormones|M:10-57 F:18-114 nmol/L|150.00",
+            "Estriol, Unconjugated (uE3)|Reproductive Hormones|Gestational age-dependent|150.00",
+            "Inhibin B|Reproductive Hormones|Age/sex-dependent|200.00",
+            "Androstenedione|Reproductive Hormones|0.4-3.4 ng/mL|150.00",
+
+            // ── INFECTIOUS DISEASE SEROLOGY ──
+            "HBsAg - Hepatitis B Surface Antigen|Infectious Disease|Negative|80.00",
+            "HBsAb - Hepatitis B Surface Antibody|Infectious Disease|>10 mIU/mL immune|80.00",
+            "HBcAb - Hepatitis B Core Antibody|Infectious Disease|Negative|80.00",
+            "HBeAg - Hepatitis B e Antigen|Infectious Disease|Negative|100.00",
+            "HCV Ab - Hepatitis C Antibody|Infectious Disease|Negative|80.00",
+            "HIV 1/2 Ag/Ab Combo (4th Gen)|Infectious Disease|Non-reactive|100.00",
+            "RPR/VDRL (Syphilis Screen)|Infectious Disease|Non-reactive|60.00",
+            "FTA-ABS (Syphilis Confirmatory)|Infectious Disease|Non-reactive|100.00",
+            "Rubella IgG|Infectious Disease|>10 IU/mL immune|80.00",
+            "Rubella IgM|Infectious Disease|Negative|80.00",
+            "CMV IgG|Infectious Disease|See interpretation|80.00",
+            "CMV IgM|Infectious Disease|Negative|80.00",
+            "Toxoplasma IgG|Infectious Disease|See interpretation|80.00",
+            "Toxoplasma IgM|Infectious Disease|Negative|80.00",
+            "EBV Panel (VCA IgG, IgM, EBNA)|Infectious Disease|See interpretation|200.00",
+            "Brucella Agglutination Test|Infectious Disease|<1:80|80.00",
+            "Widal Test (Typhoid)|Infectious Disease|<1:80|60.00",
+            "Dengue NS1 Antigen|Infectious Disease|Negative|120.00",
+            "Dengue IgG/IgM|Infectious Disease|Negative|120.00",
+            "Malaria Smear (Thick & Thin)|Infectious Disease|No parasites seen|80.00",
+            "Malaria Rapid Test|Infectious Disease|Negative|80.00",
+            "Mono Spot Test (Heterophile Ab)|Infectious Disease|Negative|60.00",
+            "Varicella-Zoster IgG|Infectious Disease|See interpretation|80.00",
+            "Measles IgG|Infectious Disease|See interpretation|80.00",
+            "Mumps IgG|Infectious Disease|See interpretation|80.00",
+
+            // ── AUTOIMMUNE MARKERS ──
+            "Anti-Tissue Transglutaminase (tTG) IgA|Autoimmune|<20 U/mL|150.00",
+            "Anti-Endomysial Antibodies (EMA)|Autoimmune|Negative|200.00",
+            "Anti-Gliadin Antibodies (IgA/IgG)|Autoimmune|<20 U/mL|150.00",
+            "Anti-GBM Antibodies|Autoimmune|<20 U/mL|200.00",
+            "Anti-Smooth Muscle Antibodies (ASMA)|Autoimmune|<1:40|150.00",
+            "Anti-Mitochondrial Antibodies (AMA)|Autoimmune|Negative|150.00",
+            "Anti-LKM1 Antibodies|Autoimmune|Negative|200.00",
+            "Anti-Saccharomyces cerevisiae Ab (ASCA)|Autoimmune|Negative|200.00",
+            "HLA-B27|Autoimmune|Negative/Positive|200.00",
+            "Anti-Jo-1 Antibodies|Autoimmune|Negative|150.00",
+            "Anti-Scl-70 Antibodies|Autoimmune|Negative|150.00",
+            "Anti-Centromere Antibodies|Autoimmune|Negative|150.00",
+
+            // ── ARTERIAL BLOOD GAS ──
+            "ABG - Arterial Blood Gas|Blood Gas|See components|100.00",
+            "pH, Arterial|Blood Gas|7.35-7.45|50.00",
+            "pCO2, Arterial|Blood Gas|35-45 mmHg|50.00",
+            "pO2, Arterial|Blood Gas|80-100 mmHg|50.00",
+            "HCO3 (Bicarbonate), Arterial|Blood Gas|22-26 mEq/L|50.00",
+            "Base Excess|Blood Gas|-2 to +2 mEq/L|40.00",
+            "O2 Saturation, Arterial|Blood Gas|95-100%|40.00",
+            "VBG - Venous Blood Gas|Blood Gas|See components|80.00",
+            "Carboxyhemoglobin|Blood Gas|<3% non-smoker|100.00",
+            "Methemoglobin|Blood Gas|<1.5%|100.00"};
+
+        for (const QString &lt : labTests) {
+          QStringList parts = lt.split("|");
+          if (parts.size() == 4) {
+            QString testName = parts[0].trimmed().replace("'", "''");
+            QString category = parts[1].trimmed().replace("'", "''");
+            QString normalRange = parts[2].trimmed().replace("'", "''");
+            float price = parts[3].trimmed().toFloat();
+            exec(QString("INSERT INTO lab_tests_catalog (test_name, category, "
+                         "normal_range, price) VALUES (N'%1', N'%2', N'%3', %4)")
+                     .arg(testName, category, normalRange)
+                     .arg(price));
+          }
+        }
+      }
+    }
 
     createTable("lab_results",
                 QString("id %1, order_id INT, test_id INT, result_value %2, "
@@ -713,43 +1157,105 @@ private:
                    .arg(price));
         }
       }
-    }
+      // Inject Nahdi Online Real-World Scraped English Drugs
+      // First, purge the previously inserted Arabic drugs to meet user request
+      exec("DELETE FROM drugs WHERE category = N'مسكنات الألم والحمى'");
 
-    // Inject Nahdi Online Real-World Scraped Saudi Drugs (Checks existence
-    // first)
-    QStringList nahdiDrugs = {
-        "بانادول اكسترا 24 قرص|مسكنات الألم والحمى|8.00",
-        "بانادول أدفانس باراسيتامول 500 مجم 24 قرص|مسكنات الألم والحمى|6.05",
-        "أدول باراسيتامول 500 مجم – 24 كبسولة|مسكنات الألم والحمى|5.05",
-        "بانادول نايت 20 قرص|مسكنات الألم والحمى|11.60",
-        "سولبادين فوار 20 قرص|مسكنات الألم والحمى|13.15",
-        "فيفادول 500 مجم 30 قرص|مسكنات الألم والحمى|6.30",
-        "كتافاست 50 مجم 9 اكياس|مسكنات الألم والحمى|18.00",
-        "فيفادول بلص 20 قرص|مسكنات الألم والحمى|9.65",
-        "رابيدوس 50 مجم 20 قرص|مسكنات الألم والحمى|29.10",
-        "بانادول اكتيفاست 500 مجم 20 قرص|مسكنات الألم والحمى|9.15",
-        "بانادريكس باراسيتامول 500 مجم – 48 قرص|مسكنات الألم والحمى|9.40",
-        "بروفين 400مجم 30 قرص|مسكنات الألم والحمى|13.60",
-        "سالون باس لصقة للالام صغير 20 حبة|مسكنات الألم والحمى|13.00",
-        "بانادول مايجرين 24 قرص|مسكنات الألم والحمى|38.94",
-        "روفيناك - د 50 مجم 20 قرص|مسكنات الألم والحمى|29.55",
-        "بروفين 600مجم 30قرص|مسكنات الألم والحمى|19.55",
-        "ادول اكسترا 24 قرص|مسكنات الألم والحمى|6.40",
-        "سولبادين كبسول 20 كبسولة|مسكنات الألم والحمى|13.15",
-        "فيفادول اكسترا 20 قرص|مسكنات الألم والحمى|5.80",
-        "فولتارين 100 مجم 5تحاميل|مسكنات الألم والحمى|18.20"};
-    for (const QString &nd : nahdiDrugs) {
-      QStringList parts = nd.split("|");
-      if (parts.size() == 3) {
-        QString nameStr = QString(parts[0]).replace("'", "''");
-        QSqlQuery check =
-            exec(QString("SELECT id FROM drugs WHERE name=N'%1'").arg(nameStr));
-        if (!check.next()) {
-          exec(QString("INSERT INTO drugs (name, category, price) VALUES "
-                       "(N'%1', N'%2', %3)")
-                   .arg(nameStr)
-                   .arg(QString(parts[1]).replace("'", "''"))
-                   .arg(parts[2].toFloat()));
+      QStringList nahdiEnglishDrugs = {
+          // Pain Killers
+          "Panadol Extra Tablet 24 pcs|Pain Relief|8.00",
+          "Panadol Night 20 Caplets|Pain Relief|11.60",
+          "Panadol Advance 24 Tablets|Pain Relief|6.05",
+          "Solpadeine Soluble Tablet 20pcs|Pain Relief|13.15",
+          "Panadol Actifast 20 Tablets|Pain Relief|9.15",
+          "Adol Paracetamol 500 mg – 24 Caplets|Pain Relief|5.05",
+          "Salonpas Patches small 20 Pcs|Pain Relief|13.00",
+          "Catafast 50 mg Sachet 9pcs|Pain Relief|18.00",
+          "Solpadeine Capsule 20pcs|Pain Relief|13.15",
+          "Brufen 400 mg Tablet 30 pcs|Pain Relief|13.60",
+          "Fevadol-Extra Tablet 20pcs|Pain Relief|5.80",
+          "Voltaren Emulgel 1% 100 gm|Pain Relief|26.00",
+          "Fevadol-Plus Tablet 20pcs|Pain Relief|9.65",
+          "Panadol Extend 24 Tablets|Pain Relief|15.75",
+          "Rapidus 50 mg Tablet 20pcs|Pain Relief|29.10",
+          "Adol-Extra Caplet 24pcs|Pain Relief|6.40",
+          "Ponstan-Forte 500 mg Tablet 20 pcs|Pain Relief|15.30",
+          "Panadol Night Tabs 24S|Pain Relief|30.43",
+          "Fevadol 500mg 30 Tablet|Pain Relief|6.30",
+          "Brufen 600 mg Tablet 30pcs|Pain Relief|19.55",
+          "Rofenac-D 50 mg Dispersable Tablet 20pcs|Pain Relief|29.55",
+          "Divido Combo 75mg/20mg Caps|Pain Relief|101.10",
+          "Panadol 24 Tablets|Pain Relief|5.80",
+          "Procto Glyvenol Cream 30 gm|Pain Relief|35.45",
+          "Salonpas Patches Large 2 Pcs|Pain Relief|11.00",
+          "Voltaren 100mg Suppository 5pcs|Pain Relief|18.20",
+          "Divido 75 mg Capsule 20pcs|Pain Relief|30.65",
+          "Fast Flam 50 mg Tablet 20 pcs|Pain Relief|26.95",
+          "Salonpas Pain Relieving Hot Patch|Pain Relief|32.26",
+          "Rofenac 50 mg Tablet 20pcs|Pain Relief|19.80",
+          "Roxonin 60 mg Tablet 20pcs|Pain Relief|30.40",
+          "Reparil 20 mg Tablet 40pcs|Pain Relief|20.60",
+          "Panadrex Paracetamol 500 mg – 48 Tablets|Pain Relief|9.40",
+          "Advil Liquid Caps 200Mg 32S|Pain Relief|27.38",
+          "Voltaren-Retard 100 mg Tablet 10pcs|Pain Relief|27.30",
+          "Disprin 81 mg Tablet 100pcs|Pain Relief|25.00",
+          "Emifenac 50 mg Tablet 20pcs|Pain Relief|23.35",
+          "Voltaren 50 mg Suppository 10pcs|Pain Relief|19.90",
+          "Sapofen 600 mg Tablet 30pcs|Pain Relief|17.40",
+          "Sapofen 400 Mg Tablet 30 Pcs|Pain Relief|13.60",
+          "Nahdi Feel Flex Cream 100 Ml|Pain Relief|45.75",
+          "Relaxon Capsule 30pcs|Pain Relief|27.75",
+          "Arnican Gel 100g|Pain Relief|109.25",
+          "Krauterhof Sport Gel Hot 150ml|Pain Relief|99.19",
+          "Celadrin Joint Care Cream 100ml|Pain Relief|109.25",
+
+          // Cough, Cold & Flu
+          "Panadol Cold & Flu Night Time 24 Caplets|Cough & Cold|12.30",
+          "Panadol Cold & Flu Sinus 24 Caplets|Cough & Cold|13.60",
+          "Prof Cold & Flu Caplet 20 P|Cough & Cold|12.45",
+          "Flutab Tablet 30 Pcs|Cough & Cold|14.85",
+          "Fludrex Tablet 24pcs|Cough & Cold|12.30",
+          "Flutab-Sinus Tablet 20 P|Cough & Cold|9.25",
+          "Panadol Cold & Flu All In One 24S|Cough & Cold|26.77",
+
+          // Digestive Care
+          "Beatswell Probiotic - 60 Capsules|Digestive Care|29.25",
+          "Bio Gaia, Protectis Baby Drops, 5 Ml|Digestive Care|63.74",
+          "Probulin Total Care Probiotic 20 Billion 30 Capsules|Digestive "
+          "Care|108.74",
+          "Dr. Formulated Probiotics Mood + 50 Billion 60 Capsules|Digestive "
+          "Care|166.57",
+          "Ezora 40 mg esomeprazole Capsules × 28|Digestive Care|65.65",
+
+          // Multivitamins
+          "Beatswell Multivitamins (50+) - 30 Capsules|Vitamins & "
+          "Supplements|24.75",
+          "Beatswell Multivitamin For Adults - 60 Gummies|Vitamins & "
+          "Supplements|48.88",
+          "Beatswell Kids Multivitamins 60 Strawberry Gummies|Vitamins & "
+          "Supplements|37.38",
+          "Beatswell Multivitamin Energy - 20 Effervescent Tablets|Vitamins & "
+          "Supplements|24.90",
+          "Sanotact Multivitamin 20 Orange Effervescent Tablets|Vitamins & "
+          "Supplements|24.90",
+          "Wellbeing Nutrition melts - Multivitamins - 30 Oral Strip|Vitamins "
+          "& Supplements|20.00",
+          "Solaray Active Man Multivitamin 1 Daily 90 Capsules|Vitamins & "
+          "Supplements|56.96",
+          "H&B Multivitamin - 30 Gummies|Vitamins & Supplements|86.00"};
+      for (const QString &nd : nahdiEnglishDrugs) {
+        QStringList parts = nd.split("|");
+        if (parts.size() == 3) {
+          QString nameStr = QString(parts[0]).replace("'", "''");
+          QSqlQuery check = exec(
+              QString("SELECT id FROM drugs WHERE name=N'%1'").arg(nameStr));
+          if (!check.next()) {
+            exec(QString("INSERT INTO drugs (name, category, price) VALUES "
+                         "(N'%1', N'%2', %3)")
+                     .arg(nameStr)
+                     .arg(QString(parts[1]).replace("'", "''"))
+                     .arg(parts[2].toFloat()));
+          }
         }
       }
     }

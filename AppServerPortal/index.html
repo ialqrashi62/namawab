@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APP SERVER | خادم التطبيقات</title>
+    
+    <!-- Google Fonts: Tajawal & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <!-- Background Design Elements -->
+    <div class="bg-shape bg-shape-1"></div>
+    <div class="bg-shape bg-shape-2"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="logo-area">
+                <div class="logo-icon"><i class="ri-hospital-line"></i></div>
+                <div>
+                    <h1>APP SERVER</h1>
+                    <span>بوابة خادم التطبيقات المركزية</span>
+                </div>
+            </div>
+            
+            <div class="search-area">
+                <div class="search-box">
+                    <i class="ri-search-line"></i>
+                    <input type="text" id="searchInput" placeholder="ابحث عن خدمة، نظام، أو قسم...">
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div class="time-display" id="timeDisplay"></div>
+            </div>
+        </header>
+
+        <!-- Main Content Layout -->
+        <div class="content-layout">
+            
+            <!-- Sidebar / Categories -->
+            <aside class="categories-sidebar">
+                <nav id="categoryNav">
+                    <button class="cat-btn active" data-cat="all">
+                        <i class="ri-function-line"></i> جميع الخدمات
+                    </button>
+                    <button class="cat-btn" data-cat="clinical">
+                        <i class="ri-stethoscope-line"></i> الخدمات الطبية
+                    </button>
+                    <button class="cat-btn" data-cat="hr">
+                        <i class="ri-team-line"></i> الموارد البشرية
+                    </button>
+                    <button class="cat-btn" data-cat="quality">
+                        <i class="ri-shield-check-line"></i> الجودة والسلامة
+                    </button>
+                    <button class="cat-btn" data-cat="radiology">
+                        <i class="ri-x-ray-line"></i> أنظمة الأشعة (PACS)
+                    </button>
+                    <button class="cat-btn" data-cat="moh">
+                        <i class="ri-government-line"></i> بوابات الوزارة
+                    </button>
+                    <button class="cat-btn" data-cat="it">
+                        <i class="ri-computer-line"></i> تقنية المعلومات
+                    </button>
+                    <button class="cat-btn" data-cat="admin">
+                        <i class="ri-folder-open-line"></i> الإدارة العامة
+                    </button>
+                </nav>
+            </aside>
+
+            <!-- Cards Grid -->
+            <main class="services-main">
+                <div class="grid-header">
+                    <h2 id="currentCategoryTitle">جميع الخدمات</h2>
+                    <span id="serviceCount">41 خدمة</span>
+                </div>
+                
+                <div class="services-grid" id="servicesGrid">
+                    <!-- Cards will be populated dynamically by JS -->
+                </div>
+            </main>
+
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+iCare ic100 Export
+Patient: 12345
+Date: 2024-05-10
+Right: 14.5
+Left: 16.0
