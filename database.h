@@ -17,23 +17,30 @@ public:
     return db;
   }
 
-  bool init(const QString & /*sqlitePath*/) {
+  bool init(const QString & sqlitePath) {
     if (!connectSqlServer()) {
-      QMessageBox::critical(
-          nullptr, "Database Error",
-          "Failed to connect to SQL Server!\n\n"
-          "Please check config.ini settings.\n\n" +
-              m_debugLog);
-      return false;
+      qWarning() << "SQL Server failed. Falling back to SQLite:" << sqlitePath;
+      m_db = QSqlDatabase::addDatabase("QSQLITE");
+      m_db.setDatabaseName(sqlitePath);
+      if (!m_db.open()) {
+        QMessageBox::critical(
+            nullptr, "Database Error",
+            "Failed to connect to both SQL Server and SQLite!\n\n"
+            "SQL Server Error:\n" + m_debugLog + "\n\n"
+            "SQLite Error:\n" + m_db.lastError().text());
+        return false;
+      }
+      m_usingSqlServer = false;
+    } else {
+      m_usingSqlServer = true;
     }
-    m_usingSqlServer = true;
     createTables();
     insertSampleData();
     return true;
   }
 
-  bool isSqlServer() const { return true; }
-  QString dbType() const { return "SQL Server"; }
+  bool isSqlServer() const { return m_usingSqlServer; }
+  QString dbType() const { return m_usingSqlServer ? "SQL Server" : "SQLite"; }
 
   QSqlQuery exec(const QString &sql) {
     QSqlQuery q(m_db);

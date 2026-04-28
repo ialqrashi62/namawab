@@ -70,25 +70,27 @@ const servicesData = [
 
     // ═══════════════════════════════════════════
     // نظام نما الطبي ERP - الأقسام الرئيسية
+    // Page indices: 0=Dashboard, 1=Reception, 2=Appointments, 3=Doctor, 4=Lab, 5=Radiology, 6=Pharmacy, 7=HR, 8=Finance, 9=Insurance, 10=Inventory, 11=Nursing, 12=Queue, 13=PatientAccounts, 14=Reports, 15=Messaging, 16=Catalog, 17=DeptRequests, 18=Surgery, 19=BloodBank, 20=ConsentForms, 21=Emergency, 22=Inpatient, 23=ICU, 24=CSSD, 25=Dietary, 26=InfectionControl, 27=Quality, 28=Maintenance, 29=Transport, 30=MedicalRecords, 31=ClinicalPharmacy, 32=Rehab, 33=PatientPortal, 34=ZATCA, 35=Telemedicine, 36=Pathology, 37=SocialWork, 38=Mortuary, 39=CME, 40=Cosmetic, 41=OBGYN, 42=Settings, 43=Consultation, 44=Referral, 45=NPHIES, 46=Waseel, 47=Wasfaty, 48=Yaqeen, 49=Mawid, 50=Sehhaty, 51=CBAHI, 52=BedMgmt, 53=Analytics, 54=ORSchedule, 55=Roles, 56=AuditTrail, 57=Branches
     // ═══════════════════════════════════════════
-    { id: 100, titleEn: 'Nama Medical ERP', titleAr: 'نما الطبي - الدخول', descAr: 'تسجيل الدخول للنظام الطبي الشامل', category: 'erp', icon: 'ri-login-box-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 101, titleEn: 'Dashboard', titleAr: 'لوحة التحكم', descAr: 'نظرة عامة على أداء المستشفى والإحصائيات', category: 'erp', icon: 'ri-dashboard-3-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 102, titleEn: 'Patients', titleAr: 'المرضى', descAr: 'إدارة سجلات وملفات المرضى', category: 'erp', icon: 'ri-user-heart-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 103, titleEn: 'Appointments', titleAr: 'المواعيد', descAr: 'جدولة وإدارة مواعيد المرضى', category: 'erp', icon: 'ri-calendar-2-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 104, titleEn: 'Pharmacy', titleAr: 'الصيدلية', descAr: 'إدارة الأدوية والوصفات والمخزون', category: 'erp', icon: 'ri-capsule-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 105, titleEn: 'Laboratory', titleAr: 'المختبر', descAr: 'طلبات الفحوصات المخبرية والنتائج', category: 'erp', icon: 'ri-flask-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 106, titleEn: 'Radiology', titleAr: 'الأشعة', descAr: 'طلبات وتقارير الأشعة التشخيصية', category: 'erp', icon: 'ri-body-scan-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 107, titleEn: 'Billing & Finance', titleAr: 'المالية والفوترة', descAr: 'الفواتير والمدفوعات والتقارير المالية', category: 'erp', icon: 'ri-money-dollar-circle-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 108, titleEn: 'Emergency', titleAr: 'الطوارئ', descAr: 'إدارة قسم الطوارئ والحالات العاجلة', category: 'erp', icon: 'ri-first-aid-kit-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 109, titleEn: 'Nursing', titleAr: 'التمريض', descAr: 'خطط الرعاية التمريضية ومتابعة المرضى', category: 'erp', icon: 'ri-nurse-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 110, titleEn: 'Surgery & OR', titleAr: 'العمليات والجراحة', descAr: 'جدولة العمليات وإدارة غرف العمليات', category: 'erp', icon: 'ri-surgical-mask-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 111, titleEn: 'Wards & Beds', titleAr: 'الأجنحة والأسرّة', descAr: 'إدارة الأجنحة وحجوزات الأسرّة', category: 'erp', icon: 'ri-hotel-bed-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 112, titleEn: 'ZATCA E-Invoice', titleAr: 'الفوترة الإلكترونية', descAr: 'نظام الفوترة الإلكترونية (زاتكا)', category: 'erp', icon: 'ri-file-text-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 113, titleEn: 'Blood Bank', titleAr: 'بنك الدم', descAr: 'إدارة مخزون الدم والتبرعات', category: 'erp', icon: 'ri-drop-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 114, titleEn: 'ICU', titleAr: 'العناية المركزة', descAr: 'مراقبة وإدارة وحدة العناية المركزة', category: 'erp', icon: 'ri-heart-pulse-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 115, titleEn: 'Telemedicine', titleAr: 'الطب عن بعد', descAr: 'الاستشارات الطبية المرئية عن بعد', category: 'erp', icon: 'ri-video-chat-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 116, titleEn: 'Reports & Analytics', titleAr: 'التقارير والتحليلات', descAr: 'تقارير الأداء والإحصائيات الشاملة', category: 'erp', icon: 'ri-bar-chart-box-line', url: 'http://46.224.178.153/login.html', status: 'active' },
-    { id: 117, titleEn: 'Admin Panel', titleAr: 'لوحة الإدارة', descAr: 'إعدادات النظام وإدارة المستخدمين', category: 'erp', icon: 'ri-settings-3-line', url: 'http://46.224.178.153/admin.html', status: 'active' },
+    { id: 100, titleEn: 'Nama Medical ERP', titleAr: 'نما الطبي - الدخول', descAr: 'تسجيل الدخول للنظام الطبي الشامل', category: 'erp', icon: 'ri-login-box-line', url: 'http://46.224.178.153/erp.html#page=0', status: 'active' },
+    { id: 101, titleEn: 'Dashboard', titleAr: 'لوحة التحكم', descAr: 'نظرة عامة على أداء المستشفى والإحصائيات', category: 'erp', icon: 'ri-dashboard-3-line', url: 'http://46.224.178.153/erp.html#page=0', status: 'active' },
+    { id: 102, titleEn: 'Reception', titleAr: 'الاستقبال', descAr: 'تسجيل وإدارة سجلات المرضى الجدد', category: 'erp', icon: 'ri-user-heart-line', url: 'http://46.224.178.153/erp.html#page=1', status: 'active' },
+    { id: 103, titleEn: 'Appointments', titleAr: 'المواعيد', descAr: 'جدولة وإدارة مواعيد المرضى', category: 'erp', icon: 'ri-calendar-2-line', url: 'http://46.224.178.153/erp.html#page=2', status: 'active' },
+    { id: 104, titleEn: 'Doctor Station', titleAr: 'محطة الطبيب', descAr: 'الكشف والتشخيص وإدارة ملفات المرضى', category: 'erp', icon: 'ri-stethoscope-line', url: 'http://46.224.178.153/erp.html#page=3', status: 'active' },
+    { id: 105, titleEn: 'Laboratory', titleAr: 'المختبر', descAr: 'طلبات الفحوصات المخبرية والنتائج', category: 'erp', icon: 'ri-flask-line', url: 'http://46.224.178.153/erp.html#page=4', status: 'active' },
+    { id: 106, titleEn: 'Radiology', titleAr: 'الأشعة', descAr: 'طلبات وتقارير الأشعة التشخيصية', category: 'erp', icon: 'ri-body-scan-line', url: 'http://46.224.178.153/erp.html#page=5', status: 'active' },
+    { id: 107, titleEn: 'Pharmacy', titleAr: 'الصيدلية', descAr: 'إدارة الأدوية والوصفات والمخزون', category: 'erp', icon: 'ri-capsule-line', url: 'http://46.224.178.153/erp.html#page=6', status: 'active' },
+    { id: 108, titleEn: 'Finance', titleAr: 'المالية والفوترة', descAr: 'الفواتير والمدفوعات والتقارير المالية', category: 'erp', icon: 'ri-money-dollar-circle-line', url: 'http://46.224.178.153/erp.html#page=8', status: 'active' },
+    { id: 109, titleEn: 'Emergency', titleAr: 'الطوارئ', descAr: 'إدارة قسم الطوارئ والحالات العاجلة', category: 'erp', icon: 'ri-first-aid-kit-line', url: 'http://46.224.178.153/erp.html#page=21', status: 'active' },
+    { id: 110, titleEn: 'Nursing', titleAr: 'التمريض', descAr: 'خطط الرعاية التمريضية ومتابعة المرضى', category: 'erp', icon: 'ri-nurse-line', url: 'http://46.224.178.153/erp.html#page=11', status: 'active' },
+    { id: 111, titleEn: 'Surgery & OR', titleAr: 'العمليات والجراحة', descAr: 'جدولة العمليات وإدارة غرف العمليات', category: 'erp', icon: 'ri-surgical-mask-line', url: 'http://46.224.178.153/erp.html#page=18', status: 'active' },
+    { id: 112, titleEn: 'Bed Management', titleAr: 'إدارة الأسرّة', descAr: 'إدارة الأجنحة وحجوزات الأسرّة', category: 'erp', icon: 'ri-hotel-bed-line', url: 'http://46.224.178.153/erp.html#page=52', status: 'active' },
+    { id: 113, titleEn: 'ZATCA E-Invoice', titleAr: 'الفوترة الإلكترونية', descAr: 'نظام الفوترة الإلكترونية (زاتكا)', category: 'erp', icon: 'ri-file-text-line', url: 'http://46.224.178.153/erp.html#page=34', status: 'active' },
+    { id: 114, titleEn: 'Blood Bank', titleAr: 'بنك الدم', descAr: 'إدارة مخزون الدم والتبرعات', category: 'erp', icon: 'ri-drop-line', url: 'http://46.224.178.153/erp.html#page=19', status: 'active' },
+    { id: 115, titleEn: 'ICU', titleAr: 'العناية المركزة', descAr: 'مراقبة وإدارة وحدة العناية المركزة', category: 'erp', icon: 'ri-heart-pulse-line', url: 'http://46.224.178.153/erp.html#page=23', status: 'active' },
+    { id: 116, titleEn: 'Telemedicine', titleAr: 'الطب عن بعد', descAr: 'الاستشارات الطبية المرئية عن بعد', category: 'erp', icon: 'ri-video-chat-line', url: 'http://46.224.178.153/erp.html#page=35', status: 'active' },
+    { id: 117, titleEn: 'Reports & Analytics', titleAr: 'التقارير والتحليلات', descAr: 'تقارير الأداء والإحصائيات الشاملة', category: 'erp', icon: 'ri-bar-chart-box-line', url: 'http://46.224.178.153/erp.html#page=14', status: 'active' },
+    { id: 118, titleEn: 'Settings', titleAr: 'الإعدادات', descAr: 'إعدادات النظام وإدارة المستخدمين', category: 'erp', icon: 'ri-settings-3-line', url: 'http://46.224.178.153/erp.html#page=42', status: 'active' },
 ];
 
 // Category metadata
