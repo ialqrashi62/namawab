@@ -69,10 +69,10 @@ const servicesData = [
     { id: 41, titleEn: 'OASIS+', titleAr: 'أوسيس+', descAr: 'نظام إدارة المستشفيات الشامل', category: 'admin', icon: 'ri-hospital-line', url: 'http://46.224.178.153/login.html', status: 'active' },
 
     // ═══════════════════════════════════════════
-    // نظام نما الطبي ERP - الأقسام الرئيسية
+    // نظام APP SERVER ERP - الأقسام الرئيسية
     // Page indices: 0=Dashboard, 1=Reception, 2=Appointments, 3=Doctor, 4=Lab, 5=Radiology, 6=Pharmacy, 7=HR, 8=Finance, 9=Insurance, 10=Inventory, 11=Nursing, 12=Queue, 13=PatientAccounts, 14=Reports, 15=Messaging, 16=Catalog, 17=DeptRequests, 18=Surgery, 19=BloodBank, 20=ConsentForms, 21=Emergency, 22=Inpatient, 23=ICU, 24=CSSD, 25=Dietary, 26=InfectionControl, 27=Quality, 28=Maintenance, 29=Transport, 30=MedicalRecords, 31=ClinicalPharmacy, 32=Rehab, 33=PatientPortal, 34=ZATCA, 35=Telemedicine, 36=Pathology, 37=SocialWork, 38=Mortuary, 39=CME, 40=Cosmetic, 41=OBGYN, 42=Settings, 43=Consultation, 44=Referral, 45=NPHIES, 46=Waseel, 47=Wasfaty, 48=Yaqeen, 49=Mawid, 50=Sehhaty, 51=CBAHI, 52=BedMgmt, 53=Analytics, 54=ORSchedule, 55=Roles, 56=AuditTrail, 57=Branches
     // ═══════════════════════════════════════════
-    { id: 100, titleEn: 'Nama Medical ERP', titleAr: 'نما الطبي - الدخول', descAr: 'تسجيل الدخول للنظام الطبي الشامل', category: 'erp', icon: 'ri-login-box-line', url: 'http://46.224.178.153/erp.html#page=0', status: 'active' },
+    { id: 100, titleEn: 'APP SERVER ERP', titleAr: 'APP SERVER - الدخول', descAr: 'تسجيل الدخول للنظام الطبي الشامل', category: 'erp', icon: 'ri-login-box-line', url: 'http://46.224.178.153/erp.html#page=0', status: 'active' },
     { id: 101, titleEn: 'Dashboard', titleAr: 'لوحة التحكم', descAr: 'نظرة عامة على أداء المستشفى والإحصائيات', category: 'erp', icon: 'ri-dashboard-3-line', url: 'http://46.224.178.153/erp.html#page=0', status: 'active' },
     { id: 102, titleEn: 'Reception', titleAr: 'الاستقبال', descAr: 'تسجيل وإدارة سجلات المرضى الجدد', category: 'erp', icon: 'ri-user-heart-line', url: 'http://46.224.178.153/erp.html#page=1', status: 'active' },
     { id: 103, titleEn: 'Appointments', titleAr: 'المواعيد', descAr: 'جدولة وإدارة مواعيد المرضى', category: 'erp', icon: 'ri-calendar-2-line', url: 'http://46.224.178.153/erp.html#page=2', status: 'active' },
@@ -96,7 +96,7 @@ const servicesData = [
 // Category metadata
 const categoriesConfig = {
     all:       { titleAr: 'جميع الخدمات',        icon: 'ri-function-line',      color: '#00d4ff', gradient: 'linear-gradient(135deg, #00d4ff, #0099cc)' },
-    erp:       { titleAr: 'نما الطبي ERP',        icon: 'ri-hospital-line',      color: '#22d3ee', gradient: 'linear-gradient(135deg, #22d3ee, #0891b2)' },
+    erp:       { titleAr: 'APP SERVER ERP',        icon: 'ri-hospital-line',      color: '#22d3ee', gradient: 'linear-gradient(135deg, #22d3ee, #0891b2)' },
     clinical:  { titleAr: 'الخدمات الطبية',       icon: 'ri-stethoscope-line',   color: '#00e5a0', gradient: 'linear-gradient(135deg, #00e5a0, #00b37d)' },
     hr:        { titleAr: 'الموارد البشرية',      icon: 'ri-team-line',          color: '#a78bfa', gradient: 'linear-gradient(135deg, #a78bfa, #7c3aed)' },
     quality:   { titleAr: 'الجودة والسلامة',      icon: 'ri-shield-check-line',  color: '#fbbf24', gradient: 'linear-gradient(135deg, #fbbf24, #f59e0b)' },
