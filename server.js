@@ -4251,7 +4251,7 @@ app.post('/api/appointments/check-duplicate', requireAuth, async (req, res) => {
     try {
         const { patient_id, date, doctor } = req.body;
         const existing = (await pool.query(
-            "SELECT * FROM appointments WHERE patient_id=$1 AND date=$2 AND doctor=$3 AND status NOT IN ('Cancelled','No-Show')",
+            "SELECT * FROM appointments WHERE patient_id=$1 AND appt_date=$2 AND doctor_name=$3 AND status NOT IN ('Cancelled','No-Show')",
             [patient_id, date, doctor]
         )).rows;
         res.json({ duplicate: existing.length > 0, existing });
@@ -4493,23 +4493,23 @@ app.get('/api/dashboard/charts', requireAuth, async (req, res) => {
         // Patients by department (this month)
         const byDepartment = (await pool.query(`
             SELECT COALESCE(department,'General') as dept, COUNT(*) as count
-            FROM appointments WHERE date >= DATE_TRUNC('month', CURRENT_DATE)
+            FROM appointments WHERE NULLIF(appt_date, '')::DATE >= DATE_TRUNC('month', CURRENT_DATE)
             GROUP BY department ORDER BY count DESC LIMIT 10
         `)).rows;
 
         // Top doctors by patient count (this month)
         const topDoctors = (await pool.query(`
-            SELECT doctor, COUNT(*) as patients, COALESCE(SUM(i.total),0) as revenue
-            FROM appointments a LEFT JOIN invoices i ON i.description ILIKE '%' || a.doctor || '%'
+            SELECT doctor_name as doctor, COUNT(*) as patients, COALESCE(SUM(i.total),0) as revenue
+            FROM appointments a LEFT JOIN invoices i ON i.description ILIKE '%' || a.doctor_name || '%'
             AND i.created_at >= DATE_TRUNC('month', CURRENT_DATE)
-            WHERE a.date >= DATE_TRUNC('month', CURRENT_DATE)
-            GROUP BY a.doctor ORDER BY patients DESC LIMIT 8
+            WHERE NULLIF(a.appt_date, '')::DATE >= DATE_TRUNC('month', CURRENT_DATE)
+            GROUP BY a.doctor_name ORDER BY patients DESC LIMIT 8
         `)).rows;
 
         // Patient flow by hour (today)
         const hourlyFlow = (await pool.query(`
             SELECT EXTRACT(HOUR FROM created_at) as hour, COUNT(*) as count
-            FROM appointments WHERE date = CURRENT_DATE
+            FROM appointments WHERE NULLIF(appt_date, '')::DATE = CURRENT_DATE
             GROUP BY hour ORDER BY hour
         `)).rows;
 

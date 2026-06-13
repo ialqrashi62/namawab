@@ -3309,6 +3309,8 @@ window.getLabNormalRange = (testName, gender) => {
 };
 
 async function renderLab(el) {
+    // TODO: Placeholder data for Laboratory UI (Batch B). Integrate backend later.
+    
   const [orders, patients] = await Promise.all([API.get('/api/lab/orders'), API.get('/api/patients')]);
   el.innerHTML = `<div class="page-title">🔬 ${tr('Laboratory', 'المختبر')}</div>
     <div class="stats-grid">
@@ -3657,6 +3659,8 @@ function renderRadResults(results) {
   return html;
 }
 async function renderRadiology(el) {
+    // TODO: Placeholder data for Radiology UI (Batch B). Integrate backend later.
+    
   const [orders, patients] = await Promise.all([API.get('/api/radiology/orders'), API.get('/api/patients')]);
   el.innerHTML = `<div class="page-title">📡 ${tr('Radiology', 'الأشعة')}</div>
     <div class="stats-grid">
@@ -3844,6 +3848,8 @@ window.scanRadBarcode = async () => {
 
 // ===== PHARMACY =====
 async function renderPharmacy(el) {
+    // TODO: Placeholder data for Pharmacy UI (Batch B). Integrate backend later.
+    
   const [drugs, queue] = await Promise.all([API.get('/api/pharmacy/drugs'), API.get('/api/pharmacy/queue')]);
   // Helper to find drug price from catalog
   const findDrugPrice = (medName) => {
@@ -6800,43 +6806,162 @@ async function renderPatientPortal(el) {
   const recentCount = patients.filter(p => { const d = new Date(p.created_at); const week = new Date(); week.setDate(week.getDate() - 7); return d > week; }).length;
 
   content.innerHTML = `
-    <h2>${tr('Patient Portal', 'بوابة المريض')}</h2>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px">
-      <div class="card" style="padding:24px;text-align:center;background:linear-gradient(135deg,#e3f2fd,#bbdefb);cursor:pointer" onclick="navigateTo(1)">
-        <div style="font-size:40px;margin-bottom:8px">🏥</div>
-        <h4 style="margin:0">${tr('Registration', 'التسجيل')}</h4>
-        <p style="margin:4px 0 0;font-size:12px;color:#666">${patients.length} ${tr('patients', 'مريض')}</p>
-      </div>
-      <div class="card" style="padding:24px;text-align:center;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);cursor:pointer" onclick="navigateTo(2)">
-        <div style="font-size:40px;margin-bottom:8px">📅</div>
-        <h4 style="margin:0">${tr('Appointments', 'المواعيد')}</h4>
-        <p style="margin:4px 0 0;font-size:12px;color:#666">${appointments.length} ${tr('booked', 'محجوز')}</p>
-      </div>
-      <div class="card" style="padding:24px;text-align:center;background:linear-gradient(135deg,#fce4ec,#f8bbd0);cursor:pointer" onclick="navigateTo(4)">
-        <div style="font-size:40px;margin-bottom:8px">🔬</div>
-        <h4 style="margin:0">${tr('Lab Results', 'نتائج المختبر')}</h4>
-        <p style="margin:4px 0 0;font-size:12px;color:#666">${tr('View results', 'عرض النتائج')}</p>
-      </div>
-      <div class="card" style="padding:24px;text-align:center;background:linear-gradient(135deg,#fff3e0,#ffe0b2);cursor:pointer" onclick="navigateTo(5)">
-        <div style="font-size:40px;margin-bottom:8px">📡</div>
-        <h4 style="margin:0">${tr('Radiology', 'الأشعة')}</h4>
-        <p style="margin:4px 0 0;font-size:12px;color:#666">${tr('View images', 'عرض الصور')}</p>
-      </div>
-      <div class="card" style="padding:24px;text-align:center;background:linear-gradient(135deg,#e8eaf6,#c5cae9);cursor:pointer" onclick="navigateTo(6)">
-        <div style="font-size:40px;margin-bottom:8px">💊</div>
-        <h4 style="margin:0">${tr('Pharmacy', 'الصيدلية')}</h4>
-        <p style="margin:4px 0 0;font-size:12px;color:#666">${tr('Prescriptions', 'الوصفات')}</p>
-      </div>
-      <div class="card" style="padding:24px;text-align:center;background:linear-gradient(135deg,#f3e5f5,#ce93d8);cursor:pointer" onclick="navigateTo(8)">
-        <div style="font-size:40px;margin-bottom:8px">💰</div>
-        <h4 style="margin:0">${tr('Billing', 'الفواتير')}</h4>
-        <p style="margin:4px 0 0;font-size:12px;color:#666">${tr('View invoices', 'عرض الفواتير')}</p>
+    <div class="page-title">📱 ${tr('Patient Portal', 'بوابة المريض الرقمية')}</div>
+    <div class="flex flex-col md:flex-row gap-24 items-start mb-24 bg-white/40 backdrop-blur-md p-24 rounded-2xl border border-outline/10 shadow-sm w-full">
+      <div class="flex-1 text-right">
+        <h2 class="text-2xl font-bold text-primary mb-8">${tr('Welcome back, ' + currentUser.name, 'مرحباً بك، ' + currentUser.name)}</h2>
+        <p class="text-sm text-on-surface-variant mb-16">${tr('Access your electronic health records, schedule virtual visits, and review recent lab updates.', 'مرحباً بك في بوابتك الصحية الفاخرة. تتبع رحلتك العلاجية ونتائج فحوصاتك بكل يسر وسهولة.')}</p>
+        <div class="flex gap-12">
+          <button class="bg-primary hover:bg-primary/90 text-white px-24 py-10 rounded-xl text-sm font-semibold transition-all shadow-md flex items-center gap-8" onclick="navigateTo(2)">
+            <span class="material-symbols-outlined text-lg">calendar_month</span>
+            ${tr('Book Appointment', 'حجز موعد جديد')}
+          </button>
+          <button class="border border-secondary text-secondary hover:bg-secondary/10 px-24 py-10 rounded-xl text-sm font-semibold transition-all" onclick="navigateTo(35)">
+            ${tr('Virtual Visit', 'العيادة الافتراضية')}
+          </button>
+        </div>
       </div>
     </div>
-    <div class="card" style="padding:20px">
-      <h4 style="margin:0 0 12px">${tr('Recent Patients', 'المرضى الأخيرون')} (${tr('Last 7 days', 'آخر 7 أيام')})</h4>
-      <p style="color:#666">${recentCount} ${tr('new registrations', 'تسجيل جديد')}</p>
-    </div>`;
+
+    <div class="split-layout">
+      <!-- Right Side: Appointments & Labs -->
+      <div class="space-y-16">
+        <!-- Upcoming Appointments -->
+        <div class="card p-24">
+          <div class="card-title justify-between">
+            <span>📅 ${tr('Upcoming Appointment', 'الموعد القادم')}</span>
+            <span class="bg-secondary-container text-on-secondary-container text-xs px-12 py-4 rounded-full font-medium">${tr('Confirmed', 'مؤكد')}</span>
+          </div>
+          ${appointments.length ? `
+            <div class="flex items-center gap-16 mb-16">
+              <div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+                <span class="material-symbols-outlined text-2xl">medical_services</span>
+              </div>
+              <div class="text-right flex-1">
+                <h4 class="font-bold text-primary">${appointments[appointments.length - 1].doctor_name}</h4>
+                <p class="text-xs text-on-surface-variant">${appointments[appointments.length - 1].department || tr('General Specialist', 'استشاري عام')}</p>
+              </div>
+              <div class="text-left">
+                <p class="font-bold text-secondary">${appointments[appointments.length - 1].appt_date}</p>
+                <p class="text-xs text-on-surface-variant">${appointments[appointments.length - 1].appt_time}</p>
+              </div>
+            </div>
+          ` : `
+            <div class="empty-state">
+              <div class="empty-icon">📅</div>
+              <p>${tr('No upcoming appointments', 'لا توجد مواعيد قادمة')}</p>
+            </div>
+          `}
+          <div class="flex gap-12 pt-12 border-t border-outline/10">
+            <button class="btn btn-sm btn-primary" onclick="navigateTo(2)">${tr('Manage Appointments', 'إدارة المواعيد')}</button>
+          </div>
+        </div>
+
+        <!-- Recent Lab Results -->
+        <div class="card p-24">
+          <div class="card-title justify-between">
+            <span>🔬 ${tr('Recent Lab Results', 'آخر نتائج التحاليل')}</span>
+            <button class="btn btn-sm" onclick="navigateTo(4)">${tr('View All', 'عرض الكل')}</button>
+          </div>
+          <div class="space-y-12">
+            <div class="flex justify-between items-center p-12 bg-surface-container-low hover:bg-surface-container rounded-xl transition-all cursor-pointer" onclick="navigateTo(4)">
+              <div class="flex items-center gap-12">
+                <div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
+                  <span class="material-symbols-outlined text-lg">science</span>
+                </div>
+                <div class="text-right">
+                  <h4 class="text-xs font-bold text-primary">${tr('Complete Blood Count (CBC)', 'فحص صورة الدم الكاملة')}</h4>
+                  <p class="text-[10px] text-on-surface-variant">${tr('Normal', 'طبيعي')} - 12/10/2026</p>
+                </div>
+              </div>
+              <span class="badge badge-success">${tr('Normal', 'سليم')}</span>
+            </div>
+            <div class="flex justify-between items-center p-12 bg-surface-container-low hover:bg-surface-container rounded-xl transition-all cursor-pointer" onclick="navigateTo(4)">
+              <div class="flex items-center gap-12">
+                <div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
+                  <span class="material-symbols-outlined text-lg">science</span>
+                </div>
+                <div class="text-right">
+                  <h4 class="text-xs font-bold text-primary">${tr('Fast Blood Glucose (FBS)', 'فحص نسبة السكر الصائم')}</h4>
+                  <p class="text-[10px] text-on-surface-variant">98 mg/dL - 08/10/2026</p>
+                </div>
+              </div>
+              <span class="badge badge-success">${tr('Normal', 'سليم')}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Telemedicine Widget -->
+        <div class="card p-24 bg-gradient-to-br from-primary-container to-primary text-white border-none relative overflow-hidden">
+          <h3 class="text-lg font-bold mb-8 text-white">${tr('Virtual Smart Clinic', 'العيادة الافتراضية الذكية')}</h3>
+          <p class="text-xs text-white/80 mb-16">${tr('Consult with our international doctors virtually from anywhere.', 'تواصل فورياً بالصوت والصورة مع طبيبك من أي مكان وبخصوصية تامة.')}</p>
+          <button class="bg-secondary text-white hover:bg-secondary-container px-16 py-8 rounded-lg text-xs font-semibold transition-all border border-secondary" onclick="navigateTo(35)">
+            ${tr('Join Waiting Room', 'دخول غرفة الانتظار')}
+          </button>
+        </div>
+      </div>
+
+      <!-- Left Side: Health metrics, Insurance, Emergency -->
+      <div class="space-y-16">
+        <!-- Stats Bento Grid -->
+        <div class="grid grid-cols-2 gap-12">
+          <div class="card p-16 text-right">
+            <span class="material-symbols-outlined text-secondary mb-4">favorite</span>
+            <p class="text-[10px] text-on-surface-variant">${tr('Heart Rate', 'نبض القلب')}</p>
+            <p class="text-lg font-extrabold text-primary">72 bpm</p>
+          </div>
+          <div class="card p-16 text-right">
+            <span class="material-symbols-outlined text-secondary mb-4">blood_pressure</span>
+            <p class="text-[10px] text-on-surface-variant">${tr('Blood Pressure', 'ضغط الدم')}</p>
+            <p class="text-lg font-extrabold text-primary">120/80</p>
+          </div>
+          <div class="card p-16 text-right">
+            <span class="material-symbols-outlined text-secondary mb-4">steps</span>
+            <p class="text-[10px] text-on-surface-variant">${tr('Daily Steps', 'الخطوات اليومية')}</p>
+            <p class="text-lg font-extrabold text-primary">8,420</p>
+          </div>
+          <div class="card p-16 text-right">
+            <span class="material-symbols-outlined text-secondary mb-4">sleep</span>
+            <p class="text-[10px] text-on-surface-variant">${tr('Sleep Quality', 'جودة النوم')}</p>
+            <p class="text-lg font-extrabold text-primary">7.5 hr</p>
+          </div>
+        </div>
+
+        <!-- Insurance Progress Card -->
+        <div class="card p-24">
+          <div class="card-title justify-between">
+            <span>🛡️ ${tr('Insurance Claims', 'تغطية التأمين (التعاونية)')}</span>
+          </div>
+          <div class="mb-16">
+            <div class="flex justify-between text-xs mb-4">
+              <span>${tr('Limit Used', 'المبلغ المستهلك')}</span>
+              <span class="font-bold">12,400 / 30,000 SAR</span>
+            </div>
+            <div class="w-full bg-surface-container-high h-2 rounded-full">
+              <div class="bg-secondary h-full rounded-full" style="width: 41.3%"></div>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-primary w-full" onclick="navigateTo(9)">${tr('Manage Claims', 'إدارة المطالبات')}</button>
+        </div>
+
+        <!-- Emergency Card -->
+        <div class="card p-16 bg-error/5 border border-error/20 flex items-center justify-between">
+          <div class="flex items-center gap-12">
+            <div class="w-10 h-10 rounded-full bg-error text-white flex items-center justify-center animate-pulse">
+              <span class="material-symbols-outlined text-lg">emergency</span>
+            </div>
+            <div class="text-right">
+              <h4 class="text-xs font-bold text-error">${tr('Emergency Contact', 'خدمة الطوارئ الإسعافية')}</h4>
+              <p class="text-[10px] text-on-surface-variant">${tr('Immediate assistance', 'للمساعدة الفورية اتصل بالرقم')}</p>
+            </div>
+          </div>
+          <a href="tel:997" class="w-10 h-10 bg-error hover:bg-error/90 text-white rounded-full flex items-center justify-center shadow-md">
+            <span class="material-symbols-outlined text-lg">call</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  `;
 
 }
 window.approvePortalAppt = async function (id) { await API.put('/api/portal/appointments/' + id, { status: 'Approved' }); showToast(tr('Approved', 'تمت الموافقة')); navigateTo(33); };
