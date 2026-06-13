@@ -1,34 +1,38 @@
 /* ===== Nama Medical ERP - Design System ===== */
 
+#errorMsg:not(.show) {
+  display: none !important;
+}
+
 /* ---------- CSS Variables / Themes ---------- */
 :root {
-  /* Default: Dark Blue (Theme 0) */
-  --bg: #0f172a;
-  --sidebar: #1e293b;
-  --header: #334155;
-  --accent: #3b82f6;
-  --accent-hover: #2563eb;
-  --accent-glow: rgba(59, 130, 246, 0.15);
-  --text: #e2e8f0;
-  --text-dim: #94a3b8;
-  --border: rgba(255, 255, 255, 0.1);
-  --selected-bg: rgba(96, 165, 250, 0.2);
-  --selected-fg: #60a5fa;
-  --hover: rgba(255, 255, 255, 0.05);
-  --input: rgba(255, 255, 255, 0.05);
-  --input2: rgba(255, 255, 255, 0.03);
-  --card-bg: #1e293b;
-  --alt-row: rgba(255, 255, 255, 0.03);
-  --success: #4ade80;
+  /* Default: Stitch Premium RTL Brand Colors */
+  --bg: #f8f9fa;
+  --sidebar: #001629;
+  --header: #ffffff;
+  --accent: #006970;
+  --accent-hover: #004f54;
+  --accent-glow: rgba(0, 105, 112, 0.1);
+  --text: #191c1d;
+  --text-dim: #42474d;
+  --border: rgba(0, 0, 0, 0.08);
+  --selected-bg: rgba(0, 105, 112, 0.1);
+  --selected-fg: #006970;
+  --hover: rgba(0, 0, 0, 0.02);
+  --input: #ffffff;
+  --input2: #f3f4f5;
+  --card-bg: #ffffff;
+  --alt-row: rgba(0, 0, 0, 0.02);
+  --success: #22c55e;
   --warning: #f59e0b;
-  --danger: #ef4444;
-  --info: #60a5fa;
-  --shadow: rgba(0, 0, 0, 0.3);
-  --radius: 12px;
-  --radius-sm: 8px;
-  --radius-xs: 6px;
-  --font: 'Tajawal', 'Inter', -apple-system, sans-serif;
-  --font-en: 'Inter', -apple-system, sans-serif;
+  --danger: #ba1a1a;
+  --info: #006970;
+  --shadow: rgba(0, 22, 41, 0.05);
+  --radius: 16px;
+  --radius-sm: 12px;
+  --radius-xs: 8px;
+  --font: 'IBM Plex Sans Arabic', 'Tajawal', 'Inter', -apple-system, sans-serif;
+  --font-en: 'IBM Plex Sans', 'Inter', -apple-system, sans-serif;
   --sidebar-width: 260px;
   --header-height: 64px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -102,26 +106,26 @@
   --success: #a3e635;
 }
 
-/* Theme 5: Light Classic */
+/* Theme 5: Light Classic (Stitch Theme) */
 [data-theme="5"] {
-  --bg: #f8fafc;
-  --sidebar: #e2e8f0;
-  --header: #cbd5e1;
-  --accent: #3b82f6;
-  --accent-hover: #2563eb;
-  --accent-glow: rgba(59, 130, 246, 0.1);
-  --text: #1e293b;
-  --text-dim: #64748b;
-  --border: rgba(0, 0, 0, 0.1);
-  --selected-bg: rgba(59, 130, 246, 0.15);
-  --selected-fg: #2563eb;
-  --hover: rgba(0, 0, 0, 0.05);
-  --input: rgba(255, 255, 255, 0.8);
-  --input2: rgba(255, 255, 255, 0.5);
-  --card-bg: #e2e8f0;
-  --alt-row: rgba(0, 0, 0, 0.03);
-  --shadow: rgba(0, 0, 0, 0.08);
-  --success: #16a34a;
+  --bg: #f8f9fa;
+  --sidebar: #001629;
+  --header: #ffffff;
+  --accent: #006970;
+  --accent-hover: #004f54;
+  --accent-glow: rgba(0, 105, 112, 0.1);
+  --text: #191c1d;
+  --text-dim: #42474d;
+  --border: rgba(0, 0, 0, 0.08);
+  --selected-bg: rgba(0, 105, 112, 0.1);
+  --selected-fg: #006970;
+  --hover: rgba(0, 0, 0, 0.02);
+  --input: #ffffff;
+  --input2: #f3f4f5;
+  --card-bg: #ffffff;
+  --alt-row: rgba(0, 0, 0, 0.02);
+  --shadow: rgba(0, 22, 41, 0.05);
+  --success: #22c55e;
 }
 
 /* Theme 6: Light Blue */
@@ -1439,3 +1443,58 @@ body {
   .card { border: 1px solid #ddd; box-shadow: none; break-inside: avoid; }
   body { background: #fff; color: #000; overflow: visible; }
 }
+
+/* ===== STITCH PREMIUM SIDEBAR OVERRIDES ===== */
+#sidebar {
+  background: #001629 !important;
+  color: #e2e8f0 !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+[dir="ltr"] #sidebar {
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-left: none !important;
+}
+#sidebar .sidebar-title {
+  background: linear-gradient(135deg, #7af1fc, #7df4ff) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-family: 'IBM Plex Sans Arabic', sans-serif !important;
+  font-weight: 800 !important;
+}
+#sidebar .sidebar-subtitle {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+#sidebar .nav-item {
+  color: rgba(255, 255, 255, 0.7) !important;
+  transition: all 0.2s ease !important;
+}
+#sidebar .nav-item:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+}
+#sidebar .nav-item.active {
+  background: rgba(122, 241, 252, 0.15) !important;
+  color: #7af1fc !important;
+  font-weight: 600 !important;
+}
+#sidebar .sidebar-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+#sidebar .user-name {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+#sidebar .user-role {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+#sidebar .logout-btn {
+  color: rgba(255, 255, 255, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+#sidebar .logout-btn:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #ff8888 !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+}
+
