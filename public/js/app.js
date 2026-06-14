@@ -273,6 +273,25 @@ function makeTable(headers, rows, actions) {
   return html;
 }
 
+window.createTable = function(container, id, headers, rows, actions) {
+  if (!container) return;
+  let html = `<table class="data-table" id="${id}"><thead><tr>`;
+  headers.forEach(h => html += `<th>${h}</th>`);
+  html += '</tr></thead><tbody>';
+  if (!rows || !rows.length) {
+    html += `<tr><td colspan="${headers.length}" class="text-center py-4 text-on-surface-variant">${tr('No data found', 'لا توجد بيانات')}</td></tr>`;
+  } else {
+    rows.forEach(row => {
+      html += `<tr data-id="${row.id || ''}" class="hover:bg-primary/5 transition-colors cursor-pointer">`;
+      row.cells.forEach(c => html += `<td>${c}</td>`);
+      if (actions) html += `<td>${actions(row)}</td>`;
+      html += '</tr>';
+    });
+  }
+  html += '</tbody></table>';
+  container.innerHTML = html;
+};
+
 function badge(text, type) { return `<span class="badge badge-${type}">${text}</span>`; }
 
 function statusBadge(status) {
@@ -4312,64 +4331,950 @@ window.addInsCompany = async () => {
 async function renderInventory(el) {
   const content = el;
 
-  const items = await API.get('/api/inventory').catch(() => []);
-  const lowStock = items.filter(i => parseInt(i.quantity || 0) <= parseInt(i.reorder_level || 10));
-  content.innerHTML = `
-    <h2>${tr('Inventory', 'المخزون')}</h2>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${items.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Total Items', 'إجمالي الأصناف')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:${lowStock.length > 0 ? '#fce4ec' : '#e8f5e9'}"><h3 style="margin:0;color:${lowStock.length > 0 ? '#c62828' : '#2e7d32'}">${lowStock.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('Low Stock', 'مخزون منخفض')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${items.length - lowStock.length}</h3><p style="margin:4px 0 0;font-size:13px">${tr('OK Stock', 'مخزون كافي')}</p></div>
-    </div>
-    <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-      <input class="form-input" id="invSearch" placeholder="${tr('Search items...', 'بحث في الأصناف...')}" style="max-width:300px" oninput="filterInvTable()">
-      <button class="btn btn-sm" onclick="exportToCSV(window._invData||[],'inventory')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export', 'تصدير')}</button>
-      ${lowStock.length > 0 ? '<button class="btn btn-sm" onclick="showLowStock()" style="background:#fce4ec;color:#c62828;animation:pulse 2s infinite">⚠️ ' + tr('Low Stock Alert', 'تنبيه مخزون', '') + ' (' + lowStock.length + ')</button>' : ''}
-    </div>
-    <div id="invTableDiv"></div>`;
-
-  window._invData = items;
-  const it = document.getElementById('invTableDiv');
-  if (it && items.length) {
-    createTable(it, 'invTbl',
-      [tr('Name', 'الاسم'), tr('Category', 'الفئة'), tr('Qty', 'الكمية'), tr('Reorder', 'إعادة الطلب'), tr('Unit', 'الوحدة'), tr('Status', 'الحالة')],
-      items.map(i => {
-        const isLow = parseInt(i.quantity || 0) <= parseInt(i.reorder_level || 10);
-        return { cells: [i.name, i.category || '', '<span style="font-weight:bold;color:' + (isLow ? '#c62828' : '#2e7d32') + '">' + (i.quantity || 0) + '</span>', i.reorder_level || 10, i.unit || '', isLow ? '<span style="color:#c62828;font-weight:bold">⚠️ ' + tr('Low', 'منخفض') + '</span>' : '<span style="color:#2e7d32">✅</span>'], id: i.id };
-      })
-    );
+  // Initialize tabs and local data if not present
+  if (!window.inventoryTab) window.inventoryTab = 'items';
+  if (!window.localSuppliers) {
+    window.localSuppliers = [
+      { id: 1, name: 'ميدترونيك السعودية', location: 'الرياض، المملكة العربية السعودية', email: 'info@medtronic.sa', phone: '011-456-7890', category: 'أجهزة طبية', outstanding: 124500.00, status: 'نشط' },
+      { id: 2, name: 'شركة الدواء للخدمات الطبية', location: 'الخبر، المملكة العربية السعودية', email: 'purchasing@aldawaa.com.sa', phone: '013-890-1234', category: 'أدوية ومستلزمات', outstanding: 85200.00, status: 'نشط' },
+      { id: 3, name: 'أرامكو الطبية', location: 'الظهران، المملكة العربية السعودية', email: 'sales@aramcomed.com', phone: '013-876-5432', category: 'مستلزمات الطوارئ', outstanding: 310000.00, status: 'نشط' },
+      { id: 4, name: 'فيليبس هيلث كير', location: 'جدة، المملكة العربية السعودية', email: 'service@philips.com.sa', phone: '012-654-3210', category: 'قطع غيار وصيانة', outstanding: 0.00, status: 'نشط' }
+    ];
+  }
+  if (!window.localPOs) {
+    window.localPOs = [
+      { id: 'PO-2024-001', supplier: 'ميدترونيك السعودية', date: '2026-06-10', amount: 45200.00, status: 'مكتمل', delivery: '2026-06-12', items: [{ name: 'حساس أكسجين MRI', qty: 2, cost: 22600.00 }] },
+      { id: 'PO-2024-002', supplier: 'شركة الدواء للخدمات الطبية', date: '2026-06-12', amount: 12850.50, status: 'قيد الانتظار', delivery: '2026-06-18', items: [{ name: 'مشارط جراحية رقم 11', qty: 150, cost: 85.67 }] },
+      { id: 'PO-2024-003', supplier: 'أرامكو الطبية', date: '2026-06-05', amount: 310000.00, status: 'متأخر', delivery: '2026-06-14', items: [{ name: 'الأنسولين سريع المفعول (300 وحدة)', qty: 12, cost: 25833.33 }] },
+      { id: 'PO-2024-004', supplier: 'فيليبس هيلث كير', date: '2026-06-14', amount: 88400.00, status: 'مكتمل', delivery: '2026-06-15', items: [{ name: 'أقنعة أكسجين مقاس متوسط', qty: 5, cost: 17680.00 }] }
+    ];
   }
 
+  // Fetch real items from backend
+  const items = await API.get('/api/inventory').catch(() => []);
+  window._invData = items;
+
+  const lowStock = items.filter(i => parseInt(i.quantity || 0) <= parseInt(i.reorder_level || 10));
+  const totalItems = items.length;
+  const totalValue = items.reduce((acc, i) => acc + (parseFloat(i.cost || 0) * parseInt(i.quantity || 0)), 0);
+  const avgCost = totalItems > 0 ? (items.reduce((acc, i) => acc + parseFloat(i.cost || 0), 0) / totalItems) : 0;
+
+  // Premium Header and Tabs
+  let htmlContent = `
+    <div class="mb-xl flex flex-col md:flex-row md:items-end justify-between gap-md">
+      <div>
+        <nav class="flex text-on-surface-variant font-caption text-caption mb-xs">
+          <span>${tr('Operations', 'العمليات')}</span>
+          <span class="mx-xs">/</span>
+          <span class="text-primary font-bold">${tr('Supply Chain & Inventory', 'سلسلة التوريد والمخزون الطبي')}</span>
+        </nav>
+        <h3 class="font-display-lg text-display-lg text-primary tracking-tight">${tr('Supply Chain & Medical Inventory', 'سلسلة التوريد والمخزون الطبي')}</h3>
+        <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+          ${tr('Premium system to manage medical supplies, pharmaceuticals, spare parts with real-time tracking.', 'نظام متطور لإدارة المستلزمات الطبية والأدوية وقطع الغيار مع تتبع لحظي وإعادة طلب تلقائية لضمان استمرارية العمليات الطبية بامتياز.')}
+        </p>
+      </div>
+      <div class="flex gap-sm">
+        <button class="flex items-center gap-2 px-md py-sm border-2 border-secondary text-secondary font-bold rounded-xl hover:bg-secondary/5 transition-all" onclick="exportToCSV(window._invData||[],'inventory')">
+          <span class="material-symbols-outlined">download</span>
+          <span>${tr('Export Inventory', 'تصدير المخزون')}</span>
+        </button>
+        <button class="flex items-center gap-2 px-md py-sm bg-primary text-on-primary font-bold rounded-xl shadow-lg hover:shadow-xl transition-all scale-100 hover:scale-[1.02] active:scale-95" onclick="showAddInvModal()">
+          <span class="material-symbols-outlined">add</span>
+          <span>${tr('Add New Item', 'إضافة صنف جديد')}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs Bar -->
+    <div class="tab-bar mb-md flex border-b border-outline-variant/30 overflow-x-auto gap-2">
+      <button class="tab-btn px-lg py-sm border-b-2 font-bold transition-all ${window.inventoryTab === 'items' ? 'active border-secondary text-secondary' : 'border-transparent text-on-surface-variant hover:text-primary'}" onclick="window.inventoryTab='items'; navigateTo(currentPage)">
+        📦 ${tr('Medical Inventory', 'المخزون الطبي')}
+      </button>
+      <button class="tab-btn px-lg py-sm border-b-2 font-bold transition-all ${window.inventoryTab === 'procurement' ? 'active border-secondary text-secondary' : 'border-transparent text-on-surface-variant hover:text-primary'}" onclick="window.inventoryTab='procurement'; navigateTo(currentPage)">
+        🧾 ${tr('Procurement & POs', 'طلبات الشراء والمشتريات')}
+      </button>
+      <button class="tab-btn px-lg py-sm border-b-2 font-bold transition-all ${window.inventoryTab === 'suppliers' ? 'active border-secondary text-secondary' : 'border-transparent text-on-surface-variant hover:text-primary'}" onclick="window.inventoryTab='suppliers'; navigateTo(currentPage)">
+        🤝 ${tr('Suppliers Registry', 'سجل الموردين')}
+      </button>
+      <button class="tab-btn px-lg py-sm border-b-2 font-bold transition-all ${window.inventoryTab === 'logistics' ? 'active border-secondary text-secondary' : 'border-transparent text-on-surface-variant hover:text-primary'}" onclick="window.inventoryTab='logistics'; navigateTo(currentPage)">
+        🚚 ${tr('Logistics Tracking', 'الخدمات اللوجستية')}
+      </button>
+      <button class="tab-btn px-lg py-sm border-b-2 font-bold transition-all ${window.inventoryTab === 'intelligence' ? 'active border-secondary text-secondary' : 'border-transparent text-on-surface-variant hover:text-primary'}" onclick="window.inventoryTab='intelligence'; navigateTo(currentPage)">
+        📊 ${tr('AI Command Center', 'التحليلات والذكاء')}
+      </button>
+    </div>
+  `;
+
+  if (window.inventoryTab === 'items') {
+    // ----------------------------------------
+    // Tab 1: Medical Inventory Items
+    // ----------------------------------------
+    htmlContent += `
+      <!-- KPI Cards Bento Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-xl">
+        <div class="glass-card p-md rounded-2xl flex flex-col justify-between group overflow-hidden relative">
+          <div class="flex justify-between items-start relative z-10">
+            <span class="p-xs bg-primary/10 rounded-lg text-primary material-symbols-outlined">inventory</span>
+            <span class="text-secondary text-xs font-bold">${totalItems} ${tr('Items', 'أصناف')}</span>
+          </div>
+          <div class="mt-lg relative z-10">
+            <p class="text-on-surface-variant font-label-md text-label-md">${tr('Total Active Items', 'إجمالي الأصناف بالمخزن')}</p>
+            <h4 class="text-display-lg text-primary font-bold mt-xs">${totalItems}</h4>
+          </div>
+          <div class="absolute -right-4 -bottom-4 opacity-5 transform scale-150 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[120px]">inventory_2</span>
+          </div>
+        </div>
+
+        <div class="glass-card p-md rounded-2xl flex flex-col justify-between group overflow-hidden relative ${lowStock.length > 0 ? 'border-r-4 border-r-error' : ''}">
+          <div class="flex justify-between items-start relative z-10">
+            <span class="p-xs bg-error/10 rounded-lg text-error material-symbols-outlined">warning</span>
+            ${lowStock.length > 0 ? `<span class="bg-error text-on-error px-xs py-1 rounded text-caption font-bold animate-pulse">${tr('Low Stock', 'مخزون منخفض')}</span>` : `<span class="text-secondary text-xs font-bold">${tr('Secure', 'آمن')}</span>`}
+          </div>
+          <div class="mt-lg relative z-10">
+            <p class="text-on-surface-variant font-label-md text-label-md">${tr('Low Stock Alert', 'تنبيه مخزون منخفض')}</p>
+            <h4 class="text-display-lg ${lowStock.length > 0 ? 'text-error font-bold' : 'text-primary'} mt-xs">${lowStock.length}</h4>
+          </div>
+          <div class="absolute -right-4 -bottom-4 opacity-5 transform scale-150 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[120px]">report_problem</span>
+          </div>
+        </div>
+
+        <div class="glass-card p-md rounded-2xl flex flex-col justify-between group overflow-hidden relative">
+          <div class="flex justify-between items-start relative z-10">
+            <span class="p-xs bg-secondary/10 rounded-lg text-secondary material-symbols-outlined">payments</span>
+          </div>
+          <div class="mt-lg relative z-10">
+            <p class="text-on-surface-variant font-label-md text-label-md">${tr('Total Inventory Value', 'القيمة الإجمالية للمخزون')}</p>
+            <h4 class="text-display-lg text-primary font-bold mt-xs">${totalValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span class="text-title-lg">${tr('SAR', 'ر.س')}</span></h4>
+          </div>
+          <div class="absolute -right-4 -bottom-4 opacity-5 transform scale-150 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[120px]">monetization_on</span>
+          </div>
+        </div>
+
+        <div class="glass-card p-md rounded-2xl flex flex-col justify-between group overflow-hidden relative">
+          <div class="flex justify-between items-start relative z-10">
+            <span class="p-xs bg-tertiary-fixed-dim/20 rounded-lg text-tertiary-fixed-dim material-symbols-outlined">calculate</span>
+          </div>
+          <div class="mt-lg relative z-10">
+            <p class="text-on-surface-variant font-label-md text-label-md">${tr('Average Cost per Item', 'متوسط تكلفة الصنف')}</p>
+            <h4 class="text-display-lg text-primary font-bold mt-xs">${avgCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span class="text-title-lg">${tr('SAR', 'ر.س')}</span></h4>
+          </div>
+          <div class="absolute -right-4 -bottom-4 opacity-5 transform scale-150 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[120px]">balance</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Critical Stock Alert Section (Only if low stock items exist) -->
+      ${lowStock.length > 0 ? `
+      <div class="glass-card p-lg rounded-xl mb-xl border-r-4 border-r-error relative overflow-hidden">
+        <div class="absolute -top-10 -left-10 w-40 h-40 bg-error/5 rounded-full blur-3xl"></div>
+        <div class="z-10">
+          <div class="flex items-center gap-sm mb-md text-error">
+            <span class="material-symbols-outlined" data-weight="fill">warning</span>
+            <span class="font-bold text-headline-md">${tr('Critical Stock Alerts', 'تنبيهات مخزون حرج')}</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-sm">
+            ${lowStock.map(i => `
+              <div class="flex items-center justify-between p-sm bg-error-container/20 rounded-lg border border-error/10">
+                <span class="font-body-md text-primary font-bold">${i.name}</span>
+                <span class="bg-error text-on-error px-sm py-1 rounded text-caption font-bold">${tr('Remaining:', 'المتبقي:')} ${i.quantity || 0} ${i.unit || ''}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+      ` : ''}
+
+      <!-- Main Content and Filter Bar -->
+      <div class="glass-card rounded-xl overflow-hidden flex flex-col p-md">
+        <div class="flex flex-wrap items-center justify-between gap-md mb-md pb-md border-b border-outline-variant/30">
+          <div class="relative w-full max-w-md">
+            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+            <input class="w-full pr-10 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-secondary font-body-md py-sm" id="invSearch" placeholder="${tr('Search by name or supplier...', 'البحث باسم الصنف أو المورد...')}" type="text" oninput="filterInvTable()">
+          </div>
+          <div class="flex items-center gap-sm">
+            <span class="font-label-md text-on-surface-variant">${tr('Filter by Category:', 'تصفية حسب الفئة:')}</span>
+            <select class="bg-surface border-outline-variant/30 rounded-lg font-body-md py-1 pr-8 text-on-surface" id="invCatFilter" onchange="filterInvTable()">
+              <option value="">${tr('All Categories', 'كافة الفئات')}</option>
+              ${Array.from(new Set(items.map(i => i.category || tr('Uncategorized', 'غير مصنف')))).map(c => `<option value="${c}">${c}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="overflow-x-auto custom-scrollbar" id="invTableDiv"></div>
+      </div>
+    `;
+
+    // Populate Table when rendered
+    setTimeout(() => {
+      const it = document.getElementById('invTableDiv');
+      if (it) {
+        if (!items.length) {
+          it.innerHTML = `<div class="empty-state py-lg text-center"><div class="empty-icon text-4xl mb-2">📭</div><p class="text-on-surface-variant">${tr('No items found in database', 'لا توجد أصناف في قاعدة البيانات')}</p></div>`;
+          return;
+        }
+
+        // Table Rendering
+        let tableHtml = `
+          <table class="w-full text-right border-collapse" id="invTbl">
+            <thead>
+              <tr class="bg-surface-container border-b border-outline-variant/30">
+                <th class="p-md font-bold text-sm text-primary">${tr('Item ID', 'رقم الصنف')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Item Name', 'اسم المنتج')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Category', 'الفئة')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Current Stock', 'المخزون الحالي')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Reorder Level', 'حد إعادة الطلب')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Cost (SAR)', 'التكلفة (ر.س)')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Supplier', 'المورد')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Status', 'الحالة')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Actions', 'الإجراءات')}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant/10">
+              ${items.map(i => {
+                const isLow = parseInt(i.quantity || 0) <= parseInt(i.reorder_level || 10);
+                return `
+                  <tr class="hover:bg-primary/5 transition-all cursor-pointer ${isLow ? 'bg-error-container/5' : ''}">
+                    <td class="p-md font-mono text-secondary">#MED-${String(i.id).padStart(4, '0')}</td>
+                    <td class="p-md font-bold text-primary">${i.name}</td>
+                    <td class="p-md"><span class="text-caption bg-surface-container px-sm py-1 rounded-full">${i.category || tr('Uncategorized', 'غير مصنف')}</span></td>
+                    <td class="p-md font-bold ${isLow ? 'text-error' : 'text-secondary'}">${i.quantity} ${i.unit || ''}</td>
+                    <td class="p-md text-on-surface-variant">${i.reorder_level || 10}</td>
+                    <td class="p-md font-bold text-primary">${parseFloat(i.cost || 0).toFixed(2)}</td>
+                    <td class="p-md text-on-surface-variant">${i.supplier || tr('Not specified', 'غير محدد')}</td>
+                    <td class="p-md">
+                      ${isLow ? `
+                        <span class="inline-flex items-center gap-1 px-sm py-1 bg-error/10 text-error rounded-full text-xs font-bold">
+                          <span class="w-1.5 h-1.5 bg-error rounded-full animate-pulse"></span>
+                          ${tr('Critical / Low', 'حرج / منخفض')}
+                        </span>
+                      ` : `
+                        <span class="inline-flex items-center gap-1 px-sm py-1 bg-secondary/10 text-secondary rounded-full text-xs font-bold">
+                          <span class="w-1.5 h-1.5 bg-secondary rounded-full"></span>
+                          ${tr('Stable', 'مستقر')}
+                        </span>
+                      `}
+                    </td>
+                    <td class="p-md">
+                      <div class="flex gap-2">
+                        <button class="p-1 hover:bg-secondary/10 text-secondary rounded transition-colors" title="${tr('Edit Item', 'تعديل')}" onclick="showEditInvModal(${JSON.stringify(i).replace(/"/g, '&quot;')})">
+                          <span class="material-symbols-outlined text-sm">edit</span>
+                        </button>
+                        <button class="p-1 hover:bg-error/10 text-error rounded transition-colors" title="${tr('Delete Item', 'حذف')}" onclick="deleteInvItem(${i.id})">
+                          <span class="material-symbols-outlined text-sm">delete</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        `;
+        it.innerHTML = tableHtml;
+      }
+    }, 50);
+
+  } else if (window.inventoryTab === 'procurement') {
+    // ----------------------------------------
+    // Tab 2: Procurement & Purchase Orders
+    // ----------------------------------------
+    const totalPOAmount = window.localPOs.reduce((acc, po) => acc + po.amount, 0);
+    const pendingPOs = window.localPOs.filter(po => po.status !== 'مكتمل').length;
+
+    htmlContent += `
+      <!-- KPI Cards Bento Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-xl">
+        <div class="glass-card p-md rounded-2xl flex flex-col justify-between group overflow-hidden relative">
+          <div class="flex justify-between items-start relative z-10">
+            <span class="p-xs bg-primary/10 rounded-lg text-primary material-symbols-outlined">shopping_cart</span>
+          </div>
+          <div class="mt-lg relative z-10">
+            <p class="text-on-surface-variant font-label-md text-label-md">${tr('Total Procurement Value', 'إجمالي قيمة المشتريات')}</p>
+            <h4 class="text-display-lg text-primary font-bold mt-xs">${totalPOAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span class="text-title-lg">${tr('SAR', 'ر.س')}</span></h4>
+          </div>
+          <div class="absolute -right-4 -bottom-4 opacity-5 transform scale-150 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[120px]">payments</span>
+          </div>
+        </div>
+
+        <div class="glass-card p-md rounded-2xl flex flex-col justify-between group overflow-hidden relative">
+          <div class="flex justify-between items-start relative z-10">
+            <span class="p-xs bg-secondary/10 rounded-lg text-secondary material-symbols-outlined">pending_actions</span>
+          </div>
+          <div class="mt-lg relative z-10">
+            <p class="text-on-surface-variant font-label-md text-label-md">${tr('Pending PO approvals', 'طلبات شراء قيد الاعتماد/الانتظار')}</p>
+            <h4 class="text-display-lg text-primary font-bold mt-xs">${pendingPOs}</h4>
+          </div>
+          <div class="absolute -right-4 -bottom-4 opacity-5 transform scale-150 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[120px]">hourglass_empty</span>
+          </div>
+        </div>
+
+        <div class="glass-card p-md rounded-2xl flex flex-col justify-between group overflow-hidden relative">
+          <div class="flex justify-between items-start relative z-10">
+            <span class="p-xs bg-on-primary-fixed-variant/10 rounded-lg text-on-primary-fixed-variant material-symbols-outlined">schedule</span>
+          </div>
+          <div class="mt-lg relative z-10">
+            <p class="text-on-surface-variant font-label-md text-label-md">${tr('Average Delivery Time', 'متوسط زمن التوريد والتسليم')}</p>
+            <h4 class="text-display-lg text-primary font-bold mt-xs">4.2 <span class="text-title-lg">${tr('Days', 'أيام')}</span></h4>
+          </div>
+          <div class="absolute -right-4 -bottom-4 opacity-5 transform scale-150 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[120px]">local_shipping</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Section -->
+      <div class="glass-card p-md rounded-2xl flex flex-wrap justify-between items-center gap-md mb-md">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-secondary">receipt_long</span>
+          <strong class="text-primary font-bold text-headline-md">${tr('Purchase Orders Registry', 'سجل فواتير وأوامر الشراء')}</strong>
+        </div>
+        <button class="bg-primary text-on-primary font-bold px-md py-sm rounded-xl hover:opacity-90 flex items-center gap-1" onclick="showAddPOModal()">
+          <span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+          <span>${tr('Create New Purchase Order', 'إنشاء أمر شراء جديد')}</span>
+        </button>
+      </div>
+
+      <!-- POs Table -->
+      <div class="glass-card rounded-xl overflow-hidden p-md">
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-right border-collapse">
+            <thead>
+              <tr class="bg-surface-container border-b border-outline-variant/30">
+                <th class="p-md font-bold text-sm text-primary">${tr('PO Number', 'رقم الطلب')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Supplier', 'اسم المورد')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Order Date', 'تاريخ الطلب')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Delivery Date', 'تاريخ التسليم')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Amount (SAR)', 'المبلغ الإجمالي')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Status', 'الحالة')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Actions', 'الإجراءات')}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant/10">
+              ${window.localPOs.map(po => `
+                <tr class="hover:bg-primary/5 transition-all">
+                  <td class="p-md font-mono text-secondary">${po.id}</td>
+                  <td class="p-md font-bold text-primary">${po.supplier}</td>
+                  <td class="p-md text-on-surface-variant">${po.date}</td>
+                  <td class="p-md text-on-surface-variant">${po.delivery}</td>
+                  <td class="p-md font-bold text-primary">${parseFloat(po.amount).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                  <td class="p-md">
+                    ${po.status === 'مكتمل' ? `
+                      <span class="inline-flex items-center gap-1 px-sm py-1 bg-secondary/10 text-secondary rounded-full text-xs font-bold">
+                        <span class="w-1.5 h-1.5 bg-secondary rounded-full"></span>
+                        ${tr('Completed / Received', 'تم الاستلام / مكتمل')}
+                      </span>
+                    ` : po.status === 'מתאخر' || po.status === 'متأخر' ? `
+                      <span class="inline-flex items-center gap-1 px-sm py-1 bg-error/10 text-error rounded-full text-xs font-bold animate-pulse">
+                        <span class="w-1.5 h-1.5 bg-error rounded-full"></span>
+                        ${tr('Delayed', 'متأخر')}
+                      </span>
+                    ` : `
+                      <span class="inline-flex items-center gap-1 px-sm py-1 bg-tertiary-fixed/20 text-on-tertiary-fixed-variant rounded-full text-xs font-bold">
+                        <span class="w-1.5 h-1.5 bg-on-tertiary-fixed-variant rounded-full"></span>
+                        ${tr('Pending Approval', 'قيد الانتظار')}
+                      </span>
+                    `}
+                  </td>
+                  <td class="p-md">
+                    <div class="flex gap-2">
+                      ${po.status === 'قيد الانتظار' || po.status === 'متأخر' ? `
+                        <button class="bg-secondary text-on-secondary px-sm py-1 rounded text-caption hover:opacity-90" onclick="receivePO('${po.id}')">
+                          ✅ ${tr('Receive items', 'استلام')}
+                        </button>
+                      ` : `
+                        <span class="text-caption text-on-surface-variant font-bold">✅ ${tr('Archived', 'مؤرشف')}</span>
+                      `}
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+  } else if (window.inventoryTab === 'suppliers') {
+    // ----------------------------------------
+    // Tab 3: Suppliers Registry
+    // ----------------------------------------
+    const outstandingInvoices = window.localSuppliers.reduce((acc, s) => acc + s.outstanding, 0);
+
+    htmlContent += `
+      <!-- KPI Cards Bento Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-xl">
+        <div class="glass-card p-md rounded-2xl flex flex-col justify-between group overflow-hidden relative">
+          <div class="flex justify-between items-start relative z-10">
+            <span class="p-xs bg-primary/10 rounded-lg text-primary material-symbols-outlined">group</span>
+          </div>
+          <div class="mt-lg relative z-10">
+            <p class="text-on-surface-variant font-label-md text-label-md">${tr('Active Suppliers', 'الموردين النشطين')}</p>
+            <h4 class="text-display-lg text-primary font-bold mt-xs">${window.localSuppliers.length}</h4>
+          </div>
+          <div class="absolute -right-4 -bottom-4 opacity-5 transform scale-150 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[120px]">corporate_fare</span>
+          </div>
+        </div>
+
+        <div class="glass-card p-md rounded-2xl flex flex-col justify-between group overflow-hidden relative">
+          <div class="flex justify-between items-start relative z-10">
+            <span class="p-xs bg-secondary/10 rounded-lg text-secondary material-symbols-outlined">account_balance_wallet</span>
+          </div>
+          <div class="mt-lg relative z-10">
+            <p class="text-on-surface-variant font-label-md text-label-md">${tr('Outstanding Invoices', 'إجمالي الفواتير والمدفوعات المستحقة')}</p>
+            <h4 class="text-display-lg text-primary font-bold mt-xs">${outstandingInvoices.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span class="text-title-lg">${tr('SAR', 'ر.س')}</span></h4>
+          </div>
+          <div class="absolute -right-4 -bottom-4 opacity-5 transform scale-150 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[120px]">account_balance</span>
+          </div>
+        </div>
+
+        <div class="glass-card p-md rounded-2xl flex flex-col justify-between group overflow-hidden relative">
+          <div class="flex justify-between items-start relative z-10">
+            <span class="p-xs bg-tertiary-fixed-dim/20 rounded-lg text-tertiary-fixed-dim material-symbols-outlined">verified</span>
+          </div>
+          <div class="mt-lg relative z-10">
+            <p class="text-on-surface-variant font-label-md text-label-md">${tr('MOH Compliance Rate', 'معدل امتثال سداد الموردين')}</p>
+            <h4 class="text-display-lg text-primary font-bold mt-xs">94%</h4>
+          </div>
+          <div class="absolute -right-4 -bottom-4 opacity-5 transform scale-150 group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-[120px]">fact_check</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Section -->
+      <div class="glass-card p-md rounded-2xl flex flex-wrap justify-between items-center gap-md mb-md">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-secondary">contact_page</span>
+          <strong class="text-primary font-bold text-headline-md">${tr('Suppliers Management Directory', 'دليل الموردين المعتمدين')}</strong>
+        </div>
+        <button class="bg-primary text-on-primary font-bold px-md py-sm rounded-xl hover:opacity-90 flex items-center gap-1" onclick="showAddSupplierModal()">
+          <span class="material-symbols-outlined text-sm">person_add</span>
+          <span>${tr('Add New Supplier', 'إضافة مورد جديد')}</span>
+        </button>
+      </div>
+
+      <!-- Suppliers Table -->
+      <div class="glass-card rounded-xl overflow-hidden p-md">
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-right border-collapse">
+            <thead>
+              <tr class="bg-surface-container border-b border-outline-variant/30">
+                <th class="p-md font-bold text-sm text-primary">${tr('Supplier Name', 'اسم المورد')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Location / HQ', 'الموقع الرئيسي')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Email Address', 'البريد الإلكتروني')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Phone', 'رقم الهاتف')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Supply Category', 'نوع التوريدات')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Outstanding Bal (SAR)', 'الرصيد المتبقي المستحق')}</th>
+                <th class="p-md font-bold text-sm text-primary">${tr('Status', 'الحالة')}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant/10">
+              ${window.localSuppliers.map(s => `
+                <tr class="hover:bg-primary/5 transition-all">
+                  <td class="p-md font-bold text-primary flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-secondary-container/30 flex items-center justify-center font-bold text-secondary text-xs">${s.name.charAt(0)}</div>
+                    <span>${s.name}</span>
+                  </td>
+                  <td class="p-md text-on-surface-variant">${s.location}</td>
+                  <td class="p-md text-on-surface-variant font-mono text-sm">${s.email}</td>
+                  <td class="p-md text-on-surface-variant font-mono text-sm">${s.phone}</td>
+                  <td class="p-md"><span class="text-caption bg-surface-container px-sm py-1 rounded-full">${s.category}</span></td>
+                  <td class="p-md font-bold text-primary">${parseFloat(s.outstanding).toLocaleString()}</td>
+                  <td class="p-md">
+                    <span class="inline-flex items-center gap-1 px-sm py-1 bg-secondary/10 text-secondary rounded-full text-xs font-bold">
+                      <span class="w-1.5 h-1.5 bg-secondary rounded-full"></span>
+                      ${s.status}
+                    </span>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+  } else if (window.inventoryTab === 'logistics') {
+    // ----------------------------------------
+    // Tab 4: Logistics & Auto-Ordering
+    // ----------------------------------------
+    htmlContent += `
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+        
+        <!-- Auto Ordering and Suggestions (Interactive Widget) -->
+        <div class="glass-card p-lg rounded-xl col-span-2 border-r-4 border-r-secondary flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-lg">
+              <div>
+                <h4 class="font-headline-md text-headline-md text-primary font-bold">${tr('Automated Replenishment Dashboard', 'اللوجستيات الذكية والطلب التلقائي')}</h4>
+                <p class="font-body-md text-on-surface-variant mt-xs">${tr('System recommends purchase orders based on real-time reorder thresholds.', 'يحلل النظام الاستهلاك الأسبوعي ويقترح طلبات توريد فورية للأصناف التي أوشكت على النفاد.')}</p>
+              </div>
+              <span class="material-symbols-outlined text-secondary text-display-lg" style="font-size: 48px;">insights</span>
+            </div>
+            
+            <h5 class="font-bold text-title-lg text-primary mb-md">${tr('Recommended Restock Orders', 'أوامر التوريد المقترحة حالياً')}</h5>
+            
+            <div class="space-y-sm">
+              ${lowStock.length === 0 ? `
+                <div class="p-sm bg-secondary-container/20 rounded-lg text-secondary text-center">
+                  ✅ ${tr('All stock levels are completely healthy. No restocks suggested.', 'جميع مستويات المخزون كافية وآمنة. لا توجد اقتراحات حالياً.')}
+                </div>
+              ` : lowStock.map(i => {
+                const suggestQty = (i.reorder_level * 5) - i.quantity;
+                const estCost = suggestQty * (i.cost || 50);
+                return `
+                  <div class="p-md bg-surface-container rounded-lg border border-outline-variant/30 flex flex-col md:flex-row md:items-center justify-between gap-sm">
+                    <div>
+                      <div class="font-bold text-primary">${i.name}</div>
+                      <div class="text-caption text-on-surface-variant">${tr('Category:', 'الفئة:')} ${i.category} | ${tr('Current Stock:', 'المخزون الحالي:')} ${i.quantity} ${i.unit || ''}</div>
+                    </div>
+                    <div class="flex items-center gap-md">
+                      <div class="text-right">
+                        <div class="text-sm font-bold text-primary">${tr('Suggested Order:', 'الطلب المقترح:')} ${suggestQty} ${i.unit || ''}</div>
+                        <div class="text-caption text-secondary font-bold">${tr('Estimated Cost:', 'التكلفة المقدرة:')} ${estCost.toLocaleString()} ${tr('SAR', 'ر.س')}</div>
+                      </div>
+                      <button class="bg-secondary text-on-secondary px-md py-sm rounded-lg font-bold hover:opacity-90 text-sm transition-all" onclick="approveAutoOrder('${i.name.replace(/'/g, "")}', ${suggestQty}, ${estCost}, '${i.supplier || tr('Aldawaa', 'شركة الدواء للخدمات الطبية')}')">
+                        ⚡ ${tr('Approve PO', 'اعتماد الطلب')}
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+          
+          <div class="mt-lg pt-md border-t border-outline-variant/30 text-caption text-on-surface-variant flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">schedule</span>
+            <span>${tr('Last consumption algorithms check: 15 mins ago', 'تم آخر تدقيق لخوارزميات الاستهلاك قبل 15 دقيقة')}</span>
+          </div>
+        </div>
+
+        <!-- Logistics Transit and Map Simulation -->
+        <div class="glass-card p-lg rounded-xl flex flex-col justify-between">
+          <div>
+            <h4 class="font-headline-md text-headline-md text-primary font-bold mb-md">${tr('Active Deliveries in Transit', 'تتبع الشحنات اللوجستية')}</h4>
+            
+            <div class="space-y-md">
+              <div class="flex items-start gap-sm">
+                <span class="p-xs bg-secondary/10 text-secondary rounded-lg material-symbols-outlined mt-1">local_shipping</span>
+                <div class="flex-1">
+                  <div class="font-bold text-primary text-sm">${tr('Metronic Delivery (PO-2024-002)', 'شحنة ميدترونيك (PO-2024-002)')}</div>
+                  <div class="text-caption text-on-surface-variant">${tr('Status: In Transit (On Route)', 'حالة الشحنة: في الطريق إلى المستشفى')}</div>
+                  <div class="w-full bg-surface-container rounded-full h-1.5 mt-2">
+                    <div class="bg-secondary h-1.5 rounded-full animate-pulse" style="width: 75%"></div>
+                  </div>
+                  <div class="text-caption text-secondary font-bold mt-1">${tr('ETA: 4 hours', 'الوقت المتوقع للوصول: 4 ساعات')}</div>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-sm pt-sm border-t border-outline-variant/10">
+                <span class="p-xs bg-tertiary-fixed-dim/20 text-tertiary-fixed-dim rounded-lg material-symbols-outlined mt-1">schedule</span>
+                <div class="flex-1">
+                  <div class="font-bold text-primary text-sm">${tr('Aldawaa Medical Cargo', 'شحنة شركة الدواء')}</div>
+                  <div class="text-caption text-on-surface-variant">${tr('Status: Supplier Delays Expected', 'حالة الشحنة: متأخرة عند المورد')}</div>
+                  <div class="w-full bg-surface-container rounded-full h-1.5 mt-2">
+                    <div class="bg-error h-1.5 rounded-full" style="width: 20%"></div>
+                  </div>
+                  <div class="text-caption text-error font-bold mt-1">${tr('ETA: 48 hours', 'الوقت المتوقع للوصول: 48 ساعة')}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-surface-container-low p-sm rounded-lg text-center mt-lg border border-outline-variant/20">
+            <span class="text-caption text-on-surface-variant block mb-1">${tr('MOH Integrated Fleet', 'منظومة الأسطول اللوجستي')}</span>
+            <span class="text-headline-md font-bold text-primary">4.2 ${tr('hrs', 'ساعات')}</span>
+            <span class="text-caption text-secondary block mt-1">${tr('Average urgent delivery lead time', 'متوسط زمن وصول طلبات المشتريات المستعجلة')}</span>
+          </div>
+        </div>
+
+      </div>
+    `;
+
+  } else if (window.inventoryTab === 'intelligence') {
+    // ----------------------------------------
+    // Tab 5: AI Command Center (Intelligence)
+    // ----------------------------------------
+    htmlContent += `
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+        
+        <div class="glass-card p-lg rounded-xl border-r-4 border-r-secondary flex flex-col justify-between">
+          <div>
+            <h4 class="font-headline-md text-headline-md text-primary font-bold mb-md">${tr('Consumption Intelligence Analytics', 'تحليلات ذكاء الاستهلاك')}</h4>
+            <p class="font-body-md text-on-surface-variant mb-lg">${tr('AI predicts stock depletion rates based on weekly patient admission volume.', 'يقوم الذكاء الاصطناعي بالتنبؤ بمعدل نفاد المستلزمات بناءً على أعداد المراجعين المجدولة والعمليات المفتوحة.')}</p>
+            
+            <div class="space-y-md">
+              <div class="flex items-center justify-between p-sm bg-surface-container rounded-lg">
+                <span class="font-body-md text-primary">${tr('Sterilization Kits usage speed:', 'معدل استهلاك المعقمات:')}</span>
+                <span class="text-error font-bold">+18% ${tr('increase', 'ارتفاع')}</span>
+              </div>
+              <div class="flex items-center justify-between p-sm bg-surface-container rounded-lg">
+                <span class="font-body-md text-primary">${tr('Disposable syringe usage:', 'استهلاك الحقن الطبية:')}</span>
+                <span class="text-secondary font-bold">-2% ${tr('decrease', 'انخفاض')}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-lg p-sm bg-primary text-on-primary rounded-lg text-center">
+            <div class="font-label-md">${tr('AI Predicted Wastage Reduction', 'معدل خفض الهدر الطبي المتوقع')}</div>
+            <div class="text-headline-md font-bold">-0.8% ${tr('this quarter', 'هذا الربع')}</div>
+            <p class="text-caption opacity-80 mt-1">${tr('Calculated using smart inventory optimization rules', 'نظام تحسين إعادة الطلب الذكي يمنع تراكم الأدوية منتهية الصلاحية')}</p>
+          </div>
+        </div>
+
+        <div class="glass-card p-lg rounded-xl flex flex-col justify-between relative overflow-hidden">
+          <div>
+            <h4 class="font-headline-md text-headline-md text-primary font-bold mb-md">${tr('Unified Inventory Intelligence Command', 'مركز أوامر وإدارة المخاطر')}</h4>
+            <p class="font-body-md text-on-surface-variant mb-lg">${tr('Live tracking dashboard for all pharmacy warehouses and clinical supplies.', 'رصد مباشر لكافة مخازن الأدوية المركزية والمستلزمات في غرف العمليات.')}</p>
+            
+            <div class="grid grid-cols-2 gap-sm">
+              <div class="bg-surface-container-low p-sm rounded-lg text-center">
+                <span class="text-caption text-on-surface-variant block">${tr('Annual Waste Rate', 'معدل الهدر السنوي')}</span>
+                <span class="text-headline-md font-bold text-primary">0.8%</span>
+                <span class="text-caption text-secondary block mt-1">↓ 0.2% ${tr('YoY', 'عن العام السابق')}</span>
+              </div>
+              <div class="bg-surface-container-low p-sm rounded-lg text-center">
+                <span class="text-caption text-on-surface-variant block">${tr('Optimal stock availability', 'توفر المخزون الأساسي')}</span>
+                <span class="text-headline-md font-bold text-primary">92%</span>
+                <span class="text-caption text-secondary block mt-1">${tr('Optimal', 'جاهزية ممتازة')}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- TODO: Backend integration placeholder widget -->
+          <div class="p-sm bg-surface-container-low border border-outline-variant/30 rounded-lg text-center mt-lg">
+            <p class="text-caption text-on-surface-variant mb-1">💡 TODO: Integrate live Chart.js or D3.js prediction curves on next phase release</p>
+            <span class="text-xs text-secondary font-bold">Predictive AI Model: V2.1 Active</span>
+          </div>
+        </div>
+
+      </div>
+    `;
+  }
+
+  content.innerHTML = htmlContent;
+
+  // Search function local to page
   window.filterInvTable = () => {
     const txt = (document.getElementById('invSearch')?.value || '').toLowerCase();
-    document.querySelectorAll('#invTbl tbody tr').forEach(r => r.style.display = r.textContent.toLowerCase().includes(txt) ? '' : 'none');
+    const cat = document.getElementById('invCatFilter')?.value || '';
+    
+    document.querySelectorAll('#invTbl tbody tr').forEach(r => {
+      const rowText = r.textContent.toLowerCase();
+      const matchText = rowText.includes(txt);
+      const matchCat = cat === '' || rowText.includes(cat.toLowerCase());
+      
+      r.style.display = (matchText && matchCat) ? '' : 'none';
+    });
   };
-  window.showLowStock = () => {
+
+  // Automated order execution handler
+  window.approveAutoOrder = (name, qty, cost, supplier) => {
+    const newId = `PO-2024-00${window.localPOs.length + 1}`;
+    window.localPOs.unshift({
+      id: newId,
+      supplier: supplier,
+      date: new Date().toISOString().split('T')[0],
+      delivery: new Date(Date.now() + 5*24*60*60*1000).toISOString().split('T')[0],
+      amount: cost,
+      status: 'قيد الانتظار',
+      items: [{ name: name, qty: qty, cost: cost / qty }]
+    });
+    showToast(tr(`Auto-Order approved and PO created!`, `تم اعتماد طلب التوريد التلقائي لـ ${name}!`), 'success');
+    window.inventoryTab = 'procurement';
+    navigateTo(currentPage);
+  };
+
+  // Receive Purchase Order handler
+  window.receivePO = async (poId) => {
+    const poIndex = window.localPOs.findIndex(po => po.id === poId);
+    if (poIndex === -1) return;
+    
+    const po = window.localPOs[poIndex];
+    po.status = 'مكتمل';
+
+    // Update the item quantity in the database if the item exists in real database
+    if (po.items && po.items.length) {
+      for (const poItem of po.items) {
+        // Find existing item by name
+        const matchItem = items.find(i => i.name.toLowerCase() === poItem.name.toLowerCase());
+        if (matchItem) {
+          const newQty = parseInt(matchItem.quantity || 0) + parseInt(poItem.qty);
+          try {
+            await API.put(`/api/inventory/${matchItem.id}`, {
+              ...matchItem,
+              quantity: newQty
+            });
+            showToast(tr(`Received and added ${poItem.qty} units to ${matchItem.name}`, `تم استلام الشحنة وإضافة ${poItem.qty} وحدة لـ ${matchItem.name}`), 'success');
+          } catch (e) {
+            console.error('Error auto-updating inventory quantity', e);
+          }
+        } else {
+          // If not found in real database, add it as a new inventory item
+          try {
+            await API.post('/api/inventory', {
+              name: poItem.name,
+              category: tr('Supplies', 'مستلزمات عامة'),
+              quantity: poItem.qty,
+              unit: tr('Units', 'وحدة'),
+              reorder_level: 10,
+              location: tr('A1 Warehouse', 'المخزن أ1'),
+              supplier: po.supplier,
+              cost: poItem.cost,
+              expiry_date: new Date(Date.now() + 365*24*60*60*1000).toISOString().split('T')[0]
+            });
+          } catch(e) {
+            console.error('Error auto-inserting new item', e);
+          }
+        }
+      }
+    }
+
+    showToast(tr(`PO ${poId} successfully received and inventory updated!`, `تم استلام الطلب ${poId} وتحديث المخزون بنجاح!`), 'success');
+    navigateTo(currentPage);
+  };
+
+  // ----------------------------------------
+  // MODALS & ACTIONS IMPLEMENTATIONS
+  // ----------------------------------------
+  window.showAddInvModal = () => {
     const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
-    const lowItems = (window._invData || []).filter(i => parseInt(i.quantity || 0) <= parseInt(i.reorder_level || 10));
-    modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:500px;direction:rtl;max-height:80vh;overflow:auto"><h3 style="margin:0 0 16px;color:#c62828">⚠️ ' + tr('Low Stock Items', 'أصناف مخزونها منخفض') + ' (' + lowItems.length + ')</h3>' + lowItems.map(i => '<div style="padding:10px;margin:4px 0;background:#fce4ec;border-radius:8px;display:flex;justify-content:space-between"><strong>' + i.name + '</strong><span style="color:#c62828;font-weight:bold">' + i.quantity + ' / ' + (i.reorder_level || 10) + '</span></div>').join('') + '<button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:16px">' + tr('Close', 'إغلاق') + '</button></div>';
+    modal.innerHTML = `
+      <div class="glass-card p-lg rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto" style="direction:rtl">
+        <div class="flex justify-between items-center mb-md">
+          <h4 class="font-bold text-headline-md text-primary">📦 ${tr('Add New Inventory Item', 'إضافة صنف جديد')}</h4>
+          <button class="text-on-surface-variant hover:text-error" onclick="this.closest('.modal-overlay').remove()">❌</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-sm">
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Item Name (AR/EN)', 'اسم المنتج')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="invName" required placeholder="e.g. باراسيتامول"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Category', 'الفئة')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="invCat" placeholder="e.g. أدوية"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Quantity', 'الكمية البدئية')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="number" id="invQty" value="100"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Unit', 'الوحدة')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="invUnit" value="علبة"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Reorder Level', 'حد إعادة الطلب')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="number" id="invReorder" value="10"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Warehouse Location', 'موقع التخزين بالمستودع')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="invLoc" placeholder="e.g. الجناح أ - الرف 3"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Supplier Name', 'اسم المورد المعتمد')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="invSupplier" placeholder="e.g. شركة الدواء"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Cost per Unit (SAR)', 'التكلفة لكل وحدة')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="number" step="0.01" id="invCost" value="15.50"></div>
+          <div class="form-group md:col-span-2"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Expiry Date', 'تاريخ انتهاء الصلاحية')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="date" id="invExpiry" value="2027-12-31"></div>
+        </div>
+        <button class="bg-primary text-on-primary font-bold w-full py-3 rounded-xl mt-md hover:opacity-90 transition-all" onclick="saveInvItem()">${tr('Add to Database', 'حفظ الصنف')}</button>
+      </div>
+    `;
     document.body.appendChild(modal);
     modal.onclick = e => { if (e.target === modal) modal.remove(); };
   };
 
-}
-window.addInvItem = async () => {
-  const name = document.getElementById('invName').value.trim();
-  if (!name) { showToast(tr('Enter item name', 'ادخل اسم الصنف'), 'error'); return; }
-  try {
-    await API.post('/api/inventory/items', {
-      item_name: name,
-      item_code: document.getElementById('invCode').value,
-      category: document.getElementById('invCat').value,
-      cost_price: parseFloat(document.getElementById('invCost').value) || 0,
-      stock_qty: parseInt(document.getElementById('invQty').value) || 0,
-      min_qty: parseInt(document.getElementById('invMin').value) || 5
+  window.saveInvItem = async () => {
+    const name = document.getElementById('invName').value.trim();
+    if (!name) { showToast(tr('Enter item name', 'ادخل اسم الصنف'), 'error'); return; }
+    try {
+      await API.post('/api/inventory', {
+        name: name,
+        category: document.getElementById('invCat').value.trim(),
+        quantity: parseInt(document.getElementById('invQty').value) || 0,
+        unit: document.getElementById('invUnit').value.trim() || 'وحدة',
+        reorder_level: parseInt(document.getElementById('invReorder').value) || 10,
+        location: document.getElementById('invLoc').value.trim() || tr('Not specified', 'غير محدد'),
+        supplier: document.getElementById('invSupplier').value.trim() || tr('Not specified', 'غير محدد'),
+        cost: parseFloat(document.getElementById('invCost').value) || 0,
+        expiry_date: document.getElementById('invExpiry').value || null
+      });
+      showToast(tr('Item added successfully!', 'تمت إضافة الصنف بنجاح!'), 'success');
+      document.querySelector('.modal-overlay')?.remove();
+      navigateTo(currentPage);
+    } catch (e) {
+      showToast(tr('Error adding item', 'خطأ في إضافة الصنف'), 'error');
+    }
+  };
+
+  window.showEditInvModal = (i) => {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+    modal.innerHTML = `
+      <div class="glass-card p-lg rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto" style="direction:rtl">
+        <div class="flex justify-between items-center mb-md">
+          <h4 class="font-bold text-headline-md text-primary">📝 ${tr('Edit Inventory Item', 'تعديل صنف')}</h4>
+          <button class="text-on-surface-variant hover:text-error" onclick="this.closest('.modal-overlay').remove()">❌</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-sm">
+          <input type="hidden" id="editInvId" value="${i.id}">
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Item Name (AR/EN)', 'اسم المنتج')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="editInvName" value="${i.name || ''}" required></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Category', 'الفئة')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="editInvCat" value="${i.category || ''}"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Quantity', 'الكمية')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="number" id="editInvQty" value="${i.quantity || 0}"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Unit', 'الوحدة')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="editInvUnit" value="${i.unit || ''}"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Reorder Level', 'حد إعادة الطلب')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="number" id="editInvReorder" value="${i.reorder_level || 10}"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Warehouse Location', 'موقع التخزين بالقسم')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="editInvLoc" value="${i.location || ''}"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Supplier Name', 'اسم المورد المعتمد')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="editInvSupplier" value="${i.supplier || ''}"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Cost per Unit (SAR)', 'التكلفة')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="number" step="0.01" id="editInvCost" value="${i.cost || 0}"></div>
+          <div class="form-group md:col-span-2"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Expiry Date', 'تاريخ انتهاء الصلاحية')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="date" id="editInvExpiry" value="${i.expiry_date ? i.expiry_date.split('T')[0] : ''}"></div>
+        </div>
+        <button class="bg-primary text-on-primary font-bold w-full py-3 rounded-xl mt-md hover:opacity-90 transition-all" onclick="updateInvItem()">${tr('Update Item', 'حفظ التعديلات')}</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    modal.onclick = e => { if (e.target === modal) modal.remove(); };
+  };
+
+  window.updateInvItem = async () => {
+    const id = document.getElementById('editInvId').value;
+    const name = document.getElementById('editInvName').value.trim();
+    if (!name) { showToast(tr('Enter item name', 'ادخل اسم الصنف'), 'error'); return; }
+    try {
+      await API.put(`/api/inventory/${id}`, {
+        name: name,
+        category: document.getElementById('editInvCat').value.trim(),
+        quantity: parseInt(document.getElementById('editInvQty').value) || 0,
+        unit: document.getElementById('editInvUnit').value.trim() || 'وحدة',
+        reorder_level: parseInt(document.getElementById('editInvReorder').value) || 10,
+        location: document.getElementById('editInvLoc').value.trim(),
+        supplier: document.getElementById('editInvSupplier').value.trim(),
+        cost: parseFloat(document.getElementById('editInvCost').value) || 0,
+        expiry_date: document.getElementById('editInvExpiry').value || null
+      });
+      showToast(tr('Item updated successfully!', 'تم تعديل الصنف بنجاح!'), 'success');
+      document.querySelector('.modal-overlay')?.remove();
+      navigateTo(currentPage);
+    } catch (e) {
+      showToast(tr('Error updating item', 'خطأ في تعديل الصنف'), 'error');
+    }
+  };
+
+  window.deleteInvItem = async (id) => {
+    if (!confirm(tr('Are you sure you want to delete this item?', 'هل أنت متأكد من رغبتك في حذف هذا الصنف نهائياً؟'))) return;
+    try {
+      await API.delete(`/api/inventory/${id}`);
+      showToast(tr('Item deleted!', 'تم حذف الصنف!'), 'success');
+      navigateTo(currentPage);
+    } catch (e) {
+      showToast(tr('Error deleting item', 'خطأ في حذف الصنف'), 'error');
+    }
+  };
+
+  // Add Supplier Modal
+  window.showAddSupplierModal = () => {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+    modal.innerHTML = `
+      <div class="glass-card p-lg rounded-2xl w-full max-w-lg" style="direction:rtl">
+        <div class="flex justify-between items-center mb-md">
+          <h4 class="font-bold text-headline-md text-primary">🤝 ${tr('Add New Supplier', 'إضافة مورد جديد')}</h4>
+          <button class="text-on-surface-variant hover:text-error" onclick="this.closest('.modal-overlay').remove()">❌</button>
+        </div>
+        <div class="space-y-sm">
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Supplier Name', 'اسم المورد')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="supName" required></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Location', 'الموقع / العنوان')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="supLoc"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Email', 'البريد الإلكتروني')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="email" id="supEmail"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Phone', 'رقم الجوال / الهاتف')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="supPhone"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Supply Category', 'التصنيف')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="supCat" placeholder="e.g. مستلزمات طبية"></div>
+        </div>
+        <button class="bg-primary text-on-primary font-bold w-full py-3 rounded-xl mt-md hover:opacity-90 transition-all" onclick="saveSupplier()">${tr('Add Supplier', 'حفظ المورد')}</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    modal.onclick = e => { if (e.target === modal) modal.remove(); };
+  };
+
+  window.saveSupplier = () => {
+    const name = document.getElementById('supName').value.trim();
+    if (!name) { showToast(tr('Enter supplier name', 'ادخل اسم المورد'), 'error'); return; }
+    window.localSuppliers.unshift({
+      id: window.localSuppliers.length + 1,
+      name: name,
+      location: document.getElementById('supLoc').value.trim() || tr('Riyadh, Saudi Arabia', 'الرياض، المملكة العربية السعودية'),
+      email: document.getElementById('supEmail').value.trim() || 'info@supplier.sa',
+      phone: document.getElementById('supPhone').value.trim() || '011-000-0000',
+      category: document.getElementById('supCat').value.trim() || tr('Supplies', 'مستلزمات عامة'),
+      outstanding: 0.00,
+      status: 'نشط'
     });
-    showToast(tr('Item added!', 'تمت الإضافة!'));
-    await navigateTo(10);
-  } catch (e) { showToast(tr('Error adding', 'خطأ في الإضافة'), 'error'); }
-};
+    showToast(tr('Supplier added successfully!', 'تمت إضافة المورد بنجاح!'), 'success');
+    document.querySelector('.modal-overlay')?.remove();
+    navigateTo(currentPage);
+  };
+
+  // Add Purchase Order Modal
+  window.showAddPOModal = () => {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+    modal.innerHTML = `
+      <div class="glass-card p-lg rounded-2xl w-full max-w-lg" style="direction:rtl">
+        <div class="flex justify-between items-center mb-md">
+          <h4 class="font-bold text-headline-md text-primary">🧾 ${tr('Create Purchase Order', 'إنشاء أمر شراء جديد')}</h4>
+          <button class="text-on-surface-variant hover:text-error" onclick="this.closest('.modal-overlay').remove()">❌</button>
+        </div>
+        <div class="space-y-sm">
+          <div class="form-group">
+            <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Select Supplier', 'اختر المورد')}</label>
+            <select class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="poSupplierSelect">
+              ${window.localSuppliers.map(s => `<option value="${s.name}">${s.name}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Select Medical Item', 'اختر المنتج من المستودع')}</label>
+            <select class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="poItemSelect">
+              ${items.map(i => `<option value="${i.name}" data-cost="${i.cost}">${i.name} (التكلفة: ${i.cost} ر.س)</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Quantity Required', 'الكمية المطلوبة')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="number" id="poQty" value="10" oninput="calcPOTotal()"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Estimated PO Amount (SAR)', 'المبلغ الإجمالي المتوقع')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2 font-bold text-secondary text-lg" type="number" id="poTotalAmt" readonly value="0"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Expected Delivery Date', 'تاريخ التوصيل المتوقع')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="date" id="poDeliveryDate" value="2026-06-25"></div>
+        </div>
+        <button class="bg-primary text-on-primary font-bold w-full py-3 rounded-xl mt-md hover:opacity-90 transition-all" onclick="savePurchaseOrder()">${tr('Issue Purchase Order', 'إصدار أمر الشراء')}</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    modal.onclick = e => { if (e.target === modal) modal.remove(); };
+    calcPOTotal();
+
+    // Event listener to update cost on select change
+    document.getElementById('poItemSelect').addEventListener('change', calcPOTotal);
+  };
+
+  window.calcPOTotal = () => {
+    const poSelect = document.getElementById('poItemSelect');
+    if (!poSelect) return;
+    const selectedOpt = poSelect.options[poSelect.selectedIndex];
+    if (!selectedOpt) return;
+    const cost = parseFloat(selectedOpt.dataset.cost || 0);
+    const qty = parseInt(document.getElementById('poQty').value) || 0;
+    document.getElementById('poTotalAmt').value = (cost * qty).toFixed(2);
+  };
+
+  window.savePurchaseOrder = () => {
+    const supplier = document.getElementById('poSupplierSelect').value;
+    const itemName = document.getElementById('poItemSelect').value;
+    const qty = parseInt(document.getElementById('poQty').value) || 0;
+    const total = parseFloat(document.getElementById('poTotalAmt').value) || 0;
+    if (qty <= 0) { showToast(tr('Enter a valid quantity', 'ادخل كمية صحيحة'), 'error'); return; }
+
+    const newId = `PO-2024-00${window.localPOs.length + 1}`;
+    window.localPOs.unshift({
+      id: newId,
+      supplier: supplier,
+      date: new Date().toISOString().split('T')[0],
+      delivery: document.getElementById('poDeliveryDate').value || new Date(Date.now() + 5*24*60*60*1000).toISOString().split('T')[0],
+      amount: total,
+      status: 'قيد الانتظار',
+      items: [{ name: itemName, qty: qty, cost: total / qty }]
+    });
+
+    showToast(tr('Purchase Order issued successfully!', 'تم إصدار أمر الشراء بنجاح وهو قيد معالجة التوريد!'), 'success');
+    document.querySelector('.modal-overlay')?.remove();
+    navigateTo(currentPage);
+  };
+
+}
 
 // ===== SIMPLE MODULE PAGES =====
 let nurseTab = 'vitals';

@@ -1498,3 +1498,23 @@ body {
   border-color: rgba(239, 68, 68, 0.4) !important;
 }
 
+/* ===== BATCH C: SUPPLY CHAIN & LOGISTICS PREMIUM GLASS CARD & SCROLLBAR ===== */
+.glass-card {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(227, 209, 180, 0.3) !important;
+  box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05) !important;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #c3c7ce;
+  border-radius: 10px;
+}
+
+
