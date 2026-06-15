@@ -893,14 +893,25 @@ app.post('/api/radiology/orders/:id/upload', requireAuth, upload.single('image')
 
 // ===== PHARMACY =====
 app.get('/api/pharmacy/drugs', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM pharmacy_drug_catalog WHERE is_active=1 ORDER BY drug_name')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        const query = tenantId ?
+            'SELECT * FROM pharmacy_drug_catalog WHERE is_active=1 AND tenant_id=$1 ORDER BY drug_name' :
+            'SELECT * FROM pharmacy_drug_catalog WHERE is_active=1 ORDER BY drug_name';
+        const params = tenantId ? [tenantId] : [];
+        res.json((await pool.query(query, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // Pharmacy low stock alerts
 app.get('/api/pharmacy/low-stock', requireAuth, async (req, res) => {
     try {
-        const lowStock = (await pool.query('SELECT * FROM pharmacy_drug_catalog WHERE is_active=1 AND stock_qty <= COALESCE(min_stock_level, 10) ORDER BY stock_qty ASC')).rows;
+        const { tenantId } = getRequestTenantContext(req);
+        const query = tenantId ?
+            'SELECT * FROM pharmacy_drug_catalog WHERE is_active=1 AND stock_qty <= COALESCE(min_qty, 10) AND tenant_id=$1 ORDER BY stock_qty ASC' :
+            'SELECT * FROM pharmacy_drug_catalog WHERE is_active=1 AND stock_qty <= COALESCE(min_qty, 10) ORDER BY stock_qty ASC';
+        const params = tenantId ? [tenantId] : [];
+        const lowStock = (await pool.query(query, params)).rows;
         res.json(lowStock);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -908,21 +919,38 @@ app.get('/api/pharmacy/low-stock', requireAuth, async (req, res) => {
 app.post('/api/pharmacy/drugs', requireAuth, async (req, res) => {
     try {
         const { drug_name, active_ingredient, category, unit, selling_price, cost_price, stock_qty } = req.body;
-        const result = await pool.query('INSERT INTO pharmacy_drug_catalog (drug_name, active_ingredient, category, unit, selling_price, cost_price, stock_qty) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id',
-            [drug_name, active_ingredient || '', category || '', unit || '', selling_price || 0, cost_price || 0, stock_qty || 0]);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        const result = await pool.query('INSERT INTO pharmacy_drug_catalog (drug_name, active_ingredient, category, unit, selling_price, cost_price, stock_qty, tenant_id, branch_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id',
+            [drug_name, active_ingredient || '', category || '', unit || '', selling_price || 0, cost_price || 0, stock_qty || 0, tenantId || null, facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'ADD_DRUG', 'Pharmacy',
+            `Added drug ${drug_name} to catalog`, req.ip);
         res.json((await pool.query('SELECT * FROM pharmacy_drug_catalog WHERE id=$1', [result.rows[0].id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.get('/api/pharmacy/queue', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT pq.*, p.name_en as patient_name FROM pharmacy_prescriptions_queue pq LEFT JOIN patients p ON pq.patient_id=p.id ORDER BY pq.id DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        const query = tenantId ?
+            'SELECT pq.*, p.name_en as patient_name FROM pharmacy_prescriptions_queue pq LEFT JOIN patients p ON pq.patient_id=p.id WHERE pq.tenant_id=$1 ORDER BY pq.id DESC' :
+            'SELECT pq.*, p.name_en as patient_name FROM pharmacy_prescriptions_queue pq LEFT JOIN patients p ON pq.patient_id=p.id ORDER BY pq.id DESC';
+        const params = tenantId ? [tenantId] : [];
+        res.json((await pool.query(query, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.put('/api/pharmacy/queue/:id', requireAuth, async (req, res) => {
     try {
         const { status } = req.body;
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const rxCheck = (await pool.query(`SELECT id FROM pharmacy_prescriptions_queue WHERE id=$1${tenantCheck}`, checkParams)).rows[0];
+        if (!rxCheck) return res.status(404).json({ error: 'Queue item not found' });
+
         if (status) await pool.query('UPDATE pharmacy_prescriptions_queue SET status=$1, dispensed_at=CURRENT_TIMESTAMP WHERE id=$2', [status, req.params.id]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'DISPENSE_MEDICATION', 'Pharmacy',
+            `Dispensed queue item #${req.params.id} status:${status}`, req.ip);
         res.json((await pool.query('SELECT * FROM pharmacy_prescriptions_queue WHERE id=$1', [req.params.id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1096,32 +1124,57 @@ app.get('/api/bookings', requireAuth, async (req, res) => {
 app.get('/api/prescriptions', requireAuth, async (req, res) => {
     try {
         const { patient_id } = req.query;
-        if (patient_id) { res.json((await pool.query('SELECT * FROM prescriptions WHERE patient_id=$1 ORDER BY id DESC', [patient_id])).rows); }
-        else { res.json((await pool.query('SELECT * FROM prescriptions ORDER BY id DESC')).rows); }
+        const { tenantId } = getRequestTenantContext(req);
+        if (patient_id) {
+            if (tenantId) {
+                const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+                if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
+            }
+            const query = tenantId ?
+                'SELECT * FROM prescriptions WHERE patient_id=$1 AND tenant_id=$2 ORDER BY id DESC' :
+                'SELECT * FROM prescriptions WHERE patient_id=$1 ORDER BY id DESC';
+            const params = tenantId ? [patient_id, tenantId] : [patient_id];
+            res.json((await pool.query(query, params)).rows);
+        } else {
+            const query = tenantId ?
+                'SELECT * FROM prescriptions WHERE tenant_id=$1 ORDER BY id DESC' :
+                'SELECT * FROM prescriptions ORDER BY id DESC';
+            const params = tenantId ? [tenantId] : [];
+            res.json((await pool.query(query, params)).rows);
+        }
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/api/prescriptions', requireAuth, async (req, res) => {
     try {
-        const { patient_id, medication_name, dosage, frequency, duration, notes } = req.body;
+        const { patient_id, medication_name, dosage, frequency, duration, notes, items, patient_name } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (tenantId && patient_id) {
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
+        }
         // Lookup drug price from catalog
         let drugPrice = 0;
         if (medication_name) {
-            const drug = (await pool.query('SELECT selling_price FROM pharmacy_drug_catalog WHERE drug_name ILIKE $1 LIMIT 1', [`%${medication_name}%`])).rows[0];
+            const drugQuery = tenantId ?
+                'SELECT selling_price FROM pharmacy_drug_catalog WHERE drug_name ILIKE $1 AND tenant_id=$2 LIMIT 1' :
+                'SELECT selling_price FROM pharmacy_drug_catalog WHERE drug_name ILIKE $1 LIMIT 1';
+            const drugParams = tenantId ? [`%${medication_name}%`, tenantId] : [`%${medication_name}%`];
+            const drug = (await pool.query(drugQuery, drugParams)).rows[0];
             if (drug) drugPrice = drug.selling_price;
         }
-        const result = await pool.query('INSERT INTO prescriptions (patient_id, medication_id, dosage, duration, status) VALUES ($1,0,$2,$3,$4) RETURNING id',
-            [patient_id, `${medication_name} ${dosage} ${frequency}`, duration || '', 'Pending']);
-        await pool.query('INSERT INTO pharmacy_prescriptions_queue (patient_id, prescription_text, status) VALUES ($1,$2,$3)',
-            [patient_id, `${medication_name} - ${dosage} - ${frequency} - ${duration}`, 'Pending']);
+        const result = await pool.query('INSERT INTO prescriptions (patient_id, medication_id, dosage, duration, status, tenant_id, facility_id) VALUES ($1,0,$2,$3,$4,$5,$6) RETURNING id',
+            [patient_id, `${medication_name} ${dosage} ${frequency}`, duration || '', 'Pending', tenantId || null, facilityId || null]);
+        await pool.query('INSERT INTO pharmacy_prescriptions_queue (patient_id, prescription_text, status, tenant_id, branch_id) VALUES ($1,$2,$3,$4,$5)',
+            [patient_id, `${medication_name} - ${dosage} - ${frequency} - ${duration}`, 'Pending', tenantId || null, facilityId || null]);
         // Auto-create invoice for prescription drug (with VAT for non-Saudis)
         if (drugPrice > 0 && patient_id) {
             const p = (await pool.query('SELECT name_en, name_ar FROM patients WHERE id=$1', [patient_id])).rows[0];
             const vat = await calcVAT(patient_id);
             const { total: finalTotal, vatAmount } = addVAT(drugPrice, vat.rate);
             const desc = `دواء: ${medication_name}` + (vat.applyVAT ? ` (+ ضريبة ${vatAmount} SAR)` : '');
-            await pool.query('INSERT INTO invoices (patient_id, patient_name, total, vat_amount, description, service_type, paid) VALUES ($1,$2,$3,$4,$5,$6,0)',
-                [patient_id, p?.name_en || p?.name_ar || '', finalTotal, vatAmount, desc, 'Pharmacy']);
+            await pool.query('INSERT INTO invoices (patient_id, patient_name, total, vat_amount, description, service_type, paid, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,0,$7,$8)',
+                [patient_id, p?.name_en || p?.name_ar || '', finalTotal, vatAmount, desc, 'Pharmacy', tenantId || null, facilityId || null]);
         }
 
         // AUTO: Send prescription to pharmacy queue
@@ -1129,12 +1182,14 @@ app.post('/api/prescriptions', requireAuth, async (req, res) => {
             if (Array.isArray(items)) {
                 for (const item of items) {
                     await pool.query(
-                        "INSERT INTO pharmacy_queue (patient_id, patient_name, drug_name, dosage, quantity, doctor, status, prescription_id) VALUES ($1, $2, $3, $4, $5, $6, 'Pending', $7)",
-                        [patient_id, patient_name || '', item.drug || item.name, item.dosage || '', item.quantity || 1, req.session.user?.display_name || '', result.rows[0]?.id || null]
+                        "INSERT INTO pharmacy_queue (patient_id, patient_name, drug_name, dosage, quantity, doctor, status, prescription_id, tenant_id, facility_id) VALUES ($1, $2, $3, $4, $5, $6, 'Pending', $7, $8, $9)",
+                        [patient_id, patient_name || '', item.drug || item.name, item.dosage || '', item.quantity || 1, req.session.user?.display_name || '', result.rows[0]?.id || null, tenantId || null, facilityId || null]
                     );
                 }
             }
         } catch (pe) { console.error('Pharmacy queue auto-insert:', pe.message); }
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_PRESCRIPTION', 'Pharmacy',
+            `Created prescription for patient #${patient_id}: ${medication_name}`, req.ip);
         res.json((await pool.query('SELECT * FROM prescriptions WHERE id=$1', [result.rows[0].id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -3173,7 +3228,10 @@ app.get('/api/print/invoice/:id', requireAuth, async (req, res) => {
 
 app.get('/api/print/prescription/:id', requireAuth, async (req, res) => {
     try {
-        const rx = (await pool.query('SELECT p.*, m.name as med_name FROM prescriptions p LEFT JOIN medications m ON p.medication_id=m.id WHERE p.id=$1', [req.params.id])).rows[0];
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND p.tenant_id=$2' : '';
+        const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const rx = (await pool.query(`SELECT p.*, m.name as med_name FROM prescriptions p LEFT JOIN medications m ON p.medication_id=m.id WHERE p.id=$1${tenantCheck}`, params)).rows[0];
         if (!rx) return res.status(404).json({ error: 'Not found' });
         const patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [rx.patient_id])).rows[0];
         res.json({ prescription: rx, patient });
@@ -3225,6 +3283,11 @@ async function startServer() {
 app.post('/api/prescriptions', requireAuth, async (req, res) => {
     try {
         const { patient_id, medication_name, dosage, quantity_per_day, frequency, duration } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (tenantId && patient_id) {
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
+        }
         const rxText = `${medication_name || ''} | ${dosage || ''}${quantity_per_day && quantity_per_day !== '1' ? ' (×' + quantity_per_day + ')' : ''} | ${frequency || ''} | ${duration || ''}`;
         // Ensure individual columns exist
         await pool.query(`ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN IF NOT EXISTS medication_name TEXT DEFAULT ''`).catch(() => { });
@@ -3233,10 +3296,12 @@ app.post('/api/prescriptions', requireAuth, async (req, res) => {
         await pool.query(`ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN IF NOT EXISTS frequency TEXT DEFAULT ''`).catch(() => { });
         await pool.query(`ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN IF NOT EXISTS duration TEXT DEFAULT ''`).catch(() => { });
         const r = await pool.query(
-            `INSERT INTO pharmacy_prescriptions_queue (patient_id, doctor_id, prescription_text, medication_name, dosage, quantity_per_day, frequency, duration, status) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Pending') RETURNING *`,
-            [patient_id, req.session.user?.id || 0, rxText, medication_name || '', dosage || '', quantity_per_day || '1', frequency || '', duration || '']
+            `INSERT INTO pharmacy_prescriptions_queue (patient_id, doctor_id, prescription_text, medication_name, dosage, quantity_per_day, frequency, duration, status, tenant_id, branch_id) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Pending', $9, $10) RETURNING *`,
+            [patient_id, req.session.user?.id || 0, rxText, medication_name || '', dosage || '', quantity_per_day || '1', frequency || '', duration || '', tenantId || null, facilityId || null]
         );
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_PRESCRIPTION_QUEUE', 'Pharmacy',
+            `Sent prescription to queue for patient #${patient_id}: ${medication_name}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -3244,10 +3309,19 @@ app.post('/api/prescriptions', requireAuth, async (req, res) => {
 // Get pharmacy prescriptions queue
 app.get('/api/pharmacy/queue', requireAuth, async (req, res) => {
     try {
-        const rows = (await pool.query(`SELECT q.*, p.name_ar as patient_name, p.file_number, p.phone, p.age, p.department, q.doctor
-            FROM pharmacy_prescriptions_queue q 
-            LEFT JOIN patients p ON q.patient_id = p.id 
-            ORDER BY q.id DESC`)).rows;
+        const { tenantId } = getRequestTenantContext(req);
+        const query = tenantId ?
+            `SELECT q.*, p.name_ar as patient_name, p.file_number, p.phone, p.age, p.department, q.doctor
+             FROM pharmacy_prescriptions_queue q 
+             LEFT JOIN patients p ON q.patient_id = p.id 
+             WHERE q.tenant_id=$1
+             ORDER BY q.id DESC` :
+            `SELECT q.*, p.name_ar as patient_name, p.file_number, p.phone, p.age, p.department, q.doctor
+             FROM pharmacy_prescriptions_queue q 
+             LEFT JOIN patients p ON q.patient_id = p.id 
+             ORDER BY q.id DESC`;
+        const params = tenantId ? [tenantId] : [];
+        const rows = (await pool.query(query, params)).rows;
         res.json(rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -3256,6 +3330,17 @@ app.get('/api/pharmacy/queue', requireAuth, async (req, res) => {
 app.put('/api/pharmacy/queue/:id', requireAuth, async (req, res) => {
     try {
         const { status, price, payment_method, patient_id } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const rxCheck = (await pool.query(`SELECT id FROM pharmacy_prescriptions_queue WHERE id=$1${tenantCheck}`, checkParams)).rows[0];
+        if (!rxCheck) return res.status(404).json({ error: 'Queue item not found' });
+
+        if (tenantId && patient_id) {
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
+        }
+
         // Ensure columns exist
         await pool.query(`ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN IF NOT EXISTS price REAL DEFAULT 0`).catch(() => { });
         await pool.query(`ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT ''`).catch(() => { });
@@ -3270,12 +3355,14 @@ app.put('/api/pharmacy/queue/:id', requireAuth, async (req, res) => {
             const vat = await calcVAT(patient_id);
             const { total: finalTotal, vatAmount } = addVAT(price, vat.rate);
             await pool.query(
-                `INSERT INTO invoices (patient_id, patient_name, total, amount, vat_amount, description, service_type, paid, payment_method) 
-                 VALUES ($1, $2, $3, $4, $5, $6, 'Pharmacy', 1, $7)`,
+                `INSERT INTO invoices (patient_id, patient_name, total, amount, vat_amount, description, service_type, paid, payment_method, tenant_id, facility_id) 
+                 VALUES ($1, $2, $3, $4, $5, $6, 'Pharmacy', 1, $7, $8, $9)`,
                 [patient_id, patient?.name_ar || patient?.name_en || '', finalTotal, price, vatAmount,
-                    `Pharmacy: ${rx?.prescription_text || ''}`, payment_method || 'Cash']
+                    `Pharmacy: ${rx?.prescription_text || ''}`, payment_method || 'Cash', tenantId || null, facilityId || null]
             );
         }
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'DISPENSE_MEDICATION', 'Pharmacy',
+            `Dispensed queue item #${req.params.id} status:${status} price:${price}`, req.ip);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -3283,7 +3370,12 @@ app.put('/api/pharmacy/queue/:id', requireAuth, async (req, res) => {
 // Get drug catalog
 app.get('/api/pharmacy/drugs', requireAuth, async (req, res) => {
     try {
-        const rows = (await pool.query('SELECT * FROM pharmacy_drug_catalog ORDER BY drug_name')).rows;
+        const { tenantId } = getRequestTenantContext(req);
+        const query = tenantId ?
+            'SELECT * FROM pharmacy_drug_catalog WHERE tenant_id=$1 ORDER BY drug_name' :
+            'SELECT * FROM pharmacy_drug_catalog ORDER BY drug_name';
+        const params = tenantId ? [tenantId] : [];
+        const rows = (await pool.query(query, params)).rows;
         res.json(rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -3292,11 +3384,14 @@ app.get('/api/pharmacy/drugs', requireAuth, async (req, res) => {
 app.post('/api/pharmacy/drugs', requireAuth, async (req, res) => {
     try {
         const { drug_name, selling_price, stock_qty, category, active_ingredient } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
         const r = await pool.query(
-            `INSERT INTO pharmacy_drug_catalog (drug_name, selling_price, stock_qty, category, active_ingredient) 
-             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-            [drug_name || '', selling_price || 0, stock_qty || 0, category || '', active_ingredient || '']
+            `INSERT INTO pharmacy_drug_catalog (drug_name, selling_price, stock_qty, category, active_ingredient, tenant_id, branch_id) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+            [drug_name || '', selling_price || 0, stock_qty || 0, category || '', active_ingredient || '', tenantId || null, facilityId || null]
         );
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'ADD_DRUG', 'Pharmacy',
+            `Added drug ${drug_name} to catalog`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -3644,8 +3739,28 @@ app.delete('/api/patients/:id', requireAuth, async (req, res) => {
 app.post('/api/pharmacy/deduct-stock', requireAuth, async (req, res) => {
     try {
         const { drug_id, drug_name, quantity, patient_id, prescription_id, reason } = req.body;
-        const drug = (await pool.query('SELECT * FROM pharmacy_drug_catalog WHERE id=$1', [drug_id])).rows[0];
+        const { tenantId } = getRequestTenantContext(req);
+        
+        // IDOR Prevention: check if drug belongs to tenant
+        const drugQuery = tenantId ?
+            'SELECT * FROM pharmacy_drug_catalog WHERE id=$1 AND tenant_id=$2' :
+            'SELECT * FROM pharmacy_drug_catalog WHERE id=$1';
+        const drugParams = tenantId ? [drug_id, tenantId] : [drug_id];
+        const drug = (await pool.query(drugQuery, drugParams)).rows[0];
         if (!drug) return res.status(404).json({ error: 'Drug not found' });
+
+        // IDOR Prevention: check if patient belongs to tenant
+        if (tenantId && patient_id) {
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
+        }
+
+        // IDOR Prevention: check if prescription belongs to tenant
+        if (tenantId && prescription_id) {
+            const rxCheck = (await pool.query('SELECT id FROM prescriptions WHERE id=$1 AND tenant_id=$2', [prescription_id, tenantId])).rows[0];
+            if (!rxCheck) return res.status(404).json({ error: 'Prescription not found' });
+        }
+
         if (drug.stock_qty < quantity) return res.status(400).json({ error: 'Insufficient stock', available: drug.stock_qty });
         const newQty = drug.stock_qty - quantity;
         await pool.query('UPDATE pharmacy_drug_catalog SET stock_qty=$1 WHERE id=$2', [newQty, drug_id]);
@@ -3665,7 +3780,12 @@ app.post('/api/pharmacy/deduct-stock', requireAuth, async (req, res) => {
 app.get('/api/pharmacy/expiring', requireAuth, async (req, res) => {
     try {
         const days = parseInt(req.query.days) || 90;
-        const expiring = (await pool.query("SELECT * FROM pharmacy_drug_catalog WHERE is_active=1 AND expiry_date IS NOT NULL AND expiry_date != '' AND expiry_date <= (CURRENT_DATE + INTERVAL '1 day' * $1)::text ORDER BY expiry_date ASC", [days])).rows;
+        const { tenantId } = getRequestTenantContext(req);
+        const query = tenantId ?
+            "SELECT * FROM pharmacy_drug_catalog WHERE is_active=1 AND tenant_id=$2 AND expiry_date IS NOT NULL AND expiry_date != '' AND expiry_date <= (CURRENT_DATE + INTERVAL '1 day' * $1)::text ORDER BY expiry_date ASC" :
+            "SELECT * FROM pharmacy_drug_catalog WHERE is_active=1 AND expiry_date IS NOT NULL AND expiry_date != '' AND expiry_date <= (CURRENT_DATE + INTERVAL '1 day' * $1)::text ORDER BY expiry_date ASC";
+        const params = tenantId ? [days, tenantId] : [days];
+        const expiring = (await pool.query(query, params)).rows;
         res.json(expiring);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -3754,7 +3874,15 @@ app.get('/api/admin/audit-trail', requireAuth, async (req, res) => {
 // ===== STOCK MOVEMENT LOG =====
 app.get('/api/pharmacy/stock-log', requireAuth, async (req, res) => {
     try {
-        res.json((await pool.query('SELECT * FROM pharmacy_stock_log ORDER BY created_at DESC LIMIT 200')).rows);
+        const { tenantId } = getRequestTenantContext(req);
+        const query = tenantId ?
+            `SELECT sl.* FROM pharmacy_stock_log sl 
+             JOIN pharmacy_drug_catalog dc ON sl.drug_id = dc.id 
+             WHERE dc.tenant_id = $1 
+             ORDER BY sl.created_at DESC LIMIT 200` :
+            `SELECT * FROM pharmacy_stock_log ORDER BY created_at DESC LIMIT 200`;
+        const params = tenantId ? [tenantId] : [];
+        res.json((await pool.query(query, params)).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -5095,21 +5223,44 @@ app.get('/api/pharmacy/prescriptions', requireAuth, async (req, res) => {
             doctor VARCHAR(200), status VARCHAR(30) DEFAULT 'pending',
             notes TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`);
-        res.json((await pool.query('SELECT * FROM pharmacy_prescriptions ORDER BY created_at DESC')).rows);
+        await pool.query(`ALTER TABLE pharmacy_prescriptions ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
+        await pool.query(`ALTER TABLE pharmacy_prescriptions ADD COLUMN IF NOT EXISTS facility_id INTEGER`).catch(() => {});
+        
+        const { tenantId } = getRequestTenantContext(req);
+        const query = tenantId ?
+            'SELECT * FROM pharmacy_prescriptions WHERE tenant_id=$1 ORDER BY created_at DESC' :
+            'SELECT * FROM pharmacy_prescriptions ORDER BY created_at DESC';
+        const params = tenantId ? [tenantId] : [];
+        res.json((await pool.query(query, params)).rows);
     } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
 app.post('/api/pharmacy/prescriptions', requireAuth, async (req, res) => {
     try {
         const { patient_id, patient_name, medication, drug_name, dosage, frequency, duration, quantity, doctor, status, notes } = req.body;
-        const r = await pool.query('INSERT INTO pharmacy_prescriptions (patient_id,patient_name,medication,drug_name,dosage,frequency,duration,quantity,doctor,status,notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
-            [patient_id, patient_name, medication || drug_name, drug_name || medication, dosage, frequency, duration, quantity, doctor, status || 'pending', notes]);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (tenantId && patient_id) {
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
+        }
+        const r = await pool.query('INSERT INTO pharmacy_prescriptions (patient_id,patient_name,medication,drug_name,dosage,frequency,duration,quantity,doctor,status,notes,tenant_id,facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *',
+            [patient_id, patient_name, medication || drug_name, drug_name || medication, dosage, frequency, duration, quantity, doctor, status || 'pending', notes, tenantId || null, facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_PHARMACY_PRESCRIPTION', 'Pharmacy',
+            `Created prescription for patient #${patient_id}: ${medication || drug_name}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 app.put('/api/pharmacy/prescriptions/:id', requireAuth, async (req, res) => {
     try {
         const { status } = req.body;
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const check = (await pool.query(`SELECT id FROM pharmacy_prescriptions WHERE id=$1${tenantCheck}`, params)).rows[0];
+        if (!check) return res.status(404).json({ error: 'Prescription not found' });
+
         const r = await pool.query('UPDATE pharmacy_prescriptions SET status=$1 WHERE id=$2 RETURNING *', [status, req.params.id]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_PHARMACY_PRESCRIPTION', 'Pharmacy',
+            `Updated prescription #${req.params.id} status:${status}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
