@@ -4,26 +4,39 @@
 
 ---
 
-## 1. تفاصيل الحالة البرمجية (Repository Status)
+## 1. تفاصيل الحالة البرمجية والتشغيلية (Repository & Operation Details)
 
 * **الفرع الحالي (Branch)**: `main`
-* **الالتزام المحلي الحالي (Local HEAD)**: `a67cf2f5ff363fcaaf16ab9c545744b055dcde62`
+* **الالتزام المحلي الحالي (Local HEAD)**: `a358212aa9c2d34fd7950da3db59794463eb6c20`
 * **التزام الفرع البعيد (origin/main HEAD)**: `04b5e52a48173a373ac4f3bdafe9bd7ac3288bf1`
-* **حالة التزامن (Ahead/Behind)**: الفرع المحلي متقدم بـ 7 التزامات (0 behind, 7 ahead).
-* **سبب فشل الدفع (Failed Push Reason)**: رمز الخطأ **403 Permission Denied** (تم رفض الصلاحية للحساب الحالي `iceman18ice-sketch` على مستودع `ialqrashi62/namawab.git`).
-* **حالة النشر والتشغيل (Deployment Status)**: لم يتم النشر (NOT DEPLOYED)
-* **تعديل قاعدة البيانات (Database Touched)**: لا (NO)
-* **تشغيل الهجرات (Migrations Run)**: لا (NO)
+* **حالة التزامن (Ahead/Behind)**: الفرع المحلي متقدم بـ 10 التزامات (0 behind, 10 ahead).
+* **سبب فشل الدفع (Failed Push Reason)**: رمز الخطأ **403 Permission Denied** (تم رفض صلاحية الكتابة للحساب الحالي `iceman18ice-sketch` على مستودع `ialqrashi62/namawab.git`).
+* **تنفيذ اختبارات UAT في هذه المحاولة (UAT Executed)**: لا (NO).
+* **الاتصال بالبيئة التجريبية في هذه المحاولة (Staging Touched)**: لا (NO).
+* **الاتصال ببيئة الإنتاج (Production Touched)**: لا (NO).
+* **تعديل قاعدة البيانات في هذه المحاولة (DB Changed)**: لا (NO).
+* **تشغيل الهجرات لقاعدة البيانات (Migrations Run)**: لا (NO).
+* **دفع مخطط قاعدة البيانات (Prisma db push)**: لا (NO).
+* **تغيير متغيرات البيئة (Env Changed)**: لا (NO).
 
 ---
 
-## 2. الإجراء البشري المطلوب لحل المشكلة (Required Human Action)
+## 2. أسباب حظر التشغيل الآلي (Reasons Blocked)
 
-لحسم حالة حظر الدفع بأمان، يجب اتخاذ أحد الإجراءات التالية:
+1. **حظر الرفع عبر GitHub (GitHub 403 Push Blocker)**: تم رفض الصلاحيات للحساب الحالي عند محاولة دفع التعديلات إلى المستودع الرئيسي.
+2. **غياب أدوات UAT المطلوبة (Missing Required UAT Scratch Tooling)**: غياب ملفات الفحص والتشغيل (`scratch/test_posting_flows.ts` و `scratch/run_posting_flows.js`) عن مسار المستودع الحالي.
+3. **وجود تعديلات غير مضافة في شجرة العمل (Working Tree with Modified Blocker Docs)**: وجود وثائق تقارير الحظر قيد التعديل في شجرة العمل.
 
-* **الخيار أ**: منح صلاحيات الكتابة (Write Access) للمستودع `ialqrashi62/namawab.git` لحساب المطور الحالي على GitHub (`iceman18ice-sketch`).
-* **الخيار ب**: إعادة مصادقة وتوثيق أداة Git محلياً باستخدام حساب مستخدم يمتلك بالفعل صلاحيات الكتابة للمستودع.
-* **الخيار ج**: تعديل عنوان المستودع البعيد (Remote origin) إلى مستودع فرعي (Fork) مملوك للمستخدم، ودفع التعديلات إليه ثم فتح طلب سحب (Pull Request).
+---
+
+## 3. الإجراء البشري المطلوب لحل المشكلة (Required Human Action)
+
+لحسم حالة حظر الدفع بأمان وتحديث المستودع البعيد، يجب اتخاذ أحد الإجراءات التالية:
+
+* **الخيار أ**: منح صلاحيات الكتابة (Write Access) للمستودع `ialqrashi62/namawab.git` لحساب GitHub الحالي (`iceman18ice-sketch`).
+* **الخيار ب**: إعادة مصادقة وتوثيق أداة Git محلياً باستخدام حساب مستخدم آخر يمتلك بالفعل صلاحيات الكتابة للمستودع.
+* **الخيار ج**: تعديل عنوان المستودع البعيد (Remote origin) إلى مستودع فرعي (Fork) مملوك للمطور الحالي، ودفع التعديلات إليه ومن ثم فتح طلب سحب (Pull Request).
+* **الخيار د**: فتح مستودع Nama Invest ERP الصحيح والملائم للعمل الذي يحتوي على مجلد `scratch/` والملفات `scratch/test_posting_flows.ts` و `scratch/run_posting_flows.js` وإعادة تشغيل UAT بعد تأكيد التزامن.
 
 ---
 
