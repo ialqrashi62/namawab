@@ -49,8 +49,9 @@ app.use(session({
     saveUninitialized: true,
     cookie: {
         maxAge: 8 * 60 * 60 * 1000,
-        httpOnly: false,
-        secure: false
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
     },
     rolling: true
 }));
@@ -102,8 +103,8 @@ function requireRole(...modules) {
 async function logAudit(userId, userName, action, module, details, ip) {
     try {
         await pool.query(
-            'INSERT INTO audit_trail (user_id, user_name, action, module, details, ip_address) VALUES ($1,$2,$3,$4,$5,$6)',
-            [userId, userName, action, module, details || '', ip || '']
+            'INSERT INTO audit_trail (user_id, username, action, module, new_values, ip_address) VALUES ($1,$2,$3,$4,$5,$6)',
+            [userId, userName || '', action || '', module || '', details || '', ip || '']
         );
     } catch (e) { console.error('Audit log error:', e.message); }
 }
@@ -120,17 +121,10 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
         const { rows } = await pool.query('SELECT id, display_name, role, speciality, permissions, password_hash FROM system_users WHERE username=$1 AND is_active=1', [username]);
         if (!rows.length) return res.status(401).json({ error: 'Invalid credentials' });
         const user = rows[0];
-        // Check bcrypt hash, or fallback to plain text (auto-migrate)
+        // Check bcrypt hash (Plaintext password fallback is disabled for security)
         let valid = false;
         if (user.password_hash && user.password_hash.startsWith('$2')) {
             valid = await bcrypt.compare(password, user.password_hash);
-        } else {
-            // Plain text fallback — migrate to bcrypt on successful login
-            valid = (password === user.password_hash);
-            if (valid) {
-                const hash = await bcrypt.hash(password, 10);
-                await pool.query('UPDATE system_users SET password_hash=$1 WHERE id=$2', [hash, user.id]);
-            }
         }
         if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
 
@@ -143,7 +137,7 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
             });
         }
 
-        req.session.user = { id: user.id, name: user.display_name, role: user.role, speciality: user.speciality || '', permissions: user.permissions || '' };
+        req.session.user = { id: user.id, name: user.display_name, display_name: user.display_name, role: user.role, speciality: user.speciality || '', permissions: user.permissions || '' };
         // Track this user's active session
         activeUserSessions.set(user.id, req.sessionID);
 
@@ -272,19 +266,8 @@ app.put('/api/patients/:id', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.delete('/api/patients/:id', requireAuth, async (req, res) => {
-    try {
-        const id = req.params.id;
-        await pool.query('DELETE FROM medical_records WHERE patient_id=$1', [id]);
-        await pool.query('DELETE FROM lab_radiology_orders WHERE patient_id=$1', [id]);
-        await pool.query('DELETE FROM prescriptions WHERE patient_id=$1', [id]);
-        await pool.query('DELETE FROM dental_records WHERE patient_id=$1', [id]);
-        await pool.query('DELETE FROM appointments WHERE patient_id=$1', [id]);
-        await pool.query('DELETE FROM approvals WHERE patient_id=$1', [id]);
-        await pool.query('DELETE FROM patients WHERE id=$1', [id]);
-        res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
+// DELETE /api/patients/:id hard-delete route was removed to prevent routing conflicts and compliance breaches.
+// All patient deletion operations are processed securely by the safe soft-delete handler.
 
 // ===== NURSING =====
 app.get('/api/nursing/vitals', requireAuth, async (req, res) => {
@@ -429,7 +412,7 @@ app.put('/api/insurance/claims/:id', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/medical/records', requireAuth, async (req, res) => {
+app.get('/api/medical/records', requireAuth, requireRole('doctor', 'nursing'), async (req, res) => {
     try {
         const { patient_id } = req.query;
         if (patient_id) {
@@ -440,7 +423,7 @@ app.get('/api/medical/records', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/medical/records', requireAuth, async (req, res) => {
+app.post('/api/medical/records', requireAuth, requireRole('doctor', 'nursing'), async (req, res) => {
     try {
         const { patient_id, doctor_id, diagnosis, symptoms, icd10_codes, notes } = req.body;
         const result = await pool.query('INSERT INTO medical_records (patient_id, doctor_id, diagnosis, symptoms, icd10_codes, notes) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id',
@@ -851,6 +834,9 @@ app.put('/api/settings/users/:id', requireAuth, async (req, res) => {
 
 app.delete('/api/settings/users/:id', requireAuth, async (req, res) => {
     try {
+        if (req.session.user.role !== 'Admin') {
+            return res.status(403).json({ error: 'Access denied. Only Admin can delete system users.' });
+        }
         const userId = parseInt(req.params.id);
         if (userId === req.session.user.id) return res.status(400).json({ error: 'Cannot delete your own account' });
         const userRole = (await pool.query('SELECT role FROM system_users WHERE id=$1', [userId])).rows[0];
@@ -3309,6 +3295,9 @@ app.get('/api/diagnosis-templates', requireAuth, async (req, res) => {
 // ===== SAFE PATIENT DELETE (soft delete if has records) =====
 app.delete('/api/patients/:id', requireAuth, async (req, res) => {
     try {
+        if (req.session.user.role !== 'Admin') {
+            return res.status(403).json({ error: 'Access denied. Only Admin can delete patients.' });
+        }
         const pid = req.params.id;
         const invoices = (await pool.query('SELECT COUNT(*) as cnt FROM invoices WHERE patient_id=$1 AND cancelled=0', [pid])).rows[0].cnt;
         const orders = (await pool.query('SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE patient_id=$1', [pid])).rows[0].cnt;
