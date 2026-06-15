@@ -299,3 +299,14 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **المخرجات**:
   - [docs/MEDICAL_RLS_LOCAL_DESIGN_DRY_RUN_PLAN_AR.md](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/MEDICAL_RLS_LOCAL_DESIGN_DRY_RUN_PLAN_AR.md)
 * **المرحلة التالية الموصى بها**: `RLS Local Dry-Run on 3 Tables Only`
+
+### Phase 23: RLS Local Dry-Run on 3 Tables Only
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_RLS_LOCAL_DRY_RUN_3_TABLES_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تشغيل تجريبي محلي فقط)
+* **الملفات الجديدة**:
+  - `namaweb/rls_local_dry_run_3_tables.js` — سكربت التحقق والتشغيل التجريبي المحلي لـ RLS على 3 جداول.
+* **المخرجات**:
+  - [docs/MEDICAL_RLS_LOCAL_DRY_RUN_3_TABLES_REPORT_AR.md](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/MEDICAL_RLS_LOCAL_DRY_RUN_3_TABLES_REPORT_AR.md)
+* **نتائج الاختبارات**: ناجح بنسبة 100% لمصفوفة عزل المرضى والفواتير والمواعيد محلياً مع تراجع تلقائي كامل.
+* **المرحلة التالية الموصى بها**: `Tenant Context Middleware for PostgreSQL Session Settings Design`
