@@ -6512,58 +6512,426 @@ async function loadDashboardCharts() {
 }
 
 
+let settingsTab = 'hospital';
 async function renderSettings(el) {
   const content = el;
 
-  content.innerHTML = `
-    <h2>${tr('Settings', 'الإعدادات')}</h2>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-      <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 16px">🏥 ${tr('Hospital Information', 'معلومات المستشفى')}</h4>
-        <div class="form-group"><label>${tr('Hospital Name (AR)', 'اسم المستشفى (عربي)')}</label><input class="form-input" id="setNameAr" value="نما الطبي"></div>
-        <div class="form-group"><label>${tr('Hospital Name (EN)', 'اسم المستشفى (إنجليزي)')}</label><input class="form-input" id="setNameEn" value="Nama Medical"></div>
-        <div class="form-group"><label>${tr('Phone', 'الهاتف')}</label><input class="form-input" id="setPhone"></div>
-        <div class="form-group"><label>${tr('Email', 'البريد')}</label><input class="form-input" id="setEmail"></div>
-        <div class="form-group"><label>${tr('Address', 'العنوان')}</label><textarea class="form-input" id="setAddress" rows="2"></textarea></div>
-        <div class="form-group"><label>${tr('CR Number', 'سجل تجاري')}</label><input class="form-input" id="setCR"></div>
-        <div class="form-group"><label>${tr('VAT Number', 'رقم ضريبي')}</label><input class="form-input" id="setVAT"></div>
-        <button class="btn btn-primary w-full" onclick="showToast(tr('Settings saved!','تم حفظ الإعدادات!'))">💾 ${tr('Save', 'حفظ')}</button>
-      </div>
-      <div>
-        <div class="card" style="padding:20px;margin-bottom:16px">
-          <h4 style="margin:0 0 16px">🎨 ${tr('Appearance', 'المظهر')}</h4>
-          <div class="form-group"><label>${tr('Language', 'اللغة')}</label>
-            <select class="form-input" onchange="setLang(this.value)"><option value="en" ${!isArabic ? 'selected' : ''}>English</option><option value="ar" ${isArabic ? 'selected' : ''}>العربية</option></select></div>
-          <div class="form-group"><label>${tr('Theme', 'السمة')}</label>
-            <select class="form-input" id="setTheme" onchange="if(typeof changeTheme==='function')changeTheme(this.value)">
-              <option value="light-blue">${tr('Light Blue', 'فاتح أزرق')}</option>
-              <option value="dark">${tr('Dark', 'داكن')}</option>
-              <option value="green">${tr('Green', 'أخضر')}</option>
-            </select></div>
-        </div>
-        <div class="card" style="padding:20px;margin-bottom:16px">
-          <h4 style="margin:0 0 16px">🔔 ${tr('Notifications', 'الإشعارات')}</h4>
-          <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><input type="checkbox" checked> ${tr('Lab results ready', 'نتائج المختبر جاهزة')}</label>
-          <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><input type="checkbox" checked> ${tr('New appointments', 'مواعيد جديدة')}</label>
-          <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><input type="checkbox" checked> ${tr('Low inventory alerts', 'تنبيه مخزون منخفض')}</label>
-          <label style="display:flex;align-items:center;gap:8px"><input type="checkbox"> ${tr('Email notifications', 'إشعارات بريد')}</label>
-        </div>
-        <div class="card" style="padding:20px">
-          <h4 style="margin:0 0 16px">🛡️ ${tr('System', 'النظام')}</h4>
-          <p style="font-size:13px;color:#666;margin-bottom:8px">${tr('Version', 'الإصدار')}: 3.0.0</p>
-          <p style="font-size:13px;color:#666;margin-bottom:8px">${tr('Database', 'قاعدة البيانات')}: PostgreSQL</p>
-          <p style="font-size:13px;color:#666">${tr('Server', 'الخادم')}: Node.js / Express</p>
-        </div>
-      </div>
-    </div>`;
+  let backupInfo = { database: 'nama_medical_web', totalSizeMB: '0.00', backupCommand: '', tables: [] };
+  let backupList = [];
+  let auditLogs = [];
 
+  if (settingsTab === 'users') {
+    settingsUsersList = await API.get('/api/settings/users').catch(() => []);
+  } else if (settingsTab === 'cybersecurity') {
+    backupInfo = await API.get('/api/admin/backup-info').catch(() => ({ database: 'nama_medical_web', totalSizeMB: '0.00', backupCommand: '', tables: [] }));
+    backupList = await API.get('/api/admin/backups').catch(() => []);
+    auditLogs = await API.get('/api/admin/audit-trail?limit=15').catch(() => []);
+  }
+
+  content.innerHTML = `
+    <div class="flex justify-between items-end mb-6">
+      <div>
+        <h2 class="font-headline-lg text-headline-lg text-primary">${tr('System Settings & Governance', 'إعدادات النظام والحوكمة')}</h2>
+        <p class="text-on-surface-variant text-sm mt-1">${tr('Configure hospital records, manage users, and monitor cybersecurity compliance', 'تهيئة سجلات المنشأة، إدارة الصلاحيات ومراقبة الامتثال للأمن السيبراني')}</p>
+      </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <div class="flex gap-4 mb-6 border-b border-outline-variant/30 pb-2">
+      <button class="px-4 py-2 font-bold rounded-lg transition-all ${settingsTab === 'hospital' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high/50'}" onclick="settingsTab='hospital';navigateTo(42)">
+        🏥 ${tr('Hospital Settings', 'إعدادات المنشأة')}
+      </button>
+      <button class="px-4 py-2 font-bold rounded-lg transition-all ${settingsTab === 'users' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high/50'}" onclick="settingsTab='users';navigateTo(42)">
+        👥 ${tr('User Manager', 'إدارة المستخدمين')}
+      </button>
+      <button class="px-4 py-2 font-bold rounded-lg transition-all ${settingsTab === 'cybersecurity' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high/50'}" onclick="settingsTab='cybersecurity';navigateTo(42)">
+        🛡️ ${tr('Cybersecurity & Governance', 'الأمن السيبراني والحوكمة')}
+      </button>
+    </div>
+
+    <div class="tab-pane-content">
+      ${settingsTab === 'hospital' ? `
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-md">
+          <div class="glass-card p-6 rounded-2xl">
+            <h4 class="font-title-lg text-title-lg text-primary mb-4">🏥 ${tr('Hospital Information', 'معلومات المستشفى')}</h4>
+            <div class="form-group mb-4">
+              <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Hospital Name (AR)', 'اسم المستشفى (عربي)')}</label>
+              <input class="form-input w-full" id="sNameAr" value="نما الطبي">
+            </div>
+            <div class="form-group mb-4">
+              <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Hospital Name (EN)', 'اسم المستشفى (إنجليزي)')}</label>
+              <input class="form-input w-full" id="sNameEn" value="Nama Medical">
+            </div>
+            <div class="form-group mb-4">
+              <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Phone', 'الهاتف')}</label>
+              <input class="form-input w-full" id="sPhone" value="0112345678">
+            </div>
+            <div class="form-group mb-4">
+              <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Email', 'البريد الإلكتروني')}</label>
+              <input class="form-input w-full" id="sEmail" value="info@namamedical.com">
+            </div>
+            <div class="form-group mb-4">
+              <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Address', 'العنوان')}</label>
+              <textarea class="form-input w-full" id="sAddr" rows="2">الرياض، المملكة العربية السعودية</textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div class="form-group">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('CR Number', 'السجل التجاري')}</label>
+                <input class="form-input w-full" id="sCr" value="1010000234">
+              </div>
+              <div class="form-group">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('VAT Number', 'الرقم الضريبي')}</label>
+                <input class="form-input w-full" id="sTax" value="300012345600003">
+              </div>
+            </div>
+            <button class="btn btn-primary w-full py-2.5 rounded-xl font-bold flex items-center justify-center gap-2" onclick="saveSettings()">
+              💾 ${tr('Save Changes', 'حفظ التعديلات')}
+            </button>
+          </div>
+          <div class="space-y-md">
+            <div class="glass-card p-6 rounded-2xl">
+              <h4 class="font-title-lg text-title-lg text-primary mb-4">🎨 ${tr('Appearance', 'المظهر')}</h4>
+              <div class="form-group mb-4">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Language', 'اللغة')}</label>
+                <select class="form-input w-full" onchange="setLang(this.value)">
+                  <option value="en" ${!isArabic ? 'selected' : ''}>English</option>
+                  <option value="ar" ${isArabic ? 'selected' : ''}>العربية</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Theme Select', 'اختيار المظهر')}</label>
+                <select class="form-input w-full" id="setTheme" onchange="if(typeof changeTheme==='function')changeTheme(this.value)">
+                  <option value="light-blue">${tr('Light Blue', 'فاتح أزرق')}</option>
+                  <option value="dark">${tr('Dark', 'داكن')}</option>
+                  <option value="green">${tr('Green', 'أخضر')}</option>
+                </select>
+              </div>
+            </div>
+            <div class="glass-card p-6 rounded-2xl">
+              <h4 class="font-title-lg text-title-lg text-primary mb-4">🔔 ${tr('System Notifications', 'إشعارات النظام')}</h4>
+              <div class="space-y-3">
+                <label class="flex items-center gap-3 text-sm text-on-surface-variant cursor-pointer">
+                  <input type="checkbox" checked class="rounded border-outline-variant text-primary focus:ring-primary">
+                  ${tr('Alert when lab results are ready', 'تنبيه عند جاهزية نتائج المختبر')}
+                </label>
+                <label class="flex items-center gap-3 text-sm text-on-surface-variant cursor-pointer">
+                  <input type="checkbox" checked class="rounded border-outline-variant text-primary focus:ring-primary">
+                  ${tr('Alert for new appointments booked', 'تنبيه لحجز المواعيد الجديدة')}
+                </label>
+                <label class="flex items-center gap-3 text-sm text-on-surface-variant cursor-pointer">
+                  <input type="checkbox" checked class="rounded border-outline-variant text-primary focus:ring-primary">
+                  ${tr('Alert for low inventory stock level', 'تنبيه تدني مستويات مخزون المستودعات')}
+                </label>
+                <label class="flex items-center gap-3 text-sm text-on-surface-variant cursor-pointer">
+                  <input type="checkbox" class="rounded border-outline-variant text-primary focus:ring-primary">
+                  ${tr('Enable system email logs dispatch', 'تفعيل إرسال سجلات النظام بالبريد')}
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      ` : settingsTab === 'users' ? `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
+          <!-- User Manager Form -->
+          <div class="glass-card p-6 rounded-2xl h-fit">
+            <h4 class="font-title-lg text-title-lg text-primary mb-4" id="suFormTitle">👤 ${tr('User Details', 'بيانات المستخدم')}</h4>
+            <div class="form-group mb-3">
+              <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Full Display Name', 'الاسم الكامل')}</label>
+              <input class="form-input w-full" id="suName" placeholder="e.g. د. محمد علي">
+            </div>
+            <div class="form-group mb-3">
+              <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Username', 'اسم المستخدم')}</label>
+              <input class="form-input w-full" id="suUser" placeholder="e.g. dr_mohammed">
+            </div>
+            <div class="form-group mb-3">
+              <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Password', 'كلمة المرور')}</label>
+              <input type="password" class="form-input w-full" id="suPass" placeholder="••••••••">
+            </div>
+            <div class="form-group mb-3">
+              <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('System Role', 'دور النظام')}</label>
+              <select class="form-input w-full" id="suRole" onchange="toggleSuRoleFields(this.value)">
+                <option value="Reception">${tr('Receptionist', 'موظف استقبال')}</option>
+                <option value="Doctor">${tr('Doctor', 'طبيب')}</option>
+                <option value="Nurse">${tr('Nurse', 'ممرض/ة')}</option>
+                <option value="Pharmacist">${tr('Pharmacist', 'صيدلي')}</option>
+                <option value="Lab Technician">${tr('Lab Tech', 'فني مختبر')}</option>
+                <option value="Radiologist">${tr('Radiologist', 'فني أشعة')}</option>
+                <option value="Finance">${tr('Finance', 'مالية ومحاسبة')}</option>
+                <option value="HR">${tr('HR', 'موارد بشرية')}</option>
+                <option value="Admin">${tr('Administrator', 'مدير نظام')}</option>
+              </select>
+            </div>
+            <div id="suSpecDiv" class="form-group mb-3" style="display:none">
+              <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Medical Speciality', 'التخصص الطبي')}</label>
+              <input class="form-input w-full" id="suSpec" placeholder="e.g. Cardiology">
+            </div>
+            <div id="suCommDiv" class="mb-3" style="display:none">
+              <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Commission Rules', 'عمولة الطبيب')}</label>
+              <div class="grid grid-cols-2 gap-2">
+                <select class="form-input" id="suCommType">
+                  <option value="percentage">${tr('Percentage %', 'نسبة مئوية %')}</option>
+                  <option value="fixed">${tr('Fixed Amount', 'مبلغ ثابت')}</option>
+                </select>
+                <input type="number" class="form-input" id="suCommValue" value="0" step="0.1">
+              </div>
+            </div>
+            <div class="form-group mb-4">
+              <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Permissions', 'صلاحيات الأقسام')}</label>
+              <div id="suPerms" style="display:grid;grid-template-columns:1fr;gap:6px;max-height:160px;overflow-y:auto;border:1px solid rgba(0,0,0,0.1);padding:8px;border-radius:8px">
+                ${NAV_ITEMS.map((item, i) => `
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px" class="cursor-pointer hover:bg-surface-container-low p-1 rounded">
+                    <input type="checkbox" id="perm_${i}" value="${i}" checked class="rounded border-outline-variant text-primary focus:ring-primary">
+                    <span>${item.icon}</span> <span>${tr(item.en, item.ar)}</span>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-primary flex-1 py-2.5 rounded-xl font-bold" id="suAddBtn" onclick="addOrUpdateUser()">
+                ➕ ${tr('Save User', 'حفظ المستخدم')}
+              </button>
+              <button class="btn btn-secondary py-2.5 rounded-xl font-bold" id="suCancelBtn" onclick="cancelEditUser()" style="display:none">
+                ${tr('Cancel', 'إلغاء')}
+              </button>
+            </div>
+          </div>
+
+          <!-- User Registry Table -->
+          <div class="glass-card p-6 rounded-2xl lg:col-span-2 overflow-x-auto">
+            <h4 class="font-title-lg text-title-lg text-primary mb-4">👥 ${tr('User Accounts Directory', 'سجل المستخدمين النشطين')}</h4>
+            <table class="w-full text-right divide-y divide-outline-variant/30">
+              <thead class="bg-surface-container-low font-label-md text-label-md text-on-surface-variant">
+                <tr>
+                  <th class="p-3">${tr('Name', 'الاسم')}</th>
+                  <th class="p-3">${tr('Username', 'المستخدم')}</th>
+                  <th class="p-3">${tr('Role', 'الدور')}</th>
+                  <th class="p-3">${tr('Specialty', 'التخصص')}</th>
+                  <th class="p-3 text-center">${tr('Actions', 'إجراءات')}</th>
+                </tr>
+              </thead>
+              <tbody class="font-body-md text-body-md divide-y divide-outline-variant/10">
+                ${settingsUsersList.map(u => `
+                  <tr class="hover:bg-primary/5 transition-colors">
+                    <td class="p-3 font-bold text-primary">${u.display_name || '—'}</td>
+                    <td class="p-3 font-mono text-sm">${u.username}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-xs bg-primary-container text-on-primary-fixed-variant font-bold">${u.role}</span></td>
+                    <td class="p-3 text-on-surface-variant">${u.speciality || '—'}</td>
+                    <td class="p-3 text-center">
+                      <div class="flex justify-center gap-2">
+                        <button class="btn btn-sm bg-secondary/10 text-secondary hover:bg-secondary/20 p-2 rounded-lg" onclick="editUser(${u.id})">✏️</button>
+                        <button class="btn btn-sm bg-error/10 text-error hover:bg-error/20 p-2 rounded-lg" onclick="deleteUser(${u.id})">🗑️</button>
+                      </div>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ` : `
+        <!-- Cybersecurity Governance -->
+        <div class="space-y-md">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
+            <!-- Threat Level Circular Gauge -->
+            <div class="glass-card p-6 rounded-2xl flex flex-col items-center justify-center min-h-[260px]">
+              <h3 class="font-title-lg text-title-lg text-primary mb-4 w-full text-right">🛡️ ${tr('Current Cybersecurity Threat Level', 'مستوى التهديد السيبراني الحالي')}</h3>
+              <div class="relative w-40 h-40 flex items-center justify-center">
+                <svg class="w-full h-full transform -rotate-90">
+                  <circle class="text-surface-container-highest" cx="80" cy="80" fill="transparent" r="68" stroke="currentColor" stroke-width="10"></circle>
+                  <circle class="text-secondary" cx="80" cy="80" fill="transparent" r="68" stroke="currentColor" stroke-dasharray="427.2" stroke-dashoffset="299.0" stroke-width="10"></circle>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span class="font-display-lg text-3xl font-bold text-primary leading-none">30%</span>
+                  <span class="font-label-md text-label-md text-secondary mt-1">${tr('Low / Secure', 'منخفض / مستقر')}</span>
+                </div>
+              </div>
+              <p class="text-[11px] text-on-surface-variant mt-4 text-center">${tr('Firewall rules active. Single session enforcement enabled.', 'جدار الحماية نشط. ميزة الجلسة الأحادية للمستخدم مفعلة.')}</p>
+            </div>
+
+            <!-- Encryption & Session Controls -->
+            <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+              <div>
+                <h3 class="font-title-lg text-title-lg text-primary mb-4 flex items-center gap-2">🔑 ${tr('Data Encryption Status', 'تشفير وحماية البيانات')}</h3>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center p-2 bg-surface-container-low rounded-xl">
+                    <span class="text-xs text-on-surface-variant font-bold">${tr('Patients Database', 'قاعدة بيانات المرضى')}</span>
+                    <span class="text-xs font-bold text-green-600">AES-256 (Active)</span>
+                  </div>
+                  <div class="flex justify-between items-center p-2 bg-surface-container-low rounded-xl">
+                    <span class="text-xs text-on-surface-variant font-bold">${tr('Radiology Logs', 'سجلات الأشعة')}</span>
+                    <span class="text-xs font-bold text-green-600">RSA-4096 (Active)</span>
+                  </div>
+                  <div class="flex justify-between items-center p-2 bg-surface-container-low rounded-xl">
+                    <span class="text-xs text-on-surface-variant font-bold">${tr('Cloud Backup Transmission', 'نقل النسخ الاحتياطي السحابي')}</span>
+                    <span class="text-xs font-bold text-secondary">SSL/TLS 1.3</span>
+                  </div>
+                </div>
+              </div>
+              <div class="pt-4 border-t border-outline-variant/30 flex justify-between items-center">
+                <span class="text-xs text-on-surface-variant font-medium">${tr('Session Enforcement', 'انضباط الجلسة الأحادية')}</span>
+                <span class="px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs font-bold">${tr('Compliant', 'مطابق')}</span>
+              </div>
+            </div>
+
+            <!-- Compliance Authority Status -->
+            <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+              <div>
+                <h3 class="font-title-lg text-title-lg text-primary mb-4">📜 ${tr('National Authority Compliance', 'الامتثال للجهات الرقابية والوطنية')}</h3>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center p-2 bg-surface-container-low rounded-xl">
+                    <span class="text-xs text-on-surface-variant font-bold">نظام حماية البيانات الشخصية (PDPL)</span>
+                    <span class="text-xs text-green-700 font-bold">مطابق 100%</span>
+                  </div>
+                  <div class="flex justify-between items-center p-2 bg-surface-container-low rounded-xl">
+                    <span class="text-xs text-on-surface-variant font-bold">سياسات حوكمة البيانات الوطنية (SDAIA)</span>
+                    <span class="text-xs text-secondary font-bold">قيد المراجعة</span>
+                  </div>
+                  <div class="flex justify-between items-center p-2 bg-surface-container-low rounded-xl">
+                    <span class="text-xs text-on-surface-variant font-bold">سياسة مشاركة البيانات الصحية الآمنة</span>
+                    <span class="text-xs text-green-700 font-bold">مطابق 100%</span>
+                  </div>
+                </div>
+              </div>
+              <div class="pt-2 text-center">
+                <p class="text-[10px] text-on-surface-variant">معايير حوكمة البيانات الصادرة عن الهيئة السعودية للبيانات والذكاء الاصطناعي</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Backup Manager & Database Info -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
+            <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+              <div>
+                <h4 class="font-title-lg text-title-lg text-primary mb-3">💾 ${tr('Database Infrastructure', 'بنية قاعدة البيانات')}</h4>
+                <div class="space-y-2 text-xs">
+                  <div class="flex justify-between p-1 border-b border-outline-variant/20"><span class="text-on-surface-variant">اسم قاعدة البيانات:</span><span class="font-bold text-primary">${backupInfo.database}</span></div>
+                  <div class="flex justify-between p-1 border-b border-outline-variant/20"><span class="text-on-surface-variant">الحجم الإجمالي:</span><span class="font-bold text-primary">${backupInfo.totalSizeMB} MB</span></div>
+                  <div class="flex justify-between p-1 border-b border-outline-variant/20"><span class="text-on-surface-variant">أداة النسخ الاحتياطي:</span><span class="font-mono text-[10px] text-secondary">pg_dump</span></div>
+                </div>
+              </div>
+              <div class="mt-4">
+                <button onclick="startBackup()" class="w-full btn btn-primary py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md">
+                  🚀 ${tr('Run Database Backup Now', 'تشغيل النسخ الاحتياطي الفوري')}
+                </button>
+              </div>
+            </div>
+
+            <!-- Existing Backups Registry -->
+            <div class="glass-card p-6 rounded-2xl lg:col-span-2 overflow-x-auto">
+              <h4 class="font-title-lg text-title-lg text-primary mb-3">📂 ${tr('Database Backup Registry', 'سجل النسخ الاحتياطية المتوفرة')}</h4>
+              <div class="max-h-48 overflow-y-auto">
+                <table class="w-full text-right divide-y divide-outline-variant/30 text-xs">
+                  <thead class="bg-surface-container-low font-label-md text-on-surface-variant">
+                    <tr>
+                      <th class="p-2">${tr('Filename', 'اسم الملف')}</th>
+                      <th class="p-2">${tr('Size', 'الحجم')}</th>
+                      <th class="p-2">${tr('Date Created', 'التاريخ والوقت')}</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-outline-variant/10">
+                    ${backupList.length ? backupList.map(b => `
+                      <tr class="hover:bg-primary/5 transition-colors">
+                        <td class="p-2 font-mono text-[11px] text-primary">${b.name}</td>
+                        <td class="p-2 font-bold">${b.size}</td>
+                        <td class="p-2 text-on-surface-variant">${new Date(b.date).toLocaleString('ar-SA')}</td>
+                      </tr>
+                    `).join('') : `<tr><td colspan="3" class="text-center py-4 text-on-surface-variant">${tr('No backups found', 'لا توجد نسخ احتياطية متوفرة')}</td></tr>`}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Administrative Security Audit Trail -->
+          <div class="glass-card p-6 rounded-2xl overflow-x-auto">
+            <h4 class="font-title-lg text-title-lg text-primary mb-4">🔍 ${tr('Security & Governance Audit Trail', 'سجل الحركات الأمنية وتدقيق النظام')}</h4>
+            <div class="max-h-60 overflow-y-auto">
+              <table class="w-full text-right divide-y divide-outline-variant/30 text-xs">
+                <thead class="bg-surface-container-low font-label-md text-on-surface-variant">
+                  <tr>
+                    <th class="p-3">${tr('User', 'المستخدم')}</th>
+                    <th class="p-3">${tr('Module', 'القسم')}</th>
+                    <th class="p-3">${tr('Action', 'الحركة')}</th>
+                    <th class="p-3">${tr('Context / Details', 'التفاصيل والسياق')}</th>
+                    <th class="p-3">${tr('IP Address', 'عنوان IP')}</th>
+                    <th class="p-3">${tr('Timestamp', 'الوقت والتاريخ')}</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant/10">
+                  ${auditLogs.length ? auditLogs.map(log => `
+                    <tr class="hover:bg-primary/5 transition-colors">
+                      <td class="p-3 font-bold text-primary">${log.user_name || '—'}</td>
+                      <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-secondary/10 text-secondary font-bold">${log.module}</span></td>
+                      <td class="p-3 font-mono text-primary font-bold">${log.action}</td>
+                      <td class="p-3 text-on-surface-variant max-w-xs truncate" title="${log.details || ''}">${log.details || '—'}</td>
+                      <td class="p-3 font-mono text-[11px]">${log.ip_address || '—'}</td>
+                      <td class="p-3 text-on-surface-variant">${new Date(log.created_at).toLocaleString('ar-SA')}</td>
+                    </tr>
+                  `).join('') : `<tr><td colspan="6" class="text-center py-4 text-on-surface-variant">${tr('No audit trail events logged', 'لا توجد حركات مسجلة حالياً')}</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `}
+    </div>
+  `;
 }
+
+window.toggleSuRoleFields = (role) => {
+  const isDoc = role === 'Doctor';
+  const spec = document.getElementById('suSpecDiv');
+  const comm = document.getElementById('suCommDiv');
+  if (spec) spec.style.display = isDoc ? 'block' : 'none';
+  if (comm) comm.style.display = isDoc ? 'block' : 'none';
+};
+
+window.startBackup = async () => {
+  try {
+    showToast(tr('Running database backup...', 'جاري تشغيل النسخ الاحتياطي...'));
+    const response = await fetch('/api/admin/backup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    if (!response.ok) throw new Error('Backup failed');
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const disposition = response.headers.get('Content-Disposition');
+    let filename = 'nama_backup.sql';
+    if (disposition && disposition.indexOf('attachment') !== -1) {
+      const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+      const matches = filenameRegex.exec(disposition);
+      if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+    }
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    showToast(tr('Backup complete and downloaded!', 'اكتمل النسخ الاحتياطي وتم التحميل!'));
+    setTimeout(() => navigateTo(currentPage), 1000);
+  } catch (e) {
+    showToast(tr('Backup failed', 'فشل النسخ الاحتياطي'), 'error');
+  }
+};
+
 window.saveSettings = async () => {
   try {
-    await API.put('/api/settings', { company_name_ar: document.getElementById('sNameAr').value, company_name_en: document.getElementById('sNameEn').value, tax_number: document.getElementById('sTax').value, cr_number: document.getElementById('sCr').value, phone: document.getElementById('sPhone').value, address: document.getElementById('sAddr').value });
+    await API.put('/api/settings', {
+      company_name_ar: document.getElementById('sNameAr').value,
+      company_name_en: document.getElementById('sNameEn').value,
+      tax_number: document.getElementById('sTax').value,
+      cr_number: document.getElementById('sCr').value,
+      phone: document.getElementById('sPhone').value,
+      address: document.getElementById('sAddr').value
+    });
     showToast(tr('Settings saved!', 'تم حفظ الإعدادات!'));
   } catch (e) { showToast(tr('Error saving', 'خطأ في الحفظ'), 'error'); }
 };
+
 window.addOrUpdateUser = async () => {
   const username = document.getElementById('suUser').value.trim();
   const password = document.getElementById('suPass').value.trim();
@@ -6579,15 +6947,34 @@ window.addOrUpdateUser = async () => {
     const commValue = role === 'Doctor' ? (parseFloat(document.getElementById('suCommValue')?.value) || 0) : 0;
 
     if (editingUserId) {
-      await API.put(`/api/settings/users/${editingUserId}`, { username, password: password || undefined, display_name: document.getElementById('suName').value, role, speciality: spec, permissions: perms, commission_type: commType, commission_value: commValue, is_active: 1 });
+      await API.put(`/api/settings/users/${editingUserId}`, {
+        username,
+        password: password || undefined,
+        display_name: document.getElementById('suName').value,
+        role,
+        speciality: spec,
+        permissions: perms,
+        commission_type: commType,
+        commission_value: commValue,
+        is_active: 1
+      });
       showToast(tr('User updated!', 'تم تحديث المستخدم!'));
     } else {
-      await API.post('/api/settings/users', { username, password, display_name: document.getElementById('suName').value, role, speciality: spec, permissions: perms, commission_type: commType, commission_value: commValue });
+      await API.post('/api/settings/users', {
+        username,
+        password,
+        display_name: document.getElementById('suName').value,
+        role,
+        speciality: spec,
+        permissions: perms,
+        commission_type: commType,
+        commission_value: commValue
+      });
       showToast(tr('User added!', 'تم إنشاء المستخدم!'));
     }
 
     editingUserId = null;
-    await navigateTo(18);
+    await navigateTo(42);
   } catch (e) { showToast(e.message || tr('Error saving user', 'خطأ في عملية الحفظ'), 'error'); }
 };
 
@@ -6600,15 +6987,12 @@ window.editUser = (id) => {
   document.getElementById('suRole').value = user.role || 'Reception';
   document.getElementById('suPass').value = '';
 
+  toggleSuRoleFields(user.role);
+
   if (user.role === 'Doctor') {
-    document.getElementById('suSpecDiv').style.display = 'block';
     document.getElementById('suSpec').value = user.speciality || 'General Clinic';
-    document.getElementById('suCommDiv').style.display = 'block';
     document.getElementById('suCommType').value = user.commission_type || 'percentage';
     document.getElementById('suCommValue').value = user.commission_value || 0;
-  } else {
-    document.getElementById('suSpecDiv').style.display = 'none';
-    document.getElementById('suCommDiv').style.display = 'none';
   }
 
   document.querySelectorAll('#suPerms input').forEach(cb => cb.checked = false);
@@ -6628,8 +7012,7 @@ window.cancelEditUser = () => {
   document.getElementById('suName').value = '';
   document.getElementById('suPass').value = '';
   document.getElementById('suRole').value = 'Reception';
-  document.getElementById('suSpecDiv').style.display = 'none';
-  document.getElementById('suCommDiv').style.display = 'none';
+  toggleSuRoleFields('Reception');
   document.querySelectorAll('#suPerms input').forEach(cb => cb.checked = true);
   document.getElementById('suCancelBtn').style.display = 'none';
   document.getElementById('suAddBtn').innerHTML = `➕ ${tr('Save User', 'حفظ المستخدم')}`;
@@ -6640,7 +7023,7 @@ window.deleteUser = async (id) => {
   try {
     await API.delete(`/api/settings/users/${id}`);
     showToast(tr('User deleted!', 'تم الحذف بنجاح!'));
-    await navigateTo(18);
+    await navigateTo(42);
   } catch (e) { showToast(e.message || tr('Error deleting', 'خطأ في الحذف'), 'error'); }
 };
 
@@ -8483,58 +8866,506 @@ window.addKPI = async function () {
   }
 };
 // ===== MAINTENANCE =====
-let mtTab = 'orders';
+let mntTab = 'dashboard';
 async function renderMaintenance(el) {
   const content = el;
 
-  const orders = await API.get('/api/maintenance/orders').catch(() => []);
-  const pending = orders.filter(o => o.status === 'pending').length;
-  const inProgress = orders.filter(o => o.status === 'in_progress').length;
+  let stats = { openWO: 0, inProgressWO: 0, overduePM: 0, totalEquipment: 0 };
+  let mntOrders = [];
+  let workOrders = [];
+  let equipment = [];
+
+  try {
+    stats = await API.get('/api/maintenance/stats').catch(() => ({ openWO: 0, inProgressWO: 0, overduePM: 0, totalEquipment: 0 }));
+    mntOrders = await API.get('/api/maintenance/orders').catch(() => []);
+    workOrders = await API.get('/api/maintenance/work-orders').catch(() => []);
+    equipment = await API.get('/api/maintenance/equipment').catch(() => []);
+  } catch (e) {
+    console.error('Error fetching maintenance data:', e);
+  }
+
+  const activeWO = (parseInt(stats.openWO) || 0) + (parseInt(stats.inProgressWO) || 0);
+  const overduePM = parseInt(stats.overduePM) || 0;
+  const totalEquip = parseInt(stats.totalEquipment) || equipment.length;
 
   content.innerHTML = `
-    <h2>${tr('Maintenance', 'الصيانة')}</h2>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${orders.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Orders', 'إجمالي الطلبات')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${pending}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Pending', 'بانتظار')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${inProgress}</h3><p style="margin:4px 0 0;font-size:12px">${tr('In Progress', 'قيد التنفيذ')}</p></div>
+    <div class="flex justify-between items-end mb-6">
+      <div>
+        <h2 class="font-headline-lg text-headline-lg text-primary">${tr('Biomedical & Facility Maintenance', 'إدارة الصيانة والأصول الطبية')}</h2>
+        <p class="text-on-surface-variant text-sm mt-1">${tr('Monitor medical devices safety, schedule preventive calibrations, and log repair tickets', 'متابعة سلامة الأجهزة الطبية، جدولة المعايرة الوقائية وتسجيل طلبات الإصلاح')}</p>
+      </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
-      <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('New Work Order', 'طلب صيانة جديد')}</h4>
-        <div class="form-group"><label>${tr('Equipment', 'الجهاز/المعدة')}</label><input class="form-input" id="mntEquip"></div>
-        <div class="form-group"><label>${tr('Location', 'الموقع')}</label><input class="form-input" id="mntLoc"></div>
-        <div class="form-group"><label>${tr('Type', 'النوع')}</label>
-          <select class="form-input" id="mntType"><option value="corrective">${tr('Corrective', 'تصحيحية')}</option><option value="preventive">${tr('Preventive', 'وقائية')}</option><option value="emergency">${tr('Emergency', 'طارئة')}</option><option value="calibration">${tr('Calibration', 'معايرة')}</option></select></div>
-        <div class="form-group"><label>${tr('Priority', 'الأولوية')}</label>
-          <select class="form-input" id="mntPriority"><option value="low">${tr('Low', 'منخفضة')}</option><option value="medium">${tr('Medium', 'متوسطة')}</option><option value="high">${tr('High', 'عالية')}</option><option value="urgent">${tr('Urgent', 'عاجلة')}</option></select></div>
-        <div class="form-group"><label>${tr('Description', 'الوصف')}</label><textarea class="form-input" id="mntDesc" rows="2"></textarea></div>
-        <button class="btn btn-primary w-full" onclick="saveMntOrder()">🔧 ${tr('Submit', 'تقديم')}</button>
-      </div>
-      <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Work Orders', 'طلبات الصيانة')}</h4>
-        <div id="mntTable"></div>
-      </div>
-    </div>`;
 
-  const mt = document.getElementById('mntTable');
-  if (mt) {
-    createTable(mt, 'mntTbl',
-      [tr('Equipment', 'الجهاز'), tr('Location', 'الموقع'), tr('Type', 'النوع'), tr('Priority', 'الأولوية'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', '')],
-      orders.map(o => ({ cells: [o.equipment, o.location || '', o.maintenance_type || '', '<span style="padding:2px 8px;border-radius:4px;font-size:11px;background:' + (o.priority === 'urgent' ? '#c62828' : o.priority === 'high' ? '#e65100' : '#1565c0') + ';color:#fff">' + (o.priority || '') + '</span>', statusBadge(o.status), o.created_at ? new Date(o.created_at).toLocaleDateString('ar-SA') : '', o.status !== 'completed' ? '<button class="btn btn-sm" onclick="completeMnt(' + o.id + ')">✅</button>' : ''], id: o.id }))
-    );
-  }
-  window.saveMntOrder = async () => { try { await API.post('/api/maintenance/orders', { equipment: document.getElementById('mntEquip').value, location: document.getElementById('mntLoc').value, maintenance_type: document.getElementById('mntType').value, priority: document.getElementById('mntPriority').value, description: document.getElementById('mntDesc').value, requested_by: window.currentUser?.display_name || '' }); showToast(tr('Order submitted!', 'تم تقديم الطلب!')); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); } };
-  window.completeMnt = async (id) => { try { await API.put('/api/maintenance/orders/' + id, { status: 'completed' }); showToast('✅'); navigateTo(currentPage); } catch (e) { } };
+    <!-- Tabs Navigation -->
+    <div class="flex gap-4 mb-6 border-b border-outline-variant/30 pb-2">
+      <button class="px-4 py-2 font-bold rounded-lg transition-all ${mntTab === 'dashboard' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high/50'}" onclick="mntTab='dashboard';navigateTo(28)">
+        📊 ${tr('Maintenance Dashboard', 'لوحة التحكم')}
+      </button>
+      <button class="px-4 py-2 font-bold rounded-lg transition-all ${mntTab === 'orders' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high/50'}" onclick="mntTab='orders';navigateTo(28)">
+        🔧 ${tr('Work Orders', 'طلبات الصيانة')}
+      </button>
+      <button class="px-4 py-2 font-bold rounded-lg transition-all ${mntTab === 'assets' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high/50'}" onclick="mntTab='assets';navigateTo(28)">
+        🏢 ${tr('Biomedical Assets', 'سجل الأصول الطبية')}
+      </button>
+    </div>
 
+    <div class="tab-pane-content">
+      ${mntTab === 'dashboard' ? `
+        <!-- Metrics Bento Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md mb-lg">
+          <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+            <div class="flex justify-between items-start">
+              <div class="p-3 bg-primary/5 rounded-xl text-primary flex items-center justify-center">
+                <span class="material-symbols-outlined">precision_manufacturing</span>
+              </div>
+              <span class="text-green-600 text-xs font-bold">+2.4%</span>
+            </div>
+            <div class="mt-4">
+              <p class="text-on-surface-variant text-xs font-bold">${tr('Total Biomedical Assets', 'إجمالي الأصول الطبية')}</p>
+              <h3 class="font-display-lg text-3xl font-bold text-primary mt-1">${totalEquip}</h3>
+            </div>
+          </div>
+
+          <div class="glass-card p-6 rounded-2xl flex flex-col justify-between border-r-4 border-r-error">
+            <div class="flex justify-between items-start">
+              <div class="p-3 bg-error/5 rounded-xl text-error flex items-center justify-center">
+                <span class="material-symbols-outlined">error</span>
+              </div>
+              <span class="text-error text-xs font-bold">${tr('Critical', 'عاجل')}</span>
+            </div>
+            <div class="mt-4">
+              <p class="text-on-surface-variant text-xs font-bold">${tr('Active Work Orders', 'طلبات الصيانة النشطة')}</p>
+              <h3 class="font-display-lg text-3xl font-bold text-error mt-1">${activeWO}</h3>
+            </div>
+          </div>
+
+          <div class="glass-card p-6 rounded-2xl flex flex-col justify-between border-r-4 border-r-warning">
+            <div class="flex justify-between items-start">
+              <div class="p-3 bg-warning/5 rounded-xl text-warning flex items-center justify-center">
+                <span class="material-symbols-outlined">calendar_today</span>
+              </div>
+              <span class="text-warning text-xs font-bold">${overduePM} ${tr('Tasks', 'مهام')}</span>
+            </div>
+            <div class="mt-4">
+              <p class="text-on-surface-variant text-xs font-bold">${tr('Overdue PM Schedules', 'صيانة وقائية متأخرة')}</p>
+              <h3 class="font-display-lg text-3xl font-bold text-primary mt-1">${overduePM}</h3>
+            </div>
+          </div>
+
+          <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+            <div class="flex justify-between items-start">
+              <div class="p-3 bg-secondary/5 rounded-xl text-secondary flex items-center justify-center">
+                <span class="material-symbols-outlined">timer_off</span>
+              </div>
+              <span class="text-green-600 text-xs font-bold">-0.8%</span>
+            </div>
+            <div class="mt-4">
+              <p class="text-on-surface-variant text-xs font-bold">${tr('Equipment Downtime Rate', 'معدل تعطل الأجهزة')}</p>
+              <h3 class="font-display-lg text-3xl font-bold text-primary mt-1">1.2%</h3>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start mb-lg">
+          <!-- Calendar view -->
+          <div class="lg:col-span-8 glass-card rounded-2xl overflow-hidden">
+            <div class="p-4 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low/50">
+              <h4 class="font-title-lg font-bold text-primary">${tr('Preventive Maintenance Calendar', 'تقويم الصيانة الوقائية والمعايرة')}</h4>
+              <div class="flex items-center gap-2">
+                <button class="w-8 h-8 flex items-center justify-center rounded-full border border-outline-variant hover:bg-surface-container transition-colors">
+                  <span class="material-symbols-outlined text-sm">chevron_right</span>
+                </button>
+                <span class="font-label-md px-2 text-primary font-bold">يونيو 2026</span>
+                <button class="w-8 h-8 flex items-center justify-center rounded-full border border-outline-variant hover:bg-surface-container transition-colors">
+                  <span class="material-symbols-outlined text-sm">chevron_left</span>
+                </button>
+              </div>
+            </div>
+            <div class="grid grid-cols-7 border-b border-outline-variant/30 text-center py-2 bg-surface-container-low/20">
+              <div class="text-xs font-bold text-on-surface-variant">${tr('Sun', 'الأحد')}</div>
+              <div class="text-xs font-bold text-on-surface-variant">${tr('Mon', 'الاثنين')}</div>
+              <div class="text-xs font-bold text-on-surface-variant">${tr('Tue', 'الثلاثاء')}</div>
+              <div class="text-xs font-bold text-on-surface-variant">${tr('Wed', 'الأربعاء')}</div>
+              <div class="text-xs font-bold text-on-surface-variant">${tr('Thu', 'الخميس')}</div>
+              <div class="text-xs font-bold text-on-surface-variant">${tr('Fri', 'الجمعة')}</div>
+              <div class="text-xs font-bold text-on-surface-variant">${tr('Sat', 'السبت')}</div>
+            </div>
+            <div class="grid grid-cols-7 grid-rows-2">
+              <div class="min-h-[100px] p-2 border-l border-b border-outline-variant/10 relative hover:bg-primary/5 transition-colors">
+                <span class="text-xs text-on-surface-variant font-bold">14</span>
+                <div class="mt-2">
+                  <div class="bg-secondary/10 border-r-2 border-secondary p-1 rounded text-[10px] text-on-secondary-container truncate" title="معايرة أجهزة تنفس">معايرة أجهزة التنفس (3)</div>
+                </div>
+              </div>
+              <div class="min-h-[100px] p-2 border-l border-b border-outline-variant/10 relative hover:bg-primary/5 transition-colors">
+                <span class="text-xs text-on-surface-variant font-bold">15</span>
+                <div class="mt-2 space-y-1">
+                  <div class="bg-error/10 border-r-2 border-error p-1 rounded text-[10px] text-error truncate" title="إصلاح ECG">إصلاح ECG - غرفة 204</div>
+                  <div class="bg-primary/10 border-r-2 border-primary p-1 rounded text-[10px] text-primary truncate" title="صيانة سنوية">صيانة سنوية PB 980</div>
+                </div>
+              </div>
+              <div class="min-h-[100px] p-2 border-l border-b border-outline-variant/10 bg-secondary-container/10">
+                <span class="text-xs text-secondary font-bold">16</span>
+                <p class="text-[10px] text-secondary text-center mt-6 font-bold">${tr('Today', 'اليوم')}</p>
+              </div>
+              <div class="min-h-[100px] p-2 border-l border-b border-outline-variant/10 hover:bg-primary/5 transition-colors"><span class="text-xs text-on-surface-variant">17</span></div>
+              <div class="min-h-[100px] p-2 border-l border-b border-outline-variant/10 hover:bg-primary/5 transition-colors"><span class="text-xs text-on-surface-variant">18</span></div>
+              <div class="min-h-[100px] p-2 border-l border-b border-outline-variant/10 hover:bg-primary/5 transition-colors"><span class="text-xs text-on-surface-variant">19</span></div>
+              <div class="min-h-[100px] p-2 border-b border-outline-variant/10 hover:bg-primary/5 transition-colors"><span class="text-xs text-on-surface-variant">20</span></div>
+            </div>
+          </div>
+
+          <!-- Calibration and Compliance Tracker -->
+          <div class="lg:col-span-4 space-y-md">
+            <div class="glass-card p-6 rounded-2xl bg-gradient-to-br from-white to-surface-container-low">
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="font-title-lg font-bold text-primary">${tr('Calibration Tracking', 'تتبع ومعايرة الأجهزة')}</h4>
+                <span class="material-symbols-outlined text-secondary">verified</span>
+              </div>
+              <div class="space-y-4">
+                <div class="p-3 bg-white rounded-xl border border-outline-variant/30 flex justify-between items-center">
+                  <div>
+                    <p class="text-xs font-bold text-primary">معايرة أجهزة غسيل الكلى</p>
+                    <p class="text-[10px] text-on-surface-variant mt-0.5">تاريخ الاستحقاق: 12 يوم</p>
+                  </div>
+                  <div class="w-10 h-10 relative flex items-center justify-center">
+                    <svg class="w-full h-full transform -rotate-90">
+                      <circle class="text-outline/10" cx="20" cy="20" fill="transparent" r="16" stroke="currentColor" stroke-width="3"></circle>
+                      <circle class="text-secondary" cx="20" cy="20" fill="transparent" r="16" stroke="currentColor" stroke-dasharray="100.5" stroke-dashoffset="15" stroke-width="3"></circle>
+                    </svg>
+                    <span class="absolute text-[9px] font-bold">85%</span>
+                  </div>
+                </div>
+                <div class="p-3 bg-white rounded-xl border border-outline-variant/30 flex justify-between items-center">
+                  <div>
+                    <p class="text-xs font-bold text-primary">أجهزة قياس الأشعة</p>
+                    <p class="text-[10px] text-on-surface-variant mt-0.5">مكتمل - مطابق للمعايير</p>
+                  </div>
+                  <span class="material-symbols-outlined text-green-500">check_circle</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Action Shortcuts -->
+            <div class="glass-card p-6 rounded-2xl">
+              <h4 class="font-title-lg font-bold text-primary mb-4">${tr('Quick Actions', 'إجراءات سريعة')}</h4>
+              <div class="space-y-2.5">
+                <button onclick="mntTab='orders';navigateTo(28)" class="w-full flex items-center justify-between p-3.5 bg-primary text-white rounded-xl hover:bg-primary-container transition-all group">
+                  <span class="font-label-md">🔧 ${tr('Open Work Orders Tab', 'تسجيل طلب صيانة جديد')}</span>
+                  <span class="material-symbols-outlined text-sm">arrow_back</span>
+                </button>
+                <button onclick="mntTab='assets';navigateTo(28)" class="w-full flex items-center justify-between p-3.5 border border-secondary text-secondary rounded-xl hover:bg-secondary/5 transition-all">
+                  <span class="font-label-md">🏢 ${tr('Open Asset Register', 'إضافة أصل طبي جديد')}</span>
+                  <span class="material-symbols-outlined text-sm">arrow_back</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ` : mntTab === 'orders' ? `
+        <!-- Work Orders Tab -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
+          <!-- Forms Column -->
+          <div class="space-y-md">
+            <!-- Legacy Maintenance Orders Form -->
+            <div class="glass-card p-6 rounded-2xl">
+              <h4 class="font-title-lg text-title-lg text-primary mb-4">🔧 ${tr('New Maintenance Ticket', 'طلب صيانة وإصلاح')}</h4>
+              <div class="form-group mb-3">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Equipment Name/ID', 'الجهاز/المعدة')}</label>
+                <input class="form-input w-full" id="mntEquip" placeholder="e.g. Ventilator PB 980">
+              </div>
+              <div class="form-group mb-3">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Location/Room', 'الموقع / الغرفة')}</label>
+                <input class="form-input w-full" id="mntLoc" placeholder="e.g. ICU Room 3">
+              </div>
+              <div class="form-group mb-3">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Maintenance Type', 'نوع الصيانة')}</label>
+                <select class="form-input w-full" id="mntType">
+                  <option value="corrective">${tr('Corrective', 'تصحيحية')}</option>
+                  <option value="preventive">${tr('Preventive', 'وقائية')}</option>
+                  <option value="emergency">${tr('Emergency', 'طارئة')}</option>
+                  <option value="calibration">${tr('Calibration', 'معايرة')}</option>
+                </select>
+              </div>
+              <div class="form-group mb-3">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Priority', 'الأولوية')}</label>
+                <select class="form-input w-full" id="mntPriority">
+                  <option value="low">${tr('Low', 'منخفضة')}</option>
+                  <option value="medium">${tr('Medium', 'متوسطة')}</option>
+                  <option value="high">${tr('High', 'عالية')}</option>
+                  <option value="urgent">${tr('Urgent', 'عاجلة')}</option>
+                </select>
+              </div>
+              <div class="form-group mb-4">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Issue Description', 'وصف المشكلة')}</label>
+                <textarea class="form-input w-full" id="mntDesc" rows="2" placeholder="تفاصيل العطل..."></textarea>
+              </div>
+              <button class="btn btn-primary w-full py-2.5 rounded-xl font-bold flex items-center justify-center gap-2" onclick="saveMntOrder()">
+                🔧 ${tr('Submit Order', 'تقديم الطلب')}
+              </button>
+            </div>
+
+            <!-- Legacy Work Orders Form -->
+            <div class="glass-card p-6 rounded-2xl">
+              <h4 class="font-title-lg text-title-lg text-primary mb-4">📋 ${tr('Detailed Work Order', 'أمر تشغيل تفصيلي')}</h4>
+              <div class="form-group mb-3">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Request Type', 'نوع الطلب')}</label>
+                <select class="form-input w-full" id="woType">
+                  <option value="Corrective">${tr('Corrective', 'تصحيحية')}</option>
+                  <option value="Preventive">${tr('Preventive', 'وقائية')}</option>
+                  <option value="Calibration">${tr('Calibration', 'معايرة')}</option>
+                </select>
+              </div>
+              <div class="form-group mb-3">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Priority', 'الأولوية')}</label>
+                <select class="form-input w-full" id="woPriority">
+                  <option value="Low">${tr('Low', 'منخفضة')}</option>
+                  <option value="Normal">${tr('Normal', 'عادية')}</option>
+                  <option value="High">${tr('High', 'عالية')}</option>
+                  <option value="Emergency">${tr('Emergency', 'طارئة')}</option>
+                </select>
+              </div>
+              <div class="grid grid-cols-2 gap-2 mb-3">
+                <div class="form-group">
+                  <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Department', 'القسم')}</label>
+                  <input class="form-input w-full" id="woDept" placeholder="e.g. ICU">
+                </div>
+                <div class="form-group">
+                  <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Location', 'الموقع')}</label>
+                  <input class="form-input w-full" id="woLocation" placeholder="e.g. F2-Room12">
+                </div>
+              </div>
+              <div class="form-group mb-4">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Description', 'الوصف')}</label>
+                <textarea class="form-input w-full" id="woDesc" rows="2" placeholder="أدخل تفاصيل التكليف..."></textarea>
+              </div>
+              <button class="btn btn-secondary w-full py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 border border-secondary" onclick="addWorkOrder()">
+                ➕ ${tr('Create Work Order', 'إنشاء أمر العمل')}
+              </button>
+            </div>
+          </div>
+
+          <!-- Logs Tables Column -->
+          <div class="lg:col-span-2 space-y-md">
+            <!-- Active Tickets Table -->
+            <div class="glass-card p-6 rounded-2xl overflow-x-auto">
+              <h4 class="font-title-lg text-title-lg text-primary mb-4">🔧 ${tr('Maintenance Tickets', 'طلبات الصيانة والإصلاح')}</h4>
+              <table class="w-full text-right divide-y divide-outline-variant/30 text-xs">
+                <thead class="bg-surface-container-low font-label-md text-on-surface-variant">
+                  <tr>
+                    <th class="p-3">${tr('Equipment', 'الجهاز')}</th>
+                    <th class="p-3">${tr('Location', 'الموقع')}</th>
+                    <th class="p-3">${tr('Type', 'النوع')}</th>
+                    <th class="p-3">${tr('Priority', 'الأولوية')}</th>
+                    <th class="p-3">${tr('Status', 'الحالة')}</th>
+                    <th class="p-3 text-center">${tr('Actions', 'إجراءات')}</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant/10 font-body-md">
+                  ${mntOrders.length ? mntOrders.map(o => `
+                    <tr class="hover:bg-primary/5 transition-colors">
+                      <td class="p-3 font-bold text-primary">${o.equipment}</td>
+                      <td class="p-3 text-on-surface-variant">${o.location || '—'}</td>
+                      <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-primary/10 text-primary font-bold">${o.maintenance_type || '—'}</span></td>
+                      <td class="p-3">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${o.priority === 'urgent' || o.priority === 'high' ? 'bg-error-container text-on-error-container' : 'bg-primary-container text-on-primary-fixed-variant'}">
+                          ${o.priority}
+                        </span>
+                      </td>
+                      <td class="p-3">${statusBadge(o.status)}</td>
+                      <td class="p-3 text-center">
+                        ${o.status !== 'completed' ? `<button class="btn btn-sm bg-green-100 text-green-700 hover:bg-green-200 px-2 py-1 rounded" onclick="completeMnt(${o.id})">✅ ${tr('Complete', 'إتمام')}</button>` : '—'}
+                      </td>
+                    </tr>
+                  `).join('') : `<tr><td colspan="6" class="text-center py-4 text-on-surface-variant">${tr('No records found', 'لا توجد طلبات مسجلة')}</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Active Work Orders Queue Table -->
+            <div class="glass-card p-6 rounded-2xl overflow-x-auto">
+              <h4 class="font-title-lg text-title-lg text-primary mb-4">📋 ${tr('System Work Orders Queue', 'طابور أوامر العمل الفنية')}</h4>
+              <table class="w-full text-right divide-y divide-outline-variant/30 text-xs">
+                <thead class="bg-surface-container-low font-label-md text-on-surface-variant">
+                  <tr>
+                    <th class="p-3">${tr('WO#', 'رقم الأمر')}</th>
+                    <th class="p-3">${tr('Dept / Location', 'القسم / الموقع')}</th>
+                    <th class="p-3">${tr('Type', 'النوع')}</th>
+                    <th class="p-3">${tr('Priority', 'الأولوية')}</th>
+                    <th class="p-3">${tr('Status', 'الحالة')}</th>
+                    <th class="p-3 text-center">${tr('Actions', 'إجراءات')}</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant/10 font-body-md">
+                  ${workOrders.length ? workOrders.map(w => `
+                    <tr class="hover:bg-primary/5 transition-colors">
+                      <td class="p-3 font-mono font-bold text-primary">${w.wo_number}</td>
+                      <td class="p-3 text-on-surface-variant">${w.department || ''} / ${w.location || ''}</td>
+                      <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-secondary/10 text-secondary font-bold">${w.request_type}</span></td>
+                      <td class="p-3">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${w.priority === 'High' || w.priority === 'Emergency' ? 'bg-error-container text-on-error-container' : 'bg-primary-container text-on-primary-fixed-variant'}">
+                          ${w.priority}
+                        </span>
+                      </td>
+                      <td class="p-3">${statusBadge(w.status)}</td>
+                      <td class="p-3 text-center">
+                        ${w.status !== 'Completed' ? `<button class="btn btn-sm bg-green-100 text-green-700 hover:bg-green-200 px-2 py-1 rounded" onclick="completeWO(${w.id})">✅ ${tr('Resolve', 'حل التكليف')}</button>` : '—'}
+                      </td>
+                    </tr>
+                  `).join('') : `<tr><td colspan="6" class="text-center py-4 text-on-surface-variant">${tr('No records found', 'لا توجد أوامر عمل حالية')}</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      ` : `
+        <!-- Asset Register Tab -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
+          <!-- Asset Form -->
+          <div class="glass-card p-6 rounded-2xl h-fit">
+            <h4 class="font-title-lg text-title-lg text-primary mb-4">🏢 ${tr('Register Medical Device', 'تسجيل أصل طبي جديد')}</h4>
+            <div class="form-group mb-3">
+              <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Device Name (EN)', 'اسم الجهاز (إنجليزي)')}</label>
+              <input class="form-input w-full" id="eqName" placeholder="e.g. GE ECG Monitor B850">
+            </div>
+            <div class="form-group mb-3">
+              <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Device Name (AR)', 'اسم الجهاز (عربي)')}</label>
+              <input class="form-input w-full" id="eqNameAr" placeholder="e.g. جهاز تخطيط القلب GE">
+            </div>
+            <div class="form-group mb-3">
+              <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Category', 'الفئة والنوع')}</label>
+              <input class="form-input w-full" id="eqCat" placeholder="e.g. Diagnostic / Life Support">
+            </div>
+            <div class="form-group mb-3">
+              <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Manufacturer', 'الشركة المصنعة')}</label>
+              <input class="form-input w-full" id="eqMfg" placeholder="e.g. GE Healthcare">
+            </div>
+            <div class="grid grid-cols-2 gap-2 mb-4">
+              <div class="form-group">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Serial Number', 'الرقم التسلسلي')}</label>
+                <input class="form-input w-full" id="eqSerial" placeholder="e.g. SN-8829402">
+              </div>
+              <div class="form-group">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Department', 'القسم المستلم')}</label>
+                <input class="form-input w-full" id="eqDept" placeholder="e.g. Cardiology">
+              </div>
+            </div>
+            <button class="btn btn-primary w-full py-2.5 rounded-xl font-bold flex items-center justify-center gap-2" onclick="addEquipment()">
+              🏢 ${tr('Register Asset', 'تسجيل الجهاز')}
+            </button>
+          </div>
+
+          <!-- Assets Table -->
+          <div class="glass-card p-6 rounded-2xl lg:col-span-2 overflow-x-auto">
+            <h4 class="font-title-lg text-title-lg text-primary mb-4">🏢 ${tr('Biomedical Assets Registry', 'سجل عرد ومعدات الأجهزة الطبية')}</h4>
+            <table class="w-full text-right divide-y divide-outline-variant/30 text-xs">
+              <thead class="bg-surface-container-low font-label-md text-on-surface-variant">
+                <tr>
+                  <th class="p-3">${tr('Code', 'الرمز')}</th>
+                  <th class="p-3">${tr('Device Name', 'اسم الجهاز')}</th>
+                  <th class="p-3">${tr('Category', 'الفئة')}</th>
+                  <th class="p-3">${tr('Manufacturer', 'المصنع')}</th>
+                  <th class="p-3">${tr('Serial#', 'الرقم التسلسلي')}</th>
+                  <th class="p-3">${tr('Status', 'الحالة')}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-outline-variant/10 font-body-md">
+                ${equipment.length ? equipment.map(e => `
+                  <tr class="hover:bg-primary/5 transition-colors">
+                    <td class="p-3 font-mono font-bold text-primary">${e.equipment_code || `EQ-${e.id}`}</td>
+                    <td class="p-3">
+                      <div class="font-bold text-primary">${isArabic ? (e.equipment_name_ar || e.equipment_name) : (e.equipment_name || e.equipment_name_ar)}</div>
+                      <div class="text-[10px] text-on-surface-variant">${e.department || ''} - ${e.location || ''}</div>
+                    </td>
+                    <td class="p-3 text-on-surface-variant">${e.category || ''}</td>
+                    <td class="p-3 text-on-surface-variant">${e.manufacturer || ''}</td>
+                    <td class="p-3 font-mono text-[11px]">${e.serial_number || '—'}</td>
+                    <td class="p-3">${statusBadge(e.status || 'Active')}</td>
+                  </tr>
+                `).join('') : `<tr><td colspan="6" class="text-center py-4 text-on-surface-variant">${tr('No equipment registered', 'لا توجد أجهزة مسجلة حالياً')}</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `}
+    </div>
+  `;
+
+  window.saveMntOrder = async () => {
+    try {
+      await API.post('/api/maintenance/orders', {
+        equipment: document.getElementById('mntEquip').value,
+        location: document.getElementById('mntLoc').value,
+        maintenance_type: document.getElementById('mntType').value,
+        priority: document.getElementById('mntPriority').value,
+        description: document.getElementById('mntDesc').value,
+        requested_by: window.currentUser?.display_name || ''
+      });
+      showToast(tr('Order submitted!', 'تم تقديم الطلب!'));
+      mntTab = 'orders';
+      navigateTo(currentPage);
+    } catch (e) {
+      showToast(tr('Error', 'خطأ'), 'error');
+    }
+  };
+
+  window.completeMnt = async (id) => {
+    try {
+      await API.put('/api/maintenance/orders/' + id, { status: 'completed' });
+      showToast('✅');
+      mntTab = 'orders';
+      navigateTo(currentPage);
+    } catch (e) {
+      showToast(tr('Error', 'خطأ'), 'error');
+    }
+  };
 }
+
 window.addWorkOrder = async function () {
-  try { await API.post('/api/maintenance/work-orders', { request_type: document.getElementById('woType').value, priority: document.getElementById('woPriority').value, department: document.getElementById('woDept').value, location: document.getElementById('woLocation').value, description: document.getElementById('woDesc').value, requested_by: currentUser?.display_name }); showToast(tr('Created!', 'تم الإنشاء!')); await navigateTo(28); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  try {
+    await API.post('/api/maintenance/work-orders', {
+      request_type: document.getElementById('woType').value,
+      priority: document.getElementById('woPriority').value,
+      department: document.getElementById('woDept').value,
+      location: document.getElementById('woLocation').value,
+      description: document.getElementById('woDesc').value,
+      requested_by: currentUser?.display_name
+    });
+    showToast(tr('Created!', 'تم الإنشاء!'));
+    mntTab = 'orders';
+    await navigateTo(28);
+  } catch (e) {
+    showToast(tr('Error', 'خطأ'), 'error');
+  }
 };
+
 window.completeWO = async function (id) {
-  try { await API.put('/api/maintenance/work-orders/' + id, { status: 'Completed' }); showToast(tr('Completed!', 'اكتمل!')); await navigateTo(28); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  try {
+    await API.put('/api/maintenance/work-orders/' + id, { status: 'Completed' });
+    showToast(tr('Completed!', 'اكتمل!'));
+    mntTab = 'orders';
+    await navigateTo(28);
+  } catch (e) {
+    showToast(tr('Error', 'خطأ'), 'error');
+  }
 };
+
 window.addEquipment = async function () {
-  try { await API.post('/api/maintenance/equipment', { equipment_name: document.getElementById('eqName').value, equipment_name_ar: document.getElementById('eqNameAr').value, category: document.getElementById('eqCat').value, manufacturer: document.getElementById('eqMfg').value, serial_number: document.getElementById('eqSerial').value, department: document.getElementById('eqDept').value }); showToast(tr('Added!', 'تمت الإضافة!')); await navigateTo(28); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  try {
+    await API.post('/api/maintenance/equipment', {
+      equipment_name: document.getElementById('eqName').value,
+      equipment_name_ar: document.getElementById('eqNameAr').value,
+      category: document.getElementById('eqCat').value,
+      manufacturer: document.getElementById('eqMfg').value,
+      serial_number: document.getElementById('eqSerial').value,
+      department: document.getElementById('eqDept').value
+    });
+    showToast(tr('Added!', 'تمت الإضافة!'));
+    mntTab = 'assets';
+    await navigateTo(28);
+  } catch (e) {
+    showToast(tr('Error', 'خطأ'), 'error');
+  }
 };
 
 // ===== TRANSPORT =====

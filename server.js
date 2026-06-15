@@ -2336,10 +2336,13 @@ app.get('/api/maintenance/stats', requireAuth, async (req, res) => {
     try {
         const open = (await pool.query("SELECT COUNT(*) as cnt FROM maintenance_work_orders WHERE status='Open'")).rows[0].cnt;
         const inProg = (await pool.query("SELECT COUNT(*) as cnt FROM maintenance_work_orders WHERE status='In Progress'")).rows[0].cnt;
-        const overdue = (await pool.query("SELECT COUNT(*) as cnt FROM maintenance_pm_schedules WHERE next_due < CURRENT_DATE AND status='Pending'")).rows[0].cnt;
+        const overdue = (await pool.query("SELECT COUNT(*) as cnt FROM maintenance_pm_schedules WHERE next_due < CURRENT_DATE::text AND status='Pending'")).rows[0].cnt;
         const totalEquip = (await pool.query("SELECT COUNT(*) as cnt FROM maintenance_equipment WHERE status='Active'")).rows[0].cnt;
         res.json({ openWO: open, inProgressWO: inProg, overduePM: overdue, totalEquipment: totalEquip });
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) {
+        console.error('Maintenance stats error:', e);
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 // ===== PATIENT TRANSPORT =====

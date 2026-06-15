@@ -1,21 +1,23 @@
-# Batch D Verification Walkthrough
+# Batch E Verification Walkthrough
 
 ## Summary of Completed Work
-- **Finance & Accounting Redesign**: Refactored `renderFinance` in `public/js/app.js` with a premium RTL bento stats dashboard and multi-tab SPA routing (Dashboard, Chart of Accounts, Vouchers, Reports).
-- **HR & Payroll Redesign**: Refactored `renderHR` in `public/js/app.js` with employee lists, WPS-compliant payroll slips, leaves directory, and attendance logs.
-- **Quality & Compliance Redesign**: Refactored `renderQuality` in `public/js/app.js` to support quality KPIs, incident report logs, a local-state interactive checklist for CBAHI/ZATCA/MOH regulations with a dynamic compliance progress bar, and a system administrative audit trail viewer.
+- **Cybersecurity & Governance Redesign**: Refactored `renderSettings` (Tab 3) in `public/js/app.js` with a premium RTL cybersecurity panel featuring a threat level SVG gauge, encryption details, national compliance status (SDAIA, PDPL), backup database stats, backups lists, pg_dump backup trigger, and an audit trail logs viewer.
+- **Biomedical & Facility Maintenance Redesign**: Refactored `renderMaintenance` in `public/js/app.js` with a multi-tab SPA interface (Dashboard, Work Orders, Biomedical Assets) featuring bento metrics cards, PM schedule calendar, active maintenance orders queue, detailed work order creation form, and biomedical asset registration and registry table.
+- **Executive Analytics Redesign**: Refactored `renderDashboard` in `public/js/app.js` to show the Operational Command Center featuring Vision 2030 strategic target indicators, weekly operations and revenue line/bar charts, departmental status cards (ER, ICU, Surgery, Radiology), and top doctors and revenue service split lists.
 - **Tailwind Compilation**: Rebuilt Tailwind compiled stylesheet locally to `/css/tailwind-compiled.css` with zero CDN warnings.
 
 ## Verification & Testing
 1. **Syntax Integrity**: Verified that all core client and server files compile clean (`node --check`).
-2. **Browser Automated Validation**: Verified via a browser subagent that:
-   - Login succeeds using safe test credentials (safe test credentials).
-   - The 'المالية' (Finance) and 'الموارد البشرية' (HR) sidebar buttons load the redesigned panels cleanly.
-   - The 'الجودة' (Quality) sidebar button loads the redesigned panel.
-   - Checking items in the Compliance Checklist tab recalculates the compliance score dynamically (e.g. checking ZATCA (+25%) and CBAHI Patient Rights (+15%) updates the overall score from 0% to 40%).
-   - The System Audit Logs tab correctly queries and displays system operations from the `audit_trail` table.
+2. **PostgreSQL fix**: Fixed SQL date-to-text comparison for PM schedules in `/api/maintenance/stats`.
+3. **Browser Automated Validation**: Verified via a browser subagent that:
+   - Login succeeds using safe test credentials.
+   - The main Dashboard (Operational Command Center) loads successfully with Vision 2030 metrics, departmental status cards, and live charts.
+   - The 'الصيانة' (Maintenance) sidebar link loads the redesigned tabs:
+     - Dashboard stats (Total Biomedical Assets, Active Work Orders, Overdue PM, Equipment Downtime Rate) render successfully without errors.
+     - Preventive maintenance calendar, active tickets table, work orders queue, and biomedical assets registry render correctly.
+   - The 'الإعدادات' (Settings) sidebar link and 'الأمن السيبراني والحوكمة' tab render the Threat Level, Database Infrastructure, Backup Registry, and Security Audit Trail table without errors.
    - The developer console contains 0 JavaScript errors during page transitions.
 
 ## Data Mutation Audit
-* **Record Created/Updated**: During browser validation, no persistent backend database records were mutated or added for testing, other than checking local storage compliance items which is entirely browser-side (`localStorage.setItem`). The audit log logs the `LOGIN` event in PostgreSQL when the admin signs in, which is standard system audit trail behavior.
-* **Safety**: Fully safe to keep as it only contains local storage preferences and normal runtime system login trails.
+* **Record Created/Updated**: During browser validation, no persistent backend database records were mutated or added for testing, other than the LOGIN audit trail event logged in PostgreSQL when signing in.
+* **Safety**: Fully safe to keep.
