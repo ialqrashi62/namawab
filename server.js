@@ -1443,21 +1443,31 @@ app.get('/api/reports/financial', requireAuth, requireRole('finance'), requireTe
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/reports/patients', requireAuth, requireRole('reports'), async (req, res) => {
+app.get('/api/reports/patients', requireAuth, requireRole('reports'), requireTenantScope, async (req, res) => {
     try {
-        const totalPatients = (await pool.query('SELECT COUNT(*) as cnt FROM patients')).rows[0].cnt;
-        const todayPatients = (await pool.query("SELECT COUNT(*) as cnt FROM patients WHERE created_at >= CURRENT_DATE")).rows[0].cnt;
-        const deptStats = (await pool.query('SELECT department, COUNT(*) as cnt FROM patients GROUP BY department ORDER BY cnt DESC')).rows;
-        const statusStats = (await pool.query('SELECT status, COUNT(*) as cnt FROM patients GROUP BY status')).rows;
+        const { tenantId } = getRequestTenantContext(req);
+        const params = tenantId ? [tenantId] : [];
+        const tenantFilter = tenantId ? ' WHERE tenant_id=$1' : '';
+        const todayTenantFilter = tenantId ? ' AND tenant_id=$1' : '';
+        const todayParams = tenantId ? [tenantId] : [];
+
+        const totalPatients = (await pool.query(`SELECT COUNT(*) as cnt FROM patients${tenantFilter}`, params)).rows[0].cnt;
+        const todayPatients = (await pool.query(`SELECT COUNT(*) as cnt FROM patients WHERE created_at >= CURRENT_DATE${todayTenantFilter}`, todayParams)).rows[0].cnt;
+        const deptStats = (await pool.query(`SELECT department, COUNT(*) as cnt FROM patients${tenantFilter} GROUP BY department ORDER BY cnt DESC`, params)).rows;
+        const statusStats = (await pool.query(`SELECT status, COUNT(*) as cnt FROM patients${tenantFilter} GROUP BY status`, params)).rows;
         res.json({ totalPatients, todayPatients, deptStats, statusStats });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/reports/lab', requireAuth, requireRole('reports'), async (req, res) => {
+app.get('/api/reports/lab', requireAuth, requireRole('reports'), requireTenantScope, async (req, res) => {
     try {
-        const totalOrders = (await pool.query('SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE is_radiology=0')).rows[0].cnt;
-        const pendingOrders = (await pool.query("SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE is_radiology=0 AND status='Requested'")).rows[0].cnt;
-        const completedOrders = (await pool.query("SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE is_radiology=0 AND status='Completed'")).rows[0].cnt;
+        const { tenantId } = getRequestTenantContext(req);
+        const params = tenantId ? [tenantId] : [];
+        const tenantFilter = tenantId ? ' AND tenant_id=$1' : '';
+
+        const totalOrders = (await pool.query(`SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE is_radiology=0${tenantFilter}`, params)).rows[0].cnt;
+        const pendingOrders = (await pool.query(`SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE is_radiology=0 AND status='Requested'${tenantFilter}`, params)).rows[0].cnt;
+        const completedOrders = (await pool.query(`SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE is_radiology=0 AND status='Completed'${tenantFilter}`, params)).rows[0].cnt;
         res.json({ totalOrders, pendingOrders, completedOrders });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1546,34 +1556,72 @@ app.post('/api/medical/certificates', requireAuth, async (req, res) => {
 });
 
 // ===== PATIENT REFERRALS =====
-app.get('/api/referrals', requireAuth, async (req, res) => {
+app.get('/api/referrals', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id } = req.query;
-        if (patient_id) {
-            res.json((await pool.query('SELECT * FROM patient_referrals WHERE patient_id=$1 ORDER BY id DESC', [patient_id])).rows);
-        } else {
-            res.json((await pool.query('SELECT * FROM patient_referrals ORDER BY id DESC')).rows);
+        const { tenantId } = getRequestTenantContext(req);
+
+        // Verify patient context belongs to tenant if patient_id is passed
+        if (tenantId && patient_id) {
+            const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
+            if (patientCheck.rows.length === 0) {
+                return res.status(403).json({ error: 'Unauthorized patient context' });
+            }
         }
+
+        let query = 'SELECT * FROM patient_referrals';
+        let params = [];
+        let conds = [];
+        if (tenantId) {
+            conds.push('tenant_id=$' + (params.length + 1));
+            params.push(tenantId);
+        }
+        if (patient_id) {
+            conds.push('patient_id=$' + (params.length + 1));
+            params.push(patient_id);
+        }
+        if (conds.length) query += ' WHERE ' + conds.join(' AND ');
+        query += ' ORDER BY id DESC';
+
+        res.json((await pool.query(query, params)).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/referrals', requireAuth, async (req, res) => {
+app.post('/api/referrals', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, to_department, to_doctor, reason, urgency, notes } = req.body;
-        const fromDoctor = req.session.user.name || '';
-        const fromDoctorId = req.session.user.id || 0;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+
+        // Verify patient context belongs to tenant
+        if (tenantId && patient_id) {
+            const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
+            if (patientCheck.rows.length === 0) {
+                return res.status(403).json({ error: 'Unauthorized patient context' });
+            }
+        }
+
+        const fromDoctor = req.session.user?.display_name || req.session.user?.name || '';
+        const fromDoctorId = req.session.user?.id || 0;
         const result = await pool.query(
-            'INSERT INTO patient_referrals (patient_id, patient_name, from_doctor_id, from_doctor, to_department, to_doctor, reason, urgency, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id',
-            [patient_id, patient_name || '', fromDoctorId, fromDoctor, to_department || '', to_doctor || '', reason || '', urgency || 'Normal', notes || '']);
+            'INSERT INTO patient_referrals (patient_id, patient_name, from_doctor_id, from_doctor, to_department, to_doctor, reason, urgency, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id',
+            [patient_id, patient_name || '', fromDoctorId, fromDoctor, to_department || '', to_doctor || '', reason || '', urgency || 'Normal', notes || '', tenantId, facilityId]);
         res.json((await pool.query('SELECT * FROM patient_referrals WHERE id=$1', [result.rows[0].id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.put('/api/referrals/:id', requireAuth, async (req, res) => {
+app.put('/api/referrals/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { status } = req.body;
-        await pool.query('UPDATE patient_referrals SET status=$1 WHERE id=$2', [status, req.params.id]);
-        res.json((await pool.query('SELECT * FROM patient_referrals WHERE id=$1', [req.params.id])).rows[0]);
+        const { tenantId } = getRequestTenantContext(req);
+
+        const q = tenantId ?
+            'UPDATE patient_referrals SET status=$1 WHERE id=$2 AND tenant_id=$3 RETURNING *' :
+            'UPDATE patient_referrals SET status=$1 WHERE id=$2 RETURNING *';
+        const params = tenantId ? [status, req.params.id, tenantId] : [status, req.params.id];
+
+        const r = await pool.query(q, params);
+        if (r.rows.length === 0) return res.status(404).json({ error: 'Not found or unauthorized' });
+        res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -1678,7 +1726,7 @@ app.get('/api/dashboard/enhanced', requireAuth, requireTenantScope, async (req, 
 });
 
 // ===== PATIENT VISIT TIMELINE =====
-app.get('/api/patients/:id/timeline', requireAuth, requireRole('patients'), async (req, res) => {
+app.get('/api/patients/:id/timeline', requireAuth, requireRole('patients'), requireTenantScope, async (req, res) => {
     try {
         const pid = req.params.id;
         // --- TENANT SCOPE: verify patient belongs to current tenant ---
@@ -4302,12 +4350,41 @@ app.get('/api/obgyn/lab-panels', requireAuth, async (req, res) => {
 });
 
 // OB/GYN Dashboard Stats
-app.get('/api/obgyn/stats', requireAuth, async (req, res) => {
+app.get('/api/obgyn/stats', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        const active = (await pool.query("SELECT COUNT(*) as cnt FROM obgyn_pregnancies WHERE status='Active'")).rows[0].cnt;
-        const highRisk = (await pool.query("SELECT COUNT(*) as cnt FROM obgyn_pregnancies WHERE status='Active' AND risk_level='High'")).rows[0].cnt;
-        const dueThisWeek = (await pool.query("SELECT COUNT(*) as cnt FROM obgyn_pregnancies WHERE status='Active' AND edd BETWEEN CURRENT_DATE AND CURRENT_DATE + 7")).rows[0].cnt;
-        const deliveredThisMonth = (await pool.query("SELECT COUNT(*) as cnt FROM obgyn_deliveries WHERE delivery_date >= date_trunc('month', CURRENT_DATE)")).rows[0].cnt;
+        const { tenantId } = getRequestTenantContext(req);
+        
+        // Ensure tables exist dynamically
+        await pool.query(`CREATE TABLE IF NOT EXISTS obgyn_pregnancies (
+            id SERIAL PRIMARY KEY,
+            patient_id INTEGER, patient_name VARCHAR(200), lmp DATE, edd DATE,
+            gravida INTEGER, para INTEGER, abortions INTEGER, living_children INTEGER,
+            blood_group VARCHAR(20), rh_factor VARCHAR(20), risk_level VARCHAR(50),
+            pre_pregnancy_weight REAL, height REAL, allergies TEXT, chronic_conditions TEXT,
+            previous_cs INTEGER, previous_complications TEXT, husband_name VARCHAR(200),
+            husband_blood_group VARCHAR(20), attending_doctor VARCHAR(200), created_by VARCHAR(200),
+            status VARCHAR(50) DEFAULT 'Active', delivery_date DATE, delivery_type VARCHAR(100), outcome VARCHAR(100),
+            tenant_id INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS obgyn_deliveries (
+            id SERIAL PRIMARY KEY,
+            pregnancy_id INTEGER, patient_id INTEGER, delivery_date DATE,
+            gestational_age_at_delivery VARCHAR(50), delivery_type VARCHAR(100), outcome VARCHAR(100),
+            birth_weight REAL, apgar_1min INTEGER, apgar_5min INTEGER, complications TEXT,
+            gender VARCHAR(20), neonatal_outcome VARCHAR(100), tenant_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
+        
+        await pool.query(`ALTER TABLE obgyn_pregnancies ADD COLUMN IF NOT EXISTS tenant_id INTEGER`);
+        await pool.query(`ALTER TABLE obgyn_deliveries ADD COLUMN IF NOT EXISTS tenant_id INTEGER`);
+
+        const params = tenantId ? [tenantId] : [];
+        const tenantFilter = tenantId ? ' AND tenant_id=$1' : '';
+
+        const active = (await pool.query(`SELECT COUNT(*) as cnt FROM obgyn_pregnancies WHERE status='Active'${tenantFilter}`, params)).rows[0].cnt;
+        const highRisk = (await pool.query(`SELECT COUNT(*) as cnt FROM obgyn_pregnancies WHERE status='Active' AND risk_level='High'${tenantFilter}`, params)).rows[0].cnt;
+        const dueThisWeek = (await pool.query(`SELECT COUNT(*) as cnt FROM obgyn_pregnancies WHERE status='Active' AND edd BETWEEN CURRENT_DATE AND CURRENT_DATE + 7${tenantFilter}`, params)).rows[0].cnt;
+        const deliveredThisMonth = (await pool.query(`SELECT COUNT(*) as cnt FROM obgyn_deliveries WHERE delivery_date >= date_trunc('month', CURRENT_DATE)${tenantFilter}`, params)).rows[0].cnt;
         res.json({ activePregnancies: active, highRisk, dueThisWeek, deliveredThisMonth });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -4445,15 +4522,28 @@ app.get('/api/reports/aging', requireAuth, requireRole('finance'), requireTenant
 });
 
 // ===== REFERRAL SYSTEM =====
-app.post('/api/referrals', requireAuth, async (req, res) => {
+app.post('/api/referrals', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, from_doctor, from_dept, to_dept, to_doctor, reason, urgency, notes } = req.body;
+        const { tenantId } = getRequestTenantContext(req);
+
+        // Verify patient context belongs to tenant
+        if (tenantId && patient_id) {
+            const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
+            if (patientCheck.rows.length === 0) {
+                return res.status(403).json({ error: 'Unauthorized patient context' });
+            }
+        }
+
         await pool.query(`CREATE TABLE IF NOT EXISTS referrals (
             id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name TEXT DEFAULT '', from_doctor TEXT DEFAULT '', from_dept TEXT DEFAULT '',
             to_dept TEXT DEFAULT '', to_doctor TEXT DEFAULT '', reason TEXT DEFAULT '', urgency TEXT DEFAULT 'Routine',
-            notes TEXT DEFAULT '', status TEXT DEFAULT 'Pending', response TEXT DEFAULT '', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
-        const result = await pool.query('INSERT INTO referrals (patient_id, patient_name, from_doctor, from_dept, to_dept, to_doctor, reason, urgency, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
-            [patient_id, patient_name || '', from_doctor || req.session.user?.display_name || '', from_dept || '', to_dept || '', to_doctor || '', reason || '', urgency || 'Routine', notes || '']);
+            notes TEXT DEFAULT '', status TEXT DEFAULT 'Pending', response TEXT DEFAULT '', tenant_id INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        
+        await pool.query('ALTER TABLE referrals ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
+
+        const result = await pool.query('INSERT INTO referrals (patient_id, patient_name, from_doctor, from_dept, to_dept, to_doctor, reason, urgency, notes, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
+            [patient_id, patient_name || '', from_doctor || req.session.user?.display_name || '', from_dept || '', to_dept || '', to_doctor || '', reason || '', urgency || 'Routine', notes || '', tenantId]);
         await pool.query('INSERT INTO notifications (target_role, title, message, type, module) VALUES ($1,$2,$3,$4,$5)',
             ['Doctor', 'New Referral', 'Patient: ' + patient_name + ' referred to ' + to_dept + ' - ' + reason, 'info', 'Referrals']);
         logAudit(req.session.user?.id, req.session.user?.display_name, 'REFERRAL', 'Doctor', 'Referred ' + patient_name + ' to ' + to_dept, req.ip);
@@ -4461,15 +4551,42 @@ app.post('/api/referrals', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/referrals', requireAuth, async (req, res) => {
+app.get('/api/referrals', requireAuth, requireTenantScope, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
+
         await pool.query(`CREATE TABLE IF NOT EXISTS referrals (
             id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name TEXT DEFAULT '', from_doctor TEXT DEFAULT '', from_dept TEXT DEFAULT '',
             to_dept TEXT DEFAULT '', to_doctor TEXT DEFAULT '', reason TEXT DEFAULT '', urgency TEXT DEFAULT 'Routine',
-            notes TEXT DEFAULT '', status TEXT DEFAULT 'Pending', response TEXT DEFAULT '', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+            notes TEXT DEFAULT '', status TEXT DEFAULT 'Pending', response TEXT DEFAULT '', tenant_id INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        
+        await pool.query('ALTER TABLE referrals ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
+
         const { patient_id } = req.query;
-        if (patient_id) res.json((await pool.query('SELECT * FROM referrals WHERE patient_id=$1 ORDER BY created_at DESC', [patient_id])).rows);
-        else res.json((await pool.query('SELECT * FROM referrals ORDER BY created_at DESC LIMIT 100')).rows);
+
+        // Verify patient context belongs to tenant if patient_id is passed
+        if (tenantId && patient_id) {
+            const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
+            if (patientCheck.rows.length === 0) {
+                return res.status(403).json({ error: 'Unauthorized patient context' });
+            }
+        }
+
+        let query = 'SELECT * FROM referrals';
+        let params = [];
+        let conds = [];
+        if (tenantId) {
+            conds.push('tenant_id=$' + (params.length + 1));
+            params.push(tenantId);
+        }
+        if (patient_id) {
+            conds.push('patient_id=$' + (params.length + 1));
+            params.push(patient_id);
+        }
+        if (conds.length) query += ' WHERE ' + conds.join(' AND ');
+        query += ' ORDER BY created_at DESC LIMIT 100';
+
+        res.json((await pool.query(query, params)).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -4520,7 +4637,7 @@ app.get('/api/dashboard/today', requireAuth, requireTenantScope, async (req, res
 });
 
 // ===== PATIENT FULL SUMMARY (for Doctor) =====
-app.get('/api/patients/:id/summary', requireAuth, requireRole('patients'), async (req, res) => {
+app.get('/api/patients/:id/summary', requireAuth, requireRole('patients'), requireTenantScope, async (req, res) => {
     try {
         const pid = req.params.id;
         // --- TENANT SCOPE: verify patient belongs to current tenant ---
@@ -4542,11 +4659,20 @@ app.get('/api/patients/:id/summary', requireAuth, requireRole('patients'), async
 
 
 // ===== MEDICAL REPORTS & SICK LEAVE =====
-app.post('/api/medical-reports', requireAuth, async (req, res) => {
+app.post('/api/medical-reports', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, report_type, diagnosis, icd_code, start_date, end_date, duration_days, notes, fitness_status } = req.body;
         const doctor = req.session.user?.display_name || '';
         const reportNum = 'MR-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-6);
+        const { tenantId } = getRequestTenantContext(req);
+
+        // Verify patient context belongs to tenant
+        if (tenantId && patient_id) {
+            const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
+            if (patientCheck.rows.length === 0) {
+                return res.status(403).json({ error: 'Unauthorized patient context' });
+            }
+        }
 
         await pool.query(`
             CREATE TABLE IF NOT EXISTS medical_reports (
@@ -4563,13 +4689,16 @@ app.post('/api/medical-reports', requireAuth, async (req, res) => {
                 notes TEXT,
                 fitness_status VARCHAR(50),
                 doctor VARCHAR(200),
+                tenant_id INTEGER,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
+        
+        await pool.query('ALTER TABLE medical_reports ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
 
         const result = await pool.query(
-            'INSERT INTO medical_reports (report_number, patient_id, patient_name, report_type, diagnosis, icd_code, start_date, end_date, duration_days, notes, fitness_status, doctor) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
-            [reportNum, patient_id, patient_name, report_type, diagnosis, icd_code, start_date, end_date, duration_days || 0, notes, fitness_status, doctor]
+            'INSERT INTO medical_reports (report_number, patient_id, patient_name, report_type, diagnosis, icd_code, start_date, end_date, duration_days, notes, fitness_status, doctor, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *',
+            [reportNum, patient_id, patient_name, report_type, diagnosis, icd_code, start_date, end_date, duration_days || 0, notes, fitness_status, doctor, tenantId]
         );
 
         logAudit(req.session.user?.id, doctor, 'CREATE_MEDICAL_REPORT', 'MedReport', reportNum + ' - ' + report_type, req.ip);
@@ -4577,21 +4706,50 @@ app.post('/api/medical-reports', requireAuth, async (req, res) => {
     } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/medical-reports', requireAuth, async (req, res) => {
+app.get('/api/medical-reports', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id } = req.query;
+        const { tenantId } = getRequestTenantContext(req);
+
+        // Verify patient context belongs to tenant if patient_id is passed
+        if (tenantId && patient_id) {
+            const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
+            if (patientCheck.rows.length === 0) {
+                return res.status(403).json({ error: 'Unauthorized patient context' });
+            }
+        }
+
+        await pool.query('ALTER TABLE medical_reports ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
+
         let q = 'SELECT * FROM medical_reports';
         let p = [];
-        if (patient_id) { q += ' WHERE patient_id=$1'; p = [patient_id]; }
+        const conds = [];
+        if (tenantId) {
+            conds.push('tenant_id=$' + (p.length + 1));
+            p.push(tenantId);
+        }
+        if (patient_id) {
+            conds.push('patient_id=$' + (p.length + 1));
+            p.push(patient_id);
+        }
+        if (conds.length) q += ' WHERE ' + conds.join(' AND ');
         q += ' ORDER BY created_at DESC LIMIT 100';
         const rows = (await pool.query(q, p)).rows;
         res.json(rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/medical-reports/:id', requireAuth, async (req, res) => {
+app.get('/api/medical-reports/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        const row = (await pool.query('SELECT * FROM medical_reports WHERE id=$1', [req.params.id])).rows[0];
+        const { tenantId } = getRequestTenantContext(req);
+        await pool.query('ALTER TABLE medical_reports ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
+
+        const q = tenantId ?
+            'SELECT * FROM medical_reports WHERE id=$1 AND tenant_id=$2' :
+            'SELECT * FROM medical_reports WHERE id=$1';
+        const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
+
+        const row = (await pool.query(q, params)).rows[0];
         if (!row) return res.status(404).json({ error: 'Not found' });
         res.json(row);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -5431,23 +5589,61 @@ app.post('/api/cme/events', requireAuth, async (req, res) => {
 });
 
 // ===== INFECTION CONTROL REPORTS =====
-app.get('/api/infection-control/reports', requireAuth, async (req, res) => {
+app.get('/api/infection-control/reports', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        await pool.query(`CREATE TABLE IF NOT EXISTS infection_control_reports (id SERIAL PRIMARY KEY, patient_name VARCHAR(200), infection_type VARCHAR(100), ward VARCHAR(100), isolation_type VARCHAR(50), culture_results TEXT, action_taken TEXT, status VARCHAR(30) DEFAULT 'active', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
-        res.json((await pool.query('SELECT * FROM infection_control_reports ORDER BY created_at DESC')).rows);
+        const { tenantId } = getRequestTenantContext(req);
+        
+        await pool.query(`CREATE TABLE IF NOT EXISTS infection_control_reports (
+            id SERIAL PRIMARY KEY,
+            patient_name VARCHAR(200),
+            infection_type VARCHAR(100),
+            ward VARCHAR(100),
+            isolation_type VARCHAR(50),
+            culture_results TEXT,
+            action_taken TEXT,
+            status VARCHAR(30) DEFAULT 'active',
+            tenant_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
+        
+        await pool.query('ALTER TABLE infection_control_reports ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
+
+        const q = tenantId ?
+            'SELECT * FROM infection_control_reports WHERE tenant_id=$1 ORDER BY created_at DESC' :
+            'SELECT * FROM infection_control_reports ORDER BY created_at DESC';
+        const params = tenantId ? [tenantId] : [];
+
+        res.json((await pool.query(q, params)).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/infection-control/reports', requireAuth, async (req, res) => {
+app.post('/api/infection-control/reports', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_name, infection_type, ward, isolation_type, culture_results, action_taken, status } = req.body;
-        const r = await pool.query('INSERT INTO infection_control_reports (patient_name,infection_type,ward,isolation_type,culture_results,action_taken,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [patient_name, infection_type, ward, isolation_type, culture_results, action_taken, status || 'active']);
+        const { tenantId } = getRequestTenantContext(req);
+        
+        await pool.query('ALTER TABLE infection_control_reports ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
+
+        const r = await pool.query(
+            'INSERT INTO infection_control_reports (patient_name,infection_type,ward,isolation_type,culture_results,action_taken,status,tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
+            [patient_name, infection_type, ward, isolation_type, culture_results, action_taken, status || 'active', tenantId]
+        );
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/infection-control/reports/:id', requireAuth, async (req, res) => {
+app.put('/api/infection-control/reports/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { status } = req.body;
-        const r = await pool.query('UPDATE infection_control_reports SET status=$1 WHERE id=$2 RETURNING *', [status, req.params.id]);
+        const { tenantId } = getRequestTenantContext(req);
+        
+        await pool.query('ALTER TABLE infection_control_reports ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
+
+        const q = tenantId ?
+            'UPDATE infection_control_reports SET status=$1 WHERE id=$2 AND tenant_id=$3 RETURNING *' :
+            'UPDATE infection_control_reports SET status=$1 WHERE id=$2 RETURNING *';
+        const params = tenantId ? [status, req.params.id, tenantId] : [status, req.params.id];
+
+        const r = await pool.query(q, params);
+        if (r.rows.length === 0) return res.status(404).json({ error: 'Not found or unauthorized' });
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
