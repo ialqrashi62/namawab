@@ -185,5 +185,18 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **نتائج الاختبارات**: 29/29 PASS — `node cross_tenant_pharmacy_test.js`
 * **المرحلة التالية الموصى بها**: `Inventory & Stock Movement Tenant Scope API`
 
+### Phase 13: Inventory & Stock Movement Tenant Scope API
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_INVENTORY_STOCK_MOVEMENT_TENANT_SCOPE_API_COMPLETED`
+* **الملفات المُعدَّلة**:
+  - `namaweb/server.js` — تأمين وعزل 11 مساراً للمخزون الطبي العام، الأصناف المخزنية التفصيلية، وطلبات صرف الأقسام، مع التحقق من IDOR وختم الهويات تلقائياً وتسجيل logAudit.
+* **الملفات الجديدة**:
+  - `namaweb/cross_tenant_inventory_test.js` — سكربت اختبار موضعي شامل للتأكد من بنية الحماية ومحاكاة عمليات صرف المخزون وتعديل الأصناف (36 اختباراً ناجحاً).
+* **المخرجات**:
+  - [docs/MEDICAL_INVENTORY_STOCK_MOVEMENT_TENANT_SCOPE_API_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_INVENTORY_STOCK_MOVEMENT_TENANT_SCOPE_API_REPORT_AR.md)
+* **نتائج الاختبارات**: 36/36 PASS — `node cross_tenant_inventory_test.js`
+* **المرحلة التالية الموصى بها**: `Reports & Dashboards Tenant Scope Audit`
+
+
 
 
