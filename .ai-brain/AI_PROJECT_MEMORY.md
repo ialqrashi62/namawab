@@ -215,6 +215,18 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **نتائج الاختبارات**: 38/38 PASS — `node namaweb/cross_tenant_dashboard_test.js`
 * **المرحلة التالية الموصى بها**: `Financial Reports Tenant Scope Implementation`
 
+### Phase 16: Financial Reports Tenant Scope Implementation
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_FINANCIAL_REPORTS_TENANT_SCOPE_IMPLEMENTATION_COMPLETED`
+* **الملفات المُعدَّلة**:
+  - `namaweb/server.js` — تأمين وتصفية 7 مسارات للتقارير المالية التفصيلية بـ `tenant_id` وفرض `requireTenantScope`.
+* **الملفات الجديدة**:
+  - `namaweb/cross_tenant_financial_reports_test.js` — سكربت اختبار محلي للتحقق من عزل التقارير المالية والعمليات التجميعية (37 فحصاً ناجحاً).
+* **المخرجات**:
+  - [docs/MEDICAL_FINANCIAL_REPORTS_TENANT_SCOPE_IMPLEMENTATION_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_FINANCIAL_REPORTS_TENANT_SCOPE_IMPLEMENTATION_REPORT_AR.md)
+* **نتائج الاختبارات**: 37/37 PASS — `node namaweb/cross_tenant_financial_reports_test.js`
+* **المرحلة التالية الموصى بها**: `Clinical Reports Tenant Scope Implementation`
+
 
 
 
