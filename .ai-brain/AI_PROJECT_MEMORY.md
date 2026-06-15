@@ -131,4 +131,17 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - [docs/MEDICAL_TENANT_COLUMNS_BACKFILL_LOCAL_DRY_RUN_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_TENANT_COLUMNS_BACKFILL_LOCAL_DRY_RUN_REPORT_AR.md)
 * **المرحلة التالية الموصى بها**: `Patient, Invoice & Appointment Tenant Scope API Implementation`
 
+### Phase 9: Patient, Invoice & Appointment Tenant Scope API Implementation
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_PATIENT_INVOICE_APPOINTMENT_TENANT_SCOPE_API_COMPLETED`
+* **الملفات المُعدَّلة**:
+  - `namaweb/server.js` — تطبيق فلاتر `tenant_id`/`facility_id` على 16 مساراً للقراءة/الكتابة/التعديل/الحذف
+* **المخرجات**:
+  - [docs/MEDICAL_PATIENT_INVOICE_APPOINTMENT_TENANT_SCOPE_API_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_PATIENT_INVOICE_APPOINTMENT_TENANT_SCOPE_API_REPORT_AR.md)
+* **الإصلاحات الإضافية**:
+  - إضافة `GET /api/patients/:id` مع IDOR prevention
+  - إصلاح متغير `date` → `appt_date` في `POST /api/appointments`
+  - إصلاح `req.session.user.name` → `req.session.user?.display_name` في followup
+  - إضافة `logAudit` لجميع العمليات الفائتة
+* **المرحلة التالية الموصى بها**: `Lab & Radiology Orders Tenant Scope API`
 
