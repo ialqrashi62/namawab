@@ -197,6 +197,15 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **نتائج الاختبارات**: 36/36 PASS — `node cross_tenant_inventory_test.js`
 * **المرحلة التالية الموصى بها**: `Reports & Dashboards Tenant Scope Audit`
 
+### Phase 14: Reports & Dashboards Tenant Scope Audit
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_REPORTS_DASHBOARDS_TENANT_SCOPE_AUDIT_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (مرحلة تدقيق وتخطيط فقط)
+* **المخرجات**:
+  - [docs/MEDICAL_REPORTS_DASHBOARDS_TENANT_SCOPE_AUDIT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_REPORTS_DASHBOARDS_TENANT_SCOPE_AUDIT_AR.md)
+* **المرحلة التالية الموصى بها**: `Executive & Main Dashboard Tenant Scope Implementation`
+
+
 
 
 
