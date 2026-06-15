@@ -161,3 +161,16 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **Git**: namaweb `f0ea3eb` pushed → parent `a7fcbe2` pushed
 * **المرحلة التالية الموصى بها**: `Lab & Radiology Orders Tenant Scope API`
 
+### Phase 11: Lab & Radiology Orders Tenant Scope API
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_LAB_RADIOLOGY_TENANT_SCOPE_API_COMPLETED`
+* **الملفات المُعدَّلة**:
+  - `namaweb/server.js` — تطبيق العزل والتحقق من تبعية المريض لـ 18 مساراً للمختبر والأشعة، وتأمين مسار عرض النتائج وطباعة التقارير.
+* **الملفات الجديدة**:
+  - `namaweb/cross_tenant_lab_radiology_test.js` — سكربت اختبار محلي للتحقق من العزل ومحاكاة المعالجة.
+* **المخرجات**:
+  - [docs/MEDICAL_LAB_RADIOLOGY_TENANT_SCOPE_API_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_LAB_RADIOLOGY_TENANT_SCOPE_API_REPORT_AR.md)
+* **نتائج الاختبارات**: 37/37 PASS — `node cross_tenant_lab_radiology_test.js`
+* **المرحلة التالية الموصى بها**: `Pharmacy & Inventory Tenant Scope API`
+
+
