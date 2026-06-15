@@ -237,7 +237,20 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **المخرجات**:
   - [docs/MEDICAL_CLINICAL_REPORTS_TENANT_SCOPE_IMPLEMENTATION_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_CLINICAL_REPORTS_TENANT_SCOPE_IMPLEMENTATION_REPORT_AR.md)
 * **نتائج الاختبارات**: 43/43 PASS — `node namaweb/cross_tenant_clinical_reports_test.js`
-* **المرحلة التالية الموصى بها**: `Surgeries & Inpatient Admissions Tenant Scope API`
+* **المرحلة التالية الموصى بها**: `Surgeries Tenant Scope API`
+
+### Phase 18: Surgeries Tenant Scope API
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_SURGERIES_TENANT_SCOPE_API_COMPLETED`
+* **الملفات المُعدَّلة**:
+  - `namaweb/server.js` — تأمين وتصفية 13 مساراً للعمليات الجراحية وغرف العمليات ومكافحة IDOR.
+* **الملفات الجديدة**:
+  - `namaweb/cross_tenant_surgeries_test.js` — سكربت اختبار محلي للتحقق من عزل العمليات وغرف العمليات (55 فحصاً ناجحاً).
+* **المخرجات**:
+  - [docs/MEDICAL_SURGERIES_TENANT_SCOPE_API_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_SURGERIES_TENANT_SCOPE_API_REPORT_AR.md)
+* **نتائج الاختبارات**: 55/55 PASS — `node namaweb/cross_tenant_surgeries_test.js`
+* **المرحلة التالية الموصى بها**: `Inpatient Admissions & Beds Tenant Scope API`
+
 
 
 
