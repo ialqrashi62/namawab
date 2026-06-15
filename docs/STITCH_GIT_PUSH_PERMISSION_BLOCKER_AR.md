@@ -7,9 +7,9 @@
 ## 1. تفاصيل الحالة البرمجية والتشغيلية (Repository & Operation Details)
 
 * **الفرع الحالي (Branch)**: `main`
-* **الالتزام المحلي الحالي (Local HEAD)**: `a358212aa9c2d34fd7950da3db59794463eb6c20`
+* **الالتزام المحلي الحالي (Local HEAD)**: `28b30c12e2c01997d91d95393c8375e81d11ff31`
 * **التزام الفرع البعيد (origin/main HEAD)**: `04b5e52a48173a373ac4f3bdafe9bd7ac3288bf1`
-* **حالة التزامن (Ahead/Behind)**: الفرع المحلي متقدم بـ 10 التزامات (0 behind, 10 ahead).
+* **حالة التزامن (Ahead/Behind)**: الفرع المحلي متقدم بـ 11 التزاماً (0 behind, 11 ahead).
 * **سبب فشل الدفع (Failed Push Reason)**: رمز الخطأ **403 Permission Denied** (تم رفض صلاحية الكتابة للحساب الحالي `iceman18ice-sketch` على مستودع `ialqrashi62/namawab.git`).
 * **تنفيذ اختبارات UAT في هذه المحاولة (UAT Executed)**: لا (NO).
 * **الاتصال بالبيئة التجريبية في هذه المحاولة (Staging Touched)**: لا (NO).
@@ -23,7 +23,7 @@
 
 ## 2. أسباب حظر التشغيل الآلي (Reasons Blocked)
 
-1. **حظر الرفع عبر GitHub (GitHub 403 Push Blocker)**: تم رفض الصلاحيات للحساب الحالي عند محاولة دفع التعديلات إلى المستودع الرئيسي.
+1. **حظر الرفع عبر GitHub (GitHub 403 Push Blocker)**: تم رفض الصلاحيات للحساب الحالي `iceman18ice-sketch` عند محاولة دفع التعديلات إلى المستودع الرئيسي `ialqrashi62/namawab.git`.
 2. **غياب أدوات UAT المطلوبة (Missing Required UAT Scratch Tooling)**: غياب ملفات الفحص والتشغيل (`scratch/test_posting_flows.ts` و `scratch/run_posting_flows.js`) عن مسار المستودع الحالي.
 3. **وجود تعديلات غير مضافة في شجرة العمل (Working Tree with Modified Blocker Docs)**: وجود وثائق تقارير الحظر قيد التعديل في شجرة العمل.
 
