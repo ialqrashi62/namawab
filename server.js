@@ -634,48 +634,111 @@ app.post('/api/medical/bill-procedures', requireAuth, async (req, res) => {
 
 // ===== DEPARTMENT RESOURCE REQUESTS =====
 app.get('/api/dept-requests', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM inventory_dept_requests ORDER BY id DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        const query = tenantId ?
+            'SELECT * FROM inventory_dept_requests WHERE tenant_id=$1 ORDER BY id DESC' :
+            'SELECT * FROM inventory_dept_requests ORDER BY id DESC';
+        const params = tenantId ? [tenantId] : [];
+        res.json((await pool.query(query, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/api/dept-requests', requireAuth, async (req, res) => {
     try {
+        const { tenantId, facilityId } = getRequestTenantContext(req);
         const { department, requested_by, items, notes } = req.body;
-        const result = await pool.query('INSERT INTO inventory_dept_requests (department, requested_by, request_date, notes) VALUES ($1,$2,CURRENT_DATE::TEXT,$3) RETURNING id',
-            [department || '', requested_by || req.session.user.name || '', notes || '']);
-        const reqId = result.rows[0].id;
-        if (items && items.length) {
+
+        // 1. Verify items belong to the current tenant to prevent cross-tenant IDOR
+        if (tenantId && items && items.length) {
             for (const item of items) {
-                await pool.query('INSERT INTO inventory_dept_request_items (request_id, item_id, qty_requested) VALUES ($1,$2,$3)',
-                    [reqId, item.item_id || 0, item.qty || 1]);
+                const itemCheck = (await pool.query('SELECT id FROM inventory_items WHERE id=$1 AND tenant_id=$2', [item.item_id || 0, tenantId])).rows[0];
+                if (!itemCheck) {
+                    return res.status(404).json({ error: `Item not found or access denied for item #${item.item_id}` });
+                }
             }
         }
-        res.json((await pool.query('SELECT * FROM inventory_dept_requests WHERE id=$1', [reqId])).rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+
+        const result = await pool.query('INSERT INTO inventory_dept_requests (department, requested_by, request_date, notes, tenant_id, branch_id) VALUES ($1,$2,CURRENT_DATE::TEXT,$3,$4,$5) RETURNING id',
+            [department || '', requested_by || req.session.user?.display_name || '', notes || '', tenantId || null, facilityId || null]);
+        const reqId = result.rows[0].id;
+        
+        if (items && items.length) {
+            for (const item of items) {
+                await pool.query('INSERT INTO inventory_dept_request_items (request_id, item_id, qty_requested, tenant_id, branch_id) VALUES ($1,$2,$3,$4,$5)',
+                    [reqId, item.item_id || 0, item.qty || 1, tenantId || null, facilityId || null]);
+            }
+        }
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_DEPT_REQUEST', 'Inventory', `Created department request #${reqId} for ${department}`, req.ip);
+
+        const query = tenantId ?
+            'SELECT * FROM inventory_dept_requests WHERE id=$1 AND tenant_id=$2' :
+            'SELECT * FROM inventory_dept_requests WHERE id=$1';
+        const params = tenantId ? [reqId, tenantId] : [reqId];
+        res.json((await pool.query(query, params)).rows[0]);
+    } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
 
 app.get('/api/dept-requests/:id/items', requireAuth, async (req, res) => {
     try {
-        res.json((await pool.query('SELECT dri.*, ii.item_name FROM inventory_dept_request_items dri LEFT JOIN inventory_items ii ON dri.item_id=ii.id WHERE dri.request_id=$1', [req.params.id])).rows);
+        const { tenantId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const check = (await pool.query('SELECT id FROM inventory_dept_requests WHERE id=$1 AND tenant_id=$2', [req.params.id, tenantId])).rows[0];
+            if (!check) return res.status(404).json({ error: 'Request not found' });
+        }
+        const query = tenantId ?
+            'SELECT dri.*, ii.item_name FROM inventory_dept_request_items dri LEFT JOIN inventory_items ii ON dri.item_id=ii.id WHERE dri.request_id=$1 AND dri.tenant_id=$2' :
+            'SELECT dri.*, ii.item_name FROM inventory_dept_request_items dri LEFT JOIN inventory_items ii ON dri.item_id=ii.id WHERE dri.request_id=$1';
+        const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        res.json((await pool.query(query, params)).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.put('/api/dept-requests/:id', requireAuth, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const check = (await pool.query('SELECT id FROM inventory_dept_requests WHERE id=$1 AND tenant_id=$2', [req.params.id, tenantId])).rows[0];
+            if (!check) return res.status(404).json({ error: 'Request not found' });
+        }
+        
         const { status, approved_by } = req.body;
         if (status) {
-            await pool.query('UPDATE inventory_dept_requests SET status=$1, approved_by=$2 WHERE id=$3', [status, approved_by || req.session.user.name, req.params.id]);
+            const queryUpdate = tenantId ?
+                'UPDATE inventory_dept_requests SET status=$1, approved_by=$2 WHERE id=$3 AND tenant_id=$4' :
+                'UPDATE inventory_dept_requests SET status=$1, approved_by=$2 WHERE id=$3';
+            const paramsUpdate = tenantId ?
+                [status, approved_by || req.session.user?.display_name || 'System', req.params.id, tenantId] :
+                [status, approved_by || req.session.user?.display_name || 'System', req.params.id];
+            await pool.query(queryUpdate, paramsUpdate);
+            
             // If approved, deduct from inventory
             if (status === 'Approved') {
-                const items = (await pool.query('SELECT * FROM inventory_dept_request_items WHERE request_id=$1', [req.params.id])).rows;
+                const queryItems = tenantId ?
+                    'SELECT * FROM inventory_dept_request_items WHERE request_id=$1 AND tenant_id=$2' :
+                    'SELECT * FROM inventory_dept_request_items WHERE request_id=$1';
+                const paramsItems = tenantId ? [req.params.id, tenantId] : [req.params.id];
+                const items = (await pool.query(queryItems, paramsItems)).rows;
+                
                 for (const item of items) {
                     const approved = item.qty_approved || item.qty_requested;
-                    await pool.query('UPDATE inventory_items SET stock_qty = GREATEST(stock_qty - $1, 0) WHERE id=$2', [approved, item.item_id]);
+                    const queryDeduct = tenantId ?
+                        'UPDATE inventory_items SET stock_qty = GREATEST(stock_qty - $1, 0) WHERE id=$2 AND tenant_id=$3' :
+                        'UPDATE inventory_items SET stock_qty = GREATEST(stock_qty - $1, 0) WHERE id=$2';
+                    const paramsDeduct = tenantId ? [approved, item.item_id, tenantId] : [approved, item.item_id];
+                    await pool.query(queryDeduct, paramsDeduct);
                 }
             }
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_DEPT_REQUEST_STATUS', 'Inventory', `Updated request #${req.params.id} status to ${status}`, req.ip);
         }
-        res.json((await pool.query('SELECT * FROM inventory_dept_requests WHERE id=$1', [req.params.id])).rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+        
+        const queryFinal = tenantId ?
+            'SELECT * FROM inventory_dept_requests WHERE id=$1 AND tenant_id=$2' :
+            'SELECT * FROM inventory_dept_requests WHERE id=$1';
+        const paramsFinal = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        res.json((await pool.query(queryFinal, paramsFinal)).rows[0]);
+    } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== BILLING SUMMARY =====
@@ -957,16 +1020,30 @@ app.put('/api/pharmacy/queue/:id', requireAuth, async (req, res) => {
 
 // ===== INVENTORY =====
 app.get('/api/inventory/items', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM inventory_items WHERE is_active=1 ORDER BY item_name')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        const query = tenantId ?
+            'SELECT * FROM inventory_items WHERE is_active=1 AND tenant_id=$1 ORDER BY item_name' :
+            'SELECT * FROM inventory_items WHERE is_active=1 ORDER BY item_name';
+        const params = tenantId ? [tenantId] : [];
+        res.json((await pool.query(query, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/api/inventory/items', requireAuth, async (req, res) => {
     try {
+        const { tenantId, facilityId } = getRequestTenantContext(req);
         const { item_name, item_code, category, unit, cost_price, stock_qty } = req.body;
-        const result = await pool.query('INSERT INTO inventory_items (item_name, item_code, category, unit, cost_price, stock_qty) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id',
-            [item_name, item_code || '', category || '', unit || '', cost_price || 0, stock_qty || 0]);
-        res.json((await pool.query('SELECT * FROM inventory_items WHERE id=$1', [result.rows[0].id])).rows[0]);
+        const result = await pool.query('INSERT INTO inventory_items (item_name, item_code, category, unit, cost_price, stock_qty, tenant_id, branch_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
+            [item_name, item_code || '', category || '', unit || '', cost_price || 0, stock_qty || 0, tenantId || null, facilityId || null]);
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_INVENTORY_ITEM_DETAIL', 'Inventory', `Created item details for ${item_name} with qty ${stock_qty}`, req.ip);
+
+        const query = tenantId ?
+            'SELECT * FROM inventory_items WHERE id=$1 AND tenant_id=$2' :
+            'SELECT * FROM inventory_items WHERE id=$1';
+        const params = tenantId ? [result.rows[0].id, tenantId] : [result.rows[0].id];
+        res.json((await pool.query(query, params)).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -5058,7 +5135,14 @@ app.get('/api/finance/summary', requireAuth, requireRole('finance', 'accounts', 
 // ===== INVENTORY LOW STOCK =====
 app.get('/api/inventory/low-stock', requireAuth, async (req, res) => {
     try {
-        const items = (await pool.query("SELECT * FROM inventory WHERE CAST(quantity AS INTEGER) <= CAST(COALESCE(reorder_level,'10') AS INTEGER) ORDER BY CAST(quantity AS INTEGER) ASC")).rows;
+        await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
+        await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS facility_id INTEGER`).catch(() => {});
+        const { tenantId } = getRequestTenantContext(req);
+        const query = tenantId ?
+            "SELECT * FROM inventory WHERE tenant_id=$1 AND CAST(quantity AS INTEGER) <= CAST(COALESCE(reorder_level,'10') AS INTEGER) ORDER BY CAST(quantity AS INTEGER) ASC" :
+            "SELECT * FROM inventory WHERE CAST(quantity AS INTEGER) <= CAST(COALESCE(reorder_level,'10') AS INTEGER) ORDER BY CAST(quantity AS INTEGER) ASC";
+        const params = tenantId ? [tenantId] : [];
+        const items = (await pool.query(query, params)).rows;
         res.json(items);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -5187,28 +5271,65 @@ app.get('/api/inventory', requireAuth, async (req, res) => {
             location VARCHAR(100), supplier VARCHAR(200), cost NUMERIC(10,2),
             expiry_date DATE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`);
-        res.json((await pool.query('SELECT * FROM inventory ORDER BY name ASC')).rows);
+        await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
+        await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS facility_id INTEGER`).catch(() => {});
+        
+        const { tenantId } = getRequestTenantContext(req);
+        const query = tenantId ?
+            'SELECT * FROM inventory WHERE tenant_id=$1 ORDER BY name ASC' :
+            'SELECT * FROM inventory ORDER BY name ASC';
+        const params = tenantId ? [tenantId] : [];
+        res.json((await pool.query(query, params)).rows);
     } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
 app.post('/api/inventory', requireAuth, async (req, res) => {
     try {
+        await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
+        await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS facility_id INTEGER`).catch(() => {});
+        
+        const { tenantId, facilityId } = getRequestTenantContext(req);
         const { name, category, quantity, unit, reorder_level, location, supplier, cost, expiry_date } = req.body;
-        const r = await pool.query('INSERT INTO inventory (name,category,quantity,unit,reorder_level,location,supplier,cost,expiry_date) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
-            [name, category, quantity || 0, unit, reorder_level || 10, location, supplier, cost, expiry_date]);
+        const r = await pool.query('INSERT INTO inventory (name,category,quantity,unit,reorder_level,location,supplier,cost,expiry_date,tenant_id,facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
+            [name, category, quantity || 0, unit, reorder_level || 10, location, supplier, cost, expiry_date, tenantId || null, facilityId || null]);
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_INVENTORY_ITEM', 'Inventory', `Created item ${name} with initial stock ${quantity}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 app.put('/api/inventory/:id', requireAuth, async (req, res) => {
     try {
+        await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
+        const { tenantId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const check = (await pool.query('SELECT id FROM inventory WHERE id=$1 AND tenant_id=$2', [req.params.id, tenantId])).rows[0];
+            if (!check) return res.status(404).json({ error: 'Item not found' });
+        }
         const { name, category, quantity, unit, reorder_level, location, supplier, cost, expiry_date } = req.body;
-        const r = await pool.query('UPDATE inventory SET name=$1,category=$2,quantity=$3,unit=$4,reorder_level=$5,location=$6,supplier=$7,cost=$8,expiry_date=$9 WHERE id=$10 RETURNING *',
-            [name, category, quantity, unit, reorder_level, location, supplier, cost, expiry_date, req.params.id]);
+        const query = tenantId ?
+            'UPDATE inventory SET name=$1,category=$2,quantity=$3,unit=$4,reorder_level=$5,location=$6,supplier=$7,cost=$8,expiry_date=$9 WHERE id=$10 AND tenant_id=$11 RETURNING *' :
+            'UPDATE inventory SET name=$1,category=$2,quantity=$3,unit=$4,reorder_level=$5,location=$6,supplier=$7,cost=$8,expiry_date=$9 WHERE id=$10 RETURNING *';
+        const params = tenantId ?
+            [name, category, quantity, unit, reorder_level, location, supplier, cost, expiry_date, req.params.id, tenantId] :
+            [name, category, quantity, unit, reorder_level, location, supplier, cost, expiry_date, req.params.id];
+        const r = await pool.query(query, params);
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_INVENTORY_ITEM', 'Inventory', `Updated item #${req.params.id} (${name})`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 app.delete('/api/inventory/:id', requireAuth, async (req, res) => {
     try {
-        await pool.query('DELETE FROM inventory WHERE id=$1', [req.params.id]);
+        await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
+        const { tenantId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const check = (await pool.query('SELECT id FROM inventory WHERE id=$1 AND tenant_id=$2', [req.params.id, tenantId])).rows[0];
+            if (!check) return res.status(404).json({ error: 'Item not found' });
+        }
+        const query = tenantId ? 'DELETE FROM inventory WHERE id=$1 AND tenant_id=$2' : 'DELETE FROM inventory WHERE id=$1';
+        const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        await pool.query(query, params);
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'DELETE_INVENTORY_ITEM', 'Inventory', `Deleted item #${req.params.id}`, req.ip);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
