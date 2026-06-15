@@ -124,3 +124,11 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - [docs/sql/medical_tenant_columns_validation_queries.sql](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/sql/medical_tenant_columns_validation_queries.sql)
 * **المرحلة التالية الموصى بها**: `Tenant Columns Backfill Local Dry Run`
 
+### Phase 8: Tenant Columns Backfill Local Dry Run — Preflight, Backup, Execute, Validate
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_TENANT_COLUMNS_BACKFILL_LOCAL_DRY_RUN_COMPLETED`
+* **المخرجات**:
+  - [docs/MEDICAL_TENANT_COLUMNS_BACKFILL_LOCAL_DRY_RUN_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_TENANT_COLUMNS_BACKFILL_LOCAL_DRY_RUN_REPORT_AR.md)
+* **المرحلة التالية الموصى بها**: `Patient, Invoice & Appointment Tenant Scope API Implementation`
+
+
