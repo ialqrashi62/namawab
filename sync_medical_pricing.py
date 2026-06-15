@@ -3,8 +3,24 @@ import json
 import pyodbc
 import sys
 
-DB_CONN = "DRIVER={ODBC Driver 17 for SQL Server};SERVER=localhost;DATABASE=NAMA_MEDICAL;Trusted_Connection=yes;"
-JSON_PATH = "e:\\NamaMedical\\medical_services_pricing.json"
+import configparser
+
+# Read database details from config.ini
+config = configparser.ConfigParser()
+config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.ini")
+config.read(config_path)
+
+server = config.get("Database", "Server", fallback="localhost")
+db_name = config.get("Database", "DatabaseName", fallback="NAMA_MEDICAL")
+username = config.get("Database", "Username", fallback="")
+password = config.get("Database", "Password", fallback="")
+
+if username:
+    DB_CONN = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={server};DATABASE={db_name};UID={username};PWD={password};"
+else:
+    DB_CONN = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={server};DATABASE={db_name};Trusted_Connection=yes;"
+
+JSON_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "medical_services_pricing.json")
 
 DEFAULT_DATA = {
     "lab_tests": [
@@ -45,10 +61,35 @@ def sync_to_db():
     with open(JSON_PATH, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
+    import sqlite3
+    using_sqlite = False
+    conn = None
     try:
+        print("Connecting to SQL Server database...")
         conn = pyodbc.connect(DB_CONN)
         cursor = conn.cursor()
+    except Exception as e:
+        print(f"[WARNING] SQL Server failed: {e}")
+        # Resolve path to the Qt application's SQLite database
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        sqlite_path = os.path.join(base_dir, "build", "nama_medical.db")
+        if not os.path.exists(sqlite_path):
+            alt_path = os.path.join(base_dir, "nama_medical.db")
+            if os.path.exists(alt_path):
+                sqlite_path = alt_path
+            else:
+                sqlite_path = os.path.join(base_dir, "database.db")
 
+        print(f"Falling back to local SQLite database: {sqlite_path}")
+        try:
+            conn = sqlite3.connect(sqlite_path)
+            cursor = conn.cursor()
+            using_sqlite = True
+        except Exception as sqlite_err:
+            print(f"[ERROR] Failed to connect to SQLite database: {sqlite_err}")
+            return
+
+    try:
         # Update Lab Tests
         cursor.execute("DELETE FROM lab_tests_catalog")
         lab_count = 0
@@ -70,12 +111,13 @@ def sync_to_db():
             rad_count += 1
 
         conn.commit()
-        print(f"✅ نجاح: تم استيراد وتحديث {lab_count} فحص مختبر و {rad_count} جهاز أشعة في قاعدة البيانات.")
+        db_type = "SQLite" if using_sqlite else "SQL Server"
+        print(f"[SUCCESS] نجاح: تم استيراد وتحديث {lab_count} فحص مختبر و {rad_count} جهاز أشعة في قاعدة بيانات ({db_type}).")
 
     except Exception as e:
         print(f"حدث خطأ أثناء الاتصال بقاعدة البيانات: {e}")
     finally:
-        if 'conn' in locals() and hasattr(conn, 'close'):
+        if conn is not None:
             conn.close()
 
 if __name__ == "__main__":

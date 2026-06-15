@@ -1,0 +1,116 @@
+{
+  "cardiology": {
+    "dashboard": {
+      "title": "لوحة قسم القلب",
+      "todayCases": "حالات اليوم",
+      "stemiAlerts": "تنبيهات احتشاء القلب",
+      "hfCohort": "كوهرت قصور القلب"
+    },
+    "order": {
+      "type": {
+        "cath": "قسطرة قلبية",
+        "ep_study": "دراسة كهربية قلبية",
+        "echo": "تخطيط صدى",
+        "holter": "هولتر",
+        "ecg": "تخطيط كهربية القلب",
+        "tte": "صدى عبر الصدر",
+        "tee": "صدى عبر المريء"
+      },
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ",
+        "emergent": "حرج"
+      },
+      "actions": {
+        "place": "إنشاء طلب",
+        "schedule": "جدولة",
+        "fulfill": "إكمال",
+        "cancel": "إلغاء"
+      }
+    },
+    "ecg": {
+      "uploadTitle": "رفع تخطيط القلب",
+      "aiInterpretation": "تفسير الذكاء الاصطناعي",
+      "physicianOverread": "مراجعة الطبيب",
+      "confidence": "درجة الثقة",
+      "labels": {
+        "normal": "طبيعي",
+        "afib_controlled": "رجفان أذيني مضبوط",
+        "stemi_anterior": "احتشاء أمامي",
+        "stemi_inferior": "احتشاء سفلي",
+        "stemi_lateral": "احتشاء جانبي",
+        "stemi_posterior": "احتشاء خلفي",
+        "nstemi_suspected": "احتشاء غير ST مشتبه",
+        "lbbb": "إحصار غصن أيسر",
+        "rbbb": "إحصار غصن أيمن",
+        "av_block": "إحصار AV"
+      }
+    },
+    "echo": {
+      "title": "تقرير صدى القلب",
+      "ef": "كسر القذف",
+      "lvids": "قُطر البطين الأيسر بالانقباض",
+      "valves": {
+        "mv": "الصمام التاجي",
+        "av": "الصمام الأبهري",
+        "tv": "الصمام ثلاثي الشرفات",
+        "pv": "الصمام الرئوي"
+      },
+      "rwma": "اضطراب الحركة الجدارية"
+    },
+    "cath": {
+      "title": "قسطرة القلب",
+      "access": {
+        "radial-r": "كعبري أيمن",
+        "radial-l": "كعبري أيسر",
+        "femoral-r": "فخذي أيمن",
+        "femoral-l": "فخذي أيسر"
+      },
+      "fluoroMin": "زمن الفلوروسكوب (د)",
+      "contrastMl": "حجم الصبغة (مل)",
+      "syntax": "درجة SYNTAX",
+      "pciDone": "تم تركيب دعامة"
+    },
+    "device": {
+      "title": "سجل الأجهزة المزروعة",
+      "type": {
+        "pacemaker": "منظم ضربات",
+        "icd": "مزيل رجفان مزروع",
+        "crt-p": "علاج إعادة المزامنة - منظم",
+        "crt-d": "علاج إعادة المزامنة - مزيل",
+        "loop_recorder": "مسجل حلقي"
+      },
+      "battery": "حالة البطارية",
+      "lastInterrogation": "آخر فحص"
+    },
+    "hf": {
+      "title": "برنامج قصور القلب",
+      "nyha": "تصنيف NYHA",
+      "ahaStage": "مرحلة AHA",
+      "gdmt": "علاج GDMT الموجَّه",
+      "arni": "ARNI",
+      "bb": "حاصرات بيتا",
+      "mra": "مضاد القشرانيات المعدنية",
+      "sglt2i": "مثبط SGLT2"
+    },
+    "risk": {
+      "heart": "درجة HEART",
+      "grace": "درجة GRACE",
+      "cha2ds2_vasc": "CHA2DS2-VASc",
+      "has_bled": "HAS-BLED",
+      "syntax": "SYNTAX"
+    },
+    "stemi": {
+      "alertBanner": "تم رصد احتشاء STEMI — فعّل بروتوكول CathLab",
+      "doorToBalloon": "زمن الباب إلى البالون",
+      "activate": "تفعيل بروتوكول STEMI",
+      "deactivate": "إلغاء التفعيل",
+      "team": "الفريق المُكلَّف"
+    },
+    "ai": {
+      "askCardio": "اسأل مساعد القلب",
+      "advisoryBanner": "إرشادي فقط — القرار النهائي للطبيب"
+    }
+  }
+}

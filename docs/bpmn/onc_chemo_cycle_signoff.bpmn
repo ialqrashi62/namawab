@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Defs_onc_cycle" targetNamespace="http://nama.local/bpmn">
+  <bpmn:collaboration id="Collab_chemo">
+    <bpmn:participant id="Pool_Doc" name="Oncologist" processRef="P_Doc"/>
+    <bpmn:participant id="Pool_Pharm" name="Oncology Pharmacy" processRef="P_Pharm"/>
+    <bpmn:participant id="Pool_Nurse" name="Infusion Nurse" processRef="P_Nurse"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="P_Doc" isExecutable="true">
+    <bpmn:startEvent id="DS" name="Cycle due"/>
+    <bpmn:task id="DT_Recompute" name="Recompute BSA + organ functions"/>
+    <bpmn:task id="DT_DoseCheck" name="Check cumulative anthracycline + interactions"/>
+    <bpmn:exclusiveGateway id="DGW" name="Counts &amp; LVEF OK?"/>
+    <bpmn:task id="DT_Adjust" name="Dose modify or postpone"/>
+    <bpmn:task id="DT_Sign" name="Doctor sign-off"/>
+    <bpmn:endEvent id="DE" name="To pharmacy"/>
+
+    <bpmn:sequenceFlow sourceRef="DS" targetRef="DT_Recompute"/>
+    <bpmn:sequenceFlow sourceRef="DT_Recompute" targetRef="DT_DoseCheck"/>
+    <bpmn:sequenceFlow sourceRef="DT_DoseCheck" targetRef="DGW"/>
+    <bpmn:sequenceFlow name="No" sourceRef="DGW" targetRef="DT_Adjust"/>
+    <bpmn:sequenceFlow sourceRef="DT_Adjust" targetRef="DGW"/>
+    <bpmn:sequenceFlow name="Yes" sourceRef="DGW" targetRef="DT_Sign"/>
+    <bpmn:sequenceFlow sourceRef="DT_Sign" targetRef="DE"/>
+  </bpmn:process>
+
+  <bpmn:process id="P_Pharm" isExecutable="true">
+    <bpmn:startEvent id="PS" name="Order signed"/>
+    <bpmn:task id="PT_Verify" name="Pharmacist verifies dose / regimen"/>
+    <bpmn:task id="PT_Compound" name="Compound under hood (USP &lt;800&gt;)"/>
+    <bpmn:task id="PT_QA" name="QA double-check"/>
+    <bpmn:task id="PT_Dispatch" name="Dispatch to infusion"/>
+    <bpmn:endEvent id="PE" name="Ready"/>
+
+    <bpmn:sequenceFlow sourceRef="PS" targetRef="PT_Verify"/>
+    <bpmn:sequenceFlow sourceRef="PT_Verify" targetRef="PT_Compound"/>
+    <bpmn:sequenceFlow sourceRef="PT_Compound" targetRef="PT_QA"/>
+    <bpmn:sequenceFlow sourceRef="PT_QA" targetRef="PT_Dispatch"/>
+    <bpmn:sequenceFlow sourceRef="PT_Dispatch" targetRef="PE"/>
+  </bpmn:process>
+
+  <bpmn:process id="P_Nurse" isExecutable="true">
+    <bpmn:startEvent id="NS" name="Receive bag"/>
+    <bpmn:task id="NT_Identify" name="Patient ID + 5 rights + 2 witness"/>
+    <bpmn:task id="NT_Premeds" name="Premeds (5HT3, dex, antihistamine)"/>
+    <bpmn:task id="NT_Infuse" name="Infuse with monitoring"/>
+    <bpmn:task id="NT_Document" name="Document admin + reactions"/>
+    <bpmn:endEvent id="NE" name="Cycle administered"/>
+
+    <bpmn:sequenceFlow sourceRef="NS" targetRef="NT_Identify"/>
+    <bpmn:sequenceFlow sourceRef="NT_Identify" targetRef="NT_Premeds"/>
+    <bpmn:sequenceFlow sourceRef="NT_Premeds" targetRef="NT_Infuse"/>
+    <bpmn:sequenceFlow sourceRef="NT_Infuse" targetRef="NT_Document"/>
+    <bpmn:sequenceFlow sourceRef="NT_Document" targetRef="NE"/>
+  </bpmn:process>
+</bpmn:definitions>

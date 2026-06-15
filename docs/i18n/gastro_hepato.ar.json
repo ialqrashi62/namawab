@@ -1,0 +1,40 @@
+{
+  "gastro_hepato": {
+    "dashboard": {
+      "title": "لوحة أمراض الجهاز الهضمي والكبد",
+      "todayProcedures": "إجراءات اليوم",
+      "activeBleedAlerts": "تنبيهات النزيف النشط",
+      "hepCCohort": "مرضى التهاب الكبد سي"
+    },
+    "order": {
+      "type": {
+        "upper_endoscopy": "تنظير هضمي علوي",
+        "colonoscopy": "تنظير القولون",
+        "ercp": "تصوير البنكرياس والقنوات الصفراوية",
+        "eus": "تنظير بالموجات فوق الصوتية",
+        "capsule": "تنظير بالكبسولة",
+        "liver_biopsy": "خزعة الكبد",
+        "fibroscan": "فايبروسكان"
+      },
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ",
+        "emergent": "حرج"
+      }
+    },
+    "endoscopy": {
+      "title": "تقرير التنظير",
+      "findings": "المكتشفات",
+      "biopsyTaken": "تم أخذ خزعة",
+      "complications": "مضاعفات",
+      "polypTypes": {
+        "adenoma": "ورم غدي",
+        "hyperplastic": "فرط تنسج"
+      }
+    },
+    "ai": {
+      "askGastro": "اسأل المساعد الهضمي"
+    }
+  }
+}

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .floor-plan-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 16px;
+        }
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c3c7ce;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#ffdf9d",
+                        "surface": "#f8f9fa",
+                        "surface-tint": "#406182",
+                        "outline": "#73777e",
+                        "on-primary-fixed-variant": "#274969",
+                        "primary-container": "#002b49",
+                        "secondary-fixed": "#7df4ff",
+                        "on-tertiary-fixed": "#251a00",
+                        "on-primary-container": "#7293b6",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f8f9fa",
+                        "primary-fixed": "#cfe5ff",
+                        "on-primary-fixed": "#001d34",
+                        "tertiary-container": "#362700",
+                        "on-surface-variant": "#42474d",
+                        "on-surface": "#191c1d",
+                        "surface-container-high": "#e7e8e9",
+                        "outline-variant": "#c3c7ce",
+                        "on-secondary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "on-secondary-container": "#006e75",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "surface-variant": "#e1e3e4",
+                        "secondary": "#006970",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "surface-dim": "#d9dadb",
+                        "primary": "#001629",
+                        "surface-container-low": "#f3f4f5",
+                        "on-secondary-fixed": "#002022",
+                        "tertiary": "#1d1300",
+                        "background": "#f8f9fa",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#a8caef",
+                        "secondary-container": "#7af1fc",
+                        "surface-container": "#edeeef",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "primary-fixed-dim": "#a8caef",
+                        "on-tertiary-container": "#ac8c44",
+                        "on-background": "#191c1d",
+                        "inverse-surface": "#2e3132",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-error": "#ffffff"
+                    },
+                    "spacing": {
+                        "md": "24px",
+                        "xs": "4px",
+                        "margin-desktop": "48px",
+                        "lg": "40px",
+                        "gutter": "24px",
+                        "xl": "64px",
+                        "sm": "12px",
+                        "base": "8px",
+                        "margin-mobile": "16px"
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="text-on-surface overflow-x-hidden">
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-full z-50 flex flex-row-reverse justify-between items-center px-margin-desktop h-20 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-md flex-row-reverse">
+<div class="font-headline-md text-headline-md font-bold text-primary">Al-Command Center</div>
+<nav class="hidden md:flex gap-lg mr-xl">
+<a class="font-body-md text-body-md text-primary border-b-2 border-primary pb-1 font-bold" href="#">Operations</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Logistics</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Human Resources</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative hidden lg:block">
+<input class="bg-surface-container-low border-none rounded-full px-lg py-xs w-64 text-label-md focus:ring-2 focus:ring-secondary transition-all" placeholder="Search Command Center..." type="text"/>
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+</div>
+<div class="flex gap-sm">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">help</span>
+</button>
+</div>
+<div class="flex items-center gap-sm mr-sm">
+<div class="text-left">
+<div class="font-label-md text-label-md font-bold">Dr. Al-Saud</div>
+<div class="font-caption text-caption text-outline">Chief of Operations</div>
+</div>
+<img alt="Chief of Operations Profile" class="w-10 h-10 rounded-full border-2 border-primary object-cover" data-alt="A professional headshot of a middle-aged male doctor with a kind and authoritative expression, wearing modern medical scrubs and a stethoscope. The lighting is soft and professional, set against a blurred high-end medical facility background with the clinical navy and white corporate color palette of SaudiHealth." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIO5x3bEXg5I-sFgyG3Jequijag9ziS3fErN_H4NWTlaIPcWeeAPPWW-0LcyyRtLWXXI28s3mWSFtYAl7Jkxx_jii-EX5Qe-LD-7W6vGJQzFfjDe3Qzdh9rfgda9QzvC3oQnqyKRHS7Mik9EE68mQdWRxA2DGm2IDwIC6TgHy3hUa4nyOKXc5v5-COqCwpwKWFFBQG0eBznOloCHP5QbwVL-SU1HryFeNCurc2jMkwHL2TJX1H6cwXGDY7jYpobn6dMwtkhYKGrYu4"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar (RTL) -->
+<aside class="fixed inset-y-0 right-0 flex flex-col pt-24 pb-8 px-sm z-40 bg-primary w-80 shadow-xl border-l border-outline-variant/10">
+<div class="px-md mb-xl">
+<div class="text-headline-sm font-headline-sm text-white mb-xs">National Health Command</div>
+<div class="font-label-md text-label-md text-on-primary/70">Riyadh Region HQ</div>
+</div>
+<nav class="flex-1 space-y-2 px-xs">
+<a class="flex items-center gap-md px-md py-sm bg-secondary-container text-on-secondary-container rounded-lg font-bold transition-all translate-x-1" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">emergency_home</span>
+<span class="font-label-md text-label-md">Incident Command</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="font-label-md text-label-md">Fleet Logistics</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-md text-label-md">Resource Hub</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label-md text-label-md">Staff Management</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md text-label-md">Payroll</span>
+</a>
+</nav>
+<div class="px-md mt-lg">
+<button class="w-full py-md bg-error text-white rounded-xl font-bold flex items-center justify-center gap-sm hover:opacity-90 active:scale-95 transition-all shadow-lg">
+<span class="material-symbols-outlined">notification_important</span>
+                Trigger Emergency Alert
+            </button>
+</div>
+<div class="mt-xl border-t border-white/10 pt-lg px-xs">
+<a class="flex items-center gap-md px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all mb-2" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="mr-80 mt-20 p-margin-desktop min-h-screen">
+<!-- Dashboard Header -->
+<div class="flex justify-between items-end mb-xl">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary">Oncology &amp; Chemotherapy Command</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-xs">Riyadh Premium Infusion Center • Zone A-4 Control</p>
+</div>
+<div class="flex gap-md">
+<div class="glass-card px-md py-sm rounded-xl border border-outline-variant/30 flex items-center gap-md">
+<div class="w-2 h-2 rounded-full bg-secondary animate-pulse"></div>
+<div class="text-label-md font-bold text-on-surface">Live Telemetry Active</div>
+</div>
+<div class="glass-card px-md py-sm rounded-xl border border-outline-variant/30 flex items-center gap-md">
+<span class="material-symbols-outlined text-on-secondary-container">calendar_today</span>
+<div class="text-label-md font-bold text-on-surface">Wed, 24 May 2024</div>
+</div>
+</div>
+</div>
+<!-- Layout Grid: Bento Style -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Floor Plan (Large Block) -->
+<div class="col-span-12 lg:col-span-8 glass-card rounded-2xl p-lg relative overflow-hidden">
+<div class="flex justify-between items-center mb-lg">
+<h2 class="font-title-lg text-title-lg text-primary flex items-center gap-sm">
+<span class="material-symbols-outlined">grid_view</span>
+                        Live Infusion Bay Map
+                    </h2>
+<div class="flex gap-sm">
+<span class="px-sm py-xs rounded-full bg-secondary-container text-on-secondary-container text-caption font-bold">Occupied: 14</span>
+<span class="px-sm py-xs rounded-full bg-surface-container-high text-on-surface-variant text-caption font-bold">Available: 6</span>
+</div>
+</div>
+<div class="floor-plan-grid">
+<!-- Dynamic Bay Generation (Manual for demo) -->
+<!-- Bay 1 (Active) -->
+<div class="bg-white rounded-xl border-2 border-secondary-container p-sm shadow-sm hover:shadow-md transition-all cursor-pointer group">
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md font-bold text-primary">Bay 01</span>
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+</div>
+<div class="font-caption text-caption text-on-surface-variant mb-base truncate">Faisal A.</div>
+<div class="h-1 w-full bg-surface-container rounded-full overflow-hidden mb-base">
+<div class="h-full bg-secondary w-3/4"></div>
+</div>
+<div class="text-[10px] font-bold text-secondary uppercase tracking-tight">Infusing: 75%</div>
+</div>
+<!-- Bay 2 (Warning) -->
+<div class="bg-white rounded-xl border-2 border-error/20 p-sm shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md font-bold text-primary">Bay 02</span>
+<span class="material-symbols-outlined text-error text-sm">warning</span>
+</div>
+<div class="font-caption text-caption text-error font-bold mb-base">Vitals Alert</div>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-xs text-on-surface-variant">favorite</span>
+<span class="text-[10px] text-error font-bold">112 BPM</span>
+</div>
+</div>
+<!-- Repeat for more bays... (Mocking 10 more) -->
+<div class="bg-surface-container-low/50 border border-outline-variant/20 rounded-xl p-sm opacity-60">
+<div class="font-label-md text-label-md font-bold text-outline">Bay 03</div>
+<div class="mt-sm text-center text-outline italic text-caption">Available</div>
+</div>
+<div class="bg-white rounded-xl border-2 border-secondary-container p-sm shadow-sm">
+<div class="flex justify-between mb-xs"><span class="font-label-md text-label-md font-bold text-primary">Bay 04</span><span class="w-2 h-2 rounded-full bg-secondary"></span></div>
+<div class="font-caption text-caption text-on-surface-variant">Sara M.</div>
+<div class="h-1 w-full bg-surface-container rounded-full mt-base"><div class="h-full bg-secondary w-1/4"></div></div>
+</div>
+<div class="bg-white rounded-xl border-2 border-secondary-container p-sm shadow-sm">
+<div class="flex justify-between mb-xs"><span class="font-label-md text-label-md font-bold text-primary">Bay 05</span><span class="w-2 h-2 rounded-full bg-secondary"></span></div>
+<div class="font-caption text-caption text-on-surface-variant">Ahmad K.</div>
+<div class="h-1 w-full bg-surface-container rounded-full mt-base"><div class="h-full bg-secondary w-90"></div></div>
+</div>
+<!-- Row 2 -->
+<div class="bg-white rounded-xl border-2 border-secondary-container p-sm shadow-sm">
+<div class="flex justify-between mb-xs"><span class="font-label-md text-label-md font-bold text-primary">Bay 06</span><span class="w-2 h-2 rounded-full bg-secondary"></span></div>
+<div class="font-caption text-caption text-on-surface-variant">Noura Q.</div>
+<div class="h-1 w-full bg-surface-container rounded-full mt-base"><div class="h-full bg-secondary w-1/2"></div></div>
+</div>
+<div class="bg-surface-container-low/50 border border-outline-variant/20 rounded-xl p-sm opacity-60">
+<div class="font-label-md text-label-md font-bold text-outline">Bay 07</div>
+</div>
+<div class="bg-white rounded-xl border-2 border-secondary-container p-sm shadow-sm">
+<div class="flex justify-between mb-xs"><span class="font-label-md text-label-md font-bold text-primary">Bay 08</span><span class="w-2 h-2 rounded-full bg-secondary"></span></div>
+<div class="font-caption text-caption text-on-surface-variant">Khaled L.</div>
+<div class="h-1 w-full bg-surface-container rounded-full mt-base"><div class="h-full bg-secondary w-3/4"></div></div>
+</div>
+<div class="bg-white rounded-xl border-2 border-secondary-container p-sm shadow-sm">
+<div class="flex justify-between mb-xs"><span class="font-label-md text-label-md font-bold text-primary">Bay 09</span><span class="w-2 h-2 rounded-full bg-secondary"></span></div>
+<div class="font-caption text-caption text-on-surface-variant">Yara D.</div>
+<div class="h-1 w-full bg-surface-container rounded-full mt-base"><div class="h-full bg-secondary w-full"></div></div>
+</div>
+<div class="bg-white rounded-xl border-2 border-secondary-container p-sm shadow-sm">
+<div class="flex justify-between mb-xs"><span class="font-label-md text-label-md font-bold text-primary">Bay 10</span><span class="w-2 h-2 rounded-full bg-secondary"></span></div>
+<div class="font-caption text-caption text-on-surface-variant">Bandar J.</div>
+</div>
+</div>
+<div class="mt-lg pt-lg border-t border-outline-variant/20">
+<div class="grid grid-cols-3 gap-md">
+<div class="bg-surface rounded-xl p-md">
+<div class="text-caption text-outline mb-xs">Active Chemotherapy Drops</div>
+<div class="text-headline-md font-bold text-primary">12 <span class="text-body-md font-normal text-outline">Units</span></div>
+</div>
+<div class="bg-surface rounded-xl p-md">
+<div class="text-caption text-outline mb-xs">Avg. Treatment Time</div>
+<div class="text-headline-md font-bold text-primary">4h 12m</div>
+</div>
+<div class="bg-surface rounded-xl p-md">
+<div class="text-caption text-outline mb-xs">Pharmacy Verification</div>
+<div class="text-headline-md font-bold text-secondary">98.4%</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Protocol Tracking & Safety (Right Side) -->
+<div class="col-span-12 lg:col-span-4 space-y-gutter">
+<!-- Safety Checklist -->
+<div class="glass-card rounded-2xl p-lg border-r-4 border-error">
+<h2 class="font-title-lg text-title-lg text-primary mb-md flex items-center gap-sm">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">biotech</span>
+                        Hazardous Safety Protocols
+                    </h2>
+<ul class="space-y-sm">
+<li class="flex items-center gap-sm p-sm bg-error-container/10 rounded-lg">
+<input checked="" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox"/>
+<div class="text-label-md font-bold text-primary">PPE Level 4 Verification</div>
+</li>
+<li class="flex items-center gap-sm p-sm bg-error-container/10 rounded-lg">
+<input checked="" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox"/>
+<div class="text-label-md font-bold text-primary">Closed System Transfer (CSTD)</div>
+</li>
+<li class="flex items-center gap-sm p-sm bg-surface-container rounded-lg">
+<input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox"/>
+<div class="text-label-md font-bold text-on-surface">Spill Kit Readiness Check</div>
+</li>
+<li class="flex items-center gap-sm p-sm bg-surface-container rounded-lg">
+<input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox"/>
+<div class="text-label-md font-bold text-on-surface">Dual-Nurse Calculation Check</div>
+</li>
+</ul>
+<button class="w-full mt-lg py-sm border-2 border-primary text-primary font-bold rounded-xl hover:bg-primary/5 transition-all">
+                        Initiate Protocol Audit
+                    </button>
+</div>
+<!-- Active Patient Vitals (Integration) -->
+<div class="glass-card rounded-2xl p-lg">
+<h2 class="font-title-lg text-title-lg text-primary mb-md">Vitals Stream: Bay 02</h2>
+<div class="space-y-md">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-error">favorite</span>
+<span class="text-label-md font-bold">Heart Rate</span>
+</div>
+<div class="text-headline-md font-bold text-error">112 <span class="text-caption">BPM</span></div>
+</div>
+<div class="w-full h-12 bg-error-container/5 rounded-lg overflow-hidden relative">
+<!-- SVG Waveform Mock -->
+<svg class="absolute inset-0 w-full h-full stroke-error stroke-2 fill-none" viewbox="0 0 400 50">
+<path d="M0 25 L40 25 L50 10 L60 40 L70 25 L110 25 L120 5 L130 45 L140 25 L180 25"></path>
+<path d="M180 25 L220 25 L230 10 L240 40 L250 25 L290 25 L300 5 L310 45 L320 25 L360 25"></path>
+<animatetransform attributename="transform" dur="2s" from="0 0" repeatcount="indefinite" to="-180 0" type="translate"></animatetransform>
+</svg>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">blood_pressure</span>
+<span class="text-label-md font-bold">BP (Sys/Dia)</span>
+</div>
+<div class="text-headline-md font-bold text-primary">142/95 <span class="text-caption">mmHg</span></div>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">thermostat</span>
+<span class="text-label-md font-bold">Temp</span>
+</div>
+<div class="text-headline-md font-bold text-primary">37.2 <span class="text-caption">°C</span></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Schedule & Protocol (Full Width Bottom) -->
+<div class="col-span-12 glass-card rounded-2xl overflow-hidden border border-outline-variant/30">
+<div class="px-lg py-md bg-surface-container-high flex justify-between items-center">
+<h2 class="font-title-lg text-title-lg text-primary">Chemotherapy Protocol Tracking</h2>
+<div class="flex gap-sm">
+<button class="bg-white border border-outline-variant px-md py-xs rounded-lg text-label-md font-bold flex items-center gap-xs">
+<span class="material-symbols-outlined">filter_list</span> Filter
+                        </button>
+<button class="bg-primary text-white px-md py-xs rounded-lg text-label-md font-bold flex items-center gap-xs">
+<span class="material-symbols-outlined">add</span> Schedule Patient
+                        </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant/30">
+<th class="p-md font-label-md text-label-md text-on-surface-variant">Patient Name</th>
+<th class="p-md font-label-md text-label-md text-on-surface-variant">Protocol ID</th>
+<th class="p-md font-label-md text-label-md text-on-surface-variant">Cycle Day</th>
+<th class="p-md font-label-md text-label-md text-on-surface-variant">Medication Dosage</th>
+<th class="p-md font-label-md text-label-md text-on-surface-variant">Status</th>
+<th class="p-md font-label-md text-label-md text-on-surface-variant">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-md">
+<div class="font-label-md font-bold">Faisal bin Abdulaziz</div>
+<div class="text-caption text-outline">MRN: #SA-88219</div>
+</td>
+<td class="p-md font-body-md">BEP (Bleomycin/Etoposide/Cisplatin)</td>
+<td class="p-md font-body-md">Cycle 3, Day 1</td>
+<td class="p-md font-body-md">Cisplatin 20mg/m²</td>
+<td class="p-md">
+<span class="px-sm py-1 bg-secondary-container text-on-secondary-container rounded-full text-caption font-bold">Active Infusion</span>
+</td>
+<td class="p-md">
+<button class="text-secondary hover:underline font-bold text-label-md">View EHR</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-md">
+<div class="font-label-md font-bold">Sara Al-Mutairi</div>
+<div class="text-caption text-outline">MRN: #SA-99321</div>
+</td>
+<td class="p-md font-body-md">AC-T (Adriamycin/Cyclophosphamide)</td>
+<td class="p-md font-body-md">Cycle 1, Day 14</td>
+<td class="p-md font-body-md">Paclitaxel 175mg/m²</td>
+<td class="p-md">
+<span class="px-sm py-1 bg-tertiary-fixed text-on-tertiary-fixed rounded-full text-caption font-bold">Pre-Medication</span>
+</td>
+<td class="p-md">
+<button class="text-secondary hover:underline font-bold text-label-md">View EHR</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="p-md">
+<div class="font-label-md font-bold">Nasser Al-Qahtani</div>
+<div class="text-caption text-outline">MRN: #SA-10293</div>
+</td>
+<td class="p-md font-body-md">R-CHOP</td>
+<td class="p-md font-body-md">Cycle 6, Day 1</td>
+<td class="p-md font-body-md">Rituximab 375mg/m²</td>
+<td class="p-md">
+<span class="px-sm py-1 bg-surface-container-highest text-on-surface-variant rounded-full text-caption font-bold">Waiting Lab Clearance</span>
+</td>
+<td class="p-md">
+<button class="text-secondary hover:underline font-bold text-label-md">View EHR</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="w-full py-md mt-xl flex flex-row-reverse justify-between items-center border-t border-outline-variant/30">
+<div class="font-caption text-caption text-on-surface-variant">
+                © 2024 Command Center. All Rights Reserved. Ministry of Health Standards Compliant.
+            </div>
+<div class="flex gap-lg">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary transition-colors" href="#">Terms of Service</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary transition-colors" href="#">Regional Compliance</a>
+</div>
+</footer>
+</main>
+<!-- Visual Polish: Atmospheric Overlay -->
+<div class="fixed inset-0 pointer-events-none opacity-[0.03] z-[100]">
+<svg height="100%" width="100%">
+<filter id="noise">
+<feturbulence basefrequency="0.6" numoctaves="3" stitchtiles="stitch" type="fractalNoise"></feturbulence>
+</filter>
+<rect filter="url(#noise)" height="100%" width="100%"></rect>
+</svg>
+</div>
+<script>
+        // Simple Micro-interaction for Infusion Progress Bars
+        document.querySelectorAll('.floor-plan-grid .h-full').forEach(bar => {
+            setInterval(() => {
+                const currentWidth = parseFloat(bar.style.width);
+                if (currentWidth < 100) {
+                    bar.style.width = (currentWidth + 0.1) + '%';
+                }
+            }, 3000);
+        });
+
+        // Hover Effect on Sidebar Tabs
+        document.querySelectorAll('aside nav a').forEach(link => {
+            link.addEventListener('mousedown', () => {
+                link.classList.add('scale-95', 'opacity-80');
+            });
+            link.addEventListener('mouseup', () => {
+                link.classList.remove('scale-95', 'opacity-80');
+            });
+        });
+    </script>
+</body></html>

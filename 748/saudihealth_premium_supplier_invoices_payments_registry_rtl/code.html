@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>سجل الفواتير والمدفوعات للموردين | SaudiHealth Premium</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "error-container": "#ffdad6",
+                "surface-container-high": "#e7e8e9",
+                "outline": "#73777e",
+                "on-surface-variant": "#42474d",
+                "surface-container": "#edeeef",
+                "on-primary-fixed": "#001d34",
+                "surface-container-lowest": "#ffffff",
+                "secondary-fixed": "#7df4ff",
+                "surface-bright": "#f8f9fa",
+                "on-tertiary-fixed": "#251a00",
+                "surface-container-low": "#f3f4f5",
+                "on-primary-container": "#7293b6",
+                "on-error-container": "#93000a",
+                "inverse-primary": "#a8caef",
+                "surface-variant": "#e1e3e4",
+                "surface-tint": "#406182",
+                "surface-dim": "#d9dadb",
+                "primary-fixed": "#cfe5ff",
+                "on-secondary-fixed-variant": "#004f54",
+                "primary": "#001629",
+                "on-tertiary": "#ffffff",
+                "inverse-on-surface": "#f0f1f2",
+                "secondary-container": "#7af1fc",
+                "outline-variant": "#c3c7ce",
+                "surface": "#f8f9fa",
+                "on-tertiary-fixed-variant": "#5b4300",
+                "on-surface": "#191c1d",
+                "on-secondary-fixed": "#002022",
+                "tertiary": "#1d1300",
+                "on-error": "#ffffff",
+                "tertiary-container": "#362700",
+                "tertiary-fixed-dim": "#e6c274",
+                "on-primary-fixed-variant": "#274969",
+                "on-background": "#191c1d",
+                "background": "#f8f9fa",
+                "secondary-fixed-dim": "#5dd8e2",
+                "secondary": "#006970",
+                "primary-fixed-dim": "#a8caef",
+                "error": "#ba1a1a",
+                "inverse-surface": "#2e3132",
+                "surface-container-highest": "#e1e3e4",
+                "on-secondary-container": "#006e75",
+                "on-primary": "#ffffff",
+                "on-tertiary-container": "#ac8c44",
+                "tertiary-fixed": "#ffdf9d",
+                "primary-container": "#002b49",
+                "on-secondary": "#ffffff"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "margin-desktop": "48px",
+                "base": "8px",
+                "xl": "64px",
+                "md": "24px",
+                "gutter": "24px",
+                "sm": "12px",
+                "lg": "40px",
+                "xs": "4px",
+                "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                "display-lg": ["IBM Plex Sans Arabic"],
+                "title-lg": ["IBM Plex Sans Arabic"],
+                "caption": ["IBM Plex Sans Arabic"],
+                "body-md": ["IBM Plex Sans Arabic"],
+                "headline-md": ["IBM Plex Sans Arabic"],
+                "label-md": ["IBM Plex Sans Arabic"],
+                "headline-lg": ["IBM Plex Sans Arabic"],
+                "body-lg": ["IBM Plex Sans Arabic"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c3c7ce;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+<!-- Right Side Navigation Rail (Shared Component) -->
+<aside class="fixed right-0 top-0 h-full w-64 bg-primary text-on-primary shadow-md flex flex-col h-full py-md px-sm rtl z-50">
+<div class="mb-lg flex items-center px-sm">
+<div class="w-10 h-10 rounded-lg bg-on-primary/10 flex items-center justify-center ml-sm">
+<span class="material-symbols-outlined text-on-primary" data-icon="health_and_safety">health_and_safety</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-on-primary">SaudiHealth</h1>
+<p class="text-xs opacity-70">Premium Enterprise</p>
+</div>
+</div>
+<nav class="flex-1 space-y-xs">
+<a class="flex items-center gap-3 px-md py-sm text-on-primary opacity-70 hover:bg-on-primary-fixed-variant transition-colors rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>لوحة التحكم</span>
+</a>
+<a class="flex items-center gap-3 px-md py-sm text-on-primary opacity-70 hover:bg-on-primary-fixed-variant transition-colors rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span>المرضى</span>
+</a>
+<a class="flex items-center gap-3 px-md py-sm text-on-primary opacity-70 hover:bg-on-primary-fixed-variant transition-colors rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span>المواعيد</span>
+</a>
+<a class="flex items-center gap-3 px-md py-sm text-on-primary-fixed bg-secondary-container rounded-lg font-bold font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span>التقارير</span>
+</a>
+<a class="flex items-center gap-3 px-md py-sm text-on-primary opacity-70 hover:bg-on-primary-fixed-variant transition-colors rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="biotech">biotech</span>
+<span>المختبر</span>
+</a>
+<a class="flex items-center gap-3 px-md py-sm text-on-primary opacity-70 hover:bg-on-primary-fixed-variant transition-colors rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>الإعدادات</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-on-primary/10 pt-md">
+<button class="w-full mb-md py-sm bg-on-primary/10 text-on-primary font-bold rounded-lg hover:bg-on-primary/20 transition-all">
+                دعم فني
+            </button>
+<a class="flex items-center gap-3 px-md py-sm text-on-primary opacity-70 hover:bg-on-primary-fixed-variant transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>تسجيل الخروج</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="mr-64 min-h-screen">
+<!-- Top Navigation Bar (Shared Component) -->
+<header class="fixed top-0 left-0 w-[calc(100%-16rem)] bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm flex flex-row-reverse justify-between items-center px-lg h-20 z-40 rtl">
+<div class="flex items-center gap-md">
+<div class="relative">
+<span class="material-symbols-outlined text-primary text-2xl cursor-pointer" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+</div>
+<span class="material-symbols-outlined text-primary text-2xl cursor-pointer" data-icon="help_outline">help_outline</span>
+<div class="flex items-center gap-sm mr-md border-r border-outline-variant/30 pr-md">
+<div class="text-left">
+<p class="font-bold text-primary text-sm leading-tight">د. أحمد القحطاني</p>
+<p class="text-xs text-on-surface-variant">المدير المالي</p>
+</div>
+<img alt="Profile" class="w-10 h-10 rounded-full object-cover border-2 border-secondary-container" data-alt="A professional portrait of a Saudi male healthcare executive in a clean, modern medical setting. He is wearing professional attire with a warm, confident expression. High-key clinical lighting with soft blue and white background tones to maintain a premium enterprise healthcare aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfc3uVKyu4y9_CNJKvPynUaElMvMeFotbdZcXZ951D6MlJ98SDAki7P6xYpbFRJsjccFRDSg43eOsW5JLh-YpluH4erXOAgbDVU35rr63EPuSyk0Fmfb4vGvIzVK_HSt3r47mmXwnv5bbmzguJjxdOrJ4d07sV5ml5cnTZYWqO-DYzQhMtVcJr7tEW2YJotpQJHrpDuM6HC6TgZA8fzuzaelk-8AcL0RpQy0j_6Fw8uzeFakOXa2y8pigJRXiiztWYxgbXXduCXJ8D"/>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<h2 class="font-headline-md text-headline-md font-bold text-primary">SaudiHealth Premium</h2>
+<div class="relative w-80">
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-xl pr-10 py-2 focus:ring-2 focus:ring-secondary transition-all" placeholder="بحث عن مورد أو فاتورة..." type="text"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<div class="pt-32 px-lg pb-xl space-y-lg">
+<!-- Page Header Actions -->
+<div class="flex justify-between items-end">
+<div>
+<nav class="flex text-on-surface-variant font-caption text-caption mb-xs">
+<span>المالية</span>
+<span class="mx-xs">/</span>
+<span class="text-primary font-bold">سجل الفواتير والمدفوعات</span>
+</nav>
+<h3 class="font-display-lg text-display-lg text-primary tracking-tight">سجل الفواتير والمدفوعات للموردين</h3>
+</div>
+<div class="flex gap-sm">
+<button class="flex items-center gap-2 px-md py-sm border-2 border-secondary text-secondary font-bold rounded-xl hover:bg-secondary/5 transition-all">
+<span class="material-symbols-outlined" data-icon="ios_share">ios_share</span>
+<span>تصدير التقرير المالي</span>
+</button>
+<button class="flex items-center gap-2 px-md py-sm bg-primary text-on-primary font-bold rounded-xl shadow-lg hover:shadow-xl transition-all scale-100 hover:scale-[1.02] active:scale-95">
+<span class="material-symbols-outlined" data-icon="upload_file">upload_file</span>
+<span>رفع فاتورة جديدة</span>
+</button>
+</div>
+</div>
+<!-- KPI Cards - Bento Style -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-gutter">
+<!-- KPI 1 -->
+<div class="glass-card p-md rounded-2xl flex flex-col justify-between group overflow-hidden relative">
+<div class="flex justify-between items-start relative z-10">
+<span class="p-xs bg-primary/10 rounded-lg text-primary material-symbols-outlined" data-icon="account_balance_wallet" data-weight="fill">account_balance_wallet</span>
+<span class="text-error text-xs font-bold">+12% من الشهر الماضي</span>
+</div>
+<div class="mt-lg relative z-10">
+<p class="text-on-surface-variant font-label-md text-label-md">إجمالي المدفوعات المستحقة</p>
+<h4 class="text-display-lg text-primary font-bold mt-xs">1,245,800 <span class="text-title-lg">ر.س</span></h4>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-5 transform scale-150 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[120px]" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="glass-card p-md rounded-2xl flex flex-col justify-between group overflow-hidden relative">
+<div class="flex justify-between items-start relative z-10">
+<span class="p-xs bg-secondary/10 rounded-lg text-secondary material-symbols-outlined" data-icon="check_circle" data-weight="fill">check_circle</span>
+<span class="text-secondary text-xs font-bold">245 فاتورة</span>
+</div>
+<div class="mt-lg relative z-10">
+<p class="text-on-surface-variant font-label-md text-label-md">الفواتير المسددة هذا الشهر</p>
+<h4 class="text-display-lg text-primary font-bold mt-xs">850,400 <span class="text-title-lg">ر.س</span></h4>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-5 transform scale-150 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[120px]" data-icon="receipt_long">receipt_long</span>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="glass-card p-md rounded-2xl flex flex-col justify-between group overflow-hidden relative">
+<div class="flex justify-between items-start relative z-10">
+<span class="p-xs bg-tertiary-fixed-dim/20 rounded-lg text-tertiary-fixed-dim material-symbols-outlined" data-icon="pending_actions" data-weight="fill">pending_actions</span>
+<span class="text-on-tertiary-fixed-variant text-xs font-bold">18 قيد المراجعة</span>
+</div>
+<div class="mt-lg relative z-10">
+<p class="text-on-surface-variant font-label-md text-label-md">فواتير قيد الاعتماد</p>
+<h4 class="text-display-lg text-primary font-bold mt-xs">142,000 <span class="text-title-lg">ر.س</span></h4>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-5 transform scale-150 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[120px]" data-icon="pending">pending</span>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="glass-card p-md rounded-2xl flex flex-col justify-between group overflow-hidden relative">
+<div class="flex justify-between items-start relative z-10">
+<span class="p-xs bg-on-primary-fixed-variant/10 rounded-lg text-on-primary-fixed-variant material-symbols-outlined" data-icon="schedule" data-weight="fill">schedule</span>
+<span class="text-on-primary-fixed-variant text-xs font-bold">مثالي</span>
+</div>
+<div class="mt-lg relative z-10">
+<p class="text-on-surface-variant font-label-md text-label-md">متوسط دورة الدفع</p>
+<h4 class="text-display-lg text-primary font-bold mt-xs">14 <span class="text-title-lg">يوم</span></h4>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-5 transform scale-150 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[120px]" data-icon="restore">restore</span>
+</div>
+</div>
+</section>
+<!-- Filters Area -->
+<section class="glass-card p-md rounded-2xl flex flex-wrap items-center gap-md">
+<div class="flex items-center gap-sm flex-1 min-w-[240px]">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="filter_list">filter_list</span>
+<span class="font-bold text-primary">تصفية النتائج:</span>
+</div>
+<div class="flex flex-wrap gap-md items-center">
+<!-- Supplier Filter -->
+<div class="flex flex-col gap-1">
+<label class="text-xs font-bold text-on-surface-variant pr-1">المورد</label>
+<select class="bg-surface-container-low border-none rounded-lg px-md py-2 focus:ring-2 focus:ring-secondary text-sm min-w-[180px]">
+<option>جميع الموردين</option>
+<option>ميدترونيك السعودية</option>
+<option>شركة الدواء للخدمات الطبية</option>
+<option>أرامكو الطبية</option>
+</select>
+</div>
+<!-- Status Filter -->
+<div class="flex flex-col gap-1">
+<label class="text-xs font-bold text-on-surface-variant pr-1">الحالة</label>
+<div class="flex gap-2">
+<button class="px-md py-2 bg-secondary text-on-secondary rounded-lg text-sm font-bold">الكل</button>
+<button class="px-md py-2 bg-surface-container text-on-surface-variant hover:bg-surface-container-high rounded-lg text-sm transition-colors">تم السداد</button>
+<button class="px-md py-2 bg-surface-container text-on-surface-variant hover:bg-surface-container-high rounded-lg text-sm transition-colors">قيد الانتظار</button>
+<button class="px-md py-2 bg-surface-container text-on-surface-variant hover:bg-surface-container-high rounded-lg text-sm transition-colors">متأخرة</button>
+</div>
+</div>
+<!-- Date Range -->
+<div class="flex flex-col gap-1">
+<label class="text-xs font-bold text-on-surface-variant pr-1">النطاق الزمني</label>
+<div class="flex items-center gap-2 bg-surface-container-low px-md py-2 rounded-lg">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="calendar_month">calendar_month</span>
+<input class="bg-transparent border-none p-0 text-sm focus:ring-0 w-44" type="text" value="01/01/2024 - 31/01/2024"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Invoices Table -->
+<section class="glass-card rounded-2xl overflow-hidden">
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-right border-collapse">
+<thead>
+<tr class="bg-primary/5 text-primary">
+<th class="px-lg py-md font-bold text-sm">اسم المورد</th>
+<th class="px-lg py-md font-bold text-sm">رقم الفاتورة</th>
+<th class="px-lg py-md font-bold text-sm">تاريخ الإصدار</th>
+<th class="px-lg py-md font-bold text-sm">المبلغ (ر.س)</th>
+<th class="px-lg py-md font-bold text-sm">طريقة الدفع</th>
+<th class="px-lg py-md font-bold text-sm text-center">الحالة</th>
+<th class="px-lg py-md font-bold text-sm text-center">الإجراءات</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<!-- Row 1 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-secondary-container/30 flex items-center justify-center font-bold text-secondary text-xs">M</div>
+<div>
+<p class="font-bold text-primary text-sm">ميدترونيك السعودية</p>
+<p class="text-xs text-on-surface-variant">الرياض، المملكة العربية السعودية</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md text-sm font-mono">#INV-2024-0892</td>
+<td class="px-lg py-md text-sm text-on-surface-variant">12 يناير 2024</td>
+<td class="px-lg py-md font-bold text-primary text-sm">45,200.00</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-2 text-xs">
+<span class="material-symbols-outlined text-sm" data-icon="account_balance">account_balance</span>
+<span>تحويل بنكي</span>
+</div>
+</td>
+<td class="px-lg py-md text-center">
+<span class="inline-flex items-center gap-1 px-sm py-1 bg-secondary/10 text-secondary rounded-full text-xs font-bold">
+<span class="w-1.5 h-1.5 bg-secondary rounded-full"></span>
+                                        تم السداد
+                                    </span>
+</td>
+<td class="px-lg py-md text-center">
+<button class="p-2 hover:bg-primary/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-tertiary-fixed-dim/20 flex items-center justify-center font-bold text-tertiary-fixed-dim text-xs">D</div>
+<div>
+<p class="font-bold text-primary text-sm">شركة الدواء للخدمات الطبية</p>
+<p class="text-xs text-on-surface-variant">الخبر، المملكة العربية السعودية</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md text-sm font-mono">#INV-2024-0901</td>
+<td class="px-lg py-md text-sm text-on-surface-variant">15 يناير 2024</td>
+<td class="px-lg py-md font-bold text-primary text-sm">12,850.50</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-2 text-xs">
+<span class="material-symbols-outlined text-sm" data-icon="credit_card">credit_card</span>
+<span>بطاقة ائتمان</span>
+</div>
+</td>
+<td class="px-lg py-md text-center">
+<span class="inline-flex items-center gap-1 px-sm py-1 bg-tertiary-fixed/20 text-on-tertiary-fixed-variant rounded-full text-xs font-bold">
+<span class="w-1.5 h-1.5 bg-on-tertiary-fixed-variant rounded-full"></span>
+                                        قيد الانتظار
+                                    </span>
+</td>
+<td class="px-lg py-md text-center">
+<button class="p-2 hover:bg-primary/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-error/10 flex items-center justify-center font-bold text-error text-xs">A</div>
+<div>
+<p class="font-bold text-primary text-sm">أرامكو الطبية</p>
+<p class="text-xs text-on-surface-variant">الظهران، المملكة العربية السعودية</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md text-sm font-mono">#INV-2024-0840</td>
+<td class="px-lg py-md text-sm text-on-surface-variant">05 يناير 2024</td>
+<td class="px-lg py-md font-bold text-primary text-sm">310,000.00</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-2 text-xs">
+<span class="material-symbols-outlined text-sm" data-icon="account_balance">account_balance</span>
+<span>تحويل بنكي</span>
+</div>
+</td>
+<td class="px-lg py-md text-center">
+<span class="inline-flex items-center gap-1 px-sm py-1 bg-error/10 text-error rounded-full text-xs font-bold animate-pulse">
+<span class="w-1.5 h-1.5 bg-error rounded-full"></span>
+                                        متأخرة
+                                    </span>
+</td>
+<td class="px-lg py-md text-center">
+<button class="p-2 hover:bg-primary/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-xs">P</div>
+<div>
+<p class="font-bold text-primary text-sm">فيليبس هيلث كير</p>
+<p class="text-xs text-on-surface-variant">جدة، المملكة العربية السعودية</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md text-sm font-mono">#INV-2024-1102</td>
+<td class="px-lg py-md text-sm text-on-surface-variant">20 يناير 2024</td>
+<td class="px-lg py-md font-bold text-primary text-sm">88,400.00</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-2 text-xs">
+<span class="material-symbols-outlined text-sm" data-icon="account_balance">account_balance</span>
+<span>تحويل بنكي</span>
+</div>
+</td>
+<td class="px-lg py-md text-center">
+<span class="inline-flex items-center gap-1 px-sm py-1 bg-secondary/10 text-secondary rounded-full text-xs font-bold">
+<span class="w-1.5 h-1.5 bg-secondary rounded-full"></span>
+                                        تم السداد
+                                    </span>
+</td>
+<td class="px-lg py-md text-center">
+<button class="p-2 hover:bg-primary/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="bg-surface-container-low px-lg py-md flex justify-between items-center">
+<div class="text-xs text-on-surface-variant">عرض 1 إلى 10 من أصل 254 فاتورة</div>
+<div class="flex gap-2">
+<button class="w-8 h-8 rounded-lg flex items-center justify-center bg-surface border border-outline-variant/30 text-on-surface-variant hover:bg-primary hover:text-on-primary transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center bg-primary text-on-primary font-bold text-xs">1</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center bg-surface border border-outline-variant/30 text-on-surface-variant hover:bg-primary hover:text-on-primary transition-all text-xs">2</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center bg-surface border border-outline-variant/30 text-on-surface-variant hover:bg-primary hover:text-on-primary transition-all text-xs">3</button>
+<span class="flex items-center px-2">...</span>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center bg-surface border border-outline-variant/30 text-on-surface-variant hover:bg-primary hover:text-on-primary transition-all text-xs">25</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center bg-surface border border-outline-variant/30 text-on-surface-variant hover:bg-primary hover:text-on-primary transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Bottom Insight Card -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
+<div class="glass-card p-lg rounded-2xl">
+<h5 class="text-title-lg font-bold text-primary mb-md">التحليل المالي السريع</h5>
+<div class="space-y-md">
+<div class="flex justify-between items-center">
+<span class="text-sm text-on-surface-variant">الامتثال لمواعيد السداد</span>
+<span class="font-bold text-secondary">94%</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-2">
+<div class="bg-secondary h-2 rounded-full" style="width: 94%"></div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-sm text-on-surface-variant">تغطية السيولة الحالية</span>
+<span class="font-bold text-primary">1.2x</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-2">
+<div class="bg-primary h-2 rounded-full" style="width: 75%"></div>
+</div>
+</div>
+</div>
+<div class="glass-card p-lg rounded-2xl relative overflow-hidden group">
+<div class="relative z-10">
+<h5 class="text-title-lg font-bold text-primary mb-sm">تحميل تقرير التدقيق الربع سنوي</h5>
+<p class="text-sm text-on-surface-variant mb-lg max-w-md">يمكنك الحصول على تحليل مفصل لجميع التعاملات المالية مع الموردين للفترة من أكتوبر إلى ديسمبر 2023.</p>
+<button class="flex items-center gap-2 px-md py-sm bg-secondary text-on-secondary font-bold rounded-xl shadow-lg hover:shadow-xl transition-all">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+<span>تحميل PDF (2.4 MB)</span>
+</button>
+</div>
+<div class="absolute -left-10 -bottom-10 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-[200px] text-secondary" data-icon="description">description</span>
+</div>
+</div>
+</section>
+</div>
+<!-- Sticky Footer Summary (Optional but Premium touch) -->
+<div class="fixed bottom-0 left-0 w-[calc(100%-16rem)] bg-white/90 backdrop-blur-md border-t border-outline-variant/30 px-lg py-sm flex justify-between items-center z-30 rtl">
+<div class="flex gap-lg">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 bg-secondary rounded-full"></span>
+<span class="text-xs font-bold text-on-surface-variant">تم السداد: 1,452,000 ر.س</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 bg-tertiary-fixed-dim rounded-full"></span>
+<span class="text-xs font-bold text-on-surface-variant">قيد الانتظار: 240,000 ر.س</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 bg-error rounded-full"></span>
+<span class="text-xs font-bold text-on-surface-variant">متأخرة: 120,500 ر.س</span>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<span class="text-sm text-on-surface-variant">آخر تحديث: 24 يناير 2024، 10:30 صباحاً</span>
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="refresh">refresh</span>
+</button>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interactions and simple UI logic
+        document.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.classList.add('scale-[1.002]');
+            });
+            row.addEventListener('mouseleave', () => {
+                row.classList.remove('scale-[1.002]');
+            });
+        });
+    </script>
+</body></html>

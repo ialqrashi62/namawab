@@ -1,0 +1,15 @@
+{
+  "rare_advanced": {
+    "dashboard": {
+      "title": "Rare & Advanced Diseases Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

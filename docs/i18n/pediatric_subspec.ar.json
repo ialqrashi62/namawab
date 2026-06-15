@@ -1,0 +1,15 @@
+{
+  "pediatric_subspec": {
+    "dashboard": {
+      "title": "لوحة تخصصات الأطفال الدقيقة",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

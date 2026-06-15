@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | Smart Facility &amp; IoT Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .status-pulse {
+            position: relative;
+        }
+        .status-pulse::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0.4;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.4; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #001629;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary": "#1d1300",
+                      "outline-variant": "#c3c7ce",
+                      "on-primary-container": "#7293b6",
+                      "primary-fixed": "#cfe5ff",
+                      "secondary-container": "#7af1fc",
+                      "primary": "#001629",
+                      "surface-variant": "#e1e3e4",
+                      "surface-bright": "#f8f9fa",
+                      "secondary-fixed": "#7df4ff",
+                      "on-secondary-fixed-variant": "#004f54",
+                      "inverse-primary": "#a8caef",
+                      "surface-tint": "#406182",
+                      "secondary": "#006970",
+                      "tertiary-fixed-dim": "#e6c274",
+                      "surface-dim": "#d9dadb",
+                      "secondary-fixed-dim": "#5dd8e2",
+                      "outline": "#73777e",
+                      "inverse-surface": "#2e3132",
+                      "on-tertiary": "#ffffff",
+                      "on-surface-variant": "#42474d",
+                      "error": "#ba1a1a",
+                      "on-tertiary-container": "#ac8c44",
+                      "on-error": "#ffffff",
+                      "on-tertiary-fixed": "#251a00",
+                      "on-primary": "#ffffff",
+                      "surface-container-high": "#e7e8e9",
+                      "on-secondary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary-container": "#006e75",
+                      "on-secondary-fixed": "#002022",
+                      "on-surface": "#191c1d",
+                      "tertiary-container": "#362700",
+                      "error-container": "#ffdad6",
+                      "surface": "#f8f9fa",
+                      "on-primary-fixed-variant": "#274969",
+                      "inverse-on-surface": "#f0f1f2",
+                      "tertiary-fixed": "#ffdf9d",
+                      "background": "#f8f9fa",
+                      "surface-container-highest": "#e1e3e4",
+                      "primary-fixed-dim": "#a8caef",
+                      "on-background": "#191c1d",
+                      "surface-container-low": "#f3f4f5",
+                      "on-tertiary-fixed-variant": "#5b4300",
+                      "primary-container": "#002b49",
+                      "surface-container": "#edeeef",
+                      "on-error-container": "#93000a",
+                      "on-primary-fixed": "#001d34"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xs": "4px",
+                      "sm": "12px",
+                      "margin-mobile": "16px",
+                      "margin-desktop": "48px",
+                      "md": "24px",
+                      "xl": "64px",
+                      "gutter": "24px",
+                      "base": "8px",
+                      "lg": "40px"
+              },
+              "fontFamily": {
+                      "label-md": ["IBM Plex Sans"],
+                      "caption": ["IBM Plex Sans"],
+                      "display-lg": ["IBM Plex Sans"],
+                      "body-md": ["IBM Plex Sans"],
+                      "body-lg": ["IBM Plex Sans"],
+                      "title-lg": ["IBM Plex Sans"],
+                      "headline-md": ["IBM Plex Sans"],
+                      "headline-lg": ["IBM Plex Sans"],
+                      "display-lg-mobile": ["IBM Plex Sans"]
+              },
+              "fontSize": {
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                      "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="bg-surface-container-lowest/80 backdrop-blur-md border-b border-surface-container-highest/30 shadow-sm shadow-primary/5 fixed top-0 w-full h-16 z-50 flex justify-between items-center px-margin-desktop">
+<div class="flex items-center gap-8">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">SaudiHealth Premium</h1>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors" href="#">نظرة عامة</a>
+<a class="text-secondary font-semibold border-b-2 border-secondary font-body-md text-body-md" href="#">البنية التحتية</a>
+<a class="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors" href="#">الأمان والامتثال</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden lg:block">
+<span class="absolute right-3 top-2 text-outline material-symbols-outlined">search</span>
+<input class="bg-surface-container-low border-none rounded-lg pr-10 pl-4 py-2 w-64 text-body-md focus:ring-2 focus:ring-secondary/50" placeholder="البحث عن مستشعر أو جناح..." type="text"/>
+</div>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">notifications</span></button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">settings</span></button>
+<img alt="User clinical profile" class="w-10 h-10 rounded-full border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQ1mJP6fENAbLIpz3C81tFRHME02ObhyIu1bSdDfPUr4oPU_VbxJmBetIYaTwVwY_jIlQFOaUymfgFup_Luhz1IT8wC1gtp8TMLEKemvCAWM4TgIh4TDW3Ri3WPrmFlXEIuPIQqq0nom7WLcHS0aGTTaaqn5T8lxJJR7gqZvialGZqz6KXsxsschnxn6hkoFx-Yvg8PJ2VtxVBPatUctT_jA6FxsliU9ZKeBQOR6_fTUYU7WBbp336Aebhzvuj6mrLWbxUrMx4gwUu"/>
+</div>
+</header>
+<!-- Sidebar Navigation -->
+<aside class="fixed top-0 right-0 h-full w-64 bg-primary dark:bg-primary-container text-on-primary flex flex-col pt-20 pb-8 z-40 rtl shadow-xl shadow-primary/20">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-10 h-10 bg-on-primary/10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary-fixed">domain</span>
+</div>
+<div>
+<p class="font-title-lg text-title-lg leading-tight">الإشراف الاستراتيجي</p>
+<p class="text-caption text-on-primary/60">مركز القيادة العالمي</p>
+</div>
+</div>
+</div>
+<div class="flex-1 space-y-1">
+<a class="flex items-center gap-3 text-on-primary/70 px-4 py-3 mx-2 hover:bg-on-primary/10 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">لوحة القيادة</span>
+</a>
+<a class="flex items-center gap-3 bg-secondary text-on-secondary rounded-lg px-4 py-3 mx-2 shadow-md" href="#">
+<span class="material-symbols-outlined">settings_input_component</span>
+<span class="font-label-md text-label-md">البنية التحتية IoT</span>
+</a>
+<a class="flex items-center gap-3 text-on-primary/70 px-4 py-3 mx-2 hover:bg-on-primary/10 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">التحليلات السريرية</span>
+</a>
+<a class="flex items-center gap-3 text-on-primary/70 px-4 py-3 mx-2 hover:bg-on-primary/10 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-md text-label-md">تخطيط الموارد</span>
+</a>
+<a class="flex items-center gap-3 text-on-primary/70 px-4 py-3 mx-2 hover:bg-on-primary/10 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">verified_user</span>
+<span class="font-label-md text-label-md">الامتثال</span>
+</a>
+</div>
+<div class="px-4 mt-auto">
+<button class="w-full bg-secondary-fixed text-on-secondary-fixed font-semibold py-3 rounded-xl flex items-center justify-center gap-2 mb-6 hover:brightness-110 transition-all active:scale-95">
+<span class="material-symbols-outlined">add</span>
+<span>حالة صيانة جديدة</span>
+</button>
+<a class="flex items-center gap-3 text-on-primary/70 px-4 py-3 hover:bg-on-primary/10 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">تسجيل الخروج</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="mr-64 pt-24 pb-12 px-margin-desktop">
+<!-- Header & Vital Summary -->
+<div class="flex justify-between items-end mb-lg">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary mb-2">المرافق الذكية والبنية التحتية</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">مراقبة حية للعلامات الحيوية للمبنى والأنظمة الميكانيكية</p>
+</div>
+<div class="flex gap-4">
+<div class="bg-white px-4 py-2 rounded-xl border border-surface-container-highest shadow-sm flex items-center gap-3">
+<div class="w-3 h-3 bg-green-500 rounded-full status-pulse text-green-500"></div>
+<span class="text-label-md font-label-md text-primary">اتصال الشبكة: ممتاز</span>
+</div>
+<div class="bg-white px-4 py-2 rounded-xl border border-surface-container-highest shadow-sm flex items-center gap-3">
+<span class="text-label-md font-label-md text-on-surface-variant">آخر تحديث: قبل 12 ثانية</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">refresh</span>
+</div>
+</div>
+</div>
+<div class="bento-grid">
+<!-- HVAC System Status -->
+<div class="col-span-12 lg:col-span-4 glass-card p-6 rounded-xl flex flex-col justify-between min-h-[220px]">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-on-surface-variant font-label-md text-label-md mb-1">نظام التكييف المركزي HVAC</p>
+<h3 class="text-headline-md font-headline-md text-primary">الحالة: مستقر</h3>
+</div>
+<div class="w-12 h-12 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[28px]">ac_unit</span>
+</div>
+</div>
+<div class="mt-6 flex items-end justify-between">
+<div>
+<p class="text-caption text-on-surface-variant">درجة الحرارة المتوسطة</p>
+<p class="text-headline-md font-bold text-primary">22.4°C</p>
+</div>
+<div class="flex-1 h-12 mx-4 flex items-end gap-1">
+<div class="w-full bg-secondary/20 h-4 rounded-full"></div>
+<div class="w-full bg-secondary/40 h-6 rounded-full"></div>
+<div class="w-full bg-secondary/60 h-8 rounded-full"></div>
+<div class="w-full bg-secondary h-10 rounded-full"></div>
+<div class="w-full bg-secondary/60 h-7 rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Medical Oxygen Pressure -->
+<div class="col-span-12 lg:col-span-4 glass-card p-6 rounded-xl flex flex-col justify-between min-h-[220px]">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-on-surface-variant font-label-md text-label-md mb-1">ضغط الأكسجين الطبي</p>
+<h3 class="text-headline-md font-headline-md text-primary">54.2 PSI</h3>
+</div>
+<div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">gas_meter</span>
+</div>
+</div>
+<div class="mt-6">
+<div class="flex justify-between text-caption mb-1">
+<span>الضغط الحالي</span>
+<span class="text-secondary font-bold">ضمن النطاق الآمن</span>
+</div>
+<div class="w-full bg-surface-container-highest h-3 rounded-full overflow-hidden">
+<div class="bg-blue-500 h-full w-[82%] relative">
+<div class="absolute right-0 top-0 h-full w-2 bg-white/30"></div>
+</div>
+</div>
+<div class="flex justify-between mt-2 text-caption text-on-surface-variant">
+<span>0 PSI</span>
+<span>100 PSI</span>
+</div>
+</div>
+</div>
+<!-- Power Grid Status -->
+<div class="col-span-12 lg:col-span-4 glass-card p-6 rounded-xl flex flex-col justify-between min-h-[220px]">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-on-surface-variant font-label-md text-label-md mb-1">شبكة الطاقة الرئيسية</p>
+<h3 class="text-headline-md font-headline-md text-primary">340.5 kW</h3>
+</div>
+<div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-700">
+<span class="material-symbols-outlined text-[28px]">bolt</span>
+</div>
+</div>
+<div class="mt-6">
+<div class="flex gap-4">
+<div class="flex-1">
+<p class="text-caption text-on-surface-variant">المصادر الاحتياطية</p>
+<p class="text-title-lg font-bold text-green-600">جاهز 100%</p>
+</div>
+<div class="flex-1 border-r border-outline-variant pr-4">
+<p class="text-caption text-on-surface-variant">التردد الحالي</p>
+<p class="text-title-lg font-bold text-primary">60.02 Hz</p>
+</div>
+</div>
+</div>
+</div>
+<!-- IoT Sensor Map (Central Large Area) -->
+<div class="col-span-12 lg:col-span-8 glass-card rounded-xl overflow-hidden min-h-[500px] flex flex-col relative">
+<div class="p-6 border-b border-surface-container-highest/30 flex justify-between items-center bg-white/50 backdrop-blur-sm z-10">
+<div>
+<h4 class="text-title-lg font-title-lg text-primary">خريطة مستشعرات IoT - الطابق الأرضي</h4>
+<p class="text-caption text-on-surface-variant">مراقبة التنبيهات عبر أجنحة المستشفى</p>
+</div>
+<div class="flex gap-2">
+<button class="bg-surface-container border border-outline-variant text-primary px-3 py-1 rounded-lg text-label-md">تبديل الطابق</button>
+<button class="bg-primary text-on-primary px-3 py-1 rounded-lg text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                            تصفية
+                        </button>
+</div>
+</div>
+<div class="flex-1 bg-surface-container-low relative overflow-hidden flex items-center justify-center p-8">
+<!-- Conceptual Hospital Map Grid -->
+<div class="w-full h-full border-2 border-dashed border-outline-variant/30 rounded-3xl relative p-8">
+<div class="grid grid-cols-4 grid-rows-3 gap-8 w-full h-full opacity-60">
+<div class="bg-white border border-outline-variant/40 rounded-xl flex items-center justify-center text-on-surface-variant text-caption">جناح A</div>
+<div class="bg-white border border-outline-variant/40 rounded-xl flex items-center justify-center text-on-surface-variant text-caption">جناح B</div>
+<div class="bg-white border border-outline-variant/40 rounded-xl flex items-center justify-center text-on-surface-variant text-caption">المختبر</div>
+<div class="bg-white border border-outline-variant/40 rounded-xl flex items-center justify-center text-on-surface-variant text-caption">الطوارئ</div>
+<div class="bg-white border border-outline-variant/40 rounded-xl flex items-center justify-center text-on-surface-variant text-caption">جناح C</div>
+<div class="bg-white border border-outline-variant/40 rounded-xl col-span-2 row-span-2 flex items-center justify-center text-on-surface-variant text-caption">منطقة العمليات المركزية</div>
+<div class="bg-white border border-outline-variant/40 rounded-xl flex items-center justify-center text-on-surface-variant text-caption">الصيدلية</div>
+<div class="bg-white border border-outline-variant/40 rounded-xl flex items-center justify-center text-on-surface-variant text-caption">الانتظار</div>
+<div class="bg-white border border-outline-variant/40 rounded-xl flex items-center justify-center text-on-surface-variant text-caption">الاستقبال</div>
+</div>
+<!-- Real-time Alerts Over Map -->
+<div class="absolute top-[20%] right-[15%] group">
+<div class="w-4 h-4 bg-error rounded-full status-pulse text-error cursor-pointer"></div>
+<div class="absolute bottom-full right-0 mb-2 w-48 bg-white shadow-xl rounded-lg p-3 hidden group-hover:block border border-error/20 z-20">
+<p class="text-error font-bold text-caption">تنبيه: تسرب ضغط</p>
+<p class="text-primary text-[10px]">الجناح A - الغرفة 104</p>
+<button class="mt-2 w-full bg-error text-white text-[10px] py-1 rounded">إرسال فريق الصيانة</button>
+</div>
+</div>
+<div class="absolute bottom-[30%] left-[25%] group">
+<div class="w-4 h-4 bg-tertiary-fixed-dim rounded-full status-pulse text-tertiary-fixed-dim cursor-pointer"></div>
+<div class="absolute bottom-full right-0 mb-2 w-48 bg-white shadow-xl rounded-lg p-3 hidden group-hover:block border border-tertiary-fixed-dim/20 z-20">
+<p class="text-tertiary-container font-bold text-caption">تحذير: كفاءة الطاقة</p>
+<p class="text-primary text-[10px]">المختبر المركزي - الوحدة 02</p>
+<button class="mt-2 w-full bg-tertiary text-white text-[10px] py-1 rounded">فحص الحالة</button>
+</div>
+</div>
+<div class="absolute top-[45%] right-[50%] group">
+<div class="w-3 h-3 bg-secondary rounded-full cursor-pointer"></div>
+</div>
+<div class="absolute top-[60%] right-[40%] group">
+<div class="w-3 h-3 bg-secondary rounded-full cursor-pointer"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Energy Consumption Trends & AI Suggestions -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+<!-- Consumption Trends Card -->
+<div class="glass-card p-6 rounded-xl flex-1">
+<div class="flex justify-between items-center mb-4">
+<h4 class="text-title-lg font-title-lg text-primary">استهلاك الطاقة</h4>
+<span class="text-caption text-secondary">هذا الشهر -12%</span>
+</div>
+<div class="relative h-32 w-full flex items-end gap-2 px-2">
+<!-- Simplified bar chart logic -->
+<div class="flex-1 bg-surface-container-highest rounded-t-md hover:bg-secondary transition-all" style="height: 40%"></div>
+<div class="flex-1 bg-surface-container-highest rounded-t-md hover:bg-secondary transition-all" style="height: 60%"></div>
+<div class="flex-1 bg-surface-container-highest rounded-t-md hover:bg-secondary transition-all" style="height: 45%"></div>
+<div class="flex-1 bg-surface-container-highest rounded-t-md hover:bg-secondary transition-all" style="height: 80%"></div>
+<div class="flex-1 bg-secondary rounded-t-md" style="height: 95%"></div>
+<div class="flex-1 bg-surface-container-highest rounded-t-md hover:bg-secondary transition-all" style="height: 70%"></div>
+<div class="flex-1 bg-surface-container-highest rounded-t-md hover:bg-secondary transition-all" style="height: 55%"></div>
+</div>
+<div class="mt-6 p-4 bg-secondary-container/10 border border-secondary/20 rounded-xl flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary">psychology</span>
+<div>
+<p class="text-label-md font-bold text-secondary">اقتراح AI للتحسين</p>
+<p class="text-caption text-on-surface-variant">تعديل درجة حرارة الممرات غير المستخدمة ليلاً يوفر 2,400 ريال شهرياً.</p>
+<button class="text-caption font-bold text-secondary mt-2 underline">تطبيق التوصية</button>
+</div>
+</div>
+</div>
+<!-- Water & Waste Management -->
+<div class="glass-card p-6 rounded-xl flex-1">
+<h4 class="text-title-lg font-title-lg text-primary mb-4">المياه والنفايات</h4>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between mb-1">
+<span class="text-caption font-medium">ترشيح المياه</span>
+<span class="text-caption font-bold text-green-600">مثالي</span>
+</div>
+<div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[94%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-1">
+<span class="text-caption font-medium">مستوى النفايات الطبية</span>
+<span class="text-caption font-bold text-yellow-600">65% - بحاجة لتفريغ</span>
+</div>
+<div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
+<div class="bg-yellow-500 h-full w-[65%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Maintenance Schedule (Full Width Bottom) -->
+<div class="col-span-12 glass-card rounded-xl overflow-hidden">
+<div class="p-6 border-b border-surface-container-highest/30 flex justify-between items-center">
+<h4 class="text-title-lg font-title-lg text-primary">جدول صيانة الأنظمة الميكانيكية والكهربائية (M&amp;E)</h4>
+<button class="text-secondary font-label-md text-label-md flex items-center gap-1 hover:underline">
+                        عرض التقرير السنوي
+                        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant text-label-md">
+<th class="px-6 py-4 font-semibold">النظام / الجهاز</th>
+<th class="px-6 py-4 font-semibold">تاريخ الصيانة القادمة</th>
+<th class="px-6 py-4 font-semibold">نوع الخدمة</th>
+<th class="px-6 py-4 font-semibold">الفني المسؤول</th>
+<th class="px-6 py-4 font-semibold">الأولوية</th>
+<th class="px-6 py-4 font-semibold">الحالة</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-highest/30">
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">heat_pump</span>
+</div>
+<span class="font-body-md text-body-md text-primary">مبرد رقم 4 - الجناح الشرقي</span>
+</div>
+</td>
+<td class="px-6 py-4 text-body-md">15 أكتوبر 2023</td>
+<td class="px-6 py-4 text-body-md text-on-surface-variant">فحص روتيني / تبديل فلاتر</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-slate-200"></div>
+<span class="text-caption">م. أحمد علي</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 text-caption font-bold">متوسطة</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-caption font-bold">مجدول</span>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">elevator</span>
+</div>
+<span class="font-body-md text-body-md text-primary">مولد الطوارئ الرئيسي</span>
+</div>
+</td>
+<td class="px-6 py-4 text-body-md">الغد، 09:00 ص</td>
+<td class="px-6 py-4 text-body-md text-on-surface-variant">اختبار الحمل الشهري</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-slate-200"></div>
+<span class="text-caption">م. سارة خالد</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-error-container text-error text-caption font-bold">عالية جداً</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-green-100 text-green-700 text-caption font-bold">مؤكد</span>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">water_drop</span>
+</div>
+<span class="font-body-md text-body-md text-primary">مضخات المياه المركزية</span>
+</div>
+</td>
+<td class="px-6 py-4 text-body-md">28 أكتوبر 2023</td>
+<td class="px-6 py-4 text-body-md text-on-surface-variant">فحص تسرب وصمامات</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-slate-200"></div>
+<span class="text-caption">م. محمد عمر</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-caption font-bold">منخفضة</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-caption font-bold">في الانتظار</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button (FAB) - Suppression Logic Applied: Hidden on Infrastructure Dashboard as it requires focus, but added a context-aware action -->
+<div class="fixed bottom-8 left-8 z-50">
+<button class="bg-primary text-on-primary w-14 h-14 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform active:scale-95 group relative">
+<span class="material-symbols-outlined text-[28px]">support_agent</span>
+<span class="absolute right-full ml-4 whitespace-nowrap bg-primary text-white text-caption px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">اتصل بغرفة التحكم الميكانيكي</span>
+</button>
+</div>
+<script>
+        // Micro-interactions and real-time effects
+        document.addEventListener('DOMContentLoaded', () => {
+            // Simulate real-time pressure fluctuation
+            const pressureVal = document.querySelector('h3.text-headline-md:nth-of-type(1)'); // Target oxygen pressure text
+            // Note: In a real app we'd use a more specific selector
+            
+            setInterval(() => {
+                const oxygenPressureText = document.querySelectorAll('h3.text-headline-md')[1];
+                if(oxygenPressureText && oxygenPressureText.innerText.includes('PSI')) {
+                    const current = parseFloat(oxygenPressureText.innerText);
+                    const change = (Math.random() - 0.5) * 0.4;
+                    oxygenPressureText.innerText = (current + change).toFixed(1) + ' PSI';
+                }
+            }, 3000);
+
+            // Simple tab switching for side-nav simulation
+            const navItems = document.querySelectorAll('aside a');
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    // Logic for visual feedback only
+                });
+            });
+        });
+    </script>
+</body></html>

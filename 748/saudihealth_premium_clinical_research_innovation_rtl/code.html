@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#a8caef",
+                        "surface-bright": "#f8f9fa",
+                        "secondary-fixed": "#7df4ff",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "secondary-container": "#7af1fc",
+                        "primary": "#001629",
+                        "surface-variant": "#e1e3e4",
+                        "tertiary": "#1d1300",
+                        "outline-variant": "#c3c7ce",
+                        "on-primary-container": "#7293b6",
+                        "primary-fixed": "#cfe5ff",
+                        "error": "#ba1a1a",
+                        "outline": "#73777e",
+                        "inverse-surface": "#2e3132",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#42474d",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "surface-dim": "#d9dadb",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "surface-tint": "#406182",
+                        "secondary": "#006970",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#006e75",
+                        "surface-container-high": "#e7e8e9",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#251a00",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#ac8c44",
+                        "primary-container": "#002b49",
+                        "surface-container": "#edeeef",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed": "#001d34",
+                        "surface-container-low": "#f3f4f5",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "surface": "#f8f9fa",
+                        "on-primary-fixed-variant": "#274969",
+                        "inverse-on-surface": "#f0f1f2",
+                        "tertiary-fixed": "#ffdf9d",
+                        "background": "#f8f9fa",
+                        "surface-container-highest": "#e1e3e4",
+                        "primary-fixed-dim": "#a8caef",
+                        "on-background": "#191c1d",
+                        "on-secondary-fixed": "#002022",
+                        "on-surface": "#191c1d",
+                        "tertiary-container": "#362700",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "64px",
+                        "gutter": "24px",
+                        "margin-desktop": "48px",
+                        "md": "24px",
+                        "lg": "40px",
+                        "base": "8px",
+                        "xs": "4px",
+                        "sm": "12px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["IBM Plex Sans"],
+                        "label-md": ["IBM Plex Sans"],
+                        "caption": ["IBM Plex Sans"],
+                        "display-lg": ["IBM Plex Sans"],
+                        "body-md": ["IBM Plex Sans"],
+                        "title-lg": ["IBM Plex Sans"],
+                        "headline-md": ["IBM Plex Sans"],
+                        "headline-lg": ["IBM Plex Sans"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-dot {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 105, 112, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(0, 105, 112, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 105, 112, 0); }
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- TopNavBar -->
+<nav class="fixed top-0 right-0 w-full z-50 flex flex-row-reverse justify-between items-center px-margin-desktop h-20 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-base">
+<span class="text-title-lg font-title-lg font-bold text-primary">Al-Command Center</span>
+<span class="material-symbols-outlined text-primary text-2xl">clinical_notes</span>
+</div>
+<div class="hidden md:flex items-center gap-lg">
+<a class="text-on-surface-variant font-body-md font-bold text-primary border-b-2 border-primary pb-1" href="#">Resource Hub</a>
+<a class="text-on-surface-variant font-body-md hover:text-primary transition-colors duration-200" href="#">Operations</a>
+<a class="text-on-surface-variant font-body-md hover:text-primary transition-colors duration-200" href="#">Logistics</a>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">settings</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Chief of Operations Profile" data-alt="A professional portrait of a senior Saudi female doctor in a white lab coat, standing in a brightly lit, modern clinical corridor. The lighting is soft and clinical, emphasizing a high-trust healthcare environment. Her expression is confident and professional, reflecting the reliable and advanced identity of the SaudiHealth Premium brand. The background shows blurred glass panels and clean medical infrastructure." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5tpibyMdfu7C2-QjfIhpuX2BC0IZJuIw6zTSYlA133GmkW67or0qrw4aBckPIgFEZXRsUchIX6ze6lTdQISwhbUrd8RLH2JSH3CvAMfnc6qMacUKJjySICYcElUN2zLgQQxRV9p5bOotv0-ST-O_JD_66bRC0iZPWJxXF86-D16_WgZonEyBhiwuH-QU09KXWCqEIOdSKwE9nTovhJ99_Iqui29_6SFb955m45V54qsSygO5vTGG5THKb3G7eLkrubesqaOGPzj5U"/>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed inset-y-0 right-0 flex flex-col pt-24 pb-8 px-sm z-40 bg-primary w-80 shadow-xl">
+<div class="px-md mb-lg">
+<h2 class="text-headline-sm font-headline-sm text-white font-bold">National Health Command</h2>
+<p class="text-label-md text-on-primary/70">Riyadh Region HQ</p>
+</div>
+<div class="flex flex-col gap-xs flex-grow overflow-y-auto">
+<div class="flex items-center gap-md px-md py-sm mx-xs transition-all hover:bg-white/10 rounded-lg cursor-pointer text-on-primary/70">
+<span class="material-symbols-outlined">emergency_home</span>
+<span class="font-label-md">Incident Command</span>
+</div>
+<div class="flex items-center gap-md px-md py-sm mx-xs transition-all hover:bg-white/10 rounded-lg cursor-pointer text-on-primary/70">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="font-label-md">Fleet Logistics</span>
+</div>
+<div class="flex items-center gap-md px-md py-sm mx-xs bg-secondary-container text-on-secondary-container rounded-lg font-bold translate-x-1">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-md">Resource Hub</span>
+</div>
+<div class="flex items-center gap-md px-md py-sm mx-xs transition-all hover:bg-white/10 rounded-lg cursor-pointer text-on-primary/70">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label-md">Staff Management</span>
+</div>
+<div class="flex items-center gap-md px-md py-sm mx-xs transition-all hover:bg-white/10 rounded-lg cursor-pointer text-on-primary/70">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md">Payroll</span>
+</div>
+</div>
+<div class="px-md mt-auto pt-lg border-t border-outline-variant/10">
+<button class="w-full py-base bg-error text-white rounded-lg font-bold flex items-center justify-center gap-base mb-lg active:scale-95 transition-all">
+<span class="material-symbols-outlined">report_problem</span>
+                Trigger Emergency Alert
+            </button>
+<div class="flex flex-col gap-xs">
+<div class="flex items-center gap-md px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg cursor-pointer transition-all">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="font-label-md">Support</span>
+</div>
+<div class="flex items-center gap-md px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg cursor-pointer transition-all">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md">Logout</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="mr-80 pt-24 pb-xl px-margin-desktop min-h-screen">
+<!-- Header & Top Actions -->
+<header class="flex justify-between items-end mb-lg">
+<div>
+<span class="font-label-md text-secondary font-bold uppercase tracking-wider">Innovation &amp; Science</span>
+<h1 class="font-headline-lg text-headline-lg text-primary mt-xs">Clinical Research &amp; Innovation Center</h1>
+<p class="font-body-md text-on-surface-variant max-w-2xl mt-base">Overseeing high-impact medical advancements across the Kingdom. Managed by the National Health Command in alignment with Vision 2030 healthcare objectives.</p>
+</div>
+<div class="flex gap-md">
+<button class="flex items-center gap-base bg-white border border-outline px-lg py-sm rounded-xl font-bold text-primary hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined">download</span>
+                    Export Annual Report
+                </button>
+<button class="flex items-center gap-base bg-primary text-white px-lg py-sm rounded-xl font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined">add_circle</span>
+                    Propose New Trial
+                </button>
+</div>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- 1. Active Trials Overview (Wide) -->
+<section class="col-span-12 lg:col-span-8 glass-card rounded-xl p-lg flex flex-col gap-lg">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 bg-secondary-container flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-on-secondary-container">clinical_notes</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-primary">Active Trials Portfolio</h2>
+</div>
+<div class="flex items-center gap-sm">
+<span class="px-sm py-xs bg-surface-container-high rounded-full font-label-md text-on-surface-variant">42 Trials Total</span>
+<button class="text-secondary font-bold flex items-center gap-xs">View Filter <span class="material-symbols-outlined">filter_list</span></button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-md">
+<div class="bg-surface-container-low p-md rounded-xl border border-outline-variant/20">
+<p class="font-label-md text-on-surface-variant">Phase 1</p>
+<div class="flex items-baseline gap-base mt-xs">
+<span class="text-headline-md font-bold text-primary">12</span>
+<span class="text-caption text-secondary">+2 New</span>
+</div>
+<div class="w-full bg-outline-variant/30 h-1 rounded-full mt-md overflow-hidden">
+<div class="bg-secondary h-full" style="width: 25%"></div>
+</div>
+</div>
+<div class="bg-surface-container-low p-md rounded-xl border border-outline-variant/20">
+<p class="font-label-md text-on-surface-variant">Phase 2</p>
+<div class="flex items-baseline gap-base mt-xs">
+<span class="text-headline-md font-bold text-primary">08</span>
+<span class="text-caption text-on-surface-variant">Stable</span>
+</div>
+<div class="w-full bg-outline-variant/30 h-1 rounded-full mt-md overflow-hidden">
+<div class="bg-secondary h-full" style="width: 15%"></div>
+</div>
+</div>
+<div class="bg-surface-container-low p-md rounded-xl border border-outline-variant/20">
+<p class="font-label-md text-on-surface-variant">Phase 3</p>
+<div class="flex items-baseline gap-base mt-xs">
+<span class="text-headline-md font-bold text-primary">15</span>
+<span class="text-caption text-error font-bold">Priority</span>
+</div>
+<div class="w-full bg-outline-variant/30 h-1 rounded-full mt-md overflow-hidden">
+<div class="bg-error h-full" style="width: 70%"></div>
+</div>
+</div>
+<div class="bg-surface-container-low p-md rounded-xl border border-outline-variant/20">
+<p class="font-label-md text-on-surface-variant">Phase 4</p>
+<div class="flex items-baseline gap-base mt-xs">
+<span class="text-headline-md font-bold text-primary">07</span>
+<span class="text-caption text-secondary">Finalizing</span>
+</div>
+<div class="w-full bg-outline-variant/30 h-1 rounded-full mt-md overflow-hidden">
+<div class="bg-secondary h-full" style="width: 90%"></div>
+</div>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead>
+<tr class="border-b border-outline-variant/30 text-on-surface-variant font-label-md">
+<th class="py-md pr-md">Trial Identifier</th>
+<th class="py-md">Principal Investigator</th>
+<th class="py-md">Phase</th>
+<th class="py-md">Enrollment Status</th>
+<th class="py-md pl-md">Risk Level</th>
+</tr>
+</thead>
+<tbody class="text-body-md">
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors">
+<td class="py-md pr-md font-bold text-primary">KSA-ONCO-2024-01</td>
+<td class="py-md">Dr. Abdullah Al-Faisal</td>
+<td class="py-md"><span class="px-sm py-xs bg-primary-fixed text-on-primary-fixed rounded-lg text-caption font-bold">Phase 3</span></td>
+<td class="py-md">
+<div class="flex items-center gap-base">
+<div class="w-24 bg-outline-variant/30 h-1.5 rounded-full">
+<div class="bg-secondary h-full rounded-full" style="width: 85%"></div>
+</div>
+<span class="text-caption">85%</span>
+</div>
+</td>
+<td class="py-md pl-md"><span class="text-secondary font-bold">Low</span></td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors">
+<td class="py-md pr-md font-bold text-primary">KSA-CARDIO-2023-14</td>
+<td class="py-md">Dr. Sarah Mansour</td>
+<td class="py-md"><span class="px-sm py-xs bg-secondary-fixed text-on-secondary-fixed-variant rounded-lg text-caption font-bold">Phase 2</span></td>
+<td class="py-md">
+<div class="flex items-center gap-base">
+<div class="w-24 bg-outline-variant/30 h-1.5 rounded-full">
+<div class="bg-secondary h-full rounded-full" style="width: 42%"></div>
+</div>
+<span class="text-caption">42%</span>
+</div>
+</td>
+<td class="py-md pl-md"><span class="text-tertiary-container font-bold text-on-tertiary-container">Medium</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- 2. Research Grant Status & Funding (Tall) -->
+<section class="col-span-12 lg:col-span-4 glass-card rounded-xl p-lg flex flex-col gap-lg">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 bg-tertiary-fixed flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-on-tertiary-fixed">payments</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-primary">Funding Allocation</h2>
+</div>
+<div class="flex flex-col items-center justify-center py-lg relative">
+<div class="w-48 h-48 rounded-full border-[12px] border-surface-container-high flex flex-col items-center justify-center">
+<p class="font-label-md text-on-surface-variant">Annual Budget</p>
+<span class="text-title-lg font-bold text-primary">SAR 85.2M</span>
+<span class="text-caption text-secondary mt-xs">74% Allocated</span>
+</div>
+<div class="absolute inset-0 flex items-center justify-center">
+<svg class="w-48 h-48 transform -rotate-90">
+<circle class="text-secondary" cx="96" cy="96" fill="transparent" r="84" stroke="currentColor" stroke-dasharray="527" stroke-dashoffset="137" stroke-width="12"></circle>
+</svg>
+</div>
+</div>
+<div class="flex flex-col gap-md">
+<div class="flex justify-between items-center p-md bg-surface-container-low rounded-xl">
+<div>
+<p class="font-label-md font-bold text-primary">Genomic Research</p>
+<p class="text-caption text-on-surface-variant">SAR 24.5M Allocated</p>
+</div>
+<span class="text-secondary font-bold">28.7%</span>
+</div>
+<div class="flex justify-between items-center p-md bg-surface-container-low rounded-xl">
+<div>
+<p class="font-label-md font-bold text-primary">Digital Health AI</p>
+<p class="text-caption text-on-surface-variant">SAR 18.2M Allocated</p>
+</div>
+<span class="text-secondary font-bold">21.3%</span>
+</div>
+<div class="flex justify-between items-center p-md bg-surface-container-low rounded-xl">
+<div>
+<p class="font-label-md font-bold text-primary">Biotechnology</p>
+<p class="text-caption text-on-surface-variant">SAR 20.5M Allocated</p>
+</div>
+<span class="text-secondary font-bold">24.0%</span>
+</div>
+</div>
+<button class="w-full mt-auto py-sm border-2 border-secondary text-secondary font-bold rounded-xl hover:bg-secondary/5 transition-all">
+                    Review Grant Applications
+                </button>
+</section>
+<!-- 3. Global Collaboration Map (Wide-Height) -->
+<section class="col-span-12 lg:col-span-7 glass-card rounded-xl p-lg flex flex-col gap-lg min-h-[400px]">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 bg-secondary-container flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-on-secondary-container">public</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-primary">Global Collaboration Network</h2>
+</div>
+<div class="flex gap-sm">
+<span class="flex items-center gap-xs text-caption text-on-surface-variant"><span class="w-2 h-2 rounded-full bg-secondary"></span> Active Nodes</span>
+<span class="flex items-center gap-xs text-caption text-on-surface-variant"><span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span> Pending MoUs</span>
+</div>
+</div>
+<div class="flex-grow relative rounded-xl overflow-hidden bg-surface-container-high group">
+<img alt="Global Research Map" class="w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 transition-all duration-700" data-alt="A highly detailed global map display showing interconnected digital nodes and data streams between Saudi Arabia and global medical research hubs like Boston, London, and Tokyo. The visual style is enterprise-modern with a navy and teal color scheme, featuring holographic UI elements and glowing lines of communication. The atmosphere is high-tech and collaborative, representing international medical excellence and global partnership." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjp9sG96lajLujPaNXJa-plE-I20lH1yzOKDOZP-WoPvXv6vuwtwT-Xe5drNqQRrTvb_hT0Pluvfx-eqr00gm9UWntUMcNruqApowL3e4xvFMVRHPhZUu2M-qWKpofz9Mg0bZ7BYhULySZidfCNRI4L-g__q52oVesiuAvboSO_W8J-dahekD2gTowNG1ZRHZg5nrOguqq3u-ogU5ZLgZVPQ0nal4gzZ3G0zjk9ppv_eP9xVx8qIHMLCNW9vdYckAVoZE0_7Xlc5nX"/>
+<!-- Pulsing Hotspots -->
+<div class="absolute top-[45%] right-[28%] w-4 h-4 bg-secondary rounded-full active-dot"></div>
+<div class="absolute top-[35%] right-[65%] w-3 h-3 bg-secondary/80 rounded-full active-dot" style="animation-delay: 0.5s"></div>
+<div class="absolute top-[28%] right-[75%] w-3 h-3 bg-tertiary-fixed-dim rounded-full active-dot" style="animation-delay: 1.2s"></div>
+<div class="absolute top-[55%] right-[15%] w-3 h-3 bg-secondary/80 rounded-full active-dot" style="animation-delay: 0.8s"></div>
+<div class="absolute bottom-md right-md bg-white/90 backdrop-blur p-md rounded-lg border border-outline-variant/30">
+<p class="font-label-md font-bold text-primary">Top Partner: Mayo Clinic</p>
+<p class="text-caption text-on-surface-variant">4 Active Joint Projects</p>
+</div>
+</div>
+</section>
+<!-- 4. Intellectual Property (IP) & Patent Registry -->
+<section class="col-span-12 lg:col-span-5 glass-card rounded-xl p-lg flex flex-col gap-lg">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 bg-primary-container flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-white">verified_user</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-primary">Intellectual Property</h2>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant">more_vert</button>
+</div>
+<div class="flex flex-col gap-base">
+<div class="group p-md border border-outline-variant/30 rounded-xl hover:border-secondary transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-sm">
+<h3 class="font-title-lg text-primary font-bold">Nano-Targeted Insulin Delivery</h3>
+<span class="px-sm py-xs bg-secondary/10 text-secondary rounded-full text-caption font-bold">Granted</span>
+</div>
+<p class="text-body-md text-on-surface-variant line-clamp-2">A novel method for oral insulin delivery using gold nanostars for localized release in the intestinal lining.</p>
+<div class="flex items-center gap-md mt-md text-caption text-on-surface-variant">
+<span class="flex items-center gap-xs"><span class="material-symbols-outlined text-sm">event</span> Mar 2024</span>
+<span class="flex items-center gap-xs"><span class="material-symbols-outlined text-sm">history</span> Pending Commercialization</span>
+</div>
+</div>
+<div class="group p-md border border-outline-variant/30 rounded-xl hover:border-secondary transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-sm">
+<h3 class="font-title-lg text-primary font-bold">AI Retinal Diagnostic Tool</h3>
+<span class="px-sm py-xs bg-tertiary-fixed text-on-tertiary-fixed rounded-full text-caption font-bold">In Filing</span>
+</div>
+<p class="text-body-md text-on-surface-variant line-clamp-2">Deep learning architecture for early detection of diabetic retinopathy using standard smartphone imaging.</p>
+<div class="flex items-center gap-md mt-md text-caption text-on-surface-variant">
+<span class="flex items-center gap-xs"><span class="material-symbols-outlined text-sm">event</span> Jan 2024</span>
+<span class="flex items-center gap-xs"><span class="material-symbols-outlined text-sm">history</span> Patent Pending</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-md mt-auto pt-md border-t border-outline-variant/10">
+<div class="text-center">
+<p class="text-headline-md font-bold text-primary">124</p>
+<p class="text-caption text-on-surface-variant">Total Patents</p>
+</div>
+<div class="text-center">
+<p class="text-headline-md font-bold text-secondary">32</p>
+<p class="text-caption text-on-surface-variant">Licensing Active</p>
+</div>
+</div>
+</section>
+<!-- 5. Publication Pipeline & Peer Review -->
+<section class="col-span-12 glass-card rounded-xl p-lg flex flex-col gap-lg">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 bg-secondary flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-white">menu_book</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-primary">Publication Pipeline</h2>
+</div>
+<div class="flex gap-base">
+<div class="flex -space-x-2 space-x-reverse">
+<img alt="Researcher" class="w-8 h-8 rounded-full border-2 border-white" data-alt="Avatar of medical researcher" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYra6sZpCN5JGfE69bsJeN4Ng1UW1ITXjMXv6ra_9uSXjEZRWLN0R8kGQ-Pg2hTdCO-gmKs69XTmsFEj5LRKk4nqjeXyjhWMvAm2OY8TmDCek-RBVH0hxlhhU6wSoDU7rnyxJFUGc2074ekI-DKxv2PTgB7st60Nv9OXKC24WfRPbcyt3aeuYVWdmyihYJtbnXk8JQtUuDBeTYytGOc0F3MwRxsUoJi2T8AMWXi_qPw9adwTCyP8xkwuGFBHafjGfec27wpPS83PaY"/>
+<img alt="Researcher" class="w-8 h-8 rounded-full border-2 border-white" data-alt="Avatar of medical researcher" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPmn01KHsJlQEh-tMEQtEaQ5xrCSQ-SaU5zpIGu13kSImR65Nz2iQF4hk9dBn8y-uq4OP6hRmmNZ8SSrZlknakJNmUh26XFDIUGHQlBqwYgPzutquLt0zHEzDlKpFen_9ubYYMwl1cHWlElmgXvuLjGLvEr3WhA3CNP8ogUddkuqDcYJzazRwxuTRtpUewaZ5yEUBHT9Wi_O_GIj6Ky71Re86invwYc96rUUx7Q5Aenj3Z5QRvg0Z3YiLQ8-yopCp7XyokiY9Jwoz2"/>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border-2 border-white flex items-center justify-center text-caption font-bold">+18</div>
+</div>
+<button class="text-secondary font-bold text-body-md pr-md">Manage Contributors</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+<!-- Manuscript Prep -->
+<div class="flex flex-col gap-md">
+<div class="flex items-center justify-between border-b border-outline-variant/30 pb-sm">
+<h4 class="font-label-md font-bold text-on-surface-variant uppercase tracking-wider">Drafting (12)</h4>
+<span class="material-symbols-outlined text-on-surface-variant">edit</span>
+</div>
+<div class="p-md bg-surface-container rounded-xl">
+<p class="font-body-md font-bold text-primary mb-xs">Arabian Genomic Diversity Study</p>
+<p class="text-caption text-on-surface-variant">Lead: Dr. K. Hashim • 85% Complete</p>
+</div>
+<div class="p-md bg-surface-container rounded-xl">
+<p class="font-body-md font-bold text-primary mb-xs">Post-COVID Cardiac Effects in ME</p>
+<p class="text-caption text-on-surface-variant">Lead: Dr. L. Zahrani • 40% Complete</p>
+</div>
+</div>
+<!-- Peer Review -->
+<div class="flex flex-col gap-md">
+<div class="flex items-center justify-between border-b border-outline-variant/30 pb-sm">
+<h4 class="font-label-md font-bold text-on-surface-variant uppercase tracking-wider">Peer Review (05)</h4>
+<span class="material-symbols-outlined text-secondary">rate_review</span>
+</div>
+<div class="p-md bg-white border border-secondary shadow-sm rounded-xl">
+<p class="font-body-md font-bold text-primary mb-xs">The Lancet: Diabetes Management</p>
+<p class="text-caption text-secondary font-bold">Status: Revise &amp; Resubmit</p>
+<div class="mt-md flex gap-xs">
+<span class="px-xs py-[2px] bg-outline-variant/20 rounded text-[10px]">Tier 1</span>
+<span class="px-xs py-[2px] bg-outline-variant/20 rounded text-[10px]">International</span>
+</div>
+</div>
+<div class="p-md bg-surface-container rounded-xl">
+<p class="font-body-md font-bold text-primary mb-xs">NEJM: Sickle Cell Gene Therapy</p>
+<p class="text-caption text-on-surface-variant">Status: Under Review</p>
+</div>
+</div>
+<!-- Published -->
+<div class="flex flex-col gap-md">
+<div class="flex items-center justify-between border-b border-outline-variant/30 pb-sm">
+<h4 class="font-label-md font-bold text-on-surface-variant uppercase tracking-wider">Recently Published (08)</h4>
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+</div>
+<div class="p-md bg-surface-container-high rounded-xl">
+<p class="font-body-md font-bold text-primary mb-xs">Nature Medicine: Saudi Epigenome</p>
+<p class="text-caption text-on-surface-variant">Published: May 12, 2024</p>
+<div class="mt-md flex justify-between items-center">
+<span class="text-secondary text-caption font-bold">12.8 Impact Factor</span>
+<span class="material-symbols-outlined text-sm">open_in_new</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-md px-margin-desktop flex flex-row-reverse justify-between items-center bg-surface-container-high border-t border-outline-variant/30">
+<div class="flex items-center gap-md">
+<span class="font-bold text-primary font-body-md">Al-Command Center</span>
+<span class="text-caption text-on-surface-variant">© 2024 Command Center. All Rights Reserved. Ministry of Health Standards Compliant.</span>
+</div>
+<div class="flex gap-lg">
+<a class="text-on-surface-variant text-caption hover:text-secondary transition-colors" href="#">Terms of Service</a>
+<a class="text-on-surface-variant text-caption hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant text-caption hover:text-secondary transition-colors" href="#">Regional Compliance</a>
+</div>
+</footer>
+<!-- FAB for Innovation -->
+<div class="fixed bottom-margin-desktop left-margin-desktop z-50">
+<button class="w-16 h-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">lightbulb</span>
+</button>
+</div>
+<script>
+        // Micro-interaction for hover effects on glass cards
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+                card.style.transition = 'all 0.3s ease';
+                card.style.boxShadow = '0px 20px 40px rgba(0, 43, 73, 0.1)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+                card.style.boxShadow = '0px 10px 30px rgba(0, 43, 73, 0.05)';
+            });
+        });
+    </script>
+</body></html>

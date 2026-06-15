@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | Population Health &amp; Strategy</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .chart-gradient {
+            background: linear-gradient(180deg, rgba(0, 105, 112, 0.1) 0%, rgba(0, 105, 112, 0) 100%);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#7df4ff",
+                        "surface-container-high": "#e7e8e9",
+                        "secondary-container": "#7af1fc",
+                        "inverse-surface": "#2e3132",
+                        "tertiary-fixed": "#ffdf9d",
+                        "outline": "#73777e",
+                        "on-primary-container": "#7293b6",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "on-primary": "#ffffff",
+                        "primary-fixed-dim": "#a8caef",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "on-surface-variant": "#42474d",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "on-secondary-container": "#006e75",
+                        "surface-variant": "#e1e3e4",
+                        "surface-container-low": "#f3f4f5",
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#002b49",
+                        "on-primary-fixed-variant": "#274969",
+                        "surface-tint": "#406182",
+                        "on-secondary-fixed": "#002022",
+                        "background": "#f8f9fa",
+                        "primary": "#001629",
+                        "inverse-on-surface": "#f0f1f2",
+                        "surface-container": "#edeeef",
+                        "surface": "#f8f9fa",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#cfe5ff",
+                        "on-primary-fixed": "#001d34",
+                        "secondary": "#006970",
+                        "on-surface": "#191c1d",
+                        "outline-variant": "#c3c7ce",
+                        "tertiary-container": "#362700",
+                        "inverse-primary": "#a8caef",
+                        "on-tertiary-fixed": "#251a00",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "tertiary": "#1d1300",
+                        "surface-dim": "#d9dadb",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-background": "#191c1d",
+                        "surface-bright": "#f8f9fa",
+                        "on-tertiary-container": "#ac8c44"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "md": "24px",
+                        "margin-desktop": "48px",
+                        "margin-mobile": "16px",
+                        "xs": "4px",
+                        "gutter": "24px",
+                        "xl": "64px",
+                        "sm": "12px",
+                        "lg": "40px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["IBM Plex Sans"],
+                        "caption": ["IBM Plex Sans"],
+                        "headline-lg": ["IBM Plex Sans"],
+                        "title-lg": ["IBM Plex Sans"],
+                        "label-md": ["IBM Plex Sans"],
+                        "display-lg": ["IBM Plex Sans"],
+                        "body-md": ["IBM Plex Sans"],
+                        "body-lg": ["IBM Plex Sans"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface overflow-x-hidden">
+<!-- TopNavBar -->
+<header class="bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm flex flex-row-reverse justify-between items-center w-full px-margin-desktop h-20 z-50 fixed top-0">
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md font-bold text-primary">SaudiHealth Premium</span>
+<nav class="hidden md:flex flex-row-reverse gap-lg mr-xl">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all duration-300" href="#">Directory</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all duration-300" href="#">Requests</a>
+<a class="font-label-md text-label-md text-secondary border-b-2 border-secondary pb-1" href="#">Governance</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all duration-300" href="#">Compliance</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative w-64">
+<input class="w-full bg-surface-container-low border-none rounded-lg px-md py-2 text-body-md focus:ring-2 focus:ring-secondary/50" placeholder="Search strategy data..." type="text"/>
+<span class="material-symbols-outlined absolute left-2 top-2 text-on-surface-variant">search</span>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-all"><span class="material-symbols-outlined">notifications</span></button>
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-all"><span class="material-symbols-outlined">settings</span></button>
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-all"><span class="material-symbols-outlined">help</span></button>
+</div>
+<img alt="User profile" class="w-10 h-10 rounded-full border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2gosUJv0wTBNoDFfjEYqEIaKeFyyuEC33GFRljnTCmYhACfweCCWQmIsabHEVJU_by2sSa9G9YcafVKujCOHyuCWt1RP9AeSej0bbu33ep7MQo_Qsy1HMoq0BxG5KwealblDAi7cBFSETLwdWxJS_MhGMfF4YZ07yyIHj59Lb9HEyoxZgDdZheKrNG2I_kG7-YFuWc8Uf4ya1DMSrKfFlW8S8BX0T0xin3LphjYVywxB48MP4QghTrRs9DYRFAnB7v6Dwn89ljqHq"/>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed right-0 top-0 h-screen w-72 flex flex-col z-40 py-lg px-md bg-surface-container-lowest border-l border-outline-variant/30 shadow-md pt-24">
+<div class="mb-xl px-md">
+<h2 class="font-title-lg text-title-lg font-bold text-primary">IAM Console</h2>
+<p class="font-label-md text-label-md text-on-surface-variant">Enterprise Healthcare</p>
+</div>
+<nav class="flex flex-col gap-sm flex-grow">
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors p-md rounded-lg" href="#">
+<span class="material-symbols-outlined">badge</span>
+<span class="font-label-md text-label-md">Identity Center</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md bg-secondary-container text-on-secondary-container rounded-lg p-md" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-label-md text-label-md">Population Insights</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors p-md rounded-lg" href="#">
+<span class="material-symbols-outlined">approval_delegation</span>
+<span class="font-label-md text-label-md">Access Workflows</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors p-md rounded-lg" href="#">
+<span class="material-symbols-outlined">security</span>
+<span class="font-label-md text-label-md">RBAC Configuration</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors p-md rounded-lg" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="font-label-md text-label-md">Audit Logs</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors p-md rounded-lg" href="#">
+<span class="material-symbols-outlined">corporate_fare</span>
+<span class="font-label-md text-label-md">Departmental Settings</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-outline-variant/20 pt-md">
+<button class="w-full bg-primary text-on-primary py-3 rounded-xl font-label-md text-label-md flex items-center justify-center gap-2 mb-md">
+<span class="material-symbols-outlined">add</span>
+                New Access Request
+            </button>
+<div class="flex flex-col gap-xs">
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant p-2 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-error p-2 hover:bg-error-container/20 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="mr-72 mt-20 p-margin-desktop min-h-screen">
+<!-- Dashboard Header -->
+<div class="flex justify-between items-end mb-lg">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary mb-2">لوحة الصحة السكانية والاستراتيجية</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Strategic health insights and predictive modeling for the Kingdom of Saudi Arabia.</p>
+</div>
+<div class="flex gap-sm">
+<div class="bg-surface-container-highest px-md py-2 rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">calendar_today</span>
+<span class="font-label-md text-label-md">Fiscal Year 2024</span>
+</div>
+<button class="bg-secondary text-on-secondary px-lg py-2 rounded-lg font-label-md text-label-md flex items-center gap-2 shadow-lg hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">download</span>
+                    Export Strategic Report
+                </button>
+</div>
+</div>
+<!-- Metric Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-lg">
+<div class="glass-card p-md rounded-xl flex flex-col">
+<span class="font-label-md text-label-md text-on-surface-variant mb-2">National Health Index</span>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-display-lg text-primary">84.2</span>
+<span class="text-secondary font-label-md text-label-md flex items-center">+3.1% ↑</span>
+</div>
+<div class="mt-auto h-1 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-4/5"></div>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col">
+<span class="font-label-md text-label-md text-on-surface-variant mb-2">Screening Coverage</span>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-display-lg text-primary">68%</span>
+<span class="text-tertiary-fixed-dim font-label-md text-label-md flex items-center">Target: 75%</span>
+</div>
+<div class="mt-auto h-1 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim w-2/3"></div>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col">
+<span class="font-label-md text-label-md text-on-surface-variant mb-2">Chronic Prevalence</span>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-display-lg text-primary">12.4%</span>
+<span class="text-error font-label-md text-label-md flex items-center">+0.5% ↑</span>
+</div>
+<div class="mt-auto h-1 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-error w-1/4"></div>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col">
+<span class="font-label-md text-label-md text-on-surface-variant mb-2">Predictive Risk Factor</span>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-display-lg text-primary">Low</span>
+<span class="text-secondary font-label-md text-label-md">Stable</span>
+</div>
+<div class="mt-auto h-1 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-1/3"></div>
+</div>
+</div>
+</div>
+<!-- Main Dashboard Section -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Map & Geographic Insights (7 cols) -->
+<div class="col-span-12 lg:col-span-8 glass-card p-lg rounded-2xl relative overflow-hidden">
+<div class="flex justify-between items-center mb-md">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">National Health Outcome Heatmap</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Regional distribution of overall wellness indices across the Kingdom.</p>
+</div>
+<div class="flex gap-2">
+<select class="bg-surface-container-low border-none rounded-lg text-label-md px-md py-1">
+<option>All Regions</option>
+<option>Central Region</option>
+<option>Western Region</option>
+</select>
+</div>
+</div>
+<div class="h-[500px] bg-surface-container-low rounded-xl relative overflow-hidden group">
+<img alt="Saudi Heatmap" class="w-full h-full object-cover mix-blend-multiply opacity-80" data-alt="A highly detailed topographical 3D relief map of Saudi Arabia rendered in a minimalist professional aesthetic. The map features a soft glowing heat map overlay with shades of teal and sand, representing health outcome density. The lighting is sophisticated, with ambient occlusion and soft shadows that highlight the geographical texture. The background is a clean, neutral architectural grey, maintaining a high-premium medical enterprise atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaYeIPaqQ4GVfCZm7m78tfRMkL3in3pAMr9ABN8uHTr-y7TTmVYR2w-wjj9_zggY0rUzsFz6qpvzB76ipII1IOEPDSIACoPal-5aulJ46m6k5JyQocxqRoOCb8YdSZ_7rfNLFDiKzBWnGtk_dKvjOAZp4_zGkezWPEiwpys9paf3FixB7VoEowk9sip2XBg7n5ozTGI7UuGwTsxD47A9CXI1bRsx-9MRxH9OGomfXp9Y3Km12R94Bl1oZveNJ7kDHWJAdyOAE9DyXh"/>
+<!-- Map Markers / Data Overlays -->
+<div class="absolute top-1/4 right-1/3 bg-white/90 backdrop-blur-md p-md rounded-lg shadow-xl border border-secondary/20 animate-pulse">
+<p class="font-label-md text-label-md text-primary font-bold">Riyadh Region</p>
+<p class="font-caption text-caption text-secondary">Index: 88.4 (Optimal)</p>
+</div>
+<div class="absolute bottom-1/3 right-1/4 bg-white/90 backdrop-blur-md p-md rounded-lg shadow-xl border border-tertiary/20">
+<p class="font-label-md text-label-md text-primary font-bold">Asir Region</p>
+<p class="font-caption text-caption text-tertiary-container">Index: 76.1 (Stable)</p>
+</div>
+<!-- Legend -->
+<div class="absolute bottom-md left-md bg-white/80 backdrop-blur px-md py-2 rounded-lg border border-outline-variant/30">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+<span class="font-caption text-caption">Optimal Outcomes</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-tertiary-fixed-dim"></span>
+<span class="font-caption text-caption">Monitor Required</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-error"></span>
+<span class="font-caption text-caption">Critical Intervention</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Chronic Condition prevalence (4 cols) -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-gutter">
+<!-- Diabetes Tracker -->
+<div class="glass-card p-md rounded-2xl flex-grow">
+<div class="flex justify-between items-start mb-md">
+<div>
+<h4 class="font-title-lg text-title-lg text-primary">Diabetes Prevalence</h4>
+<p class="font-caption text-caption text-on-surface-variant">Type 2 - Adult Population</p>
+</div>
+<span class="material-symbols-outlined text-secondary">trending_up</span>
+</div>
+<div class="relative h-24 mb-md">
+<!-- Simple SVG Wave Chart Placeholder -->
+<div class="absolute inset-0 chart-gradient rounded-lg"></div>
+<svg class="w-full h-full" viewbox="0 0 400 100">
+<path d="M0 80 Q 50 20, 100 60 T 200 40 T 300 70 T 400 30" fill="none" stroke="#006970" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</div>
+<div class="flex justify-between items-center text-label-md">
+<span class="text-on-surface-variant">Current Rate</span>
+<span class="text-primary font-bold">17.8%</span>
+</div>
+<div class="flex justify-between items-center text-label-md mt-1">
+<span class="text-on-surface-variant">Annual Change</span>
+<span class="text-error">+1.2%</span>
+</div>
+</div>
+<!-- Hypertension Tracker -->
+<div class="glass-card p-md rounded-2xl flex-grow">
+<div class="flex justify-between items-start mb-md">
+<div>
+<h4 class="font-title-lg text-title-lg text-primary">Hypertension Track</h4>
+<p class="font-caption text-caption text-on-surface-variant">Controlled vs Uncontrolled</p>
+</div>
+<span class="material-symbols-outlined text-secondary">monitor_heart</span>
+</div>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between text-caption mb-1">
+<span>Controlled Cases</span>
+<span class="font-bold">62%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full">
+<div class="bg-secondary h-full rounded-full w-[62%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-caption mb-1">
+<span>Under Treatment</span>
+<span class="font-bold">84%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full">
+<div class="bg-primary h-full rounded-full w-[84%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Screening Coverage & Predictive Trends (Bottom Row) -->
+<div class="col-span-12 lg:col-span-6 glass-card p-lg rounded-2xl">
+<h3 class="font-headline-md text-headline-md text-primary mb-md">National Screening Program Coverage</h3>
+<div class="grid grid-cols-2 gap-md">
+<div class="p-md bg-surface-container-low rounded-xl border border-outline-variant/20">
+<p class="font-label-md text-label-md text-on-surface-variant mb-2">Breast Cancer (MOH)</p>
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md text-primary">58.4%</span>
+<span class="text-secondary font-bold text-caption">+4% YoY</span>
+</div>
+<p class="text-caption mt-2 text-on-surface-variant">Reach: 1.2M citizens</p>
+</div>
+<div class="p-md bg-surface-container-low rounded-xl border border-outline-variant/20">
+<p class="font-label-md text-label-md text-on-surface-variant mb-2">Colorectal Screening</p>
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md text-primary">42.1%</span>
+<span class="text-tertiary-fixed-dim font-bold text-caption">+12% YoY</span>
+</div>
+<p class="text-caption mt-2 text-on-surface-variant">Reach: 850k citizens</p>
+</div>
+<div class="p-md bg-surface-container-low rounded-xl border border-outline-variant/20">
+<p class="font-label-md text-label-md text-on-surface-variant mb-2">Pre-Marital Screening</p>
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md text-primary">99.2%</span>
+<span class="text-secondary font-bold text-caption">Stable</span>
+</div>
+<p class="text-caption mt-2 text-on-surface-variant">Compliance: Mandated</p>
+</div>
+<div class="p-md bg-surface-container-low rounded-xl border border-outline-variant/20">
+<p class="font-label-md text-label-md text-on-surface-variant mb-2">Pediatric Vaccinations</p>
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md text-primary">96.8%</span>
+<span class="text-secondary font-bold text-caption">+0.2% YoY</span>
+</div>
+<p class="text-caption mt-2 text-on-surface-variant">World Class Tier</p>
+</div>
+</div>
+</div>
+<div class="col-span-12 lg:col-span-6 glass-card p-lg rounded-2xl relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
+
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-2">Next 5-Year Predictive Forecast</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-lg">AI-driven modeling of Kingdom health trajectory based on current Vision 2030 initiatives.</p>
+<div class="space-y-6">
+<div class="flex items-center gap-lg">
+<div class="w-24 text-label-md text-on-surface-variant">2024</div>
+<div class="flex-grow bg-surface-container-high h-6 rounded-lg relative">
+<div class="absolute left-0 h-full bg-primary rounded-lg w-[60%] flex items-center justify-end px-2">
+<span class="text-white text-[10px]">CURRENT</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<div class="w-24 text-label-md text-on-surface-variant">2026</div>
+<div class="flex-grow bg-surface-container-high h-6 rounded-lg relative">
+<div class="absolute left-0 h-full bg-secondary/80 rounded-lg w-[75%] border-r-2 border-dashed border-white"></div>
+</div>
+<div class="w-16 text-label-md font-bold text-secondary">+15%</div>
+</div>
+<div class="flex items-center gap-lg">
+<div class="w-24 text-label-md text-on-surface-variant">2028</div>
+<div class="flex-grow bg-surface-container-high h-6 rounded-lg relative">
+<div class="absolute left-0 h-full bg-secondary/60 rounded-lg w-[88%] border-r-2 border-dashed border-white"></div>
+</div>
+<div class="w-16 text-label-md font-bold text-secondary">+28%</div>
+</div>
+<div class="flex items-center gap-lg">
+<div class="w-24 text-label-md text-on-surface-variant">2029 (Target)</div>
+<div class="flex-grow bg-surface-container-high h-6 rounded-lg relative">
+<div class="absolute left-0 h-full bg-secondary rounded-lg w-[95%] border-r-2 border-dashed border-white"></div>
+</div>
+<div class="w-16 text-label-md font-bold text-secondary">Target</div>
+</div>
+</div>
+<div class="mt-lg p-md border-r-4 border-secondary bg-secondary/5 rounded-lg">
+<p class="font-body-md text-body-md text-primary">
+<span class="font-bold">Insight:</span> Predictive models suggest a 12% reduction in secondary complications from diabetes if current screening momentum is sustained through 2026.
+                    </p>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual FAB - Restricted to Top Level -->
+<button class="fixed bottom-margin-desktop left-margin-desktop bg-primary text-on-primary w-14 h-14 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform active:scale-95 z-50">
+<span class="material-symbols-outlined">add_chart</span>
+</button>
+<script>
+        // Simple micro-interactions
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+                card.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0px)';
+            });
+        });
+    </script>
+</body></html>

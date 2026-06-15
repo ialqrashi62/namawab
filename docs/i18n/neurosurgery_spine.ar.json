@@ -1,0 +1,15 @@
+{
+  "neurosurgery_spine": {
+    "dashboard": {
+      "title": "لوحة جراحة المخ والأعصاب والعمود الفقري",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

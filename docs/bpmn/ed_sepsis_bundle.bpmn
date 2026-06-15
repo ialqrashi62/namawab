@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Defs_ed_sepsis" targetNamespace="http://nama.local/bpmn">
+  <bpmn:process id="Proc_Sepsis1h" isExecutable="true">
+    <bpmn:startEvent id="S" name="qSOFA ≥ 2 OR NEWS2 ≥ 5"/>
+    <bpmn:task id="T_Confirm" name="Clinician confirms suspicion of sepsis"/>
+    <bpmn:task id="T_StartTimer" name="Start 60-minute bundle timer"/>
+    <bpmn:parallelGateway id="GW_Split"/>
+    <bpmn:task id="T_Cultures" name="Blood cultures × 2 (pre-antibiotic)"/>
+    <bpmn:task id="T_Lactate" name="Lactate level"/>
+    <bpmn:task id="T_Fluids" name="IV crystalloid 30 ml/kg if hypoperfusion"/>
+    <bpmn:task id="T_Abx" name="Empirical broad-spectrum antibiotic"/>
+    <bpmn:task id="T_Vaso" name="Vasopressors if MAP &lt; 65 after fluids"/>
+    <bpmn:parallelGateway id="GW_Join"/>
+    <bpmn:task id="T_Reassess" name="Re-assess at 60 min; document bundle compliance"/>
+    <bpmn:endEvent id="E" name="Bundle complete (or timeout escalated)"/>
+
+    <bpmn:sequenceFlow sourceRef="S" targetRef="T_Confirm"/>
+    <bpmn:sequenceFlow sourceRef="T_Confirm" targetRef="T_StartTimer"/>
+    <bpmn:sequenceFlow sourceRef="T_StartTimer" targetRef="GW_Split"/>
+    <bpmn:sequenceFlow sourceRef="GW_Split" targetRef="T_Cultures"/>
+    <bpmn:sequenceFlow sourceRef="GW_Split" targetRef="T_Lactate"/>
+    <bpmn:sequenceFlow sourceRef="GW_Split" targetRef="T_Fluids"/>
+    <bpmn:sequenceFlow sourceRef="GW_Split" targetRef="T_Abx"/>
+    <bpmn:sequenceFlow sourceRef="GW_Split" targetRef="T_Vaso"/>
+    <bpmn:sequenceFlow sourceRef="T_Cultures" targetRef="GW_Join"/>
+    <bpmn:sequenceFlow sourceRef="T_Lactate" targetRef="GW_Join"/>
+    <bpmn:sequenceFlow sourceRef="T_Fluids" targetRef="GW_Join"/>
+    <bpmn:sequenceFlow sourceRef="T_Abx" targetRef="GW_Join"/>
+    <bpmn:sequenceFlow sourceRef="T_Vaso" targetRef="GW_Join"/>
+    <bpmn:sequenceFlow sourceRef="GW_Join" targetRef="T_Reassess"/>
+    <bpmn:sequenceFlow sourceRef="T_Reassess" targetRef="E"/>
+  </bpmn:process>
+</bpmn:definitions>

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Toxicology Command Center - Forensic Medicine</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#f8f9fa",
+                    "surface-tint": "#406182",
+                    "inverse-surface": "#2e3132",
+                    "surface-container-low": "#f3f4f5",
+                    "primary-fixed-dim": "#a8caef",
+                    "tertiary-fixed-dim": "#e6c274",
+                    "secondary-fixed": "#7df4ff",
+                    "on-secondary-container": "#006e75",
+                    "tertiary-fixed": "#ffdf9d",
+                    "primary": "#001629",
+                    "outline": "#73777e",
+                    "on-tertiary-fixed-variant": "#5b4300",
+                    "on-surface-variant": "#42474d",
+                    "on-primary-fixed": "#001d34",
+                    "on-background": "#191c1d",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "on-secondary-fixed": "#002022",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-highest": "#e1e3e4",
+                    "primary-fixed": "#cfe5ff",
+                    "primary-container": "#002b49",
+                    "surface-dim": "#d9dadb",
+                    "secondary-container": "#7af1fc",
+                    "on-surface": "#191c1d",
+                    "on-primary-fixed-variant": "#274969",
+                    "on-primary-container": "#7293b6",
+                    "error-container": "#ffdad6",
+                    "on-primary": "#ffffff",
+                    "surface-bright": "#f8f9fa",
+                    "on-tertiary-container": "#ac8c44",
+                    "tertiary-container": "#362700",
+                    "on-error": "#ffffff",
+                    "surface-container-high": "#e7e8e9",
+                    "on-tertiary-fixed": "#251a00",
+                    "background": "#f8f9fa",
+                    "on-secondary": "#ffffff",
+                    "inverse-primary": "#a8caef",
+                    "surface-variant": "#e1e3e4",
+                    "secondary": "#006970",
+                    "inverse-on-surface": "#f0f1f2",
+                    "tertiary": "#1d1300",
+                    "surface-container": "#edeeef",
+                    "on-tertiary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "outline-variant": "#c3c7ce",
+                    "error": "#ba1a1a",
+                    "secondary-fixed-dim": "#5dd8e2"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "24px",
+                    "lg": "40px",
+                    "xl": "64px",
+                    "margin-desktop": "48px",
+                    "base": "8px",
+                    "xs": "4px",
+                    "margin-mobile": "16px",
+                    "sm": "12px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "display-lg": ["IBM Plex Sans"],
+                    "headline-md": ["IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans"],
+                    "title-lg": ["IBM Plex Sans"],
+                    "body-lg": ["IBM Plex Sans"],
+                    "body-md": ["IBM Plex Sans"],
+                    "label-md": ["IBM Plex Sans"],
+                    "caption": ["IBM Plex Sans"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(227, 209, 180, 0.3);
+        box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+      }
+      body {
+        font-family: 'IBM Plex Sans', sans-serif;
+        background-color: #f8f9fa;
+      }
+      .morgue-grid-item {
+        transition: all 0.2s ease-in-out;
+      }
+      .morgue-grid-item:hover {
+        transform: translateY(-2px);
+      }
+    </style>
+</head>
+<body class="text-on-background overflow-hidden h-screen flex flex-row">
+<!-- SideNavBar (RTL - Fixed Right) -->
+<aside class="fixed right-0 top-0 h-full w-64 bg-primary text-on-primary shadow-md flex flex-col py-md px-base text-right z-50">
+<div class="mb-xl px-sm">
+<h1 class="font-headline-lg text-headline-lg text-on-primary">مركز الطب الشرعي</h1>
+<p class="font-label-md text-label-md text-on-primary/70">وحدة الاستجابة الكيميائية</p>
+</div>
+<nav class="flex-1 space-y-base">
+<a class="flex items-center gap-sm px-md py-sm bg-secondary-container text-on-secondary-container rounded-lg font-bold transition-transform duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">monitor_heart</span>
+<span class="font-label-md text-label-md">مراقب الحوادث</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-on-primary hover:bg-on-primary/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">vaccines</span>
+<span class="font-label-md text-label-md">مخزون الترياق</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-on-primary hover:bg-on-primary/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">biotech</span>
+<span class="font-label-md text-label-md">التحليل المخبري</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-on-primary hover:bg-on-primary/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">emergency_home</span>
+<span class="font-label-md text-label-md">بروتوكولات الاستجابة</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-on-primary hover:bg-on-primary/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="font-label-md text-label-md">المراكز الإقليمية</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-on-primary/10 pt-md space-y-base">
+<button class="w-full bg-secondary text-on-primary font-bold py-sm px-md rounded-lg shadow-sm hover:opacity-90 active:scale-95 transition-all">
+                بدء استجابة سريعة
+            </button>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-on-primary transition-all" href="#">
+<span class="material-symbols-outlined">security</span>
+<span class="font-label-md text-label-md">حالة النظام</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-on-primary transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">تسجيل الخروج</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 mr-64 flex flex-col h-full overflow-y-auto">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-40 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 px-margin-desktop py-base flex flex-row-reverse justify-between items-center w-full">
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-sm ml-xl">
+<span class="material-symbols-outlined text-secondary">help</span>
+<span class="material-symbols-outlined text-secondary">settings</span>
+<div class="relative">
+<span class="material-symbols-outlined text-secondary">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+</div>
+</div>
+<div class="flex items-center gap-sm border-r border-outline-variant/30 pr-md">
+<div class="text-right">
+<p class="font-label-md text-label-md text-primary">د. أحمد القحطاني</p>
+<p class="font-caption text-caption text-on-surface-variant">كبير الأطباء الشرعيين</p>
+</div>
+<img alt="Chief Toxicologist Profile" class="w-10 h-10 rounded-full border-2 border-primary-fixed" data-alt="A professional portrait of a senior Middle Eastern medical doctor in a clinical setting. He is wearing a white lab coat and has a focused, authoritative yet compassionate expression. The background is a clean, modern medical laboratory with soft blue and white lighting, emphasizing a high-trust healthcare environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDK47yRRme9j-L7e3CC80bMoJEIowSBCBQ3nafkESsL56LSuTSsM92hlmQx3CUV-BLQb2t7WOIxvCuTpv2blFQItKQw4mhv9XpK72V58snB1UfalmOi94qd57lz4teWuAhZ10k6yM6OTI68ShlBSBVbV1DcQEgDQr7rMWhlrr8IkeeLppeX742FoAs8az9dDvgj8BYUJF_7ZZ8omWWQGL10_2mTEoIFTb3qnu8XPvzvTDjILhObMpJAk9gXLuagCLqJhoxmi1hChnb"/>
+</div>
+</div>
+<div class="flex-1 max-w-md mx-xl">
+<div class="relative group">
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pr-10 py-2 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-secondary transition-all" placeholder="البحث عن رقم قضية أو عينة..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<span class="font-display-lg text-display-lg text-primary">Toxicology Command Center</span>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-margin-desktop space-y-lg">
+<!-- Hero & Actions -->
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary mb-xs">نظام التحكم بالمشرحة والطب الشرعي</h2>
+<p class="font-body-md text-on-surface-variant">مراقبة فورية للقدرة الاستيعابية وسير عمل القضايا الجنائية</p>
+</div>
+<div class="flex gap-sm">
+<button class="flex items-center gap-xs px-md py-sm bg-primary text-on-primary rounded-lg font-bold hover:shadow-lg transition-all">
+<span class="material-symbols-outlined">add_circle</span>
+<span>تسجيل قضية جديدة</span>
+</button>
+<button class="flex items-center gap-xs px-md py-sm border border-secondary text-secondary rounded-lg font-bold hover:bg-secondary/5 transition-all">
+<span class="material-symbols-outlined">description</span>
+<span>إصدار تقرير شرعي</span>
+</button>
+<button class="flex items-center gap-xs px-md py-sm border border-secondary text-secondary rounded-lg font-bold hover:bg-secondary/5 transition-all">
+<span class="material-symbols-outlined">gavel</span>
+<span>التواصل القضائي</span>
+</button>
+</div>
+</div>
+<!-- Summary Cards -->
+<div class="grid grid-cols-4 gap-md">
+<div class="glass-card p-md rounded-xl">
+<div class="flex justify-between items-start mb-sm">
+<span class="material-symbols-outlined p-xs bg-primary-fixed rounded-lg text-primary-container">groups</span>
+<span class="text-secondary font-bold">+12%</span>
+</div>
+<p class="font-label-md text-on-surface-variant">إجمالي الحالات</p>
+<h3 class="font-headline-md text-primary">142</h3>
+</div>
+<div class="glass-card p-md rounded-xl">
+<div class="flex justify-between items-start mb-sm">
+<span class="material-symbols-outlined p-xs bg-tertiary-fixed rounded-lg text-tertiary-container">pending_actions</span>
+<span class="text-tertiary font-bold">8 جارية</span>
+</div>
+<p class="font-label-md text-on-surface-variant">تقارير قيد الانتظار</p>
+<h3 class="font-headline-md text-primary">24</h3>
+</div>
+<div class="glass-card p-md rounded-xl">
+<div class="flex justify-between items-start mb-sm">
+<span class="material-symbols-outlined p-xs bg-secondary-container rounded-lg text-on-secondary-container">thermostat</span>
+<span class="text-on-secondary-container font-bold">مستقر</span>
+</div>
+<p class="font-label-md text-on-surface-variant">نسبة إشغال المشرحة</p>
+<h3 class="font-headline-md text-primary">68%</h3>
+</div>
+<div class="glass-card p-md rounded-xl">
+<div class="flex justify-between items-start mb-sm">
+<span class="material-symbols-outlined p-xs bg-error-container rounded-lg text-on-error-container">balance</span>
+<span class="text-error font-bold">أولوية عالية</span>
+</div>
+<p class="font-label-md text-on-surface-variant">تراخيص قضائية مطلوبة</p>
+<h3 class="font-headline-md text-primary">05</h3>
+</div>
+</div>
+<!-- Main Layout Grid -->
+<div class="grid grid-cols-12 gap-lg">
+<!-- Live Case Monitor (Asymmetric Layout) -->
+<div class="col-span-12 lg:col-span-8 space-y-md">
+<div class="flex items-center justify-between">
+<h3 class="font-title-lg text-title-lg text-primary">مراقب القضايا النشط</h3>
+<div class="flex gap-xs">
+<span class="px-sm py-xs bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold">كل القضايا</span>
+<span class="px-sm py-xs bg-surface-container-high text-on-surface-variant rounded-full text-xs font-bold">المنتظرة</span>
+</div>
+</div>
+<div class="glass-card rounded-xl overflow-hidden">
+<table class="w-full text-right">
+<thead class="bg-primary/5 text-on-surface-variant">
+<tr>
+<th class="px-md py-sm font-label-md border-b border-outline-variant/10">معرف القضية</th>
+<th class="px-md py-sm font-label-md border-b border-outline-variant/10">الحالة</th>
+<th class="px-md py-sm font-label-md border-b border-outline-variant/10">الأولوية</th>
+<th class="px-md py-sm font-label-md border-b border-outline-variant/10">آخر تحديث</th>
+<th class="px-md py-sm font-label-md border-b border-outline-variant/10">الإجراء</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container transition-colors">
+<td class="px-md py-md font-body-md text-primary font-bold">CASE-2023-9901</td>
+<td class="px-md py-md">
+<span class="px-sm py-xs bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-lg text-xs">قيد المعالجة</span>
+</td>
+<td class="px-md py-md">
+<span class="flex items-center gap-xs text-error font-bold">
+<span class="material-symbols-outlined text-sm">warning</span> عاجل
+                                        </span>
+</td>
+<td class="px-md py-md font-caption text-on-surface-variant">منذ 15 دقيقة</td>
+<td class="px-md py-md">
+<button class="text-secondary hover:underline">عرض التفاصيل</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors">
+<td class="px-md py-md font-body-md text-primary font-bold">CASE-2023-8824</td>
+<td class="px-md py-md">
+<span class="px-sm py-xs bg-error-container text-on-error-container rounded-lg text-xs">حجز قضائي</span>
+</td>
+<td class="px-md py-md">متوسطة</td>
+<td class="px-md py-md font-caption text-on-surface-variant">منذ ساعتين</td>
+<td class="px-md py-md">
+<button class="text-secondary hover:underline">عرض التفاصيل</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors">
+<td class="px-md py-md font-body-md text-primary font-bold">CASE-2023-7120</td>
+<td class="px-md py-md">
+<span class="px-sm py-xs bg-secondary-container text-on-secondary-container rounded-lg text-xs">تم الإفراج</span>
+</td>
+<td class="px-md py-md">عادية</td>
+<td class="px-md py-md font-caption text-on-surface-variant">منذ 5 ساعات</td>
+<td class="px-md py-md">
+<button class="text-secondary hover:underline">عرض التفاصيل</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Chain of Custody (Movement Tracking) -->
+<div class="space-y-md pt-md">
+<h3 class="font-title-lg text-title-lg text-primary">سلسلة الحيازة الرقمية (Chain of Custody)</h3>
+<div class="relative pr-8 space-y-md">
+<div class="absolute right-[11px] top-0 bottom-0 w-0.5 bg-outline-variant/30"></div>
+<div class="relative flex items-start gap-md">
+<div class="absolute right-[-11px] top-1.5 w-6 h-6 rounded-full bg-primary border-4 border-surface shadow-sm"></div>
+<div class="glass-card p-sm rounded-lg flex-1">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-label-md text-primary">نقل عينة سموم - مختبر الرياض الرئيسي</span>
+<span class="font-caption text-on-surface-variant">14:22 PM</span>
+</div>
+<p class="text-xs text-on-surface-variant">الشاهد الرقمي: م. خالد التويجري | الرمز: #LOG-882</p>
+</div>
+</div>
+<div class="relative flex items-start gap-md">
+<div class="absolute right-[-11px] top-1.5 w-6 h-6 rounded-full bg-secondary border-4 border-surface shadow-sm"></div>
+<div class="glass-card p-sm rounded-lg flex-1">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-label-md text-primary">استلام العينات من المشرحة المركزية</span>
+<span class="font-caption text-on-surface-variant">11:05 AM</span>
+</div>
+<p class="text-xs text-on-surface-variant">المسؤول: د. سارة العمودي | الرمز: #LOG-441</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Morgue Grid Visualization & Environmental -->
+<div class="col-span-12 lg:col-span-4 space-y-lg">
+<div class="glass-card p-md rounded-xl">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-title-lg text-title-lg text-primary">توزيع الوحدات (المشرحة)</h3>
+<div class="flex gap-xs">
+<div class="w-3 h-3 bg-primary rounded-full"></div>
+<span class="text-[10px]">مشغول</span>
+<div class="w-3 h-3 bg-surface-container-highest rounded-full"></div>
+<span class="text-[10px]">متاح</span>
+</div>
+</div>
+<div class="grid grid-cols-4 gap-xs">
+<!-- Morgue Units Rendering -->
+<div class="morgue-grid-item aspect-square bg-primary rounded-md flex items-center justify-center text-on-primary text-[10px]">A1</div>
+<div class="morgue-grid-item aspect-square bg-primary rounded-md flex items-center justify-center text-on-primary text-[10px]">A2</div>
+<div class="morgue-grid-item aspect-square bg-surface-container-highest rounded-md flex items-center justify-center text-on-surface-variant text-[10px]">A3</div>
+<div class="morgue-grid-item aspect-square bg-primary rounded-md flex items-center justify-center text-on-primary text-[10px]">A4</div>
+<div class="morgue-grid-item aspect-square bg-surface-container-highest rounded-md flex items-center justify-center text-on-surface-variant text-[10px]">B1</div>
+<div class="morgue-grid-item aspect-square bg-primary rounded-md flex items-center justify-center text-on-primary text-[10px]">B2</div>
+<div class="morgue-grid-item aspect-square bg-primary rounded-md flex items-center justify-center text-on-primary text-[10px]">B3</div>
+<div class="morgue-grid-item aspect-square bg-surface-container-highest rounded-md flex items-center justify-center text-on-surface-variant text-[10px]">B4</div>
+<div class="morgue-grid-item aspect-square bg-primary rounded-md flex items-center justify-center text-on-primary text-[10px]">C1</div>
+<div class="morgue-grid-item aspect-square bg-surface-container-highest rounded-md flex items-center justify-center text-on-surface-variant text-[10px]">C2</div>
+<div class="morgue-grid-item aspect-square bg-surface-container-highest rounded-md flex items-center justify-center text-on-surface-variant text-[10px]">C3</div>
+<div class="morgue-grid-item aspect-square bg-surface-container-highest rounded-md flex items-center justify-center text-on-surface-variant text-[10px]">C4</div>
+<div class="morgue-grid-item aspect-square bg-primary rounded-md flex items-center justify-center text-on-primary text-[10px]">D1</div>
+<div class="morgue-grid-item aspect-square bg-surface-container-highest rounded-md flex items-center justify-center text-on-surface-variant text-[10px]">D2</div>
+<div class="morgue-grid-item aspect-square bg-surface-container-highest rounded-md flex items-center justify-center text-on-surface-variant text-[10px]">D3</div>
+<div class="morgue-grid-item aspect-square bg-primary rounded-md flex items-center justify-center text-on-primary text-[10px]">D4</div>
+</div>
+<div class="mt-md space-y-sm">
+<div class="flex justify-between items-center p-sm bg-surface-container-low rounded-lg">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-secondary">ac_unit</span>
+<span class="font-label-md">درجة الحرارة</span>
+</div>
+<span class="font-bold text-primary">2.4°C</span>
+</div>
+<div class="flex justify-between items-center p-sm bg-surface-container-low rounded-lg">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-secondary">humidity_mid</span>
+<span class="font-label-md">نسبة الرطوبة</span>
+</div>
+<span class="font-bold text-primary">42%</span>
+</div>
+</div>
+</div>
+<!-- Compliance Section -->
+<div class="bg-primary-container p-md rounded-xl text-on-primary-container relative overflow-hidden">
+<div class="relative z-10">
+<h4 class="font-title-lg text-title-lg mb-xs">شهادة الامتثال</h4>
+<p class="font-caption mb-md opacity-80">هذا النظام خاضع لرقابة مباشرة لضمان الخصوصية والعدالة الجنائية.</p>
+<div class="flex items-center gap-sm">
+<div class="px-sm py-xs bg-on-primary-container/20 rounded border border-on-primary-container/30 text-[10px] font-bold">
+                                    منظم من وزارة العدل ووزارة الصحة
+                                </div>
+</div>
+</div>
+<span class="material-symbols-outlined absolute -bottom-4 -left-4 text-7xl opacity-10 rotate-12">verified_user</span>
+</div>
+<!-- Judicial Liaison Status -->
+<div class="glass-card p-md rounded-xl">
+<h3 class="font-label-md text-primary mb-sm">الارتباط القضائي المباشر</h3>
+<div class="space-y-base">
+<div class="flex items-center gap-sm">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-xs">نيابة الرياض - متصل</span>
+</div>
+<div class="flex items-center gap-sm">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-xs">المحكمة الجزائية - متصل</span>
+</div>
+<div class="flex items-center gap-sm opacity-50">
+<div class="w-2 h-2 rounded-full bg-outline"></div>
+<span class="text-xs">نيابة جدة - غير متصل</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer / Compliance Badge -->
+<footer class="mt-auto p-md border-t border-outline-variant/30 text-center">
+<p class="font-caption text-on-surface-variant flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-sm">verified</span>
+                Regulated by Ministry of Justice & MOH | SaudiHealth Premium Forensic Division © 2023
+            </p>
+</footer>
+</main>
+<script>
+        // Micro-interaction for morgue grid
+        document.querySelectorAll('.morgue-grid-item').forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                if(item.classList.contains('bg-primary')) {
+                    item.title = "محجوزة لقضية CASE-" + Math.floor(Math.random() * 9000 + 1000);
+                } else {
+                    item.title = "وحدة متاحة للتخصيص";
+                }
+            });
+        });
+    </script>
+</body></html>

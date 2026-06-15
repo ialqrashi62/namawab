@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+
+<html class="light" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium - Unified Contact Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#ffffff",
+                    "surface-variant": "#e1e3e4",
+                    "on-surface-variant": "#42474d",
+                    "inverse-on-surface": "#f0f1f2",
+                    "surface-container-lowest": "#ffffff",
+                    "primary": "#001629",
+                    "on-surface": "#191c1d",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed": "#ffdf9d",
+                    "outline-variant": "#c3c7ce",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "inverse-surface": "#2e3132",
+                    "tertiary-container": "#362700",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#cfe5ff",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-container": "#ac8c44",
+                    "on-secondary-fixed": "#002022",
+                    "on-background": "#191c1d",
+                    "on-secondary-container": "#006e75",
+                    "surface-tint": "#406182",
+                    "surface": "#f8f9fa",
+                    "secondary-fixed-dim": "#5dd8e2",
+                    "on-tertiary-fixed-variant": "#5b4300",
+                    "on-primary-fixed-variant": "#274969",
+                    "secondary-container": "#7af1fc",
+                    "primary-container": "#002b49",
+                    "on-error-container": "#93000a",
+                    "outline": "#73777e",
+                    "on-primary-fixed": "#001d34",
+                    "tertiary-fixed-dim": "#e6c274",
+                    "surface-bright": "#f8f9fa",
+                    "on-secondary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#d9dadb",
+                    "surface-container-high": "#e7e8e9",
+                    "secondary-fixed": "#7df4ff",
+                    "primary-fixed-dim": "#a8caef",
+                    "on-primary-container": "#7293b6",
+                    "surface-container-highest": "#e1e3e4",
+                    "inverse-primary": "#a8caef",
+                    "secondary": "#006970",
+                    "tertiary": "#1d1300",
+                    "on-tertiary-fixed": "#251a00",
+                    "background": "#f8f9fa",
+                    "surface-container": "#edeeef",
+                    "surface-container-low": "#f3f4f5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "xl": "64px",
+                    "gutter": "24px",
+                    "sm": "12px",
+                    "margin-desktop": "48px",
+                    "lg": "40px",
+                    "base": "8px",
+                    "md": "24px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "display-lg": ["IBM Plex Sans"],
+                    "body-lg": ["IBM Plex Sans"],
+                    "headline-md": ["IBM Plex Sans"],
+                    "label-md": ["IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans"],
+                    "caption": ["IBM Plex Sans"],
+                    "body-md": ["IBM Plex Sans"],
+                    "title-lg": ["IBM Plex Sans"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body { font-family: 'IBM Plex Sans', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sidebar-active {
+            color: #e6c274;
+            border-right: 4px solid #e6c274;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .scroll-hide::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 fixed top-0 left-0 right-0 z-50 px-margin-desktop py-base flex justify-between items-center w-full">
+<div class="flex items-center gap-md">
+<span class="font-display-lg text-headline-md text-primary tracking-tight">HEAL Global</span>
+<div class="hidden md:flex bg-surface-container rounded-full px-md py-xs items-center gap-sm">
+<span class="material-symbols-outlined text-outline">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-label-md w-64" placeholder="بحث عن مريض أو ملف طبي..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined p-xs hover:bg-secondary-container/50 transition-colors rounded-full text-on-surface-variant">notifications</button>
+<button class="material-symbols-outlined p-xs hover:bg-secondary-container/50 transition-colors rounded-full text-on-surface-variant">settings</button>
+<button class="material-symbols-outlined p-xs hover:bg-secondary-container/50 transition-colors rounded-full text-on-surface-variant">language</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed">
+<img class="w-full h-full object-cover" data-alt="A professional medical executive headshot in a bright, high-end hospital environment. The lighting is soft and airy, reflecting a premium healthcare aesthetic with clean white backgrounds and subtle blue accents. The subject looks confident and trustworthy, representing high-tier medical leadership and sovereign health standards." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCse0VX32hC0boea9RKe9mewVo6HTrCb-w-NZafCEjWixuwcPMPP0B6B8dREeXvMe-QPAjZZfhntOIdAPmmCtgtCCswqYaIQ5AABMJIxZHbBAj0r-UyIDn0vIiaFvPaYYxH1wot2UCDQFBQF9PKzCMMQj5fZg_e2kNI-SbI5vHVhyY5NlHyR4xAAdFY6Hzce6DlTWV2kHzOgCP8optYTiTshGdjkncfWuePRENFpQkZR_Lw8Bg9SZEAa88pjyaQTGJhm5OpWohvDP4G"/>
+</div>
+</div>
+</header>
+<!-- Side Navigation (RTL) -->
+<aside class="fixed top-0 right-0 h-screen w-64 bg-primary text-on-primary flex flex-col z-40 pt-24 pb-8">
+<div class="px-lg mb-xl">
+<h2 class="font-display-lg text-title-lg text-on-primary">HEAL Executive</h2>
+<p class="font-label-md text-on-primary/60">Sovereign Health Initiative</p>
+</div>
+<nav class="flex-grow flex flex-col gap-xs">
+<a class="flex items-center gap-md px-lg py-md transition-transform active:scale-95 text-on-primary/70 hover:text-on-primary hover:bg-on-primary/5 sidebar-active" href="#">
+<span class="material-symbols-outlined">dashboard_customize</span>
+<span class="font-label-md">Strategic Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md transition-transform active:scale-95 text-on-primary/70 hover:text-on-primary hover:bg-on-primary/5" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+<span class="font-label-md">Clinical Operations</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md transition-transform active:scale-95 text-on-primary/70 hover:text-on-primary hover:bg-on-primary/5" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md">Financial Planning</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md transition-transform active:scale-95 text-on-primary/70 hover:text-on-primary hover:bg-on-primary/5" href="#">
+<span class="material-symbols-outlined">diversity_1</span>
+<span class="font-label-md">Patient Journey</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md transition-transform active:scale-95 text-on-primary/70 hover:text-on-primary hover:bg-on-primary/5" href="#">
+<span class="material-symbols-outlined">folder_shared</span>
+<span class="font-label-md">Resources</span>
+</a>
+</nav>
+<div class="px-lg mt-auto">
+<button class="w-full bg-secondary text-on-secondary py-sm rounded-lg font-label-md hover:bg-secondary/90 transition-all mb-md">Premium Support</button>
+<a class="flex items-center gap-md text-on-primary/70 hover:text-on-primary" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="mr-64 pt-24 px-margin-desktop pb-xl">
+<!-- Header Section -->
+<section class="mb-lg">
+<div class="flex justify-between items-end">
+<div>
+<h1 class="font-headline-lg text-primary mb-xs">Unified Contact Center</h1>
+<p class="font-body-md text-on-surface-variant">مركز الاتصال الموحد والخدمات الكونسيرج الملكية</p>
+</div>
+<div class="flex gap-sm">
+<div class="flex items-center gap-xs px-md py-sm bg-secondary-container/30 rounded-full">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-label-md text-secondary">32 Live Agents</span>
+</div>
+<button class="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]">add_call</span>
+                        Inbound Call
+                    </button>
+</div>
+</div>
+</section>
+<!-- Bento Grid: Call Volume & Analytics -->
+<div class="grid grid-cols-12 gap-gutter mb-lg">
+<!-- Analytics Summary (Glass Card) -->
+<div class="col-span-8 glass-card p-md rounded-xl flex flex-col justify-between overflow-hidden relative">
+<div class="absolute -top-10 -left-10 w-40 h-40 bg-secondary/10 rounded-full blur-3xl"></div>
+<div class="flex justify-between items-start mb-md">
+<div>
+<h3 class="font-title-lg text-primary">Call Volume Overview</h3>
+<p class="font-label-md text-on-surface-variant">Real-time throughput metrics</p>
+</div>
+<select class="bg-surface border border-outline-variant/50 rounded-lg text-label-md focus:ring-secondary">
+<option>Last 24 Hours</option>
+<option>Last 7 Days</option>
+</select>
+</div>
+<div class="h-64 w-full flex items-end gap-xs">
+<!-- Dynamic CSS Chart Mockup -->
+<div class="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary/40 h-[40%] group relative">
+<div class="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-on-primary text-[10px] px-2 py-1 rounded">12k</div>
+</div>
+<div class="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary/40 h-[55%]"></div>
+<div class="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary/40 h-[45%]"></div>
+<div class="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary/40 h-[70%]"></div>
+<div class="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary/40 h-[85%]"></div>
+<div class="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary/40 h-[65%]"></div>
+<div class="flex-1 bg-secondary rounded-t-lg transition-all h-[95%] shadow-lg shadow-secondary/20"></div>
+<div class="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary/40 h-[75%]"></div>
+<div class="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary/40 h-[50%]"></div>
+<div class="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary/40 h-[60%]"></div>
+<div class="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary/40 h-[40%]"></div>
+<div class="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary/40 h-[30%]"></div>
+</div>
+<div class="flex justify-between mt-sm text-caption text-on-surface-variant">
+<span>06:00</span>
+<span>12:00</span>
+<span>18:00</span>
+<span>00:00</span>
+</div>
+</div>
+<!-- Response Times Circular KPI -->
+<div class="col-span-4 glass-card p-md rounded-xl flex flex-col items-center justify-center text-center">
+<div class="relative w-40 h-40 flex items-center justify-center mb-md">
+<svg class="w-full h-full -rotate-90">
+<circle class="text-surface-container" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-secondary transition-all duration-1000" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-dasharray="440" stroke-dashoffset="66" stroke-width="8"></circle>
+</svg>
+<div class="absolute flex flex-col">
+<span class="font-display-lg text-headline-lg text-primary">12s</span>
+<span class="font-label-md text-on-surface-variant">Avg Answer</span>
+</div>
+</div>
+<div class="space-y-sm w-full">
+<div class="flex justify-between font-label-md">
+<span class="text-on-surface-variant">Goal</span>
+<span class="text-primary">15s</span>
+</div>
+<div class="h-1 bg-surface-container rounded-full w-full">
+<div class="h-1 bg-secondary rounded-full w-4/5"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Unified Queue (Multi-channel) -->
+<div class="col-span-8 flex flex-col gap-md">
+<div class="glass-card rounded-xl p-md">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-title-lg text-primary">Unified Patient Queue</h3>
+<div class="flex gap-xs">
+<span class="material-symbols-outlined px-xs py-1 border border-outline-variant/30 rounded cursor-pointer hover:bg-surface-variant">call</span>
+<span class="material-symbols-outlined px-xs py-1 border border-outline-variant/30 rounded cursor-pointer hover:bg-surface-variant">chat</span>
+<span class="material-symbols-outlined px-xs py-1 border border-outline-variant/30 rounded cursor-pointer hover:bg-surface-variant">mail</span>
+</div>
+</div>
+<div class="space-y-sm">
+<!-- Queue Row: VIP -->
+<div class="flex items-center gap-md p-sm bg-tertiary-fixed/10 border border-tertiary-fixed/30 rounded-lg hover:shadow-md transition-all cursor-pointer group">
+<div class="w-12 h-12 rounded-full overflow-hidden shrink-0 border-2 border-tertiary-fixed">
+<img class="w-full h-full object-cover" data-alt="Close up portrait of a middle-aged woman with a serene expression, styled in elegant, professional attire. The background is a soft-focus medical lounge with warm wooden textures and premium lighting. The mood is sophisticated and VIP-focused, reflecting a high-end concierge healthcare service for premium clients." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrBUsILFtTd23tOkA4VdPqAMpeqQWP9-rn57zR53V7Fgk6xI7ir81N1RU7Vl1WetYfeGT_N6-bAGVuhXTZmSljTv55WIvnRel82N0N9t1aIkxdJuFBzsa2SFnb908KN0zwxsXRgX6776nqzZL_hGnJ6hi0UVSM-rqbPUxp-3cRjLR9P7m4Ov4tAtwGhmLKfMnEOQUwSOwBAwhYE1kjBbyMy1mMJJiu7EBUWlSsG-fw8AyUB06QOept-ShZJoQ8DyDc7By19qj77bK_"/>
+</div>
+<div class="flex-grow">
+<div class="flex items-center gap-xs">
+<span class="font-label-md text-primary font-bold">Laila Al-Saud</span>
+<span class="bg-tertiary-fixed text-on-tertiary-fixed px-xs py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">VIP Concierge</span>
+</div>
+<p class="font-caption text-on-surface-variant">Waiting for: Clinical Consultation Booking</p>
+</div>
+<div class="text-right">
+<span class="block font-label-md text-primary">02:45</span>
+<span class="font-caption text-secondary">High Priority</span>
+</div>
+<button class="bg-primary text-on-primary p-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+</div>
+<!-- Queue Row: Regular -->
+<div class="flex items-center gap-md p-sm hover:bg-surface-container rounded-lg transition-all cursor-pointer group border border-transparent hover:border-outline-variant/30">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-secondary-container">person</span>
+</div>
+<div class="flex-grow">
+<div class="flex items-center gap-xs">
+<span class="font-label-md text-primary font-bold">Fahad Ibrahim</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">chat</span>
+</div>
+<p class="font-caption text-on-surface-variant">Inquiry: Lab results availability</p>
+</div>
+<div class="text-right">
+<span class="block font-label-md text-on-surface-variant">05:12</span>
+<span class="font-caption text-outline">Standard</span>
+</div>
+<button class="bg-surface-variant text-on-surface p-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+</div>
+<!-- Queue Row: Urgent -->
+<div class="flex items-center gap-md p-sm bg-error-container/10 border border-error-container/30 rounded-lg hover:shadow-md transition-all cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-error-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-error animate-pulse">emergency</span>
+</div>
+<div class="flex-grow">
+<div class="flex items-center gap-xs">
+<span class="font-label-md text-primary font-bold">Ahmad Mansour</span>
+<span class="bg-error text-white px-xs py-0.5 rounded text-[10px] font-bold">URGENT</span>
+</div>
+<p class="font-caption text-on-surface-variant">Medical complication after procedure</p>
+</div>
+<div class="text-right">
+<span class="block font-label-md text-error">00:30</span>
+<span class="font-caption text-error">Critical</span>
+</div>
+<button class="bg-error text-on-error p-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+</div>
+</div>
+<button class="w-full mt-md py-sm border-2 border-dashed border-outline-variant/30 rounded-xl font-label-md text-outline hover:bg-surface-variant/20 transition-all">
+                        View Full Queue (18 remaining)
+                    </button>
+</div>
+</div>
+<!-- Sentiment & Feedback -->
+<div class="col-span-4 flex flex-col gap-gutter">
+<!-- Sentiment Gauge -->
+<div class="glass-card rounded-xl p-md">
+<h3 class="font-title-lg text-primary mb-md">Patient Sentiment</h3>
+<div class="flex items-center justify-between mb-lg">
+<div class="flex flex-col">
+<span class="font-display-lg text-headline-lg text-secondary">88%</span>
+<span class="font-caption text-on-surface-variant">Positive Sentiment Score</span>
+</div>
+<span class="material-symbols-outlined text-[48px] text-secondary-fixed-dim" style="font-variation-settings: 'FILL' 1;">sentiment_very_satisfied</span>
+</div>
+<div class="space-y-md">
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-caption">
+<span>Positive</span>
+<span>88%</span>
+</div>
+<div class="h-2 bg-surface-container rounded-full">
+<div class="h-2 bg-secondary rounded-full" style="width: 88%"></div>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-caption">
+<span>Neutral</span>
+<span>10%</span>
+</div>
+<div class="h-2 bg-surface-container rounded-full">
+<div class="h-2 bg-on-surface-variant/40 rounded-full" style="width: 10%"></div>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-caption">
+<span>Critical</span>
+<span>2%</span>
+</div>
+<div class="h-2 bg-surface-container rounded-full">
+<div class="h-2 bg-error rounded-full" style="width: 2%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent AI Insight -->
+<div class="bg-primary-container p-md rounded-xl text-on-primary-container relative overflow-hidden">
+<span class="material-symbols-outlined absolute -bottom-4 -right-4 text-[100px] opacity-10">auto_awesome</span>
+<div class="flex items-center gap-xs mb-sm">
+<span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+<span class="font-label-md font-bold">AI Concierge Insight</span>
+</div>
+<p class="font-body-md mb-md leading-relaxed">
+                        Noticeable trend: 15% increase in VIP inquiries regarding "Genomic Screening". Recommendation: Prioritize Genomic Specialist availability in tomorrow's schedule.
+                    </p>
+<button class="text-secondary-container font-label-md flex items-center gap-xs hover:underline transition-all">
+                        Implement Recommendation
+                        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Interactive FAB (Contextual for Booking) -->
+<div class="fixed bottom-lg left-lg z-50">
+<button class="bg-primary text-on-primary w-14 h-14 rounded-full shadow-xl shadow-primary/30 flex items-center justify-center hover:scale-110 transition-transform active:scale-95 group relative">
+<span class="material-symbols-outlined">edit_calendar</span>
+<div class="absolute right-full mr-md bg-primary text-on-primary px-md py-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+<span class="font-label-md">New Concierge Booking</span>
+</div>
+</button>
+</div>
+<!-- Background Elements -->
+<div class="fixed inset-0 -z-10 bg-surface overflow-hidden">
+<div class="absolute top-0 right-0 w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3"></div>
+<div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/4"></div>
+</div>
+<script>
+        // Simple Micro-interaction for sidebar collapse or hover effects
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                document.querySelectorAll('nav a').forEach(l => l.classList.remove('sidebar-active'));
+                link.classList.add('sidebar-active');
+            });
+        });
+
+        // Initialize tooltips or specific interactions if needed
+        console.log("SaudiHealth Premium Contact Center Interface Initialized");
+    </script>
+</body></html>

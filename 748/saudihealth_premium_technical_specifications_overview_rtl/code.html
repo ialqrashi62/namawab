@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+
+<html class="light" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | Technical Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#edeeef",
+                        "on-primary-fixed": "#001d34",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#7df4ff",
+                        "surface-bright": "#f8f9fa",
+                        "on-tertiary-fixed": "#251a00",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#e7e8e9",
+                        "outline": "#73777e",
+                        "on-surface-variant": "#42474d",
+                        "surface-variant": "#e1e3e4",
+                        "surface-tint": "#406182",
+                        "surface-container-low": "#f3f4f5",
+                        "on-primary-container": "#7293b6",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#a8caef",
+                        "surface-dim": "#d9dadb",
+                        "primary": "#001629",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "secondary-container": "#7af1fc",
+                        "primary-fixed": "#cfe5ff",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "surface": "#f8f9fa",
+                        "outline-variant": "#c3c7ce",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "on-primary-fixed-variant": "#274969",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "on-surface": "#191c1d",
+                        "on-secondary-fixed": "#002022",
+                        "tertiary": "#1d1300",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#362700",
+                        "background": "#f8f9fa",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "secondary": "#006970",
+                        "on-background": "#191c1d",
+                        "on-tertiary-container": "#ac8c44",
+                        "tertiary-fixed": "#ffdf9d",
+                        "primary-container": "#002b49",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed-dim": "#a8caef",
+                        "error": "#ba1a1a",
+                        "inverse-surface": "#2e3132",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-secondary-container": "#006e75",
+                        "on-primary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "48px",
+                        "xl": "64px",
+                        "md": "24px",
+                        "gutter": "24px",
+                        "base": "8px",
+                        "lg": "40px",
+                        "xs": "4px",
+                        "sm": "12px",
+                        "margin-mobile": "16px"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .gradient-border {
+            position: relative;
+            background: #fff;
+            background-clip: padding-box;
+            border: 2px solid transparent;
+        }
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            z-index: -1;
+            margin: -2px;
+            border-radius: inherit;
+            background: linear-gradient(to bottom right, #001629, #006970, #ac8c44);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #001629;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- TopNavBar -->
+<header class="bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm fixed top-0 w-full h-20 z-50 flex flex-row-reverse justify-between items-center px-margin-desktop">
+<div class="flex items-center gap-md">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">SaudiHealth Premium</h1>
+<div class="h-8 w-[1px] bg-outline-variant/30 mx-base"></div>
+<nav class="hidden md:flex gap-lg">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all duration-300" href="#">Directory</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all duration-300" href="#">Requests</a>
+<a class="font-label-md text-label-md text-secondary border-b-2 border-secondary pb-1" href="#">Governance</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all duration-300" href="#">Compliance</a>
+</nav>
+</div>
+<div class="flex items-center gap-sm">
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="bg-surface-container-low border-none rounded-lg pr-10 pl-4 py-2 w-64 focus:ring-2 focus:ring-secondary text-body-md" placeholder="بحث في النظام..." type="text"/>
+</div>
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary">settings</span>
+</button>
+<img alt="User Profile" class="w-10 h-10 rounded-full border-2 border-secondary object-cover" data-alt="A professional headshot of a Middle Eastern healthcare executive in a modern business suit. He is smiling warmly against a blurred office background with soft cinematic lighting. The image conveys high trust, leadership, and expertise in a premium corporate healthcare environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjtlfjX_EIDSxQgokJ2nEL8aL4--scFiQeAf4tek8bziIerXsGi8v3QU5r1YwlrUD9dEKjwMKoleHqFnnNSWDiuB_VpFgglVgmA_Wfsij44B2R8dv4P5J3bwWeVEkELi9j9ke9npZR8nyogBZwt5fJ161ynmx7C0ukDXeFIZh_A8djvp1pSNhHMVoCIyOXpuIhxqJjYToLEtC11VeFZLeaTcGXEIH9x5u8cVWG37SbR8b1xIB9DN1MtHruRgyqcmICjwtsAp343UpB"/>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed right-0 top-0 h-screen w-72 bg-surface-container-lowest border-l border-outline-variant/30 flex flex-col z-40 py-lg px-md pt-24">
+<div class="mb-lg px-md">
+<h2 class="font-title-lg text-title-lg font-bold text-primary">IAM Console</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Enterprise Healthcare</p>
+</div>
+<nav class="flex-1 space-y-2">
+<div class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors rounded-lg p-md cursor-pointer">
+<span class="material-symbols-outlined">badge</span>
+<span class="font-label-md text-label-md">Identity Center</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-md bg-secondary-container text-on-secondary-container rounded-lg p-md">
+<span class="material-symbols-outlined">approval_delegation</span>
+<span class="font-label-md text-label-md">Access Workflows</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors rounded-lg p-md cursor-pointer">
+<span class="material-symbols-outlined">security</span>
+<span class="font-label-md text-label-md">RBAC Configuration</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors rounded-lg p-md cursor-pointer">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-label-md text-label-md">Security Governance</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors rounded-lg p-md cursor-pointer">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="font-label-md text-label-md">Audit Logs</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors rounded-lg p-md cursor-pointer">
+<span class="material-symbols-outlined">corporate_fare</span>
+<span class="font-label-md text-label-md">Departmental Settings</span>
+</div>
+</nav>
+<div class="mt-auto pt-lg border-t border-outline-variant/30 space-y-2">
+<button class="w-full bg-primary text-on-primary py-3 rounded-xl font-label-md text-label-md mb-md hover:opacity-90 transition-opacity">
+                New Access Request
+            </button>
+<div class="flex flex-row-reverse items-center gap-md text-on-surface-variant p-md">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="font-label-md text-label-md">Support</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-md text-error p-md">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="mr-72 mt-20 p-margin-desktop min-h-screen">
+<header class="mb-xl">
+<h1 class="font-display-lg text-display-lg text-primary mb-xs">Technical Command Center</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">نظرة شاملة على المواصفات الفنية والبنية التحتية لنظام SaudiHealth Premium</p>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- System Architecture -->
+<div class="col-span-12 lg:col-span-8 glass-card rounded-xl p-lg relative overflow-hidden">
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-lg">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">بنية النظام (System Architecture)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">نموذج الخدمات المصغرة المعزز بتقنيات Three.js</p>
+</div>
+<span class="bg-secondary/10 text-secondary px-4 py-1 rounded-full text-label-md font-bold">Microservices</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<div class="bg-surface-container-low p-md rounded-lg border border-outline-variant/20">
+<span class="material-symbols-outlined text-secondary mb-sm">layers</span>
+<h4 class="font-title-lg text-title-lg text-primary mb-xs">Frontend Cluster</h4>
+<p class="text-caption text-on-surface-variant">React 18 + Three.js Visualization Layer</p>
+</div>
+<div class="bg-surface-container-low p-md rounded-lg border border-outline-variant/20">
+<span class="material-symbols-outlined text-secondary mb-sm">settings_input_component</span>
+<h4 class="font-title-lg text-title-lg text-primary mb-xs">API Gateway</h4>
+<p class="text-caption text-on-surface-variant">Kong Gateway with mTLS Authentication</p>
+</div>
+<div class="bg-surface-container-low p-md rounded-lg border border-outline-variant/20">
+<span class="material-symbols-outlined text-secondary mb-sm">database</span>
+<h4 class="font-title-lg text-title-lg text-primary mb-xs">Data Mesh</h4>
+<p class="text-caption text-on-surface-variant">PostgreSQL + Redis + MongoDB Atlas</p>
+</div>
+</div>
+</div>
+<!-- Background visual decoration -->
+<div class="absolute bottom-0 left-0 w-full h-48 opacity-20 pointer-events-none">
+
+</div>
+</div>
+<!-- Performance Metrics -->
+<div class="col-span-12 lg:col-span-4 glass-card rounded-xl p-lg flex flex-col justify-between">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary mb-lg">مقاييس الأداء</h3>
+<div class="space-y-lg">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">speed</span>
+<span class="font-label-md text-label-md">Latency (P99)</span>
+</div>
+<span class="font-headline-md text-headline-md text-primary">&lt; 120ms</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">group</span>
+<span class="font-label-md text-label-md">Concurrent Users</span>
+</div>
+<span class="font-headline-md text-headline-md text-primary">50k+</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">sync</span>
+<span class="font-label-md text-label-md">Data Sync</span>
+</div>
+<span class="font-headline-md text-headline-md text-primary">Real-time</span>
+</div>
+</div>
+</div>
+<div class="mt-lg pt-lg border-t border-outline-variant/30">
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[94%]"></div>
+</div>
+<p class="text-caption mt-2 text-on-surface-variant">System Uptime: 99.99%</p>
+</div>
+</div>
+<!-- Tech Stack -->
+<div class="col-span-12 lg:col-span-6 glass-card rounded-xl p-lg">
+<h3 class="font-headline-md text-headline-md text-primary mb-lg">التقنيات المستخدمة (Tech Stack)</h3>
+<div class="flex flex-wrap gap-md">
+<div class="flex items-center gap-sm bg-white px-4 py-2 rounded-lg shadow-sm border border-outline-variant/10">
+<img alt="HTML5" class="w-6 h-6" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsosHfLLTr-nwwhmvQIHT7ZqMZdaPMsg8q3icKpzI9RtWygGVRdCorWbIztM64-mpgAFwfycCnmFYSNIv-R5TWuPrNzNwxj9rjdxYOcs_n9-rZm7thr9_zpbhy_LkHMAspK3hAilvk1UBh-NOBdYWlusR-nIiXQmC825CaH4dyeEktQJoPWAq5GoT_kxIU_MUD0dpy_lzEny1_-fHxJiMb425C_z6h-u5VDEZEI3bSPIL6HowTbVq9a2TiGtHaWO2BqQHMe5x3LKUD"/>
+<span class="font-label-md text-label-md">HTML5 / Semantic</span>
+</div>
+<div class="flex items-center gap-sm bg-white px-4 py-2 rounded-lg shadow-sm border border-outline-variant/10">
+<img alt="Tailwind CSS" class="w-6 h-6" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1q3xIsf6KGlxSQitcHGuKH7ap_XBwUMJiZZoXWpxbKqrm155Qm3cSCQg8vb2Vim0lYhB7S1C9fHWxCKivjynyjzNgrak5r6ajq4MEnlGg1kXy1tSo5l4CbjedHDH3rJOJBt1OfVFAGPzEpzypF138Psqi6O-5wowW0Aei8FsflViBbD0d4kXcA1A6MCsTCnsbqv89JdwxE_fBmi71kvGK_OWir6X9zamBDjNjR_06ZTVmAWf07P7_JLW5xH2guZTK82TY07uLTYmP"/>
+<span class="font-label-md text-label-md">Tailwind CSS</span>
+</div>
+<div class="flex items-center gap-sm bg-white px-4 py-2 rounded-lg shadow-sm border border-outline-variant/10">
+<img alt="JS" class="w-6 h-6" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGELr3FI8kyd8_0Ihyn-BaEfqJ4Fip0SEkr80UGZ-kj0JpHVWYrHAXzjKqDMAvIoOpsGsyQOv6tnDrMuFBFetJ-els3vbPBxXYWn8T6Wf2Cet0-I_xUDta3jWq2-QclD31Whr95msVHE2ibLyJkKayDAJ737uRsEJK0uVtAUreVgfxY7ac-cZbFG1ZDIF2cSYtVwS5c98_oPV8CmXzLzY2VDNG_uthgqx9vha1gEdKjTfqhlbb1lVvSk3HxTc45fujQJ5s54Npzb0w"/>
+<span class="font-label-md text-label-md">ES6+ JavaScript</span>
+</div>
+<div class="flex items-center gap-sm bg-white px-4 py-2 rounded-lg shadow-sm border border-outline-variant/10">
+<span class="material-symbols-outlined text-[#049EF4]">view_in_ar</span>
+<span class="font-label-md text-label-md">Three.js</span>
+</div>
+<div class="flex items-center gap-sm bg-white px-4 py-2 rounded-lg shadow-sm border border-outline-variant/10">
+<span class="material-symbols-outlined text-[#FF4B00]">deployed_code</span>
+<span class="font-label-md text-label-md">WebGL Shaders</span>
+</div>
+</div>
+</div>
+<!-- Security & Compliance -->
+<div class="col-span-12 lg:col-span-6 gradient-border rounded-xl p-lg shadow-lg">
+<h3 class="font-headline-md text-headline-md text-primary mb-lg">الأمن والامتثال (Security)</h3>
+<ul class="space-y-md">
+<li class="flex flex-row-reverse justify-between items-center bg-surface-container-low p-sm rounded-lg">
+<div class="flex flex-row-reverse items-center gap-sm">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="font-body-md text-body-md">MOH &amp; CHI Compliance</span>
+</div>
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+</li>
+<li class="flex flex-row-reverse justify-between items-center bg-surface-container-low p-sm rounded-lg">
+<div class="flex flex-row-reverse items-center gap-sm">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">lock</span>
+<span class="font-body-md text-body-md">AES-256 Data Encryption</span>
+</div>
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+</li>
+<li class="flex flex-row-reverse justify-between items-center bg-surface-container-low p-sm rounded-lg">
+<div class="flex flex-row-reverse items-center gap-sm">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">admin_panel_settings</span>
+<span class="font-body-md text-body-md">Advanced IAM Protocols</span>
+</div>
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+</li>
+</ul>
+</div>
+<!-- Integration Layer -->
+<div class="col-span-12 glass-card rounded-xl p-lg">
+<h3 class="font-headline-md text-headline-md text-primary mb-xl">طبقة التكامل (Integration Layer)</h3>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-md">
+<!-- Clinical Modules -->
+<div class="col-span-1 p-md flex flex-col items-center justify-center bg-surface-container-high rounded-xl gap-sm border-b-4 border-secondary">
+<span class="material-symbols-outlined text-primary text-3xl">medical_services</span>
+<span class="font-label-md text-label-md">HIS</span>
+</div>
+<div class="col-span-1 p-md flex flex-col items-center justify-center bg-surface-container-high rounded-xl gap-sm border-b-4 border-secondary">
+<span class="material-symbols-outlined text-primary text-3xl">radiology</span>
+<span class="font-label-md text-label-md">RIS</span>
+</div>
+<div class="col-span-1 p-md flex flex-col items-center justify-center bg-surface-container-high rounded-xl gap-sm border-b-4 border-secondary">
+<span class="material-symbols-outlined text-primary text-3xl">photo_library</span>
+<span class="font-label-md text-label-md">PACS</span>
+</div>
+<div class="col-span-1 p-md flex flex-col items-center justify-center bg-surface-container-high rounded-xl gap-sm border-b-4 border-secondary">
+<span class="material-symbols-outlined text-primary text-3xl">biotech</span>
+<span class="font-label-md text-label-md">LIS</span>
+</div>
+<!-- Administrative Modules -->
+<div class="col-span-1 p-md flex flex-col items-center justify-center bg-surface-container rounded-xl gap-sm border-b-4 border-tertiary">
+<span class="material-symbols-outlined text-primary text-3xl">business_center</span>
+<span class="font-label-md text-label-md">ERP</span>
+</div>
+<div class="col-span-1 p-md flex flex-col items-center justify-center bg-surface-container rounded-xl gap-sm border-b-4 border-tertiary">
+<span class="material-symbols-outlined text-primary text-3xl">payments</span>
+<span class="font-label-md text-label-md">CAPEX</span>
+</div>
+<div class="col-span-1 p-md flex flex-col items-center justify-center bg-surface-container rounded-xl gap-sm border-b-4 border-tertiary">
+<span class="material-symbols-outlined text-primary text-3xl">groups</span>
+<span class="font-label-md text-label-md">HRMS</span>
+</div>
+<div class="col-span-1 p-md flex flex-col items-center justify-center bg-surface-container rounded-xl gap-sm border-b-4 border-tertiary">
+<span class="material-symbols-outlined text-primary text-3xl">hub</span>
+<span class="font-label-md text-label-md">Middleware</span>
+</div>
+</div>
+</div>
+<!-- Documentation Hub -->
+<div class="col-span-12 glass-card rounded-xl p-lg overflow-hidden relative">
+<div class="flex flex-col md:flex-row justify-between items-center gap-lg">
+<div class="max-w-xl">
+<h3 class="font-headline-md text-headline-md text-primary mb-sm">مركز الوثائق التقنية</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">الوصول السريع إلى وثائق API، أدلة النشر، والتقارير الأمنية البيضاء.</p>
+</div>
+<div class="flex gap-md">
+<a class="flex items-center gap-sm px-6 py-3 bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:scale-95 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">api</span>
+                            API Docs
+                        </a>
+<a class="flex items-center gap-sm px-6 py-3 border border-secondary text-secondary rounded-lg font-label-md text-label-md hover:bg-secondary/5 transition-colors" href="#">
+<span class="material-symbols-outlined">description</span>
+                            Whitepapers
+                        </a>
+<a class="flex items-center gap-sm px-6 py-3 border border-secondary text-secondary rounded-lg font-label-md text-label-md hover:bg-secondary/5 transition-colors" href="#">
+<span class="material-symbols-outlined">rocket_launch</span>
+                            Deployment
+                        </a>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="mr-72 p-margin-desktop text-on-surface-variant border-t border-outline-variant/30 flex justify-between items-center">
+<p class="font-body-md text-body-md">© 2024 SaudiHealth Premium. جميع الحقوق محفوظة.</p>
+<div class="flex gap-md">
+<span class="text-caption">V 4.2.0-STABLE</span>
+<span class="text-caption text-secondary">Healthy Connection Status: ACTIVE</span>
+</div>
+</footer>
+<script>
+        // Simple interactive effect for cards
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body></html>

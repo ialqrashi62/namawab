@@ -1,0 +1,15 @@
+{
+  "education_research": {
+    "dashboard": {
+      "title": "لوحة التعليم والأبحاث",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

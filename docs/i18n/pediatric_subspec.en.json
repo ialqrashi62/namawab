@@ -1,0 +1,15 @@
+{
+  "pediatric_subspec": {
+    "dashboard": {
+      "title": "Pediatric Subspecialties Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HEALAS | Patient Flow &amp; Clinical Pathway Control</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .pathway-step-active {
+            box-shadow: 0 0 0 4px rgba(0, 105, 112, 0.1);
+        }
+        .heat-map-cell {
+            transition: all 0.3s ease;
+        }
+        .heat-map-cell:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        /* Custom scrollbar for data density */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #c3c7ce; border-radius: 10px; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed-dim": "#5dd8e2",
+                      "on-tertiary-container": "#ac8c44",
+                      "surface-container-lowest": "#ffffff",
+                      "background": "#f8f9fa",
+                      "on-primary-container": "#7293b6",
+                      "on-primary-fixed-variant": "#274969",
+                      "surface-variant": "#e1e3e4",
+                      "on-secondary-container": "#006e75",
+                      "on-error-container": "#93000a",
+                      "primary": "#001629",
+                      "surface-container-highest": "#e1e3e4",
+                      "tertiary-fixed": "#ffdf9d",
+                      "on-primary-fixed": "#001d34",
+                      "surface-bright": "#f8f9fa",
+                      "primary-fixed-dim": "#a8caef",
+                      "secondary": "#006970",
+                      "outline": "#73777e",
+                      "on-surface": "#191c1d",
+                      "surface-tint": "#406182",
+                      "on-primary": "#ffffff",
+                      "outline-variant": "#c3c7ce",
+                      "on-error": "#ffffff",
+                      "secondary-fixed": "#7df4ff",
+                      "on-background": "#191c1d",
+                      "on-secondary-fixed-variant": "#004f54",
+                      "error-container": "#ffdad6",
+                      "error": "#ba1a1a",
+                      "on-tertiary-fixed-variant": "#5b4300",
+                      "tertiary-container": "#362700",
+                      "on-secondary-fixed": "#002022",
+                      "on-surface-variant": "#42474d",
+                      "primary-container": "#002b49",
+                      "surface-container-high": "#e7e8e9",
+                      "tertiary": "#1d1300",
+                      "on-secondary": "#ffffff",
+                      "inverse-on-surface": "#f0f1f2",
+                      "surface": "#f8f9fa",
+                      "inverse-surface": "#2e3132",
+                      "tertiary-fixed-dim": "#e6c274",
+                      "surface-dim": "#d9dadb",
+                      "inverse-primary": "#a8caef",
+                      "surface-container": "#edeeef",
+                      "secondary-container": "#7af1fc",
+                      "on-tertiary": "#ffffff"
+              },
+              "spacing": {
+                      "margin-mobile": "16px",
+                      "base": "8px",
+                      "xs": "4px",
+                      "sm": "12px",
+                      "md": "24px",
+                      "gutter": "24px",
+                      "xl": "64px",
+                      "margin-desktop": "48px",
+                      "lg": "40px"
+              },
+              "fontFamily": {
+                      "display-lg": ["IBM Plex Sans"],
+                      "body-md": ["IBM Plex Sans"],
+                      "label-md": ["IBM Plex Sans"],
+                      "headline-md": ["IBM Plex Sans"],
+                      "title-lg": ["IBM Plex Sans"],
+                      "headline-lg": ["IBM Plex Sans"],
+                      "caption": ["IBM Plex Sans"]
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Sidebar Navigation (Right Aligned for RTL) -->
+<aside class="h-screen w-64 fixed right-0 top-0 bg-primary flex flex-col py-md gap-sm shadow-xl z-50">
+<div class="px-md mb-lg">
+<h1 class="font-headline-md text-headline-md text-on-primary">National Healthcare</h1>
+<p class="font-label-md text-label-md text-on-primary/60">Sovereign Enterprise</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="bg-secondary-container text-on-secondary-container rounded-lg mx-2 my-1 p-3 flex items-center gap-3 transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Operations</span>
+</a>
+<a class="text-on-primary/70 hover:bg-on-primary/10 rounded-lg mx-2 my-1 p-3 flex items-center gap-3 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md text-label-md">Financials</span>
+</a>
+<a class="text-on-primary/70 hover:bg-on-primary/10 rounded-lg mx-2 my-1 p-3 flex items-center gap-3 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">verified_user</span>
+<span class="font-label-md text-label-md">Compliance</span>
+</a>
+<a class="text-on-primary/70 hover:bg-on-primary/10 rounded-lg mx-2 my-1 p-3 flex items-center gap-3 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-md text-label-md">Strategy</span>
+</a>
+</nav>
+<div class="mt-auto px-2 space-y-1">
+<a class="text-on-primary/70 hover:bg-on-primary/10 rounded-lg p-3 flex items-center gap-3 transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="text-on-primary/70 hover:bg-on-primary/10 rounded-lg p-3 flex items-center gap-3 transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<div class="p-3 mt-md">
+<div class="flex items-center gap-2 text-secondary-fixed-dim">
+<span class="w-2 h-2 bg-secondary-fixed-dim rounded-full animate-pulse"></span>
+<span class="text-caption font-caption">System Status: Active</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="mr-64 min-h-screen">
+<!-- Top Navigation -->
+<header class="w-full top-0 sticky z-40 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
+<div class="flex justify-between items-center px-margin-desktop py-4 max-w-[1440px] mx-auto w-full">
+<div class="flex items-center gap-lg">
+<span class="font-display-lg text-display-lg text-primary font-bold tracking-tight">HEALAS</span>
+<nav class="hidden md:flex items-center gap-md">
+<a class="text-secondary font-bold border-b-2 border-secondary pb-1 font-body-md text-body-md" href="#">Dashboard</a>
+<a class="text-on-surface-variant font-medium hover:text-secondary transition-colors duration-200 font-body-md text-body-md" href="#">Analytics</a>
+<a class="text-on-surface-variant font-medium hover:text-secondary transition-colors duration-200 font-body-md text-body-md" href="#">Reports</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="pr-10 pl-4 py-2 bg-surface-container-low border-none rounded-full w-64 text-label-md focus:ring-2 focus:ring-secondary/50" placeholder="بحث عن مريض أو قسم..." type="text"/>
+</div>
+<button class="p-2 text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="flex items-center gap-3 pr-md border-r border-outline-variant/30">
+<div class="text-left leading-tight hidden sm:block">
+<p class="font-label-md text-label-md text-on-surface font-bold">د. أحمد القحطاني</p>
+<p class="text-caption font-caption text-on-surface-variant">Chief Medical Officer</p>
+</div>
+<img alt="Chief Medical Officer profile" class="w-10 h-10 rounded-full object-cover border-2 border-secondary" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBu-1LP9vC0ZtSx20fHHKG3pUdAuOfaZ9yAyuqbWksueeC8uQl-jx2ZAfQi2vmPmLTmdr8cCws1T2REbdTVH2XVCtg9APzxE3T5K57IGdJ_BshmymZGL35IVVwc1sNqWpk_OFfIdR5wmPIOt4igSNeLC-2JUk-WI2pNTIG3DCTdsgtYpVvnRZgsK9_hPVLenYBd_ZXRSawrt7rJ-2Kzl62IrChyJ6g-tQbY1i4fASPqnue5Gc7rot3QHLm0jlgxrK8-MBAVZzgbIvJy"/>
+</div>
+</div>
+</div>
+</header>
+<div class="p-margin-desktop space-y-lg max-w-[1440px] mx-auto">
+<!-- Dashboard Header & Vital Stats -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-md">
+<div class="col-span-full mb-base">
+<h2 class="font-headline-lg text-headline-lg text-primary">لوحة تحكم تدفق المرضى والمسارات السريرية</h2>
+<p class="text-body-md font-body-md text-on-surface-variant">مراقبة حية وشاملة عبر الشبكة الطبية</p>
+</div>
+<!-- Occupancy Card -->
+<div class="glass-card p-md rounded-xl flex flex-col gap-sm">
+<div class="flex justify-between items-start text-on-surface-variant">
+<span class="font-label-md text-label-md">إجمالي الإشغال</span>
+<span class="material-symbols-outlined text-secondary">bed</span>
+</div>
+<div class="flex items-end gap-2">
+<span class="font-display-lg text-display-lg text-primary">92%</span>
+<span class="text-error font-label-md text-label-md flex items-center mb-2">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                            4%
+                        </span>
+</div>
+<div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 92%"></div>
+</div>
+</div>
+<!-- Wait Time Card -->
+<div class="glass-card p-md rounded-xl flex flex-col gap-sm">
+<div class="flex justify-between items-start text-on-surface-variant">
+<span class="font-label-md text-label-md">متوسط وقت الانتظار (ER)</span>
+<span class="material-symbols-outlined text-error">avg_time</span>
+</div>
+<div class="flex items-end gap-2">
+<span class="font-display-lg text-display-lg text-primary">42 <span class="text-title-lg">دقيقة</span></span>
+<span class="text-error font-label-md text-label-md flex items-center mb-2">
+                            +12
+                        </span>
+</div>
+<div class="flex items-center gap-1 text-on-error-container bg-error-container px-2 py-1 rounded text-caption">
+<span class="material-symbols-outlined text-sm">warning</span>
+                        تنبيه: ازدحام عالي
+                    </div>
+</div>
+<!-- Discharge Predictor -->
+<div class="glass-card p-md rounded-xl flex flex-col gap-sm">
+<div class="flex justify-between items-start text-on-surface-variant">
+<span class="font-label-md text-label-md">خروج متوقع (24 ساعة)</span>
+<span class="material-symbols-outlined text-secondary">logout</span>
+</div>
+<div class="flex items-end gap-2">
+<span class="font-display-lg text-display-lg text-primary">48</span>
+<span class="text-on-surface-variant font-label-md text-label-md mb-2">سرير متاح</span>
+</div>
+<p class="text-caption font-caption text-on-surface-variant">توقيتات الخروج المجدولة مستقرة</p>
+</div>
+<!-- Critical Pathways -->
+<div class="glass-card p-md rounded-xl flex flex-col gap-sm">
+<div class="flex justify-between items-start text-on-surface-variant">
+<span class="font-label-md text-label-md">مسارات نشطة (حرجة)</span>
+<span class="material-symbols-outlined text-secondary">emergency</span>
+</div>
+<div class="flex items-end gap-2">
+<span class="font-display-lg text-display-lg text-primary">12</span>
+</div>
+<div class="flex -space-x-reverse space-x-2">
+<div class="bg-secondary-container text-on-secondary-container px-2 py-1 rounded-full text-caption font-medium">6 سكتة دماغية</div>
+<div class="bg-tertiary-fixed text-on-tertiary-fixed px-2 py-1 rounded-full text-caption font-medium">4 صدمة</div>
+</div>
+</div>
+</section>
+<!-- Real-Time Grid & Pathway Tracker -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-md">
+<!-- Heat Map / Occupancy Grid -->
+<div class="lg:col-span-2 glass-card p-md rounded-xl">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-headline-md text-headline-md text-primary">خريطة الإشغال في الوقت الفعلي</h3>
+<div class="flex gap-2">
+<span class="flex items-center gap-1 text-caption"><span class="w-3 h-3 bg-secondary rounded-sm"></span> متاح</span>
+<span class="flex items-center gap-1 text-caption"><span class="w-3 h-3 bg-tertiary-fixed-dim rounded-sm"></span> متوسط</span>
+<span class="flex items-center gap-1 text-caption"><span class="w-3 h-3 bg-error rounded-sm"></span> حرج</span>
+</div>
+</div>
+<div class="grid grid-cols-4 md:grid-cols-6 gap-sm">
+<!-- Example Grid Cells -->
+<script>
+                            const depts = ["ER", "ICU", "Ward A", "Ward B", "Clinic 1", "Clinic 2", "Lab", "Radiology", "OR 1", "OR 2", "NICU", "CCU"];
+                            const statuses = ["bg-error", "bg-secondary", "bg-tertiary-fixed-dim", "bg-secondary", "bg-secondary", "bg-error"];
+                            for (let i = 0; i < 24; i++) {
+                                const dept = depts[i % depts.length];
+                                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                                document.write(`
+                                    <div class="heat-map-cell ${status} bg-opacity-80 rounded-lg p-3 text-on-primary flex flex-col justify-between h-24 cursor-pointer">
+                                        <span class="text-caption font-bold">${dept} ${i+100}</span>
+                                        <div class="flex justify-between items-end">
+                                            <span class="text-display-sm font-bold">${Math.floor(Math.random() * 20) + 80}%</span>
+                                            <span class="material-symbols-outlined text-sm">sensors</span>
+                                        </div>
+                                    </div>
+                                `);
+                            }
+                        </script>
+</div>
+</div>
+<!-- Pathway Tracker -->
+<div class="glass-card p-md rounded-xl flex flex-col gap-md">
+<h3 class="font-headline-md text-headline-md text-primary">متتبع المسار الحرج</h3>
+<div class="space-y-md">
+<!-- Stroke Protocol Card -->
+<div class="border border-outline-variant/30 rounded-xl p-sm bg-surface-container-low">
+<div class="flex justify-between items-start mb-sm">
+<div>
+<p class="font-title-lg text-title-lg text-primary">بروتوكول السكتة الدماغية</p>
+<p class="text-caption text-on-surface-variant">مريض: #9942 - د. سارة</p>
+</div>
+<span class="bg-error text-on-error px-2 py-1 rounded text-caption animate-pulse">مستعجل</span>
+</div>
+<!-- Timeline Horizontal -->
+<div class="relative flex items-center justify-between py-md">
+<div class="absolute h-1 bg-outline-variant/30 w-full top-1/2 -translate-y-1/2"></div>
+<div class="absolute h-1 bg-secondary w-2/3 top-1/2 -translate-y-1/2"></div>
+<div class="relative z-10 flex flex-col items-center gap-1">
+<div class="w-6 h-6 rounded-full bg-secondary text-on-primary flex items-center justify-center text-[10px]">✓</div>
+<span class="text-[10px] font-medium text-on-surface-variant">الفرز</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-1">
+<div class="w-6 h-6 rounded-full bg-secondary text-on-primary flex items-center justify-center text-[10px]">✓</div>
+<span class="text-[10px] font-medium text-on-surface-variant">الأشعة</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-1">
+<div class="w-8 h-8 rounded-full bg-secondary border-4 border-surface text-on-primary flex items-center justify-center text-[12px] pathway-step-active">3</div>
+<span class="text-[10px] font-bold text-secondary">التقييم</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-1">
+<div class="w-6 h-6 rounded-full bg-surface-variant border-2 border-outline-variant text-outline flex items-center justify-center text-[10px]">4</div>
+<span class="text-[10px] font-medium text-outline">العلاج</span>
+</div>
+</div>
+<div class="mt-sm flex justify-between items-center text-caption border-t border-outline-variant/10 pt-sm">
+<span>الوقت المنقضي: 28 دقيقة</span>
+<span class="text-secondary font-bold">الهدف: &lt;60 دقيقة</span>
+</div>
+</div>
+<!-- Trauma Card -->
+<div class="border border-outline-variant/30 rounded-xl p-sm">
+<div class="flex justify-between items-start mb-sm">
+<div>
+<p class="font-title-lg text-title-lg text-primary">إصابة حوادث (Trauma)</p>
+<p class="text-caption text-on-surface-variant">مريض: #9120 - د. فهد</p>
+</div>
+</div>
+<div class="relative flex items-center justify-between py-md">
+<div class="absolute h-1 bg-outline-variant/30 w-full top-1/2 -translate-y-1/2"></div>
+<div class="absolute h-1 bg-secondary w-1/4 top-1/2 -translate-y-1/2"></div>
+<div class="relative z-10 w-6 h-6 rounded-full bg-secondary text-on-primary flex items-center justify-center text-[10px]">✓</div>
+<div class="relative z-10 w-8 h-8 rounded-full bg-secondary border-4 border-surface text-on-primary flex items-center justify-center text-[12px] pathway-step-active">2</div>
+<div class="relative z-10 w-6 h-6 rounded-full bg-surface-variant border-2 border-outline-variant text-outline flex items-center justify-center text-[10px]">3</div>
+<div class="relative z-10 w-6 h-6 rounded-full bg-surface-variant border-2 border-outline-variant text-outline flex items-center justify-center text-[10px]">4</div>
+</div>
+</div>
+</div>
+<button class="w-full py-3 bg-secondary text-on-primary rounded-lg font-label-md text-label-md flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add_circle</span>
+                        بدء مسار جديد
+                    </button>
+</div>
+</section>
+<!-- Discharge Planning & Analytics -->
+<section class="grid grid-cols-1 lg:grid-cols-4 gap-md">
+<!-- Discharge Module -->
+<div class="lg:col-span-3 glass-card p-md rounded-xl overflow-hidden">
+<div class="flex justify-between items-center mb-md">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">تخطيط الخروج وتوافر الأسرة</h3>
+<p class="text-caption text-on-surface-variant">المرضى المرشحون للخروج خلال 24 ساعة القادمة</p>
+</div>
+<div class="flex gap-2">
+<button class="px-4 py-2 bg-surface-container-low text-on-surface-variant rounded-lg text-label-md hover:bg-surface-variant transition-colors">طباعة القائمة</button>
+<button class="px-4 py-2 bg-primary text-on-primary rounded-lg text-label-md hover:opacity-90 transition-opacity">تأكيد الخروج الجماعي</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead class="border-b border-outline-variant/30 text-on-surface-variant font-label-md text-label-md">
+<tr>
+<th class="py-sm px-md">المريض</th>
+<th class="py-sm px-md">الجناح</th>
+<th class="py-sm px-md">الحالة السريرية</th>
+<th class="py-sm px-md">وقت الخروج المتوقع</th>
+<th class="py-sm px-md">المهام المتبقية</th>
+<th class="py-sm px-md">الإجراء</th>
+</tr>
+</thead>
+<tbody class="text-body-md font-body-md">
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low/50 transition-colors">
+<td class="py-md px-md">خالد بن محمد</td>
+<td class="py-md px-md">Ward A - B102</td>
+<td class="py-md px-md"><span class="bg-secondary/10 text-secondary px-2 py-1 rounded-full text-caption">مستقرة</span></td>
+<td class="py-md px-md">اليوم، 14:00</td>
+<td class="py-md px-md">
+<div class="flex gap-1">
+<span class="material-symbols-outlined text-sm text-secondary" title="Medication Ready">pill</span>
+<span class="material-symbols-outlined text-sm text-outline" title="Pending Transport">directions_car</span>
+</div>
+</td>
+<td class="py-md px-md">
+<button class="text-secondary hover:underline">عرض التفاصيل</button>
+</td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low/50 transition-colors">
+<td class="py-md px-md">سارة العتيبي</td>
+<td class="py-md px-md">ICU - Bed 04</td>
+<td class="py-md px-md"><span class="bg-tertiary-fixed-dim/20 text-on-tertiary-fixed-variant px-2 py-1 rounded-full text-caption">نقل للجناح</span></td>
+<td class="py-md px-md">غداً، 09:00</td>
+<td class="py-md px-md">
+<div class="flex gap-1">
+<span class="material-symbols-outlined text-sm text-error" title="Doctor Sign-off Required">edit</span>
+</div>
+</td>
+<td class="py-md px-md">
+<button class="text-secondary hover:underline">عرض التفاصيل</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-md px-md">إبراهيم الدوسري</td>
+<td class="py-md px-md">Ward B - B305</td>
+<td class="py-md px-md"><span class="bg-secondary/10 text-secondary px-2 py-1 rounded-full text-caption">مستقرة</span></td>
+<td class="py-md px-md">غداً، 11:30</td>
+<td class="py-md px-md">
+<div class="flex gap-1">
+<span class="material-symbols-outlined text-sm text-secondary">pill</span>
+<span class="material-symbols-outlined text-sm text-secondary">description</span>
+</div>
+</td>
+<td class="py-md px-md">
+<button class="text-secondary hover:underline">عرض التفاصيل</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Congestion Alerts -->
+<div class="glass-card p-md rounded-xl flex flex-col gap-md">
+<h3 class="font-headline-md text-headline-md text-primary">تنبيهات الازدحام</h3>
+<div class="space-y-sm">
+<div class="p-sm bg-error-container/20 border border-error/20 rounded-lg">
+<div class="flex items-center gap-2 text-error mb-xs">
+<span class="material-symbols-outlined">warning</span>
+<span class="font-bold text-label-md">ER - المستوى 1</span>
+</div>
+<p class="text-caption text-on-surface-variant">تجاوز عدد المرضى الطاقة الاستيعابية بـ 15٪. يوصى بتوجيه الحالات غير العاجلة.</p>
+</div>
+<div class="p-sm bg-tertiary-fixed/20 border border-tertiary-fixed/30 rounded-lg">
+<div class="flex items-center gap-2 text-on-tertiary-fixed-variant mb-xs">
+<span class="material-symbols-outlined">info</span>
+<span class="font-bold text-label-md">قسم الأشعة</span>
+</div>
+<p class="text-caption text-on-surface-variant">تأخير لمدة 30 دقيقة في نتائج MRI بسبب الصيانة الدورية.</p>
+</div>
+<div class="p-sm bg-secondary-container/20 border border-secondary/20 rounded-lg">
+<div class="flex items-center gap-2 text-secondary mb-xs">
+<span class="material-symbols-outlined">check_circle</span>
+<span class="font-bold text-label-md">قسم العمليات</span>
+</div>
+<p class="text-caption text-on-surface-variant">جميع غرف العمليات تعمل بكفاءة مع توفر غرفتين للطوارئ.</p>
+</div>
+</div>
+<button class="mt-auto py-2 text-secondary font-bold text-label-md hover:bg-secondary/10 rounded-lg transition-colors">إرسال تعميم للطوارئ</button>
+</div>
+</section>
+</div>
+<!-- Footer -->
+<footer class="w-full mt-xl border-t border-outline-variant/20 bg-surface-container-lowest dark:bg-surface-dim">
+<div class="flex justify-between items-center px-margin-desktop py-md max-w-[1440px] mx-auto w-full">
+<div class="flex items-center gap-md">
+<span class="font-label-md text-label-md font-bold text-primary">HEALAS</span>
+<p class="font-caption text-caption text-on-surface-variant">© 2024 Sovereign Healthcare Management. Regulated by MOH &amp; NCA.</p>
+</div>
+<nav class="flex gap-lg">
+<a class="text-outline hover:text-primary transition-colors underline-offset-4 hover:underline font-caption text-caption" href="#">Regulatory Standards</a>
+<a class="text-outline hover:text-primary transition-colors underline-offset-4 hover:underline font-caption text-caption" href="#">Data Privacy</a>
+<a class="text-outline hover:text-primary transition-colors underline-offset-4 hover:underline font-caption text-caption" href="#">Compliance Portal</a>
+</nav>
+</div>
+</footer>
+</main>
+<script>
+        // Micro-interaction for Heat Map Cells
+        document.querySelectorAll('.heat-map-cell').forEach(cell => {
+            cell.addEventListener('mouseenter', () => {
+                cell.style.filter = 'brightness(1.1)';
+            });
+            cell.addEventListener('mouseleave', () => {
+                cell.style.filter = 'brightness(1.0)';
+            });
+        });
+    </script>
+</body></html>

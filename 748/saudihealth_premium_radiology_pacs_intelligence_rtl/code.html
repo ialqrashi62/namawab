@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium - Radiology &amp; PACS Intelligence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+        }
+        .viewport-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        /* Custom scrollbar for medical data lists */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #c3c7ce;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#7df4ff",
+                        "surface-container-high": "#e7e8e9",
+                        "secondary-container": "#7af1fc",
+                        "inverse-surface": "#2e3132",
+                        "tertiary-fixed": "#ffdf9d",
+                        "outline": "#73777e",
+                        "on-primary-container": "#7293b6",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "on-primary": "#ffffff",
+                        "primary-fixed-dim": "#a8caef",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "on-surface-variant": "#42474d",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "on-secondary-container": "#006e75",
+                        "surface-variant": "#e1e3e4",
+                        "surface-container-low": "#f3f4f5",
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#002b49",
+                        "on-primary-fixed-variant": "#274969",
+                        "surface-tint": "#406182",
+                        "on-secondary-fixed": "#002022",
+                        "background": "#f8f9fa",
+                        "primary": "#001629",
+                        "inverse-on-surface": "#f0f1f2",
+                        "surface-container": "#edeeef",
+                        "surface": "#f8f9fa",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#cfe5ff",
+                        "on-primary-fixed": "#001d34",
+                        "secondary": "#006970",
+                        "on-surface": "#191c1d",
+                        "outline-variant": "#c3c7ce",
+                        "tertiary-container": "#362700",
+                        "inverse-primary": "#a8caef",
+                        "on-tertiary-fixed": "#251a00",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "tertiary": "#1d1300",
+                        "surface-dim": "#d9dadb",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-background": "#191c1d",
+                        "surface-bright": "#f8f9fa",
+                        "on-tertiary-container": "#ac8c44"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "md": "24px",
+                        "margin-desktop": "48px",
+                        "margin-mobile": "16px",
+                        "xs": "4px",
+                        "gutter": "24px",
+                        "xl": "64px",
+                        "sm": "12px",
+                        "lg": "40px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["IBM Plex Sans"],
+                        "caption": ["IBM Plex Sans"],
+                        "headline-lg": ["IBM Plex Sans"],
+                        "title-lg": ["IBM Plex Sans"],
+                        "label-md": ["IBM Plex Sans"],
+                        "display-lg": ["IBM Plex Sans"],
+                        "body-md": ["IBM Plex Sans"],
+                        "body-lg": ["IBM Plex Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 fixed top-0 w-full h-20 z-50 flex flex-row-reverse justify-between items-center px-margin-desktop shadow-sm">
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md font-bold text-primary">SaudiHealth Premium</span>
+<div class="h-8 w-[1px] bg-outline-variant mx-sm"></div>
+<nav class="hidden md:flex flex-row-reverse gap-lg">
+<a class="text-secondary border-b-2 border-secondary pb-1 font-label-md text-label-md" href="#">Directory</a>
+<a class="text-on-surface-variant hover:text-primary transition-all duration-300 font-label-md text-label-md" href="#">Requests</a>
+<a class="text-on-surface-variant hover:text-primary transition-all duration-300 font-label-md text-label-md" href="#">Governance</a>
+<a class="text-on-surface-variant hover:text-primary transition-all duration-300 font-label-md text-label-md" href="#">Compliance</a>
+</nav>
+</div>
+<div class="flex flex-row-reverse items-center gap-md">
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="bg-surface-container-low border-none rounded-lg pr-10 pl-4 py-2 w-64 focus:ring-2 focus:ring-secondary text-body-md font-body-md" placeholder="Search Patient ID or Study..." type="text"/>
+</div>
+<div class="flex gap-sm">
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-all duration-300 relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-all duration-300">
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</button>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-secondary-container">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="A professional headshot of a middle-aged Saudi radiologist in a clean white medical lab coat, wearing a stethoscope. The background is a blurred high-tech medical facility with soft blue and teal ambient lighting. The style is crisp, high-definition corporate photography with a warm, trustworthy atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAIovUjhTQXehY-bAFRUPF_z1EwvnvLzNUKmlQTTVvoaWTwejqGt5YmHLnq0odtfrkauMb4A2SMQXNxyzuGP9RZKgUPGD_QFFN1HWF8c_CsZhqONkeM9RPRiuc1sOOuebD2UJu6vbZSwT-fN4xJpaNmB_2sIyvp1m8HNxhEJ-3nBg6vnMTdehCtPNFD9nNh-lxs6_R8AF1LgZ_EG7bu7aTPKNgtOY1zZv-LyBVONM6W9nERfOJxb-Y-gC87tlN0KtMdsK1X_F99SMb"/>
+</div>
+</div>
+</header>
+<!-- Side Navigation Rail (Right) -->
+<aside class="fixed right-0 top-0 h-screen w-72 bg-surface-container-lowest flex flex-col z-40 py-lg px-md pt-24 border-l border-outline-variant/30 shadow-md">
+<div class="mb-lg px-md">
+<div class="flex flex-row-reverse items-center gap-sm mb-xs">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">radiology</span>
+<span class="font-title-lg text-title-lg font-bold text-primary">IAM Console</span>
+</div>
+<p class="text-on-surface-variant font-body-md text-sm opacity-70">Enterprise Healthcare</p>
+</div>
+<nav class="flex-grow flex flex-col gap-xs">
+<a class="flex flex-row-reverse items-center gap-md bg-secondary-container text-on-secondary-container rounded-lg p-md font-label-md text-label-md transition-all duration-200 translate-x-1" href="#">
+<span class="material-symbols-outlined">badge</span>
+<span>Identity Center</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:bg-surface-container-high hover:text-primary p-md font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">approval_delegation</span>
+<span>Access Workflows</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:bg-surface-container-high hover:text-primary p-md font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">security</span>
+<span>RBAC Configuration</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:bg-surface-container-high hover:text-primary p-md font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span>Security Governance</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:bg-surface-container-high hover:text-primary p-md font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span>Audit Logs</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:bg-surface-container-high hover:text-primary p-md font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">corporate_fare</span>
+<span>Departmental Settings</span>
+</a>
+</nav>
+<div class="mt-auto px-md flex flex-col gap-sm">
+<button class="w-full py-3 bg-primary text-on-primary rounded-xl font-label-md text-label-md shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined">add</span>
+<span>New Access Request</span>
+</button>
+<div class="border-t border-outline-variant/30 pt-md mt-md">
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:text-primary p-sm font-label-md" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+<span>Support</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-error hover:opacity-80 p-sm font-label-md" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="mr-72 pt-24 px-margin-desktop pb-xl">
+<!-- Dashboard Header -->
+<header class="mb-lg">
+<h1 class="font-headline-lg text-headline-lg text-primary mb-xs">Radiology &amp; PACS Intelligence</h1>
+<p class="text-on-surface-variant font-body-md">Live clinical imaging stream and diagnostic performance tracking.</p>
+</header>
+<!-- Analytics Overview Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-gutter mb-lg">
+<div class="glass-card p-md rounded-xl flex flex-col gap-sm shadow-sm border border-outline-variant/30">
+<div class="flex justify-between items-start">
+<div class="p-2 bg-secondary/10 rounded-lg">
+<span class="material-symbols-outlined text-secondary">timer</span>
+</div>
+<span class="text-secondary font-label-md text-xs bg-secondary-container px-2 py-1 rounded-full">-12% vs last week</span>
+</div>
+<div>
+<p class="text-on-surface-variant font-label-md">Avg. Wait Time</p>
+<h2 class="text-headline-md font-bold text-primary">14.2 Min</h2>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col gap-sm shadow-sm border border-outline-variant/30">
+<div class="flex justify-between items-start">
+<div class="p-2 bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary">analytics</span>
+</div>
+<span class="text-on-surface-variant font-label-md text-xs bg-surface-container-high px-2 py-1 rounded-full">Optimal</span>
+</div>
+<div>
+<p class="text-on-surface-variant font-label-md">Throughput Ratio</p>
+<h2 class="text-headline-md font-bold text-primary">92%</h2>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col gap-sm shadow-sm border border-outline-variant/30">
+<div class="flex justify-between items-start">
+<div class="p-2 bg-error/10 rounded-lg">
+<span class="material-symbols-outlined text-error">priority_high</span>
+</div>
+<span class="text-error font-label-md text-xs bg-error-container px-2 py-1 rounded-full">3 Urgent</span>
+</div>
+<div>
+<p class="text-on-surface-variant font-label-md">Critical AI Flags</p>
+<h2 class="text-headline-md font-bold text-primary">07</h2>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col gap-sm shadow-sm border border-outline-variant/30">
+<div class="flex justify-between items-start">
+<div class="p-2 bg-on-tertiary-container/10 rounded-lg">
+<span class="material-symbols-outlined text-on-tertiary-container">groups</span>
+</div>
+<span class="text-on-tertiary-container font-label-md text-xs bg-tertiary-fixed px-2 py-1 rounded-full">9 Active</span>
+</div>
+<div>
+<p class="text-on-surface-variant font-label-md">Radiologists On-Duty</p>
+<h2 class="text-headline-md font-bold text-primary">12</h2>
+</div>
+</div>
+</div>
+<!-- Main Layout Grid -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- PACS Viewport (Left Column) -->
+<div class="col-span-12 lg:col-span-8">
+<div class="glass-card rounded-xl shadow-sm overflow-hidden flex flex-col">
+<div class="p-md border-b border-outline-variant/30 flex justify-between items-center bg-primary/5">
+<h3 class="font-title-lg text-title-lg text-primary flex items-center gap-sm">
+<span class="material-symbols-outlined">grid_view</span>
+                            Live PACS Viewport
+                        </h3>
+<div class="flex gap-sm">
+<select class="bg-surface border border-outline-variant rounded-lg text-label-md px-4 py-1.5 focus:ring-secondary">
+<option>All Modalities</option>
+<option>MRI</option>
+<option>CT Scan</option>
+<option>X-Ray</option>
+</select>
+<button class="bg-surface hover:bg-surface-container-high p-2 rounded-lg border border-outline-variant transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">filter_list</span>
+</button>
+</div>
+</div>
+<div class="p-md viewport-grid bg-primary/10 min-h-[600px]">
+<!-- PACS Card 1 -->
+<div class="group relative rounded-lg overflow-hidden bg-black border-2 border-error/50 hover:border-error transition-all cursor-pointer">
+<img alt="MRI Scan Brain" class="w-full h-48 object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="A detailed grayscale MRI scan of a human brain displayed on a clinical diagnostic monitor. The image is crisp with visible neurological structures. A red semi-transparent bounding box highlight's a specific area in the parietal lobe with an 'AI-FLAG' label next to it. The overall aesthetic is scientific, dark, and highly technical." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5sROI-w-3M4k5IDLhYZjGhSUGPUCjyNwYAbKhINEYzy2um4lcYGM3tJJyFW8aS0xWnpTJjsgjefeLNla5Q4x5YUmPwt94vL0y8vGCJhGrxzv9zWBuxWpZB_wfU3ZCVJHuHG9FQDyD7ZS8EzBuWceS727LIK__p4y6TZAxaEzxMaFY4PauBZfrai5tyGL5lO1bVhpTyYg1r4_jggw6IzfEwEuGPcL_0SVvAW8VoIbKf1Ps8hTAxbWO6r1nQGIdG8z2jqNEBlI7Lt08"/>
+<div class="absolute top-2 right-2 flex flex-col gap-1 items-end">
+<span class="bg-error text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase">CRITICAL</span>
+<span class="bg-black/60 backdrop-blur-md text-white text-[10px] px-2 py-0.5 rounded border border-white/20">MRI Brain</span>
+</div>
+<div class="p-3 bg-gradient-to-t from-black to-transparent text-white">
+<p class="text-label-md font-bold">#PT-4429 • Amina K.</p>
+<p class="text-[11px] opacity-70">Scan Time: 09:42 • Dr. Mansour</p>
+</div>
+<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-primary/20 backdrop-blur-[2px] transition-all">
+<button class="bg-secondary text-white px-4 py-2 rounded-lg font-label-md shadow-lg">Open Viewer</button>
+</div>
+</div>
+<!-- PACS Card 2 -->
+<div class="group relative rounded-lg overflow-hidden bg-black border-2 border-outline-variant/30 hover:border-secondary transition-all cursor-pointer">
+<img alt="X-Ray Chest" class="w-full h-48 object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="A high-contrast chest X-ray showing the ribcage and lungs in white against a deep black background. The image is displayed within a professional medical software interface with subtle technical overlays. The lighting is cold and clinical, emphasizing the fine details of the skeletal structure. The style is modern medical imaging, clean and precise." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMQbnEr4MjcrwnafTw046m6pu5yUEdR2trAhZ_j3PY9pnRXTzoJr1DJrhQ3WXBcvGfzVA9IB5HdLrm7PK0RkAhyQ0n8GeQnY5UJcL5WHJqYwI9Fwy4FLd3PVS3x5xXGv2MWfC-UUoCaowPRORAmIJYyD4VnQh-eINb-zIWO30ic_SjFWUa1Ysb-uC7UiOin86Ed2OiGpmPk0opchfjhUfI59cDXy5EP86v7JF27ypcyqApEe8OXqqXk_r1RMVxkwZxVg7bzbc_9114"/>
+<div class="absolute top-2 right-2 flex flex-col gap-1 items-end">
+<span class="bg-secondary text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase">ROUTINE</span>
+<span class="bg-black/60 backdrop-blur-md text-white text-[10px] px-2 py-0.5 rounded border border-white/20">Chest X-Ray</span>
+</div>
+<div class="p-3 bg-gradient-to-t from-black to-transparent text-white">
+<p class="text-label-md font-bold">#PT-5102 • Faisal A.</p>
+<p class="text-[11px] opacity-70">Scan Time: 10:15 • Dr. Sarah</p>
+</div>
+<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-primary/20 backdrop-blur-[2px] transition-all">
+<button class="bg-secondary text-white px-4 py-2 rounded-lg font-label-md shadow-lg">Open Viewer</button>
+</div>
+</div>
+<!-- PACS Card 3 -->
+<div class="group relative rounded-lg overflow-hidden bg-black border-2 border-on-tertiary-container/30 hover:border-on-tertiary-container transition-all cursor-pointer">
+<img alt="CT Scan Abdomen" class="w-full h-48 object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="A horizontal cross-section CT scan of a human abdomen. The internal organs are rendered in varying shades of gray and white. Digital measurement markers and technical metadata are overlaid on the image in a soft cyan color. The image environment is a premium dark-themed medical diagnostic suite, emphasizing clarity and advanced technology." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCc3iG9mPYztgM3nd77_ebftM-L6Rezpmu30O4QFmxp4PCm_I-yBvS6eqJiJrjFtS7Oy0W3xLKlEsebUzQ1SVJg5gdCHZM7EpA-zaR1CyhBJBIPdd21Kj6WUxw9KQEtlS5nmKZGdinawKSfMw_MSvNsidHePwTJuH5fY7TbXtL-6YTHfVsO1VEDmtS2NnN2dvky_tpefSSOq3IdNK1XVTTN5Nhj0BgQaxE4kN3cd_7LRAc7dB6SJS6i5zRS7_imaM2M4keEXSfSZ5We"/>
+<div class="absolute top-2 right-2 flex flex-col gap-1 items-end">
+<span class="bg-on-tertiary-container text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase">STAT</span>
+<span class="bg-black/60 backdrop-blur-md text-white text-[10px] px-2 py-0.5 rounded border border-white/20">Abdomen CT</span>
+</div>
+<div class="p-3 bg-gradient-to-t from-black to-transparent text-white">
+<p class="text-label-md font-bold">#PT-3381 • Nora M.</p>
+<p class="text-[11px] opacity-70">Scan Time: 10:45 • Dr. Khalid</p>
+</div>
+<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-primary/20 backdrop-blur-[2px] transition-all">
+<button class="bg-secondary text-white px-4 py-2 rounded-lg font-label-md shadow-lg">Open Viewer</button>
+</div>
+</div>
+<!-- PACS Card 4 (Placeholder) -->
+<div class="group relative rounded-lg overflow-hidden bg-black border-2 border-outline-variant/30 border-dashed hover:border-secondary transition-all cursor-pointer flex items-center justify-center min-h-[192px]">
+<div class="text-center text-outline">
+<span class="material-symbols-outlined text-4xl mb-2">hourglass_empty</span>
+<p class="text-label-md">Waiting for Upload...</p>
+<p class="text-[10px]">Room 04 - Lumbar Spine</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Side Panels (Right Column) -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-gutter">
+<!-- Clinical Throughput Analytics -->
+<div class="glass-card rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden">
+<div class="p-md border-b border-outline-variant/30 flex justify-between items-center">
+<h3 class="font-title-lg text-title-lg text-primary">Clinical Throughput</h3>
+<span class="material-symbols-outlined text-secondary">trending_up</span>
+</div>
+<div class="p-md space-y-lg">
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="text-label-md text-on-surface-variant">Scan Processing Time</span>
+<span class="text-label-md font-bold text-primary">8.5 min avg</span>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[65%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="text-label-md text-on-surface-variant">Report Turnaround Time</span>
+<span class="text-label-md font-bold text-primary">45.2 min avg</span>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-on-tertiary-container w-[82%]"></div>
+</div>
+</div>
+<div class="p-md bg-secondary/5 rounded-lg border border-secondary/10 mt-md">
+<p class="text-caption text-secondary font-bold uppercase mb-1">Intelligence Insight</p>
+<p class="text-body-md text-sm text-primary">Throughput has improved by <span class="font-bold">14%</span> since the AI pre-routing update. Peak demand expected at 14:00.</p>
+</div>
+</div>
+</div>
+<!-- AI Diagnostic Flags -->
+<div class="glass-card rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden">
+<div class="p-md border-b border-outline-variant/30 bg-error/5">
+<h3 class="font-title-lg text-title-lg text-error flex items-center gap-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">warning</span>
+                            Critical AI Flags
+                        </h3>
+</div>
+<div class="custom-scroll overflow-y-auto max-h-[300px]">
+<!-- Flag 1 -->
+<div class="p-md border-b border-outline-variant/10 hover:bg-surface-container transition-colors cursor-pointer">
+<div class="flex justify-between mb-1">
+<span class="text-label-md font-bold text-primary">#PT-4429 - Amina K.</span>
+<span class="text-[10px] text-error font-bold px-1.5 border border-error rounded">98% CONFIDENCE</span>
+</div>
+<p class="text-body-md text-sm text-on-surface-variant mb-2">Potential acute intracranial hemorrhage detected in parietal lobe.</p>
+<div class="flex gap-sm">
+<button class="text-xs bg-primary text-on-primary px-3 py-1 rounded-full">Assign STAT</button>
+<button class="text-xs bg-surface border border-outline-variant px-3 py-1 rounded-full">Dismiss</button>
+</div>
+</div>
+<!-- Flag 2 -->
+<div class="p-md border-b border-outline-variant/10 hover:bg-surface-container transition-colors cursor-pointer">
+<div class="flex justify-between mb-1">
+<span class="text-label-md font-bold text-primary">#PT-1102 - Omar S.</span>
+<span class="text-[10px] text-on-tertiary-container font-bold px-1.5 border border-on-tertiary-container rounded">82% CONFIDENCE</span>
+</div>
+<p class="text-body-md text-sm text-on-surface-variant mb-2">Pulmonary embolism suspected. Segmental artery occlusion.</p>
+<div class="flex gap-sm">
+<button class="text-xs bg-primary text-on-primary px-3 py-1 rounded-full">Assign STAT</button>
+<button class="text-xs bg-surface border border-outline-variant px-3 py-1 rounded-full">Dismiss</button>
+</div>
+</div>
+<!-- Flag 3 -->
+<div class="p-md border-b border-outline-variant/10 hover:bg-surface-container transition-colors cursor-pointer">
+<div class="flex justify-between mb-1">
+<span class="text-label-md font-bold text-primary">#PT-8832 - Sara L.</span>
+<span class="text-[10px] text-on-tertiary-container font-bold px-1.5 border border-on-tertiary-container rounded">75% CONFIDENCE</span>
+</div>
+<p class="text-body-md text-sm text-on-surface-variant mb-2">Complex fracture detection: T12 vertebrae compression.</p>
+<div class="flex gap-sm">
+<button class="text-xs bg-primary text-on-primary px-3 py-1 rounded-full">Assign STAT</button>
+<button class="text-xs bg-surface border border-outline-variant px-3 py-1 rounded-full">Dismiss</button>
+</div>
+</div>
+</div>
+<button class="w-full py-3 text-secondary font-label-md hover:bg-secondary/5 transition-colors">View All Flags</button>
+</div>
+<!-- Radiologist Workload -->
+<div class="glass-card rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden">
+<div class="p-md border-b border-outline-variant/30 flex justify-between items-center">
+<h3 class="font-title-lg text-title-lg text-primary">Staff Workload</h3>
+<span class="material-symbols-outlined text-outline">group</span>
+</div>
+<div class="p-md space-y-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full bg-primary-fixed text-primary flex items-center justify-center font-bold text-xs">DM</div>
+<div class="flex-grow">
+<div class="flex justify-between mb-1">
+<span class="text-label-md text-primary font-bold">Dr. Mansour</span>
+<span class="text-[10px] text-error font-bold">CRITICAL LOAD</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container rounded-full">
+<div class="h-full bg-error w-[95%]"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full bg-secondary-fixed text-secondary flex items-center justify-center font-bold text-xs">SA</div>
+<div class="flex-grow">
+<div class="flex justify-between mb-1">
+<span class="text-label-md text-primary font-bold">Dr. Sarah</span>
+<span class="text-[10px] text-secondary font-bold">OPTIMAL</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container rounded-full">
+<div class="h-full bg-secondary w-[42%]"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full bg-tertiary-fixed text-tertiary flex items-center justify-center font-bold text-xs">KH</div>
+<div class="flex-grow">
+<div class="flex justify-between mb-1">
+<span class="text-label-md text-primary font-bold">Dr. Khalid</span>
+<span class="text-[10px] text-on-tertiary-container font-bold">BALANCED</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container rounded-full">
+<div class="h-full bg-on-tertiary-container w-[68%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Mobile only) -->
+<footer class="md:hidden fixed bottom-0 w-full bg-surface border-t border-outline-variant/30 h-16 flex justify-around items-center z-50">
+<button class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-[10px] font-label-md">Dashboard</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="text-[10px] font-label-md">PACS</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">warning</span>
+<span class="text-[10px] font-label-md">Flags</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-label-md">Profile</span>
+</button>
+</footer>
+<script>
+        // Simple interactivity for demonstration
+        document.querySelectorAll('.viewport-grid > div').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.classList.add('scale-[1.02]');
+            });
+            card.addEventListener('mouseleave', () => {
+                card.classList.remove('scale-[1.02]');
+            });
+        });
+
+        // Search highlight interaction
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('ring-2', 'ring-secondary/20');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('ring-2', 'ring-secondary/20');
+        });
+    </script>
+</body></html>

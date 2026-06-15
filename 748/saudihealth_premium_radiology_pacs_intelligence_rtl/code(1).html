@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | RIS/PACS Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+        }
+        .ai-pulse {
+            animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 2px #5dd8e2); }
+            50% { opacity: 0.7; filter: drop-shadow(0 0 8px #5dd8e2); }
+        }
+        .worklist-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .worklist-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .worklist-scroll::-webkit-scrollbar-thumb {
+            background: #c3c7ce;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-low": "#f3f4f5",
+                      "on-secondary": "#ffffff",
+                      "secondary-fixed-dim": "#5dd8e2",
+                      "on-secondary-container": "#006e75",
+                      "surface-variant": "#e1e3e4",
+                      "on-tertiary-fixed-variant": "#5b4300",
+                      "on-surface-variant": "#42474d",
+                      "on-error": "#ffffff",
+                      "surface-tint": "#406182",
+                      "on-secondary-fixed": "#002022",
+                      "on-primary-fixed-variant": "#274969",
+                      "primary-container": "#002b49",
+                      "error-container": "#ffdad6",
+                      "tertiary-fixed": "#ffdf9d",
+                      "outline": "#73777e",
+                      "on-primary-container": "#7293b6",
+                      "inverse-surface": "#2e3132",
+                      "surface-container-high": "#e7e8e9",
+                      "secondary-container": "#7af1fc",
+                      "surface-container-lowest": "#ffffff",
+                      "secondary-fixed": "#7df4ff",
+                      "primary-fixed-dim": "#a8caef",
+                      "on-primary": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "tertiary-fixed-dim": "#e6c274",
+                      "on-secondary-fixed-variant": "#004f54",
+                      "tertiary": "#1d1300",
+                      "surface-dim": "#d9dadb",
+                      "on-tertiary-fixed": "#251a00",
+                      "on-tertiary": "#ffffff",
+                      "surface-bright": "#f8f9fa",
+                      "on-tertiary-container": "#ac8c44",
+                      "on-background": "#191c1d",
+                      "surface-container-highest": "#e1e3e4",
+                      "error": "#ba1a1a",
+                      "primary-fixed": "#cfe5ff",
+                      "surface-container": "#edeeef",
+                      "surface": "#f8f9fa",
+                      "background": "#f8f9fa",
+                      "primary": "#001629",
+                      "inverse-on-surface": "#f0f1f2",
+                      "outline-variant": "#c3c7ce",
+                      "tertiary-container": "#362700",
+                      "inverse-primary": "#a8caef",
+                      "on-surface": "#191c1d",
+                      "secondary": "#006970",
+                      "on-primary-fixed": "#001d34"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xs": "4px",
+                      "gutter": "24px",
+                      "xl": "64px",
+                      "sm": "12px",
+                      "lg": "40px",
+                      "margin-mobile": "16px",
+                      "md": "24px",
+                      "margin-desktop": "48px",
+                      "base": "8px"
+              },
+              "fontFamily": {
+                      "body-lg": ["IBM Plex Sans"],
+                      "display-lg": ["IBM Plex Sans"],
+                      "body-md": ["IBM Plex Sans"],
+                      "title-lg": ["IBM Plex Sans"],
+                      "label-md": ["IBM Plex Sans"],
+                      "display-lg-mobile": ["IBM Plex Sans"],
+                      "headline-lg": ["IBM Plex Sans"],
+                      "headline-md": ["IBM Plex Sans"],
+                      "caption": ["IBM Plex Sans"]
+              },
+              "fontSize": {
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen flex overflow-hidden">
+<!-- SideNavBar (Immutable Content & Mandatory Styling) -->
+<aside class="fixed top-0 right-0 h-full w-64 z-50 bg-primary flex flex-col py-md rtl shadow-xl border-l border-outline-variant/30">
+<div class="px-6 mb-8">
+<h1 class="font-headline-md text-headline-md font-bold text-on-primary">SaudiHealth</h1>
+<p class="text-on-primary/60 text-caption">Premium Healthcare</p>
+</div>
+<nav class="flex-1 space-y-2">
+<!-- Active State: Dashboard -->
+<a class="bg-secondary-container text-on-secondary-container rounded-lg mx-2 flex items-center gap-3 px-4 py-3 active:scale-[0.98] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">لوحة القيادة</span>
+</a>
+<a class="text-on-primary/70 hover:text-on-primary hover:bg-white/10 rounded-lg transition-all duration-200 flex items-center gap-3 px-4 py-3 mx-2 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md text-label-md">المرضى</span>
+</a>
+<a class="text-on-primary/70 hover:text-on-primary hover:bg-white/10 rounded-lg transition-all duration-200 flex items-center gap-3 px-4 py-3 mx-2 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="font-label-md text-label-md">المواعيد</span>
+</a>
+<a class="text-on-primary/70 hover:text-on-primary hover:bg-white/10 rounded-lg transition-all duration-200 flex items-center gap-3 px-4 py-3 mx-2 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="font-label-md text-label-md">السجلات الطبية</span>
+</a>
+<a class="text-on-primary/70 hover:text-on-primary hover:bg-white/10 rounded-lg transition-all duration-200 flex items-center gap-3 px-4 py-3 mx-2 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-md text-label-md">التقارير</span>
+</a>
+<a class="text-on-primary/70 hover:text-on-primary hover:bg-white/10 rounded-lg transition-all duration-200 flex items-center gap-3 px-4 py-3 mx-2 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">الإعدادات</span>
+</a>
+</nav>
+<div class="px-4 py-4 space-y-2 border-t border-white/10">
+<button class="w-full bg-secondary text-on-secondary py-3 rounded-xl font-label-md transition-all active:scale-95 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                إضافة مريض جديد
+            </button>
+<a class="text-on-primary/70 hover:text-on-primary flex items-center gap-3 px-4 py-2 text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+                مركز المساعدة
+            </a>
+<a class="text-error-container hover:text-error flex items-center gap-3 px-4 py-2 text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                تسجيل الخروج
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 mr-64 flex flex-col h-screen overflow-hidden">
+<!-- TopNavBar (Immutable Content & Mandatory Styling) -->
+<header class="flex flex-row-reverse justify-between items-center px-margin-desktop h-16 w-full z-40 bg-white/80 backdrop-blur-md shadow-[0px_10px_30px_rgba(0,43,73,0.05)] docked full-width top-0">
+<div class="flex items-center gap-md">
+<div class="relative">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer" data-icon="notifications">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-error rounded-full"></span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer" data-icon="settings">settings</span>
+<div class="flex items-center gap-sm mr-4">
+<div class="text-right hidden md:block">
+<p class="font-label-md text-label-md text-primary font-bold">د. خالد العتيبي</p>
+<p class="text-caption text-on-surface-variant">استشاري أشعة</p>
+</div>
+<img alt="Medical Practitioner Profile Avatar" class="w-10 h-10 rounded-full object-cover border-2 border-secondary/20" data-alt="A professional medical headshot of a middle-aged male doctor with a kind expression, wearing a pristine white lab coat and a stethoscope around his neck. The setting is a brightly lit, modern clinical corridor with soft blue and white tones, reflecting a high-trust healthcare environment. The image is captured with a shallow depth of field, keeping the focus sharp on the physician's face." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjKuuUerw0p0le3H4UWnK1PNDYZZuaMZMPpVmK91gg74NRj4vqjFn7daJayUF4HLZIkbj-4NNnRmYohHnvuYIRYw1zMEGPB-ynaMUhvkehasLNBY1_WdeKkkVmtYBwfTLyjbcdMkcTrOc4wVuFxyVIIxaMv61hEILnxeLNEIet43kO4YLsyRAaRjzTDs8EMo-aHgB7znVbZGhcxTcr4zcZZhLI3tveNo_CzruNLCTPZQZiPjQ6pl5sf7f7b0SEBtS9t2XidHXNrEMK"/>
+</div>
+</div>
+<div class="flex-1 max-w-xl mx-gutter">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full bg-surface-bright border-none rounded-full pr-12 pl-4 py-2 text-body-md focus:ring-2 focus:ring-secondary/50 placeholder:text-on-surface-variant/50" placeholder="البحث عن مرضى، صور، أو تقارير..." type="text"/>
+</div>
+</div>
+<div class="font-headline-md text-headline-md font-bold text-primary">SaudiHealth Premium</div>
+</header>
+<!-- Dashboard Body -->
+<div class="flex-1 p-gutter overflow-y-auto space-y-lg">
+<!-- Page Header -->
+<div class="flex items-end justify-between">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary">نظام إدارة الأشعة (RIS)</h2>
+<p class="text-body-md text-on-surface-variant">تكامل ذكي لتحليل وتصنيف الصور الطبية بالذكاء الاصطناعي</p>
+</div>
+<div class="flex gap-sm">
+<div class="glass-card px-4 py-2 rounded-xl flex items-center gap-2 border-secondary/20">
+<span class="w-2 h-2 rounded-full bg-secondary-fixed-dim ai-pulse"></span>
+<span class="text-label-md text-secondary font-bold">الذكاء الاصطناعي نشط</span>
+</div>
+</div>
+</div>
+<!-- Bento Grid Dashboard -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- PACS Viewer Section (Brain MRI Deep Dive) -->
+<div class="col-span-12 lg:col-span-8 space-y-md">
+<div class="glass-card rounded-xl overflow-hidden flex flex-col h-[600px] border-outline-variant/20 shadow-xl">
+<!-- PACS Header -->
+<div class="bg-primary px-6 py-3 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary-fixed" data-icon="biotech">biotech</span>
+<h3 class="text-on-primary font-title-lg">عرض الحالة: #MRI-9942 - مريض: أحمد م.</h3>
+</div>
+<div class="flex items-center gap-3">
+<button class="p-2 text-on-primary/70 hover:text-on-primary transition-colors"><span class="material-symbols-outlined" data-icon="zoom_in">zoom_in</span></button>
+<button class="p-2 text-on-primary/70 hover:text-on-primary transition-colors"><span class="material-symbols-outlined" data-icon="contrast">contrast</span></button>
+<button class="p-2 text-on-primary/70 hover:text-on-primary transition-colors"><span class="material-symbols-outlined" data-icon="layers">layers</span></button>
+<div class="h-6 w-[1px] bg-white/20 mx-2"></div>
+<button class="px-4 py-1.5 bg-secondary-container text-on-secondary-container rounded-lg text-label-md font-bold">اعتماد التقرير</button>
+</div>
+</div>
+<!-- PACS Canvas Area -->
+<div class="flex-1 flex relative bg-black">
+<!-- PACS Sidebar (Tools) -->
+<div class="w-16 bg-primary-container border-l border-white/5 flex flex-col items-center py-4 gap-6">
+<span class="material-symbols-outlined text-on-primary-container cursor-pointer hover:text-secondary-fixed transition-colors" data-icon="polyline" style="font-variation-settings: 'FILL' 1;">polyline</span>
+<span class="material-symbols-outlined text-on-primary-container cursor-pointer hover:text-secondary-fixed transition-colors" data-icon="square_foot">square_foot</span>
+<span class="material-symbols-outlined text-on-primary-container cursor-pointer hover:text-secondary-fixed transition-colors" data-icon="circle">circle</span>
+<span class="material-symbols-outlined text-secondary-fixed cursor-pointer" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<div class="mt-auto">
+<span class="material-symbols-outlined text-on-primary-container cursor-pointer" data-icon="grid_view">grid_view</span>
+</div>
+</div>
+<!-- Main Image Area -->
+<div class="flex-1 relative group cursor-crosshair">
+<img class="w-full h-full object-contain opacity-90" data-alt="A detailed axial view brain MRI scan displayed on a professional medical workstation monitor. The scan shows high-contrast grey and white matter structures of the human brain against a deep black background. Superimposed over the right hemisphere is a translucent, neon-teal AI-generated annotation bounding box highlighting a specific region. Technical medical data and histograms are faintly visible in the margins, creating a sophisticated radiological diagnostic atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-QfSHLeqtM7kgZr47j2OdmGHilTe6GxCRsCsBgqVLFUQ9fM3gYDRUdASlwA0t7oWJbtA-1rO5K2KqNxJL2E9XzckCYAXLB8bI9tglv9EbrPBXBqCxywM21MLDH1qjAcEk2c9LqP-J-fRMkUSyKVWT1jyXpCbcEFDMM5-LjgoTVyzMVEr0XBpi7GCfME0QZd_0UOEsyQ6S6leEbqSfp1cRh11sQg88XCW84HObCq-Xgq9Syhw13zPyrTGVouzdD-60fPhU8C34pUu0"/>
+<!-- AI Overlays -->
+<div class="absolute inset-0 pointer-events-none">
+<!-- ROI Box -->
+<div class="absolute top-1/4 right-1/4 w-32 h-32 border-2 border-secondary-fixed-dim rounded-lg shadow-[0_0_15px_rgba(93,216,226,0.4)]">
+<div class="absolute -top-6 right-0 bg-secondary-fixed-dim text-primary px-2 py-0.5 text-caption font-bold rounded">
+                                            احتمالية ورم: 94.2%
+                                        </div>
+</div>
+<!-- Crosshair lines simulation -->
+<div class="absolute top-1/2 left-0 w-full h-[1px] bg-secondary-fixed-dim/20"></div>
+<div class="absolute top-0 left-1/2 h-full w-[1px] bg-secondary-fixed-dim/20"></div>
+</div>
+<!-- Image Metadata Overlay -->
+<div class="absolute bottom-6 right-6 text-white/60 text-caption font-mono space-y-1 bg-black/40 p-4 rounded-lg backdrop-blur-sm">
+<p>Series: 402 [Axial T2]</p>
+<p>Slice: 14 / 24</p>
+<p>TR: 4000ms TE: 100ms</p>
+<p>Zoom: 145%</p>
+</div>
+</div>
+<!-- AI Analysis Panel (Right Overlay) -->
+<div class="absolute left-6 top-6 w-56 glass-card bg-primary-container/40 border-white/10 rounded-xl p-4 text-on-primary">
+<h4 class="font-bold text-label-md mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-fixed text-sm" data-icon="bolt">bolt</span>
+                                    تحليل ذكي فوري
+                                </h4>
+<div class="space-y-4">
+<div class="bg-white/10 p-2 rounded-lg">
+<div class="flex justify-between text-caption mb-1">
+<span>كثافة الأنسجة</span>
+<span>عالية</span>
+</div>
+<div class="w-full bg-white/20 h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary-fixed-dim h-full w-4/5"></div>
+</div>
+</div>
+<ul class="text-caption space-y-2 opacity-80">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-xs mt-0.5" data-icon="check_circle">check_circle</span>
+                                            لا يوجد انحراف في الخط المتوسط
+                                        </li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-xs mt-0.5" data-icon="warning">warning</span>
+                                            اشتباه في وذمة حول الآفة
+                                        </li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Real-time Worklist (Right Rail) -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-md">
+<div class="glass-card rounded-xl p-6 flex flex-col h-full border-outline-variant/20">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline-md text-headline-md text-primary">قائمة العمل</h3>
+<span class="bg-error-container text-on-error-container px-3 py-1 rounded-full text-caption font-bold">4 عاجل</span>
+</div>
+<!-- Filters -->
+<div class="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+<span class="px-4 py-1.5 bg-primary text-on-primary rounded-full text-caption whitespace-nowrap cursor-pointer">الكل</span>
+<span class="px-4 py-1.5 bg-surface-container-high text-on-surface-variant rounded-full text-caption whitespace-nowrap cursor-pointer">MRI</span>
+<span class="px-4 py-1.5 bg-surface-container-high text-on-surface-variant rounded-full text-caption whitespace-nowrap cursor-pointer">CT Scan</span>
+<span class="px-4 py-1.5 bg-surface-container-high text-on-surface-variant rounded-full text-caption whitespace-nowrap cursor-pointer">X-Ray</span>
+</div>
+<!-- Worklist items -->
+<div class="flex-1 overflow-y-auto worklist-scroll space-y-4">
+<!-- Urgent Item -->
+<div class="p-4 border-r-4 border-error bg-error-container/10 rounded-xl hover:bg-error-container/20 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-2">
+<span class="text-error font-bold text-caption flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="priority_high">priority_high</span>
+                                        عاجل جداً
+                                    </span>
+<span class="text-caption text-on-surface-variant">منذ 5 د</span>
+</div>
+<h4 class="font-title-lg text-primary text-sm mb-1">فيصل ك. - CT Brain</h4>
+<p class="text-caption text-on-surface-variant">اشتباه نزيف دماغي حاد - طوارئ</p>
+<div class="mt-3 flex items-center justify-between">
+<div class="flex gap-1">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-sm" data-icon="auto_awesome">auto_awesome</span>
+<span class="text-caption text-secondary font-bold">كشف AI نشط</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_left">chevron_left</span>
+</div>
+</div>
+<!-- Regular Item -->
+<div class="p-4 border-r-4 border-secondary bg-secondary-container/10 rounded-xl hover:bg-secondary-container/20 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-2">
+<span class="text-secondary font-bold text-caption">مجدول</span>
+<span class="text-caption text-on-surface-variant">منذ 15 د</span>
+</div>
+<h4 class="font-title-lg text-primary text-sm mb-1">سارة أ. - MRI Lumbar</h4>
+<p class="text-caption text-on-surface-variant">مراجعة روتينية - عيادة العظام</p>
+<div class="mt-3 flex items-center justify-between">
+<div class="flex gap-1">
+<span class="material-symbols-outlined text-on-surface-variant/40 text-sm" data-icon="auto_awesome">auto_awesome</span>
+<span class="text-caption text-on-surface-variant/60">بانتظار التحليل</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_left">chevron_left</span>
+</div>
+</div>
+<!-- Urgent Item 2 -->
+<div class="p-4 border-r-4 border-error bg-error-container/10 rounded-xl hover:bg-error-container/20 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-2">
+<span class="text-error font-bold text-caption flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="emergency">emergency</span>
+                                        حالة طارئة
+                                    </span>
+<span class="text-caption text-on-surface-variant">منذ 22 د</span>
+</div>
+<h4 class="font-title-lg text-primary text-sm mb-1">يوسف ن. - X-Ray Chest</h4>
+<p class="text-caption text-on-surface-variant">ضيق تنفس حاد - قسم العناية</p>
+<div class="mt-3 flex items-center justify-between">
+<div class="flex gap-1">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-sm" data-icon="auto_awesome">auto_awesome</span>
+<span class="text-caption text-secondary font-bold">تم اكتشاف استرواح</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_left">chevron_left</span>
+</div>
+</div>
+<!-- Regular Item 2 -->
+<div class="p-4 border-r-4 border-secondary bg-secondary-container/10 rounded-xl hover:bg-secondary-container/20 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-2">
+<span class="text-secondary font-bold text-caption">مجدول</span>
+<span class="text-caption text-on-surface-variant">منذ 45 د</span>
+</div>
+<h4 class="font-title-lg text-primary text-sm mb-1">ليلى ف. - CT Abdomen</h4>
+<p class="text-caption text-on-surface-variant">فحص متابعة - قسم الأورام</p>
+<div class="mt-3 flex items-center justify-between">
+<div class="flex gap-1">
+<span class="material-symbols-outlined text-on-surface-variant/40 text-sm" data-icon="auto_awesome">auto_awesome</span>
+<span class="text-caption text-on-surface-variant/60">بانتظار التحليل</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_left">chevron_left</span>
+</div>
+</div>
+</div>
+<button class="mt-4 w-full py-2 border-2 border-primary/10 text-primary font-bold rounded-lg text-label-md hover:bg-primary/5 transition-all">تحميل المزيد من الحالات</button>
+</div>
+</div>
+<!-- Analytics Summary Cards -->
+<div class="col-span-12 grid grid-cols-1 md:grid-cols-4 gap-gutter">
+<div class="glass-card p-6 rounded-xl border-outline-variant/10 shadow-sm flex items-center justify-between">
+<div>
+<p class="text-caption text-on-surface-variant mb-1">إجمالي فحوصات اليوم</p>
+<h4 class="font-headline-md text-headline-md text-primary">142</h4>
+</div>
+<div class="w-12 h-12 bg-primary/5 rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="monitor_heart">monitor_heart</span>
+</div>
+</div>
+<div class="glass-card p-6 rounded-xl border-outline-variant/10 shadow-sm flex items-center justify-between">
+<div>
+<p class="text-caption text-on-surface-variant mb-1">دقة الفرز التلقائي</p>
+<h4 class="font-headline-md text-headline-md text-secondary">98.4%</h4>
+</div>
+<div class="w-12 h-12 bg-secondary/5 rounded-full flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="auto_graph">auto_graph</span>
+</div>
+</div>
+<div class="glass-card p-6 rounded-xl border-outline-variant/10 shadow-sm flex items-center justify-between">
+<div>
+<p class="text-caption text-on-surface-variant mb-1">متوسط وقت التقارير</p>
+<h4 class="font-headline-md text-headline-md text-primary">18 د</h4>
+</div>
+<div class="w-12 h-12 bg-primary/5 rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="timer">timer</span>
+</div>
+</div>
+<div class="glass-card p-6 rounded-xl border-outline-variant/10 shadow-sm flex items-center justify-between">
+<div>
+<p class="text-caption text-on-surface-variant mb-1">تنبيهات حرجة (AI)</p>
+<h4 class="font-headline-md text-headline-md text-error">12</h4>
+</div>
+<div class="w-12 h-12 bg-error/5 rounded-full flex items-center justify-center text-error">
+<span class="material-symbols-outlined" data-icon="notification_important">notification_important</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button (FAB) -->
+<button class="fixed bottom-8 left-8 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-3xl" data-icon="voice_chat" style="font-variation-settings: 'FILL' 1;">voice_chat</span>
+</button>
+<script>
+        // Micro-interactions and PACS simulation
+        document.addEventListener('DOMContentLoaded', () => {
+            const pacsArea = document.querySelector('.cursor-crosshair');
+            
+            // Subtle hover effect on PACS area
+            pacsArea.addEventListener('mousemove', (e) => {
+                const rect = pacsArea.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // You could use this to update dynamic crosshairs if needed
+            });
+
+            // Notification animation
+            const notifyIcon = document.querySelector('[data-icon="notifications"]');
+            setInterval(() => {
+                notifyIcon.classList.add('animate-bounce');
+                setTimeout(() => notifyIcon.classList.remove('animate-bounce'), 1000);
+            }, 15000);
+        });
+    </script>
+</body></html>

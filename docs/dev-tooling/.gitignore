@@ -1,0 +1,76 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+dist/
+build/
+.next/
+.cache/
+*.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.pfx
+algolia_creds.json
+
+# Build
+*.exe
+*.dll
+*.dylib
+*.so
+build/
+out/
+
+# Logs
+*.log
+logs/
+
+# OS
+.Trash-*
+
+# DB / large
+*.db
+*.sqlite
+*.bak
+*.dmp
+
+# AI / RAG caches
+.cache/
+.embeddings/
+
+# Coverage / test artifacts
+.nyc_output/
+playwright-report/
+test-results/
+
+# Helm
+charts/*/charts/
+charts/*/Chart.lock
+
+# Local seeders containing real-looking data
+seeders/local_*.sql

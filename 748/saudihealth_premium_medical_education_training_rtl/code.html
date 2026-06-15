@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | بوابة التطوير المهني</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed-variant": "#5b4300",
+                    "on-tertiary-container": "#ac8c44",
+                    "on-primary-fixed": "#001d34",
+                    "background": "#f8f9fa",
+                    "on-tertiary-fixed": "#251a00",
+                    "tertiary-container": "#362700",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "outline": "#73777e",
+                    "inverse-surface": "#2e3132",
+                    "surface-container-high": "#e7e8e9",
+                    "on-surface": "#191c1d",
+                    "outline-variant": "#c3c7ce",
+                    "on-surface-variant": "#42474d",
+                    "secondary": "#006970",
+                    "on-primary-fixed-variant": "#274969",
+                    "on-primary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "inverse-on-surface": "#f0f1f2",
+                    "surface-container-highest": "#e1e3e4",
+                    "secondary-fixed-dim": "#5dd8e2",
+                    "primary-fixed": "#cfe5ff",
+                    "surface-tint": "#406182",
+                    "secondary-fixed": "#7df4ff",
+                    "primary": "#001629",
+                    "tertiary-fixed-dim": "#e6c274",
+                    "surface": "#f8f9fa",
+                    "tertiary": "#1d1300",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed": "#ffdf9d",
+                    "primary-container": "#002b49",
+                    "surface-variant": "#e1e3e4",
+                    "surface-dim": "#d9dadb",
+                    "secondary-container": "#7af1fc",
+                    "on-secondary-container": "#006e75",
+                    "inverse-primary": "#a8caef",
+                    "error-container": "#ffdad6",
+                    "primary-fixed-dim": "#a8caef",
+                    "surface-container-low": "#f3f4f5",
+                    "surface-bright": "#f8f9fa",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-container": "#7293b6",
+                    "on-secondary-fixed": "#002022",
+                    "surface-container": "#edeeef",
+                    "on-background": "#191c1d"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xl": "64px",
+                    "md": "24px",
+                    "xs": "4px",
+                    "sm": "12px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "48px",
+                    "gutter": "24px",
+                    "base": "8px",
+                    "lg": "40px"
+            },
+            "fontFamily": {
+                    "headline-md": ["IBM Plex Sans"],
+                    "caption": ["IBM Plex Sans"],
+                    "display-lg-mobile": ["IBM Plex Sans"],
+                    "label-md": ["IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans"],
+                    "title-lg": ["IBM Plex Sans"],
+                    "display-lg": ["IBM Plex Sans"],
+                    "body-lg": ["IBM Plex Sans"],
+                    "body-md": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'IBM Plex Sans', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 right-72 h-20 z-30 flex flex-row-reverse justify-between items-center px-lg bg-white/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm shadow-primary/5">
+<div class="flex items-center gap-md">
+<div class="relative w-96">
+<span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline">search</span>
+<input class="w-full pr-12 pl-4 py-2 bg-surface-container-low rounded-lg border-none focus:ring-2 focus:ring-secondary text-label-md font-label-md" placeholder="البحث عن مصادر تعليمية أو دورات..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md flex-row-reverse">
+<div class="flex items-center gap-sm">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</button>
+</div>
+<div class="h-8 w-[1px] bg-outline-variant/30"></div>
+<div class="flex items-center gap-sm">
+<div class="text-left">
+<p class="font-label-md text-label-md text-primary">د. أحمد خالد</p>
+<p class="text-caption font-caption text-outline">استشاري جراحة قلب</p>
+</div>
+<img alt="صورة المستخدم" class="w-10 h-10 rounded-full border-2 border-secondary/20" data-alt="A professional portrait of a senior male medical doctor in a clinical setting, wearing a white lab coat and a subtle stethoscope, with soft focus on a modern hospital background. The lighting is bright and clean, emphasizing a high-trust corporate medical aesthetic with a cool-toned primary navy color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMKQX02UwQ_m0dNQG38vvsnxe5GT95xnU7N_VmLMQIW_jbA-chVJmpKdrzjgeFsrKsB-7zd-Q405kXLwKzQ0wiXfNSo9KlCVvpRMg-_xorfv94pakjLiWyaGxFluFhBE-eSPwaDClllMZDsRWdSgiSkqlQy4VqclSh183LXwwIhvaZuyhhRAepDQT7NipQ7eIhUGS_Hbe3-S_hS-UKQuW5Gc_dNKYQQ82XaW1ieRNh3fnAjw12dADgROE2KJ-K3J_FrNxR22uNHiIB"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed right-0 top-0 h-screen z-40 flex flex-col p-md bg-surface border-l border-outline-variant/30 w-72 shadow-sm shadow-primary/5">
+<div class="mb-xl flex flex-col items-center gap-sm">
+<div class="font-headline-lg text-headline-lg font-bold text-primary">SaudiHealth</div>
+<p class="text-caption font-caption text-secondary font-bold tracking-widest uppercase">Premium Education</p>
+</div>
+<nav class="flex-1 space-y-4">
+<!-- Active: لوحة القيادة -->
+<a class="flex flex-row-reverse items-center gap-4 text-primary font-bold border-r-4 border-secondary pr-4 py-2 bg-secondary/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-md text-label-md">لوحة القيادة</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-4 text-on-surface-variant hover:text-primary pr-4 py-2 hover:bg-surface-container-low transition-colors duration-300" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-label-md text-label-md">تراخيص الهيئة</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-4 text-on-surface-variant hover:text-primary pr-4 py-2 hover:bg-surface-container-low transition-colors duration-300" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-md text-label-md">الورش والبرامج</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-4 text-on-surface-variant hover:text-primary pr-4 py-2 hover:bg-surface-container-low transition-colors duration-300" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">تحليل المهارات</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-4 text-on-surface-variant hover:text-primary pr-4 py-2 hover:bg-surface-container-low transition-colors duration-300" href="#">
+<span class="material-symbols-outlined">library_books</span>
+<span class="font-label-md text-label-md">المكتبة الرقمية</span>
+</a>
+</nav>
+<div class="mt-auto space-y-4 pt-md border-t border-outline-variant/30">
+<button class="w-full bg-primary text-on-primary py-3 rounded-xl font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-primary-container transition-all">
+<span class="material-symbols-outlined">add</span>
+<span>طلب جديد</span>
+</button>
+<div class="flex flex-col gap-2">
+<a class="flex flex-row-reverse items-center gap-4 text-on-surface-variant hover:text-primary pr-4 py-2 transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">الدعم</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-4 text-error pr-4 py-2 transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">تسجيل الخروج</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="mr-72 mt-20 p-xl min-h-screen">
+<!-- Hero Welcome -->
+<div class="mb-xl relative overflow-hidden rounded-[2rem] bg-primary-container p-lg text-white">
+
+<div class="relative z-10">
+<h1 class="font-headline-lg text-headline-lg mb-2">أهلاً بك، د. أحمد</h1>
+<p class="font-body-lg text-body-lg opacity-80 max-w-2xl">لديك 12 ساعة معتمدة متبقية لتجديد ترخيص الهيئة السعودية للتخصصات الصحية. يمكنك الاطلاع على الدورات المقترحة أدناه لسد فجوات المهارات في قسم الجراحة.</p>
+<div class="mt-md flex gap-sm">
+<span class="bg-secondary text-white px-4 py-1 rounded-full text-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">verified</span>
+                        ترخيص نشط
+                    </span>
+<span class="bg-tertiary-container text-on-tertiary-container px-4 py-1 rounded-full text-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">event</span>
+                        ينتهي خلال 45 يوم
+                    </span>
+</div>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- CME Credits Chart (Glassmorphism) -->
+<div class="col-span-12 lg:col-span-8 glass-card rounded-3xl p-lg">
+<div class="flex justify-between items-center mb-md flex-row-reverse">
+<h2 class="font-title-lg text-title-lg text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">bar_chart</span>
+                        رصد ساعات التطوير المهني (CME)
+                    </h2>
+<select class="bg-surface-container-low border-none rounded-lg text-label-md px-4 py-2 font-label-md focus:ring-secondary">
+<option>العام الحالي 2024</option>
+<option>العام السابق 2023</option>
+</select>
+</div>
+<div class="h-64 w-full flex items-end gap-4 px-4">
+<!-- Simple Bar Chart Simulation -->
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-secondary-container rounded-t-lg transition-all hover:bg-secondary" style="height: 60%"></div>
+<span class="text-caption font-caption text-outline">يناير</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-secondary-container rounded-t-lg transition-all hover:bg-secondary" style="height: 40%"></div>
+<span class="text-caption font-caption text-outline">فبراير</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-secondary rounded-t-lg shadow-lg shadow-secondary/20" style="height: 85%"></div>
+<span class="text-caption font-caption text-primary font-bold">مارس</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-secondary-container rounded-t-lg transition-all hover:bg-secondary" style="height: 30%"></div>
+<span class="text-caption font-caption text-outline">أبريل</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-secondary-container rounded-t-lg transition-all hover:bg-secondary" style="height: 55%"></div>
+<span class="text-caption font-caption text-outline">مايو</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-secondary-container rounded-t-lg transition-all hover:bg-secondary" style="height: 70%"></div>
+<span class="text-caption font-caption text-outline">يونيو</span>
+</div>
+</div>
+</div>
+<!-- SCFHS Status Card -->
+<div class="col-span-12 lg:col-span-4 bg-white rounded-3xl p-lg border border-outline-variant/30 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary/5 rounded-bl-full"></div>
+<h2 class="font-title-lg text-title-lg text-primary mb-lg relative z-10">الامتثال والتراخيص</h2>
+<div class="space-y-6 relative z-10">
+<div class="flex items-center justify-between flex-row-reverse">
+<div class="text-right">
+<p class="font-label-md text-label-md text-on-surface-variant">حالة تصنيف الهيئة (SCFHS)</p>
+<p class="text-primary font-bold">استشاري - جراحة قلب</p>
+</div>
+<div class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-green-600">check_circle</span>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-caption font-caption">
+<span>88% مكتمل</span>
+<span>الساعات المطلوبة: 40/50</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[80%] rounded-full"></div>
+</div>
+</div>
+<button class="w-full border border-secondary text-secondary py-2 rounded-xl font-label-md hover:bg-secondary/5 transition-colors">رفع شهادة جديدة</button>
+</div>
+</div>
+<!-- Skill Gap Analysis -->
+<div class="col-span-12 lg:col-span-5 glass-card rounded-3xl p-lg">
+<h2 class="font-title-lg text-title-lg text-primary mb-md flex items-center gap-2 flex-row-reverse">
+<span class="material-symbols-outlined text-error">analytics</span>
+                    تحليل فجوة المهارات - قسم الجراحة
+                </h2>
+<div class="space-y-4">
+<div class="p-4 rounded-2xl bg-error/5 border border-error/10">
+<div class="flex justify-between items-center mb-2 flex-row-reverse">
+<span class="text-label-md font-bold text-error">جراحة الروبوت المتقدمة</span>
+<span class="text-caption px-2 py-0.5 bg-error/10 text-error rounded-full">فجوة حرجة</span>
+</div>
+<p class="text-body-md text-on-surface-variant mb-3">يحتاج 4 جراحين في القسم إلى إتمام التدريب على المنظومة الجديدة.</p>
+<button class="text-secondary font-label-md flex items-center gap-1 hover:underline">
+                            عرض الدورات المقترحة
+                            <span class="material-symbols-outlined text-sm">arrow_back</span>
+</button>
+</div>
+<div class="p-4 rounded-2xl bg-secondary/5 border border-secondary/10">
+<div class="flex justify-between items-center mb-2 flex-row-reverse">
+<span class="text-label-md font-bold text-secondary">إدارة الأزمات الطبية</span>
+<span class="text-caption px-2 py-0.5 bg-secondary/10 text-secondary rounded-full">مكتمل</span>
+</div>
+<div class="flex -space-x-reverse space-x-2">
+<img class="w-8 h-8 rounded-full border-2 border-white" data-alt="Avatar of a male healthcare professional." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjDYCuffD2q2q99p1obkb4LMoYXmb_iaT8MbZRDsRKlcPJk9SX_iTlyPIqtsnt3U_CvNllzKvjBxTn60Vlwooy3S0Z_B3y2JFFGECf3dBD9OFpxk4I6B38oHJGde79FXC1HhUNbXjofXJF-OshGFI-r-rfr4qvvU76U1SIjXc4DRtKfFhSnEtwuLJ-ef4A9fQnCESuFVedfHQJRaHYXxMO_ZS_PCBHFBP-tOh4QzlKSEwLAvr71Vgyyg4hekaLkxti0xk3gSu8bACQ"/>
+<img class="w-8 h-8 rounded-full border-2 border-white" data-alt="Avatar of a female healthcare professional." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLnUIad7jWOKmL_yWyUrZdkRTd9oOTe5omqjtQJraPbByQGnl0hynN8Rb6UsTpj4__OENeIeRWJ5W-a4BkXT9I8fU8bCH7ioAfHyO4yuv9wgAkLKkfoSHoGWFGRwOGbXK61A2U90f3ca_3XbMRFDj2E9IghpRe2mu4VQKZ3S87AgRB1ZKmbi9oeUi8gXqsKfFCdZX05Xj7bO4g8I6FcPcGdgiwx-5KjSq4TlaWDrIQIVRsuIln95e93wPqZlsoBoV1LMaOOsnhrEk9"/>
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-caption border-2 border-white">+8</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Workshops Registry -->
+<div class="col-span-12 lg:col-span-7 bg-white rounded-3xl p-lg border border-outline-variant/30 shadow-sm">
+<div class="flex justify-between items-center mb-lg flex-row-reverse">
+<h2 class="font-title-lg text-title-lg text-primary">البرامج التدريبية المتاحة</h2>
+<a class="text-secondary font-label-md hover:underline" href="#">مشاهدة الكل</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div class="group relative rounded-2xl border border-outline-variant/20 hover:border-secondary transition-all p-4 cursor-pointer">
+<div class="mb-md h-32 rounded-xl bg-surface-container-low overflow-hidden relative">
+<img alt="دورة تقنية" class="w-full h-full object-cover group-hover:scale-105 transition-transform" data-alt="A high-definition photograph of a futuristic operating room with robotic surgery equipment. The scene is illuminated by glowing blue and white light, featuring high-end medical technology in a clean, clinical environment. The composition is sleek and professional, aligning with a corporate healthcare brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmWjhx6nt3CgWwiI-nMznCWkeN0KjMrxS9mm8x16KTUxlLLDOfMtOSRdinOK9-X7xb5pbBbk6qbSFEcEF84NBA1Sr_6UMZIYcfbnToqYOxZmLwHvf3vqRqataN_fLjEwlBwRvi78dvZ0NdyET0Zbx6EAwMq1QY4Si9UN4WV7niI8K77EL7r5jjvtsdwSt98nWBC-DK8KF4uCeQNOAPgua2buiFO_OqaLjyApuoYPPlamk-OBNNRJaqJO3uvoheACXtXMYca9Celkla"/>
+<div class="absolute top-2 right-2 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-caption font-bold text-primary">8 ساعات</div>
+</div>
+<h3 class="font-label-md text-label-md text-primary mb-1">الذكاء الاصطناعي في التشخيص</h3>
+<p class="text-caption text-outline mb-3">ورشة عمل حضورية - مستشفى الملك فيصل</p>
+<div class="flex justify-between items-center">
+<span class="text-secondary font-bold">1,200 ر.س</span>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-secondary">arrow_forward</span>
+</div>
+</div>
+<div class="group relative rounded-2xl border border-outline-variant/20 hover:border-secondary transition-all p-4 cursor-pointer">
+<div class="mb-md h-32 rounded-xl bg-surface-container-low overflow-hidden relative">
+<img alt="دورة جراحية" class="w-full h-full object-cover group-hover:scale-105 transition-transform" data-alt="A detailed digital rendering of a human heart with holographic medical data overlays and professional clinical annotations. The background is a dark, sophisticated navy blue, creating a high-tech academic feel. The lighting is precise, highlighting the intricate medical details suitable for a premium educational platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDR-VQC7ck48B6AO9tm6AmzkFa8sdE9X59DbLmDh1BRcnoY1u7T6XFgHacIoAJLoGNiPn0z6RaIQJcYxerJwokU_er7HD_ISsgNrMGsRYLYI4NhnCv14yKi35cyLT7PNLJx-9v1ZBEWvNx6_-m0MHMjUMbV-bcM1o3IvRQNFtMeiIYa27xjm5qsmYnqq5far84OHQ9CLSCnIgg7za-QPSAZfn7bj-sGgRGlzQKuygoF00rY6FtLk0YEKaNqZL7g4Uhz_Ev4TDJ7hDkd"/>
+<div class="absolute top-2 right-2 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-caption font-bold text-primary">15 ساعة</div>
+</div>
+<h3 class="font-label-md text-label-md text-primary mb-1">تقنيات جراحة الصمام الميترالي</h3>
+<p class="text-caption text-outline mb-3">برنامج تدريب عن بعد عبر الواقع الافتراضي</p>
+<div class="flex justify-between items-center">
+<span class="text-secondary font-bold">مجاني للمنسوبين</span>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-secondary">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Digital Library Feed -->
+<div class="col-span-12 glass-card rounded-3xl p-lg">
+<div class="flex justify-between items-center mb-lg flex-row-reverse">
+<h2 class="font-title-lg text-title-lg text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">menu_book</span>
+                        المكتبة الرقمية والمصادر
+                    </h2>
+<div class="flex gap-sm">
+<button class="px-4 py-2 rounded-xl bg-surface-container-low text-label-md hover:bg-surface-container transition-colors">مجلات علمية</button>
+<button class="px-4 py-2 rounded-xl bg-primary text-on-primary text-label-md shadow-lg shadow-primary/20">أبحاث منشورة</button>
+</div>
+</div>
+<div class="flex gap-lg overflow-x-auto pb-4 no-scrollbar">
+<div class="flex-shrink-0 w-64 bg-white p-4 rounded-2xl border border-outline-variant/30 hover:shadow-lg transition-all cursor-pointer">
+<div class="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center mb-4">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">picture_as_pdf</span>
+</div>
+<p class="text-caption font-bold text-outline uppercase mb-1">Journal of Surgery</p>
+<h4 class="font-label-md text-label-md text-primary leading-tight mb-4">تأثير تقنية النانو في جراحة الأوعية الدموية - عدد مارس 2024</h4>
+<div class="flex items-center gap-2 text-caption text-outline">
+<span class="material-symbols-outlined text-sm">download</span>
+                            تحميل PDF (4.2 MB)
+                        </div>
+</div>
+<div class="flex-shrink-0 w-64 bg-white p-4 rounded-2xl border border-outline-variant/30 hover:shadow-lg transition-all cursor-pointer">
+<div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">video_library</span>
+</div>
+<p class="text-caption font-bold text-outline uppercase mb-1">Webinar Series</p>
+<h4 class="font-label-md text-label-md text-primary leading-tight mb-4">تسجيل الندوة العلمية: مستجدات كوفيد-19 في مراكز الرعاية الحرجة</h4>
+<div class="flex items-center gap-2 text-caption text-outline">
+<span class="material-symbols-outlined text-sm">play_circle</span>
+                            مشاهدة الفيديو (45 دقيقة)
+                        </div>
+</div>
+<div class="flex-shrink-0 w-64 bg-white p-4 rounded-2xl border border-outline-variant/30 hover:shadow-lg transition-all cursor-pointer">
+<div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center mb-4">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span>
+</div>
+<p class="text-caption font-bold text-outline uppercase mb-1">Clinical Guidelines</p>
+<h4 class="font-label-md text-label-md text-primary leading-tight mb-4">الدليل الإرشادي المحدث لإدارة المضادات الحيوية في العمليات</h4>
+<div class="flex items-center gap-2 text-caption text-outline">
+<span class="material-symbols-outlined text-sm">star</span>
+                            تم التحديث مؤخراً
+                        </div>
+</div>
+<div class="flex-shrink-0 w-64 bg-white p-4 rounded-2xl border border-outline-variant/30 hover:shadow-lg transition-all cursor-pointer">
+<div class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center mb-4">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">quiz</span>
+</div>
+<p class="text-caption font-bold text-outline uppercase mb-1">Self-Assessment</p>
+<h4 class="font-label-md text-label-md text-primary leading-tight mb-4">اختبار التقييم الذاتي - المعايير الدولية لسلامة المرضى (IPSG)</h4>
+<div class="flex items-center gap-2 text-caption text-outline">
+<span class="material-symbols-outlined text-sm">timer</span>
+                            متاح لمدة 30 يوم
+                        </div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Micro-interaction Script -->
+<script>
+        // Subtle scroll behavior for the navigation items
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                document.querySelectorAll('nav a').forEach(l => {
+                    l.classList.remove('text-primary', 'font-bold', 'border-r-4', 'border-secondary', 'bg-secondary/5');
+                    l.classList.add('text-on-surface-variant');
+                });
+                link.classList.add('text-primary', 'font-bold', 'border-r-4', 'border-secondary', 'bg-secondary/5');
+                link.classList.remove('text-on-surface-variant');
+            });
+        });
+    </script>
+</body></html>

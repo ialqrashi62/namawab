@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary": "#006970",
+                    "surface-tint": "#406182",
+                    "secondary-fixed-dim": "#5dd8e2",
+                    "tertiary-fixed-dim": "#e6c274",
+                    "surface-dim": "#d9dadb",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#42474d",
+                    "inverse-surface": "#2e3132",
+                    "outline": "#73777e",
+                    "error": "#ba1a1a",
+                    "primary-fixed": "#cfe5ff",
+                    "tertiary": "#1d1300",
+                    "outline-variant": "#c3c7ce",
+                    "on-primary-container": "#7293b6",
+                    "surface-variant": "#e1e3e4",
+                    "secondary-container": "#7af1fc",
+                    "primary": "#001629",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "secondary-fixed": "#7df4ff",
+                    "surface-bright": "#f8f9fa",
+                    "inverse-primary": "#a8caef",
+                    "tertiary-container": "#362700",
+                    "error-container": "#ffdad6",
+                    "on-surface": "#191c1d",
+                    "on-secondary-fixed": "#002022",
+                    "surface-container-highest": "#e1e3e4",
+                    "primary-fixed-dim": "#a8caef",
+                    "on-background": "#191c1d",
+                    "tertiary-fixed": "#ffdf9d",
+                    "background": "#f8f9fa",
+                    "surface": "#f8f9fa",
+                    "on-primary-fixed-variant": "#274969",
+                    "inverse-on-surface": "#f0f1f2",
+                    "on-tertiary-fixed-variant": "#5b4300",
+                    "surface-container-low": "#f3f4f5",
+                    "on-primary-fixed": "#001d34",
+                    "surface-container": "#edeeef",
+                    "on-error-container": "#93000a",
+                    "primary-container": "#002b49",
+                    "on-tertiary-container": "#ac8c44",
+                    "on-tertiary-fixed": "#251a00",
+                    "on-primary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "surface-container-high": "#e7e8e9",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-container": "#006e75"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "lg": "40px",
+                    "base": "8px",
+                    "xl": "64px",
+                    "gutter": "24px",
+                    "margin-desktop": "48px",
+                    "md": "24px",
+                    "xs": "4px",
+                    "sm": "12px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "body-lg": ["IBM Plex Sans"],
+                    "label-md": ["IBM Plex Sans"],
+                    "caption": ["IBM Plex Sans"],
+                    "display-lg": ["IBM Plex Sans"],
+                    "body-md": ["IBM Plex Sans"],
+                    "title-lg": ["IBM Plex Sans"],
+                    "headline-md": ["IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans"],
+                    "display-lg-mobile": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+      body {
+        font-family: 'IBM Plex Sans', sans-serif;
+        background-color: #f8f9fa;
+      }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(227, 209, 180, 0.3);
+        box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+      }
+      .nav-active {
+        color: #006970;
+        font-weight: 700;
+        border-bottom: 2px solid #006970;
+        padding-bottom: 4px;
+      }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- Top Navigation -->
+<header class="bg-surface/80 backdrop-blur-xl sticky top-0 z-50 shadow-sm border-b border-outline/10 h-20">
+<div class="flex justify-between items-center w-full px-margin-desktop max-w-[1440px] mx-auto h-full">
+<div class="flex items-center gap-xl">
+<span class="text-title-lg font-bold text-primary">SaudiHealth Premium</span>
+<nav class="hidden md:flex items-center gap-lg">
+<a class="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors duration-200" href="#">Solutions</a>
+<a class="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors duration-200" href="#">Compliance</a>
+<a class="text-secondary font-bold border-b-2 border-secondary pb-1 font-body-md text-body-md" href="#">Ecosystem</a>
+<a class="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors duration-200" href="#">About Us</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant font-body-md text-body-md">العربية</button>
+<button class="bg-primary text-on-primary px-md py-sm rounded-lg font-label-md">Portal Login</button>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto px-margin-desktop py-xl">
+<!-- Header Section -->
+<div class="mb-xl flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary mb-xs">سلسلة التوريد والمخزون الطبي</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">نظام متطور لإدارة المستلزمات الطبية والأدوية وقطع الغيار مع تتبع لحظي وإعادة طلب تلقائية لضمان استمرارية العمليات الطبية بامتياز.</p>
+</div>
+<div class="flex gap-sm">
+<button class="flex items-center gap-xs border border-secondary text-secondary px-md py-sm rounded-lg font-label-md hover:bg-secondary-container transition-colors">
+<span class="material-symbols-outlined">download</span>
+                    تقرير المخزون
+                </button>
+<button class="flex items-center gap-xs bg-primary text-on-primary px-md py-sm rounded-lg font-label-md hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add</span>
+                    إضافة صنف جديد
+                </button>
+</div>
+</div>
+<!-- Inventory Status Summary (Bento Grid Style) -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-xl">
+<!-- Critical Stock Alert Card -->
+<div class="md:col-span-2 glass-card p-lg rounded-xl flex flex-col justify-between overflow-hidden relative">
+<div class="absolute -top-10 -left-10 w-40 h-40 bg-error/5 rounded-full blur-3xl"></div>
+<div class="z-10">
+<div class="flex items-center gap-sm mb-md text-error">
+<span class="material-symbols-outlined" data-weight="fill">warning</span>
+<span class="font-label-md">تنبيهات مخزون حرج</span>
+</div>
+<div class="space-y-sm">
+<div class="flex items-center justify-between p-sm bg-error-container/20 rounded-lg border border-error/10">
+<span class="font-body-md text-primary">الأنسولين سريع المفعول (300 وحدة)</span>
+<span class="bg-error text-on-error px-xs py-1 rounded text-caption font-bold">باقي 12 وحدة</span>
+</div>
+<div class="flex items-center justify-between p-sm bg-error-container/20 rounded-lg border border-error/10">
+<span class="font-body-md text-primary">أقنعة أكسجين مقاس متوسط</span>
+<span class="bg-error text-on-error px-xs py-1 rounded text-caption font-bold">باقي 5 قطع</span>
+</div>
+</div>
+</div>
+<button class="mt-lg text-primary font-label-md flex items-center gap-xs hover:underline">
+                    مراجعة كافة التنبيهات (8)
+                    <span class="material-symbols-outlined rotate-180">arrow_forward</span>
+</button>
+</div>
+<!-- Auto-Ordering Status -->
+<div class="glass-card p-lg rounded-xl flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-sm mb-md text-secondary">
+<span class="material-symbols-outlined">autorenew</span>
+<span class="font-label-md">الطلب التلقائي</span>
+</div>
+<div class="text-display-lg font-display-lg text-primary">24</div>
+<p class="font-body-md text-on-surface-variant">طلبات قيد المعالجة حالياً</p>
+</div>
+<div class="mt-md h-1 bg-surface-variant rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 75%"></div>
+</div>
+</div>
+<!-- Equipment Maintenance Spares -->
+<div class="glass-card p-lg rounded-xl flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-sm mb-md text-tertiary-fixed-dim">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md">قطع الغيار</span>
+</div>
+<div class="text-display-lg font-display-lg text-primary">92%</div>
+<p class="font-body-md text-on-surface-variant">جاهزية القطع الأساسية</p>
+</div>
+<p class="text-caption text-on-surface-variant mt-md">تم تحديث التوفر قبل 15 دقيقة</p>
+</div>
+</div>
+<!-- Main Tracking Table & Categorization -->
+<div class="flex flex-col lg:flex-row gap-gutter">
+<!-- Sidebar Filters -->
+<aside class="w-full lg:w-72 shrink-0 space-y-md">
+<div class="glass-card p-md rounded-xl">
+<h3 class="font-title-lg text-title-lg text-primary mb-md">الأقسام</h3>
+<ul class="space-y-sm">
+<li>
+<button class="w-full flex items-center justify-between p-sm bg-primary text-on-primary rounded-lg">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined">medication</span>
+<span class="font-body-md">الأدوية</span>
+</div>
+<span class="text-caption opacity-80">1,240</span>
+</button>
+</li>
+<li>
+<button class="w-full flex items-center justify-between p-sm hover:bg-surface-container rounded-lg transition-colors">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined">healing</span>
+<span class="font-body-md">المستلزمات الطبية</span>
+</div>
+<span class="text-caption">458</span>
+</button>
+</li>
+<li>
+<button class="w-full flex items-center justify-between p-sm hover:bg-surface-container rounded-lg transition-colors">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined">precision_manufacturing</span>
+<span class="font-body-md">قطع غيار الأجهزة</span>
+</div>
+<span class="text-caption">89</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="glass-card rounded-xl overflow-hidden relative h-48">
+<img alt="Laboratory Storage" class="w-full h-full object-cover opacity-60" data-alt="A clean and modern pharmaceutical storage facility in a high-tech hospital in Saudi Arabia. The shelves are filled with neatly organized medical supplies and pharmaceutical containers. The lighting is cool white with subtle teal accents on the equipment, conveying a sense of sterile efficiency and premium healthcare standards. The composition is wide, showing the scale of the supply chain infrastructure." src="https://lh3.googleusercontent.com/aida-public/AB6AXuByfOBFqLhGBDmer8rSFZDpUbIeJD7Marpx3_MHm6ij5_WpW8uDi1l0f3vegjoLVgXnvY1szOL_9TAgWS48JR6GR7FfCsZbafn1se8ktels6Mb3owOnCbND_-O_MfYbqDalDROZwKsMokcTPz7tbxYdEGWAM4yUEVcECdXXUc9UqZ9F2AidCokYTkKhDJgCl7Ix-0vTS_QZLKQoxsvwljtHlLqIjH75VxO9hYsS7JyE9sSrMLhGm5uKGoYkRes6t1UYwdCjYciIjkco"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent flex items-end p-md">
+<p class="text-on-primary font-label-md">دليل الامتثال لمعايير وزارة الصحة</p>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<div class="flex-1 glass-card rounded-xl overflow-hidden flex flex-col">
+<div class="p-md border-b border-outline/10 flex flex-wrap items-center justify-between gap-md">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pr-10 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-secondary font-body-md py-sm" placeholder="البحث برقم الصنف أو الاسم..." type="text"/>
+</div>
+<div class="flex items-center gap-sm">
+<span class="font-label-md text-on-surface-variant">تصفية حسب:</span>
+<select class="bg-surface border-outline/20 rounded-lg font-body-md py-1 pr-8 text-on-surface">
+<option>كافة الحالات</option>
+<option>مخزون منخفض</option>
+<option>قيد الطلب</option>
+</select>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline/10">
+<th class="p-md font-label-md text-on-surface-variant">رقم الصنف</th>
+<th class="p-md font-label-md text-on-surface-variant">اسم المنتج</th>
+<th class="p-md font-label-md text-on-surface-variant">الفئة</th>
+<th class="p-md font-label-md text-on-surface-variant">المخزون الحالي</th>
+<th class="p-md font-label-md text-on-surface-variant">الحالة</th>
+<th class="p-md font-label-md text-on-surface-variant">تاريخ انتهاء الصلاحية</th>
+<th class="p-md font-label-md text-on-surface-variant">إجراء</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline/5">
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="p-md font-body-md text-secondary">#MED-9021</td>
+<td class="p-md">
+<div class="font-label-md text-primary">باراسيتامول 500 ملغ</div>
+<div class="text-caption text-on-surface-variant">عبوة 20 قرص</div>
+</td>
+<td class="p-md">
+<span class="text-caption bg-surface-container px-sm py-1 rounded-full">أدوية عامة</span>
+</td>
+<td class="p-md font-body-md">4,200 وحدة</td>
+<td class="p-md">
+<span class="flex items-center gap-xs text-secondary font-label-md">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+                                        مستقر
+                                    </span>
+</td>
+<td class="p-md font-caption">12 / 2026</td>
+<td class="p-md">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary">more_vert</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors bg-error-container/5">
+<td class="p-md font-body-md text-secondary">#SPA-5541</td>
+<td class="p-md">
+<div class="font-label-md text-primary">حساس أكسجين MRI</div>
+<div class="text-caption text-on-surface-variant">جهاز Siemens Magnetom</div>
+</td>
+<td class="p-md">
+<span class="text-caption bg-surface-container px-sm py-1 rounded-full">قطع غيار</span>
+</td>
+<td class="p-md font-body-md text-error font-bold">2 وحدة</td>
+<td class="p-md">
+<span class="flex items-center gap-xs text-error font-label-md">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+                                        حرج جداً
+                                    </span>
+</td>
+<td class="p-md font-caption text-on-surface-variant">N/A</td>
+<td class="p-md">
+<button class="bg-secondary text-on-secondary px-sm py-1 rounded text-caption hover:opacity-90">طلب الآن</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="p-md font-body-md text-secondary">#SUR-1088</td>
+<td class="p-md">
+<div class="font-label-md text-primary">مشارط جراحية رقم 11</div>
+<div class="text-caption text-on-surface-variant">فولاذ مقاوم للصدأ</div>
+</td>
+<td class="p-md">
+<span class="text-caption bg-surface-container px-sm py-1 rounded-full">مستلزمات</span>
+</td>
+<td class="p-md font-body-md">150 وحدة</td>
+<td class="p-md">
+<span class="flex items-center gap-xs text-tertiary-fixed-dim font-label-md">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
+                                        قيد الطلب الآلي
+                                    </span>
+</td>
+<td class="p-md font-caption">08 / 2028</td>
+<td class="p-md">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary">more_vert</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-md bg-surface-container-low border-t border-outline/10 flex items-center justify-between">
+<span class="text-caption text-on-surface-variant">عرض 1-10 من أصل 1,847 صنف</span>
+<div class="flex gap-xs">
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline/20 hover:bg-surface transition-colors">
+<span class="material-symbols-outlined text-body-md">chevron_right</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-primary text-on-primary text-caption font-bold">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline/20 hover:bg-surface transition-colors text-caption">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline/20 hover:bg-surface transition-colors">
+<span class="material-symbols-outlined text-body-md">chevron_left</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- System Intelligence & Automated Logistics -->
+<section class="mt-xl grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="glass-card p-lg rounded-xl border-r-4 border-r-secondary">
+<div class="flex items-start justify-between mb-lg">
+<div>
+<h4 class="font-headline-md text-headline-md text-primary">اللوجستيات الذكية</h4>
+<p class="font-body-md text-on-surface-variant mt-xs">النظام يتوقع نقص المخزون بناءً على معدل الاستهلاك الأسبوعي.</p>
+</div>
+<span class="material-symbols-outlined text-secondary text-display-lg" style="font-size: 48px;">insights</span>
+</div>
+<div class="space-y-md">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">trending_down</span>
+</div>
+<div>
+<div class="font-label-md text-primary">استهلاك متزايد: المعقمات</div>
+<div class="text-caption text-on-surface-variant">زيادة بنسبة 18% مقارنة بالأسبوع الماضي. تم تعديل حد إعادة الطلب.</div>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-tertiary-fixed-dim/20 flex items-center justify-center text-tertiary-fixed-dim">
+<span class="material-symbols-outlined">schedule</span>
+</div>
+<div>
+<div class="font-label-md text-primary">تأخير مورد: توريد الأنابيب</div>
+<div class="text-caption text-on-surface-variant">من المتوقع وصول الشحنة بعد 48 ساعة من الموعد المحدد. تم التواصل مع البديل.</div>
+</div>
+</div>
+</div>
+</div>
+<div class="glass-card p-lg rounded-xl border-r-4 border-r-primary overflow-hidden relative">
+<div class="absolute inset-0 opacity-10">
+
+</div>
+<div class="relative z-10">
+<h4 class="font-headline-md text-headline-md text-primary mb-md">مركز الأوامر</h4>
+<div class="grid grid-cols-2 gap-md">
+<div class="bg-surface-container-low p-md rounded-lg">
+<span class="text-caption text-on-surface-variant block mb-1">نسبة الهدر السنوي</span>
+<span class="text-headline-md font-bold text-primary">0.8%</span>
+<span class="text-caption text-secondary block mt-1">↓ 0.2% عن العام السابق</span>
+</div>
+<div class="bg-surface-container-low p-md rounded-lg">
+<span class="text-caption text-on-surface-variant block mb-1">متوسط وقت التسليم</span>
+<span class="text-headline-md font-bold text-primary">4.2 ساعة</span>
+<span class="text-caption text-on-surface-variant block mt-1">للمستلزمات الطارئة</span>
+</div>
+<div class="col-span-2 bg-primary text-on-primary p-md rounded-lg flex items-center justify-between">
+<div>
+<div class="font-label-md">إجمالي المشتريات الشهرية</div>
+<div class="text-headline-md font-bold">1.45 مليون ر.س</div>
+</div>
+<button class="bg-secondary-fixed text-on-secondary-fixed px-md py-sm rounded-lg font-label-md">التفاصيل المالية</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-primary py-xl w-full">
+<div class="max-w-[1440px] mx-auto px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-md">
+<div class="text-center md:text-right">
+<span class="text-headline-md font-headline-md text-on-primary block mb-2">SaudiHealth Premium</span>
+<p class="text-surface-variant/70 font-caption text-caption">© 2024 SaudiHealth Premium. All Rights Reserved. Regulated by MOH &amp; CHI.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-lg">
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors font-caption" href="#">Privacy Policy</a>
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors font-caption" href="#">Compliance Standards</a>
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors font-caption" href="#">Contact Support</a>
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors font-caption" href="#">Riyadh HQ</a>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interactions for table rows and buttons
+        document.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('click', function() {
+                if(this.querySelector('td')) {
+                    // Logic for opening row details could go here
+                    this.classList.toggle('bg-secondary-container/10');
+                }
+            });
+        });
+
+        // Simple Tab Switch Simulation
+        const categoryBtns = document.querySelectorAll('aside button');
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                categoryBtns.forEach(b => {
+                    b.classList.remove('bg-primary', 'text-on-primary');
+                    b.classList.add('hover:bg-surface-container');
+                    b.querySelector('.text-caption').classList.remove('opacity-80');
+                });
+                this.classList.add('bg-primary', 'text-on-primary');
+                this.classList.remove('hover:bg-surface-container');
+                this.querySelector('.text-caption').classList.add('opacity-80');
+            });
+        });
+    </script>
+</body></html>

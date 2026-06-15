@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium - Surgical Wing Cabinet</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "on-surface-variant": "#42474d",
+                "primary-fixed": "#cfe5ff",
+                "on-error-container": "#93000a",
+                "on-error": "#ffffff",
+                "surface-container-lowest": "#ffffff",
+                "on-surface": "#191c1d",
+                "on-primary": "#ffffff",
+                "primary-container": "#002b49",
+                "on-tertiary": "#ffffff",
+                "surface-container-highest": "#e1e3e4",
+                "inverse-surface": "#2e3132",
+                "background": "#f8f9fa",
+                "surface-container-high": "#e7e8e9",
+                "error": "#ba1a1a",
+                "inverse-primary": "#a8caef",
+                "tertiary-fixed-dim": "#e6c274",
+                "surface-container": "#edeeef",
+                "on-secondary": "#ffffff",
+                "on-background": "#191c1d",
+                "surface-container-low": "#f3f4f5",
+                "on-tertiary-fixed-variant": "#5b4300",
+                "surface-tint": "#406182",
+                "surface-dim": "#d9dadb",
+                "secondary-fixed-dim": "#5dd8e2",
+                "on-secondary-fixed": "#002022",
+                "on-secondary-fixed-variant": "#004f54",
+                "secondary-fixed": "#7df4ff",
+                "surface": "#f8f9fa",
+                "secondary": "#006970",
+                "inverse-on-surface": "#f0f1f2",
+                "tertiary-container": "#362700",
+                "primary": "#001629",
+                "on-primary-container": "#7293b6",
+                "outline-variant": "#c3c7ce",
+                "surface-variant": "#e1e3e4",
+                "on-primary-fixed-variant": "#274969",
+                "tertiary-fixed": "#ffdf9d",
+                "tertiary": "#1d1300",
+                "secondary-container": "#7af1fc",
+                "surface-bright": "#f8f9fa",
+                "on-primary-fixed": "#001d34",
+                "primary-fixed-dim": "#a8caef",
+                "on-tertiary-container": "#ac8c44",
+                "outline": "#73777e",
+                "on-tertiary-fixed": "#251a00",
+                "error-container": "#ffdad6",
+                "on-secondary-container": "#006e75"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "gutter": "24px",
+                "margin-desktop": "48px",
+                "xl": "64px",
+                "md": "24px",
+                "base": "8px",
+                "lg": "40px",
+                "sm": "12px",
+                "xs": "4px",
+                "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                "headline-lg": ["IBM Plex Sans"],
+                "display-lg-mobile": ["IBM Plex Sans"],
+                "body-lg": ["IBM Plex Sans"],
+                "body-md": ["IBM Plex Sans"],
+                "label-md": ["IBM Plex Sans"],
+                "display-lg": ["IBM Plex Sans"],
+                "title-lg": ["IBM Plex Sans"],
+                "headline-md": ["IBM Plex Sans"],
+                "caption": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: #f8f9fa; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-drawer {
+            border-right: 4px solid #006970;
+            background: linear-gradient(to left, rgba(0, 105, 112, 0.05), transparent);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface overflow-x-hidden">
+<!-- Sidebar Navigation (From JSON) -->
+<aside class="flex flex-col fixed right-0 top-0 h-full z-40 py-md bg-primary dark:bg-primary-container text-on-primary dark:text-on-primary-container font-label-md text-label-md border-l border-outline-variant/10 shadow-xl w-64">
+<div class="px-md mb-lg">
+<h1 class="font-headline-sm text-headline-sm text-on-primary mb-xs">مركز الرعاية</h1>
+<p class="opacity-70 text-sm">إدارة العمليات</p>
+</div>
+<nav class="flex-1 space-y-base px-sm">
+<a class="flex items-center gap-sm p-sm text-primary-fixed-dim hover:text-on-primary hover:bg-on-primary/10 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>لوحة القيادة</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-primary-fixed-dim hover:text-on-primary hover:bg-on-primary/10 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="person_med">person_add</span>
+<span>مواضع المرضى</span>
+</a>
+<a class="flex items-center gap-sm p-sm bg-secondary text-on-secondary rounded-lg transition-all translate-x-[-4px]" href="#">
+<span class="material-symbols-outlined" data-icon="medical_services">medical_services</span>
+<span>جناح الجراحة</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-primary-fixed-dim hover:text-on-primary hover:bg-on-primary/10 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span>المخزون</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-primary-fixed-dim hover:text-on-primary hover:bg-on-primary/10 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span>التقارير</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-primary-fixed-dim hover:text-on-primary hover:bg-on-primary/10 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>الإعدادات</span>
+</a>
+</nav>
+<div class="px-sm mt-auto border-t border-on-primary/10 pt-md">
+<button class="w-full py-sm px-md rounded-lg bg-on-primary/10 hover:bg-on-primary/20 transition-all text-center mb-md">دعم فني</button>
+<a class="flex items-center gap-sm p-sm text-primary-fixed-dim hover:text-on-primary transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>تسجيل الخروج</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="mr-64 p-margin-desktop min-h-screen">
+<!-- Header -->
+<header class="flex flex-row-reverse justify-between items-center w-full mb-lg">
+<div class="flex items-center gap-md">
+<div class="text-left">
+<h2 class="font-headline-md text-headline-md text-primary-container">جناح الجراحة - خزانة نقطة الرعاية</h2>
+<div class="flex items-center gap-sm mt-xs">
+<span class="px-sm py-1 bg-surface-container-high text-on-surface-variant text-caption rounded-full font-bold">SW-CAB-09</span>
+<div class="flex items-center gap-xs text-secondary font-medium">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="text-label-md">متصل / مصرح بالدخول</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative group">
+<button class="p-sm bg-surface-container-low rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</div>
+<div class="flex items-center gap-sm pr-md border-r border-outline-variant">
+<div class="text-right">
+<p class="font-label-md text-primary">د. أميرة الفيصل</p>
+<p class="text-caption text-on-surface-variant">استشاري تخدير</p>
+</div>
+<img alt="Clinician Profile" class="w-12 h-12 rounded-full object-cover border-2 border-secondary" data-alt="A professional portrait of a female Middle Eastern doctor in clinical attire, smiling warmly against a soft-focus modern hospital background. The lighting is bright and high-end, emphasizing trust and medical expertise in a clean, professional healthcare setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9fLSJHnhSB58zpzSMj4EhFmacUxAF1hblHDhAjqWN-j6ItEK-h-lYk00YfdkrNOb_qxWkWR3bJs0xxiZGqz6nQ17UeWGgEZXnV7xKhiuOvGnzY3C06hJeyvircdpCUKK_Eb-6IqKVsz3wzuVYJMM9e-r21F5ut35LhU52u96qV9hq2X4T8EGnrQAgt4weS_eUxxUt5GAqVjC4KSlwtRONw_VYLK-3HZXw9xdQkRZ7ZocrcPj0VmL1M9bQKWGcP50x5faChQGCDfky"/>
+</div>
+</div>
+</header>
+<!-- Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Column 1: Cabinet & Access -->
+<div class="col-span-12 lg:col-span-4 space-y-gutter">
+<!-- Access Panel -->
+<section class="glass-card p-md rounded-xl">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-title-lg text-title-lg flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary" data-icon="lock_person">lock_person</span>
+                            تأمين الوصول
+                        </h3>
+<span class="text-secondary font-medium text-caption px-sm py-1 bg-secondary-container/20 rounded-full">نشط</span>
+</div>
+<div class="bg-surface-container-low p-md rounded-lg mb-md flex items-center justify-between">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 bg-primary-container rounded-lg flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" data-icon="fingerprint">fingerprint</span>
+</div>
+<div>
+<p class="text-label-md font-bold">المصادقة البيومترية</p>
+<p class="text-caption text-secondary">بصمة الإصبع مفعلة</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<button class="flex flex-col items-center justify-center p-md bg-primary-container text-on-primary rounded-xl hover:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined text-3xl mb-xs" data-icon="lock_open">lock_open</span>
+<span class="text-label-md">فتح القفل</span>
+</button>
+<button class="flex flex-col items-center justify-center p-md bg-surface-container-highest text-on-surface rounded-xl opacity-50 cursor-not-allowed">
+<span class="material-symbols-outlined text-3xl mb-xs" data-icon="lock">lock</span>
+<span class="text-label-md">قفل الخزانة</span>
+</button>
+</div>
+</section>
+<!-- Interactive Drawers -->
+<section class="glass-card p-md rounded-xl">
+<h3 class="font-title-lg text-title-lg mb-md">مخطط الخزانة</h3>
+<div class="space-y-sm">
+<!-- Drawer 1 -->
+<div class="active-drawer p-md rounded-lg border border-outline-variant/30 flex justify-between items-center">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="medication">medication</span>
+</div>
+<div>
+<p class="font-label-md">درج 1: أدوية STAT</p>
+<p class="text-caption text-secondary">مفتوح حالياً</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary animate-pulse" data-icon="sensors">sensors</span>
+</div>
+<!-- Drawer 2 -->
+<div class="p-md rounded-lg border border-outline-variant/10 flex justify-between items-center opacity-80">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="medical_services">medical_services</span>
+</div>
+<div>
+<p class="font-label-md">درج 2: التخدير العام</p>
+<p class="text-caption">مغلق بإحكام</p>
+</div>
+</div>
+</div>
+<!-- Drawer 3 -->
+<div class="p-md rounded-lg border border-outline-variant/20 bg-error-container/5 flex justify-between items-center">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded bg-error-container/20 flex items-center justify-center text-error">
+<span class="material-symbols-outlined" data-icon="policy">policy</span>
+</div>
+<div>
+<p class="font-label-md">درج 3: المخدرات - أمن عالي</p>
+<p class="text-caption text-error">يتطلب مصادقة مزدوجة</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-error" data-icon="verified_user">verified_user</span>
+</div>
+<!-- Others -->
+<div class="p-sm text-center border-t border-dashed border-outline-variant mt-md">
+<button class="text-caption text-on-surface-variant hover:text-secondary">+ عرض الأدراج السفلية (4-9)</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Column 2: Inventory & Cases -->
+<div class="col-span-12 lg:col-span-8 space-y-gutter">
+<!-- Surgical Case Sync -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<section class="glass-card p-md rounded-xl overflow-hidden relative">
+<div class="absolute inset-0 opacity-10 pointer-events-none">
+
+</div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-md">
+<h3 class="font-title-lg text-title-lg">تزامن الحالة الجراحية</h3>
+<span class="px-sm py-xs bg-primary-container text-on-primary rounded text-caption">مباشر</span>
+</div>
+<div class="flex items-center gap-md mb-lg">
+<div class="w-14 h-14 bg-white/50 rounded-full flex items-center justify-center text-primary border border-primary/20">
+<span class="material-symbols-outlined text-3xl" data-icon="clinical_notes">clinical_notes</span>
+</div>
+<div>
+<p class="font-headline-sm text-primary-container">OR-04 جراحة أعصاب</p>
+<p class="text-label-md text-on-surface-variant">المريض: فهد السديري (ID: 88201)</p>
+</div>
+</div>
+<div class="space-y-sm">
+<div class="flex justify-between text-caption border-b border-outline-variant/30 pb-xs">
+<span>قائمة الأدوية المعدة:</span>
+<span class="text-secondary">تم سحب 4 من 6</span>
+</div>
+<div class="flex gap-xs flex-wrap">
+<span class="px-base py-1 bg-secondary/10 text-secondary rounded-full text-caption">بروبوفول 200mg</span>
+<span class="px-base py-1 bg-secondary/10 text-secondary rounded-full text-caption">فنتانيل 50mcg</span>
+<span class="px-base py-1 bg-surface-container-high text-on-surface-variant rounded-full text-caption opacity-60">أتراكوريوم</span>
+</div>
+</div>
+</div>
+</section>
+<section class="glass-card p-md rounded-xl flex flex-col justify-between">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-title-lg text-title-lg">حالة المخزون المحلي</h3>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="inventory">inventory</span>
+</div>
+<div class="flex items-end justify-between gap-md mb-md">
+<div class="flex-1 h-24 bg-surface-container-low rounded-lg p-sm relative">
+<p class="text-caption text-on-surface-variant">الإشغال العام</p>
+<p class="text-headline-md font-bold text-primary">82%</p>
+<div class="absolute bottom-0 left-0 h-1.5 bg-secondary rounded-full" style="width: 82%;"></div>
+</div>
+<div class="flex-1 h-24 bg-surface-container-low rounded-lg p-sm border border-error/20">
+<p class="text-caption text-error">تنبيهات حرجة</p>
+<p class="text-headline-md font-bold text-error">03</p>
+<span class="material-symbols-outlined text-error absolute top-2 left-2" data-icon="warning">warning</span>
+</div>
+</div>
+<button class="w-full py-sm bg-primary text-on-primary rounded-lg text-label-md hover:bg-primary-container transition-colors">طلب إعادة تعبئة فورية</button>
+</section>
+</div>
+<!-- Stock Table -->
+<section class="glass-card rounded-xl overflow-hidden">
+<div class="p-md border-b border-outline-variant/30 flex justify-between items-center">
+<h3 class="font-title-lg text-title-lg">الأدوية المتاحة في الخزانة</h3>
+<div class="flex gap-sm">
+<div class="relative">
+<input class="bg-surface-container-low border-none rounded-full px-md py-1 text-sm pr-10 focus:ring-secondary focus:ring-1" placeholder="بحث في الأدوية..." type="text"/>
+<span class="material-symbols-outlined absolute right-3 top-1.5 text-on-surface-variant text-lg" data-icon="search">search</span>
+</div>
+<button class="p-sm bg-surface-container-low rounded-full hover:bg-surface-container-high"><span class="material-symbols-outlined" data-icon="filter_list">filter_list</span></button>
+</div>
+</div>
+<table class="w-full text-right">
+<thead class="bg-surface-container-low text-on-surface-variant text-caption uppercase tracking-wider">
+<tr>
+<th class="px-md py-sm">الدواء</th>
+<th class="px-md py-sm">الكمية</th>
+<th class="px-md py-sm">الموقع</th>
+<th class="px-md py-sm">الحالة</th>
+<th class="px-md py-sm">تاريخ الصلاحية</th>
+<th class="px-md py-sm"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-on-primary/5 transition-colors">
+<td class="px-md py-md">
+<p class="font-label-md text-primary">Propofol 1% 20ml</p>
+<p class="text-caption">Vial • TIVA Indication</p>
+</td>
+<td class="px-md py-md">
+<span class="font-bold">14</span> <span class="text-caption">وحدة</span>
+</td>
+<td class="px-md py-md text-caption">درج 01-B</td>
+<td class="px-md py-md">
+<span class="px-sm py-1 bg-error-container/20 text-error rounded-full text-caption">مخزون منخفض</span>
+</td>
+<td class="px-md py-md text-caption">12/2025</td>
+<td class="px-md py-md">
+<button class="text-secondary hover:underline text-caption">سحب</button>
+</td>
+</tr>
+<tr class="hover:bg-on-primary/5 transition-colors">
+<td class="px-md py-md">
+<p class="font-label-md text-primary">Fentanyl 50mcg/ml</p>
+<p class="text-caption">Ampoule • Controlled</p>
+</td>
+<td class="px-md py-md">
+<span class="font-bold">08</span> <span class="text-caption">وحدة</span>
+</td>
+<td class="px-md py-md text-caption">درج 03-A</td>
+<td class="px-md py-md">
+<span class="px-sm py-1 bg-secondary-container/20 text-on-secondary-container rounded-full text-caption">مستقر</span>
+</td>
+<td class="px-md py-md text-caption">08/2024</td>
+<td class="px-md py-md">
+<button class="text-secondary hover:underline text-caption">سحب</button>
+</td>
+</tr>
+<tr class="hover:bg-on-primary/5 transition-colors">
+<td class="px-md py-md">
+<p class="font-label-md text-primary">Heparin 5000 IU</p>
+<p class="text-caption">Prefilled Syringe</p>
+</td>
+<td class="px-md py-md">
+<span class="font-bold">42</span> <span class="text-caption">وحدة</span>
+</td>
+<td class="px-md py-md text-caption">درج 02-C</td>
+<td class="px-md py-md">
+<span class="px-sm py-1 bg-tertiary-fixed text-on-tertiary-fixed rounded-full text-caption">قريب الانتهاء</span>
+</td>
+<td class="px-md py-md text-caption text-error font-medium">01/2024</td>
+<td class="px-md py-md">
+<button class="text-secondary hover:underline text-caption">سحب</button>
+</td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- Transaction Log -->
+<section class="glass-card p-md rounded-xl">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-title-lg text-title-lg">سجل المعاملات الأخير</h3>
+<a class="text-caption text-secondary hover:underline" href="#">عرض السجل الكامل</a>
+</div>
+<div class="space-y-sm max-h-48 overflow-y-auto pr-xs">
+<div class="flex items-center justify-between p-sm border-r-2 border-secondary bg-surface-container-low rounded">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-secondary" data-icon="history">history</span>
+<div>
+<p class="text-label-md">تم سحب Propofol (x2)</p>
+<p class="text-caption">بواسطة: د. أميرة الفيصل • OR-04</p>
+</div>
+</div>
+<span class="text-caption text-on-surface-variant">الآن</span>
+</div>
+<div class="flex items-center justify-between p-sm border-r-2 border-outline-variant bg-transparent">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="lock_open">lock_open</span>
+<div>
+<p class="text-label-md">فتح الدرج 01</p>
+<p class="text-caption">بواسطة: د. أميرة الفيصل</p>
+</div>
+</div>
+<span class="text-caption text-on-surface-variant">منذ دقيقتين</span>
+</div>
+<div class="flex items-center justify-between p-sm border-r-2 border-outline-variant bg-transparent opacity-70">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="inventory_2">inventory_2</span>
+<div>
+<p class="text-label-md">إعادة تعبئة مخزون (Heparin)</p>
+<p class="text-caption">بواسطة: الصيدلي أحمد سامي</p>
+</div>
+</div>
+<span class="text-caption text-on-surface-variant">منذ 45 دقيقة</span>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+<!-- FAB (Suppressed as per rules for Details/Settings focus, but for cabinet we might want an Emergency Release) -->
+<button class="fixed bottom-margin-desktop left-margin-desktop w-16 h-16 bg-error text-on-error rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group">
+<span class="material-symbols-outlined text-3xl" data-icon="emergency_home">emergency_home</span>
+<span class="absolute right-full mr-4 bg-error text-white px-md py-1 rounded-lg text-label-md opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity">تحرير الطوارئ</span>
+</button>
+<script>
+        // Micro-interaction for drawer clicking
+        document.querySelectorAll('.active-drawer').forEach(drawer => {
+            drawer.addEventListener('click', () => {
+                drawer.classList.add('scale-[0.98]');
+                setTimeout(() => drawer.classList.remove('scale-[0.98]'), 100);
+            });
+        });
+
+        // Date display update (Static for UI mockup)
+        console.log("SaudiHealth Premium - Cabinet Interface Initialized");
+    </script>
+</body></html>

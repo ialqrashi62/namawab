@@ -1,0 +1,411 @@
+openapi: 3.1.0
+info:
+  title: NamaMedical — Cardiology API
+  version: 1.0.0
+  description: |
+    Cardiology service: ECG/Echo/Cath/HF program/Devices + AI co-pilot.
+    References shared schemas in `components.base.yaml`.
+  contact: { name: Cardiology Tech Lead, email: cardio-tech@nama.local }
+
+servers:
+  - url: https://api.nama.local
+  - url: https://staging-api.nama.local
+
+tags:
+  - { name: orders,   description: "Cath, EP, echo, holter, stress orders" }
+  - { name: ecg,      description: "12-lead ECG capture & AI" }
+  - { name: echo,     description: "Echocardiography reports" }
+  - { name: cathlab,  description: "Cath lab cases" }
+  - { name: devices,  description: "Implanted devices registry" }
+  - { name: hf,       description: "Heart failure program" }
+  - { name: ai,       description: "Cardiology AI co-pilot" }
+
+paths:
+
+  /api/v1/cardio/orders:
+    get:
+      tags: [orders]
+      summary: List cardiology orders
+      parameters:
+        - { $ref: '#/components/parameters/PageSize' }
+        - { $ref: '#/components/parameters/PageToken' }
+        - in: query
+          name: patient_id
+          schema: { type: string }
+        - in: query
+          name: status
+          schema: { type: string, enum: [requested,scheduled,fulfilled,cancelled] }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: '#/components/schemas/CardioOrder' } }
+                  meta: { $ref: 'components.base.yaml#/components/schemas/PageMeta' }
+        '401': { $ref: 'components.base.yaml#/components/responses/UnauthorizedError' }
+    post:
+      tags: [orders]
+      summary: Create cardiology order
+      security: [{ bearerAuth: [order.write] }]
+      parameters:
+        - { $ref: 'components.base.yaml#/components/parameters/IdempotencyKey' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CardioOrderInput' }
+      responses:
+        '201':
+          description: Created
+          content: { application/json: { schema: { $ref: '#/components/schemas/CardioOrder' } } }
+        '400': { $ref: 'components.base.yaml#/components/responses/ValidationError' }
+
+  /api/v1/cardio/orders/{id}:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [orders]
+      responses:
+        '200':
+          content: { application/json: { schema: { $ref: '#/components/schemas/CardioOrder' } } }
+        '404': { $ref: 'components.base.yaml#/components/responses/NotFoundError' }
+    patch:
+      tags: [orders]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string }
+                scheduled_for: { type: string, format: date-time }
+                notes: { type: string }
+      responses:
+        '200':
+          content: { application/json: { schema: { $ref: '#/components/schemas/CardioOrder' } } }
+
+  /api/v1/cardio/ecg:
+    post:
+      tags: [ecg]
+      summary: Upload a 12-lead ECG
+      security: [{ bearerAuth: [order.write] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                patient_id: { type: string }
+                visit_id:   { type: string }
+                file:       { type: string, format: binary, description: "DICOM-ECG or HL7-aECG" }
+      responses:
+        '202':
+          description: Accepted, AI processing queued
+          content: { application/json: { schema: { $ref: '#/components/schemas/EcgStudy' } } }
+
+  /api/v1/cardio/ecg/{id}/interpret:
+    post:
+      tags: [ecg]
+      summary: Trigger / re-trigger AI interpretation
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '202':
+          content: { application/json: { schema: { $ref: '#/components/schemas/EcgStudy' } } }
+
+  /api/v1/cardio/ecg/{id}:
+    get:
+      tags: [ecg]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          content: { application/json: { schema: { $ref: '#/components/schemas/EcgStudy' } } }
+
+  /api/v1/cardio/echo:
+    get:
+      tags: [echo]
+      parameters:
+        - in: query
+          name: patient_id
+          schema: { type: string }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/EchoStudy' }
+    post:
+      tags: [echo]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EchoStudyInput' }
+      responses:
+        '201':
+          content: { application/json: { schema: { $ref: '#/components/schemas/EchoStudy' } } }
+
+  /api/v1/cardio/cathlab/cases:
+    get:
+      tags: [cathlab]
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CathCase' }
+    post:
+      tags: [cathlab]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CathCaseInput' }
+      responses:
+        '201':
+          content: { application/json: { schema: { $ref: '#/components/schemas/CathCase' } } }
+
+  /api/v1/cardio/cathlab/schedule:
+    get:
+      tags: [cathlab]
+      parameters:
+        - { in: query, name: from, schema: { type: string, format: date } }
+        - { in: query, name: to,   schema: { type: string, format: date } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CathSlot' }
+
+  /api/v1/cardio/devices:
+    get:
+      tags: [devices]
+      parameters:
+        - in: query
+          name: patient_id
+          schema: { type: string }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CardioDevice' }
+    post:
+      tags: [devices]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CardioDeviceInput' }
+      responses:
+        '201':
+          content: { application/json: { schema: { $ref: '#/components/schemas/CardioDevice' } } }
+
+  /api/v1/cardio/heartfailure/cohort:
+    get:
+      tags: [hf]
+      parameters:
+        - { in: query, name: nyha, schema: { type: string, enum: [I,II,III,IV] } }
+        - { in: query, name: ef_max, schema: { type: integer } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/HFEnrollment' }
+
+  /api/v1/cardio/risk/{patient_id}:
+    get:
+      tags: [orders]
+      summary: Aggregated risk scores
+      parameters:
+        - { $ref: 'components.base.yaml#/components/parameters/PatientIdPath' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  heart:    { type: integer, minimum: 0, maximum: 10 }
+                  grace:    { type: integer }
+                  cha2ds2_vasc: { type: integer }
+                  has_bled: { type: integer }
+                  syntax:   { type: integer, nullable: true }
+
+  /api/v1/cardio/ai/ask:
+    post:
+      tags: [ai]
+      summary: Cardiology AI co-pilot (LangGraph)
+      security: [{ bearerAuth: [ai.use] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: 'components.base.yaml#/components/schemas/AIRequest' }
+      responses:
+        '200':
+          content: { application/json: { schema: { $ref: 'components.base.yaml#/components/schemas/AIResponse' } } }
+
+components:
+  schemas:
+
+    CardioOrderInput:
+      type: object
+      required: [patient_id, order_type, priority, indication]
+      properties:
+        patient_id: { type: string }
+        visit_id:   { type: string }
+        order_type: { type: string, enum: [cath, ep_study, echo, holter, ecg, tte, tee] }
+        sub_type:   { type: string }
+        priority:   { type: string, enum: [routine, urgent, stat, emergent] }
+        indication: { type: string }
+        notes:      { type: string }
+
+    CardioOrder:
+      allOf:
+        - { $ref: '#/components/schemas/CardioOrderInput' }
+        - type: object
+          properties:
+            id:           { type: string, format: uuid }
+            status:       { type: string, enum: [requested, scheduled, fulfilled, cancelled] }
+            ordered_by:   { type: string }
+            ordered_at:   { type: string, format: date-time }
+            scheduled_for:{ type: string, format: date-time, nullable: true }
+            fulfilled_at: { type: string, format: date-time, nullable: true }
+
+    EcgStudy:
+      type: object
+      properties:
+        id:                     { type: string, format: uuid }
+        patient_id:             { type: string }
+        visit_id:               { type: string }
+        captured_at:            { type: string, format: date-time }
+        waveform_blob_url:      { type: string, format: uri }
+        machine_interpretation: { type: string }
+        ai_interpretation:      { type: string }
+        ai_confidence:          { type: number, minimum: 0, maximum: 1 }
+        physician_overread:     { type: string, nullable: true }
+        overread_by:            { type: string, nullable: true }
+        overread_at:            { type: string, format: date-time, nullable: true }
+
+    EchoStudyInput:
+      type: object
+      required: [patient_id, study_date]
+      properties:
+        patient_id:    { type: string }
+        visit_id:      { type: string }
+        study_date:    { type: string, format: date }
+        ef_percent:    { type: integer }
+        lvids_mm:      { type: integer }
+        e_e_prime:     { type: number }
+        rwma_segments: { type: string }
+        valves:
+          type: object
+          properties:
+            mv: { type: string }
+            av: { type: string }
+            tv: { type: string }
+            pv: { type: string }
+        findings:   { type: string }
+        impression: { type: string }
+
+    EchoStudy:
+      allOf:
+        - { $ref: '#/components/schemas/EchoStudyInput' }
+        - type: object
+          properties:
+            id:          { type: string, format: uuid }
+            reported_by: { type: string }
+            reported_at: { type: string, format: date-time }
+
+    CathCaseInput:
+      type: object
+      required: [patient_id, case_date, operator_id]
+      properties:
+        patient_id:   { type: string }
+        visit_id:     { type: string }
+        case_date:    { type: string, format: date }
+        operator_id:  { type: string }
+        access:       { type: string, enum: [radial-r, radial-l, femoral-r, femoral-l] }
+        contrast_ml:  { type: integer }
+        fluoro_min:   { type: number }
+        syntax_score: { type: integer }
+        pci_done:     { type: boolean }
+        stents_used:  { type: integer }
+        stent_types:  { type: string }
+        complications:{ type: string }
+        outcome:      { type: string }
+
+    CathCase:
+      allOf:
+        - { $ref: '#/components/schemas/CathCaseInput' }
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+
+    CathSlot:
+      type: object
+      properties:
+        slot_at:    { type: string, format: date-time }
+        room:       { type: string }
+        operator_id:{ type: string, nullable: true }
+        case_id:    { type: string, format: uuid, nullable: true }
+
+    CardioDeviceInput:
+      type: object
+      required: [patient_id, device_type, manufacturer, model, serial_no, implanted_at]
+      properties:
+        patient_id:        { type: string }
+        device_type:       { type: string, enum: [pacemaker, icd, crt-p, crt-d, loop_recorder] }
+        manufacturer:      { type: string }
+        model:             { type: string }
+        serial_no:         { type: string }
+        implanted_at:      { type: string, format: date }
+        implanted_by:      { type: string }
+        battery_eri_at:    { type: string, format: date, nullable: true }
+        last_interrogation:{ type: string, format: date, nullable: true }
+
+    CardioDevice:
+      allOf:
+        - { $ref: '#/components/schemas/CardioDeviceInput' }
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+
+    HFEnrollment:
+      type: object
+      properties:
+        id:           { type: string, format: uuid }
+        patient_id:   { type: string }
+        enrolled_at:  { type: string, format: date }
+        nyha_class:   { type: string }
+        aha_stage:    { type: string }
+        ef_percent:   { type: integer }
+        on_arni:      { type: boolean }
+        on_bb:        { type: boolean }
+        on_mra:       { type: boolean }
+        on_sglt2i:    { type: boolean }
+        last_admission: { type: string, format: date, nullable: true }
+        next_visit:     { type: string, format: date, nullable: true }
+
+  parameters:
+    PageSize:
+      $ref: 'components.base.yaml#/components/parameters/PageSize'
+    PageToken:
+      $ref: 'components.base.yaml#/components/parameters/PageToken'
+
+  securitySchemes:
+    bearerAuth:
+      $ref: 'components.base.yaml#/components/securitySchemes/bearerAuth'
+
+security:
+  - bearerAuth: []

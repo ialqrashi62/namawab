@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>إكسلنس هيلث جلوبال | إدارة الخدمات اللوجستية والأسطول</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline-variant": "#c3c7ce",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "inverse-surface": "#2e3132",
+                    "tertiary-container": "#362700",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#cfe5ff",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-container": "#ac8c44",
+                    "on-secondary-fixed": "#002022",
+                    "on-background": "#191c1d",
+                    "on-secondary-container": "#006e75",
+                    "surface-tint": "#406182",
+                    "on-tertiary": "#ffffff",
+                    "surface-variant": "#e1e3e4",
+                    "on-surface-variant": "#42474d",
+                    "inverse-on-surface": "#f0f1f2",
+                    "surface-container-lowest": "#ffffff",
+                    "primary": "#001629",
+                    "on-surface": "#191c1d",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed": "#ffdf9d",
+                    "on-tertiary-fixed": "#251a00",
+                    "background": "#f8f9fa",
+                    "surface-container": "#edeeef",
+                    "surface-container-low": "#f3f4f5",
+                    "surface": "#f8f9fa",
+                    "secondary-fixed-dim": "#5dd8e2",
+                    "on-tertiary-fixed-variant": "#5b4300",
+                    "on-primary-fixed-variant": "#274969",
+                    "secondary-container": "#7af1fc",
+                    "primary-container": "#002b49",
+                    "on-error-container": "#93000a",
+                    "outline": "#73777e",
+                    "on-primary-fixed": "#001d34",
+                    "tertiary-fixed-dim": "#e6c274",
+                    "surface-bright": "#f8f9fa",
+                    "on-secondary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#d9dadb",
+                    "surface-container-high": "#e7e8e9",
+                    "secondary-fixed": "#7df4ff",
+                    "primary-fixed-dim": "#a8caef",
+                    "on-primary-container": "#7293b6",
+                    "surface-container-highest": "#e1e3e4",
+                    "inverse-primary": "#a8caef",
+                    "secondary": "#006970",
+                    "tertiary": "#1d1300"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "xl": "64px",
+                    "sm": "12px",
+                    "gutter": "24px",
+                    "margin-desktop": "48px",
+                    "lg": "40px",
+                    "base": "8px",
+                    "md": "24px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "title-lg": ["IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans"],
+                    "caption": ["IBM Plex Sans"],
+                    "body-md": ["IBM Plex Sans"],
+                    "display-lg": ["IBM Plex Sans"],
+                    "label-md": ["IBM Plex Sans"],
+                    "display-lg-mobile": ["IBM Plex Sans"],
+                    "body-lg": ["IBM Plex Sans"],
+                    "headline-md": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                    "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c3c7ce;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="overflow-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-margin-desktop h-20 rtl bg-white/80 dark:bg-surface-container/80 backdrop-blur-md border-b border-outline-variant/30 dark:border-outline/10 shadow-sm shadow-primary/5">
+<div class="flex items-center gap-gutter">
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">إكسلنس هيلث جلوبال</div>
+<div class="hidden md:flex items-center gap-8 mr-12">
+<nav class="flex gap-6">
+<a class="text-primary dark:text-primary-fixed font-bold border-b-2 border-secondary font-body-md text-body-md py-2" href="#">الخدمات اللوجستية</a>
+<a class="text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors font-body-md text-body-md py-2" href="#">إدارة الموارد</a>
+<a class="text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors font-body-md text-body-md py-2" href="#">التقارير</a>
+</nav>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden lg:block">
+<input class="w-64 bg-surface-container-low border-none rounded-lg px-4 py-2 text-label-md font-label-md focus:ring-2 focus:ring-secondary/20" placeholder="بحث عن مركبة أو مهمة..." type="text"/>
+<span class="material-symbols-outlined absolute left-3 top-2 text-outline">search</span>
+</div>
+<button class="p-2 rounded-full hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-primary">shield_with_heart</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-primary">language</span>
+</button>
+<div class="h-10 w-10 rounded-full overflow-hidden border-2 border-secondary/20 ml-2">
+<img alt="صورة الملف الشخصي للمشرف" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCW3G1AcLfAlf0l9fk6IRjNIJg-mbaQr-o_G2VPiIgVg4QrheS1wsC5-jhZa7WfZvVKqVQbd85qB12ZF0wxradHJgM1T6oc9PbRJVXZ1Me_CeJqJMT8FVODZ77Dl6iXESmu_lBZR7fWGM0rgpRcwTgZF8Paw7vQGpzMK8XJz46kzJoMRBb32TTvlXquGYuJtEA9xCfVxLpoALeiJftllk9PEmGUh9p8SdQVe5z3lWRs8f3jubF2sSSmR6TfUDmEk2RfqTr2EJrJRQiF"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed top-20 right-0 bottom-0 z-40 flex flex-col p-md rtl bg-primary dark:bg-surface-container-lowest w-72 shadow-lg shadow-primary/10">
+<div class="mb-10 flex items-center gap-4 px-2">
+<div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-3xl">admin_panel_settings</span>
+</div>
+<div>
+<h2 class="font-title-lg text-title-lg text-white dark:text-primary">مركز الحوكمة</h2>
+<p class="text-on-primary/60 text-caption font-caption">الأمن السيبراني والبيانات</p>
+</div>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-4 px-4 py-3 text-on-primary/70 dark:text-on-surface-variant hover:text-white dark:hover:text-on-surface hover:bg-on-primary-fixed-variant/20 dark:hover:bg-surface-variant rounded-lg transition-all group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">لوحة القيادة</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 bg-secondary text-white dark:bg-secondary-container dark:text-on-secondary-container rounded-lg shadow-md group" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="font-label-md text-label-md">إدارة الأسطول</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-primary/70 dark:text-on-surface-variant hover:text-white dark:hover:text-on-surface hover:bg-on-primary-fixed-variant/20 dark:hover:bg-surface-variant rounded-lg transition-all group" href="#">
+<span class="material-symbols-outlined">security</span>
+<span class="font-label-md text-label-md">استخبارات التهديدات</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-primary/70 dark:text-on-surface-variant hover:text-white dark:hover:text-on-surface hover:bg-on-primary-fixed-variant/20 dark:hover:bg-surface-variant rounded-lg transition-all group" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="font-label-md text-label-md">تدقيق الامتثال</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-primary/70 dark:text-on-surface-variant hover:text-white dark:hover:text-on-surface hover:bg-on-primary-fixed-variant/20 dark:hover:bg-surface-variant rounded-lg transition-all group" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">الإعدادات</span>
+</a>
+</nav>
+<div class="mt-auto space-y-4">
+<button class="w-full bg-white/10 hover:bg-white/20 text-white text-label-md font-label-md py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">assessment</span>
+                تقرير الأمان الأسبوعي
+            </button>
+<div class="pt-4 border-t border-white/10 space-y-1">
+<a class="flex items-center gap-4 px-4 py-2 text-on-primary/70 hover:text-white font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+                    الدعم الفني
+                </a>
+<a class="flex items-center gap-4 px-4 py-2 text-error hover:text-error-container font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">logout</span>
+                    تسجيل الخروج
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="mr-72 mt-20 p-gutter overflow-y-auto h-[calc(100vh-80px)]">
+<div class="max-w-[1440px] mx-auto space-y-gutter">
+<!-- Header Section -->
+<div class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-gutter">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary mb-2">إدارة الخدمات اللوجستية والأسطول</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">مراقبة حية للمهام، مستويات الأكسجين، وحالة الأسطول الميداني.</p>
+</div>
+<div class="flex gap-4">
+<div class="glass-card px-6 py-3 rounded-xl flex flex-col">
+<span class="text-caption font-caption text-on-surface-variant uppercase tracking-wider">متوسط وقت الاستجابة</span>
+<span class="text-headline-md font-headline-md text-secondary">6.4 دقيقة</span>
+</div>
+<div class="glass-card px-6 py-3 rounded-xl flex flex-col border-r-4 border-r-secondary">
+<span class="text-caption font-caption text-on-surface-variant uppercase tracking-wider">المهام النشطة</span>
+<span class="text-headline-md font-headline-md text-primary">24 مهمة</span>
+</div>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Central Map View -->
+<div class="col-span-12 lg:col-span-8 h-[500px] relative rounded-3xl overflow-hidden glass-card">
+<div class="absolute inset-0 bg-surface-variant flex items-center justify-center">
+<img alt="خريطة لوجستية تفاعلية" class="w-full h-full object-cover grayscale-[30%] opacity-90" data-alt="A highly detailed satellite and topographic map visualization of a modern Middle Eastern city, featuring glowing teal routes and pulsating red emergency markers. The interface overlay shows translucent glassmorphic data panels with medical icons and vehicle trajectories. The lighting is dark and cinematic, emphasizing the professional, high-stakes emergency response environment with primary navy and teal accents." data-location="Riyadh" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVEeGzBOkZoao6jgZ6lVQwtzOldzLEsA4LVB_H_iUrodRmSny-Q-5Jt4U3JF1MxpBp2CoPYMVmlxqTaDRIJo0hx6Z3_MkRR4ac0LC_HrSx33Taiq-yOo06j2Xg3ap6Z-1zcULcksxJYjb0nAdoIR4vIjgbVpIe13EE1zGSLG0FfFd7cMP6nHcFHzScE4vmPn93jararJWYDh-ltjL6SZdKwBOovghowHF70Y4wJs-KKR7jWytEzHRwOSRNqq7KXIXO_DyCinfEj_JM"/>
+</div>
+<!-- Map Controls Overlays -->
+<div class="absolute top-6 right-6 space-y-3">
+<button class="h-10 w-10 rounded-lg bg-white shadow-lg flex items-center justify-center text-primary hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="h-10 w-10 rounded-lg bg-white shadow-lg flex items-center justify-center text-primary hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<button class="h-10 w-10 rounded-lg bg-white shadow-lg flex items-center justify-center text-primary hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined">my_location</span>
+</button>
+</div>
+<div class="absolute bottom-6 right-6 left-6 flex justify-between items-center px-6 py-4 glass-card rounded-2xl">
+<div class="flex gap-8">
+<div class="flex items-center gap-2">
+<span class="h-3 w-3 rounded-full bg-secondary active-dot"></span>
+<span class="text-label-md font-label-md text-primary">12 في الخدمة</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="h-3 w-3 rounded-full bg-tertiary-fixed-dim"></span>
+<span class="text-label-md font-label-md text-primary">8 في وضع الاستعداد</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="h-3 w-3 rounded-full bg-error"></span>
+<span class="text-label-md font-label-md text-primary">4 صيانة طارئة</span>
+</div>
+</div>
+<button class="bg-primary text-white px-6 py-2 rounded-lg font-label-md text-label-md hover:bg-primary-container transition-all">توسيع الخريطة</button>
+</div>
+</div>
+<!-- Oxygen Supply Levels -->
+<div class="col-span-12 lg:col-span-4 glass-card p-6 rounded-3xl flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline-md text-headline-md text-primary">مخزون الأكسجين</h3>
+<span class="material-symbols-outlined text-secondary">gas_meter</span>
+</div>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between mb-2">
+<span class="text-label-md font-label-md text-on-surface-variant">المستودع الرئيسي (R1)</span>
+<span class="text-label-md font-label-md text-secondary">88%</span>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[88%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-2">
+<span class="text-label-md font-label-md text-on-surface-variant">الأسطول الميداني - قطاع أ</span>
+<span class="text-label-md font-label-md text-secondary">62%</span>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[62%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-2 text-error">
+<span class="text-label-md font-label-md">الأسطول الميداني - قطاع ب</span>
+<span class="text-label-md font-label-md">24%</span>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-error w-[24%]"></div>
+</div>
+</div>
+</div>
+</div>
+<button class="mt-8 w-full border border-secondary text-secondary py-3 rounded-xl font-label-md text-label-md hover:bg-secondary/5 transition-all">جدولة إعادة التعبئة</button>
+</div>
+<!-- Mission Status List -->
+<div class="col-span-12 lg:col-span-7 glass-card rounded-3xl overflow-hidden flex flex-col">
+<div class="p-6 border-b border-outline-variant/20 flex items-center justify-between">
+<h3 class="font-headline-md text-headline-md text-primary">حالة المهام الحالية</h3>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-surface-container rounded-full text-caption font-caption text-on-surface-variant">الكل</span>
+<span class="px-3 py-1 bg-secondary/10 text-secondary rounded-full text-caption font-caption">عاجل</span>
+</div>
+</div>
+<div class="overflow-y-auto max-h-[400px]">
+<table class="w-full text-right">
+<thead class="bg-surface-container-low text-on-surface-variant">
+<tr>
+<th class="px-6 py-4 font-label-md text-label-md">الرمز</th>
+<th class="px-6 py-4 font-label-md text-label-md">الموقع</th>
+<th class="px-6 py-4 font-label-md text-label-md">الحالة</th>
+<th class="px-6 py-4 font-label-md text-label-md">الوقت المقدر</th>
+<th class="px-6 py-4"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4 font-body-md text-body-md text-primary">AMB-102</td>
+<td class="px-6 py-4 font-body-md text-body-md text-on-surface-variant">حي النخيل، الرياض</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-secondary/10 text-secondary rounded-full text-caption font-caption">في الطريق</span>
+</td>
+<td class="px-6 py-4 font-body-md text-body-md text-primary">04:12 د</td>
+<td class="px-6 py-4">
+<button class="opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-outline">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4 font-body-md text-body-md text-primary">AMB-084</td>
+<td class="px-6 py-4 font-body-md text-body-md text-on-surface-variant">مستشفى التخصصي</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-tertiary-fixed-dim/20 text-tertiary rounded-full text-caption font-caption">تفريغ حمولة</span>
+</td>
+<td class="px-6 py-4 font-body-md text-body-md text-primary">12:45 د</td>
+<td class="px-6 py-4">
+<button class="opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-outline">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4 font-body-md text-body-md text-primary">AMB-119</td>
+<td class="px-6 py-4 font-body-md text-body-md text-on-surface-variant">طريق الملك فهد</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-error/10 text-error rounded-full text-caption font-caption">استجابة طارئة</span>
+</td>
+<td class="px-6 py-4 font-body-md text-body-md text-primary">02:30 د</td>
+<td class="px-6 py-4">
+<button class="opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-outline">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4 font-body-md text-body-md text-primary">AMB-042</td>
+<td class="px-6 py-4 font-body-md text-body-md text-on-surface-variant">حي الملقا</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-surface-variant text-on-surface-variant rounded-full text-caption font-caption">مكتمل</span>
+</td>
+<td class="px-6 py-4 font-body-md text-body-md text-on-surface-variant">--:--</td>
+<td class="px-6 py-4">
+<button class="opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-outline">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Maintenance & Fuel Alerts -->
+<div class="col-span-12 lg:col-span-5 glass-card p-6 rounded-3xl space-y-6">
+<h3 class="font-headline-md text-headline-md text-primary">تنبيهات الوقود والصيانة</h3>
+<div class="space-y-4">
+<div class="p-4 rounded-2xl bg-error/5 border border-error/10 flex items-start gap-4">
+<div class="h-10 w-10 rounded-full bg-error/10 flex items-center justify-center text-error">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-1">
+<h4 class="font-title-lg text-title-lg text-primary text-sm font-bold">تنبيه وقود حرج</h4>
+<span class="text-caption font-caption text-on-surface-variant">منذ دقيقتين</span>
+</div>
+<p class="text-body-md text-body-md text-on-surface-variant text-sm">مركبة AMB-105: مستوى الوقود 8%. أقرب محطة مزودة ببطاقة الشركة على بعد 3.2 كم.</p>
+</div>
+</div>
+<div class="p-4 rounded-2xl bg-tertiary-fixed-dim/5 border border-tertiary-fixed-dim/20 flex items-start gap-4">
+<div class="h-10 w-10 rounded-full bg-tertiary-fixed-dim/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">build</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-1">
+<h4 class="font-title-lg text-title-lg text-primary text-sm font-bold">صيانة دورية مستحقة</h4>
+<span class="text-caption font-caption text-on-surface-variant">منذ ساعة</span>
+</div>
+<p class="text-body-md text-body-md text-on-surface-variant text-sm">مركبة AMB-092: تجاوزت المسافة المحددة للصيانة بمقدار 450 كم.</p>
+</div>
+</div>
+<div class="p-4 rounded-2xl bg-secondary/5 border border-secondary/10 flex items-start gap-4">
+<div class="h-10 w-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-1">
+<h4 class="font-title-lg text-title-lg text-primary text-sm font-bold">اكتمال الصيانة</h4>
+<span class="text-caption font-caption text-on-surface-variant">منذ 3 ساعات</span>
+</div>
+<p class="text-body-md text-body-md text-on-surface-variant text-sm">مركبة AMB-077 جاهزة للخدمة بعد استبدال الفرامل وفحص المحرك.</p>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 pt-2">
+<div class="p-4 bg-surface-container-low rounded-2xl">
+<span class="text-caption font-caption text-on-surface-variant block mb-1">كفاءة استهلاك الوقود</span>
+<span class="text-title-lg font-title-lg text-primary">12.4 لتر/100كم</span>
+</div>
+<div class="p-4 bg-surface-container-low rounded-2xl">
+<span class="text-caption font-caption text-on-surface-variant block mb-1">جهوزية الأسطول</span>
+<span class="text-title-lg font-title-lg text-secondary">94.2%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Stats -->
+<div class="pb-10 grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="glass-card p-6 rounded-2xl flex items-center gap-4">
+<div class="h-12 w-12 rounded-full bg-primary-container/10 flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined">schedule</span>
+</div>
+<div>
+<p class="text-caption font-caption text-on-surface-variant">وقت التجهيز</p>
+<h4 class="text-title-lg font-title-lg text-primary">1:45 م</h4>
+</div>
+</div>
+<div class="glass-card p-6 rounded-2xl flex items-center gap-4">
+<div class="h-12 w-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">monitoring</span>
+</div>
+<div>
+<p class="text-caption font-caption text-on-surface-variant">البيانات الميدانية</p>
+<h4 class="text-title-lg font-title-lg text-primary">مستقرة</h4>
+</div>
+</div>
+<div class="glass-card p-6 rounded-2xl flex items-center gap-4">
+<div class="h-12 w-12 rounded-full bg-tertiary-fixed-dim/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">badge</span>
+</div>
+<div>
+<p class="text-caption font-caption text-on-surface-variant">الطواقم النشطة</p>
+<h4 class="text-title-lg font-title-lg text-primary">48 فرد</h4>
+</div>
+</div>
+<div class="glass-card p-6 rounded-2xl flex items-center gap-4">
+<div class="h-12 w-12 rounded-full bg-error/10 flex items-center justify-center text-error">
+<span class="material-symbols-outlined">crisis_alert</span>
+</div>
+<div>
+<p class="text-caption font-caption text-on-surface-variant">حوادث اليوم</p>
+<h4 class="text-title-lg font-title-lg text-primary">0 حادث</h4>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB Button -->
+<button class="fixed bottom-8 left-8 h-16 w-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform active:scale-95 group z-50">
+<span class="material-symbols-outlined text-3xl">add</span>
+<div class="absolute right-20 bg-primary text-white px-4 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-label-md text-label-md pointer-events-none">إضافة مهمة جديدة</div>
+</button>
+<script>
+        // Micro-interactions for the map markers or alerts
+        document.addEventListener('DOMContentLoaded', () => {
+            const alerts = document.querySelectorAll('.p-4.rounded-2xl');
+            alerts.forEach(alert => {
+                alert.addEventListener('mouseenter', () => {
+                    alert.style.transform = 'translateY(-2px)';
+                    alert.style.transition = 'transform 0.2s ease-out';
+                });
+                alert.addEventListener('mouseleave', () => {
+                    alert.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body></html>

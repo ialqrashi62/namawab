@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Biomedical Asset &amp; Equipment Management | SaudiHealth Premium</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#a8caef",
+                        "surface-bright": "#f8f9fa",
+                        "secondary-fixed": "#7df4ff",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "secondary-container": "#7af1fc",
+                        "primary": "#001629",
+                        "surface-variant": "#e1e3e4",
+                        "tertiary": "#1d1300",
+                        "outline-variant": "#c3c7ce",
+                        "on-primary-container": "#7293b6",
+                        "primary-fixed": "#cfe5ff",
+                        "error": "#ba1a1a",
+                        "outline": "#73777e",
+                        "inverse-surface": "#2e3132",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#42474d",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "surface-dim": "#d9dadb",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "surface-tint": "#406182",
+                        "secondary": "#006970",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#006e75",
+                        "surface-container-high": "#e7e8e9",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#251a00",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#ac8c44",
+                        "primary-container": "#002b49",
+                        "surface-container": "#edeeef",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed": "#001d34",
+                        "surface-container-low": "#f3f4f5",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "surface": "#f8f9fa",
+                        "on-primary-fixed-variant": "#274969",
+                        "inverse-on-surface": "#f0f1f2",
+                        "tertiary-fixed": "#ffdf9d",
+                        "background": "#f8f9fa",
+                        "surface-container-highest": "#e1e3e4",
+                        "primary-fixed-dim": "#a8caef",
+                        "on-background": "#191c1d",
+                        "on-secondary-fixed": "#002022",
+                        "on-surface": "#191c1d",
+                        "tertiary-container": "#362700",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "64px",
+                        "gutter": "24px",
+                        "margin-desktop": "48px",
+                        "md": "24px",
+                        "lg": "40px",
+                        "base": "8px",
+                        "xs": "4px",
+                        "sm": "12px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["IBM Plex Sans"],
+                        "label-md": ["IBM Plex Sans"],
+                        "caption": ["IBM Plex Sans"],
+                        "display-lg": ["IBM Plex Sans"],
+                        "body-md": ["IBM Plex Sans"],
+                        "title-lg": ["IBM Plex Sans"],
+                        "headline-md": ["IBM Plex Sans"],
+                        "headline-lg": ["IBM Plex Sans"],
+                        "display-lg-mobile": ["IBM Plex Sans"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #73777e; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Top Navigation Shell -->
+<header class="fixed top-0 right-0 w-full z-50 flex flex-row-reverse justify-between items-center px-margin-desktop h-20 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-base">
+<span class="text-title-lg font-title-lg font-bold text-primary">Al-Command Center</span>
+</div>
+<nav class="hidden md:flex gap-lg">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">Operations</a>
+<a class="text-primary border-b-2 border-primary pb-1 font-bold font-body-md text-body-md" href="#">Logistics</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">Human Resources</a>
+</nav>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-primary-container overflow-hidden border border-outline-variant/30">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a senior biomedical engineer with a focused expression, wearing a clinical lab coat and a smart ID badge. The background is a blurred high-tech medical operations center with soft blue and white lighting, emphasizing a clean and authoritative corporate healthcare environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfgtiGK8t-s7vKlGGedd_IqCKoKWhgP2a4xprlibOeds_ro8am6BuGrHj-uaBdLgLqJ3AcMrVhSJVX_YUZmKT7K8CKY00mjCk57BChdyV2TNCStAmkIV2j3YH5sv5ZKKqNLBM85HTedtZeO7tSJJqSJgUzLf1GrQtvZlRK9VVWJ1jht_0m7OYCJi_87I52WgB3yHg6qu89wpybCzffovWfozPpBPndCDTsGCpalWN2YC4xWaaGl7IHu8kzU8qMnxRlHdwXhZ2Q3J87"/>
+</div>
+</div>
+</header>
+<!-- Side Navigation Shell -->
+<aside class="fixed inset-y-0 right-0 flex flex-col pt-24 pb-8 px-sm z-40 bg-primary w-80 shadow-xl border-l border-outline-variant/10">
+<div class="px-md mb-lg">
+<h1 class="text-headline-sm font-headline-sm text-white">National Health Command</h1>
+<p class="text-on-primary/70 font-label-md text-label-md">Riyadh Region HQ</p>
+</div>
+<nav class="flex-1 flex flex-col gap-xs px-xs">
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="emergency_home">emergency_home</span>
+<span class="font-label-md text-label-md">Incident Command</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm bg-secondary-container text-on-secondary-container rounded-lg font-bold translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
+<span class="font-label-md text-label-md">Fleet Logistics</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-label-md text-label-md">Resource Hub</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="font-label-md text-label-md">Staff Management</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-md text-label-md">Payroll</span>
+</a>
+</nav>
+<div class="mt-auto px-xs flex flex-col gap-xs">
+<button class="mx-md mb-md py-sm px-md bg-error text-white rounded-xl font-bold flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+                Trigger Emergency Alert
+            </button>
+<hr class="border-outline-variant/10 mb-xs"/>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="support_agent">support_agent</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="mr-80 pt-20 pb-xl px-margin-desktop">
+<div class="max-w-[1440px] mx-auto py-lg">
+<!-- Page Header -->
+<div class="flex justify-between items-end mb-lg">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary mb-xs">إدارة الأصول والمعدات الطبية</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Biomedical Asset &amp; Equipment Lifecycle Dashboard</p>
+</div>
+<div class="flex gap-md">
+<button class="bg-secondary px-lg py-sm text-white rounded-lg font-bold flex items-center gap-xs hover:bg-on-secondary-container transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                        تسجيل أصل جديد
+                    </button>
+<button class="border border-secondary text-secondary px-lg py-sm rounded-lg font-bold hover:bg-secondary/5 transition-colors">
+                        تحميل التقارير
+                    </button>
+</div>
+</div>
+<!-- Bento Grid - Inventory Summary -->
+<section class="grid grid-cols-4 gap-gutter mb-xl">
+<div class="glass-card p-md rounded-xl flex flex-col justify-between h-40">
+<div class="flex justify-between items-start">
+<span class="font-label-md text-label-md text-on-surface-variant">إجمالي الأصول</span>
+<span class="material-symbols-outlined text-primary" data-icon="precision_manufacturing">precision_manufacturing</span>
+</div>
+<div>
+<div class="font-display-lg text-display-lg text-primary">1,284</div>
+<div class="font-caption text-caption text-secondary flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+                            +12% من الشهر الماضي
+                        </div>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col justify-between h-40">
+<div class="flex justify-between items-start">
+<span class="font-label-md text-label-md text-on-surface-variant">قيد التشغيل</span>
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle">check_circle</span>
+</div>
+<div>
+<div class="font-display-lg text-display-lg text-secondary">1,142</div>
+<div class="font-caption text-caption text-on-surface-variant">89% كفاءة تشغيلية</div>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col justify-between h-40">
+<div class="flex justify-between items-start">
+<span class="font-label-md text-label-md text-on-surface-variant">تحت الصيانة</span>
+<span class="material-symbols-outlined text-tertiary-container" data-icon="build">build</span>
+</div>
+<div>
+<div class="font-display-lg text-display-lg text-tertiary-container">98</div>
+<div class="font-caption text-caption text-error flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]" data-icon="schedule">schedule</span>
+                            14 حالة طارئة
+                        </div>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col justify-between h-40">
+<div class="flex justify-between items-start">
+<span class="font-label-md text-label-md text-on-surface-variant">خارج الخدمة</span>
+<span class="material-symbols-outlined text-outline" data-icon="archive">archive</span>
+</div>
+<div>
+<div class="font-display-lg text-display-lg text-outline">44</div>
+<div class="font-caption text-caption text-on-surface-variant">منتظرة للتخريد</div>
+</div>
+</div>
+</section>
+<!-- Middle Section: Map and Forecast -->
+<div class="grid grid-cols-12 gap-gutter mb-xl">
+<!-- RTLS Map Container -->
+<div class="col-span-8 glass-card rounded-xl p-md overflow-hidden flex flex-col min-h-[480px]">
+<div class="flex justify-between items-center mb-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="location_on">location_on</span>
+<h3 class="font-title-lg text-title-lg text-primary">تتبع الموقع في الوقت الفعلي (RTLS)</h3>
+</div>
+<div class="flex gap-xs">
+<span class="px-sm py-xs bg-surface-container rounded-full text-caption font-label-md">جناح العمليات</span>
+<span class="px-sm py-xs bg-surface-container rounded-full text-caption font-label-md">العناية المركزة</span>
+</div>
+</div>
+<div class="relative flex-1 bg-surface-container-low rounded-lg overflow-hidden border border-outline-variant/20">
+<img alt="Hospital Map" class="w-full h-full object-cover opacity-60" data-alt="A stylized, architectural digital floor plan of a modern medical facility with glowing data points. The map uses a sophisticated navy and teal color scheme with translucent glass-like layers. Small pulsing light indicators represent real-time locations of equipment throughout clinical wings. The lighting is soft and cinematic, conveying a high-tech healthcare command center vibe." data-location="Riyadh Health Hospital" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhULexUBi2SKQpvwrPd42rSaP5H5nfwXFEIvb5o_zsKR_rV1qT0hUxYM_O1pWgbOjkUWXqZElEfs7Ztv5DwtCKplEkbfikgiz9191Ni9_lJkVuDyuDsx0a6usXoy7gV6n8CyIICULADgx13QO6DygqRGpHzEAY_pfTj-nklczxR_GLnuXRlVQjXVIqgMRD4yDxRBtO8ezDGrV7Erf8AdX0dGY4siBmS88mtzI1aDCgk1G-zLkSnjpfCif7QP6WVZ6fjeVj1Rf3xkus"/>
+<!-- Simulated Pings -->
+<div class="absolute top-1/4 right-1/3 flex flex-col items-center group cursor-pointer">
+<div class="w-4 h-4 bg-secondary rounded-full animate-ping"></div>
+<div class="w-3 h-3 bg-secondary rounded-full absolute top-0.5"></div>
+<div class="hidden group-hover:block absolute bottom-6 bg-white p-xs rounded shadow-lg text-caption whitespace-nowrap z-10">Ventilator V-902</div>
+</div>
+<div class="absolute bottom-1/3 left-1/4 flex flex-col items-center group cursor-pointer">
+<div class="w-4 h-4 bg-tertiary-container rounded-full animate-pulse"></div>
+<div class="w-3 h-3 bg-tertiary-container rounded-full absolute top-0.5"></div>
+<div class="hidden group-hover:block absolute bottom-6 bg-white p-xs rounded shadow-lg text-caption whitespace-nowrap z-10">MRI-1 Scanner</div>
+</div>
+</div>
+</div>
+<!-- Maintenance Forecast -->
+<div class="col-span-4 glass-card rounded-xl p-md flex flex-col">
+<div class="flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-primary" data-icon="event_note">event_note</span>
+<h3 class="font-title-lg text-title-lg text-primary">توقعات الصيانة والتنبيهات</h3>
+</div>
+<div class="space-y-md flex-1 overflow-y-auto pr-xs">
+<!-- Alert Item -->
+<div class="p-sm bg-error/5 border-r-4 border-error rounded-lg">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-label-md text-label-md text-error font-bold">تنبيه حرج</span>
+<span class="text-caption text-on-surface-variant">الآن</span>
+</div>
+<p class="font-body-md text-body-md text-primary font-medium">جهاز الصدمات الكهربائية #099</p>
+<p class="font-caption text-caption text-on-surface-variant">انخفاض مستوى البطارية الحرجة في جناح الطوارئ.</p>
+</div>
+<!-- Alert Item -->
+<div class="p-sm bg-secondary-container/10 border-r-4 border-secondary rounded-lg">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-label-md text-label-md text-secondary font-bold">صيانة مجدولة</span>
+<span class="text-caption text-on-surface-variant">غداً</span>
+</div>
+<p class="font-body-md text-body-md text-primary font-medium">نظام التصوير المقطعي CT-4</p>
+<p class="font-caption text-caption text-on-surface-variant">فحص روتيني للمبرد ومعايرة المجسات.</p>
+</div>
+<!-- Alert Item -->
+<div class="p-sm bg-surface-container-high border-r-4 border-outline rounded-lg opacity-80">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-label-md text-label-md text-on-surface-variant font-bold">استبدال أصول</span>
+<span class="text-caption text-on-surface-variant">١٢ مايو</span>
+</div>
+<p class="font-body-md text-body-md text-primary font-medium">حاضنات الأطفال (دفعة 2018)</p>
+<p class="font-caption text-caption text-on-surface-variant">تجاوز العمر الافتراضي الموصى به من المصنع.</p>
+</div>
+</div>
+<button class="mt-md w-full text-center font-label-md text-label-md text-secondary hover:underline py-sm">مشاهدة الجدول الكامل</button>
+</div>
+</div>
+<!-- Real-time Status Grid (High Value Equipment) -->
+<section class="mb-xl">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-headline-md text-headline-md text-primary">حالة الأصول عالية القيمة</h3>
+<div class="flex gap-sm">
+<select class="bg-white border-outline-variant/30 rounded-lg font-label-md text-label-md px-md py-xs">
+<option>فلترة حسب النوع</option>
+</select>
+<select class="bg-white border-outline-variant/30 rounded-lg font-label-md text-label-md px-md py-xs">
+<option>فلترة حسب القسم</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Equipment Card -->
+<div class="glass-card rounded-xl p-md group hover:border-secondary transition-all">
+<div class="flex gap-md">
+<div class="w-20 h-20 rounded-lg bg-surface-container overflow-hidden">
+<img alt="MRI Scanner" class="w-full h-full object-cover" data-alt="A clean, clinical close-up of a modern MRI scanner in a brightly lit medical suite. The design features soft white lighting, sterile surfaces, and high-tech blue status displays. The style is premium corporate healthcare, emphasizing reliability and advanced technology." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXUYENP36D7UsqauWMz9wWMBmzk5ctNZVfOyO6Qnm5rMH9OtB_s_Sf6mdXj7Jrhjqdfq9uaFMnFTE1ol3-rN_NnLD6PBsFOZbyaGXvSa_PXyUPnir_NUQUMsyMOtrPPPH6Xk89veE4cduwRs_iXDwgxwfOFJRk7w5abSaE-fB7bc4e7EryKDrqUDXJlo8NP8oN2CNqoC-UjHqG2mOGski_2BQcaxLvxM3KzsEgxsf8odFJ8JgjXqaMM9_kKRuf8s5Zw8WWNBkNcsTj"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h4 class="font-title-lg text-title-lg text-primary">MRI Suite 1</h4>
+<span class="flex h-3 w-3 relative">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-secondary"></span>
+</span>
+</div>
+<p class="font-caption text-caption text-on-surface-variant mb-sm">SN: MO-7834-01 | GE Healthcare</p>
+<div class="flex items-center justify-between mt-sm">
+<div class="text-caption">
+<div class="text-on-surface-variant">الاستخدام اليومي</div>
+<div class="font-bold text-primary">84%</div>
+</div>
+<div class="w-24 bg-surface-container rounded-full h-2">
+<div class="bg-secondary h-2 rounded-full w-[84%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Equipment Card -->
+<div class="glass-card rounded-xl p-md group hover:border-secondary transition-all">
+<div class="flex gap-md">
+<div class="w-20 h-20 rounded-lg bg-surface-container overflow-hidden">
+<img alt="Ventilator" class="w-full h-full object-cover" data-alt="A high-definition close-up of a medical ventilator screen displaying vital signs in a neonatal intensive care unit. The atmosphere is calm and professional, with soft teal accents and crisp white lighting. The image represents cutting-edge biomedical support in a premium healthcare environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCr_ucqXWuKg8zVcNp8754-pqeLApKE-iEeEg1-HtxNynW1K3ZlPTsXqNinllHdyWAeJO55WFjOHZTgRaDEGh3QHVnGoRJIcsOOFTs752uH3dLX7rxhJ9aVY-C0HG-KDba--ZvAdFUBI5Woy8bWxE5UrUpipRFy-lOVwjH8tUI1pWqEnaO_u3liGT1wKfqTWsv-SukomVDPgwpnUzPl0XGKJxWRkZIeROzPzjbDg3wBbIW5iw0_NfXWl5bRafTbsAvmOCsJcEIsCXAB"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h4 class="font-title-lg text-title-lg text-primary">ICU Vent-A12</h4>
+<span class="flex h-3 w-3 relative">
+<span class="relative inline-flex rounded-full h-3 w-3 bg-secondary"></span>
+</span>
+</div>
+<p class="font-caption text-caption text-on-surface-variant mb-sm">SN: VX-1022-90 | Philips</p>
+<div class="flex items-center justify-between mt-sm">
+<div class="text-caption">
+<div class="text-on-surface-variant">الاستخدام اليومي</div>
+<div class="font-bold text-primary">92%</div>
+</div>
+<div class="w-24 bg-surface-container rounded-full h-2">
+<div class="bg-secondary h-2 rounded-full w-[92%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Equipment Card -->
+<div class="glass-card rounded-xl p-md group hover:border-secondary transition-all border-tertiary-container/20">
+<div class="flex gap-md">
+<div class="w-20 h-20 rounded-lg bg-surface-container overflow-hidden opacity-60">
+<img alt="Ultrasound" class="w-full h-full object-cover" data-alt="A professional medical ultrasound machine in a diagnostic room, seen in soft focus. The lighting is low-key with focused cool-toned lights highlighting the sleek contours of the device. The setting is clean, modern, and clinical, following a high-trust corporate medical aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBt5Hutt7V-5bYseCM_cPOxBN_H2z8QVlI0fIBjL0EzaWtRI0zM56EceAZChe694mUEFucGE6J6u77_S4_yMeSJI4IXa2XBLhkPVsFUZ8HxHw7U-74UAw8BJn358N0D4jVJiENkeshK2DRxGOKHOq1_M0ESNmuvkaHUsYdtfrzp_O3wKqP5NVzrNJJZYGC01WxU_HKEn9QhE0Nx4fxLB7U3l7qMLdtNFi7_FaRJOpdCKJ3WDtqNylWiHHX8RvbjMMsZd-kaDDr_nYps"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h4 class="font-title-lg text-title-lg text-primary opacity-60">Radiology U-01</h4>
+<span class="flex h-3 w-3 relative">
+<span class="relative inline-flex rounded-full h-3 w-3 bg-tertiary-container"></span>
+</span>
+</div>
+<p class="font-caption text-caption text-on-surface-variant mb-sm opacity-60">SN: US-4412-BB | Siemens</p>
+<div class="flex items-center justify-between mt-sm">
+<div class="text-caption opacity-60">
+<div class="text-on-surface-variant">قيد الصيانة</div>
+<div class="font-bold text-primary">جاري المعايرة</div>
+</div>
+<div class="px-sm py-xs bg-tertiary-container/10 text-tertiary-container rounded text-[10px] font-bold">OFFLINE</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Analytics Section -->
+<section class="grid grid-cols-2 gap-gutter">
+<div class="glass-card p-md rounded-xl">
+<h3 class="font-title-lg text-title-lg text-primary mb-lg">تحليلات استخدام الأصول</h3>
+<div class="h-64 flex items-end justify-between px-md">
+<!-- Bar Chart -->
+<div class="w-12 bg-secondary/20 rounded-t-lg relative group">
+<div class="absolute bottom-0 w-full bg-secondary rounded-t-lg transition-all h-[40%] group-hover:h-[45%]"></div>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-caption">MRI</span>
+</div>
+<div class="w-12 bg-secondary/20 rounded-t-lg relative group">
+<div class="absolute bottom-0 w-full bg-secondary rounded-t-lg transition-all h-[85%] group-hover:h-[90%]"></div>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-caption">ICU</span>
+</div>
+<div class="w-12 bg-secondary/20 rounded-t-lg relative group">
+<div class="absolute bottom-0 w-full bg-secondary rounded-t-lg transition-all h-[60%] group-hover:h-[65%]"></div>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-caption">X-Ray</span>
+</div>
+<div class="w-12 bg-secondary/20 rounded-t-lg relative group">
+<div class="absolute bottom-0 w-full bg-secondary rounded-t-lg transition-all h-[30%] group-hover:h-[35%]"></div>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-caption">Lab</span>
+</div>
+<div class="w-12 bg-secondary/20 rounded-t-lg relative group">
+<div class="absolute bottom-0 w-full bg-secondary rounded-t-lg transition-all h-[75%] group-hover:h-[80%]"></div>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-caption">Surg</span>
+</div>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl">
+<h3 class="font-title-lg text-title-lg text-primary mb-md">الكفاءة التشغيلية (السنوية)</h3>
+<div class="flex items-center justify-center h-64 relative">
+<!-- Donut Chart Simulation -->
+<div class="w-48 h-48 rounded-full border-[16px] border-secondary border-l-transparent border-t-transparent flex items-center justify-center -rotate-45">
+<div class="rotate-45 flex flex-col items-center">
+<span class="font-display-lg text-display-lg text-primary">94.2%</span>
+<span class="font-label-md text-label-md text-on-surface-variant">متوسط الجاهزية</span>
+</div>
+</div>
+<div class="absolute right-0 top-1/2 -translate-y-1/2 space-y-sm">
+<div class="flex items-center gap-xs">
+<div class="w-3 h-3 bg-secondary rounded-full"></div>
+<span class="text-caption">جاهزية تشغيلية</span>
+</div>
+<div class="flex items-center gap-xs opacity-40">
+<div class="w-3 h-3 bg-tertiary-container rounded-full"></div>
+<span class="text-caption">صيانة وقائية</span>
+</div>
+<div class="flex items-center gap-xs opacity-20">
+<div class="w-3 h-3 bg-error rounded-full"></div>
+<span class="text-caption">أعطال مفاجئة</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer Shell -->
+<footer class="w-full py-md px-margin-desktop flex flex-row-reverse justify-between items-center bg-surface-container-high border-t border-outline-variant/30">
+<span class="font-caption text-caption text-on-surface">© 2024 Command Center. All Rights Reserved. Ministry of Health Standards Compliant.</span>
+<div class="flex gap-lg">
+<a class="text-on-surface-variant hover:text-secondary transition-colors font-body-md text-body-md" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-secondary transition-colors font-body-md text-body-md" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-secondary transition-colors font-body-md text-body-md" href="#">Regional Compliance</a>
+</div>
+<div class="font-bold text-primary font-body-md text-body-md">SaudiHealth Premium</div>
+</footer>
+<script>
+        // Micro-interactions and effects
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+                card.style.transition = 'all 0.3s ease';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Search Bar Implementation Logic (if needed)
+        const searchInput = document.createElement('div');
+        // Logic for filtering items would go here
+    </script>
+</body></html>

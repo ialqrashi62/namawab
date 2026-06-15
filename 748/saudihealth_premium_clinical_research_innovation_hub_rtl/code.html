@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+
+<html class="light" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HEAL Executive - Clinical Research &amp; Medical Innovation</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f3f4f5",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "on-secondary-container": "#006e75",
+                        "surface-variant": "#e1e3e4",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "on-surface-variant": "#42474d",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#406182",
+                        "on-secondary-fixed": "#002022",
+                        "on-primary-fixed-variant": "#274969",
+                        "primary-container": "#002b49",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffdf9d",
+                        "outline": "#73777e",
+                        "on-primary-container": "#7293b6",
+                        "inverse-surface": "#2e3132",
+                        "surface-container-high": "#e7e8e9",
+                        "secondary-container": "#7af1fc",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#7df4ff",
+                        "primary-fixed-dim": "#a8caef",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "tertiary": "#1d1300",
+                        "surface-dim": "#d9dadb",
+                        "on-tertiary-fixed": "#251a00",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#f8f9fa",
+                        "on-tertiary-container": "#ac8c44",
+                        "on-background": "#191c1d",
+                        "surface-container-highest": "#e1e3e4",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#cfe5ff",
+                        "surface-container": "#edeeef",
+                        "surface": "#f8f9fa",
+                        "background": "#f8f9fa",
+                        "primary": "#001629",
+                        "inverse-on-surface": "#f0f1f2",
+                        "outline-variant": "#c3c7ce",
+                        "tertiary-container": "#362700",
+                        "inverse-primary": "#a8caef",
+                        "on-surface": "#191c1d",
+                        "secondary": "#006970",
+                        "on-primary-fixed": "#001d34"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "gutter": "24px",
+                        "xl": "64px",
+                        "sm": "12px",
+                        "lg": "40px",
+                        "margin-mobile": "16px",
+                        "md": "24px",
+                        "margin-desktop": "48px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["IBM Plex Sans"],
+                        "display-lg": ["IBM Plex Sans"],
+                        "body-md": ["IBM Plex Sans"],
+                        "title-lg": ["IBM Plex Sans"],
+                        "label-md": ["IBM Plex Sans"],
+                        "display-lg-mobile": ["IBM Plex Sans"],
+                        "headline-lg": ["IBM Plex Sans"],
+                        "headline-md": ["IBM Plex Sans"],
+                        "caption": ["IBM Plex Sans"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: #f8f9fa; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e1e3e4; border-radius: 10px; }
+        .map-ping {
+            animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        @keyframes ping {
+            75%, 100% { transform: scale(2.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 px-margin-desktop py-base flex justify-between items-center w-full shadow-sm shadow-primary/5">
+<div class="flex items-center gap-md">
+<h1 class="font-display-lg text-headline-md text-primary tracking-tight">HEAL Global</h1>
+<div class="hidden md:flex gap-md mr-lg">
+<nav class="flex gap-md text-label-md">
+<a class="text-secondary font-bold transition-colors" href="#">Strategic Dashboard</a>
+<a class="text-on-surface-variant hover:bg-secondary-container/50 px-sm py-xs rounded transition-colors" href="#">Research Portfolio</a>
+<a class="text-on-surface-variant hover:bg-secondary-container/50 px-sm py-xs rounded transition-colors" href="#">Innovation Hub</a>
+</nav>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<div class="relative hidden lg:block">
+<span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline">search</span>
+<input class="bg-surface-container-low border-none rounded-lg pr-10 pl-4 py-2 text-label-md w-64 focus:ring-2 focus:ring-secondary/20" placeholder="Search trials, metrics, or partners..." type="text"/>
+</div>
+<button class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-secondary-container/50 rounded-full transition-colors">notifications</button>
+<button class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-secondary-container/50 rounded-full transition-colors">settings</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-outline/20">
+<img alt="Executive User Profile" data-alt="A professional headshot of a senior medical executive with a modern, high-key lighting setup. The background is a blurred high-end clinical research facility with glass partitions and soft blue and gold ambient lights. The executive is wearing professional corporate attire, exuding authority, trust, and advanced healthcare leadership. The overall aesthetic is clean, sharp, and premium." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDY6EXdrwqtpTzMp652RHqT81E0bOuAEjRJpcFx6HkW-iIqTuvdrPx8wSvvJIUaK81dMsUEowden8rHOYP0TBJ8m2daQYCH9eeFKzmur7iUXryIfiB6g00tNiWrSZdANCDZONdrjs5uKb-U7lANxnJLouCVjQsQaNfZqLsDKy-G7maPEpiQHfysbWoPI7iEJIz0wxDOWUOD-i15PS6_eTmOTopChpwIFJfRE8Ibv_596JwmzY5k86cFRH-BKD9JZ7Bx3fvkub9yBeP3"/>
+</div>
+</div>
+</header>
+<!-- Side Navigation Bar (RTL Right side) -->
+<aside class="fixed top-0 right-0 h-screen w-64 bg-primary text-on-primary flex flex-col z-40 pt-24 border-l border-outline/20 shadow-xl shadow-primary/20 rtl">
+<div class="px-lg mb-lg">
+<div class="flex items-center gap-sm mb-xs">
+<div class="w-10 h-10 bg-on-primary/10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary-fixed-dim">health_and_safety</span>
+</div>
+<div>
+<p class="font-display-lg text-title-lg text-on-primary">HEAL Executive</p>
+<p class="font-IBM-Plex-Sans text-caption text-on-primary/60">Sovereign Health Initiative</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto custom-scrollbar">
+<a class="flex items-center gap-md px-lg py-md text-tertiary-fixed-dim border-r-4 border-tertiary-fixed-dim bg-on-primary/10 transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined">dashboard_customize</span>
+<span class="font-IBM-Plex-Sans text-label-md">Strategic Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-on-primary/70 hover:text-on-primary hover:bg-on-primary/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+<span class="font-IBM-Plex-Sans text-label-md">Clinical Operations</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-on-primary/70 hover:text-on-primary hover:bg-on-primary/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-IBM-Plex-Sans text-label-md">Financial Planning</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-on-primary/70 hover:text-on-primary hover:bg-on-primary/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">diversity_1</span>
+<span class="font-IBM-Plex-Sans text-label-md">Patient Journey</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md text-on-primary/70 hover:text-on-primary hover:bg-on-primary/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">folder_shared</span>
+<span class="font-IBM-Plex-Sans text-label-md">Resources</span>
+</a>
+</nav>
+<div class="p-lg border-t border-on-primary/10">
+<button class="w-full py-sm bg-on-primary text-primary font-bold rounded-xl mb-md hover:bg-secondary-fixed transition-colors">Premium Support</button>
+<a class="flex items-center gap-md text-on-primary/70 hover:text-on-primary" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-IBM-Plex-Sans text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="mr-64 pt-24 p-margin-desktop min-h-screen">
+<!-- Header Section -->
+<header class="mb-lg flex justify-between items-end">
+<div>
+<nav class="flex gap-2 text-caption text-on-surface-variant mb-xs">
+<span>Executive</span> / <span>Portfolio</span> / <span class="text-secondary font-bold">Innovation Insights</span>
+</nav>
+<h2 class="font-headline-lg text-primary">Clinical Research &amp; Medical Innovation</h2>
+<p class="text-body-md text-on-surface-variant max-w-2xl">Real-time oversight of global medical advancements, funding utilization, and collaborative trial performance metrics.</p>
+</div>
+<div class="flex gap-sm">
+<button class="flex items-center gap-xs px-md py-sm rounded-xl glass-card border-outline-variant/30 text-label-md hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-body-md">calendar_month</span>
+                    Last Quarter
+                </button>
+<button class="flex items-center gap-xs px-md py-sm bg-primary text-on-primary rounded-xl text-label-md shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-body-md">download</span>
+                    Export Strategic Report
+                </button>
+</div>
+</header>
+<!-- KPI Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md mb-lg">
+<div class="glass-card p-md rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-2 h-full bg-secondary"></div>
+<p class="text-caption text-on-surface-variant">Active Clinical Trials</p>
+<div class="flex items-baseline gap-xs mt-base">
+<span class="font-headline-md text-primary">142</span>
+<span class="text-caption text-on-secondary-container bg-secondary-container px-xs rounded">+12.4%</span>
+</div>
+<p class="text-caption text-outline mt-sm">Across 18 therapeutic areas</p>
+<span class="material-symbols-outlined absolute -bottom-2 -left-2 text-primary/5 text-6xl group-hover:scale-110 transition-transform">biotech</span>
+</div>
+<div class="glass-card p-md rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-2 h-full bg-tertiary-fixed-dim"></div>
+<p class="text-caption text-on-surface-variant">Allocated R&amp;D Funding</p>
+<div class="flex items-baseline gap-xs mt-base">
+<span class="font-headline-md text-primary">$84.2M</span>
+<span class="text-caption text-on-tertiary-container bg-tertiary-fixed px-xs rounded">92% Cap</span>
+</div>
+<p class="text-caption text-outline mt-sm">FY24 Sovereign Allocation</p>
+<span class="material-symbols-outlined absolute -bottom-2 -left-2 text-primary/5 text-6xl group-hover:scale-110 transition-transform">payments</span>
+</div>
+<div class="glass-card p-md rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-2 h-full bg-error"></div>
+<p class="text-caption text-on-surface-variant">Publication Impact Factor</p>
+<div class="flex items-baseline gap-xs mt-base">
+<span class="font-headline-md text-primary">48.2</span>
+<span class="text-caption text-on-error-container bg-error-container px-xs rounded">Top 5%</span>
+</div>
+<p class="text-caption text-outline mt-sm">Avg. Citations per Journal</p>
+<span class="material-symbols-outlined absolute -bottom-2 -left-2 text-primary/5 text-6xl group-hover:scale-110 transition-transform">menu_book</span>
+</div>
+<div class="glass-card p-md rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-2 h-full bg-secondary-fixed-dim"></div>
+<p class="text-caption text-on-surface-variant">Global Partners</p>
+<div class="flex items-baseline gap-xs mt-base">
+<span class="font-headline-md text-primary">34</span>
+<span class="text-caption text-on-secondary-container bg-secondary-container px-xs rounded">6 Intl Org</span>
+</div>
+<p class="text-caption text-outline mt-sm">Strategic Research Alliances</p>
+<span class="material-symbols-outlined absolute -bottom-2 -left-2 text-primary/5 text-6xl group-hover:scale-110 transition-transform">public</span>
+</div>
+</div>
+<!-- Main Dashboard Bento -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Global Partnerships Map -->
+<div class="col-span-12 lg:col-span-8 glass-card rounded-xl p-md flex flex-col h-[500px]">
+<div class="flex justify-between items-center mb-md">
+<div>
+<h3 class="font-title-lg text-primary">Research Partnership Network</h3>
+<p class="text-caption text-on-surface-variant">Active collaborative initiatives by geographic density</p>
+</div>
+<div class="flex gap-base">
+<span class="flex items-center gap-xs text-caption"><span class="w-2 h-2 rounded-full bg-secondary"></span> Tier 1</span>
+<span class="flex items-center gap-xs text-caption"><span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span> Emerging</span>
+</div>
+</div>
+<div class="flex-1 relative bg-surface-container-low rounded-lg overflow-hidden border border-outline-variant/20">
+<img class="w-full h-full object-cover grayscale opacity-60" data-alt="A stylized high-tech world map with a minimalist dark navy and soft gold theme. Glowing dots and subtle light-trails connect major medical research hubs across the globe including Riyadh, Boston, Zurich, and Singapore. The aesthetic is clean, corporate, and premium with a subtle data-overlay pattern. The lighting is low-key with vibrant teal highlights representing active research nodes." data-location="World" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRsYVJ1aEGPTG9siDldEfjjgiyGBLez6Z1dilocxk2_5t86Y9blcH654tmj1Uti4xTo7P9JYPMgaytm1zc1lncFUY7RXu89cw3UcQIR8d9Gi0DeVA-RQ5memnluabfTirF1TKMxMunMNbQrSwdnIE1pklDXgOqVZUG7FvCZzzgNHsHZLm36YEfSC6oDXJRawOOhV9oH0536Ll8fXEX1HRp0G88XPtRMwyTG_PZrcoShgj-_rtPUVg2bZ9wLJLYHVJ0a4wDEKWTevGf"/>
+<!-- Map Interaction Points (Simulated) -->
+<div class="absolute top-1/3 left-1/4 group cursor-pointer">
+<div class="w-3 h-3 bg-secondary rounded-full relative">
+<div class="absolute inset-0 bg-secondary rounded-full map-ping"></div>
+</div>
+<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-32 glass-card p-xs text-caption rounded shadow-xl">
+<p class="font-bold">Mayo Clinic, US</p>
+<p class="text-[10px]">Oncology Phase III</p>
+</div>
+</div>
+<div class="absolute top-1/2 left-1/2 group cursor-pointer">
+<div class="w-3 h-3 bg-tertiary-fixed-dim rounded-full relative">
+<div class="absolute inset-0 bg-tertiary-fixed-dim rounded-full map-ping"></div>
+</div>
+<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-32 glass-card p-xs text-caption rounded shadow-xl">
+<p class="font-bold">King Saud Medical, KSA</p>
+<p class="text-[10px]">Genomics Initiative</p>
+</div>
+</div>
+<div class="absolute top-1/4 left-1/2 translate-x-12 group cursor-pointer">
+<div class="w-3 h-3 bg-secondary rounded-full relative">
+<div class="absolute inset-0 bg-secondary rounded-full map-ping"></div>
+</div>
+<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-32 glass-card p-xs text-caption rounded shadow-xl">
+<p class="font-bold">Karolinska, Sweden</p>
+<p class="text-[10px]">Neurology Lab</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Active Trials Enrollment -->
+<div class="col-span-12 lg:col-span-4 glass-card rounded-xl p-md flex flex-col h-[500px]">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-title-lg text-primary">Active Trial Enrollment</h3>
+<button class="material-symbols-outlined text-outline">more_vert</button>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar space-y-md">
+<!-- Trial Item -->
+<div class="border-b border-outline-variant/10 pb-md">
+<div class="flex justify-between items-start mb-xs">
+<span class="text-label-md font-bold text-primary">Alpha-Gen 4.0 Oncology</span>
+<span class="text-caption bg-secondary-container text-on-secondary-container px-sm py-xs rounded-full">Phase III</span>
+</div>
+<p class="text-caption text-on-surface-variant mb-sm">Saudi Sovereign Lab Collaboration</p>
+<div class="flex items-center gap-sm">
+<div class="flex-1 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[84%]"></div>
+</div>
+<span class="text-caption font-bold">84%</span>
+</div>
+<div class="flex justify-between mt-xs">
+<span class="text-[10px] text-outline">2,400 / 2,850 Enrolled</span>
+<span class="text-[10px] text-secondary">Target: Q3 2024</span>
+</div>
+</div>
+<!-- Trial Item -->
+<div class="border-b border-outline-variant/10 pb-md">
+<div class="flex justify-between items-start mb-xs">
+<span class="text-label-md font-bold text-primary">Neuro-Reflex Diabetic Study</span>
+<span class="text-caption bg-surface-container-high text-on-surface-variant px-sm py-xs rounded-full">Phase II</span>
+</div>
+<p class="text-caption text-on-surface-variant mb-sm">Global Diabetic Initiative</p>
+<div class="flex items-center gap-sm">
+<div class="flex-1 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim w-[42%]"></div>
+</div>
+<span class="text-caption font-bold">42%</span>
+</div>
+<div class="flex justify-between mt-xs">
+<span class="text-[10px] text-outline">630 / 1,500 Enrolled</span>
+<span class="text-[10px] text-outline">Target: Q1 2025</span>
+</div>
+</div>
+<!-- Trial Item -->
+<div class="border-b border-outline-variant/10 pb-md">
+<div class="flex justify-between items-start mb-xs">
+<span class="text-label-md font-bold text-primary">Cardio-Sync VR Rehab</span>
+<span class="text-caption bg-secondary-container text-on-secondary-container px-sm py-xs rounded-full">Pilot</span>
+</div>
+<p class="text-caption text-on-surface-variant mb-sm">Digital Health Innovation</p>
+<div class="flex items-center gap-sm">
+<div class="flex-1 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[95%]"></div>
+</div>
+<span class="text-caption font-bold">95%</span>
+</div>
+<div class="flex justify-between mt-xs">
+<span class="text-[10px] text-outline">190 / 200 Enrolled</span>
+<span class="text-[10px] text-secondary">Target: Imminent</span>
+</div>
+</div>
+</div>
+<button class="w-full mt-md py-sm border border-outline/30 rounded-xl text-label-md hover:bg-surface-container-high transition-colors">View All Portfolio Trials</button>
+</div>
+<!-- Funding Allocation Chart -->
+<div class="col-span-12 lg:col-span-4 glass-card rounded-xl p-md flex flex-col h-[400px]">
+<h3 class="font-title-lg text-primary mb-md">Funding Allocation by Domain</h3>
+<div class="flex-1 flex flex-col items-center justify-center relative">
+<!-- Semi-Circle Chart Mockup -->
+<div class="relative w-48 h-24 overflow-hidden mb-lg">
+<div class="absolute inset-0 border-[20px] border-secondary-fixed rounded-t-full border-b-0"></div>
+<div class="absolute inset-0 border-[20px] border-secondary rounded-t-full border-b-0 transform rotate-45 origin-bottom"></div>
+<div class="absolute inset-0 flex flex-col items-center justify-end pb-2">
+<span class="font-headline-md text-primary">$84.2M</span>
+<span class="text-caption text-outline">Total Budget</span>
+</div>
+</div>
+<div class="grid grid-cols-2 w-full gap-sm">
+<div class="flex items-center gap-xs">
+<span class="w-3 h-3 rounded-sm bg-secondary"></span>
+<div class="flex flex-col">
+<span class="text-caption font-bold">Clinical Tech</span>
+<span class="text-[10px] text-outline">45% ($37.8M)</span>
+</div>
+</div>
+<div class="flex items-center gap-xs">
+<span class="w-3 h-3 rounded-sm bg-tertiary-fixed-dim"></span>
+<div class="flex flex-col">
+<span class="text-caption font-bold">Bio-Labs</span>
+<span class="text-[10px] text-outline">28% ($23.5M)</span>
+</div>
+</div>
+<div class="flex items-center gap-xs">
+<span class="w-3 h-3 rounded-sm bg-secondary-fixed-dim"></span>
+<div class="flex flex-col">
+<span class="text-caption font-bold">Patient Trials</span>
+<span class="text-[10px] text-outline">15% ($12.6M)</span>
+</div>
+</div>
+<div class="flex items-center gap-xs">
+<span class="w-3 h-3 rounded-sm bg-outline-variant"></span>
+<div class="flex flex-col">
+<span class="text-caption font-bold">Infrastructure</span>
+<span class="text-[10px] text-outline">12% ($10.3M)</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent High-Impact Publications -->
+<div class="col-span-12 lg:col-span-8 glass-card rounded-xl p-md">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-title-lg text-primary">Publication Impact Stream</h3>
+<div class="flex gap-sm">
+<button class="text-caption font-bold text-secondary">Lancet</button>
+<button class="text-caption text-on-surface-variant">Nature Medicine</button>
+<button class="text-caption text-on-surface-variant">NEJM</button>
+</div>
+</div>
+<div class="space-y-sm">
+<div class="flex items-center gap-md p-sm hover:bg-surface-container-high rounded-xl transition-colors group cursor-pointer">
+<div class="w-12 h-16 bg-primary-container rounded flex items-center justify-center text-on-primary-container shrink-0 shadow-lg">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex-1">
+<h4 class="text-label-md font-bold text-primary group-hover:text-secondary transition-colors">Precision mRNA Targeting in Renal Sarcoma: A Three-Year Longitudinal Study</h4>
+<div class="flex items-center gap-sm mt-xs">
+<span class="text-caption text-on-surface-variant">Dr. Ahmed Al-Zahrani et al.</span>
+<span class="text-caption text-secondary font-bold">• Impact: 18.2</span>
+<span class="text-caption bg-tertiary-fixed px-xs rounded text-on-tertiary-fixed">Peer-Reviewed</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:translate-x-[-4px] transition-transform">chevron_left</span>
+</div>
+<div class="flex items-center gap-md p-sm hover:bg-surface-container-high rounded-xl transition-colors group cursor-pointer">
+<div class="w-12 h-16 bg-primary-container rounded flex items-center justify-center text-on-primary-container shrink-0 shadow-lg">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex-1">
+<h4 class="text-label-md font-bold text-primary group-hover:text-secondary transition-colors">AI-Driven Diagnostic Accuracy in Rural Primary Care: The Saudi National Initiative</h4>
+<div class="flex items-center gap-sm mt-xs">
+<span class="text-caption text-on-surface-variant">Global Health Research Group</span>
+<span class="text-caption text-secondary font-bold">• Impact: 12.5</span>
+<span class="text-caption bg-tertiary-fixed px-xs rounded text-on-tertiary-fixed">In-Press</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:translate-x-[-4px] transition-transform">chevron_left</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual FAB - Dashboard Level -->
+<button class="fixed bottom-margin-desktop left-margin-desktop w-14 h-14 bg-secondary text-on-secondary rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-headline-md" style="font-variation-settings: 'FILL' 1;">add</span>
+</button>
+<script>
+        // Micro-interactions for glass cards
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+                card.style.transition = 'transform 0.3s ease';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Simple Arabic number formatting or localization could go here if needed
+        // For now, strings are exact from JSON or mandated by context.
+    </script>
+</body></html>

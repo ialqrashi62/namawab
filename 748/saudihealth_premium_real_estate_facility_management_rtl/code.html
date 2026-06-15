@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium - Real Estate &amp; Facility Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#002b49",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#cfe5ff",
+                    "secondary-fixed-dim": "#5dd8e2",
+                    "surface-container": "#edeeef",
+                    "primary": "#001629",
+                    "inverse-surface": "#2e3132",
+                    "primary-fixed-dim": "#a8caef",
+                    "on-background": "#191c1d",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "outline-variant": "#c3c7ce",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed-dim": "#e6c274",
+                    "tertiary-container": "#362700",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#f8f9fa",
+                    "tertiary-fixed": "#ffdf9d",
+                    "outline": "#73777e",
+                    "on-surface-variant": "#42474d",
+                    "error-container": "#ffdad6",
+                    "surface-container-highest": "#e1e3e4",
+                    "inverse-primary": "#a8caef",
+                    "surface": "#f8f9fa",
+                    "on-error": "#ffffff",
+                    "on-secondary-container": "#006e75",
+                    "on-primary-fixed-variant": "#274969",
+                    "tertiary": "#1d1300",
+                    "surface-container-low": "#f3f4f5",
+                    "on-tertiary-fixed": "#251a00",
+                    "on-primary-container": "#7293b6",
+                    "surface-tint": "#406182",
+                    "secondary": "#006970",
+                    "on-tertiary-container": "#ac8c44",
+                    "secondary-fixed": "#7df4ff",
+                    "surface-dim": "#d9dadb",
+                    "error": "#ba1a1a",
+                    "on-secondary": "#ffffff",
+                    "inverse-on-surface": "#f0f1f2",
+                    "surface-container-high": "#e7e8e9",
+                    "secondary-container": "#7af1fc",
+                    "on-tertiary-fixed-variant": "#5b4300",
+                    "on-primary-fixed": "#001d34",
+                    "on-surface": "#191c1d",
+                    "on-secondary-fixed": "#002022",
+                    "surface-variant": "#e1e3e4",
+                    "background": "#f8f9fa"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "lg": "40px",
+                    "base": "8px",
+                    "xs": "4px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px",
+                    "xl": "64px",
+                    "md": "24px",
+                    "margin-desktop": "48px",
+                    "sm": "12px"
+            },
+            "fontFamily": {
+                    "display-lg-mobile": ["IBM Plex Sans"],
+                    "display-lg": ["IBM Plex Sans"],
+                    "body-md": ["IBM Plex Sans"],
+                    "label-md": ["IBM Plex Sans"],
+                    "caption": ["IBM Plex Sans"],
+                    "headline-md": ["IBM Plex Sans"],
+                    "body-lg": ["IBM Plex Sans"],
+                    "title-lg": ["IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #002b49;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 left-0 right-64 z-40 bg-white/80 dark:bg-surface-container/80 backdrop-blur-xl flex flex-row-reverse justify-between items-center px-lg py-sm w-full border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-md">
+<div class="relative w-96">
+<input class="w-full bg-surface-container-low border-none rounded-xl px-md py-sm focus:ring-2 focus:ring-secondary text-right" placeholder="البحث عن المرافق والأصول..." type="text"/>
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+</div>
+<div class="flex gap-sm">
+<button class="p-sm rounded-full hover:bg-surface-container transition-colors relative">
+<span class="material-symbols-outlined text-primary">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-sm rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-primary">language</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="text-left ml-md">
+<p class="font-bold text-primary font-body-md text-body-md">د. أحمد السديري</p>
+<p class="text-on-surface-variant font-caption text-caption">مدير الأصول الإستراتيجية</p>
+</div>
+<img alt="User Profile" class="w-10 h-10 rounded-full object-cover border-2 border-secondary" data-alt="A professional headshot of a middle-aged male executive in a healthcare setting. He is wearing a modern, tailored business suit with a clean white shirt. The background is a softly blurred high-end corporate office with medical-themed decor. The lighting is soft and professional, emphasizing a reliable and expert personality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuGbN0JqHYyoqWikueODqTnl3yGVpKgDX2pPxU5dl7GFfNQUhgSCFPWWwTgjrnsbao3AN9YD-EYnZBLbOS-mnvSkmcDgAerG89htBWhwp_K3Zy8_kFKNvWcgq5mJB3uZKIgYJtMLnY_zargFtlTAQPNmx8CiSBq_egEipQR5BgqYb8JYKECYxzAWphmndk84eDKdrEfB_cnIvvej6ipcOuDyikVvTN2MU2s9xZDD7qemHZC5uNZ-AvrbHT208Hwjm6dQ2wwdxHbDyX"/>
+</div>
+</header>
+<!-- Sidebar Navigation -->
+<aside class="fixed right-0 top-0 h-full w-64 bg-primary flex flex-col py-md px-sm z-50 shadow-[0px_10px_30px_rgba(0,43,73,0.05)]">
+<div class="px-md mb-xl">
+<h1 class="font-headline-md text-headline-md font-extrabold text-on-primary">SaudiHealth</h1>
+<p class="text-on-primary/70 font-caption text-caption">إدارة إستراتيجية</p>
+</div>
+<nav class="flex-1 space-y-base">
+<a class="flex items-center gap-md px-md py-sm rounded-xl text-on-primary/70 font-medium hover:bg-on-primary-fixed-variant/20 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-title-lg text-title-lg">لوحة القيادة</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-xl text-secondary-fixed font-bold border-r-4 border-secondary-fixed bg-on-primary-fixed-variant/10" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+<span class="font-title-lg text-title-lg">العمليات العقارية</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-xl text-on-primary/70 font-medium hover:bg-on-primary-fixed-variant/20 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-title-lg text-title-lg">المالية</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-xl text-on-primary/70 font-medium hover:bg-on-primary-fixed-variant/20 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-title-lg text-title-lg">التقارير</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-xl text-on-primary/70 font-medium hover:bg-on-primary-fixed-variant/20 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-title-lg text-title-lg">الإعدادات</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-on-primary/10 pt-md">
+<a class="flex items-center gap-md px-md py-sm rounded-xl text-on-primary/70 font-medium hover:bg-on-primary-fixed-variant/20 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-title-lg text-title-lg">المساعدة</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="mr-64 mt-24 px-lg pb-xl max-w-7xl">
+<!-- Header Section -->
+<div class="flex justify-between items-end mb-lg">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary mb-xs">إدارة العقارات والمرافق</h2>
+<p class="text-on-surface-variant font-body-lg text-body-lg">نظرة إستراتيجية شاملة على الأصول المادية والمشاريع التوسعية</p>
+</div>
+<div class="flex gap-sm">
+<button class="bg-primary text-white px-md py-sm rounded-xl flex items-center gap-sm font-label-md text-label-md active:scale-95 transition-transform">
+<span class="material-symbols-outlined">add_business</span>
+                    مشروع جديد
+                </button>
+<button class="bg-white border border-outline-variant text-primary px-md py-sm rounded-xl flex items-center gap-sm font-label-md text-label-md hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined">file_download</span>
+                    تصدير التقرير
+                </button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- 1. Global Footprint Map (Primary Anchor) -->
+<div class="col-span-12 lg:col-span-8 glass-card rounded-xl p-md flex flex-col h-[500px]">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-title-lg text-title-lg text-primary flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">map</span>
+                        البصمة العقارية والنمو الإقليمي
+                    </h3>
+<div class="flex gap-xs bg-surface-container-low p-xs rounded-lg">
+<button class="px-sm py-xs bg-white shadow-sm rounded-md text-primary font-label-md text-label-md">الخريطة</button>
+<button class="px-sm py-xs text-on-surface-variant font-label-md text-label-md">القائمة</button>
+</div>
+</div>
+<div class="flex-1 relative rounded-lg overflow-hidden bg-surface-container-low group">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-[20s] group-hover:scale-110" data-alt="A stylized satellite view of the Arabian Peninsula at night with glowing connection lines and nodes representing medical facility clusters. The map features a premium dark blue aesthetic with neon teal data visualizations highlighting expansion zones across major cities like Riyadh, Jeddah, and Dammam." data-location="Saudi Arabia" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBDtRkGQTFcIV9mu9AeOe7u8WBmo3LRNgHudXGrAT23WbZRUVtbc5Gx2wKxm1VXUw5YFTubgR1HY8fhNQYAPiBp8RZsRXOjLkzEGf93sGTwVZn-WGvU2er6WuhhhBdcZKAX5kcNdidKBjDNRaH4-EW8b8plifmlJ-SzmjpSKYBXJI86Xd77DyreBss_1c9IAXQihZMJHXDZ4p7VvLn32_7ktdKXc2QSgI-LJBmAS84AoJ3E9m56DWSTIKCQH2iTTzfh6lAsr7bXG3OC')"></div>
+<!-- Map Overlays -->
+<div class="absolute top-md right-md bg-white/90 backdrop-blur-md p-sm rounded-xl shadow-lg space-y-sm w-48 border border-outline-variant/30">
+<div class="flex justify-between items-center">
+<span class="font-label-md text-label-md">الوسطى</span>
+<span class="bg-secondary/10 text-secondary px-xs rounded text-xs">12 مركز</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-label-md text-label-md">الغربية</span>
+<span class="bg-secondary/10 text-secondary px-xs rounded text-xs">8 مراكز</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-label-md text-label-md">الشرقية</span>
+<span class="bg-error/10 text-error px-xs rounded text-xs">+3 قيد التنفيذ</span>
+</div>
+</div>
+<!-- Growth Pulse -->
+<div class="absolute bottom-md left-md">
+<div class="bg-primary text-white p-md rounded-xl shadow-xl flex items-center gap-md">
+<div class="w-12 h-12 rounded-full border-4 border-secondary/30 flex items-center justify-center">
+<span class="font-bold">15%</span>
+</div>
+<div>
+<p class="text-xs opacity-70">نمو الأصول السنوي</p>
+<p class="font-bold">إيجابي إستراتيجياً</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 2. Facility Health Index (Detailed Side Info) -->
+<div class="col-span-12 lg:col-span-4 glass-card rounded-xl p-md flex flex-col h-[500px]">
+<h3 class="font-title-lg text-title-lg text-primary flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-secondary">health_and_safety</span>
+                    مؤشر صحة المرافق
+                </h3>
+<div class="space-y-md flex-1 overflow-y-auto custom-scrollbar">
+<div class="p-sm bg-surface-container-low rounded-xl border-r-4 border-secondary">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-label-md text-label-md">أنظمة HVAC (التبريد)</span>
+<span class="text-secondary font-bold">94%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full">
+<div class="bg-secondary h-full rounded-full w-[94%]"></div>
+</div>
+<p class="text-[10px] text-on-surface-variant mt-1">تحديث الفلاتر في مجمع الرياض مكتمل</p>
+</div>
+<div class="p-sm bg-surface-container-low rounded-xl border-r-4 border-secondary">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-label-md text-label-md">الأنظمة الكهربائية</span>
+<span class="text-secondary font-bold">88%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full">
+<div class="bg-secondary h-full rounded-full w-[88%]"></div>
+</div>
+</div>
+<div class="p-sm bg-surface-container-low rounded-xl border-r-4 border-tertiary-container">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-label-md text-label-md">السلامة الإنشائية</span>
+<span class="text-tertiary-container font-bold">72%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full">
+<div class="bg-tertiary-container h-full rounded-full w-[72%]"></div>
+</div>
+<p class="text-[10px] text-error mt-1">تنبيه: صيانة دورية مجدولة لمبنى العيادات</p>
+</div>
+<div class="p-sm bg-surface-container-low rounded-xl border-r-4 border-secondary">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-label-md text-label-md">إدارة النفايات الطبية</span>
+<span class="text-secondary font-bold">98%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full">
+<div class="bg-secondary h-full rounded-full w-[98%]"></div>
+</div>
+</div>
+</div>
+<div class="mt-md pt-md border-t border-outline-variant/30">
+<button class="w-full py-sm bg-secondary-container text-on-secondary-container rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity">
+                        جدولة صيانة وقائية
+                    </button>
+</div>
+</div>
+<!-- 3. Capital Projects Pipeline (Progress Focus) -->
+<div class="col-span-12 lg:col-span-6 glass-card rounded-xl p-md">
+<div class="flex justify-between items-center mb-lg">
+<h3 class="font-title-lg text-title-lg text-primary flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">architecture</span>
+                        مشاريع النمو الرأسمالي
+                    </h3>
+<span class="bg-tertiary-fixed text-on-tertiary-fixed px-sm py-1 rounded-full font-label-md text-label-md">5 مشاريع نشطة</span>
+</div>
+<div class="space-y-lg">
+<div>
+<div class="flex justify-between items-center mb-sm">
+<div>
+<p class="font-bold text-primary">توسعة الجناح الشرقي - الرياض</p>
+<p class="text-xs text-on-surface-variant">الميزانية: 450M SAR</p>
+</div>
+<span class="text-secondary font-bold">65%</span>
+</div>
+<div class="w-full bg-surface-container h-4 rounded-full overflow-hidden flex">
+<div class="bg-primary h-full w-[65%] relative">
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_2s_infinite]"></div>
+</div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-sm">
+<div>
+<p class="font-bold text-primary">مستشفى جدة التخصصي الجديد</p>
+<p class="text-xs text-on-surface-variant">الميزانية: 1.2B SAR</p>
+</div>
+<span class="text-secondary font-bold">22%</span>
+</div>
+<div class="w-full bg-surface-container h-4 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[22%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-sm">
+<div>
+<p class="font-bold text-primary">تحديث البنية التحتية الرقمية</p>
+<p class="text-xs text-on-surface-variant">الميزانية: 85M SAR</p>
+</div>
+<span class="text-secondary font-bold">89%</span>
+</div>
+<div class="w-full bg-surface-container h-4 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[89%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- 4. Occupancy & Space Utilization (Administrative vs Clinical) -->
+<div class="col-span-12 lg:col-span-3 glass-card rounded-xl p-md flex flex-col">
+<h3 class="font-title-lg text-title-lg text-primary flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-secondary">pie_chart</span>
+                    توزيع المساحات
+                </h3>
+<div class="flex-1 flex flex-col items-center justify-center relative">
+<!-- Donut Chart Placeholder -->
+<div class="w-40 h-40 rounded-full border-[12px] border-primary-container border-t-secondary border-l-tertiary-fixed-dim rotate-45 relative flex items-center justify-center">
+<div class="rotate-[-45deg] text-center">
+<p class="font-bold text-headline-md text-headline-md text-primary">82%</p>
+<p class="text-[10px] text-on-surface-variant">إشغال كلي</p>
+</div>
+</div>
+<div class="mt-lg w-full space-y-sm">
+<div class="flex justify-between items-center text-sm">
+<div class="flex items-center gap-xs">
+<div class="w-3 h-3 bg-secondary rounded-sm"></div>
+<span class="font-label-md text-label-md">عيادات طبية</span>
+</div>
+<span class="font-bold">62%</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<div class="flex items-center gap-xs">
+<div class="w-3 h-3 bg-primary-container rounded-sm"></div>
+<span class="font-label-md text-label-md">مكاتب إدارية</span>
+</div>
+<span class="font-bold">28%</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<div class="flex items-center gap-xs">
+<div class="w-3 h-3 bg-tertiary-fixed-dim rounded-sm"></div>
+<span class="font-label-md text-label-md">خدمات دعم</span>
+</div>
+<span class="font-bold">10%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 5. Energy Efficiency & Sustainability (LEED Focus) -->
+<div class="col-span-12 lg:col-span-3 glass-card rounded-xl p-md bg-secondary text-on-secondary">
+<h3 class="font-title-lg text-title-lg flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined">eco</span>
+                    الإستدامة والطاقة
+                </h3>
+<div class="text-center py-md">
+<div class="inline-block p-md bg-white/20 rounded-2xl mb-md">
+<img alt="LEED Status" class="w-16 h-16 object-contain" data-alt="A detailed, metallic 3D render of the LEED Gold certification logo. The lighting is dramatic, highlighting the texture and prestige of the award. The background is a sophisticated navy blue gradient that matches the healthcare brand's premium identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB__w7grWvNUtnKNJyM2U9pC_em9lHFVBtYObDGXC-PF4eT5Otfj6naBhNg8jMrjct8R_179g20RXlYlMSj3rEE6LkmnVuAJ2ian5y-OmXx6X7Won_4wSv6C2BnL7oEQDp5zyJXb17xbuyvmH-WtQBQJypoFunOuYsbY8iHKgv83yIb8Xtxat-mfRp4gHn702Xqyn1EmZI6EMX257gNi5Z5veF1NHLrqa3JhlGMESqSjndu12wtRd_Ic04WaXWX0MTsg0eCjvnkxyNO"/>
+</div>
+<p class="font-bold text-headline-md text-headline-md">LEED Gold</p>
+<p class="font-caption text-caption opacity-80">تصنيف الكفاءة العام</p>
+</div>
+<div class="mt-lg space-y-md">
+<div class="flex justify-between items-center">
+<span class="font-label-md text-label-md">استهلاك الطاقة</span>
+<span class="bg-white/20 px-sm py-xs rounded text-xs">-12% ▼</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-label-md text-label-md">إعادة تدوير المياه</span>
+<span class="bg-white/20 px-sm py-xs rounded text-xs">45% ▲</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Atmospheric Elements -->
+<div class="mt-xl grid grid-cols-1 md:grid-cols-4 gap-gutter">
+<div class="p-md bg-white border border-outline-variant/20 rounded-xl">
+<p class="text-on-surface-variant font-label-md text-label-md mb-1">إجمالي المساحة</p>
+<p class="font-headline-md text-headline-md text-primary">1.4M m²</p>
+</div>
+<div class="p-md bg-white border border-outline-variant/20 rounded-xl">
+<p class="text-on-surface-variant font-label-md text-label-md mb-1">المرافق النشطة</p>
+<p class="font-headline-md text-headline-md text-primary">42</p>
+</div>
+<div class="p-md bg-white border border-outline-variant/20 rounded-xl">
+<p class="text-on-surface-variant font-label-md text-label-md mb-1">أوامر الصيانة (أسبوعي)</p>
+<p class="font-headline-md text-headline-md text-primary">1,240</p>
+</div>
+<div class="p-md bg-white border border-outline-variant/20 rounded-xl">
+<p class="text-on-surface-variant font-label-md text-label-md mb-1">قيمة المحفظة العقارية</p>
+<p class="font-headline-md text-headline-md text-secondary">8.4B SAR</p>
+</div>
+</div>
+</main>
+<!-- Floating Action for Quick Access -->
+<button class="fixed bottom-lg left-lg w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group">
+<span class="material-symbols-outlined">support_agent</span>
+<div class="absolute right-full mr-4 bg-primary text-white px-md py-sm rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+            دعم المرافق المباشر
+        </div>
+</button>
+<script>
+        // Simple micro-interactions for the dashboard
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+                card.style.transition = 'all 0.3s ease';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Simulating some dynamic progress shimmer
+        const shimmerKeyframes = `
+            @keyframes shimmer {
+                0% { transform: translateX(100%); }
+                100% { transform: translateX(-100%); }
+            }
+        `;
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = shimmerKeyframes;
+        document.head.appendChild(styleSheet);
+    </script>
+</body></html>

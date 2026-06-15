@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-primary": "#a8caef",
+                    "surface-bright": "#f8f9fa",
+                    "secondary-fixed": "#7df4ff",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "secondary-container": "#7af1fc",
+                    "primary": "#001629",
+                    "surface-variant": "#e1e3e4",
+                    "tertiary": "#1d1300",
+                    "outline-variant": "#c3c7ce",
+                    "on-primary-container": "#7293b6",
+                    "primary-fixed": "#cfe5ff",
+                    "error": "#ba1a1a",
+                    "outline": "#73777e",
+                    "inverse-surface": "#2e3132",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#42474d",
+                    "tertiary-fixed-dim": "#e6c274",
+                    "surface-dim": "#d9dadb",
+                    "secondary-fixed-dim": "#5dd8e2",
+                    "surface-tint": "#406182",
+                    "secondary": "#006970",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-container": "#006e75",
+                    "surface-container-high": "#e7e8e9",
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "on-tertiary-fixed": "#251a00",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-container": "#ac8c44",
+                    "primary-container": "#002b49",
+                    "surface-container": "#edeeef",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed": "#001d34",
+                    "surface-container-low": "#f3f4f5",
+                    "on-tertiary-fixed-variant": "#5b4300",
+                    "surface": "#f8f9fa",
+                    "on-primary-fixed-variant": "#274969",
+                    "inverse-on-surface": "#f0f1f2",
+                    "tertiary-fixed": "#ffdf9d",
+                    "background": "#f8f9fa",
+                    "surface-container-highest": "#e1e3e4",
+                    "primary-fixed-dim": "#a8caef",
+                    "on-background": "#191c1d",
+                    "on-secondary-fixed": "#002022",
+                    "on-surface": "#191c1d",
+                    "tertiary-container": "#362700",
+                    "error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xl": "64px",
+                    "gutter": "24px",
+                    "margin-desktop": "48px",
+                    "md": "24px",
+                    "lg": "40px",
+                    "base": "8px",
+                    "xs": "4px",
+                    "sm": "12px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "body-lg": ["IBM Plex Sans"],
+                    "label-md": ["IBM Plex Sans"],
+                    "caption": ["IBM Plex Sans"],
+                    "display-lg": ["IBM Plex Sans"],
+                    "body-md": ["IBM Plex Sans"],
+                    "title-lg": ["IBM Plex Sans"],
+                    "headline-md": ["IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans"],
+                    "display-lg-mobile": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .pulse-red {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            70% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-full z-50 flex flex-row-reverse justify-between items-center px-margin-desktop h-20 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-fixed">person</span>
+</div>
+<div class="hidden md:block">
+<p class="font-label-md text-label-md text-primary">Chief of Operations</p>
+<p class="font-caption text-caption text-on-surface-variant">Riyadh Command Center</p>
+</div>
+</div>
+<div class="flex gap-sm">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+</div>
+</div>
+<nav class="hidden md:flex items-center gap-lg">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Human Resources</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Logistics</a>
+<a class="font-body-md text-body-md text-primary border-b-2 border-primary pb-1 font-bold" href="#">Operations</a>
+</nav>
+<div class="flex items-center gap-md">
+<span class="text-title-lg font-title-lg font-bold text-primary">Al-Command Center</span>
+<div class="h-8 w-px bg-outline-variant/30 mx-sm"></div>
+<span class="material-symbols-outlined text-primary text-2xl">medical_services</span>
+</div>
+</header>
+<!-- SideNavBar (Right Side RTL) -->
+<aside class="fixed inset-y-0 right-0 flex flex-col pt-24 pb-8 px-sm z-40 bg-primary w-80 shadow-xl border-l border-outline-variant/10">
+<div class="px-sm mb-lg">
+<h2 class="text-headline-sm font-headline-sm text-white">National Health Command</h2>
+<p class="text-on-primary/70 font-label-md text-label-md">Riyadh Region HQ</p>
+</div>
+<div class="flex-1 flex flex-col gap-xs overflow-y-auto scrollbar-hide">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg bg-secondary-container text-on-secondary-container font-bold translate-x-1 duration-150" href="#">
+<span class="material-symbols-outlined">emergency_home</span>
+<span class="font-label-md text-label-md">Incident Command</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary/70 hover:bg-white/10 transition-all" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="font-label-md text-label-md">Fleet Logistics</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary/70 hover:bg-white/10 transition-all" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-md text-label-md">Resource Hub</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary/70 hover:bg-white/10 transition-all" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label-md text-label-md">Staff Management</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary/70 hover:bg-white/10 transition-all" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md text-label-md">Payroll</span>
+</a>
+</div>
+<div class="mt-auto px-sm flex flex-col gap-md">
+<button class="w-full py-md bg-error text-white rounded-xl font-bold flex items-center justify-center gap-sm shadow-lg hover:brightness-110 transition-all">
+<span class="material-symbols-outlined">campaign</span>
+                Trigger Emergency Alert
+            </button>
+<div class="flex flex-col gap-xs border-t border-white/10 pt-md">
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="mr-80 pt-24 min-h-screen px-margin-desktop pb-xl">
+<!-- Header Section -->
+<section class="flex justify-between items-end mb-lg">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary">Virtual Care Command</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Real-time oversight of telemedicine infrastructure and remote health metrics.</p>
+</div>
+<div class="flex gap-sm">
+<div class="glass-card px-md py-sm rounded-xl flex items-center gap-sm">
+<div class="w-3 h-3 rounded-full bg-secondary pulse-red"></div>
+<span class="font-label-md text-label-md text-primary">Live Operations: 1,242 Active Sessions</span>
+</div>
+<button class="bg-primary text-white px-lg py-sm rounded-lg font-bold flex items-center gap-sm shadow-md">
+<span class="material-symbols-outlined">add_circle</span>
+                    Create Virtual Clinic
+                </button>
+</div>
+</section>
+<!-- Top Metrics Row -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-lg">
+<div class="glass-card p-md rounded-xl">
+<p class="font-label-md text-label-md text-on-surface-variant">Tele-Health ROI</p>
+<div class="flex items-baseline gap-sm">
+<span class="font-display-lg text-display-lg text-primary">SAR 4.2M</span>
+<span class="text-secondary font-bold text-label-md">↑ 12%</span>
+</div>
+<p class="font-caption text-caption text-outline">Q3 Projected Savings</p>
+</div>
+<div class="glass-card p-md rounded-xl">
+<p class="font-label-md text-label-md text-on-surface-variant">Patient Satisfaction (NPS)</p>
+<div class="flex items-baseline gap-sm">
+<span class="font-display-lg text-display-lg text-primary">82</span>
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="font-caption text-caption text-outline">Exceeding Global Benchmarks</p>
+</div>
+<div class="glass-card p-md rounded-xl">
+<p class="font-label-md text-label-md text-on-surface-variant">Clinician Availability</p>
+<div class="flex items-baseline gap-sm">
+<span class="font-display-lg text-display-lg text-primary">94%</span>
+</div>
+<div class="w-full h-1 bg-surface-container mt-xs rounded-full">
+<div class="w-[94%] h-full bg-secondary rounded-full"></div>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl">
+<p class="font-label-md text-label-md text-on-surface-variant">Avg. Signal Quality</p>
+<div class="flex items-baseline gap-sm">
+<span class="font-display-lg text-display-lg text-primary">4.8</span>
+<span class="font-label-md text-label-md text-outline">/ 5.0</span>
+</div>
+<p class="font-caption text-caption text-outline">Regional Network Latency: 14ms</p>
+</div>
+</div>
+<!-- Middle Section: Consultations & Monitoring -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Live Virtual Consultations Queue -->
+<div class="col-span-12 lg:col-span-8 flex flex-col gap-gutter">
+<div class="glass-card rounded-xl overflow-hidden flex flex-col">
+<div class="px-lg py-md border-b border-outline-variant/30 flex justify-between items-center">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">monitor_heart</span>
+<h3 class="font-headline-md text-headline-md text-primary">Live Consultations Queue</h3>
+</div>
+<div class="flex gap-xs">
+<span class="bg-secondary/10 text-secondary px-sm py-xs rounded-full text-caption font-bold">42 Priority</span>
+<span class="bg-surface-container text-on-surface-variant px-sm py-xs rounded-full text-caption">108 Standard</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant">
+<th class="px-lg py-md font-label-md text-label-md">Patient Identifier</th>
+<th class="px-lg py-md font-label-md text-label-md">Specialty</th>
+<th class="px-lg py-md font-label-md text-label-md">Clinician Assigned</th>
+<th class="px-lg py-md font-label-md text-label-md">Connectivity</th>
+<th class="px-lg py-md font-label-md text-label-md">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed font-bold">AM</div>
+<div>
+<p class="font-body-md text-body-md text-primary">Ahmad M. #881</p>
+<p class="font-caption text-caption text-outline">Wait: 4m 12s</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md text-body-md">Cardiology</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-body-md">Dr. Sarah Khan</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex gap-1">
+<div class="w-1 h-3 bg-secondary rounded-full"></div>
+<div class="w-1 h-3 bg-secondary rounded-full"></div>
+<div class="w-1 h-3 bg-secondary rounded-full"></div>
+<div class="w-1 h-3 bg-outline-variant rounded-full"></div>
+</div>
+</td>
+<td class="px-lg py-md">
+<button class="text-primary hover:underline font-bold text-label-md">Join Stream</button>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed font-bold">RA</div>
+<div>
+<p class="font-body-md text-body-md text-primary">Reem A. #293</p>
+<p class="font-caption text-caption text-outline">Wait: 12m 45s</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md text-body-md">Dermatology</td>
+<td class="px-lg py-md text-on-surface-variant italic">Unassigned</td>
+<td class="px-lg py-md">
+<div class="flex gap-1">
+<div class="w-1 h-3 bg-secondary rounded-full"></div>
+<div class="w-1 h-3 bg-secondary rounded-full"></div>
+<div class="w-1 h-3 bg-secondary rounded-full"></div>
+<div class="w-1 h-3 bg-secondary rounded-full"></div>
+</div>
+</td>
+<td class="px-lg py-md">
+<button class="bg-secondary text-white px-md py-xs rounded text-label-md">Assign Now</button>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed font-bold">NS</div>
+<div>
+<p class="font-body-md text-body-md text-primary">Nasser S. #042</p>
+<p class="font-caption text-caption text-outline">Wait: 1m 20s</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md text-body-md">Family Medicine</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-body-md">Dr. Fahad Omar</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex gap-1">
+<div class="w-1 h-3 bg-error rounded-full"></div>
+<div class="w-1 h-3 bg-outline-variant rounded-full"></div>
+<div class="w-1 h-3 bg-outline-variant rounded-full"></div>
+<div class="w-1 h-3 bg-outline-variant rounded-full"></div>
+</div>
+</td>
+<td class="px-lg py-md">
+<button class="text-error hover:underline font-bold text-label-md">Network Reset</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Patient Connectivity Metrics (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="glass-card p-lg rounded-xl relative overflow-hidden">
+<div class="relative z-10">
+<h4 class="font-title-lg text-title-lg text-primary mb-md">Device Usage Distribution</h4>
+<div class="space-y-sm">
+<div class="flex justify-between items-center">
+<span class="font-label-md text-label-md text-on-surface-variant">iOS / iPadOS</span>
+<span class="font-bold">62%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[62%]"></div>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-label-md text-label-md text-on-surface-variant">Android Ecosystem</span>
+<span class="font-bold">28%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[28%]"></div>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-label-md text-label-md text-on-surface-variant">Web / Desktop</span>
+<span class="font-bold">10%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="bg-outline h-full w-[10%]"></div>
+</div>
+</div>
+</div>
+<div class="absolute bottom-0 right-0 p-lg opacity-10">
+<span class="material-symbols-outlined text-9xl">devices</span>
+</div>
+</div>
+<div class="glass-card p-lg rounded-xl flex flex-col justify-between">
+<div>
+<h4 class="font-title-lg text-title-lg text-primary mb-md">Connectivity Stability Index</h4>
+<div class="h-24 flex items-end gap-1 mb-md">
+<div class="flex-1 bg-secondary/20 h-[60%] rounded-t-sm"></div>
+<div class="flex-1 bg-secondary/40 h-[75%] rounded-t-sm"></div>
+<div class="flex-1 bg-secondary/60 h-[90%] rounded-t-sm"></div>
+<div class="flex-1 bg-secondary h-full rounded-t-sm"></div>
+<div class="flex-1 bg-secondary/80 h-[85%] rounded-t-sm"></div>
+<div class="flex-1 bg-secondary/50 h-[70%] rounded-t-sm"></div>
+<div class="flex-1 bg-secondary/30 h-[55%] rounded-t-sm"></div>
+</div>
+</div>
+<div class="flex justify-between text-caption text-outline">
+<span>00:00</span>
+<span>Peak Load (10:00 - 14:00)</span>
+<span>23:59</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Remote Patient Monitoring (RPM) Alerts (Sticky Column) -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-gutter">
+<div class="glass-card rounded-xl p-lg border-r-4 border-error">
+<div class="flex items-center justify-between mb-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-error pulse-red">warning</span>
+<h3 class="font-title-lg text-title-lg text-error">Critical RPM Alerts</h3>
+</div>
+<span class="font-bold text-error">4 Pending</span>
+</div>
+<div class="space-y-md">
+<!-- Alert Item -->
+<div class="p-md rounded-lg bg-error/5 border border-error/20">
+<div class="flex justify-between mb-xs">
+<span class="font-bold text-primary">Khalid Al-Zahrani</span>
+<span class="text-caption text-error font-bold">2m ago</span>
+</div>
+<div class="flex items-center gap-sm mb-sm">
+<span class="material-symbols-outlined text-error text-sm">favorite</span>
+<span class="text-body-md font-bold text-error">HR: 142 BPM</span>
+<span class="text-caption text-on-surface-variant">(Resting Tachycardia)</span>
+</div>
+<div class="flex gap-sm">
+<button class="flex-1 bg-error text-white py-xs rounded text-label-md font-bold">Emergency Call</button>
+<button class="px-md bg-white border border-outline-variant rounded text-label-md">Dismiss</button>
+</div>
+</div>
+<!-- Alert Item -->
+<div class="p-md rounded-lg bg-error/5 border border-error/20">
+<div class="flex justify-between mb-xs">
+<span class="font-bold text-primary">Fatima J.</span>
+<span class="text-caption text-error font-bold">14m ago</span>
+</div>
+<div class="flex items-center gap-sm mb-sm">
+<span class="material-symbols-outlined text-error text-sm">blood_pressure</span>
+<span class="text-body-md font-bold text-error">BP: 185/110</span>
+<span class="text-caption text-on-surface-variant">(Hypertensive Crisis)</span>
+</div>
+<div class="flex gap-sm">
+<button class="flex-1 bg-error text-white py-xs rounded text-label-md font-bold">Escalate to ER</button>
+<button class="px-md bg-white border border-outline-variant rounded text-label-md">Dismiss</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Clinician Availability -->
+<div class="glass-card rounded-xl p-lg">
+<h3 class="font-title-lg text-title-lg text-primary mb-md">Clinician Availability</h3>
+<div class="space-y-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-sm">
+<img alt="Doctor profile" class="w-10 h-10 rounded-full object-cover" data-alt="A professional portrait of a senior male doctor with a kind expression, wearing a crisp white lab coat and a stethoscope around his neck. The setting is a clean, modern clinical environment with soft, high-key lighting. The style is professional and corporate, reflecting a high-trust healthcare brand with neutral tones and a minimalist background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaaPEreAgRZzFVM8G4Inev1H0gXWjAJ33y1U-yWpnKOekCmEgSKHAj9myur845v-PIVu50Nik_9Xvrpy-h48kk8M2Aly8TE7e6jsnAkUW12uYx0rK4ABlMSbm3DDfA9ENsQFsG7TweV8eH3O1fKKys_JJJngz6VrMawJOAFJ5ptEWAY2KDczsIiuc8v6OKiSJgS11RwDaiss47JBy2TnPtx1LbPB81B0jwNU6tKxqkhThqaf3v9xDv4SoyvLF0jOxmxk0hPDmb8Z6z"/>
+<div>
+<p class="font-body-md text-body-md text-primary">Dr. Mansour</p>
+<p class="font-caption text-caption text-secondary">In Consultation (8m left)</p>
+</div>
+</div>
+<span class="w-3 h-3 rounded-full bg-tertiary-fixed-dim"></span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-sm">
+<img alt="Doctor profile" class="w-10 h-10 rounded-full object-cover" data-alt="A professional portrait of a female middle-aged doctor in professional healthcare attire, looking confidently into the camera. She is in a brightly lit, modern hospital office with hints of glass partitions and clinical equipment in the blurred background. The color palette is clean, predominantly white and navy blue, maintaining a high-end corporate healthcare aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfHfQLvWjHRRszv1MMVsk3zI9SHITNJSzsbdgzG1B6iAlV7JhznvuZTH_phAsIPD_yk-xOomzgYTkPC_5xfV78hnpWaSygGy7uj-tHb9GvrSe-FjwwuovD5sGPz19-O4b1FRP6sp-gBYkNWDTl4tiEC-jiX_BJGa2r1DkjxI0bqpZ-dWllgKiWby4Eev7-rC6h0jwkDVLcinnw8jMZ8gikEtIGVVtLFdzq1pyK5hdCGYYubQKMaBONexuwdYf0XxWcabTHvdZG_VGx"/>
+<div>
+<p class="font-body-md text-body-md text-primary">Dr. Layla</p>
+<p class="font-caption text-caption text-secondary">Available Now</p>
+</div>
+</div>
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-sm">
+<img alt="Doctor profile" class="w-10 h-10 rounded-full object-cover" data-alt="A high-quality studio portrait of a young medical professional, wearing blue surgical scrubs, with a welcoming and focused demeanor. The lighting is soft and even, highlighting the clean textures of the scrubs. The background is a soft, out-of-focus grey, creating a contemporary and trustworthy vibe consistent with a premium health command center." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaU6-LYRdeKt1q768Y-LxtopAzRf_BCHzq5HznVmmYwjEwfLSvIbQAEvWbfQV_KOktGvqZf6Gw6arxB3zX8cbVnAh6HxPVA_mGoySDK-EZggfWVtV53PNsImrUZZd2CDf4YzYrv8tyqg3muwEwtiUFtE_XgXW-8onEHfJKGfYwdHANMYF09noM3ZI2H_Z08SfOYm4lLith5IxHobh3dV4Fkj1-9Qpj0qHs1yYPrT3HyDhI5v6wXq3W4vznA08s-pzHIzSvZ4dFj4PN"/>
+<div>
+<p class="font-body-md text-body-md text-primary">Dr. Yassin</p>
+<p class="font-caption text-caption text-outline">Break (Starts in 12m)</p>
+</div>
+</div>
+<span class="w-3 h-3 rounded-full bg-outline"></span>
+</div>
+</div>
+<button class="w-full mt-lg py-sm border border-primary text-primary rounded-lg font-bold hover:bg-primary/5 transition-all">View Full Rota</button>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="w-full py-md mt-xl flex flex-row-reverse justify-between items-center border-t border-outline-variant/30">
+<div class="flex gap-md">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary transition-colors" href="#">Regional Compliance</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary transition-colors" href="#">Terms of Service</a>
+</div>
+<div class="flex items-center gap-sm">
+<span class="font-bold text-primary font-brand-logo">SaudiHealth Premium</span>
+<p class="font-caption text-caption text-on-surface">© 2024 Command Center. All Rights Reserved. Ministry of Health Standards Compliant.</p>
+</div>
+</footer>
+</main>
+<!-- Visual Polish: Floating Animation background elements -->
+<div class="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 overflow-hidden opacity-30">
+
+</div>
+<script>
+        // Micro-interaction: Update time and random data points
+        function updateStats() {
+            const sessions = document.querySelector('.pulse-red').nextElementSibling;
+            if (sessions) {
+                const currentVal = parseInt(sessions.innerText.match(/\d+/)[0]);
+                const newVal = currentVal + (Math.random() > 0.5 ? 1 : -1);
+                sessions.innerText = `Live Operations: ${newVal.toLocaleString()} Active Sessions`;
+            }
+        }
+        setInterval(updateStats, 5000);
+    </script>
+</body></html>

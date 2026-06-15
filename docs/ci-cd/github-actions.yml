@@ -1,0 +1,256 @@
+# NamaMedical CI/CD — GitHub Actions baseline
+# Place at .github/workflows/main.yml in repo root
+
+name: NamaMedical CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ['v*']
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAMESPACE: nama
+  PYTHON_VERSION: '3.12'
+  NODE_VERSION: '20'
+
+jobs:
+
+  # ─────────────────────────────────────────────────────────────────
+  # 1) Lint & static analysis
+  # ─────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint & static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with: { python-version: '${{ env.PYTHON_VERSION }}', cache: pip }
+      - name: Install lint tools
+        run: |
+          pip install ruff mypy bandit
+          npm ci --prefer-offline --no-audit
+      - name: Ruff (Python)
+        run: ruff check services/ orchestration/
+      - name: MyPy (Python)
+        run: mypy services/ orchestration/ --ignore-missing-imports
+      - name: Bandit (security lint)
+        run: bandit -r services/ orchestration/ -ll
+      - name: ESLint (TS/JS)
+        run: npm run lint
+      - name: Prettier
+        run: npm run format:check
+      - name: Clang-tidy (Qt/C++)
+        run: |
+          sudo apt-get update && sudo apt-get install -y clang-tidy
+          find . -name '*.cpp' -not -path './build/*' | xargs clang-tidy --quiet 2>&1 | tee clang-tidy.log
+
+  # ─────────────────────────────────────────────────────────────────
+  # 2) Tests (unit + integration)
+  # ─────────────────────────────────────────────────────────────────
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          SA_PASSWORD: 'NamaTest!2026'
+        ports: ['1433:1433']
+      qdrant:
+        image: qdrant/qdrant:latest
+        ports: ['6333:6333']
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '${{ env.PYTHON_VERSION }}', cache: pip }
+      - uses: actions/setup-node@v4
+        with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
+      - name: Install deps
+        run: |
+          pip install -r services/requirements.txt
+          pip install pytest pytest-asyncio pytest-cov respx httpx
+          npm ci
+      - name: Wait for services
+        run: |
+          for i in {1..30}; do nc -z localhost 1433 && break; sleep 2; done
+          for i in {1..30}; do nc -z localhost 6333 && break; sleep 2; done
+      - name: Run pytest (unit + integration)
+        env:
+          MSSQL_URL: mssql+pyodbc://sa:NamaTest!2026@localhost/master?driver=ODBC+Driver+18+for+SQL+Server
+          QDRANT_URL: http://localhost:6333
+          REDIS_URL: redis://localhost:6379
+        run: pytest --cov=services --cov=orchestration --cov-report=xml --cov-report=term --cov-fail-under=75
+      - name: Run Jest (frontend)
+        run: npm test -- --coverage --watchAll=false
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with: { files: ./coverage.xml,./coverage/lcov.info }
+
+  # ─────────────────────────────────────────────────────────────────
+  # 3) E2E (Playwright)
+  # ─────────────────────────────────────────────────────────────────
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run e2e
+        run: npm run test:e2e
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+  # ─────────────────────────────────────────────────────────────────
+  # 4) Security scans
+  # ─────────────────────────────────────────────────────────────────
+  scan:
+    name: Security scans
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Gitleaks (secrets)
+        uses: gitleaks/gitleaks-action@v2
+      - name: Trivy filesystem
+        uses: aquasecurity/trivy-action@master
+        with: { scan-type: fs, severity: HIGH,CRITICAL, exit-code: '1' }
+      - name: Snyk dependency check
+        uses: snyk/actions/python@master
+        env: { SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }} }
+        continue-on-error: true
+
+  # ─────────────────────────────────────────────────────────────────
+  # 5) Build & push images
+  # ─────────────────────────────────────────────────────────────────
+  build:
+    name: Build images
+    runs-on: ubuntu-latest
+    needs: [lint, test, scan]
+    if: github.event_name == 'push'
+    permissions: { contents: read, packages: write }
+    strategy:
+      matrix:
+        service:
+          - cardio-api
+          - ed-api
+          - icu-api
+          - radiology-api
+          - lab-api
+          - obgyn-api
+          - ai-orchestrator
+          - portal-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & push ${{ matrix.service }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/${{ matrix.service }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.service }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.service }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.service }}:${{ github.sha }}
+          severity: HIGH,CRITICAL
+
+  # ─────────────────────────────────────────────────────────────────
+  # 6) Deploy: staging on push main; prod on tag
+  # ─────────────────────────────────────────────────────────────────
+  deploy-staging:
+    name: Deploy → staging (k3s)
+    runs-on: ubuntu-latest
+    needs: [build, e2e]
+    if: github.ref == 'refs/heads/main'
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+      - name: Setup helm
+        uses: azure/setup-helm@v4
+      - name: Decrypt kubeconfig
+        run: echo "${{ secrets.STAGING_KUBECONFIG }}" | base64 -d > $HOME/.kube/config
+      - name: Helm upgrade
+        run: |
+          for chart in charts/*; do
+            helm upgrade --install $(basename $chart) $chart \
+              --namespace nama --create-namespace \
+              --set image.tag=${{ github.sha }} \
+              --atomic --wait --timeout 5m
+          done
+      - name: Smoke test
+        run: bash scripts/smoke.sh https://staging.nama.local
+
+  deploy-prod:
+    name: Deploy → production (blue/green)
+    runs-on: ubuntu-latest
+    needs: [build, e2e]
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: production
+      url: https://prod.nama.local
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup kubectl + helm
+        run: |
+          curl -LO "https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl"
+          chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+          curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+          sudo apt-get update && sudo apt-get install -y helm
+      - name: Decrypt prod kubeconfig
+        run: echo "${{ secrets.PROD_KUBECONFIG }}" | base64 -d > $HOME/.kube/config
+      - name: Blue-green deploy
+        run: bash scripts/deploy-blue-green.sh ${{ github.ref_name }}
+      - name: Healthcheck + canary 10%
+        run: bash scripts/canary-check.sh
+      - name: Promote 100%
+        run: bash scripts/canary-promote.sh
+
+  # ─────────────────────────────────────────────────────────────────
+  # 7) Release notes
+  # ─────────────────────────────────────────────────────────────────
+  release-notes:
+    name: Generate release notes
+    runs-on: ubuntu-latest
+    needs: [deploy-prod]
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true

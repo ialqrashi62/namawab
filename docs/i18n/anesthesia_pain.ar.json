@@ -1,0 +1,15 @@
+{
+  "anesthesia_pain": {
+    "dashboard": {
+      "title": "لوحة التخدير وعلاج الألم",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

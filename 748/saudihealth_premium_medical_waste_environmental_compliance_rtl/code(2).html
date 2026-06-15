@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HEALAS | Environmental Compliance Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .step-progress-active {
+            background: linear-gradient(135deg, #006970 0%, #004f54 100%);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c3c7ce;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "outline-variant": "#c3c7ce",
+                      "on-error-container": "#93000a",
+                      "on-tertiary": "#ffffff",
+                      "tertiary": "#1d1300",
+                      "surface-container": "#edeeef",
+                      "secondary-fixed-dim": "#5dd8e2",
+                      "error": "#ba1a1a",
+                      "on-secondary": "#ffffff",
+                      "background": "#f8f9fa",
+                      "surface-container-high": "#e7e8e9",
+                      "on-tertiary-fixed": "#251a00",
+                      "tertiary-container": "#362700",
+                      "on-error": "#ffffff",
+                      "surface-variant": "#e1e3e4",
+                      "secondary": "#006970",
+                      "inverse-on-surface": "#f0f1f2",
+                      "inverse-primary": "#a8caef",
+                      "error-container": "#ffdad6",
+                      "on-tertiary-container": "#ac8c44",
+                      "surface-bright": "#f8f9fa",
+                      "on-primary": "#ffffff",
+                      "on-primary-fixed-variant": "#274969",
+                      "on-primary-container": "#7293b6",
+                      "secondary-container": "#7af1fc",
+                      "on-surface": "#191c1d",
+                      "on-secondary-fixed": "#002022",
+                      "surface-dim": "#d9dadb",
+                      "primary-container": "#002b49",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container-highest": "#e1e3e4",
+                      "primary-fixed": "#cfe5ff",
+                      "tertiary-fixed": "#ffdf9d",
+                      "primary": "#001629",
+                      "outline": "#73777e",
+                      "on-tertiary-fixed-variant": "#5b4300",
+                      "on-surface-variant": "#42474d",
+                      "secondary-fixed": "#7df4ff",
+                      "on-secondary-container": "#006e75",
+                      "on-secondary-fixed-variant": "#004f54",
+                      "on-background": "#191c1d",
+                      "on-primary-fixed": "#001d34",
+                      "inverse-surface": "#2e3132",
+                      "surface-tint": "#406182",
+                      "surface": "#f8f9fa",
+                      "tertiary-fixed-dim": "#e6c274",
+                      "surface-container-low": "#f3f4f5",
+                      "primary-fixed-dim": "#a8caef"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "12px",
+                      "gutter": "24px",
+                      "xs": "4px",
+                      "margin-mobile": "16px",
+                      "margin-desktop": "48px",
+                      "xl": "64px",
+                      "base": "8px",
+                      "lg": "40px",
+                      "md": "24px"
+              },
+              "fontFamily": {
+                      "caption": ["IBM Plex Sans"],
+                      "label-md": ["IBM Plex Sans"],
+                      "body-lg": ["IBM Plex Sans"],
+                      "body-md": ["IBM Plex Sans"],
+                      "display-lg": ["IBM Plex Sans"],
+                      "headline-md": ["IBM Plex Sans"],
+                      "headline-lg": ["IBM Plex Sans"],
+                      "title-lg": ["IBM Plex Sans"],
+                      "display-lg-mobile": ["IBM Plex Sans"]
+              },
+              "fontSize": {
+                      "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                      "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                      "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Top Navigation Bar -->
+<header class="w-full top-0 sticky z-50 bg-surface/80 dark:bg-surface-container-highest/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
+<div class="flex justify-between items-center px-margin-desktop py-4 w-full max-w-[1440px] mx-auto">
+<div class="flex items-center gap-md">
+<h1 class="font-display-lg text-display-lg text-primary dark:text-primary-fixed font-bold tracking-tight">HEALAS</h1>
+<nav class="hidden md:flex gap-md mr-lg">
+<a class="text-on-surface-variant font-medium hover:text-secondary transition-colors duration-200" href="#">Dashboard</a>
+<a class="text-secondary font-bold border-b-2 border-secondary pb-1" href="#">Compliance</a>
+<a class="text-on-surface-variant font-medium hover:text-secondary transition-colors duration-200" href="#">Reports</a>
+</nav>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-secondary">
+<img alt="Chief Medical Officer profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrAkxd6W7I9JWcHW8yfDrrG35wr5M4JdlqYaLFKxHcJ6A2Bs8hiahys71i9EfWPs1aZicBBgvmuZXhkzHBWcyB-2p0c6WW_7Vfjtx8U_Hs7GOB6XDImF5ULvBXNoRSu9TugXPxDo27DDXrd9onZNdO1n-NWcyzTu_xn1Bs2Tzx0AuOpSF_dSJUydWL6Ywv6KdwzyP888K4E2BEt7c8wbKEi-c9Agdwu_FMG03MCC5iE0JM1rs_6Gmw9pY042TB7-kq8WYsmCFEsmcD"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Sidebar Navigation (Right Aligned for RTL) -->
+<aside class="hidden lg:flex flex-col h-screen w-64 fixed right-0 top-0 pt-32 bg-primary dark:bg-primary-container z-40 border-l border-outline-variant/10 shadow-xl overflow-y-auto">
+<div class="flex flex-col h-full py-md gap-sm">
+<div class="px-md mb-md">
+<h2 class="font-headline-md text-headline-md text-on-primary">National Healthcare</h2>
+<p class="font-label-md text-label-md text-on-primary/60">Sovereign Enterprise</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-sm px-md py-3 text-on-primary/70 hover:bg-on-primary/10 rounded-lg mx-2 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">clinical_notes</span>
+<span class="font-label-md">Operations</span>
+</a>
+<a class="flex items-center gap-sm px-md py-3 bg-secondary-container text-on-secondary-container rounded-lg mx-2 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">verified_user</span>
+<span class="font-label-md">Compliance</span>
+</a>
+<a class="flex items-center gap-sm px-md py-3 text-on-primary/70 hover:bg-on-primary/10 rounded-lg mx-2 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md">Financials</span>
+</a>
+<a class="flex items-center gap-sm px-md py-3 text-on-primary/70 hover:bg-on-primary/10 rounded-lg mx-2 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-md">Strategy</span>
+</a>
+</nav>
+<div class="mt-auto px-md pb-md space-y-4">
+<div class="p-4 bg-on-primary/5 rounded-xl border border-on-primary/10">
+<div class="flex items-center gap-2 text-on-primary">
+<span class="material-symbols-outlined text-sm">sensors</span>
+<span class="text-caption font-medium uppercase tracking-wider">System Status</span>
+</div>
+<p class="text-secondary-fixed font-bold mt-1">Active &amp; Compliant</p>
+</div>
+<div class="flex flex-col gap-2">
+<a class="flex items-center gap-sm text-on-primary/70 hover:text-on-primary transition-colors px-2" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-caption">Support</span>
+</a>
+<a class="flex items-center gap-sm text-on-primary/70 hover:text-on-primary transition-colors px-2" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-caption">Settings</span>
+</a>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="lg:mr-64 p-margin-mobile md:p-margin-desktop max-w-[1440px]">
+<!-- Header & Top Summary -->
+<section class="mb-lg flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div>
+<nav class="flex items-center gap-2 text-outline text-caption mb-2">
+<span>Facility Management</span>
+<span class="material-symbols-outlined text-[14px]">chevron_left</span>
+<span class="text-secondary font-medium">Medical Waste &amp; Compliance</span>
+</nav>
+<h2 class="font-headline-lg text-headline-lg text-primary">Environmental Compliance Dashboard</h2>
+<p class="text-on-surface-variant mt-2 max-w-2xl font-body-md text-body-md">Real-time monitoring of biohazardous waste disposal protocols, sustainability metrics, and international clinical safety standards.</p>
+</div>
+<div class="flex gap-sm">
+<button class="px-6 py-2.5 bg-primary text-on-primary rounded-lg font-label-md flex items-center gap-2 shadow-lg hover:shadow-xl transition-all">
+<span class="material-symbols-outlined">file_download</span>
+                    Export Regulatory Report
+                </button>
+</div>
+</section>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Sustainability Scorecard (Glass Card) -->
+<div class="md:col-span-8 glass-card p-md rounded-xl relative overflow-hidden">
+<div class="flex justify-between items-start mb-lg">
+<div>
+<h3 class="font-title-lg text-title-lg text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">eco</span>
+                            Sustainability Scorecard
+                        </h3>
+<p class="text-caption text-outline">Q3 FY2024 Performance vs Target</p>
+</div>
+<div class="text-left">
+<span class="text-display-lg text-secondary font-bold">84%</span>
+<span class="block text-caption text-secondary/60">Compliance Rating</span>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-md">
+<!-- Stat 1 -->
+<div class="p-4 bg-surface-container-low rounded-lg border border-outline-variant/10">
+<p class="text-caption text-outline mb-1">Recycling Rate</p>
+<p class="text-headline-md text-primary">42.8%</p>
+<div class="w-full bg-outline-variant/20 h-1.5 rounded-full mt-2">
+<div class="bg-secondary h-1.5 rounded-full" style="width: 42.8%"></div>
+</div>
+</div>
+<!-- Stat 2 -->
+<div class="p-4 bg-surface-container-low rounded-lg border border-outline-variant/10">
+<p class="text-caption text-outline mb-1">Incineration (Energy-from-Waste)</p>
+<p class="text-headline-md text-primary">31.2%</p>
+<div class="w-full bg-outline-variant/20 h-1.5 rounded-full mt-2">
+<div class="bg-primary h-1.5 rounded-full" style="width: 31.2%"></div>
+</div>
+</div>
+<!-- Stat 3 -->
+<div class="p-4 bg-surface-container-low rounded-lg border border-outline-variant/10">
+<p class="text-caption text-outline mb-1">Controlled Landfill</p>
+<p class="text-headline-md text-on-surface-variant">26.0%</p>
+<div class="w-full bg-outline-variant/20 h-1.5 rounded-full mt-2">
+<div class="bg-outline h-1.5 rounded-full" style="width: 26%"></div>
+</div>
+</div>
+</div>
+<!-- Atmospheric SVG Decoration -->
+<div class="absolute -bottom-12 -left-12 opacity-5 pointer-events-none">
+
+</div>
+</div>
+<!-- Compliance Status (Right Panel) -->
+<div class="md:col-span-4 flex flex-col gap-gutter">
+<div class="glass-card p-md rounded-xl">
+<h3 class="font-title-lg text-title-lg text-primary mb-md">Compliance Status</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-3 bg-secondary-container/20 rounded-lg">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-label-md text-on-secondary-container">ISO 14001:2015</span>
+</div>
+<span class="text-caption font-bold text-secondary">Verified</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-secondary-container/20 rounded-lg">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-label-md text-on-secondary-container">NCA Standard B-4</span>
+</div>
+<span class="text-caption font-bold text-secondary">Verified</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-tertiary-fixed/20 rounded-lg">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary-container">schedule</span>
+<span class="font-label-md text-tertiary-container">MOH Biohazard Permit</span>
+</div>
+<span class="text-caption font-bold text-tertiary-container">Exp. 45d</span>
+</div>
+</div>
+<button class="w-full mt-4 py-2 border border-secondary text-secondary rounded-lg text-label-md hover:bg-secondary/5 transition-colors">
+                        View Certification Vault
+                    </button>
+</div>
+</div>
+<!-- Facility Map -->
+<div class="md:col-span-12 glass-card rounded-xl overflow-hidden min-h-[500px] flex flex-col">
+<div class="p-md flex justify-between items-center bg-white/50 border-b border-outline-variant/20">
+<div>
+<h3 class="font-title-lg text-title-lg text-primary">Live Collection Points Map</h3>
+<p class="text-caption text-outline">Real-time status of 24 biohazard disposal stations across Main Campus.</p>
+</div>
+<div class="flex gap-2">
+<div class="flex items-center gap-1">
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+<span class="text-caption">Active</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="w-3 h-3 rounded-full bg-error"></span>
+<span class="text-caption">Full</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="w-3 h-3 rounded-full bg-outline-variant"></span>
+<span class="text-caption">Inactive</span>
+</div>
+</div>
+</div>
+<div class="relative flex-1 bg-surface-container-high">
+<!-- Map Placeholder -->
+<img alt="Detailed architectural floor plan of a healthcare facility showing waste collection logistics" class="w-full h-full object-cover opacity-60 grayscale" data-alt="A high-tech, minimalist architectural blueprint of a sprawling modern hospital campus rendered in a sleek white and navy aesthetic. The map features glowing teal interactive points and translucent data overlays indicating logistical paths. Soft ambient lighting illuminates the grid-based layout, maintaining a clean, professional clinical atmosphere consistent with a premium medical dashboard." data-location="Riyadh" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDu0yf7sUBggwXJ3SsEuwLakiRj6P5fCUBQE7i6HIV5BNf0IsMRn-A_a-vNpoZTV4KoZdlmBNoWjte3_tki6xMXgSoeB-Qe09XCbP4IruWbEheedXbJu8cNylvmnm3Wlr9ayruxn4C6rG76F8tdqxysqQiCCt9ygNSbWQ3J3NuvmuJB7xH2C2cvI8ik26OG7-23OdXqEtK3RT8ev28ZNRt3r96lbVhmMe9y3VIqlQnvnY8mkfEtS6F3TKy5v41-gmZbuKm6KDHVZJSf"/>
+<!-- Interactive Markers (Simulated) -->
+<div class="absolute top-[20%] right-[30%] group">
+<div class="w-6 h-6 bg-error rounded-full animate-pulse flex items-center justify-center cursor-pointer border-2 border-white">
+<span class="material-symbols-outlined text-white text-[14px]">warning</span>
+</div>
+<div class="hidden group-hover:block absolute bottom-8 right-0 w-48 bg-white p-3 rounded-lg shadow-xl border border-outline-variant/30 z-20">
+<p class="font-bold text-label-md text-primary">Station B-12 (Radiology)</p>
+<p class="text-caption text-error font-medium">92% Capacity - Collection Alert</p>
+<button class="mt-2 w-full bg-primary text-white text-[10px] py-1 rounded">Dispatch Unit</button>
+</div>
+</div>
+<div class="absolute bottom-[40%] right-[60%] group">
+<div class="w-6 h-6 bg-secondary rounded-full flex items-center justify-center cursor-pointer border-2 border-white shadow-lg">
+<span class="material-symbols-outlined text-white text-[14px]">check</span>
+</div>
+</div>
+<div class="absolute top-[50%] right-[15%] group">
+<div class="w-6 h-6 bg-secondary rounded-full flex items-center justify-center cursor-pointer border-2 border-white shadow-lg">
+<span class="material-symbols-outlined text-white text-[14px]">check</span>
+</div>
+</div>
+<!-- WebGL Atmospheric Overlay -->
+
+</div>
+</div>
+<!-- Detailed Waste Streams -->
+<div class="md:col-span-12 glass-card p-md rounded-xl">
+<h3 class="font-title-lg text-title-lg text-primary mb-lg">Monthly Waste Volume by Category</h3>
+<div class="overflow-x-auto">
+<table class="w-full text-right border-collapse">
+<thead>
+<tr class="border-b border-outline-variant/20">
+<th class="pb-4 font-label-md text-outline">Category</th>
+<th class="pb-4 font-label-md text-outline">Current Vol. (kg)</th>
+<th class="pb-4 font-label-md text-outline">Disposal Method</th>
+<th class="pb-4 font-label-md text-outline">Risk Level</th>
+<th class="pb-4 font-label-md text-outline">Status</th>
+<th class="pb-4"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors">
+<td class="py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-error/10 flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[18px]">biotech</span>
+</div>
+<span class="font-body-md font-semibold">Biohazardous / Infectious</span>
+</div>
+</td>
+<td class="py-5 font-body-md">1,240.5</td>
+<td class="py-5 text-caption">High-Heat Incineration</td>
+<td class="py-5"><span class="px-3 py-1 bg-error-container text-on-error-container text-[10px] rounded-full font-bold uppercase tracking-wider">Critical</span></td>
+<td class="py-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-caption">Operational</span>
+</div>
+</td>
+<td class="py-5 text-left">
+<button class="text-secondary hover:underline text-caption font-bold">Details</button>
+</td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors">
+<td class="py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary-container/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">radiology</span>
+</div>
+<span class="font-body-md font-semibold">Radioactive Waste</span>
+</div>
+</td>
+<td class="py-5 font-body-md">42.2</td>
+<td class="py-5 text-caption">Shielded Decay Storage</td>
+<td class="py-5"><span class="px-3 py-1 bg-primary-container text-on-primary-container text-[10px] rounded-full font-bold uppercase tracking-wider">High</span></td>
+<td class="py-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-caption">Operational</span>
+</div>
+</td>
+<td class="py-5 text-left">
+<button class="text-secondary hover:underline text-caption font-bold">Details</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">recycling</span>
+</div>
+<span class="font-body-md font-semibold">General / Recyclable</span>
+</div>
+</td>
+<td class="py-5 font-body-md">3,890.0</td>
+<td class="py-5 text-caption">Mechanical Processing</td>
+<td class="py-5"><span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-[10px] rounded-full font-bold uppercase tracking-wider">Minimal</span></td>
+<td class="py-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-caption">Operational</span>
+</div>
+</td>
+<td class="py-5 text-left">
+<button class="text-secondary hover:underline text-caption font-bold">Details</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Area -->
+<footer class="w-full mt-xl bg-surface-container-lowest dark:bg-surface-dim border-t border-outline-variant/20">
+<div class="flex justify-between items-center px-margin-desktop py-md max-w-[1440px] mx-auto w-full">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md font-bold text-primary">HEALAS</span>
+<p class="font-caption text-caption text-on-surface-variant dark:text-on-surface">
+                    © 2024 Sovereign Healthcare Management. Regulated by MOH &amp; NCA.
+                </p>
+</div>
+<div class="flex gap-md">
+<a class="font-caption text-caption text-outline hover:text-primary transition-colors underline-offset-4 hover:underline" href="#">Regulatory Standards</a>
+<a class="font-caption text-caption text-outline hover:text-primary transition-colors underline-offset-4 hover:underline" href="#">Data Privacy</a>
+<a class="font-caption text-caption text-secondary font-semibold hover:text-primary transition-colors underline-offset-4 hover:underline" href="#">Compliance Portal</a>
+</div>
+</div>
+</footer>
+<!-- Floating Action for Quick Logging -->
+<button class="fixed bottom-8 left-8 w-16 h-16 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center group hover:scale-110 transition-transform z-50">
+<span class="material-symbols-outlined text-3xl">add</span>
+<span class="absolute right-20 bg-primary text-white px-4 py-2 rounded-lg text-label-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Log New Waste Pickup</span>
+</button>
+<script>
+        // Simple interactivity for dashboard tabs or mobile toggles
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Environmental Compliance Dashboard Initialized');
+            
+            // Interaction for simulated dispatch button
+            const dispatchBtn = document.querySelector('button.bg-primary.text-white.text-\\[10px\\]');
+            if(dispatchBtn) {
+                dispatchBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    alert('Logistics team dispatched to Station B-12.');
+                    dispatchBtn.textContent = 'Dispatched';
+                    dispatchBtn.classList.remove('bg-primary');
+                    dispatchBtn.classList.add('bg-outline');
+                });
+            }
+        });
+    </script>
+</body></html>

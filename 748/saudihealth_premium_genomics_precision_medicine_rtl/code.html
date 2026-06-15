@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Genomics &amp; Precision Medicine Command Center | SaudiHealth Premium</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .dna-gradient {
+            background: linear-gradient(180deg, #002b49 0%, #006970 100%);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f8f9fa;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c3c7ce;
+            border-radius: 10px;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary-container": "#006e75",
+                      "surface-container-high": "#e7e8e9",
+                      "on-secondary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "on-tertiary-fixed": "#251a00",
+                      "on-primary": "#ffffff",
+                      "on-tertiary-container": "#ac8c44",
+                      "primary-container": "#002b49",
+                      "surface-container": "#edeeef",
+                      "on-error-container": "#93000a",
+                      "on-primary-fixed": "#001d34",
+                      "surface-container-low": "#f3f4f5",
+                      "on-tertiary-fixed-variant": "#5b4300",
+                      "surface": "#f8f9fa",
+                      "on-primary-fixed-variant": "#274969",
+                      "inverse-on-surface": "#f0f1f2",
+                      "tertiary-fixed": "#ffdf9d",
+                      "background": "#f8f9fa",
+                      "surface-container-highest": "#e1e3e4",
+                      "primary-fixed-dim": "#a8caef",
+                      "on-background": "#191c1d",
+                      "on-secondary-fixed": "#002022",
+                      "on-surface": "#191c1d",
+                      "tertiary-container": "#362700",
+                      "error-container": "#ffdad6",
+                      "inverse-primary": "#a8caef",
+                      "surface-bright": "#f8f9fa",
+                      "secondary-fixed": "#7df4ff",
+                      "on-secondary-fixed-variant": "#004f54",
+                      "secondary-container": "#7af1fc",
+                      "primary": "#001629",
+                      "surface-variant": "#e1e3e4",
+                      "tertiary": "#1d1300",
+                      "outline-variant": "#c3c7ce",
+                      "on-primary-container": "#7293b6",
+                      "primary-fixed": "#cfe5ff",
+                      "error": "#ba1a1a",
+                      "outline": "#73777e",
+                      "inverse-surface": "#2e3132",
+                      "on-tertiary": "#ffffff",
+                      "on-surface-variant": "#42474d",
+                      "tertiary-fixed-dim": "#e6c274",
+                      "surface-dim": "#d9dadb",
+                      "secondary-fixed-dim": "#5dd8e2",
+                      "surface-tint": "#406182",
+                      "secondary": "#006970"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-desktop": "48px",
+                      "md": "24px",
+                      "xl": "64px",
+                      "gutter": "24px",
+                      "base": "8px",
+                      "lg": "40px",
+                      "xs": "4px",
+                      "sm": "12px",
+                      "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                      "display-lg": ["IBM Plex Sans"],
+                      "body-md": ["IBM Plex Sans"],
+                      "label-md": ["IBM Plex Sans"],
+                      "caption": ["IBM Plex Sans"],
+                      "body-lg": ["IBM Plex Sans"],
+                      "headline-lg": ["IBM Plex Sans"],
+                      "display-lg-mobile": ["IBM Plex Sans"],
+                      "title-lg": ["IBM Plex Sans"],
+                      "headline-md": ["IBM Plex Sans"]
+              },
+              "fontSize": {
+                      "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                      "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                      "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background font-body-md text-on-surface selection:bg-secondary-container">
+<!-- Sidebar Navigation (Mandatory Shared Component) -->
+<aside class="fixed right-0 top-0 h-full flex flex-col z-50 text-right rtl bg-primary dark:bg-primary-container docked h-full right-0 w-64 shadow-xl border-l border-outline-variant/10">
+<div class="p-6">
+<div class="font-headline-md text-headline-md text-tertiary-fixed font-bold leading-tight">السعودية الصحية</div>
+<div class="text-primary-fixed-dim font-label-md text-label-md">بريميوم</div>
+</div>
+<nav class="flex-1 px-4 space-y-2 mt-4">
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:text-white hover:bg-white/10 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">لوحة القيادة</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container rounded-lg font-bold" href="#">
+<span class="material-symbols-outlined">dns</span>
+<span class="font-label-md text-label-md">علم الجينوم</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:text-white hover:bg-white/10 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">المرضى</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:text-white hover:bg-white/10 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">التقارير</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:text-white hover:bg-white/10 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">الإعدادات</span>
+</a>
+</nav>
+<div class="p-6 border-t border-outline-variant/10">
+<button class="w-full py-3 px-4 bg-tertiary-fixed text-on-tertiary-fixed rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add</span>
+<span>إضافة مريض جديد</span>
+</button>
+<div class="mt-6 flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-2 text-primary-fixed-dim hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">الدعم</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-primary-fixed-dim hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">تسجيل الخروج</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="mr-64 min-h-screen">
+<!-- Top Bar -->
+<header class="flex justify-between items-center w-full px-margin-desktop h-16 sticky top-0 z-40 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-6">
+<div class="relative">
+<span class="absolute inset-y-0 right-3 flex items-center text-outline">
+<span class="material-symbols-outlined">search</span>
+</span>
+<input class="bg-surface-container-low border-none rounded-full pr-10 pl-4 py-2 w-80 text-on-surface focus:ring-2 focus:ring-secondary" placeholder="البحث عن مريض أو تسلسل جيني..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-surface-container-high/50 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container-high/50 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="flex items-center gap-3 mr-4 border-r pr-4 border-outline-variant">
+<div class="text-left">
+<div class="font-label-md text-label-md font-bold text-primary">د. أحمد الفهد</div>
+<div class="text-caption text-on-surface-variant">كبير أطباء الجينات</div>
+</div>
+<img alt="Profile" class="w-10 h-10 rounded-full object-cover border-2 border-secondary-container" data-alt="A professional portrait of a senior Middle Eastern medical doctor in a modern clinical setting. He has a kind expression and is wearing a crisp white lab coat with a stethoscope around his neck. The background is a clean, softly blurred high-tech medical laboratory with cool blue and teal lighting accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMjygK7P7EmfnsU2Rt4ty7EEFkz0rigxfIqHyRUYVCVf6hSRXsYi-fWg7-HKLTQF0LssyuBDGwDSYCN5jM8AZyhRu7SE7js1ourcIugGHy9zcYpO004zEVEUUg7Qy_zDDzpkf89XJp19XKD-2oRKGQqZYA8HDIwtHu0PdQvxWeVj4MrkquoulsEq9bNGzSRQcc2OZ5VOEwyeeKc8B00s77pnM8f7KWrvsjf-sFG422p8Svsrjcuij7xwI1CpZFgsiznjoFM7VIgxZW"/>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-margin-desktop">
+<!-- Header Section -->
+<section class="mb-lg flex justify-between items-end">
+<div>
+<h1 class="font-display-lg text-display-lg text-primary mb-2">مركز قيادة الطب الدقيق</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">ربط البيانات الجينية بالقرارات السريرية اللحظية لمستقبل الرعاية الصحية.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-6 py-3 border border-secondary text-secondary rounded-xl font-bold flex items-center gap-2 hover:bg-secondary/5 transition-colors">
+<span class="material-symbols-outlined">science</span>
+<span>تصدير الأبحاث</span>
+</button>
+<button class="px-6 py-3 bg-primary text-on-primary rounded-xl font-bold flex items-center gap-2 shadow-lg hover:shadow-xl active:scale-95 transition-all">
+<span class="material-symbols-outlined">biotech</span>
+<span>طلب تسلسل جيني</span>
+</button>
+</div>
+</section>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Main DNA Visualization (Focal Point) -->
+<div class="col-span-12 lg:col-span-8 glass-card rounded-3xl p-md relative overflow-hidden h-[500px]">
+<div class="relative z-10 flex flex-col h-full">
+<div class="flex justify-between items-start mb-base">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">خريطة التفاعلات الجينية الحية</h3>
+<p class="text-on-surface-variant">مراقبة لحظية للتغيرات النوعية في الحمض النووي للسكان</p>
+</div>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-caption font-bold">مباشر</span>
+<span class="px-3 py-1 bg-surface-container-high text-on-surface rounded-full text-caption font-bold">المملكة العربية السعودية</span>
+</div>
+</div>
+<div class="flex-1 flex items-center justify-center relative">
+<!-- DNA Helix Concept Simulation -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+
+</div>
+<!-- Static Graphic Placeholder if animation fails/not loaded -->
+<div class="w-full h-full flex items-center justify-center relative">
+<div class="absolute w-[400px] h-[400px] border-[20px] border-secondary/10 rounded-full animate-pulse"></div>
+<div class="absolute w-[300px] h-[300px] border-[2px] border-primary/20 rounded-full border-dashed animate-spin [animation-duration:20s]"></div>
+<!-- Floating Data Points -->
+<div class="absolute top-1/4 right-1/4 glass-card p-3 rounded-xl border border-secondary/30 animate-float">
+<div class="text-caption text-secondary font-bold">Variant RS1229984</div>
+<div class="text-title-lg font-bold text-primary">High Impact</div>
+</div>
+<div class="absolute bottom-1/4 left-1/3 glass-card p-3 rounded-xl border border-tertiary/30 animate-float" style="animation-delay: 1s;">
+<div class="text-caption text-tertiary font-bold">Pharmacogenomics</div>
+<div class="text-title-lg font-bold text-primary">Warfarin Sensitivity</div>
+</div>
+<img alt="DNA Helix Visualization" class="w-64 h-64 object-cover rounded-full mix-blend-multiply opacity-80" data-alt="A highly detailed, cinematic 3D rendering of a double helix DNA strand. The structure glows with ethereal blue and teal light against a dark, deep navy background. Particles of digital light and genetic data codes float around the helix, creating a sense of advanced medical technology and precision science. The lighting is sophisticated, with soft bokeh effects and high-end photographic quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0aMqcfzKCwTR12fuwXXgQKARWISFEgLPhRBRPK23ezJicNE7GgTUvc4-2WGL5B9PHup-1d0Dp8ZonXw9qqXHLZ2ae2c4vLmkEN1T7kK-920o68tV6gh2dwR13U7FljJ4dj4vjnm2KgdiGJXdU8Q0tsSyPJnLt6JGOO_cBJDCj-PgbI21wpvBSNe4Xkpjp1tYONRRmChRb1BTKMWYYbcN-T58D9g5JBMv29xt9Pk_PJoIoCNCu364yT7slwqhPXikHJAgW8e69CnFg"/>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-md mt-auto">
+<div class="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/30">
+<div class="text-caption text-on-surface-variant mb-1">تسلسلات مكتملة</div>
+<div class="text-headline-md font-bold text-primary">12,482</div>
+</div>
+<div class="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/30">
+<div class="text-caption text-on-surface-variant mb-1">متغيرات مكتشفة</div>
+<div class="text-headline-md font-bold text-primary">852</div>
+</div>
+<div class="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/30">
+<div class="text-caption text-on-surface-variant mb-1">نسبة الدقة</div>
+<div class="text-headline-md font-bold text-secondary">99.9%</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Pharmacogenomics Alerts -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-gutter">
+<div class="glass-card rounded-3xl p-md flex-1">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-title-lg text-title-lg text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-error">warning</span>
+                                تنبيهات التداخل الدوائي الجيني
+                            </h3>
+<button class="text-secondary font-bold text-label-md">الكل</button>
+</div>
+<div class="space-y-4">
+<!-- Alert Item -->
+<div class="p-4 rounded-2xl bg-error-container/30 border border-error/10">
+<div class="flex justify-between items-start mb-2">
+<div class="font-bold text-primary">مريض: سارة المنصور</div>
+<span class="bg-error text-on-error text-[10px] px-2 py-0.5 rounded-full uppercase">High Risk</span>
+</div>
+<p class="text-body-md text-on-surface-variant leading-snug">تنبيه: الجين CYP2C19 يظهر فعالية منخفضة مع عقار Clopidogrel. يوصى ببديل.</p>
+<div class="mt-3 flex gap-2">
+<button class="flex-1 py-2 bg-primary text-on-primary rounded-lg text-caption font-bold">تعديل الوصفة</button>
+<button class="px-3 py-2 border border-outline rounded-lg text-on-surface-variant"><span class="material-symbols-outlined text-sm">visibility</span></button>
+</div>
+</div>
+<!-- Alert Item -->
+<div class="p-4 rounded-2xl bg-tertiary-fixed/20 border border-tertiary-container/10">
+<div class="flex justify-between items-start mb-2">
+<div class="font-bold text-primary">مريض: فهد الحربي</div>
+<span class="bg-tertiary-container text-on-tertiary-container text-[10px] px-2 py-0.5 rounded-full uppercase">Moderate</span>
+</div>
+<p class="text-body-md text-on-surface-variant leading-snug">تنبيه: حساسية عالية لعقار Warfarin بناءً على تحليل VKORC1.</p>
+<div class="mt-3 flex gap-2">
+<button class="flex-1 py-2 bg-primary text-on-primary rounded-lg text-caption font-bold">عرض التقرير</button>
+</div>
+</div>
+</div>
+</div>
+<div class="glass-card rounded-3xl p-md">
+<h3 class="font-title-lg text-title-lg text-primary mb-md">حالة خط التسلسل (Pipeline)</h3>
+<div class="space-y-5">
+<div>
+<div class="flex justify-between text-caption mb-2">
+<span class="text-on-surface font-bold">Sample Prep - SH-9021</span>
+<span class="text-secondary">85%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 85%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-caption mb-2">
+<span class="text-on-surface font-bold">Data Analysis - SH-4421</span>
+<span class="text-tertiary">42%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim rounded-full" style="width: 42%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-caption mb-2">
+<span class="text-on-surface font-bold">Quality Control - SH-1108</span>
+<span class="text-error">98%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-error rounded-full" style="width: 98%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Research-to-Clinical Tracker -->
+<div class="col-span-12 glass-card rounded-3xl p-md">
+<div class="flex justify-between items-center mb-lg">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">مسار الترجمة من الأبحاث إلى العيادات</h3>
+<p class="text-on-surface-variant">متابعة تحويل الاكتشافات الجينية الحديثة إلى بروتوكولات علاجية معتمدة.</p>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-low p-2 rounded-2xl">
+<div class="text-center px-4 border-l border-outline-variant">
+<div class="text-headline-md font-bold text-primary">14</div>
+<div class="text-[10px] uppercase text-on-surface-variant">Under Review</div>
+</div>
+<div class="text-center px-4 border-l border-outline-variant">
+<div class="text-headline-md font-bold text-secondary">08</div>
+<div class="text-[10px] uppercase text-on-surface-variant">Validated</div>
+</div>
+<div class="text-center px-4">
+<div class="text-headline-md font-bold text-tertiary-fixed-dim">03</div>
+<div class="text-[10px] uppercase text-on-surface-variant">Clinical Pilot</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Research Card -->
+<div class="group cursor-pointer">
+<div class="aspect-video rounded-2xl overflow-hidden mb-4 relative">
+<img alt="Genetic Research" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A macro scientific photograph of a high-tech genomics lab. Glowing blue petri dishes and microfluidic chips are visible under a microscope light. The atmosphere is sterile, futuristic, and highly technical, reflecting the precision of SaudiHealth Premium's research standards. Deep navy and teal tones dominate the scene with sharp focus on the laboratory equipment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqq0n8-Ae5I5wMvqRl5OZ4cY24kh1GkJKHs5JJDA4nzCYMQnX4d3SpaaJVWCejqGUcPBzPJLQ-0SAW7arYubfcDv5ocnMUxl4YqkdhDhVIFrc5HSKnHTK3JpsL78g7LnI89UNi79Mf4-Qcdi6NCkYajcv2Pk-JHBXVORkD3zIvb5dXBfkZdEY-cFxscYw8rp_y44mB8M32MUqR-L-L5EnY4BfArPVwjaq5X_hCgzow9spnF9oLvXgw7cTS9wSlsP2QPKI9mxEpeigp"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent"></div>
+<div class="absolute bottom-4 right-4">
+<span class="px-3 py-1 bg-secondary text-on-secondary rounded-full text-caption font-bold">Research Stage</span>
+</div>
+</div>
+<h4 class="font-title-lg text-title-lg text-primary mb-2">دراسة النوع الجيني لمرض السكري (T2D)</h4>
+<p class="text-body-md text-on-surface-variant line-clamp-2">تحديد المتغيرات الجينية الخاصة بالمجتمع السعودي لتحسين التشخيص المبكر.</p>
+<div class="mt-4 flex items-center justify-between text-caption text-on-surface-variant">
+<span>آخر تحديث: منذ يومين</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">group</span> 1,200 مريض</span>
+</div>
+</div>
+<!-- Research Card -->
+<div class="group cursor-pointer">
+<div class="aspect-video rounded-2xl overflow-hidden mb-4 relative">
+<img alt="Drug Therapy Research" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A futuristic visualization of drug-molecule interactions. Semi-transparent, glowing chemical structures are overlaid with complex genetic data charts. The aesthetic is extremely modern and clinical, featuring a color palette of clean whites, deep navy, and vibrant golden accents. The image conveys the convergence of pharmacology and genetics in precision medicine." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBG713r55YrRbpz9x8HefqDKie4ydrCuqqma302zovqHc-5POjvBC-7cfK_m9z2tcoVBsRUH66e4w27v0o_nv9N1ozBJ_Z0Rr7fVAaF-RZAq1lNdkOobQRPylwgYHbHirqOK5cOUDdbs6cJMwehRqoFRLfHkOQSr5x8YQIt6pezBVYyrvMlbKALt1vaZw1JPTa6SpxagbngsT4W7NAG5okx8CUXZUbmkRViJ9LzWSpJNJxMW3-hzEahu9J0CFZUzD3hRvksBsSOgYHu"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent"></div>
+<div class="absolute bottom-4 right-4">
+<span class="px-3 py-1 bg-tertiary-fixed-dim text-primary rounded-full text-caption font-bold">Pilot Phase</span>
+</div>
+</div>
+<h4 class="font-title-lg text-title-lg text-primary mb-2">علاجات الأورام المخصصة (BRCA1/2)</h4>
+<p class="text-body-md text-on-surface-variant line-clamp-2">تطبيق بروتوكولات العلاج الموجه بناءً على الطفرات الجينية المستهدفة.</p>
+<div class="mt-4 flex items-center justify-between text-caption text-on-surface-variant">
+<span>آخر تحديث: منذ 5 ساعات</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">biotech</span> معمل التحليلات المتقدمة</span>
+</div>
+</div>
+<!-- Research Card -->
+<div class="group cursor-pointer">
+<div class="aspect-video rounded-2xl overflow-hidden mb-4 relative">
+<img alt="Clinical Validation" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A wide-angle shot of a state-of-the-art medical command center. Large high-resolution screens display complex genomic maps and patient data visualizations. Several professionals in medical attire are collaborating in a space defined by glass walls, minimalist furniture, and a high-trust premium aesthetic. The lighting is bright and airy with a professional corporate feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjAFtZh7iN1JrR5NlznsDxSMqjIwU4osIAeu9vCMPrboYP7IrfgJHqBoBS-et71WBaDee7_HttI-ak0ODgxXaU_qloUAOy_czpJoG3TLPLCZuzvessrxserpj6oyMqdEHbW1iaGq2NVEUY9eTLVHWCn0zZ6rKkKnHc-hJdM-dp8fPnP2NAxqqQdAe2CIZj8wYEHbvbEnfsPb3Ee-6-T8TvL6WttfG4qJkb_QGMSpP1c0norL7FutmTHlxNgiNWjlvqWwX4R7Qtm-ph"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent"></div>
+<div class="absolute bottom-4 right-4">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-caption font-bold">Validated</span>
+</div>
+</div>
+<h4 class="font-title-lg text-title-lg text-primary mb-2">تطبيقات الذكاء الاصطناعي في فرز الجينات</h4>
+<p class="text-body-md text-on-surface-variant line-clamp-2">خوارزميات جديدة لتقليل الأخطاء في تحليل التسلسل الجيني الضخم.</p>
+<div class="mt-4 flex items-center justify-between text-caption text-on-surface-variant">
+<span>آخر تحديث: أمس</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">verified</span> معتمد دولياً</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button (FAB) - Mandatory Suppression logic applied: Only on Dashboard -->
+<div class="fixed bottom-margin-desktop left-margin-desktop z-50">
+<button class="w-16 h-16 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300">
+<span class="material-symbols-outlined" style="font-size: 32px;">dns</span>
+</button>
+</div>
+<script>
+        // Simple Interaction logic for demo
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.borderColor = 'rgba(0, 105, 112, 0.5)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.borderColor = 'rgba(227, 209, 180, 0.3)';
+            });
+        });
+
+        // Initialize micro-animations if needed
+        console.log("SaudiHealth Premium Genomics Command Center Initialized");
+    </script>
+</body></html>

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | Revenue Cycle &amp; Denial Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .deep-navy-gradient {
+            background: linear-gradient(135deg, #001629 0%, #002b49 100%);
+        }
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .rtl-flip {
+            transform: scaleX(-1);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#1d1300",
+                        "outline-variant": "#c3c7ce",
+                        "on-primary-container": "#7293b6",
+                        "primary-fixed": "#cfe5ff",
+                        "secondary-container": "#7af1fc",
+                        "primary": "#001629",
+                        "surface-variant": "#e1e3e4",
+                        "surface-bright": "#f8f9fa",
+                        "secondary-fixed": "#7df4ff",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "inverse-primary": "#a8caef",
+                        "surface-tint": "#406182",
+                        "secondary": "#006970",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "surface-dim": "#d9dadb",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "outline": "#73777e",
+                        "inverse-surface": "#2e3132",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#42474d",
+                        "error": "#ba1a1a",
+                        "on-tertiary-container": "#ac8c44",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#251a00",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e7e8e9",
+                        "on-secondary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#006e75",
+                        "on-secondary-fixed": "#002022",
+                        "on-surface": "#191c1d",
+                        "tertiary-container": "#362700",
+                        "error-container": "#ffdad6",
+                        "surface": "#f8f9fa",
+                        "on-primary-fixed-variant": "#274969",
+                        "inverse-on-surface": "#f0f1f2",
+                        "tertiary-fixed": "#ffdf9d",
+                        "background": "#f8f9fa",
+                        "surface-container-highest": "#e1e3e4",
+                        "primary-fixed-dim": "#a8caef",
+                        "on-background": "#191c1d",
+                        "surface-container-low": "#f3f4f5",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "primary-container": "#002b49",
+                        "surface-container": "#edeeef",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed": "#001d34"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "sm": "12px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "48px",
+                        "md": "24px",
+                        "xl": "64px",
+                        "gutter": "24px",
+                        "base": "8px",
+                        "lg": "40px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["IBM Plex Sans"],
+                        "caption": ["IBM Plex Sans"],
+                        "display-lg": ["IBM Plex Sans"],
+                        "body-md": ["IBM Plex Sans"],
+                        "body-lg": ["IBM Plex Sans"],
+                        "title-lg": ["IBM Plex Sans"],
+                        "headline-md": ["IBM Plex Sans"],
+                        "headline-lg": ["IBM Plex Sans"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="bg-surface-container-lowest/80 dark:bg-inverse-surface/80 backdrop-blur-md font-body-md text-body-md border-b border-surface-container-highest/30 shadow-sm shadow-primary/5 docked full-width top-0 flex justify-between items-center w-full px-margin-desktop h-16 z-50 sticky">
+<div class="flex items-center gap-8">
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">SaudiHealth Premium</h1>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-secondary dark:text-secondary-fixed font-semibold border-b-2 border-secondary transition-colors" href="#">Revenue Cycle</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Clinical Operations</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Population Health</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors cursor-pointer" data-icon="notifications">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-error rounded-full"></span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer" data-icon="settings">settings</span>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User clinical profile" data-alt="A professional medical director portrait in a high-end corporate clinical setting. The lighting is bright and clean, emphasizing a premium healthcare executive look. The person wears a crisp white doctor's coat over professional attire, looking confident and reliable. The background is a slightly blurred, modern medical facility with glass and steel elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7s9Ma5S1zqpM9Nu0w_sOQuv5wSkawDApHIeQxUsHN8TtIF7b6OB1dCWjlWzm3QxxAic8MILaQKG63B31z-qTZX2-hL6JfwkQKF3R2b3ahFfF81sytvkm8pZ178xHetV21ihUUU_ilU8wnzpFPSI6GeoMnKiQKUkJEVOkWe1JWQfnZ2i7cjAZ_8rZFjB-BxTbvuF3oZsC9mnMddMVgjXyLqE0jpyoAjaAiHKOvhFgU1jqFpX6eOxhQaXZM1MFdAUpQyifm-xIV-0JO"/>
+</div>
+</div>
+</header>
+<!-- Sidebar Navigation (RTL Fixed) -->
+<nav class="fixed top-0 right-0 h-full flex flex-col pt-20 pb-8 z-40 rtl bg-primary dark:bg-primary-container text-on-primary dark:text-on-primary-container font-label-md text-label-md shadow-xl shadow-primary/20 w-64 hidden md:flex">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-10 h-10 rounded-lg bg-on-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary" data-icon="account_balance">account_balance</span>
+</div>
+<div>
+<p class="font-title-lg text-title-lg text-on-primary leading-tight">Strategic Oversight</p>
+<p class="text-caption text-on-primary/60">Global Command Center</p>
+</div>
+</div>
+<button class="w-full mt-6 bg-secondary text-on-secondary rounded-lg py-3 px-4 font-bold flex items-center justify-center gap-2 hover:bg-secondary-container transition-colors transform active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span>New Clinical Case</span>
+</button>
+</div>
+<div class="flex-grow space-y-1">
+<a class="flex items-center gap-3 text-on-primary/70 dark:text-on-primary-container/70 px-4 py-3 mx-2 hover:bg-on-primary/10 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 bg-secondary dark:bg-secondary-container text-on-secondary dark:text-on-secondary-container rounded-lg px-4 py-3 mx-2" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span>Revenue Cycle</span>
+</a>
+<a class="flex items-center gap-3 text-on-primary/70 dark:text-on-primary-container/70 px-4 py-3 mx-2 hover:bg-on-primary/10 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span>Clinical Analytics</span>
+</a>
+<a class="flex items-center gap-3 text-on-primary/70 dark:text-on-primary-container/70 px-4 py-3 mx-2 hover:bg-on-primary/10 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span>Resource Planning</span>
+</a>
+<a class="flex items-center gap-3 text-on-primary/70 dark:text-on-primary-container/70 px-4 py-3 mx-2 hover:bg-on-primary/10 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+<span>Compliance</span>
+</a>
+<a class="flex items-center gap-3 text-on-primary/70 dark:text-on-primary-container/70 px-4 py-3 mx-2 hover:bg-on-primary/10 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span>Security</span>
+</a>
+</div>
+<div class="mt-auto px-4">
+<a class="flex items-center gap-3 text-on-primary/70 dark:text-on-primary-container/70 px-4 py-3 hover:bg-on-primary/10 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="md:mr-64 pt-8 pb-16 px-margin-desktop min-h-screen relative">
+<!-- Dashboard Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-lg">
+<div>
+<nav class="flex items-center gap-2 text-caption text-on-surface-variant mb-2">
+<span>Financial Governance</span>
+<span class="material-symbols-outlined text-[16px] rtl-flip" data-icon="chevron_left">chevron_left</span>
+<span class="text-secondary font-medium">Revenue Cycle &amp; Denial Management</span>
+</nav>
+<h2 class="font-headline-lg text-headline-lg font-bold text-primary">Revenue Cycle Overview</h2>
+<p class="text-body-lg text-on-surface-variant mt-2 max-w-2xl">Manage clinical financial performance and insurance claim reconciliation with real-time National Health Insurance integration.</p>
+</div>
+<div class="flex items-center gap-3 bg-secondary/5 border border-secondary/20 rounded-xl px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-secondary"></span>
+</span>
+<p class="font-label-md text-label-md text-secondary">NHIC Integration Active</p>
+</div>
+<div class="w-px h-6 bg-secondary/20"></div>
+<p class="text-caption text-on-surface-variant">Last Sync: 2 mins ago</p>
+</div>
+</div>
+<!-- Key Metrics Row -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-lg">
+<div class="glass-card rounded-xl p-6 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<p class="font-label-md text-label-md text-on-surface-variant">Net Recovery Rate</p>
+<span class="material-symbols-outlined text-secondary" data-icon="trending_up">trending_up</span>
+</div>
+<p class="font-headline-lg text-headline-lg font-bold text-primary mt-2">94.2%</p>
+</div>
+<div class="mt-4 flex items-center gap-2">
+<span class="text-caption text-secondary bg-secondary/10 px-2 py-0.5 rounded-full font-bold">+2.4%</span>
+<span class="text-caption text-on-surface-variant">vs last month</span>
+</div>
+</div>
+<div class="glass-card rounded-xl p-6 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<p class="font-label-md text-label-md text-on-surface-variant">DSO (Days Sales Out.)</p>
+<span class="material-symbols-outlined text-primary" data-icon="schedule">schedule</span>
+</div>
+<p class="font-headline-lg text-headline-lg font-bold text-primary mt-2">32.4 Days</p>
+</div>
+<div class="mt-4 flex items-center gap-2">
+<span class="text-caption text-error bg-error/10 px-2 py-0.5 rounded-full font-bold">+1.2d</span>
+<span class="text-caption text-on-surface-variant">Trend Rising</span>
+</div>
+</div>
+<div class="glass-card rounded-xl p-6 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<p class="font-label-md text-label-md text-on-surface-variant">Active Denials Value</p>
+<span class="material-symbols-outlined text-error" data-icon="money_off">money_off</span>
+</div>
+<div class="flex items-baseline gap-1">
+<p class="font-headline-lg text-headline-lg font-bold text-primary mt-2">1.2M</p>
+<span class="text-caption font-bold text-on-surface-variant">SAR</span>
+</div>
+</div>
+<div class="mt-4 flex items-center gap-2">
+<span class="text-caption text-on-surface-variant">424 Open cases</span>
+</div>
+</div>
+<div class="glass-card rounded-xl p-6 flex flex-col justify-between border-r-4 border-secondary">
+<div>
+<div class="flex justify-between items-start">
+<p class="font-label-md text-label-md text-on-surface-variant">Approval Efficiency</p>
+<span class="material-symbols-outlined text-secondary" data-icon="task_alt">task_alt</span>
+</div>
+<p class="font-headline-lg text-headline-lg font-bold text-primary mt-2">88.5%</p>
+</div>
+<div class="mt-4">
+<div class="w-full bg-surface-container-highest rounded-full h-1.5">
+<div class="bg-secondary h-1.5 rounded-full" style="width: 88%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Claims & Denial Analytics -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter mb-lg">
+<!-- Claims Submission Overview -->
+<div class="lg:col-span-8 glass-card rounded-xl p-base">
+<div class="p-6 border-b border-surface-container-highest/30 flex justify-between items-center">
+<div>
+<h3 class="font-headline-md text-headline-md font-semibold text-primary">Claims Submission Overview</h3>
+<p class="text-caption text-on-surface-variant">Aggregated submission data for the current billing cycle</p>
+</div>
+<div class="flex bg-surface-container-low p-1 rounded-lg">
+<button class="px-4 py-1.5 bg-white shadow-sm rounded-md text-label-md text-primary font-bold">Monthly</button>
+<button class="px-4 py-1.5 text-label-md text-on-surface-variant">Quarterly</button>
+</div>
+</div>
+<div class="p-6 h-[320px] relative flex items-end gap-6">
+<!-- Fake Chart Bars -->
+<div class="flex-1 flex flex-col gap-2 items-center justify-end h-full group">
+<div class="w-full max-w-[40px] bg-secondary/80 rounded-t-lg transition-all group-hover:bg-secondary h-[60%]"></div>
+<div class="w-full max-w-[40px] bg-secondary/30 rounded-t-lg transition-all group-hover:bg-secondary/40 h-[20%]"></div>
+<div class="w-full max-w-[40px] bg-error/30 rounded-t-lg transition-all group-hover:bg-error/40 h-[10%]"></div>
+<p class="text-caption mt-2">Jan</p>
+</div>
+<div class="flex-1 flex flex-col gap-2 items-center justify-end h-full group">
+<div class="w-full max-w-[40px] bg-secondary/80 rounded-t-lg transition-all group-hover:bg-secondary h-[70%]"></div>
+<div class="w-full max-w-[40px] bg-secondary/30 rounded-t-lg transition-all group-hover:bg-secondary/40 h-[15%]"></div>
+<div class="w-full max-w-[40px] bg-error/30 rounded-t-lg transition-all group-hover:bg-error/40 h-[8%]"></div>
+<p class="text-caption mt-2">Feb</p>
+</div>
+<div class="flex-1 flex flex-col gap-2 items-center justify-end h-full group">
+<div class="w-full max-w-[40px] bg-secondary/80 rounded-t-lg transition-all group-hover:bg-secondary h-[65%]"></div>
+<div class="w-full max-w-[40px] bg-secondary/30 rounded-t-lg transition-all group-hover:bg-secondary/40 h-[22%]"></div>
+<div class="w-full max-w-[40px] bg-error/30 rounded-t-lg transition-all group-hover:bg-error/40 h-[12%]"></div>
+<p class="text-caption mt-2">Mar</p>
+</div>
+<div class="flex-1 flex flex-col gap-2 items-center justify-end h-full group">
+<div class="w-full max-w-[40px] bg-secondary/80 rounded-t-lg transition-all group-hover:bg-secondary h-[80%]"></div>
+<div class="w-full max-w-[40px] bg-secondary/30 rounded-t-lg transition-all group-hover:bg-secondary/40 h-[10%]"></div>
+<div class="w-full max-w-[40px] bg-error/30 rounded-t-lg transition-all group-hover:bg-error/40 h-[5%]"></div>
+<p class="text-caption mt-2">Apr</p>
+</div>
+<!-- Legend -->
+<div class="absolute top-6 left-6 flex flex-col gap-3">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+<span class="text-caption text-on-surface-variant font-medium">Approved</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-secondary/30"></span>
+<span class="text-caption text-on-surface-variant font-medium">Pending</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-error/30"></span>
+<span class="text-caption text-on-surface-variant font-medium">Denied</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Denial Reason Analysis (Pareto) -->
+<div class="lg:col-span-4 glass-card rounded-xl p-6">
+<h3 class="font-title-lg text-title-lg font-semibold text-primary mb-1">Denial Reason Analysis</h3>
+<p class="text-caption text-on-surface-variant mb-6">Pareto distribution of root causes</p>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between text-label-md mb-2">
+<span class="text-on-surface font-medium">Documentation Gap</span>
+<span class="text-primary font-bold">42%</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-full" style="width: 42%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-label-md mb-2">
+<span class="text-on-surface font-medium">Policy Limitation</span>
+<span class="text-primary font-bold">28%</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-full" style="width: 28%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-label-md mb-2">
+<span class="text-on-surface font-medium">Coding Error</span>
+<span class="text-primary font-bold">15%</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-full" style="width: 15%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-label-md mb-2">
+<span class="text-on-surface font-medium">Eligibility Issue</span>
+<span class="text-primary font-bold">10%</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-full" style="width: 10%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-label-md mb-2">
+<span class="text-on-surface font-medium">Other</span>
+<span class="text-primary font-bold">5%</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-full" style="width: 5%"></div>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-6 border-t border-surface-container-highest/30">
+<button class="w-full py-2.5 rounded-lg border border-secondary text-secondary font-bold hover:bg-secondary/5 transition-colors text-label-md">
+                        View Detailed Audit Log
+                    </button>
+</div>
+</div>
+</div>
+<!-- High-Value Claims List -->
+<div class="glass-card rounded-xl overflow-hidden">
+<div class="px-8 py-6 border-b border-surface-container-highest/30 flex justify-between items-center">
+<div>
+<h3 class="font-headline-md text-headline-md font-semibold text-primary">High-Value Claims Review</h3>
+<p class="text-caption text-on-surface-variant">Immediate action required for claims &gt; 50,000 SAR</p>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-label-md text-on-surface-variant">Filter by:</span>
+<select class="rounded-lg border-outline-variant text-label-md py-1.5 focus:ring-secondary focus:border-secondary">
+<option>Urgency: High</option>
+<option>Value: Descending</option>
+</select>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right border-collapse">
+<thead class="bg-surface-container-low">
+<tr>
+<th class="px-8 py-4 text-label-md font-bold text-on-surface">Claim ID</th>
+<th class="px-8 py-4 text-label-md font-bold text-on-surface">Provider/Patient</th>
+<th class="px-8 py-4 text-label-md font-bold text-on-surface">Status</th>
+<th class="px-8 py-4 text-label-md font-bold text-on-surface">Reason</th>
+<th class="px-8 py-4 text-label-md font-bold text-on-surface">Value (SAR)</th>
+<th class="px-8 py-4 text-label-md font-bold text-on-surface text-center">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-highest/30">
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-8 py-5 font-bold text-primary">#CLM-99231-SA</td>
+<td class="px-8 py-5">
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">Dr. Sulaiman Al-Habib Center</span>
+<span class="text-caption text-on-surface-variant">Patient ID: SH-8821</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="bg-error/10 text-error px-3 py-1 rounded-full text-caption font-bold">Denied</span>
+</td>
+<td class="px-8 py-5 text-on-surface-variant text-caption">Documentation Gap (Missing Labs)</td>
+<td class="px-8 py-5 font-bold text-primary">142,500</td>
+<td class="px-8 py-5 text-center">
+<button class="bg-primary text-on-primary px-6 py-2 rounded-lg text-label-md hover:bg-primary-container transition-all shadow-sm">Review Appeal</button>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-8 py-5 font-bold text-primary">#CLM-99450-SA</td>
+<td class="px-8 py-5">
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">King Fahad Medical City</span>
+<span class="text-caption text-on-surface-variant">Patient ID: SH-3329</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="bg-tertiary-fixed-dim/20 text-on-tertiary-container px-3 py-1 rounded-full text-caption font-bold">Pending Review</span>
+</td>
+<td class="px-8 py-5 text-on-surface-variant text-caption">Policy Limitation Check</td>
+<td class="px-8 py-5 font-bold text-primary">89,200</td>
+<td class="px-8 py-5 text-center">
+<button class="bg-primary text-on-primary px-6 py-2 rounded-lg text-label-md hover:bg-primary-container transition-all shadow-sm">Review Appeal</button>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-8 py-5 font-bold text-primary">#CLM-98812-SA</td>
+<td class="px-8 py-5">
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">Riyadh Care Hospital</span>
+<span class="text-caption text-on-surface-variant">Patient ID: SH-1022</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="bg-error/10 text-error px-3 py-1 rounded-full text-caption font-bold">Denied</span>
+</td>
+<td class="px-8 py-5 text-on-surface-variant text-caption">Coding Error (Level 4 E/M)</td>
+<td class="px-8 py-5 font-bold text-primary">64,000</td>
+<td class="px-8 py-5 text-center">
+<button class="bg-primary text-on-primary px-6 py-2 rounded-lg text-label-md hover:bg-primary-container transition-all shadow-sm">Review Appeal</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-8 py-6 bg-surface-container-low flex justify-between items-center">
+<p class="text-caption text-on-surface-variant">Showing 3 of 42 high-value claims</p>
+<div class="flex gap-2">
+<button class="p-2 border border-outline-variant rounded-lg hover:bg-white transition-colors">
+<span class="material-symbols-outlined rtl-flip" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="p-2 border border-outline-variant rounded-lg hover:bg-white transition-colors">
+<span class="material-symbols-outlined rtl-flip" data-icon="chevron_left">chevron_left</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Floatting AI Assistant Trigger (Hidden on Details) -->
+<button class="fixed bottom-8 left-8 w-16 h-16 rounded-full bg-primary shadow-2xl flex items-center justify-center text-on-primary hover:scale-110 active:scale-95 transition-transform z-50">
+<span class="material-symbols-outlined text-[32px]" data-icon="auto_awesome">auto_awesome</span>
+</button>
+</main>
+<!-- Bottom Navigation Bar (Mobile only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-white shadow-2xl flex justify-around items-center h-20 border-t border-surface-container-highest z-50">
+<a class="flex flex-col items-center gap-1 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-[10px] font-bold">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-secondary" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="text-[10px] font-bold">Revenue</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="clinical_notes">clinical_notes</span>
+<span class="text-[10px] font-bold">Clinical</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+<span class="text-[10px] font-bold">Profile</span>
+</a>
+</nav>
+<script>
+        // Simple Interaction logic
+        document.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.style.cursor = 'pointer';
+            });
+        });
+    </script>
+</body></html>

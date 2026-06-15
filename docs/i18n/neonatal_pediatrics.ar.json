@@ -1,0 +1,15 @@
+{
+  "neonatal_pediatrics": {
+    "dashboard": {
+      "title": "لوحة طب الأطفال وحديثي الولادة",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

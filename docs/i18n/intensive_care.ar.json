@@ -1,0 +1,15 @@
+{
+  "intensive_care": {
+    "dashboard": {
+      "title": "لوحة العناية المركزة",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

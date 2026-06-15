@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#a8caef",
+                        "on-tertiary-container": "#ac8c44",
+                        "on-primary-fixed": "#001d34",
+                        "surface-bright": "#f8f9fa",
+                        "tertiary": "#1d1300",
+                        "secondary-container": "#7af1fc",
+                        "tertiary-fixed": "#ffdf9d",
+                        "on-primary-fixed-variant": "#274969",
+                        "on-secondary-container": "#006e75",
+                        "on-tertiary-fixed": "#251a00",
+                        "error-container": "#ffdad6",
+                        "outline": "#73777e",
+                        "inverse-on-surface": "#f0f1f2",
+                        "secondary": "#006970",
+                        "surface": "#f8f9fa",
+                        "secondary-fixed": "#7df4ff",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "surface-variant": "#e1e3e4",
+                        "outline-variant": "#c3c7ce",
+                        "primary": "#001629",
+                        "on-primary-container": "#7293b6",
+                        "tertiary-container": "#362700",
+                        "surface-container": "#edeeef",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "inverse-primary": "#a8caef",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#e7e8e9",
+                        "on-secondary-fixed": "#002022",
+                        "surface-tint": "#406182",
+                        "surface-dim": "#d9dadb",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "surface-container-low": "#f3f4f5",
+                        "on-secondary": "#ffffff",
+                        "on-background": "#191c1d",
+                        "on-surface": "#191c1d",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed": "#cfe5ff",
+                        "on-error-container": "#93000a",
+                        "on-error": "#ffffff",
+                        "on-surface-variant": "#42474d",
+                        "background": "#f8f9fa",
+                        "inverse-surface": "#2e3132",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-tertiary": "#ffffff",
+                        "primary-container": "#002b49",
+                        "on-primary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.8px",
+                        "xl": "16px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "margin-desktop": "48px",
+                        "xl": "64px",
+                        "md": "24px",
+                        "base": "8px",
+                        "sm": "12px",
+                        "xs": "4px",
+                        "margin-mobile": "16px",
+                        "lg": "40px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["IBM Plex Sans"],
+                        "display-lg": ["IBM Plex Sans"],
+                        "headline-md": ["IBM Plex Sans"],
+                        "title-lg": ["IBM Plex Sans"],
+                        "label-md": ["IBM Plex Sans"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #f8f9fa;
+            font-family: 'IBM Plex Sans', sans-serif;
+            overflow-x: hidden;
+        }
+        .stepper-progress {
+            background: linear-gradient(90deg, #006970 0%, #7af1fc 100%);
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 right-0 w-full z-50 flex flex-row-reverse justify-between items-center px-margin-desktop h-20 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-md flex-row-reverse">
+<h1 class="font-title-lg text-title-lg font-bold text-primary">Al-Command Center</h1>
+<div class="h-8 w-[2px] bg-outline-variant/30"></div>
+<nav class="hidden md:flex gap-lg flex-row-reverse">
+<a class="text-primary border-b-2 border-primary pb-1 font-bold font-label-md text-label-md transition-all" href="#">Operations</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Logistics</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Human Resources</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-sm bg-surface-container-low px-sm py-xs rounded-full border border-outline-variant/20">
+<span class="material-symbols-outlined text-primary" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md font-body-md w-64" placeholder="Search Trays, Staff, or Equipment..." type="text"/>
+</div>
+<div class="flex gap-sm">
+<button class="p-xs text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></button>
+<button class="p-xs text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="settings">settings</span></button>
+<button class="p-xs text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="help">help</span></button>
+</div>
+<img alt="Profile" class="w-10 h-10 rounded-full border-2 border-primary-fixed object-cover" data-alt="A professional headshot of a middle-aged medical operations director with a focused and confident expression. He is wearing a clean white lab coat over a professional blue shirt. The background is a soft-focus medical command center with subtle blue and teal glowing screens, conveying a high-tech healthcare environment with clinical precision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBR2X6YuyHY0-pFe_CdR2nNirG6f-sH0U1RbseOXAzhzKl0Z_m0x3o84lMIB6V3bMwMD26kqezyuEw6MAbpkUAKhZPuBYdKGmIhXvD3WH9oEVbJqpf_Pi9-UeUfiytkXvDYZ-z3tslWZAyifF7mtYQgNQXF12Uj39loo74AgjoSlw4e2BYSfTO1VqOBpYbeTVG92VTIc-PBJzZNMeD4zkHXPKJwClHTv9L5Fdlz_fs7cuLsRU0Hfiezgi0fSDIozf1esnYNNw9pm3Se"/>
+</div>
+</header>
+<!-- Side Navigation Rail (Right) -->
+<aside class="fixed inset-y-0 right-0 flex flex-col pt-24 pb-8 px-sm z-40 bg-primary w-80 shadow-xl border-l border-outline-variant/10">
+<div class="px-sm mb-lg">
+<div class="flex items-center gap-sm mb-base">
+<div class="p-xs bg-white/10 rounded-lg">
+<span class="material-symbols-outlined text-white" data-icon="health_and_safety">health_and_safety</span>
+</div>
+<div>
+<h2 class="text-headline-sm font-headline-sm text-white font-bold leading-tight">National Health Command</h2>
+<p class="text-on-primary/70 text-label-md font-label-md">Riyadh Region HQ</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-base px-xs">
+<a class="flex items-center gap-sm p-sm bg-secondary-container text-on-secondary-container rounded-lg font-bold transition-all transform translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="emergency_home">emergency_home</span>
+<span class="font-label-md text-label-md">Incident Command</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
+<span class="font-label-md text-label-md">Fleet Logistics</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-label-md text-label-md">Resource Hub</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="font-label-md text-label-md">Staff Management</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-md text-label-md">Payroll</span>
+</a>
+</nav>
+<div class="mt-auto px-xs space-y-sm">
+<button class="w-full py-md px-sm bg-error text-white rounded-xl font-bold flex items-center justify-center gap-sm shadow-lg hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined" data-icon="emergency">emergency</span>
+                Trigger Emergency Alert
+            </button>
+<div class="pt-sm border-t border-white/10 space-y-xs">
+<a class="flex items-center gap-sm p-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="support_agent">support_agent</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="mr-80 pt-20 pb-16 px-margin-desktop min-h-screen">
+<!-- Dashboard Header -->
+<div class="flex justify-between items-end mb-lg mt-md">
+<div>
+<h2 class="font-headline-md text-headline-md text-primary font-bold">CSSD Command: Sterilization &amp; Tracking</h2>
+<p class="text-on-surface-variant font-body-md text-body-md">Monitoring 12 Autoclaves across 4 surgical wings</p>
+</div>
+<div class="flex gap-sm items-center">
+<div class="flex items-center gap-xs px-sm py-xs bg-secondary/10 text-secondary rounded-full">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-label-md text-label-md">Live Sync Active</span>
+</div>
+<div class="text-on-surface-variant font-label-md text-label-md">Last Update: 14:32:05</div>
+</div>
+</div>
+<!-- Top KPIs -->
+<div class="grid grid-cols-4 gap-md mb-lg">
+<div class="glass-card p-md rounded-xl">
+<div class="flex justify-between items-start mb-sm">
+<div class="p-xs bg-secondary/10 rounded-lg">
+<span class="material-symbols-outlined text-secondary" data-icon="inventory">inventory</span>
+</div>
+<span class="text-secondary font-bold font-label-md text-label-md">+12% vs Avg</span>
+</div>
+<p class="text-on-surface-variant font-label-md text-label-md">Total Active Trays</p>
+<p class="text-headline-md font-headline-md text-primary font-bold">1,248</p>
+</div>
+<div class="glass-card p-md rounded-xl">
+<div class="flex justify-between items-start mb-sm">
+<div class="p-xs bg-tertiary-container text-tertiary-fixed-dim rounded-lg">
+<span class="material-symbols-outlined text-tertiary-fixed-dim" data-icon="timer">timer</span>
+</div>
+<span class="text-on-tertiary-container font-bold font-label-md text-label-md">Steady</span>
+</div>
+<p class="text-on-surface-variant font-label-md text-label-md">Avg Cycle Time</p>
+<p class="text-headline-md font-headline-md text-primary font-bold">54 min</p>
+</div>
+<div class="glass-card p-md rounded-xl">
+<div class="flex justify-between items-start mb-sm">
+<div class="p-xs bg-error-container text-error rounded-lg">
+<span class="material-symbols-outlined" data-icon="biotech">biotech</span>
+</div>
+<span class="text-error font-bold font-label-md text-label-md">Action Required</span>
+</div>
+<p class="text-on-surface-variant font-label-md text-label-md">Biological Failures</p>
+<p class="text-headline-md font-headline-md text-error font-bold">02</p>
+</div>
+<div class="glass-card p-md rounded-xl">
+<div class="flex justify-between items-start mb-sm">
+<div class="p-xs bg-secondary-container text-on-secondary-container rounded-lg">
+<span class="material-symbols-outlined" data-icon="speed">speed</span>
+</div>
+<span class="text-on-secondary-container font-bold font-label-md text-label-md">Optimized</span>
+</div>
+<p class="text-on-surface-variant font-label-md text-label-md">Staff Productivity</p>
+<p class="text-headline-md font-headline-md text-primary font-bold">94.2%</p>
+</div>
+</div>
+<!-- Main Bento Grid -->
+<div class="grid grid-cols-12 gap-md">
+<!-- Autoclave Status - Large Center Block -->
+<div class="col-span-8 glass-card rounded-xl p-md overflow-hidden relative">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-title-lg text-title-lg font-bold text-primary">Autoclave Cycle Monitor</h3>
+<div class="flex gap-xs">
+<span class="px-sm py-xs bg-secondary/10 text-secondary rounded-full text-caption font-bold">4 Active</span>
+<span class="px-sm py-xs bg-tertiary/10 text-tertiary-container rounded-full text-caption font-bold">2 Idle</span>
+<span class="px-sm py-xs bg-outline-variant/20 text-on-surface-variant rounded-full text-caption font-bold">1 Maintenance</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<!-- Machine 1 -->
+<div class="border border-outline-variant/20 rounded-lg p-sm bg-surface-container-lowest">
+<div class="flex justify-between mb-sm">
+<span class="font-bold text-primary font-label-md text-label-md">Sterilizer Unit A-101</span>
+<span class="text-secondary text-caption font-bold uppercase">Phase: Sterilization</span>
+</div>
+<div class="flex items-center gap-md mb-base">
+<div class="flex-1 h-3 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-3/4 animate-pulse"></div>
+</div>
+<span class="text-title-lg font-bold text-primary">75%</span>
+</div>
+<div class="grid grid-cols-3 gap-xs">
+<div class="text-center">
+<p class="text-caption text-on-surface-variant">Pressure</p>
+<p class="font-bold text-primary">31.2 psi</p>
+</div>
+<div class="text-center">
+<p class="text-caption text-on-surface-variant">Temp</p>
+<p class="font-bold text-primary">134.1 °C</p>
+</div>
+<div class="text-center">
+<p class="text-caption text-on-surface-variant">Time Left</p>
+<p class="font-bold text-secondary">08:12</p>
+</div>
+</div>
+</div>
+<!-- Machine 2 -->
+<div class="border border-outline-variant/20 rounded-lg p-sm bg-surface-container-lowest">
+<div class="flex justify-between mb-sm">
+<span class="font-bold text-primary font-label-md text-label-md">Sterilizer Unit A-102</span>
+<span class="text-on-tertiary-container text-caption font-bold uppercase">Phase: Cooling</span>
+</div>
+<div class="flex items-center gap-md mb-base">
+<div class="flex-1 h-3 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-on-tertiary-container w-[92%]"></div>
+</div>
+<span class="text-title-lg font-bold text-primary">92%</span>
+</div>
+<div class="grid grid-cols-3 gap-xs">
+<div class="text-center">
+<p class="text-caption text-on-surface-variant">Pressure</p>
+<p class="font-bold text-primary">0.4 psi</p>
+</div>
+<div class="text-center">
+<p class="text-caption text-on-surface-variant">Temp</p>
+<p class="font-bold text-primary">62.5 °C</p>
+</div>
+<div class="text-center">
+<p class="text-caption text-on-surface-variant">Time Left</p>
+<p class="font-bold text-on-tertiary-container">02:45</p>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-md">
+<h4 class="font-label-md text-label-md font-bold mb-sm text-on-surface-variant">Real-time Steam Flow Analysis</h4>
+<div class="h-32 w-full bg-surface-container rounded-lg relative overflow-hidden">
+<!-- Animated CSS Wave Pattern to simulate data flow -->
+<div class="absolute inset-0 opacity-20 bg-gradient-to-r from-secondary/0 via-secondary/40 to-secondary/0 animate-[shimmer_2s_infinite]"></div>
+
+</div>
+</div>
+</div>
+<!-- RFID Tracking - Side Column -->
+<div class="col-span-4 space-y-md">
+<div class="glass-card rounded-xl p-md">
+<h3 class="font-title-lg text-title-lg font-bold text-primary mb-md">RFID Tray Tracking</h3>
+<div class="space-y-sm">
+<div class="flex items-center gap-sm p-sm bg-surface-container-low rounded-lg border-r-4 border-secondary">
+<div class="p-xs bg-secondary/10 rounded-full">
+<span class="material-symbols-outlined text-secondary" data-icon="radio_button_checked" style="font-variation-settings: 'FILL' 1;">radio_button_checked</span>
+</div>
+<div class="flex-1">
+<p class="font-bold text-primary text-label-md">Tray #8821 - Ortho Major</p>
+<p class="text-caption text-on-surface-variant">Current: Decontamination Area</p>
+</div>
+<span class="text-caption font-bold text-secondary">MOVING</span>
+</div>
+<div class="flex items-center gap-sm p-sm bg-surface-container-low rounded-lg border-r-4 border-on-tertiary-container">
+<div class="p-xs bg-tertiary/10 rounded-full">
+<span class="material-symbols-outlined text-on-tertiary-container" data-icon="radio_button_checked">radio_button_checked</span>
+</div>
+<div class="flex-1">
+<p class="font-bold text-primary text-label-md">Tray #4105 - Cardio Kit</p>
+<p class="text-caption text-on-surface-variant">Current: Packing Station 4</p>
+</div>
+<span class="text-caption font-bold text-on-tertiary-container">IDLE</span>
+</div>
+<div class="flex items-center gap-sm p-sm bg-surface-container-low rounded-lg border-r-4 border-error">
+<div class="p-xs bg-error-container/20 rounded-full">
+<span class="material-symbols-outlined text-error" data-icon="warning">warning</span>
+</div>
+<div class="flex-1">
+<p class="font-bold text-primary text-label-md">Tray #0022 - Neuro Tray</p>
+<p class="text-caption text-on-surface-variant">MISSING RFID Ping - 4m ago</p>
+</div>
+<span class="text-caption font-bold text-error">ALERT</span>
+</div>
+</div>
+<button class="w-full mt-md py-sm border border-secondary text-secondary rounded-lg font-bold hover:bg-secondary/5 transition-colors">View All 1,248 Trays</button>
+</div>
+<div class="glass-card rounded-xl p-md">
+<h3 class="font-title-lg text-title-lg font-bold text-primary mb-md">Surgical Readiness</h3>
+<div class="space-y-md">
+<div>
+<div class="flex justify-between text-caption font-bold mb-xs">
+<span>Emergency OR-1</span>
+<span class="text-secondary">READY</span>
+</div>
+<div class="h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-full"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-caption font-bold mb-xs">
+<span>Surgery Wing B</span>
+<span class="text-on-tertiary-container">82%</span>
+</div>
+<div class="h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-on-tertiary-container w-[82%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Row - Biological Results & Staff Productivity -->
+<div class="col-span-12 grid grid-cols-3 gap-md">
+<div class="glass-card rounded-xl p-md">
+<h3 class="font-title-lg text-title-lg font-bold text-primary mb-md">Biological Lab Results</h3>
+<div class="flex items-center justify-center py-md">
+<div class="relative h-24 w-24">
+<svg class="h-24 w-24 transform -rotate-90">
+<circle class="text-surface-container" cx="48" cy="48" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-secondary" cx="48" cy="48" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="12.5" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-title-lg font-bold text-primary">95%</span>
+<span class="text-[10px] text-on-surface-variant uppercase font-bold">Pass Rate</span>
+</div>
+</div>
+<div class="mr-md text-right">
+<div class="mb-xs">
+<span class="inline-block w-2 h-2 rounded-full bg-secondary ml-xs"></span>
+<span class="text-caption font-bold">48 Passed</span>
+</div>
+<div class="mb-xs">
+<span class="inline-block w-2 h-2 rounded-full bg-error ml-xs"></span>
+<span class="text-caption font-bold">02 Failed</span>
+</div>
+<div>
+<span class="inline-block w-2 h-2 rounded-full bg-surface-dim ml-xs"></span>
+<span class="text-caption font-bold">05 Pending</span>
+</div>
+</div>
+</div>
+</div>
+<div class="col-span-2 glass-card rounded-xl p-md">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-title-lg text-title-lg font-bold text-primary">Staff Performance &amp; Output</h3>
+<div class="flex gap-sm">
+<div class="flex items-center gap-xs">
+<span class="w-3 h-3 bg-secondary rounded-sm"></span>
+<span class="text-caption font-bold text-on-surface-variant">Cycle Output</span>
+</div>
+<div class="flex items-center gap-xs">
+<span class="w-3 h-3 bg-primary rounded-sm"></span>
+<span class="text-caption font-bold text-on-surface-variant">Quality Score</span>
+</div>
+</div>
+</div>
+<div class="flex justify-between items-end gap-lg h-32 px-md">
+<!-- Bar Chart Placeholder -->
+<div class="flex flex-col items-center gap-xs w-full">
+<div class="w-full flex gap-1 justify-center items-end h-24">
+<div class="w-4 bg-secondary rounded-t-sm" style="height: 60%"></div>
+<div class="w-4 bg-primary rounded-t-sm" style="height: 85%"></div>
+</div>
+<span class="text-caption font-bold text-on-surface-variant">Shift A</span>
+</div>
+<div class="flex flex-col items-center gap-xs w-full">
+<div class="w-full flex gap-1 justify-center items-end h-24">
+<div class="w-4 bg-secondary rounded-t-sm" style="height: 90%"></div>
+<div class="w-4 bg-primary rounded-t-sm" style="height: 95%"></div>
+</div>
+<span class="text-caption font-bold text-on-surface-variant">Shift B</span>
+</div>
+<div class="flex flex-col items-center gap-xs w-full">
+<div class="w-full flex gap-1 justify-center items-end h-24">
+<div class="w-4 bg-secondary rounded-t-sm" style="height: 45%"></div>
+<div class="w-4 bg-primary rounded-t-sm" style="height: 70%"></div>
+</div>
+<span class="text-caption font-bold text-on-surface-variant">Shift C</span>
+</div>
+<div class="flex flex-col items-center gap-xs w-full">
+<div class="w-full flex gap-1 justify-center items-end h-24">
+<div class="w-4 bg-secondary rounded-t-sm" style="height: 75%"></div>
+<div class="w-4 bg-primary rounded-t-sm" style="height: 90%"></div>
+</div>
+<span class="text-caption font-bold text-on-surface-variant">Team Avg</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-md px-margin-desktop flex flex-row-reverse justify-between items-center bg-surface-container-high border-t border-outline-variant/30">
+<div class="flex gap-lg flex-row-reverse">
+<a class="text-on-surface-variant hover:text-secondary transition-colors font-body-md text-body-md" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-secondary transition-colors font-body-md text-body-md" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-secondary transition-colors font-body-md text-body-md" href="#">Regional Compliance</a>
+</div>
+<div class="text-right">
+<p class="font-bold text-primary font-body-md text-body-md">© 2024 Command Center. All Rights Reserved.</p>
+<p class="text-on-surface-variant font-caption text-caption">Ministry of Health Standards Compliant | CSSD Division v4.2.1</p>
+</div>
+</footer>
+<script>
+        // Micro-interaction for tray alerts
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+                card.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0px)';
+            });
+        });
+    </script>
+</body></html>

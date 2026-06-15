@@ -1,0 +1,15 @@
+{
+  "neonatal_pediatrics": {
+    "dashboard": {
+      "title": "Neonatal & Pediatrics Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "info": {
+    "_postman_id": "0f6c4a40-namam-2026",
+    "name": "NamaMedical API",
+    "description": "Postman collection covering core flows: auth, patients, cardio, ED, AI co-pilot.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "base_url", "value": "https://staging-api.nama.local" },
+    { "key": "client_id", "value": "" },
+    { "key": "client_secret", "value": "" },
+    { "key": "access_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth — get token (OAuth2 client_credentials)",
+      "request": {
+        "method": "POST",
+        "url": "https://idp.nama.local/oauth2/token",
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "client_credentials" },
+            { "key": "client_id", "value": "{{client_id}}" },
+            { "key": "client_secret", "value": "{{client_secret}}" },
+            { "key": "scope", "value": "patient.read order.write ai.use" }
+          ]
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "var json = pm.response.json();",
+            "pm.collectionVariables.set('access_token', json.access_token);"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "Patients — search",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/v1/patients?q=Al-Omari",
+        "header": [{ "key": "Accept-Language", "value": "ar" }]
+      }
+    },
+    {
+      "name": "Cardiology — list orders",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/v1/cardio/orders?status=requested&page_size=50"
+      }
+    },
+    {
+      "name": "Cardiology — place echo order",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/v1/cardio/orders",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Idempotency-Key", "value": "{{$guid}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"patient_id\": \"P-90001\",\n  \"visit_id\": \"V-7788\",\n  \"order_type\": \"echo\",\n  \"sub_type\": \"tte\",\n  \"priority\": \"routine\",\n  \"indication\": \"HF follow-up\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Cardiology — upload ECG",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/v1/cardio/ecg",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "patient_id", "value": "P-90001", "type": "text" },
+            { "key": "visit_id", "value": "V-7788", "type": "text" },
+            { "key": "file", "type": "file", "src": "samples/ecg_normal.dcm" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Cardiology — risk scores",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/v1/cardio/risk/P-90001"
+      }
+    },
+    {
+      "name": "Cardiology — AI ask",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/v1/cardio/ai/ask",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"question\": \"AFib new-onset, CHA2DS2-VASc=4, HAS-BLED=2, CrCl=48. Best oral anticoag?\",\n  \"patient_id\": \"P-90001\",\n  \"visit_id\": \"V-7788\",\n  \"lang\": \"ar\"\n}"
+        }
+      }
+    },
+    {
+      "name": "ED — submit triage",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/v1/ed/triage",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ed_visit_id\": \"00000000-0000-0000-0000-000000000001\",\n  \"pain_score\": 8,\n  \"bp_sys\": 90, \"bp_dia\": 60,\n  \"hr\": 122, \"rr\": 26, \"spo2\": 91, \"temp_c\": 38.6, \"gcs\": 14, \"weight_kg\": 78\n}"
+        }
+      }
+    },
+    {
+      "name": "ED — activate Code STEMI",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/v1/ed/codes/STEMI/activate",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ed_visit_id\": \"00000000-0000-0000-0000-000000000001\",\n  \"triggered_by\": \"U-DR-014\"\n}"
+        }
+      }
+    },
+    {
+      "name": "ED — apply sepsis 1h bundle",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/v1/ed/orders/bundle/sepsis_1h",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"ed_visit_id\": \"00000000-0000-0000-0000-000000000001\" }"
+        }
+      }
+    },
+    {
+      "name": "ED — board snapshot",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/v1/ed/board",
+        "header": [{ "key": "Accept", "value": "text/event-stream" }]
+      }
+    }
+  ]
+}

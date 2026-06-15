@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Defs_icu_admit" targetNamespace="http://nama.local/bpmn">
+  <bpmn:process id="Proc_ICU_Admit" isExecutable="true">
+    <bpmn:startEvent id="S" name="ICU admit decision (ED/Ward/OR)"/>
+    <bpmn:task id="T_Bed" name="Allocate ICU bed"/>
+    <bpmn:task id="T_Handover" name="Receive structured handover (SBAR)"/>
+    <bpmn:task id="T_Admit" name="Admit + APACHE-II + SOFA"/>
+    <bpmn:parallelGateway id="GW_Init"/>
+    <bpmn:task id="T_Vent" name="Setup vent / O2 settings"/>
+    <bpmn:task id="T_Drips" name="Initiate drips (sedation, vasoactives)"/>
+    <bpmn:task id="T_Lines" name="Insert lines (CVC, art line) per need"/>
+    <bpmn:task id="T_Goals" name="Set FAST-HUG-BID daily goals"/>
+    <bpmn:parallelGateway id="GW_Ready"/>
+    <bpmn:task id="T_Round" name="Daily multidisciplinary round"/>
+    <bpmn:task id="T_Reassess" name="Re-assess scores; SAT/SBT"/>
+    <bpmn:exclusiveGateway id="GW_Out" name="Ready for downgrade?"/>
+    <bpmn:task id="T_Downgrade" name="Transfer to ward"/>
+    <bpmn:endEvent id="E" name="ICU stay ended"/>
+
+    <bpmn:sequenceFlow sourceRef="S" targetRef="T_Bed"/>
+    <bpmn:sequenceFlow sourceRef="T_Bed" targetRef="T_Handover"/>
+    <bpmn:sequenceFlow sourceRef="T_Handover" targetRef="T_Admit"/>
+    <bpmn:sequenceFlow sourceRef="T_Admit" targetRef="GW_Init"/>
+    <bpmn:sequenceFlow sourceRef="GW_Init" targetRef="T_Vent"/>
+    <bpmn:sequenceFlow sourceRef="GW_Init" targetRef="T_Drips"/>
+    <bpmn:sequenceFlow sourceRef="GW_Init" targetRef="T_Lines"/>
+    <bpmn:sequenceFlow sourceRef="GW_Init" targetRef="T_Goals"/>
+    <bpmn:sequenceFlow sourceRef="T_Vent" targetRef="GW_Ready"/>
+    <bpmn:sequenceFlow sourceRef="T_Drips" targetRef="GW_Ready"/>
+    <bpmn:sequenceFlow sourceRef="T_Lines" targetRef="GW_Ready"/>
+    <bpmn:sequenceFlow sourceRef="T_Goals" targetRef="GW_Ready"/>
+    <bpmn:sequenceFlow sourceRef="GW_Ready" targetRef="T_Round"/>
+    <bpmn:sequenceFlow sourceRef="T_Round" targetRef="T_Reassess"/>
+    <bpmn:sequenceFlow sourceRef="T_Reassess" targetRef="GW_Out"/>
+    <bpmn:sequenceFlow name="No"  sourceRef="GW_Out" targetRef="T_Round"/>
+    <bpmn:sequenceFlow name="Yes" sourceRef="GW_Out" targetRef="T_Downgrade"/>
+    <bpmn:sequenceFlow sourceRef="T_Downgrade" targetRef="E"/>
+  </bpmn:process>
+</bpmn:definitions>

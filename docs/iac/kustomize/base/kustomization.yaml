@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: nama
+namePrefix: nama-
+
+commonLabels:
+  app.kubernetes.io/part-of: nama-platform
+  app.kubernetes.io/managed-by: kustomize
+
+resources:
+  - namespace.yaml
+  - networkpolicy-default-deny.yaml
+  - resourcequota.yaml
+  - limitrange.yaml
+  - serviceaccount.yaml
+  - configmap-shared.yaml
+
+images:
+  - name: ghcr.io/nama/cardio-api
+    newTag: 1.0.0
+  - name: ghcr.io/nama/ed-api
+    newTag: 1.0.0
+  - name: ghcr.io/nama/ai-orchestrator
+    newTag: 1.0.0
+  - name: ghcr.io/nama/portal-web
+    newTag: 1.0.0

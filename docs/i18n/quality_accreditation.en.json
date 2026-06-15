@@ -1,0 +1,15 @@
+{
+  "quality_accreditation": {
+    "dashboard": {
+      "title": "Quality & Accreditation Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

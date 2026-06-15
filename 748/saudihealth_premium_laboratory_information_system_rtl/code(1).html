@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | LIS Clinical Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "outline-variant": "#c3c7ce",
+                      "on-secondary-fixed-variant": "#004f54",
+                      "inverse-surface": "#2e3132",
+                      "tertiary-container": "#362700",
+                      "error-container": "#ffdad6",
+                      "primary-fixed": "#cfe5ff",
+                      "on-primary": "#ffffff",
+                      "on-tertiary-container": "#ac8c44",
+                      "on-secondary-fixed": "#002022",
+                      "on-background": "#191c1d",
+                      "on-secondary-container": "#006e75",
+                      "surface-tint": "#406182",
+                      "on-tertiary": "#ffffff",
+                      "surface-variant": "#e1e3e4",
+                      "on-surface-variant": "#42474d",
+                      "inverse-on-surface": "#f0f1f2",
+                      "surface-container-lowest": "#ffffff",
+                      "primary": "#001629",
+                      "on-surface": "#191c1d",
+                      "on-error": "#ffffff",
+                      "tertiary-fixed": "#ffdf9d",
+                      "on-tertiary-fixed": "#251a00",
+                      "background": "#f8f9fa",
+                      "surface-container": "#edeeef",
+                      "surface-container-low": "#f3f4f5",
+                      "surface": "#f8f9fa",
+                      "secondary-fixed-dim": "#5dd8e2",
+                      "on-tertiary-fixed-variant": "#5b4300",
+                      "on-primary-fixed-variant": "#274969",
+                      "secondary-container": "#7af1fc",
+                      "primary-container": "#002b49",
+                      "on-error-container": "#93000a",
+                      "outline": "#73777e",
+                      "on-primary-fixed": "#001d34",
+                      "tertiary-fixed-dim": "#e6c274",
+                      "surface-bright": "#f8f9fa",
+                      "on-secondary": "#ffffff",
+                      "error": "#ba1a1a",
+                      "surface-dim": "#d9dadb",
+                      "surface-container-high": "#e7e8e9",
+                      "secondary-fixed": "#7df4ff",
+                      "primary-fixed-dim": "#a8caef",
+                      "on-primary-container": "#7293b6",
+                      "surface-container-highest": "#e1e3e4",
+                      "inverse-primary": "#a8caef",
+                      "secondary": "#006970",
+                      "tertiary": "#1d1300"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-mobile": "16px",
+                      "xl": "64px",
+                      "sm": "12px",
+                      "gutter": "24px",
+                      "margin-desktop": "48px",
+                      "lg": "40px",
+                      "base": "8px",
+                      "md": "24px",
+                      "xs": "4px"
+              },
+              "fontFamily": {
+                      "title-lg": ["IBM Plex Sans"],
+                      "headline-lg": ["IBM Plex Sans"],
+                      "caption": ["IBM Plex Sans"],
+                      "body-md": ["IBM Plex Sans"],
+                      "display-lg": ["IBM Plex Sans"],
+                      "label-md": ["IBM Plex Sans"],
+                      "display-lg-mobile": ["IBM Plex Sans"],
+                      "body-lg": ["IBM Plex Sans"],
+                      "headline-md": ["IBM Plex Sans"]
+              },
+              "fontSize": {
+                      "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                      "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: #f8f9fa; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #006970; border-radius: 10px; }
+    </style>
+</head>
+<body class="text-on-background">
+<!-- TopNavBar -->
+<header class="bg-surface-container-lowest/80 dark:bg-inverse-surface/80 backdrop-blur-md text-primary dark:text-primary-fixed border-b border-surface-container-highest/30 shadow-sm shadow-primary/5 docked full-width top-0 flex justify-between items-center w-full px-margin-desktop h-16 z-50 fixed">
+<div class="flex items-center gap-md">
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">SaudiHealth Premium</h1>
+<div class="hidden md:flex items-center gap-base px-md py-xs bg-surface-container rounded-full">
+<span class="material-symbols-outlined text-outline">search</span>
+<input class="bg-transparent border-none focus:ring-0 font-body-md text-body-md" placeholder="البحث عن عينة أو مريض..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-sm">
+<button class="p-xs text-on-surface-variant hover:text-secondary transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-secondary transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-secondary transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+</div>
+<img alt="User clinical profile" class="w-10 h-10 rounded-full border-2 border-secondary/20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJ5ZFuzluggALiawmkDJGH5F4pzgjcJX01cfFTvHVzzsMo4k1GQv1xK80PmGM3pLCotaA8vYKVQkpbLstaia2rUDUK9iavdTBSCBZMZvBhM1PjrfR7p-M9dUfV6mwumbiN5VN4jDlKRr9pxtgwQd6FNShS2BvBQkBKz_fSJmsO-FXIk31Tz0elm9DPH3E6KAWuASqUSLwimbjk0mXoLfLrkduY8P6FwlOgFzj54lFc0LdDJNybZfG1xtzUQVLOktMjX2Rxtlr-Wtir"/>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed top-0 right-0 h-full flex flex-col pt-20 pb-8 z-40 rtl bg-primary dark:bg-primary-container text-on-primary dark:text-on-primary-container docked fixed right-0 h-full w-64 shadow-xl shadow-primary/20">
+<div class="px-md mb-lg">
+<div class="flex items-center gap-sm mb-base">
+<span class="material-symbols-outlined text-on-secondary text-headline-md" style="font-variation-settings: 'FILL' 1;">biotech</span>
+<div class="flex flex-col">
+<span class="font-title-lg text-title-lg text-on-primary">Strategic Oversight</span>
+<span class="text-label-md font-label-md opacity-70">Global Command Center</span>
+</div>
+</div>
+<button class="w-full bg-secondary text-on-secondary py-3 px-md rounded-lg font-label-md flex items-center justify-center gap-sm hover:opacity-90 transition-all active:scale-95">
+<span class="material-symbols-outlined">add</span>
+                New Clinical Case
+            </button>
+</div>
+<nav class="flex-grow space-y-xs">
+<a class="flex items-center gap-3 text-on-primary/70 dark:text-on-primary-container/70 px-4 py-3 mx-2 hover:bg-on-primary/10 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 bg-secondary dark:bg-secondary-container text-on-secondary dark:text-on-secondary-container rounded-lg px-4 py-3 mx-2" href="#">
+<span class="material-symbols-outlined" data-icon="clinical_notes">clinical_notes</span>
+<span class="font-label-md text-label-md">Patient Records</span>
+</a>
+<a class="flex items-center gap-3 text-on-primary/70 dark:text-on-primary-container/70 px-4 py-3 mx-2 hover:bg-on-primary/10 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-md text-label-md">Clinical Analytics</span>
+</a>
+<a class="flex items-center gap-3 text-on-primary/70 dark:text-on-primary-container/70 px-4 py-3 mx-2 hover:bg-on-primary/10 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-label-md text-label-md">Resource Planning</span>
+</a>
+<a class="flex items-center gap-3 text-on-primary/70 dark:text-on-primary-container/70 px-4 py-3 mx-2 hover:bg-on-primary/10 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+<span class="font-label-md text-label-md">Compliance</span>
+</a>
+<a class="flex items-center gap-3 text-on-primary/70 dark:text-on-primary-container/70 px-4 py-3 mx-2 hover:bg-on-primary/10 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span class="font-label-md text-label-md">Security</span>
+</a>
+</nav>
+<div class="mt-auto px-2">
+<a class="flex items-center gap-3 text-on-primary/70 px-4 py-3 hover:bg-on-primary/10 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="mr-64 pt-24 px-margin-desktop pb-xl">
+<!-- Header & Stats -->
+<header class="flex justify-between items-end mb-lg">
+<div>
+<h2 class="font-display-lg text-display-lg text-primary mb-xs">مركز إدارة المختبرات المركزية</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">تحليلات دقيقة لمسار العينات ومؤشرات الأداء للأقسام</p>
+</div>
+<div class="flex gap-md">
+<div class="flex flex-col items-end">
+<span class="text-label-md font-label-md text-secondary">حالة النظام</span>
+<div class="flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-title-lg text-title-lg text-primary">نشط - متصل بالمحللات</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Top Critical Alerts Banner -->
+<section class="mb-lg grid grid-cols-1 md:grid-cols-3 gap-md">
+<div class="glass-card p-md rounded-xl border-r-4 border-error flex items-start gap-md">
+<div class="bg-error-container p-sm rounded-lg text-on-error-container">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<div>
+<h4 class="font-title-lg text-title-lg text-error">قيم حرجة معلقة</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">6 نتائج تتطلب تبليغاً فورياً</p>
+<button class="mt-sm text-secondary font-label-md hover:underline">عرض القائمة</button>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl border-r-4 border-secondary flex items-start gap-md">
+<div class="bg-secondary-container p-sm rounded-lg text-on-secondary-container">
+<span class="material-symbols-outlined">timer</span>
+</div>
+<div>
+<h4 class="font-title-lg text-title-lg text-secondary">متوسط وقت الإنجاز (TAT)</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">42 دقيقة (أفضل من المستهدف بنسبة 12%)</p>
+<button class="mt-sm text-secondary font-label-md hover:underline">تحليل المسار</button>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl border-r-4 border-tertiary-fixed-dim/40 flex items-start gap-md">
+<div class="bg-tertiary-fixed p-sm rounded-lg text-on-tertiary-fixed">
+<span class="material-symbols-outlined">precision_manufacturing</span>
+</div>
+<div>
+<h4 class="font-title-lg text-title-lg text-primary">كفاءة المحللات</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">3 محللات في الصيانة الدورية اليوم</p>
+<button class="mt-sm text-secondary font-label-md hover:underline">الجدول الزمني</button>
+</div>
+</div>
+</section>
+<!-- Main Bento Grid -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Specimen Tracking Timeline (Column 8) -->
+<section class="col-span-12 lg:col-span-8 space-y-gutter">
+<div class="glass-card p-md rounded-xl">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-headline-md text-headline-md text-primary">مسار تتبع العينات الحية</h3>
+<div class="flex gap-xs">
+<span class="px-sm py-xs bg-surface-container-high rounded text-label-md">فلترة: STAT</span>
+<span class="px-sm py-xs bg-surface-container-high rounded text-label-md">اليوم</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right border-collapse">
+<thead>
+<tr class="border-b border-outline-variant/30 text-on-surface-variant">
+<th class="py-sm font-label-md">رقم العينة</th>
+<th class="py-sm font-label-md">المريض</th>
+<th class="py-sm font-label-md">الاختبار</th>
+<th class="py-sm font-label-md">المرحلة الحالية</th>
+<th class="py-sm font-label-md">الوقت المتبقي</th>
+<th class="py-sm font-label-md">الإجراء</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-md font-body-md text-primary font-semibold">#LAB-9921</td>
+<td class="py-md font-body-md">أحمد بن محمد العتيبي</td>
+<td class="py-md">
+<span class="px-sm py-xs bg-primary-container text-on-primary-container rounded-full text-caption">Complete Blood Count</span>
+</td>
+<td class="py-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-secondary text-sm">cycle</span>
+<span class="font-body-md text-secondary">قيد التحليل (Sysmex XN)</span>
+</div>
+</td>
+<td class="py-md font-body-md text-error">04:12 د</td>
+<td class="py-md">
+<button class="p-xs hover:bg-primary/5 rounded"><span class="material-symbols-outlined">visibility</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-md font-body-md text-primary font-semibold">#LAB-9925</td>
+<td class="py-md font-body-md">فاطمة الزهراني</td>
+<td class="py-md">
+<span class="px-sm py-xs bg-primary-container text-on-primary-container rounded-full text-caption">HbA1c</span>
+</td>
+<td class="py-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-outline text-sm">inventory_2</span>
+<span class="font-body-md text-on-surface-variant">في انتظار الأرشفة</span>
+</div>
+</td>
+<td class="py-md font-body-md text-on-surface-variant">--:--</td>
+<td class="py-md">
+<button class="p-xs hover:bg-primary/5 rounded"><span class="material-symbols-outlined">visibility</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-md font-body-md text-primary font-semibold">#LAB-9930</td>
+<td class="py-md font-body-md">خالد الشمري</td>
+<td class="py-md">
+<span class="px-sm py-xs bg-primary-container text-on-primary-container rounded-full text-caption">Lipid Profile</span>
+</td>
+<td class="py-md">
+<div class="flex items-center gap-xs text-error">
+<span class="material-symbols-outlined text-sm">priority_high</span>
+<span class="font-body-md">عينة مرفوضة (تحلل)</span>
+</div>
+</td>
+<td class="py-md font-body-md text-error">مطلوب إعادة سحب</td>
+<td class="py-md">
+<button class="p-xs hover:bg-primary/5 rounded text-error"><span class="material-symbols-outlined">sync_problem</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Productivity by Department Chart Placeholder -->
+<div class="glass-card p-md rounded-xl h-80 relative overflow-hidden">
+<div class="flex justify-between items-center mb-lg">
+<h3 class="font-headline-md text-headline-md text-primary">إنتاجية الأقسام (آخر 24 ساعة)</h3>
+<div class="flex gap-md">
+<div class="flex items-center gap-xs">
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+<span class="text-caption">منجزة</span>
+</div>
+<div class="flex items-center gap-xs">
+<span class="w-3 h-3 rounded-full bg-outline"></span>
+<span class="text-caption">متأخرة</span>
+</div>
+</div>
+</div>
+<!-- Mock Chart Visualization -->
+<div class="flex items-end justify-around h-48 px-lg">
+<div class="flex flex-col items-center gap-sm w-16">
+<div class="w-full bg-secondary/20 rounded-t-lg relative h-40">
+<div class="absolute bottom-0 w-full bg-secondary rounded-t-lg h-32"></div>
+</div>
+<span class="font-label-md text-label-md">الكيمياء</span>
+</div>
+<div class="flex flex-col items-center gap-sm w-16">
+<div class="w-full bg-secondary/20 rounded-t-lg relative h-40">
+<div class="absolute bottom-0 w-full bg-secondary rounded-t-lg h-24"></div>
+</div>
+<span class="font-label-md text-label-md">أمراض الدم</span>
+</div>
+<div class="flex flex-col items-center gap-sm w-16">
+<div class="w-full bg-secondary/20 rounded-t-lg relative h-40">
+<div class="absolute bottom-0 w-full bg-secondary rounded-t-lg h-36"></div>
+<div class="absolute bottom-36 w-full bg-error rounded-t-lg h-4"></div>
+</div>
+<span class="font-label-md text-label-md">الأحياء الدقيقة</span>
+</div>
+<div class="flex flex-col items-center gap-sm w-16">
+<div class="w-full bg-secondary/20 rounded-t-lg relative h-40">
+<div class="absolute bottom-0 w-full bg-secondary rounded-t-lg h-16"></div>
+</div>
+<span class="font-label-md text-label-md">المناعة</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Sidebar Analytics & Status (Column 4) -->
+<section class="col-span-12 lg:col-span-4 space-y-gutter">
+<!-- Instrument Status Card -->
+<div class="glass-card p-md rounded-xl">
+<h3 class="font-title-lg text-title-lg text-primary mb-md">حالة الأجهزة</h3>
+<div class="space-y-md">
+<div class="flex justify-between items-center p-sm bg-surface-container rounded-lg">
+<div class="flex items-center gap-sm">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="font-body-md text-body-md">Roche Cobas 8000</span>
+</div>
+<span class="text-caption bg-secondary-container text-on-secondary-container px-sm rounded">يعمل</span>
+</div>
+<div class="flex justify-between items-center p-sm bg-surface-container rounded-lg">
+<div class="flex items-center gap-sm">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="font-body-md text-body-md">Sysmex XN-2000</span>
+</div>
+<span class="text-caption bg-secondary-container text-on-secondary-container px-sm rounded">يعمل</span>
+</div>
+<div class="flex justify-between items-center p-sm bg-surface-container rounded-lg">
+<div class="flex items-center gap-sm">
+<div class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></div>
+<span class="font-body-md text-body-md">Beckman Coulter DX</span>
+</div>
+<span class="text-caption bg-tertiary-fixed text-on-tertiary-fixed px-sm rounded">معايرة</span>
+</div>
+<div class="flex justify-between items-center p-sm bg-surface-container rounded-lg">
+<div class="flex items-center gap-sm">
+<div class="w-2 h-2 rounded-full bg-error"></div>
+<span class="font-body-md text-body-md">BioMerieux Vitek 2</span>
+</div>
+<span class="text-caption bg-error-container text-on-error-container px-sm rounded">عطل فني</span>
+</div>
+</div>
+</div>
+<!-- Reagent Inventory Card -->
+<div class="glass-card p-md rounded-xl">
+<h3 class="font-title-lg text-title-lg text-primary mb-md">مخزون الكواشف الحرج</h3>
+<div class="space-y-lg">
+<div>
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md">Glucose Reagent Kit</span>
+<span class="text-error text-caption">8% متبقي</span>
+</div>
+<div class="w-full bg-outline-variant/20 h-2 rounded-full">
+<div class="bg-error h-2 rounded-full" style="width: 8%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md">Lipid Control Level 1</span>
+<span class="text-on-tertiary-fixed-variant text-caption">15% متبقي</span>
+</div>
+<div class="w-full bg-outline-variant/20 h-2 rounded-full">
+<div class="bg-tertiary-fixed-dim h-2 rounded-full" style="width: 15%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md">Hematology Diluent</span>
+<span class="text-secondary text-caption">64% متبقي</span>
+</div>
+<div class="w-full bg-outline-variant/20 h-2 rounded-full">
+<div class="bg-secondary h-2 rounded-full" style="width: 64%"></div>
+</div>
+</div>
+</div>
+<button class="w-full mt-lg border border-secondary text-secondary py-xs rounded-lg font-label-md hover:bg-secondary/5 transition-colors">طلب توريد طارئ</button>
+</div>
+<!-- Lab Activity Heatmap (Simplified) -->
+<div class="glass-card p-md rounded-xl bg-primary text-on-primary">
+<h3 class="font-title-lg text-title-lg mb-md">ذروة العمل الحالية</h3>
+<div class="flex flex-col gap-sm">
+<div class="flex justify-between items-center">
+<span class="text-caption opacity-80">الآن</span>
+<span class="font-headline-md text-secondary">مرتفعة جداً</span>
+</div>
+<div class="h-16 flex items-end gap-1">
+<!-- Simple bar chart for intensity -->
+<div class="bg-secondary/20 w-full h-4 rounded-sm"></div>
+<div class="bg-secondary/30 w-full h-8 rounded-sm"></div>
+<div class="bg-secondary/40 w-full h-12 rounded-sm"></div>
+<div class="bg-secondary/50 w-full h-10 rounded-sm"></div>
+<div class="bg-secondary/60 w-full h-14 rounded-sm"></div>
+<div class="bg-secondary/80 w-full h-16 rounded-sm"></div>
+<div class="bg-secondary w-full h-16 rounded-sm"></div>
+</div>
+<p class="text-caption opacity-70 mt-xs italic">من المتوقع استمرار الذروة لـ 45 دقيقة قادمة</p>
+</div>
+</div>
+</section>
+</div>
+<!-- Department Level Detail Cards -->
+<section class="mt-xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Hematology -->
+<div class="glass-card overflow-hidden rounded-xl group transition-all hover:shadow-lg">
+<div class="h-32 relative">
+<img class="w-full h-full object-cover" data-alt="A highly detailed close-up of a laboratory technician's gloved hand holding a blood sample tube in a high-tech Hematology department. The background is filled with blurred modern analytical machinery, clinical whites, and deep navy blue accents. Soft, professional surgical lighting creates a clean, sterile, and focused atmosphere with high clarity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHkyyiAgErZmwKtLkKUvPxOwOdxaywYT4rVaZHQkW0dwTjucTzr9bSW0FbyHTONJ460b2mmQXcFkPXKWYgFvua9Xk488zSAuWqHDCAkggB1Fwbbq6ActZ_ggm9BdFv-qyb0bkFX50y9bsxiD3hrlVxXROQlLJnCT5-1MbiQNcwBp1W4bAn_L3DGDr0EXIZiS0DGoZD6zP1zfC-T30VeeRW0TCDcYxgdIK6-OEnErGTz37L2Jw3toPaXiQWaO4vWqQnnLaVWRi2Jxwj"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent"></div>
+<h4 class="absolute bottom-md right-md text-on-primary font-headline-md">قسم أمراض الدم</h4>
+</div>
+<div class="p-md">
+<div class="flex justify-between mb-sm">
+<span class="text-on-surface-variant font-label-md">العينات النشطة</span>
+<span class="text-primary font-semibold">142 عينة</span>
+</div>
+<div class="flex justify-between mb-sm">
+<span class="text-on-surface-variant font-label-md">متوسط TAT</span>
+<span class="text-secondary font-semibold">28 دقيقة</span>
+</div>
+<div class="pt-sm border-t border-outline-variant/20 mt-sm flex justify-between items-center">
+<div class="flex -space-x-2 rtl:space-x-reverse">
+<img alt="Team member" class="w-6 h-6 rounded-full border border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1StVcNONczQibfnWB124CnC-qooBFnA3sckk4KTgigyal_R2f9Q6muJIe0zzIe6kNdzrJt8BHIEWrJyJnvnpVm1owlLFidL5woJWZWzDx72sBgi-9ckMVb5QSf6cEFcZv5TQjngPkhD-uZEYlf9zvUknBGAcj4kFKkziYt1IcmHaC9kxKY4Pb-Vtjj7u5iA2wYuMH-Lb2-qmyMpGosC9z4HzLZeS_HZ_q6uEw-aFmILBlEH3EuVXQBp6iEC6FGc4oqDrmIPO0paCL"/>
+<img alt="Team member" class="w-6 h-6 rounded-full border border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4e5SM2jpvN3Jh_FZ3t33NbNbbTTBPfpmqKG3tlZO2ThSEm1uhnlcnlUcuyAp0i6cVBjDK081JdZCRW6nAqsj6pHh0T5LiNfVFz7JMpC6ufAGmPnWdSa1MJKf8w1iIEFc8CHP-ZMnRT0xlvw8M53k3Yc8q5xP4F29-h5i-BbTgTz223hYZNvhBm5IcmOZqQnQEkLD9cdm5GxVPiUDd7K91LJjdnkIZzIvgCIuC5ZL0ScpPEh3BcCQth8olxamaDnaaiLkefAyUc5Y-"/>
+<span class="w-6 h-6 rounded-full border border-white bg-surface-container flex items-center justify-center text-[10px]">+3</span>
+</div>
+<span class="text-caption text-secondary">3 فنيين مناوبين</span>
+</div>
+</div>
+</div>
+<!-- Biochemistry -->
+<div class="glass-card overflow-hidden rounded-xl group transition-all hover:shadow-lg">
+<div class="h-32 relative">
+<img class="w-full h-full object-cover" data-alt="A sophisticated wide shot of a modern Biochemistry laboratory area featuring automated analyzer systems with glowing LED indicators. The scene is dominated by a sleek, futuristic aesthetic using the brand's primary navy and teal colors. Reflective glass surfaces and bright, clinical environment emphasize reliability and advanced medical technology." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCsFRtGat0Fxv2P2lEPc74uUEWpweMo44a-oSwS4rW2wnoLbsyxXcLk9YGVcCJgFyHJwUDpbu-r3Z-JwrRjRyqTgA6vLTq9j5ep-SzZUX2QIvan9B4wngbmzrvK83z3agiD5-sV4vkMzDxjzBMgEVCsCAcJoL41QNriiD0JOJd2uFKGPn7zpOKYmSNn9NZ7nDPlNOw271Rs70BbftmMvrzflEeqKRbElCmNAvF8o3Qz5PzzkDAZEIjjbSQn5raIt_KC1oBsnbDIOpn"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent"></div>
+<h4 class="absolute bottom-md right-md text-on-primary font-headline-md">قسم الكيمياء الحيوية</h4>
+</div>
+<div class="p-md">
+<div class="flex justify-between mb-sm">
+<span class="text-on-surface-variant font-label-md">العينات النشطة</span>
+<span class="text-primary font-semibold">285 عينة</span>
+</div>
+<div class="flex justify-between mb-sm">
+<span class="text-on-surface-variant font-label-md">متوسط TAT</span>
+<span class="text-secondary font-semibold">54 دقيقة</span>
+</div>
+<div class="pt-sm border-t border-outline-variant/20 mt-sm flex justify-between items-center">
+<div class="flex -space-x-2 rtl:space-x-reverse">
+<img alt="Team member" class="w-6 h-6 rounded-full border border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUhsAMsUFAaP80uj2dpYd_q5rSmYCyr4Q-YuRLCjS63x2c6BRlJoS7HrN_U3VmLmuHJbsxmjVYy0h35L9-yK8hLEJgj4xweALJBmZ3EYj3lG4944izoqYd4T9sG41LrCS3DyDfTGKNaC4e82_DKc6tKxc22HzXil47-iZDdnfa7UWjglmLfUKGKng-qXUKH9VXsRXO1wIUnF7By5ouSENG7rxs4pq27xnjE7Tsnnyl_9k6MvOjeSyGMk5R4vz8vxJzBp58XTc60ftR"/>
+<img alt="Team member" class="w-6 h-6 rounded-full border border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBz53_tDfSBNgSJu4lGg06_BC1ILK4dKeM4H9Y0TJBixP_dZVxn1F7DA_1w3feHNaKlwWXRrHHh-0KsHfRolYhdETRaCqEjyUnvwVDOOUMWN5Q288siDPKKb66Vgi7QqyNviPPl4ESMhZ87qHACBPPp8wC_zrTAR34J5NtcvUPAjvCBp4ISj8PmgX-ArJ1nAUTA7jLCnSUpXbjvF6QiMhxFVcK34uKcS02x40ILuBOX4AS9kgCL2ZNxBmcd1Mk-qNX3GkoWXKErDHlX"/>
+<span class="w-6 h-6 rounded-full border border-white bg-surface-container flex items-center justify-center text-[10px]">+5</span>
+</div>
+<span class="text-caption text-secondary">5 فنيين مناوبين</span>
+</div>
+</div>
+</div>
+<!-- Microbiology -->
+<div class="glass-card overflow-hidden rounded-xl group transition-all hover:shadow-lg">
+<div class="h-32 relative">
+<img class="w-full h-full object-cover" data-alt="A macro shot of petri dishes with vibrant microbial cultures arranged in a sterile laboratory setting. The lighting is focused and cinematic, highlighting the intricate details of the cultures with a cool-toned hospital aesthetic. Primary navy and secondary teal accents are subtly integrated into the lab equipment shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCO0G53ns_fdVouWPgG3clqPROH1GDRAVangYI_ER9kjWXtLgM54diiORltvV81ak41Yr0o_kjicQbLGmAvY7EuR56ZMKOZLBBrW9r8BH6Z8WK4HbHP-VSa_KXgWD6O9SvVyjoUOiHdxGyRQBMXCPlluD1tMfNyAzP9F8WveE5Z55IqBvQlaUifPgDyrbFN4ysQ6V78b-bFoKbnaGZdLHC4sVUmL6pQ_Nvo-4E7gQYuyKY-rcEKxM2ZPge597DYmOlKNCVPOm_XUssV"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent"></div>
+<h4 class="absolute bottom-md right-md text-on-primary font-headline-md">قسم الأحياء الدقيقة</h4>
+</div>
+<div class="p-md">
+<div class="flex justify-between mb-sm">
+<span class="text-on-surface-variant font-label-md">المزارع النشطة</span>
+<span class="text-primary font-semibold">56 عينة</span>
+</div>
+<div class="flex justify-between mb-sm">
+<span class="text-on-surface-variant font-label-md">وقت القراءة التالي</span>
+<span class="text-secondary font-semibold">بعد 3 ساعات</span>
+</div>
+<div class="pt-sm border-t border-outline-variant/20 mt-sm flex justify-between items-center">
+<div class="flex -space-x-2 rtl:space-x-reverse">
+<img alt="Team member" class="w-6 h-6 rounded-full border border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0UYwz94D8moMknIjDnwsZT0u96JGwouu9t9wCymSpIbtMGip6A2r53VLJAkMh5IGqIHk_T7Rfa0q6a8PWvcnB3CMr0_m8bX6hXuzKhkPNU87T0uNRVMhfPeXdMyhpAtCSfEdrTqLQFuCI3jvLlLnV3Rsbd_jUNeiYQIlZMorHZAJbka3v_wfKc815bPBoht4WWDP5IvVGBEiv3AimcNK9RhibkOZazgysYeVKDOYE9hY-tFazv4GBeGdhgi1pz0dy6LX-lHUaYgvv"/>
+<span class="w-6 h-6 rounded-full border border-white bg-surface-container flex items-center justify-center text-[10px]">+1</span>
+</div>
+<span class="text-caption text-secondary">2 فنيين مناوبين</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- FAB for Quick Actions -->
+<button class="fixed bottom-lg left-lg w-14 h-14 bg-secondary text-on-secondary rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-2xl">science</span>
+</button>
+<script>
+        // Micro-interactions and real-time clock simulation
+        function updateClock() {
+            const now = new Date();
+            // Just placeholder logic for data refresh feel
+        }
+        setInterval(updateClock, 1000);
+
+        // Hover effects on cards
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+                card.style.transition = 'all 0.3s ease';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0px)';
+            });
+        });
+    </script>
+</body></html>

@@ -1,0 +1,15 @@
+{
+  "plastic_burns": {
+    "dashboard": {
+      "title": "لوحة جراحة التجميل والحروق",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HEALAS | Revenue Cycle Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed-dim": "#5dd8e2",
+                    "on-tertiary-container": "#ac8c44",
+                    "surface-container-lowest": "#ffffff",
+                    "background": "#f8f9fa",
+                    "on-primary-container": "#7293b6",
+                    "on-primary-fixed-variant": "#274969",
+                    "surface-variant": "#e1e3e4",
+                    "on-secondary-container": "#006e75",
+                    "on-error-container": "#93000a",
+                    "primary": "#001629",
+                    "surface-container-highest": "#e1e3e4",
+                    "tertiary-fixed": "#ffdf9d",
+                    "on-primary-fixed": "#001d34",
+                    "surface-bright": "#f8f9fa",
+                    "primary-fixed-dim": "#a8caef",
+                    "secondary": "#006970",
+                    "outline": "#73777e",
+                    "on-surface": "#191c1d",
+                    "surface-tint": "#406182",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#c3c7ce",
+                    "on-error": "#ffffff",
+                    "secondary-fixed": "#7df4ff",
+                    "on-background": "#191c1d",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "error-container": "#ffdad6",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed-variant": "#5b4300",
+                    "tertiary-container": "#362700",
+                    "on-secondary-fixed": "#002022",
+                    "on-surface-variant": "#42474d",
+                    "primary-container": "#002b49",
+                    "surface-container-high": "#e7e8e9",
+                    "tertiary": "#1d1300",
+                    "on-secondary": "#ffffff",
+                    "inverse-on-surface": "#f0f1f2",
+                    "surface": "#f8f9fa",
+                    "inverse-surface": "#2e3132",
+                    "tertiary-fixed-dim": "#e6c274",
+                    "surface-dim": "#d9dadb",
+                    "inverse-primary": "#a8caef",
+                    "surface-container": "#edeeef",
+                    "secondary-container": "#7af1fc",
+                    "on-tertiary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "base": "8px",
+                    "xs": "4px",
+                    "sm": "12px",
+                    "md": "24px",
+                    "gutter": "24px",
+                    "xl": "64px",
+                    "margin-desktop": "48px",
+                    "lg": "40px"
+            },
+            "fontFamily": {
+                    "display-lg": ["IBM Plex Sans"],
+                    "body-md": ["IBM Plex Sans"],
+                    "label-md": ["IBM Plex Sans"],
+                    "headline-md": ["IBM Plex Sans"],
+                    "title-lg": ["IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans"],
+                    "display-lg-mobile": ["IBM Plex Sans"],
+                    "body-lg": ["IBM Plex Sans"],
+                    "caption": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      body {
+        font-family: 'IBM Plex Sans', sans-serif;
+        background-color: #f8f9fa;
+        color: #191c1d;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(227, 209, 180, 0.3);
+        box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+      }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+    </style>
+</head>
+<body class="min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="w-full top-0 sticky z-50 bg-surface/80 dark:bg-surface-container-highest/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
+<div class="flex justify-between items-center px-margin-desktop w-full max-w-[1440px] mx-auto h-20">
+<div class="flex items-center gap-lg">
+<span class="font-display-lg text-display-lg text-primary dark:text-primary-fixed font-bold tracking-tight">HEALAS</span>
+<nav class="hidden md:flex items-center gap-md">
+<a class="text-on-surface-variant font-medium hover:text-secondary transition-colors duration-200" href="#">Dashboard</a>
+<a class="text-secondary font-bold border-b-2 border-secondary pb-1" href="#">Financials</a>
+<a class="text-on-surface-variant font-medium hover:text-secondary transition-colors duration-200" href="#">Reports</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-outline">search</span>
+<input class="pr-10 pl-4 py-2 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-secondary text-label-md w-64" placeholder="Search claims..." type="text"/>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-2 text-on-surface-variant hover:bg-surface-variant rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="flex items-center gap-xs cursor-pointer active:opacity-70 transition-opacity">
+<img alt="Chief Medical Officer profile" class="w-10 h-10 rounded-full object-cover border-2 border-secondary" data-alt="A professional portrait of a senior healthcare executive with silver hair, wearing a clean white clinical coat and a stethoscope. The background is a blurred high-end medical facility with soft navy and teal accents. The lighting is crisp and bright, conveying leadership and high-trust corporate authority in a premium medical environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAANx_RVzRYr14JJImMueh8Ll-auAAgb2ywwbjGC8SYAuL3wqx-9FO7ENo_mQ3kQRNibM7B26zdgJxUFXsIENbdwR8sio8_A5CLCkNSVrEOaCUdZGPcnBEgswGPnorj-tkxFsjBeJkjhUlsrTXqBWLbPNvfY_Jbq2K8NBHBP8AtRTAoMeq9yGnSaJo4D1quQF6mMk4BInX_upW2dxYVTdO0JJM0tuOs96Q0mNe7VxsZug6M76qd-YTRfzluEb0sAWvwPtiIwMXXCweu"/>
+<span class="material-symbols-outlined text-primary" data-icon="person">person</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<div class="flex flex-row-reverse w-full max-w-[1440px] mx-auto min-h-screen relative">
+<!-- Side Navigation Bar (RTL Right-aligned) -->
+<aside class="h-screen w-64 sticky top-20 bg-primary dark:bg-primary-container flex flex-col py-md gap-sm shadow-xl border-l border-outline-variant/10">
+<div class="px-md mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 bg-on-primary/10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary" data-icon="verified_user">verified_user</span>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md text-on-primary leading-tight">National Healthcare</h2>
+<p class="font-label-md text-label-md text-on-primary/60">Sovereign Enterprise</p>
+</div>
+</div>
+</div>
+<nav class="flex-1">
+<a class="flex items-center gap-sm px-md py-3 text-on-primary/70 hover:bg-on-primary/10 rounded-lg mx-2 my-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="clinical_notes">clinical_notes</span>
+<span class="font-label-md text-label-md">Operations</span>
+</a>
+<a class="flex items-center gap-sm px-md py-3 bg-secondary-container text-on-secondary-container rounded-lg mx-2 my-1 scale-95 duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-md text-label-md">Financials</span>
+</a>
+<a class="flex items-center gap-sm px-md py-3 text-on-primary/70 hover:bg-on-primary/10 rounded-lg mx-2 my-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+<span class="font-label-md text-label-md">Compliance</span>
+</a>
+<a class="flex items-center gap-sm px-md py-3 text-on-primary/70 hover:bg-on-primary/10 rounded-lg mx-2 my-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="font-label-md text-label-md">Strategy</span>
+</a>
+</nav>
+<div class="px-md pt-md border-t border-on-primary/10">
+<div class="flex items-center gap-xs mb-md">
+<span class="w-2 h-2 rounded-full bg-secondary-fixed animate-pulse"></span>
+<span class="font-label-md text-label-md text-on-primary/80">System Status: Active</span>
+</div>
+<a class="flex items-center gap-sm py-2 text-on-primary/70 hover:text-on-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex items-center gap-sm py-2 text-on-primary/70 hover:text-on-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 p-margin-desktop bg-background">
+<header class="mb-lg flex justify-between items-end">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary mb-xs">Revenue Cycle &amp; Denial Management</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Real-time financial auditing and insurance recovery metrics.</p>
+</div>
+<div class="flex gap-sm">
+<button class="px-md py-2 bg-white border border-outline-variant text-primary rounded-lg font-label-md hover:bg-surface-variant transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]" data-icon="file_download">file_download</span> Export PDF
+                    </button>
+<button class="px-md py-2 bg-primary text-on-primary rounded-lg font-label-md hover:opacity-90 transition-opacity flex items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]" data-icon="add">add</span> New Appeal
+                    </button>
+</div>
+</header>
+<!-- Financial Performance Cards (Bento style) -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-lg">
+<div class="glass-card p-md rounded-xl relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-[120px]" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-sm">Total Billings (Q3)</p>
+<div class="flex items-baseline gap-xs">
+<span class="font-display-lg text-headline-lg text-primary">SAR 42,850,000</span>
+</div>
+<div class="mt-md flex items-center gap-xs text-secondary font-medium text-caption">
+<span class="material-symbols-outlined text-[16px]" data-icon="trending_up">trending_up</span> +12.4% vs last quarter
+                    </div>
+</div>
+<div class="glass-card p-md rounded-xl relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-[120px]" data-icon="savings">savings</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-sm">Net Collections</p>
+<div class="flex items-baseline gap-xs">
+<span class="font-display-lg text-headline-lg text-primary">SAR 38,120,400</span>
+</div>
+<div class="mt-md flex items-center gap-xs text-secondary font-medium text-caption">
+<span class="material-symbols-outlined text-[16px]" data-icon="check_circle">check_circle</span> 89% Collection Efficiency
+                    </div>
+</div>
+<div class="glass-card p-md rounded-xl border-l-4 border-error relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-[120px]" data-icon="report_off">report_off</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-sm">Denial Rate</p>
+<div class="flex items-baseline gap-xs">
+<span class="font-display-lg text-headline-lg text-error">4.8%</span>
+</div>
+<div class="mt-md flex items-center gap-xs text-error font-medium text-caption">
+<span class="material-symbols-outlined text-[16px]" data-icon="trending_down">trending_down</span> -0.5% optimization target
+                    </div>
+</div>
+</section>
+<!-- Denial Analysis & Payer Matrix -->
+<section class="grid grid-cols-1 lg:grid-cols-5 gap-gutter mb-lg">
+<!-- Denial Breakdown Chart -->
+<div class="lg:col-span-3 glass-card p-md rounded-xl">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-title-lg text-title-lg text-primary">Denial Analysis</h3>
+<div class="flex gap-xs">
+<span class="px-xs py-1 rounded bg-secondary-container text-on-secondary-container text-caption font-medium">Monthly Trend</span>
+</div>
+</div>
+<div class="space-y-md">
+<div class="flex items-center gap-md">
+<span class="w-24 text-label-md text-on-surface-variant">Missing Info</span>
+<div class="flex-1 h-3 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[42%]"></div>
+</div>
+<span class="w-12 text-label-md font-bold text-primary">42%</span>
+</div>
+<div class="flex items-center gap-md">
+<span class="w-24 text-label-md text-on-surface-variant">Clinical Necessity</span>
+<div class="flex-1 h-3 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[28%]"></div>
+</div>
+<span class="w-12 text-label-md font-bold text-primary">28%</span>
+</div>
+<div class="flex items-center gap-md">
+<span class="w-24 text-label-md text-on-surface-variant">Duplicate Claim</span>
+<div class="flex-1 h-3 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-outline-variant w-[15%]"></div>
+</div>
+<span class="w-12 text-label-md font-bold text-primary">15%</span>
+</div>
+<div class="flex items-center gap-md">
+<span class="w-24 text-label-md text-on-surface-variant">Eligibility</span>
+<div class="flex-1 h-3 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim w-[10%]"></div>
+</div>
+<span class="w-12 text-label-md font-bold text-primary">10%</span>
+</div>
+</div>
+<div class="mt-lg pt-md border-t border-outline-variant/10">
+<p class="text-caption text-on-surface-variant italic">Top Reason: Patient ID mismatches in ambulatory services.</p>
+</div>
+</div>
+<!-- Payer Performance -->
+<div class="lg:col-span-2 glass-card p-md rounded-xl">
+<h3 class="font-title-lg text-title-lg text-primary mb-md">Payer Matrix</h3>
+<div class="space-y-sm">
+<div class="flex justify-between items-center p-sm bg-surface-container-low rounded-lg border border-transparent hover:border-secondary/20 transition-all">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center font-bold text-[10px] text-primary border border-outline-variant/30">BUPA</div>
+<div>
+<p class="font-label-md text-primary">Bupa Arabia</p>
+<p class="text-caption text-on-surface-variant">Avg. 14 Days to Pay</p>
+</div>
+</div>
+<div class="text-left">
+<p class="font-label-md text-secondary">92% Appr.</p>
+<span class="material-symbols-outlined text-secondary text-[18px]" data-icon="expand_less">expand_less</span>
+</div>
+</div>
+<div class="flex justify-between items-center p-sm bg-surface-container-low rounded-lg border border-transparent hover:border-secondary/20 transition-all">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center font-bold text-[10px] text-primary border border-outline-variant/30">TAW</div>
+<div>
+<p class="font-label-md text-primary">Tawuniya</p>
+<p class="text-caption text-on-surface-variant">Avg. 22 Days to Pay</p>
+</div>
+</div>
+<div class="text-left">
+<p class="font-label-md text-tertiary-fixed-dim">84% Appr.</p>
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[18px]" data-icon="horizontal_rule">horizontal_rule</span>
+</div>
+</div>
+<div class="flex justify-between items-center p-sm bg-surface-container-low rounded-lg border border-transparent hover:border-secondary/20 transition-all">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center font-bold text-[10px] text-primary border border-outline-variant/30">MED</div>
+<div>
+<p class="font-label-md text-primary">Medgulf</p>
+<p class="text-caption text-on-surface-variant">Avg. 31 Days to Pay</p>
+</div>
+</div>
+<div class="text-left">
+<p class="font-label-md text-error">71% Appr.</p>
+<span class="material-symbols-outlined text-error text-[18px]" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Recovery Workflow & Compliance -->
+<section class="grid grid-cols-1 lg:grid-cols-4 gap-gutter">
+<!-- Prioritized Recovery List -->
+<div class="lg:col-span-3 glass-card rounded-xl overflow-hidden">
+<div class="px-md py-sm bg-primary/5 border-b border-outline-variant/20 flex justify-between items-center">
+<h3 class="font-title-lg text-title-lg text-primary flex items-center gap-xs">
+<span class="material-symbols-outlined" data-icon="priority_high">priority_high</span> High-Value Recovery Workflow
+                        </h3>
+<span class="text-caption font-bold text-on-surface-variant">7 CLAIMS REQUIRING ACTION</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right border-collapse">
+<thead>
+<tr class="border-b border-outline-variant/10 text-on-surface-variant text-caption uppercase tracking-wider bg-surface-container-low/50">
+<th class="px-md py-sm">Patient / Claim ID</th>
+<th class="px-md py-sm">Payer</th>
+<th class="px-md py-sm">Value (SAR)</th>
+<th class="px-md py-sm">Reason</th>
+<th class="px-md py-sm">Deadline</th>
+<th class="px-md py-sm">Action</th>
+</tr>
+</thead>
+<tbody>
+<tr class="hover:bg-secondary/5 transition-colors group">
+<td class="px-md py-md border-b border-outline-variant/5">
+<div class="font-label-md text-primary">Omar Al-Fayez</div>
+<div class="text-caption text-on-surface-variant">CLM-9821-B</div>
+</td>
+<td class="px-md py-md border-b border-outline-variant/5 text-label-md">Bupa</td>
+<td class="px-md py-md border-b border-outline-variant/5 font-bold text-primary">145,200</td>
+<td class="px-md py-md border-b border-outline-variant/5">
+<span class="px-xs py-1 rounded bg-error-container text-on-error-container text-caption">Clinical Necessity</span>
+</td>
+<td class="px-md py-md border-b border-outline-variant/5 text-label-md text-error">2 Days Left</td>
+<td class="px-md py-md border-b border-outline-variant/5">
+<button class="px-sm py-1 bg-secondary text-white rounded font-label-md hover:bg-on-secondary-container transition-colors">Appeal</button>
+</td>
+</tr>
+<tr class="hover:bg-secondary/5 transition-colors group">
+<td class="px-md py-md border-b border-outline-variant/5">
+<div class="font-label-md text-primary">Sarah Miller</div>
+<div class="text-caption text-on-surface-variant">CLM-7734-T</div>
+</td>
+<td class="px-md py-md border-b border-outline-variant/5 text-label-md">Tawuniya</td>
+<td class="px-md py-md border-b border-outline-variant/5 font-bold text-primary">82,000</td>
+<td class="px-md py-md border-b border-outline-variant/5">
+<span class="px-xs py-1 rounded bg-surface-container-high text-on-surface-variant text-caption">Missing Info</span>
+</td>
+<td class="px-md py-md border-b border-outline-variant/5 text-label-md">5 Days Left</td>
+<td class="px-md py-md border-b border-outline-variant/5">
+<button class="px-sm py-1 bg-secondary text-white rounded font-label-md hover:bg-on-secondary-container transition-colors">Resolve</button>
+</td>
+</tr>
+<tr class="hover:bg-secondary/5 transition-colors group">
+<td class="px-md py-md border-b border-outline-variant/5">
+<div class="font-label-md text-primary">Khalid Mansoor</div>
+<div class="text-caption text-on-surface-variant">CLM-4421-M</div>
+</td>
+<td class="px-md py-md border-b border-outline-variant/5 text-label-md">Medgulf</td>
+<td class="px-md py-md border-b border-outline-variant/5 font-bold text-primary">64,500</td>
+<td class="px-md py-md border-b border-outline-variant/5">
+<span class="px-xs py-1 rounded bg-error-container text-on-error-container text-caption">Clinical Necessity</span>
+</td>
+<td class="px-md py-md border-b border-outline-variant/5 text-label-md">9 Days Left</td>
+<td class="px-md py-md border-b border-outline-variant/5">
+<button class="px-sm py-1 bg-secondary text-white rounded font-label-md hover:bg-on-secondary-container transition-colors">Appeal</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- CHI Compliance Indicators -->
+<div class="lg:col-span-1 glass-card p-md rounded-xl flex flex-col justify-between">
+<div>
+<h3 class="font-title-lg text-title-lg text-primary mb-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-secondary" data-icon="policy">policy</span> CHI Compliance
+                        </h3>
+<p class="text-caption text-on-surface-variant mb-md leading-relaxed">
+                            Council of Health Insurance (CHI) latest regulatory alignment for 2024.
+                        </p>
+<div class="space-y-md">
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-label-md">
+<span>NPHIES Standard</span>
+<span class="text-secondary">98%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[98%]"></div>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-label-md">
+<span>Coding Accuracy</span>
+<span class="text-tertiary-fixed-dim">91%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim w-[91%]"></div>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-label-md">
+<span>Documentation</span>
+<span class="text-secondary">95%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[95%]"></div>
+</div>
+</div>
+</div>
+</div>
+<button class="mt-lg w-full py-2 border border-secondary text-secondary rounded-lg font-label-md hover:bg-secondary/5 transition-colors">
+                        View Protocol Details
+                    </button>
+</div>
+</section>
+</main>
+</div>
+<!-- Footer Component -->
+<footer class="bg-surface-container-lowest dark:bg-surface-dim border-t border-outline-variant/20 mt-xl">
+<div class="flex justify-between items-center px-margin-desktop py-md max-w-[1440px] mx-auto w-full">
+<div class="flex flex-col gap-xs">
+<span class="font-label-md text-label-md font-bold text-primary">HEALAS Premium Financials</span>
+<p class="font-caption text-caption text-on-surface-variant">© 2024 Sovereign Healthcare Management. Regulated by MOH &amp; NCA.</p>
+</div>
+<div class="flex gap-md">
+<a class="font-caption text-caption text-outline hover:text-primary transition-colors underline-offset-4 hover:underline" href="#">Regulatory Standards</a>
+<a class="font-caption text-caption text-outline hover:text-primary transition-colors underline-offset-4 hover:underline" href="#">Data Privacy</a>
+<a class="font-caption text-caption text-outline hover:text-primary transition-colors underline-offset-4 hover:underline" href="#">Compliance Portal</a>
+</div>
+</div>
+</footer>
+<script>
+        // Simple interactivity for demonstration
+        document.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('click', () => {
+                console.log('Claim selected for deep dive');
+            });
+        });
+    </script>
+</body></html>

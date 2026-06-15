@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+
+<html class="light" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Al-Command Center | Clinical Research Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#a8caef",
+                    "on-tertiary-container": "#ac8c44",
+                    "on-primary-fixed": "#001d34",
+                    "surface-bright": "#f8f9fa",
+                    "tertiary": "#1d1300",
+                    "secondary-container": "#7af1fc",
+                    "tertiary-fixed": "#ffdf9d",
+                    "on-primary-fixed-variant": "#274969",
+                    "on-secondary-container": "#006e75",
+                    "on-tertiary-fixed": "#251a00",
+                    "error-container": "#ffdad6",
+                    "outline": "#73777e",
+                    "inverse-on-surface": "#f0f1f2",
+                    "secondary": "#006970",
+                    "surface": "#f8f9fa",
+                    "secondary-fixed": "#7df4ff",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "surface-variant": "#e1e3e4",
+                    "outline-variant": "#c3c7ce",
+                    "primary": "#001629",
+                    "on-primary-container": "#7293b6",
+                    "tertiary-container": "#362700",
+                    "surface-container": "#edeeef",
+                    "tertiary-fixed-dim": "#e6c274",
+                    "inverse-primary": "#a8caef",
+                    "error": "#ba1a1a",
+                    "surface-container-high": "#e7e8e9",
+                    "on-secondary-fixed": "#002022",
+                    "surface-tint": "#406182",
+                    "surface-dim": "#d9dadb",
+                    "secondary-fixed-dim": "#5dd8e2",
+                    "on-tertiary-fixed-variant": "#5b4300",
+                    "surface-container-low": "#f3f4f5",
+                    "on-secondary": "#ffffff",
+                    "on-background": "#191c1d",
+                    "on-surface": "#191c1d",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed": "#cfe5ff",
+                    "on-error-container": "#93000a",
+                    "on-error": "#ffffff",
+                    "on-surface-variant": "#42474d",
+                    "background": "#f8f9fa",
+                    "inverse-surface": "#2e3132",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-tertiary": "#ffffff",
+                    "primary-container": "#002b49",
+                    "on-primary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "24px",
+                    "margin-desktop": "48px",
+                    "xl": "64px",
+                    "md": "24px",
+                    "base": "8px",
+                    "sm": "12px",
+                    "xs": "4px",
+                    "margin-mobile": "16px",
+                    "lg": "40px"
+            },
+            "fontFamily": {
+                    "body-md": ["IBM Plex Sans"],
+                    "display-lg-mobile": ["IBM Plex Sans"],
+                    "body-lg": ["IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans"],
+                    "caption": ["IBM Plex Sans"],
+                    "title-lg": ["IBM Plex Sans"],
+                    "headline-md": ["IBM Plex Sans"],
+                    "display-lg": ["IBM Plex Sans"],
+                    "label-md": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: #f8f9fa; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-tab {
+            box-shadow: inset 0 -2px 0 0 #001629;
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-full z-50 flex flex-row-reverse justify-between items-center px-margin-desktop h-20 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-md">
+<div class="flex gap-sm">
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+</div>
+<img alt="Chief of Operations Profile" class="w-10 h-10 rounded-full border-2 border-primary-fixed" data-alt="A professional headshot of a female medical executive with a confident expression, wearing a minimalist dark blazer. The lighting is soft and high-key, reflecting a premium healthcare leadership environment. The background is a clean, blurred clinical office with soft navy and white tones, maintaining a modern and sophisticated aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAViyGGCOI97U7NhsU65JKOR-pi01MINkEKRtl1RLcWwy-BcA8b-QfroG2LW_2DrjTuqAVw2eJfocu37e62YJrT6QV0MgVnG7xKluV-iL_lToOjbjk6iCMLXfWq6QBrP1zLvcy05ERXrVkI21B9e73mBOAkm310gUZTw0L3r5eMZTCh04qG_L_Ny2p4EcSQJTahfqtlu6zNhxtkH-BfpowcCOywuqI3Rqir4dh5boxwe3hupSGuXwWhrXzEAkmCyGURiKpuNnhnYup4"/>
+</div>
+<nav class="hidden md:flex items-center gap-lg">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Operations</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Logistics</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Human Resources</a>
+<div class="relative flex items-center bg-surface-container-low px-sm py-xs rounded-full border border-outline-variant/20">
+<span class="material-symbols-outlined text-outline" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm font-body-md pr-xs w-48" placeholder="بحث الأبحاث..." type="text"/>
+</div>
+</nav>
+<div class="flex items-center gap-sm">
+<span class="text-title-lg font-title-lg font-bold text-primary">Al-Command Center</span>
+<div class="w-10 h-10 bg-primary flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-white" data-icon="clinical_notes">clinical_notes</span>
+</div>
+</div>
+</header>
+<!-- SideNavBar (Right Side RTL) -->
+<aside class="fixed inset-y-0 right-0 flex flex-col pt-24 pb-8 px-sm z-40 bg-primary shadow-xl w-80 h-full">
+<div class="mb-lg px-md">
+<h2 class="text-headline-sm font-headline-sm text-white font-bold">National Health Command</h2>
+<p class="text-on-primary/70 font-label-md text-label-md">Riyadh Region HQ</p>
+</div>
+<div class="flex-1 space-y-base px-sm">
+<a class="flex items-center gap-sm px-md py-sm bg-secondary-container text-on-secondary-container rounded-lg font-bold transition-all transform active:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="emergency_home">emergency_home</span>
+<span class="font-label-md text-label-md">Incident Command</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all transform active:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
+<span class="font-label-md text-label-md">Fleet Logistics</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all transform active:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-label-md text-label-md">Resource Hub</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all transform active:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="font-label-md text-label-md">Staff Management</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all transform active:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-md text-label-md">Payroll</span>
+</a>
+</div>
+<div class="mt-auto pt-md border-t border-outline-variant/10 px-sm space-y-xs">
+<button class="w-full py-md bg-error text-white rounded-xl font-bold flex items-center justify-center gap-sm mb-lg">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+                Trigger Emergency Alert
+            </button>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="support_agent">support_agent</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="mr-80 pt-24 min-h-screen px-margin-desktop pb-xl">
+<!-- Hero Header -->
+<section class="mb-xl">
+<div class="flex justify-between items-end mb-lg">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary mb-xs">مركز ابتكار الأبحاث السريرية</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">مراقبة متقدمة للتجارب السريرية، تخصيص المنح، وتأثير النشر العلمي العالمي بالوقت الفعلي.</p>
+</div>
+<div class="flex gap-sm">
+<button class="px-lg py-sm bg-primary text-white rounded-full font-bold flex items-center gap-sm shadow-lg hover:opacity-90 transition-all">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                        دراسة جديدة
+                    </button>
+<button class="px-lg py-sm border-2 border-secondary text-secondary rounded-full font-bold hover:bg-secondary/5 transition-all">
+                        تصدير البيانات
+                    </button>
+</div>
+</div>
+<!-- Bento Grid Stats -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Main Trial Overview -->
+<div class="col-span-12 lg:col-span-8 glass-card rounded-xl p-lg relative overflow-hidden">
+
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-md">
+<div>
+<h3 class="font-title-lg text-title-lg text-primary">نشاط التجارب السريرية النشطة</h3>
+<p class="font-caption text-caption text-on-surface-variant">توزيع المراحل من الأولى إلى الرابعة</p>
+</div>
+<span class="bg-secondary-container text-on-secondary-container px-sm py-xs rounded-full font-label-md text-label-md">محدث الآن</span>
+</div>
+<div class="flex items-center gap-xl mt-lg">
+<div class="flex-1">
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md">المرحلة الأولى (Phase I)</span>
+<span class="font-bold">12</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 25%"></div>
+</div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md">المرحلة الرابعة (Phase IV)</span>
+<span class="font-bold">48</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 75%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recruitment Metric -->
+<div class="col-span-12 md:col-span-6 lg:col-span-4 glass-card rounded-xl p-lg flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-sm mb-sm">
+<div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="person_search">person_search</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-primary">معدل استقطاب المرضى</h3>
+</div>
+<p class="font-display-lg text-display-lg text-secondary">94%</p>
+</div>
+<div class="mt-md">
+<div class="flex items-center gap-xs text-secondary font-bold">
+<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
+<span class="text-caption">+6.2% عن الشهر الماضي</span>
+</div>
+</div>
+</div>
+<!-- Global Map Section -->
+<div class="col-span-12 lg:col-span-12 glass-card rounded-xl overflow-hidden min-h-[450px] relative">
+<div class="absolute inset-0 z-0 grayscale opacity-40">
+<img class="w-full h-full object-cover" data-alt="A highly detailed global satellite view map featuring glowing interconnected nodes and data transmission lines across continents. The aesthetic is futuristic and clean, dominated by a deep navy and teal color palette with soft golden highlights. The scene communicates high-level global collaboration and real-time medical data exchange." data-location="Global" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDinfr-5JFpy5WmeM8NDf5W_aTvSTkoQN1ExNF2a5cnISjU2RFdsyHspCPH2a6w9grzK2cNA2V1cr6nylLsfVxwwIJtD6I0OixOGjYq9pqJiNqT6gnRFlKi3T4kUl8mxb9Nuxr2rUC46iAugOnDyIDsfEHH9OmLnaUZ2cS1cf5N_ZXoNz_362RAfUycXZmMhLgmMuHyJhFj34VdJzpln4vSrR2qazfEYFSGR5OWYP1TwGPS_FwNswKnngFD4pz_cYhbS2jlcB95_D5I"/>
+</div>
+<div class="relative z-10 p-lg flex flex-col h-full pointer-events-none">
+<div class="bg-surface-container-lowest/90 backdrop-blur-md p-md rounded-xl border border-outline-variant/30 self-start pointer-events-auto">
+<h3 class="font-title-lg text-title-lg text-primary mb-xs">خارطة التعاون العالمي</h3>
+<div class="space-y-sm">
+<div class="flex items-center gap-sm">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<span class="font-label-md text-label-md">مراكز الأبحاث النشطة (142)</span>
+</div>
+<div class="flex items-center gap-sm">
+<div class="w-3 h-3 rounded-full bg-secondary"></div>
+<span class="font-label-md text-label-md">مختبرات متعاونة (89)</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- IRB Approvals Table -->
+<div class="col-span-12 lg:col-span-7 glass-card rounded-xl p-lg">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-title-lg text-title-lg text-primary">حالة موافقة لجان الأخلاقيات (IRB)</h3>
+<button class="text-secondary font-label-md hover:underline">عرض الكل</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead class="border-b border-outline-variant/20">
+<tr class="text-on-surface-variant font-label-md">
+<th class="py-sm px-sm">اسم الدراسة</th>
+<th class="py-sm px-sm">المنشأة</th>
+<th class="py-sm px-sm">الحالة</th>
+<th class="py-sm px-sm">التاريخ</th>
+</tr>
+</thead>
+<tbody class="text-body-md">
+<tr class="border-b border-outline-variant/10 hover:bg-primary/5 transition-colors">
+<td class="py-md px-sm font-bold">دراسة التصلب المتعدد - GenX</td>
+<td class="py-md px-sm">مستشفى الملك فيصل</td>
+<td class="py-md px-sm">
+<span class="px-sm py-xs bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold">معتمد</span>
+</td>
+<td class="py-md px-sm text-on-surface-variant">12 أكتوبر 2024</td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-primary/5 transition-colors">
+<td class="py-md px-sm font-bold">علاج الأورام بالبروتونات</td>
+<td class="py-md px-sm">جامعة الأميرة نورة</td>
+<td class="py-md px-sm">
+<span class="px-sm py-xs bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full text-xs font-bold">قيد المراجعة</span>
+</td>
+<td class="py-md px-sm text-on-surface-variant">25 أكتوبر 2024</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="py-md px-sm font-bold">اللقاح التنفسي المطور</td>
+<td class="py-md px-sm">المركز الوطني للأبحاث</td>
+<td class="py-md px-sm">
+<span class="px-sm py-xs bg-error-container text-on-error-container rounded-full text-xs font-bold">مراجعة مطلوبة</span>
+</td>
+<td class="py-md px-sm text-on-surface-variant">01 نوفمبر 2024</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Grant Allocation -->
+<div class="col-span-12 lg:col-span-5 glass-card rounded-xl p-lg flex flex-col">
+<h3 class="font-title-lg text-title-lg text-primary mb-md">توزيع تمويل المنح</h3>
+<div class="flex-1 flex flex-col justify-center">
+<div class="relative h-48 w-48 mx-auto">
+<!-- Circular Progress Simulation -->
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e1e3e4" stroke-width="3"></path>
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#001629" stroke-dasharray="60, 100" stroke-width="3"></path>
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#006970" stroke-dasharray="25, 100" stroke-dashoffset="-60" stroke-width="3"></path>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-display-lg text-headline-md text-primary">SAR 45M</span>
+<span class="font-caption text-caption text-on-surface-variant">إجمالي الميزانية</span>
+</div>
+</div>
+<div class="mt-lg space-y-sm">
+<div class="flex justify-between items-center p-sm bg-surface-container-low rounded-lg">
+<div class="flex items-center gap-sm">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="font-label-md text-label-md">أبحاث السرطان</span>
+</div>
+<span class="font-bold">60%</span>
+</div>
+<div class="flex justify-between items-center p-sm bg-surface-container-low rounded-lg">
+<div class="flex items-center gap-sm">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="font-label-md text-label-md">أمراض القلب</span>
+</div>
+<span class="font-bold">25%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Publication Impact -->
+<div class="col-span-12 glass-card rounded-xl p-lg grid grid-cols-1 md:grid-cols-4 gap-lg">
+<div class="md:border-l border-outline-variant/30 pl-lg">
+<h4 class="font-label-md text-label-md text-on-surface-variant mb-xs">تأثير النشر العلمي (H-Index)</h4>
+<div class="flex items-baseline gap-xs">
+<span class="font-display-lg text-headline-lg text-primary">72</span>
+<span class="text-secondary font-bold">+4</span>
+</div>
+</div>
+<div class="md:border-l border-outline-variant/30 pl-lg">
+<h4 class="font-label-md text-label-md text-on-surface-variant mb-xs">عدد الاستشهادات السنوية</h4>
+<div class="flex items-baseline gap-xs">
+<span class="font-display-lg text-headline-lg text-primary">12.4K</span>
+<span class="text-secondary font-bold">+18%</span>
+</div>
+</div>
+<div class="md:border-l border-outline-variant/30 pl-lg">
+<h4 class="font-label-md text-label-md text-on-surface-variant mb-xs">الأوراق العلمية المقبولة</h4>
+<div class="flex items-baseline gap-xs">
+<span class="font-display-lg text-headline-lg text-primary">342</span>
+<span class="text-on-surface-variant font-label-md">هذا العام</span>
+</div>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-on-surface-variant mb-xs">براءات الاختراع المودعة</h4>
+<div class="flex items-baseline gap-xs">
+<span class="font-display-lg text-headline-lg text-primary">18</span>
+<span class="bg-tertiary-fixed text-on-tertiary-fixed px-sm py-xs rounded-full text-xs font-bold mr-xs">قيد الفحص</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="mr-80 w-auto py-md px-margin-desktop flex flex-row-reverse justify-between items-center bg-surface-container-high border-t border-outline-variant/30">
+<div class="flex gap-lg">
+<a class="text-on-surface-variant font-body-md hover:text-secondary transition-colors" href="#">Regional Compliance</a>
+<a class="text-on-surface-variant font-body-md hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant font-body-md hover:text-secondary transition-colors" href="#">Terms of Service</a>
+</div>
+<div class="flex items-center gap-md">
+<span class="font-bold text-primary">Command Center</span>
+<span class="font-caption text-caption text-on-surface-variant">© 2024 Command Center. All Rights Reserved. Ministry of Health Standards Compliant.</span>
+</div>
+</footer>
+<script>
+        // Simple micro-interaction for cards
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+                card.style.transition = 'transform 0.3s ease';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body></html>

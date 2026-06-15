@@ -1,0 +1,15 @@
+{
+  "endocrine_diabetes": {
+    "dashboard": {
+      "title": "لوحة الغدد الصماء والسكري",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "functional_diagnostics": {
+    "dashboard": {
+      "title": "Functional Diagnostics Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

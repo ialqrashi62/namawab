@@ -1,0 +1,15 @@
+{
+  "security_safety": {
+    "dashboard": {
+      "title": "Security & Safety Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

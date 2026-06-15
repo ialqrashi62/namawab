@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#cfe5ff",
+                        "error-container": "#ffdad6",
+                        "on-surface-variant": "#42474d",
+                        "surface-tint": "#406182",
+                        "secondary": "#006970",
+                        "surface-variant": "#e1e3e4",
+                        "background": "#f8f9fa",
+                        "primary": "#001629",
+                        "surface-dim": "#d9dadb",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "on-primary-fixed": "#001d34",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-container": "#ac8c44",
+                        "inverse-primary": "#a8caef",
+                        "on-primary-container": "#7293b6",
+                        "tertiary": "#1d1300",
+                        "on-primary-fixed-variant": "#274969",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "tertiary-container": "#362700",
+                        "surface-container": "#edeeef",
+                        "on-background": "#191c1d",
+                        "on-error": "#ffffff",
+                        "primary-fixed-dim": "#a8caef",
+                        "tertiary-fixed": "#ffdf9d",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#f3f4f5",
+                        "outline-variant": "#c3c7ce",
+                        "secondary-container": "#7af1fc",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#f8f9fa",
+                        "on-tertiary": "#ffffff",
+                        "surface": "#f8f9fa",
+                        "on-tertiary-fixed": "#251a00",
+                        "on-surface": "#191c1d",
+                        "secondary-fixed": "#7df4ff",
+                        "on-secondary-fixed": "#002022",
+                        "surface-container-high": "#e7e8e9",
+                        "inverse-on-surface": "#f0f1f2",
+                        "primary-container": "#002b49",
+                        "inverse-surface": "#2e3132",
+                        "surface-container-lowest": "#ffffff",
+                        "outline": "#73777e",
+                        "on-secondary-container": "#006e75",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "xl": "64px",
+                        "margin-desktop": "48px",
+                        "lg": "40px",
+                        "gutter": "24px",
+                        "sm": "12px",
+                        "md": "24px",
+                        "margin-mobile": "16px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["IBM Plex Sans Arabic"],
+                        "caption": ["IBM Plex Sans Arabic"],
+                        "body-md": ["IBM Plex Sans Arabic"],
+                        "display-lg": ["IBM Plex Sans Arabic"],
+                        "title-lg": ["IBM Plex Sans Arabic"],
+                        "headline-lg": ["IBM Plex Sans Arabic"],
+                        "headline-md": ["IBM Plex Sans Arabic"],
+                        "body-lg": ["IBM Plex Sans Arabic"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="fixed right-0 top-0 h-20 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 flex flex-row-reverse justify-between items-center px-margin-desktop shadow-sm">
+<div class="flex items-center gap-md">
+<div class="flex flex-col items-end">
+<span class="font-headline-md text-headline-md font-bold text-primary">SaudiHealth Premium</span>
+<span class="font-label-md text-label-md text-on-surface-variant">الخدمات الممتازة</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">health_and_safety</span>
+</div>
+</div>
+<nav class="hidden md:flex flex-row-reverse gap-xl">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all" href="#">Directory</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all" href="#">Requests</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all" href="#">Governance</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all" href="#">Compliance</a>
+</nav>
+<div class="flex items-center gap-md">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-primary">settings</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant/30 mx-xs"></div>
+<img alt="User Profile" class="w-10 h-10 rounded-full object-cover border-2 border-primary-container" data-alt="A professional portrait of a senior healthcare administrator in a clinical setting, clean lighting, high-end corporate aesthetic, SaudiHealth Premium branding colors, sophisticated depth of field." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdekz6pgmALq04oi-zmC_H1uY2eDbLmcZ7T9BqEAslaYaDZuDYKjoT_bhhd47Q9cekw1YO8cd8kUQz2k0ikTpT48s-Itb7zm8D7EaSMwuWgmdfASdYZ2a7BvcBKIX8vgQvISC1yssNjCCWA-sP31U_BvXi1GoO_9vbDFGjjuH2-nbIdwelf3_Ub3d7gIRuncwBkYER3MQlyxxARLd9BmjkKgnakOSWQcAz1RU5soqcYrJ8Mb2xkweb1_19rMSRdqjyFPBUhMqFsVoE"/>
+</div>
+</header>
+<!-- Side Navigation Bar (Right Side for RTL) -->
+<aside class="fixed right-0 top-0 h-screen w-72 bg-surface-container-lowest flex flex-col z-40 py-lg px-md border-l border-outline-variant/30 pt-24">
+<div class="flex flex-row-reverse items-center gap-md mb-xl px-md">
+<div class="flex flex-col text-right">
+<span class="font-title-lg text-title-lg font-bold text-primary">IAM Console</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Enterprise Healthcare</span>
+</div>
+</div>
+<nav class="flex flex-col gap-xs flex-1">
+<a class="flex flex-row-reverse items-center gap-md bg-secondary-container text-on-secondary-container rounded-lg p-md transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined">badge</span>
+<span class="font-label-md text-label-md">Identity Center</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:bg-surface-container-high hover:text-primary p-md rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">approval_delegation</span>
+<span class="font-label-md text-label-md">Access Workflows</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:bg-surface-container-high hover:text-primary p-md rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">security</span>
+<span class="font-label-md text-label-md">RBAC Configuration</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:bg-surface-container-high hover:text-primary p-md rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-label-md text-label-md">Security Governance</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:bg-surface-container-high hover:text-primary p-md rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="font-label-md text-label-md">Audit Logs</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:bg-surface-container-high hover:text-primary p-md rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">corporate_fare</span>
+<span class="font-label-md text-label-md">Departmental Settings</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-xs border-t border-outline-variant/20 pt-md">
+<button class="flex flex-row-reverse items-center gap-md text-on-surface-variant hover:text-primary p-md rounded-lg">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="font-label-md text-label-md">Support</span>
+</button>
+<button class="flex flex-row-reverse items-center gap-md text-error hover:bg-error-container p-md rounded-lg">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="mr-72 pt-24 pb-12 px-margin-desktop min-h-screen">
+<!-- Header Section -->
+<section class="flex flex-col gap-lg mb-lg">
+<div class="flex flex-row-reverse justify-between items-end">
+<div class="text-right">
+<h1 class="font-headline-lg text-headline-lg text-primary mb-xs">مركز إدارة الهوية والوصول</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">إدارة هويات المستخدمين وصلاحيات الوصول بكفاءة وأمان عالي.</p>
+</div>
+<div class="flex gap-md">
+<div class="flex flex-col items-center glass-card px-md py-sm rounded-xl">
+<span class="font-label-md text-label-md text-on-surface-variant">امتثال NCA</span>
+<div class="flex gap-xs mt-xs">
+<span class="px-2 py-0.5 bg-secondary/10 text-secondary rounded-full font-caption text-caption">نشط</span>
+<span class="font-body-md text-body-md font-bold">100%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-md">
+<div class="glass-card p-md rounded-xl shadow-sm border-r-4 border-primary">
+<div class="flex flex-row-reverse justify-between items-start">
+<span class="material-symbols-outlined text-primary-container bg-primary-fixed p-xs rounded-lg">group</span>
+<div class="text-right">
+<p class="font-label-md text-label-md text-on-surface-variant">إجمالي المستخدمين</p>
+<p class="font-headline-md text-headline-md font-bold text-primary">12,480</p>
+</div>
+</div>
+<div class="mt-sm flex flex-row-reverse items-center gap-xs">
+<span class="text-secondary font-caption text-caption flex items-center"><span class="material-symbols-outlined text-[14px]">trending_up</span> +2.5%</span>
+<span class="text-on-surface-variant font-caption text-caption">منذ الشهر الماضي</span>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl shadow-sm border-r-4 border-secondary">
+<div class="flex flex-row-reverse justify-between items-start">
+<span class="material-symbols-outlined text-on-secondary-container bg-secondary-container p-xs rounded-lg">speed</span>
+<div class="text-right">
+<p class="font-label-md text-label-md text-on-surface-variant">الجلسات النشطة</p>
+<p class="font-headline-md text-headline-md font-bold text-primary">3,120</p>
+</div>
+</div>
+<div class="mt-sm h-1 w-full bg-outline-variant/30 rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-3/4"></div>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl shadow-sm border-r-4 border-tertiary-container">
+<div class="flex flex-row-reverse justify-between items-start">
+<span class="material-symbols-outlined text-on-tertiary-fixed-variant bg-tertiary-fixed p-xs rounded-lg">pending_actions</span>
+<div class="text-right">
+<p class="font-label-md text-label-md text-on-surface-variant">طلبات معلقة</p>
+<p class="font-headline-md text-headline-md font-bold text-primary">45</p>
+</div>
+</div>
+<div class="mt-sm flex flex-row-reverse items-center gap-xs">
+<span class="text-error font-caption text-caption">تتطلب إجراء فوري</span>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl shadow-sm border-r-4 border-on-primary-container">
+<div class="flex flex-row-reverse justify-between items-start">
+<span class="material-symbols-outlined text-on-primary-container bg-primary-fixed-dim p-xs rounded-lg">verified_user</span>
+<div class="text-right">
+<p class="font-label-md text-label-md text-on-surface-variant">مؤشر أمان الهوية</p>
+<p class="font-headline-md text-headline-md font-bold text-primary">92%</p>
+</div>
+</div>
+<div class="mt-sm flex flex-row-reverse items-center gap-xs">
+<div class="flex -space-x-1 space-x-reverse">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<div class="w-2 h-2 rounded-full bg-outline-variant"></div>
+</div>
+<span class="text-on-surface-variant font-caption text-caption">مستوى متقدم</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid Main Content -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Directory Table (Large) -->
+<div class="col-span-12 lg:col-span-8 flex flex-col gap-md">
+<div class="glass-card rounded-xl overflow-hidden shadow-sm">
+<div class="p-md border-b border-outline-variant/30 flex flex-row-reverse justify-between items-center">
+<h2 class="font-title-lg text-title-lg text-primary">دليل المستخدمين والأدوار</h2>
+<div class="flex gap-sm">
+<div class="relative">
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant text-[20px]">search</span>
+<input class="pr-10 pl-4 py-2 bg-surface-container-low border-none rounded-lg font-label-md text-label-md focus:ring-2 focus:ring-secondary w-64 text-right" placeholder="بحث عن مستخدم..." type="text"/>
+</div>
+<button class="bg-primary text-white px-md py-2 rounded-lg font-label-md text-label-md hover:bg-primary-container transition-all flex items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]">person_add</span>
+                                إضافة مستخدم
+                            </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead class="bg-surface-container-high/50">
+<tr>
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant">المستخدم</th>
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant">الدور الأساسي</th>
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant">القسم</th>
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant">آخر ظهور</th>
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant">الحالة</th>
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant">الإجراءات</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-md py-md">
+<div class="flex flex-row-reverse items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold">أ.س</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-primary">أحمد سليمان</span>
+<span class="font-caption text-caption text-on-surface-variant">a.sul@health.sa</span>
+</div>
+</div>
+</td>
+<td class="px-md py-md font-body-md text-body-md">Medical Director</td>
+<td class="px-md py-md font-body-md text-body-md">الإدارة الطبية</td>
+<td class="px-md py-md font-body-md text-body-md">منذ ساعتين</td>
+<td class="px-md py-md">
+<span class="px-3 py-1 bg-secondary/10 text-secondary rounded-full font-caption text-caption font-medium">Active</span>
+</td>
+<td class="px-md py-md">
+<div class="flex gap-xs justify-end">
+<button class="p-xs hover:bg-surface-container-high rounded text-on-surface-variant" title="Edit Permissions"><span class="material-symbols-outlined">edit_square</span></button>
+<button class="p-xs hover:bg-surface-container-high rounded text-on-surface-variant" title="View Audit Log"><span class="material-symbols-outlined">history</span></button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-md py-md">
+<div class="flex flex-row-reverse items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed-dim flex items-center justify-center text-on-secondary-container font-bold">س.م</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-primary">سارة محمود</span>
+<span class="font-caption text-caption text-on-surface-variant">s.mah@health.sa</span>
+</div>
+</div>
+</td>
+<td class="px-md py-md font-body-md text-body-md">Senior Accountant</td>
+<td class="px-md py-md font-body-md text-body-md">المالية</td>
+<td class="px-md py-md font-body-md text-body-md">يوم واحد</td>
+<td class="px-md py-md">
+<span class="px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-full font-caption text-caption font-medium">Inactive</span>
+</td>
+<td class="px-md py-md">
+<div class="flex gap-xs justify-end">
+<button class="p-xs hover:bg-surface-container-high rounded text-on-surface-variant"><span class="material-symbols-outlined">edit_square</span></button>
+<button class="p-xs hover:bg-surface-container-high rounded text-on-surface-variant"><span class="material-symbols-outlined">history</span></button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-md py-md">
+<div class="flex flex-row-reverse items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-error-container flex items-center justify-center text-on-error-container font-bold">ف.ر</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-primary">فهد الرويلي</span>
+<span class="font-caption text-caption text-on-surface-variant">f.row@health.sa</span>
+</div>
+</div>
+</td>
+<td class="px-md py-md font-body-md text-body-md">IT Specialist</td>
+<td class="px-md py-md font-body-md text-body-md">تقنية المعلومات</td>
+<td class="px-md py-md font-body-md text-body-md">منذ 5 دقائق</td>
+<td class="px-md py-md">
+<span class="px-3 py-1 bg-error-container text-on-error-container rounded-full font-caption text-caption font-medium">Restricted</span>
+</td>
+<td class="px-md py-md">
+<div class="flex gap-xs justify-end">
+<button class="p-xs hover:bg-surface-container-high rounded text-on-surface-variant"><span class="material-symbols-outlined">edit_square</span></button>
+<button class="p-xs hover:bg-surface-container-high rounded text-on-surface-variant"><span class="material-symbols-outlined">history</span></button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-md bg-surface-container-lowest flex flex-row-reverse justify-center gap-sm">
+<button class="p-xs rounded-full border border-outline-variant hover:bg-surface-container-low"><span class="material-symbols-outlined">chevron_right</span></button>
+<span class="flex items-center px-md font-label-md text-label-md">صفحة 1 من 24</span>
+<button class="p-xs rounded-full border border-outline-variant hover:bg-surface-container-low"><span class="material-symbols-outlined">chevron_left</span></button>
+</div>
+</div>
+<!-- RBAC Config Panel -->
+<div class="glass-card rounded-xl shadow-sm p-md">
+<div class="flex flex-row-reverse justify-between items-center mb-md">
+<h2 class="font-title-lg text-title-lg text-primary">توزيع أدوار الصلاحيات (RBAC)</h2>
+<button class="text-secondary font-label-md text-label-md hover:underline">Manage Role Policies</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<div class="p-md rounded-lg bg-primary-container/5 border border-primary/10 text-right">
+<span class="material-symbols-outlined text-primary mb-xs">medical_services</span>
+<h3 class="font-label-md text-label-md font-bold text-primary">الكوادر الطبية</h3>
+<p class="font-caption text-caption text-on-surface-variant mb-md">4,200 مستخدم</p>
+<div class="w-full bg-outline-variant/20 h-1.5 rounded-full">
+<div class="bg-primary h-full w-[85%] rounded-full"></div>
+</div>
+</div>
+<div class="p-md rounded-lg bg-secondary-container/5 border border-secondary/10 text-right">
+<span class="material-symbols-outlined text-secondary mb-xs">admin_panel_settings</span>
+<h3 class="font-label-md text-label-md font-bold text-primary">المسؤولين الإداريين</h3>
+<p class="font-caption text-caption text-on-surface-variant mb-md">850 مستخدم</p>
+<div class="w-full bg-outline-variant/20 h-1.5 rounded-full">
+<div class="bg-secondary h-full w-[40%] rounded-full"></div>
+</div>
+</div>
+<div class="p-md rounded-lg bg-tertiary-container/5 border border-tertiary-container/10 text-right">
+<span class="material-symbols-outlined text-on-tertiary-container mb-xs">support_agent</span>
+<h3 class="font-label-md text-label-md font-bold text-primary">خدمة العملاء</h3>
+<p class="font-caption text-caption text-on-surface-variant mb-md">1,120 مستخدم</p>
+<div class="w-full bg-outline-variant/20 h-1.5 rounded-full">
+<div class="bg-on-tertiary-container h-full w-[60%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sidebar Contextual Area -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-gutter">
+<!-- Access Workflows Pipeline -->
+<div class="glass-card rounded-xl p-md shadow-sm">
+<h2 class="font-title-lg text-title-lg text-primary text-right mb-md">سير عمل طلبات الوصول</h2>
+<div class="space-y-md">
+<div>
+<div class="flex flex-row-reverse justify-between mb-xs">
+<span class="font-label-md text-label-md text-on-surface">طلب جديد</span>
+<span class="font-caption text-caption text-on-surface-variant">12 طلب</span>
+</div>
+<div class="w-full bg-surface-container-low h-2 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-1/4"></div>
+</div>
+</div>
+<div>
+<div class="flex flex-row-reverse justify-between mb-xs">
+<span class="font-label-md text-label-md text-on-surface">قيد المراجعة</span>
+<span class="font-caption text-caption text-on-surface-variant">28 طلب</span>
+</div>
+<div class="w-full bg-surface-container-low h-2 rounded-full overflow-hidden">
+<div class="bg-tertiary-fixed-dim h-full w-2/3"></div>
+</div>
+</div>
+<div>
+<div class="flex flex-row-reverse justify-between mb-xs">
+<span class="font-label-md text-label-md text-on-surface">تمت الموافقة</span>
+<span class="font-caption text-caption text-on-surface-variant">156 هذا الأسبوع</span>
+</div>
+<div class="w-full bg-surface-container-low h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-full"></div>
+</div>
+</div>
+<button class="w-full py-3 bg-surface-container-high rounded-lg font-label-md text-label-md text-primary hover:bg-surface-container-highest transition-colors mt-md">عرض كافة الطلبات</button>
+</div>
+</div>
+<!-- Security Governance Sidebar -->
+<div class="bg-primary text-white rounded-xl p-md shadow-lg overflow-hidden relative">
+<!-- Subtle pattern -->
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 24px 24px;"></div>
+<h2 class="font-title-lg text-title-lg mb-md text-right relative z-10">حوكمة الأمان</h2>
+<div class="grid grid-cols-2 gap-sm relative z-10 mb-lg">
+<div class="bg-white/10 rounded-lg p-sm text-right">
+<p class="font-caption text-caption opacity-80">MFA Status</p>
+<p class="font-headline-md text-headline-md font-bold">98%</p>
+</div>
+<div class="bg-white/10 rounded-lg p-sm text-right">
+<p class="font-caption text-caption opacity-80">PAM Usage</p>
+<p class="font-headline-md text-headline-md font-bold">100%</p>
+</div>
+</div>
+<h3 class="font-label-md text-label-md mb-sm text-right relative z-10 flex flex-row-reverse items-center gap-xs">
+<span class="material-symbols-outlined text-error text-[20px]">error</span>
+                        تنبيهات عالية الخطورة
+                    </h3>
+<div class="space-y-sm relative z-10 custom-scrollbar max-h-48 overflow-y-auto pr-xs">
+<div class="bg-error-container/20 border border-error/30 p-sm rounded-lg text-right">
+<p class="font-label-md text-label-md font-bold">محاولة دخول مجهولة</p>
+<p class="font-caption text-caption opacity-90">IP: 192.168.1.45 (خارج النطاق)</p>
+<span class="text-[10px] opacity-70">منذ 4 دقائق</span>
+</div>
+<div class="bg-white/5 p-sm rounded-lg text-right border border-white/10">
+<p class="font-label-md text-label-md">تعديل صلاحيات غير مصرح</p>
+<p class="font-caption text-caption opacity-90">المستخدم: م. فهد</p>
+<span class="text-[10px] opacity-70">منذ 12 دقيقة</span>
+</div>
+<div class="bg-white/5 p-sm rounded-lg text-right border border-white/10">
+<p class="font-label-md text-label-md">تكرار فشل الدخول</p>
+<p class="font-caption text-caption opacity-90">الحساب: s.khaled</p>
+<span class="text-[10px] opacity-70">منذ ساعة</span>
+</div>
+</div>
+</div>
+<!-- Compliance Widget -->
+<div class="glass-card rounded-xl p-md shadow-sm">
+<h2 class="font-title-lg text-title-lg text-primary text-right mb-md">مستوى الامتثال التنظيمي</h2>
+<div class="flex flex-wrap flex-row-reverse gap-sm">
+<div class="flex items-center gap-xs bg-secondary/10 px-md py-2 rounded-full">
+<span class="material-symbols-outlined text-secondary text-[18px]">verified</span>
+<span class="font-caption text-caption text-secondary font-bold">HIPAA Compliant</span>
+</div>
+<div class="flex items-center gap-xs bg-secondary/10 px-md py-2 rounded-full">
+<span class="material-symbols-outlined text-secondary text-[18px]">verified</span>
+<span class="font-caption text-caption text-secondary font-bold">GDPR Ready</span>
+</div>
+<div class="flex items-center gap-xs bg-tertiary-fixed/30 px-md py-2 rounded-full">
+<span class="material-symbols-outlined text-on-tertiary-fixed-variant text-[18px]">gpp_maybe</span>
+<span class="font-caption text-caption text-on-tertiary-fixed-variant font-bold">NCA Level 4</span>
+</div>
+<div class="flex items-center gap-xs bg-primary/10 px-md py-2 rounded-full">
+<span class="material-symbols-outlined text-primary text-[18px]">task_alt</span>
+<span class="font-caption text-caption text-primary font-bold">SAMA Framework</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Success Feedback Overlay (Micro-interaction) -->
+<div class="fixed bottom-12 right-12 bg-primary text-white px-xl py-md rounded-xl shadow-2xl translate-y-24 opacity-0 transition-all duration-500 z-[100] flex items-center gap-md pointer-events-none" id="feedback-toast">
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+<span class="font-label-md text-label-md">تم تحديث سجل الامتثال بنجاح</span>
+</div>
+<script>
+        // Simple interaction for demonstration
+        document.addEventListener('DOMContentLoaded', () => {
+            const toast = document.getElementById('feedback-toast');
+            
+            // Randomly show toast every 10 seconds for demo effect
+            setInterval(() => {
+                toast.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+                setTimeout(() => {
+                    toast.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+                }, 3000);
+            }, 10000);
+        });
+    </script>
+</body></html>

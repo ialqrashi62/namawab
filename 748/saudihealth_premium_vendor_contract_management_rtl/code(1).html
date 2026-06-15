@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#191c1d",
+                        "on-secondary-container": "#006e75",
+                        "on-tertiary-container": "#ac8c44",
+                        "secondary-fixed": "#7df4ff",
+                        "tertiary-container": "#362700",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#001d34",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f3f4f5",
+                        "secondary-container": "#7af1fc",
+                        "on-error-container": "#93000a",
+                        "on-error": "#ffffff",
+                        "tertiary": "#1d1300",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2e3132",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#406182",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#ffdf9d",
+                        "on-primary-container": "#7293b6",
+                        "surface-container-highest": "#e1e3e4",
+                        "surface-container": "#edeeef",
+                        "surface-bright": "#f8f9fa",
+                        "primary": "#001629",
+                        "surface-variant": "#e1e3e4",
+                        "inverse-primary": "#a8caef",
+                        "primary-container": "#002b49",
+                        "inverse-on-surface": "#f0f1f2",
+                        "surface-container-high": "#e7e8e9",
+                        "outline": "#73777e",
+                        "on-surface-variant": "#42474d",
+                        "surface": "#f8f9fa",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "on-primary-fixed-variant": "#274969",
+                        "on-secondary-fixed": "#002022",
+                        "surface-dim": "#d9dadb",
+                        "secondary": "#006970",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "on-background": "#191c1d",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "primary-fixed": "#cfe5ff",
+                        "background": "#f8f9fa",
+                        "outline-variant": "#c3c7ce",
+                        "primary-fixed-dim": "#a8caef",
+                        "on-tertiary-fixed": "#251a00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "64px",
+                        "margin-desktop": "48px",
+                        "lg": "40px",
+                        "md": "24px",
+                        "margin-mobile": "16px",
+                        "base": "8px",
+                        "sm": "12px",
+                        "gutter": "24px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["IBM Plex Sans"],
+                        "body-lg": ["IBM Plex Sans"],
+                        "display-lg": ["IBM Plex Sans"],
+                        "title-lg": ["IBM Plex Sans"],
+                        "headline-lg": ["IBM Plex Sans"],
+                        "headline-md": ["IBM Plex Sans"],
+                        "label-md": ["IBM Plex Sans"],
+                        "caption": ["IBM Plex Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .rtl-layout {
+            direction: rtl;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface rtl-layout">
+<!-- TopNavBar Implementation -->
+<nav class="flex flex-row-reverse justify-between items-center w-full px-gutter h-16 sticky top-0 z-50 bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm shadow-primary/5">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 cursor-pointer active:scale-95 duration-150">
+<div class="w-10 h-10 rounded-full bg-primary-fixed overflow-hidden">
+<img alt="Profile" data-alt="A professional portrait of a senior healthcare executive for a medical portal. The individual is dressed in high-end corporate attire, set against a blurred, modern hospital office background with clean glass and soft blue lighting. The overall style is premium, trustworthy, and corporate, reflecting a high-stakes leadership role in Saudi Arabia's healthcare sector." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPDDhVtWsqDvkDHJ4bTJEuIV1Kz_YjgIA74447uHHwngCKoeetau_7doWQL9keAOp9hQlomL8AiRVFsCChmIX7_V1As6_1hjGe4jP0vbtIm4H5oQn6WRsfCdmf1AskUJHLJqw5FDo2aQ95WkQpudOWYQZQGZOtFka9Kfk9ZHQ84RVtkfAOsnXNUohNYA5ojXJ-2f0mvMFFl1TBXkiWvXqcbfTRKAfEwUbR8gJh-kpG4gPOqIkjCfKzhf0y2s2IuCERejYmtys956Is"/>
+</div>
+<div class="hidden md:flex flex-col text-right">
+<span class="font-title-lg text-title-lg text-primary">د. أحمد السعد</span>
+<span class="font-label-md text-label-md text-on-surface-variant">المدير الطبي التنفيذي</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-full hover:bg-surface-container-high/50 transition-colors cursor-pointer active:scale-95 duration-150">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container-high/50 transition-colors cursor-pointer active:scale-95 duration-150">
+<span class="material-symbols-outlined text-primary">settings</span>
+</button>
+</div>
+</div>
+<div class="hidden md:flex items-center bg-surface-container rounded-full px-4 py-2 w-96 gap-2">
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+<input class="bg-transparent border-none focus:ring-0 w-full text-right font-label-md" placeholder="البحث عن موردين، عقود، أو تقارير..." type="text"/>
+</div>
+<div class="font-headline-md text-headline-md font-bold text-primary">SaudiHealth Premium</div>
+</nav>
+<div class="flex min-h-screen">
+<!-- SideNavBar Implementation -->
+<aside class="fixed top-0 right-0 h-screen w-64 bg-primary dark:bg-primary-container shadow-xl shadow-primary/20 z-40 hidden md:flex flex-col rtl">
+<div class="p-6 border-b border-outline-variant/10">
+<div class="font-headline-md text-headline-md text-on-primary font-bold">المستشفى الممتاز</div>
+<div class="text-label-md font-label-md text-on-primary/70">نظام التشغيل الطبي</div>
+</div>
+<nav class="flex-1 py-6 space-y-2">
+<div class="flex flex-row-reverse items-center gap-3 px-4 py-3 text-on-primary/70 hover:text-on-primary mx-2 cursor-pointer transform active:translate-x-1 duration-200">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">لوحة القيادة</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-3 px-4 py-3 text-on-primary/70 hover:text-on-primary mx-2 cursor-pointer transform active:translate-x-1 duration-200">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">تدفق المرضى</span>
+</div>
+<!-- Active Tab: Procurement / Domain -->
+<div class="flex flex-row-reverse items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container rounded-lg mx-2 cursor-pointer transform active:translate-x-1 duration-200 font-bold">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">domain</span>
+<span class="font-label-md text-label-md">إدارة الموردين</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-3 px-4 py-3 text-on-primary/70 hover:text-on-primary mx-2 cursor-pointer transform active:translate-x-1 duration-200">
+<span class="material-symbols-outlined">verified_user</span>
+<span class="font-label-md text-label-md">الامتثال</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-3 px-4 py-3 text-on-primary/70 hover:text-on-primary mx-2 cursor-pointer transform active:translate-x-1 duration-200">
+<span class="material-symbols-outlined">assessment</span>
+<span class="font-label-md text-label-md">التقارير</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-3 px-4 py-3 text-on-primary/70 hover:text-on-primary mx-2 cursor-pointer transform active:translate-x-1 duration-200">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">الإعدادات</span>
+</div>
+</nav>
+<div class="p-4 bg-primary-container/20 mt-auto">
+<button class="w-full bg-secondary-container text-on-secondary-container font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-95">
+<span class="material-symbols-outlined">add</span>
+<span class="font-label-md">إضافة مورد جديد</span>
+</button>
+</div>
+<div class="p-6 space-y-4 border-t border-outline-variant/10">
+<div class="flex flex-row-reverse items-center gap-3 text-on-primary/70 hover:text-on-primary cursor-pointer">
+<span class="material-symbols-outlined">help_outline</span>
+<span class="font-label-md text-label-md">الدعم</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-3 text-on-primary/70 hover:text-on-primary cursor-pointer">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">تسجيل الخروج</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 md:mr-64 p-gutter max-w-7xl mx-auto">
+<!-- Page Header -->
+<header class="mb-lg flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary mb-2">إدارة الموردين والعقود</h1>
+<p class="font-body-md text-on-surface-variant">متابعة أداء الموردين، العقود النشطة، ومستويات الامتثال للمعايير الصحية العالمية.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-6 py-2.5 rounded-xl border border-secondary text-secondary font-bold hover:bg-secondary/5 transition-colors">تصدير التقرير</button>
+<button class="px-6 py-2.5 rounded-xl bg-primary text-on-primary font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">تجديد العقد</button>
+</div>
+</header>
+<!-- Key Metrics Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-lg">
+<div class="glass-card p-6 rounded-xl flex flex-col gap-2">
+<span class="material-symbols-outlined text-secondary text-4xl mb-2">contract</span>
+<span class="text-on-surface-variant font-label-md">العقود النشطة</span>
+<span class="text-headline-md font-bold text-primary">142</span>
+<div class="text-xs text-on-secondary-container bg-secondary-container/30 px-2 py-1 rounded w-fit">+5 من الشهر الماضي</div>
+</div>
+<div class="glass-card p-6 rounded-xl flex flex-col gap-2">
+<span class="material-symbols-outlined text-error text-4xl mb-2">priority_high</span>
+<span class="text-on-surface-variant font-label-md">تنبيهات انتهاء الصلاحية</span>
+<span class="text-headline-md font-bold text-error">12</span>
+<div class="text-xs text-error font-medium">تحتاج إجراء فوري خلال 30 يوماً</div>
+</div>
+<div class="glass-card p-6 rounded-xl flex flex-col gap-2">
+<span class="material-symbols-outlined text-on-tertiary-container text-4xl mb-2">verified</span>
+<span class="text-on-surface-variant font-label-md">معدل الامتثال العام (SLA)</span>
+<span class="text-headline-md font-bold text-primary">94.8%</span>
+<div class="text-xs text-on-tertiary-container bg-tertiary-container/10 px-2 py-1 rounded w-fit">ضمن النطاق المقبول</div>
+</div>
+<div class="glass-card p-6 rounded-xl flex flex-col gap-2 border-r-4 border-r-secondary-container">
+<span class="material-symbols-outlined text-primary text-4xl mb-2">payments</span>
+<span class="text-on-surface-variant font-label-md">إجمالي المشتريات السنوية</span>
+<span class="text-headline-md font-bold text-primary">48.2M</span>
+<span class="text-xs text-on-surface-variant">ريال سعودي</span>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter mb-lg">
+<!-- Procurement Pipeline Visualization -->
+<div class="lg:col-span-2 glass-card rounded-xl p-8 overflow-hidden relative min-h-[400px]">
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-headline-md text-headline-md text-primary">مسار المشتريات (Pipeline)</h2>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">more_horiz</span>
+</div>
+<div class="relative h-64 flex items-end justify-between gap-4">
+<!-- Simulated Pipeline Flow -->
+<div class="flex-1 flex flex-col items-center gap-4">
+<div class="w-full bg-primary-container rounded-t-lg transition-all duration-1000" style="height: 40%"></div>
+<span class="text-label-md font-bold text-primary">تحديد الاحتياج</span>
+<span class="text-xs text-on-surface-variant">12 طلب</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-4">
+<div class="w-full bg-primary/60 rounded-t-lg transition-all duration-1000" style="height: 65%"></div>
+<span class="text-label-md font-bold text-primary">طرح المناقصات</span>
+<span class="text-xs text-on-surface-variant">8 مناقصات</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-4">
+<div class="w-full bg-secondary-container rounded-t-lg transition-all duration-1000" style="height: 30%"></div>
+<span class="text-label-md font-bold text-primary">التقييم الفني</span>
+<span class="text-xs text-on-surface-variant">5 موردين</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-4">
+<div class="w-full bg-secondary rounded-t-lg transition-all duration-1000" style="height: 15%"></div>
+<span class="text-label-md font-bold text-primary">التعاقد النهائي</span>
+<span class="text-xs text-on-surface-variant">3 عقود</span>
+</div>
+</div>
+<div class="mt-8 p-4 bg-surface-container-low rounded-xl border border-outline-variant/20 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary">trending_up</span>
+<p class="text-body-md">كفاءة العملية زادت بنسبة <span class="font-bold text-secondary">18%</span> مقارنة بالربع السابق.</p>
+</div>
+<button class="text-primary font-bold text-label-md hover:underline">عرض التفاصيل</button>
+</div>
+</div>
+<!-- Supplier Performance Distribution -->
+<div class="glass-card rounded-xl p-8">
+<h2 class="font-headline-md text-headline-md text-primary mb-6">توزيع أداء الموردين</h2>
+<div class="relative w-48 h-48 mx-auto mb-8">
+<!-- SVG Donut Chart Placeholder -->
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-container-highest stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="3"></path>
+<path class="text-secondary stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="75, 100" stroke-width="3"></path>
+<path class="text-on-tertiary-container stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="15, 100" stroke-dashoffset="-75" stroke-width="3"></path>
+<path class="text-error stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="10, 100" stroke-dashoffset="-90" stroke-width="3"></path>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-headline-md font-bold text-primary">82</span>
+<span class="text-xs text-on-surface-variant">مورد كلي</span>
+</div>
+</div>
+<ul class="space-y-4">
+<li class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-secondary"></div>
+<span class="text-label-md">أداء ممتاز</span>
+</div>
+<span class="font-bold">75%</span>
+</li>
+<li class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-on-tertiary-container"></div>
+<span class="text-label-md">أداء متوسط</span>
+</div>
+<span class="font-bold">15%</span>
+</li>
+<li class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-error"></div>
+<span class="text-label-md">يحتاج تحسين</span>
+</div>
+<span class="font-bold">10%</span>
+</li>
+</ul>
+</div>
+</div>
+<!-- Key Vendors Table -->
+<section class="glass-card rounded-xl overflow-hidden mb-xl">
+<div class="p-8 border-b border-outline-variant/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<h2 class="font-headline-md text-headline-md text-primary">الموردون الرئيسيون والأداء</h2>
+<div class="flex gap-2">
+<select class="rounded-lg border-outline-variant text-label-md focus:ring-secondary">
+<option>جميع القطاعات</option>
+<option>الأجهزة الطبية</option>
+<option>الأدوية</option>
+<option>الخدمات التقنية</option>
+</select>
+<button class="p-2 border border-outline-variant rounded-lg hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead>
+<tr class="bg-surface-container/50">
+<th class="px-8 py-4 font-bold text-label-md text-on-surface-variant">المورد</th>
+<th class="px-8 py-4 font-bold text-label-md text-on-surface-variant">نوع العقد</th>
+<th class="px-8 py-4 font-bold text-label-md text-on-surface-variant">تاريخ الانتهاء</th>
+<th class="px-8 py-4 font-bold text-label-md text-on-surface-variant">الامتثال (SLA)</th>
+<th class="px-8 py-4 font-bold text-label-md text-on-surface-variant">الحالة</th>
+<th class="px-8 py-4 font-bold text-label-md text-on-surface-variant">الإجراءات</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<!-- Vendor: Siemens -->
+<tr class="hover:bg-primary-fixed-dim/5 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-white border border-outline-variant/30 rounded flex items-center justify-center p-1">
+<img alt="Siemens" data-alt="A clean, high-resolution corporate logo of Siemens Healthineers in a minimalist, professional healthcare setting. The visual atmosphere is clinical and high-tech, with neutral gray and blue tones. The logo is centered and crisp, representing a world-class leader in medical imaging and diagnostics for a Saudi Arabian premium hospital portal." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAnh9dAAcKIjnRzJ5gi4TU89KyzJmTQqDYNrbKUTo-Z26TfhMCFUZZiYIw2jpbJ_bCrX9OzdmV6TJXlG6B_I93FODc-sZZ8paT-ntfsXtJOUUgYlE7q7-OTAlfQy7In_n3RmMxuS3li7qi5BgKdgLBg-6saheS_9TkUmHV9aX-GGrfW7KnYFmUuWA82LB3xOzYJ7ZS5zELIvgK6q0iX5WBN8710LTgyyaIDQuzD9T6AZj3-nMrCL-2C5xu_AyfFz925Ea8l5_5VI7S"/>
+</div>
+<div>
+<div class="font-bold text-primary">Siemens Healthineers</div>
+<div class="text-xs text-on-surface-variant">أجهزة الرنين المغناطيسي</div>
+</div>
+</div>
+</td>
+<td class="px-8 py-5 text-body-md">صيانة وتوريد</td>
+<td class="px-8 py-5 text-body-md">24 مايو 2025</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<div class="flex-1 h-2 bg-surface-container rounded-full overflow-hidden max-w-[100px]">
+<div class="h-full bg-secondary w-[98%]"></div>
+</div>
+<span class="text-xs font-bold text-secondary">98%</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold">نشط</span>
+</td>
+<td class="px-8 py-5">
+<button class="material-symbols-outlined text-primary-container group-hover:text-primary transition-colors">visibility</button>
+</td>
+</tr>
+<!-- Vendor: Philips -->
+<tr class="hover:bg-primary-fixed-dim/5 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-white border border-outline-variant/30 rounded flex items-center justify-center p-1">
+<img alt="Philips" data-alt="The corporate branding of Philips Healthcare displayed in a sleek, modern medical context. The image features a bright, clean background with high-key lighting characteristic of premium clinic interiors. The atmosphere is professional and focuses on advanced technological reliability, emphasizing a high-trust relationship with Saudi Arabian healthcare providers." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC04Qu1LHGHSQ3uX5JyxrSn2hY1fIF5LWJChkSwc6FuLWQKQk4Ae1c745RIVLGOGgjz98K4tFb1-Uql8XlcGK6wntlX0KtmxpPSAX_UgAGnD-Wz4-2BsoB4pa8-yJkgzgMuMXfnheDbgS09fN48bBMG-mLQYqM74xSVIKPlaJ5GFfn9a_mVM-lbCbiExi87kIwQUlAjPXEjJgLwk7_pxZ-jTMYNEUxhplsipC9IYSyG130ILIYo7vGGXGPtAb7DOjSb7Tk_PAywiWHY"/>
+</div>
+<div>
+<div class="font-bold text-primary">Philips Healthcare</div>
+<div class="text-xs text-on-surface-variant">أنظمة مراقبة المرضى</div>
+</div>
+</div>
+</td>
+<td class="px-8 py-5 text-body-md">ترخيص برمجيات</td>
+<td class="px-8 py-5 text-body-md">12 مارس 2024</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<div class="flex-1 h-2 bg-surface-container rounded-full overflow-hidden max-w-[100px]">
+<div class="h-full bg-on-tertiary-container w-[82%]"></div>
+</div>
+<span class="text-xs font-bold text-on-tertiary-container">82%</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 bg-error-container text-on-error-container rounded-full text-xs font-bold">قيد المراجعة</span>
+</td>
+<td class="px-8 py-5">
+<button class="material-symbols-outlined text-primary-container group-hover:text-primary transition-colors">visibility</button>
+</td>
+</tr>
+<!-- Vendor: GE Healthcare -->
+<tr class="hover:bg-primary-fixed-dim/5 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-white border border-outline-variant/30 rounded flex items-center justify-center p-1">
+<img alt="GE Healthcare" data-alt="A detailed, corporate-style logo of GE HealthCare shown within a professional, enterprise medical dashboard context. The lighting is crisp and cool-toned, suggesting an environment of precision and high-tech medical engineering. The overall visual style is corporate modern, aligning with the Saudi Arabian medical standard for global excellence." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAooTqNwn-KpLbqhiDMWNxumnfj_CFmjGlbTPOQlBXsWVsGNoDHITBDp9He4OdH_D6bVr9QzcV1HBB4jTp3HLMoeAd68tZ7Ee4GWVfPO5bUA5ZVlBZjTZi2aKsxdZeF-Tl_pOJUGlGslsTpX0RxDirAKrJW8X26Q5OsuatjgMzJKUztp0LcW-vQ1b676R3mWvjgQGraMjyf5ywIE4932QQOQ22Kssf-LGXiWEadqSygsAWmpVR6Ov3ovdg6YfLBb6JJCc4nT_Knm7kO"/>
+</div>
+<div>
+<div class="font-bold text-primary">GE HealthCare</div>
+<div class="text-xs text-on-surface-variant">أجهزة الأشعة المقطعية</div>
+</div>
+</div>
+</td>
+<td class="px-8 py-5 text-body-md">عقد توريد رئيسي</td>
+<td class="px-8 py-5 text-body-md">01 يناير 2026</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<div class="flex-1 h-2 bg-surface-container rounded-full overflow-hidden max-w-[100px]">
+<div class="h-full bg-secondary w-[95%]"></div>
+</div>
+<span class="text-xs font-bold text-secondary">95%</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold">نشط</span>
+</td>
+<td class="px-8 py-5">
+<button class="material-symbols-outlined text-primary-container group-hover:text-primary transition-colors">visibility</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-6 bg-surface-container-low flex justify-center">
+<button class="text-primary font-bold hover:text-secondary-fixed-dim transition-colors flex items-center gap-2">
+                        عرض جميع الموردين
+                        <span class="material-symbols-outlined transform rotate-180">arrow_forward</span>
+</button>
+</div>
+</section>
+</main>
+</div>
+<!-- Floating Action Button - Only for Primary Actions -->
+<div class="fixed bottom-8 left-8 z-50">
+<button class="w-14 h-14 rounded-full bg-primary text-on-primary shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+<script>
+        // Simple Interaction logic
+        document.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('click', () => {
+                // Potential navigation to details
+                console.log('Navigate to vendor details');
+            });
+        });
+    </script>
+</body></html>

@@ -1,0 +1,15 @@
+{
+  "social_psych": {
+    "dashboard": {
+      "title": "لوحة الخدمة الاجتماعية والنفسية",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

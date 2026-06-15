@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+
+<html class="light" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | الشؤون القانونية والطبية</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#ffdf9d",
+                        "surface": "#f8f9fa",
+                        "surface-tint": "#406182",
+                        "outline": "#73777e",
+                        "on-primary-fixed-variant": "#274969",
+                        "primary-container": "#002b49",
+                        "secondary-fixed": "#7df4ff",
+                        "on-tertiary-fixed": "#251a00",
+                        "on-primary-container": "#7293b6",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f8f9fa",
+                        "primary-fixed": "#cfe5ff",
+                        "on-primary-fixed": "#001d34",
+                        "tertiary-container": "#362700",
+                        "on-surface-variant": "#42474d",
+                        "on-surface": "#191c1d",
+                        "surface-container-high": "#e7e8e9",
+                        "outline-variant": "#c3c7ce",
+                        "on-secondary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "on-secondary-container": "#006e75",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "surface-variant": "#e1e3e4",
+                        "secondary": "#006970",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "surface-dim": "#d9dadb",
+                        "primary": "#001629",
+                        "surface-container-low": "#f3f4f5",
+                        "on-secondary-fixed": "#002022",
+                        "tertiary": "#1d1300",
+                        "background": "#f8f9fa",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#a8caef",
+                        "secondary-container": "#7af1fc",
+                        "surface-container": "#edeeef",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "primary-fixed-dim": "#a8caef",
+                        "on-tertiary-container": "#ac8c44",
+                        "on-background": "#191c1d",
+                        "inverse-surface": "#2e3132",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "24px",
+                        "xs": "4px",
+                        "margin-desktop": "48px",
+                        "lg": "40px",
+                        "gutter": "24px",
+                        "xl": "64px",
+                        "sm": "12px",
+                        "base": "8px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["IBM Plex Sans"],
+                        "caption": ["IBM Plex Sans"],
+                        "headline-md": ["IBM Plex Sans"],
+                        "body-md": ["IBM Plex Sans"],
+                        "label-md": ["IBM Plex Sans"],
+                        "title-lg": ["IBM Plex Sans"],
+                        "display-lg": ["IBM Plex Sans"],
+                        "headline-lg": ["IBM Plex Sans"],
+                        "body-lg": ["IBM Plex Sans"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'IBM Plex Sans', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sidebar-active {
+            @apply flex flex-row-reverse items-center gap-md bg-secondary-container text-on-secondary-container rounded-lg p-md transition-all duration-200 translate-x-1;
+        }
+        .sidebar-inactive {
+            @apply flex flex-row-reverse items-center gap-md text-on-surface-variant hover:text-primary hover:bg-surface-container-high p-md transition-colors;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen">
+<!-- TopNavBar -->
+<header class="bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm fixed top-0 left-0 right-0 h-20 z-50 flex flex-row-reverse justify-between items-center px-margin-desktop">
+<div class="flex items-center gap-md flex-row-reverse">
+<span class="font-headline-md text-headline-md font-bold text-primary">SaudiHealth Premium</span>
+<div class="h-8 w-px bg-outline-variant/30 mx-4"></div>
+<nav class="hidden md:flex gap-lg flex-row-reverse">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all" href="#">Directory</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all" href="#">Requests</a>
+<a class="font-label-md text-label-md text-secondary border-b-2 border-secondary pb-1" href="#">Governance</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all" href="#">Compliance</a>
+</nav>
+</div>
+<div class="flex items-center gap-md flex-row-reverse">
+<div class="relative group hidden md:block">
+<input class="bg-surface-container-low border-none rounded-lg py-2 px-10 text-body-md focus:ring-2 focus:ring-secondary w-64 text-right" placeholder="البحث في السجلات..." type="text"/>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant">search</span>
+</div>
+<div class="flex gap-sm">
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-primary" data-icon="settings">settings</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden border border-outline-variant">
+<img alt="User profile" data-alt="A professional portrait of a senior healthcare executive in a modern clinical setting. He is wearing a dark navy suit and white shirt, looking confident and focused. The background is a blurred high-end medical facility with clean white surfaces and subtle teal accents. The lighting is bright and airy, conveying a sense of transparency and leadership." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAN5T_ipAkMAJSth5TVgjCjp9Prz17zqsdBblUFxsxr-HsF7pS8Fxa4fj-2BCBmjfOkH4Vxt5eZ8npg14lPUtC_zXSfEP6oNktfH2KgjnjotThvDVJiBkPAOXohnms-zLl1fUqUaN4Yx-2NAsP9UlMhBTGXPY5XBQPesy3DVnOZm9tKobNj_uSHHJ-C-pPwflMr7bv3eZMOTIENQZAbkqUD0v2667SMRL2M60Un4VGvwNyG9-UZrymc7iByZNEnOGebGEVoytQvJm-S"/>
+</div>
+</div>
+</div>
+</header>
+<!-- SideNavBar (RTL) -->
+<aside class="fixed right-0 top-0 h-screen w-72 flex flex-col z-40 py-lg px-md bg-surface-container-lowest border-l border-outline-variant/30 pt-24">
+<div class="mb-lg px-md text-right">
+<h2 class="font-title-lg text-title-lg font-bold text-primary">IAM Console</h2>
+<p class="font-label-md text-label-md text-on-surface-variant">Enterprise Healthcare</p>
+</div>
+<nav class="flex-grow space-y-2">
+<a class="sidebar-inactive" href="#">
+<span class="material-symbols-outlined" data-icon="badge">badge</span>
+<span class="font-label-md text-label-md">Identity Center</span>
+</a>
+<a class="sidebar-inactive" href="#">
+<span class="material-symbols-outlined" data-icon="approval_delegation">approval_delegation</span>
+<span class="font-label-md text-label-md">Access Workflows</span>
+</a>
+<a class="sidebar-inactive" href="#">
+<span class="material-symbols-outlined" data-icon="security">security</span>
+<span class="font-label-md text-label-md">RBAC Configuration</span>
+</a>
+<a class="sidebar-active" href="#">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span class="font-label-md text-label-md">Security Governance</span>
+</a>
+<a class="sidebar-inactive" href="#">
+<span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
+<span class="font-label-md text-label-md">Audit Logs</span>
+</a>
+<a class="sidebar-inactive" href="#">
+<span class="material-symbols-outlined" data-icon="corporate_fare">corporate_fare</span>
+<span class="font-label-md text-label-md">Departmental Settings</span>
+</a>
+</nav>
+<div class="mt-auto space-y-2 border-t border-outline-variant/30 pt-md">
+<button class="w-full bg-primary text-white rounded-lg py-3 px-4 font-label-md flex items-center justify-center gap-2 hover:bg-primary-container transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+                New Access Request
+            </button>
+<a class="sidebar-inactive" href="#">
+<span class="material-symbols-outlined" data-icon="support_agent">support_agent</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="sidebar-inactive text-error" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="mr-72 pt-28 pb-xl px-margin-desktop">
+<!-- Dashboard Header -->
+<div class="flex justify-between items-end mb-xl">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary">الشؤون القانونية والطبية</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-2">نظام إدارة الامتثال والتقاضي المتقدم - النسخة الممتازة</p>
+</div>
+<div class="flex gap-md">
+<button class="bg-surface-container-high text-primary px-lg py-sm rounded-lg font-label-md flex items-center gap-2 hover:bg-surface-variant transition-all">
+<span class="material-symbols-outlined">download</span>
+                    تقرير الربع السنوي
+                </button>
+<button class="bg-secondary text-white px-lg py-sm rounded-lg font-label-md flex items-center gap-2 shadow-lg shadow-secondary/20 hover:scale-[1.02] transition-transform">
+<span class="material-symbols-outlined">add_alert</span>
+                    بلاغ واقعة جديد
+                </button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Key Performance Metrics (Glass Cards) -->
+<div class="col-span-12 md:col-span-4 glass-card p-md rounded-xl flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div class="w-12 h-12 rounded-lg bg-secondary-container/50 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-3xl">gavel</span>
+</div>
+<span class="text-secondary font-label-md">+12% هذا الشهر</span>
+</div>
+<div class="mt-md">
+<p class="font-label-md text-on-surface-variant">قضايا التقاضي النشطة</p>
+<h3 class="font-display-lg text-display-lg text-primary">24</h3>
+</div>
+<div class="mt-md pt-md border-t border-outline-variant/20">
+<div class="flex justify-between items-center text-caption">
+<span>قيد النظر: 18</span>
+<span>مغلقة حديثاً: 6</span>
+</div>
+</div>
+</div>
+<div class="col-span-12 md:col-span-4 glass-card p-md rounded-xl flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div class="w-12 h-12 rounded-lg bg-tertiary-fixed/30 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-3xl">verified_user</span>
+</div>
+<span class="text-tertiary font-label-md">98% امتثال</span>
+</div>
+<div class="mt-md">
+<p class="font-label-md text-on-surface-variant">تدقيق العقود (MOH)</p>
+<h3 class="font-display-lg text-display-lg text-primary">142</h3>
+</div>
+<div class="mt-md pt-md border-t border-outline-variant/20">
+<div class="flex justify-between items-center text-caption">
+<span>متوافق: 138</span>
+<span>قيد المراجعة: 4</span>
+</div>
+</div>
+</div>
+<div class="col-span-12 md:col-span-4 glass-card p-md rounded-xl flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div class="w-12 h-12 rounded-lg bg-error-container/30 flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<span class="text-error font-label-md">حرج</span>
+</div>
+<div class="mt-md">
+<p class="font-label-md text-on-surface-variant">الوقائع الجسيمة (Sentinel)</p>
+<h3 class="font-display-lg text-display-lg text-primary">03</h3>
+</div>
+<div class="mt-md pt-md border-t border-outline-variant/20">
+<div class="flex justify-between items-center text-caption">
+<span>RCA قيد التنفيذ: 2</span>
+<span>تم الحل: 1</span>
+</div>
+</div>
+</div>
+<!-- Main Registry Table (Clinical Litigation) -->
+<div class="col-span-12 md:col-span-8 glass-card rounded-xl overflow-hidden">
+<div class="p-md border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-low/30">
+<h4 class="font-headline-md text-headline-md text-primary">سجل التقاضي السريري المستمر</h4>
+<button class="text-secondary font-label-md flex items-center gap-1 hover:underline">عرض الكل <span class="material-symbols-outlined text-sm">arrow_back</span></button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right border-collapse">
+<thead>
+<tr class="border-b border-outline-variant/10 text-on-surface-variant font-label-md">
+<th class="p-md">رقم القضية</th>
+<th class="p-md">نوع الواقعة</th>
+<th class="p-md">القسم المعني</th>
+<th class="p-md">الحالة القانونية</th>
+<th class="p-md">الموعد القادم</th>
+</tr>
+</thead>
+<tbody class="text-body-md">
+<tr class="border-b border-outline-variant/5 hover:bg-surface-container-low/50 transition-colors">
+<td class="p-md font-bold">LIT-2023-089</td>
+<td class="p-md">خطأ جراحي محتمل</td>
+<td class="p-md">قسم العظام</td>
+<td class="p-md"><span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-caption">جلسة استماع</span></td>
+<td class="p-md">24 أكتوبر 2023</td>
+</tr>
+<tr class="border-b border-outline-variant/5 hover:bg-surface-container-low/50 transition-colors">
+<td class="p-md font-bold">LIT-2023-102</td>
+<td class="p-md">تفاعلات دوائية عكسية</td>
+<td class="p-md">العناية المركزة</td>
+<td class="p-md"><span class="px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-full text-caption">جمع الأدلة</span></td>
+<td class="p-md">2 نوفمبر 2023</td>
+</tr>
+<tr class="border-b border-outline-variant/5 hover:bg-surface-container-low/50 transition-colors">
+<td class="p-md font-bold">LIT-2023-045</td>
+<td class="p-md">نزاع تعاقدي</td>
+<td class="p-md">الإدارة الطبية</td>
+<td class="p-md"><span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed rounded-full text-caption">مفاوضات</span></td>
+<td class="p-md">15 نوفمبر 2023</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="p-md font-bold">LIT-2023-115</td>
+<td class="p-md">انتهاك خصوصية بيانات</td>
+<td class="p-md">تكنولوجيا المعلومات</td>
+<td class="p-md"><span class="px-3 py-1 bg-error-container text-on-error-container rounded-full text-caption">تصعيد قانوني</span></td>
+<td class="p-md">أمس</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Root Cause Analysis (RCA) Progress -->
+<div class="col-span-12 md:col-span-4 glass-card p-md rounded-xl">
+<h4 class="font-headline-md text-headline-md text-primary mb-md">حالة تحليل الأسباب الجذري (RCA)</h4>
+<div class="space-y-6">
+<div class="relative pt-1">
+<div class="flex mb-2 items-center justify-between">
+<div>
+<span class="text-caption font-bold inline-block text-secondary">الواقعة #SEN-442</span>
+</div>
+<div class="text-right">
+<span class="text-caption font-bold inline-block text-secondary">75%</span>
+</div>
+</div>
+<div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-secondary-container">
+<div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-secondary" style="width:75%"></div>
+</div>
+<p class="text-caption text-on-surface-variant">المرحلة: صياغة التوصيات النهائية</p>
+</div>
+<div class="relative pt-1">
+<div class="flex mb-2 items-center justify-between">
+<div>
+<span class="text-caption font-bold inline-block text-primary">الواقعة #SEN-448</span>
+</div>
+<div class="text-right">
+<span class="text-caption font-bold inline-block text-primary">30%</span>
+</div>
+</div>
+<div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-primary-fixed">
+<div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary" style="width:30%"></div>
+</div>
+<p class="text-caption text-on-surface-variant">المرحلة: مقابلات الطاقم الطبي</p>
+</div>
+<div class="mt-md p-md bg-secondary-container/20 rounded-lg border border-secondary/10">
+<div class="flex gap-sm">
+<span class="material-symbols-outlined text-secondary">info</span>
+<p class="font-body-md text-on-secondary-container">تم إغلاق 4 توصيات RCA بنجاح خلال الـ 30 يوماً الماضية، مما قلل مخاطر التكرار بنسبة 15%.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Document Vault & Compliance (Regulatory Certifications) -->
+<div class="col-span-12 md:col-span-12 grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<div class="glass-card p-md rounded-xl flex items-center gap-md">
+<div class="w-14 h-14 bg-surface-container-high rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-primary">verified</span>
+</div>
+<div>
+<h5 class="font-title-lg text-title-lg text-primary">شهادة CBAHI</h5>
+<p class="text-caption text-on-surface-variant">صالحة حتى: مارس 2025</p>
+</div>
+<button class="mr-auto p-2 hover:bg-surface-container-low rounded-full">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</div>
+<div class="glass-card p-md rounded-xl flex items-center gap-md">
+<div class="w-14 h-14 bg-surface-container-high rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-primary">policy</span>
+</div>
+<div>
+<h5 class="font-title-lg text-title-lg text-primary">تراخيص المنشأة</h5>
+<p class="text-caption text-error font-bold">تحديث مطلوب (30 يوم)</p>
+</div>
+<button class="mr-auto p-2 hover:bg-surface-container-low rounded-full">
+<span class="material-symbols-outlined">sync</span>
+</button>
+</div>
+<div class="glass-card p-md rounded-xl flex items-center gap-md">
+<div class="w-14 h-14 bg-surface-container-high rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-primary">folder_managed</span>
+</div>
+<div>
+<h5 class="font-title-lg text-title-lg text-primary">خزانة العقود (MOH)</h5>
+<p class="text-caption text-on-surface-variant">آخر إضافة: منذ ساعتين</p>
+</div>
+<button class="mr-auto p-2 hover:bg-surface-container-low rounded-full">
+<span class="material-symbols-outlined">open_in_new</span>
+</button>
+</div>
+</div>
+<!-- Visual Asset - Compliance Trend Shader -->
+<div class="col-span-12 h-64 rounded-xl overflow-hidden relative border border-outline-variant/30 shadow-inner">
+
+<div class="absolute inset-0 flex flex-col justify-center items-center text-center p-xl">
+<h2 class="font-display-lg text-display-lg text-primary z-10 relative">نظام الرقابة الذكية</h2>
+<p class="font-body-lg text-body-lg text-on-primary-container max-w-2xl z-10 relative">تحليل البيانات اللحظي لمخاطر الامتثال والتقاضي باستخدام تقنيات الذكاء الاصطناعي التنبؤية لضمان سلامة المرضى والمؤسسة.</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual FAB (Only for Main Dashboard Action) -->
+<button class="fixed bottom-margin-desktop left-margin-desktop w-16 h-16 rounded-full bg-primary text-white shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group">
+<span class="material-symbols-outlined text-3xl group-hover:rotate-90 transition-transform">add</span>
+<div class="absolute right-20 bg-primary text-white py-2 px-4 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none font-label-md">
+            إضافة ملف قانوني جديد
+        </div>
+</button>
+<script>
+        // Micro-interactions for interactive elements
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+                card.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0px)';
+            });
+        });
+
+        // Search Bar Focus Effect
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('scale-105');
+            searchInput.parentElement.style.transition = 'transform 0.3s ease';
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('scale-105');
+        });
+    </script>
+</body></html>

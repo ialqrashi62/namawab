@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | وحدة حوكمة البيانات الضخمة</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-container": "#006e75",
+                    "surface-container-high": "#e7e8e9",
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "on-tertiary-fixed": "#251a00",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-container": "#ac8c44",
+                    "primary-container": "#002b49",
+                    "surface-container": "#edeeef",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed": "#001d34",
+                    "surface-container-low": "#f3f4f5",
+                    "on-tertiary-fixed-variant": "#5b4300",
+                    "surface": "#f8f9fa",
+                    "on-primary-fixed-variant": "#274969",
+                    "inverse-on-surface": "#f0f1f2",
+                    "tertiary-fixed": "#ffdf9d",
+                    "background": "#f8f9fa",
+                    "surface-container-highest": "#e1e3e4",
+                    "primary-fixed-dim": "#a8caef",
+                    "on-background": "#191c1d",
+                    "on-secondary-fixed": "#002022",
+                    "on-surface": "#191c1d",
+                    "tertiary-container": "#362700",
+                    "error-container": "#ffdad6",
+                    "inverse-primary": "#a8caef",
+                    "surface-bright": "#f8f9fa",
+                    "secondary-fixed": "#7df4ff",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "secondary-container": "#7af1fc",
+                    "primary": "#001629",
+                    "surface-variant": "#e1e3e4",
+                    "tertiary": "#1d1300",
+                    "outline-variant": "#c3c7ce",
+                    "on-primary-container": "#7293b6",
+                    "primary-fixed": "#cfe5ff",
+                    "error": "#ba1a1a",
+                    "outline": "#73777e",
+                    "inverse-surface": "#2e3132",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#42474d",
+                    "tertiary-fixed-dim": "#e6c274",
+                    "surface-dim": "#d9dadb",
+                    "secondary-fixed-dim": "#5dd8e2",
+                    "surface-tint": "#406182",
+                    "secondary": "#006970"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "48px",
+                    "md": "24px",
+                    "xl": "64px",
+                    "gutter": "24px",
+                    "base": "8px",
+                    "lg": "40px",
+                    "xs": "4px",
+                    "sm": "12px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "display-lg": ["IBM Plex Sans"],
+                    "body-md": ["IBM Plex Sans"],
+                    "label-md": ["IBM Plex Sans"],
+                    "caption": ["IBM Plex Sans"],
+                    "body-lg": ["IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans"],
+                    "display-lg-mobile": ["IBM Plex Sans"],
+                    "title-lg": ["IBM Plex Sans"],
+                    "headline-md": ["IBM Plex Sans"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .pulse-teal {
+            animation: pulse-teal 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-teal {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .7; transform: scale(1.1); }
+        }
+        .data-stream-line {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: dash 5s linear infinite;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: 0; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Sidebar Navigation (Mandatory Shared Component) -->
+<aside class="fixed right-0 top-0 h-full flex flex-col z-50 text-right rtl bg-primary dark:bg-primary-container docked h-full right-0 w-64 border-l border-outline-variant/10 shadow-xl">
+<div class="p-6">
+<h1 class="font-headline-md text-headline-md text-tertiary-fixed font-bold leading-tight">السعودية الصحية</h1>
+<p class="text-primary-fixed-dim font-label-md text-label-md">بريميوم</p>
+</div>
+<nav class="flex-1 px-4 space-y-2 mt-4">
+<!-- Active State: Analytics/Reports for Dashboard -->
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container rounded-lg font-bold transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-md text-label-md">التقارير</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:text-white hover:bg-white/10 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">لوحة القيادة</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:text-white hover:bg-white/10 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md text-label-md">المرضى</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:text-white hover:bg-white/10 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="font-label-md text-label-md">المواعيد</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:text-white hover:bg-white/10 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">الإعدادات</span>
+</a>
+</nav>
+<div class="p-4 mt-auto space-y-2 border-t border-white/10">
+<button class="w-full py-3 bg-tertiary-fixed text-on-tertiary-fixed rounded-lg font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+<span class="font-label-md text-label-md">إضافة مريض جديد</span>
+</button>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:text-white" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-md text-label-md">الدعم</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:text-white" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">تسجيل الخروج</span>
+</a>
+</div>
+</aside>
+<!-- Top App Bar (Mandatory Shared Component) -->
+<header class="flex justify-between items-center w-full px-margin-desktop h-16 sticky top-0 z-40 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm pr-72">
+<div class="flex items-center gap-4">
+<div class="relative">
+<input class="bg-surface-container-low border-none rounded-full px-10 py-2 w-80 font-body-md text-body-md focus:ring-2 focus:ring-secondary/50" placeholder="البحث في تدفقات البيانات..." type="text"/>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-outline" data-icon="settings">settings</span>
+</div>
+<div class="flex items-center gap-3 border-r pr-6 border-outline-variant/30">
+<div class="text-left">
+<p class="font-label-md text-label-md text-primary font-bold">د. إبراهيم الفهد</p>
+<p class="text-[10px] text-outline uppercase tracking-wider">مدير البيانات</p>
+</div>
+<img alt="User profile" class="w-10 h-10 rounded-full object-cover border-2 border-secondary" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDD_iGlBxDNP5G5EG4iOzR-ywX2s2Ugezrl9xp37FOFcTWjsMjRCb14s5enW9QvYIOtw4mm_QZD_bPdRJhypg_gfhUbUvVNQSpjQxmXbENB2_2K2cWLJIlUvnqNZ-gvRzjl7XSUi4e06bynMwx_QuFEpuKiahaiHTIOSXnkI-eohluIDzCOk6vSuqkEFs29bXA2Z_YCvVAyiReMHjB5mW4JeEs_ewoqaVHjpdIGuN2S-eIBNqd-ILnTnmTebSwQK8Q9ATt4wp3Z7q2"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="mr-64 p-margin-desktop">
+<!-- Header Section -->
+<section class="mb-lg flex justify-between items-end">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary mb-2">وحدة حوكمة البيانات الضخمة</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">مراقبة حية لتدفقات البيانات الضخمة من الأجهزة القابلة للارتداء وأنظمة القياس السريرية الموزعة.</p>
+</div>
+<div class="flex gap-4">
+<div class="flex items-center gap-2 bg-secondary/10 text-secondary px-4 py-2 rounded-lg border border-secondary/20">
+<span class="w-2 h-2 rounded-full bg-secondary pulse-teal"></span>
+<span class="font-label-md text-label-md">النظام متصل: 4.2 TB/ساعة</span>
+</div>
+</div>
+</section>
+<!-- Top Metrics Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-lg">
+<div class="glass-card p-6 rounded-xl border-r-4 border-r-secondary">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-secondary text-3xl" data-icon="input">input</span>
+<span class="text-secondary font-bold font-label-md text-label-md">+12%</span>
+</div>
+<h3 class="font-label-md text-label-md text-outline mb-1">معدل الاستيعاب</h3>
+<p class="font-headline-md text-headline-md text-primary">850 GB/s</p>
+<div class="mt-4 h-1 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-3/4"></div>
+</div>
+</div>
+<div class="glass-card p-6 rounded-xl border-r-4 border-r-on-secondary-container">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-on-secondary-container text-3xl" data-icon="high_quality">high_quality</span>
+<span class="text-on-secondary-container font-bold font-label-md text-label-md">99.2%</span>
+</div>
+<h3 class="font-label-md text-label-md text-outline mb-1">نقاوة البيانات</h3>
+<p class="font-headline-md text-headline-md text-primary">ممتاز</p>
+<div class="mt-4 h-1 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-on-secondary-container w-[99%]"></div>
+</div>
+</div>
+<div class="glass-card p-6 rounded-xl border-r-4 border-r-tertiary-fixed-dim">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-3xl" data-icon="memory">memory</span>
+<span class="text-tertiary-fixed-dim font-bold font-label-md text-label-md">240ms</span>
+</div>
+<h3 class="font-label-md text-label-md text-outline mb-1">زمن معالجة AI</h3>
+<p class="font-headline-md text-headline-md text-primary">فوري</p>
+<div class="mt-4 h-1 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim w-1/2"></div>
+</div>
+</div>
+<div class="glass-card p-6 rounded-xl border-r-4 border-r-primary">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="cloud_done">cloud_done</span>
+<span class="text-primary font-bold font-label-md text-label-md">1.2 PB</span>
+</div>
+<h3 class="font-label-md text-label-md text-outline mb-1">سعة بحيرة البيانات</h3>
+<p class="font-headline-md text-headline-md text-primary">78% ممتلئ</p>
+<div class="mt-4 h-1 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[78%]"></div>
+</div>
+</div>
+</section>
+<!-- Main Visualization Section -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-gutter mb-lg">
+<!-- Data Pipeline Flow -->
+<div class="lg:col-span-2 glass-card rounded-xl p-8 overflow-hidden relative min-h-[450px]">
+<div class="flex justify-between items-center mb-8 relative z-10">
+<h3 class="font-title-lg text-title-lg text-primary">مخطط تدفق البيانات الحي (Pipeline Flow)</h3>
+<div class="flex gap-2">
+<button class="px-3 py-1 bg-surface-container text-primary rounded text-xs font-bold">آخر ساعة</button>
+<button class="px-3 py-1 text-outline rounded text-xs font-bold">تاريخي</button>
+</div>
+</div>
+<div class="relative h-64 flex items-center justify-between px-12">
+<!-- Nodes -->
+<div class="flex flex-col items-center gap-4 group cursor-pointer">
+<div class="w-20 h-20 rounded-full bg-primary-container flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-white text-3xl" data-icon="sensors">sensors</span>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">المصادر (IoT)</span>
+</div>
+<div class="absolute right-32 top-1/2 -translate-y-1/2 w-48 h-1 overflow-hidden opacity-30">
+<svg class="w-full h-full"><line class="text-secondary data-stream-line" stroke="currentColor" stroke-width="4" x1="0" x2="100%" y1="0" y2="0"></line></svg>
+</div>
+<div class="flex flex-col items-center gap-4 group cursor-pointer">
+<div class="w-20 h-20 rounded-full bg-secondary-container flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-on-secondary-container text-3xl" data-icon="biotech">biotech</span>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">المعالجة السريرية</span>
+</div>
+<div class="absolute left-32 top-1/2 -translate-y-1/2 w-48 h-1 overflow-hidden opacity-30">
+<svg class="w-full h-full"><line class="text-on-secondary-container data-stream-line" stroke="currentColor" stroke-width="4" x1="0" x2="100%" y1="0" y2="0"></line></svg>
+</div>
+<div class="flex flex-col items-center gap-4 group cursor-pointer">
+<div class="w-20 h-20 rounded-full bg-tertiary-fixed flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-tertiary-container text-3xl" data-icon="database">database</span>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">بحيرة البيانات</span>
+</div>
+</div>
+<!-- Activity Log Overlay -->
+<div class="mt-8 bg-surface-container-low p-4 rounded-lg border border-outline-variant/20">
+<div class="flex items-center gap-3 mb-2">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<p class="font-label-md text-label-md text-primary font-bold">تنبيه حوكمة: فحص توافق GDPR لتدفق المصدر #9201</p>
+</div>
+<p class="text-xs text-outline pr-5">منذ دقيقتين - تم التشفير تلقائياً وتوجيه البيانات إلى منطقة التخزين المعزولة.</p>
+</div>
+</div>
+<!-- AI Health & Model Training -->
+<div class="glass-card rounded-xl p-6">
+<h3 class="font-title-lg text-title-lg text-primary mb-6">صحة نماذج الذكاء الاصطناعي</h3>
+<div class="space-y-6">
+<div class="p-4 bg-surface rounded-lg border border-outline-variant/30">
+<div class="flex justify-between items-center mb-3">
+<span class="font-label-md text-label-md font-bold text-primary">كشف أمراض القلب المبكر</span>
+<span class="text-xs px-2 py-1 bg-secondary/10 text-secondary rounded">نشط</span>
+</div>
+<div class="flex items-end gap-2 h-12">
+<div class="flex-1 bg-secondary/20 h-4 rounded-t-sm"></div>
+<div class="flex-1 bg-secondary/30 h-6 rounded-t-sm"></div>
+<div class="flex-1 bg-secondary/40 h-8 rounded-t-sm"></div>
+<div class="flex-1 bg-secondary h-12 rounded-t-sm"></div>
+<div class="flex-1 bg-secondary/50 h-9 rounded-t-sm"></div>
+<div class="flex-1 bg-secondary/60 h-10 rounded-t-sm"></div>
+</div>
+<div class="flex justify-between mt-2 text-[10px] text-outline">
+<span>الدقة: 98.4%</span>
+<span>التحيز: 0.02</span>
+</div>
+</div>
+<div class="p-4 bg-surface rounded-lg border border-outline-variant/30 opacity-60">
+<div class="flex justify-between items-center mb-3">
+<span class="font-label-md text-label-md font-bold text-primary">تحليل الأشعة السينية v4</span>
+<span class="text-xs px-2 py-1 bg-tertiary-fixed-dim/20 text-tertiary-fixed-dim rounded">تحت التدريب</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-tertiary-fixed-dim h-full w-2/3"></div>
+</div>
+<p class="text-[10px] text-outline mt-2">الوقت المتبقي: 4 ساعات و 12 دقيقة</p>
+</div>
+<div class="p-4 border-2 border-dashed border-outline-variant/30 rounded-lg flex flex-col items-center justify-center py-8">
+<span class="material-symbols-outlined text-outline mb-2" data-icon="add_circle">add_circle</span>
+<p class="font-label-md text-label-md text-outline">نشر نموذج جديد</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Grid: Storage & Sources -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
+<!-- Data Sources Monitoring -->
+<div class="glass-card rounded-xl p-6">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-title-lg text-title-lg text-primary">مراقبة مصادر البيانات</h3>
+<button class="text-secondary font-bold text-sm">عرض الكل</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead>
+<tr class="border-b border-outline-variant/30 text-outline font-label-md text-label-md">
+<th class="pb-4 font-normal">المصدر</th>
+<th class="pb-4 font-normal">الحالة</th>
+<th class="pb-4 font-normal text-left">معدل الخطأ</th>
+<th class="pb-4 font-normal text-left">الحجم</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr>
+<td class="py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-sm" data-icon="watch">watch</span>
+</div>
+<span class="font-body-md text-body-md text-primary">ساعات آبل (صحة)</span>
+</div>
+</td>
+<td class="py-4"><span class="text-secondary">● مستقر</span></td>
+<td class="py-4 text-left font-mono text-sm text-outline">0.001%</td>
+<td class="py-4 text-left font-bold text-primary">124 GB</td>
+</tr>
+<tr>
+<td class="py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-secondary-container text-sm" data-icon="monitor_heart">monitor_heart</span>
+</div>
+<span class="font-body-md text-body-md text-primary">أجهزة مراقبة القلب IoT</span>
+</div>
+</td>
+<td class="py-4"><span class="text-secondary">● مستقر</span></td>
+<td class="py-4 text-left font-mono text-sm text-outline">0.012%</td>
+<td class="py-4 text-left font-bold text-primary">45 GB</td>
+</tr>
+<tr>
+<td class="py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="upload_file">upload_file</span>
+</div>
+<span class="font-body-md text-body-md text-primary">السجلات الطبية الموحدة</span>
+</div>
+</td>
+<td class="py-4"><span class="text-error">● تأخير (200ms)</span></td>
+<td class="py-4 text-left font-mono text-sm text-error">1.54%</td>
+<td class="py-4 text-left font-bold text-primary">890 GB</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Visual Capacity & Hot/Cold Storage -->
+<div class="glass-card rounded-xl p-6 relative overflow-hidden">
+<h3 class="font-title-lg text-title-lg text-primary mb-6">تحليل سعة التخزين الطبقية</h3>
+<div class="grid grid-cols-2 gap-8 h-64">
+<div class="flex flex-col justify-center items-center text-center">
+<div class="relative w-40 h-40">
+<!-- Circular Progress SVG Placeholder style -->
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-surface-container" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-width="12"></circle>
+<circle class="text-secondary" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-dasharray="440" stroke-dashoffset="110" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center rotate-90">
+<span class="font-headline-md text-headline-md text-primary">75%</span>
+<span class="text-[10px] text-outline">Hot Storage</span>
+</div>
+</div>
+<p class="mt-4 font-label-md text-label-md text-on-surface-variant">البيانات النشطة والسريرية</p>
+</div>
+<div class="flex flex-col justify-center gap-4">
+<div class="p-4 bg-primary/5 rounded-lg border-l-4 border-l-primary">
+<h4 class="font-label-md text-label-md text-primary font-bold">تخزين الأرشفة (Glacier)</h4>
+<p class="text-xl font-bold text-primary mt-1">4.8 PB</p>
+<p class="text-xs text-outline">تحسن التكلفة: +24% شهرياً</p>
+</div>
+<div class="p-4 bg-tertiary-fixed/10 rounded-lg border-l-4 border-l-tertiary-fixed-dim">
+<h4 class="font-label-md text-label-md text-primary font-bold">تخزين الأبحاث (Shared)</h4>
+<p class="text-xl font-bold text-primary mt-1">1.2 PB</p>
+<p class="text-xs text-outline">مشاركة آمنة مع مدينة الملك عبدالعزيز</p>
+</div>
+</div>
+</div>
+<!-- Background Decoration -->
+<div class="absolute -bottom-10 -left-10 w-40 h-40 bg-secondary/10 rounded-full blur-3xl"></div>
+</div>
+</section>
+<!-- Dynamic Floating Action Button - Only for Ingestion Control -->
+<button class="fixed bottom-8 left-8 w-16 h-16 bg-primary text-white rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-3xl" data-icon="bolt">bolt</span>
+</button>
+</main>
+<script>
+        // Micro-interaction for data nodes
+        document.querySelectorAll('.group').forEach(node => {
+            node.addEventListener('mouseover', () => {
+                const streamLines = document.querySelectorAll('.data-stream-line');
+                streamLines.forEach(line => {
+                    line.style.animationDuration = '1.5s';
+                });
+            });
+            node.addEventListener('mouseout', () => {
+                const streamLines = document.querySelectorAll('.data-stream-line');
+                streamLines.forEach(line => {
+                    line.style.animationDuration = '5s';
+                });
+            });
+        });
+    </script>
+</body></html>

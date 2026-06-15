@@ -21,3 +21,15 @@ config.ini
 
 # Node modules
 node_modules/
+
+# Generated Desktop Artifacts
+*.exe
+*.msi
+*.dmg
+*.AppImage
+release/
+releases/
+dist-electron/
+win-unpacked/
+out/make/
+src-tauri/target/

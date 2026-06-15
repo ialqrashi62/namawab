@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-fixed-variant": "#274969",
+                      "primary": "#001629",
+                      "tertiary": "#1d1300",
+                      "on-surface-variant": "#42474d",
+                      "secondary-container": "#7af1fc",
+                      "on-background": "#191c1d",
+                      "secondary": "#006970",
+                      "on-error": "#ffffff",
+                      "surface-container-highest": "#e1e3e4",
+                      "surface-tint": "#406182",
+                      "surface": "#f8f9fa",
+                      "outline-variant": "#c3c7ce",
+                      "on-error-container": "#93000a",
+                      "inverse-surface": "#2e3132",
+                      "primary-fixed-dim": "#a8caef",
+                      "on-tertiary-fixed-variant": "#5b4300",
+                      "background": "#f8f9fa",
+                      "surface-variant": "#e1e3e4",
+                      "on-tertiary-container": "#ac8c44",
+                      "secondary-fixed-dim": "#5dd8e2",
+                      "on-tertiary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary-container": "#006e75",
+                      "secondary-fixed": "#7df4ff",
+                      "on-primary-fixed": "#001d34",
+                      "surface-bright": "#f8f9fa",
+                      "on-secondary": "#ffffff",
+                      "surface-dim": "#d9dadb",
+                      "on-primary-container": "#7293b6",
+                      "tertiary-fixed-dim": "#e6c274",
+                      "outline": "#73777e",
+                      "error": "#ba1a1a",
+                      "on-primary": "#ffffff",
+                      "tertiary-fixed": "#ffdf9d",
+                      "error-container": "#ffdad6",
+                      "surface-container-high": "#e7e8e9",
+                      "surface-container": "#edeeef",
+                      "primary-fixed": "#cfe5ff",
+                      "on-surface": "#191c1d",
+                      "on-secondary-fixed": "#002022",
+                      "inverse-primary": "#a8caef",
+                      "surface-container-low": "#f3f4f5",
+                      "primary-container": "#002b49",
+                      "on-secondary-fixed-variant": "#004f54",
+                      "tertiary-container": "#362700",
+                      "on-tertiary-fixed": "#251a00",
+                      "inverse-on-surface": "#f0f1f2"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xs": "4px",
+                      "md": "24px",
+                      "sm": "12px",
+                      "margin-mobile": "16px",
+                      "gutter": "24px",
+                      "lg": "40px",
+                      "xl": "64px",
+                      "margin-desktop": "48px",
+                      "base": "8px"
+              },
+              "fontFamily": {
+                      "caption": ["IBM Plex Sans Arabic"],
+                      "headline-md": ["IBM Plex Sans Arabic"],
+                      "display-lg": ["IBM Plex Sans Arabic"],
+                      "body-md": ["IBM Plex Sans Arabic"],
+                      "title-lg": ["IBM Plex Sans Arabic"],
+                      "body-lg": ["IBM Plex Sans Arabic"],
+                      "label-md": ["IBM Plex Sans Arabic"],
+                      "headline-lg": ["IBM Plex Sans Arabic"],
+                      "display-lg-mobile": ["IBM Plex Sans Arabic"]
+              },
+              "fontSize": {
+                      "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                      "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-surface">
+<!-- Top App Bar -->
+<header class="fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-margin-desktop h-20 rtl bg-white/80 dark:bg-surface-container/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm shadow-primary/5">
+<div class="flex items-center gap-sm">
+<span class="font-headline-md text-headline-md font-bold text-primary">إكسلنس هيلث جلوبال</span>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative hidden lg:block">
+<input class="bg-surface-container-low border-none rounded-full px-lg py-sm text-label-md focus:ring-2 focus:ring-secondary w-64 rtl" placeholder="بحث في التقارير..." type="text"/>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-base text-primary hover:text-secondary transition-colors"><span class="material-symbols-outlined">notifications</span></button>
+<button class="p-base text-primary hover:text-secondary transition-colors"><span class="material-symbols-outlined">shield_with_heart</span></button>
+<button class="p-base text-primary hover:text-secondary transition-colors"><span class="material-symbols-outlined">language</span></button>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed">
+<img alt="صورة الملف الشخصي للمشرف" data-alt="A professional medical administrator portrait with a clean, high-trust healthcare aesthetic. The lighting is soft and high-key, reflecting a modern corporate environment. The person is wearing a professional medical coat with a subtle lanyard, set against a blurred background of a premium clinic interior. The overall mood is clinical, reliable, and sophisticated." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9Cc1V-KrMr8H4hkZhaS3q8bfRnhBHgDRoOwmb-N99s2bscP4MtKgwK0DpWwSnHZcYo-4GKd3VSJRB8OD23gMz04rQT587AVzoY2RfwlXmfBHgJNGQR97vybLZTp7x8WdeTey_WQObUVbFCEy_26jCa5g2WuSsAYvKDhkFQdYL7sYgqyVl9fddLJHangv3GehMnH9NvZCCh4sp_IUU16BSw3rF7gTmxdBJAd37w8SxOWjXKz5pDz1gGQQffHpRTDsXccPu2vUaMPz9"/>
+</div>
+</div>
+</header>
+<!-- Sidebar Navigation -->
+<aside class="fixed top-0 right-0 bottom-0 z-40 flex flex-col p-md rtl bg-primary w-72 shadow-xl shadow-primary/10">
+<div class="mt-20 mb-xl">
+<div class="flex items-center gap-sm px-base">
+<div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-headline-md">fact_check</span>
+</div>
+<div>
+<h2 class="font-title-lg text-title-lg text-white">مركز الحوكمة</h2>
+<p class="font-label-md text-label-md text-on-primary/70">الأمن السيبراني والبيانات</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-xs">
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:bg-on-primary-fixed-variant/20 rounded-lg transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">dashboard</span>
+<span class="font-label-md text-label-md">لوحة القيادة</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:bg-on-primary-fixed-variant/20 rounded-lg transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">security</span>
+<span class="font-label-md text-label-md">استخبارات التهديدات</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm bg-secondary text-white rounded-lg transition-all shadow-md group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200" style="font-variation-settings: 'FILL' 1;">fact_check</span>
+<span class="font-label-md text-label-md">تدقيق الامتثال</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:bg-on-primary-fixed-variant/20 rounded-lg transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">admin_panel_settings</span>
+<span class="font-label-md text-label-md">التحكم في الوصول</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:bg-on-primary-fixed-variant/20 rounded-lg transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">settings</span>
+<span class="font-label-md text-label-md">الإعدادات</span>
+</a>
+<div class="mt-lg border-t border-white/10 pt-md">
+<p class="px-md font-caption text-caption text-on-primary/50 mb-sm">وثائق المرجعية</p>
+<a class="flex items-center gap-sm px-md py-xs text-on-primary/70 hover:text-white font-label-md text-label-md" href="#">وثائق الحوكمة</a>
+<a class="flex items-center gap-sm px-md py-xs text-on-primary/70 hover:text-white font-label-md text-label-md" href="#">تحديثات الأنظمة</a>
+</div>
+</nav>
+<div class="mt-auto flex flex-col gap-xs pt-md border-t border-white/10">
+<button class="bg-secondary-container text-on-secondary-container font-label-md py-sm rounded-lg flex items-center justify-center gap-sm mb-md">
+<span class="material-symbols-outlined">description</span>
+                تقرير الأمان الأسبوعي
+            </button>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-white" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="font-label-md text-label-md">الدعم الفني</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-error" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">تسجيل الخروج</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="mr-72 pt-28 pb-xl px-margin-desktop">
+<div class="max-w-[1440px] mx-auto">
+<!-- Page Header -->
+<div class="flex justify-between items-end mb-lg">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary mb-xs">مركز تقارير الامتثال</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">مراقبة المعايير الوطنية والدولية للبيانات الصحية في الوقت الفعلي</p>
+</div>
+<div class="flex gap-sm">
+<button class="bg-white border border-outline-variant text-primary px-md py-sm rounded-lg flex items-center gap-xs font-label-md hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">download</span>
+                        تصدير التقرير الكامل
+                    </button>
+<button class="bg-primary text-white px-md py-sm rounded-lg flex items-center gap-xs font-label-md hover:bg-primary-container transition-colors shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">add</span>
+                        بدء تدقيق جديد
+                    </button>
+</div>
+</div>
+<!-- Dashboard Summary Bento Grid -->
+<div class="grid grid-cols-12 gap-md mb-lg">
+<!-- Compliance Rings -->
+<div class="col-span-12 lg:col-span-8 grid grid-cols-3 gap-md">
+<div class="glass-card p-md rounded-xl flex flex-col items-center justify-center text-center">
+<div class="relative w-28 h-28 mb-sm">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-surface-container-highest" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-secondary progress-ring__circle" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="25.12" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<span class="absolute inset-0 flex items-center justify-center font-headline-md text-headline-md text-primary">90%</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-primary">NCA ECC</h3>
+<p class="font-caption text-caption text-on-surface-variant">الضوابط الأساسية للأمن</p>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col items-center justify-center text-center">
+<div class="relative w-28 h-28 mb-sm">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-surface-container-highest" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-secondary progress-ring__circle" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="62.8" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<span class="absolute inset-0 flex items-center justify-center font-headline-md text-headline-md text-primary">75%</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-primary">MOH Standard</h3>
+<p class="font-caption text-caption text-on-surface-variant">معايير وزارة الصحة</p>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col items-center justify-center text-center">
+<div class="relative w-28 h-28 mb-sm">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-surface-container-highest" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-secondary progress-ring__circle" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="12.56" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<span class="absolute inset-0 flex items-center justify-center font-headline-md text-headline-md text-primary">95%</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-primary">GDPR/HIPAA</h3>
+<p class="font-caption text-caption text-on-surface-variant">خصوصية البيانات العالمية</p>
+</div>
+</div>
+<!-- Compliance Maturity Trend (Simplified Line Chart) -->
+<div class="col-span-12 lg:col-span-4 glass-card p-md rounded-xl relative overflow-hidden">
+<div class="flex justify-between items-start mb-md">
+<h3 class="font-title-lg text-title-lg text-primary">اتجاهات نضج الامتثال</h3>
+<span class="bg-secondary-container text-on-secondary-container font-label-md text-xs px-xs py-1 rounded">+12% سنوي</span>
+</div>
+<!-- Chart Placeholder using CSS -->
+<div class="h-32 w-full flex items-end gap-xs">
+<div class="flex-1 bg-primary/10 rounded-t-sm h-[40%] transition-all hover:bg-primary/20"></div>
+<div class="flex-1 bg-primary/10 rounded-t-sm h-[55%] transition-all hover:bg-primary/20"></div>
+<div class="flex-1 bg-primary/10 rounded-t-sm h-[45%] transition-all hover:bg-primary/20"></div>
+<div class="flex-1 bg-primary/10 rounded-t-sm h-[65%] transition-all hover:bg-primary/20"></div>
+<div class="flex-1 bg-primary/10 rounded-t-sm h-[80%] transition-all hover:bg-primary/20"></div>
+<div class="flex-1 bg-secondary rounded-t-sm h-[90%] transition-all hover:bg-secondary/80"></div>
+</div>
+<div class="flex justify-between mt-sm text-caption text-on-surface-variant px-xs">
+<span>يناير</span><span>مارس</span><span>مايو</span><span>يوليو</span><span>سبتمبر</span><span>نوفمبر</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-md">
+<!-- NCA Controls Breakdown -->
+<div class="col-span-12 lg:col-span-8 flex flex-col gap-md">
+<div class="glass-card rounded-xl p-md">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-title-lg text-title-lg text-primary">ضوابط الهيئة الوطنية للأمن السيبراني (ECC-1-2018)</h3>
+<button class="text-secondary font-label-md flex items-center gap-xs">عرض التفاصيل <span class="material-symbols-outlined text-sm">open_in_new</span></button>
+</div>
+<div class="space-y-md">
+<div>
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md text-primary">حوكمة الأمن السيبراني</span>
+<span class="font-label-md text-label-md text-secondary">100%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-full"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md text-primary">تعزيز الأمن السيبراني (الأنظمة والأصول)</span>
+<span class="font-label-md text-label-md text-secondary">82%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[82%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md text-primary">أمن الأطراف الخارجية والحوسبة السحابية</span>
+<span class="font-label-md text-label-md text-on-tertiary-container">65%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim w-[65%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md text-primary">أمن سيبراني لأنظمة التحكم الصناعي</span>
+<span class="font-label-md text-label-md text-secondary">90%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[90%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Audits List -->
+<div class="glass-card rounded-xl overflow-hidden">
+<div class="p-md border-b border-outline-variant/30">
+<h3 class="font-title-lg text-title-lg text-primary">عمليات التدقيق الأخيرة</h3>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead>
+<tr class="bg-surface-container-low font-label-md text-on-surface-variant">
+<th class="px-md py-sm">معرف التدقيق</th>
+<th class="px-md py-sm">النظام / النطاق</th>
+<th class="px-md py-sm">التاريخ</th>
+<th class="px-md py-sm">الحالة</th>
+<th class="px-md py-sm">الإجراء</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-md py-md font-label-md text-primary">#AUD-2023-089</td>
+<td class="px-md py-md font-body-md">بوابة المرضى الخارجية</td>
+<td class="px-md py-md font-body-md text-on-surface-variant">24 أكتوبر 2023</td>
+<td class="px-md py-md">
+<span class="inline-flex items-center gap-xs px-sm py-1 rounded-full bg-secondary/10 text-secondary font-label-md text-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> ناجح
+                                            </span>
+</td>
+<td class="px-md py-md"><button class="text-secondary hover:underline font-label-md">تحميل</button></td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-md py-md font-label-md text-primary">#AUD-2023-094</td>
+<td class="px-md py-md font-body-md">نظام إدارة المختبرات</td>
+<td class="px-md py-md font-body-md text-on-surface-variant">12 نوفمبر 2023</td>
+<td class="px-md py-md">
+<span class="inline-flex items-center gap-xs px-sm py-1 rounded-full bg-error/10 text-error font-label-md text-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> فشل
+                                            </span>
+</td>
+<td class="px-md py-md"><button class="text-secondary hover:underline font-label-md">مراجعة</button></td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-md py-md font-label-md text-primary">#AUD-2023-102</td>
+<td class="px-md py-md font-body-md">تشفير قاعدة بيانات HIPAA</td>
+<td class="px-md py-md font-body-md text-on-surface-variant">قيد التقدم</td>
+<td class="px-md py-md">
+<span class="inline-flex items-center gap-xs px-sm py-1 rounded-full bg-primary/10 text-primary font-label-md text-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> قيد المراجعة
+                                            </span>
+</td>
+<td class="px-md py-md"><button class="text-outline cursor-not-allowed font-label-md">انتظار</button></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Non-Compliance Risks Sidebar Section -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-md">
+<div class="glass-card rounded-xl p-md bg-error/5 border-error/20">
+<div class="flex items-center gap-sm mb-md text-error">
+<span class="material-symbols-outlined">warning</span>
+<h3 class="font-title-lg text-title-lg font-bold">مخاطر عدم الامتثال</h3>
+</div>
+<div class="space-y-sm">
+<div class="bg-white p-sm rounded-lg border-r-4 border-error shadow-sm">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-label-md text-xs bg-error/10 text-error px-2 py-0.5 rounded">حرج</span>
+<span class="text-caption text-on-surface-variant">منذ يومين</span>
+</div>
+<p class="font-label-md text-primary mb-sm">تشفير البيانات الساكنة في فرع الخبر غير مفعل</p>
+<a class="text-secondary font-label-md text-sm flex items-center gap-xs hover:gap-sm transition-all" href="#">اتخاذ إجراء تصحيحي <span class="material-symbols-outlined text-sm">arrow_back</span></a>
+</div>
+<div class="bg-white p-sm rounded-lg border-r-4 border-tertiary shadow-sm">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-label-md text-xs bg-tertiary-fixed-dim/30 text-tertiary px-2 py-0.5 rounded">عالي</span>
+<span class="text-caption text-on-surface-variant">منذ 5 أيام</span>
+</div>
+<p class="font-label-md text-primary mb-sm">انتهاء صلاحية شهادات الوصول للموردين الخارجيين</p>
+<a class="text-secondary font-label-md text-sm flex items-center gap-xs hover:gap-sm transition-all" href="#">تجديد الشهادات <span class="material-symbols-outlined text-sm">arrow_back</span></a>
+</div>
+<div class="bg-white p-sm rounded-lg border-r-4 border-primary shadow-sm">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-label-md text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">متوسط</span>
+<span class="text-caption text-on-surface-variant">منذ أسبوع</span>
+</div>
+<p class="font-label-md text-primary mb-sm">تأخر في تحديث سجلات تدريب الموظفين على الخصوصية</p>
+<a class="text-secondary font-label-md text-sm flex items-center gap-xs hover:gap-sm transition-all" href="#">جدولة التدريب <span class="material-symbols-outlined text-sm">arrow_back</span></a>
+</div>
+</div>
+</div>
+<!-- Regulatory Updates Feed -->
+<div class="glass-card rounded-xl p-md">
+<h3 class="font-title-lg text-title-lg text-primary mb-md">تحديثات الأنظمة</h3>
+<div class="space-y-md">
+<div class="flex gap-sm">
+<div class="w-10 h-10 shrink-0 bg-secondary/10 rounded-full flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">gavel</span>
+</div>
+<div>
+<h4 class="font-label-md text-primary">تحديث مسودة سياسة البيانات الوطنية</h4>
+<p class="font-caption text-on-surface-variant mt-1">أصدرت سدايا تحديثاً جديداً لمتطلبات مشاركة البيانات الصحية بين المنشآت.</p>
+<span class="text-[10px] text-outline mt-1 block">قبل 3 ساعات</span>
+</div>
+</div>
+<div class="flex gap-sm">
+<div class="w-10 h-10 shrink-0 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div>
+<h4 class="font-label-md text-primary">متطلبات ECC-2 الجديدة لعام 2024</h4>
+<p class="font-caption text-on-surface-variant mt-1">بدء تطبيق المرحلة الثانية من ضوابط الأمن السيبراني للقطاع الصحي.</p>
+<span class="text-[10px] text-outline mt-1 block">أمس</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Simple micro-interaction for progress rings
+        window.addEventListener('load', () => {
+            const rings = document.querySelectorAll('.progress-ring__circle');
+            rings.forEach(ring => {
+                const radius = ring.r.baseVal.value;
+                const circumference = radius * 2 * Math.PI;
+                // Offset is handled via stroke-dashoffset in HTML but can be animated here if needed
+            });
+        });
+    </script>
+</body></html>

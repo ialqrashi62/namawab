@@ -1,0 +1,15 @@
+{
+  "radiology_imaging": {
+    "dashboard": {
+      "title": "لوحة الأشعة والتصوير الطبي",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

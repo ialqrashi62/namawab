@@ -1,0 +1,127 @@
+# NamaMedical — Clinical Decision Support rules library
+# Each rule: trigger → check → action (alert/block/suggest).
+# Severity: info | warn | high | block
+
+rules:
+
+  # ─── Drug safety ──────────────────────────────────────────────
+  - id: cds-001
+    name: "Renal dose adjust — vancomycin"
+    trigger: { event: order.med, drug_class: vancomycin }
+    when: { patient.eGFR: { lt: 50 } }
+    action: { severity: high, message: "Renal dose adjust required (eGFR < 50). Consider TDM-guided dosing." }
+
+  - id: cds-002
+    name: "Renal cap — metformin"
+    trigger: { event: order.med, drug: metformin }
+    when: { patient.eGFR: { lt: 30 } }
+    action: { severity: block, message: "Avoid metformin if eGFR < 30. Consider alternative." }
+
+  - id: cds-003
+    name: "Drug-drug — warfarin + amiodarone"
+    trigger: { event: order.med }
+    when: { patient.active_meds: { includes: warfarin }, order.drug: amiodarone }
+    action: { severity: high, message: "INR elevation risk; reduce warfarin dose by ~33% and recheck INR in 3 days." }
+
+  - id: cds-004
+    name: "QT-prolonging combo"
+    trigger: { event: order.med, drug_class: qt_prolonging }
+    when: { patient.active_meds: { count_class: qt_prolonging, gte: 1 } }
+    action: { severity: warn, message: "QTc risk; recommend ECG before initiation and 48h after." }
+
+  - id: cds-005
+    name: "Allergy block"
+    trigger: { event: order.med }
+    when: { patient.allergies: { matches_drug_or_class: true } }
+    action: { severity: block, message: "Patient allergy on file. Override requires reason." }
+
+  # ─── Pediatric safety ─────────────────────────────────────────
+  - id: cds-101
+    name: "Pediatric dose missing per-kg"
+    trigger: { event: order.med, patient.age_years: { lt: 12 } }
+    when: { order.dose_per_kg: { is_null: true } }
+    action: { severity: block, message: "Pediatric order requires mg/kg basis. Use weight-based calculator." }
+
+  - id: cds-102
+    name: "Pediatric paracetamol max"
+    trigger: { event: order.med, drug: paracetamol, patient.age_years: { lt: 12 } }
+    when: { order.computed_mg_per_kg: { gt: 15 } }
+    action: { severity: block, message: "Max 15 mg/kg/dose; max 60 mg/kg/day. Recalculate." }
+
+  # ─── Anticoagulation in AF ─────────────────────────────────────
+  - id: cds-201
+    name: "AF without anticoag"
+    trigger: { event: visit.summary, condition.icd10: I48 }
+    when: { score.cha2ds2_vasc: { gte: 2 }, patient.active_meds: { excludes_class: anticoagulant } }
+    action: { severity: warn, message: "AF + CHA2DS2-VASc ≥ 2; consider DOAC unless contraindicated." }
+
+  - id: cds-202
+    name: "DOAC + dual antiplatelet without strategy"
+    trigger: { event: order.med }
+    when:
+      patient.active_meds: { includes_class: anticoagulant }
+      order.drug_class: antiplatelet
+    action: { severity: warn, message: "Triple therapy bleeding risk; specify duration and PPI cover." }
+
+  # ─── Sepsis & deterioration ───────────────────────────────────
+  - id: cds-301
+    name: "qSOFA ≥ 2 alert"
+    trigger: { event: vitals.posted }
+    when: { score.qsofa: { gte: 2 } }
+    action: { severity: high, message: "Possible sepsis. Apply 1-hour bundle." }
+
+  - id: cds-302
+    name: "NEWS2 ≥ 7 alert"
+    trigger: { event: vitals.posted }
+    when: { score.news2: { gte: 7 } }
+    action: { severity: high, message: "High deterioration risk. Escalate to MET / RRT." }
+
+  # ─── Cardiology ───────────────────────────────────────────────
+  - id: cds-401
+    name: "Anthracycline cumulative limit"
+    trigger: { event: order.med, drug_class: anthracycline }
+    when: { patient.cumulative_anthracycline_mg_m2: { plus_order: { gt: 450 } } }
+    action: { severity: block, message: "Cumulative dose > 450 mg/m². Cardiology + LVEF re-check required." }
+
+  - id: cds-402
+    name: "STEMI fast-track"
+    trigger: { event: ecg.ai_label }
+    when: { ecg.ai_label: STEMI, ecg.ai_confidence: { gte: 0.90 } }
+    action: { severity: high, message: "STEMI suspected. Confirm clinically and activate Code STEMI." }
+
+  # ─── Imaging ──────────────────────────────────────────────────
+  - id: cds-501
+    name: "Contrast in AKI risk"
+    trigger: { event: order.imaging, contrast: iv }
+    when: { patient.eGFR: { lt: 30 } }
+    action: { severity: high, message: "AKI risk; consider non-contrast alternative or pre/post hydration protocol." }
+
+  - id: cds-502
+    name: "MRI safety"
+    trigger: { event: order.imaging, modality: mri }
+    when: { patient.implant: { matches_unsafe: true } }
+    action: { severity: block, message: "Patient has MR-unsafe implant. Use CT alternative or specialist review." }
+
+  # ─── Pregnancy ────────────────────────────────────────────────
+  - id: cds-601
+    name: "Teratogenic medication in pregnancy"
+    trigger: { event: order.med }
+    when:
+      patient.sex: female
+      patient.pregnancy_status: confirmed
+      order.drug: { in_category: teratogenic }
+    action: { severity: block, message: "Teratogenic drug in pregnancy. Choose pregnancy-safe alternative." }
+
+  # ─── Stewardship ──────────────────────────────────────────────
+  - id: cds-701
+    name: "Restricted antibiotic without ID approval"
+    trigger: { event: order.med, drug: { in: [meropenem, colistin, daptomycin, linezolid] } }
+    when: { order.id_approval: { is_null: true } }
+    action: { severity: block, message: "Restricted antimicrobial; ID consult required before dispense." }
+
+  # ─── Falls ────────────────────────────────────────────────────
+  - id: cds-801
+    name: "Morse falls high risk → bundle"
+    trigger: { event: nursing.assessment.posted }
+    when: { score.morse: { gte: 51 } }
+    action: { severity: warn, message: "Falls high-risk; apply bed alarm + assist toileting + reorientation bundle." }

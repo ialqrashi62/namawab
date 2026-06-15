@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | Emergency Command Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary": "#006970",
+                    "surface-tint": "#406182",
+                    "secondary-fixed-dim": "#5dd8e2",
+                    "tertiary-fixed-dim": "#e6c274",
+                    "surface-dim": "#d9dadb",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#42474d",
+                    "inverse-surface": "#2e3132",
+                    "outline": "#73777e",
+                    "error": "#ba1a1a",
+                    "primary-fixed": "#cfe5ff",
+                    "tertiary": "#1d1300",
+                    "outline-variant": "#c3c7ce",
+                    "on-primary-container": "#7293b6",
+                    "surface-variant": "#e1e3e4",
+                    "secondary-container": "#7af1fc",
+                    "primary": "#001629",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "secondary-fixed": "#7df4ff",
+                    "surface-bright": "#f8f9fa",
+                    "inverse-primary": "#a8caef",
+                    "tertiary-container": "#362700",
+                    "error-container": "#ffdad6",
+                    "on-surface": "#191c1d",
+                    "on-secondary-fixed": "#002022",
+                    "surface-container-highest": "#e1e3e4",
+                    "primary-fixed-dim": "#a8caef",
+                    "on-background": "#191c1d",
+                    "tertiary-fixed": "#ffdf9d",
+                    "background": "#f8f9fa",
+                    "surface": "#f8f9fa",
+                    "on-primary-fixed-variant": "#274969",
+                    "inverse-on-surface": "#f0f1f2",
+                    "on-tertiary-fixed-variant": "#5b4300",
+                    "surface-container-low": "#f3f4f5",
+                    "on-primary-fixed": "#001d34",
+                    "surface-container": "#edeeef",
+                    "on-error-container": "#93000a",
+                    "primary-container": "#002b49",
+                    "on-tertiary-container": "#ac8c44",
+                    "on-tertiary-fixed": "#251a00",
+                    "on-primary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "surface-container-high": "#e7e8e9",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-container": "#006e75"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "lg": "40px",
+                    "base": "8px",
+                    "xl": "64px",
+                    "gutter": "24px",
+                    "margin-desktop": "48px",
+                    "md": "24px",
+                    "xs": "4px",
+                    "sm": "12px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "body-lg": ["IBM Plex Sans"],
+                    "label-md": ["IBM Plex Sans"],
+                    "caption": ["IBM Plex Sans"],
+                    "display-lg": ["IBM Plex Sans"],
+                    "body-md": ["IBM Plex Sans"],
+                    "title-lg": ["IBM Plex Sans"],
+                    "headline-md": ["IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans"],
+                    "display-lg-mobile": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #001629; /* Primary Navy for Dark Mode */
+            color: #ffffff;
+            font-family: 'IBM Plex Sans', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(0, 43, 73, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.1);
+        }
+
+        .status-pulse {
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(186, 26, 26, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(186, 26, 26, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(186, 26, 26, 0); }
+        }
+
+        .active-glow {
+            box-shadow: 0 0 15px rgba(125, 244, 255, 0.3);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body class="bg-primary text-on-primary selection:bg-secondary selection:text-white">
+<!-- Top Navigation Rail -->
+<nav class="fixed top-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-xl dark:bg-primary/80 border-b border-outline/10 shadow-sm">
+<div class="flex justify-between items-center w-full px-margin-desktop max-w-[1440px] mx-auto h-20">
+<div class="flex items-center gap-md">
+<span class="text-title-lg font-title-lg font-bold text-primary dark:text-primary-fixed">SaudiHealth Premium</span>
+<div class="hidden md:flex gap-md mr-xl">
+<a class="text-on-surface-variant dark:text-surface-variant font-body-md text-body-md hover:text-secondary transition-colors duration-200" href="#">Solutions</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-body-md text-body-md hover:text-secondary transition-colors duration-200" href="#">Compliance</a>
+<a class="text-secondary font-bold border-b-2 border-secondary pb-1 font-body-md text-body-md" href="#">Ecosystem</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-body-md text-body-md hover:text-secondary transition-colors duration-200" href="#">About Us</a>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant dark:text-surface-variant px-sm py-xs font-body-md text-body-md">العربية</button>
+<button class="bg-secondary text-white px-md py-sm rounded-lg font-label-md text-label-md active:opacity-80 transition-all">Portal Login</button>
+</div>
+</div>
+</nav>
+<!-- Main Command Center Canvas -->
+<main class="pt-32 pb-xl px-margin-desktop max-w-[1440px] mx-auto">
+<!-- Header & Crisis Status -->
+<header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-lg gap-md">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary-fixed flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary-fixed text-4xl">emergency_home</span>
+                    مركز قيادة الطوارئ الموحد
+                </h1>
+<p class="font-body-md text-body-md text-surface-variant/70 mt-xs">رصد مباشر ومستمر لجميع الموارد الطبية في المنطقة الوسطى</p>
+</div>
+<div class="flex gap-sm">
+<div class="glass-panel px-md py-sm rounded-xl border-l-4 border-error flex items-center gap-md active-glow">
+<div class="w-3 h-3 bg-error rounded-full status-pulse"></div>
+<div>
+<div class="font-caption text-caption text-error font-bold">حالة الطوارئ الحالية</div>
+<div class="font-label-md text-label-md text-white">تفعيل خطة الإصابات الجماعية - المستوى ٢</div>
+</div>
+</div>
+<div class="glass-panel px-md py-sm rounded-xl border-l-4 border-secondary-fixed flex items-center gap-md">
+<span class="material-symbols-outlined text-secondary-fixed">timer</span>
+<div>
+<div class="font-caption text-caption text-secondary-fixed">وقت الاستجابة المستهدف</div>
+<div class="font-label-md text-label-md text-white">08:45 دقيقة</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Tracking Map - 8 Columns -->
+<section class="col-span-12 lg:col-span-8 h-[600px] glass-panel rounded-xl overflow-hidden relative group">
+<div class="absolute inset-0 z-0 bg-[#001d34]">
+<!-- Map Placeholder with data-location -->
+<div class="w-full h-full opacity-60 grayscale brightness-75 contrast-125" data-location="Riyadh, Saudi Arabia" style="">
+<img alt="Riyadh Map" class="w-full h-full object-cover" data-alt="A high-tech digital satellite map of Riyadh city at night, featuring glowing neon blue arteries representing major roads and highways. Pulsating red and teal dots indicate emergency vehicle positions and hospital locations across the urban landscape. The visual style is professional, data-centric, and minimalist, utilizing the deep navy and teal color palette of a sophisticated command center interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAq4FA8GNY-8HZ30DEbPtbIWXXRUJbfuUdI01kLCRK9fVaFttq4m3hx9pF2PSxFcFZR9rhAkLbgdWRNvM5r-v_W1_00R42Q0iCe0fUss6AIg_hETezjN54bOUevDS1KCrw-s6_8yTw_il1v7zP5MDILr6iua6kBIPu5eyXw1gDYrrJwtxX01UrPBpDC4wpeGMSnEhHJf4bcdXG3UTSG4kc_-p5ZihTZvPp5jjg7fyshoG7YLSHAai4rvsPkhy_kyfmZ0iloWMdxx4Tu"/>
+</div>
+<!-- Overlay Shader -->
+
+</div>
+<!-- Map UI Overlays -->
+<div class="absolute top-md right-md flex flex-col gap-sm">
+<div class="glass-panel p-sm rounded-lg flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary-fixed">ambulance</span>
+<span class="font-label-md text-label-md">١٤٤ سيارة إسعاف نشطة</span>
+</div>
+<div class="glass-panel p-sm rounded-lg flex items-center gap-sm">
+<span class="material-symbols-outlined text-error">emergency</span>
+<span class="font-label-md text-label-md text-error">١٢ حادث نشط</span>
+</div>
+</div>
+<!-- Bottom Floating Dashboard -->
+<div class="absolute bottom-md left-md right-md flex gap-gutter overflow-x-auto no-scrollbar pb-xs">
+<div class="min-w-[240px] glass-panel p-md rounded-xl border-t-2 border-secondary-fixed">
+<h3 class="font-label-md text-label-md text-secondary-fixed mb-xs">تتبع سيارة الإسعاف #772</h3>
+<div class="flex justify-between items-center">
+<span class="text-caption font-caption opacity-70">الموقع الحالي: العليا</span>
+<span class="text-caption font-caption text-secondary-fixed">٣ دقائق للوصول</span>
+</div>
+<div class="w-full bg-primary/50 h-1 mt-sm rounded-full overflow-hidden">
+<div class="bg-secondary-fixed h-full w-[75%]"></div>
+</div>
+</div>
+<div class="min-w-[240px] glass-panel p-md rounded-xl border-t-2 border-tertiary-fixed">
+<h3 class="font-label-md text-label-md text-tertiary-fixed mb-xs">وحدة الاستجابة السريعة #09</h3>
+<div class="flex justify-between items-center">
+<span class="text-caption font-caption opacity-70">الحالة: في الموقع</span>
+<span class="text-caption font-caption text-tertiary-fixed">تأمين الموقع</span>
+</div>
+<div class="w-full bg-primary/50 h-1 mt-sm rounded-full overflow-hidden">
+<div class="bg-tertiary-fixed h-full w-full"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- ER Capacity - 4 Columns -->
+<section class="col-span-12 lg:col-span-4 flex flex-col gap-gutter">
+<div class="glass-panel p-md rounded-xl flex-1">
+<h2 class="font-title-lg text-title-lg text-white mb-md flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary-fixed">bed</span>
+                        جاهزية أسرة الطوارئ
+                    </h2>
+<div class="space-y-md">
+<!-- Hospital Row -->
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between font-label-md text-label-md">
+<span>مستشفى الملك فيصل التخصصي</span>
+<span class="text-error font-bold">٣/٥٠ متاح</span>
+</div>
+<div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+<div class="bg-error h-full w-[94%]"></div>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between font-label-md text-label-md">
+<span>مدينة الملك فهد الطبية</span>
+<span class="text-secondary-fixed font-bold">٢٢/٨٠ متاح</span>
+</div>
+<div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+<div class="bg-secondary-fixed h-full w-[72%]"></div>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between font-label-md text-label-md">
+<span>مستشفى الحرس الوطني</span>
+<span class="text-tertiary-fixed font-bold">١٤/٦٥ متاح</span>
+</div>
+<div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+<div class="bg-tertiary-fixed h-full w-[78%]"></div>
+</div>
+</div>
+</div>
+<button class="w-full mt-lg py-sm border border-secondary-fixed/30 rounded-lg font-label-md text-label-md text-secondary-fixed hover:bg-secondary-fixed/10 transition-all">
+                        عرض جميع المرافق
+                    </button>
+</div>
+<!-- Team Status List -->
+<div class="glass-panel p-md rounded-xl">
+<h2 class="font-title-lg text-title-lg text-white mb-md flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary-fixed">groups</span>
+                        فرق الاستجابة السريعة
+                    </h2>
+<div class="space-y-sm">
+<div class="flex items-center justify-between p-sm rounded-lg bg-white/5 border border-white/10">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed/20 flex items-center justify-center text-secondary-fixed">
+<span class="material-symbols-outlined">medical_services</span>
+</div>
+<div>
+<div class="font-label-md text-label-md">فريق ألفا - جراحة</div>
+<div class="font-caption text-caption opacity-60">القائد: د. خالد السديري</div>
+</div>
+</div>
+<div class="px-sm py-1 rounded-full bg-secondary-fixed/20 text-secondary-fixed text-[10px] font-bold">نشط</div>
+</div>
+<div class="flex items-center justify-between p-sm rounded-lg bg-white/5 border border-white/10">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed/20 flex items-center justify-center text-tertiary-fixed">
+<span class="material-symbols-outlined">psychology</span>
+</div>
+<div>
+<div class="font-label-md text-label-md">فريق بيتا - دعم نفسي</div>
+<div class="font-caption text-caption opacity-60">القائد: د. مريم فهد</div>
+</div>
+</div>
+<div class="px-sm py-1 rounded-full bg-tertiary-fixed/20 text-tertiary-fixed text-[10px] font-bold">جاهز</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Incident Live Feed - Full Width -->
+<section class="col-span-12 glass-panel p-md rounded-xl">
+<div class="flex justify-between items-center mb-md">
+<h2 class="font-title-lg text-title-lg text-white flex items-center gap-sm">
+<span class="material-symbols-outlined text-error">campaign</span>
+                        تغذية البلاغات المباشرة
+                    </h2>
+<div class="flex gap-sm">
+<span class="px-md py-1 rounded-full bg-error/10 text-error border border-error/20 font-caption text-caption">عالي الخطورة: ٣</span>
+<span class="px-md py-1 rounded-full bg-secondary-fixed/10 text-secondary-fixed border border-secondary-fixed/20 font-caption text-caption">متوسط: ٨</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md">
+<!-- Incident Card 1 -->
+<div class="p-md rounded-xl bg-primary/40 border border-error/30 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-1 h-full bg-error"></div>
+<div class="flex justify-between items-start mb-sm">
+<span class="font-caption text-caption text-error font-bold">14:22:05</span>
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<h4 class="font-label-md text-label-md text-white mb-xs">حادث مروري جماعي</h4>
+<p class="font-caption text-caption text-surface-variant/70 mb-md">طريق الملك فهد، مخرج ١٢. تقدير ٥ إصابات حرجة.</p>
+<div class="flex gap-xs">
+<span class="text-[10px] bg-white/10 px-2 py-0.5 rounded">وحدات ٢</span>
+<span class="text-[10px] bg-white/10 px-2 py-0.5 rounded">إسعاف جوي</span>
+</div>
+</div>
+<!-- Incident Card 2 -->
+<div class="p-md rounded-xl bg-primary/40 border border-white/10 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-1 h-full bg-secondary-fixed"></div>
+<div class="flex justify-between items-start mb-sm">
+<span class="font-caption text-caption text-secondary-fixed font-bold">14:18:12</span>
+<span class="material-symbols-outlined text-secondary-fixed">info</span>
+</div>
+<h4 class="font-label-md text-label-md text-white mb-xs">توقف قلبي مفاجئ</h4>
+<p class="font-caption text-caption text-surface-variant/70 mb-md">الرياض بارك مول. فريق الاستجابة في الموقع.</p>
+<div class="flex gap-xs">
+<span class="text-[10px] bg-white/10 px-2 py-0.5 rounded">وحدة ٧</span>
+</div>
+</div>
+<!-- Incident Card 3 -->
+<div class="p-md rounded-xl bg-primary/40 border border-white/10 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-1 h-full bg-tertiary-fixed"></div>
+<div class="flex justify-between items-start mb-sm">
+<span class="font-caption text-caption text-tertiary-fixed font-bold">14:15:30</span>
+<span class="material-symbols-outlined text-tertiary-fixed">pending</span>
+</div>
+<h4 class="font-label-md text-label-md text-white mb-xs">طلب نقل عناية مركزة</h4>
+<p class="font-caption text-caption text-surface-variant/70 mb-md">من مستشفى الحمادي إلى التخصصي.</p>
+<div class="flex gap-xs">
+<span class="text-[10px] bg-white/10 px-2 py-0.5 rounded">مجدول</span>
+</div>
+</div>
+<!-- Incident Card 4 -->
+<div class="p-md rounded-xl bg-primary/40 border border-error/30 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-1 h-full bg-error"></div>
+<div class="flex justify-between items-start mb-sm">
+<span class="font-caption text-caption text-error font-bold">14:10:45</span>
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+<h4 class="font-label-md text-label-md text-white mb-xs">حريق منشأة تجارية</h4>
+<p class="font-caption text-caption text-surface-variant/70 mb-md">حي الملز. بلاغ عن حالات اختناق متعددة.</p>
+<div class="flex gap-xs">
+<span class="text-[10px] bg-white/10 px-2 py-0.5 rounded">وحدات ٤</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer Component -->
+<footer class="bg-primary dark:bg-surface-container-lowest w-full px-margin-desktop py-xl flex flex-col md:flex-row justify-between items-center gap-md border-t border-white/5">
+<div class="text-headline-md font-headline-md text-on-primary">SaudiHealth Premium</div>
+<div class="flex flex-wrap justify-center gap-md">
+<a class="text-surface-variant/70 font-caption text-caption hover:text-secondary-fixed transition-colors" href="#">Privacy Policy</a>
+<a class="text-surface-variant/70 font-caption text-caption hover:text-secondary-fixed transition-colors" href="#">Compliance Standards</a>
+<a class="text-surface-variant/70 font-caption text-caption hover:text-secondary-fixed transition-colors" href="#">Contact Support</a>
+<a class="text-surface-variant/70 font-caption text-caption hover:text-secondary-fixed transition-colors" href="#">Riyadh HQ</a>
+</div>
+<div class="text-surface-variant/70 font-caption text-caption">© 2024 SaudiHealth Premium. All Rights Reserved. Regulated by MOH &amp; CHI.</div>
+</footer>
+<!-- Micro-interactions Script -->
+<script>
+        // Simulation of real-time updates
+        setInterval(() => {
+            const timeElements = document.querySelectorAll('.font-caption.text-caption.font-bold');
+            timeElements.forEach(el => {
+                // Subtle visual flicker to simulate data updates
+                el.parentElement.parentElement.classList.add('opacity-80');
+                setTimeout(() => el.parentElement.parentElement.classList.remove('opacity-80'), 100);
+            });
+        }, 5000);
+
+        // Active Hover States
+        document.querySelectorAll('.glass-panel').forEach(panel => {
+            panel.addEventListener('mouseenter', () => {
+                panel.style.transform = 'translateY(-2px)';
+                panel.style.transition = 'all 0.3s ease';
+                panel.style.boxShadow = '0 10px 30px rgba(0, 43, 73, 0.4)';
+            });
+            panel.addEventListener('mouseleave', () => {
+                panel.style.transform = 'translateY(0)';
+                panel.style.boxShadow = 'none';
+            });
+        });
+    </script>
+</body></html>

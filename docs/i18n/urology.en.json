@@ -1,0 +1,15 @@
+{
+  "urology": {
+    "dashboard": {
+      "title": "Urology Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

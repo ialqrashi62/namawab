@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | Strategic Manpower Simulation</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed": "#ffdf9d",
+                    "surface": "#f8f9fa",
+                    "surface-tint": "#406182",
+                    "outline": "#73777e",
+                    "on-primary-fixed-variant": "#274969",
+                    "primary-container": "#002b49",
+                    "secondary-fixed": "#7df4ff",
+                    "on-tertiary-fixed": "#251a00",
+                    "on-primary-container": "#7293b6",
+                    "on-error-container": "#93000a",
+                    "surface-bright": "#f8f9fa",
+                    "primary-fixed": "#cfe5ff",
+                    "on-primary-fixed": "#001d34",
+                    "tertiary-container": "#362700",
+                    "on-surface-variant": "#42474d",
+                    "on-surface": "#191c1d",
+                    "surface-container-high": "#e7e8e9",
+                    "outline-variant": "#c3c7ce",
+                    "on-secondary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-fixed-variant": "#5b4300",
+                    "on-secondary-container": "#006e75",
+                    "secondary-fixed-dim": "#5dd8e2",
+                    "surface-variant": "#e1e3e4",
+                    "secondary": "#006970",
+                    "on-tertiary": "#ffffff",
+                    "inverse-on-surface": "#f0f1f2",
+                    "surface-dim": "#d9dadb",
+                    "primary": "#001629",
+                    "surface-container-low": "#f3f4f5",
+                    "on-secondary-fixed": "#002022",
+                    "tertiary": "#1d1300",
+                    "background": "#f8f9fa",
+                    "error-container": "#ffdad6",
+                    "inverse-primary": "#a8caef",
+                    "secondary-container": "#7af1fc",
+                    "surface-container": "#edeeef",
+                    "tertiary-fixed-dim": "#e6c274",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "primary-fixed-dim": "#a8caef",
+                    "on-tertiary-container": "#ac8c44",
+                    "on-background": "#191c1d",
+                    "inverse-surface": "#2e3132",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-error": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "24px",
+                    "xs": "4px",
+                    "margin-desktop": "48px",
+                    "lg": "40px",
+                    "gutter": "24px",
+                    "xl": "64px",
+                    "sm": "12px",
+                    "base": "8px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "display-lg-mobile": ["IBM Plex Sans"],
+                    "caption": ["IBM Plex Sans"],
+                    "headline-md": ["IBM Plex Sans"],
+                    "body-md": ["IBM Plex Sans"],
+                    "label-md": ["IBM Plex Sans"],
+                    "title-lg": ["IBM Plex Sans"],
+                    "display-lg": ["IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans"],
+                    "body-lg": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .sidebar-gradient {
+            background: linear-gradient(180deg, #001629 0%, #002b49 100%);
+        }
+        .status-chip-gold {
+            background: linear-gradient(45deg, #ffdf9d 0%, #ac8c44 100%);
+            color: #251a00;
+        }
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .nitaqat-green { border-right: 4px solid #006970; }
+        .nitaqat-gold { border-right: 4px solid #ac8c44; }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-desktop h-20 bg-primary shadow-[0px_10px_30px_rgba(0,43,73,0.1)]">
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md font-bold text-on-primary">SaudiHealth Premium</span>
+<nav class="hidden md:flex gap-md mr-xl">
+<a class="font-body-md text-body-md text-on-primary-container hover:text-on-primary transition-colors" href="#">ICU Insights</a>
+<a class="font-body-md text-body-md text-on-primary-container hover:text-on-primary transition-colors" href="#">Logistics</a>
+<a class="font-body-md text-body-md text-on-primary-container hover:text-on-primary transition-colors" href="#">Financials</a>
+<a class="font-body-md text-body-md text-on-primary border-b-2 border-secondary-fixed pb-1" href="#">Strategy</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-sm">
+<button class="material-symbols-outlined text-on-primary p-base rounded-full hover:bg-primary-container/50 transition-all">notifications</button>
+<button class="material-symbols-outlined text-on-primary p-base rounded-full hover:bg-primary-container/50 transition-all">settings</button>
+</div>
+<button class="bg-error text-on-primary px-md py-sm rounded-lg font-label-md text-label-md hover:opacity-90 transition-all active:scale-95">Emergency Alert</button>
+<img alt="Executive User Profile" class="w-10 h-10 rounded-full border-2 border-secondary-fixed object-cover" data-alt="A professional headshot of a middle-aged male healthcare executive with a clean-cut appearance. He is wearing a modern, minimalist dark navy suit and white shirt, reflecting a high-authority corporate environment. The background is a soft, blurred clinical setting with high-key lighting and a palette of whites and teals to match a premium medical brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCz3RLXTFKnoF92tiNW_OFsRC8-oF52uR4jpBlslHmvQZPjrCUwSK7PEw9aeVYKu6RfZLYVLsBrcYlOocmv1y3zyEs1B3CvLzSj3AyYGV4dp920sremYSAaDCpYmKKR-DbB4GVxonx4RHA1fXo01eMgETD0lu3k2cA9oYeEJBlGTkRTRGMGsjp3kqaotSwI_vDBBZZ7-KyftoyQq-xxVTqR7VQAiWcDLyFWcx8SmiZHB1jUeov9ePcN2pJouhz0DI0QLFsK2eiu428w"/>
+</div>
+</header>
+<!-- SideNavBar (RTL) -->
+<aside class="fixed right-0 top-0 h-screen w-64 flex flex-col py-md z-40 sidebar-gradient shadow-2xl border-l border-on-primary/10 backdrop-blur-xl">
+<div class="mt-20 px-md mb-xl text-right">
+<div class="flex items-center gap-sm mb-base">
+<span class="material-symbols-outlined text-secondary-fixed text-4xl">shield_person</span>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-secondary-fixed">National Crisis</span>
+<span class="font-label-md text-label-md text-on-primary-container opacity-80">Management Scenario</span>
+</div>
+</div>
+<div class="w-full h-[1px] bg-on-primary/10 my-md"></div>
+</div>
+<nav class="flex-1 px-sm space-y-sm">
+<a class="flex items-center gap-sm px-md py-sm text-on-primary-container hover:text-on-primary hover:bg-primary-fixed-dim/20 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Command Center</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary-container hover:text-on-primary hover:bg-primary-fixed-dim/20 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">emergency_home</span>
+<span class="font-label-md text-label-md">Critical Care</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm bg-secondary-container text-on-secondary-container font-bold rounded-lg shadow-lg" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<span class="font-label-md text-label-md">Resource Grid</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary-container hover:text-on-primary hover:bg-primary-fixed-dim/20 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md text-label-md">Budget Flow</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary-container hover:text-on-primary hover:bg-primary-fixed-dim/20 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-label-md text-label-md">Risk Matrix</span>
+</a>
+</nav>
+<div class="px-md mt-auto mb-xl">
+<button class="w-full bg-secondary py-sm rounded-lg text-on-secondary font-label-md text-label-md hover:bg-on-secondary-container transition-all flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-sm">bolt</span>
+                Initiate Protocol
+            </button>
+</div>
+<div class="px-sm border-t border-on-primary/10 pt-md">
+<a class="flex items-center gap-sm px-md py-base text-on-primary-container hover:text-on-primary text-caption font-caption" href="#">
+<span class="material-symbols-outlined">help</span>
+                Support
+            </a>
+<a class="flex items-center gap-sm px-md py-base text-on-primary-container hover:text-on-primary text-caption font-caption" href="#">
+<span class="material-symbols-outlined">history</span>
+                Archive
+            </a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="mr-64 pt-20 pb-xl px-margin-desktop">
+<!-- Hero Header -->
+<section class="mt-lg mb-xl relative h-80 rounded-xl overflow-hidden shadow-xl flex items-end">
+<img alt="Vision 2030 Healthcare Strategic Planning" class="absolute inset-0 w-full h-full object-cover" data-alt="A high-altitude aerial view of Riyadh's modern skyline at dawn, showcasing the illuminated skyscrapers of the King Abdullah Financial District. The image is filtered with a sophisticated teal and navy color grade, emphasizing professional healthcare colors. In the foreground, subtle translucent data overlay lines suggest a technological and strategic framework, reinforcing a theme of vision and future-forward national planning." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAarX_gYtAnbyjR3CFxJMeUqJFpuFGqnxgYZ8ZIfxhSIEUkMDhXonClDADVLLh9yo0ZBMDNmYve31P8V745ULqVmV9L1FhoHdIvevqKyk1jw88joou4Th-shTBKK6aVKa0uJx-zEh29OpiIwOWxqg_Gt-gKSWia7497F3Osrjk4X8blcnhFrGcoDr--pq9kchmA5vFT9CiMObv4HUPNamMIUheIupRubC0qDjlG5NJnS6qq8ioueGTJp8rA1wPzQi8mJeAYxo7bh5hd"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 to-transparent"></div>
+<div class="relative z-10 p-xl w-full flex justify-between items-end">
+<div class="max-w-2xl">
+<span class="bg-secondary-container text-on-secondary-container px-sm py-xs rounded-full font-label-md text-label-md mb-sm inline-block">Saudi Vision 2030 Goal</span>
+<h1 class="font-display-lg text-display-lg text-on-primary mb-sm">محاكي القوى العاملة الصحية الوطنية</h1>
+<p class="font-body-lg text-body-lg text-on-primary-container max-w-xl">High-Fidelity National Healthcare Manpower Simulation: Strategic AI forecasting for physician and nursing specialties over the next decade.</p>
+</div>
+<div class="flex gap-md bg-white/10 backdrop-blur-md p-md rounded-xl border border-white/20">
+<div class="text-center px-md border-l border-white/10 last:border-0">
+<p class="font-caption text-caption text-secondary-fixed">Target 2030</p>
+<p class="font-headline-md text-headline-md text-on-primary">150K+</p>
+</div>
+<div class="text-center px-md border-l border-white/10 last:border-0">
+<p class="font-caption text-caption text-secondary-fixed">Growth rate</p>
+<p class="font-headline-md text-headline-md text-on-primary">12.4%</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid: Core Metrics -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- 10-Year Forecast Chart -->
+<div class="col-span-12 lg:col-span-8 glass-card rounded-xl p-xl flex flex-col">
+<div class="flex justify-between items-center mb-lg">
+<div>
+<h3 class="font-title-lg text-title-lg text-primary">Physician &amp; Nursing Forecast (2024-2034)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">AI-driven predictive demand modeling per specialty</p>
+</div>
+<div class="flex gap-sm">
+<button class="px-md py-sm bg-surface-container rounded-lg font-label-md text-label-md border border-outline-variant">Physicians</button>
+<button class="px-md py-sm bg-primary text-on-primary rounded-lg font-label-md text-label-md shadow-md">Nursing</button>
+</div>
+</div>
+<div class="h-64 w-full flex items-end justify-between gap-base px-md relative">
+<!-- Placeholder for Chart -->
+<div class="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
+<span class="material-symbols-outlined text-[200px]">monitoring</span>
+</div>
+<div class="w-12 bg-secondary-container h-[40%] rounded-t-md hover:h-[45%] transition-all cursor-pointer relative group">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-on-primary text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100">2024</div>
+</div>
+<div class="w-12 bg-secondary-container h-[45%] rounded-t-md hover:h-[50%] transition-all cursor-pointer"></div>
+<div class="w-12 bg-secondary-container h-[55%] rounded-t-md hover:h-[60%] transition-all cursor-pointer"></div>
+<div class="w-12 bg-secondary h-[70%] rounded-t-md hover:h-[75%] transition-all cursor-pointer shadow-lg shadow-secondary/20"></div>
+<div class="w-12 bg-secondary h-[75%] rounded-t-md hover:h-[80%] transition-all cursor-pointer"></div>
+<div class="w-12 bg-secondary h-[80%] rounded-t-md hover:h-[85%] transition-all cursor-pointer"></div>
+<div class="w-12 bg-secondary h-[90%] rounded-t-md hover:h-[95%] transition-all cursor-pointer"></div>
+<div class="w-12 bg-primary h-[95%] rounded-t-md hover:h-[100%] transition-all cursor-pointer"></div>
+</div>
+<div class="flex justify-between mt-md border-t border-outline-variant pt-md">
+<span class="font-label-md text-label-md text-on-surface-variant">2024</span>
+<span class="font-label-md text-label-md text-on-surface-variant">2029</span>
+<span class="font-label-md text-label-md text-on-surface-variant">2034 (Predicted Peak)</span>
+</div>
+</div>
+<!-- Nitaqat Compliance Radar -->
+<div class="col-span-12 lg:col-span-4 glass-card rounded-xl p-xl flex flex-col">
+<h3 class="font-title-lg text-title-lg text-primary mb-md">Saudization (Nitaqat)</h3>
+<div class="flex-1 flex flex-col justify-center">
+<div class="space-y-md">
+<div class="p-md bg-surface-container-low rounded-lg nitaqat-gold shadow-sm">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-label-md text-label-md">Specialist Surgeons</span>
+<span class="font-label-md text-label-md font-bold text-on-tertiary-container">42%</span>
+</div>
+<div class="w-full bg-outline-variant h-2 rounded-full overflow-hidden">
+<div class="bg-tertiary-fixed-dim h-full" style="width: 42%"></div>
+</div>
+</div>
+<div class="p-md bg-surface-container-low rounded-lg nitaqat-green shadow-sm">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-label-md text-label-md">General Practitioners</span>
+<span class="font-label-md text-label-md font-bold text-secondary">78%</span>
+</div>
+<div class="w-full bg-outline-variant h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 78%"></div>
+</div>
+</div>
+<div class="p-md bg-surface-container-low rounded-lg nitaqat-green shadow-sm">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-label-md text-label-md">Paramedic Services</span>
+<span class="font-label-md text-label-md font-bold text-secondary">85%</span>
+</div>
+<div class="w-full bg-outline-variant h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 85%"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-lg pt-md border-t border-outline-variant text-center">
+<span class="status-chip-gold px-md py-xs rounded-full font-label-md text-label-md inline-flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+                        National Excellence Tier
+                    </span>
+</div>
+</div>
+<!-- Enrollment Tracking -->
+<div class="col-span-12 lg:col-span-6 glass-card rounded-xl p-xl">
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-secondary text-3xl">school</span>
+<h3 class="font-title-lg text-title-lg text-primary">Medical School Enrollment</h3>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div class="p-md bg-white border border-outline-variant rounded-lg flex flex-col items-center">
+<span class="font-caption text-caption text-on-surface-variant">Active Students</span>
+<span class="font-headline-lg text-headline-lg text-primary mt-xs">24,800</span>
+<span class="text-secondary text-xs mt-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span> +8.2% vs Prev. Year
+                        </span>
+</div>
+<div class="p-md bg-white border border-outline-variant rounded-lg flex flex-col items-center">
+<span class="font-caption text-caption text-on-surface-variant">Projected Interns</span>
+<span class="font-headline-lg text-headline-lg text-primary mt-xs">4,120</span>
+<span class="text-secondary text-xs mt-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span> Expected Q3 2025
+                        </span>
+</div>
+</div>
+<div class="mt-xl space-y-md">
+<div class="flex items-center justify-between border-b border-outline-variant/30 pb-base">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-sm">location_city</span>
+</div>
+<span class="font-label-md text-label-md">King Saud University</span>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">1,240 Intake</span>
+</div>
+<div class="flex items-center justify-between border-b border-outline-variant/30 pb-base">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-sm">location_city</span>
+</div>
+<span class="font-label-md text-label-md">Alfaisal University</span>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">890 Intake</span>
+</div>
+</div>
+</div>
+<!-- International Recruitment Pipeline -->
+<div class="col-span-12 lg:col-span-6 glass-card rounded-xl p-xl">
+<div class="flex items-center justify-between mb-lg">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary text-3xl">public</span>
+<h3 class="font-title-lg text-title-lg text-primary">Global Pipeline Status</h3>
+</div>
+<button class="text-secondary font-label-md text-label-md flex items-center gap-1">
+                        View Map <span class="material-symbols-outlined text-sm">arrow_forward_ios</span>
+</button>
+</div>
+<div class="space-y-lg">
+<div class="flex items-center gap-md">
+<div class="flex-1">
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md">North America (Fellowships)</span>
+<span class="font-label-md text-label-md text-on-surface-variant">450 / 600 Targets</span>
+</div>
+<div class="h-3 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 75%"></div>
+</div>
+</div>
+<div class="flex -space-x-3 rtl:space-x-reverse">
+<img alt="Recruitment Officer" class="w-8 h-8 rounded-full border-2 border-white" data-alt="Close up portrait of a professional female recruitment officer of Asian descent, smiling warmly in a bright corporate office setting. She represents global talent acquisition excellence for a high-end medical brand, with clean lines and soft professional lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAw7BNjU1Pzi7vq_SroH1WdXp7qx6CB-zbigVvV4GPrgvGHJhb2iMYBlA2JwSlM42S_xLeEBcN-kHsO_JFqEKTfYjGe8ZhFu9n-iqX93q_ovY7YyX6XzyIjPJXDa1Sju6USa-lVwgmtvqWYNaxbLI1ZekXDw_rJpV34VjCtGYjLT3jYZs2V2yy7pNitGohYl9j1ln5J_c_ThRjtRerPBukJosjQmBRzYQ8ZMXDHVKMD--nr8MRnuAYm8z8KOWZH3iby63O7IiWoZr0u"/>
+<img alt="Recruitment Officer" class="w-8 h-8 rounded-full border-2 border-white" data-alt="Portrait of a male healthcare recruitment professional in a light-colored suit, standing against a blurred background of a modern healthcare facility. He has a friendly and trustworthy expression, emphasizing a high-trust, premium service environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMULmVSA5bjNnq8wm3oWCN5YiWzGCZwaGKimQWuW-SK5jvEqylGQK9slfYKfSRMF7uiAG330LPwdsf3JtsEJWTR2Q3aVJ0_2d-2SIuQ5rhYwjOU_13SYOheq3LJ6l0l-6iXugk_4I4eJgLWnzL1u3wLvp_Zb7vpnZaPNp703NAQUP1jO57xdA_ZB6aJC-OQabm-rrFur25Dmja9EaC3EdVZ_OKPZJzvBCglBYuQysvKnZ88mqp4CDLOCukEfg8AfE-jPMU0hBjbvSk"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex-1">
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md">European Union (Specialists)</span>
+<span class="font-label-md text-label-md text-on-surface-variant">1,200 / 1,500 Targets</span>
+</div>
+<div class="h-3 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 80%"></div>
+</div>
+</div>
+<div class="w-12 text-center">
+<span class="text-secondary font-bold text-headline-md">↑</span>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex-1">
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md">MENA Region (Nursing Cluster)</span>
+<span class="font-label-md text-label-md text-on-surface-variant">3,800 / 4,000 Targets</span>
+</div>
+<div class="h-3 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 95%"></div>
+</div>
+</div>
+<div class="w-12 text-center">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Simulation Control Bar -->
+<div class="fixed bottom-margin-desktop left-margin-desktop right-[304px] z-30">
+<div class="bg-primary-container/90 backdrop-blur-xl border border-white/10 p-md rounded-2xl shadow-2xl flex items-center justify-between">
+<div class="flex items-center gap-xl px-md">
+<div class="flex flex-col">
+<span class="font-caption text-caption text-secondary-fixed">Simulation Model</span>
+<span class="font-label-md text-label-md text-on-primary">V.2.0.4 "Vision Anchor"</span>
+</div>
+<div class="h-8 w-[1px] bg-white/10"></div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-secondary-fixed">history_toggle_off</span>
+<div class="w-64">
+<input class="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-secondary-fixed" type="range"/>
+<div class="flex justify-between mt-1">
+<span class="text-[10px] text-on-primary-container">2024</span>
+<span class="text-[10px] text-on-primary-container">2030</span>
+<span class="text-[10px] text-on-primary-container">2034</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="flex items-center gap-xs px-lg py-sm bg-secondary text-on-secondary rounded-lg font-bold transition-all hover:scale-105 active:scale-95">
+<span class="material-symbols-outlined">play_circle</span>
+                        Run Simulation
+                    </button>
+<button class="p-sm text-on-primary border border-white/20 rounded-lg hover:bg-white/10">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="mr-64 w-auto py-base px-margin-desktop flex justify-between items-center bg-surface-container-highest border-t border-outline-variant/30">
+<span class="font-label-md text-label-md font-bold text-on-surface">© 2024 SaudiHealth Premium - Advanced Global Healthcare Compliance</span>
+<div class="flex gap-md">
+<a class="font-caption text-caption text-on-surface-variant hover:text-primary transition-colors" href="#">Security</a>
+<a class="font-caption text-caption text-on-surface-variant hover:text-primary transition-colors" href="#">Protocols</a>
+<a class="font-caption text-caption text-on-surface-variant hover:text-primary transition-colors" href="#">Contact</a>
+</div>
+</footer>
+<script>
+        // Micro-interactions for the range slider and bar hover effects
+        const slider = document.querySelector('input[type="range"]');
+        slider.addEventListener('input', (e) => {
+            // Visual feedback for simulation timeline changes
+            console.log('Simulating year:', 2024 + Math.floor(e.target.value / 10));
+        });
+
+        // Simple animation logic for chart bars
+        document.querySelectorAll('.col-span-12 .w-12').forEach(bar => {
+            bar.addEventListener('mouseenter', () => {
+                bar.classList.add('shadow-secondary/50');
+            });
+            bar.addEventListener('mouseleave', () => {
+                bar.classList.remove('shadow-secondary/50');
+            });
+        });
+    </script>
+</body></html>

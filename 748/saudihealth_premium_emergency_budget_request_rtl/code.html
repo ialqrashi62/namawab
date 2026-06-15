@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>طلب ميزانية طارئة - SaudiHealth Premium</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#ffdf9d",
+                        "primary-container": "#002b49",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-container": "#ac8c44",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-secondary-container": "#006e75",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2e3132",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#a8caef",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "secondary": "#006970",
+                        "background": "#f8f9fa",
+                        "on-background": "#191c1d",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "on-primary-fixed-variant": "#274969",
+                        "tertiary-container": "#362700",
+                        "tertiary": "#1d1300",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "on-surface": "#191c1d",
+                        "on-secondary-fixed": "#002022",
+                        "surface": "#f8f9fa",
+                        "outline-variant": "#c3c7ce",
+                        "secondary-container": "#7af1fc",
+                        "primary": "#001629",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "primary-fixed": "#cfe5ff",
+                        "surface-dim": "#d9dadb",
+                        "surface-tint": "#406182",
+                        "surface-variant": "#e1e3e4",
+                        "surface-container-low": "#f3f4f5",
+                        "on-primary-container": "#7293b6",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#a8caef",
+                        "surface-bright": "#f8f9fa",
+                        "on-tertiary-fixed": "#251a00",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#7df4ff",
+                        "surface-container": "#edeeef",
+                        "on-primary-fixed": "#001d34",
+                        "on-surface-variant": "#42474d",
+                        "outline": "#73777e",
+                        "surface-container-high": "#e7e8e9",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "xs": "4px",
+                        "lg": "40px",
+                        "sm": "12px",
+                        "xl": "64px",
+                        "md": "24px",
+                        "gutter": "24px",
+                        "base": "8px",
+                        "margin-desktop": "48px"
+                    },
+                    "fontFamily": {
+                        "title-lg": ["IBM Plex Sans Arabic"],
+                        "caption": ["IBM Plex Sans Arabic"],
+                        "display-lg": ["IBM Plex Sans Arabic"],
+                        "headline-md": ["IBM Plex Sans Arabic"],
+                        "label-md": ["IBM Plex Sans Arabic"],
+                        "headline-lg": ["IBM Plex Sans Arabic"],
+                        "body-lg": ["IBM Plex Sans Arabic"],
+                        "display-lg-mobile": ["IBM Plex Sans Arabic"],
+                        "body-md": ["IBM Plex Sans Arabic"]
+                    },
+                    "fontSize": {
+                        "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- Sidebar (Shared Component Style) -->
+<aside class="fixed right-0 top-0 h-full flex flex-col z-50 text-right bg-primary dark:bg-primary-container docked h-full right-0 w-64 border-l border-outline-variant/10 shadow-xl overflow-y-auto">
+<div class="p-6 flex flex-col items-center gap-2 border-b border-white/10">
+<div class="w-12 h-12 bg-tertiary-fixed rounded-xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">medical_services</span>
+</div>
+<div class="text-center mt-2">
+<h1 class="font-headline-md text-headline-md text-tertiary-fixed">السعودية الصحية</h1>
+<p class="font-label-md text-label-md text-primary-fixed-dim">بريميوم</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-6 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:text-white hover:bg-white/10 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">لوحة القيادة</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:text-white hover:bg-white/10 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">المرضى</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container rounded-lg font-bold" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-label-md text-label-md">الأداء المالي</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:text-white hover:bg-white/10 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">التقارير</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:text-white hover:bg-white/10 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">الإعدادات</span>
+</a>
+</nav>
+<div class="p-4 border-t border-white/10">
+<button class="w-full py-3 bg-tertiary-fixed text-primary rounded-lg font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add</span>
+<span>طلب جديد</span>
+</button>
+<div class="mt-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-primary-fixed-dim hover:text-white text-sm" href="#">
+<span class="material-symbols-outlined text-lg">help</span>
+<span>الدعم</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-primary-fixed-dim hover:text-white text-sm" href="#">
+<span class="material-symbols-outlined text-lg">logout</span>
+<span>تسجيل الخروج</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="mr-64 min-h-screen">
+<!-- Top Nav (Shared Component Style) -->
+<header class="flex justify-between items-center w-full px-margin-desktop h-16 sticky top-0 z-40 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-on-surface-variant font-label-md">
+<span>الرئيسية</span>
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+<span>الأداء المالي</span>
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+<span class="text-primary font-bold">طلب ميزانية طارئة</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-error rounded-full"></span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">settings</span>
+<div class="flex items-center gap-3 border-r pr-6 border-outline-variant/30">
+<div class="text-left">
+<p class="font-label-md text-primary font-bold">د. فيصل العتيبي</p>
+<p class="text-[10px] text-on-surface-variant">رئيس قسم العمليات</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center">
+<img alt="User Profile" class="rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDx4ITqjTCPjLe543iN3dGivUAPp8hF35df0C3iJqBKT4PoZXloilwMoEhaKjq46--psgnVBcPJl2EkohcYPw9MiHHZhTIdyv9dhy6y36yI1Ij5vnRxLTSo1VNPNujOmF0cIj4OQU0zVXfIA1sUcp_zZL4E_2OoubxH32KLRD1z2pQL9L5hcAWwMRhR52Sfe9744Yl9quCuNIdMomjeBVGe1nmgRHMvlBghbvmnHV4-k56R6QSAKBaVHKFBl0eLR4H48k9-NwRiOdgm"/>
+</div>
+</div>
+</div>
+</header>
+<div class="p-margin-desktop space-y-lg">
+<!-- Page Title Section -->
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary">طلب ميزانية طارئة</h2>
+<p class="font-body-md text-on-surface-variant mt-1">يرجى تقديم تفاصيل الاحتياج العاجل للموارد المالية لضمان استمرارية الرعاية الطبية.</p>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-2.5 border border-secondary text-secondary font-bold rounded-lg hover:bg-secondary-container/10 transition-colors">حفظ كمسودة</button>
+<button class="px-8 py-2.5 bg-primary text-white font-bold rounded-lg shadow-lg hover:shadow-primary/20 transition-all active:scale-95">إرسال الطلب</button>
+</div>
+</div>
+<!-- Summary Cards & Clinical Impact -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Summary Stats -->
+<div class="col-span-8 grid grid-cols-3 gap-gutter">
+<div class="glass-card p-6 rounded-xl flex flex-col justify-between h-32 border-r-4 border-r-secondary">
+<p class="font-label-md text-on-surface-variant">الرصيد الحالي للقسم</p>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-primary">1,240,500</span>
+<span class="text-sm font-bold text-on-surface-variant">ريال</span>
+</div>
+</div>
+<div class="glass-card p-6 rounded-xl flex flex-col justify-between h-32 border-r-4 border-r-tertiary-fixed">
+<p class="font-label-md text-on-surface-variant">المبلغ المطلوب</p>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-primary">450,000</span>
+<span class="text-sm font-bold text-on-surface-variant">ريال</span>
+</div>
+</div>
+<div class="glass-card p-6 rounded-xl flex flex-col justify-between h-32 border-r-4 border-r-error">
+<p class="font-label-md text-on-surface-variant">مستوى الاستعجال</p>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">priority_high</span>
+<span class="font-headline-md text-error">حرج جداً</span>
+</div>
+</div>
+</div>
+<!-- Clinical Widget -->
+<div class="col-span-4 glass-card p-6 rounded-xl border-secondary/20">
+<h3 class="font-title-lg text-primary flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-secondary">analytics</span>
+                        تأثير الحالة السريرية
+                    </h3>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span>إشغال العناية المركزة (ICU)</span>
+<span class="font-bold text-error">94%</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2">
+<div class="bg-error h-2 rounded-full" style="width: 94%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span>تعطل الأجهزة الحيوية</span>
+<span class="font-bold text-error">3 وحدات</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2">
+<div class="bg-error h-2 rounded-full" style="width: 60%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Workflow Indicator -->
+<div class="glass-card p-8 rounded-xl">
+<div class="relative flex justify-between items-center w-full">
+<!-- Connector Line -->
+<div class="absolute top-1/2 left-0 right-0 h-1 bg-outline-variant/30 -translate-y-1/2 z-0"></div>
+<div class="absolute top-1/2 right-0 w-1/4 h-1 bg-secondary -translate-y-1/2 z-0"></div>
+<!-- Steps -->
+<div class="relative z-10 flex flex-col items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center font-bold">1</div>
+<span class="font-label-md text-secondary font-bold">إنشاء الطلب</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest border-2 border-outline-variant text-on-surface-variant flex items-center justify-center font-bold">2</div>
+<span class="font-label-md text-on-surface-variant">رئيس القسم</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest border-2 border-outline-variant text-on-surface-variant flex items-center justify-center font-bold">3</div>
+<span class="font-label-md text-on-surface-variant">التدقيق المالي</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest border-2 border-outline-variant text-on-surface-variant flex items-center justify-center font-bold">4</div>
+<span class="font-label-md text-on-surface-variant">اعتماد المدير التنفيذي</span>
+</div>
+</div>
+</div>
+<!-- Main Form Section -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Form Inputs -->
+<div class="col-span-8 glass-card p-8 rounded-xl space-y-6">
+<h3 class="font-headline-md text-primary pb-4 border-b border-outline-variant/20">تفاصيل الطلب المالي</h3>
+<div class="grid grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="font-label-md text-on-surface-variant block">سبب الطلب</label>
+<select class="w-full bg-surface-container-low border-none rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-secondary transition-all">
+<option>اختر السبب الرئيسي</option>
+<option>فشل مفاجئ في الأجهزة الأساسية</option>
+<option>زيادة حادة في أعداد المرضى</option>
+<option>نقص حاد في المستلزمات الطبية</option>
+<option>صيانة طارئة للمنشأة</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-on-surface-variant block">المبلغ المطلوب (SAR)</label>
+<input class="w-full bg-surface-container-low border-none rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-secondary transition-all" placeholder="أدخل المبلغ بدقة" type="number"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-on-surface-variant block">تبرير سريري (Clinical Justification)</label>
+<textarea class="w-full bg-surface-container-low border-none rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-secondary transition-all" placeholder="اشرح بالتفصيل الأثر السريري المترتب على عدم توفر هذه الميزانية..." rows="5"></textarea>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-on-surface-variant block">الوثائق الداعمة</label>
+<div class="border-2 border-dashed border-outline-variant/50 rounded-xl p-8 flex flex-col items-center justify-center gap-3 bg-surface-container-lowest/50 hover:bg-surface-container-low transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-4xl text-outline group-hover:text-secondary transition-colors">cloud_upload</span>
+<div class="text-center">
+<p class="font-title-lg text-primary">اسحب الملفات هنا أو تصفح الجهاز</p>
+<p class="text-sm text-on-surface-variant mt-1">يدعم PDF, JPG, PNG (بحد أقصى 10MB)</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Guidance/Context Panel -->
+<div class="col-span-4 space-y-gutter">
+<div class="glass-card p-6 rounded-xl bg-primary text-on-primary">
+<h4 class="font-title-lg mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined">info</span>
+                            إرشادات الميزانية الطارئة
+                        </h4>
+<ul class="space-y-3 text-sm opacity-90">
+<li class="flex gap-2">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+                                يجب تقديم التبرير السريري بوضوح لضمان سرعة المعالجة.
+                            </li>
+<li class="flex gap-2">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+                                الطلبات التي تزيد عن 500,000 ريال تتطلب موافقة مجلس الإدارة.
+                            </li>
+<li class="flex gap-2">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+                                زمن الاستجابة المتوقع للطلبات الطارئة هو 4 ساعات عمل.
+                            </li>
+</ul>
+</div>
+<div class="glass-card p-6 rounded-xl overflow-hidden relative group">
+<img alt="Finance Analysis" class="absolute inset-0 w-full h-full object-cover opacity-10 group-hover:scale-110 transition-transform duration-700" data-alt="A professional close-up shot of a modern financial dashboard displayed on a high-resolution tablet screen. The image features clean data visualizations, sleek line charts, and numerical tables in a palette of deep navy and soft teal. The lighting is bright and corporate, emphasizing clarity, precision, and trust in a high-stakes healthcare management environment. The background is a slightly blurred office setting with high-end furniture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIKXP1t7udZnT553YyK6mKLeHa3PdUCxdEUj9vkDSsdWbCK5S8KP5p_lifc0IaqFmxSgGmUnmazQLqLJNQdU9S_yt71xUy_g4m9c66EZ96VXePfNCJVWGTgYdGp1zz4andNWT-ejwvVqRILkIPjAGHUs7m8grCFw7RQBs_OcIR3bu7o0Lr4bmOkFVocrRaeMoyk6SNt-J3QHzXKMTc0QoPELMnacFF43K5RCCKTV39iUFs7tT3LBSpfI8Fe8fo4Gsci9wats4lRSm2"/>
+<div class="relative z-10">
+<h4 class="font-title-lg text-primary mb-2">تحليل الأداء السنوي</h4>
+<p class="text-sm text-on-surface-variant">مقارنة استهلاك الميزانية الحالية مع السنوات الماضية لضمان الاستدامة المالية.</p>
+<button class="mt-4 text-secondary font-bold flex items-center gap-1 hover:gap-3 transition-all text-sm">
+                                عرض التقرير المالي الكامل
+                                <span class="material-symbols-outlined text-base">arrow_back</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Additional Contextual Data (Asymmetric Layout element) -->
+<div class="glass-card p-6 rounded-xl border-l-4 border-l-tertiary-fixed flex items-center gap-6">
+<div class="bg-tertiary-fixed/20 p-4 rounded-full">
+<span class="material-symbols-outlined text-3xl text-on-tertiary-container">history</span>
+</div>
+<div>
+<h5 class="font-title-lg text-primary">تاريخ الطلبات المشابهة</h5>
+<p class="text-sm text-on-surface-variant">تم تقديم طلبين مماثلين في الربع الأخير بسبب "زيادة أعداد المرضى"، وتمت الموافقة عليهما في غضون ساعتين.</p>
+</div>
+</div>
+</div>
+<!-- Footer Branding -->
+<footer class="p-margin-desktop text-center border-t border-outline-variant/10 mt-12 opacity-50">
+<p class="text-sm">نظام السعودية الصحية المتكامل © 2024 - جميع الحقوق محفوظة لوزارة الصحة</p>
+</footer>
+</main>
+<script>
+        // Micro-interactions and simple effects
+        document.querySelectorAll('button, a').forEach(el => {
+            el.addEventListener('mousedown', () => {
+                el.style.transform = 'scale(0.98)';
+            });
+            el.addEventListener('mouseup', () => {
+                el.style.transform = 'scale(1)';
+            });
+            el.addEventListener('mouseleave', () => {
+                el.style.transform = 'scale(1)';
+            });
+        });
+
+        // Simple validation visualization (Simulation)
+        const budgetInput = document.querySelector('input[type="number"]');
+        if(budgetInput) {
+            budgetInput.addEventListener('input', (e) => {
+                const val = e.target.value;
+                const requestedStat = document.querySelector('.col-span-8 .grid > div:nth-child(2) span.font-headline-md');
+                if(requestedStat && val) {
+                    requestedStat.innerText = Number(val).toLocaleString();
+                }
+            });
+        }
+    </script>
+</body></html>

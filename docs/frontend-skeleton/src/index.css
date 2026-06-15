@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { @apply font-sans antialiased; }
+  body { @apply bg-darkBase text-primaryDark min-h-screen; }
+  /* RTL niceties */
+  [dir="rtl"] { font-feature-settings: "kern", "liga"; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-brand-primary text-darkBase px-4 py-1.5 rounded text-sm font-bold
+           hover:opacity-90 disabled:opacity-50 transition;
+  }
+  .card {
+    @apply bg-darkSurface rounded-lg border border-darkRaised p-4;
+  }
+  .input {
+    @apply w-full bg-darkBase border border-darkRaised rounded p-2 text-sm
+           focus:border-brand-primary focus:outline-none;
+  }
+  .badge {
+    @apply text-[11px] px-2 py-0.5 rounded;
+  }
+  .badge-success { @apply bg-success/15 text-success border border-success/40; }
+  .badge-warning { @apply bg-warning/15 text-warning border border-warning/40; }
+  .badge-danger  { @apply bg-danger/15  text-danger  border border-danger/40; }
+}

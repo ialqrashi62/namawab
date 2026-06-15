@@ -1,0 +1,65 @@
+# SLO definitions (Sloth-format).
+# Generates burn-rate alerts + recording rules.
+
+version: "prometheus/v1"
+service: "nama-platform"
+
+slos:
+
+  - name: "tier1-availability"
+    objective: 99.9
+    description: "Tier-1 services availability over 30d"
+    sli:
+      events:
+        error_query: sum(rate(probe_success{tier="1"}[{{.window}}]) == 0)
+        total_query: sum(rate(probe_success{tier="1"}[{{.window}}]))
+    alerting:
+      name: Tier1Availability
+      page_alert:   { labels: { severity: sev1 } }
+      ticket_alert: { labels: { severity: sev3 } }
+
+  - name: "api-latency-p95-400ms"
+    objective: 99
+    description: "p95 latency under 400ms across APIs"
+    sli:
+      events:
+        error_query: |
+          sum(rate(http_request_duration_seconds_bucket{job=~".+-api",le="0.4"}[{{.window}}]))
+          - sum(rate(http_request_duration_seconds_count{job=~".+-api"}[{{.window}}]))
+        total_query: sum(rate(http_request_duration_seconds_count{job=~".+-api"}[{{.window}}]))
+
+  - name: "ai-latency-p95-5s"
+    objective: 95
+    description: "AI orchestrator p95 < 5s"
+    sli:
+      events:
+        error_query: |
+          sum(rate(ai_orchestrator_latency_seconds_count[{{.window}}]))
+          - sum(rate(ai_orchestrator_latency_seconds_bucket{le="5.0"}[{{.window}}]))
+        total_query: sum(rate(ai_orchestrator_latency_seconds_count[{{.window}}]))
+
+  - name: "audit-chain-integrity"
+    objective: 99.99
+    description: "Audit hash chain unbroken"
+    sli:
+      events:
+        error_query: sum(increase(audit_hash_chain_break_total[{{.window}}]))
+        total_query: sum(increase(audit_log_total[{{.window}}]))
+    alerting:
+      page_alert: { labels: { severity: sev1, team: security } }
+
+  - name: "stemi-d2b-90min"
+    objective: 90
+    description: "STEMI Door-to-Balloon ≤ 90 min"
+    sli:
+      events:
+        error_query: sum(increase(stemi_d2b_over_90min_total[{{.window}}]))
+        total_query: sum(increase(stemi_cases_total[{{.window}}]))
+
+  - name: "sepsis-bundle-1h"
+    objective: 90
+    description: "Sepsis 1-hour bundle compliance"
+    sli:
+      events:
+        error_query: sum(increase(sepsis_bundle_breached_total[{{.window}}]))
+        total_query: sum(increase(sepsis_bundle_started_total[{{.window}}]))

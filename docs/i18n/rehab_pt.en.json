@@ -1,0 +1,15 @@
+{
+  "rehab_pt": {
+    "dashboard": {
+      "title": "Rehabilitation & PT Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

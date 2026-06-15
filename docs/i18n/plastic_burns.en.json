@@ -1,0 +1,15 @@
+{
+  "plastic_burns": {
+    "dashboard": {
+      "title": "Plastic Surgery & Burns Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "hr_admin": {
+    "dashboard": {
+      "title": "لوحة الموارد البشرية والإدارة",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

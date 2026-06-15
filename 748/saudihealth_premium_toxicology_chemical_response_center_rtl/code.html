@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Toxicology &amp; Chemical Response Center | SaudiHealth Premium</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .status-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+    </style>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#ffdf9d",
+                        "on-primary-container": "#7293b6",
+                        "on-tertiary-container": "#ac8c44",
+                        "primary-fixed-dim": "#a8caef",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "inverse-on-surface": "#f0f1f2",
+                        "error": "#ba1a1a",
+                        "background": "#f8f9fa",
+                        "surface-container-high": "#e7e8e9",
+                        "on-primary-fixed-variant": "#274969",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-surface-variant": "#42474d",
+                        "on-error": "#ffffff",
+                        "on-surface": "#191c1d",
+                        "on-secondary-fixed": "#002022",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#edeeef",
+                        "outline-variant": "#c3c7ce",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#1d1300",
+                        "surface-bright": "#f8f9fa",
+                        "secondary-container": "#7af1fc",
+                        "inverse-surface": "#2e3132",
+                        "tertiary-container": "#362700",
+                        "on-background": "#191c1d",
+                        "surface-container-low": "#f3f4f5",
+                        "on-primary-fixed": "#001d34",
+                        "inverse-primary": "#a8caef",
+                        "surface": "#f8f9fa",
+                        "primary-fixed": "#cfe5ff",
+                        "on-primary": "#ffffff",
+                        "secondary": "#006970",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#001629",
+                        "on-tertiary-fixed": "#251a00",
+                        "surface-tint": "#406182",
+                        "surface-dim": "#d9dadb",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "on-secondary-container": "#006e75",
+                        "surface-variant": "#e1e3e4",
+                        "primary-container": "#002b49",
+                        "outline": "#73777e",
+                        "secondary-fixed": "#7df4ff",
+                        "on-tertiary-fixed-variant": "#5b4300"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "base": "8px",
+                        "xl": "64px",
+                        "xs": "4px",
+                        "margin-desktop": "48px",
+                        "sm": "12px",
+                        "md": "24px",
+                        "lg": "40px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["IBM Plex Sans"],
+                        "headline-md": ["IBM Plex Sans"],
+                        "caption": ["IBM Plex Sans"],
+                        "body-md": ["IBM Plex Sans"],
+                        "body-lg": ["IBM Plex Sans"],
+                        "headline-lg": ["IBM Plex Sans"],
+                        "title-lg": ["IBM Plex Sans"],
+                        "display-lg": ["IBM Plex Sans"],
+                        "display-lg-mobile": ["IBM Plex Sans"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface overflow-x-hidden">
+<!-- Sidebar Navigation (Right Aligned) -->
+<aside class="fixed right-0 top-0 h-full w-64 bg-primary dark:bg-primary-container shadow-md flex flex-col h-full py-md px-base text-right transition-transform duration-300 ease-in-out z-50">
+<div class="mb-lg px-base">
+<h1 class="font-headline-lg text-headline-lg text-on-primary">National Toxicology</h1>
+<p class="font-label-md text-label-md text-on-primary/70">Chemical Response Unit</p>
+</div>
+<nav class="flex-1 space-y-sm">
+<a class="flex items-center gap-base px-base py-sm bg-secondary-container text-on-secondary-container rounded-lg font-bold transition-all duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="monitor_heart">monitor_heart</span>
+<span class="font-label-md text-label-md">Incident Monitor</span>
+</a>
+<a class="flex items-center gap-base px-base py-sm text-on-primary/70 hover:text-on-primary hover:bg-on-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="vaccines">vaccines</span>
+<span class="font-label-md text-label-md">Antidote Inventory</span>
+</a>
+<a class="flex items-center gap-base px-base py-sm text-on-primary/70 hover:text-on-primary hover:bg-on-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="biotech">biotech</span>
+<span class="font-label-md text-label-md">Lab Analysis</span>
+</a>
+<a class="flex items-center gap-base px-base py-sm text-on-primary/70 hover:text-on-primary hover:bg-on-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="emergency_home">emergency_home</span>
+<span class="font-label-md text-label-md">Response Protocols</span>
+</a>
+<a class="flex items-center gap-base px-base py-sm text-on-primary/70 hover:text-on-primary hover:bg-on-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label-md text-label-md">Regional Hubs</span>
+</a>
+</nav>
+<div class="mt-auto space-y-sm pt-md border-t border-on-primary/10">
+<button class="w-full bg-secondary text-on-secondary py-sm rounded-lg font-bold hover:bg-secondary-fixed transition-colors active:scale-95">
+                Trigger Rapid Response
+            </button>
+<a class="flex items-center gap-base px-base py-sm text-on-primary/70 hover:text-on-primary" href="#">
+<span class="material-symbols-outlined" data-icon="security">security</span>
+<span class="font-label-md text-label-md">System Status</span>
+</a>
+<a class="flex items-center gap-base px-base py-sm text-on-primary/70 hover:text-on-primary" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Top App Bar -->
+<header class="mr-64 bg-surface dark:bg-surface-container-high border-b border-outline-variant/30 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-40 flex flex-row-reverse justify-between items-center w-full px-margin-desktop py-base">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary">
+<img alt="Chief Toxicologist Profile" class="w-full h-full object-cover" data-alt="A close-up portrait of a professional Middle Eastern male toxicologist wearing clinical scrubs and a stethoscope. He has a focused and serious expression, looking directly into the camera. The lighting is bright and hospital-sterile, with soft teal accents in the background to match a premium healthcare corporate aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-x-jUauXqau7sW6aAODXXXexw49wvTrXqYnFWHCPL4fH7SAciUkPrHLirMtHnxn8_hVmtVGrGCbAuZpR012-S0YPjqrZCHOEregw65B6z-UEOZcOK9jkuteTiHlz-sWJW7lOrgMuJF6lGOCWYMCi4RTsYkzI5sq4XyU0aOK3Fx4Ez9twkWI5yy_8InxP6cAfbOiwFVOribrAZteqFb_BCUF6bBLd2OzrK_arDFuLO75FMitPb6aql36HUNTfeBJr-QFvILFpt9Xbo"/>
+</div>
+<div class="flex gap-sm">
+<button class="p-base hover:bg-surface-container-highest transition-colors rounded-full active:scale-95">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-base hover:bg-surface-container-highest transition-colors rounded-full active:scale-95">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<button class="p-base hover:bg-surface-container-highest transition-colors rounded-full active:scale-95">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+</div>
+</div>
+<div class="flex-1 max-w-md mx-md">
+<div class="relative">
+<input class="w-full bg-surface-container-low border-none rounded-lg pr-lg pl-base py-sm text-body-md focus:ring-2 focus:ring-secondary" placeholder="بحث عن حالات أو مواد كيميائية..." type="text"/>
+<span class="material-symbols-outlined absolute right-base top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+</div>
+</div>
+<div class="font-display-lg text-headline-md text-primary dark:text-primary-fixed">
+            Toxicology Command Center
+        </div>
+</header>
+<!-- Main Content Canvas -->
+<main class="mr-64 pt-24 px-margin-desktop pb-xl min-h-screen">
+<!-- Dashboard Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- National Incident Monitor & Heatmap (Bento Style) -->
+<section class="col-span-12 lg:col-span-8 space-y-gutter">
+<div class="glass-card rounded-xl p-md">
+<div class="flex justify-between items-center mb-md">
+<div class="flex items-center gap-sm">
+<span class="w-3 h-3 bg-error rounded-full status-pulse"></span>
+<h2 class="font-headline-md text-headline-md text-primary">Live Incident Monitor</h2>
+</div>
+<div class="flex gap-xs">
+<span class="px-sm py-xs bg-error-container text-on-error-container rounded-full text-caption font-bold">Critical: 03</span>
+<span class="px-sm py-xs bg-tertiary-fixed text-on-tertiary-fixed rounded-full text-caption font-bold">Active: 12</span>
+</div>
+</div>
+<div class="relative h-96 w-full rounded-lg overflow-hidden bg-surface-container-highest mb-md">
+<img alt="Regional Incident Map" class="w-full h-full object-cover grayscale opacity-80 mix-blend-multiply" data-location="Saudi Arabia" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBucef1OdyJC6wgOZmUHxksJm45UErmeXgAJ1bWsitZTnm2vKmOs6VEJYuO8-ZTLqroQd9lFw1M8AOYAm8h5K8fP4U9B1dpkWxuoJ9wQ9KbKnOr-2SlhZHmYA5HUtTlYkbJoKvielolb7U7A2VOftwMHNYFl8BJ8jYPocjKOfZhxPdUG99RvXjVNcWg9bRe2VRNCKFDznJG6l7xKHhAFi1OEy8ewvYy5-Gfgmj3aS9rUYh0T5BAlRHzkjlJkxUUh_Bh_qQHV2xxwh0y"/>
+<!-- Heatmap Overlay simulation -->
+<div class="absolute inset-0 pointer-events-none">
+<div class="absolute top-1/4 right-1/3 w-32 h-32 bg-error/20 rounded-full blur-3xl"></div>
+<div class="absolute bottom-1/3 left-1/4 w-48 h-48 bg-secondary/20 rounded-full blur-3xl"></div>
+<!-- Live Markers -->
+<div class="absolute top-[30%] right-[40%] group cursor-pointer pointer-events-auto">
+<span class="material-symbols-outlined text-error text-[32px] status-pulse" data-icon="location_on" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<div class="hidden group-hover:block absolute top-full mt-2 right-0 glass-card p-sm rounded-lg min-w-[200px] z-10">
+<p class="font-bold text-error">Industrial Exposure</p>
+<p class="text-caption">Jubail Industrial City</p>
+<p class="text-caption text-outline">Lead poisoning suspect (3 subjects)</p>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-4 gap-sm text-center">
+<div class="p-sm bg-surface-container rounded-lg border-b-4 border-error">
+<p class="text-caption text-on-surface-variant">Pesticides</p>
+<p class="font-headline-md text-primary">08</p>
+</div>
+<div class="p-sm bg-surface-container rounded-lg border-b-4 border-secondary">
+<p class="text-caption text-on-surface-variant">Pharmaceuticals</p>
+<p class="font-headline-md text-primary">14</p>
+</div>
+<div class="p-sm bg-surface-container rounded-lg border-b-4 border-tertiary-fixed-dim">
+<p class="text-caption text-on-surface-variant">Industrial</p>
+<p class="font-headline-md text-primary">05</p>
+</div>
+<div class="p-sm bg-surface-container rounded-lg border-b-4 border-outline">
+<p class="text-caption text-on-surface-variant">Heavy Metals</p>
+<p class="font-headline-md text-primary">02</p>
+</div>
+</div>
+</div>
+<!-- Antidote Inventory Grid -->
+<div class="glass-card rounded-xl p-md">
+<div class="flex justify-between items-center mb-md">
+<h2 class="font-headline-md text-headline-md text-primary">Antidote Inventory Grid</h2>
+<button class="flex items-center gap-xs text-secondary font-bold text-label-md">
+<span class="material-symbols-outlined" data-icon="sync">sync</span> Update Stock
+                        </button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<!-- Inventory Card 1 -->
+<div class="p-md rounded-lg border border-outline-variant/30 bg-surface-container-low">
+<div class="flex justify-between items-start mb-sm">
+<span class="material-symbols-outlined text-secondary" data-icon="medication">medication</span>
+<span class="bg-secondary-container text-on-secondary-container px-sm py-xs rounded-full text-caption">Optimal</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-primary mb-xs">Atropine</h3>
+<p class="text-caption text-on-surface-variant mb-md">Organophosphate poisoning</p>
+<div class="w-full bg-outline-variant/30 h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 85%;"></div>
+</div>
+<p class="text-right text-caption mt-xs font-bold">1,240 Units (85%)</p>
+</div>
+<!-- Inventory Card 2 (Low Stock) -->
+<div class="p-md rounded-lg border-2 border-error/20 bg-error-container/10">
+<div class="flex justify-between items-start mb-sm">
+<span class="material-symbols-outlined text-error" data-icon="warning">warning</span>
+<span class="bg-error-container text-on-error-container px-sm py-xs rounded-full text-caption">Low Stock</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-primary mb-xs">N-acetylcysteine</h3>
+<p class="text-caption text-on-surface-variant mb-md">Acetaminophen overdose</p>
+<div class="w-full bg-outline-variant/30 h-2 rounded-full overflow-hidden">
+<div class="bg-error h-full status-pulse" style="width: 12%;"></div>
+</div>
+<p class="text-right text-caption mt-xs font-bold text-error">42 Units (12%)</p>
+</div>
+<!-- Inventory Card 3 -->
+<div class="p-md rounded-lg border border-outline-variant/30 bg-surface-container-low">
+<div class="flex justify-between items-start mb-sm">
+<span class="material-symbols-outlined text-secondary" data-icon="vaccines">vaccines</span>
+<span class="bg-tertiary-fixed text-on-tertiary-fixed px-sm py-xs rounded-full text-caption">Restocking</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-primary mb-xs">Digoxin Immune Fab</h3>
+<p class="text-caption text-on-surface-variant mb-md">Cardiac glycoside toxicity</p>
+<div class="w-full bg-outline-variant/30 h-2 rounded-full overflow-hidden">
+<div class="bg-tertiary-fixed-dim h-full" style="width: 48%;"></div>
+</div>
+<p class="text-right text-caption mt-xs font-bold">115 Units (48%)</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Sidebar Column: Lab Analysis & Protocols -->
+<aside class="col-span-12 lg:col-span-4 space-y-gutter">
+<!-- Rapid Response Protocols -->
+<div class="glass-card rounded-xl p-md border-r-4 border-error">
+<h2 class="font-headline-md text-headline-md text-primary mb-md">Rapid Response</h2>
+<div class="flex flex-col gap-sm">
+<button class="group flex items-center justify-between p-md bg-error text-on-error rounded-lg hover:bg-red-800 transition-all active:scale-95 shadow-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined" data-icon="campaign" data-weight="fill">campaign</span>
+<span class="font-bold text-label-md">Trigger National Alert</span>
+</div>
+<span class="material-symbols-outlined group-hover:-translate-x-1 transition-transform" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="group flex items-center justify-between p-md bg-primary text-on-primary rounded-lg hover:bg-primary-container transition-all active:scale-95 shadow-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
+<span class="font-bold text-label-md">Dispatch Antidote Courier</span>
+</div>
+<span class="material-symbols-outlined group-hover:-translate-x-1 transition-transform" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="group flex items-center justify-between p-md border border-secondary text-secondary rounded-lg hover:bg-secondary-container/10 transition-all active:scale-95">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined" data-icon="contact_emergency">contact_emergency</span>
+<span class="font-bold text-label-md">Consult Chief Toxicologist</span>
+</div>
+<span class="material-symbols-outlined group-hover:-translate-x-1 transition-transform" data-icon="chevron_left">chevron_left</span>
+</button>
+</div>
+</div>
+<!-- Lab Analysis Status -->
+<div class="glass-card rounded-xl p-md overflow-hidden relative">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-secondary to-tertiary-fixed"></div>
+<h2 class="font-headline-md text-headline-md text-primary mb-md">Lab Analysis Status</h2>
+<div class="space-y-md">
+<!-- Lab Item 1 -->
+<div class="flex items-start gap-md pb-md border-b border-outline-variant/20">
+<div class="bg-secondary-container/20 p-sm rounded-lg">
+<span class="material-symbols-outlined text-secondary" data-icon="biotech">biotech</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-xs">
+<p class="font-bold text-body-md text-primary">Sample #4829-X</p>
+<span class="text-caption bg-secondary-container text-on-secondary-container px-sm py-xs rounded-full">Processing</span>
+</div>
+<p class="text-caption text-on-surface-variant">Toxicology Screening (Liquid Chromatography)</p>
+<div class="flex items-center gap-xs mt-sm text-caption text-outline">
+<span class="material-symbols-outlined text-[14px]" data-icon="schedule">schedule</span>
+<span>Est. Completion: 45m</span>
+</div>
+</div>
+</div>
+<!-- Lab Item 2 -->
+<div class="flex items-start gap-md pb-md border-b border-outline-variant/20">
+<div class="bg-error-container/20 p-sm rounded-lg">
+<span class="material-symbols-outlined text-error" data-icon="bloodtype">bloodtype</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-xs">
+<p class="font-bold text-body-md text-primary">Specimen #1092-B</p>
+<span class="text-caption bg-error text-on-error px-sm py-xs rounded-full">CRITICAL</span>
+</div>
+<p class="text-caption text-on-surface-variant">High Lead Concentration Detected (Jubail)</p>
+<div class="flex items-center gap-xs mt-sm text-caption text-error font-bold">
+<span class="material-symbols-outlined text-[14px]" data-icon="emergency">emergency</span>
+<span>Immediate Notification Required</span>
+</div>
+</div>
+</div>
+<!-- Lab Item 3 -->
+<div class="flex items-start gap-md">
+<div class="bg-tertiary-container/20 p-sm rounded-lg">
+<span class="material-symbols-outlined text-tertiary-fixed-dim" data-icon="local_hospital">local_hospital</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-xs">
+<p class="font-bold text-body-md text-primary">Specimen #3301-K</p>
+<span class="text-caption bg-outline-variant text-on-surface-variant px-sm py-xs rounded-full">In Transit</span>
+</div>
+<p class="text-caption text-on-surface-variant">Origin: King Faisal Hospital, Jeddah</p>
+<div class="flex items-center gap-xs mt-sm text-caption text-outline">
+<span class="material-symbols-outlined text-[14px]" data-icon="distance">distance</span>
+<span>Arrival in 2.5 hrs</span>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-lg py-sm text-label-md font-bold text-secondary border border-secondary rounded-lg hover:bg-secondary-container/10">
+                        View All Lab Reports
+                    </button>
+</div>
+<!-- Environmental Heatmap Status -->
+<div class="glass-card rounded-xl p-md bg-primary-container text-on-primary-container">
+<h3 class="font-title-lg text-title-lg mb-sm">Heatmap Insights</h3>
+<p class="text-caption opacity-80 mb-md">Analyzing clusters across the Central Region. Current anomalies detected in Riyadh North Industrial zones.</p>
+<div class="flex flex-col gap-sm">
+<div class="flex justify-between text-caption border-b border-on-primary-container/20 pb-xs">
+<span>Detected Clusters</span>
+<span class="font-bold">02</span>
+</div>
+<div class="flex justify-between text-caption border-b border-on-primary-container/20 pb-xs">
+<span>Risk Factor</span>
+<span class="text-tertiary-fixed font-bold">Moderate Elevation</span>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Contextual FAB - Suppression Logic: Only for main dashboard -->
+<button class="fixed bottom-lg left-lg w-16 h-16 bg-error text-on-error rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group">
+<span class="material-symbols-outlined text-[32px]" data-icon="bolt" data-weight="fill">bolt</span>
+<span class="absolute right-full mr-4 px-md py-sm bg-inverse-surface text-inverse-on-surface rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-bold">
+            Emergency Dispatch
+        </span>
+</button>
+<script>
+        // Micro-interactions for live feed simulation
+        setInterval(() => {
+            const indicators = document.querySelectorAll('.status-pulse');
+            indicators.forEach(ind => {
+                ind.classList.remove('status-pulse');
+                void ind.offsetWidth; // Trigger reflow
+                ind.classList.add('status-pulse');
+            });
+        }, 3000);
+
+        // Sidebar responsive toggle (Simplified for demo)
+        const sidebar = document.querySelector('aside');
+        let isCollapsed = false;
+        // In a real scenario, this would handle mobile/desktop shifts
+    </script>
+</body></html>

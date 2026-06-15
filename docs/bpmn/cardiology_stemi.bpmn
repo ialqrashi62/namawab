@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Defs_cardio_stemi" targetNamespace="http://nama.local/bpmn">
+  <bpmn:collaboration id="Collab_stemi">
+    <bpmn:participant id="Pool_ED" name="ED" processRef="Proc_ED"/>
+    <bpmn:participant id="Pool_CathLab" name="Cath Lab" processRef="Proc_CathLab"/>
+    <bpmn:messageFlow id="MF_PageCath" sourceRef="Task_ActivateSTEMI" targetRef="Task_AcceptCase"/>
+    <bpmn:messageFlow id="MF_TransferIn" sourceRef="Task_TransferToCath" targetRef="Task_StartProcedure"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="Proc_ED" isExecutable="true">
+    <bpmn:startEvent id="Start_ED" name="Patient arrives with chest pain"/>
+    <bpmn:task id="Task_Triage" name="Triage + 12-lead ECG"/>
+    <bpmn:task id="Task_AIInterpret" name="AI interprets ECG"/>
+    <bpmn:exclusiveGateway id="GW_StemiDetected" name="STEMI confidence ≥ 0.90?"/>
+    <bpmn:task id="Task_PhysReview" name="Physician confirms STEMI"/>
+    <bpmn:task id="Task_ActivateSTEMI" name="Activate Code STEMI"/>
+    <bpmn:task id="Task_OrderBundle" name="Apply STEMI order bundle (ASA, NTG, Trop, Heparin)"/>
+    <bpmn:task id="Task_TransferToCath" name="Transfer patient to Cath Lab"/>
+    <bpmn:endEvent id="End_ED" name="ED handover complete"/>
+
+    <bpmn:sequenceFlow id="F1" sourceRef="Start_ED" targetRef="Task_Triage"/>
+    <bpmn:sequenceFlow id="F2" sourceRef="Task_Triage" targetRef="Task_AIInterpret"/>
+    <bpmn:sequenceFlow id="F3" sourceRef="Task_AIInterpret" targetRef="GW_StemiDetected"/>
+    <bpmn:sequenceFlow id="F4" name="Yes" sourceRef="GW_StemiDetected" targetRef="Task_PhysReview"/>
+    <bpmn:sequenceFlow id="F4n" name="No" sourceRef="GW_StemiDetected" targetRef="End_ED"/>
+    <bpmn:sequenceFlow id="F5" sourceRef="Task_PhysReview" targetRef="Task_ActivateSTEMI"/>
+    <bpmn:sequenceFlow id="F6" sourceRef="Task_ActivateSTEMI" targetRef="Task_OrderBundle"/>
+    <bpmn:sequenceFlow id="F7" sourceRef="Task_OrderBundle" targetRef="Task_TransferToCath"/>
+    <bpmn:sequenceFlow id="F8" sourceRef="Task_TransferToCath" targetRef="End_ED"/>
+  </bpmn:process>
+
+  <bpmn:process id="Proc_CathLab" isExecutable="true">
+    <bpmn:startEvent id="Start_Cath" name="STEMI page received"/>
+    <bpmn:task id="Task_AcceptCase" name="On-call accepts case"/>
+    <bpmn:task id="Task_PrepLab" name="Prep cath lab + team"/>
+    <bpmn:task id="Task_StartProcedure" name="Patient on table — angiography"/>
+    <bpmn:exclusiveGateway id="GW_PCI" name="PCI indicated?"/>
+    <bpmn:task id="Task_PCI" name="Perform PCI; balloon time recorded"/>
+    <bpmn:task id="Task_NoPCI" name="CABG referral / medical management"/>
+    <bpmn:task id="Task_PostOp" name="Recovery + ICU bed assignment"/>
+    <bpmn:endEvent id="End_Cath" name="Case completed; D2B captured"/>
+
+    <bpmn:sequenceFlow id="C1" sourceRef="Start_Cath" targetRef="Task_AcceptCase"/>
+    <bpmn:sequenceFlow id="C2" sourceRef="Task_AcceptCase" targetRef="Task_PrepLab"/>
+    <bpmn:sequenceFlow id="C3" sourceRef="Task_PrepLab" targetRef="Task_StartProcedure"/>
+    <bpmn:sequenceFlow id="C4" sourceRef="Task_StartProcedure" targetRef="GW_PCI"/>
+    <bpmn:sequenceFlow id="C5" name="Yes" sourceRef="GW_PCI" targetRef="Task_PCI"/>
+    <bpmn:sequenceFlow id="C5n" name="No" sourceRef="GW_PCI" targetRef="Task_NoPCI"/>
+    <bpmn:sequenceFlow id="C6" sourceRef="Task_PCI" targetRef="Task_PostOp"/>
+    <bpmn:sequenceFlow id="C6n" sourceRef="Task_NoPCI" targetRef="Task_PostOp"/>
+    <bpmn:sequenceFlow id="C7" sourceRef="Task_PostOp" targetRef="End_Cath"/>
+  </bpmn:process>
+</bpmn:definitions>

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | Central Pharmacy Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "tertiary-fixed-dim": "#e6c274",
+                "surface-container-low": "#f3f4f5",
+                "primary-fixed-dim": "#a8caef",
+                "inverse-surface": "#2e3132",
+                "surface-tint": "#406182",
+                "surface": "#f8f9fa",
+                "on-secondary-fixed-variant": "#004f54",
+                "on-background": "#191c1d",
+                "on-primary-fixed": "#001d34",
+                "tertiary-fixed": "#ffdf9d",
+                "primary": "#001629",
+                "outline": "#73777e",
+                "on-tertiary-fixed-variant": "#5b4300",
+                "on-surface-variant": "#42474d",
+                "secondary-fixed": "#7df4ff",
+                "on-secondary-container": "#006e75",
+                "surface-dim": "#d9dadb",
+                "primary-container": "#002b49",
+                "surface-container-lowest": "#ffffff",
+                "surface-container-highest": "#e1e3e4",
+                "primary-fixed": "#cfe5ff",
+                "on-secondary-fixed": "#002022",
+                "on-surface": "#191c1d",
+                "secondary-container": "#7af1fc",
+                "on-primary-container": "#7293b6",
+                "on-primary-fixed-variant": "#274969",
+                "on-tertiary-container": "#ac8c44",
+                "surface-bright": "#f8f9fa",
+                "on-primary": "#ffffff",
+                "error-container": "#ffdad6",
+                "surface-bright": "#f8f9fa",
+                "on-primary": "#ffffff",
+                "error-container": "#ffdad6",
+                "surface-variant": "#e1e3e4",
+                "secondary": "#006970",
+                "inverse-on-surface": "#f0f1f2",
+                "inverse-primary": "#a8caef",
+                "on-secondary": "#ffffff",
+                "background": "#f8f9fa",
+                "surface-container-high": "#e7e8e9",
+                "on-tertiary-fixed": "#251a00",
+                "tertiary-container": "#362700",
+                "on-error": "#ffffff",
+                "secondary-fixed-dim": "#5dd8e2",
+                "error": "#ba1a1a",
+                "outline-variant": "#c3c7ce",
+                "on-error-container": "#93000a",
+                "on-tertiary": "#ffffff",
+                "tertiary": "#1d1300",
+                "surface-container": "#edeeef"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "16px",
+                "full": "9999px"
+            },
+            "spacing": {
+                "sm": "12px",
+                "gutter": "24px",
+                "xs": "4px",
+                "margin-mobile": "16px",
+                "xl": "64px",
+                "margin-desktop": "48px",
+                "base": "8px",
+                "md": "24px",
+                "lg": "40px"
+            },
+            "fontFamily": {
+                "label-md": ["IBM Plex Sans"],
+                "caption": ["IBM Plex Sans"],
+                "display-lg": ["IBM Plex Sans"],
+                "headline-md": ["IBM Plex Sans"],
+                "headline-lg": ["IBM Plex Sans"],
+                "title-lg": ["IBM Plex Sans"],
+                "body-lg": ["IBM Plex Sans"],
+                "body-md": ["IBM Plex Sans"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-glow {
+            box-shadow: 0 0 15px rgba(0, 105, 112, 0.3);
+        }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .animate-pulse-soft {
+            animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- TopNavBar Implementation -->
+<header class="fixed top-0 right-0 w-full z-50 flex flex-row-reverse justify-between items-center px-margin-desktop h-20 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-md">
+<div class="hidden md:flex items-center gap-gutter ml-lg">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Logistics</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Operations</a>
+<a class="font-body-md text-body-md text-primary border-b-2 border-primary pb-1 font-bold" href="#">Human Resources</a>
+</div>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-all p-2 rounded-full hover:bg-surface-container-low" data-icon="help">help</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-all p-2 rounded-full hover:bg-surface-container-low" data-icon="settings">settings</span>
+<div class="relative">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-all p-2 rounded-full hover:bg-surface-container-low" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-surface-container-lowest"></span>
+</div>
+<img alt="Chief of Operations Profile" class="w-10 h-10 rounded-full border-2 border-outline-variant object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHcYhfqHeKMkNAvwJhN6_cO29R6dMV9Ba3dPzV-WkwWm2EPDZN83B82rswljC8UdCFqu2rHz9PvpdY0icLmj2nWPEYncWVzJlKKsKwVHJnP1856LaNgaHfrznnRaWzKnrbu2n5_u-QjS7SwKJTsoyhzUvV1m3rwmgAoGpgILAexBVbVpcW6r_HMOUPHRsCsWphOtFcZTeOuDKC0XMfIkK_7fP6U7jODLOKYq3RCPLEkDXBBKsHxGAgsJgOzgzip64kypPJee0OTVVd"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<h1 class="text-title-lg font-title-lg font-bold text-primary">Al-Command Center</h1>
+<div class="h-8 w-[1px] bg-outline-variant/50 mx-2"></div>
+<div class="relative hidden lg:block">
+<input class="bg-surface-container-low border-none rounded-full px-lg py-2 text-body-md w-64 focus:ring-2 focus:ring-secondary/30 transition-all" placeholder="Search pharmacy database..." type="text"/>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+</div>
+</div>
+</header>
+<!-- SideNavBar Implementation -->
+<aside class="fixed inset-y-0 right-0 flex flex-col pt-24 pb-8 px-sm z-40 bg-primary w-80 shadow-xl border-l border-outline-variant/10">
+<div class="px-md mb-lg">
+<div class="flex items-center gap-sm mb-xs">
+<div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white" data-icon="local_pharmacy">local_pharmacy</span>
+</div>
+<div>
+<h2 class="text-white font-headline-sm text-headline-sm">National Health Command</h2>
+<p class="text-on-primary/70 font-label-md text-label-md">Riyadh Region HQ</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-sm space-y-2">
+<a class="flex items-center gap-md px-md py-3 bg-secondary-container text-on-secondary-container rounded-lg font-bold transition-all translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="emergency_home">emergency_home</span>
+<span class="font-label-md text-label-md">Incident Command</span>
+</a>
+<a class="flex items-center gap-md px-md py-3 text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
+<span class="font-label-md text-label-md">Fleet Logistics</span>
+</a>
+<a class="flex items-center gap-md px-md py-3 text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-label-md text-label-md">Resource Hub</span>
+</a>
+<a class="flex items-center gap-md px-md py-3 text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="font-label-md text-label-md">Staff Management</span>
+</a>
+<a class="flex items-center gap-md px-md py-3 text-on-primary/70 hover:bg-white/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-md text-label-md">Payroll</span>
+</a>
+</nav>
+<div class="mt-auto px-md space-y-4">
+<button class="w-full bg-error text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:scale-[1.02] active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+                Trigger Emergency Alert
+            </button>
+<div class="pt-md border-t border-white/10">
+<a class="flex items-center gap-md px-md py-2 text-on-primary/70 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="support_agent">support_agent</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex items-center gap-md px-md py-2 text-on-primary/70 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="mr-80 pt-24 min-h-screen px-margin-desktop pb-xl">
+<!-- Header & Breadcrumbs -->
+<div class="mb-lg flex justify-between items-end">
+<div>
+<p class="text-secondary font-label-md text-label-md mb-xs">Operations / Specialized Services</p>
+<h2 class="text-primary font-headline-lg text-headline-lg">Central Pharmacy &amp; Robotic Dispensing Hub</h2>
+</div>
+<div class="flex gap-sm">
+<div class="flex items-center gap-xs bg-white border border-outline-variant/30 px-md py-2 rounded-lg shadow-sm">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse-soft"></span>
+<span class="font-label-md text-label-md text-on-surface-variant">System Status: Optimal</span>
+</div>
+<div class="bg-primary text-white px-md py-2 rounded-lg font-label-md text-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]" data-icon="calendar_today">calendar_today</span>
+                    24 Oct 2024 | 14:32 AST
+                </div>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Robotic Arms Status (Large Left Column) -->
+<div class="col-span-12 lg:col-span-8 space-y-gutter">
+<div class="glass-card rounded-xl p-lg overflow-hidden relative">
+<div class="flex justify-between items-center mb-lg">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary" data-icon="precision_manufacturing">precision_manufacturing</span>
+<h3 class="text-primary font-headline-md text-headline-md">Active Robotic Dispensing Arms</h3>
+</div>
+<button class="text-secondary font-label-md text-label-md hover:underline">View Maintenance Logs</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Arm 1 Card -->
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md flex flex-col gap-sm relative">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="text-on-surface font-title-lg text-title-lg">Unit AL-PHA 01</h4>
+<p class="text-on-surface-variant font-caption text-caption">Serial: SH-P-9920</p>
+</div>
+<span class="bg-secondary/10 text-secondary px-sm py-1 rounded-full font-label-md text-label-md">Active</span>
+</div>
+<div class="h-40 w-full bg-surface-container rounded-lg overflow-hidden relative">
+<img class="w-full h-full object-cover opacity-80" data-alt="Close up of a precision robotic arm working in a pharmaceutical clean room with sterile laboratory equipment and soft teal lighting creating a professional medical atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjm79pQtN3Rb0244jcope5WIVS4KlvXhZgUTtUv8AZPAqp2qnMia-4-onmHuUScCnMZyS1cE9pV7--oVkEvsO8lOBAmAlfSd5PTfztE40PDgH6taxHwcrFwJZrfkhDiiBTZNL99E8jszOno4r4cVbXUhcmKVkrY3xPXoBoXMK6rGgrE94yYJfLRDN71JiENbmheDAQoCwBdLzjd9atUi19gdGL20xJ-U2bJr7NCW5Upvry11BHv6H15gQmYj_IPnLhk9rEXB8ojpkn"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+<div class="absolute bottom-3 left-3 right-3 flex justify-between items-end text-white">
+<div>
+<p class="font-caption text-caption opacity-80">Current Task</p>
+<p class="font-label-md text-label-md">Sorting ICU IV Bags</p>
+</div>
+<p class="font-headline-md text-headline-md">84%</p>
+</div>
+</div>
+<div class="w-full bg-outline-variant/20 h-1 rounded-full">
+<div class="bg-secondary h-full rounded-full w-[84%]"></div>
+</div>
+</div>
+<!-- Arm 2 Card -->
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md flex flex-col gap-sm">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="text-on-surface font-title-lg text-title-lg">Unit AL-PHA 02</h4>
+<p class="text-on-surface-variant font-caption text-caption">Serial: SH-P-9921</p>
+</div>
+<span class="bg-secondary/10 text-secondary px-sm py-1 rounded-full font-label-md text-label-md">Active</span>
+</div>
+<div class="h-40 w-full bg-surface-container rounded-lg overflow-hidden relative">
+<img class="w-full h-full object-cover opacity-80" data-alt="An industrial pharmaceutical robotic dispensing system in a high-tech lab with glowing teal indicator lights and rows of medication bottles being processed under bright professional studio lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCm27D5yf94Y7ieJM9t5-XX48iIiwZAWe0EuMy0wP4B1z5U0f6BgFJypYMx8AyDwxDO99-5bPqamECoLuyey3AF2apQLbS5kHJUUq2ev0ZQIDaKilAt0kZWRrkPChCNrsiYj0IwqRTBjMYMOV4BKEH_OmHP2a4F66TFXpkxTxA6S_3MZbLhI6f1TpOY-rg66dtWZeBMovY34NCXCxTP-u1DYqFtoTMlDf2MExHgJ7Lo4yeyxBTWkkOQFpkpOinIpJZLAyBo0pg_WQz3"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+<div class="absolute bottom-3 left-3 right-3 flex justify-between items-end text-white">
+<div>
+<p class="font-caption text-caption opacity-80">Current Task</p>
+<p class="font-label-md text-label-md">Tablet Packaging</p>
+</div>
+<p class="font-headline-md text-headline-md">12%</p>
+</div>
+</div>
+<div class="w-full bg-outline-variant/20 h-1 rounded-full">
+<div class="bg-secondary h-full rounded-full w-[12%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Urgent STAT Orders -->
+<div class="glass-card rounded-xl p-lg">
+<div class="flex justify-between items-center mb-lg">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-error" data-icon="electric_bolt" style="font-variation-settings: 'FILL' 1;">electric_bolt</span>
+<h3 class="text-primary font-headline-md text-headline-md">Urgent STAT Order Tracking</h3>
+</div>
+<div class="flex gap-2">
+<span class="bg-error/10 text-error px-md py-1 rounded-full font-bold text-label-md">3 CRITICAL</span>
+<span class="bg-on-surface-variant/10 text-on-surface-variant px-md py-1 rounded-full font-label-md text-label-md">12 TOTAL</span>
+</div>
+</div>
+<div class="space-y-sm">
+<!-- STAT Entry -->
+<div class="flex items-center gap-md p-md bg-error-container/20 border border-error/20 rounded-xl hover:bg-error-container/30 transition-all cursor-pointer">
+<div class="flex flex-col items-center justify-center w-12 h-12 bg-error text-white rounded-lg">
+<span class="font-bold text-title-lg">04</span>
+<span class="text-[10px] uppercase">Min</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<h5 class="text-primary font-bold text-body-md">ER-402 | Epinephrine Auto-Injector</h5>
+<span class="text-error font-bold font-label-md text-label-md">EMERGENCY</span>
+</div>
+<p class="text-on-surface-variant font-caption text-caption">Patient: Fahad Al-Otaibi | ID: 992-001 | Requested by: Dr. Sarah S.</p>
+</div>
+<button class="bg-primary text-white px-lg py-2 rounded-lg font-label-md text-label-md">Prioritize</button>
+</div>
+<!-- STAT Entry -->
+<div class="flex items-center gap-md p-md bg-surface-container-lowest border border-outline-variant/30 rounded-xl hover:bg-surface-container-high transition-all cursor-pointer">
+<div class="flex flex-col items-center justify-center w-12 h-12 bg-tertiary-container text-on-tertiary-container rounded-lg">
+<span class="font-bold text-title-lg">12</span>
+<span class="text-[10px] uppercase">Min</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<h5 class="text-primary font-bold text-body-md">ICU-B12 | Propofol Infusion</h5>
+<span class="text-on-tertiary-container font-bold font-label-md text-label-md">URGENT</span>
+</div>
+<p class="text-on-surface-variant font-caption text-caption">Patient: Mariam K. | ID: 442-105 | Requested by: Nurse Ahmed</p>
+</div>
+<button class="border border-primary text-primary px-lg py-2 rounded-lg font-label-md text-label-md hover:bg-primary/5">Assigned</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column (Inventory & Sensors) -->
+<div class="col-span-12 lg:col-span-4 space-y-gutter">
+<!-- Inventory AI Alerts -->
+<div class="glass-card rounded-xl p-lg">
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-secondary" data-icon="inventory_2">inventory_2</span>
+<h3 class="text-primary font-headline-md text-headline-md">Inventory Alerts</h3>
+</div>
+<div class="space-y-md">
+<!-- AI Insight Card -->
+<div class="p-md bg-primary-container text-on-primary-container rounded-xl">
+<div class="flex items-center gap-xs mb-xs">
+<span class="material-symbols-outlined text-[18px]" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-bold font-label-md text-label-md">AI PREDICTION</span>
+</div>
+<p class="text-body-md font-body-md leading-snug">Insulin Glargine stock expected to deplete within 14 hours based on current ICU admission rates.</p>
+</div>
+<!-- Inventory List -->
+<div class="space-y-sm">
+<div class="flex items-center justify-between p-sm border-b border-outline-variant/10">
+<div>
+<p class="font-bold text-on-surface text-body-md">Amoxicillin 500mg</p>
+<p class="font-caption text-caption text-on-surface-variant">420 Units Remaining</p>
+</div>
+<span class="bg-secondary/10 text-secondary px-sm py-1 rounded-full text-caption font-bold">Stable</span>
+</div>
+<div class="flex items-center justify-between p-sm border-b border-outline-variant/10">
+<div>
+<p class="font-bold text-on-surface text-body-md">Insulin Glargine</p>
+<p class="font-caption text-caption text-error font-bold">12 Units Remaining</p>
+</div>
+<span class="bg-error/10 text-error px-sm py-1 rounded-full text-caption font-bold">Low Stock</span>
+</div>
+<div class="flex items-center justify-between p-sm border-b border-outline-variant/10">
+<div>
+<p class="font-bold text-on-surface text-body-md">Morphine Sulfate</p>
+<p class="font-caption text-caption text-on-surface-variant">88 Units Remaining</p>
+</div>
+<span class="bg-tertiary-container/20 text-on-tertiary-container px-sm py-1 rounded-full text-caption font-bold">Restocking</span>
+</div>
+</div>
+</div>
+<button class="w-full mt-lg py-3 border-2 border-dashed border-outline-variant text-on-surface-variant rounded-xl font-label-md text-label-md hover:bg-surface-container transition-all">
+                        View Full Inventory Report
+                    </button>
+</div>
+<!-- Climate Control / Cold Chain -->
+<div class="glass-card rounded-xl p-lg overflow-hidden relative">
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-secondary" data-icon="ac_unit">ac_unit</span>
+<h3 class="text-primary font-headline-md text-headline-md">Cold Chain Monitor</h3>
+</div>
+<div class="flex flex-col gap-lg">
+<div class="flex items-center justify-center p-lg relative">
+<!-- Circular Gauge Simulation -->
+<div class="w-40 h-40 rounded-full border-8 border-secondary border-t-outline-variant/20 -rotate-45 flex items-center justify-center">
+<div class="rotate-45 text-center">
+<p class="text-primary font-headline-lg text-headline-lg">3.4°C</p>
+<p class="text-on-surface-variant font-caption text-caption">Optimal</p>
+</div>
+</div>
+<!-- Ambient Glow -->
+<div class="absolute inset-0 bg-secondary/5 blur-3xl rounded-full"></div>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div class="bg-surface-container-low p-md rounded-xl">
+<p class="text-on-surface-variant font-caption text-caption">Humidity</p>
+<p class="text-primary font-title-lg text-title-lg">42%</p>
+</div>
+<div class="bg-surface-container-low p-md rounded-xl">
+<p class="text-on-surface-variant font-caption text-caption">Sensor Status</p>
+<p class="text-secondary font-title-lg text-title-lg">Active</p>
+</div>
+</div>
+<div class="space-y-sm">
+<div class="flex items-center justify-between text-caption text-on-surface-variant">
+<span>Vault 01 (Deep Freeze)</span>
+<span class="text-error">-18.2°C</span>
+</div>
+<div class="w-full bg-outline-variant/20 h-1 rounded-full">
+<div class="bg-error h-full rounded-full w-[92%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Implementation -->
+<footer class="w-full py-md px-margin-desktop flex flex-row-reverse justify-between items-center bg-surface-container-high border-t border-outline-variant/30 mt-xl">
+<div class="flex gap-lg">
+<a class="text-on-surface-variant hover:text-secondary transition-colors font-body-md text-body-md" href="#">Regional Compliance</a>
+<a class="text-on-surface-variant hover:text-secondary transition-colors font-body-md text-body-md" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-secondary transition-colors font-body-md text-body-md" href="#">Terms of Service</a>
+</div>
+<div class="flex items-center gap-md">
+<p class="text-on-surface font-caption text-caption">© 2024 Command Center. All Rights Reserved. Ministry of Health Standards Compliant.</p>
+<div class="font-bold text-primary">SaudiHealth</div>
+</div>
+</footer>
+<!-- FAB for Urgent Task -->
+<button class="fixed bottom-margin-desktop left-margin-desktop w-14 h-14 bg-secondary text-white rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group">
+<span class="material-symbols-outlined group-hover:rotate-90 transition-transform" data-icon="add">add</span>
+<div class="absolute right-16 bg-primary text-white px-md py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            New Pharmacy Order
+        </div>
+</button>
+<script>
+        // Simple micro-interactions for the robotic progress bars
+        document.addEventListener('DOMContentLoaded', () => {
+            const bars = document.querySelectorAll('.bg-secondary.h-full');
+            bars.forEach(bar => {
+                const targetWidth = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.transition = 'width 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                    bar.style.width = targetWidth;
+                }, 500);
+            });
+        });
+    </script>
+</body></html>

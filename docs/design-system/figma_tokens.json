@@ -1,0 +1,28 @@
+{
+  "namaMedical": {
+    "colors": {
+      "primary": { "value": "#1a5276", "type": "color" },
+      "secondary": { "value": "#2980b9", "type": "color" },
+      "accent": { "value": "#e74c3c", "type": "color" },
+      "success": { "value": "#27ae60", "type": "color" },
+      "warning": { "value": "#f39c12", "type": "color" },
+      "danger": { "value": "#c0392b", "type": "color" }
+    },
+    "typography": {
+      "fontFamilies": {
+        "primary": { "value": "Inter", "type": "fontFamilies" },
+        "arabic": { "value": "Tajawal", "type": "fontFamilies" }
+      },
+      "fontSizes": {
+        "h1": { "value": "32px", "type": "fontSizes" },
+        "h2": { "value": "24px", "type": "fontSizes" },
+        "body": { "value": "16px", "type": "fontSizes" }
+      }
+    },
+    "spacing": {
+      "small": { "value": "8px", "type": "spacing" },
+      "medium": { "value": "16px", "type": "spacing" },
+      "large": { "value": "24px", "type": "spacing" }
+    }
+  }
+}

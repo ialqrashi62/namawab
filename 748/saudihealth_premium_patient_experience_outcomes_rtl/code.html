@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | تجربة المريض والنتائج</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary": "#006970",
+                    "surface-tint": "#406182",
+                    "secondary-fixed-dim": "#5dd8e2",
+                    "tertiary-fixed-dim": "#e6c274",
+                    "surface-dim": "#d9dadb",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#42474d",
+                    "inverse-surface": "#2e3132",
+                    "outline": "#73777e",
+                    "error": "#ba1a1a",
+                    "primary-fixed": "#cfe5ff",
+                    "tertiary": "#1d1300",
+                    "outline-variant": "#c3c7ce",
+                    "on-primary-container": "#7293b6",
+                    "surface-variant": "#e1e3e4",
+                    "secondary-container": "#7af1fc",
+                    "primary": "#001629",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "secondary-fixed": "#7df4ff",
+                    "surface-bright": "#f8f9fa",
+                    "inverse-primary": "#a8caef",
+                    "tertiary-container": "#362700",
+                    "error-container": "#ffdad6",
+                    "on-surface": "#191c1d",
+                    "on-secondary-fixed": "#002022",
+                    "surface-container-highest": "#e1e3e4",
+                    "primary-fixed-dim": "#a8caef",
+                    "on-background": "#191c1d",
+                    "tertiary-fixed": "#ffdf9d",
+                    "background": "#f8f9fa",
+                    "surface": "#f8f9fa",
+                    "on-primary-fixed-variant": "#274969",
+                    "inverse-on-surface": "#f0f1f2",
+                    "on-tertiary-fixed-variant": "#5b4300",
+                    "surface-container-low": "#f3f4f5",
+                    "on-primary-fixed": "#001d34",
+                    "surface-container": "#edeeef",
+                    "on-error-container": "#93000a",
+                    "primary-container": "#002b49",
+                    "on-tertiary-container": "#ac8c44",
+                    "on-tertiary-fixed": "#251a00",
+                    "on-primary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "surface-container-high": "#e7e8e9",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-container": "#006e75"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "lg": "40px",
+                    "base": "8px",
+                    "xl": "64px",
+                    "gutter": "24px",
+                    "margin-desktop": "48px",
+                    "md": "24px",
+                    "xs": "4px",
+                    "sm": "12px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "body-lg": ["IBM Plex Sans"],
+                    "label-md": ["IBM Plex Sans"],
+                    "caption": ["IBM Plex Sans"],
+                    "display-lg": ["IBM Plex Sans"],
+                    "body-md": ["IBM Plex Sans"],
+                    "title-lg": ["IBM Plex Sans"],
+                    "headline-md": ["IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sidebar-active {
+            background-color: #001629;
+            color: white;
+        }
+        .rtl-flip {
+            transform: scaleX(-1);
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- TopNavBar -->
+<nav class="fixed top-0 z-50 w-full h-20 bg-surface/80 backdrop-blur-xl border-b border-outline/10 shadow-sm">
+<div class="flex justify-between items-center w-full px-margin-desktop max-w-[1440px] mx-auto h-full">
+<div class="flex items-center gap-xl">
+<span class="text-title-lg font-title-lg font-bold text-primary">SaudiHealth Premium</span>
+<div class="hidden md:flex gap-md items-center">
+<a class="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors duration-200" href="#">Solutions</a>
+<a class="text-secondary font-bold border-b-2 border-secondary pb-1 font-body-md text-body-md" href="#">Ecosystem</a>
+<a class="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors duration-200" href="#">Compliance</a>
+<a class="text-on-surface-variant font-body-md text-body-md hover:text-secondary transition-colors duration-200" href="#">About Us</a>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="text-on-surface font-body-md text-body-md hover:text-secondary transition-colors">العربية</button>
+<button class="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-md text-label-md hover:opacity-90 transition-all">Portal Login</button>
+</div>
+</div>
+</nav>
+<main class="pt-20 min-h-screen flex">
+<!-- Right Navigation Rail (RTL) -->
+<aside class="w-64 bg-surface-container-lowest border-l border-outline/10 h-[calc(100vh-80px)] sticky top-20 hidden lg:flex flex-col p-md gap-base">
+<div class="flex items-center gap-sm p-sm rounded-xl sidebar-active">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">ملخص النتائج</span>
+</div>
+<div class="flex items-center gap-sm p-sm rounded-xl text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer">
+<span class="material-symbols-outlined">patient_list</span>
+<span class="font-label-md text-label-md">رحلة المريض</span>
+</div>
+<div class="flex items-center gap-sm p-sm rounded-xl text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer">
+<span class="material-symbols-outlined">verified_user</span>
+<span class="font-label-md text-label-md">تقارير الامتثال</span>
+</div>
+<div class="flex items-center gap-sm p-sm rounded-xl text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-md text-label-md">التحليلات المتقدمة</span>
+</div>
+<div class="mt-auto flex items-center gap-sm p-sm rounded-xl text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">الإعدادات</span>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<div class="flex-1 p-gutter max-w-[1184px] mx-auto w-full">
+<!-- Header Section -->
+<header class="mb-xl flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary mb-xs">تجربة المريض والنتائج السريرية</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">نظام متكامل لمراقبة جودة الرعاية الصحية، رضا المرضى، والامتثال للمعايير الدولية والمحلية (MOH &amp; CHI).</p>
+</div>
+<div class="flex gap-sm">
+<button class="flex items-center gap-xs border border-secondary text-secondary px-md py-sm rounded-lg hover:bg-secondary/5 transition-all">
+<span class="material-symbols-outlined">download</span>
+<span class="font-label-md text-label-md">تصدير التقرير</span>
+</button>
+<button class="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-md text-label-md flex items-center gap-xs">
+<span class="material-symbols-outlined">add</span>
+<span>تحديث البيانات</span>
+</button>
+</div>
+</header>
+<!-- Bento Grid: Key Performance Indicators -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-xl">
+<!-- CSAT Score -->
+<div class="glass-card p-md rounded-xl md:col-span-1">
+<div class="flex justify-between items-start mb-sm">
+<span class="text-on-surface-variant font-label-md text-label-md">معدل رضا المريض (CSAT)</span>
+<span class="material-symbols-outlined text-secondary">sentiment_very_satisfied</span>
+</div>
+<div class="flex items-baseline gap-xs mb-xs">
+<span class="font-headline-lg text-headline-lg text-primary">4.8</span>
+<span class="font-label-md text-label-md text-secondary">/ 5.0</span>
+</div>
+<div class="flex items-center gap-xs text-secondary">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+<span class="font-caption text-caption">+2.4% عن الشهر الماضي</span>
+</div>
+</div>
+<!-- Recovery Rate -->
+<div class="glass-card p-md rounded-xl md:col-span-1">
+<div class="flex justify-between items-start mb-sm">
+<span class="text-on-surface-variant font-label-md text-label-md">معدل التعافي السريري</span>
+<span class="material-symbols-outlined text-tertiary-container">health_and_safety</span>
+</div>
+<div class="flex items-baseline gap-xs mb-xs">
+<span class="font-headline-lg text-headline-lg text-primary">94.2%</span>
+</div>
+<div class="flex items-center gap-xs text-secondary">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+<span class="font-caption text-caption">مستقر ضمن الأهداف</span>
+</div>
+</div>
+<!-- Compliance Score -->
+<div class="glass-card p-md rounded-xl md:col-span-2 bg-gradient-to-br from-primary/5 to-transparent">
+<div class="flex justify-between items-start mb-sm">
+<div>
+<span class="text-on-surface-variant font-label-md text-label-md">الامتثال لمعايير CHI &amp; MOH</span>
+<div class="flex items-center gap-xs mt-xs">
+<span class="bg-secondary/10 text-secondary px-sm py-[2px] rounded-full font-caption text-caption">فئة بلاتينية</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary">verified</span>
+</div>
+<div class="flex items-center gap-lg mt-md">
+<div class="flex-1 h-3 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[98%] rounded-full shadow-[0_0_10px_rgba(0,105,112,0.3)]"></div>
+</div>
+<span class="font-title-lg text-title-lg text-primary">98%</span>
+</div>
+</div>
+</section>
+<!-- Main Analytics Section -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-gutter mb-xl">
+<!-- Post-Discharge Journey Tracker -->
+<div class="lg:col-span-2 glass-card rounded-xl p-lg">
+<div class="flex justify-between items-center mb-lg">
+<h3 class="font-headline-md text-headline-md text-primary">تتبع رحلة المريض بعد الخروج</h3>
+<div class="flex gap-xs">
+<button class="bg-surface-variant/50 px-sm py-xs rounded text-caption font-label-md">أسبوعي</button>
+<button class="bg-primary text-on-primary px-sm py-xs rounded text-caption font-label-md">شهري</button>
+</div>
+</div>
+<div class="relative h-64 w-full flex items-end justify-between px-md pt-md">
+<!-- Abstract Bar Chart Representative -->
+<div class="w-12 bg-secondary/20 rounded-t-lg relative group transition-all hover:bg-secondary/40" style="height: 60%;">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-on-primary px-xs py-1 rounded text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">يوم 1: 98%</div>
+</div>
+<div class="w-12 bg-secondary/30 rounded-t-lg relative group transition-all hover:bg-secondary/50" style="height: 45%;"></div>
+<div class="w-12 bg-secondary/40 rounded-t-lg relative group transition-all hover:bg-secondary/60" style="height: 75%;"></div>
+<div class="w-12 bg-secondary/50 rounded-t-lg relative group transition-all hover:bg-secondary/70" style="height: 85%;"></div>
+<div class="w-12 bg-secondary/60 rounded-t-lg relative group transition-all hover:bg-secondary/80" style="height: 70%;"></div>
+<div class="w-12 bg-secondary/70 rounded-t-lg relative group transition-all hover:bg-secondary/90" style="height: 90%;"></div>
+<div class="w-12 bg-secondary rounded-t-lg relative group transition-all" style="height: 95%;"></div>
+</div>
+<div class="flex justify-between mt-sm text-on-surface-variant font-caption text-caption px-md">
+<span>الخروج</span>
+<span>مكالمة متابعة</span>
+<span>فحص منزلي</span>
+<span>مراجعة العيادة</span>
+<span>التقييم النهائي</span>
+</div>
+<div class="mt-lg border-t border-outline/5 pt-md grid grid-cols-3 gap-md">
+<div class="flex flex-col">
+<span class="text-on-surface-variant font-caption text-caption">متوسط وقت الاستجابة</span>
+<span class="font-title-lg text-title-lg text-primary">1.2 ساعة</span>
+</div>
+<div class="flex flex-col">
+<span class="text-on-surface-variant font-caption text-caption">إعادة الإدخال (30 يوم)</span>
+<span class="font-title-lg text-title-lg text-error">1.5%</span>
+</div>
+<div class="flex flex-col">
+<span class="text-on-surface-variant font-caption text-caption">معدل إكمال المتابعة</span>
+<span class="font-title-lg text-title-lg text-secondary">92%</span>
+</div>
+</div>
+</div>
+<!-- Clinical Satisfaction Heatmap / Distribution -->
+<div class="lg:col-span-1 glass-card rounded-xl p-lg flex flex-col">
+<h3 class="font-headline-md text-headline-md text-primary mb-md">توزيع رضا الأقسام</h3>
+<div class="space-y-md flex-1">
+<div>
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md">الطوارئ</span>
+<span class="font-label-md text-label-md text-secondary">4.9/5.0</span>
+</div>
+<div class="w-full bg-surface-variant rounded-full h-1.5">
+<div class="bg-secondary h-full rounded-full w-[98%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md">جراحة القلب</span>
+<span class="font-label-md text-label-md text-secondary">4.7/5.0</span>
+</div>
+<div class="w-full bg-surface-variant rounded-full h-1.5">
+<div class="bg-secondary h-full rounded-full w-[94%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md">الأطفال</span>
+<span class="font-label-md text-label-md text-secondary">4.6/5.0</span>
+</div>
+<div class="w-full bg-surface-variant rounded-full h-1.5">
+<div class="bg-secondary h-full rounded-full w-[92%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-xs">
+<span class="font-label-md text-label-md">الأشعة</span>
+<span class="font-label-md text-label-md text-secondary">4.8/5.0</span>
+</div>
+<div class="w-full bg-surface-variant rounded-full h-1.5">
+<div class="bg-secondary h-full rounded-full w-[96%]"></div>
+</div>
+</div>
+</div>
+<div class="mt-lg p-sm bg-tertiary-fixed/10 rounded-lg flex items-start gap-sm">
+<span class="material-symbols-outlined text-on-tertiary-container">lightbulb</span>
+<p class="font-caption text-caption text-on-tertiary-container">تحليل: ارتفاع بنسبة 12% في رضا قسم الطوارئ بعد تطبيق نظام الفرز الذكي الجديد.</p>
+</div>
+</div>
+</section>
+<!-- Clinical Quality Compliance Report Section -->
+<section class="glass-card rounded-xl overflow-hidden mb-xl">
+<div class="p-lg border-b border-outline/5 flex justify-between items-center bg-primary text-on-primary">
+<h3 class="font-headline-md text-headline-md">سجل الامتثال والجودة السريرية</h3>
+<div class="flex gap-sm">
+<span class="flex items-center gap-xs font-caption text-caption text-on-primary/80">
+<span class="w-2 h-2 rounded-full bg-secondary-fixed"></span> ممتثل بالكامل
+                        </span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead>
+<tr class="bg-surface-container text-on-surface-variant font-label-md text-label-md">
+<th class="p-md font-medium">المؤشر السريري</th>
+<th class="p-md font-medium">المعيار (Benchmark)</th>
+<th class="p-md font-medium">الأداء الحالي</th>
+<th class="p-md font-medium">تاريخ المراجعة</th>
+<th class="p-md font-medium">الحالة</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md">
+<tr class="border-b border-outline/5 hover:bg-surface-container-low transition-colors">
+<td class="p-md flex items-center gap-sm">
+<span class="w-8 h-8 rounded bg-primary/5 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">assignment_turned_in</span>
+</span>
+                                    إدارة الأدوية (MOH-12)
+                                </td>
+<td class="p-md">95%</td>
+<td class="p-md font-bold">99.2%</td>
+<td class="p-md text-on-surface-variant">14 أكتوبر 2024</td>
+<td class="p-md">
+<span class="bg-secondary/10 text-secondary px-sm py-[2px] rounded-full font-caption text-caption">مكتمل</span>
+</td>
+</tr>
+<tr class="border-b border-outline/5 hover:bg-surface-container-low transition-colors">
+<td class="p-md flex items-center gap-sm">
+<span class="w-8 h-8 rounded bg-primary/5 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">retention</span>
+</span>
+                                    مكافحة العدوى السريرية
+                                </td>
+<td class="p-md">98%</td>
+<td class="p-md font-bold">97.8%</td>
+<td class="p-md text-on-surface-variant">12 أكتوبر 2024</td>
+<td class="p-md">
+<span class="bg-tertiary-fixed/20 text-on-tertiary-fixed-variant px-sm py-[2px] rounded-full font-caption text-caption">قيد المراجعة</span>
+</td>
+</tr>
+<tr class="border-b border-outline/5 hover:bg-surface-container-low transition-colors">
+<td class="p-md flex items-center gap-sm">
+<span class="w-8 h-8 rounded bg-primary/5 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">description</span>
+</span>
+                                    دقة السجلات الإلكترونية
+                                </td>
+<td class="p-md">100%</td>
+<td class="p-md font-bold">100%</td>
+<td class="p-md text-on-surface-variant">10 أكتوبر 2024</td>
+<td class="p-md">
+<span class="bg-secondary/10 text-secondary px-sm py-[2px] rounded-full font-caption text-caption">مكتمل</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full px-margin-desktop py-xl flex flex-col md:flex-row justify-between items-center gap-md bg-primary text-on-primary">
+<div class="flex flex-col items-center md:items-start gap-sm">
+<span class="text-headline-md font-headline-md text-on-primary">SaudiHealth Premium</span>
+<p class="font-caption text-caption text-surface-variant/70">© 2024 SaudiHealth Premium. All Rights Reserved. Regulated by MOH &amp; CHI.</p>
+</div>
+<div class="flex gap-lg flex-wrap justify-center">
+<a class="font-caption text-caption text-surface-variant/70 hover:text-secondary-fixed transition-colors" href="#">Privacy Policy</a>
+<a class="font-caption text-caption text-surface-variant/70 hover:text-secondary-fixed transition-colors" href="#">Compliance Standards</a>
+<a class="font-caption text-caption text-surface-variant/70 hover:text-secondary-fixed transition-colors" href="#">Contact Support</a>
+<a class="font-caption text-caption text-surface-variant/70 hover:text-secondary-fixed transition-colors" href="#">Riyadh HQ</a>
+</div>
+</footer>
+<!-- Visual Accents & Micro-interactions -->
+<div class="fixed top-20 right-0 w-1 h-[calc(100vh-80px)] bg-gradient-to-b from-secondary to-transparent opacity-30"></div>
+<script>
+        // Micro-interaction for hover states on bars
+        document.querySelectorAll('.group').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                el.style.boxShadow = '0 0 20px rgba(0, 105, 112, 0.2)';
+            });
+            el.addEventListener('mouseleave', () => {
+                el.style.boxShadow = 'none';
+            });
+        });
+
+        // Add a smooth fade-in effect to cards
+        const observerOptions = {
+            threshold: 0.1
+        };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100');
+                    entry.target.classList.remove('opacity-0', 'translate-y-4');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-4');
+            observer.observe(card);
+        });
+    </script>
+</body></html>

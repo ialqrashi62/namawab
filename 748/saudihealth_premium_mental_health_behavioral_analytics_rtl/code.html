@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | لوحة تحليلات الصحة النفسية</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-container": "#006e75",
+                    "surface-container-high": "#e7e8e9",
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "on-tertiary-fixed": "#251a00",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-container": "#ac8c44",
+                    "primary-container": "#002b49",
+                    "surface-container": "#edeeef",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed": "#001d34",
+                    "surface-container-low": "#f3f4f5",
+                    "on-tertiary-fixed-variant": "#5b4300",
+                    "surface": "#f8f9fa",
+                    "on-primary-fixed-variant": "#274969",
+                    "inverse-on-surface": "#f0f1f2",
+                    "tertiary-fixed": "#ffdf9d",
+                    "background": "#f8f9fa",
+                    "surface-container-highest": "#e1e3e4",
+                    "primary-fixed-dim": "#a8caef",
+                    "on-background": "#191c1d",
+                    "on-secondary-fixed": "#002022",
+                    "on-surface": "#191c1d",
+                    "tertiary-container": "#362700",
+                    "error-container": "#ffdad6",
+                    "inverse-primary": "#a8caef",
+                    "surface-bright": "#f8f9fa",
+                    "secondary-fixed": "#7df4ff",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "secondary-container": "#7af1fc",
+                    "primary": "#001629",
+                    "surface-variant": "#e1e3e4",
+                    "tertiary": "#1d1300",
+                    "outline-variant": "#c3c7ce",
+                    "on-primary-container": "#7293b6",
+                    "primary-fixed": "#cfe5ff",
+                    "error": "#ba1a1a",
+                    "outline": "#73777e",
+                    "inverse-surface": "#2e3132",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#42474d",
+                    "tertiary-fixed-dim": "#e6c274",
+                    "surface-dim": "#d9dadb",
+                    "secondary-fixed-dim": "#5dd8e2",
+                    "surface-tint": "#406182",
+                    "secondary": "#006970"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "48px",
+                    "md": "24px",
+                    "xl": "64px",
+                    "gutter": "24px",
+                    "base": "8px",
+                    "lg": "40px",
+                    "xs": "4px",
+                    "sm": "12px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "display-lg": ["IBM Plex Sans Arabic", "IBM Plex Sans"],
+                    "body-md": ["IBM Plex Sans Arabic", "IBM Plex Sans"],
+                    "label-md": ["IBM Plex Sans Arabic", "IBM Plex Sans"],
+                    "caption": ["IBM Plex Sans Arabic", "IBM Plex Sans"],
+                    "body-lg": ["IBM Plex Sans Arabic", "IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans Arabic", "IBM Plex Sans"],
+                    "title-lg": ["IBM Plex Sans Arabic", "IBM Plex Sans"],
+                    "headline-md": ["IBM Plex Sans Arabic", "IBM Plex Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .gradient-border-gold {
+            border: 1px solid transparent;
+            background: linear-gradient(white, white) padding-box,
+                        linear-gradient(to right, #ac8c44, #ffdf9d) border-box;
+        }
+        /* Custom Heatmap Grid simulation */
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 4px;
+        }
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        .rtl { direction: rtl; }
+    </style>
+</head>
+<body class="text-on-surface bg-background">
+<!-- Sidebar Navigation (Mandatory Shared Component) -->
+<aside class="fixed right-0 top-0 h-full flex flex-col z-50 text-right rtl bg-primary dark:bg-primary-container docked h-full w-64 border-l border-outline-variant/10 shadow-xl">
+<div class="p-6 flex flex-col items-center gap-2 border-b border-white/5">
+<div class="w-12 h-12 rounded-xl bg-tertiary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">health_metrics</span>
+</div>
+<h1 class="font-headline-md text-headline-md text-tertiary-fixed font-bold">السعودية الصحية</h1>
+<span class="font-label-md text-label-md text-primary-fixed-dim">بريميوم</span>
+</div>
+<nav class="flex-1 px-4 py-8 space-y-2">
+<div class="flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container rounded-lg font-bold cursor-pointer transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">لوحة القيادة</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:bg-white/10 hover:text-white rounded-lg cursor-pointer transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md text-label-md">المرضى</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:bg-white/10 hover:text-white rounded-lg cursor-pointer transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="font-label-md text-label-md">المواعيد</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:bg-white/10 hover:text-white rounded-lg cursor-pointer transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-md text-label-md">التحليلات النفسية</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:bg-white/10 hover:text-white rounded-lg cursor-pointer transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">الإعدادات</span>
+</div>
+</nav>
+<div class="p-4 border-t border-white/5 space-y-2">
+<button class="w-full py-3 bg-on-secondary-container text-white rounded-lg font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined">add</span>
+<span class="font-label-md text-label-md">إضافة مريض جديد</span>
+</button>
+<div class="flex items-center justify-between px-4 py-3 text-primary-fixed-dim hover:text-white cursor-pointer">
+<span class="font-label-md text-label-md">تسجيل الخروج</span>
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="mr-64 min-h-screen pb-20">
+<!-- Top Navigation (Mandatory Shared Component) -->
+<header class="flex justify-between items-center w-full px-margin-desktop h-16 sticky top-0 z-40 bg-surface-container-lowest/80 dark:bg-primary-container/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="pr-10 pl-4 py-2 bg-surface border-none rounded-lg focus:ring-2 focus:ring-secondary w-64 text-sm" placeholder="بحث عن بيانات سكانية..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 text-primary font-bold">
+<span class="font-title-lg text-title-lg">تحليلات الصحة السلوكية</span>
+</div>
+<div class="flex items-center gap-4 border-r border-outline-variant/30 pr-6">
+<div class="p-2 rounded-full hover:bg-surface-container-high/50 cursor-pointer relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</div>
+<div class="p-2 rounded-full hover:bg-surface-container-high/50 cursor-pointer">
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</div>
+<img alt="User profile" class="w-10 h-10 rounded-full border-2 border-primary-fixed object-cover" data-alt="A professional medical director portrait, Middle Eastern features, wearing modern glasses and a white clinical coat. The background is a blurred high-end medical research facility with soft teal and navy lighting. The lighting is crisp and editorial, highlighting a look of expertise and authoritative trust." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpPhKZF744Fq5oP5zwvofn0M_lEPINPMvdR-jn_7LZx6EQRaG2OLX8xJEd16AXTVE11iu-fBwcZjE6j0WgHLfLefU4D-lj0NBPMhQkLYe7zm83EAQNd6xzP8gobkvewJbsua9epi1kQKmOH4_H706OoZ-Pw9YJGcvQphfO8QhDrKps-IKZP1J7uC2aN5Ljq_uS2PeyQKACKt5E6oQO54_KzSYPrJ8iAAOsd9tREY05edp3FYx0E8uYwZD2y1xUG5glmwCS5aAgx0nV"/>
+</div>
+</div>
+</header>
+<!-- Dashboard Canvas -->
+<div class="px-margin-desktop py-lg space-y-lg">
+<!-- Hero Stats Row -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-md">
+<div class="glass-card p-6 rounded-xl relative overflow-hidden group">
+<div class="relative z-10">
+<p class="text-on-surface-variant font-label-md text-label-md mb-2">مؤشر الإجهاد العام</p>
+<h2 class="text-primary font-display-lg text-display-lg">42%</h2>
+<p class="text-secondary font-label-md text-label-md flex items-center gap-1 mt-2">
+<span class="material-symbols-outlined text-sm">trending_down</span>
+                            انخفاض بنسبة 4% عن الشهر الماضي
+                        </p>
+</div>
+<div class="absolute -bottom-4 -left-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-8xl text-primary">psychology</span>
+</div>
+</div>
+<div class="glass-card p-6 rounded-xl">
+<p class="text-on-surface-variant font-label-md text-label-md mb-2">معدل فحص الاكتئاب</p>
+<h2 class="text-primary font-display-lg text-display-lg">88.5%</h2>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full mt-4">
+<div class="bg-secondary h-full rounded-full w-[88.5%]"></div>
+</div>
+<p class="text-on-tertiary-container font-caption text-caption mt-2">المستهدف الوطني: 90%</p>
+</div>
+<div class="glass-card p-6 rounded-xl">
+<p class="text-on-surface-variant font-label-md text-label-md mb-2">استخدام الخدمات السلوكية</p>
+<h2 class="text-primary font-display-lg text-display-lg">12.4K</h2>
+<p class="text-error font-label-md text-label-md flex items-center gap-1 mt-2">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                        ارتفاع في طلبات الاستشارة عن بعد
+                    </p>
+</div>
+<div class="glass-card p-6 rounded-xl border-secondary/20 bg-secondary/5">
+<p class="text-secondary font-bold font-label-md text-label-md mb-2">التدخلات النشطة</p>
+<h2 class="text-primary font-display-lg text-display-lg">342</h2>
+<p class="text-on-surface-variant font-label-md text-label-md mt-2">حالات تتطلب متابعة اجتماعية</p>
+<button class="mt-4 text-secondary font-bold text-sm flex items-center gap-2 hover:underline">
+                        عرض التفاصيل <span class="material-symbols-outlined text-xs">arrow_back</span>
+</button>
+</div>
+</section>
+<!-- Main Analytics Grid -->
+<section class="grid grid-cols-12 gap-gutter items-start">
+<!-- Regional Heatmap Card (8 cols) -->
+<div class="col-span-8 glass-card p-8 rounded-xl min-h-[500px] flex flex-col">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">خارطة احتياجات الصحة النفسية الإقليمية</h3>
+<p class="text-on-surface-variant font-body-md text-body-md">توزيع الضغط النفسي حسب المناطق الإدارية - المملكة العربية السعودية</p>
+</div>
+<div class="flex gap-2">
+<button class="px-4 py-2 bg-surface-container-high rounded-lg text-xs font-bold">الرياض</button>
+<button class="px-4 py-2 bg-surface text-on-surface-variant rounded-lg text-xs">جدة</button>
+<button class="px-4 py-2 bg-surface text-on-surface-variant rounded-lg text-xs">الشرقية</button>
+</div>
+</div>
+<div class="flex-1 grid grid-cols-2 gap-8">
+<div class="relative rounded-xl overflow-hidden bg-surface-container">
+<!-- Visual placeholder for a Map -->
+<img class="w-full h-full object-cover opacity-60 mix-blend-multiply" data-alt="A stylized, architectural map of Saudi Arabia's geography with translucent data overlays. Hexagonal data points glow in shades of deep teal and gold over a minimalist desert-toned base. The aesthetic is clean, professional, and sophisticated, suggestive of a high-tech government command center. High contrast between light sand and deep navy shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdvukOuqNI2k-5P0iA7PWxajTosItVYNlKM7w5FyHlHcQXugSbXm8TkjluosE7Cjl6tB-C_bKNDPpHYUSR1D7Knvt7Lg2bnABP302T2osR10knYX4nmRNrCwDtfUga0q1yOf8PD96GZuU-odMwMXU9sDsHds17Z8jhUjb4Ups0VH1fr05JLcH3LoiFWQvuCG6fthDXSZJS9UsttpjT0Wu7c7-PYikmHY5BRIZPUeWT9eQKIxhE02vlec50MQXIWXQHkir0BwqSumLQ"/>
+<div class="absolute inset-0 p-8 flex flex-col justify-end bg-gradient-to-t from-primary/40 to-transparent">
+<div class="glass-card p-4 rounded-lg inline-flex items-center gap-4">
+<div class="flex flex-col">
+<span class="text-xs text-on-surface-variant">المنطقة الأكثر تأثراً</span>
+<span class="font-bold text-primary">منطقة مكة المكرمة</span>
+</div>
+<div class="h-8 w-px bg-outline-variant/30"></div>
+<div class="text-secondary font-bold">عالي جداً</div>
+</div>
+</div>
+</div>
+<div class="space-y-6">
+<h4 class="font-title-lg text-title-lg text-primary">تحليل البيانات حسب المنطقة</h4>
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-1 rounded-full bg-error"></div>
+<div class="flex-1">
+<div class="flex justify-between mb-1">
+<span class="text-sm">منطقة الرياض</span>
+<span class="text-sm font-bold">78%</span>
+</div>
+<div class="w-full bg-surface-container-high h-1 rounded-full overflow-hidden">
+<div class="bg-error h-full w-[78%]"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-1 rounded-full bg-secondary"></div>
+<div class="flex-1">
+<div class="flex justify-between mb-1">
+<span class="text-sm">المنطقة الشرقية</span>
+<span class="text-sm font-bold">54%</span>
+</div>
+<div class="w-full bg-surface-container-high h-1 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[54%]"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-1 rounded-full bg-tertiary-fixed-dim"></div>
+<div class="flex-1">
+<div class="flex justify-between mb-1">
+<span class="text-sm">منطقة عسير</span>
+<span class="text-sm font-bold">32%</span>
+</div>
+<div class="w-full bg-surface-container-high h-1 rounded-full overflow-hidden">
+<div class="bg-tertiary-fixed-dim h-full w-[32%]"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="p-4 border border-outline-variant/30 rounded-xl bg-surface-container-low">
+<h5 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">توصية الذكاء الاصطناعي</h5>
+<p class="text-sm leading-relaxed">بناءً على التوجهات الحالية، يُنصح بزيادة مراكز الدعم النفسي المتنقلة في المناطق الشمالية للتعامل مع ارتفاع مؤشرات القلق الموسمي.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Behavioral Services Sidebar (4 cols) -->
+<div class="col-span-4 space-y-gutter">
+<!-- Workflow Integration Card -->
+<div class="glass-card p-6 rounded-xl border-tertiary-container/10">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-tertiary-container">medical_services</span>
+<h3 class="font-title-lg text-title-lg text-primary">تكامل الخدمات الاجتماعية</h3>
+</div>
+<div class="space-y-4">
+<div class="p-4 bg-white/50 border border-outline-variant/20 rounded-lg flex items-center justify-between group hover:border-secondary transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">psychology_alt</span>
+</div>
+<div>
+<p class="font-bold text-sm">تحويل إلى أخصائي سلوكي</p>
+<p class="text-xs text-on-surface-variant">42 حالة انتظار نشطة</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-secondary">chevron_left</span>
+</div>
+<div class="p-4 bg-white/50 border border-outline-variant/20 rounded-lg flex items-center justify-between group hover:border-secondary transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed/20 flex items-center justify-center text-on-tertiary-fixed-variant">
+<span class="material-symbols-outlined">family_restroom</span>
+</div>
+<div>
+<p class="font-bold text-sm">برامج الدعم الأسري</p>
+<p class="text-xs text-on-surface-variant">تنسيق مع وزارة الموارد البشرية</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-secondary">chevron_left</span>
+</div>
+<div class="p-4 bg-white/50 border border-outline-variant/20 rounded-lg flex items-center justify-between group hover:border-secondary transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center text-error">
+<span class="material-symbols-outlined">priority_high</span>
+</div>
+<div>
+<p class="font-bold text-sm">تدخلات الأزمات الفورية</p>
+<p class="text-xs text-on-surface-variant">3 بلاغات عاجلة (آخر ساعة)</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-secondary">chevron_left</span>
+</div>
+</div>
+</div>
+<!-- Utilization Bento Card -->
+<div class="glass-card p-6 rounded-xl bg-primary text-white overflow-hidden relative">
+<div class="relative z-10">
+<h3 class="font-title-lg text-title-lg mb-4">كفاءة تشغيل الخدمات</h3>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between text-xs mb-2">
+<span>التطبيب النفسي عن بعد</span>
+<span class="font-bold">92%</span>
+</div>
+<div class="h-1 bg-white/10 rounded-full">
+<div class="h-full bg-secondary-fixed w-[92%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs mb-2">
+<span>العيادات الحضورية</span>
+<span class="font-bold">68%</span>
+</div>
+<div class="h-1 bg-white/10 rounded-full">
+<div class="h-full bg-tertiary-fixed-dim w-[68%]"></div>
+</div>
+</div>
+<div class="pt-4 mt-4 border-t border-white/10">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-fixed">bolt</span>
+<p class="text-xs opacity-80">تم تحسين المسارات لخفض وقت الانتظار بنسبة 15%</p>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</section>
+<!-- Demographic Breakdown & Trends -->
+<section class="grid grid-cols-3 gap-gutter">
+<div class="glass-card p-6 rounded-xl flex flex-col items-center text-center">
+<h4 class="font-title-lg text-title-lg text-primary mb-6">الفئات العمرية الأكثر تأثراً</h4>
+<div class="relative w-40 h-40 flex items-center justify-center">
+<svg class="w-full h-full rotate-[-90deg]" viewbox="0 0 36 36">
+<circle cx="18" cy="18" fill="none" r="16" stroke="#e7e8e9" stroke-width="3"></circle>
+<circle cx="18" cy="18" fill="none" r="16" stroke="#006e75" stroke-dasharray="60, 100" stroke-width="3"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-2xl font-bold text-primary">18-24</span>
+<span class="text-xs text-on-surface-variant">سنة</span>
+</div>
+</div>
+<p class="mt-4 text-sm text-on-surface-variant">الجيل الشاب يمثل النسبة الأكبر من الباحثين عن الدعم الرقمي</p>
+</div>
+<div class="glass-card p-6 rounded-xl col-span-2">
+<div class="flex justify-between items-center mb-6">
+<h4 class="font-title-lg text-title-lg text-primary">اتجاهات الصحة السلوكية السنوية</h4>
+<div class="flex items-center gap-4 text-xs font-bold">
+<div class="flex items-center gap-1">
+<span class="w-3 h-3 rounded-full bg-secondary"></span> 2023
+                            </div>
+<div class="flex items-center gap-1">
+<span class="w-3 h-3 rounded-full bg-outline-variant"></span> 2022
+                            </div>
+</div>
+</div>
+<div class="h-48 flex items-end justify-between gap-4 px-4">
+<div class="flex-1 bg-surface-container-high relative group h-[40%] rounded-t-lg">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">يناير</div>
+</div>
+<div class="flex-1 bg-secondary relative group h-[55%] rounded-t-lg"></div>
+<div class="flex-1 bg-surface-container-high relative group h-[45%] rounded-t-lg"></div>
+<div class="flex-1 bg-secondary relative group h-[62%] rounded-t-lg"></div>
+<div class="flex-1 bg-surface-container-high relative group h-[50%] rounded-t-lg"></div>
+<div class="flex-1 bg-secondary relative group h-[75%] rounded-t-lg"></div>
+<div class="flex-1 bg-surface-container-high relative group h-[48%] rounded-t-lg"></div>
+<div class="flex-1 bg-secondary relative group h-[88%] rounded-t-lg"></div>
+<div class="flex-1 bg-surface-container-high relative group h-[60%] rounded-t-lg"></div>
+<div class="flex-1 bg-secondary relative group h-[95%] rounded-t-lg"></div>
+<div class="flex-1 bg-surface-container-high relative group h-[70%] rounded-t-lg"></div>
+<div class="flex-1 bg-secondary relative group h-[82%] rounded-t-lg"></div>
+</div>
+<div class="flex justify-between mt-4 px-4 text-[10px] text-on-surface-variant font-bold">
+<span>يناير</span>
+<span>مارس</span>
+<span>مايو</span>
+<span>يوليو</span>
+<span>سبتمبر</span>
+<span>نوفمبر</span>
+</div>
+</div>
+</section>
+<!-- Recent Case Activity -->
+<section class="glass-card rounded-xl overflow-hidden">
+<div class="p-6 border-b border-outline-variant/30 flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-primary">سجل الأنشطة والحالات السلوكية</h3>
+<button class="text-secondary font-bold text-sm hover:underline">تحميل التقرير الكامل</button>
+</div>
+<table class="w-full text-right">
+<thead class="bg-surface-container-low text-on-surface-variant text-xs uppercase tracking-wider">
+<tr>
+<th class="px-6 py-4 font-bold">المريض (الرقم الموحد)</th>
+<th class="px-6 py-4 font-bold">نوع الحالة</th>
+<th class="px-6 py-4 font-bold">مستوى الخطر</th>
+<th class="px-6 py-4 font-bold">الحالة الراهنة</th>
+<th class="px-6 py-4 font-bold text-left">الإجراء المتخذ</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-xs font-bold text-primary">أ.ع</div>
+<div class="text-sm font-bold text-primary">أحمد علي (ID: 9921)</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">قلق حاد</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-error-container text-on-error-container rounded-full text-xs font-bold">مرتفع</span>
+</td>
+<td class="px-6 py-4 text-sm">قيد التدخل</td>
+<td class="px-6 py-4 text-left">
+<button class="px-4 py-1.5 border border-secondary text-secondary rounded-lg text-xs font-bold hover:bg-secondary hover:text-white transition-all">مراجعة</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-xs font-bold text-primary">ن.س</div>
+<div class="text-sm font-bold text-primary">نورة سعد (ID: 4402)</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">اكتئاب بسيط</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full text-xs font-bold">متوسط</span>
+</td>
+<td class="px-6 py-4 text-sm">تم التوجيه</td>
+<td class="px-6 py-4 text-left">
+<button class="px-4 py-1.5 border border-secondary text-secondary rounded-lg text-xs font-bold hover:bg-secondary hover:text-white transition-all">مراجعة</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-xs font-bold text-primary">س.م</div>
+<div class="text-sm font-bold text-primary">سلطان محمد (ID: 1128)</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">إجهاد عمل</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold">منخفض</span>
+</td>
+<td class="px-6 py-4 text-sm">مكتمل</td>
+<td class="px-6 py-4 text-left">
+<button class="px-4 py-1.5 border border-secondary text-secondary rounded-lg text-xs font-bold hover:bg-secondary hover:text-white transition-all">مراجعة</button>
+</td>
+</tr>
+</tbody>
+</table>
+</section>
+</div>
+</main>
+<!-- Floating Action Button (Only on main dashboard as per instructions) -->
+<button class="fixed bottom-8 left-8 w-16 h-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-3xl">add_alert</span>
+</button>
+<script>
+        // Micro-interaction for Heatmap Cells
+        document.addEventListener('DOMContentLoaded', () => {
+            const heatmapContainer = document.querySelector('.heatmap-grid');
+            if (heatmapContainer) {
+                for (let i = 0; i < 96; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'heatmap-cell';
+                    const intensity = Math.random();
+                    if (intensity > 0.8) cell.style.backgroundColor = '#ba1a1a'; // Error Red
+                    else if (intensity > 0.5) cell.style.backgroundColor = '#006970'; // Secondary Teal
+                    else if (intensity > 0.2) cell.style.backgroundColor = '#e6c274'; // Tertiary Gold
+                    else cell.style.backgroundColor = '#edeeef'; // Surface Container
+                    
+                    cell.addEventListener('mouseenter', () => {
+                        cell.style.transform = 'scale(1.2)';
+                        cell.style.zIndex = '10';
+                    });
+                    cell.addEventListener('mouseleave', () => {
+                        cell.style.transform = 'scale(1)';
+                        cell.style.zIndex = '1';
+                    });
+                    heatmapContainer.appendChild(cell);
+                }
+            }
+        });
+    </script>
+</body></html>

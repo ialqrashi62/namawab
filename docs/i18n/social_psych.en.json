@@ -1,0 +1,15 @@
+{
+  "social_psych": {
+    "dashboard": {
+      "title": "Social & Psychology Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

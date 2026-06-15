@@ -1,0 +1,15 @@
+{
+  "infectious_diseases": {
+    "dashboard": {
+      "title": "لوحة الأمراض المعدية",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

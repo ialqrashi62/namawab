@@ -1,0 +1,40 @@
+{
+  "gastro_hepato": {
+    "dashboard": {
+      "title": "Gastroenterology & Hepatology Dashboard",
+      "todayProcedures": "Today's Procedures",
+      "activeBleedAlerts": "Active Bleed Alerts",
+      "hepCCohort": "Hep C Cohort"
+    },
+    "order": {
+      "type": {
+        "upper_endoscopy": "Upper Endoscopy",
+        "colonoscopy": "Colonoscopy",
+        "ercp": "ERCP",
+        "eus": "Endoscopic Ultrasound (EUS)",
+        "capsule": "Capsule Endoscopy",
+        "liver_biopsy": "Liver Biopsy",
+        "fibroscan": "Fibroscan"
+      },
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT",
+        "emergent": "Emergent"
+      }
+    },
+    "endoscopy": {
+      "title": "Endoscopy Report",
+      "findings": "Findings",
+      "biopsyTaken": "Biopsy Taken",
+      "complications": "Complications",
+      "polypTypes": {
+        "adenoma": "Adenoma",
+        "hyperplastic": "Hyperplastic"
+      }
+    },
+    "ai": {
+      "askGastro": "Ask Gastro Assistant"
+    }
+  }
+}

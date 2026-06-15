@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | Blood Bank Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-fixed": "#7df4ff",
+                    "surface-container-high": "#e7e8e9",
+                    "secondary-container": "#7af1fc",
+                    "inverse-surface": "#2e3132",
+                    "tertiary-fixed": "#ffdf9d",
+                    "outline": "#73777e",
+                    "on-primary-container": "#7293b6",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed-dim": "#e6c274",
+                    "on-primary": "#ffffff",
+                    "primary-fixed-dim": "#a8caef",
+                    "on-tertiary-fixed-variant": "#5b4300",
+                    "on-surface-variant": "#42474d",
+                    "on-error": "#ffffff",
+                    "secondary-fixed-dim": "#5dd8e2",
+                    "on-secondary-container": "#006e75",
+                    "surface-variant": "#e1e3e4",
+                    "surface-container-low": "#f3f4f5",
+                    "on-secondary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "primary-container": "#002b49",
+                    "on-primary-fixed-variant": "#274969",
+                    "surface-tint": "#406182",
+                    "on-secondary-fixed": "#002022",
+                    "background": "#f8f9fa",
+                    "primary": "#001629",
+                    "inverse-on-surface": "#f0f1f2",
+                    "surface-container": "#edeeef",
+                    "surface": "#f8f9fa",
+                    "error": "#ba1a1a",
+                    "primary-fixed": "#cfe5ff",
+                    "on-primary-fixed": "#001d34",
+                    "secondary": "#006970",
+                    "on-surface": "#191c1d",
+                    "outline-variant": "#c3c7ce",
+                    "tertiary-container": "#362700",
+                    "inverse-primary": "#a8caef",
+                    "on-tertiary-fixed": "#251a00",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "tertiary": "#1d1300",
+                    "surface-dim": "#d9dadb",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-background": "#191c1d",
+                    "surface-bright": "#f8f9fa",
+                    "on-tertiary-container": "#ac8c44"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "8px",
+                    "md": "24px",
+                    "margin-desktop": "48px",
+                    "margin-mobile": "16px",
+                    "xs": "4px",
+                    "gutter": "24px",
+                    "xl": "64px",
+                    "sm": "12px",
+                    "lg": "40px"
+            },
+            "fontFamily": {
+                    "headline-md": ["IBM Plex Sans"],
+                    "caption": ["IBM Plex Sans"],
+                    "headline-lg": ["IBM Plex Sans"],
+                    "title-lg": ["IBM Plex Sans"],
+                    "label-md": ["IBM Plex Sans"],
+                    "display-lg-mobile": ["IBM Plex Sans"],
+                    "display-lg": ["IBM Plex Sans"],
+                    "body-md": ["IBM Plex Sans"],
+                    "body-lg": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c3c7ce;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- Sidebar Navigation (Mandatory Shared Component Logic) -->
+<aside class="fixed right-0 top-0 h-screen w-72 flex flex-col z-40 py-lg px-md bg-surface-container-lowest dark:bg-primary border-l border-outline-variant/30 shadow-md dark:shadow-none">
+<div class="flex flex-row-reverse items-center gap-sm mb-xl">
+<div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-headline-md">bloodtype</span>
+</div>
+<div>
+<h1 class="font-title-lg text-title-lg font-bold text-primary dark:text-primary-fixed">IAM Console</h1>
+<p class="font-body-md text-body-md text-on-surface-variant opacity-70">Enterprise Healthcare</p>
+</div>
+</div>
+<nav class="flex flex-col gap-xs flex-grow">
+<!-- Navigation Items map to JSON tab_labels -->
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed p-md hover:bg-surface-container-high transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">badge</span>
+<span class="font-label-md text-label-md">Identity Center</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed p-md hover:bg-surface-container-high transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">approval_delegation</span>
+<span class="font-label-md text-label-md">Access Workflows</span>
+</a>
+<!-- Active State Logic: Mapping 'Directory' or similar to main content -->
+<a class="flex flex-row-reverse items-center gap-md bg-secondary-container dark:bg-on-primary-container text-on-secondary-container dark:text-primary-fixed-dim rounded-lg p-md translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-label-md text-label-md">Security Governance</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed p-md hover:bg-surface-container-high transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">security</span>
+<span class="font-label-md text-label-md">RBAC Configuration</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed p-md hover:bg-surface-container-high transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="font-label-md text-label-md">Audit Logs</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed p-md hover:bg-surface-container-high transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">corporate_fare</span>
+<span class="font-label-md text-label-md">Departmental Settings</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-xs pt-lg border-t border-outline-variant/30">
+<button class="w-full mb-md bg-primary text-white py-sm rounded-lg font-label-md transition-transform active:scale-95">
+                New Access Request
+            </button>
+<a class="flex flex-row-reverse items-center gap-md text-on-surface-variant p-md" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-md text-error p-md" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 right-72 left-0 h-20 z-50 flex flex-row-reverse justify-between items-center px-margin-desktop bg-surface/80 dark:bg-primary/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm dark:shadow-none">
+<div class="flex items-center gap-lg">
+<h2 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">SaudiHealth Premium</h2>
+<nav class="hidden md:flex flex-row-reverse gap-md">
+<a class="font-label-md text-label-md text-secondary dark:text-secondary-fixed border-b-2 border-secondary dark:border-secondary-fixed pb-1" href="#">Directory</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-surface-variant hover:text-primary transition-all" href="#">Requests</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-surface-variant hover:text-primary transition-all" href="#">Governance</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-surface-variant hover:text-primary transition-all" href="#">Compliance</a>
+</nav>
+</div>
+<div class="flex flex-row-reverse items-center gap-md">
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full py-2 pr-10 pl-4 text-body-md focus:ring-2 focus:ring-secondary/50" placeholder="بحث..." type="text"/>
+</div>
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</button>
+<img alt="User profile" class="w-10 h-10 rounded-full border-2 border-outline-variant object-cover" data-alt="A professional headshot of a Middle Eastern male doctor in his late 40s wearing a white lab coat and a stethoscope. He has a warm, confident smile and is positioned against a clean, modern medical facility background. The lighting is soft and natural, emphasizing a high-trust, premium healthcare environment with a professional and calm aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBG-7guYOg-YwuDoEaKFoqL8YTRVDQaBX9rs6_gx5WFhc95hZqOVmMSR_QmhzVvc9EB2cNm67zHnJsv6aypVVDajgORLQkrlvdkBu8zLsO_Biwq0mY_GD9gV914ogKE0ZSx4K8OtlZruUJCWc3bdFz6uWf9k4BastkXsCN_WpwiBuGt75eB4vLdm2UxPVBMNX7TOtQUogBw7VRNei9dZkD3Sw1yiS0YboC_QpoiUsHrTprazapONMBe5Kkb2-QgNEAmbYgs505ofn2V"/>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="mr-72 mt-20 p-margin-desktop">
+<!-- Header Section -->
+<section class="mb-xl flex justify-between items-end">
+<div>
+<nav class="flex gap-2 text-label-md text-outline mb-2">
+<span>الرئيسية</span>
+<span>/</span>
+<span class="text-primary font-bold">بنك الدم والتحليل</span>
+</nav>
+<h3 class="font-headline-lg text-headline-lg text-primary">إدارة مخزون الدم المركزي</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">مراقبة حية للمخزون، طلبات نقل الدم الجراحية، وتحليلات الحملات.</p>
+</div>
+<div class="flex gap-md">
+<button class="flex items-center gap-2 bg-secondary text-white px-lg py-sm rounded-lg font-label-md hover:shadow-lg transition-all">
+<span class="material-symbols-outlined">add_circle</span>
+                    تسجيل متبرع جديد
+                </button>
+<button class="flex items-center gap-2 border border-secondary text-secondary px-lg py-sm rounded-lg font-label-md hover:bg-secondary/5 transition-all">
+<span class="material-symbols-outlined">file_download</span>
+                    تصدير التقارير
+                </button>
+</div>
+</section>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Live Inventory Grid (Top Left - Spans 8 cols) -->
+<div class="col-span-8 glass-card rounded-xl p-lg">
+<div class="flex justify-between items-center mb-lg">
+<h4 class="font-title-lg text-title-lg text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-error">blood_pressure</span>
+                        مستويات المخزون الحية
+                    </h4>
+<span class="bg-error-container text-on-error-container px-sm py-1 rounded-full text-caption flex items-center gap-1 animate-pulse">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">warning</span>
+                        3 فصائل تحت المستوى الحرج
+                    </span>
+</div>
+<div class="grid grid-cols-4 gap-md">
+<!-- Blood Type Card (Repeatable) -->
+<div class="p-md rounded-lg bg-surface-container-low border border-outline-variant/20 flex flex-col items-center relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-full h-1 bg-error"></div>
+<span class="text-display-lg text-error font-bold mb-xs">O+</span>
+<div class="w-full bg-outline-variant/30 h-2 rounded-full mb-xs">
+<div class="bg-error h-full rounded-full w-[15%]"></div>
+</div>
+<p class="font-label-md text-error font-bold">15% - حرج جداً</p>
+<p class="font-caption text-outline mt-xs">12 وحدة متبقية</p>
+<div class="mt-md bg-error/10 text-error px-2 py-1 rounded text-[10px] font-bold">تنبيه انتهاء الصلاحية: 4 وحدات</div>
+</div>
+<div class="p-md rounded-lg bg-surface-container-low border border-outline-variant/20 flex flex-col items-center relative overflow-hidden">
+<div class="absolute top-0 right-0 w-full h-1 bg-secondary"></div>
+<span class="text-display-lg text-secondary font-bold mb-xs">A-</span>
+<div class="w-full bg-outline-variant/30 h-2 rounded-full mb-xs">
+<div class="bg-secondary h-full rounded-full w-[78%]"></div>
+</div>
+<p class="font-label-md text-secondary font-bold">78% - مستقر</p>
+<p class="font-caption text-outline mt-xs">64 وحدة متبقية</p>
+</div>
+<div class="p-md rounded-lg bg-surface-container-low border border-outline-variant/20 flex flex-col items-center relative overflow-hidden">
+<div class="absolute top-0 right-0 w-full h-1 bg-tertiary-container"></div>
+<span class="text-display-lg text-on-tertiary-container font-bold mb-xs">B+</span>
+<div class="w-full bg-outline-variant/30 h-2 rounded-full mb-xs">
+<div class="bg-on-tertiary-container h-full rounded-full w-[45%]"></div>
+</div>
+<p class="font-label-md text-on-tertiary-container font-bold">45% - متوسط</p>
+<p class="font-caption text-outline mt-xs">38 وحدة متبقية</p>
+</div>
+<div class="p-md rounded-lg bg-surface-container-low border border-outline-variant/20 flex flex-col items-center relative overflow-hidden">
+<div class="absolute top-0 right-0 w-full h-1 bg-error"></div>
+<span class="text-display-lg text-error font-bold mb-xs">AB-</span>
+<div class="w-full bg-outline-variant/30 h-2 rounded-full mb-xs">
+<div class="bg-error h-full rounded-full w-[08%]"></div>
+</div>
+<p class="font-label-md text-error font-bold">08% - نفاذ</p>
+<p class="font-caption text-outline mt-xs">2 وحدات فقط</p>
+</div>
+</div>
+</div>
+<!-- Critical Supply Heatmap (Top Right - Spans 4 cols) -->
+<div class="col-span-4 glass-card rounded-xl p-lg flex flex-col">
+<h4 class="font-title-lg text-title-lg text-primary mb-md">توزيع الاحتياج الجغرافي</h4>
+<div class="flex-grow rounded-lg overflow-hidden relative border border-outline-variant/30 min-h-[240px]">
+<div class="absolute inset-0 bg-surface-container-high flex items-center justify-center">
+<!-- Simulated Map View -->
+<div class="w-full h-full relative" data-location="Riyadh" style="">
+<img class="w-full h-full object-cover opacity-60 grayscale" data-alt="A clean, minimalist satellite or stylized high-contrast map of Riyadh, Saudi Arabia. The image is filtered with a professional blue and gray corporate aesthetic, featuring subtle data overlay nodes. It is bright, spacious, and modern, suited for a high-end medical dashboard backdrop." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0guo42l9YiJVuPgKRBRqszLTNnEwXzZ2lSk0YYnXRqXucckg3wL-Ldo80WxcNyURNGgcZpQpXhKiZNdJ4mkxP4ooDskuuj5nZfX_wxGAReFtz7jsQjokUuH3WPrCOKQuMCQ6vSPDoRzp69a9Eul1mYomKtzFqeDUQRFt9bjFVRYHaaYnhdWtcwWlKexLzOI--k_1QJU8Pf5czaJp5A8czHkl-LIc997W3Hpkc3sVHxPo5bYBkkT2GqeyZMZvrKjYfEfIx0gS4LONC"/>
+<!-- Heatmap Nodes -->
+<div class="absolute top-1/4 right-1/3 w-12 h-12 bg-error/40 rounded-full animate-ping"></div>
+<div class="absolute top-1/4 right-1/3 w-6 h-6 bg-error rounded-full border-2 border-white"></div>
+<div class="absolute bottom-1/3 left-1/4 w-8 h-8 bg-error/30 rounded-full animate-ping"></div>
+<div class="absolute bottom-1/3 left-1/4 w-4 h-4 bg-error rounded-full border-2 border-white"></div>
+</div>
+</div>
+<div class="absolute bottom-md left-md right-md bg-white/90 backdrop-blur p-sm rounded shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-primary">مدينة الملك فهد الطبية</span>
+<span class="text-error font-bold text-caption">احتياج عالي (O+)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Pending Transfusion Requests (Bottom Left - Spans 7 cols) -->
+<div class="col-span-7 glass-card rounded-xl p-lg">
+<div class="flex justify-between items-center mb-lg">
+<h4 class="font-title-lg text-title-lg text-primary">طلبات نقل الدم المعلقة</h4>
+<button class="text-secondary font-label-md hover:underline">عرض الكل</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead>
+<tr class="border-b border-outline-variant/30 text-outline">
+<th class="pb-sm font-label-md text-right">رقم المريض</th>
+<th class="pb-sm font-label-md text-right">الوحدة الجراحية</th>
+<th class="pb-sm font-label-md text-right">الفصيلة المطلوبة</th>
+<th class="pb-sm font-label-md text-right">الأولوية</th>
+<th class="pb-sm font-label-md text-right">الإجراء</th>
+</tr>
+</thead>
+<tbody class="text-body-md">
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors group">
+<td class="py-md font-bold text-primary">#SH-2941</td>
+<td class="py-md">غرفة العمليات 04 (قلب)</td>
+<td class="py-md text-error font-bold">O- (4 وحدات)</td>
+<td class="py-md">
+<span class="bg-error/10 text-error px-sm py-1 rounded-full text-caption font-bold">طارئ جداً</span>
+</td>
+<td class="py-md">
+<button class="bg-primary text-white text-caption px-md py-1 rounded hover:bg-primary-container transition-all">صرف الآن</button>
+</td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors group">
+<td class="py-md font-bold text-primary">#SH-8820</td>
+<td class="py-md">وحدة الطوارئ الرئيسية</td>
+<td class="py-md text-secondary font-bold">A+ (2 وحدة)</td>
+<td class="py-md">
+<span class="bg-secondary/10 text-secondary px-sm py-1 rounded-full text-caption font-bold">عادي</span>
+</td>
+<td class="py-md">
+<button class="bg-primary text-white text-caption px-md py-1 rounded hover:bg-primary-container transition-all">صرف الآن</button>
+</td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors group">
+<td class="py-md font-bold text-primary">#SH-1105</td>
+<td class="py-md">جراحة العظام</td>
+<td class="py-md text-on-tertiary-container font-bold">B+ (1 وحدة)</td>
+<td class="py-md">
+<span class="bg-tertiary-fixed-dim/20 text-on-tertiary-fixed-variant px-sm py-1 rounded-full text-caption font-bold">مجدول</span>
+</td>
+<td class="py-md">
+<button class="bg-primary text-white text-caption px-md py-1 rounded hover:bg-primary-container transition-all">تأكيد</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Campaign Performance (Bottom Right - Spans 5 cols) -->
+<div class="col-span-5 glass-card rounded-xl p-lg flex flex-col">
+<h4 class="font-title-lg text-title-lg text-primary mb-lg">أداء حملات التبرع</h4>
+<div class="space-y-lg flex-grow">
+<!-- Campaign Item -->
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<span class="font-label-md text-primary">حملة "دمك حياة" - الرياض</span>
+<span class="font-label-md text-secondary">82% من الهدف</span>
+</div>
+<div class="w-full bg-outline-variant/30 h-2 rounded-full">
+<div class="bg-secondary h-full rounded-full w-[82%] relative">
+<div class="absolute -right-1 -top-1 w-4 h-4 bg-white border-2 border-secondary rounded-full"></div>
+</div>
+</div>
+<div class="flex justify-between text-caption text-outline">
+<span>410 متبرع</span>
+<span>الهدف: 500</span>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<span class="font-label-md text-primary">برنامج التبرع المكتبي - ارامكو</span>
+<span class="font-label-md text-secondary">105%</span>
+</div>
+<div class="w-full bg-outline-variant/30 h-2 rounded-full">
+<div class="bg-on-tertiary-container h-full rounded-full w-full"></div>
+</div>
+<div class="flex justify-between text-caption text-outline">
+<span>210 متبرع</span>
+<span>تم تجاوز الهدف</span>
+</div>
+</div>
+<div class="mt-auto pt-lg border-t border-outline-variant/30 grid grid-cols-2 gap-md">
+<div class="text-center p-md bg-surface-container-low rounded-lg">
+<p class="font-caption text-outline">إجمالي متبرعي الشهر</p>
+<p class="font-headline-md text-primary">1,248</p>
+<p class="text-[10px] text-secondary">↑ 12% من الشهر الماضي</p>
+</div>
+<div class="text-center p-md bg-surface-container-low rounded-lg">
+<p class="font-caption text-outline">معدل الاحتفاظ بالمتبرعين</p>
+<p class="font-headline-md text-primary">64%</p>
+<p class="text-[10px] text-secondary">↑ 5% من الشهر الماضي</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Action Button (FAB) Suppression Logic: Not on home/dashboard so we exclude generic FAB, but include contextual alerts -->
+<div class="fixed bottom-margin-desktop left-margin-desktop flex flex-col gap-md items-end">
+<!-- Real-time Alert Toast -->
+<div class="glass-card border-l-4 border-l-error bg-white p-md rounded-xl shadow-xl flex items-center gap-md max-w-sm animate-bounce">
+<div class="w-10 h-10 bg-error/10 rounded-full flex items-center justify-center text-error">
+<span class="material-symbols-outlined">e911_emergency</span>
+</div>
+<div>
+<p class="font-label-md text-primary font-bold">تنبيه: نقص حاد</p>
+<p class="text-caption text-on-surface-variant">مخزون O- يكفي لمدة 4 ساعات فقط في منطقة الرياض.</p>
+</div>
+<button class="p-1 hover:bg-surface-container-high rounded text-outline">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interactions and real-time feel
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('SaudiHealth Premium Blood Bank UI Initialized');
+            
+            // Hover effect for inventory cards
+            const cards = document.querySelectorAll('.group');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    card.style.transform = 'translateY(-4px)';
+                    card.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body></html>

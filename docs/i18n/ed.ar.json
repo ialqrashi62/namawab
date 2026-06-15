@@ -1,0 +1,79 @@
+{
+  "ed": {
+    "board": {
+      "title": "اللوحة الحية للطوارئ",
+      "capacity": "السعة",
+      "waiting": "في الانتظار",
+      "averageDoorToDoctor": "متوسط الباب إلى الطبيب",
+      "ctas": {
+        "1": "CTAS 1 — إنعاش",
+        "2": "CTAS 2 — طارئ",
+        "3": "CTAS 3 — عاجل",
+        "4": "CTAS 4 — أقل عجلة",
+        "5": "CTAS 5 — غير عاجل"
+      }
+    },
+    "triage": {
+      "title": "الفرز",
+      "submit": "إرسال",
+      "aiSuggested": "اقترح الذكاء الاصطناعي",
+      "confirmCtas": "تأكيد CTAS",
+      "vitals": {
+        "bp": "ضغط الدم",
+        "hr": "النبض",
+        "rr": "التنفس",
+        "spo2": "تشبع الأكسجين",
+        "temp": "الحرارة",
+        "gcs": "GCS",
+        "weight": "الوزن"
+      },
+      "painScore": "درجة الألم"
+    },
+    "codes": {
+      "stemi": {
+        "label": "Code STEMI",
+        "activate": "تفعيل بروتوكول STEMI",
+        "active": "Code STEMI نشط",
+        "doorToBalloon": "الباب إلى البالون"
+      },
+      "stroke": {
+        "label": "Code Stroke",
+        "activate": "تفعيل بروتوكول السكتة",
+        "doorToNeedle": "الباب إلى الإبرة"
+      },
+      "sepsis": {
+        "label": "Code Sepsis",
+        "activate": "بدء حزمة الإنتان (1 ساعة)",
+        "bundleCountdown": "العداد المتبقي"
+      },
+      "trauma": {
+        "label": "Trauma L1",
+        "activate": "تفعيل تنبيه إصابات حرج"
+      },
+      "blue": {
+        "label": "Code Blue",
+        "activate": "تفعيل CPR"
+      }
+    },
+    "bundle": {
+      "labs": "تحاليل",
+      "imaging": "أشعة",
+      "meds": "أدوية",
+      "procedures": "إجراءات",
+      "applied": "تم تطبيق الحزمة"
+    },
+    "disposition": {
+      "discharge": "خروج",
+      "admit": "إدخال",
+      "icu": "عناية مركزة",
+      "or": "غرفة عمليات",
+      "transfer": "تحويل",
+      "dama": "خروج خلاف النصيحة الطبية",
+      "death": "وفاة"
+    },
+    "ai": {
+      "askEd": "اسأل مساعد الطوارئ",
+      "advisoryBanner": "إرشادي فقط — القرار النهائي للطبيب"
+    }
+  }
+}

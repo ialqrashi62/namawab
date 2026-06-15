@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | مركز الامتثال البيئي</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "on-secondary-container": "#006e75",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "surface-dim": "#d9dadb",
+                        "primary": "#001629",
+                        "surface-variant": "#e1e3e4",
+                        "secondary": "#006970",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-secondary-fixed": "#002022",
+                        "surface-container-low": "#f3f4f5",
+                        "background": "#f8f9fa",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#1d1300",
+                        "surface-container": "#edeeef",
+                        "inverse-primary": "#a8caef",
+                        "secondary-container": "#7af1fc",
+                        "on-tertiary-container": "#ac8c44",
+                        "on-background": "#191c1d",
+                        "inverse-surface": "#2e3132",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "primary-fixed-dim": "#a8caef",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#ffdf9d",
+                        "surface": "#f8f9fa",
+                        "surface-tint": "#406182",
+                        "error": "#ba1a1a",
+                        "primary-container": "#002b49",
+                        "outline": "#73777e",
+                        "on-primary-fixed-variant": "#274969",
+                        "on-tertiary-fixed": "#251a00",
+                        "on-primary-container": "#7293b6",
+                        "secondary-fixed": "#7df4ff",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f8f9fa",
+                        "on-primary-fixed": "#001d34",
+                        "tertiary-container": "#362700",
+                        "on-surface-variant": "#42474d",
+                        "on-surface": "#191c1d",
+                        "primary-fixed": "#cfe5ff",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#e7e8e9",
+                        "outline-variant": "#c3c7ce"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "margin-desktop": "48px",
+                        "lg": "40px",
+                        "gutter": "24px",
+                        "md": "24px",
+                        "margin-mobile": "16px",
+                        "base": "8px",
+                        "xl": "64px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "primary": ["IBM Plex Sans Arabic", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .nav-item-active {
+            background-color: #7af1fc; /* secondary-container */
+            color: #006e75; /* on-secondary-container */
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- Side Navigation Rail (Right Aligned RTL) -->
+<aside class="fixed right-0 top-0 h-full w-64 z-40 bg-primary flex flex-col py-base shadow-xl transition-all duration-300">
+<div class="px-6 py-8 flex flex-col items-center gap-2 border-b border-on-primary/10">
+<div class="w-12 h-12 bg-on-primary rounded-full flex items-center justify-center overflow-hidden">
+<img alt="SaudiHealth Logo" class="w-full h-full object-cover" data-alt="A professional medical institution logo for SaudiHealth, featuring a minimalist and corporate design with clean geometric lines. The logo is displayed in high resolution on a white circular background, conveying a sense of authority, hygiene, and advanced medical expertise. The lighting is bright and even, reinforcing the premium healthcare brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-MO9BYgGR7FOCYnd5kMYMJ2iPBDfYaOd1LosMCxyQUBkGeKd3NjsHmPckjonqD3eGmbxMITJ_uEMOIv0w7OiFbarPomfn7GLryEVAm7Lgu8Nfywiuc-dHZIf2WHd_jFzsj6JmW4meRvxz6DNYdnc57N-3uZU24bCzESvnfSkqcHQrAsOGfLwBrKqRE1YD78Gr1oiY9g1bVN_MiMRrmuhJgDVnKuZdlFaZI4KveLT_LSTqeIlIztOl7dh4KZfdDLc_fxB3j3TvwIHB"/>
+</div>
+<h1 class="text-on-primary font-bold text-headline-md mt-2">مركز الامتثال البيئي</h1>
+<p class="text-on-primary/70 text-label-md">إدارة النفايات الطبية</p>
+</div>
+<nav class="flex-1 mt-6 px-2 space-y-2">
+<a class="flex items-center gap-4 p-3 rounded-lg bg-secondary-container text-on-secondary-container transition-all hover:scale-[1.02]" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md">لوحة القيادة</span>
+</a>
+<a class="flex items-center gap-4 p-3 rounded-lg text-on-primary/70 hover:text-on-primary hover:bg-on-primary-fixed-variant/20 transition-all hover:scale-[1.02]" href="#">
+<span class="material-symbols-outlined" data-icon="delete_sweep">delete_sweep</span>
+<span class="font-label-md">تتبع النفايات</span>
+</a>
+<a class="flex items-center gap-4 p-3 rounded-lg text-on-primary/70 hover:text-on-primary hover:bg-on-primary-fixed-variant/20 transition-all hover:scale-[1.02]" href="#">
+<span class="material-symbols-outlined" data-icon="eco">eco</span>
+<span class="font-label-md">البصمة الكربونية</span>
+</a>
+<a class="flex items-center gap-4 p-3 rounded-lg text-on-primary/70 hover:text-on-primary hover:bg-on-primary-fixed-variant/20 transition-all hover:scale-[1.02]" href="#">
+<span class="material-symbols-outlined" data-icon="verified">verified</span>
+<span class="font-label-md">شهادات الامتثال</span>
+</a>
+<a class="flex items-center gap-4 p-3 rounded-lg text-on-primary/70 hover:text-on-primary hover:bg-on-primary-fixed-variant/20 transition-all hover:scale-[1.02]" href="#">
+<span class="material-symbols-outlined" data-icon="location_on">location_on</span>
+<span class="font-label-md">مواقع التخلص</span>
+</a>
+<a class="flex items-center gap-4 p-3 rounded-lg text-on-primary/70 hover:text-on-primary hover:bg-on-primary-fixed-variant/20 transition-all hover:scale-[1.02]" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-md">تقارير التدقيق</span>
+</a>
+</nav>
+<div class="mt-auto px-2 space-y-2 border-t border-on-primary/10 pt-4 pb-6">
+<button class="w-full bg-secondary text-on-secondary py-3 rounded-lg font-bold transition-all hover:scale-[1.02] active:scale-95 mb-4">تقرير جديد</button>
+<a class="flex items-center gap-4 p-3 rounded-lg text-on-primary/70 hover:text-on-primary hover:bg-on-primary-fixed-variant/20 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md">الإعدادات</span>
+</a>
+<a class="flex items-center gap-4 p-3 rounded-lg text-on-primary/70 hover:text-on-primary hover:bg-on-primary-fixed-variant/20 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md">تسجيل الخروج</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="mr-64 min-h-screen pb-12">
+<!-- Top Bar -->
+<header class="sticky top-0 z-50 w-full bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 flex flex-row-reverse justify-between items-center px-margin-desktop py-4 shadow-sm">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 cursor-pointer active:opacity-70">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-secondary">
+<img alt="Chief Sustainability Officer Profile" data-alt="A professional headshot of a female executive in her 40s, representing a Chief Sustainability Officer. She is wearing corporate attire and is set against a blurred medical facility background with clean white and blue tones. The lighting is soft and flattering, creating an aura of high trust and professional excellence." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYgBHb3wa5PE239jHLuY7D1sq1ThP2GclqJq9wouB_8dNjBCWmk5WRWE6kK_Z3RgS5-YsUWekyWKDGz30nWo4sd1KPLp0XxMxU42cWzNk8iPhKOgsk0Vri73Zwo07ei4AYZNN8ML_vdz2HgDCGzGhRuTJUvUdPFlW8RavYLeJsw0LAKhXmY-Q6dFROaNqqP7RXrYTR744vJ05R_K5-vbjMbN-nq0mO8mjYxKaYvmSV70oByK2Yszzag6l59NzwsdtA6FX7z1sGq82a"/>
+</div>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-secondary" data-icon="help">help</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-secondary" data-icon="settings">settings</span>
+<div class="relative">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-secondary" data-icon="notifications">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-error rounded-full"></span>
+</div>
+</div>
+</div>
+<div class="flex-1 max-w-xl mx-8">
+<div class="relative">
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-xl pr-10 py-2 focus:ring-2 focus:ring-secondary transition-all" placeholder="بحث في السجلات والبيانات..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<h2 class="text-title-lg font-bold text-primary">SaudiHealth Premium</h2>
+</div>
+</header>
+<div class="px-margin-desktop pt-lg">
+<!-- Welcome Header -->
+<div class="flex justify-between items-end mb-xl">
+<div>
+<h1 class="text-display-lg font-bold text-primary mb-2">مركز الامتثال البيئي</h1>
+<p class="text-body-lg text-on-surface-variant">إدارة النفايات الطبية والامتثال لعام 2024</p>
+</div>
+<div class="flex gap-gutter">
+<div class="flex items-center gap-2 px-4 py-2 bg-surface-container rounded-lg border border-outline-variant/30">
+<span class="material-symbols-outlined text-secondary" data-icon="calendar_today">calendar_today</span>
+<span class="text-label-md">آخر تحديث: اليوم، 09:30 صباحاً</span>
+</div>
+<button class="flex items-center gap-2 px-6 py-2 bg-primary text-on-primary rounded-lg font-bold shadow-md hover:shadow-lg transition-all">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+<span>تصدير التقرير</span>
+</button>
+</div>
+</div>
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-xl">
+<div class="glass-card p-6 rounded-xl flex flex-col">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 rounded-lg bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary-fixed" data-icon="delete_outline">delete_outline</span>
+</div>
+<span class="text-error font-bold flex items-center text-label-md">
+<span class="material-symbols-outlined text-sm mr-1" data-icon="trending_up">trending_up</span> 12%+
+                        </span>
+</div>
+<p class="text-on-surface-variant text-label-md mb-1">إجمالي النفايات (طن)</p>
+<h3 class="text-headline-lg font-bold text-primary">1,284.5</h3>
+<div class="mt-4 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-3/4"></div>
+</div>
+</div>
+<div class="glass-card p-6 rounded-xl flex flex-col">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 rounded-lg bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-secondary-container" data-icon="verified_user">verified_user</span>
+</div>
+<span class="text-secondary font-bold flex items-center text-label-md">
+<span class="material-symbols-outlined text-sm mr-1" data-icon="check_circle">check_circle</span> ممتاز
+                        </span>
+</div>
+<p class="text-on-surface-variant text-label-md mb-1">مؤشر الامتثال البيئي</p>
+<h3 class="text-headline-lg font-bold text-primary">98.2%</h3>
+<div class="mt-4 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[98%]"></div>
+</div>
+</div>
+<div class="glass-card p-6 rounded-xl flex flex-col">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 rounded-lg bg-tertiary-fixed-dim/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-tertiary-container" data-icon="co2">co2</span>
+</div>
+<span class="text-secondary font-bold flex items-center text-label-md">
+<span class="material-symbols-outlined text-sm mr-1" data-icon="trending_down">trending_down</span> 5%-
+                        </span>
+</div>
+<p class="text-on-surface-variant text-label-md mb-1">البصمة الكربونية</p>
+<h3 class="text-headline-lg font-bold text-primary">420.8</h3>
+<div class="mt-4 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-on-tertiary-container w-1/2"></div>
+</div>
+</div>
+<div class="glass-card p-6 rounded-xl flex flex-col">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="autonomy">autopay</span>
+</div>
+<span class="text-on-surface-variant font-bold text-label-md">قيد المعالجة</span>
+</div>
+<p class="text-on-surface-variant text-label-md mb-1">حالة التخلص النهائي</p>
+<h3 class="text-headline-lg font-bold text-primary">85%</h3>
+<div class="mt-4 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[85%]"></div>
+</div>
+</div>
+</div>
+<!-- Main Grid: Charts & Map -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter mb-xl">
+<!-- Waste Distribution Chart -->
+<div class="lg:col-span-1 glass-card p-8 rounded-xl">
+<div class="flex justify-between items-center mb-6">
+<h4 class="text-title-lg font-bold text-primary">توزيع النفايات حسب التصنيف</h4>
+<span class="material-symbols-outlined text-outline cursor-pointer" data-icon="more_vert">more_vert</span>
+</div>
+<div class="relative h-64 flex items-center justify-center">
+<!-- Simulated Donut Chart -->
+<div class="w-48 h-48 rounded-full border-[20px] border-secondary relative flex items-center justify-center">
+<div class="absolute inset-0 w-48 h-48 rounded-full border-[20px] border-primary border-r-transparent border-b-transparent border-l-transparent rotate-45"></div>
+<div class="absolute inset-0 w-48 h-48 rounded-full border-[20px] border-error border-t-transparent border-r-transparent border-l-transparent -rotate-12"></div>
+<div class="text-center">
+<span class="block text-headline-md font-bold text-primary">1.2k</span>
+<span class="block text-label-md text-on-surface-variant">إجمالي</span>
+</div>
+</div>
+</div>
+<div class="mt-8 space-y-3">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-error"></span>
+<span class="text-body-md">نفايات طبية حادة</span>
+</div>
+<span class="font-bold">42%</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+<span class="text-body-md">نفايات عامة</span>
+</div>
+<span class="font-bold">35%</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="text-body-md">نفايات كيميائية</span>
+</div>
+<span class="font-bold">18%</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-tertiary-fixed-dim"></span>
+<span class="text-body-md">نفايات مشعة</span>
+</div>
+<span class="font-bold">5%</span>
+</div>
+</div>
+</div>
+<!-- Collection Points Map -->
+<div class="lg:col-span-2 glass-card rounded-xl overflow-hidden flex flex-col">
+<div class="p-8 pb-4 flex justify-between items-center">
+<div>
+<h4 class="text-title-lg font-bold text-primary">خريطة نقاط التجميع</h4>
+<p class="text-label-md text-on-surface-variant">مستويات الحاويات في الوقت الفعلي</p>
+</div>
+<div class="flex gap-2">
+<button class="px-4 py-2 text-label-md border border-outline-variant rounded-lg hover:bg-surface-container transition-colors">مستشفى الملك فهد</button>
+<button class="px-4 py-2 text-label-md border border-outline-variant rounded-lg hover:bg-surface-container transition-colors">مجمع العيادات</button>
+</div>
+</div>
+<div class="flex-1 relative bg-surface-container-highest/30 min-h-[400px]">
+<img class="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-40" data-alt="A highly detailed architectural site plan of a modern hospital campus viewed from above. The map features clean lines, designated zones for clinical wings, parking areas, and service entrances. Highlighting collection points with glowing digital markers in teal and amber colors. The aesthetic is professional, minimalist, and clinical, following a navy and white color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfY9u2rm9cZ2GyvD27_BBiN3cyaOX90y3-t3OEBfaNYvwvsRq3TtOsDHyUmvvLCbZa9Hyl-XJ3zrAdkKmwGB6JFsTLYm6pzdnr6c29at1pFtRYIFb36_82fpqcUrHro6ulKIjwL2albC-_keqEITC8JQ4VBTktkkidkmIEMu2H2I0iqb2_8Vx_ecE7Lcsf-QVUTTfgBYyfWCQskUlJXIwkt5wCScd2C29O9ViESnUUwly3rFa11UUTcP7aC5eGnmenOSuw7r5P0YLt"/>
+<!-- Map Hotspots -->
+<div class="absolute top-1/4 right-1/3 group cursor-pointer">
+<div class="w-6 h-6 bg-error rounded-full animate-ping absolute"></div>
+<div class="w-6 h-6 bg-error rounded-full relative flex items-center justify-center border-2 border-white">
+<span class="text-[8px] text-white font-bold">95%</span>
+</div>
+<div class="absolute bottom-full mb-2 right-1/2 translate-x-1/2 w-48 glass-card p-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+<p class="font-bold text-label-md">نقطة تجميع الطوارئ</p>
+<p class="text-caption text-on-surface-variant">الحالة: ممتلئة تقريباً</p>
+<button class="mt-2 w-full text-[10px] bg-primary text-on-primary py-1 rounded">طلب إخلاء فوري</button>
+</div>
+</div>
+<div class="absolute bottom-1/3 left-1/4 group cursor-pointer">
+<div class="w-6 h-6 bg-secondary rounded-full relative flex items-center justify-center border-2 border-white">
+<span class="text-[8px] text-white font-bold">40%</span>
+</div>
+</div>
+<div class="absolute top-1/2 right-1/2 group cursor-pointer">
+<div class="w-6 h-6 bg-secondary rounded-full relative flex items-center justify-center border-2 border-white">
+<span class="text-[8px] text-white font-bold">12%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Transfer Registry & Green Initiative -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Transfer & Audit Registry Table -->
+<div class="lg:col-span-2 glass-card p-8 rounded-xl">
+<div class="flex justify-between items-center mb-6">
+<h4 class="text-title-lg font-bold text-primary">سجل عمليات النقل والتدقيق</h4>
+<button class="text-secondary font-bold text-label-md flex items-center gap-1">عرض الكل <span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span></button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead>
+<tr class="border-b border-outline-variant/30 text-on-surface-variant text-label-md">
+<th class="py-4 px-2">رقم الشحنة</th>
+<th class="py-4 px-2">الناقل</th>
+<th class="py-4 px-2">نوع النفايات</th>
+<th class="py-4 px-2">الوزن (كجم)</th>
+<th class="py-4 px-2">الحالة</th>
+<th class="py-4 px-2">التوقيع الرقمي</th>
+</tr>
+</thead>
+<tbody class="text-body-md">
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-lowest transition-colors">
+<td class="py-4 px-2 font-mono">#TR-8821</td>
+<td class="py-4 px-2">شركة تدوير للخدمات البيئية</td>
+<td class="py-4 px-2">طبية حادة</td>
+<td class="py-4 px-2">240</td>
+<td class="py-4 px-2"><span class="px-2 py-1 bg-secondary-container text-on-secondary-container rounded-full text-caption">تم التسليم</span></td>
+<td class="py-4 px-2 text-secondary font-bold">مؤكد</td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-lowest transition-colors">
+<td class="py-4 px-2 font-mono">#TR-8819</td>
+<td class="py-4 px-2">نقاء للحلول البيئية</td>
+<td class="py-4 px-2">كيميائية</td>
+<td class="py-4 px-2">115</td>
+<td class="py-4 px-2"><span class="px-2 py-1 bg-surface-container-highest text-on-surface-variant rounded-full text-caption">في الطريق</span></td>
+<td class="py-4 px-2 text-outline">معلق</td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-lowest transition-colors">
+<td class="py-4 px-2 font-mono">#TR-8815</td>
+<td class="py-4 px-2">شركة تدوير للخدمات البيئية</td>
+<td class="py-4 px-2">عامة</td>
+<td class="py-4 px-2">1,200</td>
+<td class="py-4 px-2"><span class="px-2 py-1 bg-secondary-container text-on-secondary-container rounded-full text-caption">تم التسليم</span></td>
+<td class="py-4 px-2 text-secondary font-bold">مؤكد</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="py-4 px-2 font-mono">#TR-8812</td>
+<td class="py-4 px-2">شركة المسار اللوجستية</td>
+<td class="py-4 px-2">طبية حادة</td>
+<td class="py-4 px-2">85</td>
+<td class="py-4 px-2"><span class="px-2 py-1 bg-error-container text-on-error-container rounded-full text-caption">تأخير</span></td>
+<td class="py-4 px-2 text-error font-bold">تدقيق مطلوب</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Environmental Standards Section -->
+<div class="lg:col-span-1 glass-card p-8 rounded-xl flex flex-col">
+<div class="flex items-center gap-3 mb-6">
+<img alt="Saudi Green Initiative Logo" class="w-10 h-10 object-contain" data-alt="The official Saudi Green Initiative logo, featuring high-contrast green tones and clean calligraphic elements. The logo is displayed with a premium, corporate finish, symbolizing the Kingdom's commitment to environmental sustainability and a green future." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAN_McoWdGL0J61kDmdrS-gNN4PmGKLVils4g-mGqiYC4GfQNqoVEow2pr5wiW09kqGNYpfI6xa8r0a-_534O_1DP5tv_u2ZjnQeSE8yEBTI_oUApr1k8uR7XxJqCCiB6Fp-b7-BJ9WTSQsuFywdtG1iOru7-puRY1pslBu4B6SbVXyWE3iBN_Cw2PXA-Dhe5qLPofCVPcvrs7EryG12LQUcMI7Pskug0fM-WUqJEyXZLGrcMgT3XwcRjHICSJrRDOdYvcPPRMzLSmN"/>
+<h4 class="text-title-lg font-bold text-primary">مبادرة السعودية الخضراء</h4>
+</div>
+<div class="flex-1 space-y-8">
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="text-label-md font-bold text-on-surface">تقليل الانبعاثات الكربونية</span>
+<span class="text-secondary font-bold">68%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[68%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="text-label-md font-bold text-on-surface">إعادة تدوير النفايات</span>
+<span class="text-secondary font-bold">45%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[45%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="text-label-md font-bold text-on-surface">استهلاك الطاقة المستدامة</span>
+<span class="text-secondary font-bold">32%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[32%]"></div>
+</div>
+</div>
+<div class="mt-4 p-4 bg-tertiary-fixed-dim/10 rounded-xl border border-tertiary-fixed-dim/20">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-on-tertiary-container" data-icon="lightbulb">lightbulb</span>
+<div>
+<p class="font-bold text-label-md text-on-tertiary-container">توصية التحسين</p>
+<p class="text-caption text-on-surface-variant">يمكن تحسين نسبة إعادة التدوير بنسبة 15% عبر عزل النفايات الورقية في مبنى العيادات الخارجية.</p>
+</div>
+</div>
+</div>
+</div>
+<button class="mt-8 w-full py-3 bg-secondary text-on-secondary rounded-lg font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all">
+<span>عرض لوحة الاستدامة الكاملة</span>
+<span class="material-symbols-outlined" data-icon="open_in_new">open_in_new</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Micro-interaction Scripts -->
+<script>
+        // Simple interactive elements for dashboard feel
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+                card.style.transition = 'all 0.3s ease-out';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Search highlight interaction
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('scale-[1.02]');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('scale-[1.02]');
+        });
+    </script>
+</body></html>

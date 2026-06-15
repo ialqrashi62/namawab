@@ -1,0 +1,15 @@
+{
+  "laboratories": {
+    "dashboard": {
+      "title": "Laboratories Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

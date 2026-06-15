@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaudiHealth Premium | Equipment Maintenance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-container-highest": "#e1e3e4",
+                        "outline": "#73777e",
+                        "on-primary-fixed": "#001d34",
+                        "inverse-primary": "#a8caef",
+                        "tertiary-container": "#362700",
+                        "on-tertiary-fixed": "#251a00",
+                        "on-surface-variant": "#42474d",
+                        "secondary-container": "#7af1fc",
+                        "surface-dim": "#d9dadb",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#002022",
+                        "inverse-surface": "#2e3132",
+                        "inverse-on-surface": "#f0f1f2",
+                        "surface-tint": "#406182",
+                        "on-tertiary-container": "#ac8c44",
+                        "surface-bright": "#f8f9fa",
+                        "surface-container-high": "#e7e8e9",
+                        "primary-fixed-dim": "#a8caef",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "error-container": "#ffdad6",
+                        "on-surface": "#191c1d",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "surface": "#f8f9fa",
+                        "primary-fixed": "#cfe5ff",
+                        "secondary-fixed": "#7df4ff",
+                        "surface-container-low": "#f3f4f5",
+                        "on-background": "#191c1d",
+                        "outline-variant": "#c3c7ce",
+                        "surface-variant": "#e1e3e4",
+                        "surface-container": "#edeeef",
+                        "background": "#f8f9fa",
+                        "tertiary-fixed": "#ffdf9d",
+                        "primary-container": "#002b49",
+                        "primary": "#001629",
+                        "on-secondary-container": "#006e75",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "tertiary": "#1d1300",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#006970",
+                        "on-primary-fixed-variant": "#274969",
+                        "on-primary-container": "#7293b6",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "64px",
+                        "margin-desktop": "48px",
+                        "gutter": "24px",
+                        "xs": "4px",
+                        "sm": "12px",
+                        "lg": "40px",
+                        "md": "24px",
+                        "base": "8px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["IBM Plex Sans"],
+                        "body-lg": ["IBM Plex Sans"],
+                        "headline-lg": ["IBM Plex Sans"],
+                        "title-lg": ["IBM Plex Sans"],
+                        "body-md": ["IBM Plex Sans"],
+                        "caption": ["IBM Plex Sans"],
+                        "label-md": ["IBM Plex Sans"],
+                        "display-lg": ["IBM Plex Sans"],
+                        "display-lg-mobile": ["IBM Plex Sans"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-tab-indicator {
+            position: absolute;
+            right: 0;
+            width: 4px;
+            height: 100%;
+            background-color: #006970;
+            border-radius: 0 4px 4px 0;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c3c7ce;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="text-on-surface overflow-x-hidden">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed right-0 top-0 bg-surface-container-lowest dark:bg-primary backdrop-blur-xl border-l border-outline/30 shadow-xl shadow-primary/10 flex flex-col py-md gap-sm z-50">
+<div class="px-md mb-lg">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">health_metrics</span>
+</div>
+<div>
+<h1 class="font-title-lg text-title-lg font-semibold text-primary dark:text-secondary-fixed">بيانات هيلث</h1>
+<p class="text-xs text-outline">قطاع الرياض</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1 overflow-y-auto">
+<div class="flex items-center px-4 py-3 mx-2 text-on-surface-variant hover:bg-surface-variant/50 rounded-lg transition-all cursor-pointer">
+<span class="material-symbols-outlined ml-3" data-icon="clinical_notes">clinical_notes</span>
+<span class="font-label-md text-label-md">العمليات</span>
+</div>
+<div class="flex items-center px-4 py-3 mx-2 text-on-surface-variant hover:bg-surface-variant/50 rounded-lg transition-all cursor-pointer">
+<span class="material-symbols-outlined ml-3" data-icon="monitor_heart">monitor_heart</span>
+<span class="font-label-md text-label-md">مراقبة العناية المركزة</span>
+</div>
+<div class="flex items-center px-4 py-3 mx-2 bg-secondary-container text-on-secondary-container rounded-lg transition-all cursor-pointer">
+<span class="material-symbols-outlined ml-3" data-icon="inventory_2">inventory_2</span>
+<span class="font-label-md text-label-md">إدارة الموارد</span>
+</div>
+<div class="flex items-center px-4 py-3 mx-2 text-on-surface-variant hover:bg-surface-variant/50 rounded-lg transition-all cursor-pointer">
+<span class="material-symbols-outlined ml-3" data-icon="settings_suggest">settings_suggest</span>
+<span class="font-label-md text-label-md">الصيانة</span>
+</div>
+<div class="flex items-center px-4 py-3 mx-2 text-on-surface-variant hover:bg-surface-variant/50 rounded-lg transition-all cursor-pointer">
+<span class="material-symbols-outlined ml-3" data-icon="groups">groups</span>
+<span class="font-label-md text-label-md">تدفق المرضى</span>
+</div>
+<div class="flex items-center px-4 py-3 mx-2 text-on-surface-variant hover:bg-surface-variant/50 rounded-lg transition-all cursor-pointer">
+<span class="material-symbols-outlined ml-3" data-icon="badge">badge</span>
+<span class="font-label-md text-label-md">طاقم العمل</span>
+</div>
+</nav>
+<div class="mt-auto px-md">
+<button class="w-full py-3 bg-error text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-error/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined" data-icon="emergency">emergency</span>
+                تنبيه طوارئ
+            </button>
+<div class="mt-4 flex items-center px-4 py-3 text-outline hover:text-error transition-colors cursor-pointer">
+<span class="material-symbols-outlined ml-3" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">تسجيل الخروج</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="mr-64 min-h-screen">
+<!-- TopNavBar -->
+<header class="w-full top-0 sticky z-40 bg-white/80 backdrop-blur-md border-b border-outline/30 shadow-sm shadow-primary/5 px-margin-desktop py-4 flex flex-row-reverse justify-between items-center">
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-xs px-3 py-2 bg-surface-container-low rounded-full border border-outline/10">
+<span class="material-symbols-outlined text-outline" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 text-right" placeholder="بحث عن أصول..." type="text"/>
+</div>
+<div class="flex items-center gap-sm">
+<div class="relative cursor-pointer">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer" data-icon="settings">settings</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer" data-icon="help">help</span>
+</div>
+<div class="flex items-center gap-sm mr-4 border-r pr-4 border-outline/20">
+<div class="text-left">
+<p class="font-label-md font-bold text-primary">د. أحمد الشمري</p>
+<p class="text-[10px] text-outline">كبير المسؤولين الطبيين</p>
+</div>
+<img alt="Profile" class="w-10 h-10 rounded-full object-cover border-2 border-secondary" data-alt="A professional headshot of a middle-aged male doctor with a kind expression, wearing a crisp white medical coat and a stethoscope. The background is a brightly lit, high-end medical facility with a soft-focus corporate aesthetic, dominated by cool whites and deep navy tones. High-key professional lighting enhances the atmosphere of trust and clinical excellence." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxvOzGViSXCEEWUSmT1f9EXcKjzW1MjFy02j2ZWA2mMccLW0ug3tFoo6RA-N-yKGt7Bhr3CmorSUA46Kt1wBRNOjnCMKMEHt0AbjbYMEOiYd78snWVMju6RrRgKz_HxqNSvd8SZ4e2xWhkFC6Q51LqtL-J9HPbFcE8GnEu6M9a1wZ367o9lcfncM-eAOoUXuajw3koYWKHxVjzREqiXXNNh0iOgDlZ_Ut1_jfTSI0gHxqYZtxojpB9B6befdOwoumdT7ll-Q-htFNR"/>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<h2 class="font-headline-md text-headline-md font-bold text-primary">جدول صيانة المعدات</h2>
+<nav class="hidden lg:flex gap-md">
+<a class="font-label-md text-on-surface-variant hover:text-secondary transition-colors" href="#">لوحة القيادة</a>
+<a class="font-label-md text-secondary border-b-2 border-secondary font-bold" href="#">إدارة الأصول</a>
+<a class="font-label-md text-on-surface-variant hover:text-secondary transition-colors" href="#">التقارير</a>
+<a class="font-label-md text-on-surface-variant hover:text-secondary transition-colors" href="#">الموظفين</a>
+</nav>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-md lg:p-margin-desktop space-y-md">
+<!-- 1. Maintenance Overview Dashboard -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Total Assets -->
+<div class="glass-card p-md rounded-xl flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div class="bg-primary/5 p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined" data-icon="precision_manufacturing">precision_manufacturing</span>
+</div>
+<span class="text-green-600 text-xs font-bold">+2.4%</span>
+</div>
+<div class="mt-4">
+<p class="text-outline text-sm font-label-md">إجمالي الأصول الطبية</p>
+<h3 class="font-display-lg text-3xl font-bold text-primary mt-1">1,284</h3>
+</div>
+</div>
+<!-- Maintenance Overdue -->
+<div class="glass-card p-md rounded-xl flex flex-col justify-between border-r-4 border-r-error">
+<div class="flex justify-between items-start">
+<div class="bg-error/5 p-2 rounded-lg text-error">
+<span class="material-symbols-outlined" data-icon="error">error</span>
+</div>
+<span class="text-error text-xs font-bold">حرجة</span>
+</div>
+<div class="mt-4">
+<p class="text-outline text-sm font-label-md">صيانة متأخرة</p>
+<h3 class="font-display-lg text-3xl font-bold text-error mt-1">12</h3>
+</div>
+</div>
+<!-- Scheduled Today -->
+<div class="glass-card p-md rounded-xl flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div class="bg-secondary/5 p-2 rounded-lg text-secondary">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+</div>
+<span class="text-secondary text-xs font-bold">8 مهام</span>
+</div>
+<div class="mt-4">
+<p class="text-outline text-sm font-label-md">مجدولة اليوم</p>
+<h3 class="font-display-lg text-3xl font-bold text-primary mt-1">08</h3>
+</div>
+</div>
+<!-- Downtime Rate -->
+<div class="glass-card p-md rounded-xl flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div class="bg-tertiary-fixed-dim/20 p-2 rounded-lg text-on-tertiary-container">
+<span class="material-symbols-outlined" data-icon="timer_off">timer_off</span>
+</div>
+<span class="text-green-600 text-xs font-bold">-0.8%</span>
+</div>
+<div class="mt-4">
+<p class="text-outline text-sm font-label-md">معدل تعطل المعدات</p>
+<h3 class="font-display-lg text-3xl font-bold text-primary mt-1">1.2%</h3>
+</div>
+</div>
+</section>
+<!-- 2. & 5. Calendar & Quick Actions Row -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+<!-- Main Calendar View (Col 8) -->
+<div class="lg:col-span-8 glass-card rounded-xl overflow-hidden">
+<div class="p-md border-b border-outline/10 flex justify-between items-center bg-surface-container-low/50">
+<div class="flex items-center gap-md">
+<h4 class="font-title-lg font-bold text-primary">تقويم الصيانة الوقائية</h4>
+<div class="flex bg-white rounded-lg border border-outline/20 p-1">
+<button class="px-4 py-1 text-xs font-bold bg-primary text-white rounded-md">أسبوع</button>
+<button class="px-4 py-1 text-xs text-outline hover:bg-surface-container transition-colors rounded-md">شهر</button>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded-full border border-outline/20 hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+</button>
+<span class="font-label-md px-2 self-center">أكتوبر 2024</span>
+<button class="w-8 h-8 flex items-center justify-center rounded-full border border-outline/20 hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-7 border-b border-outline/10 text-center py-3 bg-surface-container-low/20">
+<div class="text-xs font-bold text-outline">الأحد</div>
+<div class="text-xs font-bold text-outline">الاثنين</div>
+<div class="text-xs font-bold text-outline">الثلاثاء</div>
+<div class="text-xs font-bold text-outline">الأربعاء</div>
+<div class="text-xs font-bold text-outline">الخميس</div>
+<div class="text-xs font-bold text-outline">الجمعة</div>
+<div class="text-xs font-bold text-outline">السبت</div>
+</div>
+<div class="grid grid-cols-7 grid-rows-2">
+<!-- Example Calendar Days -->
+<div class="min-h-[120px] p-2 border-l border-b border-outline/10 relative group hover:bg-primary/5 transition-colors">
+<span class="text-xs text-outline font-bold">14</span>
+<div class="mt-2 space-y-1">
+<div class="bg-secondary/10 border-r-2 border-secondary p-1 rounded text-[10px] text-secondary-fixed-variant truncate">
+                                    معايرة أجهزة التنفس (3)
+                                </div>
+</div>
+</div>
+<div class="min-h-[120px] p-2 border-l border-b border-outline/10 relative hover:bg-primary/5 transition-colors">
+<span class="text-xs text-outline font-bold">15</span>
+<div class="mt-2 space-y-1">
+<div class="bg-error/10 border-r-2 border-error p-1 rounded text-[10px] text-error truncate">
+                                    إصلاح ECG - غرفة 204
+                                </div>
+<div class="bg-primary/10 border-r-2 border-primary p-1 rounded text-[10px] text-primary truncate">
+                                    صيانة سنوية PB 980
+                                </div>
+</div>
+</div>
+<div class="min-h-[120px] p-2 border-l border-b border-outline/10 bg-secondary-container/5">
+<span class="text-xs text-secondary font-bold">16</span>
+<p class="text-[10px] text-secondary text-center mt-8">اليوم</p>
+</div>
+<div class="min-h-[120px] p-2 border-l border-b border-outline/10 hover:bg-primary/5 transition-colors"><span class="text-xs text-outline font-bold">17</span></div>
+<div class="min-h-[120px] p-2 border-l border-b border-outline/10 hover:bg-primary/5 transition-colors"><span class="text-xs text-outline font-bold">18</span></div>
+<div class="min-h-[120px] p-2 border-l border-b border-outline/10 hover:bg-primary/5 transition-colors"><span class="text-xs text-outline font-bold">19</span></div>
+<div class="min-h-[120px] p-2 border-b border-outline/10 hover:bg-primary/5 transition-colors"><span class="text-xs text-outline font-bold">20</span></div>
+</div>
+</div>
+<!-- Quick Actions & Calibration (Col 4) -->
+<div class="lg:col-span-4 space-y-gutter">
+<!-- Quick Actions -->
+<div class="glass-card p-md rounded-xl">
+<h4 class="font-title-lg font-bold text-primary mb-md">إجراءات سريعة</h4>
+<div class="space-y-sm">
+<button class="w-full flex items-center justify-between p-4 bg-primary text-white rounded-xl hover:bg-primary-container transition-all group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="font-label-md">تسجيل طلب إصلاح جديد</span>
+</div>
+<span class="material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity" data-icon="arrow_back">arrow_back</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 border border-secondary text-secondary rounded-xl hover:bg-secondary/5 transition-all">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined" data-icon="schedule">schedule</span>
+<span class="font-label-md">جدولة صيانة دورية</span>
+</div>
+</button>
+<button class="w-full flex items-center justify-between p-4 border border-outline/30 text-primary rounded-xl hover:bg-surface-container transition-all">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="font-label-md">استخراج تقرير الامتثال</span>
+</div>
+</button>
+</div>
+</div>
+<!-- Calibration Compliance Section -->
+<div class="glass-card p-md rounded-xl bg-gradient-to-br from-white to-surface-container-low">
+<div class="flex items-center justify-between mb-md">
+<h4 class="font-title-lg font-bold text-primary">تتبع المعايرة</h4>
+<span class="material-symbols-outlined text-on-tertiary-container" data-icon="verified">verified</span>
+</div>
+<div class="space-y-md">
+<div class="flex items-center justify-between p-3 bg-white rounded-lg border border-outline/10">
+<div>
+<p class="text-xs font-bold text-primary">معايرة أجهزة غسيل الكلى</p>
+<p class="text-[10px] text-outline">تاريخ الاستحقاق: 12 يوم</p>
+</div>
+<div class="w-12 h-12 relative flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-outline/10" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-width="4"></circle>
+<circle class="text-secondary" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-dasharray="125.6" stroke-dashoffset="30" stroke-width="4"></circle>
+</svg>
+<span class="absolute text-[10px] font-bold">85%</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-3 bg-white rounded-lg border border-outline/10">
+<div>
+<p class="text-xs font-bold text-primary">أجهزة قياس الأشعة</p>
+<p class="text-[10px] text-outline">مكتمل - مطابق للمعايير</p>
+</div>
+<span class="material-symbols-outlined text-green-500" data-icon="check_circle">check_circle</span>
+</div>
+<button class="w-full text-center py-2 text-xs font-bold text-secondary hover:underline transition-all">
+                                عرض تفاصيل الامتثال CHI/MOH
+                            </button>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. Maintenance Queue / Work Orders -->
+<section class="glass-card rounded-xl overflow-hidden">
+<div class="p-md border-b border-outline/10 flex justify-between items-center bg-surface-container-low/30">
+<h4 class="font-title-lg font-bold text-primary">قائمة مهام الصيانة النشطة</h4>
+<div class="flex gap-md">
+<select class="bg-white border border-outline/20 rounded-lg text-xs font-label-md px-3 py-1.5 focus:ring-secondary">
+<option>جميع الحالات</option>
+<option>قيد التنفيذ</option>
+<option>متأخر</option>
+</select>
+<button class="flex items-center gap-1 text-xs font-bold text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="filter_list">filter_list</span>
+                            تصفية
+                        </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead>
+<tr class="bg-surface-container-low/20">
+<th class="px-md py-4 font-label-md text-outline text-xs uppercase tracking-wider">الجهاز / الأصل</th>
+<th class="px-md py-4 font-label-md text-outline text-xs uppercase tracking-wider">نوع الصيانة</th>
+<th class="px-md py-4 font-label-md text-outline text-xs uppercase tracking-wider">الأولوية</th>
+<th class="px-md py-4 font-label-md text-outline text-xs uppercase tracking-wider">الفني المكلف</th>
+<th class="px-md py-4 font-label-md text-outline text-xs uppercase tracking-wider">الحالة</th>
+<th class="px-md py-4 font-label-md text-outline text-xs uppercase tracking-wider">الإجراء</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline/10">
+<!-- Row 1 -->
+<tr class="hover:bg-primary/5 transition-colors cursor-pointer group">
+<td class="px-md py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="ventilator">ventilator</span>
+</div>
+<div>
+<p class="font-label-md font-bold text-primary">Puritan Bennett 980</p>
+<p class="text-[10px] text-outline">ID: ASSET-88293</p>
+</div>
+</div>
+</td>
+<td class="px-md py-4 text-sm">صيانة سنوية</td>
+<td class="px-md py-4">
+<span class="px-3 py-1 rounded-full text-[10px] font-bold bg-error/10 text-error">عالية</span>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-2">
+<img class="w-6 h-6 rounded-full" data-alt="Portrait of a young male technician in a clinical workshop, focused and professional. He is wearing a blue uniform with a badge. Background features blurred medical devices and tools, emphasizing a technical healthcare environment. Professional studio lighting with clean, modern highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALeAzzn6K1FDL1HtPmru1VtyWfOrtoicMWkmNECaDmo-SkqdP9CvA0-ZUL0dYEpFtaoNEljG6NUiE9PrIV_iJZbPDaKMi8gLqKMnL828VP2yTcRvkqyefmVZ_cN0Sk2Wih-39Qt_jQaX5e-bip56aEGlbbbIUUJENEOU95IqS5Sv1UmdD81GCuhobhIxSe4_lqnbuQx6W-lbEChE-R_NWhrOBvVck_v5P4wtNREx-2lhEl13P79RKgLwJf1WBXYrSysuTfeW_c_2GE"/>
+<span class="text-xs font-label-md">م. خالد العتيبي</span>
+</div>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-1.5 text-secondary">
+<span class="w-2 h-2 bg-secondary rounded-full animate-pulse"></span>
+<span class="text-xs font-bold">قيد التنفيذ</span>
+</div>
+</td>
+<td class="px-md py-4">
+<button class="p-2 hover:bg-white rounded-lg transition-all text-outline">
+<span class="material-symbols-outlined text-lg" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-primary/5 transition-colors cursor-pointer">
+<td class="px-md py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="ecg_heart">ecg_heart</span>
+</div>
+<div>
+<p class="font-label-md font-bold text-primary">GE Healthcare B850</p>
+<p class="text-[10px] text-outline">ID: ASSET-44102</p>
+</div>
+</div>
+</td>
+<td class="px-md py-4 text-sm">معايرة دورية</td>
+<td class="px-md py-4">
+<span class="px-3 py-1 rounded-full text-[10px] font-bold bg-secondary/10 text-secondary">متوسطة</span>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-2">
+<img class="w-6 h-6 rounded-full" data-alt="Portrait of a professional female biomedical engineer in a modern hospital setting. She is wearing clinical attire and looks confident. The lighting is soft and bright, highlighting a clean, high-tech healthcare workspace in the background. Neutral color palette with subtle blue accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUIFwDcYru3jKYwS3ku-ms6QNEaIVQQMlOEsnI-X1281tZjPZEt8oFwyonwpwSUMS2VWVKZPDwJdX4IiAG6aKPNCzQnjLM5kTSbsqOpe5mPT-dxAeezKR9fIxQEezRjh_6MTwZ7uCzaaO2diyDMC1gjXMBTFJxurFyx_QbuLMs_pa8uJnQsdzORhBWcJPjU4wZRte87aQlmo18X2OmllfG4rWrx44S8giXr99zlFiK7fNOy3RPTgMbd9OnO42pNB_sW--uSkv5kl3w"/>
+<span class="text-xs font-label-md">م. سارة القحطاني</span>
+</div>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-1.5 text-outline">
+<span class="w-2 h-2 bg-outline rounded-full"></span>
+<span class="text-xs font-bold">مجدول</span>
+</div>
+</td>
+<td class="px-md py-4">
+<button class="p-2 hover:bg-white rounded-lg transition-all text-outline">
+<span class="material-symbols-outlined text-lg" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-primary/5 transition-colors cursor-pointer">
+<td class="px-md py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="blood_pressure">blood_pressure</span>
+</div>
+<div>
+<p class="font-label-md font-bold text-primary">Baxter Artis Physio</p>
+<p class="text-[10px] text-outline">ID: ASSET-12904</p>
+</div>
+</div>
+</td>
+<td class="px-md py-4 text-sm">إصلاح طارئ</td>
+<td class="px-md py-4">
+<span class="px-3 py-1 rounded-full text-[10px] font-bold bg-error/10 text-error">حرجة</span>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center text-[10px] font-bold">NA</span>
+<span class="text-xs font-label-md text-outline-variant">لم يتم التعيين</span>
+</div>
+</td>
+<td class="px-md py-4">
+<div class="flex items-center gap-1.5 text-error">
+<span class="w-2 h-2 bg-error rounded-full"></span>
+<span class="text-xs font-bold">انتظار</span>
+</div>
+</td>
+<td class="px-md py-4">
+<button class="p-2 hover:bg-white rounded-lg transition-all text-outline">
+<span class="material-symbols-outlined text-lg" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-md flex justify-between items-center bg-white">
+<p class="text-xs text-outline">عرض 3 من أصل 48 طلب صيانة نشط</p>
+<div class="flex gap-2">
+<button class="px-3 py-1 text-xs border border-outline/20 rounded hover:bg-surface-container transition-colors">السابق</button>
+<button class="px-3 py-1 text-xs bg-primary text-white rounded">1</button>
+<button class="px-3 py-1 text-xs border border-outline/20 rounded hover:bg-surface-container transition-colors">2</button>
+<button class="px-3 py-1 text-xs border border-outline/20 rounded hover:bg-surface-container transition-colors">التالي</button>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Success Modal Interaction (Hidden by default) -->
+<div class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-primary/20 backdrop-blur-sm" id="successModal">
+<div class="glass-card w-full max-w-md p-lg rounded-2xl text-center space-y-md animate-in fade-in zoom-in duration-300">
+<div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+<span class="material-symbols-outlined text-3xl" data-icon="check_circle">check_circle</span>
+</div>
+<h3 class="font-headline-md text-primary font-bold">تم تسجيل الطلب بنجاح</h3>
+<p class="text-outline font-body-md">تم إرسال طلب الصيانة إلى الفريق التقني المختص. سيتم تحديث حالة الطلب في القائمة فور البدء بالعمل.</p>
+<button class="w-full py-3 bg-primary text-white rounded-xl font-bold" onclick="closeModal()">إغلاق</button>
+</div>
+</div>
+<script>
+        function openModal() {
+            document.getElementById('successModal').classList.remove('hidden');
+        }
+        function closeModal() {
+            document.getElementById('successModal').classList.add('hidden');
+        }
+
+        // Add interaction to the primary action button
+        document.querySelector('button.bg-primary.text-white.rounded-xl.group').addEventListener('click', openModal);
+
+        // Simple animation for the progress ring
+        window.addEventListener('DOMContentLoaded', () => {
+            const circle = document.querySelector('circle.text-secondary');
+            if (circle) {
+                circle.style.transition = 'stroke-dashoffset 2s ease-in-out';
+                circle.style.strokeDashoffset = '30';
+            }
+        });
+    </script>
+</body></html>

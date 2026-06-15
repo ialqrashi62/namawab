@@ -1,0 +1,130 @@
+# NamaMedical — Order Sets catalog
+# Pre-built bundles applied with one click; saves time + reduces missed steps.
+# IMPORTANT: clinician reviews and signs each order before activation; ASA/allergy/eGFR gates apply.
+
+order_sets:
+
+  # ─── Cardiology ───────────────────────────────────────────────
+  - id: stemi
+    name_en: STEMI bundle (ED)
+    name_ar: حزمة احتشاء عضلة القلب
+    department: cardiology
+    triggers: [code_stemi]
+    items:
+      - { type: med, code: rxnorm:1191, name: "Aspirin 300 mg PO chewed STAT" }
+      - { type: med, code: rxnorm:32968, name: "Clopidogrel 600 mg PO loading" }
+      - { type: med, code: rxnorm:5224, name: "Heparin 60 units/kg IV (max 4000) bolus" }
+      - { type: med, code: rxnorm:7052, name: "Atorvastatin 80 mg PO" }
+      - { type: med, code: rxnorm:7716, name: "Metoprolol tartrate 5 mg IV" }
+      - { type: lab, code: loinc:6598-7,  name: "Troponin-T (0/3h)" }
+      - { type: lab, code: loinc:33762-6, name: "BNP / NT-proBNP" }
+      - { type: lab, code: loinc:24323-8, name: "BMP" }
+      - { type: lab, code: loinc:58410-2, name: "CBC" }
+      - { type: lab, code: loinc:5902-2,  name: "PT-INR + aPTT" }
+      - { type: procedure, code: cpt:93010, name: "12-lead ECG STAT" }
+      - { type: procedure, code: cpt:93306, name: "TTE if available" }
+    contraindications:
+      - description: "Active major bleeding"
+      - description: "Hypersensitivity to aspirin or clopidogrel"
+
+  - id: af_anticoag_init
+    name_en: AF anticoagulation initiation
+    name_ar: بدء مضادات التخثر للرجفان الأذيني
+    department: cardiology
+    items:
+      - { type: lab, code: loinc:24317-0, name: "Renal panel + LFT" }
+      - { type: lab, code: loinc:58410-2, name: "CBC" }
+      - { type: lab, code: loinc:5902-2,  name: "PT-INR / aPTT" }
+      - { type: med, code: rxnorm:1364430, name: "Apixaban 5 mg PO BID (or 2.5 mg if criteria)" }
+    cds_required: [cha2ds2_vasc, has_bled, crcl, doac_dose_decision]
+
+  # ─── Emergency / Sepsis ───────────────────────────────────────
+  - id: sepsis_1h
+    name_en: Sepsis 1-hour bundle
+    name_ar: حزمة الإنتان (60 دقيقة)
+    department: ed
+    triggers: [code_sepsis]
+    items:
+      - { type: lab, code: loinc:600-7,  name: "Blood culture x2 (pre-antibiotic)" }
+      - { type: lab, code: loinc:2524-7, name: "Lactate" }
+      - { type: lab, code: loinc:58410-2, name: "CBC" }
+      - { type: lab, code: loinc:24323-8, name: "BMP" }
+      - { type: med, code: "rxnorm:nat-pip-tazo", name: "Piperacillin-tazobactam 4.5g IV STAT (or per local antibiogram)" }
+      - { type: med, code: rxnorm:1807627, name: "NS 30 mL/kg IV bolus if hypoperfusion" }
+      - { type: procedure, code: cpt:93010, name: "12-lead ECG" }
+    sla_minutes: 60
+
+  - id: stroke_thrombolysis_workup
+    name_en: Stroke workup (tPA candidate)
+    name_ar: فحوصات السكتة الدماغية (مرشح للتجلط)
+    department: ed
+    triggers: [code_stroke]
+    items:
+      - { type: imaging, code: snomed:373883005, name: "CT head non-contrast STAT" }
+      - { type: imaging, code: snomed:418394000, name: "CT angio head/neck" }
+      - { type: lab, code: loinc:5902-2,  name: "PT-INR + aPTT" }
+      - { type: lab, code: loinc:58410-2, name: "CBC + platelets" }
+      - { type: lab, code: loinc:2345-7,  name: "Glucose finger-stick STAT" }
+      - { type: procedure, code: cpt:93010, name: "12-lead ECG" }
+    cds_required: [tpa_inclusion_exclusion, last_known_well, nihss]
+
+  # ─── Oncology ─────────────────────────────────────────────────
+  - id: febrile_neutropenia
+    name_en: Febrile neutropenia (high-risk)
+    name_ar: حمى مع نقص العدلات (عالية الخطورة)
+    department: hemato_oncology
+    items:
+      - { type: lab, code: loinc:600-7, name: "Blood culture x2 (peripheral + line)" }
+      - { type: lab, code: loinc:5778-6, name: "Urinalysis + urine culture" }
+      - { type: imaging, code: cpt:71045, name: "CXR" }
+      - { type: med, code: "rxnorm:nat-cefepime", name: "Cefepime 2g IV q8h within 1h" }
+      - { type: med, code: "rxnorm:nat-vanc", name: "Vancomycin if line/skin/MRSA risk" }
+    contraindications: [{ description: "Cefepime allergy → meropenem 1g q8h" }]
+    sla_minutes: 60
+
+  # ─── OB-GYN ───────────────────────────────────────────────────
+  - id: preeclampsia_severe
+    name_en: Severe preeclampsia
+    name_ar: تسمم الحمل الشديد
+    department: obgyn
+    items:
+      - { type: med, code: "rxnorm:nat-mgso4", name: "Magnesium sulfate 4-6g IV bolus + 1-2g/h infusion" }
+      - { type: med, code: rxnorm:5470, name: "Labetalol 20 mg IV (or hydralazine 5-10 mg)" }
+      - { type: lab, code: loinc:2160-0, name: "Creatinine + LFTs + LDH + uric acid" }
+      - { type: lab, code: loinc:58410-2, name: "CBC + platelets" }
+      - { type: procedure, code: snomed:11566007, name: "Continuous fetal monitoring" }
+
+  # ─── Neonatal ─────────────────────────────────────────────────
+  - id: nrp_initial
+    name_en: NRP initial steps
+    name_ar: إنعاش حديثي الولادة (الخطوات الأولى)
+    department: neonatal_pediatrics
+    items:
+      - { type: procedure, name: "Warm + dry + position + clear airway + stimulate (≤60s)" }
+      - { type: procedure, name: "PPV if HR<100 or apnea/gasping" }
+      - { type: procedure, name: "ECG monitor + SpO2 right-hand" }
+      - { type: med, code: "rxnorm:nat-epi-neo", name: "Epinephrine 0.01-0.03 mg/kg IV/IO if HR<60 after PPV+CC" }
+
+  # ─── ICU ──────────────────────────────────────────────────────
+  - id: ards_lpv
+    name_en: ARDS lung-protective ventilation
+    name_ar: تهوية واقية للرئة في ARDS
+    department: icu
+    items:
+      - { type: setting, name: "Tidal volume 6 mL/kg PBW" }
+      - { type: setting, name: "Plateau pressure ≤ 30 cmH2O" }
+      - { type: setting, name: "PEEP per ARDSnet table" }
+      - { type: setting, name: "Driving pressure ≤ 15 cmH2O" }
+      - { type: lab, code: loinc:2019-8, name: "ABG q4-6h initially" }
+
+  # ─── Lab ──────────────────────────────────────────────────────
+  - id: routine_admission_panel
+    name_en: Routine admission panel
+    name_ar: حزمة فحوصات إدخال
+    department: laboratories
+    items:
+      - { type: lab, code: loinc:58410-2, name: "CBC" }
+      - { type: lab, code: loinc:24323-8, name: "BMP" }
+      - { type: lab, code: loinc:24331-1, name: "Comprehensive metabolic panel" }
+      - { type: lab, code: loinc:5902-2,  name: "PT-INR + aPTT" }
+      - { type: lab, code: loinc:5778-6,  name: "Urinalysis" }

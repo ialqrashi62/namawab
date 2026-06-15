@@ -1,0 +1,15 @@
+{
+  "laboratories": {
+    "dashboard": {
+      "title": "لوحة المختبرات",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

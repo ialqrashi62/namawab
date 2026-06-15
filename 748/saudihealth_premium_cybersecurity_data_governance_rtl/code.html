@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+
+<html class="light" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>إكسلنس هيلث جلوبال | مركز الحوكمة والأمن</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(227, 209, 180, 0.3);
+            box-shadow: 0px 10px 30px rgba(0, 43, 73, 0.05);
+        }
+        .security-gauge {
+            background: conic-gradient(from 0deg, #006970 94%, #e1e3e4 0%);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#001d34",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "surface-dim": "#d9dadb",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed-dim": "#5dd8e2",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "on-surface-variant": "#42474d",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#cfe5ff",
+                        "primary": "#001629",
+                        "surface-variant": "#e1e3e4",
+                        "background": "#f8f9fa",
+                        "surface-tint": "#406182",
+                        "secondary": "#006970",
+                        "tertiary-container": "#362700",
+                        "surface-container": "#edeeef",
+                        "on-background": "#191c1d",
+                        "tertiary-fixed-dim": "#e6c274",
+                        "on-primary-fixed-variant": "#274969",
+                        "tertiary-fixed": "#ffdf9d",
+                        "primary-fixed-dim": "#a8caef",
+                        "on-error": "#ffffff",
+                        "on-primary-container": "#7293b6",
+                        "on-tertiary-container": "#ac8c44",
+                        "inverse-primary": "#a8caef",
+                        "tertiary": "#1d1300",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#7df4ff",
+                        "surface": "#f8f9fa",
+                        "on-tertiary-fixed": "#251a00",
+                        "on-surface": "#191c1d",
+                        "surface-container-low": "#f3f4f5",
+                        "outline-variant": "#c3c7ce",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f8f9fa",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#7af1fc",
+                        "outline": "#73777e",
+                        "on-secondary-container": "#006e75",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#e7e8e9",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-secondary-fixed": "#002022",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2e3132",
+                        "primary-container": "#002b49"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "margin-desktop": "48px",
+                        "xl": "64px",
+                        "lg": "40px",
+                        "gutter": "24px",
+                        "sm": "12px",
+                        "md": "24px",
+                        "margin-mobile": "16px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["IBM Plex Sans Arabic"],
+                        "body-md": ["IBM Plex Sans Arabic"],
+                        "title-lg": ["IBM Plex Sans Arabic"],
+                        "headline-md": ["IBM Plex Sans Arabic"],
+                        "headline-lg": ["IBM Plex Sans Arabic"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-margin-desktop h-20 rtl bg-white/80 dark:bg-surface-container/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm shadow-primary/5">
+<div class="flex items-center gap-md">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">إكسلنس هيلث جلوبال</h1>
+<div class="hidden md:flex gap-base mr-lg">
+<a class="px-md py-xs text-on-surface-variant hover:text-secondary transition-colors font-label-md text-label-md" href="#">الرئيسية</a>
+<a class="px-md py-xs text-primary font-bold border-b-2 border-secondary font-label-md text-label-md" href="#">الأمن والحوكمة</a>
+<a class="px-md py-xs text-on-surface-variant hover:text-secondary transition-colors font-label-md text-label-md" href="#">التحليلات</a>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="bg-surface-container-low border-none rounded-lg pr-10 pl-4 h-10 w-64 focus:ring-2 focus:ring-secondary text-label-md" placeholder="البحث عن تهديدات..." type="text"/>
+</div>
+<div class="flex items-center gap-sm">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined" data-icon="language">language</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-secondary/20">
+<img alt="صورة الملف الشخصي للمشرف" class="w-full h-full object-cover" data-alt="A professional headshot of a senior Saudi health official in traditional attire, set against a clean, blurred office background. The lighting is soft and professional, reflecting a high-trust healthcare environment with a focus on leadership and expertise. The overall aesthetic is clean and modern." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCsbtIaeXFlQbM331rCWAcKaLqaf-jrdOxfI30xeYl1KJaCpiFWT3g22KeQO2DLmpY7AHz11Qz2L9qYkVfM7cUGhyzR8cnKYVikshqCmf5w9aWACvst6BzHN_TmS9E-BpCEXtyHcbCvOzvRnh16DyW92MPIjwlBT2clh5Z8eZMmXA7Rio8bCxuncy9uhKZceO2CYtFEsQUsK1PFqlfJcTMeu_4p_drbFKrhMYGRDfV9CQ0qn-7PhlS1zT6Mj9TI3T1Db-2GtovKb97"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- Side Navigation Rail -->
+<aside class="fixed top-0 right-0 bottom-0 z-40 flex flex-col p-md rtl fixed top-0 right-0 bottom-0 z-40 flex flex-col p-md rtl bg-primary w-72 pt-24 shadow-xl shadow-primary/10">
+<div class="flex flex-col gap-xs mb-lg">
+<div class="p-md mb-md">
+<h2 class="font-title-lg text-title-lg text-white font-bold">مركز الحوكمة</h2>
+<p class="text-on-primary/70 font-label-md text-label-md">الأمن السيبراني والبيانات</p>
+</div>
+<a class="flex items-center gap-md p-md bg-secondary text-white rounded-lg transition-all duration-200 translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">لوحة القيادة</span>
+</a>
+<a class="flex items-center gap-md p-md text-on-primary/70 hover:text-white hover:bg-on-primary-fixed-variant/20 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="security">security</span>
+<span class="font-label-md text-label-md">استخبارات التهديدات</span>
+</a>
+<a class="flex items-center gap-md p-md text-on-primary/70 hover:text-white hover:bg-on-primary-fixed-variant/20 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
+<span class="font-label-md text-label-md">تدقيق الامتثال</span>
+</a>
+<a class="flex items-center gap-md p-md text-on-primary/70 hover:text-white hover:bg-on-primary-fixed-variant/20 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span class="font-label-md text-label-md">التحكم في الوصول</span>
+</a>
+<a class="flex items-center gap-md p-md text-on-primary/70 hover:text-white hover:bg-on-primary-fixed-variant/20 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">الإعدادات</span>
+</a>
+</div>
+<div class="mt-auto pt-md border-t border-white/10">
+<button class="w-full mb-md py-3 px-md bg-tertiary-fixed text-on-tertiary-fixed font-bold rounded-lg flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined text-[20px]" data-icon="assignment_turned_in">assignment_turned_in</span>
+<span class="font-label-md text-label-md">تقرير الأمان الأسبوعي</span>
+</button>
+<a class="flex items-center gap-md p-md text-on-primary/70 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="support_agent">support_agent</span>
+<span class="font-label-md text-label-md">الدعم الفني</span>
+</a>
+<a class="flex items-center gap-md p-md text-on-primary/70 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">تسجيل الخروج</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="mr-72 pt-20 min-h-screen px-margin-desktop pb-xl">
+<!-- Header Section -->
+<header class="py-lg flex justify-between items-end">
+<div>
+<p class="text-secondary font-bold font-label-md text-label-md mb-xs">نظام إدارة الحوكمة المتقدم</p>
+<h2 class="font-headline-lg text-headline-lg text-primary">لوحة مراقبة الأمن والامتثال</h2>
+</div>
+<div class="flex gap-sm">
+<span class="px-md py-2 bg-secondary-container text-on-secondary-container rounded-full font-label-md text-label-md flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+                    تحديث مباشر: منذ دقيقة
+                </span>
+</div>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Executive KPIs Block -->
+<section class="col-span-12 lg:col-span-4 glass-card p-lg rounded-xl flex flex-col items-center justify-center text-center">
+<div class="relative w-48 h-48 mb-md">
+<div class="security-gauge w-full h-full rounded-full flex items-center justify-center">
+<div class="w-40 h-40 bg-white rounded-full flex flex-col items-center justify-center">
+<span class="text-primary font-bold text-[48px] leading-none">94</span>
+<span class="text-outline font-label-md text-label-md">من 100</span>
+</div>
+</div>
+</div>
+<h3 class="font-title-lg text-title-lg text-primary mb-xs">مؤشر الأمان العام</h3>
+<p class="text-on-surface-variant font-body-md text-body-md">الحالة: ممتازة - متوافق مع معايير NCA</p>
+</section>
+<!-- Quick Stats Cards -->
+<div class="col-span-12 lg:col-span-8 grid grid-cols-3 gap-gutter">
+<div class="glass-card p-md rounded-xl flex flex-col justify-between border-r-4 border-error">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-error" data-icon="gpp_maybe">gpp_maybe</span>
+<span class="text-error font-bold font-label-md text-label-md">حرج</span>
+</div>
+<div>
+<p class="text-outline font-label-md text-label-md">التهديدات النشطة</p>
+<h4 class="text-headline-md font-bold text-primary">02</h4>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col justify-between border-r-4 border-secondary">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary" data-icon="enhanced_encryption">enhanced_encryption</span>
+<span class="text-secondary font-bold font-label-md text-label-md">مؤمن</span>
+</div>
+<div>
+<p class="text-outline font-label-md text-label-md">تشفير البيانات</p>
+<h4 class="text-headline-md font-bold text-primary">100%</h4>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col justify-between border-r-4 border-secondary-fixed-dim">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary-fixed-dim" data-icon="verified_user">verified_user</span>
+<span class="text-secondary-fixed-dim font-bold font-label-md text-label-md">متوافق</span>
+</div>
+<div>
+<p class="text-outline font-label-md text-label-md">صحة الامتثال</p>
+<h4 class="text-headline-md font-bold text-primary">98%</h4>
+</div>
+</div>
+<!-- Real-time Monitoring Chart Placeholder -->
+<div class="col-span-3 glass-card p-lg rounded-xl min-h-[300px] relative overflow-hidden">
+<div class="flex justify-between items-center mb-lg relative z-10">
+<h3 class="font-title-lg text-title-lg text-primary">تحليل محاولات الاختراق (24 ساعة)</h3>
+<div class="flex gap-md">
+<div class="flex items-center gap-xs">
+<span class="w-3 h-3 rounded-full bg-error"></span>
+<span class="text-label-md font-label-md">المحاولات</span>
+</div>
+<div class="flex items-center gap-xs">
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+<span class="text-label-md font-label-md">المحجوبة</span>
+</div>
+</div>
+</div>
+<!-- Animated Shader Background for Chart -->
+
+<div class="w-full h-48 flex items-end justify-between px-md relative z-10">
+<!-- Mockup Graph bars/lines -->
+<div class="w-8 bg-secondary/40 rounded-t-lg h-24"></div>
+<div class="w-8 bg-error/40 rounded-t-lg h-12"></div>
+<div class="w-8 bg-secondary/40 rounded-t-lg h-32"></div>
+<div class="w-8 bg-secondary/40 rounded-t-lg h-40"></div>
+<div class="w-8 bg-error/40 rounded-t-lg h-16"></div>
+<div class="w-8 bg-secondary/40 rounded-t-lg h-28"></div>
+<div class="w-8 bg-secondary/40 rounded-t-lg h-36"></div>
+<div class="w-8 bg-error/40 rounded-t-lg h-8"></div>
+</div>
+</div>
+</div>
+<!-- Regulatory Compliance Progress -->
+<section class="col-span-12 lg:col-span-5 glass-card p-lg rounded-xl">
+<h3 class="font-title-lg text-title-lg text-primary mb-lg">الامتثال التنظيمي (NCA &amp; MOH)</h3>
+<div class="space-y-lg">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full border-4 border-secondary flex items-center justify-center text-secondary font-bold text-sm">88%</div>
+<div>
+<h4 class="font-label-md text-label-md text-primary">ضوابط الأمن السيبراني الأساسية (ECC)</h4>
+<p class="text-caption font-caption text-outline">هيئة الأمن السيبراني (NCA)</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle">check_circle</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full border-4 border-secondary flex items-center justify-center text-secondary font-bold text-sm">95%</div>
+<div>
+<h4 class="font-label-md text-label-md text-primary">معايير وزارة الصحة (MOH Standards)</h4>
+<p class="text-caption font-caption text-outline">حوكمة البيانات الصحية</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle">check_circle</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full border-4 border-secondary-fixed-dim flex items-center justify-center text-secondary-fixed-dim font-bold text-sm">72%</div>
+<div>
+<h4 class="font-label-md text-label-md text-primary">التوافق مع GDPR/HIPAA</h4>
+<p class="text-caption font-caption text-outline">المعايير الدولية لخصوصية المريض</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="pending">pending</span>
+</div>
+</div>
+</section>
+<!-- Recent Security Events -->
+<section class="col-span-12 lg:col-span-7 glass-card p-lg rounded-xl">
+<div class="flex justify-between items-center mb-lg">
+<h3 class="font-title-lg text-title-lg text-primary">آخر الأحداث الأمنية</h3>
+<button class="text-secondary font-label-md text-label-md hover:underline">عرض الكل</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead>
+<tr class="border-b border-outline-variant/30 text-outline font-label-md text-label-md">
+<th class="pb-md font-medium">الحدث</th>
+<th class="pb-md font-medium">المستوى</th>
+<th class="pb-md font-medium">الوقت</th>
+<th class="pb-md font-medium">الحالة</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md">
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors">
+<td class="py-md">محاولة دخول فاشلة متكررة - مستخدم: 4821</td>
+<td class="py-md"><span class="px-3 py-1 bg-error-container text-on-error-container rounded-full text-caption">حرج</span></td>
+<td class="py-md">14:22</td>
+<td class="py-md text-secondary">تم الحظر</td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors">
+<td class="py-md">تصدير غير مصرح به لملف سجل المريض</td>
+<td class="py-md"><span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full text-caption">عالي</span></td>
+<td class="py-md">13:05</td>
+<td class="py-md text-outline">قيد التحقيق</td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors">
+<td class="py-md">تحديث شهادات التشفير SSL</td>
+<td class="py-md"><span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-caption">منخفض</span></td>
+<td class="py-md">11:50</td>
+<td class="py-md text-secondary">اكتمل</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Data Governance & Access -->
+<section class="col-span-12 lg:col-span-6 glass-card p-lg rounded-xl">
+<h3 class="font-title-lg text-title-lg text-primary mb-lg">حوكمة الوصول إلى البيانات</h3>
+<div class="grid grid-cols-2 gap-md">
+<div class="p-md bg-surface-container-low rounded-lg">
+<div class="flex items-center gap-sm mb-xs">
+<span class="material-symbols-outlined text-primary" data-icon="vpn_key">vpn_key</span>
+<span class="font-label-md text-label-md text-primary">طلبات الوصول المميز</span>
+</div>
+<p class="text-headline-md font-bold text-primary">12 <span class="text-label-md font-medium text-outline">طلب معلق</span></p>
+</div>
+<div class="p-md bg-error-container/20 rounded-lg">
+<div class="flex items-center gap-sm mb-xs">
+<span class="material-symbols-outlined text-error" data-icon="lock_open">lock_open</span>
+<span class="font-label-md text-label-md text-error">دخول مشبوه (AI)</span>
+</div>
+<p class="text-headline-md font-bold text-error">03 <span class="text-label-md font-medium text-error/70">تنبيهات</span></p>
+</div>
+</div>
+<div class="mt-lg p-md border border-outline-variant/30 rounded-lg flex items-center justify-between">
+<div class="flex items-center gap-md">
+<img alt="AI Guard" class="w-10 h-10" data-alt="A futuristic AI security shield logo, glowing with deep navy and cyan light. The logo is minimalist, representing cutting-edge machine learning and data protection technologies in a professional enterprise context. The style is high-tech and sleek." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU4htmfetRQPB3xNAWCGxNd_kECGtumGw8xjz2xlYi2RUa8Zyuhfa81YmmB1SLxNzxe71-Kg_inZo2-qScwcOXdxwffvHjx_j75WVmrD2Gb1azh0boh5aS2gN0yEwQ6n9bxXQ3caj7EtnP2FnHm4jbS_TIDd81sT-4dm8Jgf8du6wDJWh9W9DvECgsV5LE6TzFFHES9HPWWfpxQdAX-qNXWMGtnK4YFsL0xD_zQljCv52METTizzLKfOn1E3XAYolUgx-iL0IWphhH"/>
+<div>
+<h4 class="font-label-md text-label-md text-primary">حماية الهوية المعززة بالذكاء الاصطناعي</h4>
+<p class="text-caption font-caption text-outline">نظام الكشف عن السلوك غير الطبيعي مفعل</p>
+</div>
+</div>
+<div class="w-12 h-6 bg-secondary rounded-full relative">
+<div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
+</div>
+</div>
+</section>
+<!-- System Health & Patching -->
+<section class="col-span-12 lg:col-span-6 glass-card p-lg rounded-xl">
+<h3 class="font-title-lg text-title-lg text-primary mb-lg">صحة النظام وإدارة الثغرات</h3>
+<div class="space-y-md">
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between items-center text-label-md font-label-md mb-xs">
+<span class="text-primary">تحديثات الأنظمة الحرجة (Patching)</span>
+<span class="text-secondary font-bold">92%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 92%"></div>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between items-center text-label-md font-label-md mb-xs">
+<span class="text-primary">سلامة قواعد البيانات الصحية</span>
+<span class="text-secondary font-bold">مستقرة</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 100%"></div>
+</div>
+</div>
+<div class="mt-md pt-md border-t border-outline-variant/30 grid grid-cols-2 gap-md">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-outline" data-icon="storage">storage</span>
+<div>
+<p class="text-caption font-caption text-outline">آخر فحص للسلامة</p>
+<p class="font-label-md text-label-md text-primary">منذ 45 دقيقة</p>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-outline" data-icon="cloud_done">cloud_done</span>
+<div>
+<p class="text-caption font-caption text-outline">النسخ الاحتياطي</p>
+<p class="font-label-md text-label-md text-primary">مكتمل - مشفر</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed bottom-margin-desktop left-margin-desktop w-16 h-16 bg-primary text-white rounded-full shadow-xl flex items-center justify-center hover:scale-110 transition-transform z-50">
+<span class="material-symbols-outlined text-[32px]" data-icon="security">security</span>
+</button>
+<script>
+        // Micro-interaction for hover effects on glass cards
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+                card.style.transition = 'all 0.3s ease';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0px)';
+            });
+        });
+    </script>
+</body></html>
