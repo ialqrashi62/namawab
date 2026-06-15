@@ -2741,74 +2741,336 @@ app.post('/api/emergency/trauma/:visitId', requireAuth, async (req, res) => {
 });
 
 // ===== INPATIENT ADT =====
-app.get('/api/wards', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM wards ORDER BY id')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/wards', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        const q = tenantId 
+            ? 'SELECT * FROM wards WHERE tenant_id = $1 ORDER BY id'
+            : 'SELECT * FROM wards ORDER BY id';
+        const params = tenantId ? [tenantId] : [];
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/beds', requireAuth, async (req, res) => {
+
+app.get('/api/beds', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { ward_id } = req.query;
-        const q = ward_id ? await pool.query('SELECT b.*, w.ward_name, w.ward_name_ar FROM beds b JOIN wards w ON b.ward_id=w.id WHERE b.ward_id=$1 ORDER BY b.bed_number', [ward_id])
-            : await pool.query('SELECT b.*, w.ward_name, w.ward_name_ar FROM beds b JOIN wards w ON b.ward_id=w.id ORDER BY w.id, b.bed_number');
+        const { tenantId } = getRequestTenantContext(req);
+        
+        // If ward_id is provided, verify ward belongs to tenant
+        if (ward_id && tenantId) {
+            const wardCheck = (await pool.query('SELECT id FROM wards WHERE id=$1 AND tenant_id=$2', [ward_id, tenantId])).rows[0];
+            if (!wardCheck) {
+                return res.status(403).json({ error: 'Invalid ward context or access denied' });
+            }
+        }
+        
+        let qText = '';
+        let params = [];
+        if (ward_id) {
+            qText = tenantId
+                ? 'SELECT b.*, w.ward_name, w.ward_name_ar FROM beds b JOIN wards w ON b.ward_id=w.id WHERE b.ward_id=$1 AND b.tenant_id=$2 ORDER BY b.bed_number'
+                : 'SELECT b.*, w.ward_name, w.ward_name_ar FROM beds b JOIN wards w ON b.ward_id=w.id WHERE b.ward_id=$1 ORDER BY b.bed_number';
+            params = tenantId ? [ward_id, tenantId] : [ward_id];
+        } else {
+            qText = tenantId
+                ? 'SELECT b.*, w.ward_name, w.ward_name_ar FROM beds b JOIN wards w ON b.ward_id=w.id WHERE b.tenant_id=$1 ORDER BY w.id, b.bed_number'
+                : 'SELECT b.*, w.ward_name, w.ward_name_ar FROM beds b JOIN wards w ON b.ward_id=w.id ORDER BY w.id, b.bed_number';
+            params = tenantId ? [tenantId] : [];
+        }
+        
+        const q = await pool.query(qText, params);
         res.json(q.rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/beds/census', requireAuth, async (req, res) => {
+
+app.get('/api/beds/census', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        const wards = (await pool.query('SELECT * FROM wards ORDER BY id')).rows;
-        const beds = (await pool.query('SELECT b.*, w.ward_name, w.ward_name_ar, a.patient_name, a.diagnosis, a.admission_date, a.attending_doctor FROM beds b JOIN wards w ON b.ward_id=w.id LEFT JOIN admissions a ON b.current_admission_id=a.id AND a.status=\'Active\' ORDER BY w.id, b.bed_number')).rows;
-        const total = beds.length; const occupied = beds.filter(b => b.status === 'Occupied').length;
+        const { tenantId } = getRequestTenantContext(req);
+        
+        const wardsQ = tenantId 
+            ? 'SELECT * FROM wards WHERE tenant_id = $1 ORDER BY id'
+            : 'SELECT * FROM wards ORDER BY id';
+        const wardsParams = tenantId ? [tenantId] : [];
+        const wards = (await pool.query(wardsQ, wardsParams)).rows;
+        
+        const bedsQ = tenantId
+            ? `SELECT b.*, w.ward_name, w.ward_name_ar, a.patient_name, a.diagnosis, a.admission_date, a.attending_doctor 
+               FROM beds b JOIN wards w ON b.ward_id=w.id 
+               LEFT JOIN admissions a ON b.current_admission_id=a.id AND a.status='Active' AND a.tenant_id=$1
+               WHERE b.tenant_id=$1
+               ORDER BY w.id, b.bed_number`
+            : `SELECT b.*, w.ward_name, w.ward_name_ar, a.patient_name, a.diagnosis, a.admission_date, a.attending_doctor 
+               FROM beds b JOIN wards w ON b.ward_id=w.id 
+               LEFT JOIN admissions a ON b.current_admission_id=a.id AND a.status='Active'
+               ORDER BY w.id, b.bed_number`;
+        const bedsParams = tenantId ? [tenantId] : [];
+        const beds = (await pool.query(bedsQ, bedsParams)).rows;
+        
+        const total = beds.length; 
+        const occupied = beds.filter(b => b.status === 'Occupied').length;
         res.json({ wards, beds, total, occupied, available: total - occupied, occupancyRate: total > 0 ? Math.round(occupied / total * 100) : 0 });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/admissions', requireAuth, async (req, res) => {
+
+app.get('/api/admissions', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { status } = req.query;
-        const q = status ? await pool.query('SELECT * FROM admissions WHERE status=$1 ORDER BY admission_date DESC', [status])
-            : await pool.query('SELECT * FROM admissions ORDER BY admission_date DESC');
+        const { tenantId } = getRequestTenantContext(req);
+        let qText = '';
+        let params = [];
+        if (status) {
+            qText = tenantId
+                ? 'SELECT * FROM admissions WHERE status=$1 AND tenant_id=$2 ORDER BY admission_date DESC'
+                : 'SELECT * FROM admissions WHERE status=$1 ORDER BY admission_date DESC';
+            params = tenantId ? [status, tenantId] : [status];
+        } else {
+            qText = tenantId
+                ? 'SELECT * FROM admissions WHERE tenant_id=$1 ORDER BY admission_date DESC'
+                : 'SELECT * FROM admissions WHERE tenant_id=$1 ORDER BY admission_date DESC';
+            params = tenantId ? [tenantId] : [];
+        }
+        const q = await pool.query(qText, params);
         res.json(q.rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/admissions', requireAuth, async (req, res) => {
+
+// Added to allow secure fetch of single admission record and prevent IDOR
+app.get('/api/admissions/:id', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        const q = tenantId 
+            ? 'SELECT * FROM admissions WHERE id = $1 AND tenant_id = $2'
+            : 'SELECT * FROM admissions WHERE id = $1';
+        const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const row = (await pool.query(q, params)).rows[0];
+        if (!row) return res.status(404).json({ error: 'Admission not found' });
+        res.json(row);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/admissions', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, admission_type, admitting_doctor, attending_doctor, department, ward_id, bed_id, diagnosis, icd10_code, admission_orders, diet_order, activity_level, dvt_prophylaxis, expected_los, insurance_auth } = req.body;
-        const r = await pool.query('INSERT INTO admissions (patient_id,patient_name,admission_type,admitting_doctor,attending_doctor,department,ward_id,bed_id,diagnosis,icd10_code,admission_orders,diet_order,activity_level,dvt_prophylaxis,expected_los,insurance_auth) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *',
-            [patient_id, patient_name, admission_type || 'Regular', admitting_doctor, attending_doctor, department, ward_id, bed_id, diagnosis, icd10_code, admission_orders, diet_order || 'Regular', activity_level || 'Bed Rest', dvt_prophylaxis, expected_los || 3, insurance_auth]);
-        if (bed_id) await pool.query("UPDATE beds SET status='Occupied', current_patient_id=$1, current_admission_id=$2 WHERE id=$3", [patient_id, r.rows[0].id, bed_id]);
-        await pool.query("UPDATE patients SET status='Admitted' WHERE id=$1", [patient_id]);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        
+        // Validate patient context to prevent IDOR / illegal references
+        if (patient_id) {
+            const patientCheckQ = tenantId
+                ? 'SELECT id FROM patients WHERE id = $1 AND tenant_id = $2'
+                : 'SELECT id FROM patients WHERE id = $1';
+            const patientCheckParams = tenantId ? [patient_id, tenantId] : [patient_id];
+            const patientCheck = (await pool.query(patientCheckQ, patientCheckParams)).rows[0];
+            if (!patientCheck) {
+                return res.status(403).json({ error: 'Invalid patient context or access denied' });
+            }
+        }
+        
+        // Validate ward / bed context to prevent IDOR / illegal references
+        if (bed_id) {
+            const bedCheckQ = tenantId
+                ? 'SELECT id FROM beds WHERE id = $1 AND tenant_id = $2'
+                : 'SELECT id FROM beds WHERE id = $1';
+            const bedCheckParams = tenantId ? [bed_id, tenantId] : [bed_id];
+            const bedCheck = (await pool.query(bedCheckQ, bedCheckParams)).rows[0];
+            if (!bedCheck) {
+                return res.status(403).json({ error: 'Invalid bed context or access denied' });
+            }
+        }
+
+        if (ward_id) {
+            const wardCheckQ = tenantId
+                ? 'SELECT id FROM wards WHERE id = $1 AND tenant_id = $2'
+                : 'SELECT id FROM wards WHERE id = $1';
+            const wardCheckParams = tenantId ? [ward_id, tenantId] : [ward_id];
+            const wardCheck = (await pool.query(wardCheckQ, wardCheckParams)).rows[0];
+            if (!wardCheck) {
+                return res.status(403).json({ error: 'Invalid ward context or access denied' });
+            }
+        }
+
+        const r = await pool.query(
+            `INSERT INTO admissions (patient_id,patient_name,admission_type,admitting_doctor,attending_doctor,department,ward_id,bed_id,diagnosis,icd10_code,admission_orders,diet_order,activity_level,dvt_prophylaxis,expected_los,insurance_auth,tenant_id,facility_id) 
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING *`,
+            [patient_id, patient_name, admission_type || 'Regular', admitting_doctor, attending_doctor, department, ward_id, bed_id, diagnosis, icd10_code, admission_orders, diet_order || 'Regular', activity_level || 'Bed Rest', dvt_prophylaxis, expected_los || 3, insurance_auth, tenantId, facilityId]);
+        
+        if (bed_id) {
+            const updateBedQ = tenantId
+                ? "UPDATE beds SET status='Occupied', current_patient_id=$1, current_admission_id=$2 WHERE id=$3 AND tenant_id=$4"
+                : "UPDATE beds SET status='Occupied', current_patient_id=$1, current_admission_id=$2 WHERE id=$3";
+            const updateBedParams = tenantId ? [patient_id, r.rows[0].id, bed_id, tenantId] : [patient_id, r.rows[0].id, bed_id];
+            await pool.query(updateBedQ, updateBedParams);
+        }
+        
+        const updatePatientQ = tenantId
+            ? "UPDATE patients SET status='Admitted' WHERE id=$1 AND tenant_id=$2"
+            : "UPDATE patients SET status='Admitted' WHERE id=$1";
+        const updatePatientParams = tenantId ? [patient_id, tenantId] : [patient_id];
+        await pool.query(updatePatientQ, updatePatientParams);
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_ADMISSION', 'Inpatient', `Created admission for patient #${patient_id}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/admissions/:id/discharge', requireAuth, async (req, res) => {
+
+app.put('/api/admissions/:id/discharge', requireAuth, requireTenantScope, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
+        
+        // Verify admission ownership first
+        const checkQ = tenantId 
+            ? 'SELECT id, bed_id, patient_id FROM admissions WHERE id = $1 AND tenant_id = $2'
+            : 'SELECT id, bed_id, patient_id FROM admissions WHERE id = $1';
+        const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const adm = (await pool.query(checkQ, checkParams)).rows[0];
+        if (!adm) return res.status(404).json({ error: 'Admission not found' });
+
         const { discharge_type, discharge_summary, discharge_instructions, discharge_medications, followup_date, followup_doctor } = req.body;
-        await pool.query('UPDATE admissions SET status=$1, discharge_date=$2, discharge_type=$3, discharge_summary=$4, discharge_instructions=$5, discharge_medications=$6, followup_date=$7, followup_doctor=$8 WHERE id=$9',
-            ['Discharged', new Date().toISOString(), discharge_type || 'Regular', discharge_summary, discharge_instructions, discharge_medications, followup_date, followup_doctor, req.params.id]);
-        const adm = (await pool.query('SELECT bed_id, patient_id FROM admissions WHERE id=$1', [req.params.id])).rows[0];
-        if (adm?.bed_id) await pool.query("UPDATE beds SET status='Available', current_patient_id=0, current_admission_id=0 WHERE id=$1", [adm.bed_id]);
-        if (adm?.patient_id) await pool.query("UPDATE patients SET status='Discharged' WHERE id=$1", [adm.patient_id]);
+        
+        const updateQ = tenantId
+            ? 'UPDATE admissions SET status=$1, discharge_date=$2, discharge_type=$3, discharge_summary=$4, discharge_instructions=$5, discharge_medications=$6, followup_date=$7, followup_doctor=$8 WHERE id=$9 AND tenant_id=$10'
+            : 'UPDATE admissions SET status=$1, discharge_date=$2, discharge_type=$3, discharge_summary=$4, discharge_instructions=$5, discharge_medications=$6, followup_date=$7, followup_doctor=$8 WHERE id=$9';
+        const updateParams = [
+            'Discharged', 
+            new Date().toISOString(), 
+            discharge_type || 'Regular', 
+            discharge_summary, 
+            discharge_instructions, 
+            discharge_medications, 
+            followup_date, 
+            followup_doctor, 
+            req.params.id
+        ];
+        if (tenantId) updateParams.push(tenantId);
+        await pool.query(updateQ, updateParams);
+        
+        if (adm.bed_id) {
+            const updateBedQ = tenantId
+                ? "UPDATE beds SET status='Available', current_patient_id=0, current_admission_id=0 WHERE id=$1 AND tenant_id=$2"
+                : "UPDATE beds SET status='Available', current_patient_id=0, current_admission_id=0 WHERE id=$1";
+            const updateBedParams = tenantId ? [adm.bed_id, tenantId] : [adm.bed_id];
+            await pool.query(updateBedQ, updateBedParams);
+        }
+        if (adm.patient_id) {
+            const updatePatientQ = tenantId
+                ? "UPDATE patients SET status='Discharged' WHERE id=$1 AND tenant_id=$2"
+                : "UPDATE patients SET status='Discharged' WHERE id=$1";
+            const updatePatientParams = tenantId ? [adm.patient_id, tenantId] : [adm.patient_id];
+            await pool.query(updatePatientQ, updatePatientParams);
+        }
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'DISCHARGE_PATIENT', 'Inpatient', `Discharged patient from admission #${req.params.id}`, req.ip);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/admissions/:id/rounds', requireAuth, async (req, res) => {
+
+app.post('/api/admissions/:id/rounds', requireAuth, requireTenantScope, async (req, res) => {
     try {
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        
+        // Verify admission ownership first
+        const checkQ = tenantId 
+            ? 'SELECT id FROM admissions WHERE id = $1 AND tenant_id = $2'
+            : 'SELECT id FROM admissions WHERE id = $1';
+        const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const adm = (await pool.query(checkQ, checkParams)).rows[0];
+        if (!adm) return res.status(404).json({ error: 'Admission not found' });
+
         const { patient_id, doctor_name, subjective, objective, assessment, plan, vitals_summary, orders, diet_changes } = req.body;
-        const r = await pool.query('INSERT INTO admission_daily_rounds (admission_id,patient_id,round_date,round_time,doctor_name,subjective,objective,assessment,plan,vitals_summary,orders,diet_changes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
-            [req.params.id, patient_id, new Date().toISOString().split('T')[0], new Date().toTimeString().split(' ')[0], doctor_name, subjective, objective, assessment, plan, vitals_summary, orders, diet_changes]);
+        
+        // Verify patient ownership
+        if (patient_id && tenantId) {
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) {
+                return res.status(403).json({ error: 'Invalid patient context or access denied' });
+            }
+        }
+
+        const r = await pool.query(
+            `INSERT INTO admission_daily_rounds (admission_id,patient_id,round_date,round_time,doctor_name,subjective,objective,assessment,plan,vitals_summary,orders,diet_changes,tenant_id,facility_id) 
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
+            [req.params.id, patient_id, new Date().toISOString().split('T')[0], new Date().toTimeString().split(' ')[0], doctor_name, subjective, objective, assessment, plan, vitals_summary, orders, diet_changes, tenantId, facilityId]);
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_DAILY_ROUND', 'Inpatient', `Added daily round for admission #${req.params.id}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/admissions/:id/rounds', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM admission_daily_rounds WHERE admission_id=$1 ORDER BY id DESC', [req.params.id])).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+
+app.get('/api/admissions/:id/rounds', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        
+        // Verify admission ownership first
+        const checkQ = tenantId 
+            ? 'SELECT id FROM admissions WHERE id = $1 AND tenant_id = $2'
+            : 'SELECT id FROM admissions WHERE id = $1';
+        const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const adm = (await pool.query(checkQ, checkParams)).rows[0];
+        if (!adm) return res.status(404).json({ error: 'Admission not found' });
+
+        const roundsQ = tenantId
+            ? 'SELECT * FROM admission_daily_rounds WHERE admission_id=$1 AND tenant_id=$2 ORDER BY id DESC'
+            : 'SELECT * FROM admission_daily_rounds WHERE admission_id=$1 ORDER BY id DESC';
+        const roundsParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        res.json((await pool.query(roundsQ, roundsParams)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/bed-transfers', requireAuth, async (req, res) => {
+
+app.post('/api/bed-transfers', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { admission_id, patient_id, from_ward, from_bed, to_ward, to_bed, transfer_reason, transferred_by } = req.body;
-        await pool.query('INSERT INTO bed_transfers (admission_id,patient_id,from_ward,from_bed,to_ward,to_bed,transfer_reason,transferred_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)', [admission_id, patient_id, from_ward, from_bed, to_ward, to_bed, transfer_reason, transferred_by]);
-        if (from_bed) await pool.query("UPDATE beds SET status='Available', current_patient_id=0, current_admission_id=0 WHERE id=$1", [from_bed]);
-        if (to_bed) await pool.query("UPDATE beds SET status='Occupied', current_patient_id=$1, current_admission_id=$2 WHERE id=$3", [patient_id, admission_id, to_bed]);
-        await pool.query('UPDATE admissions SET ward_id=$1, bed_id=$2 WHERE id=$3', [to_ward, to_bed, admission_id]);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        
+        // Verify admission ownership first
+        if (admission_id && tenantId) {
+            const checkQ = 'SELECT id FROM admissions WHERE id = $1 AND tenant_id = $2';
+            const adm = (await pool.query(checkQ, [admission_id, tenantId])).rows[0];
+            if (!adm) return res.status(403).json({ error: 'Invalid admission context or access denied' });
+        }
+        
+        // Verify patient ownership
+        if (patient_id && tenantId) {
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) return res.status(403).json({ error: 'Invalid patient context or access denied' });
+        }
+
+        // Verify beds ownership
+        if (from_bed && tenantId) {
+            const fromBedCheck = (await pool.query('SELECT id FROM beds WHERE id=$1 AND tenant_id=$2', [from_bed, tenantId])).rows[0];
+            if (!fromBedCheck) return res.status(403).json({ error: 'Invalid source bed context or access denied' });
+        }
+        if (to_bed && tenantId) {
+            const toBedCheck = (await pool.query('SELECT id FROM beds WHERE id=$1 AND tenant_id=$2', [to_bed, tenantId])).rows[0];
+            if (!toBedCheck) return res.status(403).json({ error: 'Invalid destination bed context or access denied' });
+        }
+
+        await pool.query(
+            `INSERT INTO bed_transfers (admission_id,patient_id,from_ward,from_bed,to_ward,to_bed,transfer_reason,transferred_by,tenant_id,branch_id) 
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`, 
+            [admission_id, patient_id, from_ward, from_bed, to_ward, to_bed, transfer_reason, transferred_by, tenantId, facilityId]);
+        
+        if (from_bed) {
+            const updateOldBedQ = tenantId
+                ? "UPDATE beds SET status='Available', current_patient_id=0, current_admission_id=0 WHERE id=$1 AND tenant_id=$2"
+                : "UPDATE beds SET status='Available', current_patient_id=0, current_admission_id=0 WHERE id=$1";
+            const updateOldBedParams = tenantId ? [from_bed, tenantId] : [from_bed];
+            await pool.query(updateOldBedQ, updateOldBedParams);
+        }
+        if (to_bed) {
+            const updateNewBedQ = tenantId
+                ? "UPDATE beds SET status='Occupied', current_patient_id=$1, current_admission_id=$2 WHERE id=$3 AND tenant_id=$4"
+                : "UPDATE beds SET status='Occupied', current_patient_id=$1, current_admission_id=$2 WHERE id=$3";
+            const updateNewBedParams = tenantId ? [patient_id, admission_id, to_bed, tenantId] : [patient_id, admission_id, to_bed];
+            await pool.query(updateNewBedQ, updateNewBedParams);
+        }
+        
+        const updateAdmissionQ = tenantId
+            ? 'UPDATE admissions SET ward_id=$1, bed_id=$2 WHERE id=$3 AND tenant_id=$4'
+            : 'UPDATE admissions SET ward_id=$1, bed_id=$2 WHERE id=$3';
+        const updateAdmissionParams = tenantId ? [to_ward, to_bed, admission_id, tenantId] : [to_ward, to_bed, admission_id];
+        await pool.query(updateAdmissionQ, updateAdmissionParams);
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'BED_TRANSFER', 'Inpatient', `Transferred patient #${patient_id} to bed #${to_bed}`, req.ip);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
