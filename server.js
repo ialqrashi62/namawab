@@ -968,7 +968,7 @@ app.post('/api/radiology/orders/:id/upload', requireAuth, upload.single('image')
 });
 
 // ===== PHARMACY =====
-app.get('/api/pharmacy/drugs', requireAuth, async (req, res) => {
+app.get('/api/pharmacy/drugs', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
         const query = tenantId ?
@@ -980,7 +980,7 @@ app.get('/api/pharmacy/drugs', requireAuth, async (req, res) => {
 });
 
 // Pharmacy low stock alerts
-app.get('/api/pharmacy/low-stock', requireAuth, async (req, res) => {
+app.get('/api/pharmacy/low-stock', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
         const query = tenantId ?
@@ -992,7 +992,7 @@ app.get('/api/pharmacy/low-stock', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/pharmacy/drugs', requireAuth, async (req, res) => {
+app.post('/api/pharmacy/drugs', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { drug_name, active_ingredient, category, unit, selling_price, cost_price, stock_qty } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
@@ -1000,11 +1000,15 @@ app.post('/api/pharmacy/drugs', requireAuth, async (req, res) => {
             [drug_name, active_ingredient || '', category || '', unit || '', selling_price || 0, cost_price || 0, stock_qty || 0, tenantId || null, facilityId || null]);
         logAudit(req.session.user?.id, req.session.user?.display_name, 'ADD_DRUG', 'Pharmacy',
             `Added drug ${drug_name} to catalog`, req.ip);
-        res.json((await pool.query('SELECT * FROM pharmacy_drug_catalog WHERE id=$1', [result.rows[0].id])).rows[0]);
+        const selectQuery = tenantId ?
+            'SELECT * FROM pharmacy_drug_catalog WHERE id=$1 AND tenant_id=$2' :
+            'SELECT * FROM pharmacy_drug_catalog WHERE id=$1';
+        const selectParams = tenantId ? [result.rows[0].id, tenantId] : [result.rows[0].id];
+        res.json((await pool.query(selectQuery, selectParams)).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/pharmacy/queue', requireAuth, async (req, res) => {
+app.get('/api/pharmacy/queue', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
         const query = tenantId ?
@@ -1015,7 +1019,7 @@ app.get('/api/pharmacy/queue', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.put('/api/pharmacy/queue/:id', requireAuth, async (req, res) => {
+app.put('/api/pharmacy/queue/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { status } = req.body;
         const { tenantId } = getRequestTenantContext(req);
@@ -1024,15 +1028,25 @@ app.put('/api/pharmacy/queue/:id', requireAuth, async (req, res) => {
         const rxCheck = (await pool.query(`SELECT id FROM pharmacy_prescriptions_queue WHERE id=$1${tenantCheck}`, checkParams)).rows[0];
         if (!rxCheck) return res.status(404).json({ error: 'Queue item not found' });
 
-        if (status) await pool.query('UPDATE pharmacy_prescriptions_queue SET status=$1, dispensed_at=CURRENT_TIMESTAMP WHERE id=$2', [status, req.params.id]);
+        if (status) {
+            const updateQuery = tenantId ?
+                'UPDATE pharmacy_prescriptions_queue SET status=$1, dispensed_at=CURRENT_TIMESTAMP WHERE id=$2 AND tenant_id=$3' :
+                'UPDATE pharmacy_prescriptions_queue SET status=$1, dispensed_at=CURRENT_TIMESTAMP WHERE id=$2';
+            const updateParams = tenantId ? [status, req.params.id, tenantId] : [status, req.params.id];
+            await pool.query(updateQuery, updateParams);
+        }
         logAudit(req.session.user?.id, req.session.user?.display_name, 'DISPENSE_MEDICATION', 'Pharmacy',
             `Dispensed queue item #${req.params.id} status:${status}`, req.ip);
-        res.json((await pool.query('SELECT * FROM pharmacy_prescriptions_queue WHERE id=$1', [req.params.id])).rows[0]);
+        const finalQuery = tenantId ?
+            'SELECT * FROM pharmacy_prescriptions_queue WHERE id=$1 AND tenant_id=$2' :
+            'SELECT * FROM pharmacy_prescriptions_queue WHERE id=$1';
+        const finalParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        res.json((await pool.query(finalQuery, finalParams)).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== INVENTORY =====
-app.get('/api/inventory/items', requireAuth, async (req, res) => {
+app.get('/api/inventory/items', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
         const query = tenantId ?
@@ -1043,7 +1057,7 @@ app.get('/api/inventory/items', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/inventory/items', requireAuth, async (req, res) => {
+app.post('/api/inventory/items', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId, facilityId } = getRequestTenantContext(req);
         const { item_name, item_code, category, unit, cost_price, stock_qty } = req.body;
@@ -1211,7 +1225,7 @@ app.get('/api/bookings', requireAuth, async (req, res) => {
 });
 
 // ===== PRESCRIPTIONS =====
-app.get('/api/prescriptions', requireAuth, async (req, res) => {
+app.get('/api/prescriptions', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id } = req.query;
         const { tenantId } = getRequestTenantContext(req);
@@ -1235,7 +1249,7 @@ app.get('/api/prescriptions', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/prescriptions', requireAuth, async (req, res) => {
+app.post('/api/prescriptions', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, medication_name, dosage, frequency, duration, notes, items, patient_name } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
@@ -1280,7 +1294,11 @@ app.post('/api/prescriptions', requireAuth, async (req, res) => {
         } catch (pe) { console.error('Pharmacy queue auto-insert:', pe.message); }
         logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_PRESCRIPTION', 'Pharmacy',
             `Created prescription for patient #${patient_id}: ${medication_name}`, req.ip);
-        res.json((await pool.query('SELECT * FROM prescriptions WHERE id=$1', [result.rows[0].id])).rows[0]);
+        const finalQuery = tenantId ?
+            'SELECT * FROM prescriptions WHERE id=$1 AND tenant_id=$2' :
+            'SELECT * FROM prescriptions WHERE id=$1';
+        const finalParams = tenantId ? [result.rows[0].id, tenantId] : [result.rows[0].id];
+        res.json((await pool.query(finalQuery, finalParams)).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -4100,14 +4118,18 @@ app.get('/api/print/invoice/:id', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/print/prescription/:id', requireAuth, async (req, res) => {
+app.get('/api/print/prescription/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
         const tenantCheck = tenantId ? ' AND p.tenant_id=$2' : '';
         const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
         const rx = (await pool.query(`SELECT p.*, m.name as med_name FROM prescriptions p LEFT JOIN medications m ON p.medication_id=m.id WHERE p.id=$1${tenantCheck}`, params)).rows[0];
         if (!rx) return res.status(404).json({ error: 'Not found' });
-        const patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [rx.patient_id])).rows[0];
+        const patientQuery = tenantId ?
+            'SELECT * FROM patients WHERE id=$1 AND tenant_id=$2' :
+            'SELECT * FROM patients WHERE id=$1';
+        const patientParams = tenantId ? [rx.patient_id, tenantId] : [rx.patient_id];
+        const patient = (await pool.query(patientQuery, patientParams)).rows[0];
         res.json({ prescription: rx, patient });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -4154,7 +4176,7 @@ async function startServer() {
 
 // ===== PHARMACY & PRESCRIPTIONS =====
 // Doctor sends prescription → Pharmacy queue
-app.post('/api/prescriptions', requireAuth, async (req, res) => {
+app.post('/api/prescriptions', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, medication_name, dosage, quantity_per_day, frequency, duration } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
@@ -4181,7 +4203,7 @@ app.post('/api/prescriptions', requireAuth, async (req, res) => {
 });
 
 // Get pharmacy prescriptions queue
-app.get('/api/pharmacy/queue', requireAuth, async (req, res) => {
+app.get('/api/pharmacy/queue', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
         const query = tenantId ?
@@ -4201,7 +4223,7 @@ app.get('/api/pharmacy/queue', requireAuth, async (req, res) => {
 });
 
 // Update prescription status (Dispense with sale)
-app.put('/api/pharmacy/queue/:id', requireAuth, async (req, res) => {
+app.put('/api/pharmacy/queue/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { status, price, payment_method, patient_id } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
@@ -4218,14 +4240,28 @@ app.put('/api/pharmacy/queue/:id', requireAuth, async (req, res) => {
         // Ensure columns exist
         await pool.query(`ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN IF NOT EXISTS price REAL DEFAULT 0`).catch(() => { });
         await pool.query(`ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT ''`).catch(() => { });
-        await pool.query(
-            `UPDATE pharmacy_prescriptions_queue SET status=$1, dispensed_by=$2, dispensed_at=CURRENT_TIMESTAMP, price=$3, payment_method=$4 WHERE id=$5`,
-            [status || 'Dispensed', req.session.user?.display_name || '', price || 0, payment_method || 'Cash', req.params.id]
-        );
+        const updateQuery = tenantId ?
+            `UPDATE pharmacy_prescriptions_queue SET status=$1, dispensed_by=$2, dispensed_at=CURRENT_TIMESTAMP, price=$3, payment_method=$4 WHERE id=$5 AND tenant_id=$6` :
+            `UPDATE pharmacy_prescriptions_queue SET status=$1, dispensed_by=$2, dispensed_at=CURRENT_TIMESTAMP, price=$3, payment_method=$4 WHERE id=$5`;
+        const updateParams = tenantId ?
+            [status || 'Dispensed', req.session.user?.display_name || '', price || 0, payment_method || 'Cash', req.params.id, tenantId] :
+            [status || 'Dispensed', req.session.user?.display_name || '', price || 0, payment_method || 'Cash', req.params.id];
+        await pool.query(updateQuery, updateParams);
+
         // Create invoice if price > 0
         if (price && price > 0 && patient_id) {
-            const rx = (await pool.query('SELECT * FROM pharmacy_prescriptions_queue WHERE id=$1', [req.params.id])).rows[0];
-            const patient = patient_id ? (await pool.query('SELECT name_ar, name_en, nationality FROM patients WHERE id=$1', [patient_id])).rows[0] : null;
+            const rxQuery = tenantId ?
+                'SELECT * FROM pharmacy_prescriptions_queue WHERE id=$1 AND tenant_id=$2' :
+                'SELECT * FROM pharmacy_prescriptions_queue WHERE id=$1';
+            const rxParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+            const rx = (await pool.query(rxQuery, rxParams)).rows[0];
+
+            const patientQuery = tenantId ?
+                'SELECT name_ar, name_en, nationality FROM patients WHERE id=$1 AND tenant_id=$2' :
+                'SELECT name_ar, name_en, nationality FROM patients WHERE id=$1';
+            const patientParams = tenantId ? [patient_id, tenantId] : [patient_id];
+            const patient = (await pool.query(patientQuery, patientParams)).rows[0];
+
             const vat = await calcVAT(patient_id);
             const { total: finalTotal, vatAmount } = addVAT(price, vat.rate);
             await pool.query(
@@ -4242,7 +4278,7 @@ app.put('/api/pharmacy/queue/:id', requireAuth, async (req, res) => {
 });
 
 // Get drug catalog
-app.get('/api/pharmacy/drugs', requireAuth, async (req, res) => {
+app.get('/api/pharmacy/drugs', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
         const query = tenantId ?
@@ -4255,7 +4291,7 @@ app.get('/api/pharmacy/drugs', requireAuth, async (req, res) => {
 });
 
 // Add drug to catalog
-app.post('/api/pharmacy/drugs', requireAuth, async (req, res) => {
+app.post('/api/pharmacy/drugs', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { drug_name, selling_price, stock_qty, category, active_ingredient } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
@@ -4633,7 +4669,7 @@ app.delete('/api/patients/:id', requireAuth, async (req, res) => {
 });
 
 // ===== PHARMACY STOCK DEDUCTION ON DISPENSE =====
-app.post('/api/pharmacy/deduct-stock', requireAuth, async (req, res) => {
+app.post('/api/pharmacy/deduct-stock', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { drug_id, drug_name, quantity, patient_id, prescription_id, reason } = req.body;
         const { tenantId } = getRequestTenantContext(req);
@@ -4660,7 +4696,12 @@ app.post('/api/pharmacy/deduct-stock', requireAuth, async (req, res) => {
 
         if (drug.stock_qty < quantity) return res.status(400).json({ error: 'Insufficient stock', available: drug.stock_qty });
         const newQty = drug.stock_qty - quantity;
-        await pool.query('UPDATE pharmacy_drug_catalog SET stock_qty=$1 WHERE id=$2', [newQty, drug_id]);
+        const updateQuery = tenantId ?
+            'UPDATE pharmacy_drug_catalog SET stock_qty=$1 WHERE id=$2 AND tenant_id=$3' :
+            'UPDATE pharmacy_drug_catalog SET stock_qty=$1 WHERE id=$2';
+        const updateParams = tenantId ? [newQty, drug_id, tenantId] : [newQty, drug_id];
+        await pool.query(updateQuery, updateParams);
+        
         await pool.query('INSERT INTO pharmacy_stock_log (drug_id, drug_name, movement_type, quantity, previous_qty, new_qty, reason, patient_id, prescription_id, performed_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',
             [drug_id, drug_name || drug.drug_name, 'OUT', quantity, drug.stock_qty, newQty, reason || 'Dispensed', patient_id, prescription_id, req.session.user?.display_name || '']);
         logAudit(req.session.user?.id, req.session.user?.display_name, 'STOCK_OUT', 'Pharmacy', drug_name + ': ' + drug.stock_qty + ' -> ' + newQty, req.ip);
@@ -4674,7 +4715,7 @@ app.post('/api/pharmacy/deduct-stock', requireAuth, async (req, res) => {
 });
 
 // ===== DRUG EXPIRY ALERTS =====
-app.get('/api/pharmacy/expiring', requireAuth, async (req, res) => {
+app.get('/api/pharmacy/expiring', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const days = parseInt(req.query.days) || 90;
         const { tenantId } = getRequestTenantContext(req);
@@ -4769,7 +4810,7 @@ app.get('/api/admin/audit-trail', requireAuth, async (req, res) => {
 });
 
 // ===== STOCK MOVEMENT LOG =====
-app.get('/api/pharmacy/stock-log', requireAuth, async (req, res) => {
+app.get('/api/pharmacy/stock-log', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
         const query = tenantId ?
@@ -6180,7 +6221,7 @@ app.get('/api/finance/summary', requireAuth, requireRole('finance', 'accounts', 
 });
 
 // ===== INVENTORY LOW STOCK =====
-app.get('/api/inventory/low-stock', requireAuth, async (req, res) => {
+app.get('/api/inventory/low-stock', requireAuth, requireTenantScope, async (req, res) => {
     try {
         await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
         await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS facility_id INTEGER`).catch(() => {});
@@ -6348,7 +6389,7 @@ app.get('/api/insurance/policies', requireAuth, requireRole('insurance'), async 
 
 
 // ===== INVENTORY ITEMS =====
-app.get('/api/inventory', requireAuth, async (req, res) => {
+app.get('/api/inventory', requireAuth, requireTenantScope, async (req, res) => {
     try {
         await pool.query(`CREATE TABLE IF NOT EXISTS inventory (
             id SERIAL PRIMARY KEY, name VARCHAR(200), category VARCHAR(100),
@@ -6367,7 +6408,7 @@ app.get('/api/inventory', requireAuth, async (req, res) => {
         res.json((await pool.query(query, params)).rows);
     } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/inventory', requireAuth, async (req, res) => {
+app.post('/api/inventory', requireAuth, requireTenantScope, async (req, res) => {
     try {
         await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
         await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS facility_id INTEGER`).catch(() => {});
@@ -6381,7 +6422,7 @@ app.post('/api/inventory', requireAuth, async (req, res) => {
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/inventory/:id', requireAuth, async (req, res) => {
+app.put('/api/inventory/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
         const { tenantId } = getRequestTenantContext(req);
@@ -6402,7 +6443,7 @@ app.put('/api/inventory/:id', requireAuth, async (req, res) => {
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.delete('/api/inventory/:id', requireAuth, async (req, res) => {
+app.delete('/api/inventory/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
         const { tenantId } = getRequestTenantContext(req);
@@ -6420,7 +6461,7 @@ app.delete('/api/inventory/:id', requireAuth, async (req, res) => {
 });
 
 // ===== PHARMACY PRESCRIPTIONS =====
-app.get('/api/pharmacy/prescriptions', requireAuth, async (req, res) => {
+app.get('/api/pharmacy/prescriptions', requireAuth, requireTenantScope, async (req, res) => {
     try {
         await pool.query(`CREATE TABLE IF NOT EXISTS pharmacy_prescriptions (
             id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name VARCHAR(200),
@@ -6440,7 +6481,7 @@ app.get('/api/pharmacy/prescriptions', requireAuth, async (req, res) => {
         res.json((await pool.query(query, params)).rows);
     } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/pharmacy/prescriptions', requireAuth, async (req, res) => {
+app.post('/api/pharmacy/prescriptions', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, medication, drug_name, dosage, frequency, duration, quantity, doctor, status, notes } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
@@ -6455,7 +6496,7 @@ app.post('/api/pharmacy/prescriptions', requireAuth, async (req, res) => {
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/pharmacy/prescriptions/:id', requireAuth, async (req, res) => {
+app.put('/api/pharmacy/prescriptions/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { status } = req.body;
         const { tenantId } = getRequestTenantContext(req);
@@ -6464,7 +6505,11 @@ app.put('/api/pharmacy/prescriptions/:id', requireAuth, async (req, res) => {
         const check = (await pool.query(`SELECT id FROM pharmacy_prescriptions WHERE id=$1${tenantCheck}`, params)).rows[0];
         if (!check) return res.status(404).json({ error: 'Prescription not found' });
 
-        const r = await pool.query('UPDATE pharmacy_prescriptions SET status=$1 WHERE id=$2 RETURNING *', [status, req.params.id]);
+        const updateQuery = tenantId ?
+            'UPDATE pharmacy_prescriptions SET status=$1 WHERE id=$2 AND tenant_id=$3 RETURNING *' :
+            'UPDATE pharmacy_prescriptions SET status=$1 WHERE id=$2 RETURNING *';
+        const updateParams = tenantId ? [status, req.params.id, tenantId] : [status, req.params.id];
+        const r = await pool.query(updateQuery, updateParams);
         logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_PHARMACY_PRESCRIPTION', 'Pharmacy',
             `Updated prescription #${req.params.id} status:${status}`, req.ip);
         res.json(r.rows[0]);
