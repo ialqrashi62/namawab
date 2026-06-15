@@ -111,15 +111,28 @@ async function logAudit(userId, userName, action, module, details, ip) {
 
 // ===== TENANT ISOLATION MIDDLEWARES =====
 function getRequestTenantContext(req) {
-    let tenantId = req.session?.user?.tenantId;
-    let facilityId = req.session?.user?.facilityId;
-    
-    // Fallback for development/testing
-    if (!tenantId && process.env.NODE_ENV !== 'production') {
+    let tenantId = req.session?.user?.tenantId || null;
+    let facilityId = req.session?.user?.facilityId || null;
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    // Fallback ONLY in development/test — never in production
+    if (!tenantId && !isProduction) {
         tenantId = 1;
         facilityId = 1;
     }
-    return { tenantId, facilityId };
+
+    // In production: if tenantId is still null, flag it so callers can block the request
+    return { tenantId, facilityId, isProduction };
+}
+
+// Middleware: block any request that has no tenantId in production
+function requireTenantScope(req, res, next) {
+    const { tenantId, isProduction } = getRequestTenantContext(req);
+    if (!tenantId && isProduction) {
+        // Security: reject in production with 403 — never expose unscoped data
+        return res.status(403).json({ error: 'Tenant scope required' });
+    }
+    next();
 }
 
 function requireTenantContext(req, res, next) {
@@ -153,6 +166,7 @@ function withTenantFilter(queryText, params, tenantId) {
     const modifiedParams = [...params, tenantId];
     return { queryText: modifiedQuery, params: modifiedParams };
 }
+
 
 // ===== SINGLE SESSION ENFORCEMENT =====
 // Track active session IDs per user to prevent concurrent logins
@@ -289,6 +303,18 @@ app.get('/api/patients', requireAuth, requireRole('patients'), async (req, res) 
     } catch (e) { console.error('Patients query error:', e.message); res.status(500).json({ error: 'Server error' }); }
 });
 
+// ===== GET PATIENT BY ID (with tenant scope) =====
+app.get('/api/patients/:id', requireAuth, requireRole('patients'), async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        const whereClause = tenantId ? 'WHERE id=$1 AND tenant_id=$2' : 'WHERE id=$1';
+        const queryParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const patient = (await pool.query(`SELECT * FROM patients ${whereClause}`, queryParams)).rows[0];
+        if (!patient) return res.status(404).json({ error: 'Patient not found' });
+        res.json(patient);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
 app.post('/api/patients', requireAuth, requireRole('patients'), async (req, res) => {
     try {
         const { name_ar, name_en, national_id, nationality, gender, phone, department, amount, payment_method, dob, dob_hijri, blood_type, allergies, chronic_diseases, emergency_contact_name, emergency_contact_phone, address, insurance_company, insurance_policy_number, insurance_class } = req.body;
@@ -303,16 +329,18 @@ app.post('/api/patients', requireAuth, requireRole('patients'), async (req, res)
         const fileOpenFee = parseFloat(amount) || 0;
         const newFileNum = maxFile + 1;
         const mrn = 'MRN-' + String(newFileNum).padStart(6, '0');
-        const result = await pool.query('INSERT INTO patients (file_number, mrn, name_ar, name_en, national_id, nationality, gender, phone, department, amount, payment_method, dob, dob_hijri, age, blood_type, allergies, chronic_diseases, emergency_contact_name, emergency_contact_phone, address, insurance_company, insurance_policy_number, insurance_class) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23) RETURNING id',
-            [newFileNum, mrn, name_ar || '', name_en || '', national_id || '', nationality || '', gender || '', phone || '', department || '', fileOpenFee, payment_method || '', dob || '', dob_hijri || '', age || 0, blood_type || '', allergies || '', chronic_diseases || '', emergency_contact_name || '', emergency_contact_phone || '', address || '', insurance_company || '', insurance_policy_number || '', insurance_class || '']);
+        // --- TENANT SCOPE: stamp tenant_id & facility_id from session (never from body) ---
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        const result = await pool.query('INSERT INTO patients (file_number, mrn, name_ar, name_en, national_id, nationality, gender, phone, department, amount, payment_method, dob, dob_hijri, age, blood_type, allergies, chronic_diseases, emergency_contact_name, emergency_contact_phone, address, insurance_company, insurance_policy_number, insurance_class, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25) RETURNING id',
+            [newFileNum, mrn, name_ar || '', name_en || '', national_id || '', nationality || '', gender || '', phone || '', department || '', fileOpenFee, payment_method || '', dob || '', dob_hijri || '', age || 0, blood_type || '', allergies || '', chronic_diseases || '', emergency_contact_name || '', emergency_contact_phone || '', address || '', insurance_company || '', insurance_policy_number || '', insurance_class || '', tenantId || null, facilityId || null]);
         const patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [result.rows[0].id])).rows[0];
         // Auto-create invoice for file opening fee (with VAT for non-Saudis)
         if (fileOpenFee > 0) {
             const vat = await calcVAT(patient.id);
             const { total: finalTotal, vatAmount } = addVAT(fileOpenFee, vat.rate);
             const desc = vat.applyVAT ? `فتح ملف / File Opening Fee (+ ضريبة ${vatAmount} SAR)` : 'فتح ملف / File Opening Fee';
-            await pool.query('INSERT INTO invoices (patient_id, patient_name, total, vat_amount, description, service_type, paid, payment_method) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
-                [patient.id, name_en || name_ar, finalTotal, vatAmount, desc, 'File Opening', payment_method === 'كاش' || payment_method === 'Cash' ? 1 : 0, payment_method || '']);
+            await pool.query('INSERT INTO invoices (patient_id, patient_name, total, vat_amount, description, service_type, paid, payment_method, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',
+                [patient.id, name_en || name_ar, finalTotal, vatAmount, desc, 'File Opening', payment_method === 'كاش' || payment_method === 'Cash' ? 1 : 0, payment_method || '', tenantId || null, facilityId || null]);
         }
         logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_PATIENT', 'Patients', 'Created patient ' + (name_en || name_ar) + ' MRN:' + mrn, req.ip);
         res.json(patient);
@@ -322,6 +350,12 @@ app.post('/api/patients', requireAuth, requireRole('patients'), async (req, res)
 app.put('/api/patients/:id', requireAuth, requireRole('patients'), async (req, res) => {
     try {
         const { name_ar, name_en, national_id, nationality, gender, phone, dob, dob_hijri, department, status, blood_type, allergies, chronic_diseases, emergency_contact_name, emergency_contact_phone, address, insurance_company, insurance_policy_number, insurance_class } = req.body;
+        // --- TENANT SCOPE: verify record belongs to current tenant before update (IDOR prevention) ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const existing = (await pool.query(`SELECT id FROM patients WHERE id=$1${tenantCheck}`, tenantParams)).rows[0];
+        if (!existing) return res.status(404).json({ error: 'Patient not found' });
         const sets = []; const vals = []; let i = 1;
         if (name_ar !== undefined) { sets.push(`name_ar=$${i++}`); vals.push(name_ar); }
         if (name_en !== undefined) { sets.push(`name_en=$${i++}`); vals.push(name_en); }
@@ -344,8 +378,15 @@ app.put('/api/patients/:id', requireAuth, requireRole('patients'), async (req, r
         if (insurance_class !== undefined) { sets.push(`insurance_class=$${i++}`); vals.push(insurance_class); }
         if (sets.length > 0) {
             vals.push(req.params.id);
-            await pool.query(`UPDATE patients SET ${sets.join(',')} WHERE id=$${i}`, vals);
+            // --- TENANT SCOPE: enforce tenant_id in WHERE using parameterized query (not interpolation) ---
+            if (tenantId) {
+                vals.push(tenantId);
+                await pool.query(`UPDATE patients SET ${sets.join(',')} WHERE id=$${i} AND tenant_id=$${i + 1}`, vals);
+            } else {
+                await pool.query(`UPDATE patients SET ${sets.join(',')} WHERE id=$${i}`, vals);
+            }
         }
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_PATIENT', 'Patients', 'Updated patient #' + req.params.id, req.ip);
         const patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [req.params.id])).rows[0];
         res.json(patient);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -377,41 +418,64 @@ app.post('/api/nursing/vitals', requireAuth, async (req, res) => {
 
 // ===== APPOINTMENTS =====
 app.get('/api/appointments', requireAuth, requireRole('appointments'), async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM appointments ORDER BY id DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+    try {
+        // --- TENANT SCOPE: filter appointments by current tenant_id ---
+        const { tenantId } = getRequestTenantContext(req);
+        let rows;
+        if (tenantId) {
+            rows = (await pool.query('SELECT * FROM appointments WHERE tenant_id = $1 ORDER BY id DESC', [tenantId])).rows;
+        } else {
+            rows = (await pool.query('SELECT * FROM appointments ORDER BY id DESC')).rows;
+        }
+        res.json(rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/api/appointments', requireAuth, requireRole('appointments'), async (req, res) => {
     try {
         const { patient_name, patient_id, doctor_name, department, appt_date, appt_time, notes, fee } = req.body;
         const apptFee = parseFloat(fee) || 0;
-        const result = await pool.query('INSERT INTO appointments (patient_id, patient_name, doctor_name, department, appt_date, appt_time, notes) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id',
-            [patient_id || null, patient_name, doctor_name, department, appt_date, appt_time, notes || '']);
+        // --- TENANT SCOPE: stamp tenant_id & facility_id from session (never from body) ---
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        const result = await pool.query('INSERT INTO appointments (patient_id, patient_name, doctor_name, department, appt_date, appt_time, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id',
+            [patient_id || null, patient_name, doctor_name, department, appt_date, appt_time, notes || '', tenantId || null, facilityId || null]);
         // Auto-create invoice for appointment fee
         if (apptFee > 0 && patient_id) {
-            await pool.query('INSERT INTO invoices (patient_id, patient_name, total, description, service_type, paid) VALUES ($1,$2,$3,$4,$5,0)',
-                [patient_id, patient_name, apptFee, `رسوم موعد: ${doctor_name} - ${appt_date}`, 'Appointment']);
+            await pool.query('INSERT INTO invoices (patient_id, patient_name, total, description, service_type, paid, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,0,$6,$7)',
+                [patient_id, patient_name, apptFee, `رسوم موعد: ${doctor_name} - ${appt_date}`, 'Appointment', tenantId || null, facilityId || null]);
         }
         const appt = (await pool.query('SELECT * FROM appointments WHERE id=$1', [result.rows[0].id])).rows[0];
 
         // AUTO: Add to waiting queue when appointment is today
         try {
-            const apptDate = new Date(date);
+            const apptDate = new Date(appt_date);
             const today = new Date();
             if (apptDate.toDateString() === today.toDateString()) {
                 await pool.query(
-                    "INSERT INTO waiting_queue (patient_id, patient_name, doctor, department, status, check_in_time) VALUES ($1, $2, $3, $4, 'Waiting', CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING",
-                    [patient_id, patient_name, doctor, department || 'General']
+                    "INSERT INTO waiting_queue (patient_id, patient_name, doctor, department, status, check_in_time, tenant_id) VALUES ($1, $2, $3, $4, 'Waiting', CURRENT_TIMESTAMP, $5) ON CONFLICT DO NOTHING",
+                    [patient_id, patient_name, doctor_name, department || 'General', tenantId || null]
                 );
             }
         } catch (qe) { console.error('Queue auto-insert:', qe.message); }
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_APPOINTMENT', 'Appointments',
+            `Appointment for ${patient_name} with Dr. ${doctor_name} on ${appt_date}`, req.ip);
         res.json(appt);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.delete('/api/appointments/:id', requireAuth, requireRole('appointments'), async (req, res) => {
-    try { await pool.query('DELETE FROM appointments WHERE id=$1', [req.params.id]); res.json({ success: true }); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+    try {
+        // --- TENANT SCOPE: verify record belongs to current tenant before delete (IDOR prevention) ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const appt = (await pool.query(`SELECT * FROM appointments WHERE id=$1${tenantCheck}`, tenantParams)).rows[0];
+        if (!appt) return res.status(404).json({ error: 'Appointment not found' });
+        await pool.query('DELETE FROM appointments WHERE id=$1', [req.params.id]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'DELETE_APPOINTMENT', 'Appointments',
+            `Deleted appointment #${req.params.id} for ${appt.patient_name}`, req.ip);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== EMPLOYEES =====
@@ -460,9 +524,11 @@ app.post('/api/invoices', requireAuth, requireRole('invoices', 'accounts'), asyn
         if (maxInv && maxInv.invoice_number) { const parts = maxInv.invoice_number.split('-'); nextNum = parseInt(parts[2]) + 1; }
         const invNumber = 'INV-' + new Date().getFullYear() + '-' + String(nextNum).padStart(5, '0');
         const createdBy = req.session.user?.display_name || '';
+        // --- TENANT SCOPE: stamp tenant_id & facility_id from session (never from body) ---
+        const { tenantId, facilityId } = getRequestTenantContext(req);
         const result = await pool.query(
-            'INSERT INTO invoices (patient_id, patient_name, total, description, service_type, payment_method, discount, discount_reason, invoice_number, created_by, original_amount) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id',
-            [patient_id || null, patient_name, total || 0, description || '', service_type || '', payment_method || '', discount || 0, discount_reason || '', invNumber, createdBy, (total || 0) + (discount || 0)]);
+            'INSERT INTO invoices (patient_id, patient_name, total, description, service_type, payment_method, discount, discount_reason, invoice_number, created_by, original_amount, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id',
+            [patient_id || null, patient_name, total || 0, description || '', service_type || '', payment_method || '', discount || 0, discount_reason || '', invNumber, createdBy, (total || 0) + (discount || 0), tenantId || null, facilityId || null]);
         logAudit(req.session.user?.id, createdBy, 'CREATE_INVOICE', 'Finance', invNumber + ' - ' + (total || 0) + ' SAR for ' + patient_name, req.ip);
         res.json((await pool.query('SELECT * FROM invoices WHERE id=$1', [result.rows[0].id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -1028,12 +1094,19 @@ app.get('/api/patients/:id/results', requireAuth, requireRole('patients', 'lab',
 app.post('/api/invoices/generate', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
     try {
         const { patient_id, items } = req.body;
-        const p = (await pool.query('SELECT * FROM patients WHERE id=$1', [patient_id])).rows[0];
+        // --- TENANT SCOPE: verify patient belongs to current tenant ---
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        const patientCheck = tenantId ? 'WHERE id=$1 AND tenant_id=$2' : 'WHERE id=$1';
+        const patientParams = tenantId ? [patient_id, tenantId] : [patient_id];
+        const p = (await pool.query(`SELECT * FROM patients ${patientCheck}`, patientParams)).rows[0];
         if (!p) return res.status(404).json({ error: 'Patient not found' });
         const total = items.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
         const description = items.map(i => i.description).join(' | ');
-        const result = await pool.query('INSERT INTO invoices (patient_id, patient_name, total, description, service_type) VALUES ($1,$2,$3,$4,$5) RETURNING id',
-            [patient_id, p.name_en || p.name_ar, total, description, 'Medical Services']);
+        const invNumber = 'INV-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-5);
+        const result = await pool.query('INSERT INTO invoices (patient_id, patient_name, total, description, service_type, invoice_number, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
+            [patient_id, p.name_en || p.name_ar, total, description, 'Medical Services', invNumber, tenantId || null, facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'GENERATE_INVOICE', 'Finance',
+            `Generated ${invNumber} for patient ${p.name_en || p.name_ar} total: ${total}`, req.ip);
         res.json((await pool.query('SELECT * FROM invoices WHERE id=$1', [result.rows[0].id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1041,7 +1114,16 @@ app.post('/api/invoices/generate', requireAuth, requireRole('invoices', 'account
 app.put('/api/invoices/:id/pay', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
     try {
         const { payment_method } = req.body;
+        // --- TENANT SCOPE: verify invoice belongs to current tenant before paying (IDOR prevention) ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const inv = (await pool.query(`SELECT * FROM invoices WHERE id=$1${tenantCheck}`, tenantParams)).rows[0];
+        if (!inv) return res.status(404).json({ error: 'Invoice not found' });
+        if (inv.paid) return res.status(400).json({ error: 'Invoice already paid' });
         await pool.query('UPDATE invoices SET paid=1, payment_method=$1 WHERE id=$2', [payment_method || 'Cash', req.params.id]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'PAY_INVOICE', 'Finance',
+            `Invoice ${inv.invoice_number} paid (${inv.total} SAR) via ${payment_method || 'Cash'}`, req.ip);
         res.json((await pool.query('SELECT * FROM invoices WHERE id=$1', [req.params.id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1256,9 +1338,13 @@ app.put('/api/referrals/:id', requireAuth, async (req, res) => {
 app.post('/api/appointments/followup', requireAuth, requireRole('appointments'), async (req, res) => {
     try {
         const { patient_id, patient_name, doctor_name, appt_date, appt_time, notes } = req.body;
+        // --- TENANT SCOPE: stamp tenant_id from session for follow-up appointments ---
+        const { tenantId, facilityId } = getRequestTenantContext(req);
         const result = await pool.query(
-            'INSERT INTO appointments (patient_id, patient_name, doctor_name, department, appt_date, appt_time, notes, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
-            [patient_id, patient_name, doctor_name || req.session.user.name, '', appt_date, appt_time || '09:00', `متابعة: ${notes || ''}`, 'Confirmed']);
+            'INSERT INTO appointments (patient_id, patient_name, doctor_name, department, appt_date, appt_time, notes, status, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id',
+            [patient_id, patient_name, doctor_name || req.session.user?.display_name, '', appt_date, appt_time || '09:00', `متابعة: ${notes || ''}`, 'Confirmed', tenantId || null, facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_FOLLOWUP', 'Appointments',
+            `Follow-up for ${patient_name} with Dr. ${doctor_name} on ${appt_date}`, req.ip);
         res.json((await pool.query('SELECT * FROM appointments WHERE id=$1', [result.rows[0].id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1300,6 +1386,12 @@ app.get('/api/dashboard/enhanced', requireAuth, async (req, res) => {
 app.get('/api/patients/:id/timeline', requireAuth, requireRole('patients'), async (req, res) => {
     try {
         const pid = req.params.id;
+        // --- TENANT SCOPE: verify patient belongs to current tenant ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [pid, tenantId] : [pid];
+        const patientCheck = (await pool.query(`SELECT id FROM patients WHERE id=$1${tenantCheck}`, tenantParams)).rows[0];
+        if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
         const events = [];
         // Medical records
         const records = (await pool.query('SELECT id, diagnosis, visit_date as event_date, symptoms FROM medical_records WHERE patient_id=$1', [pid])).rows;
@@ -3392,6 +3484,12 @@ app.delete('/api/patients/:id', requireAuth, async (req, res) => {
             return res.status(403).json({ error: 'Access denied. Only Admin can delete patients.' });
         }
         const pid = req.params.id;
+        // --- TENANT SCOPE: verify patient belongs to current tenant before delete (IDOR prevention) ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [pid, tenantId] : [pid];
+        const patientCheck = (await pool.query(`SELECT id FROM patients WHERE id=$1${tenantCheck}`, tenantParams)).rows[0];
+        if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
         const invoices = (await pool.query('SELECT COUNT(*) as cnt FROM invoices WHERE patient_id=$1 AND cancelled=0', [pid])).rows[0].cnt;
         const orders = (await pool.query('SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE patient_id=$1', [pid])).rows[0].cnt;
         const records = (await pool.query('SELECT COUNT(*) as cnt FROM medical_records WHERE patient_id=$1', [pid])).rows[0].cnt;
@@ -3440,7 +3538,11 @@ app.get('/api/pharmacy/expiring', requireAuth, async (req, res) => {
 app.post('/api/invoices/cancel/:id', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
     try {
         const { reason } = req.body;
-        const inv = (await pool.query('SELECT * FROM invoices WHERE id=$1', [req.params.id])).rows[0];
+        // --- TENANT SCOPE: verify invoice belongs to current tenant before cancel (IDOR prevention) ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const inv = (await pool.query(`SELECT * FROM invoices WHERE id=$1${tenantCheck}`, tenantParams)).rows[0];
         if (!inv) return res.status(404).json({ error: 'Invoice not found' });
         if (inv.cancelled) return res.status(400).json({ error: 'Already cancelled' });
         await pool.query('UPDATE invoices SET cancelled=1, cancel_reason=$1, cancelled_by=$2, cancelled_at=NOW() WHERE id=$3',
@@ -3898,7 +4000,11 @@ app.get('/api/dashboard/today', requireAuth, async (req, res) => {
 app.get('/api/patients/:id/summary', requireAuth, requireRole('patients'), async (req, res) => {
     try {
         const pid = req.params.id;
-        const patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [pid])).rows[0];
+        // --- TENANT SCOPE: verify patient belongs to current tenant ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [pid, tenantId] : [pid];
+        const patient = (await pool.query(`SELECT * FROM patients WHERE id=$1${tenantCheck}`, tenantParams)).rows[0];
         if (!patient) return res.status(404).json({ error: 'Not found' });
         const records = (await pool.query('SELECT * FROM medical_records WHERE patient_id=$1 ORDER BY created_at DESC LIMIT 10', [pid])).rows;
         const labs = (await pool.query("SELECT * FROM lab_radiology_orders WHERE patient_id=$1 AND is_radiology=0 ORDER BY created_at DESC LIMIT 10", [pid])).rows;
@@ -4092,7 +4198,11 @@ app.post('/api/allergy-check', requireAuth, async (req, res) => {
 app.put('/api/invoices/:id/partial-pay', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
     try {
         const { amount_paid, payment_method } = req.body;
-        const invoice = (await pool.query('SELECT * FROM invoices WHERE id=$1', [req.params.id])).rows[0];
+        // --- TENANT SCOPE: verify invoice belongs to current tenant ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const invoice = (await pool.query(`SELECT * FROM invoices WHERE id=$1${tenantCheck}`, tenantParams)).rows[0];
         if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
 
         const prevPaid = parseFloat(invoice.amount_paid || 0);
@@ -4294,7 +4404,11 @@ app.get('/api/visits/lifecycle/today', requireAuth, async (req, res) => {
 // ===== APPOINTMENT CHECK-IN =====
 app.put('/api/appointments/:id/checkin', requireAuth, requireRole('appointments'), async (req, res) => {
     try {
-        const appt = (await pool.query('SELECT * FROM appointments WHERE id=$1', [req.params.id])).rows[0];
+        // --- TENANT SCOPE: verify appointment belongs to current tenant ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const appt = (await pool.query(`SELECT * FROM appointments WHERE id=$1${tenantCheck}`, tenantParams)).rows[0];
         if (!appt) return res.status(404).json({ error: 'Appointment not found' });
 
         // Update appointment status
@@ -4323,8 +4437,13 @@ app.put('/api/appointments/:id/checkin', requireAuth, requireRole('appointments'
 // ===== NO-SHOW MARKING =====
 app.put('/api/appointments/:id/noshow', requireAuth, requireRole('appointments'), async (req, res) => {
     try {
+        // --- TENANT SCOPE: verify appointment belongs to current tenant ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const appt = (await pool.query(`SELECT * FROM appointments WHERE id=$1${tenantCheck}`, tenantParams)).rows[0];
+        if (!appt) return res.status(404).json({ error: 'Appointment not found' });
         await pool.query("UPDATE appointments SET status='No-Show' WHERE id=$1", [req.params.id]);
-        const appt = (await pool.query('SELECT * FROM appointments WHERE id=$1', [req.params.id])).rows[0];
         logAudit(req.session.user?.id, req.session.user?.display_name, 'NO_SHOW', 'Appointments',
             'Patient ' + (appt?.patient_name || '') + ' marked as No-Show', req.ip);
         res.json({ success: true });
