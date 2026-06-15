@@ -1413,12 +1413,32 @@ app.put('/api/patients/:id/referral', requireAuth, requireRole('patients'), asyn
 });
 
 // ===== REPORTS =====
-app.get('/api/reports/financial', requireAuth, requireRole('finance'), async (req, res) => {
+app.get('/api/reports/financial', requireAuth, requireRole('finance'), requireTenantScope, async (req, res) => {
     try {
-        const totalRevenue = (await pool.query('SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=1')).rows[0].total;
-        const totalPending = (await pool.query('SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=0')).rows[0].total;
-        const invoiceCount = (await pool.query('SELECT COUNT(*) as cnt FROM invoices')).rows[0].cnt;
-        const monthlyRevenue = (await pool.query("SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=1 AND created_at >= date_trunc('month', CURRENT_DATE)")).rows[0].total;
+        const { tenantId } = getRequestTenantContext(req);
+        const params = tenantId ? [tenantId] : [];
+        
+        const totalRevenueQuery = tenantId ?
+            'SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=1 AND tenant_id=$1' :
+            'SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=1';
+            
+        const totalPendingQuery = tenantId ?
+            'SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=0 AND tenant_id=$1' :
+            'SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=0';
+            
+        const invoiceCountQuery = tenantId ?
+            'SELECT COUNT(*) as cnt FROM invoices WHERE tenant_id=$1' :
+            'SELECT COUNT(*) as cnt FROM invoices';
+            
+        const monthlyRevenueQuery = tenantId ?
+            "SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=1 AND created_at >= date_trunc('month', CURRENT_DATE) AND tenant_id=$1" :
+            "SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=1 AND created_at >= date_trunc('month', CURRENT_DATE)";
+            
+        const totalRevenue = (await pool.query(totalRevenueQuery, params)).rows[0].total;
+        const totalPending = (await pool.query(totalPendingQuery, params)).rows[0].total;
+        const invoiceCount = (await pool.query(invoiceCountQuery, params)).rows[0].cnt;
+        const monthlyRevenue = (await pool.query(monthlyRevenueQuery, params)).rows[0].total;
+        
         res.json({ totalRevenue, totalPending, invoiceCount, monthlyRevenue });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1452,30 +1472,43 @@ app.put('/api/bookings/:id', requireAuth, async (req, res) => {
 });
 
 // ===== DOCTOR COMMISSION REPORT =====
-app.get('/api/reports/commissions', requireAuth, requireRole('finance', 'doctor'), async (req, res) => {
+app.get('/api/reports/commissions', requireAuth, requireRole('finance', 'doctor'), requireTenantScope, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
+        
+        // system_users is a deferred risk table (no tenant_id column)
         const doctors = (await pool.query("SELECT id, display_name, speciality, commission_type, commission_value FROM system_users WHERE role='Doctor'")).rows;
         const results = [];
         for (const dr of doctors) {
             // Get all invoices where doctor is linked via medical_records or consultation invoices
-            const revenue = (await pool.query(
+            const revenueQuery = tenantId ?
                 `SELECT COALESCE(SUM(i.total), 0) as total FROM invoices i 
                  WHERE i.service_type = 'Consultation' 
-                 AND i.description ILIKE $1`, [`%${dr.display_name}%`]
-            )).rows[0].total || 0;
+                 AND i.description ILIKE $1 AND i.tenant_id = $2` :
+                `SELECT COALESCE(SUM(i.total), 0) as total FROM invoices i 
+                 WHERE i.service_type = 'Consultation' 
+                 AND i.description ILIKE $1`;
+            const revenueParams = tenantId ? [`%${dr.display_name}%`, tenantId] : [`%${dr.display_name}%`];
+            const revenue = (await pool.query(revenueQuery, revenueParams)).rows[0].total || 0;
+            
             // Also get revenue from lab/radiology orders by this doctor
-            const orderRevenue = (await pool.query(
-                `SELECT COALESCE(SUM(price), 0) as total FROM lab_radiology_orders WHERE doctor_id=$1`, [dr.id]
-            )).rows[0].total || 0;
+            const orderRevenueQuery = tenantId ?
+                `SELECT COALESCE(SUM(price), 0) as total FROM lab_radiology_orders WHERE doctor_id=$1 AND tenant_id=$2` :
+                `SELECT COALESCE(SUM(price), 0) as total FROM lab_radiology_orders WHERE doctor_id=$1`;
+            const orderRevenueParams = tenantId ? [dr.id, tenantId] : [dr.id];
+            const orderRevenue = (await pool.query(orderRevenueQuery, orderRevenueParams)).rows[0].total || 0;
+            
             const totalRevenue = parseFloat(revenue) + parseFloat(orderRevenue);
             let commission = 0;
             if (dr.commission_type === 'percentage') {
                 commission = totalRevenue * (dr.commission_value / 100);
             } else {
                 // Fixed per patient
-                const patientCount = (await pool.query(
-                    'SELECT COUNT(DISTINCT patient_id) as cnt FROM medical_records WHERE doctor_id=$1', [dr.id]
-                )).rows[0].cnt || 0;
+                const patientCountQuery = tenantId ?
+                    'SELECT COUNT(DISTINCT patient_id) as cnt FROM medical_records WHERE doctor_id=$1 AND tenant_id=$2' :
+                    'SELECT COUNT(DISTINCT patient_id) as cnt FROM medical_records WHERE doctor_id=$1';
+                const patientCountParams = tenantId ? [dr.id, tenantId] : [dr.id];
+                const patientCount = (await pool.query(patientCountQuery, patientCountParams)).rows[0].cnt || 0;
                 commission = patientCount * dr.commission_value;
             }
             results.push({
@@ -3539,18 +3572,41 @@ app.post('/api/pharmacy/drugs', requireAuth, async (req, res) => {
 });
 
 // ===== P&L REPORT =====
-app.get('/api/reports/pnl', requireAuth, requireRole('finance'), async (req, res) => {
+app.get('/api/reports/pnl', requireAuth, requireRole('finance'), requireTenantScope, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
         const { from, to } = req.query;
+        
         let dateFilter = '';
         let params = [];
         if (from && to && /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to)) {
-            dateFilter = 'WHERE created_at BETWEEN $1 AND $2';
+            dateFilter = 'created_at BETWEEN $1 AND $2';
             params = [from, to + ' 23:59:59'];
         }
-        const revenue = (await pool.query(`SELECT COALESCE(SUM(total),0) as total, COALESCE(SUM(CASE WHEN paid=1 THEN total ELSE 0 END),0) as collected, COALESCE(SUM(discount),0) as discounts FROM invoices ${dateFilter}`, params)).rows[0];
-        const byType = (await pool.query(`SELECT service_type, COUNT(*) as cnt, COALESCE(SUM(total),0) as total FROM invoices ${dateFilter} GROUP BY service_type ORDER BY total DESC`, params)).rows;
-        const expenses = (await pool.query('SELECT COALESCE(SUM(cost_price * stock_qty),0) as drug_cost FROM pharmacy_drug_catalog WHERE is_active=1')).rows[0];
+        
+        let whereClause = '';
+        if (dateFilter) {
+            whereClause = 'WHERE ' + dateFilter;
+            if (tenantId) {
+                whereClause += ' AND tenant_id = $' + (params.length + 1);
+                params.push(tenantId);
+            }
+        } else {
+            if (tenantId) {
+                whereClause = 'WHERE tenant_id = $1';
+                params.push(tenantId);
+            }
+        }
+        
+        const revenue = (await pool.query(`SELECT COALESCE(SUM(total),0) as total, COALESCE(SUM(CASE WHEN paid=1 THEN total ELSE 0 END),0) as collected, COALESCE(SUM(discount),0) as discounts FROM invoices ${whereClause}`, params)).rows[0];
+        const byType = (await pool.query(`SELECT service_type, COUNT(*) as cnt, COALESCE(SUM(total),0) as total FROM invoices ${whereClause} GROUP BY service_type ORDER BY total DESC`, params)).rows;
+        
+        const expensesQuery = tenantId ?
+            'SELECT COALESCE(SUM(cost_price * stock_qty),0) as drug_cost FROM pharmacy_drug_catalog WHERE is_active=1 AND tenant_id=$1' :
+            'SELECT COALESCE(SUM(cost_price * stock_qty),0) as drug_cost FROM pharmacy_drug_catalog WHERE is_active=1';
+        const expensesParams = tenantId ? [tenantId] : [];
+        const expenses = (await pool.query(expensesQuery, expensesParams)).rows[0];
+        
         res.json({
             totalRevenue: parseFloat(revenue.total),
             totalCollected: parseFloat(revenue.collected),
@@ -4305,33 +4361,52 @@ app.get('/api/consent/recent', requireAuth, async (req, res) => {
 
 
 // ===== DAILY CASH RECONCILIATION =====
-app.get('/api/reports/daily-cash', requireAuth, requireRole('finance', 'accounts'), async (req, res) => {
+app.get('/api/reports/daily-cash', requireAuth, requireRole('finance', 'accounts'), requireTenantScope, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
         const date = req.query.date || new Date().toISOString().split('T')[0];
-        const byCash = (await pool.query("SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE payment_method='Cash' AND DATE(created_at)=$1 AND cancelled=0", [date])).rows[0].total;
-        const byCard = (await pool.query("SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE payment_method IN ('Card','POS','شبكة') AND DATE(created_at)=$1 AND cancelled=0", [date])).rows[0].total;
-        const byTransfer = (await pool.query("SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE payment_method IN ('Transfer','تحويل') AND DATE(created_at)=$1 AND cancelled=0", [date])).rows[0].total;
-        const byInsurance = (await pool.query("SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE payment_method='Insurance' AND DATE(created_at)=$1 AND cancelled=0", [date])).rows[0].total;
-        const total = (await pool.query("SELECT COALESCE(SUM(total),0) as total, COUNT(*) as cnt FROM invoices WHERE DATE(created_at)=$1 AND cancelled=0", [date])).rows[0];
-        const byCreator = (await pool.query("SELECT COALESCE(created_by,'Unknown') as staff, COUNT(*) as cnt, COALESCE(SUM(total),0) as total FROM invoices WHERE DATE(created_at)=$1 AND cancelled=0 GROUP BY created_by ORDER BY total DESC", [date])).rows;
-        const byService = (await pool.query("SELECT service_type, COUNT(*) as cnt, COALESCE(SUM(total),0) as total FROM invoices WHERE DATE(created_at)=$1 AND cancelled=0 GROUP BY service_type ORDER BY total DESC", [date])).rows;
+        const params = tenantId ? [date, tenantId] : [date];
+        const tenantFilter = tenantId ? ' AND tenant_id=$2' : '';
+        
+        const byCash = (await pool.query(`SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE payment_method='Cash' AND DATE(created_at)=$1 AND cancelled=0${tenantFilter}`, params)).rows[0].total;
+        const byCard = (await pool.query(`SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE payment_method IN ('Card','POS','شبكة') AND DATE(created_at)=$1 AND cancelled=0${tenantFilter}`, params)).rows[0].total;
+        const byTransfer = (await pool.query(`SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE payment_method IN ('Transfer','تحويل') AND DATE(created_at)=$1 AND cancelled=0${tenantFilter}`, params)).rows[0].total;
+        const byInsurance = (await pool.query(`SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE payment_method='Insurance' AND DATE(created_at)=$1 AND cancelled=0${tenantFilter}`, params)).rows[0].total;
+        const total = (await pool.query(`SELECT COALESCE(SUM(total),0) as total, COUNT(*) as cnt FROM invoices WHERE DATE(created_at)=$1 AND cancelled=0${tenantFilter}`, params)).rows[0];
+        const byCreator = (await pool.query(`SELECT COALESCE(created_by,'Unknown') as staff, COUNT(*) as cnt, COALESCE(SUM(total),0) as total FROM invoices WHERE DATE(created_at)=$1 AND cancelled=0${tenantFilter} GROUP BY created_by ORDER BY total DESC`, params)).rows;
+        const byService = (await pool.query(`SELECT service_type, COUNT(*) as cnt, COALESCE(SUM(total),0) as total FROM invoices WHERE DATE(created_at)=$1 AND cancelled=0${tenantFilter} GROUP BY service_type ORDER BY total DESC`, params)).rows;
+        
         res.json({ date, totalRevenue: parseFloat(total.total), invoiceCount: parseInt(total.cnt), cash: parseFloat(byCash), card: parseFloat(byCard), transfer: parseFloat(byTransfer), insurance: parseFloat(byInsurance), byStaff: byCreator, byService });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== DOCTOR REVENUE + COMMISSIONS =====
-app.get('/api/reports/doctor-revenue', requireAuth, requireRole('finance', 'doctor'), async (req, res) => {
+app.get('/api/reports/doctor-revenue', requireAuth, requireRole('finance', 'doctor'), requireTenantScope, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
         const { from, to } = req.query;
         let dateFilter = '', params = [];
-        if (from && to) { dateFilter = " AND i.created_at BETWEEN $1 AND ($2::text || ' 23:59:59')::timestamp"; params = [from, to]; }
-        const doctors = (await pool.query(`SELECT su.id, su.display_name, su.speciality, su.commission_type, su.commission_value,
+        
+        if (from && to) {
+            dateFilter = " AND i.created_at BETWEEN $1 AND ($2::text || ' 23:59:59')::timestamp";
+            params = [from, to];
+        }
+        
+        let tenantFilter = '';
+        if (tenantId) {
+            tenantFilter = ` AND i.tenant_id = $${params.length + 1}`;
+            params.push(tenantId);
+        }
+        
+        const queryStr = `SELECT su.id, su.display_name, su.speciality, su.commission_type, su.commission_value,
             COALESCE(COUNT(DISTINCT i.id),0) as invoice_count,
             COALESCE(SUM(i.total),0) as total_revenue
             FROM system_users su
-            LEFT JOIN invoices i ON i.description LIKE '%' || su.display_name || '%' AND i.cancelled=0 ${dateFilter}
+            LEFT JOIN invoices i ON i.description LIKE '%' || su.display_name || '%' AND i.cancelled=0 ${dateFilter}${tenantFilter}
             WHERE su.role='Doctor' AND su.is_active=1
-            GROUP BY su.id ORDER BY total_revenue DESC`, params)).rows;
+            GROUP BY su.id ORDER BY total_revenue DESC`;
+            
+        const doctors = (await pool.query(queryStr, params)).rows;
         doctors.forEach(d => {
             d.total_revenue = parseFloat(d.total_revenue);
             if (d.commission_type === 'percentage') d.commission = (d.total_revenue * (d.commission_value || 0) / 100);
@@ -4342,12 +4417,22 @@ app.get('/api/reports/doctor-revenue', requireAuth, requireRole('finance', 'doct
 });
 
 // ===== AGING REPORT (30/60/90/120 days) =====
-app.get('/api/reports/aging', requireAuth, requireRole('finance'), async (req, res) => {
+app.get('/api/reports/aging', requireAuth, requireRole('finance'), requireTenantScope, async (req, res) => {
     try {
-        const current = (await pool.query("SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at >= CURRENT_DATE - 30 ORDER BY created_at DESC")).rows;
-        const d30 = (await pool.query("SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at BETWEEN CURRENT_DATE - 60 AND CURRENT_DATE - 30 ORDER BY created_at DESC")).rows;
-        const d60 = (await pool.query("SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at BETWEEN CURRENT_DATE - 90 AND CURRENT_DATE - 60 ORDER BY created_at DESC")).rows;
-        const d90 = (await pool.query("SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at < CURRENT_DATE - 90 ORDER BY created_at DESC")).rows;
+        const { tenantId } = getRequestTenantContext(req);
+        const params = tenantId ? [tenantId] : [];
+        const tenantFilter = tenantId ? ' AND tenant_id=$1' : '';
+        
+        const currentQuery = `SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at >= CURRENT_DATE - 30${tenantFilter} ORDER BY created_at DESC`;
+        const d30Query = `SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at BETWEEN CURRENT_DATE - 60 AND CURRENT_DATE - 30${tenantFilter} ORDER BY created_at DESC`;
+        const d60Query = `SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at BETWEEN CURRENT_DATE - 90 AND CURRENT_DATE - 60${tenantFilter} ORDER BY created_at DESC`;
+        const d90Query = `SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at < CURRENT_DATE - 90${tenantFilter} ORDER BY created_at DESC`;
+        
+        const current = (await pool.query(currentQuery, params)).rows;
+        const d30 = (await pool.query(d30Query, params)).rows;
+        const d60 = (await pool.query(d60Query, params)).rows;
+        const d90 = (await pool.query(d90Query, params)).rows;
+        
         const sum = arr => arr.reduce((s, r) => s + parseFloat(r.total), 0);
         res.json({
             current: { items: current, total: sum(current), count: current.length },
@@ -5247,13 +5332,15 @@ app.get('/api/admin/backups', requireAuth, async (req, res) => {
 
 
 // ===== FINANCE SUMMARY =====
-app.get('/api/finance/summary', requireAuth, requireRole('finance', 'accounts', 'invoices'), async (req, res) => {
+app.get('/api/finance/summary', requireAuth, requireRole('finance', 'accounts', 'invoices'), requireTenantScope, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
         const { from, to } = req.query;
         let where = "WHERE total > 0";
         let p = [];
         if (from) { where += " AND created_at >= $" + (p.length + 1); p.push(from); }
         if (to) { where += " AND created_at <= $" + (p.length + 1); p.push(to + ' 23:59:59'); }
+        if (tenantId) { where += " AND tenant_id = $" + (p.length + 1); p.push(tenantId); }
 
         const total = (await pool.query("SELECT COALESCE(SUM(total),0) as revenue, COUNT(*) as count FROM invoices " + where, p)).rows[0];
         const paid = (await pool.query("SELECT COALESCE(SUM(total),0) as paid FROM invoices " + where + " AND paid=1", p)).rows[0];
