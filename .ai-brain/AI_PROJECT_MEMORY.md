@@ -83,4 +83,11 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **المخرجات**:
   - [docs/MEDICAL_DATABASE_TENANT_ISOLATION_AUDIT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_DATABASE_TENANT_ISOLATION_AUDIT_AR.md)
   - [docs/MEDICAL_DATABASE_TENANT_ISOLATION_FIX_PLAN_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_DATABASE_TENANT_ISOLATION_FIX_PLAN_AR.md)
-* **المرحلة التالية الموصى بها**: `Roles & Permissions Hardening` (أو `RBAC & Permissions Hardening` لمعالجة الثغرات قبل تحويل قاعدة البيانات).
+* **المرحلة التالية الموصى بها**: `Critical Auth, Session & Audit Trail Fix`
+
+### Phase 3: Critical Auth, Session & Audit Trail Fix
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_CRITICAL_AUTH_SESSION_AUDIT_FIX_COMPLETED`
+* **المخرجات**:
+  - [docs/MEDICAL_CRITICAL_AUTH_SESSION_AUDIT_FIX_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_CRITICAL_AUTH_SESSION_AUDIT_FIX_REPORT_AR.md)
+* **المرحلة التالية الموصى بها**: `Roles & Permissions Hardening` (أو `RBAC & Permissions Hardening` لتوسيع هيكل حماية نهايات API الأخرى).
