@@ -112,5 +112,15 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **الحالة (Status)**: `MEDICAL_TENANT_ISOLATION_FOUNDATION_IMPLEMENTATION_COMPLETED`
 * **المخرجات**:
   - [docs/MEDICAL_TENANT_ISOLATION_FOUNDATION_IMPLEMENTATION_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_TENANT_ISOLATION_FOUNDATION_IMPLEMENTATION_REPORT_AR.md)
-* **المرحلة التالية الموصى بها**: `Tenant Columns Backfill Planning` (أو `Patient/Invoice Tenant Scope Implementation` لتوسيع عزل البيانات).
+* **المرحلة التالية الموصى بها**: `Tenant Columns Backfill Planning & Migration Script Draft`
+
+### Phase 7: Tenant Columns Backfill Planning & Migration Script Draft
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_TENANT_COLUMNS_BACKFILL_PLANNING_COMPLETED`
+* **المخرجات**:
+  - [docs/MEDICAL_TENANT_COLUMNS_BACKFILL_PLANNING_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_TENANT_COLUMNS_BACKFILL_PLANNING_REPORT_AR.md)
+  - [docs/sql/medical_tenant_columns_backfill_plan.sql](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/sql/medical_tenant_columns_backfill_plan.sql)
+  - [docs/sql/medical_tenant_columns_backfill_draft.sql](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/sql/medical_tenant_columns_backfill_draft.sql)
+  - [docs/sql/medical_tenant_columns_validation_queries.sql](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/sql/medical_tenant_columns_validation_queries.sql)
+* **المرحلة التالية الموصى بها**: `Tenant Columns Backfill Local Dry Run`
 
