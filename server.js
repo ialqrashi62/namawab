@@ -723,30 +723,49 @@ app.get('/api/catalog/', requireAuth, requireCatalogAccess, async (req, res) => 
 
 // ===== LAB =====
 app.get('/api/lab/orders', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT lo.*, p.name_en as patient_name FROM lab_radiology_orders lo LEFT JOIN patients p ON lo.patient_id=p.id WHERE lo.is_radiology=0 ORDER BY lo.id DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+    try {
+        // --- TENANT SCOPE: filter lab orders by current tenant_id ---
+        const { tenantId } = getRequestTenantContext(req);
+        let rows;
+        if (tenantId) {
+            rows = (await pool.query(`SELECT lo.*, p.name_en as patient_name FROM lab_radiology_orders lo
+                LEFT JOIN patients p ON lo.patient_id=p.id
+                WHERE lo.is_radiology=0 AND lo.tenant_id=$1 ORDER BY lo.id DESC`, [tenantId])).rows;
+        } else {
+            rows = (await pool.query('SELECT lo.*, p.name_en as patient_name FROM lab_radiology_orders lo LEFT JOIN patients p ON lo.patient_id=p.id WHERE lo.is_radiology=0 ORDER BY lo.id DESC')).rows;
+        }
+        res.json(rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/api/lab/orders', requireAuth, async (req, res) => {
     try {
         const { patient_id, doctor_id, order_type, description, price } = req.body;
+        // --- TENANT SCOPE: stamp tenant_id from session + validate patient belongs to same tenant ---
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (tenantId && patient_id) {
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
+        }
         // Auto-lookup price from lab catalog if not provided
         let labPrice = parseFloat(price) || 0;
         if (!labPrice && order_type) {
             const catalogMatch = (await pool.query('SELECT price FROM lab_tests_catalog WHERE test_name ILIKE $1 LIMIT 1', [`%${order_type}%`])).rows[0];
             if (catalogMatch) labPrice = catalogMatch.price;
         }
-        const result = await pool.query('INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, is_radiology, price) VALUES ($1,$2,$3,$4,0,$5) RETURNING id',
-            [patient_id, doctor_id || 0, order_type || '', description || '', labPrice]);
+        const result = await pool.query('INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, is_radiology, price, tenant_id, facility_id) VALUES ($1,$2,$3,$4,0,$5,$6,$7) RETURNING id',
+            [patient_id, doctor_id || 0, order_type || '', description || '', labPrice, tenantId || null, facilityId || null]);
         // Auto-create invoice for lab test (with VAT for non-Saudis)
         if (labPrice > 0 && patient_id) {
             const p = (await pool.query('SELECT name_en, name_ar FROM patients WHERE id=$1', [patient_id])).rows[0];
             const vat = await calcVAT(patient_id);
             const { total: finalTotal, vatAmount } = addVAT(labPrice, vat.rate);
             const desc = `فحص مختبر: ${order_type}` + (vat.applyVAT ? ` (+ ضريبة ${vatAmount} SAR)` : '');
-            await pool.query('INSERT INTO invoices (patient_id, patient_name, total, vat_amount, description, service_type, paid) VALUES ($1,$2,$3,$4,$5,$6,0)',
-                [patient_id, p?.name_en || p?.name_ar || '', finalTotal, vatAmount, desc, 'Lab Test']);
+            await pool.query('INSERT INTO invoices (patient_id, patient_name, total, vat_amount, description, service_type, paid, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,0,$7,$8)',
+                [patient_id, p?.name_en || p?.name_ar || '', finalTotal, vatAmount, desc, 'Lab Test', tenantId || null, facilityId || null]);
         }
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_LAB_ORDER', 'Lab',
+            `Lab order: ${order_type} for patient #${patient_id}`, req.ip);
         res.json((await pool.query('SELECT * FROM lab_radiology_orders WHERE id=$1', [result.rows[0].id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -759,21 +778,41 @@ app.get('/api/lab/catalog', requireAuth, async (req, res) => {
 app.put('/api/lab/orders/:id', requireAuth, async (req, res) => {
     try {
         const { status, result: testResult } = req.body;
+        // --- TENANT SCOPE: verify order belongs to current tenant before update (IDOR prevention) ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const orderCheck = (await pool.query(`SELECT * FROM lab_radiology_orders WHERE id=$1${tenantCheck}`, tenantParams)).rows[0];
+        if (!orderCheck) return res.status(404).json({ error: 'Order not found' });
         if (status) await pool.query('UPDATE lab_radiology_orders SET status=$1 WHERE id=$2', [status, req.params.id]);
         // Notify doctor when result is ready
         if (status === 'Completed') {
-            const order = (await pool.query('SELECT * FROM lab_radiology_orders WHERE id=$1', [req.params.id])).rows[0];
-            if (order) await pool.query('INSERT INTO notifications (user_id, title, message, type, module) VALUES ($1,$2,$3,$4,$5)', [order.doctor_id, (order.is_radiology ? 'Radiology' : 'Lab') + ' Result Ready', order.order_type + ' for patient #' + order.patient_id + ' is complete', 'success', 'Lab']);
+            if (orderCheck) await pool.query('INSERT INTO notifications (user_id, title, message, type, module) VALUES ($1,$2,$3,$4,$5)',
+                [orderCheck.doctor_id, (orderCheck.is_radiology ? 'Radiology' : 'Lab') + ' Result Ready',
+                orderCheck.order_type + ' for patient #' + orderCheck.patient_id + ' is complete', 'success', 'Lab']);
         }
         if (testResult) await pool.query('UPDATE lab_radiology_orders SET results=$1 WHERE id=$2', [testResult, req.params.id]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_LAB_ORDER', 'Lab',
+            `Updated lab order #${req.params.id} status:${status || '-'} result:${testResult ? 'yes' : 'no'}`, req.ip);
         res.json((await pool.query('SELECT * FROM lab_radiology_orders WHERE id=$1', [req.params.id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== RADIOLOGY =====
 app.get('/api/radiology/orders', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT lo.*, p.name_en as patient_name FROM lab_radiology_orders lo LEFT JOIN patients p ON lo.patient_id=p.id WHERE lo.is_radiology=1 ORDER BY lo.id DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+    try {
+        // --- TENANT SCOPE: filter radiology orders by current tenant_id ---
+        const { tenantId } = getRequestTenantContext(req);
+        let rows;
+        if (tenantId) {
+            rows = (await pool.query(`SELECT lo.*, p.name_en as patient_name FROM lab_radiology_orders lo
+                LEFT JOIN patients p ON lo.patient_id=p.id
+                WHERE lo.is_radiology=1 AND lo.tenant_id=$1 ORDER BY lo.id DESC`, [tenantId])).rows;
+        } else {
+            rows = (await pool.query('SELECT lo.*, p.name_en as patient_name FROM lab_radiology_orders lo LEFT JOIN patients p ON lo.patient_id=p.id WHERE lo.is_radiology=1 ORDER BY lo.id DESC')).rows;
+        }
+        res.json(rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.get('/api/radiology/catalog', requireAuth, async (req, res) => {
@@ -784,8 +823,16 @@ app.get('/api/radiology/catalog', requireAuth, async (req, res) => {
 app.put('/api/radiology/orders/:id', requireAuth, async (req, res) => {
     try {
         const { status, result: testResult } = req.body;
+        // --- TENANT SCOPE: verify order belongs to current tenant before update (IDOR prevention) ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const orderCheck = (await pool.query(`SELECT id FROM lab_radiology_orders WHERE id=$1 AND is_radiology=1${tenantCheck}`, tenantParams)).rows[0];
+        if (!orderCheck) return res.status(404).json({ error: 'Radiology order not found' });
         if (status) await pool.query('UPDATE lab_radiology_orders SET status=$1 WHERE id=$2', [status, req.params.id]);
         if (testResult) await pool.query('UPDATE lab_radiology_orders SET results=$1 WHERE id=$2', [testResult, req.params.id]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_RADIOLOGY_ORDER', 'Radiology',
+            `Updated radiology order #${req.params.id} status:${status || '-'}`, req.ip);
         res.json((await pool.query('SELECT * FROM lab_radiology_orders WHERE id=$1', [req.params.id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -793,23 +840,31 @@ app.put('/api/radiology/orders/:id', requireAuth, async (req, res) => {
 app.post('/api/radiology/orders', requireAuth, async (req, res) => {
     try {
         const { patient_id, doctor_id, order_type, description, price } = req.body;
+        // --- TENANT SCOPE: stamp tenant_id from session + validate patient belongs to same tenant ---
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (tenantId && patient_id) {
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
+        }
         // Auto-lookup price from radiology catalog if not provided
         let radPrice = parseFloat(price) || 0;
         if (!radPrice && order_type) {
             const catalogMatch = (await pool.query('SELECT price FROM radiology_catalog WHERE exact_name ILIKE $1 LIMIT 1', [`%${order_type}%`])).rows[0];
             if (catalogMatch) radPrice = catalogMatch.price;
         }
-        const result = await pool.query('INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, is_radiology, price) VALUES ($1,$2,$3,$4,1,$5) RETURNING id',
-            [patient_id, doctor_id || 0, order_type || '', description || '', radPrice]);
+        const result = await pool.query('INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, is_radiology, price, tenant_id, facility_id) VALUES ($1,$2,$3,$4,1,$5,$6,$7) RETURNING id',
+            [patient_id, doctor_id || 0, order_type || '', description || '', radPrice, tenantId || null, facilityId || null]);
         // Auto-create invoice for radiology (with VAT for non-Saudis)
         if (radPrice > 0 && patient_id) {
             const p = (await pool.query('SELECT name_en, name_ar FROM patients WHERE id=$1', [patient_id])).rows[0];
             const vat = await calcVAT(patient_id);
             const { total: finalTotal, vatAmount } = addVAT(radPrice, vat.rate);
             const desc = `أشعة: ${order_type}` + (vat.applyVAT ? ` (+ ضريبة ${vatAmount} SAR)` : '');
-            await pool.query('INSERT INTO invoices (patient_id, patient_name, total, vat_amount, description, service_type, paid) VALUES ($1,$2,$3,$4,$5,$6,0)',
-                [patient_id, p?.name_en || p?.name_ar || '', finalTotal, vatAmount, desc, 'Radiology']);
+            await pool.query('INSERT INTO invoices (patient_id, patient_name, total, vat_amount, description, service_type, paid, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,0,$7,$8)',
+                [patient_id, p?.name_en || p?.name_ar || '', finalTotal, vatAmount, desc, 'Radiology', tenantId || null, facilityId || null]);
         }
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_RADIOLOGY_ORDER', 'Radiology',
+            `Radiology order: ${order_type} for patient #${patient_id}`, req.ip);
         res.json((await pool.query('SELECT * FROM lab_radiology_orders WHERE id=$1', [result.rows[0].id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -818,13 +873,19 @@ app.post('/api/radiology/orders/:id/upload', requireAuth, upload.single('image')
     try {
         if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
         const orderId = req.params.id;
-        const order = (await pool.query('SELECT * FROM lab_radiology_orders WHERE id=$1', [orderId])).rows[0];
+        // --- TENANT SCOPE: verify order belongs to current tenant before upload (IDOR prevention) ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [orderId, tenantId] : [orderId];
+        const order = (await pool.query(`SELECT * FROM lab_radiology_orders WHERE id=$1${tenantCheck}`, tenantParams)).rows[0];
         if (!order) return res.status(404).json({ error: 'Order not found' });
         const imagePath = `/uploads/radiology/${req.file.filename}`;
         const existingResults = order.results || '';
         const imageTag = `[IMG:${imagePath}]`;
         const newResults = existingResults ? `${existingResults}\n${imageTag}` : imageTag;
         await pool.query('UPDATE lab_radiology_orders SET results=$1 WHERE id=$2', [newResults, orderId]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'UPLOAD_RADIOLOGY_IMAGE', 'Radiology',
+            `Uploaded image for radiology order #${orderId}`, req.ip);
         const updated = (await pool.query('SELECT * FROM lab_radiology_orders WHERE id=$1', [orderId])).rows[0];
         res.json({ success: true, path: imagePath, order: updated });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -1081,7 +1142,11 @@ app.post('/api/prescriptions', requireAuth, async (req, res) => {
 // ===== PATIENT RESULTS (for Doctor to browse) =====
 app.get('/api/patients/:id/results', requireAuth, requireRole('patients', 'lab', 'radiology'), async (req, res) => {
     try {
-        const patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [req.params.id])).rows[0];
+        // --- TENANT SCOPE: verify patient belongs to current tenant (IDOR prevention) ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const patient = (await pool.query(`SELECT * FROM patients WHERE id=$1${tenantCheck}`, params)).rows[0];
         if (!patient) return res.status(404).json({ error: 'Patient not found' });
         const labOrders = (await pool.query("SELECT * FROM lab_radiology_orders WHERE patient_id=$1 AND is_radiology=0 ORDER BY created_at DESC", [req.params.id])).rows;
         const radOrders = (await pool.query("SELECT * FROM lab_radiology_orders WHERE patient_id=$1 AND is_radiology=1 ORDER BY created_at DESC", [req.params.id])).rows;
@@ -1882,11 +1947,15 @@ app.get('/api/consent-forms/render/:type', requireAuth, async (req, res) => {
 // Get lab orders (only paid/approved ones visible to lab)
 app.get('/api/lab/orders', requireAuth, async (req, res) => {
     try {
+        // --- TENANT SCOPE: filter lab orders by current tenant_id ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantFilter = tenantId ? ' AND o.tenant_id=$1' : '';
+        const queryParams = tenantId ? [tenantId] : [];
         const rows = (await pool.query(`SELECT o.*, p.name_ar as patient_name, p.file_number, p.phone, su.display_name as doctor 
             FROM lab_radiology_orders o LEFT JOIN patients p ON o.patient_id = p.id 
             LEFT JOIN system_users su ON o.doctor_id = su.id
-            WHERE o.is_radiology = 0 AND o.approval_status IN ('Approved', 'Paid')
-            ORDER BY o.id DESC`)).rows;
+            WHERE o.is_radiology = 0 AND o.approval_status IN ('Approved', 'Paid')${tenantFilter}
+            ORDER BY o.id DESC`, queryParams)).rows;
         res.json(rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1894,11 +1963,15 @@ app.get('/api/lab/orders', requireAuth, async (req, res) => {
 // Get radiology orders (only paid/approved ones visible to radiology)
 app.get('/api/radiology/orders', requireAuth, async (req, res) => {
     try {
+        // --- TENANT SCOPE: filter radiology orders by current tenant_id ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantFilter = tenantId ? ' AND o.tenant_id=$1' : '';
+        const queryParams = tenantId ? [tenantId] : [];
         const rows = (await pool.query(`SELECT o.*, p.name_ar as patient_name, p.file_number, p.phone, su.display_name as doctor 
             FROM lab_radiology_orders o LEFT JOIN patients p ON o.patient_id = p.id 
             LEFT JOIN system_users su ON o.doctor_id = su.id
-            WHERE o.is_radiology = 1 AND o.approval_status IN ('Approved', 'Paid')
-            ORDER BY o.id DESC`)).rows;
+            WHERE o.is_radiology = 1 AND o.approval_status IN ('Approved', 'Paid')${tenantFilter}
+            ORDER BY o.id DESC`, queryParams)).rows;
         res.json(rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1906,10 +1979,14 @@ app.get('/api/radiology/orders', requireAuth, async (req, res) => {
 // Get ALL pending payment orders (for reception)
 app.get('/api/orders/pending-payment', requireAuth, async (req, res) => {
     try {
+        // --- TENANT SCOPE: filter pending orders by current tenant_id ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantFilter = tenantId ? ' AND o.tenant_id=$1' : '';
+        const queryParams = tenantId ? [tenantId] : [];
         const rows = (await pool.query(`SELECT o.*, p.name_ar as patient_name, p.name_en, p.file_number, p.phone, p.nationality
             FROM lab_radiology_orders o LEFT JOIN patients p ON o.patient_id = p.id 
-            WHERE o.approval_status = 'Pending Approval'
-            ORDER BY o.id DESC`)).rows;
+            WHERE o.approval_status = 'Pending Approval'${tenantFilter}
+            ORDER BY o.id DESC`, queryParams)).rows;
         res.json(rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1918,13 +1995,21 @@ app.get('/api/orders/pending-payment', requireAuth, async (req, res) => {
 app.post('/api/lab/orders', requireAuth, async (req, res) => {
     try {
         const { patient_id, order_type, description } = req.body;
+        // --- TENANT SCOPE: stamp tenant_id from session + validate patient belongs to same tenant ---
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (tenantId && patient_id) {
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
+        }
         const pName = (await pool.query('SELECT name_ar, name_en FROM patients WHERE id=$1', [patient_id])).rows[0];
         const r = await pool.query(
-            `INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, status, is_radiology, approval_status) 
-             VALUES ($1, $2, $3, $4, 'Pending Payment', 0, 'Pending Approval') RETURNING *`,
-            [patient_id, req.session.user?.id || 0, order_type || '', description || '']
+            `INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, status, is_radiology, approval_status, tenant_id, facility_id) 
+             VALUES ($1, $2, $3, $4, 'Pending Payment', 0, 'Pending Approval', $5, $6) RETURNING *`,
+            [patient_id, req.session.user?.id || 0, order_type || '', description || '', tenantId || null, facilityId || null]
         );
         r.rows[0].patient_name = pName?.name_ar || pName?.name_en || '';
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_LAB_ORDER', 'Lab',
+            `Lab order: ${order_type} for patient #${patient_id}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1933,13 +2018,21 @@ app.post('/api/lab/orders', requireAuth, async (req, res) => {
 app.post('/api/radiology/orders', requireAuth, async (req, res) => {
     try {
         const { patient_id, order_type, description } = req.body;
+        // --- TENANT SCOPE: stamp tenant_id from session + validate patient belongs to same tenant ---
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (tenantId && patient_id) {
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
+        }
         const pName = (await pool.query('SELECT name_ar, name_en FROM patients WHERE id=$1', [patient_id])).rows[0];
         const r = await pool.query(
-            `INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, status, is_radiology, approval_status) 
-             VALUES ($1, $2, $3, $4, 'Pending Payment', 1, 'Pending Approval') RETURNING *`,
-            [patient_id, req.session.user?.id || 0, order_type || '', description || '']
+            `INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, status, is_radiology, approval_status, tenant_id, facility_id) 
+             VALUES ($1, $2, $3, $4, 'Pending Payment', 1, 'Pending Approval', $5, $6) RETURNING *`,
+            [patient_id, req.session.user?.id || 0, order_type || '', description || '', tenantId || null, facilityId || null]
         );
         r.rows[0].patient_name = pName?.name_ar || pName?.name_en || '';
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_RADIOLOGY_ORDER', 'Radiology',
+            `Radiology order: ${order_type} for patient #${patient_id}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1948,13 +2041,21 @@ app.post('/api/radiology/orders', requireAuth, async (req, res) => {
 app.post('/api/lab/orders/direct', requireAuth, async (req, res) => {
     try {
         const { patient_id, order_type, description } = req.body;
+        // --- TENANT SCOPE: stamp tenant_id from session ---
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (tenantId && patient_id) {
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
+        }
         const pName = patient_id ? (await pool.query('SELECT name_ar, name_en FROM patients WHERE id=$1', [patient_id])).rows[0] : null;
         const r = await pool.query(
-            `INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, status, is_radiology, approval_status) 
-             VALUES ($1, $2, $3, $4, 'Requested', 0, 'Paid') RETURNING *`,
-            [patient_id || 0, req.session.user?.id || 0, order_type || '', description || '']
+            `INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, status, is_radiology, approval_status, tenant_id, facility_id) 
+             VALUES ($1, $2, $3, $4, 'Requested', 0, 'Paid', $5, $6) RETURNING *`,
+            [patient_id || 0, req.session.user?.id || 0, order_type || '', description || '', tenantId || null, facilityId || null]
         );
         r.rows[0].patient_name = pName?.name_ar || pName?.name_en || '';
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_LAB_ORDER_DIRECT', 'Lab',
+            `Direct lab order: ${order_type} for patient #${patient_id}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1963,6 +2064,12 @@ app.post('/api/lab/orders/direct', requireAuth, async (req, res) => {
 app.put('/api/orders/:id/approve-payment', requireAuth, async (req, res) => {
     try {
         const { payment_method, price } = req.body;
+        // --- TENANT SCOPE: verify order belongs to current tenant before approve (IDOR prevention) ---
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const orderPre = (await pool.query(`SELECT id FROM lab_radiology_orders WHERE id=$1${tenantCheck}`, tenantParams)).rows[0];
+        if (!orderPre) return res.status(404).json({ error: 'Order not found' });
         // Update order status
         await pool.query(
             `UPDATE lab_radiology_orders SET status='Requested', approval_status='Paid', approved_by=$1, price=$2 WHERE id=$3`,
@@ -1978,11 +2085,13 @@ app.put('/api/orders/:id/approve-payment', requireAuth, async (req, res) => {
             const serviceType = order.is_radiology ? 'Radiology' : 'Laboratory';
             const desc = `${serviceType}: ${order.order_type}`;
             await pool.query(
-                `INSERT INTO invoices (patient_id, patient_name, total, amount, vat_amount, description, service_type, paid, payment_method, order_id) 
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, 1, $8, $9)`,
-                [order.patient_id, order.name_ar || order.name_en || '', finalTotal, price, vatAmount, desc, serviceType, payment_method || 'Cash', order.id]
+                `INSERT INTO invoices (patient_id, patient_name, total, amount, vat_amount, description, service_type, paid, payment_method, order_id, tenant_id, facility_id) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, 1, $8, $9, $10, $11)`,
+                [order.patient_id, order.name_ar || order.name_en || '', finalTotal, price, vatAmount, desc, serviceType, payment_method || 'Cash', order.id, tenantId || null, facilityId || null]
             );
         }
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'APPROVE_ORDER_PAYMENT', 'Lab/Radiology',
+            `Approved payment for order #${req.params.id} amount:${price}`, req.ip);
         res.json({ success: true, order });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1991,12 +2100,22 @@ app.put('/api/orders/:id/approve-payment', requireAuth, async (req, res) => {
 app.put('/api/lab/orders/:id', requireAuth, async (req, res) => {
     try {
         const { status, results } = req.body;
+        // --- TENANT SCOPE: verify order belongs to current tenant before update (IDOR prevention) ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const orderCheck = (await pool.query(`SELECT id FROM lab_radiology_orders WHERE id=$1${tenantCheck}`, tenantParams)).rows[0];
+        if (!orderCheck) return res.status(404).json({ error: 'Order not found' });
         const sets = []; const vals = []; let i = 1;
         if (status) { sets.push(`status=$${i++}`); vals.push(status); }
         if (results !== undefined) { sets.push(`results=$${i++}`); vals.push(results); }
         if (status === 'Done') { sets.push(`result_date=$${i++}`); vals.push(new Date().toISOString()); }
-        vals.push(req.params.id);
-        await pool.query(`UPDATE lab_radiology_orders SET ${sets.join(',')} WHERE id=$${i}`, vals);
+        if (sets.length > 0) {
+            vals.push(req.params.id);
+            await pool.query(`UPDATE lab_radiology_orders SET ${sets.join(',')} WHERE id=$${i}`, vals);
+        }
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_LAB_ORDER', 'Lab',
+            `Updated lab order #${req.params.id} status:${status || '-'} results:${results !== undefined ? 'yes' : 'no'}`, req.ip);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -2004,16 +2123,29 @@ app.put('/api/lab/orders/:id', requireAuth, async (req, res) => {
 // Get single order
 app.get('/api/lab/orders/:id', requireAuth, async (req, res) => {
     try {
+        // --- TENANT SCOPE: verify order belongs to current tenant (IDOR prevention) ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND o.tenant_id=$2' : '';
+        const tenantParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
         const r = (await pool.query(`SELECT o.*, p.name_ar as patient_name, p.file_number 
-            FROM lab_radiology_orders o LEFT JOIN patients p ON o.patient_id = p.id WHERE o.id=$1`, [req.params.id])).rows[0];
-        res.json(r || {});
+            FROM lab_radiology_orders o LEFT JOIN patients p ON o.patient_id = p.id WHERE o.id=$1${tenantCheck}`, tenantParams)).rows[0];
+        if (!r) return res.status(404).json({ error: 'Order not found' });
+        res.json(r);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // Get patient's lab/radiology results
 app.get('/api/patient/:pid/results', requireAuth, async (req, res) => {
     try {
-        const rows = (await pool.query(`SELECT * FROM lab_radiology_orders WHERE patient_id=$1 AND approval_status IN ('Approved','Paid') ORDER BY id DESC`, [req.params.pid])).rows;
+        // --- TENANT SCOPE: verify patient belongs to current tenant + filter results ---
+        const { tenantId } = getRequestTenantContext(req);
+        const patientCheck = tenantId ?
+            (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [req.params.pid, tenantId])).rows[0] :
+            (await pool.query('SELECT id FROM patients WHERE id=$1', [req.params.pid])).rows[0];
+        if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
+        const tenantFilter = tenantId ? ' AND tenant_id=$2' : '';
+        const filterParams = tenantId ? [req.params.pid, tenantId] : [req.params.pid];
+        const rows = (await pool.query(`SELECT * FROM lab_radiology_orders WHERE patient_id=$1 AND approval_status IN ('Approved','Paid')${tenantFilter} ORDER BY id DESC`, filterParams)).rows;
         res.json(rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -3050,7 +3182,11 @@ app.get('/api/print/prescription/:id', requireAuth, async (req, res) => {
 
 app.get('/api/print/lab-report/:id', requireAuth, async (req, res) => {
     try {
-        const order = (await pool.query('SELECT * FROM lab_radiology_orders WHERE id=$1', [req.params.id])).rows[0];
+        // --- TENANT SCOPE: verify order belongs to current tenant (IDOR prevention) ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const order = (await pool.query(`SELECT * FROM lab_radiology_orders WHERE id=$1${tenantCheck}`, params)).rows[0];
         if (!order) return res.status(404).json({ error: 'Not found' });
         const results = (await pool.query('SELECT lr.*, lt.test_name, lt.normal_range FROM lab_results lr LEFT JOIN lab_tests_catalog lt ON lr.test_id=lt.id WHERE lr.order_id=$1', [req.params.id])).rows;
         const patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [order.patient_id])).rows[0];
