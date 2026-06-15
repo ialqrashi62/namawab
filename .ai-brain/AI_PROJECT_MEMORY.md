@@ -203,7 +203,17 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **الملفات البرمجية المعدلة**: لا يوجد (مرحلة تدقيق وتخطيط فقط)
 * **المخرجات**:
   - [docs/MEDICAL_REPORTS_DASHBOARDS_TENANT_SCOPE_AUDIT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_REPORTS_DASHBOARDS_TENANT_SCOPE_AUDIT_AR.md)
-* **المرحلة التالية الموصى بها**: `Executive & Main Dashboard Tenant Scope Implementation`
+### Phase 15: Executive & Main Dashboard Tenant Scope Implementation
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_EXECUTIVE_MAIN_DASHBOARD_TENANT_SCOPE_IMPLEMENTATION_COMPLETED`
+* **الملفات المُعدَّلة**:
+  - `namaweb/server.js` — تطبيق فلاتر `tenant_id` وتأمين 4 مسارات للوحة التحكم الرئيسية والتنفيذية واليومية والرسوم البيانية باستخدام `requireTenantScope`.
+* **الملفات الجديدة**:
+  - `namaweb/cross_tenant_dashboard_test.js` — سكربت اختبار محلي للتحقق من عزل إحصائيات لوحة التحكم والعمليات التجميعية (38 فحصاً ناجحاً).
+* **المخرجات**:
+  - [docs/MEDICAL_EXECUTIVE_MAIN_DASHBOARD_TENANT_SCOPE_IMPLEMENTATION_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_EXECUTIVE_MAIN_DASHBOARD_TENANT_SCOPE_IMPLEMENTATION_REPORT_AR.md)
+* **نتائج الاختبارات**: 38/38 PASS — `node namaweb/cross_tenant_dashboard_test.js`
+* **المرحلة التالية الموصى بها**: `Financial Reports Tenant Scope Implementation`
 
 
 
