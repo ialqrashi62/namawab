@@ -275,8 +275,14 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **نتائج الاختبارات**: 41/41 PASS — `node namaweb/cross_tenant_emergency_test.js`
 * **المرحلة التالية الموصى بها**: `Pharmacy & Inventory Reports Tenant Scope Implementation`
 
-
-
-
-
-
+### Phase 21: Pharmacy & Inventory Reports Tenant Scope Implementation
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_PHARMACY_INVENTORY_REPORTS_TENANT_SCOPE_IMPLEMENTATION_COMPLETED`
+* **الملفات المُعدَّلة**:
+  - `namaweb/server.js` — تأمين وتصفية 26 مساراً للصيدلية والمخزون الطبي والكتالوجات والأصناف والوصفات بـ `requireTenantScope` وفلاتر العزل.
+* **الملفات الجديدة**:
+  - `namaweb/cross_tenant_pharmacy_inventory_reports_test.js` — سكربت اختبار محلي للتحقق من عزل تقارير وتجميعات الصيدلية والمخزون ومحاكاة العزل والتحقق البنائي (49 فحصاً ناجحاً).
+* **المخرجات**:
+  - [docs/MEDICAL_PHARMACY_INVENTORY_REPORTS_TENANT_SCOPE_IMPLEMENTATION_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_PHARMACY_INVENTORY_REPORTS_TENANT_SCOPE_IMPLEMENTATION_REPORT_AR.md)
+* **نتائج الاختبارات**: 49/49 PASS — `node namaweb/cross_tenant_pharmacy_inventory_reports_test.js`
+* **المرحلة التالية الموصى بها**: `RLS Local Design & Dry-Run Plan`
