@@ -227,6 +227,18 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **نتائج الاختبارات**: 37/37 PASS — `node namaweb/cross_tenant_financial_reports_test.js`
 * **المرحلة التالية الموصى بها**: `Clinical Reports Tenant Scope Implementation`
 
+### Phase 17: Clinical Reports Tenant Scope Implementation
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_CLINICAL_REPORTS_TENANT_SCOPE_IMPLEMENTATION_COMPLETED`
+* **الملفات المُعدَّلة**:
+  - `namaweb/server.js` — تأمين وتصفية 8 نهايات/مسارات كلينيكالية وطبية للتقارير والملخصات والخطوط الزمنية للمرضى ونظم الإحالات ومكافحة العدوى وإحصائيات OB/GYN، مع تفعيل التحقق التلقائي من تبعية المريض للمستأجر ومنع IDOR.
+* **الملفات الجديدة**:
+  - `namaweb/cross_tenant_clinical_reports_test.js` — سكربت اختبار أمني ووظيفي شامل للتحقق من عزل التقارير الطبية ومنع ثغرات IDOR (43 فحصاً ناجحاً).
+* **المخرجات**:
+  - [docs/MEDICAL_CLINICAL_REPORTS_TENANT_SCOPE_IMPLEMENTATION_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_CLINICAL_REPORTS_TENANT_SCOPE_IMPLEMENTATION_REPORT_AR.md)
+* **نتائج الاختبارات**: 43/43 PASS — `node namaweb/cross_tenant_clinical_reports_test.js`
+* **المرحلة التالية الموصى بها**: `Surgeries & Inpatient Admissions Tenant Scope API`
+
 
 
 
