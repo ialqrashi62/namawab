@@ -171,6 +171,19 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **المخرجات**:
   - [docs/MEDICAL_LAB_RADIOLOGY_TENANT_SCOPE_API_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_LAB_RADIOLOGY_TENANT_SCOPE_API_REPORT_AR.md)
 * **نتائج الاختبارات**: 37/37 PASS — `node cross_tenant_lab_radiology_test.js`
-* **المرحلة التالية الموصى بها**: `Pharmacy & Inventory Tenant Scope API`
+* **المرحلة التالية الموصى بها**: `Pharmacy Prescriptions & Dispensing Tenant Scope API`
+
+### Phase 12: Pharmacy Prescriptions & Dispensing Tenant Scope API
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_PHARMACY_PRESCRIPTIONS_TENANT_SCOPE_API_COMPLETED`
+* **الملفات المُعدَّلة**:
+  - `namaweb/server.js` — تأمين 18 مساراً للوصفات الطبية، طابور الصرف، كتالوج الأدوية، سجل المخزون وتنبيهاته، والطباعة، مع منع الـ IDOR والتحقق من ملكية المريض والوصفة.
+* **الملفات الجديدة**:
+  - `namaweb/cross_tenant_pharmacy_test.js` — سكربت اختبار شامل يحتوي على 29 فحصاً برمجياً ومحاكاة عملية للتحقق من العزل ومنع IDOR.
+* **المخرجات**:
+  - [docs/MEDICAL_PHARMACY_PRESCRIPTIONS_TENANT_SCOPE_API_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_PHARMACY_PRESCRIPTIONS_TENANT_SCOPE_API_REPORT_AR.md)
+* **نتائج الاختبارات**: 29/29 PASS — `node cross_tenant_pharmacy_test.js`
+* **المرحلة التالية الموصى بها**: `Inventory & Stock Movement Tenant Scope API`
+
 
 
