@@ -145,3 +145,19 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - إضافة `logAudit` لجميع العمليات الفائتة
 * **المرحلة التالية الموصى بها**: `Lab & Radiology Orders Tenant Scope API`
 
+### Phase 10: Patient, Invoice & Appointment Cross-Tenant Leak Test & Closeout
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_CROSS_TENANT_LEAK_TEST_PATIENT_INVOICE_APPOINTMENT_COMPLETED`
+* **الملفات المُعدَّلة**:
+  - `namaweb/server.js` — إصلاح `getRequestTenantContext` (production safe) + إضافة `requireTenantScope` + إصلاح parameterized query في UPDATE patients
+  - `namaweb/cross_tenant_leak_test.js` — سكربت اختبار جديد: 63 اختباراً جميعها ناجحة
+* **المخرجات**:
+  - [docs/MEDICAL_CROSS_TENANT_LEAK_TEST_PATIENT_INVOICE_APPOINTMENT_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_CROSS_TENANT_LEAK_TEST_PATIENT_INVOICE_APPOINTMENT_REPORT_AR.md)
+* **الإصلاحات الأمنية**:
+  - `getRequestTenantContext`: في production بدون tenantId → يرجع null (لا fallback)
+  - `requireTenantScope` middleware جديد: يمنع الطلبات بـ 403 في production بدون tenant
+  - UPDATE patients WHERE: string interpolation خطير → parameterized $N query آمن
+* **نتائج الاختبارات**: 63/63 PASS — `node cross_tenant_leak_test.js`
+* **Git**: namaweb `f0ea3eb` pushed → parent `a7fcbe2` pushed
+* **المرحلة التالية الموصى بها**: `Lab & Radiology Orders Tenant Scope API`
+
