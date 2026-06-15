@@ -2678,23 +2678,92 @@ app.get('/api/patient/:pid/results', requireAuth, async (req, res) => {
 });
 
 // ===== EMERGENCY DEPARTMENT =====
-app.get('/api/emergency/visits', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM emergency_visits ORDER BY arrival_time DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/emergency/visits', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        const q = tenantId
+            ? 'SELECT * FROM emergency_visits WHERE tenant_id = $1 ORDER BY arrival_time DESC'
+            : 'SELECT * FROM emergency_visits ORDER BY arrival_time DESC';
+        const params = tenantId ? [tenantId] : [];
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/emergency/visits', requireAuth, async (req, res) => {
+
+app.get('/api/emergency/visits/:id', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        const q = tenantId
+            ? 'SELECT * FROM emergency_visits WHERE id = $1 AND tenant_id = $2'
+            : 'SELECT * FROM emergency_visits WHERE id = $1';
+        const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const row = (await pool.query(q, params)).rows[0];
+        if (!row) return res.status(404).json({ error: 'Emergency visit not found' });
+        res.json(row);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/emergency/visits', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, arrival_mode, chief_complaint, chief_complaint_ar, triage_level, triage_color, triage_nurse, triage_vitals, assigned_doctor, assigned_bed, acuity_notes } = req.body;
-        const r = await pool.query('INSERT INTO emergency_visits (patient_id,patient_name,arrival_mode,chief_complaint,chief_complaint_ar,triage_level,triage_color,triage_nurse,triage_vitals,assigned_doctor,assigned_bed,acuity_notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
-            [patient_id, patient_name, arrival_mode || 'Walk-in', chief_complaint, chief_complaint_ar, triage_level || 3, triage_color || 'Yellow', triage_nurse, triage_vitals, assigned_doctor, assigned_bed, acuity_notes]);
-        if (assigned_bed) await pool.query("UPDATE emergency_beds SET status='Occupied', current_patient_id=$1 WHERE bed_name=$2", [patient_id, assigned_bed]);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+
+        // Validate patient context to prevent IDOR / illegal references
+        if (patient_id && tenantId) {
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id = $1 AND tenant_id = $2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) {
+                return res.status(403).json({ error: 'Invalid patient context or access denied' });
+            }
+        }
+
+        // Validate bed context to prevent IDOR / illegal references
+        if (assigned_bed && tenantId) {
+            const bedCheck = (await pool.query('SELECT id FROM emergency_beds WHERE bed_name = $1 AND tenant_id = $2', [assigned_bed, tenantId])).rows[0];
+            if (!bedCheck) {
+                return res.status(403).json({ error: 'Invalid bed context or access denied' });
+            }
+        }
+
+        const r = await pool.query(
+            `INSERT INTO emergency_visits (patient_id,patient_name,arrival_mode,chief_complaint,chief_complaint_ar,triage_level,triage_color,triage_nurse,triage_vitals,assigned_doctor,assigned_bed,acuity_notes,tenant_id,facility_id) 
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
+            [patient_id, patient_name, arrival_mode || 'Walk-in', chief_complaint, chief_complaint_ar, triage_level || 3, triage_color || 'Yellow', triage_nurse, triage_vitals, assigned_doctor, assigned_bed, acuity_notes, tenantId, facilityId]);
+        
+        if (assigned_bed) {
+            const updateBedQ = tenantId
+                ? "UPDATE emergency_beds SET status='Occupied', current_patient_id=$1 WHERE bed_name=$2 AND tenant_id=$3"
+                : "UPDATE emergency_beds SET status='Occupied', current_patient_id=$1 WHERE bed_name=$2";
+            const updateBedParams = tenantId ? [patient_id, assigned_bed, tenantId] : [patient_id, assigned_bed];
+            await pool.query(updateBedQ, updateBedParams);
+        }
+
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_EMERGENCY_VISIT', 'Emergency', `Created emergency visit for patient #${patient_id}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/emergency/visits/:id', requireAuth, async (req, res) => {
+
+app.put('/api/emergency/visits/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
+
+        // Verify visit ownership first
+        const checkQ = tenantId
+            ? 'SELECT id, assigned_bed, patient_id FROM emergency_visits WHERE id = $1 AND tenant_id = $2'
+            : 'SELECT id, assigned_bed, patient_id FROM emergency_visits WHERE id = $1';
+        const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const visit = (await pool.query(checkQ, checkParams)).rows[0];
+        if (!visit) return res.status(404).json({ error: 'Emergency visit not found' });
+
         const { status, disposition, assigned_doctor, assigned_bed, triage_level, triage_color,
             discharge_diagnosis, discharge_instructions, discharge_medications, followup_date } = req.body;
+        
+        // If assigned_bed is changed, verify it belongs to tenant
+        if (assigned_bed && tenantId) {
+            const bedCheck = (await pool.query('SELECT id FROM emergency_beds WHERE bed_name = $1 AND tenant_id = $2', [assigned_bed, tenantId])).rows[0];
+            if (!bedCheck) {
+                return res.status(403).json({ error: 'Invalid bed context or access denied' });
+            }
+        }
+
         const sets = []; const vals = []; let i = 1;
         if (status) { sets.push(`status=$${i++}`); vals.push(status); }
         if (disposition) { sets.push(`disposition=$${i++}`); vals.push(disposition); sets.push(`disposition_time=$${i++}`); vals.push(new Date().toISOString()); }
@@ -2707,35 +2776,106 @@ app.put('/api/emergency/visits/:id', requireAuth, async (req, res) => {
         if (discharge_medications) { sets.push(`discharge_medications=$${i++}`); vals.push(discharge_medications); }
         if (followup_date) { sets.push(`followup_date=$${i++}`); vals.push(followup_date); }
         if (status === 'Discharged') { sets.push(`discharge_time=$${i++}`); vals.push(new Date().toISOString()); }
+        
         vals.push(req.params.id);
-        await pool.query(`UPDATE emergency_visits SET ${sets.join(',')} WHERE id=$${i}`, vals);
+        
+        const updateQ = tenantId
+            ? `UPDATE emergency_visits SET ${sets.join(',')} WHERE id=$${i} AND tenant_id=$${i+1}`
+            : `UPDATE emergency_visits SET ${sets.join(',')} WHERE id=$${i}`;
+        if (tenantId) vals.push(tenantId);
+        
+        await pool.query(updateQ, vals);
+
         if (status === 'Discharged' || status === 'Admitted') {
-            const v = (await pool.query('SELECT assigned_bed FROM emergency_visits WHERE id=$1', [req.params.id])).rows[0];
-            if (v?.assigned_bed) await pool.query("UPDATE emergency_beds SET status='Available', current_patient_id=0 WHERE bed_name=$1", [v.assigned_bed]);
+            const v = visit; 
+            if (v?.assigned_bed) {
+                const updateBedQ = tenantId
+                    ? "UPDATE emergency_beds SET status='Available', current_patient_id=0 WHERE bed_name=$1 AND tenant_id=$2"
+                    : "UPDATE emergency_beds SET status='Available', current_patient_id=0 WHERE bed_name=$1";
+                const updateBedParams = tenantId ? [v.assigned_bed, tenantId] : [v.assigned_bed];
+                await pool.query(updateBedQ, updateBedParams);
+            }
         }
+
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_EMERGENCY_VISIT', 'Emergency', `Updated emergency visit #${req.params.id} (Status: ${status || 'N/A'})`, req.ip);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/emergency/beds', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM emergency_beds ORDER BY id')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-app.get('/api/emergency/stats', requireAuth, async (req, res) => {
+
+app.get('/api/emergency/beds', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        const active = (await pool.query("SELECT COUNT(*) as cnt FROM emergency_visits WHERE status='Active'")).rows[0].cnt;
-        const today = (await pool.query("SELECT COUNT(*) as cnt FROM emergency_visits WHERE DATE(arrival_time)=CURRENT_DATE")).rows[0].cnt;
-        const critical = (await pool.query("SELECT COUNT(*) as cnt FROM emergency_visits WHERE status='Active' AND triage_level<=2")).rows[0].cnt;
-        const beds = (await pool.query("SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='Available') as available FROM emergency_beds")).rows[0];
-        const byTriage = (await pool.query("SELECT triage_color, COUNT(*) as cnt FROM emergency_visits WHERE status='Active' GROUP BY triage_color")).rows;
+        const { tenantId } = getRequestTenantContext(req);
+        const q = tenantId
+            ? 'SELECT * FROM emergency_beds WHERE tenant_id = $1 ORDER BY id'
+            : 'SELECT * FROM emergency_beds ORDER BY id';
+        const params = tenantId ? [tenantId] : [];
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.get('/api/emergency/stats', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        
+        const activeQ = tenantId
+            ? "SELECT COUNT(*) as cnt FROM emergency_visits WHERE status='Active' AND tenant_id=$1"
+            : "SELECT COUNT(*) as cnt FROM emergency_visits WHERE status='Active'";
+        
+        const todayQ = tenantId
+            ? "SELECT COUNT(*) as cnt FROM emergency_visits WHERE DATE(arrival_time)=CURRENT_DATE AND tenant_id=$1"
+            : "SELECT COUNT(*) as cnt FROM emergency_visits WHERE DATE(arrival_time)=CURRENT_DATE";
+        
+        const criticalQ = tenantId
+            ? "SELECT COUNT(*) as cnt FROM emergency_visits WHERE status='Active' AND triage_level<=2 AND tenant_id=$1"
+            : "SELECT COUNT(*) as cnt FROM emergency_visits WHERE status='Active' AND triage_level<=2";
+        
+        const bedsQ = tenantId
+            ? "SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='Available') as available FROM emergency_beds WHERE tenant_id=$1"
+            : "SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='Available') as available FROM emergency_beds";
+        
+        const byTriageQ = tenantId
+            ? "SELECT triage_color, COUNT(*) as cnt FROM emergency_visits WHERE status='Active' AND tenant_id=$1 GROUP BY triage_color"
+            : "SELECT triage_color, COUNT(*) as cnt FROM emergency_visits WHERE status='Active' GROUP BY triage_color";
+        
+        const params = tenantId ? [tenantId] : [];
+        
+        const active = (await pool.query(activeQ, params)).rows[0].cnt;
+        const today = (await pool.query(todayQ, params)).rows[0].cnt;
+        const critical = (await pool.query(criticalQ, params)).rows[0].cnt;
+        const beds = (await pool.query(bedsQ, params)).rows[0];
+        const byTriage = (await pool.query(byTriageQ, params)).rows;
+        
         res.json({ active, today, critical, totalBeds: beds.total, availableBeds: beds.available, byTriage });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/emergency/trauma/:visitId', requireAuth, async (req, res) => {
+
+app.post('/api/emergency/trauma/:visitId', requireAuth, requireTenantScope, async (req, res) => {
     try {
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+
+        // Verify visit ownership first
+        const visitCheckQ = tenantId
+            ? 'SELECT id, patient_id FROM emergency_visits WHERE id = $1 AND tenant_id = $2'
+            : 'SELECT id, patient_id FROM emergency_visits WHERE id = $1';
+        const visitCheckParams = tenantId ? [req.params.visitId, tenantId] : [req.params.visitId];
+        const visit = (await pool.query(visitCheckQ, visitCheckParams)).rows[0];
+        if (!visit) return res.status(404).json({ error: 'Emergency visit not found or access denied' });
+
         const { patient_id, airway, breathing, circulation, disability, exposure, gcs_eye, gcs_verbal, gcs_motor, mechanism_of_injury, trauma_team_activated, assessed_by } = req.body;
+
+        // Verify patient ownership
+        if (patient_id && tenantId) {
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id = $1 AND tenant_id = $2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) return res.status(403).json({ error: 'Invalid patient context or access denied' });
+        }
+
         const gcs_total = (parseInt(gcs_eye) || 4) + (parseInt(gcs_verbal) || 5) + (parseInt(gcs_motor) || 6);
-        const r = await pool.query('INSERT INTO emergency_trauma_assessments (visit_id,patient_id,airway,breathing,circulation,disability,exposure,gcs_eye,gcs_verbal,gcs_motor,gcs_total,mechanism_of_injury,trauma_team_activated,assessed_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *',
-            [req.params.visitId, patient_id, airway, breathing, circulation, disability, exposure, gcs_eye || 4, gcs_verbal || 5, gcs_motor || 6, gcs_total, mechanism_of_injury, trauma_team_activated ? 1 : 0, assessed_by]);
+        const r = await pool.query(
+            `INSERT INTO emergency_trauma_assessments (visit_id,patient_id,airway,breathing,circulation,disability,exposure,gcs_eye,gcs_verbal,gcs_motor,gcs_total,mechanism_of_injury,trauma_team_activated,assessed_by,tenant_id,facility_id) 
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *`,
+            [req.params.visitId, patient_id, airway, breathing, circulation, disability, exposure, gcs_eye || 4, gcs_verbal || 5, gcs_motor || 6, gcs_total, mechanism_of_injury, trauma_team_activated ? 1 : 0, assessed_by, tenantId, facilityId]);
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_TRAUMA_ASSESSMENT', 'Emergency', `Created trauma assessment for visit #${req.params.visitId}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -5754,9 +5894,22 @@ app.get('/api/lab/reference-ranges', requireAuth, async (req, res) => {
 });
 
 // ===== NURSING: TRIAGE + PAIN SCORE =====
-app.post('/api/nursing/triage', requireAuth, async (req, res) => {
+app.post('/api/nursing/triage', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, triage_level, pain_score, chief_complaint, notes, visit_id } = req.body;
+        const { tenantId } = getRequestTenantContext(req);
+
+        // Verify patient ownership
+        if (patient_id && tenantId) {
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id = $1 AND tenant_id = $2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) return res.status(403).json({ error: 'Invalid patient context or access denied' });
+        }
+
+        // Verify visit ownership
+        if (visit_id && tenantId) {
+            const visitCheck = (await pool.query('SELECT id FROM emergency_visits WHERE id = $1 AND tenant_id = $2', [visit_id, tenantId])).rows[0];
+            if (!visitCheck) return res.status(403).json({ error: 'Invalid visit context or access denied' });
+        }
 
         // Update visit lifecycle if visit_id provided
         if (visit_id) {
@@ -5768,12 +5921,16 @@ app.post('/api/nursing/triage', requireAuth, async (req, res) => {
 
         // Also store in nursing vitals if that table exists
         try {
-            await pool.query(
-                "UPDATE nursing_vitals SET triage_level=$1, pain_score=$2 WHERE patient_id=$3 AND created_at::date = CURRENT_DATE ORDER BY id DESC LIMIT 1",
-                [triage_level, pain_score, patient_id]
-            );
+            const updateVitalsQ = tenantId
+                ? "UPDATE nursing_vitals SET triage_level=$1, pain_score=$2 WHERE patient_id=$3 AND tenant_id=$4 AND created_at::date = CURRENT_DATE"
+                : "UPDATE nursing_vitals SET triage_level=$1, pain_score=$2 WHERE patient_id=$3 AND created_at::date = CURRENT_DATE";
+            const updateVitalsParams = tenantId 
+                ? [triage_level, pain_score, patient_id, tenantId]
+                : [triage_level, pain_score, patient_id];
+            await pool.query(updateVitalsQ, updateVitalsParams);
         } catch (e) { /* table may not have these columns yet */ }
 
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'SUBMIT_TRIAGE', 'Nursing', `Submitted triage for patient #${patient_id} (Triage Level: ${triage_level})`, req.ip);
         res.json({ success: true, triage_level, pain_score });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
