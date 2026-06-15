@@ -190,7 +190,7 @@ app.get('/api/dashboard/stats', requireAuth, async (req, res) => {
 });
 
 // ===== PATIENTS =====
-app.get('/api/patients', requireAuth, async (req, res) => {
+app.get('/api/patients', requireAuth, requireRole('patients'), async (req, res) => {
     try {
         const { search } = req.query;
         let rows;
@@ -204,7 +204,7 @@ app.get('/api/patients', requireAuth, async (req, res) => {
     } catch (e) { console.error('Patients query error:', e.message); res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/patients', requireAuth, async (req, res) => {
+app.post('/api/patients', requireAuth, requireRole('patients'), async (req, res) => {
     try {
         const { name_ar, name_en, national_id, nationality, gender, phone, department, amount, payment_method, dob, dob_hijri, blood_type, allergies, chronic_diseases, emergency_contact_name, emergency_contact_phone, address, insurance_company, insurance_policy_number, insurance_class } = req.body;
         const maxFile = (await pool.query('SELECT COALESCE(MAX(file_number), 1000) as mf FROM patients')).rows[0].mf;
@@ -234,7 +234,7 @@ app.post('/api/patients', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.put('/api/patients/:id', requireAuth, async (req, res) => {
+app.put('/api/patients/:id', requireAuth, requireRole('patients'), async (req, res) => {
     try {
         const { name_ar, name_en, national_id, nationality, gender, phone, dob, dob_hijri, department, status, blood_type, allergies, chronic_diseases, emergency_contact_name, emergency_contact_phone, address, insurance_company, insurance_policy_number, insurance_class } = req.body;
         const sets = []; const vals = []; let i = 1;
@@ -291,12 +291,12 @@ app.post('/api/nursing/vitals', requireAuth, async (req, res) => {
 });
 
 // ===== APPOINTMENTS =====
-app.get('/api/appointments', requireAuth, async (req, res) => {
+app.get('/api/appointments', requireAuth, requireRole('appointments'), async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM appointments ORDER BY id DESC')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/appointments', requireAuth, async (req, res) => {
+app.post('/api/appointments', requireAuth, requireRole('appointments'), async (req, res) => {
     try {
         const { patient_name, patient_id, doctor_name, department, appt_date, appt_time, notes, fee } = req.body;
         const apptFee = parseFloat(fee) || 0;
@@ -324,7 +324,7 @@ app.post('/api/appointments', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.delete('/api/appointments/:id', requireAuth, async (req, res) => {
+app.delete('/api/appointments/:id', requireAuth, requireRole('appointments'), async (req, res) => {
     try { await pool.query('DELETE FROM appointments WHERE id=$1', [req.params.id]); res.json({ success: true }); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -353,12 +353,12 @@ app.delete('/api/employees/:id', requireAuth, async (req, res) => {
 });
 
 // ===== INVOICES =====
-app.get('/api/invoices', requireAuth, async (req, res) => {
+app.get('/api/invoices', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM invoices ORDER BY id DESC')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/invoices', requireAuth, async (req, res) => {
+app.post('/api/invoices', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
     try {
         const { patient_id, patient_name, total, description, service_type, payment_method, discount, discount_reason } = req.body;
         // Generate sequential invoice number
@@ -376,12 +376,12 @@ app.post('/api/invoices', requireAuth, async (req, res) => {
 });
 
 // ===== INSURANCE =====
-app.get('/api/insurance/companies', requireAuth, async (req, res) => {
+app.get('/api/insurance/companies', requireAuth, requireRole('insurance'), async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM insurance_companies ORDER BY id DESC')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/insurance/companies', requireAuth, async (req, res) => {
+app.post('/api/insurance/companies', requireAuth, requireRole('insurance'), async (req, res) => {
     try {
         const { name_ar, name_en, contact_info } = req.body;
         const result = await pool.query('INSERT INTO insurance_companies (name_ar, name_en, contact_info) VALUES ($1,$2,$3) RETURNING id',
@@ -390,12 +390,12 @@ app.post('/api/insurance/companies', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/insurance/claims', requireAuth, async (req, res) => {
+app.get('/api/insurance/claims', requireAuth, requireRole('insurance'), async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM insurance_claims ORDER BY id DESC')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/insurance/claims', requireAuth, async (req, res) => {
+app.post('/api/insurance/claims', requireAuth, requireRole('insurance'), async (req, res) => {
     try {
         const { patient_name, insurance_company, claim_amount } = req.body;
         const result = await pool.query('INSERT INTO insurance_claims (patient_name, insurance_company, claim_amount) VALUES ($1,$2,$3) RETURNING id',
@@ -404,7 +404,7 @@ app.post('/api/insurance/claims', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.put('/api/insurance/claims/:id', requireAuth, async (req, res) => {
+app.put('/api/insurance/claims/:id', requireAuth, requireRole('insurance'), async (req, res) => {
     try {
         const { status } = req.body;
         if (status) await pool.query('UPDATE insurance_claims SET status=$1 WHERE id=$2', [status, req.params.id]);
@@ -520,7 +520,7 @@ app.put('/api/dept-requests/:id', requireAuth, async (req, res) => {
 });
 
 // ===== BILLING SUMMARY =====
-app.get('/api/billing/summary/:patient_id', requireAuth, async (req, res) => {
+app.get('/api/billing/summary/:patient_id', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
     try {
         const pid = req.params.patient_id;
         const invoices = (await pool.query('SELECT * FROM invoices WHERE patient_id=$1 ORDER BY id DESC', [pid])).rows;
@@ -920,7 +920,7 @@ app.post('/api/prescriptions', requireAuth, async (req, res) => {
 });
 
 // ===== PATIENT RESULTS (for Doctor to browse) =====
-app.get('/api/patients/:id/results', requireAuth, async (req, res) => {
+app.get('/api/patients/:id/results', requireAuth, requireRole('patients', 'lab', 'radiology'), async (req, res) => {
     try {
         const patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [req.params.id])).rows[0];
         if (!patient) return res.status(404).json({ error: 'Patient not found' });
@@ -932,7 +932,7 @@ app.get('/api/patients/:id/results', requireAuth, async (req, res) => {
 });
 
 // ===== INVOICES (Enhanced) =====
-app.post('/api/invoices/generate', requireAuth, async (req, res) => {
+app.post('/api/invoices/generate', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
     try {
         const { patient_id, items } = req.body;
         const p = (await pool.query('SELECT * FROM patients WHERE id=$1', [patient_id])).rows[0];
@@ -945,7 +945,7 @@ app.post('/api/invoices/generate', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.put('/api/invoices/:id/pay', requireAuth, async (req, res) => {
+app.put('/api/invoices/:id/pay', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
     try {
         const { payment_method } = req.body;
         await pool.query('UPDATE invoices SET paid=1, payment_method=$1 WHERE id=$2', [payment_method || 'Cash', req.params.id]);
@@ -954,7 +954,7 @@ app.put('/api/invoices/:id/pay', requireAuth, async (req, res) => {
 });
 
 // ===== PATIENT ACCOUNT =====
-app.get('/api/patients/:id/account', requireAuth, async (req, res) => {
+app.get('/api/patients/:id/account', requireAuth, requireRole('patients', 'accounts'), async (req, res) => {
     try {
         const id = req.params.id;
         const patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [id])).rows[0];
@@ -1019,7 +1019,7 @@ app.post('/api/queue/ads', requireAuth, async (req, res) => {
 });
 
 // ===== PATIENT REFERRAL =====
-app.put('/api/patients/:id/referral', requireAuth, async (req, res) => {
+app.put('/api/patients/:id/referral', requireAuth, requireRole('patients'), async (req, res) => {
     try {
         const { department } = req.body;
         await pool.query('UPDATE patients SET department=$1 WHERE id=$2', [department, req.params.id]);
@@ -1028,7 +1028,7 @@ app.put('/api/patients/:id/referral', requireAuth, async (req, res) => {
 });
 
 // ===== REPORTS =====
-app.get('/api/reports/financial', requireAuth, async (req, res) => {
+app.get('/api/reports/financial', requireAuth, requireRole('finance'), async (req, res) => {
     try {
         const totalRevenue = (await pool.query('SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=1')).rows[0].total;
         const totalPending = (await pool.query('SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=0')).rows[0].total;
@@ -1038,7 +1038,7 @@ app.get('/api/reports/financial', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/reports/patients', requireAuth, async (req, res) => {
+app.get('/api/reports/patients', requireAuth, requireRole('reports'), async (req, res) => {
     try {
         const totalPatients = (await pool.query('SELECT COUNT(*) as cnt FROM patients')).rows[0].cnt;
         const todayPatients = (await pool.query("SELECT COUNT(*) as cnt FROM patients WHERE created_at >= CURRENT_DATE")).rows[0].cnt;
@@ -1048,7 +1048,7 @@ app.get('/api/reports/patients', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/reports/lab', requireAuth, async (req, res) => {
+app.get('/api/reports/lab', requireAuth, requireRole('reports'), async (req, res) => {
     try {
         const totalOrders = (await pool.query('SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE is_radiology=0')).rows[0].cnt;
         const pendingOrders = (await pool.query("SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE is_radiology=0 AND status='Requested'")).rows[0].cnt;
@@ -1067,7 +1067,7 @@ app.put('/api/bookings/:id', requireAuth, async (req, res) => {
 });
 
 // ===== DOCTOR COMMISSION REPORT =====
-app.get('/api/reports/commissions', requireAuth, async (req, res) => {
+app.get('/api/reports/commissions', requireAuth, requireRole('finance', 'doctor'), async (req, res) => {
     try {
         const doctors = (await pool.query("SELECT id, display_name, speciality, commission_type, commission_value FROM system_users WHERE role='Doctor'")).rows;
         const results = [];
@@ -1160,7 +1160,7 @@ app.put('/api/referrals/:id', requireAuth, async (req, res) => {
 });
 
 // ===== FOLLOW-UP APPOINTMENTS =====
-app.post('/api/appointments/followup', requireAuth, async (req, res) => {
+app.post('/api/appointments/followup', requireAuth, requireRole('appointments'), async (req, res) => {
     try {
         const { patient_id, patient_name, doctor_name, appt_date, appt_time, notes } = req.body;
         const result = await pool.query(
@@ -1204,7 +1204,7 @@ app.get('/api/dashboard/enhanced', requireAuth, async (req, res) => {
 });
 
 // ===== PATIENT VISIT TIMELINE =====
-app.get('/api/patients/:id/timeline', requireAuth, async (req, res) => {
+app.get('/api/patients/:id/timeline', requireAuth, requireRole('patients'), async (req, res) => {
     try {
         const pid = req.params.id;
         const events = [];
@@ -2981,7 +2981,7 @@ app.post('/api/pharmacy/drugs', requireAuth, async (req, res) => {
 });
 
 // ===== P&L REPORT =====
-app.get('/api/reports/pnl', requireAuth, async (req, res) => {
+app.get('/api/reports/pnl', requireAuth, requireRole('finance'), async (req, res) => {
     try {
         const { from, to } = req.query;
         let dateFilter = '';
@@ -3344,7 +3344,7 @@ app.get('/api/pharmacy/expiring', requireAuth, async (req, res) => {
 });
 
 // ===== INVOICE CANCEL (Credit Note) =====
-app.post('/api/invoices/cancel/:id', requireAuth, async (req, res) => {
+app.post('/api/invoices/cancel/:id', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
     try {
         const { reason } = req.body;
         const inv = (await pool.query('SELECT * FROM invoices WHERE id=$1', [req.params.id])).rows[0];
@@ -3358,7 +3358,7 @@ app.post('/api/invoices/cancel/:id', requireAuth, async (req, res) => {
 });
 
 // ===== APPOINTMENT CONFLICT CHECK =====
-app.get('/api/appointments/check-conflict', requireAuth, async (req, res) => {
+app.get('/api/appointments/check-conflict', requireAuth, requireRole('appointments'), async (req, res) => {
     try {
         const { doctor, date, time_slot, exclude_id } = req.query;
         let query = "SELECT * FROM appointments WHERE doctor=$1 AND appointment_date=$2 AND time_slot=$3 AND status != 'Cancelled'";
@@ -3704,7 +3704,7 @@ app.get('/api/consent/recent', requireAuth, async (req, res) => {
 
 
 // ===== DAILY CASH RECONCILIATION =====
-app.get('/api/reports/daily-cash', requireAuth, async (req, res) => {
+app.get('/api/reports/daily-cash', requireAuth, requireRole('finance', 'accounts'), async (req, res) => {
     try {
         const date = req.query.date || new Date().toISOString().split('T')[0];
         const byCash = (await pool.query("SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE payment_method='Cash' AND DATE(created_at)=$1 AND cancelled=0", [date])).rows[0].total;
@@ -3719,7 +3719,7 @@ app.get('/api/reports/daily-cash', requireAuth, async (req, res) => {
 });
 
 // ===== DOCTOR REVENUE + COMMISSIONS =====
-app.get('/api/reports/doctor-revenue', requireAuth, async (req, res) => {
+app.get('/api/reports/doctor-revenue', requireAuth, requireRole('finance', 'doctor'), async (req, res) => {
     try {
         const { from, to } = req.query;
         let dateFilter = '', params = [];
@@ -3741,7 +3741,7 @@ app.get('/api/reports/doctor-revenue', requireAuth, async (req, res) => {
 });
 
 // ===== AGING REPORT (30/60/90/120 days) =====
-app.get('/api/reports/aging', requireAuth, async (req, res) => {
+app.get('/api/reports/aging', requireAuth, requireRole('finance'), async (req, res) => {
     try {
         const current = (await pool.query("SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at >= CURRENT_DATE - 30 ORDER BY created_at DESC")).rows;
         const d30 = (await pool.query("SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at BETWEEN CURRENT_DATE - 60 AND CURRENT_DATE - 30 ORDER BY created_at DESC")).rows;
@@ -3802,7 +3802,7 @@ app.get('/api/dashboard/today', requireAuth, async (req, res) => {
 });
 
 // ===== PATIENT FULL SUMMARY (for Doctor) =====
-app.get('/api/patients/:id/summary', requireAuth, async (req, res) => {
+app.get('/api/patients/:id/summary', requireAuth, requireRole('patients'), async (req, res) => {
     try {
         const pid = req.params.id;
         const patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [pid])).rows[0];
@@ -3996,7 +3996,7 @@ app.post('/api/allergy-check', requireAuth, async (req, res) => {
 });
 
 // ===== PARTIAL PAYMENT & REFUND =====
-app.put('/api/invoices/:id/partial-pay', requireAuth, async (req, res) => {
+app.put('/api/invoices/:id/partial-pay', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
     try {
         const { amount_paid, payment_method } = req.body;
         const invoice = (await pool.query('SELECT * FROM invoices WHERE id=$1', [req.params.id])).rows[0];
@@ -4020,7 +4020,7 @@ app.put('/api/invoices/:id/partial-pay', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/invoices/:id/refund', requireAuth, async (req, res) => {
+app.post('/api/invoices/:id/refund', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
     try {
         const { amount, reason } = req.body;
         const invoice = (await pool.query('SELECT * FROM invoices WHERE id=$1', [req.params.id])).rows[0];
@@ -4199,7 +4199,7 @@ app.get('/api/visits/lifecycle/today', requireAuth, async (req, res) => {
 });
 
 // ===== APPOINTMENT CHECK-IN =====
-app.put('/api/appointments/:id/checkin', requireAuth, async (req, res) => {
+app.put('/api/appointments/:id/checkin', requireAuth, requireRole('appointments'), async (req, res) => {
     try {
         const appt = (await pool.query('SELECT * FROM appointments WHERE id=$1', [req.params.id])).rows[0];
         if (!appt) return res.status(404).json({ error: 'Appointment not found' });
@@ -4228,7 +4228,7 @@ app.put('/api/appointments/:id/checkin', requireAuth, async (req, res) => {
 });
 
 // ===== NO-SHOW MARKING =====
-app.put('/api/appointments/:id/noshow', requireAuth, async (req, res) => {
+app.put('/api/appointments/:id/noshow', requireAuth, requireRole('appointments'), async (req, res) => {
     try {
         await pool.query("UPDATE appointments SET status='No-Show' WHERE id=$1", [req.params.id]);
         const appt = (await pool.query('SELECT * FROM appointments WHERE id=$1', [req.params.id])).rows[0];
@@ -4239,7 +4239,7 @@ app.put('/api/appointments/:id/noshow', requireAuth, async (req, res) => {
 });
 
 // ===== DUPLICATE APPOINTMENT PREVENTION =====
-app.post('/api/appointments/check-duplicate', requireAuth, async (req, res) => {
+app.post('/api/appointments/check-duplicate', requireAuth, requireRole('appointments'), async (req, res) => {
     try {
         const { patient_id, date, doctor } = req.body;
         const existing = (await pool.query(
@@ -4694,7 +4694,7 @@ app.put('/api/maintenance/orders/:id', requireAuth, async (req, res) => {
 });
 
 // ===== INSURANCE POLICIES =====
-app.get('/api/insurance/policies', requireAuth, async (req, res) => {
+app.get('/api/insurance/policies', requireAuth, requireRole('insurance'), async (req, res) => {
     try {
         await pool.query(`CREATE TABLE IF NOT EXISTS insurance_policies (id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name VARCHAR(200), company VARCHAR(200), policy_number VARCHAR(100), class VARCHAR(50), coverage_percent NUMERIC(5,2) DEFAULT 80, start_date DATE, end_date DATE, status VARCHAR(30) DEFAULT 'active', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
         res.json((await pool.query('SELECT * FROM insurance_policies ORDER BY created_at DESC')).rows);
