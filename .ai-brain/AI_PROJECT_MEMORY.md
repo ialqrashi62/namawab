@@ -75,4 +75,12 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **المخرجات**:
   - [docs/MEDICAL_SYSTEM_FULL_AUDIT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_SYSTEM_FULL_AUDIT_AR.md)
   - [docs/MEDICAL_SYSTEM_GLOBAL_ROADMAP_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_SYSTEM_GLOBAL_ROADMAP_AR.md)
-* **المرحلة التالية الموصى بها**: `Database & Models Audit` (أو `RBAC & Permissions Hardening` بناءً على المخاطر الأمنية المكتشفة).
+* **المرحلة التالية الموصى بها**: `Database & Tenant Isolation Models Audit`
+
+### Phase 2: Database & Tenant Isolation Models Audit
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_DATABASE_TENANT_ISOLATION_AUDIT_COMPLETED`
+* **المخرجات**:
+  - [docs/MEDICAL_DATABASE_TENANT_ISOLATION_AUDIT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_DATABASE_TENANT_ISOLATION_AUDIT_AR.md)
+  - [docs/MEDICAL_DATABASE_TENANT_ISOLATION_FIX_PLAN_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_DATABASE_TENANT_ISOLATION_FIX_PLAN_AR.md)
+* **المرحلة التالية الموصى بها**: `Roles & Permissions Hardening` (أو `RBAC & Permissions Hardening` لمعالجة الثغرات قبل تحويل قاعدة البيانات).
