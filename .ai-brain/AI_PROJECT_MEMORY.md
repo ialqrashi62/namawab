@@ -251,6 +251,18 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **نتائج الاختبارات**: 55/55 PASS — `node namaweb/cross_tenant_surgeries_test.js`
 * **المرحلة التالية الموصى بها**: `Inpatient Admissions & Beds Tenant Scope API`
 
+### Phase 19: Inpatient Admissions & Beds Tenant Scope API
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_INPATIENT_ADMISSIONS_BEDS_TENANT_SCOPE_API_COMPLETED`
+* **الملفات المُعدَّلة**:
+  - `namaweb/server.js` — تطبيق عزل `tenant_id` / `facility_id` على مسارات التنويم والأجنحة والأسرة وحركات النقل، مع منع IDOR والتحقق من السياقات الطبية.
+* **الملفات الجديدة**:
+  - `namaweb/cross_tenant_inpatient_beds_test.js` — سكربت اختبار محلي للتحقق من عزل مسارات التنويم والأسرة والغرف وحركات النقل (53 فحصاً ناجحاً).
+* **المخرجات**:
+  - [docs/MEDICAL_INPATIENT_ADMISSIONS_BEDS_TENANT_SCOPE_API_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_INPATIENT_ADMISSIONS_BEDS_TENANT_SCOPE_API_REPORT_AR.md)
+* **نتائج الاختبارات**: 53/53 PASS — `node namaweb/cross_tenant_inpatient_beds_test.js`
+* **المرحلة التالية الموصى بها**: `Emergency Visits Tenant Scope API`
+
 
 
 
