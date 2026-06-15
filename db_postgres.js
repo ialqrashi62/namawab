@@ -1613,8 +1613,108 @@ CREATE TABLE IF NOT EXISTS cosmetic_followups (
             ('PRP Therapy', 'علاج البلازما', 'Non-Surgical', 'Platelet-rich plasma injections for skin rejuvenation', 30, 'None', 1500, 'Bruising, swelling, infection, minimal pain', 1)
         ON CONFLICT DO NOTHING`);
 
+        // ===== TENANT ISOLATION FOUNDATION TABLES =====
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS tenants (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(200) NOT NULL,
+                subdomain VARCHAR(100) UNIQUE NOT NULL,
+                status VARCHAR(50) DEFAULT 'active',
+                plan_type VARCHAR(50) DEFAULT 'standard',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS facilities (
+                id SERIAL PRIMARY KEY,
+                tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+                name VARCHAR(255) NOT NULL,
+                tax_number VARCHAR(100),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS branches (
+                id SERIAL PRIMARY KEY,
+                facility_id INTEGER NOT NULL REFERENCES facilities(id) ON DELETE CASCADE,
+                name VARCHAR(255) NOT NULL,
+                address TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS departments (
+                id SERIAL PRIMARY KEY,
+                branch_id INTEGER NOT NULL REFERENCES branches(id) ON DELETE CASCADE,
+                name_ar VARCHAR(255) NOT NULL,
+                name_en VARCHAR(255) NOT NULL,
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS user_tenants (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES system_users(id) ON DELETE CASCADE,
+                tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT uq_user_tenant UNIQUE(user_id, tenant_id)
+            );
+            CREATE TABLE IF NOT EXISTS user_facilities (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES system_users(id) ON DELETE CASCADE,
+                facility_id INTEGER NOT NULL REFERENCES facilities(id) ON DELETE CASCADE,
+                branch_id INTEGER NOT NULL REFERENCES branches(id) ON DELETE CASCADE,
+                is_primary BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT uq_user_facility_branch UNIQUE(user_id, facility_id, branch_id)
+            );
+            CREATE TABLE IF NOT EXISTS tenant_settings (
+                id SERIAL PRIMARY KEY,
+                tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+                setting_key VARCHAR(100) NOT NULL,
+                setting_value TEXT NOT NULL,
+                CONSTRAINT uq_tenant_setting_key UNIQUE(tenant_id, setting_key)
+            );
+        `);
+
+        // ===== IDEMPOTENT SEED DATA FOR DEFAULT TENANT =====
+        // Default Tenant
+        await client.query(`
+            INSERT INTO tenants (id, name, subdomain, status, plan_type) 
+            VALUES (1, 'Nama Medical Default Tenant', 'default', 'active', 'standard') 
+            ON CONFLICT (id) DO NOTHING
+        `);
+        // Default Facility
+        await client.query(`
+            INSERT INTO facilities (id, tenant_id, name, tax_number) 
+            VALUES (1, 1, 'Default Medical Facility', '300000000000003') 
+            ON CONFLICT (id) DO NOTHING
+        `);
+        // Default Branch
+        await client.query(`
+            ALTER TABLE branches ADD COLUMN IF NOT EXISTS facility_id INTEGER;
+        `);
+        await client.query(`
+            INSERT INTO branches (id, facility_id, name, address) 
+            VALUES (1, 1, 'Main Branch', 'Riyadh, Saudi Arabia') 
+            ON CONFLICT (id) DO NOTHING
+        `);
+
+        // Synchronize sequences after manual seeding of ID 1
+        await client.query(`
+            SELECT setval(pg_get_serial_sequence('tenants', 'id'), COALESCE((SELECT MAX(id)+1 FROM tenants), 1), false);
+            SELECT setval(pg_get_serial_sequence('facilities', 'id'), COALESCE((SELECT MAX(id)+1 FROM facilities), 1), false);
+            SELECT setval(pg_get_serial_sequence('branches', 'id'), COALESCE((SELECT MAX(id)+1 FROM branches), 1), false);
+        `).catch(err => console.error('Sequence sync error:', err.message));
+
         // Default admin
         await client.query(`INSERT INTO system_users (username, password_hash, display_name, role) VALUES ('admin', 'admin', 'المدير العام', 'Admin') ON CONFLICT (username) DO NOTHING`);
+
+        // Map admin to default tenant/facility
+        await client.query(`
+            INSERT INTO user_tenants (user_id, tenant_id) 
+            VALUES ((SELECT id FROM system_users WHERE username='admin' LIMIT 1), 1) 
+            ON CONFLICT (user_id, tenant_id) DO NOTHING
+        `);
+        await client.query(`
+            INSERT INTO user_facilities (user_id, facility_id, branch_id) 
+            VALUES ((SELECT id FROM system_users WHERE username='admin' LIMIT 1), 1, 1) 
+            ON CONFLICT (user_id, facility_id, branch_id) DO NOTHING
+        `);
 
         // ===== MIGRATIONS: Add missing columns to existing tables =====
         try {
@@ -1624,8 +1724,20 @@ CREATE TABLE IF NOT EXISTS cosmetic_followups (
                 ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS discharge_instructions TEXT DEFAULT '';
                 ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS discharge_medications TEXT DEFAULT '';
                 ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS followup_date TEXT DEFAULT '';
+
+                -- Tenant columns and backfill for test tables (patients, invoices)
+                ALTER TABLE patients ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
+                ALTER TABLE patients ADD COLUMN IF NOT EXISTS facility_id INTEGER;
+                ALTER TABLE invoices ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
+                ALTER TABLE invoices ADD COLUMN IF NOT EXISTS facility_id INTEGER;
             `);
-        } catch (e) { /* columns may already exist */ }
+
+            // Perform backfill
+            await client.query(`
+                UPDATE patients SET tenant_id = 1, facility_id = 1 WHERE tenant_id IS NULL;
+                UPDATE invoices SET tenant_id = 1, facility_id = 1 WHERE tenant_id IS NULL;
+            `);
+        } catch (e) { console.error('Migration error:', e.message); }
 
         console.log('  ✅ PostgreSQL tables created');
     } finally {

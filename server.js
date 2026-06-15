@@ -109,6 +109,51 @@ async function logAudit(userId, userName, action, module, details, ip) {
     } catch (e) { console.error('Audit log error:', e.message); }
 }
 
+// ===== TENANT ISOLATION MIDDLEWARES =====
+function getRequestTenantContext(req) {
+    let tenantId = req.session?.user?.tenantId;
+    let facilityId = req.session?.user?.facilityId;
+    
+    // Fallback for development/testing
+    if (!tenantId && process.env.NODE_ENV !== 'production') {
+        tenantId = 1;
+        facilityId = 1;
+    }
+    return { tenantId, facilityId };
+}
+
+function requireTenantContext(req, res, next) {
+    const { tenantId } = getRequestTenantContext(req);
+    if (!tenantId) {
+        return res.status(400).json({ error: 'Missing tenant context' });
+    }
+    req.tenantId = tenantId;
+    next();
+}
+
+function requireFacilityContext(req, res, next) {
+    const { tenantId, facilityId } = getRequestTenantContext(req);
+    if (!tenantId) {
+        return res.status(400).json({ error: 'Missing tenant context' });
+    }
+    if (!facilityId) {
+        return res.status(400).json({ error: 'Missing facility context' });
+    }
+    req.tenantId = tenantId;
+    req.facilityId = facilityId;
+    next();
+}
+
+function withTenantFilter(queryText, params, tenantId) {
+    if (!tenantId) return { queryText, params };
+    const hasWhere = queryText.toLowerCase().includes('where');
+    const separator = hasWhere ? ' AND ' : ' WHERE ';
+    const paramIndex = params.length + 1;
+    const modifiedQuery = queryText + separator + `tenant_id = $${paramIndex}`;
+    const modifiedParams = [...params, tenantId];
+    return { queryText: modifiedQuery, params: modifiedParams };
+}
+
 // ===== SINGLE SESSION ENFORCEMENT =====
 // Track active session IDs per user to prevent concurrent logins
 const activeUserSessions = new Map(); // userId -> sessionId
@@ -137,7 +182,38 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
             });
         }
 
-        req.session.user = { id: user.id, name: user.display_name, display_name: user.display_name, role: user.role, speciality: user.speciality || '', permissions: user.permissions || '' };
+        // Fetch user's tenant and facility scope
+        let userTenantId = null;
+        let userFacilityId = null;
+        try {
+            const tenantRow = (await pool.query('SELECT tenant_id FROM user_tenants WHERE user_id=$1 AND is_active=true LIMIT 1', [user.id])).rows[0];
+            if (tenantRow) {
+                userTenantId = tenantRow.tenant_id;
+                const facRow = (await pool.query('SELECT facility_id FROM user_facilities WHERE user_id=$1 AND is_primary=true LIMIT 1', [user.id])).rows[0];
+                if (facRow) {
+                    userFacilityId = facRow.facility_id;
+                }
+            }
+        } catch (e) {
+            console.error('Error fetching tenant/facility scope for user:', e);
+        }
+
+        // Fallback logic for dev environment
+        if (!userTenantId && process.env.NODE_ENV !== 'production') {
+            userTenantId = 1; // Default Tenant ID
+            userFacilityId = 1; // Default Facility ID
+        }
+
+        req.session.user = { 
+            id: user.id, 
+            name: user.display_name, 
+            display_name: user.display_name, 
+            role: user.role, 
+            speciality: user.speciality || '', 
+            permissions: user.permissions || '',
+            tenantId: userTenantId,
+            facilityId: userFacilityId
+        };
         // Track this user's active session
         activeUserSessions.set(user.id, req.sessionID);
 
@@ -193,12 +269,21 @@ app.get('/api/dashboard/stats', requireAuth, async (req, res) => {
 app.get('/api/patients', requireAuth, requireRole('patients'), async (req, res) => {
     try {
         const { search } = req.query;
+        const { tenantId } = getRequestTenantContext(req);
         let rows;
         if (search) {
             const s = `%${search}%`;
-            rows = (await pool.query(`SELECT * FROM patients WHERE (name_ar ILIKE $1 OR name_en ILIKE $2 OR national_id LIKE $3 OR phone LIKE $4 OR CAST(file_number AS TEXT) LIKE $5) ORDER BY id DESC LIMIT 200`, [s, s, s, s, s])).rows;
+            if (tenantId) {
+                rows = (await pool.query(`SELECT * FROM patients WHERE (name_ar ILIKE $1 OR name_en ILIKE $2 OR national_id LIKE $3 OR phone LIKE $4 OR CAST(file_number AS TEXT) LIKE $5) AND tenant_id = $6 ORDER BY id DESC LIMIT 200`, [s, s, s, s, s, tenantId])).rows;
+            } else {
+                rows = (await pool.query(`SELECT * FROM patients WHERE (name_ar ILIKE $1 OR name_en ILIKE $2 OR national_id LIKE $3 OR phone LIKE $4 OR CAST(file_number AS TEXT) LIKE $5) ORDER BY id DESC LIMIT 200`, [s, s, s, s, s])).rows;
+            }
         } else {
-            rows = (await pool.query('SELECT * FROM patients ORDER BY id DESC LIMIT 200')).rows;
+            if (tenantId) {
+                rows = (await pool.query('SELECT * FROM patients WHERE tenant_id = $1 ORDER BY id DESC LIMIT 200', [tenantId])).rows;
+            } else {
+                rows = (await pool.query('SELECT * FROM patients ORDER BY id DESC LIMIT 200')).rows;
+            }
         }
         res.json(rows);
     } catch (e) { console.error('Patients query error:', e.message); res.status(500).json({ error: 'Server error' }); }
@@ -354,8 +439,16 @@ app.delete('/api/employees/:id', requireAuth, async (req, res) => {
 
 // ===== INVOICES =====
 app.get('/api/invoices', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM invoices ORDER BY id DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        let rows;
+        if (tenantId) {
+            rows = (await pool.query('SELECT * FROM invoices WHERE tenant_id = $1 ORDER BY id DESC', [tenantId])).rows;
+        } else {
+            rows = (await pool.query('SELECT * FROM invoices ORDER BY id DESC')).rows;
+        }
+        res.json(rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/api/invoices', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
