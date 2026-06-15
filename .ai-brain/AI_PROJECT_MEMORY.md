@@ -286,3 +286,16 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - [docs/MEDICAL_PHARMACY_INVENTORY_REPORTS_TENANT_SCOPE_IMPLEMENTATION_REPORT_AR.md](file:///c:/Users/1/Desktop/11/%D9%85%D8%AC%D9%84%D8%AF%20%D8%AC%D8%AF%D9%8A%D8%AF/NamaMedical/docs/MEDICAL_PHARMACY_INVENTORY_REPORTS_TENANT_SCOPE_IMPLEMENTATION_REPORT_AR.md)
 * **نتائج الاختبارات**: 49/49 PASS — `node namaweb/cross_tenant_pharmacy_inventory_reports_test.js`
 * **المرحلة التالية الموصى بها**: `RLS Local Design & Dry-Run Plan`
+
+### Phase 22: RLS Local Design & Dry-Run Plan
+* **تاريخ الإغلاق**: 2026-06-15
+* **الحالة (Status)**: `MEDICAL_RLS_LOCAL_DESIGN_DRY_RUN_PLAN_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تصميم وتخطيط فقط)
+* **الملفات الجديدة**:
+  - `docs/sql/rls_design_policy_draft.sql` — مسودة تصميم سياسات RLS لجميع جداول النظام.
+  - `docs/sql/rls_local_dry_run_setup.sql` — تهيئة RLS تجريبياً محلياً لـ 3 جداول.
+  - `docs/sql/rls_local_dry_run_validation.sql` — استعلامات التحقق وفحص البيانات الوهمية محلياً.
+  - `docs/sql/rls_rollback_draft.sql` — سكربت التراجع لتنظيف البيئة المحلية.
+* **المخرجات**:
+  - [docs/MEDICAL_RLS_LOCAL_DESIGN_DRY_RUN_PLAN_AR.md](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/MEDICAL_RLS_LOCAL_DESIGN_DRY_RUN_PLAN_AR.md)
+* **المرحلة التالية الموصى بها**: `RLS Local Dry-Run on 3 Tables Only`
