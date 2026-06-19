@@ -798,4 +798,22 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH4_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لعشرة جداول).
 * **المرحلة التالية الموصى بها**: `Tenant ID Backfill Controlled Migration` أو `RLS Batch 5 Without Schema Change`
 
+### Phase 58: Google Stitch Design System Adoption
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_STITCH_DESIGN_SYSTEM_ADOPTED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تثبيت المهارات واعتماد مسار التصميم فقط)
+* **المخرجات**:
+  - [.ai-brain/skills/MEDICAL_STITCH_DESIGN_SYSTEM_SKILL_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_STITCH_DESIGN_SYSTEM_SKILL_AR.md)
+  - [docs/MEDICAL_STITCH_DESIGN_SYSTEM_ADOPTION_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_STITCH_DESIGN_SYSTEM_ADOPTION_REPORT_AR.md)
+* **الملخص**:
+  تم اعتماد مشروع Google Stitch كمصدر التصميم الرسمي لأي شاشة أو قسم جديد في نظام الطبيب. أي UI جديد يجب أن يبدأ من Stitch Design Source ثم Design Mapping ثم تطبيق تدريجي في namaweb مع UI QA وتوثيق design drift.
+* **رابط التصميم الرسمي (STITCH_DESIGN_SOURCE)**:
+  https://stitch.withgoogle.com/projects/17612445146025313712
+* **نتائج الاختبارات**:
+  - إجراء فحص سلامة الترميز واللغة العربية وخلوها من التشويه بنجاح.
+  - فحص git status ونظافة المستودع من أي ملفات مؤقتة.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH4_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لعشرة جداول).
+* **المرحلة التالية الموصى بها**: `Tenant ID Backfill Controlled Migration` أو `New UI Section Using Stitch Workflow`
+
+
 

@@ -21,6 +21,7 @@
 | **[MEDICAL_RLS_AUTOPILOT_BLOCKER_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_RLS_AUTOPILOT_BLOCKER_SKILL_AR.md)** | تحديد معايير التوقف الفوري في حال رصد خطر أمني P0/P1. | **P0** |
 | **[MEDICAL_SECRETS_AND_LOGS_AUDIT_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_SECRETS_AND_LOGS_AUDIT_SKILL_AR.md)** | مراقبة سجلات الخادم وتطهير الأسرار وحماية ملفات `.env`. | **P0** |
 | **[MEDICAL_STAGING_BACKUP_RESTORE_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_STAGING_BACKUP_RESTORE_SKILL_AR.md)** | أخذ النسخ الاحتياطية وتخزينها الآمن قبل أي تعديل هيكلي. | **P0** |
+| **[MEDICAL_STITCH_DESIGN_SYSTEM_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_STITCH_DESIGN_SYSTEM_SKILL_AR.md)** | اعتماد مشروع Google Stitch كمصدر التصميم الرسمي واجهات نظام الطبيب. | **P0 (لكل UI/UX)** |
 | **[MEDICAL_BACKUP_RESTORE_DRILL_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_BACKUP_RESTORE_DRILL_SKILL_AR.md)** | إجراء محاكاة الاستعادة والتحقق الهيكلي الجاف في بيئة معزولة. | **P1** |
 | **[MEDICAL_INCIDENT_RESPONSE_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_INCIDENT_RESPONSE_SKILL_AR.md)** | إدارة حوادث تسريب البيانات والتراجع السريع (Rollback) الآمن. | **P1** |
 | **[MEDICAL_RLS_POLICY_DESIGN_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_RLS_POLICY_DESIGN_SKILL_AR.md)** | تصميم صياغة سياسات RLS وقواعد SELECT/INSERT للمستأجرين. | **P1** |
