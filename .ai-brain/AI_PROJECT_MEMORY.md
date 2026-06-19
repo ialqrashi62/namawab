@@ -781,3 +781,21 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH4_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لعشرة جداول).
 * **المرحلة التالية الموصى بها**: `Tenant ID Backfill Design Plan` أو `Gradual RLS Enablement Batch 5`
 
+### Phase 57: Tenant ID Backfill Design Plan
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_TENANT_ID_BACKFILL_DESIGN_PLAN_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (خطة تصميم فقط وتحديد جاهزية الدفعة الخامسة)
+* **المخرجات**:
+  - [docs/sql/tenant_id_backfill_design_draft.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/tenant_id_backfill_design_draft.sql)
+  - [docs/MEDICAL_TENANT_ID_BACKFILL_DEFERRED_TABLES_DISCOVERY_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_TENANT_ID_BACKFILL_DEFERRED_TABLES_DISCOVERY_AR.md)
+  - [docs/MEDICAL_TENANT_ID_BACKFILL_STRATEGY_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_TENANT_ID_BACKFILL_STRATEGY_AR.md)
+  - [docs/MEDICAL_TENANT_ID_BACKFILL_RISK_AND_COMPLIANCE_REVIEW_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_TENANT_ID_BACKFILL_RISK_AND_COMPLIANCE_REVIEW_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH5_READINESS_DECISION_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH5_READINESS_DECISION_AR.md)
+* **نتائج الاختبارات**:
+  - إجراء فحص سلامة النحو وبناء الأنماط بنجاح 100%.
+  - تشغيل اختبارات E2E Smoke Tests محلياً بنسبة 100% بنجاح.
+  - تدقيق وفحص هيكلية الجداول الـ 9 المؤجلة على خادم Staging وتحديد أعداد الصفوف وحقول العزل فيها بنجاح.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH4_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لعشرة جداول).
+* **المرحلة التالية الموصى بها**: `Tenant ID Backfill Controlled Migration` أو `RLS Batch 5 Without Schema Change`
+
+
