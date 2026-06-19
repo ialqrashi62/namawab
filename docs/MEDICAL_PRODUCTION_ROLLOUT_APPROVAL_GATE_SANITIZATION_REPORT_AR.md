@@ -9,12 +9,12 @@
 
 تم مراجعة وتطهير الـ 6 وثائق الأساسية لبوابة الموافقة وإزالة كافة الإشارات للبروتوكول المحلي `file:///` ومسار المطور `C:\Users` واستبدالها بمسارات نسبية سليمة وموافقة لهيكل المشروع:
 
-1. **وثيقة بوابة الموافقة**: [MEDICAL_PRODUCTION_ROLLOUT_APPROVAL_GATE_AR.md](./MEDICAL_PRODUCTION_ROLLOUT_APPROVAL_GATE_AR.md) (تم إزالة روابط file///).
-2. **التحقق من نسخة الإطلاق**: [MEDICAL_PRODUCTION_RELEASE_CANDIDATE_VERIFICATION_AR.md](./MEDICAL_PRODUCTION_RELEASE_CANDIDATE_VERIFICATION_AR.md) (تم إزالة روابط file/// وتصحيح الهاشات).
-3. **خطة الأوامر التنفيذية**: [MEDICAL_PRODUCTION_EXECUTION_COMMAND_PLAN_AR.md](./MEDICAL_PRODUCTION_EXECUTION_COMMAND_PLAN_AR.md) (تحديث روابط السكربتات ومسار Checkout للالتزام النهائي).
-4. **فحوصات الاستعادة والتراجع**: [MEDICAL_PRODUCTION_BACKUP_ROLLBACK_FINAL_CHECK_AR.md](./MEDICAL_PRODUCTION_BACKUP_ROLLBACK_FINAL_CHECK_AR.md) (تحديث روابط سكربت التراجع).
-5. **سجل مخاطر النشر**: [MEDICAL_PRODUCTION_DEPLOYMENT_RISK_REGISTER_AR.md](./MEDICAL_PRODUCTION_DEPLOYMENT_RISK_REGISTER_AR.md) (تدقيق خلوها تماماً من أي مسارات مطلقة).
-6. **طلب الموافقة النهائية**: [MEDICAL_PRODUCTION_FINAL_APPROVAL_REQUEST_AR.md](./MEDICAL_PRODUCTION_FINAL_APPROVAL_REQUEST_AR.md) (تحديث الهاشات والروابط النسبية).
+1. **وثيقة بوابة الموافقة**: [MEDICAL_PRODUCTION_ROLLOUT_APPROVAL_GATE_AR.md](docs/MEDICAL_PRODUCTION_ROLLOUT_APPROVAL_GATE_AR.md) (تم إزالة روابط file///).
+2. **التحقق من نسخة الإطلاق**: [MEDICAL_PRODUCTION_RELEASE_CANDIDATE_VERIFICATION_AR.md](docs/MEDICAL_PRODUCTION_RELEASE_CANDIDATE_VERIFICATION_AR.md) (تم إزالة روابط file/// وتصحيح الهاشات).
+3. **خطة الأوامر التنفيذية**: [MEDICAL_PRODUCTION_EXECUTION_COMMAND_PLAN_AR.md](docs/MEDICAL_PRODUCTION_EXECUTION_COMMAND_PLAN_AR.md) (تحديث روابط السكربتات ومسار Checkout للالتزام النهائي).
+4. **فحوصات الاستعادة والتراجع**: [MEDICAL_PRODUCTION_BACKUP_ROLLBACK_FINAL_CHECK_AR.md](docs/MEDICAL_PRODUCTION_BACKUP_ROLLBACK_FINAL_CHECK_AR.md) (تحديث روابط سكربت التراجع).
+5. **سجل مخاطر النشر**: [MEDICAL_PRODUCTION_DEPLOYMENT_RISK_REGISTER_AR.md](docs/MEDICAL_PRODUCTION_DEPLOYMENT_RISK_REGISTER_AR.md) (تدقيق خلوها تماماً من أي مسارات مطلقة).
+6. **طلب الموافقة النهائية**: [MEDICAL_PRODUCTION_FINAL_APPROVAL_REQUEST_AR.md](docs/MEDICAL_PRODUCTION_FINAL_APPROVAL_REQUEST_AR.md) (تحديث الهاشات والروابط النسبية).
 
 ---
 

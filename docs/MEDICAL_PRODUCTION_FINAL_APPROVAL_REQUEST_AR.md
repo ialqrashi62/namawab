@@ -9,8 +9,8 @@
 
 تم إعداد واختبار نسخة الإطلاق الحالية على بيئة Staging بنجاح كامل بنسبة 100%:
 * **الالتزام المرشح للنشر (Commit Hash)**:
-  * المستودع الأب ([NamaMedical](../)): `36414c32b508f7fb9ad51b5c467a84c5991823eb` (مختصر: `36414c3`).
-  * مستودع الويب ([namaweb](../namaweb/)): `d6c29d10ce4a31b3c62e537be8c66281a2d65de0` (مختصر: `d6c29d1`).
+  * المستودع الأب ([NamaMedical](.)): `8fe8440cc070a2a0ce12368c74070a316e6f0bbf` (مختصر: `8fe8440`).
+  * مستودع الويب ([namaweb](namaweb/)): `d6c29d10ce4a31b3c62e537be8c66281a2d65de0` (مختصر: `d6c29d1`).
 
 ---
 
@@ -26,7 +26,7 @@ pg_dump -h localhost -p 5432 -U postgres -d nama_medical_web -F c -b -v -f /var/
 #### الخطوة 2: تحديث كود التطبيق وتثبيت التبعيات (Code Rollout)
 ```bash
 git fetch origin
-git checkout 36414c3
+git checkout 8fe8440
 cd namaweb
 npm install --production
 npm run build:css
@@ -40,8 +40,8 @@ psql -h localhost -p 5432 -U postgres -d nama_medical_web -f docs/sql/production
 # 2. التحقق من نجاح التفعيل
 psql -h localhost -p 5432 -U postgres -d nama_medical_web -f docs/sql/production_readiness_force_rls_validate.sql
 ```
-* رابط سكربت الترقية: [production_readiness_force_rls_up.sql](./sql/production_readiness_force_rls_up.sql)
-* رابط سكربت التحقق: [production_readiness_force_rls_validate.sql](./sql/production_readiness_force_rls_validate.sql)
+* رابط سكربت الترقية: [production_readiness_force_rls_up.sql](docs/sql/production_readiness_force_rls_up.sql)
+* رابط سكربت التحقق: [production_readiness_force_rls_validate.sql](docs/sql/production_readiness_force_rls_validate.sql)
 
 #### الخطوة 4: إعادة تشغيل خادم الويب والتحقق من السجلات (Process & Connection Recheck)
 ```bash
@@ -65,7 +65,7 @@ curl -I http://localhost:3000/api/health
    psql -h localhost -p 5432 -U postgres -d nama_medical_web -f docs/sql/production_readiness_force_rls_down.sql
    ```
    *(أو استعادة قاعدة البيانات بالكامل من النسخة الاحتياطية المأخوذة في الخطوة الأولى عبر `pg_restore`)*.
-   * رابط سكربت التراجع الهيكلي: [production_readiness_force_rls_down.sql](./sql/production_readiness_force_rls_down.sql)
+   * رابط سكربت التراجع الهيكلي: [production_readiness_force_rls_down.sql](docs/sql/production_readiness_force_rls_down.sql)
 
 2. **تراجع كود التطبيق وإعادة التشغيل**:
    ```bash

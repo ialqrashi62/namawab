@@ -13,7 +13,7 @@
 * قراءة خطة الطرح الإنتاجي والتحقق منها.
 * التحقق من نسخة الإطلاق (Release Candidate) ومطابقة الهاشات البرمجية.
 * التحقق من جاهزية بيئة الإنتاج (Production Environment Readiness).
-* التحقق من خطة تشغيل Redis للإنتاج (Redis Production Plan).
+* التحقق من Redis production readiness بدون طباعة أسرار.
 * التحقق من جاهزية خطة النسخ الاحتياطي والاستعادة (Backup & Restore Readiness).
 * التحقق من خطة التراجع السريع عند الطوارئ (Rollback Plan).
 * إعداد أوامر التنفيذ المقترحة بدقة متناهية.
@@ -39,12 +39,12 @@
 
 تتكون حزمة الموافقة الفنية الحالية من المستندات التفصيلية التالية المترابطة:
 
-1. **وثيقة بوابة الموافقة (الوثيقة الحالية)**: [MEDICAL_PRODUCTION_ROLLOUT_APPROVAL_GATE_AR.md](./MEDICAL_PRODUCTION_ROLLOUT_APPROVAL_GATE_AR.md)
-2. **التحقق من نسخة الإطلاق**: [MEDICAL_PRODUCTION_RELEASE_CANDIDATE_VERIFICATION_AR.md](./MEDICAL_PRODUCTION_RELEASE_CANDIDATE_VERIFICATION_AR.md)
-3. **خطة الأوامر التنفيذية**: [MEDICAL_PRODUCTION_EXECUTION_COMMAND_PLAN_AR.md](./MEDICAL_PRODUCTION_EXECUTION_COMMAND_PLAN_AR.md)
-4. **فحوصات الاستعادة والنسخ والتراجع النهائي**: [MEDICAL_PRODUCTION_BACKUP_ROLLBACK_FINAL_CHECK_AR.md](./MEDICAL_PRODUCTION_BACKUP_ROLLBACK_FINAL_CHECK_AR.md)
-5. **سجل مخاطر النشر والحد منها**: [MEDICAL_PRODUCTION_DEPLOYMENT_RISK_REGISTER_AR.md](./MEDICAL_PRODUCTION_DEPLOYMENT_RISK_REGISTER_AR.md)
-6. **طلب الموافقة النهائية والتنفيذية للإنتاج**: [MEDICAL_PRODUCTION_FINAL_APPROVAL_REQUEST_AR.md](./MEDICAL_PRODUCTION_FINAL_APPROVAL_REQUEST_AR.md)
+1. **وثيقة بوابة الموافقة (الوثيقة الحالية)**: [MEDICAL_PRODUCTION_ROLLOUT_APPROVAL_GATE_AR.md](docs/MEDICAL_PRODUCTION_ROLLOUT_APPROVAL_GATE_AR.md)
+2. **التحقق من نسخة الإطلاق**: [MEDICAL_PRODUCTION_RELEASE_CANDIDATE_VERIFICATION_AR.md](docs/MEDICAL_PRODUCTION_RELEASE_CANDIDATE_VERIFICATION_AR.md)
+3. **خطة الأوامر التنفيذية**: [MEDICAL_PRODUCTION_EXECUTION_COMMAND_PLAN_AR.md](docs/MEDICAL_PRODUCTION_EXECUTION_COMMAND_PLAN_AR.md)
+4. **فحوصات الاستعادة والنسخ والتراجع النهائي**: [MEDICAL_PRODUCTION_BACKUP_ROLLBACK_FINAL_CHECK_AR.md](docs/MEDICAL_PRODUCTION_BACKUP_ROLLBACK_FINAL_CHECK_AR.md)
+5. **سجل مخاطر النشر والحد منها**: [MEDICAL_PRODUCTION_DEPLOYMENT_RISK_REGISTER_AR.md](docs/MEDICAL_PRODUCTION_DEPLOYMENT_RISK_REGISTER_AR.md)
+6. **طلب الموافقة النهائية والتنفيذية للإنتاج**: [MEDICAL_PRODUCTION_FINAL_APPROVAL_REQUEST_AR.md](docs/MEDICAL_PRODUCTION_FINAL_APPROVAL_REQUEST_AR.md)
 
 ---
 
