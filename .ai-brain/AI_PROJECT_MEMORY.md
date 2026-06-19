@@ -416,4 +416,19 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - تأكيد بقاء السيرفر العام 204.168.144.74 غير ملموس ومحمياً تماماً.
 * **المرحلة التالية الموصى بها**: `Manual Install Docker Desktop or PostgreSQL 16`
 
+### Phase 31: Verify Docker Desktop & Resume RLS Autopilot
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_LOCAL_POSTGRESQL_RLS_DRY_RUN_ENV_SETUP_BLOCKED`
+* **الملفات البرمجية المعدلة**: لا يوجد
+* **المخرجات**:
+  - [docs/MEDICAL_LOCAL_POSTGRESQL_RLS_DRY_RUN_ENV_SETUP_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_LOCAL_POSTGRESQL_RLS_DRY_RUN_ENV_SETUP_REPORT_AR.md)
+* **نتائج الاختبارات**:
+  - فحص محرك Docker وثبوت تشغيله بنجاح (`Docker version 29.5.3`).
+  - فحص المنفذ 5432 وثبوت تعارضه مع خدمة PostgreSQL المحلية لويندوز (`postgresql-x64-16` / PID 7492).
+  - فشل تشغيل حاوية Docker `nama_medical_pg_local` بسبب تعارض المنفذ (`bind: An attempt was made to access a socket in a way forbidden by its access permissions`).
+  - عدم القدرة على إيقاف الخدمة المحلية لعدم توفر صلاحيات UAC Elevation.
+  - تأكيد عزل وتجنب لمس السيرفر العام 204.168.144.74.
+* **المرحلة التالية الموصى بها**: `Resolve Port Conflict by Stopping Windows Postgres Service or Using it Directly`
+
+
 
