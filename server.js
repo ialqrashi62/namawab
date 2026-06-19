@@ -49,7 +49,7 @@ let sessionStore;
 if (process.env.REDIS_URL || process.env.REDIS_HOST) {
     try {
         const { createClient } = require('redis');
-        const RedisStore = require('connect-redis').default;
+        const { RedisStore } = require('connect-redis');
         const redisClient = createClient({
             url: process.env.REDIS_URL || `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || 6379}`
         });
