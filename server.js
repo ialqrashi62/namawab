@@ -410,22 +410,56 @@ app.put('/api/patients/:id', requireAuth, requireRole('patients'), async (req, r
 // All patient deletion operations are processed securely by the safe soft-delete handler.
 
 // ===== NURSING =====
-app.get('/api/nursing/vitals', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM nursing_vitals ORDER BY id DESC LIMIT 100')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/nursing/vitals', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        let q = 'SELECT * FROM nursing_vitals';
+        let params = [];
+        if (tenantId) {
+            q += ' WHERE tenant_id=$1';
+            params.push(tenantId);
+        }
+        q += ' ORDER BY id DESC LIMIT 100';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/nursing/vitals/:patientId', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM nursing_vitals WHERE patient_id=$1 ORDER BY id DESC LIMIT 1', [req.params.patientId])).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/nursing/vitals/:patientId', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [req.params.patientId, tenantId]);
+            if (patientCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
+        }
+        let q = 'SELECT * FROM nursing_vitals WHERE patient_id=$1';
+        let params = [req.params.patientId];
+        if (tenantId) {
+            q += ' AND tenant_id=$2';
+            params.push(tenantId);
+        }
+        q += ' ORDER BY id DESC LIMIT 1';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/nursing/vitals', requireAuth, async (req, res) => {
+app.post('/api/nursing/vitals', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, bp, temp, weight, height, pulse, o2_sat, respiratory_rate, blood_sugar, chronic_diseases, current_medications, allergies, notes } = req.body;
-        await pool.query('INSERT INTO nursing_vitals (patient_id, patient_name, bp, temp, weight, height, pulse, o2_sat, respiratory_rate, blood_sugar, chronic_diseases, current_medications, allergies, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)',
-            [patient_id, patient_name || '', bp || '', temp || 0, weight || 0, height || 0, pulse || 0, o2_sat || 0, respiratory_rate || 0, blood_sugar || 0, chronic_diseases || '', current_medications || '', allergies || '', notes || '']);
-        await pool.query('UPDATE patients SET status=$1 WHERE id=$2', ['Waiting', patient_id]);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
+            if (patientCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
+        }
+        await pool.query('INSERT INTO nursing_vitals (patient_id, patient_name, bp, temp, weight, height, pulse, o2_sat, respiratory_rate, blood_sugar, chronic_diseases, current_medications, allergies, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)',
+            [patient_id, patient_name || '', bp || '', temp || 0, weight || 0, height || 0, pulse || 0, o2_sat || 0, respiratory_rate || 0, blood_sugar || 0, chronic_diseases || '', current_medications || '', allergies || '', notes || '', tenantId || null, facilityId || null]);
+
+        let updateQ = 'UPDATE patients SET status=$1 WHERE id=$2';
+        let updateParams = ['Waiting', patient_id];
+        if (tenantId) {
+            updateQ += ' AND tenant_id=$3';
+            updateParams.push(tenantId);
+        }
+        await pool.query(updateQ, updateParams);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -3435,59 +3469,148 @@ app.post('/api/bed-transfers', requireAuth, requireTenantScope, async (req, res)
 });
 
 // ===== ICU =====
-app.get('/api/icu/patients', requireAuth, async (req, res) => {
-    try { res.json((await pool.query("SELECT a.*, b.bed_number, w.ward_name, w.ward_name_ar FROM admissions a JOIN beds b ON a.bed_id=b.id JOIN wards w ON a.ward_id=w.id WHERE a.status='Active' AND w.ward_type IN ('ICU','NICU','CCU') ORDER BY a.admission_date DESC")).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/icu/patients', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        let q = "SELECT a.*, b.bed_number, w.ward_name, w.ward_name_ar FROM admissions a JOIN beds b ON a.bed_id=b.id JOIN wards w ON a.ward_id=w.id WHERE a.status='Active' AND w.ward_type IN ('ICU','NICU','CCU')";
+        let params = [];
+        if (tenantId) {
+            q += " AND a.tenant_id=$1";
+            params.push(tenantId);
+        }
+        q += " ORDER BY a.admission_date DESC";
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/icu/monitoring', requireAuth, async (req, res) => {
+app.post('/api/icu/monitoring', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { admission_id, patient_id, hr, sbp, dbp, map, rr, spo2, temp, etco2, cvp, fio2, peep, urine_output, notes, recorded_by } = req.body;
-        const r = await pool.query('INSERT INTO icu_monitoring (admission_id,patient_id,hr,sbp,dbp,map,rr,spo2,temp,etco2,cvp,fio2,peep,urine_output,notes,recorded_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *',
-            [admission_id, patient_id, hr, sbp, dbp, map, rr, spo2, temp, etco2, cvp, fio2, peep, urine_output, notes, recorded_by]);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const admCheck = await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [admission_id, tenantId]);
+            if (admCheck.rows.length === 0) return res.status(404).json({ error: 'Admission not found' });
+            const ptCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
+            if (ptCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
+        }
+        const r = await pool.query('INSERT INTO icu_monitoring (admission_id,patient_id,hr,sbp,dbp,map,rr,spo2,temp,etco2,cvp,fio2,peep,urine_output,notes,recorded_by,tenant_id,facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING *',
+            [admission_id, patient_id, hr, sbp, dbp, map, rr, spo2, temp, etco2, cvp, fio2, peep, urine_output, notes, recorded_by, tenantId || null, facilityId || null]);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/icu/monitoring/:admissionId', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM icu_monitoring WHERE admission_id=$1 ORDER BY monitor_time DESC LIMIT 50', [req.params.admissionId])).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/icu/monitoring/:admissionId', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const admCheck = await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [req.params.admissionId, tenantId]);
+            if (admCheck.rows.length === 0) return res.status(404).json({ error: 'Admission not found' });
+        }
+        let q = 'SELECT * FROM icu_monitoring WHERE admission_id=$1';
+        let params = [req.params.admissionId];
+        if (tenantId) {
+            q += ' AND tenant_id=$2';
+            params.push(tenantId);
+        }
+        q += ' ORDER BY monitor_time DESC LIMIT 50';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/icu/ventilator', requireAuth, async (req, res) => {
+app.post('/api/icu/ventilator', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { admission_id, patient_id, vent_mode, fio2, tidal_volume, respiratory_rate, peep, pip, ie_ratio, ps, ett_size, ett_position, cuff_pressure, notes, recorded_by } = req.body;
-        const r = await pool.query('INSERT INTO icu_ventilator (admission_id,patient_id,vent_mode,fio2,tidal_volume,respiratory_rate,peep,pip,ie_ratio,ps,ett_size,ett_position,cuff_pressure,notes,recorded_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *',
-            [admission_id, patient_id, vent_mode, fio2 || 21, tidal_volume, respiratory_rate, peep, pip, ie_ratio || '1:2', ps, ett_size, ett_position, cuff_pressure, notes, recorded_by]);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const admCheck = await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [admission_id, tenantId]);
+            if (admCheck.rows.length === 0) return res.status(404).json({ error: 'Admission not found' });
+            const ptCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
+            if (ptCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
+        }
+        const r = await pool.query('INSERT INTO icu_ventilator (admission_id,patient_id,vent_mode,fio2,tidal_volume,respiratory_rate,peep,pip,ie_ratio,ps,ett_size,ett_position,cuff_pressure,notes,recorded_by,tenant_id,facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *',
+            [admission_id, patient_id, vent_mode, fio2 || 21, tidal_volume, respiratory_rate, peep, pip, ie_ratio || '1:2', ps, ett_size, ett_position, cuff_pressure, notes, recorded_by, tenantId || null, facilityId || null]);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/icu/ventilator/:admissionId', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM icu_ventilator WHERE admission_id=$1 ORDER BY created_at DESC LIMIT 20', [req.params.admissionId])).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/icu/ventilator/:admissionId', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const admCheck = await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [req.params.admissionId, tenantId]);
+            if (admCheck.rows.length === 0) return res.status(404).json({ error: 'Admission not found' });
+        }
+        let q = 'SELECT * FROM icu_ventilator WHERE admission_id=$1';
+        let params = [req.params.admissionId];
+        if (tenantId) {
+            q += ' AND tenant_id=$2';
+            params.push(tenantId);
+        }
+        q += ' ORDER BY created_at DESC LIMIT 20';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/icu/scores', requireAuth, async (req, res) => {
+app.post('/api/icu/scores', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { admission_id, patient_id, apache_ii, sofa, gcs, rass, cam_icu, braden, morse_fall, pain_score, calculated_by } = req.body;
-        const r = await pool.query('INSERT INTO icu_scores (admission_id,patient_id,score_date,apache_ii,sofa,gcs,rass,cam_icu,braden,morse_fall,pain_score,calculated_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
-            [admission_id, patient_id, new Date().toISOString().split('T')[0], apache_ii || 0, sofa || 0, gcs || 15, rass || 0, cam_icu || 0, braden || 23, morse_fall || 0, pain_score || 0, calculated_by]);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const admCheck = await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [admission_id, tenantId]);
+            if (admCheck.rows.length === 0) return res.status(404).json({ error: 'Admission not found' });
+            const ptCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
+            if (ptCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
+        }
+        const r = await pool.query('INSERT INTO icu_scores (admission_id,patient_id,score_date,apache_ii,sofa,gcs,rass,cam_icu,braden,morse_fall,pain_score,calculated_by,tenant_id,facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *',
+            [admission_id, patient_id, new Date().toISOString().split('T')[0], apache_ii || 0, sofa || 0, gcs || 15, rass || 0, cam_icu || 0, braden || 23, morse_fall || 0, pain_score || 0, calculated_by, tenantId || null, facilityId || null]);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/icu/scores/:admissionId', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM icu_scores WHERE admission_id=$1 ORDER BY created_at DESC', [req.params.admissionId])).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/icu/scores/:admissionId', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const admCheck = await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [req.params.admissionId, tenantId]);
+            if (admCheck.rows.length === 0) return res.status(404).json({ error: 'Admission not found' });
+        }
+        let q = 'SELECT * FROM icu_scores WHERE admission_id=$1';
+        let params = [req.params.admissionId];
+        if (tenantId) {
+            q += ' AND tenant_id=$2';
+            params.push(tenantId);
+        }
+        q += ' ORDER BY created_at DESC';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/icu/fluid-balance', requireAuth, async (req, res) => {
+app.post('/api/icu/fluid-balance', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { admission_id, patient_id, shift, iv_fluids, oral_intake, blood_products, medications_iv, urine, drains, ngt_output, stool, vomit, insensible, recorded_by } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const admCheck = await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [admission_id, tenantId]);
+            if (admCheck.rows.length === 0) return res.status(404).json({ error: 'Admission not found' });
+            const ptCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
+            if (ptCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
+        }
         const ti = (parseInt(iv_fluids) || 0) + (parseInt(oral_intake) || 0) + (parseInt(blood_products) || 0) + (parseInt(medications_iv) || 0);
         const to = (parseInt(urine) || 0) + (parseInt(drains) || 0) + (parseInt(ngt_output) || 0) + (parseInt(stool) || 0) + (parseInt(vomit) || 0) + (parseInt(insensible) || 0);
-        const r = await pool.query('INSERT INTO icu_fluid_balance (admission_id,patient_id,balance_date,shift,iv_fluids,oral_intake,blood_products,medications_iv,total_intake,urine,drains,ngt_output,stool,vomit,insensible,total_output,net_balance,recorded_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING *',
-            [admission_id, patient_id, new Date().toISOString().split('T')[0], shift || 'Day', iv_fluids || 0, oral_intake || 0, blood_products || 0, medications_iv || 0, ti, urine || 0, drains || 0, ngt_output || 0, stool || 0, vomit || 0, insensible || 0, to, ti - to, recorded_by]);
+        const r = await pool.query('INSERT INTO icu_fluid_balance (admission_id,patient_id,balance_date,shift,iv_fluids,oral_intake,blood_products,medications_iv,total_intake,urine,drains,ngt_output,stool,vomit,insensible,total_output,net_balance,recorded_by,tenant_id,facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) RETURNING *',
+            [admission_id, patient_id, new Date().toISOString().split('T')[0], shift || 'Day', iv_fluids || 0, oral_intake || 0, blood_products || 0, medications_iv || 0, ti, urine || 0, drains || 0, ngt_output || 0, stool || 0, vomit || 0, insensible || 0, to, ti - to, recorded_by, tenantId || null, facilityId || null]);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/icu/fluid-balance/:admissionId', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM icu_fluid_balance WHERE admission_id=$1 ORDER BY created_at DESC', [req.params.admissionId])).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/icu/fluid-balance/:admissionId', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const admCheck = await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [req.params.admissionId, tenantId]);
+            if (admCheck.rows.length === 0) return res.status(404).json({ error: 'Admission not found' });
+        }
+        let q = 'SELECT * FROM icu_fluid_balance WHERE admission_id=$1';
+        let params = [req.params.admissionId];
+        if (tenantId) {
+            q += ' AND tenant_id=$2';
+            params.push(tenantId);
+        }
+        q += ' ORDER BY created_at DESC';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== CSSD =====
@@ -4053,57 +4176,144 @@ app.post('/api/cme/registrations', requireAuth, async (req, res) => {
 });
 
 // ===== eMAR =====
-app.get('/api/emar/orders', requireAuth, async (req, res) => {
+app.get('/api/emar/orders', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id } = req.query;
-        if (patient_id) res.json((await pool.query('SELECT * FROM emar_orders WHERE patient_id=$1 ORDER BY created_at DESC', [patient_id])).rows);
-        else res.json((await pool.query('SELECT * FROM emar_orders WHERE status=$1 ORDER BY created_at DESC', ['Active'])).rows);
+        const { tenantId } = getRequestTenantContext(req);
+        if (patient_id) {
+            if (tenantId) {
+                // Verify patient belongs to tenant
+                const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
+                if (patientCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
+            }
+            let q = 'SELECT * FROM emar_orders WHERE patient_id=$1';
+            let params = [patient_id];
+            if (tenantId) {
+                q += ' AND tenant_id=$2';
+                params.push(tenantId);
+            }
+            q += ' ORDER BY created_at DESC';
+            res.json((await pool.query(q, params)).rows);
+        } else {
+            let q = 'SELECT * FROM emar_orders WHERE status=$1';
+            let params = ['Active'];
+            if (tenantId) {
+                q += ' AND tenant_id=$2';
+                params.push(tenantId);
+            }
+            q += ' ORDER BY created_at DESC';
+            res.json((await pool.query(q, params)).rows);
+        }
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/emar/orders', requireAuth, async (req, res) => {
+app.post('/api/emar/orders', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, medication, dose, route, frequency, start_date } = req.body;
-        const result = await pool.query('INSERT INTO emar_orders (patient_id, patient_name, medication, dose, route, frequency, start_date, prescriber) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
-            [patient_id, patient_name || '', medication || '', dose || '', route || 'Oral', frequency || 'TID', start_date || new Date().toISOString().split('T')[0], req.session.user.name]);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
+            if (patientCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
+        }
+        const result = await pool.query('INSERT INTO emar_orders (patient_id, patient_name, medication, dose, route, frequency, start_date, prescriber, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
+            [patient_id, patient_name || '', medication || '', dose || '', route || 'Oral', frequency || 'TID', start_date || new Date().toISOString().split('T')[0], req.session.user.name, tenantId || null, facilityId || null]);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/emar/administrations', requireAuth, async (req, res) => {
+app.get('/api/emar/administrations', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { order_id } = req.query;
-        if (order_id) res.json((await pool.query('SELECT * FROM emar_administrations WHERE emar_order_id=$1 ORDER BY created_at DESC', [order_id])).rows);
-        else res.json((await pool.query('SELECT * FROM emar_administrations ORDER BY created_at DESC LIMIT 50')).rows);
+        const { tenantId } = getRequestTenantContext(req);
+        if (order_id) {
+            if (tenantId) {
+                // Verify order belongs to tenant
+                const orderCheck = await pool.query('SELECT id FROM emar_orders WHERE id=$1 AND tenant_id=$2', [order_id, tenantId]);
+                if (orderCheck.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
+            }
+            let q = 'SELECT * FROM emar_administrations WHERE emar_order_id=$1';
+            let params = [order_id];
+            if (tenantId) {
+                q += ' AND tenant_id=$2';
+                params.push(tenantId);
+            }
+            q += ' ORDER BY created_at DESC';
+            res.json((await pool.query(q, params)).rows);
+        } else {
+            let q = 'SELECT * FROM emar_administrations';
+            let params = [];
+            if (tenantId) {
+                q += ' WHERE tenant_id=$1';
+                params.push(tenantId);
+            }
+            q += ' ORDER BY created_at DESC LIMIT 50';
+            res.json((await pool.query(q, params)).rows);
+        }
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/emar/administrations', requireAuth, async (req, res) => {
+app.post('/api/emar/administrations', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { emar_order_id, patient_id, medication, dose, scheduled_time, status, reason_not_given, notes } = req.body;
-        const result = await pool.query('INSERT INTO emar_administrations (emar_order_id, patient_id, medication, dose, scheduled_time, actual_time, administered_by, status, reason_not_given, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
-            [emar_order_id, patient_id || 0, medication || '', dose || '', scheduled_time || '', new Date().toISOString(), req.session.user.name, status || 'Given', reason_not_given || '', notes || '']);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const orderCheck = await pool.query('SELECT id FROM emar_orders WHERE id=$1 AND tenant_id=$2', [emar_order_id, tenantId]);
+            if (orderCheck.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
+            const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
+            if (patientCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
+        }
+        const result = await pool.query('INSERT INTO emar_administrations (emar_order_id, patient_id, medication, dose, scheduled_time, actual_time, administered_by, status, reason_not_given, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
+            [emar_order_id, patient_id || 0, medication || '', dose || '', scheduled_time || '', new Date().toISOString(), req.session.user.name, status || 'Given', reason_not_given || '', notes || '', tenantId || null, facilityId || null]);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== NURSING CARE PLANS =====
-app.get('/api/nursing/care-plans', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM nursing_care_plans ORDER BY created_at DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/nursing/care-plans', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        let q = 'SELECT * FROM nursing_care_plans';
+        let params = [];
+        if (tenantId) {
+            q += ' WHERE tenant_id=$1';
+            params.push(tenantId);
+        }
+        q += ' ORDER BY created_at DESC';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/nursing/care-plans', requireAuth, async (req, res) => {
+app.post('/api/nursing/care-plans', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, diagnosis, priority, goals, interventions, expected_outcomes } = req.body;
-        const result = await pool.query('INSERT INTO nursing_care_plans (patient_id, patient_name, diagnosis, priority, goals, interventions, expected_outcomes, nurse) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
-            [patient_id, patient_name || '', diagnosis || '', priority || 'Medium', goals || '', interventions || '', expected_outcomes || '', req.session.user.name]);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
+            if (patientCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
+        }
+        const result = await pool.query('INSERT INTO nursing_care_plans (patient_id, patient_name, diagnosis, priority, goals, interventions, expected_outcomes, nurse, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
+            [patient_id, patient_name || '', diagnosis || '', priority || 'Medium', goals || '', interventions || '', expected_outcomes || '', req.session.user.name, tenantId || null, facilityId || null]);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/nursing/assessments', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM nursing_assessments ORDER BY created_at DESC LIMIT 50')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/nursing/assessments', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        let q;
+        let params = [];
+        if (tenantId) {
+            q = 'SELECT a.* FROM nursing_assessments a JOIN patients p ON a.patient_id = p.id WHERE p.tenant_id = $1 ORDER BY a.created_at DESC LIMIT 50';
+            params.push(tenantId);
+        } else {
+            q = 'SELECT * FROM nursing_assessments ORDER BY created_at DESC LIMIT 50';
+        }
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/nursing/assessments', requireAuth, async (req, res) => {
+app.post('/api/nursing/assessments', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, assessment_type, fall_risk_score, braden_score, pain_score, gcs_score, shift, notes } = req.body;
+        const { tenantId } = getRequestTenantContext(req);
+        if (tenantId) {
+            const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
+            if (patientCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
+        }
         const result = await pool.query('INSERT INTO nursing_assessments (patient_id, patient_name, assessment_type, fall_risk_score, braden_score, pain_score, gcs_score, nurse, shift, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
             [patient_id, patient_name || '', assessment_type || 'General', fall_risk_score || 0, braden_score || 23, pain_score || 0, gcs_score || 15, req.session.user.name, shift || 'Morning', notes || '']);
         res.json(result.rows[0]);
