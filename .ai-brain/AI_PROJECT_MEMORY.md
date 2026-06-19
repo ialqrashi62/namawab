@@ -343,4 +343,20 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - نجاح استلام كوكيز الجلسات على متصفح العميل عبر HTTP بدون secure flag للـ Staging.
 * **المرحلة التالية الموصى بها**: `HTTP-Only Staging Login Smoke Test`
 
+### Phase 26: HTTP-Only Staging Login Smoke Test
+* **تاريخ الإغلاق**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_HTTP_ONLY_STAGING_LOGIN_SMOKE_TEST_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تشغيل وفحص اختبار الدخان)
+* **الملفات الجديدة**:
+  - `docs/MEDICAL_HTTP_ONLY_STAGING_LOGIN_SMOKE_TEST_AR.md` (تقرير اختبار الدخان لتسجيل الدخول والطلب المحدود)
+* **المخرجات**:
+  - [docs/MEDICAL_HTTP_ONLY_STAGING_LOGIN_SMOKE_TEST_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_HTTP_ONLY_STAGING_LOGIN_SMOKE_TEST_AR.md)
+* **نتائج الاختبارات**:
+  - التحقق من وجود ملف كلمة المرور الإدارية `/root/admin_password.txt` بصلاحيات 600.
+  - نجاح اختبار تسجيل الدخول الخاطئ (401 Unauthorized).
+  - نجاح تسجيل الدخول الصحيح واستقبال كوكيز الجلسة `connect.sid` عبر HTTP.
+  - نجاح الدخول للمسارات المحمية `/api/settings/users` باستخدام كوكيز الجلسة.
+  - نجاح تفعيل محدد الطلبات (Rate Limiter) وحظر المحاولات المتكررة (HTTP 429).
+* **المرحلة التالية الموصى بها**: `Remove Temporary Admin Password File After Secure Handoff`
+
 
