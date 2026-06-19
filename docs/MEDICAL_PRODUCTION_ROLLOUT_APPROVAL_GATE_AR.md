@@ -42,6 +42,7 @@
 3. **خطة الأوامر التنفيذية**: [MEDICAL_PRODUCTION_EXECUTION_COMMAND_PLAN_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_PRODUCTION_EXECUTION_COMMAND_PLAN_AR.md)
 4. **فحوصات الاستعادة والنسخ والتراجع النهائي**: [MEDICAL_PRODUCTION_BACKUP_ROLLBACK_FINAL_CHECK_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_PRODUCTION_BACKUP_ROLLBACK_FINAL_CHECK_AR.md)
 5. **سجل مخاطر النشر والحد منها**: [MEDICAL_PRODUCTION_DEPLOYMENT_RISK_REGISTER_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_PRODUCTION_DEPLOYMENT_RISK_REGISTER_AR.md)
+6. **طلب الموافقة النهائية والتنفيذية للإنتاج**: [MEDICAL_PRODUCTION_FINAL_APPROVAL_REQUEST_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_PRODUCTION_FINAL_APPROVAL_REQUEST_AR.md)
 
 ---
 
