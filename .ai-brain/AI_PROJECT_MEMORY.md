@@ -1491,3 +1491,36 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - RLS_CHANGED: NO
   - PRODUCTION_READY: NO
 * **المرحلة التالية الموصى بها**: `BEDS_BATCH6_FINAL_RLS_COVERAGE_REVIEW_RESUME` (استئناف المراجعة النهائية والتدقيق الشامل لكامل تغطية سياسات RLS عبر الجداول والمكونات).
+
+### Phase 86: Final RLS Coverage Review
+* **تاريخ الإغلاق**: 2026-06-19
+* **الحالة (Status)**: `BEDS_BATCH6_FINAL_RLS_COVERAGE_REVIEW_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `.ai-brain/skills/MEDICAL_SKILLS_INDEX_AR.md` (إضافة مهارة المراجعة النهائية للفهرس)
+* **الملفات الجديدة**:
+  - `docs/sql/final_rls_coverage_inventory_readonly.sql` (استعلامات جرد سياسات قاعدة البيانات)
+  - `.ai-brain/skills/MEDICAL_FINAL_RLS_COVERAGE_REVIEW_AUTOPILOT_SKILL_AR.md` (مهارة الأوتو بايلوت للمراجعة النهائية)
+  - `docs/MEDICAL_FINAL_RLS_COVERAGE_RESUME_PREFLIGHT_AUDIT_AR.md`
+  - `docs/MEDICAL_FINAL_RLS_COVERAGE_HISTORY_REVIEW_AR.md`
+  - `docs/MEDICAL_FINAL_RLS_DATABASE_INVENTORY_AR.md`
+  - `docs/MEDICAL_FINAL_RLS_COVERAGE_CLASSIFICATION_MATRIX_AR.md`
+  - `docs/MEDICAL_FINAL_RLS_POLICY_QUALITY_REVIEW_AR.md`
+  - `docs/MEDICAL_FINAL_API_TENANT_COVERAGE_REVIEW_AR.md`
+  - `docs/MEDICAL_FINAL_RLS_TEST_COVERAGE_REVIEW_AR.md`
+  - `docs/MEDICAL_FINAL_RLS_REGRESSION_TEST_REPORT_AR.md`
+  - `docs/MEDICAL_FINAL_RLS_RESIDUAL_RISK_REGISTER_AR.md`
+  - `docs/MEDICAL_PRODUCTION_READINESS_GAP_AFTER_FINAL_RLS_REVIEW_AR.md`
+  - `docs/MEDICAL_SECURITY_READINESS_AFTER_FINAL_RLS_COVERAGE_REVIEW_AR.md`
+* **المخرجات**: مراجعة وتقييم نهائي كامل لتغطية عزل المستأجرين لـ 148 جدولاً بقاعدة البيانات، واجتياز 357 فحص أمان وانحدار بنجاح 100%.
+* **الملخص**:
+  تم إتمام المراجعة النهائية لتغطية عزل المستأجرين بنجاح. أظهر جرد قاعدة البيانات وجود 35 جدولاً مفعّل عليها RLS (22 مفروضة بقوة و 13 مفعّلة فقط)، مع وجود 64 جدولاً إدارياً ومالياً محمية برمجياً عبر الواجهات فقط و 16 جدولاً سريرياً مؤجلاً تفتقر لعمود المستأجر ويتم عزلها بالربط. تم التحقق من جودة وصحة صياغات السياسات وخلوها من الثغرات، وتأكيد أمان وتصفية جميع مسارات Express البرمجية. كما رصد التقييم مخاطر متبقية تتطلب معالجتها في مرحلة الجاهزية للإنتاج (مثل ترقية متجر الجلسات إلى Redis)، وبناءً عليه تقرر إبقاء تصنيف الجاهزية PRODUCTION_READY: NO.
+* **القرار النهائي**: بيئة Staging مؤمنة ومستقرة، والجاهزية للإنتاج تبقى PRODUCTION_READY: NO.
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: NO
+  - TABLE_COLUMN_SCHEMA_CHANGED: NO
+  - DATABASE_SECURITY_DDL_CHANGED: NO
+  - MIGRATIONS_RUN: NO
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: NO
+  - PRODUCTION_READY: NO
+* **المرحلة التالية الموصى بها**: `PRODUCTION_READINESS_DESIGN_AND_RUNBOOKS` (تصميم خطة الترقية للإنتاج واستخدام Redis للجلسات وإعداد أدلة التشغيل واستعادة البيانات).
