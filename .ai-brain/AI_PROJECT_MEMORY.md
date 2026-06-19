@@ -1404,3 +1404,37 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - RLS_CHANGED: NO
   - PRODUCTION_READY: NO
 * **المرحلة التالية الموصى بها**: `BEDS_BATCH5_SURGERY_OPERATING_ROOMS_IMPLEMENTATION_CONTROLLED_STAGING` (تطبيق عزل وتفعيل RLS موديول العمليات وغرف العمليات على بيئة Staging).
+
+### Phase 83: Surgery & Operating Rooms RLS Implementation
+* **تاريخ التنفيذ**: 2026-06-19
+* **الحالة (Status)**: `BEDS_BATCH5_SURGERY_OPERATING_ROOMS_IMPLEMENTATION_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `namaweb/server.js` (تحصين وتأمين مسارات الموافقات الطبية وعزلها بالكامل للمستأجر)
+* **الملفات الجديدة**:
+  - `docs/MEDICAL_SURGERY_OR_IMPLEMENTATION_PREFLIGHT_AUDIT_AR.md` (تقرير التدقيق المسبق قبل البدء بالتنفيذ)
+  - `docs/MEDICAL_SURGERY_OR_API_WARNING_RESOLUTION_PLAN_AR.md` (تقرير خطة معالجة ثغرات الموافقات الطبية)
+  - `docs/MEDICAL_SURGERY_OR_BACKUP_REPORT_AR.md` (تقرير أخذ النسخ الاحتياطي للجداول الجراحية الستة)
+  - `docs/MEDICAL_SURGERY_OR_TRUTH_VALIDATION_REPORT_AR.md` (تقرير التحقق الفعلي من البنية وخلوها من القيم الفارغة)
+  - `docs/MEDICAL_SURGERY_OR_API_HARDENING_REPORT_AR.md` (تقرير تحصين وعزل مسارات الموافقات الطبية في Express)
+  - `docs/MEDICAL_SURGERY_OR_RLS_IMPLEMENTATION_DECISION_AR.md` (تقرير مصفوفة قرارات تفعيل RLS الفعلي)
+  - `docs/MEDICAL_SURGERY_OR_SCHEMA_CHANGE_EXECUTION_REPORT_AR.md` (تقرير تفعيل RLS و FORCE RLS بنجاح في قاعدة البيانات)
+  - `docs/MEDICAL_SURGERY_OR_TEST_AUTOMATION_REPORT_AR.md` (تقرير سيناريوهات الفحص التلقائي الجديد للعمليات الجراحية)
+  - `docs/MEDICAL_SURGERY_OR_REGRESSION_TEST_REPORT_AR.md` (تقرير نتائج تشغيل كامل حزمة اختبارات الانحدار)
+  - `docs/MEDICAL_SURGERY_OR_ROLLBACK_READINESS_REPORT_AR.md` (تقرير الجاهزية وأوامر استعادة الحالة والتراجع السريع)
+  - `docs/MEDICAL_SECURITY_READINESS_AFTER_SURGERY_OR_IMPLEMENTATION_AR.md` (تقرير التقييم الأمني العام وجاهزية الإنتاج)
+  - `docs/sql/surgery_or_rls_up.sql` (سكربت تفعيل RLS وسياسات العزل)
+  - `docs/sql/surgery_or_rls_down.sql` (سكربت إلغاء وتجميد سياسات RLS للتراجع)
+  - `docs/sql/surgery_or_rls_validate.sql` (سكربت التحقق التلقائي بعد التفعيل)
+  - `namaweb/cross_tenant_surgery_or_test.js` (ملف الفحوصات التلقائية الشامل للعمليات والموافقات وغرف العمليات)
+* **المخرجات**: تحصين برمجيات الموافقات الجراحية، تفعيل RLS للبيانات، واجتياز 41 فحص عزل جراحي مخصص و 300+ فحص انحدار بنجاح 100%.
+* **الملخص**:
+  تم بنجاح استكمال بوابة تنفيذ عزل موديول العمليات الجراحية وغرف العمليات وسجلات التخدير والموافقات الجراحية. بدأنا بحل التحذير الأمني للواجهة وتأمين 6 مسارات موافقات طبية (`consent_forms`) مع مطابقة هوية المرضى والجراحات. تلا ذلك تفعيل RLS وفرضه قسرياً (`FORCE RLS`) لـ 6 جداول بعد إثبات خلوها من القيم الفارغة أو اليتامى. نجحنا في تشغيل واجتياز كافة فحوصات الأمان المخصصة واختبارات الانحدار بنسبة 100% مع ضمان الجاهزية التامة للـ Rollback.
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: YES (RLS enabled and forced)
+  - TABLE_COLUMN_SCHEMA_CHANGED: NO
+  - DATABASE_SECURITY_DDL_CHANGED: YES (Policies added)
+  - MIGRATIONS_RUN: YES (up.sql run on staging)
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: YES
+  - PRODUCTION_READY: NO
+* **المرحلة التالية الموصى بها**: `BEDS_BATCH5_SURGERY_OR_POST_IMPLEMENTATION_MONITORING` (مراقبة تشغيل واستقرار موديول الجراحة وغرف العمليات على بيئة Staging).
