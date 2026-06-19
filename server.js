@@ -44,7 +44,32 @@ const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { e
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
-app.use(session({
+// Redis Session Store Setup with graceful Fallback
+let sessionStore;
+if (process.env.REDIS_URL || process.env.REDIS_HOST) {
+    try {
+        const { createClient } = require('redis');
+        const RedisStore = require('connect-redis').default;
+        const redisClient = createClient({
+            url: process.env.REDIS_URL || `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || 6379}`
+        });
+        redisClient.on('error', (err) => {
+            console.warn('[REDIS WARNING] Could not connect to Redis, session store falling back to MemoryStore:', err.message);
+        });
+        redisClient.connect().then(() => {
+            console.log('[REDIS SUCCESS] Connected to Redis successfully for distributed sessions.');
+        }).catch(err => {
+            console.warn('[REDIS WARNING] Failed to connect to Redis server, falling back to MemoryStore:', err.message);
+        });
+        sessionStore = new RedisStore({ client: redisClient, prefix: "nama_session:" });
+    } catch (e) {
+        console.warn('[SESSION WARNING] Redis dependencies or connection failed, falling back to MemoryStore:', e.message);
+    }
+} else {
+    console.log('[SESSION INFO] No Redis configuration detected, using default MemoryStore for sessions.');
+}
+
+const sessionConfig = {
     secret: process.env.SESSION_SECRET || 'nama-medical-erp-secret-x7k9m2p4q8w1',
     resave: true,
     saveUninitialized: true,
@@ -55,7 +80,13 @@ app.use(session({
         sameSite: 'lax'
     },
     rolling: true
-}));
+};
+
+if (sessionStore) {
+    sessionConfig.store = sessionStore;
+}
+
+app.use(session(sessionConfig));
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
