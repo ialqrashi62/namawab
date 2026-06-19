@@ -456,9 +456,41 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - فحص Git والبيئة وثبوت خلو المستودع من التعديلات ومطابقة submodule.
   - إتمام تحليل طبقة الاتصال الحالية ومخاطر تسرب الاتصالات (Connection Pooling Leak).
   - صياغة ودراسة البدائل الأربعة واعتماد الخيار الهجين (Hybrid Approach) باستخدام `withTenantTransaction` كحل أمني مستقر للمرحلة القادمة.
-* **المرحلة التالية الموصى بها**: `Tenant Context Middleware Local Prototype`
+* **المرحلة التالية الموصى بها**: `Tenant Context Middleware Local Prototype (Fast Autopilot Batch 1)`
 
+### Phase 34: Tenant Context Local Prototype & RLS Middleware Validation (Batch 1)
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_BATCH1_TENANT_CONTEXT_AND_RLS_LOCAL_VALIDATION_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - [tenant_context_pg_session.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/tenant_context_pg_session.js) (جديد)
+  - [tenant_context_pg_session_test.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/tenant_context_pg_session_test.js) (جديد)
+* **المخرجات**:
+  - [docs/MEDICAL_BATCH1_TENANT_CONTEXT_AND_RLS_LOCAL_VALIDATION_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BATCH1_TENANT_CONTEXT_AND_RLS_LOCAL_VALIDATION_REPORT_AR.md)
+* **نتائج الاختبارات**:
+  - نجاح 7/7 فحوصات لنموذج الجلسات البرمجية وعزل المتغيرات محلياً.
+  - نجاح 100% لاختبار RLS dry-run مع rollback كامل وحالة نهائية RLS_DISABLED.
+  - نجاح 63/63 فحصاً لسيناريوهات تسريب البيانات والـ IDOR ومنع حقن الاستعلامات.
+* **المرحلة التالية الموصى بها**: `E2E + Backup/Restore + Monitoring (Fast Autopilot Batch 2)`
 
+### Phase 35: E2E Smoke, Postgres Backup & Monitoring Audit (Batch 2)
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_BATCH2_E2E_BACKUP_MONITORING_VALIDATION_COMPLETED`
+* **المخرجات**:
+  - [docs/MEDICAL_BATCH2_E2E_BACKUP_MONITORING_VALIDATION_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BATCH2_E2E_BACKUP_MONITORING_VALIDATION_REPORT_AR.md)
+* **نتائج الاختبارات**:
+  - فحص خدمات الـ Staging (Nginx, Postgres, PM2, UFW) وثبوت سلامتها واستقرارها.
+  - نجاح اختبارات E2E Smoke محلياً بنسبة 100% لكامل تدفق تسجيل الدخول واللوحة والجداول والـ Logout والـ Rate Limiting.
+  - إجراء عملية نسخ احتياطي ناجحة لقاعدة بيانات الـ Staging وحفظها (358KB).
+  - مراجعة وتدقيق سجلات التشغيل والتأكد من خلوها من الأسرار والكلمات المرورية.
+* **المرحلة التالية الموصى بها**: `Production Readiness Audit & Global UI/UX Upgrade Plan (Fast Autopilot Batch 3)`
 
-
-
+### Phase 36: Production Readiness & Global UX/UI Upgrade Plan (Batch 3)
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_BATCH3_PRODUCTION_READINESS_AND_GLOBAL_UX_PLAN_COMPLETED`
+* **المخرجات**:
+  - [docs/MEDICAL_PRODUCTION_READINESS_AUDIT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_PRODUCTION_READINESS_AUDIT_AR.md)
+  - [docs/MEDICAL_GLOBAL_UX_UI_WORKFLOW_UPGRADE_PLAN_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GLOBAL_UX_UI_WORKFLOW_UPGRADE_PLAN_AR.md)
+* **نتائج الاختبارات**:
+  - إعداد تدقيق أمني شامل لكافة ضوابط الجاهزية وتحديد حالة البيئة كـ `PRODUCTION_READY_BLOCKED_BY_HTTPS`.
+  - صياغة خطة تصميم طبية فاخرة تدعم اللغتين وتتوافق مع المعايير السعودية والفرز الطبي التفاعلي لـ 11 جزءاً حساساً في النظام.
+* **المرحلة التالية الموصى بها**: `Global Medical UX/UI Implementation Batch 1`
