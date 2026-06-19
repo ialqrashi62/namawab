@@ -1315,3 +1315,60 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - PRODUCTION_READY: NO
 * **المرحلة التالية الموصى بها**: `NURSING_ASSESSMENTS_IMPLEMENTATION_CONTROLLED_STAGING` (تنفيذ هيكل وعزل RLS التقييمات التمريضية على بيئة Staging).
 
+### Phase 80: Nursing Assessments Schema Implementation
+* **تاريخ النشر**: 2026-06-19
+* **الحالة (Status)**: `NURSING_ASSESSMENTS_IMPLEMENTATION_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `namaweb/server.js` (تأمين نهايات الـ API الـ GET/POST وتصفية tenant_id ومنع IDOR)
+  - `namaweb/db_postgres.js` (تحديث تهيئة قاعدة البيانات لإضافة الأعمدة والفهرس تلقائياً)
+  - `.gitignore` (استبعاد ملفات النسخ الاحتياطي لقاعدة البيانات)
+  - `docs/CHANGELOG.md` (تحديث ذاكرة التغييرات العامة للمشروع)
+* **الملفات الجديدة**:
+  - `docs/sql/nursing_assessments_tenant_isolation_up.sql` (تفعيل RLS وإضافة الأعمدة والسياسات والفهارس)
+  - `docs/sql/nursing_assessments_tenant_isolation_down.sql` (سكربت التراجع والتطهير)
+  - `docs/sql/nursing_assessments_tenant_isolation_validate.sql` (سكربت التحقق والتأكيد)
+  - `namaweb/cross_tenant_nursing_assessments_test.js` (اختبار عزل التقييمات الآلي)
+  - `docs/MEDICAL_NURSING_ASSESSMENTS_IMPLEMENTATION_PREFLIGHT_AUDIT_AR.md`
+  - `docs/MEDICAL_NURSING_ASSESSMENTS_BACKUP_REPORT_AR.md`
+  - `docs/MEDICAL_NURSING_ASSESSMENTS_TRUTH_VALIDATION_REPORT_AR.md`
+  - `docs/MEDICAL_NURSING_ASSESSMENTS_SCHEMA_CHANGE_EXECUTION_REPORT_AR.md`
+  - `docs/MEDICAL_NURSING_ASSESSMENTS_API_HARDENING_REPORT_AR.md`
+  - `docs/MEDICAL_NURSING_ASSESSMENTS_TEST_AUTOMATION_REPORT_AR.md`
+  - `docs/MEDICAL_NURSING_ASSESSMENTS_REGRESSION_TEST_REPORT_AR.md`
+  - `docs/MEDICAL_NURSING_ASSESSMENTS_ROLLBACK_READINESS_REPORT_AR.md`
+  - `docs/MEDICAL_SECURITY_READINESS_AFTER_NURSING_ASSESSMENTS_IMPLEMENTATION_AR.md`
+* **المخرجات**: تعديل مخطط قاعدة البيانات، تفعيل RLS و FORCE RLS بنجاح 100%، تحصين الـ API البرمجي، واجتياز اختبار العزل (8/8 PASS) واختبارات الانحدار (317 PASS).
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: YES
+  - TABLE_COLUMN_SCHEMA_CHANGED: YES
+  - DATABASE_SECURITY_DDL_CHANGED: YES
+  - MIGRATIONS_RUN: NO
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: YES
+  - PRODUCTION_READY: NO
+* **المرحلة التالية الموصى بها**: `NURSING_ASSESSMENTS_POST_IMPLEMENTATION_MONITORING_AUTOPILOT`
+
+### Phase 81: Nursing Assessments Post-Implementation Monitoring
+* **تاريخ المراقبة**: 2026-06-19
+* **الحالة (Status)**: `NURSING_ASSESSMENTS_POST_IMPLEMENTATION_MONITORING_COMPLETED`
+* **الملفات الجديدة**:
+  - `docs/MEDICAL_NURSING_ASSESSMENTS_POST_MONITORING_GIT_BACKUP_LINK_AUDIT_AR.md`
+  - `docs/MEDICAL_NURSING_ASSESSMENTS_POST_MONITORING_SECRETS_AUDIT_AR.md`
+  - `docs/MEDICAL_NURSING_ASSESSMENTS_POST_MONITORING_RLS_REVALIDATION_AR.md`
+  - `docs/MEDICAL_NURSING_ASSESSMENTS_POST_MONITORING_API_OBSERVATION_AR.md`
+  - `docs/MEDICAL_NURSING_ASSESSMENTS_POST_MONITORING_TEST_REPORT_AR.md`
+  - `docs/MEDICAL_NURSING_ASSESSMENTS_POST_MONITORING_RUNTIME_OBSERVATION_AR.md`
+  - `docs/MEDICAL_NURSING_ASSESSMENTS_POST_MONITORING_ROLLBACK_RECHECK_AR.md`
+  - `docs/MEDICAL_SECURITY_READINESS_AFTER_NURSING_ASSESSMENTS_POST_MONITORING_AR.md`
+* **الملخص**:
+  تمت مراقبة تشغيل واستقرار النظام بعد تفعيل عزل التقييمات التمريضية بنجاح 100%. تم فحص مستودع Git والتأكد من استبعاد النسخ الاحتياطية وعدم تسريب الأسرار. تم التحقق من RLS/FORCE RLS والفهارس بقاعدة البيانات، ومطابقة آليات حظر IDOR البرمجية بنهايات الـ API. تم تشغيل كامل اختبارات الانحدار والـ E2E واجتيازها بنسبة 100% بنتيجة 317 فحصاً ناجحاً دون أي أخطاء وقت التشغيل.
+* **القرار النهائي**: البيئة مستقرة ومؤمنة تماماً على Staging وتصنيف الإنتاج يبقى PRODUCTION_READY: NO.
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: NO
+  - TABLE_COLUMN_SCHEMA_CHANGED: NO
+  - DATABASE_SECURITY_DDL_CHANGED: NO
+  - MIGRATIONS_RUN: NO
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: NO
+  - PRODUCTION_READY: NO
+* **المرحلة التالية الموصى بها**: `BEDS_BATCH5_SURGERY_OPERATING_ROOMS_DESIGN` (تصميم وعزل موديول غرف العمليات والجراحة).
