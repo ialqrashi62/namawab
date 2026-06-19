@@ -219,12 +219,12 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
             userFacilityId = 1; // Default Facility ID
         }
 
-        req.session.user = { 
-            id: user.id, 
-            name: user.display_name, 
-            display_name: user.display_name, 
-            role: user.role, 
-            speciality: user.speciality || '', 
+        req.session.user = {
+            id: user.id,
+            name: user.display_name,
+            display_name: user.display_name,
+            role: user.role,
+            speciality: user.speciality || '',
             permissions: user.permissions || '',
             tenantId: userTenantId,
             facilityId: userFacilityId
@@ -271,24 +271,24 @@ function addVAT(amount, vatRate) {
 app.get('/api/dashboard/stats', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        
+
         const patientsQuery = tenantId ? 'SELECT COUNT(*) as cnt FROM patients WHERE tenant_id=$1' : 'SELECT COUNT(*) as cnt FROM patients';
         const revenueQuery = tenantId ? 'SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=1 AND tenant_id=$1' : 'SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=1';
         const waitingQuery = tenantId ? "SELECT COUNT(*) as cnt FROM patients WHERE status='Waiting' AND tenant_id=$1" : "SELECT COUNT(*) as cnt FROM patients WHERE status='Waiting'";
         const pendingClaimsQuery = tenantId ? "SELECT COUNT(*) as cnt FROM insurance_claims WHERE status='Pending' AND tenant_id=$1" : "SELECT COUNT(*) as cnt FROM insurance_claims WHERE status='Pending'";
         const todayApptsQuery = tenantId ? "SELECT COUNT(*) as cnt FROM appointments WHERE appt_date=CURRENT_DATE::TEXT AND tenant_id=$1" : "SELECT COUNT(*) as cnt FROM appointments WHERE appt_date=CURRENT_DATE::TEXT";
-        
+
         const params = tenantId ? [tenantId] : [];
-        
+
         const patients = (await pool.query(patientsQuery, params)).rows[0].cnt;
         const revenue = (await pool.query(revenueQuery, params)).rows[0].total;
         const waiting = (await pool.query(waitingQuery, params)).rows[0].cnt;
         const pendingClaims = (await pool.query(pendingClaimsQuery, params)).rows[0].cnt;
         const todayAppts = (await pool.query(todayApptsQuery, params)).rows[0].cnt;
-        
+
         // employees is a deferred risk table (no tenant_id column)
         const employees = (await pool.query('SELECT COUNT(*) as cnt FROM employees')).rows[0].cnt;
-        
+
         res.json({ patients, revenue, waiting, pendingClaims, todayAppts, employees });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -608,17 +608,74 @@ app.post('/api/medical/records', requireAuth, requireRole('doctor', 'nursing'), 
 // ===== MEDICAL SERVICES =====
 app.get('/api/medical/services', requireAuth, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
         const { specialty } = req.query;
-        if (specialty) { res.json((await pool.query('SELECT * FROM medical_services WHERE specialty=$1 ORDER BY category, name_en', [specialty])).rows); }
-        else { res.json((await pool.query('SELECT * FROM medical_services ORDER BY specialty, category, name_en')).rows); }
+        let sql, params;
+        if (specialty) {
+            sql = `
+                SELECT
+                    ms.id,
+                    ms.name_en,
+                    ms.name_ar,
+                    ms.specialty,
+                    ms.category,
+                    COALESCE(o.custom_price, ms.price) AS price,
+                    COALESCE(ms.is_active, 1) AS is_active
+                FROM medical_services ms
+                LEFT JOIN tenant_service_overrides o ON ms.id = o.service_id AND o.tenant_id = $1
+                WHERE ms.specialty = $2
+                ORDER BY ms.category, ms.name_en
+            `;
+            params = [tenantId || null, specialty];
+        } else {
+            sql = `
+                SELECT
+                    ms.id,
+                    ms.name_en,
+                    ms.name_ar,
+                    ms.specialty,
+                    ms.category,
+                    COALESCE(o.custom_price, ms.price) AS price,
+                    COALESCE(ms.is_active, 1) AS is_active
+                FROM medical_services ms
+                LEFT JOIN tenant_service_overrides o ON ms.id = o.service_id AND o.tenant_id = $1
+                ORDER BY ms.specialty, ms.category, ms.name_en
+            `;
+            params = [tenantId || null];
+        }
+        res.json((await pool.query(sql, params)).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.put('/api/medical/services/:id', requireAuth, async (req, res) => {
+app.put('/api/medical/services/:id', requireAuth, requireCatalogAccess, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
+        if (!tenantId) return res.status(400).json({ error: 'Tenant context required' });
         const { price } = req.body;
-        if (price !== undefined) await pool.query('UPDATE medical_services SET price=$1 WHERE id=$2', [price, req.params.id]);
-        res.json((await pool.query('SELECT * FROM medical_services WHERE id=$1', [req.params.id])).rows[0]);
+        if (price === undefined) return res.status(400).json({ error: 'Price required' });
+
+        await pool.query(`
+            INSERT INTO tenant_service_overrides (tenant_id, service_id, custom_price, is_active)
+            VALUES ($1, $2, $3, 1)
+            ON CONFLICT (tenant_id, service_id)
+            DO UPDATE SET custom_price = EXCLUDED.custom_price, updated_at = CURRENT_TIMESTAMP
+        `, [tenantId, req.params.id, price]);
+
+        const resolved = await pool.query(`
+            SELECT
+                ms.id,
+                ms.name_en,
+                ms.name_ar,
+                ms.specialty,
+                ms.category,
+                COALESCE(o.custom_price, ms.price) AS price,
+                COALESCE(ms.is_active, 1) AS is_active
+            FROM medical_services ms
+            LEFT JOIN tenant_service_overrides o ON ms.id = o.service_id AND o.tenant_id = $1
+            WHERE ms.id = $2
+        `, [tenantId, req.params.id]);
+
+        res.json(resolved.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -676,14 +733,14 @@ app.post('/api/dept-requests', requireAuth, async (req, res) => {
         const result = await pool.query('INSERT INTO inventory_dept_requests (department, requested_by, request_date, notes, tenant_id, branch_id) VALUES ($1,$2,CURRENT_DATE::TEXT,$3,$4,$5) RETURNING id',
             [department || '', requested_by || req.session.user?.display_name || '', notes || '', tenantId || null, facilityId || null]);
         const reqId = result.rows[0].id;
-        
+
         if (items && items.length) {
             for (const item of items) {
                 await pool.query('INSERT INTO inventory_dept_request_items (request_id, item_id, qty_requested, tenant_id, branch_id) VALUES ($1,$2,$3,$4,$5)',
                     [reqId, item.item_id || 0, item.qty || 1, tenantId || null, facilityId || null]);
             }
         }
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_DEPT_REQUEST', 'Inventory', `Created department request #${reqId} for ${department}`, req.ip);
 
         const query = tenantId ?
@@ -716,7 +773,7 @@ app.put('/api/dept-requests/:id', requireAuth, async (req, res) => {
             const check = (await pool.query('SELECT id FROM inventory_dept_requests WHERE id=$1 AND tenant_id=$2', [req.params.id, tenantId])).rows[0];
             if (!check) return res.status(404).json({ error: 'Request not found' });
         }
-        
+
         const { status, approved_by } = req.body;
         if (status) {
             const queryUpdate = tenantId ?
@@ -726,7 +783,7 @@ app.put('/api/dept-requests/:id', requireAuth, async (req, res) => {
                 [status, approved_by || req.session.user?.display_name || 'System', req.params.id, tenantId] :
                 [status, approved_by || req.session.user?.display_name || 'System', req.params.id];
             await pool.query(queryUpdate, paramsUpdate);
-            
+
             // If approved, deduct from inventory
             if (status === 'Approved') {
                 const queryItems = tenantId ?
@@ -734,7 +791,7 @@ app.put('/api/dept-requests/:id', requireAuth, async (req, res) => {
                     'SELECT * FROM inventory_dept_request_items WHERE request_id=$1';
                 const paramsItems = tenantId ? [req.params.id, tenantId] : [req.params.id];
                 const items = (await pool.query(queryItems, paramsItems)).rows;
-                
+
                 for (const item of items) {
                     const approved = item.qty_approved || item.qty_requested;
                     const queryDeduct = tenantId ?
@@ -746,7 +803,7 @@ app.put('/api/dept-requests/:id', requireAuth, async (req, res) => {
             }
             logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_DEPT_REQUEST_STATUS', 'Inventory', `Updated request #${req.params.id} status to ${status}`, req.ip);
         }
-        
+
         const queryFinal = tenantId ?
             'SELECT * FROM inventory_dept_requests WHERE id=$1 AND tenant_id=$2' :
             'SELECT * FROM inventory_dept_requests WHERE id=$1';
@@ -775,26 +832,112 @@ app.get('/api/billing/summary/:patient_id', requireAuth, requireRole('invoices',
 });
 
 // ===== CATALOG APIs =====
-app.get('/api/catalog/', requireAuth, requireCatalogAccess, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM lab_tests_catalog ORDER BY category, test_name')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-app.get('/api/catalog/', requireAuth, requireCatalogAccess, async (req, res) => {
+app.get('/api/catalog/lab', requireAuth, async (req, res) => {
     try {
-        const { price } = req.body;
-        if (price !== undefined) await pool.query('UPDATE lab_tests_catalog SET price=$1 WHERE id=$2', [price, req.params.id]);
-        res.json((await pool.query('SELECT * FROM lab_tests_catalog WHERE id=$1', [req.params.id])).rows[0]);
+        const { tenantId } = getRequestTenantContext(req);
+        const sql = `
+            SELECT
+                lt.id,
+                lt.test_name,
+                lt.category,
+                lt.normal_range,
+                COALESCE(o.custom_price, lt.price) AS price,
+                COALESCE(o.is_active, 1) AS is_active
+            FROM lab_tests_catalog lt
+            LEFT JOIN tenant_lab_test_overrides o ON lt.id = o.test_id AND o.tenant_id = $1
+            ORDER BY lt.category, lt.test_name
+        `;
+        res.json((await pool.query(sql, [tenantId || null])).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/catalog/', requireAuth, requireCatalogAccess, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM radiology_catalog ORDER BY modality, exact_name')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-app.get('/api/catalog/', requireAuth, requireCatalogAccess, async (req, res) => {
+
+app.put('/api/catalog/lab/:id', requireAuth, requireCatalogAccess, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
+        if (!tenantId) return res.status(400).json({ error: 'Tenant context required' });
         const { price } = req.body;
-        if (price !== undefined) await pool.query('UPDATE radiology_catalog SET price=$1 WHERE id=$2', [price, req.params.id]);
-        res.json((await pool.query('SELECT * FROM radiology_catalog WHERE id=$1', [req.params.id])).rows[0]);
+        if (price === undefined) return res.status(400).json({ error: 'Price required' });
+
+        await pool.query(`
+            INSERT INTO tenant_lab_test_overrides (tenant_id, test_id, custom_price, is_active)
+            VALUES ($1, $2, $3, 1)
+            ON CONFLICT (tenant_id, test_id)
+            DO UPDATE SET custom_price = EXCLUDED.custom_price, updated_at = CURRENT_TIMESTAMP
+        `, [tenantId, req.params.id, price]);
+
+        const resolved = await pool.query(`
+            SELECT
+                lt.id,
+                lt.test_name,
+                lt.category,
+                lt.normal_range,
+                COALESCE(o.custom_price, lt.price) AS price,
+                COALESCE(o.is_active, 1) AS is_active
+            FROM lab_tests_catalog lt
+            LEFT JOIN tenant_lab_test_overrides o ON lt.id = o.test_id AND o.tenant_id = $1
+            WHERE lt.id = $2
+        `, [tenantId, req.params.id]);
+
+        res.json(resolved.rows[0]);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.get('/api/catalog/radiology', requireAuth, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        const sql = `
+            SELECT
+                rc.id,
+                rc.modality,
+                rc.exact_name,
+                COALESCE(o.custom_template, rc.default_template) AS default_template,
+                COALESCE(o.custom_price, rc.price) AS price,
+                COALESCE(o.is_active, 1) AS is_active
+            FROM radiology_catalog rc
+            LEFT JOIN tenant_radiology_overrides o ON rc.id = o.radiology_id AND o.tenant_id = $1
+            ORDER BY rc.modality, rc.exact_name
+        `;
+        res.json((await pool.query(sql, [tenantId || null])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.put('/api/catalog/radiology/:id', requireAuth, requireCatalogAccess, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        if (!tenantId) return res.status(400).json({ error: 'Tenant context required' });
+        const { price, template } = req.body;
+
+        if (price !== undefined) {
+            await pool.query(`
+                INSERT INTO tenant_radiology_overrides (tenant_id, radiology_id, custom_price, is_active)
+                VALUES ($1, $2, $3, 1)
+                ON CONFLICT (tenant_id, radiology_id)
+                DO UPDATE SET custom_price = EXCLUDED.custom_price, updated_at = CURRENT_TIMESTAMP
+            `, [tenantId, req.params.id, price]);
+        }
+        if (template !== undefined) {
+            await pool.query(`
+                INSERT INTO tenant_radiology_overrides (tenant_id, radiology_id, custom_price, custom_template, is_active)
+                VALUES ($1, $2, 0, $3, 1)
+                ON CONFLICT (tenant_id, radiology_id)
+                DO UPDATE SET custom_template = EXCLUDED.custom_template, updated_at = CURRENT_TIMESTAMP
+            `, [tenantId, req.params.id, template]);
+        }
+
+        const resolved = await pool.query(`
+            SELECT
+                rc.id,
+                rc.modality,
+                rc.exact_name,
+                COALESCE(o.custom_template, rc.default_template) AS default_template,
+                COALESCE(o.custom_price, rc.price) AS price,
+                COALESCE(o.is_active, 1) AS is_active
+            FROM radiology_catalog rc
+            LEFT JOIN tenant_radiology_overrides o ON rc.id = o.radiology_id AND o.tenant_id = $1
+            WHERE rc.id = $2
+        `, [tenantId, req.params.id]);
+
+        res.json(resolved.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -824,10 +967,15 @@ app.post('/api/lab/orders', requireAuth, async (req, res) => {
             const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
             if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
         }
-        // Auto-lookup price from lab catalog if not provided
+        // Auto-lookup price from lab catalog (with tenant overrides) if not provided
         let labPrice = parseFloat(price) || 0;
         if (!labPrice && order_type) {
-            const catalogMatch = (await pool.query('SELECT price FROM lab_tests_catalog WHERE test_name ILIKE $1 LIMIT 1', [`%${order_type}%`])).rows[0];
+            const catalogMatch = (await pool.query(`
+                SELECT COALESCE(o.custom_price, lt.price) AS price
+                FROM lab_tests_catalog lt
+                LEFT JOIN tenant_lab_test_overrides o ON lt.id = o.test_id AND o.tenant_id = $2
+                WHERE lt.test_name ILIKE $1 LIMIT 1
+            `, [`%${order_type}%`, tenantId || null])).rows[0];
             if (catalogMatch) labPrice = catalogMatch.price;
         }
         const result = await pool.query('INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, is_radiology, price, tenant_id, facility_id) VALUES ($1,$2,$3,$4,0,$5,$6,$7) RETURNING id',
@@ -848,7 +996,22 @@ app.post('/api/lab/orders', requireAuth, async (req, res) => {
 });
 
 app.get('/api/lab/catalog', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM lab_tests_catalog ORDER BY id')).rows); }
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        const sql = `
+            SELECT
+                lt.id,
+                lt.test_name,
+                lt.category,
+                lt.normal_range,
+                COALESCE(o.custom_price, lt.price) AS price,
+                COALESCE(o.is_active, 1) AS is_active
+            FROM lab_tests_catalog lt
+            LEFT JOIN tenant_lab_test_overrides o ON lt.id = o.test_id AND o.tenant_id = $1
+            ORDER BY lt.id
+        `;
+        res.json((await pool.query(sql, [tenantId || null])).rows);
+    }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -893,7 +1056,22 @@ app.get('/api/radiology/orders', requireAuth, async (req, res) => {
 });
 
 app.get('/api/radiology/catalog', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM radiology_catalog ORDER BY id')).rows); }
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        const sql = `
+            SELECT
+                rc.id,
+                rc.modality,
+                rc.exact_name,
+                COALESCE(o.custom_template, rc.default_template) AS default_template,
+                COALESCE(o.custom_price, rc.price) AS price,
+                COALESCE(o.is_active, 1) AS is_active
+            FROM radiology_catalog rc
+            LEFT JOIN tenant_radiology_overrides o ON rc.id = o.radiology_id AND o.tenant_id = $1
+            ORDER BY rc.id
+        `;
+        res.json((await pool.query(sql, [tenantId || null])).rows);
+    }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -923,10 +1101,15 @@ app.post('/api/radiology/orders', requireAuth, async (req, res) => {
             const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
             if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
         }
-        // Auto-lookup price from radiology catalog if not provided
+        // Auto-lookup price from radiology catalog (with tenant overrides) if not provided
         let radPrice = parseFloat(price) || 0;
         if (!radPrice && order_type) {
-            const catalogMatch = (await pool.query('SELECT price FROM radiology_catalog WHERE exact_name ILIKE $1 LIMIT 1', [`%${order_type}%`])).rows[0];
+            const catalogMatch = (await pool.query(`
+                SELECT COALESCE(o.custom_price, rc.price) AS price
+                FROM radiology_catalog rc
+                LEFT JOIN tenant_radiology_overrides o ON rc.id = o.radiology_id AND o.tenant_id = $2
+                WHERE rc.exact_name ILIKE $1 LIMIT 1
+            `, [`%${order_type}%`, tenantId || null])).rows[0];
             if (catalogMatch) radPrice = catalogMatch.price;
         }
         const result = await pool.query('INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, is_radiology, price, tenant_id, facility_id) VALUES ($1,$2,$3,$4,1,$5,$6,$7) RETURNING id',
@@ -1064,7 +1247,7 @@ app.post('/api/inventory/items', requireAuth, requireTenantScope, async (req, re
         const { item_name, item_code, category, unit, cost_price, stock_qty } = req.body;
         const result = await pool.query('INSERT INTO inventory_items (item_name, item_code, category, unit, cost_price, stock_qty, tenant_id, branch_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
             [item_name, item_code || '', category || '', unit || '', cost_price || 0, stock_qty || 0, tenantId || null, facilityId || null]);
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_INVENTORY_ITEM_DETAIL', 'Inventory', `Created item details for ${item_name} with qty ${stock_qty}`, req.ip);
 
         const query = tenantId ?
@@ -1436,28 +1619,28 @@ app.get('/api/reports/financial', requireAuth, requireRole('finance'), requireTe
     try {
         const { tenantId } = getRequestTenantContext(req);
         const params = tenantId ? [tenantId] : [];
-        
+
         const totalRevenueQuery = tenantId ?
             'SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=1 AND tenant_id=$1' :
             'SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=1';
-            
+
         const totalPendingQuery = tenantId ?
             'SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=0 AND tenant_id=$1' :
             'SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=0';
-            
+
         const invoiceCountQuery = tenantId ?
             'SELECT COUNT(*) as cnt FROM invoices WHERE tenant_id=$1' :
             'SELECT COUNT(*) as cnt FROM invoices';
-            
+
         const monthlyRevenueQuery = tenantId ?
             "SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=1 AND created_at >= date_trunc('month', CURRENT_DATE) AND tenant_id=$1" :
             "SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE paid=1 AND created_at >= date_trunc('month', CURRENT_DATE)";
-            
+
         const totalRevenue = (await pool.query(totalRevenueQuery, params)).rows[0].total;
         const totalPending = (await pool.query(totalPendingQuery, params)).rows[0].total;
         const invoiceCount = (await pool.query(invoiceCountQuery, params)).rows[0].cnt;
         const monthlyRevenue = (await pool.query(monthlyRevenueQuery, params)).rows[0].total;
-        
+
         res.json({ totalRevenue, totalPending, invoiceCount, monthlyRevenue });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1504,29 +1687,29 @@ app.put('/api/bookings/:id', requireAuth, async (req, res) => {
 app.get('/api/reports/commissions', requireAuth, requireRole('finance', 'doctor'), requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        
+
         // system_users is a deferred risk table (no tenant_id column)
         const doctors = (await pool.query("SELECT id, display_name, speciality, commission_type, commission_value FROM system_users WHERE role='Doctor'")).rows;
         const results = [];
         for (const dr of doctors) {
             // Get all invoices where doctor is linked via medical_records or consultation invoices
             const revenueQuery = tenantId ?
-                `SELECT COALESCE(SUM(i.total), 0) as total FROM invoices i 
-                 WHERE i.service_type = 'Consultation' 
+                `SELECT COALESCE(SUM(i.total), 0) as total FROM invoices i
+                 WHERE i.service_type = 'Consultation'
                  AND i.description ILIKE $1 AND i.tenant_id = $2` :
-                `SELECT COALESCE(SUM(i.total), 0) as total FROM invoices i 
-                 WHERE i.service_type = 'Consultation' 
+                `SELECT COALESCE(SUM(i.total), 0) as total FROM invoices i
+                 WHERE i.service_type = 'Consultation'
                  AND i.description ILIKE $1`;
             const revenueParams = tenantId ? [`%${dr.display_name}%`, tenantId] : [`%${dr.display_name}%`];
             const revenue = (await pool.query(revenueQuery, revenueParams)).rows[0].total || 0;
-            
+
             // Also get revenue from lab/radiology orders by this doctor
             const orderRevenueQuery = tenantId ?
                 `SELECT COALESCE(SUM(price), 0) as total FROM lab_radiology_orders WHERE doctor_id=$1 AND tenant_id=$2` :
                 `SELECT COALESCE(SUM(price), 0) as total FROM lab_radiology_orders WHERE doctor_id=$1`;
             const orderRevenueParams = tenantId ? [dr.id, tenantId] : [dr.id];
             const orderRevenue = (await pool.query(orderRevenueQuery, orderRevenueParams)).rows[0].total || 0;
-            
+
             const totalRevenue = parseFloat(revenue) + parseFloat(orderRevenue);
             let commission = 0;
             if (dr.commission_type === 'percentage') {
@@ -1664,39 +1847,39 @@ app.get('/api/dashboard/enhanced', requireAuth, requireTenantScope, async (req, 
     try {
         const { tenantId } = getRequestTenantContext(req);
         const params = tenantId ? [tenantId] : [];
-        
+
         const todayRevenueQuery = tenantId ?
             'SELECT COALESCE(SUM(total), 0) as total FROM invoices WHERE created_at::date = CURRENT_DATE AND tenant_id = $1' :
             'SELECT COALESCE(SUM(total), 0) as total FROM invoices WHERE created_at::date = CURRENT_DATE';
-            
+
         const monthRevenueQuery = tenantId ?
             'SELECT COALESCE(SUM(total), 0) as total FROM invoices WHERE created_at >= date_trunc(\'month\', CURRENT_DATE) AND tenant_id = $1' :
             'SELECT COALESCE(SUM(total), 0) as total FROM invoices WHERE created_at >= date_trunc(\'month\', CURRENT_DATE)';
-            
+
         const unpaidTotalQuery = tenantId ?
             'SELECT COALESCE(SUM(total), 0) as total FROM invoices WHERE paid = 0 AND tenant_id = $1' :
             'SELECT COALESCE(SUM(total), 0) as total FROM invoices WHERE paid = 0';
-            
+
         const todayApptsQuery = tenantId ?
             'SELECT COUNT(*) as cnt FROM appointments WHERE appt_date = CURRENT_DATE::TEXT AND tenant_id = $1' :
             'SELECT COUNT(*) as cnt FROM appointments WHERE appt_date = CURRENT_DATE::TEXT';
-            
+
         const pendingLabQuery = tenantId ?
             'SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE status = \'Requested\' AND is_radiology = 0 AND tenant_id = $1' :
             'SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE status = \'Requested\' AND is_radiology = 0';
-            
+
         const pendingRadQuery = tenantId ?
             'SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE status = \'Requested\' AND is_radiology = 1 AND tenant_id = $1' :
             'SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE status = \'Requested\' AND is_radiology = 1';
-            
+
         const pendingRxQuery = tenantId ?
             'SELECT COUNT(*) as cnt FROM pharmacy_prescriptions_queue WHERE status = \'Pending\' AND tenant_id = $1' :
             'SELECT COUNT(*) as cnt FROM pharmacy_prescriptions_queue WHERE status = \'Pending\'';
-            
+
         const pendingReferralsQuery = tenantId ?
             'SELECT COUNT(*) as cnt FROM patient_referrals WHERE status = \'Pending\' AND tenant_id = $1' :
             'SELECT COUNT(*) as cnt FROM patient_referrals WHERE status = \'Pending\'';
-            
+
         const todayRevenue = (await pool.query(todayRevenueQuery, params)).rows[0].total;
         const monthRevenue = (await pool.query(monthRevenueQuery, params)).rows[0].total;
         const unpaidTotal = (await pool.query(unpaidTotalQuery, params)).rows[0].total;
@@ -1705,7 +1888,7 @@ app.get('/api/dashboard/enhanced', requireAuth, requireTenantScope, async (req, 
         const pendingRad = (await pool.query(pendingRadQuery, params)).rows[0].cnt;
         const pendingRx = (await pool.query(pendingRxQuery, params)).rows[0].cnt;
         const pendingReferrals = (await pool.query(pendingReferralsQuery, params)).rows[0].cnt;
-        
+
         // Top doctors by revenue this month
         const topDoctorsQuery = tenantId ? `
             SELECT mr.doctor_id, su.display_name, COUNT(DISTINCT mr.patient_id) as patients,
@@ -1727,7 +1910,7 @@ app.get('/api/dashboard/enhanced', requireAuth, requireTenantScope, async (req, 
             ORDER BY revenue DESC LIMIT 5
         `;
         const topDoctors = (await pool.query(topDoctorsQuery, params)).rows;
-        
+
         // Revenue by service type
         const revenueByTypeQuery = tenantId ? `
             SELECT service_type, COALESCE(SUM(total), 0) as total, COUNT(*) as cnt
@@ -1739,7 +1922,7 @@ app.get('/api/dashboard/enhanced', requireAuth, requireTenantScope, async (req, 
             GROUP BY service_type ORDER BY total DESC
         `;
         const revenueByType = (await pool.query(revenueByTypeQuery, params)).rows;
-        
+
         res.json({ todayRevenue, monthRevenue, unpaidTotal, todayAppts, pendingLab, pendingRad, pendingRx, pendingReferrals, topDoctors, revenueByType });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1803,7 +1986,7 @@ app.get('/api/surgeries', requireAuth, requireTenantScope, async (req, res) => {
 app.get('/api/surgeries/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        const q = tenantId 
+        const q = tenantId
             ? 'SELECT * FROM surgeries WHERE id = $1 AND tenant_id = $2'
             : 'SELECT * FROM surgeries WHERE id = $1';
         const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
@@ -1818,9 +2001,9 @@ app.post('/api/surgeries', requireAuth, requireTenantScope, async (req, res) => 
         const { patient_id, patient_name, surgeon_id, surgeon_name, anesthetist_id, anesthetist_name,
             procedure_name, procedure_name_ar, surgery_type, operating_room, priority,
             scheduled_date, scheduled_time, estimated_duration, notes } = req.body;
-        
+
         const { tenantId, facilityId } = getRequestTenantContext(req);
-        
+
         // Validate patient context to prevent IDOR / illegal references
         if (patient_id) {
             const patientCheckQ = tenantId
@@ -1842,12 +2025,12 @@ app.post('/api/surgeries', requireAuth, requireTenantScope, async (req, res) => 
                 procedure_name || '', procedure_name_ar || '', surgery_type || 'Elective', operating_room || '',
                 priority || 'Normal', scheduled_date || '', scheduled_time || '', estimated_duration || 60, notes || '',
                 tenantId, facilityId]);
-                
-        const selectQ = tenantId 
+
+        const selectQ = tenantId
             ? 'SELECT * FROM surgeries WHERE id = $1 AND tenant_id = $2'
             : 'SELECT * FROM surgeries WHERE id = $1';
         const selectParams = tenantId ? [result.rows[0].id, tenantId] : [result.rows[0].id];
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name || '', 'CREATE_SURGERY', 'Surgery', `Scheduled surgery for patient ${patient_name || patient_id}`, req.ip);
         res.json((await pool.query(selectQ, selectParams)).rows[0]);
     } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
@@ -1856,9 +2039,9 @@ app.post('/api/surgeries', requireAuth, requireTenantScope, async (req, res) => 
 app.put('/api/surgeries/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        
+
         // Verify surgery ownership first
-        const checkQ = tenantId 
+        const checkQ = tenantId
             ? 'SELECT id FROM surgeries WHERE id = $1 AND tenant_id = $2'
             : 'SELECT id FROM surgeries WHERE id = $1';
         const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
@@ -1881,12 +2064,12 @@ app.put('/api/surgeries/:id', requireAuth, requireTenantScope, async (req, res) 
             if (tenantId) params.push(tenantId);
             await pool.query(`UPDATE surgeries SET ${fields.join(',')} ${whereClause}`, params);
         }
-        
-        const selectQ = tenantId 
+
+        const selectQ = tenantId
             ? 'SELECT * FROM surgeries WHERE id = $1 AND tenant_id = $2'
             : 'SELECT * FROM surgeries WHERE id = $1';
         const selectParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name || '', 'UPDATE_SURGERY', 'Surgery', `Updated surgery ${req.params.id}`, req.ip);
         res.json((await pool.query(selectQ, selectParams)).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -1895,9 +2078,9 @@ app.put('/api/surgeries/:id', requireAuth, requireTenantScope, async (req, res) 
 app.delete('/api/surgeries/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        
+
         // Verify surgery ownership first
-        const checkQ = tenantId 
+        const checkQ = tenantId
             ? 'SELECT id FROM surgeries WHERE id = $1 AND tenant_id = $2'
             : 'SELECT id FROM surgeries WHERE id = $1';
         const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
@@ -1906,13 +2089,13 @@ app.delete('/api/surgeries/:id', requireAuth, requireTenantScope, async (req, re
 
         const deleteParams1 = tenantId ? [req.params.id, tenantId] : [req.params.id];
         const tenantFilter = tenantId ? ' AND tenant_id=$2' : '';
-        
+
         await pool.query(`DELETE FROM surgery_preop_tests WHERE surgery_id=$1${tenantFilter}`, deleteParams1);
         await pool.query(`DELETE FROM surgery_preop_assessments WHERE surgery_id=$1${tenantFilter}`, deleteParams1);
         await pool.query(`DELETE FROM surgery_anesthesia_records WHERE surgery_id=$1${tenantFilter}`, deleteParams1);
         await pool.query(`DELETE FROM consent_forms WHERE surgery_id=$1${tenantFilter}`, deleteParams1);
         await pool.query(`DELETE FROM surgeries WHERE id=$1${tenantFilter}`, deleteParams1);
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name || '', 'DELETE_SURGERY', 'Surgery', `Deleted/cancelled surgery ${req.params.id}`, req.ip);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -1922,20 +2105,20 @@ app.delete('/api/surgeries/:id', requireAuth, requireTenantScope, async (req, re
 app.get('/api/surgeries/:id/preop', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        
+
         // Verify surgery ownership first
-        const checkQ = tenantId 
+        const checkQ = tenantId
             ? 'SELECT id FROM surgeries WHERE id = $1 AND tenant_id = $2'
             : 'SELECT id FROM surgeries WHERE id = $1';
         const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
         const surgeryCheck = (await pool.query(checkQ, checkParams)).rows[0];
         if (!surgeryCheck) return res.status(404).json({ error: 'Surgery not found' });
 
-        const queryText = tenantId 
+        const queryText = tenantId
             ? 'SELECT * FROM surgery_preop_assessments WHERE surgery_id=$1 AND tenant_id=$2'
             : 'SELECT * FROM surgery_preop_assessments WHERE surgery_id=$1';
         const queryParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        
+
         res.json((await pool.query(queryText, queryParams)).rows[0] || null);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1943,9 +2126,9 @@ app.get('/api/surgeries/:id/preop', requireAuth, requireTenantScope, async (req,
 app.post('/api/surgeries/:id/preop', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId, facilityId } = getRequestTenantContext(req);
-        
+
         // Verify surgery ownership first
-        const checkQ = tenantId 
+        const checkQ = tenantId
             ? 'SELECT id, patient_id FROM surgeries WHERE id = $1 AND tenant_id = $2'
             : 'SELECT id, patient_id FROM surgeries WHERE id = $1';
         const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
@@ -1954,8 +2137,8 @@ app.post('/api/surgeries/:id/preop', requireAuth, requireTenantScope, async (req
 
         const pid = surgery.patient_id || 0;
         const s = req.body;
-        
-        const existingQ = tenantId 
+
+        const existingQ = tenantId
             ? 'SELECT id FROM surgery_preop_assessments WHERE surgery_id=$1 AND tenant_id=$2'
             : 'SELECT id FROM surgery_preop_assessments WHERE surgery_id=$1';
         const existingParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
@@ -1966,7 +2149,7 @@ app.post('/api/surgeries/:id/preop', requireAuth, requireTenantScope, async (req
         s.imaging_reviewed, s.blood_type_confirmed, s.consent_signed, s.anesthesia_clearance, s.nursing_assessment];
         const completedCount = checkItems.filter(x => x).length;
         const overall = completedCount === checkItems.length ? 'Complete' : completedCount > 0 ? 'In Progress' : 'Incomplete';
-        
+
         if (existing) {
             const updateQ = tenantId
                 ? `UPDATE surgery_preop_assessments SET npo_confirmed=$1, allergies_reviewed=$2, allergies_notes=$3,
@@ -2003,16 +2186,16 @@ app.post('/api/surgeries/:id/preop', requireAuth, requireTenantScope, async (req
                 s.cardiac_clearance ? 1 : 0, s.cardiac_notes || '', s.pulmonary_clearance ? 1 : 0,
                 s.infection_screening ? 1 : 0, s.dvt_prophylaxis ? 1 : 0, overall, req.session.user?.display_name || req.session.user?.name || '', tenantId, facilityId]);
         }
-        
+
         // Update surgery preop_status
-        const updateSurgeryQ = tenantId 
+        const updateSurgeryQ = tenantId
             ? 'UPDATE surgeries SET preop_status=$1 WHERE id=$2 AND tenant_id=$3'
             : 'UPDATE surgeries SET preop_status=$1 WHERE id=$2';
         const updateSurgeryParams = tenantId ? [overall, req.params.id, tenantId] : [overall, req.params.id];
         await pool.query(updateSurgeryQ, updateSurgeryParams);
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name || '', 'UPDATE_PREOP_ASSESSMENT', 'Surgery', `Updated preop assessment for surgery ${req.params.id}`, req.ip);
-        
+
         const returnQ = tenantId
             ? 'SELECT * FROM surgery_preop_assessments WHERE surgery_id=$1 AND tenant_id=$2'
             : 'SELECT * FROM surgery_preop_assessments WHERE surgery_id=$1';
@@ -2025,16 +2208,16 @@ app.post('/api/surgeries/:id/preop', requireAuth, requireTenantScope, async (req
 app.get('/api/surgeries/:id/preop-tests', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        
+
         // Verify surgery ownership first
-        const checkQ = tenantId 
+        const checkQ = tenantId
             ? 'SELECT id FROM surgeries WHERE id = $1 AND tenant_id = $2'
             : 'SELECT id FROM surgeries WHERE id = $1';
         const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
         const surgeryCheck = (await pool.query(checkQ, checkParams)).rows[0];
         if (!surgeryCheck) return res.status(404).json({ error: 'Surgery not found' });
 
-        const q = tenantId 
+        const q = tenantId
             ? 'SELECT * FROM surgery_preop_tests WHERE surgery_id=$1 AND tenant_id=$2 ORDER BY id'
             : 'SELECT * FROM surgery_preop_tests WHERE surgery_id=$1 ORDER BY id';
         const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
@@ -2045,9 +2228,9 @@ app.get('/api/surgeries/:id/preop-tests', requireAuth, requireTenantScope, async
 app.post('/api/surgeries/:id/preop-tests', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId, facilityId } = getRequestTenantContext(req);
-        
+
         // Verify surgery ownership first
-        const checkQ = tenantId 
+        const checkQ = tenantId
             ? 'SELECT id, patient_id FROM surgeries WHERE id = $1 AND tenant_id = $2'
             : 'SELECT id, patient_id FROM surgeries WHERE id = $1';
         const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
@@ -2058,12 +2241,12 @@ app.post('/api/surgeries/:id/preop-tests', requireAuth, requireTenantScope, asyn
         const result = await pool.query(
             'INSERT INTO surgery_preop_tests (surgery_id, patient_id, test_type, test_name, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id',
             [req.params.id, surgery.patient_id || 0, test_type || 'Lab', test_name || '', notes || '', tenantId, facilityId]);
-            
-        const returnQ = tenantId 
+
+        const returnQ = tenantId
             ? 'SELECT * FROM surgery_preop_tests WHERE id=$1 AND tenant_id=$2'
             : 'SELECT * FROM surgery_preop_tests WHERE id=$1';
         const returnParams = tenantId ? [result.rows[0].id, tenantId] : [result.rows[0].id];
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name || '', 'CREATE_PREOP_TEST', 'Surgery', `Created preop test for surgery ${req.params.id}`, req.ip);
         res.json((await pool.query(returnQ, returnParams)).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -2072,9 +2255,9 @@ app.post('/api/surgeries/:id/preop-tests', requireAuth, requireTenantScope, asyn
 app.put('/api/surgery-preop-tests/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        
+
         // Verify test ownership first
-        const checkQ = tenantId 
+        const checkQ = tenantId
             ? 'SELECT id FROM surgery_preop_tests WHERE id = $1 AND tenant_id = $2'
             : 'SELECT id FROM surgery_preop_tests WHERE id = $1';
         const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
@@ -2083,25 +2266,25 @@ app.put('/api/surgery-preop-tests/:id', requireAuth, requireTenantScope, async (
 
         const { is_completed, result_summary } = req.body;
         if (is_completed !== undefined) {
-            const updateQ = tenantId 
+            const updateQ = tenantId
                 ? 'UPDATE surgery_preop_tests SET is_completed=$1 WHERE id=$2 AND tenant_id=$3'
                 : 'UPDATE surgery_preop_tests SET is_completed=$1 WHERE id=$2';
             const updateParams = tenantId ? [is_completed ? 1 : 0, req.params.id, tenantId] : [is_completed ? 1 : 0, req.params.id];
             await pool.query(updateQ, updateParams);
         }
         if (result_summary !== undefined) {
-            const updateQ = tenantId 
+            const updateQ = tenantId
                 ? 'UPDATE surgery_preop_tests SET result_summary=$1 WHERE id=$2 AND tenant_id=$3'
                 : 'UPDATE surgery_preop_tests SET result_summary=$1 WHERE id=$2';
             const updateParams = tenantId ? [result_summary, req.params.id, tenantId] : [result_summary, req.params.id];
             await pool.query(updateQ, updateParams);
         }
-        
-        const returnQ = tenantId 
+
+        const returnQ = tenantId
             ? 'SELECT * FROM surgery_preop_tests WHERE id=$1 AND tenant_id=$2'
             : 'SELECT * FROM surgery_preop_tests WHERE id=$1';
         const returnParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name || '', 'UPDATE_PREOP_TEST', 'Surgery', `Updated preop test result ${req.params.id}`, req.ip);
         res.json((await pool.query(returnQ, returnParams)).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -2111,16 +2294,16 @@ app.put('/api/surgery-preop-tests/:id', requireAuth, requireTenantScope, async (
 app.get('/api/surgeries/:id/anesthesia', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        
+
         // Verify surgery ownership first
-        const checkQ = tenantId 
+        const checkQ = tenantId
             ? 'SELECT id FROM surgeries WHERE id = $1 AND tenant_id = $2'
             : 'SELECT id FROM surgeries WHERE id = $1';
         const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
         const surgeryCheck = (await pool.query(checkQ, checkParams)).rows[0];
         if (!surgeryCheck) return res.status(404).json({ error: 'Surgery not found' });
 
-        const q = tenantId 
+        const q = tenantId
             ? 'SELECT * FROM surgery_anesthesia_records WHERE surgery_id=$1 AND tenant_id=$2'
             : 'SELECT * FROM surgery_anesthesia_records WHERE surgery_id=$1';
         const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
@@ -2131,9 +2314,9 @@ app.get('/api/surgeries/:id/anesthesia', requireAuth, requireTenantScope, async 
 app.post('/api/surgeries/:id/anesthesia', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId, facilityId } = getRequestTenantContext(req);
-        
+
         // Verify surgery ownership first
-        const checkQ = tenantId 
+        const checkQ = tenantId
             ? 'SELECT id, patient_id FROM surgeries WHERE id = $1 AND tenant_id = $2'
             : 'SELECT id, patient_id FROM surgeries WHERE id = $1';
         const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
@@ -2141,12 +2324,12 @@ app.post('/api/surgeries/:id/anesthesia', requireAuth, requireTenantScope, async
         if (!surgery) return res.status(404).json({ error: 'Surgery not found' });
 
         const a = req.body;
-        const existingQ = tenantId 
+        const existingQ = tenantId
             ? 'SELECT id FROM surgery_anesthesia_records WHERE surgery_id=$1 AND tenant_id=$2'
             : 'SELECT id FROM surgery_anesthesia_records WHERE surgery_id=$1';
         const existingParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
         const existing = (await pool.query(existingQ, existingParams)).rows[0];
-        
+
         if (existing) {
             const updateQ = tenantId
                 ? `UPDATE surgery_anesthesia_records SET anesthetist_name=$1, asa_class=$2, anesthesia_type=$3,
@@ -2174,9 +2357,9 @@ app.post('/api/surgeries/:id/anesthesia', requireAuth, requireTenantScope, async
                 a.maintenance_agents || '', a.muscle_relaxants || '', a.monitors_used || '', a.iv_access || '',
                 a.fluid_given || '', a.blood_loss_ml || 0, a.complications || '', a.recovery_notes || '', a.notes || '', tenantId, facilityId]);
         }
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name || '', 'UPDATE_ANESTHESIA_RECORD', 'Surgery', `Updated anesthesia record for surgery ${req.params.id}`, req.ip);
-        
+
         const returnQ = tenantId
             ? 'SELECT * FROM surgery_anesthesia_records WHERE surgery_id=$1 AND tenant_id=$2'
             : 'SELECT * FROM surgery_anesthesia_records WHERE surgery_id=$1';
@@ -2189,7 +2372,7 @@ app.post('/api/surgeries/:id/anesthesia', requireAuth, requireTenantScope, async
 app.get('/api/operating-rooms', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        const q = tenantId 
+        const q = tenantId
             ? 'SELECT * FROM operating_rooms WHERE tenant_id = $1 ORDER BY id'
             : 'SELECT * FROM operating_rooms ORDER BY id';
         const params = tenantId ? [tenantId] : [];
@@ -2201,16 +2384,16 @@ app.post('/api/operating-rooms', requireAuth, requireTenantScope, async (req, re
     try {
         const { tenantId, facilityId } = getRequestTenantContext(req);
         const { room_name, room_name_ar, location, equipment } = req.body;
-        
+
         const result = await pool.query(
             'INSERT INTO operating_rooms (room_name, room_name_ar, location, equipment, tenant_id, branch_id) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id',
             [room_name || '', room_name_ar || '', location || '', equipment || '', tenantId, facilityId]);
-            
-        const returnQ = tenantId 
+
+        const returnQ = tenantId
             ? 'SELECT * FROM operating_rooms WHERE id=$1 AND tenant_id=$2'
             : 'SELECT * FROM operating_rooms WHERE id=$1';
         const returnParams = tenantId ? [result.rows[0].id, tenantId] : [result.rows[0].id];
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name || '', 'CREATE_OPERATING_ROOM', 'Surgery', `Created operating room ${room_name}`, req.ip);
         res.json((await pool.query(returnQ, returnParams)).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -2497,8 +2680,8 @@ app.get('/api/lab/orders', requireAuth, async (req, res) => {
         const { tenantId } = getRequestTenantContext(req);
         const tenantFilter = tenantId ? ' AND o.tenant_id=$1' : '';
         const queryParams = tenantId ? [tenantId] : [];
-        const rows = (await pool.query(`SELECT o.*, p.name_ar as patient_name, p.file_number, p.phone, su.display_name as doctor 
-            FROM lab_radiology_orders o LEFT JOIN patients p ON o.patient_id = p.id 
+        const rows = (await pool.query(`SELECT o.*, p.name_ar as patient_name, p.file_number, p.phone, su.display_name as doctor
+            FROM lab_radiology_orders o LEFT JOIN patients p ON o.patient_id = p.id
             LEFT JOIN system_users su ON o.doctor_id = su.id
             WHERE o.is_radiology = 0 AND o.approval_status IN ('Approved', 'Paid')${tenantFilter}
             ORDER BY o.id DESC`, queryParams)).rows;
@@ -2513,8 +2696,8 @@ app.get('/api/radiology/orders', requireAuth, async (req, res) => {
         const { tenantId } = getRequestTenantContext(req);
         const tenantFilter = tenantId ? ' AND o.tenant_id=$1' : '';
         const queryParams = tenantId ? [tenantId] : [];
-        const rows = (await pool.query(`SELECT o.*, p.name_ar as patient_name, p.file_number, p.phone, su.display_name as doctor 
-            FROM lab_radiology_orders o LEFT JOIN patients p ON o.patient_id = p.id 
+        const rows = (await pool.query(`SELECT o.*, p.name_ar as patient_name, p.file_number, p.phone, su.display_name as doctor
+            FROM lab_radiology_orders o LEFT JOIN patients p ON o.patient_id = p.id
             LEFT JOIN system_users su ON o.doctor_id = su.id
             WHERE o.is_radiology = 1 AND o.approval_status IN ('Approved', 'Paid')${tenantFilter}
             ORDER BY o.id DESC`, queryParams)).rows;
@@ -2530,7 +2713,7 @@ app.get('/api/orders/pending-payment', requireAuth, async (req, res) => {
         const tenantFilter = tenantId ? ' AND o.tenant_id=$1' : '';
         const queryParams = tenantId ? [tenantId] : [];
         const rows = (await pool.query(`SELECT o.*, p.name_ar as patient_name, p.name_en, p.file_number, p.phone, p.nationality
-            FROM lab_radiology_orders o LEFT JOIN patients p ON o.patient_id = p.id 
+            FROM lab_radiology_orders o LEFT JOIN patients p ON o.patient_id = p.id
             WHERE o.approval_status = 'Pending Approval'${tenantFilter}
             ORDER BY o.id DESC`, queryParams)).rows;
         res.json(rows);
@@ -2549,7 +2732,7 @@ app.post('/api/lab/orders', requireAuth, async (req, res) => {
         }
         const pName = (await pool.query('SELECT name_ar, name_en FROM patients WHERE id=$1', [patient_id])).rows[0];
         const r = await pool.query(
-            `INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, status, is_radiology, approval_status, tenant_id, facility_id) 
+            `INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, status, is_radiology, approval_status, tenant_id, facility_id)
              VALUES ($1, $2, $3, $4, 'Pending Payment', 0, 'Pending Approval', $5, $6) RETURNING *`,
             [patient_id, req.session.user?.id || 0, order_type || '', description || '', tenantId || null, facilityId || null]
         );
@@ -2572,7 +2755,7 @@ app.post('/api/radiology/orders', requireAuth, async (req, res) => {
         }
         const pName = (await pool.query('SELECT name_ar, name_en FROM patients WHERE id=$1', [patient_id])).rows[0];
         const r = await pool.query(
-            `INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, status, is_radiology, approval_status, tenant_id, facility_id) 
+            `INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, status, is_radiology, approval_status, tenant_id, facility_id)
              VALUES ($1, $2, $3, $4, 'Pending Payment', 1, 'Pending Approval', $5, $6) RETURNING *`,
             [patient_id, req.session.user?.id || 0, order_type || '', description || '', tenantId || null, facilityId || null]
         );
@@ -2595,7 +2778,7 @@ app.post('/api/lab/orders/direct', requireAuth, async (req, res) => {
         }
         const pName = patient_id ? (await pool.query('SELECT name_ar, name_en FROM patients WHERE id=$1', [patient_id])).rows[0] : null;
         const r = await pool.query(
-            `INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, status, is_radiology, approval_status, tenant_id, facility_id) 
+            `INSERT INTO lab_radiology_orders (patient_id, doctor_id, order_type, description, status, is_radiology, approval_status, tenant_id, facility_id)
              VALUES ($1, $2, $3, $4, 'Requested', 0, 'Paid', $5, $6) RETURNING *`,
             [patient_id || 0, req.session.user?.id || 0, order_type || '', description || '', tenantId || null, facilityId || null]
         );
@@ -2622,7 +2805,7 @@ app.put('/api/orders/:id/approve-payment', requireAuth, async (req, res) => {
             [req.session.user?.display_name || 'Reception', price || 0, req.params.id]
         );
         // Get order details for invoice
-        const order = (await pool.query(`SELECT o.*, p.name_ar, p.name_en, p.nationality 
+        const order = (await pool.query(`SELECT o.*, p.name_ar, p.name_en, p.nationality
             FROM lab_radiology_orders o LEFT JOIN patients p ON o.patient_id = p.id WHERE o.id=$1`, [req.params.id])).rows[0];
         if (order && price > 0) {
             // Calculate VAT for non-Saudi patients
@@ -2631,7 +2814,7 @@ app.put('/api/orders/:id/approve-payment', requireAuth, async (req, res) => {
             const serviceType = order.is_radiology ? 'Radiology' : 'Laboratory';
             const desc = `${serviceType}: ${order.order_type}`;
             await pool.query(
-                `INSERT INTO invoices (patient_id, patient_name, total, amount, vat_amount, description, service_type, paid, payment_method, order_id, tenant_id, facility_id) 
+                `INSERT INTO invoices (patient_id, patient_name, total, amount, vat_amount, description, service_type, paid, payment_method, order_id, tenant_id, facility_id)
                  VALUES ($1, $2, $3, $4, $5, $6, $7, 1, $8, $9, $10, $11)`,
                 [order.patient_id, order.name_ar || order.name_en || '', finalTotal, price, vatAmount, desc, serviceType, payment_method || 'Cash', order.id, tenantId || null, facilityId || null]
             );
@@ -2673,7 +2856,7 @@ app.get('/api/lab/orders/:id', requireAuth, async (req, res) => {
         const { tenantId } = getRequestTenantContext(req);
         const tenantCheck = tenantId ? ' AND o.tenant_id=$2' : '';
         const tenantParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        const r = (await pool.query(`SELECT o.*, p.name_ar as patient_name, p.file_number 
+        const r = (await pool.query(`SELECT o.*, p.name_ar as patient_name, p.file_number
             FROM lab_radiology_orders o LEFT JOIN patients p ON o.patient_id = p.id WHERE o.id=$1${tenantCheck}`, tenantParams)).rows[0];
         if (!r) return res.status(404).json({ error: 'Order not found' });
         res.json(r);
@@ -2743,10 +2926,10 @@ app.post('/api/emergency/visits', requireAuth, requireTenantScope, async (req, r
         }
 
         const r = await pool.query(
-            `INSERT INTO emergency_visits (patient_id,patient_name,arrival_mode,chief_complaint,chief_complaint_ar,triage_level,triage_color,triage_nurse,triage_vitals,assigned_doctor,assigned_bed,acuity_notes,tenant_id,facility_id) 
+            `INSERT INTO emergency_visits (patient_id,patient_name,arrival_mode,chief_complaint,chief_complaint_ar,triage_level,triage_color,triage_nurse,triage_vitals,assigned_doctor,assigned_bed,acuity_notes,tenant_id,facility_id)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
             [patient_id, patient_name, arrival_mode || 'Walk-in', chief_complaint, chief_complaint_ar, triage_level || 3, triage_color || 'Yellow', triage_nurse, triage_vitals, assigned_doctor, assigned_bed, acuity_notes, tenantId, facilityId]);
-        
+
         if (assigned_bed) {
             const updateBedQ = tenantId
                 ? "UPDATE emergency_beds SET status='Occupied', current_patient_id=$1 WHERE bed_name=$2 AND tenant_id=$3"
@@ -2774,7 +2957,7 @@ app.put('/api/emergency/visits/:id', requireAuth, requireTenantScope, async (req
 
         const { status, disposition, assigned_doctor, assigned_bed, triage_level, triage_color,
             discharge_diagnosis, discharge_instructions, discharge_medications, followup_date } = req.body;
-        
+
         // If assigned_bed is changed, verify it belongs to tenant
         if (assigned_bed && tenantId) {
             const bedCheck = (await pool.query('SELECT id FROM emergency_beds WHERE bed_name = $1 AND tenant_id = $2', [assigned_bed, tenantId])).rows[0];
@@ -2795,18 +2978,18 @@ app.put('/api/emergency/visits/:id', requireAuth, requireTenantScope, async (req
         if (discharge_medications) { sets.push(`discharge_medications=$${i++}`); vals.push(discharge_medications); }
         if (followup_date) { sets.push(`followup_date=$${i++}`); vals.push(followup_date); }
         if (status === 'Discharged') { sets.push(`discharge_time=$${i++}`); vals.push(new Date().toISOString()); }
-        
+
         vals.push(req.params.id);
-        
+
         const updateQ = tenantId
             ? `UPDATE emergency_visits SET ${sets.join(',')} WHERE id=$${i} AND tenant_id=$${i+1}`
             : `UPDATE emergency_visits SET ${sets.join(',')} WHERE id=$${i}`;
         if (tenantId) vals.push(tenantId);
-        
+
         await pool.query(updateQ, vals);
 
         if (status === 'Discharged' || status === 'Admitted') {
-            const v = visit; 
+            const v = visit;
             if (v?.assigned_bed) {
                 const updateBedQ = tenantId
                     ? "UPDATE emergency_beds SET status='Available', current_patient_id=0 WHERE bed_name=$1 AND tenant_id=$2"
@@ -2835,35 +3018,35 @@ app.get('/api/emergency/beds', requireAuth, requireTenantScope, async (req, res)
 app.get('/api/emergency/stats', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        
+
         const activeQ = tenantId
             ? "SELECT COUNT(*) as cnt FROM emergency_visits WHERE status='Active' AND tenant_id=$1"
             : "SELECT COUNT(*) as cnt FROM emergency_visits WHERE status='Active'";
-        
+
         const todayQ = tenantId
             ? "SELECT COUNT(*) as cnt FROM emergency_visits WHERE DATE(arrival_time)=CURRENT_DATE AND tenant_id=$1"
             : "SELECT COUNT(*) as cnt FROM emergency_visits WHERE DATE(arrival_time)=CURRENT_DATE";
-        
+
         const criticalQ = tenantId
             ? "SELECT COUNT(*) as cnt FROM emergency_visits WHERE status='Active' AND triage_level<=2 AND tenant_id=$1"
             : "SELECT COUNT(*) as cnt FROM emergency_visits WHERE status='Active' AND triage_level<=2";
-        
+
         const bedsQ = tenantId
             ? "SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='Available') as available FROM emergency_beds WHERE tenant_id=$1"
             : "SELECT COUNT(*) as total, COUNT(*) FILTER(WHERE status='Available') as available FROM emergency_beds";
-        
+
         const byTriageQ = tenantId
             ? "SELECT triage_color, COUNT(*) as cnt FROM emergency_visits WHERE status='Active' AND tenant_id=$1 GROUP BY triage_color"
             : "SELECT triage_color, COUNT(*) as cnt FROM emergency_visits WHERE status='Active' GROUP BY triage_color";
-        
+
         const params = tenantId ? [tenantId] : [];
-        
+
         const active = (await pool.query(activeQ, params)).rows[0].cnt;
         const today = (await pool.query(todayQ, params)).rows[0].cnt;
         const critical = (await pool.query(criticalQ, params)).rows[0].cnt;
         const beds = (await pool.query(bedsQ, params)).rows[0];
         const byTriage = (await pool.query(byTriageQ, params)).rows;
-        
+
         res.json({ active, today, critical, totalBeds: beds.total, availableBeds: beds.available, byTriage });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -2890,10 +3073,10 @@ app.post('/api/emergency/trauma/:visitId', requireAuth, requireTenantScope, asyn
 
         const gcs_total = (parseInt(gcs_eye) || 4) + (parseInt(gcs_verbal) || 5) + (parseInt(gcs_motor) || 6);
         const r = await pool.query(
-            `INSERT INTO emergency_trauma_assessments (visit_id,patient_id,airway,breathing,circulation,disability,exposure,gcs_eye,gcs_verbal,gcs_motor,gcs_total,mechanism_of_injury,trauma_team_activated,assessed_by,tenant_id,facility_id) 
+            `INSERT INTO emergency_trauma_assessments (visit_id,patient_id,airway,breathing,circulation,disability,exposure,gcs_eye,gcs_verbal,gcs_motor,gcs_total,mechanism_of_injury,trauma_team_activated,assessed_by,tenant_id,facility_id)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *`,
             [req.params.visitId, patient_id, airway, breathing, circulation, disability, exposure, gcs_eye || 4, gcs_verbal || 5, gcs_motor || 6, gcs_total, mechanism_of_injury, trauma_team_activated ? 1 : 0, assessed_by, tenantId, facilityId]);
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_TRAUMA_ASSESSMENT', 'Emergency', `Created trauma assessment for visit #${req.params.visitId}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -2903,7 +3086,7 @@ app.post('/api/emergency/trauma/:visitId', requireAuth, requireTenantScope, asyn
 app.get('/api/wards', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        const q = tenantId 
+        const q = tenantId
             ? 'SELECT * FROM wards WHERE tenant_id = $1 ORDER BY id'
             : 'SELECT * FROM wards ORDER BY id';
         const params = tenantId ? [tenantId] : [];
@@ -2915,7 +3098,7 @@ app.get('/api/beds', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { ward_id } = req.query;
         const { tenantId } = getRequestTenantContext(req);
-        
+
         // If ward_id is provided, verify ward belongs to tenant
         if (ward_id && tenantId) {
             const wardCheck = (await pool.query('SELECT id FROM wards WHERE id=$1 AND tenant_id=$2', [ward_id, tenantId])).rows[0];
@@ -2923,7 +3106,7 @@ app.get('/api/beds', requireAuth, requireTenantScope, async (req, res) => {
                 return res.status(403).json({ error: 'Invalid ward context or access denied' });
             }
         }
-        
+
         let qText = '';
         let params = [];
         if (ward_id) {
@@ -2937,7 +3120,7 @@ app.get('/api/beds', requireAuth, requireTenantScope, async (req, res) => {
                 : 'SELECT b.*, w.ward_name, w.ward_name_ar FROM beds b JOIN wards w ON b.ward_id=w.id ORDER BY w.id, b.bed_number';
             params = tenantId ? [tenantId] : [];
         }
-        
+
         const q = await pool.query(qText, params);
         res.json(q.rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -2946,27 +3129,27 @@ app.get('/api/beds', requireAuth, requireTenantScope, async (req, res) => {
 app.get('/api/beds/census', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        
-        const wardsQ = tenantId 
+
+        const wardsQ = tenantId
             ? 'SELECT * FROM wards WHERE tenant_id = $1 ORDER BY id'
             : 'SELECT * FROM wards ORDER BY id';
         const wardsParams = tenantId ? [tenantId] : [];
         const wards = (await pool.query(wardsQ, wardsParams)).rows;
-        
+
         const bedsQ = tenantId
-            ? `SELECT b.*, w.ward_name, w.ward_name_ar, a.patient_name, a.diagnosis, a.admission_date, a.attending_doctor 
-               FROM beds b JOIN wards w ON b.ward_id=w.id 
+            ? `SELECT b.*, w.ward_name, w.ward_name_ar, a.patient_name, a.diagnosis, a.admission_date, a.attending_doctor
+               FROM beds b JOIN wards w ON b.ward_id=w.id
                LEFT JOIN admissions a ON b.current_admission_id=a.id AND a.status='Active' AND a.tenant_id=$1
                WHERE b.tenant_id=$1
                ORDER BY w.id, b.bed_number`
-            : `SELECT b.*, w.ward_name, w.ward_name_ar, a.patient_name, a.diagnosis, a.admission_date, a.attending_doctor 
-               FROM beds b JOIN wards w ON b.ward_id=w.id 
+            : `SELECT b.*, w.ward_name, w.ward_name_ar, a.patient_name, a.diagnosis, a.admission_date, a.attending_doctor
+               FROM beds b JOIN wards w ON b.ward_id=w.id
                LEFT JOIN admissions a ON b.current_admission_id=a.id AND a.status='Active'
                ORDER BY w.id, b.bed_number`;
         const bedsParams = tenantId ? [tenantId] : [];
         const beds = (await pool.query(bedsQ, bedsParams)).rows;
-        
-        const total = beds.length; 
+
+        const total = beds.length;
         const occupied = beds.filter(b => b.status === 'Occupied').length;
         res.json({ wards, beds, total, occupied, available: total - occupied, occupancyRate: total > 0 ? Math.round(occupied / total * 100) : 0 });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -2998,7 +3181,7 @@ app.get('/api/admissions', requireAuth, requireTenantScope, async (req, res) => 
 app.get('/api/admissions/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        const q = tenantId 
+        const q = tenantId
             ? 'SELECT * FROM admissions WHERE id = $1 AND tenant_id = $2'
             : 'SELECT * FROM admissions WHERE id = $1';
         const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
@@ -3012,7 +3195,7 @@ app.post('/api/admissions', requireAuth, requireTenantScope, async (req, res) =>
     try {
         const { patient_id, patient_name, admission_type, admitting_doctor, attending_doctor, department, ward_id, bed_id, diagnosis, icd10_code, admission_orders, diet_order, activity_level, dvt_prophylaxis, expected_los, insurance_auth } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
-        
+
         // Validate patient context to prevent IDOR / illegal references
         if (patient_id) {
             const patientCheckQ = tenantId
@@ -3024,7 +3207,7 @@ app.post('/api/admissions', requireAuth, requireTenantScope, async (req, res) =>
                 return res.status(403).json({ error: 'Invalid patient context or access denied' });
             }
         }
-        
+
         // Validate ward / bed context to prevent IDOR / illegal references
         if (bed_id) {
             const bedCheckQ = tenantId
@@ -3049,10 +3232,10 @@ app.post('/api/admissions', requireAuth, requireTenantScope, async (req, res) =>
         }
 
         const r = await pool.query(
-            `INSERT INTO admissions (patient_id,patient_name,admission_type,admitting_doctor,attending_doctor,department,ward_id,bed_id,diagnosis,icd10_code,admission_orders,diet_order,activity_level,dvt_prophylaxis,expected_los,insurance_auth,tenant_id,facility_id) 
+            `INSERT INTO admissions (patient_id,patient_name,admission_type,admitting_doctor,attending_doctor,department,ward_id,bed_id,diagnosis,icd10_code,admission_orders,diet_order,activity_level,dvt_prophylaxis,expected_los,insurance_auth,tenant_id,facility_id)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING *`,
             [patient_id, patient_name, admission_type || 'Regular', admitting_doctor, attending_doctor, department, ward_id, bed_id, diagnosis, icd10_code, admission_orders, diet_order || 'Regular', activity_level || 'Bed Rest', dvt_prophylaxis, expected_los || 3, insurance_auth, tenantId, facilityId]);
-        
+
         if (bed_id) {
             const updateBedQ = tenantId
                 ? "UPDATE beds SET status='Occupied', current_patient_id=$1, current_admission_id=$2 WHERE id=$3 AND tenant_id=$4"
@@ -3060,13 +3243,13 @@ app.post('/api/admissions', requireAuth, requireTenantScope, async (req, res) =>
             const updateBedParams = tenantId ? [patient_id, r.rows[0].id, bed_id, tenantId] : [patient_id, r.rows[0].id, bed_id];
             await pool.query(updateBedQ, updateBedParams);
         }
-        
+
         const updatePatientQ = tenantId
             ? "UPDATE patients SET status='Admitted' WHERE id=$1 AND tenant_id=$2"
             : "UPDATE patients SET status='Admitted' WHERE id=$1";
         const updatePatientParams = tenantId ? [patient_id, tenantId] : [patient_id];
         await pool.query(updatePatientQ, updatePatientParams);
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_ADMISSION', 'Inpatient', `Created admission for patient #${patient_id}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -3075,9 +3258,9 @@ app.post('/api/admissions', requireAuth, requireTenantScope, async (req, res) =>
 app.put('/api/admissions/:id/discharge', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        
+
         // Verify admission ownership first
-        const checkQ = tenantId 
+        const checkQ = tenantId
             ? 'SELECT id, bed_id, patient_id FROM admissions WHERE id = $1 AND tenant_id = $2'
             : 'SELECT id, bed_id, patient_id FROM admissions WHERE id = $1';
         const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
@@ -3085,24 +3268,24 @@ app.put('/api/admissions/:id/discharge', requireAuth, requireTenantScope, async 
         if (!adm) return res.status(404).json({ error: 'Admission not found' });
 
         const { discharge_type, discharge_summary, discharge_instructions, discharge_medications, followup_date, followup_doctor } = req.body;
-        
+
         const updateQ = tenantId
             ? 'UPDATE admissions SET status=$1, discharge_date=$2, discharge_type=$3, discharge_summary=$4, discharge_instructions=$5, discharge_medications=$6, followup_date=$7, followup_doctor=$8 WHERE id=$9 AND tenant_id=$10'
             : 'UPDATE admissions SET status=$1, discharge_date=$2, discharge_type=$3, discharge_summary=$4, discharge_instructions=$5, discharge_medications=$6, followup_date=$7, followup_doctor=$8 WHERE id=$9';
         const updateParams = [
-            'Discharged', 
-            new Date().toISOString(), 
-            discharge_type || 'Regular', 
-            discharge_summary, 
-            discharge_instructions, 
-            discharge_medications, 
-            followup_date, 
-            followup_doctor, 
+            'Discharged',
+            new Date().toISOString(),
+            discharge_type || 'Regular',
+            discharge_summary,
+            discharge_instructions,
+            discharge_medications,
+            followup_date,
+            followup_doctor,
             req.params.id
         ];
         if (tenantId) updateParams.push(tenantId);
         await pool.query(updateQ, updateParams);
-        
+
         if (adm.bed_id) {
             const updateBedQ = tenantId
                 ? "UPDATE beds SET status='Available', current_patient_id=0, current_admission_id=0 WHERE id=$1 AND tenant_id=$2"
@@ -3117,7 +3300,7 @@ app.put('/api/admissions/:id/discharge', requireAuth, requireTenantScope, async 
             const updatePatientParams = tenantId ? [adm.patient_id, tenantId] : [adm.patient_id];
             await pool.query(updatePatientQ, updatePatientParams);
         }
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name, 'DISCHARGE_PATIENT', 'Inpatient', `Discharged patient from admission #${req.params.id}`, req.ip);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -3126,9 +3309,9 @@ app.put('/api/admissions/:id/discharge', requireAuth, requireTenantScope, async 
 app.post('/api/admissions/:id/rounds', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId, facilityId } = getRequestTenantContext(req);
-        
+
         // Verify admission ownership first
-        const checkQ = tenantId 
+        const checkQ = tenantId
             ? 'SELECT id FROM admissions WHERE id = $1 AND tenant_id = $2'
             : 'SELECT id FROM admissions WHERE id = $1';
         const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
@@ -3136,7 +3319,7 @@ app.post('/api/admissions/:id/rounds', requireAuth, requireTenantScope, async (r
         if (!adm) return res.status(404).json({ error: 'Admission not found' });
 
         const { patient_id, doctor_name, subjective, objective, assessment, plan, vitals_summary, orders, diet_changes } = req.body;
-        
+
         // Verify patient ownership
         if (patient_id && tenantId) {
             const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
@@ -3146,10 +3329,10 @@ app.post('/api/admissions/:id/rounds', requireAuth, requireTenantScope, async (r
         }
 
         const r = await pool.query(
-            `INSERT INTO admission_daily_rounds (admission_id,patient_id,round_date,round_time,doctor_name,subjective,objective,assessment,plan,vitals_summary,orders,diet_changes,tenant_id,facility_id) 
+            `INSERT INTO admission_daily_rounds (admission_id,patient_id,round_date,round_time,doctor_name,subjective,objective,assessment,plan,vitals_summary,orders,diet_changes,tenant_id,facility_id)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
             [req.params.id, patient_id, new Date().toISOString().split('T')[0], new Date().toTimeString().split(' ')[0], doctor_name, subjective, objective, assessment, plan, vitals_summary, orders, diet_changes, tenantId, facilityId]);
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_DAILY_ROUND', 'Inpatient', `Added daily round for admission #${req.params.id}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -3158,9 +3341,9 @@ app.post('/api/admissions/:id/rounds', requireAuth, requireTenantScope, async (r
 app.get('/api/admissions/:id/rounds', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        
+
         // Verify admission ownership first
-        const checkQ = tenantId 
+        const checkQ = tenantId
             ? 'SELECT id FROM admissions WHERE id = $1 AND tenant_id = $2'
             : 'SELECT id FROM admissions WHERE id = $1';
         const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
@@ -3179,14 +3362,14 @@ app.post('/api/bed-transfers', requireAuth, requireTenantScope, async (req, res)
     try {
         const { admission_id, patient_id, from_ward, from_bed, to_ward, to_bed, transfer_reason, transferred_by } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
-        
+
         // Verify admission ownership first
         if (admission_id && tenantId) {
             const checkQ = 'SELECT id FROM admissions WHERE id = $1 AND tenant_id = $2';
             const adm = (await pool.query(checkQ, [admission_id, tenantId])).rows[0];
             if (!adm) return res.status(403).json({ error: 'Invalid admission context or access denied' });
         }
-        
+
         // Verify patient ownership
         if (patient_id && tenantId) {
             const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
@@ -3204,10 +3387,10 @@ app.post('/api/bed-transfers', requireAuth, requireTenantScope, async (req, res)
         }
 
         await pool.query(
-            `INSERT INTO bed_transfers (admission_id,patient_id,from_ward,from_bed,to_ward,to_bed,transfer_reason,transferred_by,tenant_id,branch_id) 
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`, 
+            `INSERT INTO bed_transfers (admission_id,patient_id,from_ward,from_bed,to_ward,to_bed,transfer_reason,transferred_by,tenant_id,branch_id)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
             [admission_id, patient_id, from_ward, from_bed, to_ward, to_bed, transfer_reason, transferred_by, tenantId, facilityId]);
-        
+
         if (from_bed) {
             const updateOldBedQ = tenantId
                 ? "UPDATE beds SET status='Available', current_patient_id=0, current_admission_id=0 WHERE id=$1 AND tenant_id=$2"
@@ -3222,13 +3405,13 @@ app.post('/api/bed-transfers', requireAuth, requireTenantScope, async (req, res)
             const updateNewBedParams = tenantId ? [patient_id, admission_id, to_bed, tenantId] : [patient_id, admission_id, to_bed];
             await pool.query(updateNewBedQ, updateNewBedParams);
         }
-        
+
         const updateAdmissionQ = tenantId
             ? 'UPDATE admissions SET ward_id=$1, bed_id=$2 WHERE id=$3 AND tenant_id=$4'
             : 'UPDATE admissions SET ward_id=$1, bed_id=$2 WHERE id=$3';
         const updateAdmissionParams = tenantId ? [to_ward, to_bed, admission_id, tenantId] : [to_ward, to_bed, admission_id];
         await pool.query(updateAdmissionQ, updateAdmissionParams);
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name, 'BED_TRANSFER', 'Inpatient', `Transferred patient #${patient_id} to bed #${to_bed}`, req.ip);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -4193,7 +4376,7 @@ app.post('/api/prescriptions', requireAuth, requireTenantScope, async (req, res)
         await pool.query(`ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN IF NOT EXISTS frequency TEXT DEFAULT ''`).catch(() => { });
         await pool.query(`ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN IF NOT EXISTS duration TEXT DEFAULT ''`).catch(() => { });
         const r = await pool.query(
-            `INSERT INTO pharmacy_prescriptions_queue (patient_id, doctor_id, prescription_text, medication_name, dosage, quantity_per_day, frequency, duration, status, tenant_id, branch_id) 
+            `INSERT INTO pharmacy_prescriptions_queue (patient_id, doctor_id, prescription_text, medication_name, dosage, quantity_per_day, frequency, duration, status, tenant_id, branch_id)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Pending', $9, $10) RETURNING *`,
             [patient_id, req.session.user?.id || 0, rxText, medication_name || '', dosage || '', quantity_per_day || '1', frequency || '', duration || '', tenantId || null, facilityId || null]
         );
@@ -4209,13 +4392,13 @@ app.get('/api/pharmacy/queue', requireAuth, requireTenantScope, async (req, res)
         const { tenantId } = getRequestTenantContext(req);
         const query = tenantId ?
             `SELECT q.*, p.name_ar as patient_name, p.file_number, p.phone, p.age, p.department, q.doctor
-             FROM pharmacy_prescriptions_queue q 
-             LEFT JOIN patients p ON q.patient_id = p.id 
+             FROM pharmacy_prescriptions_queue q
+             LEFT JOIN patients p ON q.patient_id = p.id
              WHERE q.tenant_id=$1
              ORDER BY q.id DESC` :
             `SELECT q.*, p.name_ar as patient_name, p.file_number, p.phone, p.age, p.department, q.doctor
-             FROM pharmacy_prescriptions_queue q 
-             LEFT JOIN patients p ON q.patient_id = p.id 
+             FROM pharmacy_prescriptions_queue q
+             LEFT JOIN patients p ON q.patient_id = p.id
              ORDER BY q.id DESC`;
         const params = tenantId ? [tenantId] : [];
         const rows = (await pool.query(query, params)).rows;
@@ -4266,7 +4449,7 @@ app.put('/api/pharmacy/queue/:id', requireAuth, requireTenantScope, async (req, 
             const vat = await calcVAT(patient_id);
             const { total: finalTotal, vatAmount } = addVAT(price, vat.rate);
             await pool.query(
-                `INSERT INTO invoices (patient_id, patient_name, total, amount, vat_amount, description, service_type, paid, payment_method, tenant_id, facility_id) 
+                `INSERT INTO invoices (patient_id, patient_name, total, amount, vat_amount, description, service_type, paid, payment_method, tenant_id, facility_id)
                  VALUES ($1, $2, $3, $4, $5, $6, 'Pharmacy', 1, $7, $8, $9)`,
                 [patient_id, patient?.name_ar || patient?.name_en || '', finalTotal, price, vatAmount,
                     `Pharmacy: ${rx?.prescription_text || ''}`, payment_method || 'Cash', tenantId || null, facilityId || null]
@@ -4297,7 +4480,7 @@ app.post('/api/pharmacy/drugs', requireAuth, requireTenantScope, async (req, res
         const { drug_name, selling_price, stock_qty, category, active_ingredient } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
         const r = await pool.query(
-            `INSERT INTO pharmacy_drug_catalog (drug_name, selling_price, stock_qty, category, active_ingredient, tenant_id, branch_id) 
+            `INSERT INTO pharmacy_drug_catalog (drug_name, selling_price, stock_qty, category, active_ingredient, tenant_id, branch_id)
              VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
             [drug_name || '', selling_price || 0, stock_qty || 0, category || '', active_ingredient || '', tenantId || null, facilityId || null]
         );
@@ -4312,14 +4495,14 @@ app.get('/api/reports/pnl', requireAuth, requireRole('finance'), requireTenantSc
     try {
         const { tenantId } = getRequestTenantContext(req);
         const { from, to } = req.query;
-        
+
         let dateFilter = '';
         let params = [];
         if (from && to && /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to)) {
             dateFilter = 'created_at BETWEEN $1 AND $2';
             params = [from, to + ' 23:59:59'];
         }
-        
+
         let whereClause = '';
         if (dateFilter) {
             whereClause = 'WHERE ' + dateFilter;
@@ -4333,16 +4516,16 @@ app.get('/api/reports/pnl', requireAuth, requireRole('finance'), requireTenantSc
                 params.push(tenantId);
             }
         }
-        
+
         const revenue = (await pool.query(`SELECT COALESCE(SUM(total),0) as total, COALESCE(SUM(CASE WHEN paid=1 THEN total ELSE 0 END),0) as collected, COALESCE(SUM(discount),0) as discounts FROM invoices ${whereClause}`, params)).rows[0];
         const byType = (await pool.query(`SELECT service_type, COUNT(*) as cnt, COALESCE(SUM(total),0) as total FROM invoices ${whereClause} GROUP BY service_type ORDER BY total DESC`, params)).rows;
-        
+
         const expensesQuery = tenantId ?
             'SELECT COALESCE(SUM(cost_price * stock_qty),0) as drug_cost FROM pharmacy_drug_catalog WHERE is_active=1 AND tenant_id=$1' :
             'SELECT COALESCE(SUM(cost_price * stock_qty),0) as drug_cost FROM pharmacy_drug_catalog WHERE is_active=1';
         const expensesParams = tenantId ? [tenantId] : [];
         const expenses = (await pool.query(expensesQuery, expensesParams)).rows[0];
-        
+
         res.json({
             totalRevenue: parseFloat(revenue.total),
             totalCollected: parseFloat(revenue.collected),
@@ -4674,7 +4857,7 @@ app.post('/api/pharmacy/deduct-stock', requireAuth, requireTenantScope, async (r
     try {
         const { drug_id, drug_name, quantity, patient_id, prescription_id, reason } = req.body;
         const { tenantId } = getRequestTenantContext(req);
-        
+
         // IDOR Prevention: check if drug belongs to tenant
         const drugQuery = tenantId ?
             'SELECT * FROM pharmacy_drug_catalog WHERE id=$1 AND tenant_id=$2' :
@@ -4702,7 +4885,7 @@ app.post('/api/pharmacy/deduct-stock', requireAuth, requireTenantScope, async (r
             'UPDATE pharmacy_drug_catalog SET stock_qty=$1 WHERE id=$2';
         const updateParams = tenantId ? [newQty, drug_id, tenantId] : [newQty, drug_id];
         await pool.query(updateQuery, updateParams);
-        
+
         await pool.query('INSERT INTO pharmacy_stock_log (drug_id, drug_name, movement_type, quantity, previous_qty, new_qty, reason, patient_id, prescription_id, performed_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',
             [drug_id, drug_name || drug.drug_name, 'OUT', quantity, drug.stock_qty, newQty, reason || 'Dispensed', patient_id, prescription_id, req.session.user?.display_name || '']);
         logAudit(req.session.user?.id, req.session.user?.display_name, 'STOCK_OUT', 'Pharmacy', drug_name + ': ' + drug.stock_qty + ' -> ' + newQty, req.ip);
@@ -4815,9 +4998,9 @@ app.get('/api/pharmacy/stock-log', requireAuth, requireTenantScope, async (req, 
     try {
         const { tenantId } = getRequestTenantContext(req);
         const query = tenantId ?
-            `SELECT sl.* FROM pharmacy_stock_log sl 
-             JOIN pharmacy_drug_catalog dc ON sl.drug_id = dc.id 
-             WHERE dc.tenant_id = $1 
+            `SELECT sl.* FROM pharmacy_stock_log sl
+             JOIN pharmacy_drug_catalog dc ON sl.drug_id = dc.id
+             WHERE dc.tenant_id = $1
              ORDER BY sl.created_at DESC LIMIT 200` :
             `SELECT * FROM pharmacy_stock_log ORDER BY created_at DESC LIMIT 200`;
         const params = tenantId ? [tenantId] : [];
@@ -5046,7 +5229,7 @@ app.get('/api/obgyn/lab-panels', requireAuth, async (req, res) => {
 app.get('/api/obgyn/stats', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        
+
         // Ensure tables exist dynamically
         await pool.query(`CREATE TABLE IF NOT EXISTS obgyn_pregnancies (
             id SERIAL PRIMARY KEY,
@@ -5067,7 +5250,7 @@ app.get('/api/obgyn/stats', requireAuth, requireTenantScope, async (req, res) =>
             gender VARCHAR(20), neonatal_outcome VARCHAR(100), tenant_id INTEGER,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`);
-        
+
         await pool.query(`ALTER TABLE obgyn_pregnancies ADD COLUMN IF NOT EXISTS tenant_id INTEGER`);
         await pool.query(`ALTER TABLE obgyn_deliveries ADD COLUMN IF NOT EXISTS tenant_id INTEGER`);
 
@@ -5137,7 +5320,7 @@ app.get('/api/reports/daily-cash', requireAuth, requireRole('finance', 'accounts
         const date = req.query.date || new Date().toISOString().split('T')[0];
         const params = tenantId ? [date, tenantId] : [date];
         const tenantFilter = tenantId ? ' AND tenant_id=$2' : '';
-        
+
         const byCash = (await pool.query(`SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE payment_method='Cash' AND DATE(created_at)=$1 AND cancelled=0${tenantFilter}`, params)).rows[0].total;
         const byCard = (await pool.query(`SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE payment_method IN ('Card','POS','شبكة') AND DATE(created_at)=$1 AND cancelled=0${tenantFilter}`, params)).rows[0].total;
         const byTransfer = (await pool.query(`SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE payment_method IN ('Transfer','تحويل') AND DATE(created_at)=$1 AND cancelled=0${tenantFilter}`, params)).rows[0].total;
@@ -5145,7 +5328,7 @@ app.get('/api/reports/daily-cash', requireAuth, requireRole('finance', 'accounts
         const total = (await pool.query(`SELECT COALESCE(SUM(total),0) as total, COUNT(*) as cnt FROM invoices WHERE DATE(created_at)=$1 AND cancelled=0${tenantFilter}`, params)).rows[0];
         const byCreator = (await pool.query(`SELECT COALESCE(created_by,'Unknown') as staff, COUNT(*) as cnt, COALESCE(SUM(total),0) as total FROM invoices WHERE DATE(created_at)=$1 AND cancelled=0${tenantFilter} GROUP BY created_by ORDER BY total DESC`, params)).rows;
         const byService = (await pool.query(`SELECT service_type, COUNT(*) as cnt, COALESCE(SUM(total),0) as total FROM invoices WHERE DATE(created_at)=$1 AND cancelled=0${tenantFilter} GROUP BY service_type ORDER BY total DESC`, params)).rows;
-        
+
         res.json({ date, totalRevenue: parseFloat(total.total), invoiceCount: parseInt(total.cnt), cash: parseFloat(byCash), card: parseFloat(byCard), transfer: parseFloat(byTransfer), insurance: parseFloat(byInsurance), byStaff: byCreator, byService });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -5156,18 +5339,18 @@ app.get('/api/reports/doctor-revenue', requireAuth, requireRole('finance', 'doct
         const { tenantId } = getRequestTenantContext(req);
         const { from, to } = req.query;
         let dateFilter = '', params = [];
-        
+
         if (from && to) {
             dateFilter = " AND i.created_at BETWEEN $1 AND ($2::text || ' 23:59:59')::timestamp";
             params = [from, to];
         }
-        
+
         let tenantFilter = '';
         if (tenantId) {
             tenantFilter = ` AND i.tenant_id = $${params.length + 1}`;
             params.push(tenantId);
         }
-        
+
         const queryStr = `SELECT su.id, su.display_name, su.speciality, su.commission_type, su.commission_value,
             COALESCE(COUNT(DISTINCT i.id),0) as invoice_count,
             COALESCE(SUM(i.total),0) as total_revenue
@@ -5175,7 +5358,7 @@ app.get('/api/reports/doctor-revenue', requireAuth, requireRole('finance', 'doct
             LEFT JOIN invoices i ON i.description LIKE '%' || su.display_name || '%' AND i.cancelled=0 ${dateFilter}${tenantFilter}
             WHERE su.role='Doctor' AND su.is_active=1
             GROUP BY su.id ORDER BY total_revenue DESC`;
-            
+
         const doctors = (await pool.query(queryStr, params)).rows;
         doctors.forEach(d => {
             d.total_revenue = parseFloat(d.total_revenue);
@@ -5192,17 +5375,17 @@ app.get('/api/reports/aging', requireAuth, requireRole('finance'), requireTenant
         const { tenantId } = getRequestTenantContext(req);
         const params = tenantId ? [tenantId] : [];
         const tenantFilter = tenantId ? ' AND tenant_id=$1' : '';
-        
+
         const currentQuery = `SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at >= CURRENT_DATE - 30${tenantFilter} ORDER BY created_at DESC`;
         const d30Query = `SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at BETWEEN CURRENT_DATE - 60 AND CURRENT_DATE - 30${tenantFilter} ORDER BY created_at DESC`;
         const d60Query = `SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at BETWEEN CURRENT_DATE - 90 AND CURRENT_DATE - 60${tenantFilter} ORDER BY created_at DESC`;
         const d90Query = `SELECT patient_name, total, created_at, invoice_number FROM invoices WHERE paid=0 AND cancelled=0 AND created_at < CURRENT_DATE - 90${tenantFilter} ORDER BY created_at DESC`;
-        
+
         const current = (await pool.query(currentQuery, params)).rows;
         const d30 = (await pool.query(d30Query, params)).rows;
         const d60 = (await pool.query(d60Query, params)).rows;
         const d90 = (await pool.query(d90Query, params)).rows;
-        
+
         const sum = arr => arr.reduce((s, r) => s + parseFloat(r.total), 0);
         res.json({
             current: { items: current, total: sum(current), count: current.length },
@@ -5232,7 +5415,7 @@ app.post('/api/referrals', requireAuth, requireTenantScope, async (req, res) => 
             id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name TEXT DEFAULT '', from_doctor TEXT DEFAULT '', from_dept TEXT DEFAULT '',
             to_dept TEXT DEFAULT '', to_doctor TEXT DEFAULT '', reason TEXT DEFAULT '', urgency TEXT DEFAULT 'Routine',
             notes TEXT DEFAULT '', status TEXT DEFAULT 'Pending', response TEXT DEFAULT '', tenant_id INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
-        
+
         await pool.query('ALTER TABLE referrals ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
 
         const result = await pool.query('INSERT INTO referrals (patient_id, patient_name, from_doctor, from_dept, to_dept, to_doctor, reason, urgency, notes, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
@@ -5252,7 +5435,7 @@ app.get('/api/referrals', requireAuth, requireTenantScope, async (req, res) => {
             id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name TEXT DEFAULT '', from_doctor TEXT DEFAULT '', from_dept TEXT DEFAULT '',
             to_dept TEXT DEFAULT '', to_doctor TEXT DEFAULT '', reason TEXT DEFAULT '', urgency TEXT DEFAULT 'Routine',
             notes TEXT DEFAULT '', status TEXT DEFAULT 'Pending', response TEXT DEFAULT '', tenant_id INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
-        
+
         await pool.query('ALTER TABLE referrals ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
 
         const { patient_id } = req.query;
@@ -5288,35 +5471,35 @@ app.get('/api/dashboard/today', requireAuth, requireTenantScope, async (req, res
     try {
         const { tenantId } = getRequestTenantContext(req);
         const params = tenantId ? [tenantId] : [];
-        
+
         const todayRevQuery = tenantId ?
             "SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE DATE(created_at)=CURRENT_DATE AND cancelled=0 AND tenant_id=$1" :
             "SELECT COALESCE(SUM(total),0) as total FROM invoices WHERE DATE(created_at)=CURRENT_DATE AND cancelled=0";
-            
+
         const todayPatientsQuery = tenantId ?
             "SELECT COUNT(DISTINCT patient_id) as cnt FROM invoices WHERE DATE(created_at)=CURRENT_DATE AND tenant_id=$1" :
             "SELECT COUNT(DISTINCT patient_id) as cnt FROM invoices WHERE DATE(created_at)=CURRENT_DATE";
-            
+
         const todayInvoicesQuery = tenantId ?
             "SELECT COUNT(*) as cnt FROM invoices WHERE DATE(created_at)=CURRENT_DATE AND cancelled=0 AND tenant_id=$1" :
             "SELECT COUNT(*) as cnt FROM invoices WHERE DATE(created_at)=CURRENT_DATE AND cancelled=0";
-            
+
         const pendingLabQuery = tenantId ?
             "SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE status='Requested' AND is_radiology=0 AND tenant_id=$1" :
             "SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE status='Requested' AND is_radiology=0";
-            
+
         const pendingRadQuery = tenantId ?
             "SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE status='Requested' AND is_radiology=1 AND tenant_id=$1" :
             "SELECT COUNT(*) as cnt FROM lab_radiology_orders WHERE status='Requested' AND is_radiology=1";
-            
+
         const pendingRxQuery = tenantId ?
             "SELECT COUNT(*) as cnt FROM pharmacy_prescriptions_queue WHERE status='Pending' AND tenant_id=$1" :
             "SELECT COUNT(*) as cnt FROM pharmacy_prescriptions_queue WHERE status='Pending'";
-            
+
         const waitingPatientsQuery = tenantId ?
             "SELECT COUNT(*) as cnt FROM patients WHERE status='Waiting' AND tenant_id=$1" :
             "SELECT COUNT(*) as cnt FROM patients WHERE status='Waiting'";
-            
+
         const todayRev = (await pool.query(todayRevQuery, params)).rows[0].total;
         const todayPatients = (await pool.query(todayPatientsQuery, params)).rows[0].cnt;
         const todayInvoices = (await pool.query(todayInvoicesQuery, params)).rows[0].cnt;
@@ -5324,7 +5507,7 @@ app.get('/api/dashboard/today', requireAuth, requireTenantScope, async (req, res
         const pendingRad = (await pool.query(pendingRadQuery, params)).rows[0].cnt;
         const pendingRx = (await pool.query(pendingRxQuery, params)).rows[0].cnt;
         const waitingPatients = (await pool.query(waitingPatientsQuery, params)).rows[0].cnt;
-        
+
         res.json({ todayRevenue: parseFloat(todayRev), todayPatients: parseInt(todayPatients), todayInvoices: parseInt(todayInvoices), pendingLab: parseInt(pendingLab), pendingRad: parseInt(pendingRad), pendingRx: parseInt(pendingRx), waitingPatients: parseInt(waitingPatients) });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -5386,7 +5569,7 @@ app.post('/api/medical-reports', requireAuth, requireTenantScope, async (req, re
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
-        
+
         await pool.query('ALTER TABLE medical_reports ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
 
         const result = await pool.query(
@@ -5966,7 +6149,7 @@ app.post('/api/nursing/triage', requireAuth, requireTenantScope, async (req, res
             const updateVitalsQ = tenantId
                 ? "UPDATE nursing_vitals SET triage_level=$1, pain_score=$2 WHERE patient_id=$3 AND tenant_id=$4 AND created_at::date = CURRENT_DATE"
                 : "UPDATE nursing_vitals SET triage_level=$1, pain_score=$2 WHERE patient_id=$3 AND created_at::date = CURRENT_DATE";
-            const updateVitalsParams = tenantId 
+            const updateVitalsParams = tenantId
                 ? [triage_level, pain_score, patient_id, tenantId]
                 : [triage_level, pain_score, patient_id];
             await pool.query(updateVitalsQ, updateVitalsParams);
@@ -6080,7 +6263,7 @@ app.get('/api/dashboard/charts', requireAuth, requireTenantScope, async (req, re
     try {
         const { tenantId } = getRequestTenantContext(req);
         const params = tenantId ? [tenantId] : [];
-        
+
         // Revenue trend (last 30 days)
         const revenueTrendQuery = tenantId ? `
             SELECT DATE(created_at) as day, COALESCE(SUM(total),0) as revenue, COUNT(*) as count
@@ -6302,7 +6485,7 @@ app.post('/api/cme/events', requireAuth, async (req, res) => {
 app.get('/api/infection-control/reports', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        
+
         await pool.query(`CREATE TABLE IF NOT EXISTS infection_control_reports (
             id SERIAL PRIMARY KEY,
             patient_name VARCHAR(200),
@@ -6315,7 +6498,7 @@ app.get('/api/infection-control/reports', requireAuth, requireTenantScope, async
             tenant_id INTEGER,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`);
-        
+
         await pool.query('ALTER TABLE infection_control_reports ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
 
         const q = tenantId ?
@@ -6330,7 +6513,7 @@ app.post('/api/infection-control/reports', requireAuth, requireTenantScope, asyn
     try {
         const { patient_name, infection_type, ward, isolation_type, culture_results, action_taken, status } = req.body;
         const { tenantId } = getRequestTenantContext(req);
-        
+
         await pool.query('ALTER TABLE infection_control_reports ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
 
         const r = await pool.query(
@@ -6344,7 +6527,7 @@ app.put('/api/infection-control/reports/:id', requireAuth, requireTenantScope, a
     try {
         const { status } = req.body;
         const { tenantId } = getRequestTenantContext(req);
-        
+
         await pool.query('ALTER TABLE infection_control_reports ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
 
         const q = tenantId ?
@@ -6400,7 +6583,7 @@ app.get('/api/inventory', requireAuth, requireTenantScope, async (req, res) => {
         )`);
         await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
         await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS facility_id INTEGER`).catch(() => {});
-        
+
         const { tenantId } = getRequestTenantContext(req);
         const query = tenantId ?
             'SELECT * FROM inventory WHERE tenant_id=$1 ORDER BY name ASC' :
@@ -6413,12 +6596,12 @@ app.post('/api/inventory', requireAuth, requireTenantScope, async (req, res) => 
     try {
         await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
         await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS facility_id INTEGER`).catch(() => {});
-        
+
         const { tenantId, facilityId } = getRequestTenantContext(req);
         const { name, category, quantity, unit, reorder_level, location, supplier, cost, expiry_date } = req.body;
         const r = await pool.query('INSERT INTO inventory (name,category,quantity,unit,reorder_level,location,supplier,cost,expiry_date,tenant_id,facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
             [name, category, quantity || 0, unit, reorder_level || 10, location, supplier, cost, expiry_date, tenantId || null, facilityId || null]);
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_INVENTORY_ITEM', 'Inventory', `Created item ${name} with initial stock ${quantity}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -6439,7 +6622,7 @@ app.put('/api/inventory/:id', requireAuth, requireTenantScope, async (req, res) 
             [name, category, quantity, unit, reorder_level, location, supplier, cost, expiry_date, req.params.id, tenantId] :
             [name, category, quantity, unit, reorder_level, location, supplier, cost, expiry_date, req.params.id];
         const r = await pool.query(query, params);
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_INVENTORY_ITEM', 'Inventory', `Updated item #${req.params.id} (${name})`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -6455,7 +6638,7 @@ app.delete('/api/inventory/:id', requireAuth, requireTenantScope, async (req, re
         const query = tenantId ? 'DELETE FROM inventory WHERE id=$1 AND tenant_id=$2' : 'DELETE FROM inventory WHERE id=$1';
         const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
         await pool.query(query, params);
-        
+
         logAudit(req.session.user?.id, req.session.user?.display_name, 'DELETE_INVENTORY_ITEM', 'Inventory', `Deleted item #${req.params.id}`, req.ip);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -6473,7 +6656,7 @@ app.get('/api/pharmacy/prescriptions', requireAuth, requireTenantScope, async (r
         )`);
         await pool.query(`ALTER TABLE pharmacy_prescriptions ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
         await pool.query(`ALTER TABLE pharmacy_prescriptions ADD COLUMN IF NOT EXISTS facility_id INTEGER`).catch(() => {});
-        
+
         const { tenantId } = getRequestTenantContext(req);
         const query = tenantId ?
             'SELECT * FROM pharmacy_prescriptions WHERE tenant_id=$1 ORDER BY created_at DESC' :
