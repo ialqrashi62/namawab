@@ -1283,3 +1283,35 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - PRODUCTION_READY: NO
 * **المرحلة التالية الموصى بها**: `BEDS_BATCH5_SURGERY_OPERATING_ROOMS_DESIGN` (تصميم وعزل موديول غرف العمليات والجراحة).
 
+### Phase 79: Nursing Assessments Schema Design
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `NURSING_ASSESSMENTS_SCHEMA_DESIGN_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `.ai-brain/skills/MEDICAL_SKILLS_INDEX_AR.md` (تحديث فهرس مهارات الأوتو بايلوت)
+* **الملفات الجديدة**:
+  - [docs/sql/nursing_assessments_readonly_validate.sql](docs/sql/nursing_assessments_readonly_validate.sql) (سكربت التحقق للقراءة فقط)
+  - [docs/sql/nursing_assessments_noop_safety_checks.sql](docs/sql/nursing_assessments_noop_safety_checks.sql) (سكربت الفحوصات الصامتة والمحاكاة)
+  - [docs/MEDICAL_NURSING_ASSESSMENTS_PREFLIGHT_AUDIT_AR.md](docs/MEDICAL_NURSING_ASSESSMENTS_PREFLIGHT_AUDIT_AR.md) (تقرير المراجعة الأولية)
+  - [docs/MEDICAL_NURSING_ASSESSMENTS_SCHEMA_DISCOVERY_AR.md](docs/MEDICAL_NURSING_ASSESSMENTS_SCHEMA_DISCOVERY_AR.md) (تقرير استكشاف الهيكل)
+  - [docs/MEDICAL_NURSING_ASSESSMENTS_OWNERSHIP_MODEL_AR.md](docs/MEDICAL_NURSING_ASSESSMENTS_OWNERSHIP_MODEL_AR.md) (تقرير نموذج ملكية البيانات)
+  - [docs/MEDICAL_NURSING_ASSESSMENTS_SCHEMA_CHANGE_PLAN_AR.md](docs/MEDICAL_NURSING_ASSESSMENTS_SCHEMA_CHANGE_PLAN_AR.md) (تقرير تصميم هجرة وتعديل الهيكل)
+  - [docs/MEDICAL_NURSING_ASSESSMENTS_RLS_DECISION_MATRIX_AR.md](docs/MEDICAL_NURSING_ASSESSMENTS_RLS_DECISION_MATRIX_AR.md) (تقرير مصفوفة قرارات الـ RLS)
+  - [docs/MEDICAL_NURSING_ASSESSMENTS_API_SECURITY_REVIEW_AR.md](docs/MEDICAL_NURSING_ASSESSMENTS_API_SECURITY_REVIEW_AR.md) (تقرير مراجعة أمن نهايات الـ API)
+  - [docs/MEDICAL_NURSING_ASSESSMENTS_BACKFILL_AND_MIGRATION_PLAN_AR.md](docs/MEDICAL_NURSING_ASSESSMENTS_BACKFILL_AND_MIGRATION_PLAN_AR.md) (تقرير خطة تعبئة وتحديث البيانات)
+  - [docs/MEDICAL_NURSING_ASSESSMENTS_TESTING_STRATEGY_AR.md](docs/MEDICAL_NURSING_ASSESSMENTS_TESTING_STRATEGY_AR.md) (تقرير استراتيجية الفحص والاختبارات)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_NURSING_ASSESSMENTS_DESIGN_AR.md](docs/MEDICAL_SECURITY_READINESS_AFTER_NURSING_ASSESSMENTS_DESIGN_AR.md) (تقرير الجاهزية الأمنية لبيئة Staging)
+  - [.ai-brain/skills/MEDICAL_NURSING_ASSESSMENTS_SCHEMA_AUTOPILOT_SKILL_AR.md](.ai-brain/skills/MEDICAL_NURSING_ASSESSMENTS_SCHEMA_AUTOPILOT_SKILL_AR.md) (مهارة تصميم هيكل وعزل جدول التقييمات)
+* **المخرجات**: حزمة وثائق التصميم ونماذج ملكية البيانات وخطط الهجرة والتعبئة وسكربتات SQL للقراءة فقط.
+* **الملخص**:
+  تم بنجاح إتمام مرحلة دراسة وتصميم سبل عزل جدول التقييمات التمريضية `nursing_assessments` بنظام الأوتو بايلوت. تم وضع نموذج ملكية يربط الجدول بـ `patient_id` لفرز المستأجرين، وتصميم إضافة أعمدة `tenant_id` و `facility_id` كأعمدة nullable مع سكربت Backfill ونقلهما لاحقاً لقسم NOT NULL مع RLS و indexes. تم صياغة وتجريب استعلامات التحقق والمحاكاة الصامتة بنجاح، ومراجعة نهايات الـ API وتأكيد استقرار الاختبارات السابقة.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (تصميم عزل التقييمات التمريضية جاهز، وتأمين الـ API نشط).
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: NO
+  - TABLE_COLUMN_SCHEMA_CHANGED: NO
+  - DATABASE_SECURITY_DDL_CHANGED: NO
+  - MIGRATIONS_RUN: NO
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: NO
+  - PRODUCTION_READY: NO
+* **المرحلة التالية الموصى بها**: `NURSING_ASSESSMENTS_IMPLEMENTATION_CONTROLLED_STAGING` (تنفيذ هيكل وعزل RLS التقييمات التمريضية على بيئة Staging).
+
