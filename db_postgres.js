@@ -42,6 +42,13 @@ CREATE TABLE IF NOT EXISTS appointments (
     notes TEXT DEFAULT '', status TEXT DEFAULT 'Confirmed',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS waiting_queue (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER, patient_name TEXT DEFAULT '',
+    doctor TEXT DEFAULT '', department TEXT DEFAULT '',
+    status TEXT DEFAULT 'Waiting',
+    check_in_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 CREATE TABLE IF NOT EXISTS employees (
     id SERIAL PRIMARY KEY,
     name TEXT DEFAULT '', name_ar TEXT DEFAULT '', name_en TEXT DEFAULT '',

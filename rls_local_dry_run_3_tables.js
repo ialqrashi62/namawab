@@ -64,6 +64,37 @@ function checkEnvironment() {
 // ----------------------------------------------------------------------------
 // 2. أخذ النسخة الاحتياطية تلقائياً
 // ----------------------------------------------------------------------------
+function getPgDumpExecutable() {
+    // 1. Check env variable
+    if (process.env.PG_DUMP_PATH && fs.existsSync(process.env.PG_DUMP_PATH)) {
+        return `"${process.env.PG_DUMP_PATH}"`;
+    }
+
+    // 2. Check if pg_dump is globally available in PATH
+    try {
+        execSync('pg_dump --version', { stdio: 'ignore' });
+        return 'pg_dump';
+    } catch (e) {
+        // Not in PATH globally
+    }
+
+    // 3. Check known Windows installation paths
+    const winPaths = [
+        'C:\\Program Files\\PostgreSQL\\16\\bin\\pg_dump.exe',
+        'C:\\Program Files\\PostgreSQL\\17\\bin\\pg_dump.exe',
+        'C:\\Program Files\\PostgreSQL\\15\\bin\\pg_dump.exe',
+        'C:\\Program Files\\PostgreSQL\\14\\bin\\pg_dump.exe'
+    ];
+    for (const p of winPaths) {
+        if (fs.existsSync(p)) {
+            return `"${p}"`;
+        }
+    }
+
+    // 4. Default fallback
+    return 'pg_dump';
+}
+
 function runBackup() {
     console.log(`\n[2] إنشاء نسخة احتياطية لقاعدة البيانات المحلية قبل البدء...`);
     const dateStr = new Date().toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/:/g, '-');
@@ -79,7 +110,9 @@ function runBackup() {
     try {
         // تعيين كلمة المرور لـ pg_dump لتفادي مطالبة إدخالها يدوياً
         process.env.PGPASSWORD = DB_PASSWORD;
-        const backupCommand = `pg_dump -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -F c -f "${backupPath}"`;
+        const pgDumpExe = getPgDumpExecutable();
+        console.log(`  - استخدام أداة pg_dump من: ${pgDumpExe}`);
+        const backupCommand = `${pgDumpExe} -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -F c -f "${backupPath}"`;
         
         execSync(backupCommand, { stdio: 'inherit' });
         console.log(`  ${GREEN}✅ تم أخذ النسخة الاحتياطية بنجاح وحفظها في:${RESET}`);
