@@ -698,5 +698,27 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH1_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لجدولين).
 * **المرحلة التالية الموصى بها**: `Gradual RLS Enablement Batch 2 - invoices and clinical financial tables`
 
+### Phase 53: Gradual RLS Enablement Batch 2 - invoices and clinical financial tables
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_GRADUAL_RLS_BATCH2_ENABLEMENT_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تفعيل RLS مع عزل السجلات تم بنجاح على الجداول المحددة)
+* **المخرجات**:
+  - [docs/sql/rls_staging_batch2_enable_invoices.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch2_enable_invoices.sql)
+  - [docs/sql/rls_staging_batch2_validate_invoices.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch2_validate_invoices.sql)
+  - [docs/sql/rls_staging_batch2_rollback_invoices.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch2_rollback_invoices.sql)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH2_BACKUP_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH2_BACKUP_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH2_FINANCIAL_READINESS_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH2_FINANCIAL_READINESS_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH2_POST_ENABLEMENT_MONITORING_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH2_POST_ENABLEMENT_MONITORING_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH2_ENABLEMENT_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH2_ENABLEMENT_REPORT_AR.md)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_GRADUAL_RLS_BATCH2_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_SECURITY_READINESS_AFTER_GRADUAL_RLS_BATCH2_AR.md)
+* **نتائج الاختبارات**:
+  - أخذ نسخة احتياطية جديدة كاملة والتحقق من سلامتها.
+  - تمكين سياسات أمان السجلات (RLS) بنجاح على جدول الفواتير (`invoices`) على قاعدة بيانات الاستضافة الاستباقية (Staging Server) وتأجيل بقية الجداول المالية المعقدة.
+  - اجتياز جميع اختبارات العزل الخمسة بنسبة 100% لفهارس السجلات تحت حساب الاختبار المقيد.
+  - ثبوت استقرار خدمات الويب ولوحة التحكم وسجلات الحركة بالكامل وخلوها من الأخطاء والأسرار.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH2_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لثلاثة جداول).
+* **المرحلة التالية الموصى بها**: `Gradual RLS Enablement Batch 3 - pharmacy, lab/radiology, emergency, nursing critical tables`
+
+
 
 
