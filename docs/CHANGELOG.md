@@ -4,6 +4,17 @@ The format is based on Keep a Changelog; this project adheres to Semantic Versio
 
 ## [Unreleased]
 
+### Added — 2026-06-19
+- Implementation of Tenant Isolation and Row-Level Security (RLS) for `nursing_assessments` table on Staging:
+  - Database Schema Alteration: Added `tenant_id` (NOT NULL) and `facility_id` (nullable) columns to `nursing_assessments` table.
+  - Database Security: Enabled and forced Row-Level Security (RLS) on `nursing_assessments` and applied `rls_nursing_assessments_tenant_isolation` policy scoped to the active tenant.
+  - Composite Index: Created `idx_nursing_assessments_tenant_facility` composite index for optimized query performance under RLS.
+  - Express.js API Hardening: Scoped GET and POST endpoints in `server.js` to utilize the tenant context directly, preventing IDOR vulnerabilities.
+  - Database Init Sync: Updated `db_postgres.js` to automatically handle column alterations and backfill for `nursing_assessments` during database startup.
+  - Automated Isolation Test: Developed `cross_tenant_nursing_assessments_test.js` covering GET/POST multi-tenant isolation, data leak protection, and IDOR prevention (8 test cases passing).
+  - Documentation Suite: Authored full reports in `docs/` detailing preflight audit, backup, truth validation, schema change execution, API hardening, test automation, regression validation, rollback readiness, and security readiness.
+
+
 ### Added — 2026-05-13
 - Initial comprehensive blueprint suite (`docs/`):
   - 40 department spec files (G01–G40)

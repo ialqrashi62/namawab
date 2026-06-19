@@ -35,3 +35,8 @@ out/make/
 src-tauri/target/
 scratch/
 skills-lock.json
+
+# Database backups
+docs/sql/*_backup.sql
+docs/sql/*backup.sql
+
