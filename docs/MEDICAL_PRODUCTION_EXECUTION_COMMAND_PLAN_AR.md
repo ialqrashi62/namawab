@@ -52,7 +52,7 @@ pg_dump -h localhost -p 5432 -U postgres -d nama_medical_web -F c -b -v -f /var/
 #### الخطوة الثانية: تحديث الكود وتثبيت التبعيات (Application Deploy)
 ```bash
 git fetch origin
-git checkout 8fe8440
+git checkout 4cbed5f
 
 cd namaweb
 npm install --production

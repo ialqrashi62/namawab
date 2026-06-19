@@ -23,7 +23,7 @@
 * **الاعتمادات في نص التشغيل (Execution Transcript)**:
   - تم استخدام متغيرات البيئة المحلية المؤقتة أثناء التحققات وقام المحاكي بتصفية وقفل السجلات تلقائياً.
   - النتيجة المعتمدة:
-    - **SECRETS_IN_EXECUTION_TRANSCRIPT**: `NO`
+    - **SECRETS_IN_EXECUTION_TRANSCRIPT**: `YES_REDACTION_NOTE` (ملاحظة حجب كلمات المرور مستخدمة لوجود معلمات PGPASSWORD سابقة).
     - **SECRETS_IN_GIT_TRACKED_FILES**: `NO`
 
 ---

@@ -9,8 +9,8 @@
 
 تم إعداد واختبار نسخة الإطلاق الحالية على بيئة Staging بنجاح كامل بنسبة 100%:
 * **الالتزام المرشح للنشر (Commit Hash)**:
-  * المستودع الأب ([NamaMedical](.)): `8fe8440cc070a2a0ce12368c74070a316e6f0bbf` (مختصر: `8fe8440`).
-  * مستودع الويب ([namaweb](namaweb/)): `d6c29d10ce4a31b3c62e537be8c66281a2d65de0` (مختصر: `d6c29d1`).
+  * المستودع الأب ([NamaMedical](.)): `4cbed5fb1f692abdb607df4579c4fb24e1fe2a3f` (مختصر: `4cbed5f`).
+  * مستودع الويب ([namaweb](namaweb/)): `c6e44ae244148f35496df48788c61107b5707860` (مختصر: `c6e44ae`).
 
 ---
 
@@ -43,7 +43,7 @@
 2. **تحديث الكود وتثبيت التبعيات (Code Rollout)**:
    ```bash
    git fetch origin
-   git checkout 8fe8440
+   git checkout 4cbed5f
    cd namaweb
    npm install --production
    npm run build:css
