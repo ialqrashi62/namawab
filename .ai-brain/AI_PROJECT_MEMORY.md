@@ -757,3 +757,27 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - النشر الناجح وتأكيد سلامة ظهور الرسائل الجديدة في الموقع Staging عبر الاتصال الآمن HTTPS.
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH3_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لسبعة جداول).
 * **المرحلة التالية الموصى بها**: `Gradual RLS Enablement Batch 4 - remaining high-risk clinical and operational tables`
+
+### Phase 56: Gradual RLS Enablement Batch 4 - Remaining High-Risk Clinical and Operational Tables
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_GRADUAL_RLS_BATCH4_HIGH_RISK_ENABLEMENT_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تفعيل RLS مع عزل السجلات تم بنجاح على الجداول المحددة)
+* **المخرجات**:
+  - [docs/sql/rls_staging_batch4_enable_high_risk.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch4_enable_high_risk.sql)
+  - [docs/sql/rls_staging_batch4_validate_high_risk.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch4_validate_high_risk.sql)
+  - [docs/sql/rls_staging_batch4_rollback_high_risk.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch4_rollback_high_risk.sql)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH4_BACKUP_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH4_BACKUP_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH4_HIGH_RISK_TABLE_DISCOVERY_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH4_HIGH_RISK_TABLE_DISCOVERY_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH4_READINESS_CLASSIFICATION_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH4_READINESS_CLASSIFICATION_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH4_SCOPE_DECISION_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH4_SCOPE_DECISION_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH4_POST_ENABLEMENT_MONITORING_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH4_POST_ENABLEMENT_MONITORING_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH4_ENABLEMENT_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH4_ENABLEMENT_REPORT_AR.md)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_GRADUAL_RLS_BATCH4_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_SECURITY_READINESS_AFTER_GRADUAL_RLS_BATCH4_AR.md)
+* **نتائج الاختبارات**:
+  - أخذ نسخة احتياطية كاملة ومضغوطة بنجاح والتحقق منها.
+  - تمكين سياسات أمان السجلات (RLS) بنجاح على 3 جداول سريرية وتشغيلية متبقية (`lab_results`, `insurance_claims`, `pharmacy_prescriptions_queue`) على قاعدة بيانات الاستضافة الاستباقية (Staging Server) وتأجيل بقية الجداول.
+  - اجتياز جميع اختبارات العزل السبعة بنسبة 100% لفهارس السجلات ومحاكاة الإدخال والتحديث الخاطئ تحت حساب الاختبار المقيد.
+  - ثبوت استقرار خدمات الويب وتطبيق PM2 ونظام Nginx بالكامل وخلوها من الأخطاء والأسرار.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH4_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لعشرة جداول).
+* **المرحلة التالية الموصى بها**: `Tenant ID Backfill Design Plan` أو `Gradual RLS Enablement Batch 5`
+

@@ -1,0 +1,76 @@
+# تقرير تنفيذ تفعيل RLS - الدفعة الرابعة (Gradual RLS Enablement Batch 4 Report)
+## نظام نما الطبي - تأمين وحوكمة قواعد البيانات الطبية
+
+---
+
+### 1. ملخص عملية التفعيل (Implementation Summary)
+
+تم بنجاح تفعيل الدفعة الرابعة (Batch 4) من سياسات أمان السجلات (Row-Level Security) على بيئة الاستضافة الاستباقية (Staging Server) لنظام نما الطبي. استهدفت هذه الدفعة الجداول السريرية والتشغيلية المتبقية عالية الخطورة التي تحتوي على معرّف المستأجر وجاهزة تقنياً للتفعيل، مع الإبقاء على السياسات المفعّلة في الدفعات السابقة نشطة بالكامل لضمان عزل تام متعدد المستأجرين.
+
+* **الحالة النهائية**: **نجاح التفعيل والتحقق بنسبة 100% (MEDICAL_GRADUAL_RLS_BATCH4_HIGH_RISK_ENABLEMENT_COMPLETED)**
+* **تاريخ التنفيذ**: 19 يونيو 2026
+* **الرابط المحمي عبر HTTPS**: `https://alfaisal-erp.com/`
+* **تصنيف البيئة الحالية**: `PUBLIC_STAGING_HTTPS_RLS_BATCH4_ENABLED_NOT_FULL_PRODUCTION`
+
+---
+
+### 2. نطاق الجداول وتصنيفها (Table Scope & Classification)
+
+#### أ. الجداول التي تم تفعيل RLS عليها بنجاح في الدفعة الرابعة:
+1. **lab_results** (نتائج المختبر) - تم عزلها بالكامل لحماية التقارير والنتائج الطبية الحساسة.
+2. **insurance_claims** (مطالبات التأمين) - تم عزل البيانات والتعريفات المالية لشركات التأمين لتفادي أي تداخل.
+3. **pharmacy_prescriptions_queue** (طابور صرف صيدلية) - تم عزل طوابير الصرف والوصفات المعلقة الخاصة بالمرضى في كل عيادة/مستأجر.
+
+#### ب. الجداول المؤجلة أو المستثناة:
+* **medications**: مؤجل لعدم وجود معرّف المستأجر `tenant_id` في مخطط الجدول الحالي (تطلب خطة تعديل مخطط لاحقاً).
+* **lab_samples**: مؤجل لنفس السبب (غياب عمود `tenant_id`).
+* **lab_tests_catalog** و **radiology_catalog**: كتالوجات عامة مشتركة لجميع المستأجرين (تم استثناؤها بشكل دائم للحفاظ على إمكانية القراءة للجميع).
+* **emergency_beds** و **pharmacy_sales**: مؤجلة مرحلياً للحد من حجم الدفعة وضمان أقصى درجات الاستقرار.
+
+---
+
+### 3. النسخ الاحتياطي وخطة الطوارئ (Backup & Rollback)
+
+* **النسخ الاحتياطي**: تم أخذ نسخة كاملة ومضغوطة بنجاح وتخزينها على الخادم البعيد في المسار:
+  `/var/www/namaweb/backups/backup_staging_before_rls_batch4.sql` بحجم 447,837 بايت. تم التحقق من سلامة الملف باستخدام `pg_restore -l`.
+* **سكربتات التراجع (Rollback Scripts)**:
+  تم توفير سكربت [rls_staging_batch4_rollback_high_risk.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch4_rollback_high_risk.sql) الذي يسمح بإلغاء سياسات الدفعة الرابعة وتعطيل RLS عليها دون المساس بالسياسات السابقة.
+
+---
+
+### 4. نتائج اختبارات التحقق من عزل البيانات (Tenant Isolation Tests)
+
+تم تشغيل محاكاة اختبار مستقلة للدور المقيد `test_rls_user` وثبت نجاح كافة الاختبارات بنسبة 100%:
+* **اختبار SELECT للمستأجر الأول والثاني**: أظهر نجاح العزل بنسبة 100%، حيث يرى كل مستأجر سجلاته فقط (PASS).
+* **اختبار منع إدخال معرفات غير متطابقة (INSERT Mismatch)**: تم التحقق من منع إدراج سجلات تابعة لمستأجر آخر مع إرجاع الخطأ القياسي بنجاح (`row-level security policy violation`) (PASS).
+* **اختبار عزل التعديل (UPDATE Isolation)**: تم التأكيد على عدم قدرة مستأجر على تعديل صفوف مستأجر آخر (PASS).
+* **اختبار الوضع الآمن في حال غياب السياق (Empty Context Failsafe)**: عند تعيين سياق فارغ للمستأجر، لم يرجع الاستعلام أي نتائج (PASS).
+
+---
+
+### 5. ملفات SQL والسكربتات المرجعية
+
+1. **سكربت التفعيل**: [rls_staging_batch4_enable_high_risk.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch4_enable_high_risk.sql)
+2. **سكربت التحقق**: [rls_staging_batch4_validate_high_risk.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch4_validate_high_risk.sql)
+3. **سكربت التراجع**: [rls_staging_batch4_rollback_high_risk.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch4_rollback_high_risk.sql)
+4. **أداة التشغيل والتحقق التلقائي**: [execute_controlled_enablement_batch4.py](file:///c:/Users/ice/Desktop/NamaMedical/scratch/execute_controlled_enablement_batch4.py)
+
+---
+
+### 6. الأثر على سير العمل الطارئ والتحذيرات الطبية (Workflows Impact)
+
+* **الأطباء والمختبر والأشعة**: لم يتأثر سير العمل لكون الاتصال البرمجي الأصلي للمشرف (Postgres Admin Superuser) يتجاوز RLS افتراضياً لحين الانتهاء من الترحيل الكامل.
+* **مبيعات الصيدلية**: مستقرة وتعمل بشكل اعتيادي بعد التفعيل التدريجي لجدول الوصفات الطبية وقوائم الصيدلية.
+* **المرضى الفعليين**: لا توجد أي بيانات لمرضى حقيقيين في النظام، وكافة البيانات اختبارية ووهمية 100%.
+
+---
+
+### 7. التوصيات والدفعات القادمة (Next Phase Recommendation)
+
+1. **خطة حقن الهيكلية والبيانات (Tenant ID Backfill Plan)**: تصميم هجرة لإضافة عمود `tenant_id` وحقنه في جداول الكتالوجات أو جداول الحركة الفرعية مثل `medications` و `lab_samples` لتصبح مهيأة لعزل RLS.
+2. **الدفعة الخامسة (Batch 5)**: تفعيل RLS على بقية الجداول التشغيلية المؤجلة مثل `emergency_beds` و `pharmacy_sales`.
+3. **مراقبة مستمرة وسريعة للأخطاء**: متابعة مستمرة لأي أخطاء متعلقة بسياق المستأجرين في بيئة الاستضافة الاستباقية.
+
+---
+STATUS:
+  MEDICAL_GRADUAL_RLS_BATCH4_HIGH_RISK_ENABLEMENT_COMPLETED
