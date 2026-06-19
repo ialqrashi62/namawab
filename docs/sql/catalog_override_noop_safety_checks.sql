@@ -1,13 +1,10 @@
 -- ============================================================================
 -- SQL Script: catalog_override_noop_safety_checks.sql
 -- Description: NO-OP safety checks and mock overrides verification.
--- Purpose: Simulate tenant catalog overrides queries without changing table states.
 -- Environment: Staging
 -- ============================================================================
 
 -- 1. Simulate the proposed Hybrid Global + Tenant Override Join
--- We will use a Common Table Expression (CTE) to mock the tenant_lab_test_overrides table structure
--- and test how queries will combine global values with tenant-specific custom values.
 WITH mock_tenant_lab_test_overrides AS (
     SELECT 
         1::integer AS id,
@@ -32,13 +29,11 @@ SELECT
     o.tenant_id AS overriding_tenant
 FROM lab_tests_catalog lt
 LEFT JOIN mock_tenant_lab_test_overrides o 
-  ON lt.id = o.test_id AND o.tenant_id = 1 -- Simulating Tenant 1 context
+  ON lt.id = o.test_id AND o.tenant_id = 1
 ORDER BY lt.id
 LIMIT 5;
 
 -- 2. Verify foreign key candidates
--- Check if there are orphaned IDs in transactional tables referencing catalog IDs
--- This checks if orders refer to valid lab catalog entries (by category/name matches in current code)
 SELECT 
     lro.id AS order_id, 
     lro.order_type, 

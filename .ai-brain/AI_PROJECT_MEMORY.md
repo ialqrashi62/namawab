@@ -946,3 +946,31 @@ NamaMedical/ (المستودع الرئيسي الأب)
   تم بنجاح تنفيذ مرحلة تقوية المصادقة وحوكمة بيانات الدخول لبيئة Staging. تم تنظيف مجلد scratch بالكامل من السكربتات الحساسة التي تحتوي على معرّفات أو كلمات مرور أو وصول SSH، واستبعاد المجلد بالكامل عبر ملف .gitignore لضمان الأمان الفائق. تم كتابة سياسة الحوكمة والـ Runbook المعتمد لاستعادة الحساب الإداري، وفحص أمن الجلسات وكوكيز الاتصال الآمن خلف Nginx HTTPS، وبناء استعلامات التحقق للقراءة فقط (Read-only) والاستعلامات الصفية غير المعدلة (No-Op) والتأكد التام من استقرار سياسات RLS الـ 14 جدولاً المفعّلة سابقاً.
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 14 جدولاً، واعتمادات Staging محصنة تماماً).
 * **المرحلة التالية الموصى بها**: `Catalog Override Implementation` أو `Auth Production Readiness Hardening`
+
+### Phase 66: Catalog Override Implementation - Staging Only
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `CATALOG_OVERRIDE_IMPLEMENTATION_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `namaweb/db_postgres.js` (تضمين الهيكل الإنشائي لجداول التخصيص وتفعيل RLS عليها لضمان التشغيل الذاتي والتهيئة المستقرة للمستودع)
+  - `namaweb/server.js` (إصلاح تكرار نهايات الكتالوج وربط الجداول المخصصة بـ API وقنوات التسعير التلقائي بالـ LEFT JOIN)
+* **الملفات الجديدة**:
+  - [docs/MEDICAL_CATALOG_OVERRIDE_IMPLEMENTATION_PLAN_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_CATALOG_OVERRIDE_IMPLEMENTATION_PLAN_AR.md)
+  - [docs/MEDICAL_CATALOG_OVERRIDE_SCHEMA_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_CATALOG_OVERRIDE_SCHEMA_REPORT_AR.md)
+  - [docs/MEDICAL_CATALOG_OVERRIDE_BACKUP_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_CATALOG_OVERRIDE_BACKUP_REPORT_AR.md)
+  - [docs/MEDICAL_CATALOG_OVERRIDE_ENABLEMENT_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_CATALOG_OVERRIDE_ENABLEMENT_REPORT_AR.md)
+  - [docs/MEDICAL_CATALOG_OVERRIDE_API_CHANGE_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_CATALOG_OVERRIDE_API_CHANGE_REPORT_AR.md)
+  - [docs/MEDICAL_CATALOG_OVERRIDE_RLS_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_CATALOG_OVERRIDE_RLS_REPORT_AR.md)
+  - [docs/MEDICAL_CATALOG_OVERRIDE_SMOKE_TEST_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_CATALOG_OVERRIDE_SMOKE_TEST_REPORT_AR.md)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_CATALOG_OVERRIDE_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_SECURITY_READINESS_AFTER_CATALOG_OVERRIDE_AR.md)
+  - [docs/MEDICAL_CATALOG_OVERRIDE_IMPLEMENTATION_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_CATALOG_OVERRIDE_IMPLEMENTATION_REPORT_AR.md)
+  - [docs/sql/catalog_override_up.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/catalog_override_up.sql)
+  - [docs/sql/catalog_override_down.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/catalog_override_down.sql)
+  - [docs/sql/catalog_override_validate.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/catalog_override_validate.sql)
+  - [docs/sql/catalog_override_noop_safety_checks.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/catalog_override_noop_safety_checks.sql)
+  - [scratch/catalog_override_smoke_test_governance.js](file:///c:/Users/ice/Desktop/NamaMedical/scratch/catalog_override_smoke_test_governance.js)
+  - [namaweb/cross_tenant_catalog_override_test.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/cross_tenant_catalog_override_test.js)
+* **المخرجات**: التقارير والسياسات وهيكلية المخطط ونتائج الفحص البرمجي بلغة عربية UTF-8 سليمة.
+* **الملخص**:
+  تم بنجاح تنفيذ وتفعيل نظام تخصيص الكتالوجات الطبية المخصصة للمستأجرين (المختبر، الأشعة، الخدمات الطبية) تدريجياً ومحكوماً ببيئة Staging فقط. تم إنشاء ثلاثة جداول تخصيص جديدة (`tenant_lab_test_overrides`, `tenant_radiology_overrides`, `tenant_service_overrides`) وتفعيل نظام RLS مع FORCE ROW LEVEL SECURITY عليها لضمان العزل التام للمستأجرين. تم تصحيح نهايات الـ API وتحديث منطق التسعير التلقائي لتجلب الأسعار المخصصة للمستأجر أولاً بدلاً من الكتالوج العالمي. تم تشغيل واجتياز 29 اختبار عزل الكتالوج وتخصيصه، بالإضافة إلى 63 اختبار تسريب، و37 اختباراً للـ Lab/Rad، مما يؤكد سلامة واستقرار النظام بنسبة 100%.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 14 جدولاً سابقاً بالإضافة لـ 3 جداول تخصيص جديدة).
+* **المرحلة التالية الموصى بها**: `BEDS_TENANT_OWNERSHIP_DESIGN`
