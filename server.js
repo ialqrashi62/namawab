@@ -3256,16 +3256,24 @@ app.post('/api/admissions', requireAuth, requireTenantScope, async (req, res) =>
 });
 
 app.put('/api/admissions/:id/discharge', requireAuth, requireTenantScope, async (req, res) => {
+    const client = await pool.connect();
     try {
         const { tenantId } = getRequestTenantContext(req);
 
+        await client.query('BEGIN');
+
         // Verify admission ownership first
         const checkQ = tenantId
-            ? 'SELECT id, bed_id, patient_id FROM admissions WHERE id = $1 AND tenant_id = $2'
-            : 'SELECT id, bed_id, patient_id FROM admissions WHERE id = $1';
+            ? 'SELECT id, bed_id, patient_id FROM admissions WHERE id = $1 AND tenant_id = $2 FOR UPDATE'
+            : 'SELECT id, bed_id, patient_id FROM admissions WHERE id = $1 FOR UPDATE';
         const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        const adm = (await pool.query(checkQ, checkParams)).rows[0];
-        if (!adm) return res.status(404).json({ error: 'Admission not found' });
+        const checkRes = await client.query(checkQ, checkParams);
+        const adm = checkRes.rows[0];
+        if (!adm) {
+            await client.query('ROLLBACK');
+            client.release();
+            return res.status(404).json({ error: 'Admission not found' });
+        }
 
         const { discharge_type, discharge_summary, discharge_instructions, discharge_medications, followup_date, followup_doctor } = req.body;
 
@@ -3284,26 +3292,35 @@ app.put('/api/admissions/:id/discharge', requireAuth, requireTenantScope, async 
             req.params.id
         ];
         if (tenantId) updateParams.push(tenantId);
-        await pool.query(updateQ, updateParams);
+        await client.query(updateQ, updateParams);
 
         if (adm.bed_id) {
             const updateBedQ = tenantId
                 ? "UPDATE beds SET status='Available', current_patient_id=0, current_admission_id=0 WHERE id=$1 AND tenant_id=$2"
                 : "UPDATE beds SET status='Available', current_patient_id=0, current_admission_id=0 WHERE id=$1";
             const updateBedParams = tenantId ? [adm.bed_id, tenantId] : [adm.bed_id];
-            await pool.query(updateBedQ, updateBedParams);
+            await client.query(updateBedQ, updateBedParams);
         }
         if (adm.patient_id) {
             const updatePatientQ = tenantId
                 ? "UPDATE patients SET status='Discharged' WHERE id=$1 AND tenant_id=$2"
                 : "UPDATE patients SET status='Discharged' WHERE id=$1";
             const updatePatientParams = tenantId ? [adm.patient_id, tenantId] : [adm.patient_id];
-            await pool.query(updatePatientQ, updatePatientParams);
+            await client.query(updatePatientQ, updatePatientParams);
         }
+
+        await client.query('COMMIT');
+        client.release();
 
         logAudit(req.session.user?.id, req.session.user?.display_name, 'DISCHARGE_PATIENT', 'Inpatient', `Discharged patient from admission #${req.params.id}`, req.ip);
         res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) {
+        try {
+            await client.query('ROLLBACK');
+        } catch (rollbackError) {}
+        client.release();
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 app.post('/api/admissions/:id/rounds', requireAuth, requireTenantScope, async (req, res) => {
