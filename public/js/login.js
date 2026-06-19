@@ -15,6 +15,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         جاري التحقق...
     `;
     errEl.classList.remove('show');
+    errEl.classList.add('hidden');
     
     try {
         const res = await fetch('/api/auth/login', {
@@ -31,6 +32,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         } else {
             errEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة!';
             errEl.classList.add('show');
+            errEl.classList.remove('hidden');
             btn.disabled = false;
             btn.classList.remove('loading', 'opacity-80', 'cursor-not-allowed');
             btn.innerHTML = originalText;
@@ -38,6 +40,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     } catch (err) {
         errEl.textContent = 'خطأ في الاتصال بالخادم، يرجى المحاولة لاحقاً';
         errEl.classList.add('show');
+        errEl.classList.remove('hidden');
         btn.disabled = false;
         btn.classList.remove('loading', 'opacity-80', 'cursor-not-allowed');
         btn.innerHTML = originalText;
