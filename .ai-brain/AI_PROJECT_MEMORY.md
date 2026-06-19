@@ -1186,3 +1186,35 @@ NamaMedical/ (المستودع الرئيسي الأب)
   تم إتمام مرحلة مراقبة ما بعد التنفيذ للدفعة الثالثة بنجاح كامل وتأكيد الاستقرار الأمني. تم إخضاع المستودع والروابط لتدقيق صارم أثبت إخلاء كافة التقارير من أي مسارات محلية مطلقة أو أسرار وحذف السكربتات المؤقتة بالكامل. تم إجراء التحقق الفعلي للقراءة فقط (Read-only) من قاعدة البيانات لإثبات فاعلية RLS و FORCE RLS لجدولي admissions و bed_transfers دون أي تسريب أو تعارض في البيانات. وتم تشغيل واجتياز 173 فحص أمان ومحاكاة لـ 5 حزم اختبارات بنجاح 100% دون أي regressions. وتم التأكيد على بقاء الجاهزية للإنتاج في وضع الانتظار (PRODUCTION_READY: NO) تمهيداً للبدء بالدفعة الرابعة الخاصة بأجنحة العناية المركزة والتمريض.
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 18 جدولاً بالكامل، واستقرار المراقبة مؤكد بنسبة 100%).
 * **المرحلة التالية الموصى بها**: `BEDS_BATCH4_ICU_NURSING_DESIGN` (تصميم حماية أجنحة العناية المركزة والتمريض).
+
+### Phase 76: Beds Batch 4 ICU/Nursing Design
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `BEDS_BATCH4_ICU_NURSING_DESIGN_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `.ai-brain/skills/MEDICAL_SKILLS_INDEX_AR.md` (تحديث فهرس المهارات)
+* **الملفات الجديدة**:
+  - [docs/MEDICAL_ICU_NURSING_PREFLIGHT_GIT_AND_LINK_AUDIT_AR.md](docs/MEDICAL_ICU_NURSING_PREFLIGHT_GIT_AND_LINK_AUDIT_AR.md)
+  - [docs/MEDICAL_ICU_NURSING_SCHEMA_DISCOVERY_AR.md](docs/MEDICAL_ICU_NURSING_SCHEMA_DISCOVERY_AR.md)
+  - [docs/sql/icu_nursing_readonly_validate.sql](docs/sql/icu_nursing_readonly_validate.sql)
+  - [docs/sql/icu_nursing_noop_safety_checks.sql](docs/sql/icu_nursing_noop_safety_checks.sql)
+  - [docs/MEDICAL_ICU_NURSING_WORKFLOW_MAP_AR.md](docs/MEDICAL_ICU_NURSING_WORKFLOW_MAP_AR.md)
+  - [docs/MEDICAL_ICU_NURSING_OWNERSHIP_MODEL_AR.md](docs/MEDICAL_ICU_NURSING_OWNERSHIP_MODEL_AR.md)
+  - [docs/MEDICAL_ICU_NURSING_RLS_DECISION_MATRIX_AR.md](docs/MEDICAL_ICU_NURSING_RLS_DECISION_MATRIX_AR.md)
+  - [docs/MEDICAL_ICU_NURSING_API_SECURITY_REVIEW_AR.md](docs/MEDICAL_ICU_NURSING_API_SECURITY_REVIEW_AR.md)
+  - [docs/MEDICAL_ICU_NURSING_BACKFILL_AND_MIGRATION_PLAN_AR.md](docs/MEDICAL_ICU_NURSING_BACKFILL_AND_MIGRATION_PLAN_AR.md)
+  - [docs/MEDICAL_ICU_NURSING_TESTING_STRATEGY_AR.md](docs/MEDICAL_ICU_NURSING_TESTING_STRATEGY_AR.md)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_ICU_NURSING_DESIGN_AR.md](docs/MEDICAL_SECURITY_READINESS_AFTER_ICU_NURSING_DESIGN_AR.md)
+  - [.ai-brain/skills/MEDICAL_ICU_NURSING_RLS_AUTOPILOT_SKILL_AR.md](.ai-brain/skills/MEDICAL_ICU_NURSING_RLS_AUTOPILOT_SKILL_AR.md)
+* **المخرجات**: حزمة تقارير التصميم وخرائط مسار العمل والتحققات الهيكلية وسكربتات SQL الآمنة للقراءة فقط لبيئة Staging.
+* **الملخص**:
+  تم بنجاح إتمام مرحلة تصميم ونموذج ملكية وعزل أجنحة العناية المركزة (ICU) وأقسام التمريض وإعطاء الأدوية (eMAR) للدفعة الرابعة بنظام الأوتو بايلوت. تم اكتشاف 9 جداول متعلقة بالتمريض والعناية المركزة، ومراجعة وتصميم نموذج عزل المستأجرين فيها، ووضع مصفوفة قرارات RLS وخطة الهجرة وتعبئة البيانات للمستقبل. كما تم إجراء تدقيق أمني للواجهات البرمجية (API Security Review) للـ routes التابعة وتحديد فجوات IDOR ومكافحتها برمجياً دون أي تعديل فعلي على قاعدة البيانات أو الكود.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مصمم للتمريض والعناية المركزة، ومفعّل لـ 18 جدولاً سابقاً).
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: NO
+  - TABLE_COLUMN_SCHEMA_CHANGED: NO
+  - DATABASE_SECURITY_DDL_CHANGED: NO
+  - MIGRATIONS_RUN: NO
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: NO
+  - PRODUCTION_READY: NO
+* **المرحلة التالية الموصى بها**: `BEDS_BATCH4_ICU_NURSING_IMPLEMENTATION_CONTROLLED_STAGING` (تطبيق عزل العناية المركزة والتمريض على بيئة Staging).
