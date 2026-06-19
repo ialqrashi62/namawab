@@ -1583,5 +1583,34 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - MIGRATIONS_RUN: YES (up.sql run)
   - DB_PUSH_RUN: NO
   - RLS_CHANGED: YES
-  - PRODUCTION_READY: NO
 * **المرحلة التالية الموصى بها**: `PRODUCTION_REHEARSAL_CONTROLLED_STAGING` (تشغيل خادم Redis حقيقي وشهادة SSL للتحقق الكامل من الربط بدون Fallback قبل الإطلاق النهائي).
+
+### Phase 89: Production Rehearsal on Staging
+* **تاريخ المرحلة**: 2026-06-19
+* **الحالة (Status)**: `PRODUCTION_REHEARSAL_CONTROLLED_STAGING_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `namaweb/server.js` (تصحيح استيراد مكتبة connect-redis لإنفاذ الربط الفعلي بـ RedisStore)
+  - `namaweb/.env` (إضافة REDIS_HOST لتفعيل الاتصال الفعلي بالخادم)
+* **الملفات الجديدة**:
+  - `docs/MEDICAL_PRODUCTION_REHEARSAL_PREFLIGHT_AUDIT_AR.md`
+  - `docs/MEDICAL_PRODUCTION_REHEARSAL_CONTEXT_REVIEW_AR.md`
+  - `docs/MEDICAL_PRODUCTION_REHEARSAL_TRUTH_VALIDATION_AR.md`
+  - `docs/MEDICAL_PRODUCTION_REHEARSAL_DECISION_MATRIX_AR.md`
+  - `docs/MEDICAL_PRODUCTION_REHEARSAL_EXECUTION_REPORT_AR.md`
+  - `docs/MEDICAL_PRODUCTION_REHEARSAL_TESTS_REPORT_AR.md`
+  - `docs/MEDICAL_PRODUCTION_REHEARSAL_SECURITY_AUDIT_REPORT_AR.md`
+  - `docs/MEDICAL_PRODUCTION_REHEARSAL_GO_NO_GO_REASSESSMENT_AR.md`
+  - `docs/MEDICAL_SECURITY_READINESS_AFTER_PRODUCTION_REHEARSAL_STAGING_AR.md`
+* **المخرجات**: تصحيح ربط connect-redis البرمجي، تشغيل خادم Redis الفعلي على Staging، تفعيل اتصال الجلسات الموزعة حقيقياً دون تراجع، واجتياز 395 فحص انحدار بنجاح 100%.
+* **الملخص**:
+  تم بنجاح تنفيذ وتأكيد تمرين التدريب العملي الميداني للإنتاج (Production Rehearsal). رصدنا خللاً في تصدير مكتبة connect-redis التي كانت تفشل صامتاً وتتراجع للميموري ستور، وقمنا بإصلاحها لضمان الربط الفعلي بمحرك Redis. تم التحقق من نجاح الربط من السجلات البرمجية للخادم، وتشغيل كامل اختبارات عزل المستأجرين الـ 11 بنجاح كامل 100% تحت حمل Redis الفعلي. القرار الحالي تمت ترقيته إلى READY_FOR_PRODUCTION_ROLLOUT_PLANNING مع بقاء PRODUCTION_READY: NO لانتظار بيئة وموافقة النشر النهائي.
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: NO
+  - TABLE_COLUMN_SCHEMA_CHANGED: NO
+  - DATABASE_SECURITY_DDL_CHANGED: NO
+  - MIGRATIONS_RUN: NO
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: NO
+  - PRODUCTION_READY: NO
+* **المرحلة التالية الموصى بها**: `PRODUCTION_ROLLOUT_EXECUTION_PLANNING` (التخطيط والتحضير الفعلي لنشر الإنتاج بالتنسيق مع مدراء النظام).
+
