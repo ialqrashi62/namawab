@@ -39,4 +39,8 @@ skills-lock.json
 # Database backups
 docs/sql/*_backup.sql
 docs/sql/*backup.sql
+docs/sql/*backup*.sql
+local_backups/
+.local-backups/
+backups/private/
 

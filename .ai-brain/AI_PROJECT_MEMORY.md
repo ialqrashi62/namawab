@@ -1465,3 +1465,29 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - RLS_CHANGED: NO
   - PRODUCTION_READY: NO
 * **المرحلة التالية الموصى بها**: `BEDS_BATCH6_FINAL_RLS_COVERAGE_REVIEW` (المراجعة النهائية والتدقيق الشامل لكامل تغطية سياسات RLS عبر كافة جداول ومكونات النظام الطبي).
+
+### Phase 85: Blocker Resolution for Tracked ICU/Nursing Backup SQL
+* **تاريخ الإغلاق**: 2026-06-19
+* **الحالة (Status)**: `BLOCKER_RESOLUTION_TRACKED_ICU_NURSING_BACKUP_SQL_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `.gitignore` (تقوية شروط استبعاد النسخ الاحتياطية وإضافة المجلدات المحلية الآمنة)
+* **الملفات الجديدة**:
+  - `docs/MEDICAL_BLOCKER_TRACKED_BACKUP_PREFLIGHT_AUDIT_AR.md`
+  - `docs/MEDICAL_BLOCKER_BACKUP_LOCAL_PRESERVATION_REPORT_AR.md`
+  - `docs/MEDICAL_BLOCKER_TRACKED_BACKUP_REMOVAL_REPORT_AR.md`
+  - `docs/MEDICAL_BLOCKER_BACKUP_HISTORY_RISK_ASSESSMENT_AR.md`
+  - `docs/MEDICAL_BLOCKER_BACKUP_HISTORY_CLEANUP_DECISION_AR.md`
+  - `docs/MEDICAL_BLOCKER_BACKUP_SECRETS_AND_FILES_AUDIT_AR.md`
+* **المخرجات**: إزالة ملف النسخ الاحتياطي المتتبع من فهرس Git بأمان، تأمين النسخة الاحتياطية محلياً خارج تتبع المستودع، وتحديث وتأكيد قواعد التجاهل الأمني للنسخ.
+* **الملخص**:
+  تم رصد وحل حظر تتبع ملف النسخ الاحتياطي `docs/sql/icu_nursing_backup.sql` من فهرس Git النشط بنجاح دون حذفه من القرص عبر تشغيل الأوامر الآمنة. تم نقل النسخة محلياً للمجلد غير المتتبع `local_backups/`. تم تقييم مخاطر وجود الملف في تاريخ المستودع وصُنف كـ `HISTORY_RISK_LOW_SCHEMA_ONLY` لعدم احتوائه على أي بيانات سريرية للمرضى أو اعتمادات اتصال حقيقية، وبناءً عليه تقرر عدم الحاجة لعملية إعادة كتابة التاريخ المعقدة واستئناف المراجعة النهائية بأمان.
+* **القرار النهائي**: بيئة Staging خالية تماماً من تتبع ملفات النسخ وتصنيف الإنتاج يبقى PRODUCTION_READY: NO.
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: NO
+  - TABLE_COLUMN_SCHEMA_CHANGED: NO
+  - DATABASE_SECURITY_DDL_CHANGED: NO
+  - MIGRATIONS_RUN: NO
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: NO
+  - PRODUCTION_READY: NO
+* **المرحلة التالية الموصى بها**: `BEDS_BATCH6_FINAL_RLS_COVERAGE_REVIEW_RESUME` (استئناف المراجعة النهائية والتدقيق الشامل لكامل تغطية سياسات RLS عبر الجداول والمكونات).
