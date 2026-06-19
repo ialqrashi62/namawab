@@ -1146,3 +1146,24 @@ NamaMedical/ (المستودع الرئيسي الأب)
   تمت تسوية الفجوة الأمنية بنجاح حيث تبين أن RLS على admissions و bed_transfers كان معطلاً بسبب استدعاءات Seeding متكررة أعادت بناء الجداول دون تفعيل RLS برمجياً. تم تفعيل RLS وقيد القوة بالكامل بنجاح، وتأكيد نشاط الحماية (`relrowsecurity: true`). واجتازت كافة اختبارات عزل البيانات وانحدار الأمان بنجاح كامل 100%.
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 18 جدولاً بالكامل، وتم فك حظر الدفعة الثالثة).
 * **المرحلة التالية الموصى بها**: `BEDS_BATCH3_DISCHARGE_OCCUPANCY_IMPLEMENTATION_RESUME` (استئناف تفعيل وإغلاق الدفعة الثالثة).
+
+### Phase 74: Post RLS Blocker Script Audit and Batch 3 Resume
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `POST_RLS_BLOCKER_SCRIPT_AUDIT_AND_BATCH3_RESUME_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `namaweb/run_fix.js` [DELETE]
+  - `namaweb/run_gate1_gate2.js` [DELETE]
+  - `namaweb/run_backup.js` [DELETE]
+  - `namaweb/run_validate.js` [DELETE]
+* **الملفات الجديدة**:
+  - [docs/MEDICAL_POST_RLS_BLOCKER_SCRIPT_SECRETS_AUDIT_AR.md](docs/MEDICAL_POST_RLS_BLOCKER_SCRIPT_SECRETS_AUDIT_AR.md)
+  - [docs/MEDICAL_POST_RLS_BLOCKER_SCRIPT_CLEANUP_REPORT_AR.md](docs/MEDICAL_POST_RLS_BLOCKER_SCRIPT_CLEANUP_REPORT_AR.md)
+  - [docs/MEDICAL_POST_RLS_BLOCKER_RLS_REVALIDATION_AR.md](docs/MEDICAL_POST_RLS_BLOCKER_RLS_REVALIDATION_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH3_IMPLEMENTATION_RESUME_REPORT_AR.md](docs/MEDICAL_BEDS_BATCH3_IMPLEMENTATION_RESUME_REPORT_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH3_RESUME_TESTING_REPORT_AR.md](docs/MEDICAL_BEDS_BATCH3_RESUME_TESTING_REPORT_AR.md)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_BEDS_BATCH3_RESUME_AR.md](docs/MEDICAL_SECURITY_READINESS_AFTER_BEDS_BATCH3_RESUME_AR.md)
+* **المخرجات**: حزمة التقارير الأمنية وتوثيق اختبارات الدفعة الثالثة وعزل الأجنحة والأسرة وحركات النقل والتسجيل بنجاح 100%.
+* **الملخص**:
+  تم إنجاز مرحلة تدقيق السكربتات ما بعد حل حظر RLS واستئناف الدفعة الثالثة بنجاح كامل. شمل ذلك تدقيقاً صارماً للأسرار أدى لحذف 4 سكربتات مؤقتة (`run_fix.js`, `run_gate1_gate2.js`, `run_backup.js`, `run_validate.js`) كانت تحتوي على تفاصيل اتصال صريحة بقاعدة بيانات Staging. تم إزالتها نهائياً من مستودع Git لضمان النظافة الأمنية الكاملة. وتم التحقق من RLS الفعلي لجدولي `admissions` و `bed_transfers` وثبوت فاعلية الحماية وعزل المستأجرين. كما تم تشغيل واجتياز كافة اختبارات الدفعة الثالثة (خروج المرضى وإحصاء إشغال الأسرة اليومي) واجتياز 173 فحص أمان وانحدار بالكامل بنسبة 100% دون أي مشاكل.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 18 جدولاً بالكامل، وتم تنظيف الأسرار واستئناف الدفعة الثالثة بنجاح).
+* **المرحلة التالية الموصى بها**: `BEDS_BATCH3_POST_IMPLEMENTATION_MONITORING` (مراقبة تشغيل الدفعة الثالثة على Staging) أو `BEDS_BATCH4_ICU_NURSING_DESIGN`.
