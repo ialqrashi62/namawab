@@ -2532,39 +2532,81 @@ app.get('/api/blood-bank/stats', requireAuth, async (req, res) => {
 });
 
 // ===== CONSENT FORMS =====
-app.get('/api/consent-forms', requireAuth, async (req, res) => {
+app.get('/api/consent-forms', requireAuth, requireTenantScope, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
         const { patient_id } = req.query;
-        if (patient_id) { res.json((await pool.query('SELECT * FROM consent_forms WHERE patient_id=$1 ORDER BY id DESC', [patient_id])).rows); }
-        else { res.json((await pool.query('SELECT * FROM consent_forms ORDER BY id DESC')).rows); }
+        if (patient_id) {
+            // Verify patient belongs to tenant
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) {
+                return res.status(404).json({ error: 'Patient not found or access denied' });
+            }
+            const { rows } = await pool.query('SELECT * FROM consent_forms WHERE patient_id=$1 AND tenant_id=$2 ORDER BY id DESC', [patient_id, tenantId]);
+            res.json(rows);
+        } else {
+            const { rows } = await pool.query('SELECT * FROM consent_forms WHERE tenant_id=$1 ORDER BY id DESC', [tenantId]);
+            res.json(rows);
+        }
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/consent-forms', requireAuth, async (req, res) => {
+app.post('/api/consent-forms', requireAuth, requireTenantScope, async (req, res) => {
     try {
+        const { tenantId, facilityId } = getRequestTenantContext(req);
         const { patient_id, patient_name, form_type, form_title, form_title_ar, content, doctor_name, surgery_id, notes } = req.body;
+
+        // Verify patient belongs to tenant
+        if (patient_id) {
+            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!patientCheck) {
+                return res.status(404).json({ error: 'Patient not found or access denied' });
+            }
+        }
+
+        // Verify surgery belongs to tenant
+        if (surgery_id && parseInt(surgery_id) !== 0) {
+            const surgeryCheck = (await pool.query('SELECT id FROM surgeries WHERE id=$1 AND tenant_id=$2', [surgery_id, tenantId])).rows[0];
+            if (!surgeryCheck) {
+                return res.status(404).json({ error: 'Surgery not found or access denied' });
+            }
+        }
+
         const result = await pool.query(
-            'INSERT INTO consent_forms (patient_id, patient_name, form_type, form_title, form_title_ar, content, doctor_name, surgery_id, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id',
-            [patient_id || 0, patient_name || '', form_type || 'general', form_title || '', form_title_ar || '', content || '', doctor_name || req.session.user.name || '', surgery_id || 0, notes || '']);
-        res.json((await pool.query('SELECT * FROM consent_forms WHERE id=$1', [result.rows[0].id])).rows[0]);
+            'INSERT INTO consent_forms (patient_id, patient_name, form_type, form_title, form_title_ar, content, doctor_name, surgery_id, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id',
+            [patient_id || 0, patient_name || '', form_type || 'general', form_title || '', form_title_ar || '', content || '', doctor_name || req.session.user.display_name || req.session.user.name || '', surgery_id || 0, notes || '', tenantId, facilityId]
+        );
+        const row = (await pool.query('SELECT * FROM consent_forms WHERE id=$1 AND tenant_id=$2', [result.rows[0].id, tenantId])).rows[0];
+        res.json(row);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/consent-forms/:id', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM consent_forms WHERE id=$1', [req.params.id])).rows[0]); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-
-app.put('/api/consent-forms/:id/sign', requireAuth, async (req, res) => {
+app.get('/api/consent-forms/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        const { patient_signature, witness_name, witness_signature } = req.body;
-        await pool.query("UPDATE consent_forms SET patient_signature=$1, witness_name=$2, witness_signature=$3, signed_at=NOW()::TEXT, status='Signed' WHERE id=$4",
-            [patient_signature || '', witness_name || '', witness_signature || '', req.params.id]);
-        res.json((await pool.query('SELECT * FROM consent_forms WHERE id=$1', [req.params.id])).rows[0]);
+        const { tenantId } = getRequestTenantContext(req);
+        const row = (await pool.query('SELECT * FROM consent_forms WHERE id=$1 AND tenant_id=$2', [req.params.id, tenantId])).rows[0];
+        if (!row) return res.status(404).json({ error: 'Consent form not found' });
+        res.json(row);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/consent-forms/templates/list', requireAuth, async (req, res) => {
+app.put('/api/consent-forms/:id/sign', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        const consentCheck = (await pool.query('SELECT id FROM consent_forms WHERE id=$1 AND tenant_id=$2', [req.params.id, tenantId])).rows[0];
+        if (!consentCheck) return res.status(404).json({ error: 'Consent form not found' });
+
+        const { patient_signature, witness_name, witness_signature } = req.body;
+        await pool.query(
+            "UPDATE consent_forms SET patient_signature=$1, witness_name=$2, witness_signature=$3, signed_at=NOW()::TEXT, status='Signed' WHERE id=$4 AND tenant_id=$5",
+            [patient_signature || '', witness_name || '', witness_signature || '', req.params.id, tenantId]
+        );
+        const row = (await pool.query('SELECT * FROM consent_forms WHERE id=$1 AND tenant_id=$2', [req.params.id, tenantId])).rows[0];
+        res.json(row);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.get('/api/consent-forms/templates/list', requireAuth, requireTenantScope, async (req, res) => {
     try {
         res.json([
             { type: 'surgical', title: 'Surgical Consent', title_ar: 'إقرار عملية جراحية', file: '25_إقرار_عملية_جراحية_عامة_Surgical_Consent.html', content: 'أقر أنا الموقع أدناه بموافقتي على إجراء العملية الجراحية الموضحة في هذا النموذج، وقد تم شرح طبيعة العملية والمضاعفات المحتملة والبدائل العلاجية المتاحة لي بالتفصيل.' },
@@ -2605,8 +2647,9 @@ app.get('/api/consent-forms/templates/list', requireAuth, async (req, res) => {
 });
 
 // ===== CONSENT FORM HTML RENDERER (Auto-fill patient data) =====
-app.get('/api/consent-forms/render/:type', requireAuth, async (req, res) => {
+app.get('/api/consent-forms/render/:type', requireAuth, requireTenantScope, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
         const { patient_id, doctor_name } = req.query;
         // Get template file mapping
         const templatesResp = await new Promise((resolve) => {
@@ -2652,51 +2695,52 @@ app.get('/api/consent-forms/render/:type', requireAuth, async (req, res) => {
         let html = fs.readFileSync(filePath, 'utf8');
         // Auto-fill patient data if patient_id provided
         if (patient_id) {
-            const patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [patient_id])).rows[0];
-            if (patient) {
-                const now = new Date();
-                const dateStr = now.toISOString().split('T')[0];
-                const timeStr = now.toTimeString().split(' ')[0].substring(0, 5);
-                // Calculate age
-                let age = '';
-                if (patient.dob) {
-                    const dob = new Date(patient.dob);
-                    age = Math.floor((now - dob) / (365.25 * 24 * 60 * 60 * 1000));
-                }
-                // Inject auto-fill script at end of body
-                const fillScript = `<script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const data = {
-                            name: '${(patient.name_ar || patient.name_en || '').replace(/'/g, "\\'")}',
-                            fileNo: '${patient.file_number || ''}',
-                            idNo: '${patient.national_id || ''}',
-                            age: '${age}',
-                            phone: '${patient.phone || ''}',
-                            date: '${dateStr}',
-                            time: '${timeStr}',
-                            gender: '${patient.gender || ''}',
-                            doctor: '${(doctor_name || '').replace(/'/g, "\\'")}'
-                        };
-                        // Fill all .line spans after label fields
-                        const fields = document.querySelectorAll('.field');
-                        fields.forEach(f => {
-                            const label = f.querySelector('label');
-                            const line = f.querySelector('.line');
-                            if (!label || !line) return;
-                            const txt = label.textContent;
-                            if (txt.includes('اسم المريض') || txt.includes('Name:')) line.textContent = data.name;
-                            else if (txt.includes('رقم الملف') || txt.includes('File')) line.textContent = data.fileNo;
-                            else if (txt.includes('رقم الهوية') || txt.includes('ID #')) line.textContent = data.idNo;
-                            else if (txt.includes('العمر') || txt.includes('Age')) line.textContent = data.age;
-                            else if (txt.includes('الجوال') || txt.includes('Phone')) line.textContent = data.phone;
-                            else if (txt.includes('التاريخ') || txt.includes('Date:')) line.textContent = data.date;
-                            else if (txt.includes('الوقت') || txt.includes('Time:')) line.textContent = data.time;
-                            else if ((txt.includes('الجراح') || txt.includes('Surgeon') || txt.includes('الطبيب المعالج') || txt.includes('طبيب التخدير')) && data.doctor) line.textContent = data.doctor;
-                        });
-                    });
-                </script>`;
-                html = html.replace('</body>', fillScript + '\n</body>');
+            const patient = (await pool.query('SELECT * FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!patient) {
+                return res.status(404).json({ error: 'Patient not found or access denied' });
             }
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const timeStr = now.toTimeString().split(' ')[0].substring(0, 5);
+            // Calculate age
+            let age = '';
+            if (patient.dob) {
+                const dob = new Date(patient.dob);
+                age = Math.floor((now - dob) / (365.25 * 24 * 60 * 60 * 1000));
+            }
+            // Inject auto-fill script at end of body
+            const fillScript = `<script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const data = {
+                        name: '${(patient.name_ar || patient.name_en || '').replace(/'/g, "\\'")}',
+                        fileNo: '${patient.file_number || ''}',
+                        idNo: '${patient.national_id || ''}',
+                        age: '${age}',
+                        phone: '${patient.phone || ''}',
+                        date: '${dateStr}',
+                        time: '${timeStr}',
+                        gender: '${patient.gender || ''}',
+                        doctor: '${(doctor_name || '').replace(/'/g, "\\'")}'
+                    };
+                    // Fill all .line spans after label fields
+                    const fields = document.querySelectorAll('.field');
+                    fields.forEach(f => {
+                        const label = f.querySelector('label');
+                        const line = f.querySelector('.line');
+                        if (!label || !line) return;
+                        const txt = label.textContent;
+                        if (txt.includes('اسم المريض') || txt.includes('Name:')) line.textContent = data.name;
+                        else if (txt.includes('رقم الملف') || txt.includes('File')) line.textContent = data.fileNo;
+                        else if (txt.includes('رقم الهوية') || txt.includes('ID #')) line.textContent = data.idNo;
+                        else if (txt.includes('العمر') || txt.includes('Age')) line.textContent = data.age;
+                        else if (txt.includes('الجوال') || txt.includes('Phone')) line.textContent = data.phone;
+                        else if (txt.includes('التاريخ') || txt.includes('Date:')) line.textContent = data.date;
+                        else if (txt.includes('الوقت') || txt.includes('Time:')) line.textContent = data.time;
+                        else if ((txt.includes('الجراح') || txt.includes('Surgeon') || txt.includes('الطبيب المعالج') || txt.includes('طبيب التخدير')) && data.doctor) line.textContent = data.doctor;
+                    });
+                });
+            </script>`;
+            html = html.replace('</body>', fillScript + '\n</body>');
         }
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.send(html);
