@@ -924,3 +924,25 @@ NamaMedical/ (المستودع الرئيسي الأب)
   تم تشخيص وإصلاح مشكلة تسجيل الدخول في بيئة Staging بنجاح. تبين أن المشكلة سببها فقدان كلمة المرور الصريحة للمدير العام `admin` (بعد تنظيف ملف Seed السابق)، بالإضافة لخطأ في جافا سكربت واجهة المستخدم كان يخفي رسالة الخطأ. تم توليد كلمة مرور قوية جديدة للمدير العام وحفظها في الخادم بملف `/root/admin_password.txt` بصلاحيات `600` وحقن الهاش بقاعدة البيانات. تم إصلاح كود الجافا سكربت لعرض تنبيهات الخطأ بشكل صحيح. تم التحقق من نجاح تسجيل الدخول وصحة الجلسة وسلامة سياسات RLS بنسبة 100%.
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 14 جدولاً، ونظام المصادقة يعمل بشكل سليم).
 * **المرحلة التالية الموصى بها**: `Catalog Override Implementation` أو `Beds Tenant Ownership Design`
+
+### Phase 65: Staging Auth Hardening & Credential Governance
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_STAGING_AUTH_HARDENING_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `.gitignore` (إضافة مجلد scratch/ وملف skills-lock.json لمنع تسرب الأدوات والسكربتات المؤقتة)
+* **الملفات الجديدة**:
+  - `docs/MEDICAL_STAGING_AUTH_HARDENING_REPORT_AR.md`
+  - `docs/MEDICAL_CREDENTIAL_GOVERNANCE_POLICY_AR.md`
+  - `docs/MEDICAL_ADMIN_RECOVERY_RUNBOOK_AR.md`
+  - `docs/MEDICAL_AUTH_SESSION_COOKIE_REVIEW_AR.md`
+  - `docs/MEDICAL_AUTH_SECURITY_SMOKE_TEST_REPORT_AR.md`
+  - `docs/MEDICAL_AUTH_TEMP_SCRIPTS_CLEANUP_REPORT_AR.md`
+  - `docs/MEDICAL_AUTH_PRODUCTION_READINESS_GAP_AR.md`
+  - `docs/sql/auth_readonly_validation_checks.sql`
+  - `docs/sql/auth_noop_safety_checks.sql`
+  - `.ai-brain/skills/MEDICAL_AUTH_SECURITY_AUTOPILOT_SKILL_AR.md`
+* **المخرجات**: التقارير والسياسات الأمنية وسكربتات التحقق بلغة عربية UTF-8 سليمة.
+* **الملخص**:
+  تم بنجاح تنفيذ مرحلة تقوية المصادقة وحوكمة بيانات الدخول لبيئة Staging. تم تنظيف مجلد scratch بالكامل من السكربتات الحساسة التي تحتوي على معرّفات أو كلمات مرور أو وصول SSH، واستبعاد المجلد بالكامل عبر ملف .gitignore لضمان الأمان الفائق. تم كتابة سياسة الحوكمة والـ Runbook المعتمد لاستعادة الحساب الإداري، وفحص أمن الجلسات وكوكيز الاتصال الآمن خلف Nginx HTTPS، وبناء استعلامات التحقق للقراءة فقط (Read-only) والاستعلامات الصفية غير المعدلة (No-Op) والتأكد التام من استقرار سياسات RLS الـ 14 جدولاً المفعّلة سابقاً.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 14 جدولاً، واعتمادات Staging محصنة تماماً).
+* **المرحلة التالية الموصى بها**: `Catalog Override Implementation` أو `Auth Production Readiness Hardening`

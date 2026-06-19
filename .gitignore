@@ -33,3 +33,5 @@ dist-electron/
 win-unpacked/
 out/make/
 src-tauri/target/
+scratch/
+skills-lock.json
