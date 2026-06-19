@@ -1068,3 +1068,30 @@ NamaMedical/ (المستودع الرئيسي الأب)
   تم بنجاح تفعيل سياسات Row-Level Security (RLS) للدفعة الثانية الخاصة بجدولي التنويم والتحويلات (`admissions`, `bed_transfers`) وتفعيل `FORCE ROW LEVEL SECURITY` عليها للتأكد من خضوع كافة قنوات الاتصال الفائقة للتأمين والعزل التام للمسؤولين والمستأجرين ببيئة Staging. تم أخذ نسختين احتياطيتين بنجاح (نسخة كاملة وحزم جدولية محددة). تم التحقق من نجاح تفعيل السياسات وصحة العزل بنسبة 100% دون أي تسريب للبيانات. وتم التأكد من اجتياز اختبارات انحدار الأمان (53 اختباراً للتنويم والأسرة، و29 للكتالوج، و63 لمنع التسريب، واختبار الدخان الكلي بنجاح 100%) دون أي regressions أو تسريب للأسرار.
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 18 جدولاً في المجمل).
 * **المرحلة التالية الموصى بها**: `BEDS_BATCH3_DISCHARGE_OCCUPANCY_DESIGN`
+
+### Phase 71: Beds Batch 3 Discharge & Occupancy Design
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `BEDS_BATCH3_DISCHARGE_OCCUPANCY_DESIGN_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تصميم وتخطيط وتدقيق أمني فقط لقاعدة البيانات والـ API دون إجراء أي تغييرات مدمرة)
+* **الملفات الجديدة**:
+  - [docs/MEDICAL_BEDS_BATCH2_POST_SECURITY_VERIFICATION_AR.md](docs/MEDICAL_BEDS_BATCH2_POST_SECURITY_VERIFICATION_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH2_POST_SECRETS_AUDIT_AR.md](docs/MEDICAL_BEDS_BATCH2_POST_SECRETS_AUDIT_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH2_POST_GIT_SCRATCH_AUDIT_AR.md](docs/MEDICAL_BEDS_BATCH2_POST_GIT_SCRATCH_AUDIT_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH3_DISCHARGE_OCCUPANCY_DESIGN_AR.md](docs/MEDICAL_BEDS_BATCH3_DISCHARGE_OCCUPANCY_DESIGN_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH3_SCHEMA_AUDIT_AR.md](docs/MEDICAL_BEDS_BATCH3_SCHEMA_AUDIT_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH3_DISCHARGE_WORKFLOW_MAP_AR.md](docs/MEDICAL_BEDS_BATCH3_DISCHARGE_WORKFLOW_MAP_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH3_OCCUPANCY_CENSUS_MODEL_AR.md](docs/MEDICAL_BEDS_BATCH3_OCCUPANCY_CENSUS_MODEL_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH3_RLS_DECISION_MATRIX_AR.md](docs/MEDICAL_BEDS_BATCH3_RLS_DECISION_MATRIX_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH3_API_SECURITY_REVIEW_AR.md](docs/MEDICAL_BEDS_BATCH3_API_SECURITY_REVIEW_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH3_BACKFILL_AND_MIGRATION_PLAN_AR.md](docs/MEDICAL_BEDS_BATCH3_BACKFILL_AND_MIGRATION_PLAN_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH3_TESTING_STRATEGY_AR.md](docs/MEDICAL_BEDS_BATCH3_TESTING_STRATEGY_AR.md)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_BEDS_BATCH3_DESIGN_AR.md](docs/MEDICAL_SECURITY_READINESS_AFTER_BEDS_BATCH3_DESIGN_AR.md)
+  - [docs/sql/beds_batch3_discharge_occupancy_readonly_validate.sql](docs/sql/beds_batch3_discharge_occupancy_readonly_validate.sql)
+  - [docs/sql/beds_batch3_discharge_occupancy_noop_safety_checks.sql](docs/sql/beds_batch3_discharge_occupancy_noop_safety_checks.sql)
+  - [.ai-brain/skills/MEDICAL_DISCHARGE_OCCUPANCY_RLS_AUTOPILOT_SKILL_AR.md](.ai-brain/skills/MEDICAL_DISCHARGE_OCCUPANCY_RLS_AUTOPILOT_SKILL_AR.md)
+* **المخرجات**: تقارير التصميم والخرائط التشغيلية ومصفوفة القرارات للدفعة الثالثة وسكربتات SQL للفحص والمحاكاة بلغة عربية UTF-8 سليمة.
+* **الملخص**:
+  تم بنجاح إنجاز مرحلة تنظيف ما بعد الدفعة الثانية وتصميم عزل نظام خروج المرضى (Discharge) وإحصاء إشغال الأسرة اليومي (Occupancy/Census) للدفعة الثالثة بنظام الأوتو بايلوت. تم التحقق من خلو السجلات والتقارير من أي أسرار أو عناوين DB صلبة أو مسارات تطوير محلية. وتمت مراجعة العلاقات بين جداول admissions و beds و patients وثبوت تغطية الأعمدة الحالية وعدم الحاجة لأي تغيير بنائي. كما تم وضع نموذج الحساب الهجين للإشغال ومصفوفة قرارات RLS ومراجعة نهايات ال API.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 18 جدولاً سابقاً، ونموذج إشغال الأسرة مصمم بالكامل).
+* **المرحلة التالية الموصى بها**: `BEDS_BATCH3_DISCHARGE_OCCUPANCY_IMPLEMENTATION_CONTROLLED_STAGING`
+

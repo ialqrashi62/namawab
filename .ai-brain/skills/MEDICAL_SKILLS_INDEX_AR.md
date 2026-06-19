@@ -29,6 +29,7 @@
 | **[MEDICAL_RLS_PRODUCTION_ENABLEMENT_SKILL_AR](.ai-brain/skills/MEDICAL_RLS_PRODUCTION_ENABLEMENT_SKILL_AR.md)** | ضوابط تفعيل RLS على خادم الإنتاج الفعلي وإعداد أدوار الاتصال المقيدة. | **P1** |
 | **[MEDICAL_TENANT_ID_BACKFILL_SKILL_AR](.ai-brain/skills/MEDICAL_TENANT_ID_BACKFILL_SKILL_AR.md)** | خطة إضافة وتعبئة عمود معرف المستأجر وسكربتات الهجرة القديمة. | **P1** |
 | **[MEDICAL_ADMISSIONS_TRANSFERS_RLS_AUTOPILOT_SKILL_AR](.ai-brain/skills/MEDICAL_ADMISSIONS_TRANSFERS_RLS_AUTOPILOT_SKILL_AR.md)** | حوكمة وتأمين التنويم الداخلي وحركات الأسرة وعزل المستأجرين. | **P1** |
+| **[MEDICAL_DISCHARGE_OCCUPANCY_RLS_AUTOPILOT_SKILL_AR](.ai-brain/skills/MEDICAL_DISCHARGE_OCCUPANCY_RLS_AUTOPILOT_SKILL_AR.md)** | حوكمة وتصميم عزل إجراءات خروج المرضى وإحصاء إشغال الأسرة اليومي. | **P1** |
 | **[MEDICAL_HEALTHCARE_COMPLIANCE_SAUDI_SKILL_AR](.ai-brain/skills/MEDICAL_HEALTHCARE_COMPLIANCE_SAUDI_SKILL_AR.md)** | معايير الامتثال لوزارة الصحة ونفيس NPHIES والسيادة الجغرافية للبيانات. | **P1** |
 | **[MEDICAL_CLINICAL_WORKFLOW_QA_SKILL_AR](.ai-brain/skills/MEDICAL_CLINICAL_WORKFLOW_QA_SKILL_AR.md)** | فحوصات الجودة الطبية ومحاكاة دورة حياة المريض وصرف الأدوية. | **P1** |
 | **[MEDICAL_ARABIC_UTF8_ENFORCEMENT_SKILL_AR](.ai-brain/skills/MEDICAL_ARABIC_UTF8_ENFORCEMENT_SKILL_AR.md)** | فرض ترميز UTF-8 وعلاج تشويه الخطوط (Mojibake) وتنسيق RTL. | **P1** |
