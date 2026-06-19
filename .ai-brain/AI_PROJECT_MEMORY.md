@@ -1254,3 +1254,32 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - RLS_DECISION: ENABLE_NOW for 8 tables; BLOCKED_NEEDS_SCHEMA_CHANGE for nursing_assessments
   - PRODUCTION_READY: NO
 * **المرحلة التالية الموصى بها**: `BEDS_BATCH4_POST_IMPLEMENTATION_MONITORING` (مراقبة تشغيل الدفعة الرابعة واستقرارها على Staging).
+
+### Phase 78: Beds Batch 4 ICU/Nursing Post-Implementation Monitoring
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `BEDS_BATCH4_ICU_NURSING_POST_MONITORING_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - لا يوجد
+* **الملفات الجديدة**:
+  - [docs/MEDICAL_ICU_NURSING_POST_MONITORING_GIT_AND_LINK_AUDIT_AR.md](docs/MEDICAL_ICU_NURSING_POST_MONITORING_GIT_AND_LINK_AUDIT_AR.md) (تقرير تدقيق مستودع Git والروابط)
+  - [docs/MEDICAL_ICU_NURSING_POST_MONITORING_SECRETS_AUDIT_AR.md](docs/MEDICAL_ICU_NURSING_POST_MONITORING_SECRETS_AUDIT_AR.md) (تقرير تدقيق خلو المستودع من الأسرار)
+  - [docs/MEDICAL_ICU_NURSING_POST_MONITORING_RLS_REVALIDATION_AR.md](docs/MEDICAL_ICU_NURSING_POST_MONITORING_RLS_REVALIDATION_AR.md) (تقرير إعادة التحقق من سياسات RLS والفهارس)
+  - [docs/MEDICAL_ICU_NURSING_POST_MONITORING_API_OBSERVATION_AR.md](docs/MEDICAL_ICU_NURSING_POST_MONITORING_API_OBSERVATION_AR.md) (تقرير مراقبة نهايات API والتحصين البرمجي)
+  - [docs/MEDICAL_ICU_NURSING_POST_MONITORING_TEST_REPORT_AR.md](docs/MEDICAL_ICU_NURSING_POST_MONITORING_TEST_REPORT_AR.md) (تقرير اختبارات الأمان وانحدار الموديولات السابقة)
+  - [docs/MEDICAL_ICU_NURSING_POST_MONITORING_RUNTIME_OBSERVATION_AR.md](docs/MEDICAL_ICU_NURSING_POST_MONITORING_RUNTIME_OBSERVATION_AR.md) (تقرير سجلات تشغيل الخادم وأخطاء Runtime)
+  - [docs/MEDICAL_ICU_NURSING_POST_MONITORING_ROLLBACK_RECHECK_AR.md](docs/MEDICAL_ICU_NURSING_POST_MONITORING_ROLLBACK_RECHECK_AR.md) (تقرير مراجعة خطط وجاهزية التراجع الفوري)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_ICU_NURSING_POST_MONITORING_AR.md](docs/MEDICAL_SECURITY_READINESS_AFTER_ICU_NURSING_POST_MONITORING_AR.md) (تقرير الجاهزية الأمنية والتقييم لبيئة الإنتاج)
+* **المخرجات**: حزمة وثائق المراقبة، إثبات فاعلية سياسات RLS، نجاح 309 فحوصات آلية بالكامل، وخلو النظام من ثغرات تسريب البيانات أو الأسرار.
+* **الملخص**:
+  تم بنجاح إتمام مرحلة المراقبة ما بعد التنفيذ للدفعة الرابعة الخاصة بالعناية المركزة والتمريض على بيئة Staging. تم إثبات تفعيل RLS وفرض القوة (FORCE RLS) بنجاح 100% لـ 8 جداول مستهدفة، مع بقاء جدول `nursing_assessments` مؤمناً برمجياً عبر الـ API لافتقاره لعمود المستأجر. تم فحص خادم Express وسجلاته وثبت خلوها التام من الأسرار والروابط المطلقة وأخطاء Runtime. وتم تشغيل واجتياز كافة اختبارات انحدار الأمان الـ 9 بنجاح 100% بإجمالي 309 فحوصات ناجحة، مع بقاء الجاهزية للإنتاج في وضع الانتظار (`PRODUCTION_READY: NO`).
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (المراقبة تمت بنجاح كامل وثبات عزل 26 جدولاً).
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: NO
+  - TABLE_COLUMN_SCHEMA_CHANGED: NO
+  - DATABASE_SECURITY_DDL_CHANGED: NO
+  - MIGRATIONS_RUN: NO
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: NO
+  - PRODUCTION_READY: NO
+* **المرحلة التالية الموصى بها**: `BEDS_BATCH5_SURGERY_OPERATING_ROOMS_DESIGN` (تصميم وعزل موديول غرف العمليات والجراحة).
+
