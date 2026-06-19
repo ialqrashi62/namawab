@@ -4298,7 +4298,7 @@ app.get('/api/nursing/assessments', requireAuth, requireTenantScope, async (req,
         let q;
         let params = [];
         if (tenantId) {
-            q = 'SELECT a.* FROM nursing_assessments a JOIN patients p ON a.patient_id = p.id WHERE p.tenant_id = $1 ORDER BY a.created_at DESC LIMIT 50';
+            q = 'SELECT * FROM nursing_assessments WHERE tenant_id = $1 ORDER BY created_at DESC LIMIT 50';
             params.push(tenantId);
         } else {
             q = 'SELECT * FROM nursing_assessments ORDER BY created_at DESC LIMIT 50';
@@ -4309,13 +4309,13 @@ app.get('/api/nursing/assessments', requireAuth, requireTenantScope, async (req,
 app.post('/api/nursing/assessments', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, assessment_type, fall_risk_score, braden_score, pain_score, gcs_score, shift, notes } = req.body;
-        const { tenantId } = getRequestTenantContext(req);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
         if (tenantId) {
             const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
             if (patientCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
         }
-        const result = await pool.query('INSERT INTO nursing_assessments (patient_id, patient_name, assessment_type, fall_risk_score, braden_score, pain_score, gcs_score, nurse, shift, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
-            [patient_id, patient_name || '', assessment_type || 'General', fall_risk_score || 0, braden_score || 23, pain_score || 0, gcs_score || 15, req.session.user.name, shift || 'Morning', notes || '']);
+        const result = await pool.query('INSERT INTO nursing_assessments (patient_id, patient_name, assessment_type, fall_risk_score, braden_score, pain_score, gcs_score, nurse, shift, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
+            [patient_id, patient_name || '', assessment_type || 'General', fall_risk_score || 0, braden_score || 23, pain_score || 0, gcs_score || 15, req.session.user.name, shift || 'Morning', notes || '', tenantId || null, facilityId || null]);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });

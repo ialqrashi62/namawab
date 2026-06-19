@@ -742,7 +742,7 @@ function createTables() {
   const userCount = d.prepare('SELECT COUNT(*) as cnt FROM system_users').get();
   if (userCount.cnt === 0) {
     d.prepare('INSERT INTO system_users (username, password_hash, display_name, role) VALUES (?, ?, ?, ?)')
-      .run('admin', '$2b$12$RGXj..JVoLyk1sSE2T1L1e2sbPbQ9WaNxudwsLD/5fQm9loKrnQ9K', 'المدير العام', 'Admin');
+      .run('admin', '$2b$12$G36aRwyn13/eICGIdRF4leQfi/g6xYROPVNvQ1cMrh95PDK9fbs0q', 'المدير العام', 'Admin');
   }
 
   try { d.exec(`ALTER TABLE patients ADD COLUMN dob TEXT DEFAULT ''`); } catch (e) { }

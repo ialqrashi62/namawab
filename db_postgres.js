@@ -1770,7 +1770,7 @@ CREATE TABLE IF NOT EXISTS cosmetic_followups (
         `).catch(err => console.error('Sequence sync error:', err.message));
 
         // Default admin
-        await client.query(`INSERT INTO system_users (username, password_hash, display_name, role) VALUES ('admin', '$2b$12$RGXj..JVoLyk1sSE2T1L1e2sbPbQ9WaNxudwsLD/5fQm9loKrnQ9K', 'المدير العام', 'Admin') ON CONFLICT (username) DO NOTHING`);
+        await client.query(`INSERT INTO system_users (username, password_hash, display_name, role) VALUES ('admin', '$2b$12$G36aRwyn13/eICGIdRF4leQfi/g6xYROPVNvQ1cMrh95PDK9fbs0q', 'المدير العام', 'Admin') ON CONFLICT (username) DO NOTHING`);
 
         // Map admin to default tenant/facility
         await client.query(`
@@ -1860,6 +1860,10 @@ ALTER TABLE emar_administrations ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 ALTER TABLE emar_administrations ADD COLUMN IF NOT EXISTS facility_id INTEGER;
 ALTER TABLE nursing_care_plans ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 ALTER TABLE nursing_care_plans ADD COLUMN IF NOT EXISTS facility_id INTEGER;
+ALTER TABLE nursing_assessments ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
+ALTER TABLE nursing_assessments ADD COLUMN IF NOT EXISTS facility_id INTEGER;
+CREATE INDEX IF NOT EXISTS idx_nursing_assessments_tenant_facility ON nursing_assessments (tenant_id, facility_id, patient_id);
+
 ALTER TABLE telemedicine_sessions ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 ALTER TABLE telemedicine_sessions ADD COLUMN IF NOT EXISTS facility_id INTEGER;
 ALTER TABLE pathology_cases ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
@@ -2013,6 +2017,7 @@ UPDATE icu_fluid_balance SET tenant_id = 1, facility_id = 1 WHERE tenant_id IS N
 UPDATE emar_orders SET tenant_id = 1, facility_id = 1 WHERE tenant_id IS NULL;
 UPDATE emar_administrations SET tenant_id = 1, facility_id = 1 WHERE tenant_id IS NULL;
 UPDATE nursing_care_plans SET tenant_id = 1, facility_id = 1 WHERE tenant_id IS NULL;
+UPDATE nursing_assessments SET tenant_id = 1, facility_id = 1 WHERE tenant_id IS NULL;
 UPDATE telemedicine_sessions SET tenant_id = 1, facility_id = 1 WHERE tenant_id IS NULL;
 UPDATE pathology_cases SET tenant_id = 1, facility_id = 1 WHERE tenant_id IS NULL;
 UPDATE social_work_cases SET tenant_id = 1, facility_id = 1 WHERE tenant_id IS NULL;
