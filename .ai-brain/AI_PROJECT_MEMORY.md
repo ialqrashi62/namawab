@@ -1095,3 +1095,26 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 18 جدولاً سابقاً، ونموذج إشغال الأسرة مصمم بالكامل).
 * **المرحلة التالية الموصى بها**: `BEDS_BATCH3_DISCHARGE_OCCUPANCY_IMPLEMENTATION_CONTROLLED_STAGING`
 
+### Phase 72: Beds Batch 3 Discharge & Occupancy Implementation
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `BEDS_BATCH3_DISCHARGE_OCCUPANCY_IMPLEMENTATION_BLOCKED`
+* **الملفات البرمجية المعدلة**:
+  - `namaweb/server.js` (تقوية معاملة وقفل الخروج FOR UPDATE وعزل استعلامات الإشغال)
+* **الملفات الجديدة**:
+  - `docs/sql/beds_batch3_discharge_occupancy_post_validate.sql` (سكربت التحقيق بعد التنفيذ)
+  - `docs/sql/beds_batch3_discharge_occupancy_post_noop_safety_checks.sql` (سكربت الفحص الآمن بالقراءة فقط)
+  - `docs/MEDICAL_BEDS_BATCH3_DISCHARGE_OCCUPANCY_IMPLEMENTATION_PLAN_AR.md` (خطة التنفيذ البرمجي)
+  - `docs/MEDICAL_BEDS_BATCH3_BACKUP_REPORT_AR.md` (تقرير النسخ الاحتياطي)
+  - `docs/MEDICAL_BEDS_BATCH3_API_HARDENING_REPORT_AR.md` (تقرير تحصين الواجهات)
+  - `docs/MEDICAL_BEDS_BATCH3_DISCHARGE_WORKFLOW_IMPLEMENTATION_REPORT_AR.md` (تقرير سير عمل الخروج)
+  - `docs/MEDICAL_BEDS_BATCH3_OCCUPANCY_CENSUS_IMPLEMENTATION_REPORT_AR.md` (تقرير إحصاء وإشغال الأسرة)
+  - `docs/MEDICAL_BEDS_BATCH3_TESTING_REPORT_AR.md` (تقرير فحص الجودة والأمان)
+  - `docs/MEDICAL_BEDS_BATCH3_ROLLBACK_READINESS_REPORT_AR.md` (تقرير جاهزية التراجع)
+  - `docs/MEDICAL_SECURITY_READINESS_AFTER_BEDS_BATCH3_IMPLEMENTATION_AR.md` (تقرير الجاهزية الأمنية النهائي)
+  - `namaweb/run_backup.js` (سكربت تصدير الجداول لنسخها احتياطياً)
+  - `namaweb/run_validate.js` (سكربت تشغيل استعلامات الفحص والجاهزية)
+* **المخرجات**: حزمة التقارير الأمنية والتحققات الهيكلية وسكربتات SQL والبرمجيات المطورة لبيئة Staging.
+* **الملخص**:
+  تم برمجة وتقوية مسار خروج المرضى `PUT /api/admissions/:id/discharge` باستخدام معاملات قاعدة البيانات والتحقق المسبق وقفل الصفوف `FOR UPDATE` لمنع تسريب البيانات وحالات السباق. كما تم عزل استعلامات إشغال الأسرة والأقسام `GET /api/beds/census` تماماً بنطاق المستأجر. تم التحقق من نجاح كافة الاختبارات البرمجية والسريرية والمسارات بنسبة 100%. ومع ذلك، لوحظ أن RLS غير نشط على جدولي `admissions` و `bed_transfers` في محرك قاعدة البيانات (`rowsecurity: false`)، وهو ما يمثل **BLOCKER** أمني يحظر اكتمال حوكمة البيانات بالكامل على مستوى محرك قاعدة البيانات، ويحتاج DDL للحل.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل معطل على admissions و bed_transfers، والمرحلة معلّقة لحين تفعيل RLS).
+* **المرحلة التالية الموصى بها**: `BLOCKER_RESOLUTION` (الحصول على موافقة لتفعيل RLS على Admissions و Transfers).
