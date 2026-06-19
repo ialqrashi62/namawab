@@ -996,3 +996,26 @@ NamaMedical/ (المستودع الرئيسي الأب)
   تم بنجاح إنجاز مرحلة تصميم نموذج ملكية الأسرة والأجنحة وغرف التنويم للمستأجرين والفروع على بيئة Staging. تم تدقيق مخطط قاعدة البيانات (Schema Audit) وثبوت تغطية الأعمدة `tenant_id` و `branch_id`/`facility_id` لجميع الجداول المعنية وخلوها من السجلات اليتيمة (Orphans) أو القيم NULL. تم صياغة خريطة العمل التشغيلية الطبية، ومصفوفة قرارات RLS المستقبلية، وخطة تفعيل الـ RLS التجريبية والتشغيلية، بالإضافة لمراجعة مخاطر API الحالية.
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 14 جدولاً سابقاً، ونموذج ملكية الأسرة مصمم ومراجع بالكامل).
 * **المرحلة التالية الموصى بها**: `BEDS_TENANT_OWNERSHIP_IMPLEMENTATION_CONTROLLED_STAGING`
+
+### Phase 68: Beds Tenant Ownership Batch 1 Implementation
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `BEDS_BATCH1_WARDS_BEDS_IMPLEMENTATION_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تعديلات أمنية على مستوى قاعدة البيانات وتوثيقات فقط)
+* **الملفات الجديدة**:
+  - [docs/sql/beds_batch1_wards_beds_up.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/beds_batch1_wards_beds_up.sql)
+  - [docs/sql/beds_batch1_wards_beds_down.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/beds_batch1_wards_beds_down.sql)
+  - [docs/sql/beds_batch1_wards_beds_validate.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/beds_batch1_wards_beds_validate.sql)
+  - [docs/sql/beds_batch1_wards_beds_noop_safety_checks.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/beds_batch1_wards_beds_noop_safety_checks.sql)
+  - [docs/MEDICAL_BEDS_BATCH1_WARDS_BEDS_IMPLEMENTATION_PLAN_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BEDS_BATCH1_WARDS_BEDS_IMPLEMENTATION_PLAN_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH1_BACKUP_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BEDS_BATCH1_BACKUP_REPORT_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH1_SCHEMA_CHANGE_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BEDS_BATCH1_SCHEMA_CHANGE_REPORT_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH1_RLS_ENABLEMENT_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BEDS_BATCH1_RLS_ENABLEMENT_REPORT_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH1_API_CHANGE_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BEDS_BATCH1_API_CHANGE_REPORT_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH1_SMOKE_TEST_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BEDS_BATCH1_SMOKE_TEST_REPORT_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH1_ROLLBACK_READINESS_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BEDS_BATCH1_ROLLBACK_READINESS_REPORT_AR.md)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_BEDS_BATCH1_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_SECURITY_READINESS_AFTER_BEDS_BATCH1_AR.md)
+* **المخرجات**: التقارير وسكربتات SQL للفحص والتراجع والتحقق بنجاح بلغة عربية UTF-8 سليمة.
+* **الملخص**:
+  تم بنجاح تفعيل سياسات Row-Level Security (RLS) للدفعة الأولى الخاصة بالأجنحة والأسرة (`wards`, `beds`) وتفعيل `FORCE ROW LEVEL SECURITY` عليها للتأكد من خضوع كافة قنوات الاتصال الفائقة للتأمين والعزل التام للمستأجرين. تم إجراء عمليات النسخ الاحتياطي (الكامل والجداولي المحدد) بنجاح كامل وحجم 501KB. تم التحقق من نجاح تفعيل السياسات وصحة العزل بنسبة 100% بدون أي تسريب للبيانات. وتم التأكد من اجتياز اختبارات انحدار الأمان (53 اختباراً للتنويم والأسرة، و29 للكتالوج، و63 لمنع التسريب، واختبار الدخان الكلي بنجاح 100%) دون أي regressions أو تسريب للأسرار.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 16 جدولاً في المجمل).
+* **المرحلة التالية الموصى بها**: `BEDS_BATCH2_ADMISSIONS_TRANSFERS_DESIGN`
