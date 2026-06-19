@@ -649,5 +649,32 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **المخرجات**:
   - [docs/MEDICAL_POST_HTTPS_HARDENING_AND_ADVANCED_ROADMAP_FINAL_CLOSEOUT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_POST_HTTPS_HARDENING_AND_ADVANCED_ROADMAP_FINAL_CLOSEOUT_AR.md)
 * **الحالة النهائية للمشروع**: تفعيل الشهادات الرقمية وتحصين الجلسات والترويس الأمني لـ Nginx ووضع تصميم ميزات التوسع بنجاح 100%.
-* **المرحلة التالية الموصى بها**: `Implement Advanced Medical Features Batch 1` أو `RLS Staging Enablement Plan`
+* **المرحلة التالية الموصى بها**: `RLS Staging Enablement Plan - Controlled Dry Run`
+
+### Phase 51: RLS Staging Enablement Plan - Controlled Dry Run
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_RLS_STAGING_ENABLEMENT_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تشغيل تجريبي خاضع للمراقبة تم بنجاح مع التراجع الكامل)
+* **المخرجات**:
+  - [.ai-brain/skills/MEDICAL_RLS_STAGING_ENABLEMENT_SKILL_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_RLS_STAGING_ENABLEMENT_SKILL_AR.md)
+  - [.ai-brain/skills/MEDICAL_RLS_POLICY_DESIGN_SKILL_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_RLS_POLICY_DESIGN_SKILL_AR.md)
+  - [.ai-brain/skills/MEDICAL_STAGING_BACKUP_RESTORE_SKILL_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_STAGING_BACKUP_RESTORE_SKILL_AR.md)
+  - [.ai-brain/skills/MEDICAL_RLS_AUTOPILOT_BLOCKER_SKILL_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_RLS_AUTOPILOT_BLOCKER_SKILL_AR.md)
+  - [docs/sql/rls_staging_controlled_dry_run_setup.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_controlled_dry_run_setup.sql)
+  - [docs/sql/rls_staging_controlled_dry_run_validation.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_controlled_dry_run_validation.sql)
+  - [docs/sql/rls_staging_controlled_dry_run_rollback.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_controlled_dry_run_rollback.sql)
+  - [docs/MEDICAL_RLS_STAGING_BACKUP_AND_RESTORE_PLAN_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_RLS_STAGING_BACKUP_AND_RESTORE_PLAN_AR.md)
+  - [docs/MEDICAL_RLS_STAGING_SCHEMA_DATA_READINESS_AUDIT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_RLS_STAGING_SCHEMA_DATA_READINESS_AUDIT_AR.md)
+  - [docs/MEDICAL_RLS_STAGING_POLICY_DRAFT_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_RLS_STAGING_POLICY_DRAFT_REPORT_AR.md)
+  - [docs/MEDICAL_RLS_STAGING_CONTROLLED_DRY_RUN_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_RLS_STAGING_CONTROLLED_DRY_RUN_REPORT_AR.md)
+  - [docs/MEDICAL_RLS_GRADUAL_ENABLEMENT_DECISION_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_RLS_GRADUAL_ENABLEMENT_DECISION_REPORT_AR.md)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_RLS_STAGING_DRY_RUN_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_SECURITY_READINESS_AFTER_RLS_STAGING_DRY_RUN_AR.md)
+* **نتائج الاختبارات**:
+  - نجاح أخذ نسخة احتياطية مشفرة ومؤمنة على Staging Server والتحقق منها بنجاح.
+  - نجاح تشغيل تجريبي معزول لسياسات RLS على جداول المرضى والمواعيد والفواتير واجتياز فحوصات العزل الـ 10 بنسبة 100%.
+  - إتمام التراجع الفوري الكامل وإلغاء RLS وحذف كافة السياسات والأدوار المؤقتة لتصفير البنية الأمنية وإبقاء حالة RLS معطلة (DISABLED).
+  - نجاح اختبارات E2E Smoke Tests واستقرار تصفح الواجهات عبر روابط الاتصال الآمنة HTTPS.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_DRY_RUN_VALIDATED_NOT_FULL_PRODUCTION` (العزل معطل).
+* **المرحلة التالية الموصى بها**: `Gradual RLS Enablement Batch 1` أو `Implement Advanced Medical Features Batch 1`
+
 
