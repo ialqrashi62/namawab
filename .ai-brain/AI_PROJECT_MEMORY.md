@@ -373,4 +373,18 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - نجاح اختبار الدخان الخارجي ومحاكاة الطلبات محلياً وخارجياً برمز 200 OK واستقرار التطبيق وقاعدة البيانات.
 * **المرحلة التالية الموصى بها**: `RLS Local Dry-Run on 3 Tables Only`
 
+### Phase 28: RLS Local Dry-Run on 3 Tables Only
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_RLS_LOCAL_DRY_RUN_3_TABLES_BLOCKED`
+* **الملفات البرمجية المعدلة**: لا يوجد (فحص البيئة المحلية وتجربة السكربت)
+* **الملفات الجديدة**:
+  - `docs/MEDICAL_RLS_LOCAL_DRY_RUN_3_TABLES_REPORT_AR.md` (تقرير حالة تشغيل RLS محلياً)
+* **المخرجات**:
+  - [docs/MEDICAL_RLS_LOCAL_DRY_RUN_3_TABLES_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_RLS_LOCAL_DRY_RUN_3_TABLES_REPORT_AR.md)
+* **نتائج الاختبارات**:
+  - تم فحص البيئة المحلية والتأكد من غياب خادم PostgreSQL أو أداة `pg_dump` على جهاز التطوير الحالي.
+  - تم تشغيل السكربت `node namaweb/rls_local_dry_run_3_tables.js` وفشله بسبب عدم التعرف على `pg_dump`.
+  - تم إيقاف عملية الأوتو بايلوت وتصنيف المرحلة كـ `BLOCKED` لمنع أي مخاطر أو محاولات ربط بقاعدة البيانات الإنتاجية/الخارجية بطريقة غير آمنة.
+* **المرحلة التالية الموصى بها**: `Install Local PostgreSQL & CLI Tools`
+
 
