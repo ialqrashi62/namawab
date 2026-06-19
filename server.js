@@ -280,6 +280,10 @@ app.post('/api/auth/logout', (req, res) => {
     res.json({ success: true });
 });
 
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'UP' });
+});
+
 app.get('/api/auth/me', (req, res) => {
     if (req.session && req.session.user) return res.json({ user: req.session.user });
     res.status(401).json({ error: 'Not logged in' });
