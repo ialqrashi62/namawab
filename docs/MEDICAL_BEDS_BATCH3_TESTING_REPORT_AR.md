@@ -12,6 +12,8 @@
   * اختبار عزل الخروج وإشغال الأسرة: `cross_tenant_discharge_occupancy_test.js`
   * اختبار عزل التنويم وحركات النقل: `cross_tenant_inpatient_beds_test.js`
   * اختبار انحدار الحماية للجدول (14 جدولاً): `cross_tenant_catalog_override_test.js`
+  * اختبار حل حظر الـ RLS وتأكيد الكتالوج: `rls_blocker_admissions_transfers_fix_validate.sql`
+
 
 ---
 

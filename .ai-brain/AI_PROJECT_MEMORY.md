@@ -1118,3 +1118,31 @@ NamaMedical/ (المستودع الرئيسي الأب)
   تم برمجة وتقوية مسار خروج المرضى `PUT /api/admissions/:id/discharge` باستخدام معاملات قاعدة البيانات والتحقق المسبق وقفل الصفوف `FOR UPDATE` لمنع تسريب البيانات وحالات السباق. كما تم عزل استعلامات إشغال الأسرة والأقسام `GET /api/beds/census` تماماً بنطاق المستأجر. تم التحقق من نجاح كافة الاختبارات البرمجية والسريرية والمسارات بنسبة 100%. ومع ذلك، لوحظ أن RLS غير نشط على جدولي `admissions` و `bed_transfers` في محرك قاعدة البيانات (`rowsecurity: false`)، وهو ما يمثل **BLOCKER** أمني يحظر اكتمال حوكمة البيانات بالكامل على مستوى محرك قاعدة البيانات، ويحتاج DDL للحل.
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل معطل على admissions و bed_transfers، والمرحلة معلّقة لحين تفعيل RLS).
 * **المرحلة التالية الموصى بها**: `BLOCKER_RESOLUTION` (الحصول على موافقة لتفعيل RLS على Admissions و Transfers).
+
+### Phase 73: Beds Batch 3 Admissions & Transfers RLS Blocker Resolution
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `BEDS_BATCH3_BLOCKER_RESOLUTION_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `.ai-brain/skills/MEDICAL_SKILLS_INDEX_AR.md` (تحديث فهرس مهارات الأوتو بايلوت)
+  - `docs/MEDICAL_SECURITY_READINESS_AFTER_BEDS_BATCH3_IMPLEMENTATION_AR.md` (تحديث حالة الجاهزية وإلغاء الحظر)
+  - `docs/MEDICAL_BEDS_BATCH3_TESTING_REPORT_AR.md` (إضافة فحوصات حل الحظر)
+* **الملفات الجديدة**:
+  - [docs/sql/rls_blocker_admissions_transfers_truth_validate.sql](docs/sql/rls_blocker_admissions_transfers_truth_validate.sql) (سكربت التحقق من RLS الفعلي)
+  - [docs/sql/rls_blocker_admissions_transfers_fix_up.sql](docs/sql/rls_blocker_admissions_transfers_fix_up.sql) (سكربت DDL الموجه لتفعيل RLS)
+  - [docs/sql/rls_blocker_admissions_transfers_fix_down.sql](docs/sql/rls_blocker_admissions_transfers_fix_down.sql) (سكربت DDL للتراجع)
+  - [docs/sql/rls_blocker_admissions_transfers_fix_validate.sql](docs/sql/rls_blocker_admissions_transfers_fix_validate.sql) (سكربت DDL للتحقق النهائي)
+  - [docs/MEDICAL_RLS_BLOCKER_ENVIRONMENT_RECONCILIATION_AR.md](docs/MEDICAL_RLS_BLOCKER_ENVIRONMENT_RECONCILIATION_AR.md) (تقرير مطابقة البيئة)
+  - [docs/MEDICAL_RLS_BLOCKER_TRUTH_VALIDATION_AR.md](docs/MEDICAL_RLS_BLOCKER_TRUTH_VALIDATION_AR.md) (تقرير فحص RLS الحقيقي)
+  - [docs/MEDICAL_RLS_BLOCKER_BATCH2_REPORT_RECONCILIATION_AR.md](docs/MEDICAL_RLS_BLOCKER_BATCH2_REPORT_RECONCILIATION_AR.md) (تقرير تسوية الدفعة الثانية)
+  - [docs/MEDICAL_RLS_BLOCKER_BACKUP_REPORT_AR.md](docs/MEDICAL_RLS_BLOCKER_BACKUP_REPORT_AR.md) (تقرير النسخ لحل الحظر)
+  - [docs/MEDICAL_RLS_BLOCKER_FIX_VALIDATION_REPORT_AR.md](docs/MEDICAL_RLS_BLOCKER_FIX_VALIDATION_REPORT_AR.md) (تقرير التحقق من حل الحظر)
+  - [docs/MEDICAL_RLS_BLOCKER_REGRESSION_TEST_REPORT_AR.md](docs/MEDICAL_RLS_BLOCKER_REGRESSION_TEST_REPORT_AR.md) (تقرير اختبارات الانحدار)
+  - [docs/MEDICAL_RLS_BLOCKER_FINAL_CLOSEOUT_AR.md](docs/MEDICAL_RLS_BLOCKER_FINAL_CLOSEOUT_AR.md) (تقرير الإغلاق النهائي لحل الحظر)
+  - [namaweb/run_fix.js](namaweb/run_fix.js) (سكربت تطبيق DDL آمن)
+  - [namaweb/run_gate1_gate2.js](namaweb/run_gate1_gate2.js) (سكربت التحقق من بيئة الاتصال)
+  - [.ai-brain/skills/MEDICAL_RLS_RECONCILIATION_AUTOPILOT_SKILL_AR.md](.ai-brain/skills/MEDICAL_RLS_RECONCILIATION_AUTOPILOT_SKILL_AR.md) (مهارة الأوتو بايلوت للتسوية)
+* **المخرجات**: حزمة وثائق وسكربتات حل وتفعيل RLS واختبارات الأمان بنجاح 100%.
+* **الملخص**:
+  تمت تسوية الفجوة الأمنية بنجاح حيث تبين أن RLS على admissions و bed_transfers كان معطلاً بسبب استدعاءات Seeding متكررة أعادت بناء الجداول دون تفعيل RLS برمجياً. تم تفعيل RLS وقيد القوة بالكامل بنجاح، وتأكيد نشاط الحماية (`relrowsecurity: true`). واجتازت كافة اختبارات عزل البيانات وانحدار الأمان بنجاح كامل 100%.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 18 جدولاً بالكامل، وتم فك حظر الدفعة الثالثة).
+* **المرحلة التالية الموصى بها**: `BEDS_BATCH3_DISCHARGE_OCCUPANCY_IMPLEMENTATION_RESUME` (استئناف تفعيل وإغلاق الدفعة الثالثة).
