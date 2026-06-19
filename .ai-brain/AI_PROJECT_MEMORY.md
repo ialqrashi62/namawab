@@ -852,6 +852,27 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH5_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 13 جدولاً).
 * **المرحلة التالية الموصى بها**: `Tenant ID Backfill Controlled Migration`
 
+### Phase 61: Tenant ID Backfill Controlled Migration - Staging Only
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_TENANT_ID_BACKFILL_CONTROLLED_MIGRATION_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تعديلات على سياسات قاعدة البيانات وملفات SQL التوثيقية فقط)
+* **الملفات الجديدة**:
+  - [docs/sql/tenant_id_backfill_controlled_migration_up.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/tenant_id_backfill_controlled_migration_up.sql)
+  - [docs/sql/tenant_id_backfill_controlled_migration_validate.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/tenant_id_backfill_controlled_migration_validate.sql)
+  - [docs/sql/tenant_id_backfill_controlled_migration_down.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/tenant_id_backfill_controlled_migration_down.sql)
+* **المخرجات**:
+  - [docs/MEDICAL_TENANT_ID_BACKFILL_MIGRATION_BACKUP_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_TENANT_ID_BACKFILL_MIGRATION_BACKUP_REPORT_AR.md)
+  - [docs/MEDICAL_TENANT_ID_BACKFILL_MIGRATION_CANDIDATE_SELECTION_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_TENANT_ID_BACKFILL_MIGRATION_CANDIDATE_SELECTION_AR.md)
+  - [docs/MEDICAL_TENANT_ID_BACKFILL_MIGRATION_SCOPE_DECISION_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_TENANT_ID_BACKFILL_MIGRATION_SCOPE_DECISION_AR.md)
+  - [docs/MEDICAL_TENANT_ID_BACKFILL_CONTROLLED_MIGRATION_EXECUTION_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_TENANT_ID_BACKFILL_CONTROLLED_MIGRATION_EXECUTION_REPORT_AR.md)
+  - [docs/MEDICAL_TENANT_ID_BACKFILL_POST_MIGRATION_RLS_READINESS_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_TENANT_ID_BACKFILL_POST_MIGRATION_RLS_READINESS_AR.md)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_TENANT_ID_BACKFILL_MIGRATION_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_SECURITY_READINESS_AFTER_TENANT_ID_BACKFILL_MIGRATION_AR.md)
+* **الملخص**:
+  تم بنجاح تنفيذ هجرة وتعبئة معرف المستأجر لجدول عينات المختبر `lab_samples` على بيئة Staging، مع إضافة عمود `tenant_id` وقيد المفتاح الأجنبي `fk_lab_samples_tenant` والمؤشر المناسب. تم التحقق بنسبة 100% من نجاح الهجرة والتعبئة وتطهير البيانات الاصطناعية.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH5_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 13 جدولاً، وتمت تهيئة وعزل جدول عينات المختبر).
+* **المرحلة التالية الموصى بها**: `RLS Batch 6 For Backfilled Tables`
+
+
 
 
 
