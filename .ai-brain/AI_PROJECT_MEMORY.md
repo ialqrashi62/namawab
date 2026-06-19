@@ -890,3 +890,22 @@ NamaMedical/ (المستودع الرئيسي الأب)
   تم بنجاح تفعيل سياسات Row-Level Security (RLS) للدفعة السادسة على جدول عينات المختبر (`lab_samples`) الذي تم إعداده وتعبئته في المرحلة السابقة، مع اعتماد سياسة عزل المستأجرين `rls_lab_samples_tenant_isolation`. وبذلك ارتفع إجمالي الجداول المؤمنة بـ RLS إلى 14 جدولاً. تم التحقق من نجاح عزل البيانات وتأكيد العزل والقدرة على التراجع بنسبة 100%.
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 14 جدولاً).
 * **المرحلة التالية الموصى بها**: `Tenant Catalog Override Design` أو `Beds Tenant Ownership Design`
+
+### Phase 63: Tenant Catalog Override Design
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `TENANT_CATALOG_OVERRIDE_DESIGN_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تصميم وتحليل وتوثيق أمني وقاعدة بيانات للقراءة فقط)
+* **الملفات الجديدة**:
+  - [docs/sql/catalog_override_candidate_validate.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/catalog_override_candidate_validate.sql)
+  - [docs/sql/catalog_override_noop_safety_checks.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/catalog_override_noop_safety_checks.sql)
+* **المخرجات**:
+  - [docs/MEDICAL_TENANT_CATALOG_OVERRIDE_DESIGN_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_TENANT_CATALOG_OVERRIDE_DESIGN_AR.md)
+  - [docs/MEDICAL_CATALOG_TABLES_CLASSIFICATION_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_CATALOG_TABLES_CLASSIFICATION_AR.md)
+  - [docs/MEDICAL_CATALOG_RLS_DECISION_MATRIX_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_CATALOG_RLS_DECISION_MATRIX_AR.md)
+  - [docs/MEDICAL_CATALOG_SCHEMA_CHANGE_PLAN_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_CATALOG_SCHEMA_CHANGE_PLAN_AR.md)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_CATALOG_DESIGN_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_SECURITY_READINESS_AFTER_CATALOG_DESIGN_AR.md)
+* **الملخص**:
+  تم إنجاز مرحلة التصميم والتحليل بنجاح لكيفية تأمين وعزل وتخصيص كتالوجات وجداول المراجع الطبية. تم تصنيف 14 جدولاً مراجعياً وتشغيلياً إلى فئات واضحة تشمل جداول التخصيص الهجين (المختبرات والأشعة والخدمات)، والكتالوجات المملوكة بالكامل (الصيدلية والأسرة والغرف)، والمراجع العالمية المشتركة (الأدوية والأمراض). تم وضع خطة شاملة لهجرات مخطط قاعدة البيانات دون تنفيذ أي تعديلات فعلية.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 14 جدولاً، مع الانتهاء من تصميم تخصيص الكتالوجات).
+* **المرحلة التالية الموصى بها**: `Catalog Override Implementation` أو `Beds Tenant Ownership Design`
+
