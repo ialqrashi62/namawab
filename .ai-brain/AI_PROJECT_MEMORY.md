@@ -909,3 +909,18 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 14 جدولاً، مع الانتهاء من تصميم تخصيص الكتالوجات).
 * **المرحلة التالية الموصى بها**: `Catalog Override Implementation` أو `Beds Tenant Ownership Design`
 
+### Phase 64: Staging Login Failure Diagnostic & Hotfix
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_LOGIN_FAILURE_FIXED`
+* **الملفات البرمجية المعدلة**:
+  - `namaweb/public/js/login.js` (إصلاح تفعيل وإظهار رسائل الأخطاء عبر إزالة وتفعيل كلاس hidden)
+* **الملفات الجديدة**: لا يوجد
+* **المخرجات**:
+  - [docs/MEDICAL_LOGIN_FAILURE_DIAGNOSIS_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_LOGIN_FAILURE_DIAGNOSIS_AR.md)
+  - [docs/MEDICAL_LOGIN_FIX_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_LOGIN_FIX_REPORT_AR.md)
+  - [docs/MEDICAL_AUTH_RLS_IMPACT_REVIEW_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_AUTH_RLS_IMPACT_REVIEW_AR.md)
+  - [docs/MEDICAL_LOGIN_SMOKE_TEST_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_LOGIN_SMOKE_TEST_REPORT_AR.md)
+* **الملخص**:
+  تم تشخيص وإصلاح مشكلة تسجيل الدخول في بيئة Staging بنجاح. تبين أن المشكلة سببها فقدان كلمة المرور الصريحة للمدير العام `admin` (بعد تنظيف ملف Seed السابق)، بالإضافة لخطأ في جافا سكربت واجهة المستخدم كان يخفي رسالة الخطأ. تم توليد كلمة مرور قوية جديدة للمدير العام وحفظها في الخادم بملف `/root/admin_password.txt` بصلاحيات `600` وحقن الهاش بقاعدة البيانات. تم إصلاح كود الجافا سكربت لعرض تنبيهات الخطأ بشكل صحيح. تم التحقق من نجاح تسجيل الدخول وصحة الجلسة وسلامة سياسات RLS بنسبة 100%.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 14 جدولاً، ونظام المصادقة يعمل بشكل سليم).
+* **المرحلة التالية الموصى بها**: `Catalog Override Implementation` أو `Beds Tenant Ownership Design`
