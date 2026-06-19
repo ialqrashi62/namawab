@@ -1372,3 +1372,35 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - RLS_CHANGED: NO
   - PRODUCTION_READY: NO
 * **المرحلة التالية الموصى بها**: `BEDS_BATCH5_SURGERY_OPERATING_ROOMS_DESIGN` (تصميم وعزل موديول غرف العمليات والجراحة).
+
+### Phase 82: Surgery & Operating Rooms RLS Design
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `BEDS_BATCH5_SURGERY_OPERATING_ROOMS_DESIGN_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `.ai-brain/skills/MEDICAL_SKILLS_INDEX_AR.md` (تسجيل المهارة الجديدة للدفعة الخامسة)
+* **الملفات الجديدة**:
+  - `docs/MEDICAL_SURGERY_OR_PREFLIGHT_AUDIT_AR.md` (تقرير التدقيق المسبق للروابط والمستودع)
+  - `docs/MEDICAL_SURGERY_OR_SCHEMA_DISCOVERY_AR.md` (تقرير استكشاف هيكل الجداول الـ 6)
+  - `docs/MEDICAL_SURGERY_OR_WORKFLOW_MAP_AR.md` (تقرير خريطة التدفق الطبي والتشغيلي)
+  - `docs/MEDICAL_SURGERY_OR_OWNERSHIP_MODEL_AR.md` (تقرير نموذج ملكية وعزل البيانات)
+  - `docs/MEDICAL_SURGERY_OR_RLS_DECISION_MATRIX_AR.md` (تقرير مصفوفة قرارات تفعيل RLS والسياسات المقترحة)
+  - `docs/MEDICAL_SURGERY_OR_API_SECURITY_REVIEW_AR.md` (تقرير مراجعة أمن نهايات الـ API واكتشاف ثغرات الموافقات الطبية)
+  - `docs/MEDICAL_SURGERY_OR_BACKFILL_AND_MIGRATION_PLAN_AR.md` (تقرير خطة تعبئة وتحديث البيانات التاريخية)
+  - `docs/MEDICAL_SURGERY_OR_TESTING_STRATEGY_AR.md` (تقرير استراتيجية الفحص والاختبارات المستقبلية)
+  - `docs/MEDICAL_SECURITY_READINESS_AFTER_SURGERY_OR_DESIGN_AR.md` (تقرير الجاهزية الأمنية العام للدفعة الخامسة)
+  - `docs/sql/surgery_or_readonly_validate.sql` (استعلامات القراءة فقط الهيكلية للتحقق)
+  - `docs/sql/surgery_or_noop_safety_checks.sql` (استعلامات الفحص الصامت والمحاكاة)
+  - `.ai-brain/skills/MEDICAL_SURGERY_OR_RLS_AUTOPILOT_SKILL_AR.md` (المهارة الذكية لعزل موديول العمليات)
+* **المخرجات**: حزمة وثائق التصميم ونماذج العزل وسكربتات SQL الآمنة وتحديث الفهرس والمهارة بلغة عربية UTF-8 سليمة.
+* **الملخص**:
+  تم بنجاح إتمام مرحلة دراسة وتصميم سبل عزل موديول العمليات الجراحية وغرف العمليات وسجلات التخدير والموافقات الجراحية. تم إثبات وجود أعمدة العزل والتحقق من سلامة البنية التشغيلية محلياً. كما تم إجراء تدقيق أمني للواجهات البرمجية أسفر عن اكتشاف فجوة أمنية حرجة في مسارات الموافقات الطبية `consent_forms` (نظراً لافتقارها للوسيط `requireTenantScope` وتصفية `tenant_id`) وتمت جدولتها للإصلاح كـ `NEEDS_API_FIX` في المرحلة القادمة. تم تشغيل واجتياز كافة اختبارات الانحدار والـ E2E محلياً بنجاج 100% بإجمالي 214+ فحصاً ناجحاً دون انحدار.
+* **القرار النهائي**: بيئة Staging مستقرة وتصميم عزل موديول العمليات وغرف العمليات مكتمل ومطابق للمعايير، والجاهزية للإنتاج تبقى PRODUCTION_READY: NO.
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: NO
+  - TABLE_COLUMN_SCHEMA_CHANGED: NO
+  - DATABASE_SECURITY_DDL_CHANGED: NO
+  - MIGRATIONS_RUN: NO
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: NO
+  - PRODUCTION_READY: NO
+* **المرحلة التالية الموصى بها**: `BEDS_BATCH5_SURGERY_OPERATING_ROOMS_IMPLEMENTATION_CONTROLLED_STAGING` (تطبيق عزل وتفعيل RLS موديول العمليات وغرف العمليات على بيئة Staging).
