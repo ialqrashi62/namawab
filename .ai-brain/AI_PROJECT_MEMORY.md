@@ -310,3 +310,19 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - [docs/MEDICAL_RLS_LOCAL_DRY_RUN_3_TABLES_REPORT_AR.md](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/MEDICAL_RLS_LOCAL_DRY_RUN_3_TABLES_REPORT_AR.md)
 * **نتائج الاختبارات**: ناجح بنسبة 100% لمصفوفة عزل المرضى والفواتير والمواعيد محلياً مع تراجع تلقائي كامل.
 * **المرحلة التالية الموصى بها**: `Tenant Context Middleware for PostgreSQL Session Settings Design`
+
+### Phase 24: Public Server Security & Deployment Hardening Audit
+* **تاريخ الإغلاق**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_PUBLIC_SERVER_SECURITY_DEPLOYMENT_HARDENING_AUDIT_COMPLETED`
+* **الملفات المُعدَّلة**:
+  - `/etc/nginx/sites-available/default` (على السيرفر البعيد - تحسين أمان Nginx)
+* **الملفات الجديدة**:
+  - `docs/MEDICAL_PUBLIC_SERVER_SECURITY_DEPLOYMENT_HARDENING_AUDIT_AR.md` (تقرير التدقيق الأمني والتحصين)
+* **المخرجات**:
+  - [docs/MEDICAL_PUBLIC_SERVER_SECURITY_DEPLOYMENT_HARDENING_AUDIT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_PUBLIC_SERVER_SECURITY_DEPLOYMENT_HARDENING_AUDIT_AR.md)
+* **نتائج الاختبارات**:
+  - اختبار HTTP وتأكيد الترويسات الأمنية وحالة المنفذ 80 ناجح بنسبة 100%.
+  - فحص المنافذ المستمعة وضمان إغلاق منفذ 3000 خارجياً بواسطة UFW.
+  - التحقق من قصر منفذ Postgres على localhost وعزل قاعدة البيانات.
+* **المرحلة التالية الموصى بها**: `Domain & HTTPS Activation + Credentials Hardening`
+
