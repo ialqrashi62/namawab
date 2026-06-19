@@ -429,7 +429,22 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - إنشاء قاعدة البيانات `nama_medical_web` وبناء المخطط وحقن بيانات الاختبار بنجاح 100%.
   - نجاح تشغيل اختبارات RLS التجريبية محلياً لـ 3 جداول (`patients`, `invoices`, `appointments`) بنسبة 100% والتراجع الكامل (Rollback) التلقائي لتأمين القاعدة.
   - تأكيد عزل وتجنب لمس السيرفر العام 204.168.144.74.
+* **المرحلة التالية الموصى بها**: `RLS Local Dry-Run Source Changes Review & Commit Decision`
+
+### Phase 32: RLS Local Dry-Run Source Changes Review & Commit Decision
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_RLS_LOCAL_DRY_RUN_SOURCE_CHANGES_REVIEW_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `namaweb/db_postgres.js` (اعتماد إضافة إنشاء جدول `waiting_queue` كـ bugfix رسمي)
+  - `namaweb/rls_local_dry_run_3_tables.js` (تحديث السكربت ليكون portable بالكامل للـ pg_dump)
+* **المخرجات**:
+  - [docs/MEDICAL_RLS_LOCAL_DRY_RUN_SOURCE_CHANGES_REVIEW_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_RLS_LOCAL_DRY_RUN_SOURCE_CHANGES_REVIEW_REPORT_AR.md)
+* **نتائج الاختبارات**:
+  - فحص Git وحساب الفوارق (Diff Stats): 8 إضافات وحذف واحد.
+  - نجاح تشغيل اختبارات RLS التجريبية محلياً والتراجع الكامل التلقائي بنسبة 100%.
+  - تأكيد خلو السكربت من أي مسارات أو كلمات مرور صلبة غير مرنة.
 * **المرحلة التالية الموصى بها**: `Tenant Context Middleware for PostgreSQL Session Settings Design`
+
 
 
 
