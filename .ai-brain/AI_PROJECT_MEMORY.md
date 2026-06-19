@@ -1524,3 +1524,31 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - RLS_CHANGED: NO
   - PRODUCTION_READY: NO
 * **المرحلة التالية الموصى بها**: `PRODUCTION_READINESS_DESIGN_AND_RUNBOOKS` (تصميم خطة الترقية للإنتاج واستخدام Redis للجلسات وإعداد أدلة التشغيل واستعادة البيانات).
+
+### Phase 87: Production Readiness Design & Runbooks
+* **تاريخ المرحلة**: 2026-06-19
+* **الحالة (Status)**: `PRODUCTION_READINESS_DESIGN_AND_RUNBOOKS_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `.ai-brain/skills/MEDICAL_SKILLS_INDEX_AR.md` (معدل)
+* **الملفات الجديدة**:
+  - `docs/MEDICAL_PRODUCTION_RUNBOOKS_AR.md` (جديد)
+  - `docs/MEDICAL_PRODUCTION_BACKUP_RESTORE_DR_DESIGN_AR.md` (جديد)
+  - `docs/MEDICAL_PRODUCTION_SECRETS_ENV_MANAGEMENT_AR.md` (جديد)
+  - `docs/MEDICAL_PRODUCTION_MONITORING_ALERTING_DESIGN_AR.md` (جديد)
+  - `docs/MEDICAL_PRODUCTION_PERFORMANCE_LOAD_TEST_PLAN_AR.md` (جديد)
+  - `docs/MEDICAL_PRODUCTION_TENANT_PROVISIONING_GOVERNANCE_AR.md` (جديد)
+  - `docs/MEDICAL_PRODUCTION_GO_NO_GO_CHECKLIST_AR.md` (جديد)
+  - `docs/MEDICAL_PRODUCTION_READINESS_ROADMAP_AR.md` (جديد)
+  - `.ai-brain/skills/MEDICAL_PRODUCTION_READINESS_RUNBOOKS_AUTOPILOT_SKILL_AR.md` (جديد)
+* **المخرجات**: حزمة أدلة تشغيل الإنتاج، خطة DR والنسخ الاحتياطي المشفر، تصميم إدارة الأسرار والمتغيرات البيئية والصلاحيات، استراتيجيات المراقبة والإنذار المبكر والتحميل تحت الضغط، وقائمة Go/No-Go المنهجية.
+* **الملخص**:
+  تم بنجاح إعداد وتوثيق كافة متطلبات جاهزية بيئة الإنتاج الفعلي. تم إعداد 8 تقارير تشغيلية وتصميمية متكاملة لضمان استقرار الخادم وقاعدة البيانات وحماية عزل المستأجرين. صُنفت الفجوات المتبقية (مثل غياب Redis للجلسات واختبارات التحميل المتزامنة والإنفاذ القسري للـ RLS على 13 جدولاً) كعوائق حتمية تمنع النشر للإنتاج في الوقت الراهن، مع الإبقاء على حالة GO_DECISION: NO_GO_FOR_NOW وتصنيف PRODUCTION_READY: NO لضمان عدم ترقية النظام قبل تلبية كافة المتطلبات.
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: NO
+  - TABLE_COLUMN_SCHEMA_CHANGED: NO
+  - DATABASE_SECURITY_DDL_CHANGED: NO
+  - MIGRATIONS_RUN: NO
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: NO
+  - PRODUCTION_READY: NO
+* **المرحلة التالية الموصى بها**: `PRODUCTION_READINESS_EXECUTION_CONTROLLED_STAGING` (تنفيذ جاهزية الإنتاج وترقية متجر الجلسات إلى Redis وفرض RLS قسرياً للجداول الـ 13 وإجراء اختبارات التحميل محلياً).
