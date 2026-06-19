@@ -740,4 +740,20 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - اجتياز جميع اختبارات العزل الخمسة بنسبة 100% لفهارس السجلات تحت حساب الاختبار المقيد.
   - ثبوت استقرار خدمات الويب ولوحة التحكم وسجلات الحركة بالكامل وخلوها من الأخطاء والأسرار.
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH3_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لسبعة جداول).
+* **المرحلة التالية الموصى بها**: `Staging Warning Text Hotfix`
+
+### Phase 55: Staging Warning Text Hotfix - HTTPS-Aware Banner
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_HTTPS_STAGING_WARNING_TEXT_HOTFIX_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `namaweb/public/index.html` (تحديث لافتة التحذير إلى HTTPS)
+  - `namaweb/public/login.html` (تحديث لافتة التحذير والتحذير الداخلي إلى HTTPS)
+* **المخرجات**:
+  - [docs/MEDICAL_HTTPS_STAGING_WARNING_TEXT_HOTFIX_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_HTTPS_STAGING_WARNING_TEXT_HOTFIX_REPORT_AR.md)
+* **نتائج الاختبارات**:
+  - نجاح تشغيل `npm run build:css` بالكامل.
+  - نجاح فحص سلامة النحو البرمجي لكافة ملفات المشروع.
+  - نجاح اختبارات الدخان E2E Local Smoke Test بنسبة 100%.
+  - النشر الناجح وتأكيد سلامة ظهور الرسائل الجديدة في الموقع Staging عبر الاتصال الآمن HTTPS.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH3_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لسبعة جداول).
 * **المرحلة التالية الموصى بها**: `Gradual RLS Enablement Batch 4 - remaining high-risk clinical and operational tables`
