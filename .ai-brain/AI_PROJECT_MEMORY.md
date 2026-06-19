@@ -1438,3 +1438,30 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - RLS_CHANGED: YES
   - PRODUCTION_READY: NO
 * **المرحلة التالية الموصى بها**: `BEDS_BATCH5_SURGERY_OR_POST_IMPLEMENTATION_MONITORING` (مراقبة تشغيل واستقرار موديول الجراحة وغرف العمليات على بيئة Staging).
+
+### Phase 84: Surgery & Operating Rooms Post-Implementation Monitoring
+* **تاريخ المراقبة**: 2026-06-19
+* **الحالة (Status)**: `BEDS_BATCH5_SURGERY_OR_POST_IMPLEMENTATION_MONITORING_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد
+* **الملفات الجديدة**:
+  - `docs/MEDICAL_SURGERY_OR_POST_MONITORING_GIT_BACKUP_LINK_AUDIT_AR.md`
+  - `docs/MEDICAL_SURGERY_OR_POST_MONITORING_SECRETS_AUDIT_AR.md`
+  - `docs/MEDICAL_SURGERY_OR_POST_MONITORING_RLS_REVALIDATION_AR.md`
+  - `docs/MEDICAL_SURGERY_OR_POST_MONITORING_API_OBSERVATION_AR.md`
+  - `docs/MEDICAL_SURGERY_OR_POST_MONITORING_TEST_REPORT_AR.md`
+  - `docs/MEDICAL_SURGERY_OR_POST_MONITORING_RUNTIME_OBSERVATION_AR.md`
+  - `docs/MEDICAL_SURGERY_OR_POST_MONITORING_ROLLBACK_RECHECK_AR.md`
+  - `docs/MEDICAL_SECURITY_READINESS_AFTER_SURGERY_OR_POST_MONITORING_AR.md`
+* **المخرجات**: حزمة تقارير المراقبة والمطابقة الأمنية، التحقق الفعلي من عمل الـ RLS وحظر IDOR للواجهات بنسبة 100%.
+* **الملخص**:
+  تمت مراقبة استقرار بيئة Staging بعد تفعيل عزل موديول العمليات الجراحية وغرف العمليات والموافقات الطبية. تم التحقق من استبعاد ملفات النسخ الاحتياطي في Git وعدم وجود أي أسرار أو مسارات محلية في الملفات المتتبعة. كما تم فحص وحالة وقت التشغيل (Runtime) وثبوت استقرار الخادم وتمريره لجميع اختبارات الانحدار البالغة 11 حزمة اختبارية (بإجمالي أكثر من 400 فحص ناجح) دون أي أخطاء أو انتهاكات لعزل البيانات. خطط التراجع وقاعدة البيانات في وضع آمن ومكتمل على Staging.
+* **القرار النهائي**: البيئة مستقرة ومؤمنة تماماً على Staging وتصنيف الإنتاج يبقى PRODUCTION_READY: NO.
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: NO
+  - TABLE_COLUMN_SCHEMA_CHANGED: NO
+  - DATABASE_SECURITY_DDL_CHANGED: NO
+  - MIGRATIONS_RUN: NO
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: NO
+  - PRODUCTION_READY: NO
+* **المرحلة التالية الموصى بها**: `BEDS_BATCH6_FINAL_RLS_COVERAGE_REVIEW` (المراجعة النهائية والتدقيق الشامل لكامل تغطية سياسات RLS عبر كافة جداول ومكونات النظام الطبي).

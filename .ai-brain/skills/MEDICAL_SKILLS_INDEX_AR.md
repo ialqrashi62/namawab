@@ -35,7 +35,9 @@
 | **[MEDICAL_ICU_NURSING_RLS_AUTOPILOT_SKILL_AR](.ai-brain/skills/MEDICAL_ICU_NURSING_RLS_AUTOPILOT_SKILL_AR.md)** | حوكمة وتأمين عمليات أجنحة العناية المركزة (ICU)، التمريض (Nursing)، و eMAR. | **P1** |
 | **[MEDICAL_NURSING_ASSESSMENTS_SCHEMA_AUTOPILOT_SKILL_AR](.ai-brain/skills/MEDICAL_NURSING_ASSESSMENTS_SCHEMA_AUTOPILOT_SKILL_AR.md)** | حوكمة وتصميم وإرشاد تعديل هيكل وعزل التقييمات التمريضية. | **P1** |
 | **[MEDICAL_SURGERY_OR_RLS_AUTOPILOT_SKILL_AR](.ai-brain/skills/MEDICAL_SURGERY_OR_RLS_AUTOPILOT_SKILL_AR.md)** | حوكمة وتصميم عزل موديول العمليات الجراحية وغرف العمليات (Batch 5). | **P1** |
+| **[MEDICAL_SURGERY_OR_POST_MONITORING_AUTOPILOT_SKILL_AR](.ai-brain/skills/MEDICAL_SURGERY_OR_POST_MONITORING_AUTOPILOT_SKILL_AR.md)** | حوكمة ومراقبة عزل موديول العمليات الجراحية وغرف العمليات والموافقات الطبية بعد التنفيذ. | **P1** |
 | **[MEDICAL_HEALTHCARE_COMPLIANCE_SAUDI_SKILL_AR](.ai-brain/skills/MEDICAL_HEALTHCARE_COMPLIANCE_SAUDI_SKILL_AR.md)** | معايير الامتثال لوزارة الصحة ونفيس NPHIES والسيادة الجغرافية للبيانات. | **P1** |
+
 | **[MEDICAL_CLINICAL_WORKFLOW_QA_SKILL_AR](.ai-brain/skills/MEDICAL_CLINICAL_WORKFLOW_QA_SKILL_AR.md)** | فحوصات الجودة الطبية ومحاكاة دورة حياة المريض وصرف الأدوية. | **P1** |
 | **[MEDICAL_ARABIC_UTF8_ENFORCEMENT_SKILL_AR](.ai-brain/skills/MEDICAL_ARABIC_UTF8_ENFORCEMENT_SKILL_AR.md)** | فرض ترميز UTF-8 وعلاج تشويه الخطوط (Mojibake) وتنسيق RTL. | **P1** |
 | **[MEDICAL_PRODUCTION_READINESS_GATE_SKILL_AR](.ai-brain/skills/MEDICAL_PRODUCTION_READINESS_GATE_SKILL_AR.md)** | شروط وبوابات الجودة المطلوبة لترقية البيئة إلى الإنتاج. | **P1** |
