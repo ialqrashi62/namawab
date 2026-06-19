@@ -14,60 +14,67 @@
 
 ---
 
-### 2. قائمة الأوامر الموصى بتنفيذها على خادم الإنتاج (Execution Commands)
-
-بمجرد صدور الموافقة التنفيذية الصريحة الثانية، سيتم تشغيل السلسلة التالية من الأوامر بالتسلسل الدقيق:
-
-#### الخطوة 1: النسخ الاحتياطي لقاعدة البيانات (Database Backup)
-```bash
-pg_dump -h localhost -p 5432 -U postgres -d nama_medical_web -F c -b -v -f /var/backups/db/nama_medical_prod_before_rls_up.bak
-```
-
-#### الخطوة 2: تحديث كود التطبيق وتثبيت التبعيات (Code Rollout)
-```bash
-git fetch origin
-git checkout 8fe8440
-cd namaweb
-npm install --production
-npm run build:css
-```
-
-#### الخطوة 3: ترقية هيكل قاعدة البيانات وتفعيل الـ FORCE RLS (Security Upgrades)
-```bash
-# 1. تفعيل سياسات الـ FORCE RLS
-psql -h localhost -p 5432 -U postgres -d nama_medical_web -f docs/sql/production_readiness_force_rls_up.sql
-
-# 2. التحقق من نجاح التفعيل
-psql -h localhost -p 5432 -U postgres -d nama_medical_web -f docs/sql/production_readiness_force_rls_validate.sql
-```
-* رابط سكربت الترقية: [production_readiness_force_rls_up.sql](docs/sql/production_readiness_force_rls_up.sql)
-* رابط سكربت التحقق: [production_readiness_force_rls_validate.sql](docs/sql/production_readiness_force_rls_validate.sql)
-
-#### الخطوة 4: إعادة تشغيل خادم الويب والتحقق من السجلات (Process & Connection Recheck)
-```bash
-pm2 restart nama-web --update-env
-pm2 logs nama-web --lines 50
-```
-
-#### الخطوة 5: فحص الصحة محلياً (Local Smoke Check)
-```bash
-curl -I http://localhost:3000/api/health
-```
+### 2. سياسة تفعيل متجر الجلسات Redis في الإنتاج
+لتجنب تعريض أمن وتوسيع الجلسات للخطر في بيئة الإنتاج:
+* **إلزامية Redis**: يعتبر ربط وتفعيل متجر الجلسات الموزع Redis إلزامياً كلياً في بيئة الإنتاج الفعلي.
+* **حظر MemoryStore**: لا يُسمح بتشغيل النظام إنتاجياً على `MemoryStore` ولا يتم اعتبار النظام جاهزاً للإنتاج (`Production-ready`) في حال استمراره على الميموري ستور. التراجع التلقائي الصامت مرفوض إنتاجياً ومسموح به فقط في Staging لغايات التطوير.
+* **سياسة إيقاف النشر عند الطوارئ (Decision Matrix)**:
+  * **قبل النشر**: إذا تعثر الوصول لخادم Redis قبل البدء بالتنفيذ، يتم تجميد القرار فوراً كـ `CURRENT_GO_DECISION: NO_GO_FOR_NOW` وإلغاء العملية.
+  * **بعد النشر**: في حال حدوث عطل لـ Redis في الإنتاج، يتم تفعيل قرار إيقاف خط النشر فوراً (Stop-The-Line) ثم تشغيل التراجع التلقائي (Rollback) للالتزام المستقر السابق.
 
 ---
 
-### 3. خطة التراجع السريع عند الطوارئ (Rollback Steps)
+### 3. قائمة الأوامر الموصى بتنفيذها على خادم الإنتاج (Execution Commands)
 
-في حال رصد أي خلل تشغيلي (أخطاء 500، فشل اتصال Redis، تسريب بيانات المستأجرين)، يتم التراجع الفوري كالتالي:
+بمجرد صدور الموافقة التنفيذية الصريحة الثانية، سيتم تشغيل السلسلة التالية من الأوامر بالتسلسل الدقيق:
 
+#### الفحوصات الاستباقية (Pre-execution Verification Gates)
+* التحقق من وصول خدمة Redis ومنفذ 6379.
+* التحقق من وجود المتغيرات البيئية اللازمة دون طباعة قيمها.
+* التحقق من مسار وصلاحيات النسخ الاحتياطي لقاعدة البيانات وضمان عدم خضوعه لـ Git.
+* التحقق من اسم عملية PM2 والتزامات Git السابقة للاستعداد للتراجع.
+
+#### الأوامر التنفيذية المقترحة
+1. **النسخ الاحتياطي لقاعدة البيانات (Database Backup)**:
+   ```bash
+   pg_dump -h localhost -p 5432 -U postgres -d nama_medical_web -F c -b -v -f /var/backups/db/nama_medical_prod_before_rls_up.bak
+   ```
+   *(إذا فشل النسخ الاحتياطي: **توقف فوراً (STOP)** ولا تنشر).*
+2. **تحديث الكود وتثبيت التبعيات (Code Rollout)**:
+   ```bash
+   git fetch origin
+   git checkout 8fe8440
+   cd namaweb
+   npm install --production
+   npm run build:css
+   ```
+3. **ترقية قاعدة البيانات وتفعيل FORCE RLS**:
+   ```bash
+   psql -h localhost -p 5432 -U postgres -d nama_medical_web -f docs/sql/production_readiness_force_rls_up.sql
+   psql -h localhost -p 5432 -U postgres -d nama_medical_web -f docs/sql/production_readiness_force_rls_validate.sql
+   ```
+   *(إذا فشل استعلام التحقق الهيكلي أو ظهرت حالة false: **توقف فوراً (STOP)** وتشغيل التراجع Rollback).*
+4. **إعادة تشغيل خادم الويب والتحقق من السجلات**:
+   ```bash
+   pm2 restart nama-web --update-env
+   pm2 logs nama-web --lines 50
+   ```
+   *(إذا ظهر تحذير تراجع الجلسة للميموري ستور: **توقف فوراً (STOP)** وتشغيل التراجع).*
+5. **فحص الصحة محلياً**:
+   ```bash
+   curl -I http://localhost:3000/api/health
+   ```
+   *(إذا لم تستجب الصحة برمز 200 OK: **توقف فوراً (STOP)** وتشغيل التراجع).*
+
+---
+
+### 4. خطة التراجع السريع عند الطوارئ (Rollback Steps)
 1. **إلغاء قسرية الـ RLS عن قاعدة البيانات**:
    ```bash
    psql -h localhost -p 5432 -U postgres -d nama_medical_web -f docs/sql/production_readiness_force_rls_down.sql
    ```
-   *(أو استعادة قاعدة البيانات بالكامل من النسخة الاحتياطية المأخوذة في الخطوة الأولى عبر `pg_restore`)*.
-   * رابط سكربت التراجع الهيكلي: [production_readiness_force_rls_down.sql](docs/sql/production_readiness_force_rls_down.sql)
-
-2. **تراجع كود التطبيق وإعادة التشغيل**:
+   *(أو استرداد قاعدة البيانات بالكامل من النسخة الاحتياطية).*
+2. **تراجع الكود وإعادة التشغيل**:
    ```bash
    git checkout <previous_stable_commit_hash>
    npm install --production
@@ -76,20 +83,13 @@ curl -I http://localhost:3000/api/health
 
 ---
 
-### 4. سجل المخاطر المتبقية والتخفيف (Residual Risks)
-
-* **خطر 1: فشل اتصال خادم Redis**:
-  * *التخفيف*: الكود يحتوي على تراجع تلقائي (Fallback) إلى `MemoryStore` لحماية التطبيق من الانهيار، مع طباعة سجل تحذيري واضح.
-* **خطر 2: فقدان جلسات المستخدمين النشطين**:
-  * *التخفيف*: تنفيذ العملية في نافذة صيانة مجدولة لتقليل الأثر على المستخدمين.
-* **خطر 3: بطء استجابة الاستعلامات نتيجة الـ RLS**:
-  * *التخفيف*: تم إنشاء فهارس مساعدة مركبة للأداء ومراقبة أزمنة الاستعلامات.
+### 5. سجل مخاطر النشر ومعايير الأمان
+* **سرية سجلات التنفيذ (Transcript Secrets)**:
+  `SECRETS_IN_EXECUTION_TRANSCRIPT: YES_REDACTION_NOTE` (ملاحظة حجب كلمات المرور مستخدمة لوجود معلمات PGPASSWORD سابقة).
+* **المخاطر المتبقية**: فشل Redis المباشر، فقدان جلسات المستخدمين المؤقت، وبطء استعلامات RLS.
 
 ---
 
-### 5. القرار والتقييم الفني النهائي (Technical Recommendation Verdict)
-
-* **القرار النهائي الموصى به**: **GO** (جاهز بالكامل ومستقر للنشر).
+### 6. القرار والتقييم الفني النهائي (Technical Recommendation Verdict)
+* **القرار النهائي الموصى به**: **GO** (جاهز بالكامل ومستقر للنشر فور تلبية الشروط).
 * **حالة الجاهزية الحالية**: `PRODUCTION_READY: NO` (بانتظار موافقة المستخدم الثانية الصريحة لتفعيل النشر).
-
-**التوصية**: نقترح منح الموافقة النهائية للبدء بالتنفيذ الفعلي بناءً على حزمة الأوامر المذكورة أعلاه.
