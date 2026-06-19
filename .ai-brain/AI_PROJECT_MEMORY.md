@@ -1640,4 +1640,33 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - PRODUCTION_READY: NO
 * **المرحلة التالية الموصى بها**: `PRODUCTION_REHEARSAL_CONTROLLED_STAGING` (تمرين تفعيل الاتصال الخارجي لـ Redis وشهادات SSL الحقيقية على Staging).
 
+### Phase 91: Production Rollout Execution Planning
+* **تاريخ المرحلة**: 2026-06-19
+* **الحالة (Status)**: `PRODUCTION_ROLLOUT_EXECUTION_PLANNING_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد
+* **الملفات الجديدة**:
+  - `docs/MEDICAL_PRODUCTION_ROLLOUT_PLANNING_PREFLIGHT_AUDIT_AR.md`
+  - `docs/MEDICAL_PRODUCTION_ROLLOUT_REHEARSAL_EVIDENCE_REVIEW_AR.md`
+  - `docs/MEDICAL_PRODUCTION_ENVIRONMENT_READINESS_CHECKLIST_AR.md`
+  - `docs/MEDICAL_PRODUCTION_REDIS_SESSION_ROLLOUT_PLAN_AR.md`
+  - `docs/MEDICAL_PRODUCTION_DATABASE_RLS_DEPLOYMENT_PLAN_AR.md`
+  - `docs/MEDICAL_PRODUCTION_APPLICATION_DEPLOYMENT_PLAN_AR.md`
+  - `docs/MEDICAL_PRODUCTION_DNS_HTTPS_PROXY_PLAN_AR.md`
+  - `docs/MEDICAL_PRODUCTION_SMOKE_ACCEPTANCE_TEST_PLAN_AR.md`
+  - `docs/MEDICAL_PRODUCTION_ROLLBACK_INCIDENT_PLAN_AR.md`
+  - `docs/MEDICAL_PRODUCTION_ROLLOUT_GO_NO_GO_PACKAGE_AR.md`
+* **المخرجات**: صياغة وإعداد حزمة وثائق التخطيط الكامل لعملية الطرح الإنتاجي، بما يشمل قوائم الجاهزية للبيئة وقاعدة البيانات والتطبيق والوسيط العكسي وحوادث التراجع والقبول النهائي.
+* **الملخص**:
+  تم بنجاح إعداد وتوثيق كامل خطة الطرح والاعتماد للإنتاج الفعلي. تم صياغة مصفوفة شاملة تتكون من 10 تقارير تخطيطية تفصيلية تغطي كافة جوانب النشر الآمن من تهيئة Redis، وحماية RLS لقاعدة البيانات، وجدار الحماية Nginx، واختبارات القبول اليدوية لـ 41 قسماً طبياً، وإجراءات التراجع السريع عند الطوارئ P0. تم ترقية القرار الفني إلى READY_FOR_EXPLICIT_PRODUCTION_APPROVAL مع إبقاء PRODUCTION_READY: NO بانتظار موافقة التشغيل المباشر للإنتاج.
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: NO
+  - TABLE_COLUMN_SCHEMA_CHANGED: NO
+  - DATABASE_SECURITY_DDL_CHANGED: NO
+  - MIGRATIONS_RUN: NO
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: NO
+  - PRODUCTION_READY: NO
+* **المرحلة التالية الموصى بها**: `AWAIT_EXPLICIT_PRODUCTION_APPROVAL` (انتظار الموافقة الرسمية والصريحة للإنتاج للبدء بالنشر الفعلي).
+
+
 
