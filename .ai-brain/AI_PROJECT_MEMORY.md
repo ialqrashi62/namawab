@@ -1218,3 +1218,39 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - RLS_CHANGED: NO
   - PRODUCTION_READY: NO
 * **المرحلة التالية الموصى بها**: `BEDS_BATCH4_ICU_NURSING_IMPLEMENTATION_CONTROLLED_STAGING` (تطبيق عزل العناية المركزة والتمريض على بيئة Staging).
+
+### Phase 77: Beds Batch 4 ICU/Nursing Implementation
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `BEDS_BATCH4_ICU_NURSING_IMPLEMENTATION_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `namaweb/server.js` (تحصين 20 نهاية API سريرية للعناية والتمريض و eMAR ومخططات الرعاية وتصفيتها)
+* **الملفات الجديدة**:
+  - [docs/sql/icu_nursing_rls_up.sql](docs/sql/icu_nursing_rls_up.sql) (سكربت DDL لتفعيل RLS والفهارس)
+  - [docs/sql/icu_nursing_rls_down.sql](docs/sql/icu_nursing_rls_down.sql) (سكربت DDL للتراجع عن السياسات والفهارس)
+  - [docs/sql/icu_nursing_rls_validate.sql](docs/sql/icu_nursing_rls_validate.sql) (سكربت التحقق من RLS)
+  - [docs/sql/icu_nursing_backup.sql](docs/sql/icu_nursing_backup.sql) (النسخة الاحتياطية للجداول المحددة)
+  - [namaweb/cross_tenant_icu_nursing_test.js](namaweb/cross_tenant_icu_nursing_test.js) (سكربت التحقق التلقائي للمستأجرين)
+  - [docs/MEDICAL_ICU_NURSING_IMPLEMENTATION_PREFLIGHT_AUDIT_AR.md](docs/MEDICAL_ICU_NURSING_IMPLEMENTATION_PREFLIGHT_AUDIT_AR.md) (تقرير المراجعة الأولية)
+  - [docs/MEDICAL_ICU_NURSING_API_WARNING_RESOLUTION_PLAN_AR.md](docs/MEDICAL_ICU_NURSING_API_WARNING_RESOLUTION_PLAN_AR.md) (تقرير خطة مراجعة الواجهات)
+  - [docs/MEDICAL_ICU_NURSING_BACKUP_REPORT_AR.md](docs/MEDICAL_ICU_NURSING_BACKUP_REPORT_AR.md) (تقرير النسخ الاحتياطي)
+  - [docs/MEDICAL_ICU_NURSING_TRUTH_VALIDATION_REPORT_AR.md](docs/MEDICAL_ICU_NURSING_TRUTH_VALIDATION_REPORT_AR.md) (تقرير مطابقة البيانات للـ RLS)
+  - [docs/MEDICAL_ICU_NURSING_API_HARDENING_REPORT_AR.md](docs/MEDICAL_ICU_NURSING_API_HARDENING_REPORT_AR.md) (تقرير تحصين نهايات الـ API)
+  - [docs/MEDICAL_ICU_NURSING_RLS_IMPLEMENTATION_DECISION_AR.md](docs/MEDICAL_ICU_NURSING_RLS_IMPLEMENTATION_DECISION_AR.md) (تقرير مصفوفة قرارات RLS)
+  - [docs/MEDICAL_ICU_NURSING_TEST_AUTOMATION_REPORT_AR.md](docs/MEDICAL_ICU_NURSING_TEST_AUTOMATION_REPORT_AR.md) (تقرير اختبار التحقق الموجه)
+  - [docs/MEDICAL_ICU_NURSING_REGRESSION_TEST_REPORT_AR.md](docs/MEDICAL_ICU_NURSING_REGRESSION_TEST_REPORT_AR.md) (تقرير اختبارات الانحدار العام)
+  - [docs/MEDICAL_ICU_NURSING_ROLLBACK_READINESS_REPORT_AR.md](docs/MEDICAL_ICU_NURSING_ROLLBACK_READINESS_REPORT_AR.md) (تقرير جاهزية التراجع)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_ICU_NURSING_IMPLEMENTATION_AR.md](docs/MEDICAL_SECURITY_READINESS_AFTER_ICU_NURSING_IMPLEMENTATION_AR.md) (تقرير الجاهزية الأمنية العام)
+* **المخرجات**: حزمة الميزات الأمنية المطبقة وتفعيل الـ RLS ومكافحة IDOR واجتياز 309 فحوصات آلية بالكامل.
+* **الملخص**:
+  تم بنجاح تطبيق عزل المستأجرين للدفعة الرابعة لموديولات العناية المركزة والتمريض ونظام eMAR. تم تحصين 20 نقطة API في `server.js` لمنع ثغرات الـ IDOR وتسريب البيانات الطبية. كما تم تفعيل RLS وفرض القوة (FORCE RLS) على 8 جداول مستهدفة وإنشاء الفهارس الضرورية لتحسين الأداء على بيئة Staging. تم تأجيل تفعيل RLS لجدول `nursing_assessments` (المصنف BLOCKED_NEEDS_SCHEMA_CHANGE) لافتقاره لعمود المستأجر، وتم تأمينه برمجياً في الـ API بالكامل. واجتازت كافة اختبارات عزل البيانات وانحدار الأمان الـ 9 بنجاح كامل 100% بنتيجة 309 فحوصات ناجحة، دون أي انحدار.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 26 جدولاً بالكامل، وتم تطبيق الدفعة الرابعة بنجاح).
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: YES
+  - TABLE_COLUMN_SCHEMA_CHANGED: NO
+  - DATABASE_SECURITY_DDL_CHANGED: YES
+  - MIGRATIONS_RUN: YES
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: YES
+  - RLS_DECISION: ENABLE_NOW for 8 tables; BLOCKED_NEEDS_SCHEMA_CHANGE for nursing_assessments
+  - PRODUCTION_READY: NO
+* **المرحلة التالية الموصى بها**: `BEDS_BATCH4_POST_IMPLEMENTATION_MONITORING` (مراقبة تشغيل الدفعة الرابعة واستقرارها على Staging).
