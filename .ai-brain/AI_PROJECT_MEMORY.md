@@ -815,5 +815,27 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH4_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لعشرة جداول).
 * **المرحلة التالية الموصى بها**: `Tenant ID Backfill Controlled Migration` أو `New UI Section Using Stitch Workflow`
 
+### Phase 59: Gradual RLS Enablement Batch 5 - Without Schema Change
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_GRADUAL_RLS_BATCH5_NO_SCHEMA_CHANGE_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تعديلات على سياسات قاعدة البيانات وملفات SQL التوثيقية فقط)
+* **الملفات الجديدة**:
+  - [docs/sql/rls_staging_batch5_enable_without_schema_change.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch5_enable_without_schema_change.sql)
+  - [docs/sql/rls_staging_batch5_validate_without_schema_change.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch5_validate_without_schema_change.sql)
+  - [docs/sql/rls_staging_batch5_rollback_without_schema_change.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch5_rollback_without_schema_change.sql)
+* **المخرجات**:
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH5_BACKUP_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH5_BACKUP_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH5_READY_TABLES_DISCOVERY_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH5_READY_TABLES_DISCOVERY_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH5_READINESS_CLASSIFICATION_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH5_READINESS_CLASSIFICATION_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH5_SCOPE_DECISION_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH5_SCOPE_DECISION_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH5_POST_ENABLEMENT_MONITORING_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH5_POST_ENABLEMENT_MONITORING_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH5_ENABLEMENT_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH5_ENABLEMENT_REPORT_AR.md)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_GRADUAL_RLS_BATCH5_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_SECURITY_READINESS_AFTER_GRADUAL_RLS_BATCH5_AR.md)
+* **الملخص**:
+  تم بنجاح تفعيل سياسات حماية عزل المستأجرين (RLS) للدفعة الخامسة على 3 جداول حيوية وعملياتية إضافية (`emergency_beds`, `pharmacy_sales`, `pharmacy_sale_items`) بدون أي تغيير في المخطط الإنشائي أو التعبئة. وبذلك ارتفع إجمالي الجداول المؤمنة إلى 13 جدولاً. تم إجراء كافة الفحوصات والتحقق من عزل البيانات بنسبة 100%.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH5_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 13 جدولاً).
+* **المرحلة التالية الموصى بها**: `Tenant ID Backfill Controlled Migration` أو `Production Readiness Final Gate`
+
+
 
 
