@@ -445,6 +445,20 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - تأكيد خلو السكربت من أي مسارات أو كلمات مرور صلبة غير مرنة.
 * **المرحلة التالية الموصى بها**: `Tenant Context Middleware for PostgreSQL Session Settings Design`
 
+### Phase 33: Tenant Context Middleware for PostgreSQL Session Settings Design
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_TENANT_CONTEXT_POSTGRES_SESSION_SETTINGS_DESIGN_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تصميم وتخطيط فقط)
+* **المخرجات**:
+  - [docs/MEDICAL_TENANT_CONTEXT_POSTGRES_SESSION_SETTINGS_DESIGN_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_TENANT_CONTEXT_POSTGRES_SESSION_SETTINGS_DESIGN_AR.md) (تقرير التصميم العربي)
+  - [docs/design/tenant_context_pg_session_middleware_design.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/design/tenant_context_pg_session_middleware_design.md) (مستند التصميم الفني المفصل)
+* **نتائج الاختبارات**:
+  - فحص Git والبيئة وثبوت خلو المستودع من التعديلات ومطابقة submodule.
+  - إتمام تحليل طبقة الاتصال الحالية ومخاطر تسرب الاتصالات (Connection Pooling Leak).
+  - صياغة ودراسة البدائل الأربعة واعتماد الخيار الهجين (Hybrid Approach) باستخدام `withTenantTransaction` كحل أمني مستقر للمرحلة القادمة.
+* **المرحلة التالية الموصى بها**: `Tenant Context Middleware Local Prototype`
+
+
 
 
 
