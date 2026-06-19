@@ -402,4 +402,18 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - توثيق متطلبات فك الحظر للمالك لتثبيت PostgreSQL محلياً.
 * **المرحلة التالية الموصى بها**: `RLS Local Dry-Run on 3 Tables Only` (بمجرد توفر البيئة المحلية)
 
+### Phase 30: Install Local PostgreSQL Runtime for RLS Dry-Run
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_LOCAL_POSTGRESQL_RLS_DRY_RUN_ENV_SETUP_BLOCKED`
+* **الملفات البرمجية المعدلة**: لا يوجد (محاولة تثبيت خادم PostgreSQL محلي)
+* **الملفات الجديدة**:
+  - `docs/MEDICAL_LOCAL_POSTGRESQL_RLS_DRY_RUN_ENV_SETUP_REPORT_AR.md` (تحديث تقرير حالة تهيئة بيئة PostgreSQL المحلية للتشغيل التجريبي)
+* **المخرجات**:
+  - [docs/MEDICAL_LOCAL_POSTGRESQL_RLS_DRY_RUN_ENV_SETUP_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_LOCAL_POSTGRESQL_RLS_DRY_RUN_ENV_SETUP_REPORT_AR.md)
+* **نتائج الاختبارات**:
+  - فحص أدوات التثبيت وثبوت توفر winget وغياب Docker و choco.
+  - تشغيل أمر التثبيت الصامت لـ PostgreSQL 16 عبر winget وتوقفه/فشله بسبب طلب ترقية الصلاحيات (UAC Elevation) اللازمة لتسجيل الخدمات على ويندوز، والتي يتعذر تأكيدها في البيئة الخلفية.
+  - تأكيد بقاء السيرفر العام 204.168.144.74 غير ملموس ومحمياً تماماً.
+* **المرحلة التالية الموصى بها**: `Manual Install Docker Desktop or PostgreSQL 16`
+
 
