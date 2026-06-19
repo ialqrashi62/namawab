@@ -21,7 +21,7 @@ pg_dump -h localhost -p 5432 -U postgres -d nama_medical_web -F c -b -v -f /var/
 ```bash
 # جلب التحديثات من الفرع الرئيسي للأب
 git fetch origin
-git checkout 889b5d1
+git checkout 36414c3
 
 # الانتقال لمجلد الويب
 cd namaweb

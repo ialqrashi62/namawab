@@ -9,7 +9,7 @@
 
 تم إعداد واختبار نسخة الإطلاق الحالية على بيئة Staging بنجاح كامل بنسبة 100%:
 * **الالتزام المرشح للنشر (Commit Hash)**:
-  * المستودع الأب ([NamaMedical](../)): `889b5d1e06ae86a331992c7e59c4110575594c9d` (مختصر: `889b5d1`).
+  * المستودع الأب ([NamaMedical](../)): `36414c32b508f7fb9ad51b5c467a84c5991823eb` (مختصر: `36414c3`).
   * مستودع الويب ([namaweb](../namaweb/)): `d6c29d10ce4a31b3c62e537be8c66281a2d65de0` (مختصر: `d6c29d1`).
 
 ---
@@ -26,7 +26,7 @@ pg_dump -h localhost -p 5432 -U postgres -d nama_medical_web -F c -b -v -f /var/
 #### الخطوة 2: تحديث كود التطبيق وتثبيت التبعيات (Code Rollout)
 ```bash
 git fetch origin
-git checkout 889b5d1
+git checkout 36414c3
 cd namaweb
 npm install --production
 npm run build:css
