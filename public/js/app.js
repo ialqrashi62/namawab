@@ -6660,55 +6660,60 @@ async function renderReports(el) {
   const content = el;
 
   content.innerHTML = `
-    <h2>${tr('Reports', 'التقارير')}</h2>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-bottom:20px">
-      <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('patients')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-        <div style="font-size:36px;margin-bottom:8px">👥</div>
-        <h4 style="margin:0 0 4px">${tr('Patient Report', 'تقرير المرضى')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('All registered patients', 'جميع المرضى المسجلين')}</p>
-      </div>
-      <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('invoices')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-        <div style="font-size:36px;margin-bottom:8px">💰</div>
-        <h4 style="margin:0 0 4px">${tr('Financial Report', 'التقرير المالي')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('Revenue and invoices', 'الإيرادات والفواتير')}</p>
-      </div>
-      <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('appointments')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-        <div style="font-size:36px;margin-bottom:8px">📅</div>
-        <h4 style="margin:0 0 4px">${tr('Appointments Report', 'تقرير المواعيد')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('Bookings and attendance', 'الحجوزات والحضور')}</p>
-      </div>
-      <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('lab')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-        <div style="font-size:36px;margin-bottom:8px">🔬</div>
-        <h4 style="margin:0 0 4px">${tr('Lab Report', 'تقرير المختبر')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('Test orders and results', 'الطلبات والنتائج')}</p>
-      </div>
-      <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('pharmacy')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-        <div style="font-size:36px;margin-bottom:8px">💊</div>
-        <h4 style="margin:0 0 4px">${tr('Pharmacy Report', 'تقرير الصيدلية')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('Dispensing and stock', 'الصرف والمخزون')}</p>
-      </div>
-      <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('inventory')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-        <div style="font-size:36px;margin-bottom:8px">📦</div>
-        <h4 style="margin:0 0 4px">${tr('Inventory Report', 'تقرير المخزون')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('Stock levels and low items', 'مستويات المخزون')}</p>
-      </div>
-      <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('radiology')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-        <div style="font-size:36px;margin-bottom:8px">📡</div>
-        <h4 style="margin:0 0 4px">${tr('Radiology Report', 'تقرير الأشعة')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('Imaging orders and results', 'طلبات الأشعة والنتائج')}</p>
-      </div>
-      <div class="card" style="padding:20px;cursor:pointer;transition:transform 0.2s" onclick="genReport('medical_history')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-        <div style="font-size:36px;margin-bottom:8px">📁</div>
-        <h4 style="margin:0 0 4px">${tr('Medical History', 'السجل الطبي')}</h4>
-        <p style="margin:0;font-size:13px;color:#666">${tr('Previous reports, tests & prescriptions', 'التقارير والفحوصات والوصفات السابقة')}</p>
+    <div class="flex justify-between items-end mb-6">
+      <div>
+        <h2 class="font-headline-lg text-headline-lg text-primary">📊 ${tr('Reports', 'التقارير')}</h2>
+        <p class="text-on-surface-variant text-sm mt-1">${tr('Generate patient, financial, clinical, and pharmacy audit reports', 'توليد تقارير المرضى، الحسابات المالية، الفحوصات والوصفات الطبية')}</p>
       </div>
     </div>
-    <div id="reportOutput" class="card" style="padding:20px;display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <h4 id="reportTitle" style="margin:0"></h4>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-sm" onclick="exportToCSV(window._reportData||[],'report')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export CSV', 'تصدير CSV')}</button>
-          <button class="btn btn-sm" onclick="window.print()" style="background:#f3e5f5;color:#7b1fa2">🖨️ ${tr('Print', 'طباعة')}</button>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md mb-6">
+      <div class="card glass-card-premium p-6 cursor-pointer flex flex-col items-center text-center transition-all duration-300" onclick="genReport('patients')">
+        <div class="text-4xl mb-3">👥</div>
+        <h4 class="font-title-lg text-primary mb-1">${tr('Patient Report', 'تقرير المرضى')}</h4>
+        <p class="text-xs text-on-surface-variant">${tr('All registered patients', 'جميع المرضى المسجلين')}</p>
+      </div>
+      <div class="card glass-card-premium p-6 cursor-pointer flex flex-col items-center text-center transition-all duration-300" onclick="genReport('invoices')">
+        <div class="text-4xl mb-3">💰</div>
+        <h4 class="font-title-lg text-primary mb-1">${tr('Financial Report', 'التقرير المالي')}</h4>
+        <p class="text-xs text-on-surface-variant">${tr('Revenue and invoices', 'الإيرادات والفواتير')}</p>
+      </div>
+      <div class="card glass-card-premium p-6 cursor-pointer flex flex-col items-center text-center transition-all duration-300" onclick="genReport('appointments')">
+        <div class="text-4xl mb-3">📅</div>
+        <h4 class="font-title-lg text-primary mb-1">${tr('Appointments Report', 'تقرير المواعيد')}</h4>
+        <p class="text-xs text-on-surface-variant">${tr('Bookings and attendance', 'الحجوزات والحضور')}</p>
+      </div>
+      <div class="card glass-card-premium p-6 cursor-pointer flex flex-col items-center text-center transition-all duration-300" onclick="genReport('lab')">
+        <div class="text-4xl mb-3">🔬</div>
+        <h4 class="font-title-lg text-primary mb-1">${tr('Lab Report', 'تقرير المختبر')}</h4>
+        <p class="text-xs text-on-surface-variant">${tr('Test orders and results', 'الطلبات والنتائج')}</p>
+      </div>
+      <div class="card glass-card-premium p-6 cursor-pointer flex flex-col items-center text-center transition-all duration-300" onclick="genReport('pharmacy')">
+        <div class="text-4xl mb-3">💊</div>
+        <h4 class="font-title-lg text-primary mb-1">${tr('Pharmacy Report', 'تقرير الصيدلية')}</h4>
+        <p class="text-xs text-on-surface-variant">${tr('Dispensing and stock', 'الصرف والمخزون')}</p>
+      </div>
+      <div class="card glass-card-premium p-6 cursor-pointer flex flex-col items-center text-center transition-all duration-300" onclick="genReport('inventory')">
+        <div class="text-4xl mb-3">📦</div>
+        <h4 class="font-title-lg text-primary mb-1">${tr('Inventory Report', 'تقرير المخزون')}</h4>
+        <p class="text-xs text-on-surface-variant">${tr('Stock levels and low items', 'مستويات المخزون')}</p>
+      </div>
+      <div class="card glass-card-premium p-6 cursor-pointer flex flex-col items-center text-center transition-all duration-300" onclick="genReport('radiology')">
+        <div class="text-4xl mb-3">📡</div>
+        <h4 class="font-title-lg text-primary mb-1">${tr('Radiology Report', 'تقرير الأشعة')}</h4>
+        <p class="text-xs text-on-surface-variant">${tr('Imaging orders and results', 'طلبات الأشعة والنتائج')}</p>
+      </div>
+      <div class="card glass-card-premium p-6 cursor-pointer flex flex-col items-center text-center transition-all duration-300" onclick="genReport('medical_history')">
+        <div class="text-4xl mb-3">📁</div>
+        <h4 class="font-title-lg text-primary mb-1">${tr('Medical History', 'السجل الطبي')}</h4>
+        <p class="text-xs text-on-surface-variant">${tr('Previous reports, tests & prescriptions', 'التقارير والفحوصات والوصفات السابقة')}</p>
+      </div>
+    </div>
+    <div id="reportOutput" class="card glass-card-premium p-6 mt-6" style="display:none">
+      <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+        <h4 id="reportTitle" class="font-title-lg text-primary margin-0"></h4>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary btn-sm flex items-center gap-1" onclick="exportToCSV(window._reportData||[],'report')">📥 ${tr('Export CSV', 'تصدير CSV')}</button>
+          <button class="btn btn-primary btn-sm flex items-center gap-1" onclick="window.print()">🖨️ ${tr('Print', 'طباعة')}</button>
         </div>
       </div>
       <div id="reportTable"></div>
@@ -6720,6 +6725,13 @@ async function renderReports(el) {
     const table = document.getElementById('reportTable');
     if (!output || !table) return;
     output.style.display = '';
+    // Show premium skeletons instantly
+    table.innerHTML = `
+      <div class="skeleton-bar title mb-16"></div>
+      <div class="skeleton-bar mb-12"></div>
+      <div class="skeleton-bar mb-12"></div>
+      <div class="skeleton-bar mb-12"></div>
+    `;
 
     try {
       let data, headers, rows;
@@ -6786,8 +6798,34 @@ async function renderReports(el) {
           break;
       }
       window._reportData = data;
-      createTable(table, 'rptTbl', headers, rows);
-    } catch (e) { table.innerHTML = '<p style="color:#cc0000">' + tr('Error loading report', 'خطأ في تحميل التقرير') + '</p>'; }
+      if (!data || data.length === 0) {
+        table.innerHTML = `
+          <div class="empty-state-card">
+            <div class="empty-state-icon">📊</div>
+            <div>${tr('No report data found', 'لا توجد بيانات متاحة لهذا التقرير')}</div>
+          </div>
+        `;
+      } else {
+        createTable(table, 'rptTbl', headers, rows);
+        // Wrap table for responsiveness
+        const tblEl = table.querySelector('table');
+        if (tblEl) {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'table-wrapper';
+          tblEl.parentNode.insertBefore(wrapper, tblEl);
+          wrapper.appendChild(tblEl);
+        }
+      }
+    } catch (e) {
+      table.innerHTML = `
+        <div class="error-card-premium">
+          <div class="error-card-icon">⚠️</div>
+          <h3>${tr('Failed to load report data', 'فشل في تحميل بيانات التقرير')}</h3>
+          <p>${e.message || e}</p>
+          <button class="btn btn-primary" onclick="genReport('${type}')">🔄 ${tr('Retry', 'إعادة المحاولة')}</button>
+        </div>
+      `;
+    }
   };
 
 }
@@ -6922,16 +6960,70 @@ let settingsTab = 'hospital';
 async function renderSettings(el) {
   const content = el;
 
+  // Show premium loading skeletons instantly
+  content.innerHTML = `
+    <div class="flex justify-between items-end mb-6">
+      <div>
+        <h2 class="font-headline-lg text-headline-lg text-primary">${tr('System Settings & Governance', 'إعدادات النظام والحوكمة')}</h2>
+        <p class="text-on-surface-variant text-sm mt-1">${tr('Configure hospital records, manage users, and monitor cybersecurity compliance', 'تهيئة سجلات المنشأة، إدارة الصلاحيات ومراقبة الامتثال للأمن السيبراني')}</p>
+      </div>
+    </div>
+    <div class="flex gap-4 mb-6 border-b border-outline-variant/30 pb-2">
+      <button class="px-4 py-2 font-bold rounded-lg transition-all ${settingsTab === 'hospital' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high/50'}">
+        🏥 ${tr('Hospital Settings', 'إعدادات المنشأة')}
+      </button>
+      <button class="px-4 py-2 font-bold rounded-lg transition-all ${settingsTab === 'users' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high/50'}">
+        👥 ${tr('User Manager', 'إدارة المستخدمين')}
+      </button>
+      <button class="px-4 py-2 font-bold rounded-lg transition-all ${settingsTab === 'cybersecurity' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high/50'}">
+        🛡️ ${tr('Cybersecurity & Governance', 'الأمن السيبراني والحوكمة')}
+      </button>
+    </div>
+    <div class="glass-card-premium p-6">
+      <div class="skeleton-bar title mb-16"></div>
+      <div class="skeleton-bar mb-12"></div>
+      <div class="skeleton-bar mb-12"></div>
+    </div>
+  `;
+
+  const getActionBadge = (act) => {
+    const action = act.toUpperCase();
+    if (action.includes('CREATE') || action.includes('INSERT') || action.includes('ADD')) return `<span class="badge badge-success">${act}</span>`;
+    if (action.includes('UPDATE') || action.includes('EDIT') || action.includes('SAVE')) return `<span class="badge badge-warning">${act}</span>`;
+    if (action.includes('DELETE') || action.includes('REMOVE') || action.includes('DESTROY')) return `<span class="badge badge-danger">${act}</span>`;
+    if (action.includes('LOGIN') || action.includes('AUTH')) return `<span class="badge badge-info">${act}</span>`;
+    return `<span class="badge">${act}</span>`;
+  };
+
   let backupInfo = { database: 'nama_medical_web', totalSizeMB: '0.00', backupCommand: '', tables: [] };
   let backupList = [];
   let auditLogs = [];
 
-  if (settingsTab === 'users') {
-    settingsUsersList = await API.get('/api/settings/users').catch(() => []);
-  } else if (settingsTab === 'cybersecurity') {
-    backupInfo = await API.get('/api/admin/backup-info').catch(() => ({ database: 'nama_medical_web', totalSizeMB: '0.00', backupCommand: '', tables: [] }));
-    backupList = await API.get('/api/admin/backups').catch(() => []);
-    auditLogs = await API.get('/api/admin/audit-trail?limit=15').catch(() => []);
+  try {
+    if (settingsTab === 'users') {
+      settingsUsersList = await API.get('/api/settings/users');
+    } else if (settingsTab === 'cybersecurity') {
+      [backupInfo, backupList, auditLogs] = await Promise.all([
+        API.get('/api/admin/backup-info'),
+        API.get('/api/admin/backups'),
+        API.get('/api/admin/audit-trail?limit=15')
+      ]);
+    }
+  } catch (e) {
+    content.innerHTML = `
+      <div class="flex justify-between items-end mb-6">
+        <div>
+          <h2 class="font-headline-lg text-headline-lg text-primary">${tr('System Settings & Governance', 'إعدادات النظام والحوكمة')}</h2>
+        </div>
+      </div>
+      <div class="error-card-premium">
+        <div class="error-card-icon">⚠️</div>
+        <h3>${tr('Failed to load settings data', 'فشل في تحميل بيانات الإعدادات')}</h3>
+        <p>${e.message || e}</p>
+        <button class="btn btn-primary" onclick="navigateTo(currentPage)">🔄 ${tr('Retry', 'إعادة المحاولة')}</button>
+      </div>
+    `;
+    return;
   }
 
   content.innerHTML = `
@@ -6958,7 +7050,7 @@ async function renderSettings(el) {
     <div class="tab-pane-content">
       ${settingsTab === 'hospital' ? `
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-md">
-          <div class="glass-card p-6 rounded-2xl">
+          <div class="glass-card glass-card-premium p-6 rounded-2xl">
             <h4 class="font-title-lg text-title-lg text-primary mb-4">🏥 ${tr('Hospital Information', 'معلومات المستشفى')}</h4>
             <div class="form-group mb-4">
               <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Hospital Name (AR)', 'اسم المستشفى (عربي)')}</label>
@@ -6995,7 +7087,7 @@ async function renderSettings(el) {
             </button>
           </div>
           <div class="space-y-md">
-            <div class="glass-card p-6 rounded-2xl">
+            <div class="glass-card glass-card-premium p-6 rounded-2xl">
               <h4 class="font-title-lg text-title-lg text-primary mb-4">🎨 ${tr('Appearance', 'المظهر')}</h4>
               <div class="form-group mb-4">
                 <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Language', 'اللغة')}</label>
@@ -7013,7 +7105,7 @@ async function renderSettings(el) {
                 </select>
               </div>
             </div>
-            <div class="glass-card p-6 rounded-2xl">
+            <div class="glass-card glass-card-premium p-6 rounded-2xl">
               <h4 class="font-title-lg text-title-lg text-primary mb-4">🔔 ${tr('System Notifications', 'إشعارات النظام')}</h4>
               <div class="space-y-3">
                 <label class="flex items-center gap-3 text-sm text-on-surface-variant cursor-pointer">
@@ -7039,7 +7131,7 @@ async function renderSettings(el) {
       ` : settingsTab === 'users' ? `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
           <!-- User Manager Form -->
-          <div class="glass-card p-6 rounded-2xl h-fit">
+          <div class="glass-card glass-card-premium p-6 rounded-2xl h-fit">
             <h4 class="font-title-lg text-title-lg text-primary mb-4" id="suFormTitle">👤 ${tr('User Details', 'بيانات المستخدم')}</h4>
             <div class="form-group mb-3">
               <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Full Display Name', 'الاسم الكامل')}</label>
@@ -7103,7 +7195,7 @@ async function renderSettings(el) {
           </div>
 
           <!-- User Registry Table -->
-          <div class="glass-card p-6 rounded-2xl lg:col-span-2 overflow-x-auto">
+          <div class="glass-card glass-card-premium p-6 rounded-2xl lg:col-span-2 overflow-x-auto">
             <h4 class="font-title-lg text-title-lg text-primary mb-4">👥 ${tr('User Accounts Directory', 'سجل المستخدمين النشطين')}</h4>
             <table class="w-full text-right divide-y divide-outline-variant/30">
               <thead class="bg-surface-container-low font-label-md text-label-md text-on-surface-variant">
@@ -7137,9 +7229,14 @@ async function renderSettings(el) {
       ` : `
         <!-- Cybersecurity Governance -->
         <div class="space-y-md">
+          <!-- Staging Warning banner inside tab -->
+          <div class="p-4 rounded-xl border border-amber-300 bg-amber-50 text-amber-900 text-xs md:text-sm mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">warning</span>
+            <span><strong>تنبيه الأمن السيبراني:</strong> تعمل هذه البيئة حالياً كخادم Staging تجريبي على بروتوكول HTTP غير المشفر. يمنع منعاً باتاً تخزين أو معالجة أي بيانات مرضى حقيقية أو معلومات حساسة.</span>
+          </div>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
             <!-- Threat Level Circular Gauge -->
-            <div class="glass-card p-6 rounded-2xl flex flex-col items-center justify-center min-h-[260px]">
+            <div class="glass-card glass-card-premium p-6 rounded-2xl flex flex-col items-center justify-center min-h-[260px]">
               <h3 class="font-title-lg text-title-lg text-primary mb-4 w-full text-right">🛡️ ${tr('Current Cybersecurity Threat Level', 'مستوى التهديد السيبراني الحالي')}</h3>
               <div class="relative w-40 h-40 flex items-center justify-center">
                 <svg class="w-full h-full transform -rotate-90">
@@ -7155,7 +7252,7 @@ async function renderSettings(el) {
             </div>
 
             <!-- Encryption & Session Controls -->
-            <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+            <div class="glass-card glass-card-premium p-6 rounded-2xl flex flex-col justify-between">
               <div>
                 <h3 class="font-title-lg text-title-lg text-primary mb-4 flex items-center gap-2">🔑 ${tr('Data Encryption Status', 'تشفير وحماية البيانات')}</h3>
                 <div class="space-y-3">
@@ -7180,7 +7277,7 @@ async function renderSettings(el) {
             </div>
 
             <!-- Compliance Authority Status -->
-            <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+            <div class="glass-card glass-card-premium p-6 rounded-2xl flex flex-col justify-between">
               <div>
                 <h3 class="font-title-lg text-title-lg text-primary mb-4">📜 ${tr('National Authority Compliance', 'الامتثال للجهات الرقابية والوطنية')}</h3>
                 <div class="space-y-3">
@@ -7206,7 +7303,7 @@ async function renderSettings(el) {
 
           <!-- Backup Manager & Database Info -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
-            <div class="glass-card p-6 rounded-2xl flex flex-col justify-between">
+            <div class="glass-card glass-card-premium p-6 rounded-2xl flex flex-col justify-between">
               <div>
                 <h4 class="font-title-lg text-title-lg text-primary mb-3">💾 ${tr('Database Infrastructure', 'بنية قاعدة البيانات')}</h4>
                 <div class="space-y-2 text-xs">
@@ -7223,7 +7320,7 @@ async function renderSettings(el) {
             </div>
 
             <!-- Existing Backups Registry -->
-            <div class="glass-card p-6 rounded-2xl lg:col-span-2 overflow-x-auto">
+            <div class="glass-card glass-card-premium p-6 rounded-2xl lg:col-span-2 overflow-x-auto">
               <h4 class="font-title-lg text-title-lg text-primary mb-3">📂 ${tr('Database Backup Registry', 'سجل النسخ الاحتياطية المتوفرة')}</h4>
               <div class="max-h-48 overflow-y-auto">
                 <table class="w-full text-right divide-y divide-outline-variant/30 text-xs">
@@ -7241,7 +7338,7 @@ async function renderSettings(el) {
                         <td class="p-2 font-bold">${b.size}</td>
                         <td class="p-2 text-on-surface-variant">${new Date(b.date).toLocaleString('ar-SA')}</td>
                       </tr>
-                    `).join('') : `<tr><td colspan="3" class="text-center py-4 text-on-surface-variant">${tr('No backups found', 'لا توجد نسخ احتياطية متوفرة')}</td></tr>`}
+                    `).join('') : `<tr><td colspan="3"><div class="empty-state-card"><div class="empty-state-icon">📂</div><div>${tr('No backups found', 'لا توجد نسخ احتياطية متوفرة')}</div></div></td></tr>`}
                   </tbody>
                 </table>
               </div>
@@ -7249,7 +7346,7 @@ async function renderSettings(el) {
           </div>
 
           <!-- Administrative Security Audit Trail -->
-          <div class="glass-card p-6 rounded-2xl overflow-x-auto">
+          <div class="glass-card glass-card-premium p-6 rounded-2xl overflow-x-auto">
             <h4 class="font-title-lg text-title-lg text-primary mb-4">🔍 ${tr('Security & Governance Audit Trail', 'سجل الحركات الأمنية وتدقيق النظام')}</h4>
             <div class="max-h-60 overflow-y-auto">
               <table class="w-full text-right divide-y divide-outline-variant/30 text-xs">
@@ -7268,12 +7365,12 @@ async function renderSettings(el) {
                     <tr class="hover:bg-primary/5 transition-colors">
                       <td class="p-3 font-bold text-primary">${log.user_name || '—'}</td>
                       <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-secondary/10 text-secondary font-bold">${log.module}</span></td>
-                      <td class="p-3 font-mono text-primary font-bold">${log.action}</td>
+                      <td class="p-3">${getActionBadge(log.action)}</td>
                       <td class="p-3 text-on-surface-variant max-w-xs truncate" title="${log.details || ''}">${log.details || '—'}</td>
                       <td class="p-3 font-mono text-[11px]">${log.ip_address || '—'}</td>
                       <td class="p-3 text-on-surface-variant">${new Date(log.created_at).toLocaleString('ar-SA')}</td>
                     </tr>
-                  `).join('') : `<tr><td colspan="6" class="text-center py-4 text-on-surface-variant">${tr('No audit trail events logged', 'لا توجد حركات مسجلة حالياً')}</td></tr>`}
+                  `).join('') : `<tr><td colspan="6"><div class="empty-state-card"><div class="empty-state-icon">🔍</div><div>${tr('No audit trail events logged', 'لا توجد حركات مسجلة حالياً')}</div></div></td></tr>`}
                 </tbody>
               </table>
             </div>
