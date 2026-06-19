@@ -1702,7 +1702,7 @@ CREATE TABLE IF NOT EXISTS cosmetic_followups (
         `).catch(err => console.error('Sequence sync error:', err.message));
 
         // Default admin
-        await client.query(`INSERT INTO system_users (username, password_hash, display_name, role) VALUES ('admin', 'admin', 'المدير العام', 'Admin') ON CONFLICT (username) DO NOTHING`);
+        await client.query(`INSERT INTO system_users (username, password_hash, display_name, role) VALUES ('admin', '$2b$12$RGXj..JVoLyk1sSE2T1L1e2sbPbQ9WaNxudwsLD/5fQm9loKrnQ9K', 'المدير العام', 'Admin') ON CONFLICT (username) DO NOTHING`);
 
         // Map admin to default tenant/facility
         await client.query(`

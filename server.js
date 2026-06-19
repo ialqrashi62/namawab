@@ -30,6 +30,7 @@ const upload = multer({
 
 const compression = require('compression');
 const app = express();
+app.set('trust proxy', 1);
 app.use(compression());
 const PORT = process.env.PORT || 3000;
 
@@ -50,7 +51,7 @@ app.use(session({
     cookie: {
         maxAge: 8 * 60 * 60 * 1000,
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: process.env.NODE_ENV === 'production' && process.env.PUBLIC_STAGING_HTTP_ONLY !== 'true',
         sameSite: 'lax'
     },
     rolling: true
