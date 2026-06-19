@@ -387,4 +387,19 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - تم إيقاف عملية الأوتو بايلوت وتصنيف المرحلة كـ `BLOCKED` لمنع أي مخاطر أو محاولات ربط بقاعدة البيانات الإنتاجية/الخارجية بطريقة غير آمنة.
 * **المرحلة التالية الموصى بها**: `Install Local PostgreSQL & CLI Tools`
 
+### Phase 29: Install Local PostgreSQL & CLI Tools for RLS Dry-Run
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_LOCAL_POSTGRESQL_RLS_DRY_RUN_ENV_SETUP_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (فحص خيارات تشغيل قاعدة البيانات محلياً)
+* **الملفات الجديدة**:
+  - `docs/MEDICAL_LOCAL_POSTGRESQL_RLS_DRY_RUN_ENV_SETUP_REPORT_AR.md` (تقرير حالة تهيئة بيئة PostgreSQL المحلية للتشغيل التجريبي)
+* **المخرجات**:
+  - [docs/MEDICAL_LOCAL_POSTGRESQL_RLS_DRY_RUN_ENV_SETUP_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_LOCAL_POSTGRESQL_RLS_DRY_RUN_ENV_SETUP_REPORT_AR.md)
+* **نتائج الاختبارات**:
+  - فحص محرك Docker وثبوت عدم توفره.
+  - فحص وجود خادم PostgreSQL وأدوات psql و pg_dump محلياً وثبوت عدم توفرها.
+  - تأكيد عزل وتجنب لمس السيرفر العام 204.168.144.74.
+  - توثيق متطلبات فك الحظر للمالك لتثبيت PostgreSQL محلياً.
+* **المرحلة التالية الموصى بها**: `RLS Local Dry-Run on 3 Tables Only` (بمجرد توفر البيئة المحلية)
+
 
