@@ -416,19 +416,20 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - تأكيد بقاء السيرفر العام 204.168.144.74 غير ملموس ومحمياً تماماً.
 * **المرحلة التالية الموصى بها**: `Manual Install Docker Desktop or PostgreSQL 16`
 
-### Phase 31: Verify Docker Desktop & Resume RLS Autopilot
+### Phase 31: Use Existing Local Windows PostgreSQL Service for RLS Dry-Run
 * **تاريخ المحاولة**: 2026-06-19
-* **الحالة (Status)**: `MEDICAL_LOCAL_POSTGRESQL_RLS_DRY_RUN_ENV_SETUP_BLOCKED`
-* **الملفات البرمجية المعدلة**: لا يوجد
+* **الحالة (Status)**: `MEDICAL_LOCAL_POSTGRESQL_RLS_DRY_RUN_ENV_SETUP_COMPLETED`
+* **الملفات البرمجية المعدلة**: 
+  - `namaweb/db_postgres.js` (تصحيح وإضافة إنشاء جدول `waiting_queue` وتجربة التهيئة)
+  - `namaweb/rls_local_dry_run_3_tables.js` (تحديث مسار `pg_dump.exe` المطلق على ويندوز)
 * **المخرجات**:
   - [docs/MEDICAL_LOCAL_POSTGRESQL_RLS_DRY_RUN_ENV_SETUP_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_LOCAL_POSTGRESQL_RLS_DRY_RUN_ENV_SETUP_REPORT_AR.md)
 * **نتائج الاختبارات**:
-  - فحص محرك Docker وثبوت تشغيله بنجاح (`Docker version 29.5.3`).
-  - فحص المنفذ 5432 وثبوت تعارضه مع خدمة PostgreSQL المحلية لويندوز (`postgresql-x64-16` / PID 7492).
-  - فشل تشغيل حاوية Docker `nama_medical_pg_local` بسبب تعارض المنفذ (`bind: An attempt was made to access a socket in a way forbidden by its access permissions`).
-  - عدم القدرة على إيقاف الخدمة المحلية لعدم توفر صلاحيات UAC Elevation.
+  - فحص خادم PostgreSQL المحلي (`postgresql-x64-16`) وثبوت جاهزيته وتشغيله على المنفذ `5432`.
+  - إنشاء قاعدة البيانات `nama_medical_web` وبناء المخطط وحقن بيانات الاختبار بنجاح 100%.
+  - نجاح تشغيل اختبارات RLS التجريبية محلياً لـ 3 جداول (`patients`, `invoices`, `appointments`) بنسبة 100% والتراجع الكامل (Rollback) التلقائي لتأمين القاعدة.
   - تأكيد عزل وتجنب لمس السيرفر العام 204.168.144.74.
-* **المرحلة التالية الموصى بها**: `Resolve Port Conflict by Stopping Windows Postgres Service or Using it Directly`
+* **المرحلة التالية الموصى بها**: `Tenant Context Middleware for PostgreSQL Session Settings Design`
 
 
 
