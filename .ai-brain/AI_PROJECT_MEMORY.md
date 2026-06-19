@@ -326,3 +326,21 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - التحقق من قصر منفذ Postgres على localhost وعزل قاعدة البيانات.
 * **المرحلة التالية الموصى بها**: `Domain & HTTPS Activation + Credentials Hardening`
 
+### Phase 25: HTTP-Only Public Staging P0/P1 Security Fixes
+* **تاريخ الإغلاق**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_HTTP_ONLY_PUBLIC_STAGING_P0_P1_SECURITY_FIXES_COMPLETED`
+* **الملفات المُعدَّلة**:
+  - `namaweb/server.js` (تفعيل trust proxy، إتاحة كوكيز الجلسات على HTTP لبيئة الـ Staging)
+  - `namaweb/database.js` (تحديث هاش كلمة مرور الـ admin الافتراضي للـ SQLite)
+  - `namaweb/db_postgres.js` (تحديث هاش كلمة مرور الـ admin الافتراضي للـ PostgreSQL)
+* **الملفات الجديدة**:
+  - `docs/MEDICAL_HTTP_ONLY_PUBLIC_STAGING_P0_P1_SECURITY_FIXES_AR.md` (تقرير إغلاق المخاطر العاجلة)
+* **المخرجات**:
+  - [docs/MEDICAL_HTTP_ONLY_PUBLIC_STAGING_P0_P1_SECURITY_FIXES_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_HTTP_ONLY_PUBLIC_STAGING_P0_P1_SECURITY_FIXES_AR.md)
+* **نتائج الاختبارات**:
+  - التحقق من وجود وصحة النسخة الاحتياطية sql بمساحة 357KB.
+  - نجاح تشغيل واستقرار تطبيق PM2 وتلاشي تحذير rate limiter بعد تفعيل trust proxy.
+  - نجاح استلام كوكيز الجلسات على متصفح العميل عبر HTTP بدون secure flag للـ Staging.
+* **المرحلة التالية الموصى بها**: `HTTP-Only Staging Login Smoke Test`
+
+
