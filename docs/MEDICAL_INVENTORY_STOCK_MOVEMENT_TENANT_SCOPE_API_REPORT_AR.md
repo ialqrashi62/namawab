@@ -28,12 +28,12 @@
 ## 3. الملفات التي تم فحصها وتعديلها
 
 * **الملفات التي تم فحصها:**
-  * [namaweb/server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js) — فحص وتحديد مسارات المخزون وحركات الصرف.
-  * [namaweb/db_postgres.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/db_postgres.js) — التحقق من مخطط جداول المخزون الطبية والتفصيلية.
+  * [namaweb/server.js](server.js) — فحص وتحديد مسارات المخزون وحركات الصرف.
+  * [namaweb/db_postgres.js](db_postgres.js) — التحقق من مخطط جداول المخزون الطبية والتفصيلية.
 * **الملفات التي تم تعديلها:**
-  * [namaweb/server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js) — عزل وتأمين 11 مساراً مع إضافة التحقق من الملكية لجميع عمليات التعديل والحذف والإضافة.
+  * [namaweb/server.js](server.js) — عزل وتأمين 11 مساراً مع إضافة التحقق من الملكية لجميع عمليات التعديل والحذف والإضافة.
 * **الملفات الجديدة:**
-  * [namaweb/cross_tenant_inventory_test.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/cross_tenant_inventory_test.js) — سكربت اختبار محلي شامل للتأكد من بنية الحماية ومحاكاة العمليات.
+  * [namaweb/cross_tenant_inventory_test.js](cross_tenant_inventory_test.js) — سكربت اختبار محلي شامل للتأكد من بنية الحماية ومحاكاة العمليات.
 
 ---
 

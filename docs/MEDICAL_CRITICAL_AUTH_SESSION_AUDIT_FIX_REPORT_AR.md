@@ -12,13 +12,13 @@
 ---
 
 ## 2. الملفات التي تم فحصها (Inspected Files)
-* [namaweb/db_postgres.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/db_postgres.js) (للتحقق من هيكلية جدول `audit_trail`).
-* [namaweb/server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js) (لفحص مسارات الجلسات وتسجيل الدخول والحذف والتحقق من الصلاحيات).
+* [namaweb/db_postgres.js](db_postgres.js) (للتحقق من هيكلية جدول `audit_trail`).
+* [namaweb/server.js](server.js) (لفحص مسارات الجلسات وتسجيل الدخول والحذف والتحقق من الصلاحيات).
 
 ---
 
 ## 3. الملفات التي تم تعديلها (Modified Files)
-* [namaweb/server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js) (موضع الإصلاحات البرمجية كافة).
+* [namaweb/server.js](server.js) (موضع الإصلاحات البرمجية كافة).
 
 ---
 

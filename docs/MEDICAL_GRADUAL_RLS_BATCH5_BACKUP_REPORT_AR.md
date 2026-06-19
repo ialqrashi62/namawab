@@ -19,7 +19,7 @@
 
 ### 2. خطة التراجع والاستعادة (Rollback & Restore Plan)
 
-* **خطة التراجع التلقائي**: متوفرة عبر السكربت [rls_staging_batch5_rollback_without_schema_change.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch5_rollback_without_schema_change.sql)
+* **خطة التراجع التلقائي**: متوفرة عبر السكربت [rls_staging_batch5_rollback_without_schema_change.sql](docs/sql/rls_staging_batch5_rollback_without_schema_change.sql)
 * **أداة الاستعادة المعتمدة**:
   ```bash
   sudo -u postgres pg_restore -d nama_medical_web -c /var/www/namaweb/backups/backup_staging_before_rls_batch5.sql

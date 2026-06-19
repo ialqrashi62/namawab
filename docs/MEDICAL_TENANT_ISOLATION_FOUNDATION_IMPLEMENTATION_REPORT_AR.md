@@ -30,12 +30,12 @@
 ## 3. الملفات المفحوصة والمعدلة
 
 * **الملفات التي تم فحصها**:
-  * [db_postgres.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/db_postgres.js)
-  * [server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js)
-  * [check_db.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/check_db.js)
+  * [db_postgres.js](db_postgres.js)
+  * [server.js](server.js)
+  * [check_db.js](check_db.js)
 * **الملفات التي تم تعديلها**:
-  * [db_postgres.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/db_postgres.js) (إضافة الجداول، والـ Seed، ومزامنة عدادات المتسلسلات، والمهاجرة التلقائية للأعمدة).
-  * [server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js) (إلحاق المستأجر بالجلسة، وإضافة برمجيات الوساطة لعزل الطلبات، وفلترة مسار المرضى والفواتير).
+  * [db_postgres.js](db_postgres.js) (إضافة الجداول، والـ Seed، ومزامنة عدادات المتسلسلات، والمهاجرة التلقائية للأعمدة).
+  * [server.js](server.js) (إلحاق المستأجر بالجلسة، وإضافة برمجيات الوساطة لعزل الطلبات، وفلترة مسار المرضى والفواتير).
 
 ---
 

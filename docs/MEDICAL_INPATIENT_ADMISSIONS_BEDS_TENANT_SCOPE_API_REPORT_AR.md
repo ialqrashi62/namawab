@@ -31,12 +31,12 @@
 ## 3. الملفات التي تم فحصها وتعديلها (Checked & Modified Files)
 
 * **الملفات المفحوصة**:
-  * [server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js) — فحص البنية العامة لمسارات التنويم والأسرة والميدل وير النشط.
-  * [db_postgres.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/db_postgres.js) — تأكيد عدم إجراء أي تعديلات إنشائية أو تشغيل migrations.
+  * [server.js](server.js) — فحص البنية العامة لمسارات التنويم والأسرة والميدل وير النشط.
+  * [db_postgres.js](db_postgres.js) — تأكيد عدم إجراء أي تعديلات إنشائية أو تشغيل migrations.
 * **الملفات المعدلة**:
-  * [server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js) — تأمين المسارات البرمجية وتكامل فلاتر `tenant_id` والتحقق من السياقات الأمنية.
+  * [server.js](server.js) — تأمين المسارات البرمجية وتكامل فلاتر `tenant_id` والتحقق من السياقات الأمنية.
 * **الملفات الجديدة**:
-  * [cross_tenant_inpatient_beds_test.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/cross_tenant_inpatient_beds_test.js) — سكربت اختبار محلي شامل للتحقق الأمني.
+  * [cross_tenant_inpatient_beds_test.js](cross_tenant_inpatient_beds_test.js) — سكربت اختبار محلي شامل للتحقق الأمني.
 
 ---
 
@@ -64,7 +64,7 @@
 
 ## 5. نتائج الاختبارات ومنع التسريب (Leak Prevention Test Results)
 
-تم تشغيل الاختبار الأمني [cross_tenant_inpatient_beds_test.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/cross_tenant_inpatient_beds_test.js) محلياً، وجاءت النتيجة كالتالي:
+تم تشغيل الاختبار الأمني [cross_tenant_inpatient_beds_test.js](cross_tenant_inpatient_beds_test.js) محلياً، وجاءت النتيجة كالتالي:
 
 * **إجمالي الاختبارات المجرية**: 53 اختباراً.
 * **الاختبارات الناجحة**: 53 اختباراً.

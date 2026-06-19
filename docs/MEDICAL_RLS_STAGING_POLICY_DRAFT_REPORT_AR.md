@@ -17,7 +17,7 @@
 تم تجهيز الملفات الهيكلية للمرحلة وتخزينها تحت المسارات التالية:
 
 1. **ملف التهيئة وتفعيل السياسات**:
-   * المسار: [rls_staging_controlled_dry_run_setup.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_controlled_dry_run_setup.sql)
+   * المسار: [rls_staging_controlled_dry_run_setup.sql](docs/sql/rls_staging_controlled_dry_run_setup.sql)
    * الفكرة الأساسية:
      ```sql
      CREATE POLICY dry_run_patients_tenant_isolation ON patients
@@ -26,10 +26,10 @@
          WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::integer);
      ```
 2. **ملف الفحص والتحقق الأمني**:
-   * المسار: [rls_staging_controlled_dry_run_validation.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_controlled_dry_run_validation.sql)
+   * المسار: [rls_staging_controlled_dry_run_validation.sql](docs/sql/rls_staging_controlled_dry_run_validation.sql)
    * الحالات المختبرة: الاستعلام بهوية المستأجر المالك، الاستعلام بهوية مستأجر آخر (صفر نتائج)، الاستعلام بدون سياق، محاولة حقن سجل بمستأجر مخالف (فشل العملية).
 3. **ملف التراجع والتنظيف**:
-   * المسار: [rls_staging_controlled_dry_run_rollback.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_controlled_dry_run_rollback.sql)
+   * المسار: [rls_staging_controlled_dry_run_rollback.sql](docs/sql/rls_staging_controlled_dry_run_rollback.sql)
    * الفكرة الأساسية: تعطيل RLS وحذف السياسات الاستباقية لتصفير البنية الأمنية بعد التجربة.
 
 ---

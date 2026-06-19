@@ -28,13 +28,13 @@
 
 ## 3. الملفات التي تم فحصها وتعديلها
 * **الملفات التي تم فحصها**:
-  * [server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js) (الملف الأساسي للـ API ومسارات لوحة التحكم).
-  * [db_postgres.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/db_postgres.js) (التحقق من هياكل الجداول وقابليتها للعزل).
+  * [server.js](server.js) (الملف الأساسي للـ API ومسارات لوحة التحكم).
+  * [db_postgres.js](db_postgres.js) (التحقق من هياكل الجداول وقابليتها للعزل).
   * التقارير السابقة وملفات الذاكرة للتحقق من الاتساق.
 
 * **الملفات التي تم تعديلها**:
-  * [namaweb/server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js) (إضافة وتعديل الاستعلامات والـ middleware).
-  * [.ai-brain/AI_PROJECT_MEMORY.md](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/.ai-brain/AI_PROJECT_MEMORY.md) (تحديث سجل المشروع والذاكرة التراكمية).
+  * [namaweb/server.js](server.js) (إضافة وتعديل الاستعلامات والـ middleware).
+  * [.ai-brain/AI_PROJECT_MEMORY.md](AI_PROJECT_MEMORY.md) (تحديث سجل المشروع والذاكرة التراكمية).
 
 ---
 
@@ -77,7 +77,7 @@
 ---
 
 ## 7. نتائج اختبارات منع التسريب والتحقق المحلي
-تم إنشاء وتشغيل سكربت اختبار محلي متكامل باسم [cross_tenant_dashboard_test.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/cross_tenant_dashboard_test.js).
+تم إنشاء وتشغيل سكربت اختبار محلي متكامل باسم [cross_tenant_dashboard_test.js](cross_tenant_dashboard_test.js).
 أظهرت نتائج الاختبار نجاح **38 فحصاً من أصل 38 فحصاً** دون أي إخفاقات:
 * **عزل الإحصائيات (Stats)**: إثبات أن Tenant 1 لا يمكنه رؤية مرضى أو إيرادات أو مواعيد Tenant 2.
 * **عزل الرسوم البيانية (Charts)**: التحقق من عزل رسم طرق الدفع والتجميعات المالية للرسوم البيانية.

@@ -32,7 +32,7 @@
 ### 3. خطة التراجع السريع (Rollback Approach)
 
 في حال حدوث أي إخفاق أو تعطل في العمليات بعد تفعيل RLS على جداول الدفعة الثالثة:
-1. **أداة التراجع**: تم إعداد سكربت [rls_staging_batch3_rollback_clinical_critical.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch3_rollback_clinical_critical.sql) وهو جاهز للتنفيذ الفوري.
+1. **أداة التراجع**: تم إعداد سكربت [rls_staging_batch3_rollback_clinical_critical.sql](docs/sql/rls_staging_batch3_rollback_clinical_critical.sql) وهو جاهز للتنفيذ الفوري.
 2. **المنهجية**: يقوم السكربت بتعطيل RLS (`DISABLE ROW LEVEL SECURITY`) على الجداول الأربعة المحددة وحذف السياسات الخاصة بها وسحب الصلاحيات من دور الاختبار المقيد.
 3. **عدم المساس بالدفعات السابقة**: يضمن السكربت عدم لمس أو تعطيل RLS الخاص بجداول الدفعة الأولى والثانية (`patients`, `appointments`, `invoices`) للحفاظ على استمرارية العزل المحقق سابقاً.
 

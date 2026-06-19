@@ -34,7 +34,7 @@
 * **النسخ الاحتياطي**: تم أخذ نسخة كاملة ومضغوطة بنجاح وتخزينها على الخادم البعيد في المسار:
   `/var/www/namaweb/backups/backup_staging_before_rls_batch4.sql` بحجم 447,837 بايت. تم التحقق من سلامة الملف باستخدام `pg_restore -l`.
 * **سكربتات التراجع (Rollback Scripts)**:
-  تم توفير سكربت [rls_staging_batch4_rollback_high_risk.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch4_rollback_high_risk.sql) الذي يسمح بإلغاء سياسات الدفعة الرابعة وتعطيل RLS عليها دون المساس بالسياسات السابقة.
+  تم توفير سكربت [rls_staging_batch4_rollback_high_risk.sql](docs/sql/rls_staging_batch4_rollback_high_risk.sql) الذي يسمح بإلغاء سياسات الدفعة الرابعة وتعطيل RLS عليها دون المساس بالسياسات السابقة.
 
 ---
 
@@ -50,10 +50,10 @@
 
 ### 5. ملفات SQL والسكربتات المرجعية
 
-1. **سكربت التفعيل**: [rls_staging_batch4_enable_high_risk.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch4_enable_high_risk.sql)
-2. **سكربت التحقق**: [rls_staging_batch4_validate_high_risk.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch4_validate_high_risk.sql)
-3. **سكربت التراجع**: [rls_staging_batch4_rollback_high_risk.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch4_rollback_high_risk.sql)
-4. **أداة التشغيل والتحقق التلقائي**: [execute_controlled_enablement_batch4.py](file:///c:/Users/ice/Desktop/NamaMedical/scratch/execute_controlled_enablement_batch4.py)
+1. **سكربت التفعيل**: [rls_staging_batch4_enable_high_risk.sql](docs/sql/rls_staging_batch4_enable_high_risk.sql)
+2. **سكربت التحقق**: [rls_staging_batch4_validate_high_risk.sql](docs/sql/rls_staging_batch4_validate_high_risk.sql)
+3. **سكربت التراجع**: [rls_staging_batch4_rollback_high_risk.sql](docs/sql/rls_staging_batch4_rollback_high_risk.sql)
+4. **أداة التشغيل والتحقق التلقائي**: [execute_controlled_enablement_batch4.py](scratch/execute_controlled_enablement_batch4.py)
 
 ---
 

@@ -7,7 +7,7 @@
 
 ### 1. إعدادات كائن الجلسات وملفات الكوكيز (express-session Configuration)
 
-تم فحص إعدادات مكتبة `express-session` في الملف [server.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/server.js) وتأكيد سلامة الخصائص التالية:
+تم فحص إعدادات مكتبة `express-session` في الملف [server.js](namaweb/server.js) وتأكيد سلامة الخصائص التالية:
 * **مفتاح تشفير الجلسة (secret)**: يتم تحميله بشكل آمن من المتغيرات البيئية `process.env.SESSION_SECRET` وفي حال غيابه يتم استخدام مفتاح معقد افتراضي للبيئات التجريبية.
 * **خاصية الأمان (secure)**: تم ربط تفعيلها بكون البيئة إنتاجية وعدم طلب التعطيل المؤقت للـ Staging:
   `secure: process.env.NODE_ENV === 'production' && process.env.PUBLIC_STAGING_HTTP_ONLY !== 'true'`

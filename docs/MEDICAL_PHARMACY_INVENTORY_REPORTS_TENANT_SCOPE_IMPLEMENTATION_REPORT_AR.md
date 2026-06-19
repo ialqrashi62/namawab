@@ -10,7 +10,7 @@
 
 ## 1. الملخص التنفيذي
 
-تم بحمد الله تطبيق وتفعيل نظام عزل المستأجرين (`tenant_id` / `facility_id` / `branch_id`) بالكامل على تقارير الصيدلية والمخزون التفصيلية والتجميعية والأصناف وقوائم الأدوية في خادم التطبيق [server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js) (بإجمالي 26 مساراً). يمنع هذا العزل تسريب مبيعات الصيدلية وأرصدة المخزون وحركات الاستهلاك والتحويل والوصفات الطبية بين المستأجرين (Cross-Tenant Data Leakage)، كما يعالج كافة مخاطر الوصول المباشر غير المصرح به (IDOR).
+تم بحمد الله تطبيق وتفعيل نظام عزل المستأجرين (`tenant_id` / `facility_id` / `branch_id`) بالكامل على تقارير الصيدلية والمخزون التفصيلية والتجميعية والأصناف وقوائم الأدوية في خادم التطبيق [server.js](server.js) (بإجمالي 26 مساراً). يمنع هذا العزل تسريب مبيعات الصيدلية وأرصدة المخزون وحركات الاستهلاك والتحويل والوصفات الطبية بين المستأجرين (Cross-Tenant Data Leakage)، كما يعالج كافة مخاطر الوصول المباشر غير المصرح به (IDOR).
 
 تم بناء وتشغيل سكربت اختبار محلي متكامل يحتوي على **49 فحصاً برمجياً** للتحقق البنائي والمحاكاة لعمليات الاستعلام والتقارير والتجميعات، وحققت جميع الفحوصات نجاحاً كاملاً بنسبة 100%.
 
@@ -29,12 +29,12 @@
 ## 3. الملفات التي تم فحصها وتعديلها
 
 * **الملفات التي تم فحصها:**
-  * [namaweb/server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js) — تحديد وتأمين مسارات الصيدلية والمخزون وقوائم التقارير.
-  * [namaweb/db_postgres.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/db_postgres.js) — فحص مخطط الجداول والتأكد من وجود أعمدة `tenant_id` و `branch_id` و `facility_id` لجميع الجداول المستهدفة.
+  * [namaweb/server.js](server.js) — تحديد وتأمين مسارات الصيدلية والمخزون وقوائم التقارير.
+  * [namaweb/db_postgres.js](db_postgres.js) — فحص مخطط الجداول والتأكد من وجود أعمدة `tenant_id` و `branch_id` و `facility_id` لجميع الجداول المستهدفة.
 * **الملفات التي تم تعديلها:**
-  * [namaweb/server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js) — تأمين 26 مساراً للصيدلية والمخزون والأصناف والوصفات بـ `requireTenantScope` وفلاتر العزل.
+  * [namaweb/server.js](server.js) — تأمين 26 مساراً للصيدلية والمخزون والأصناف والوصفات بـ `requireTenantScope` وفلاتر العزل.
 * **الملفات الجديدة:**
-  * [namaweb/cross_tenant_pharmacy_inventory_reports_test.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/cross_tenant_pharmacy_inventory_reports_test.js) — سكربت اختبار موضعي شامل للتأكد من بنية الحماية ومحاكاة التقرير التجميعي.
+  * [namaweb/cross_tenant_pharmacy_inventory_reports_test.js](cross_tenant_pharmacy_inventory_reports_test.js) — سكربت اختبار موضعي شامل للتأكد من بنية الحماية ومحاكاة التقرير التجميعي.
 
 ---
 

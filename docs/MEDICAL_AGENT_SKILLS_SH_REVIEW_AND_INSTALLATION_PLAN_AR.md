@@ -34,16 +34,16 @@
 
 لتعويض الفجوات التخصصية بالقطاع الصحي وتأمين نظام الطبيب بالعيادات والفرز التفاعلي بالطوارئ، تم إنشاء 10 مهارات طبية وأمنية مخصصة في مجلد المهارات الذكية للمشروع:
 
-1. **[MEDICAL_PATIENT_DATA_SAFETY_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_PATIENT_DATA_SAFETY_SKILL_AR.md)**: عزل ملفات المرضى ومنع ثغرات IDOR والتسريب المتقاطع.
-2. **[MEDICAL_RLS_PRODUCTION_ENABLEMENT_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_RLS_PRODUCTION_ENABLEMENT_SKILL_AR.md)**: ضوابط النشر والتفعيل لـ RLS على الإنتاج الفعلي.
-3. **[MEDICAL_TENANT_ID_BACKFILL_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_TENANT_ID_BACKFILL_SKILL_AR.md)**: استراتيجية وسكربتات تعبئة وهجرة البيانات القديمة.
-4. **[MEDICAL_BACKUP_RESTORE_DRILL_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_BACKUP_RESTORE_DRILL_SKILL_AR.md)**: محاكاة استعادة النسخ الاحتياطية فحص سلامتها فترات الطوارئ.
-5. **[MEDICAL_INCIDENT_RESPONSE_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_INCIDENT_RESPONSE_SKILL_AR.md)**: معالجة الاختراقات أو التسريبات والقيام بالتراجع الفوري السريع.
-6. **[MEDICAL_PRODUCTION_READINESS_GATE_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_PRODUCTION_READINESS_GATE_SKILL_AR.md)**: بوابات الجودة والتأمين المطلوب اجتيازها قبل ترحيل الكود للإنتاج.
-7. **[MEDICAL_SECRETS_AND_LOGS_AUDIT_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_SECRETS_AND_LOGS_AUDIT_SKILL_AR.md)**: تطهير سجلات PM2 وحظر تتبع أسرار الخادم بـ Git.
-8. **[MEDICAL_HEALTHCARE_COMPLIANCE_SAUDI_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_HEALTHCARE_COMPLIANCE_SAUDI_SKILL_AR.md)**: الامتثال لتشريعات وزارة الصحة السعودية ومجلس الضمان ونظام نفيس.
-9. **[MEDICAL_CLINICAL_WORKFLOW_QA_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_CLINICAL_WORKFLOW_QA_SKILL_AR.md)**: سيناريوهات اختبار دورة حياة المريض وصرف الأدوية.
-10. **[MEDICAL_ARABIC_UTF8_ENFORCEMENT_SKILL_AR](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_ARABIC_UTF8_ENFORCEMENT_SKILL_AR.md)**: علاج تشويه النصوص العربية وفرض ترميز الملفات بـ UTF-8.
+1. **[MEDICAL_PATIENT_DATA_SAFETY_SKILL_AR](.ai-brain/skills/MEDICAL_PATIENT_DATA_SAFETY_SKILL_AR.md)**: عزل ملفات المرضى ومنع ثغرات IDOR والتسريب المتقاطع.
+2. **[MEDICAL_RLS_PRODUCTION_ENABLEMENT_SKILL_AR](.ai-brain/skills/MEDICAL_RLS_PRODUCTION_ENABLEMENT_SKILL_AR.md)**: ضوابط النشر والتفعيل لـ RLS على الإنتاج الفعلي.
+3. **[MEDICAL_TENANT_ID_BACKFILL_SKILL_AR](.ai-brain/skills/MEDICAL_TENANT_ID_BACKFILL_SKILL_AR.md)**: استراتيجية وسكربتات تعبئة وهجرة البيانات القديمة.
+4. **[MEDICAL_BACKUP_RESTORE_DRILL_SKILL_AR](.ai-brain/skills/MEDICAL_BACKUP_RESTORE_DRILL_SKILL_AR.md)**: محاكاة استعادة النسخ الاحتياطية فحص سلامتها فترات الطوارئ.
+5. **[MEDICAL_INCIDENT_RESPONSE_SKILL_AR](.ai-brain/skills/MEDICAL_INCIDENT_RESPONSE_SKILL_AR.md)**: معالجة الاختراقات أو التسريبات والقيام بالتراجع الفوري السريع.
+6. **[MEDICAL_PRODUCTION_READINESS_GATE_SKILL_AR](.ai-brain/skills/MEDICAL_PRODUCTION_READINESS_GATE_SKILL_AR.md)**: بوابات الجودة والتأمين المطلوب اجتيازها قبل ترحيل الكود للإنتاج.
+7. **[MEDICAL_SECRETS_AND_LOGS_AUDIT_SKILL_AR](.ai-brain/skills/MEDICAL_SECRETS_AND_LOGS_AUDIT_SKILL_AR.md)**: تطهير سجلات PM2 وحظر تتبع أسرار الخادم بـ Git.
+8. **[MEDICAL_HEALTHCARE_COMPLIANCE_SAUDI_SKILL_AR](.ai-brain/skills/MEDICAL_HEALTHCARE_COMPLIANCE_SAUDI_SKILL_AR.md)**: الامتثال لتشريعات وزارة الصحة السعودية ومجلس الضمان ونظام نفيس.
+9. **[MEDICAL_CLINICAL_WORKFLOW_QA_SKILL_AR](.ai-brain/skills/MEDICAL_CLINICAL_WORKFLOW_QA_SKILL_AR.md)**: سيناريوهات اختبار دورة حياة المريض وصرف الأدوية.
+10. **[MEDICAL_ARABIC_UTF8_ENFORCEMENT_SKILL_AR](.ai-brain/skills/MEDICAL_ARABIC_UTF8_ENFORCEMENT_SKILL_AR.md)**: علاج تشويه النصوص العربية وفرض ترميز الملفات بـ UTF-8.
 
 ---
 

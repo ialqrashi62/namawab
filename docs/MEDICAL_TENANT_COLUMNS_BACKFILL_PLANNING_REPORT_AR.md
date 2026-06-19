@@ -77,13 +77,13 @@
 تم صياغة وإيداع السكربتات التالية في مجلد وثائق الـ SQL المخصصة:
 
 1. **مسودة المهاجرة الهيكلية (DDL Script)**:
-   * المسار: [medical_tenant_columns_backfill_plan.sql](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/sql/medical_tenant_columns_backfill_plan.sql)
+   * المسار: [medical_tenant_columns_backfill_plan.sql](medical_tenant_columns_backfill_plan.sql)
    * الوصف: يحتوي على تعليمات `ALTER TABLE ADD COLUMN IF NOT EXISTS` لإضافة الأعمدة كـ Nullable وبناء الفهارس المركبة المناسبة.
 2. **مسودة ملء البيانات التاريخية (DML Backfill Script)**:
-   * المسار: [medical_tenant_columns_backfill_draft.sql](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/sql/medical_tenant_columns_backfill_draft.sql)
+   * المسار: [medical_tenant_columns_backfill_draft.sql](medical_tenant_columns_backfill_draft.sql)
    * الوصف: يحتوي على تعليمات `UPDATE` لتعبئة السجلات الفراغية السابقة وتوجيهها للمستأجر والمنشأة الافتراضية `1` لضمان تكامل العلاقات.
 3. **سكربت استعلامات التحقق والتدقيق (Validation Queries)**:
-   * المسار: [medical_tenant_columns_validation_queries.sql](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/sql/medical_tenant_columns_validation_queries.sql)
+   * المسار: [medical_tenant_columns_validation_queries.sql](medical_tenant_columns_validation_queries.sql)
    * الوصف: استعلامات مخصصة لحساب نسبة السجلات غير المكتملة وتدقيق العلاقات المتبادلة وكشف السجلات اليتيمة أو المتداخلة بين المستأجرين.
 
 ---

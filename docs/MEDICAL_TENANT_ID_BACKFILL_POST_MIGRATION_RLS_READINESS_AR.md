@@ -25,4 +25,4 @@ CREATE POLICY rls_lab_samples_tenant_isolation ON lab_samples
     WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::integer);
 ```
 
-* **التراجع السريع**: سكربت التراجع [tenant_id_backfill_controlled_migration_down.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/tenant_id_backfill_controlled_migration_down.sql) جاهز للتراجع وإزالة العمود والقيود بالكامل في حال رصد أي مشكلة.
+* **التراجع السريع**: سكربت التراجع [tenant_id_backfill_controlled_migration_down.sql](docs/sql/tenant_id_backfill_controlled_migration_down.sql) جاهز للتراجع وإزالة العمود والقيود بالكامل في حال رصد أي مشكلة.

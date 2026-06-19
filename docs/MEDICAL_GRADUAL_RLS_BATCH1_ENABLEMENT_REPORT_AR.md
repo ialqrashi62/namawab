@@ -16,15 +16,15 @@
 ### 2. الملفات البرمجية والـ SQL Scripts المعدة (SQL Artifacts)
 
 تم تدوين وحفظ الأوامر التنفيذية والاختبارية تحت مسارات المجلد المخصص للتأصيل وحفظ النسخ البرمجية:
-1. **أمر التفعيل والتهيئة**: [rls_staging_batch1_enable_patients_appointments.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch1_enable_patients_appointments.sql)
-2. **أمر الفحص والتحقق الأمني**: [rls_staging_batch1_validate_patients_appointments.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch1_validate_patients_appointments.sql)
-3. **أمر التراجع السريع**: [rls_staging_batch1_rollback_patients_appointments.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch1_rollback_patients_appointments.sql)
+1. **أمر التفعيل والتهيئة**: [rls_staging_batch1_enable_patients_appointments.sql](docs/sql/rls_staging_batch1_enable_patients_appointments.sql)
+2. **أمر الفحص والتحقق الأمني**: [rls_staging_batch1_validate_patients_appointments.sql](docs/sql/rls_staging_batch1_validate_patients_appointments.sql)
+3. **أمر التراجع السريع**: [rls_staging_batch1_rollback_patients_appointments.sql](docs/sql/rls_staging_batch1_rollback_patients_appointments.sql)
 
 ---
 
 ### 3. مصفوفة التحقق ونتائج الفحوصات (Validation Test Results)
 
-تم تشغيل عملية التحقق التلقائية والمبنية برمجياً عبر سكربت [execute_controlled_enablement_batch1.py](file:///c:/Users/ice/Desktop/NamaMedical/scratch/execute_controlled_enablement_batch1.py) للتحقق من سلامة العزل تحت أدوار المستخدمين غير المشرفين (`test_rls_user`) وجاءت كالتالي:
+تم تشغيل عملية التحقق التلقائية والمبنية برمجياً عبر سكربت [execute_controlled_enablement_batch1.py](scratch/execute_controlled_enablement_batch1.py) للتحقق من سلامة العزل تحت أدوار المستخدمين غير المشرفين (`test_rls_user`) وجاءت كالتالي:
 
 * **عزل القراءة للمستأجر 1 (tenant_1_select)**: **PASS** (المستخدم يرى سجلات مستأجره فقط).
 * **عزل القراءة للمستأجر 2 (tenant_2_select)**: **PASS** (المستخدم يرى سجلات مستأجره فقط).

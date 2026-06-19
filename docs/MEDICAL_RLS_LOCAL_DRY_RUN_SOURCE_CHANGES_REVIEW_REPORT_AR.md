@@ -10,7 +10,7 @@
 
 ## 2. تفاصيل مراجعة الملفات وقرار الاعتماد
 
-### أ. ملف [db_postgres.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/db_postgres.js)
+### أ. ملف [db_postgres.js](namaweb/db_postgres.js)
 * **التعديل:** إضافة الكود الإنشائي لجدول `waiting_queue` في مرحلة تهيئة الجداول `initDatabase`.
 * **المراجعة والتحليل:**
   * جدول `waiting_queue` مطلوب ومستخدم برمجياً في API الخاص بالموظفين وتطابير الانتظار والمواعيد في `server.js`.
@@ -18,7 +18,7 @@
   * إضافة `CREATE TABLE IF NOT EXISTS waiting_queue` تعد عملية آمنة وتكرارية (idempotent) ولا تغير أي بيانات قائمة ولا تفرض قيود `NOT NULL` ضيقة تعطل المخطط القديم.
 * **القرار النهائي:** **اعتماد التعديل ودمجه كإصلاح برمجي رسمي (bugfix committed).**
 
-### ب. ملف [rls_local_dry_run_3_tables.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/rls_local_dry_run_3_tables.js)
+### ب. ملف [rls_local_dry_run_3_tables.js](namaweb/rls_local_dry_run_3_tables.js)
 * **التعديل:** تغيير مسار استدعاء أداة النسخ الاحتياطي `pg_dump`.
 * **المراجعة والتحليل:**
   * التعديل السابق كان يربط استدعاء الأداة بمسار ويندوز ثابت، مما يضعف مرونة وتوافق السكربت في بيئات التطوير الأخرى.
@@ -56,11 +56,11 @@
 * **RLS_SCRIPT_CHANGE_DECISION:** `COMMITTED`
 * **TESTS_RUN:** `node --check server.js; node --check db_postgres.js; node rls_local_dry_run_3_tables.js`
 * **FILES_CREATED:**
-  * [docs/MEDICAL_RLS_LOCAL_DRY_RUN_SOURCE_CHANGES_REVIEW_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_RLS_LOCAL_DRY_RUN_SOURCE_CHANGES_REVIEW_REPORT_AR.md)
+  * [docs/MEDICAL_RLS_LOCAL_DRY_RUN_SOURCE_CHANGES_REVIEW_REPORT_AR.md](docs/MEDICAL_RLS_LOCAL_DRY_RUN_SOURCE_CHANGES_REVIEW_REPORT_AR.md)
 * **FILES_UPDATED:**
-  * [.ai-brain/AI_PROJECT_MEMORY.md](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/AI_PROJECT_MEMORY.md)
-  * [namaweb/db_postgres.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/db_postgres.js) (معتمدة ومرفوعة في Submodule)
-  * [namaweb/rls_local_dry_run_3_tables.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/rls_local_dry_run_3_tables.js) (معتمدة ومرفوعة في Submodule)
+  * [.ai-brain/AI_PROJECT_MEMORY.md](.ai-brain/AI_PROJECT_MEMORY.md)
+  * [namaweb/db_postgres.js](namaweb/db_postgres.js) (معتمدة ومرفوعة في Submodule)
+  * [namaweb/rls_local_dry_run_3_tables.js](namaweb/rls_local_dry_run_3_tables.js) (معتمدة ومرفوعة في Submodule)
 * **UTF8_ARABIC_AUDIT:** `PASS`
 * **GIT_COMMITTED:** `YES`
 * **GIT_PUSHED:** `YES`

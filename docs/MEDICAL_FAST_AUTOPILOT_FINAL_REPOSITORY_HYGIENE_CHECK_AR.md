@@ -30,10 +30,10 @@
 
 تم تأكيد وجود وسلامة مساحات التقارير الأساسية للدفعات السابقة في مجلد `docs/`:
 
-1. **[MEDICAL_BATCH1_TENANT_CONTEXT_AND_RLS_LOCAL_VALIDATION_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BATCH1_TENANT_CONTEXT_AND_RLS_LOCAL_VALIDATION_REPORT_AR.md)** (حجم الملف: 10,239 بايت) — **موجود وسليم**.
-2. **[MEDICAL_BATCH2_E2E_BACKUP_MONITORING_VALIDATION_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BATCH2_E2E_BACKUP_MONITORING_VALIDATION_REPORT_AR.md)** (حجم الملف: 9,168 بايت) — **موجود وسليم**.
-3. **[MEDICAL_PRODUCTION_READINESS_AUDIT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_PRODUCTION_READINESS_AUDIT_AR.md)** (حجم الملف: 9,805 بايت) — **موجود وسليم**.
-4. **[MEDICAL_GLOBAL_UX_UI_WORKFLOW_UPGRADE_PLAN_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GLOBAL_UX_UI_WORKFLOW_UPGRADE_PLAN_AR.md)** (حجم الملف: 10,512 بايت) — **موجود وسليم**.
+1. **[MEDICAL_BATCH1_TENANT_CONTEXT_AND_RLS_LOCAL_VALIDATION_REPORT_AR.md](docs/MEDICAL_BATCH1_TENANT_CONTEXT_AND_RLS_LOCAL_VALIDATION_REPORT_AR.md)** (حجم الملف: 10,239 بايت) — **موجود وسليم**.
+2. **[MEDICAL_BATCH2_E2E_BACKUP_MONITORING_VALIDATION_REPORT_AR.md](docs/MEDICAL_BATCH2_E2E_BACKUP_MONITORING_VALIDATION_REPORT_AR.md)** (حجم الملف: 9,168 بايت) — **موجود وسليم**.
+3. **[MEDICAL_PRODUCTION_READINESS_AUDIT_AR.md](docs/MEDICAL_PRODUCTION_READINESS_AUDIT_AR.md)** (حجم الملف: 9,805 بايت) — **موجود وسليم**.
+4. **[MEDICAL_GLOBAL_UX_UI_WORKFLOW_UPGRADE_PLAN_AR.md](docs/MEDICAL_GLOBAL_UX_UI_WORKFLOW_UPGRADE_PLAN_AR.md)** (حجم الملف: 10,512 بايت) — **موجود وسليم**.
 
 ---
 

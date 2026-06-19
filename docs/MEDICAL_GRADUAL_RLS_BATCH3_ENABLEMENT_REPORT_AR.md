@@ -25,15 +25,15 @@
 ### 2. الملفات البرمجية والـ SQL Scripts المعتمدة (SQL Artifacts)
 
 تم تدوين وحفظ الأوامر الفنية تحت مسارات مجلد التأصيل وحفظ النسخ البرمجية:
-1. **أمر التفعيل والتهيئة**: [rls_staging_batch3_enable_clinical_critical.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch3_enable_clinical_critical.sql)
-2. **أمر الفحص والتحقق الأمني**: [rls_staging_batch3_validate_clinical_critical.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch3_validate_clinical_critical.sql)
-3. **أمر التراجع السريع**: [rls_staging_batch3_rollback_clinical_critical.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch3_rollback_clinical_critical.sql)
+1. **أمر التفعيل والتهيئة**: [rls_staging_batch3_enable_clinical_critical.sql](docs/sql/rls_staging_batch3_enable_clinical_critical.sql)
+2. **أمر الفحص والتحقق الأمني**: [rls_staging_batch3_validate_clinical_critical.sql](docs/sql/rls_staging_batch3_validate_clinical_critical.sql)
+3. **أمر التراجع السريع**: [rls_staging_batch3_rollback_clinical_critical.sql](docs/sql/rls_staging_batch3_rollback_clinical_critical.sql)
 
 ---
 
 ### 3. مصفوفة التحقق ونتائج الفحوصات (Validation Test Results)
 
-تم تشغيل عملية التحقق التلقائية والمبنية برمجياً عبر سكربت [execute_controlled_enablement_batch3.py](file:///c:/Users/ice/Desktop/NamaMedical/scratch/execute_controlled_enablement_batch3.py) للتحقق من سلامة عزل البيانات تحت دور الاختبار المقيد (`test_rls_user`) وجاءت كالتالي:
+تم تشغيل عملية التحقق التلقائية والمبنية برمجياً عبر سكربت [execute_controlled_enablement_batch3.py](scratch/execute_controlled_enablement_batch3.py) للتحقق من سلامة عزل البيانات تحت دور الاختبار المقيد (`test_rls_user`) وجاءت كالتالي:
 
 * **عزل القراءة للمستأجر 1 (tenant_1_select)**: **PASS** (يسترجع فقط الوصفات الطبية والزيارات التابعة للمستأجر الحالي).
 * **عزل القراءة للمستأجر 2 (tenant_2_select)**: **PASS** (يسترجع فقط الوصفات الطبية والزيارات التابعة للمستأجر الحالي).

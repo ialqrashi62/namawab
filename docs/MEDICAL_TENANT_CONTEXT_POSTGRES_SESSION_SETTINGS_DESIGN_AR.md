@@ -61,7 +61,7 @@
 
 ## 6. التصميم البرمجي المقترح (Pseudo-Code)
 
-مستند التصميم التفصيلي متوفر باللغة الإنجليزية في: [tenant_context_pg_session_middleware_design.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/design/tenant_context_pg_session_middleware_design.md)
+مستند التصميم التفصيلي متوفر باللغة الإنجليزية في: [tenant_context_pg_session_middleware_design.md](docs/design/tenant_context_pg_session_middleware_design.md)
 
 ### الكود الهيكلي للـ Helper:
 ```javascript

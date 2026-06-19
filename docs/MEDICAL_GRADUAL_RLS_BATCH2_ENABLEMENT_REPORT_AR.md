@@ -16,15 +16,15 @@
 ### 2. الملفات البرمجية والـ SQL Scripts المعتمدة (SQL Artifacts)
 
 تم تدوين وحفظ الأوامر الفنية تحت مسارات مجلد التأصيل وحفظ النسخ البرمجية:
-1. **أمر التفعيل والتهيئة**: [rls_staging_batch2_enable_invoices.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch2_enable_invoices.sql)
-2. **أمر الفحص والتحقق الأمني**: [rls_staging_batch2_validate_invoices.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch2_validate_invoices.sql)
-3. **أمر التراجع السريع**: [rls_staging_batch2_rollback_invoices.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch2_rollback_invoices.sql)
+1. **أمر التفعيل والتهيئة**: [rls_staging_batch2_enable_invoices.sql](docs/sql/rls_staging_batch2_enable_invoices.sql)
+2. **أمر الفحص والتحقق الأمني**: [rls_staging_batch2_validate_invoices.sql](docs/sql/rls_staging_batch2_validate_invoices.sql)
+3. **أمر التراجع السريع**: [rls_staging_batch2_rollback_invoices.sql](docs/sql/rls_staging_batch2_rollback_invoices.sql)
 
 ---
 
 ### 3. مصفوفة التحقق ونتائج الفحوصات (Validation Test Results)
 
-تم تشغيل عملية التحقق التلقائية والمبنية برمجياً عبر سكربت [execute_controlled_enablement_batch2.py](file:///c:/Users/ice/Desktop/NamaMedical/scratch/execute_controlled_enablement_batch2.py) للتحقق من سلامة عزل الفواتير تحت أدوار المستخدمين المقيدة (`test_rls_user`) وجاءت كالتالي:
+تم تشغيل عملية التحقق التلقائية والمبنية برمجياً عبر سكربت [execute_controlled_enablement_batch2.py](scratch/execute_controlled_enablement_batch2.py) للتحقق من سلامة عزل الفواتير تحت أدوار المستخدمين المقيدة (`test_rls_user`) وجاءت كالتالي:
 
 * **عزل القراءة للمستأجر 1 (tenant_1_select)**: **PASS** (يسترجع فقط الفواتير التابعة للمستأجر الحالي).
 * **عزل القراءة للمستأجر 2 (tenant_2_select)**: **PASS** (يسترجع فقط الفواتير التابعة للمستأجر الحالي).

@@ -28,12 +28,12 @@
 ## 3. الملفات التي تم فحصها وتعديلها
 
 * **الملفات التي تم فحصها:**
-  * [namaweb/server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js) — فحص كافة نهايات الـ API المتعلقة بالصيدلية والأدوية.
-  * [namaweb/db_postgres.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/db_postgres.js) — التحقق من مخطط جداول الصيدلية وهل تشتمل على حقول العزل.
+  * [namaweb/server.js](server.js) — فحص كافة نهايات الـ API المتعلقة بالصيدلية والأدوية.
+  * [namaweb/db_postgres.js](db_postgres.js) — التحقق من مخطط جداول الصيدلية وهل تشتمل على حقول العزل.
 * **الملفات التي تم تعديلها:**
-  * [namaweb/server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js) — تأمين وعزل 18 مساراً لإنشاء الوصفات، صرفها، كتالوج الأدوية، وحركات المخازن الموضعية.
+  * [namaweb/server.js](server.js) — تأمين وعزل 18 مساراً لإنشاء الوصفات، صرفها، كتالوج الأدوية، وحركات المخازن الموضعية.
 * **الملفات الجديدة:**
-  * [namaweb/cross_tenant_pharmacy_test.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/cross_tenant_pharmacy_test.js) — سكربت اختبار موضعي شامل للتأكد من بنية الحماية ومحاكاة عمليات الصرف.
+  * [namaweb/cross_tenant_pharmacy_test.js](cross_tenant_pharmacy_test.js) — سكربت اختبار موضعي شامل للتأكد من بنية الحماية ومحاكاة عمليات الصرف.
 
 ---
 

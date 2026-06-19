@@ -31,7 +31,7 @@
 
 ## 3. تصنيف جداول قاعدة البيانات الطبي والتشغيلي
 
-تم تصنيف جداول قاعدة البيانات المستخرجة من [db_postgres.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/db_postgres.js) إلى الفئات التالية:
+تم تصنيف جداول قاعدة البيانات المستخرجة من [db_postgres.js](db_postgres.js) إلى الفئات التالية:
 
 ### أ. جداول معزولة مباشرة حسب المستأجر (Direct Tenant Scoped)
 وهي الجداول التي تحتوي على عمود `tenant_id` وتتطلب عزلًا صارمًا:
@@ -89,10 +89,10 @@ CREATE POLICY facility_isolation_policy ON table_name
 ## 5. ملفات SQL التي تم إنشاؤها
 
 تم بناء وإيداع الملفات التالية في مجلد وثائق المشروع لتكون جاهزة للتنفيذ التجريبي المحلي:
-1. [docs/sql/rls_design_policy_draft.sql](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/sql/rls_design_policy_draft.sql) — يحتوي على المسودة الكاملة للهيكلة والسياسات لجميع جداول النظام.
-2. [docs/sql/rls_local_dry_run_setup.sql](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/sql/rls_local_dry_run_setup.sql) — تهيئة RLS على 3 جداول تجريبية مع صمامات أمان تمنع تشغيله على الإنتاج.
-3. [docs/sql/rls_local_dry_run_validation.sql](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/sql/rls_local_dry_run_validation.sql) — استعلامات محاكاة وفحوصات عزل واختبار لبيانات وهمية.
-4. [docs/sql/rls_rollback_draft.sql](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/sql/rls_rollback_draft.sql) — أوامر التراجع السريع والتعطيل الآمن لتنظيف بيئة الفحص محلياً.
+1. [docs/sql/rls_design_policy_draft.sql](rls_design_policy_draft.sql) — يحتوي على المسودة الكاملة للهيكلة والسياسات لجميع جداول النظام.
+2. [docs/sql/rls_local_dry_run_setup.sql](rls_local_dry_run_setup.sql) — تهيئة RLS على 3 جداول تجريبية مع صمامات أمان تمنع تشغيله على الإنتاج.
+3. [docs/sql/rls_local_dry_run_validation.sql](rls_local_dry_run_validation.sql) — استعلامات محاكاة وفحوصات عزل واختبار لبيانات وهمية.
+4. [docs/sql/rls_rollback_draft.sql](rls_rollback_draft.sql) — أوامر التراجع السريع والتعطيل الآمن لتنظيف بيئة الفحص محلياً.
 
 ---
 
@@ -107,10 +107,10 @@ CREATE POLICY facility_isolation_policy ON table_name
   ```
 
 ### الخطوة 2: تهيئة السياسات على 3 جداول فقط
-* تشغيل سكربت التهيئة [rls_local_dry_run_setup.sql](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/sql/rls_local_dry_run_setup.sql) على قاعدة البيانات المحلية لتهيئة RLS وجداول `patients`, `invoices`, `appointments`.
+* تشغيل سكربت التهيئة [rls_local_dry_run_setup.sql](rls_local_dry_run_setup.sql) على قاعدة البيانات المحلية لتهيئة RLS وجداول `patients`, `invoices`, `appointments`.
 
 ### الخطوة 3: التحقق والتأكد من عدم Leak
-* تشغيل سكربت الفحص [rls_local_dry_run_validation.sql](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/sql/rls_local_dry_run_validation.sql) للتحقق من أن مستخدمي مستأجر 1 لا يمكنهم رؤية أو تعديل بيانات مستأجر 2، وملاحظة الأخطاء المرتجعة من قاعدة البيانات في العمليات المرفوضة.
+* تشغيل سكربت الفحص [rls_local_dry_run_validation.sql](rls_local_dry_run_validation.sql) للتحقق من أن مستخدمي مستأجر 1 لا يمكنهم رؤية أو تعديل بيانات مستأجر 2، وملاحظة الأخطاء المرتجعة من قاعدة البيانات في العمليات المرفوضة.
 
 ### الخطوة 4: تشغيل سكربتات الاختبار الموضعية
 * تشغيل سكربتات الاختبار التي تم تطويرها في المراحل السابقة للتأكد من عدم كسر التطبيق محلياً:
@@ -120,7 +120,7 @@ CREATE POLICY facility_isolation_policy ON table_name
   * `cross_tenant_pharmacy_inventory_reports_test.js`
 
 ### الخطوة 5: التراجع والتنظيف (Rollback)
-* تشغيل [rls_rollback_draft.sql](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/sql/rls_rollback_draft.sql) لإعادة قاعدة البيانات المحلية لحالتها الطبيعية.
+* تشغيل [rls_rollback_draft.sql](rls_rollback_draft.sql) لإعادة قاعدة البيانات المحلية لحالتها الطبيعية.
 
 ---
 

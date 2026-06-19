@@ -31,9 +31,9 @@
 
 تم تحديد وتعديل لافتات التحذير في الملفات التالية داخل مستودع التطبيق الفرعي `namaweb`:
 
-1. **[namaweb/public/index.html](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/public/index.html)**:
+1. **[namaweb/public/index.html](namaweb/public/index.html)**:
    - تحديث لافتة التحذير العلوية لصفحة لوحة التحكم الرئيسية وعنوان التعليق ليتوافق مع HTTPS.
-2. **[namaweb/public/login.html](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/public/login.html)**:
+2. **[namaweb/public/login.html](namaweb/public/login.html)**:
    - تحديث لافتة التحذير العلوية لصفحة الهبوط وتسجيل الدخول.
    - تحديث التنبيه الداخلي في نافذة الدخول الإدارية (Staff Login Modal) بنص HTTPS المعتمد.
 

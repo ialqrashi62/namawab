@@ -63,7 +63,7 @@
    ALTER TABLE invoices DISABLE ROW LEVEL SECURITY;
    ALTER TABLE appointments DISABLE ROW LEVEL SECURITY;
    ```
-2. **استعادة النسخة الاحتياطية**: استخدام نسخة ما قبل الدفعة والتي تم الاحتفاظ بها بشكل آمن وفق خطة الاستعادة المعتمدة [MEDICAL_RLS_STAGING_BACKUP_AND_RESTORE_PLAN_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_RLS_STAGING_BACKUP_AND_RESTORE_PLAN_AR.md).
+2. **استعادة النسخة الاحتياطية**: استخدام نسخة ما قبل الدفعة والتي تم الاحتفاظ بها بشكل آمن وفق خطة الاستعادة المعتمدة [MEDICAL_RLS_STAGING_BACKUP_AND_RESTORE_PLAN_AR.md](docs/MEDICAL_RLS_STAGING_BACKUP_AND_RESTORE_PLAN_AR.md).
 
 ---
 

@@ -13,7 +13,7 @@
 ---
 
 ## 2. نطاق المرحلة (Phase Scope)
-شمل النطاق تأمين المسارات التالية في ملف [server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js):
+شمل النطاق تأمين المسارات التالية في ملف [server.js](server.js):
 1. **`GET /api/surgeries`**: جلب العمليات الجراحية المفلترة بـ `tenant_id`.
 2. **`GET /api/surgeries/:id`** [مسار جديد]: جلب تفاصيل عملية جراحية معينة مع منع IDOR.
 3. **`POST /api/surgeries`**: إنشاء عملية جراحية جديدة وختمها بـ `tenant_id` و `facility_id` والتحقق من تبعية المريض للمستأجر.
@@ -40,13 +40,13 @@
 
 ## 4. الملفات التي تم فحصها وتعديلها
 * **الملفات التي تم فحصها**:
-  * [package.json](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/package.json)
-  * [db_postgres.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/db_postgres.js)
-  * [server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js)
+  * [package.json](package.json)
+  * [db_postgres.js](db_postgres.js)
+  * [server.js](server.js)
 * **الملفات التي تم تعديلها**:
-  * [server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js)
+  * [server.js](server.js)
 * **الملفات الجديدة**:
-  * [cross_tenant_surgeries_test.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/cross_tenant_surgeries_test.js)
+  * [cross_tenant_surgeries_test.js](cross_tenant_surgeries_test.js)
 
 ---
 
@@ -66,7 +66,7 @@
 ---
 
 ## 7. نتائج اختبارات منع تسريب بيانات العمليات والتحقق المحلي
-تم تشغيل السكربت [namaweb/cross_tenant_surgeries_test.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/cross_tenant_surgeries_test.js) بنجاح:
+تم تشغيل السكربت [namaweb/cross_tenant_surgeries_test.js](cross_tenant_surgeries_test.js) بنجاح:
 * **عدد الفحوصات الناجحة**: 55 فحصاً من أصل 55 فحصاً (نسبة نجاح 100%).
 * **حالات الاختبار المغطاة**:
   * فرض حماية `requireTenantScope` على كافة الـ 13 مساراً.

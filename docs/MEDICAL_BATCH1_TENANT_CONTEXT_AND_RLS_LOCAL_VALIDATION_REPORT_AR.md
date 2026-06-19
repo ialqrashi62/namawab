@@ -18,8 +18,8 @@
 ## 2. الملفات المضافة (Added Files)
 
 تم إضافة ملفين برمجيين جديدين ومستقلين تماماً داخل مجلد المشروع البرمجي `namaweb`:
-1. **[tenant_context_pg_session.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/tenant_context_pg_session.js)**: الملف المصدري لـ middleware المساعد والمحكم أمنياً لتمرير سياق المستأجر.
-2. **[tenant_context_pg_session_test.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/tenant_context_pg_session_test.js)**: سكربت الاختبارات التفصيلية للتحقق من أداء وعزل وسلوك الـ middleware.
+1. **[tenant_context_pg_session.js](namaweb/tenant_context_pg_session.js)**: الملف المصدري لـ middleware المساعد والمحكم أمنياً لتمرير سياق المستأجر.
+2. **[tenant_context_pg_session_test.js](namaweb/tenant_context_pg_session_test.js)**: سكربت الاختبارات التفصيلية للتحقق من أداء وعزل وسلوك الـ middleware.
 
 ---
 

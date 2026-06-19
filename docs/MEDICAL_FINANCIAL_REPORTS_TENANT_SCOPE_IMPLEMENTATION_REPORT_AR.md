@@ -48,7 +48,7 @@
 ---
 
 ## 5. نتائج اختبارات منع التسريب المالي والتحقق المحلي
-تم إنشاء وتشغيل سكربت اختبار محلي متكامل باسم [namaweb/cross_tenant_financial_reports_test.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/cross_tenant_financial_reports_test.js).
+تم إنشاء وتشغيل سكربت اختبار محلي متكامل باسم [namaweb/cross_tenant_financial_reports_test.js](cross_tenant_financial_reports_test.js).
 أظهرت نتائج الاختبار نجاح **37 فحصاً من أصل 37 فحصاً** دون أي إخفاقات:
 * **عزل الإيرادات والأرباح**: إثبات أن Tenant 1 لا يمكنه رؤية إيرادات أو أرباح P&L أو حركة صندوق Tenant 2.
 * **عزل كتل الديون والعمولات**: التحقق من عزل كتل الديون التفصيلية وعمولات الأطباء تماماً لكل مستأجر.

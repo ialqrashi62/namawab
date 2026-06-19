@@ -9,11 +9,11 @@
 * **حالة الخدمة المحلية للـ Postgres:** تعمل بنشاط على منفذ `5432` باسم `postgresql-x64-16`.
 * **إنشاء قاعدة البيانات:** تم التحقق من قاعدة البيانات وإنشاء `nama_medical_web` بنجاح على الخادم المحلي.
 * **البناء والتهيئة وجداول المخطط (Schema & Seeding):**
-  * تم تصحيح غياب جدول `waiting_queue` وإضافته للمخطط البرمجي في [db_postgres.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/db_postgres.js).
+  * تم تصحيح غياب جدول `waiting_queue` وإضافته للمخطط البرمجي في [db_postgres.js](namaweb/db_postgres.js).
   * تم بناء كافة جداول المخطط (Tables & Indexes) بنجاح عبر استدعاء السكربت البرمجي.
   * تم حقن بيانات الاختبار الوهمية في قاعدة البيانات لجميع الكتالوجات (المختبر، الأشعة، الخدمات الطبية، الأدوية، المرضى، الموظفين، الفواتير) بنجاح دون لمس أي بيانات حقيقية.
 * **التشغيل التجريبي لـ RLS (RLS Local Dry-Run):**
-  * تم تحديث سكربت التشغيل التجريبي لـ RLS [rls_local_dry_run_3_tables.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/rls_local_dry_run_3_tables.js) للإشارة إلى المسار الكامل لأداة `pg_dump.exe` المتوفرة في مجلد bin لنسخة ويندوز.
+  * تم تحديث سكربت التشغيل التجريبي لـ RLS [rls_local_dry_run_3_tables.js](namaweb/rls_local_dry_run_3_tables.js) للإشارة إلى المسار الكامل لأداة `pg_dump.exe` المتوفرة في مجلد bin لنسخة ويندوز.
   * تم تشغيل اختبارات RLS بنجاح بنسبة **100%** مع تطبيق العزل على 3 جداول (`patients`, `invoices`, `appointments`) وإلغاء تفعيل RLS تلقائياً والتراجع الكامل (Rollback) بعد نجاح الفحص.
 * **الوضع النهائي للبيئة المحلية:** جاهزة ومؤمنة بالكامل.
 
@@ -29,8 +29,8 @@
 
 ### ب. فحص أدوات psql و pg_dump على نظام Windows
 * **المسار المكتشف:** 
-  * `C:\Program Files\PostgreSQL\16\bin\psql.exe`
-  * `C:\Program Files\PostgreSQL\16\bin\pg_dump.exe`
+  * `psql.exe`
+  * `pg_dump.exe`
 * **الحالة:** تم التحقق من وجود الملفات التنفيذية واستخدامها مباشرة في عمليات التهيئة والنسخ الاحتياطي.
 * **PSQL_SOURCE:** `WINDOWS_POSTGRES_BIN`
 * **PG_DUMP_SOURCE:** `WINDOWS_POSTGRES_BIN`

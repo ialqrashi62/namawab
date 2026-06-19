@@ -41,9 +41,9 @@
 ## 5. فحص السكربتات المسبق (SQL Safety Audit)
 
 تم فحص ومراجعة السكربتات التالية وتأكيد خلوها التام من أي عمليات مدمرة أو قيود متسرعة:
-1. [medical_tenant_columns_backfill_plan.sql](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/sql/medical_tenant_columns_backfill_plan.sql)
-2. [medical_tenant_columns_backfill_draft.sql](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/sql/medical_tenant_columns_backfill_draft.sql)
-3. [medical_tenant_columns_validation_queries.sql](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/docs/sql/medical_tenant_columns_validation_queries.sql)
+1. [medical_tenant_columns_backfill_plan.sql](medical_tenant_columns_backfill_plan.sql)
+2. [medical_tenant_columns_backfill_draft.sql](medical_tenant_columns_backfill_draft.sql)
+3. [medical_tenant_columns_validation_queries.sql](medical_tenant_columns_validation_queries.sql)
 
 ### معايير السلامة التي تم تأكيدها:
 * **خلو كامل** من جمل `DROP TABLE` أو `TRUNCATE` أو `DELETE`.
@@ -106,7 +106,7 @@
 
 ## 8. مراجعة وتحديث ملف `db_postgres.js`
 
-* **الحالة**: تم التحقق من سلامة المهاجرة البرمجية والتأكد من إدراج التعديلات المطابقة داخل دالة `initDatabase` في [db_postgres.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/db_postgres.js) بأسلوب آمن ومتكرر (Idempotent) مع الحفاظ على الحقول **Nullable** كلياً وعدم تفعيل RLS أو قيود NOT NULL لتجنب أي تعطل في عمل النظام القائم.
+* **الحالة**: تم التحقق من سلامة المهاجرة البرمجية والتأكد من إدراج التعديلات المطابقة داخل دالة `initDatabase` في [db_postgres.js](db_postgres.js) بأسلوب آمن ومتكرر (Idempotent) مع الحفاظ على الحقول **Nullable** كلياً وعدم تفعيل RLS أو قيود NOT NULL لتجنب أي تعطل في عمل النظام القائم.
 
 ---
 

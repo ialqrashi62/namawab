@@ -29,12 +29,12 @@
 ## 3. الملفات التي تم فحصها وتعديلها
 
 * **الملفات التي تم فحصها:**
-  * [namaweb/server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js) — فحص كافة نهايات الـ API المتعلقة بالمختبر والأشعة.
-  * [namaweb/db_postgres.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/db_postgres.js) — التحقق من وجود الأعمدة وكيفية تعريف الجداول الطبية.
+  * [namaweb/server.js](server.js) — فحص كافة نهايات الـ API المتعلقة بالمختبر والأشعة.
+  * [namaweb/db_postgres.js](db_postgres.js) — التحقق من وجود الأعمدة وكيفية تعريف الجداول الطبية.
 * **الملفات التي تم تعديلها:**
-  * [namaweb/server.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/server.js) — إضافة فلتر المستأجر وتبعيات المريض لـ 18 مساراً وتأمين مساري عرض النتائج والطباعة.
+  * [namaweb/server.js](server.js) — إضافة فلتر المستأجر وتبعيات المريض لـ 18 مساراً وتأمين مساري عرض النتائج والطباعة.
 * **الملفات الجديدة:**
-  * [namaweb/cross_tenant_lab_radiology_test.js](file:///c:/Users/1/Desktop/11/مجلد%20جديد/NamaMedical/namaweb/cross_tenant_lab_radiology_test.js) — سكربت اختبار موضعي شامل للتأكد من سلامة الكود والمنطق.
+  * [namaweb/cross_tenant_lab_radiology_test.js](cross_tenant_lab_radiology_test.js) — سكربت اختبار موضعي شامل للتأكد من سلامة الكود والمنطق.
 
 ---
 

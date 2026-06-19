@@ -19,12 +19,12 @@
 
 ### 3. الملفات المعدلة (Files Modified)
 تم تعديل الملفات التالية داخل المستودع الفرعي `namaweb` (سياق الواجهة):
-1. **[styles.css](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/public/css/styles.css)**: إضافة فئات أنماط بطاقات الزجاج الفاخرة، شريط التنبيه التحذيري، هياكل التحميل، شارات الألوان الطبية للحالات، وتأثيرات المرور (Hover).
-2. **[tailwind-compiled.css](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/public/css/tailwind-compiled.css)**: تم إعادة بنائه تلقائياً بواسطة Tailwind CSS ليتضمن التحديثات.
-3. **[index.html](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/public/index.html)**: إضافة شريط التحذير الثابت للبيئة التجريبية داخل واجهة لوحة التحكم.
-4. **[login.html](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/public/login.html)**: تزويده بالشريط التحذيري العلوي العام، وإضافة تحذير داخلي بقلب نافذة تسجيل الدخول (Staff Portal Modal).
-5. **[login.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/public/js/login.js)**: ترقية زر الدخول ليظهر مؤشراً دورانياً (SVG Spinner) عند النقر وتجميد المدخلات لمنع تكرار الإرسال، مع عرض رسائل خطأ آمنة.
-6. **[app.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/public/js/app.js)**:
+1. **[styles.css](namaweb/public/css/styles.css)**: إضافة فئات أنماط بطاقات الزجاج الفاخرة، شريط التنبيه التحذيري، هياكل التحميل، شارات الألوان الطبية للحالات، وتأثيرات المرور (Hover).
+2. **[tailwind-compiled.css](namaweb/public/css/tailwind-compiled.css)**: تم إعادة بنائه تلقائياً بواسطة Tailwind CSS ليتضمن التحديثات.
+3. **[index.html](namaweb/public/index.html)**: إضافة شريط التحذير الثابت للبيئة التجريبية داخل واجهة لوحة التحكم.
+4. **[login.html](namaweb/public/login.html)**: تزويده بالشريط التحذيري العلوي العام، وإضافة تحذير داخلي بقلب نافذة تسجيل الدخول (Staff Portal Modal).
+5. **[login.js](namaweb/public/js/login.js)**: ترقية زر الدخول ليظهر مؤشراً دورانياً (SVG Spinner) عند النقر وتجميد المدخلات لمنع تكرار الإرسال، مع عرض رسائل خطأ آمنة.
+6. **[app.js](namaweb/public/js/app.js)**:
    * إعادة ترتيب مصفوفة التنقل `NAV_ITEMS` لتتبع التدفق السريري.
    * إصلاح خلل تمييز الزر النشط عند الفلترة أو إعادة الترتيب عبر الاعتماد على سمة البيانات `dataset.page`.
    * إدراج حالات هيكل التحميل (Skeletons) والحالات الفارغة والتحقق الآمن من تعذر اتصال لوحة التحكم بالخادم.

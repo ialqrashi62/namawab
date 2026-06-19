@@ -19,12 +19,12 @@
 ### 2. جاهزية الاستجابة للحوادث والتراجع (Incident Response & Rollback Plan)
 
 * **خطة التراجع (Rollback Plan)**:
-  يتوفر لكل دفعة تفعيل (Batch 1-5) سكربت تراجع مستقل ونظيف تماماً تحت المجلد [docs/sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/).
+  يتوفر لكل دفعة تفعيل (Batch 1-5) سكربت تراجع مستقل ونظيف تماماً تحت المجلد [docs/sql](docs/sql/).
 * **سكربتات التراجع لـ RLS**:
-  * [rls_staging_batch1_rollback_patients_appointments.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch1_rollback_patients_appointments.sql)
-  * [rls_staging_batch2_rollback_invoices.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch2_rollback_invoices.sql)
-  * [rls_staging_batch3_rollback_clinical_critical.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch3_rollback_clinical_critical.sql)
-  * [rls_staging_batch4_rollback_high_risk.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch4_rollback_high_risk.sql)
-  * [rls_staging_batch5_rollback_without_schema_change.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch5_rollback_without_schema_change.sql)
+  * [rls_staging_batch1_rollback_patients_appointments.sql](docs/sql/rls_staging_batch1_rollback_patients_appointments.sql)
+  * [rls_staging_batch2_rollback_invoices.sql](docs/sql/rls_staging_batch2_rollback_invoices.sql)
+  * [rls_staging_batch3_rollback_clinical_critical.sql](docs/sql/rls_staging_batch3_rollback_clinical_critical.sql)
+  * [rls_staging_batch4_rollback_high_risk.sql](docs/sql/rls_staging_batch4_rollback_high_risk.sql)
+  * [rls_staging_batch5_rollback_without_schema_change.sql](docs/sql/rls_staging_batch5_rollback_without_schema_change.sql)
 * **بروتوكول الاحتواء الفوري**:
   في حال حدوث أي تسريب بيانات بين المستأجرين (Cross-Tenant Data Leak)، يتم فوراً تشغيل سكربت التراجع للدفعة المسببة دون المساس بسلامة عزل الدفعات المستقرة السابقة.

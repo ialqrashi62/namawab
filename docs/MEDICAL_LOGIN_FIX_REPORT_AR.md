@@ -10,7 +10,7 @@
 تم تطبيق إصلاحات موضعية وبأقل قدر ممكن من التغييرات لضمان سلامة واستقرار النظام:
 
 #### أولاً: إصلاح تنبيهات واجهة المستخدم (UI JavaScript Hotfix)
-* **الملف المعدل**: [login.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/public/js/login.js)
+* **الملف المعدل**: [login.js](namaweb/public/js/login.js)
 * **نوع التعديل**: إضافة وإزالة كلاس `hidden` الخاص بـ Tailwind CSS لعنصر الرسالة التنبيهية `#errorMsg`.
 * **التفاصيل**:
   - عند الضغط على زر تسجيل الدخول (Sign In)، يتم إضافة كلاس `hidden` لإخفاء أي تنبيهات سابقة.
