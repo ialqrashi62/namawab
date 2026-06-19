@@ -31,6 +31,7 @@
 | **[MEDICAL_ADMISSIONS_TRANSFERS_RLS_AUTOPILOT_SKILL_AR](.ai-brain/skills/MEDICAL_ADMISSIONS_TRANSFERS_RLS_AUTOPILOT_SKILL_AR.md)** | حوكمة وتأمين التنويم الداخلي وحركات الأسرة وعزل المستأجرين. | **P1** |
 | **[MEDICAL_DISCHARGE_OCCUPANCY_RLS_AUTOPILOT_SKILL_AR](.ai-brain/skills/MEDICAL_DISCHARGE_OCCUPANCY_RLS_AUTOPILOT_SKILL_AR.md)** | حوكمة وتصميم عزل إجراءات خروج المرضى وإحصاء إشغال الأسرة اليومي. | **P1** |
 | **[MEDICAL_RLS_RECONCILIATION_AUTOPILOT_SKILL_AR](.ai-brain/skills/MEDICAL_RLS_RECONCILIATION_AUTOPILOT_SKILL_AR.md)** | تسوية وحل حظر RLS في جداول التنويم والتحويلات وتأكيد حماية البيانات. | **P1** |
+| **[MEDICAL_POST_IMPLEMENTATION_MONITORING_AUTOPILOT_SKILL_AR](.ai-brain/skills/MEDICAL_POST_IMPLEMENTATION_MONITORING_AUTOPILOT_SKILL_AR.md)** | إرشادات وقواعد مراقبة ما بعد التنفيذ على بيئة Staging وتدقيق الروابط. | **P1** |
 | **[MEDICAL_HEALTHCARE_COMPLIANCE_SAUDI_SKILL_AR](.ai-brain/skills/MEDICAL_HEALTHCARE_COMPLIANCE_SAUDI_SKILL_AR.md)** | معايير الامتثال لوزارة الصحة ونفيس NPHIES والسيادة الجغرافية للبيانات. | **P1** |
 | **[MEDICAL_CLINICAL_WORKFLOW_QA_SKILL_AR](.ai-brain/skills/MEDICAL_CLINICAL_WORKFLOW_QA_SKILL_AR.md)** | فحوصات الجودة الطبية ومحاكاة دورة حياة المريض وصرف الأدوية. | **P1** |
 | **[MEDICAL_ARABIC_UTF8_ENFORCEMENT_SKILL_AR](.ai-brain/skills/MEDICAL_ARABIC_UTF8_ENFORCEMENT_SKILL_AR.md)** | فرض ترميز UTF-8 وعلاج تشويه الخطوط (Mojibake) وتنسيق RTL. | **P1** |
