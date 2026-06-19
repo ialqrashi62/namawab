@@ -17,6 +17,7 @@
 | المهارة (Skill File) | الوصف والاستخدام | الأولوية |
 | :--- | :--- | :---: |
 | **[MEDICAL_AUTOPILOT_CORE_SKILL_AR](.ai-brain/skills/MEDICAL_AUTOPILOT_CORE_SKILL_AR.md)** | القيادة العامة للأوتو بايلوت الطبي وفحص بنية النظام. | **P0** |
+| **[MEDICAL_ULTIMATE_AUTOPILOT_DECISION_ENGINE_SKILL_AR](.ai-brain/skills/MEDICAL_ULTIMATE_AUTOPILOT_DECISION_ENGINE_SKILL_AR.md)** | محرك اتخاذ القرار التلقائي الشامل وإدارة المراحل والالتزام بضوابط الأوتو بايلوت. | **P0** |
 | **[MEDICAL_PATIENT_DATA_SAFETY_SKILL_AR](.ai-brain/skills/MEDICAL_PATIENT_DATA_SAFETY_SKILL_AR.md)** | حماية خصوصية المرضى ومنع ثغرات IDOR والتسريب بين المستأجرين. | **P0** |
 | **[MEDICAL_RLS_AUTOPILOT_BLOCKER_SKILL_AR](.ai-brain/skills/MEDICAL_RLS_AUTOPILOT_BLOCKER_SKILL_AR.md)** | تحديد معايير التوقف الفوري في حال رصد خطر أمني P0/P1. | **P0** |
 | **[MEDICAL_SECRETS_AND_LOGS_AUDIT_SKILL_AR](.ai-brain/skills/MEDICAL_SECRETS_AND_LOGS_AUDIT_SKILL_AR.md)** | مراقبة سجلات الخادم وتطهير الأسرار وحماية ملفات `.env`. | **P0** |
