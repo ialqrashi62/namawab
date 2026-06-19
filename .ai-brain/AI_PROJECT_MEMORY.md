@@ -974,3 +974,25 @@ NamaMedical/ (المستودع الرئيسي الأب)
   تم بنجاح تنفيذ وتفعيل نظام تخصيص الكتالوجات الطبية المخصصة للمستأجرين (المختبر، الأشعة، الخدمات الطبية) تدريجياً ومحكوماً ببيئة Staging فقط. تم إنشاء ثلاثة جداول تخصيص جديدة (`tenant_lab_test_overrides`, `tenant_radiology_overrides`, `tenant_service_overrides`) وتفعيل نظام RLS مع FORCE ROW LEVEL SECURITY عليها لضمان العزل التام للمستأجرين. تم تصحيح نهايات الـ API وتحديث منطق التسعير التلقائي لتجلب الأسعار المخصصة للمستأجر أولاً بدلاً من الكتالوج العالمي. تم تشغيل واجتياز 29 اختبار عزل الكتالوج وتخصيصه، بالإضافة إلى 63 اختبار تسريب، و37 اختباراً للـ Lab/Rad، مما يؤكد سلامة واستقرار النظام بنسبة 100%.
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 14 جدولاً سابقاً بالإضافة لـ 3 جداول تخصيص جديدة).
 * **المرحلة التالية الموصى بها**: `BEDS_TENANT_OWNERSHIP_DESIGN`
+
+### Phase 67: Beds Tenant Ownership Design
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `BEDS_TENANT_OWNERSHIP_DESIGN_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تصميم وتخطيط وتدقيق أمني فقط لقاعدة البيانات وقنوات الـ API دون إجراء أي تغييرات مدمرة)
+* **الملفات الجديدة**:
+  - [docs/MEDICAL_BEDS_TENANT_OWNERSHIP_DESIGN_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BEDS_TENANT_OWNERSHIP_DESIGN_AR.md)
+  - [docs/MEDICAL_BEDS_WARDS_SCHEMA_AUDIT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BEDS_WARDS_SCHEMA_AUDIT_AR.md)
+  - [docs/MEDICAL_BEDS_OPERATIONAL_WORKFLOW_MAP_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BEDS_OPERATIONAL_WORKFLOW_MAP_AR.md)
+  - [docs/MEDICAL_BEDS_RLS_DECISION_MATRIX_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BEDS_RLS_DECISION_MATRIX_AR.md)
+  - [docs/MEDICAL_BEDS_TENANT_FACILITY_OWNERSHIP_MODEL_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BEDS_TENANT_FACILITY_OWNERSHIP_MODEL_AR.md)
+  - [docs/MEDICAL_BEDS_BACKFILL_AND_MIGRATION_PLAN_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BEDS_BACKFILL_AND_MIGRATION_PLAN_AR.md)
+  - [docs/MEDICAL_BEDS_SECURITY_RISK_REVIEW_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BEDS_SECURITY_RISK_REVIEW_AR.md)
+  - [docs/MEDICAL_BEDS_IMPLEMENTATION_ROADMAP_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_BEDS_IMPLEMENTATION_ROADMAP_AR.md)
+  - [docs/sql/beds_ownership_readonly_validate.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/beds_ownership_readonly_validate.sql)
+  - [docs/sql/beds_ownership_noop_safety_checks.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/beds_ownership_noop_safety_checks.sql)
+  - [.ai-brain/skills/MEDICAL_BEDS_TENANT_OWNERSHIP_AUTOPILOT_SKILL_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/.ai-brain/skills/MEDICAL_BEDS_TENANT_OWNERSHIP_AUTOPILOT_SKILL_AR.md)
+* **المخرجات**: تقارير التصميم والمخططات والقرارات والمهارات بلغة عربية UTF-8 سليمة.
+* **الملخص**:
+  تم بنجاح إنجاز مرحلة تصميم نموذج ملكية الأسرة والأجنحة وغرف التنويم للمستأجرين والفروع على بيئة Staging. تم تدقيق مخطط قاعدة البيانات (Schema Audit) وثبوت تغطية الأعمدة `tenant_id` و `branch_id`/`facility_id` لجميع الجداول المعنية وخلوها من السجلات اليتيمة (Orphans) أو القيم NULL. تم صياغة خريطة العمل التشغيلية الطبية، ومصفوفة قرارات RLS المستقبلية، وخطة تفعيل الـ RLS التجريبية والتشغيلية، بالإضافة لمراجعة مخاطر API الحالية.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 14 جدولاً سابقاً، ونموذج ملكية الأسرة مصمم ومراجع بالكامل).
+* **المرحلة التالية الموصى بها**: `BEDS_TENANT_OWNERSHIP_IMPLEMENTATION_CONTROLLED_STAGING`
