@@ -48,13 +48,13 @@
 * `04b5e52`: fix: bilingual UI, permissions RBAC, route fixes, SQL fixes (App Shell and APIs)
 
 ### ب. الملفات والمجلدات المتأثرة الرئيسية (Affected Files)
-* [public/js/app.js](file:///public/js/app.js)
-* [public/index.html](file:///public/index.html)
-* [public/login.html](file:///public/login.html)
-* [public/js/login.js](file:///public/js/login.js)
-* [public/css/styles.css](file:///public/css/styles.css)
-* [public/css/tailwind-compiled.css](file:///public/css/tailwind-compiled.css)
-* [server.js](file:///server.js)
+* [public/js/app.js](../public/js/app.js)
+* [public/index.html](../public/index.html)
+* [public/login.html](../public/login.html)
+* [public/js/login.js](../public/js/login.js)
+* [public/css/styles.css](../public/css/styles.css)
+* [public/css/tailwind-compiled.css](../public/css/tailwind-compiled.css)
+* [server.js](../server.js)
 
 ---
 
