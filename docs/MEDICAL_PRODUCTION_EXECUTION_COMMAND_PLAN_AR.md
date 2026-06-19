@@ -21,7 +21,7 @@ pg_dump -h localhost -p 5432 -U postgres -d nama_medical_web -F c -b -v -f /var/
 ```bash
 # جلب التحديثات من الفرع الرئيسي للأب
 git fetch origin
-git checkout 91a009c
+git checkout 889b5d1
 
 # الانتقال لمجلد الويب
 cd namaweb
@@ -45,8 +45,8 @@ psql -h localhost -p 5432 -U postgres -d nama_medical_web -f docs/sql/production
 ```
 
 المخططات المستهدفة بالتفعيل موجودة في:
-* سكربت الترقية: [production_readiness_force_rls_up.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/production_readiness_force_rls_up.sql)
-* سكربت التحقق: [production_readiness_force_rls_validate.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/production_readiness_force_rls_validate.sql)
+* سكربت الترقية: [production_readiness_force_rls_up.sql](./sql/production_readiness_force_rls_up.sql)
+* سكربت التحقق: [production_readiness_force_rls_validate.sql](./sql/production_readiness_force_rls_validate.sql)
 
 ---
 

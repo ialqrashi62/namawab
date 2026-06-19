@@ -30,6 +30,8 @@
 * تغيير إعدادات النطاق (DNS) أو شهادات الأمان (SSL) الفعلية.
 * نقل أو تعديل بيانات المرضى الفعلية.
 * حذف أو استبدال أي ملفات إنتاجية.
+* تدوير secrets فعلية.
+* تشغيل أي أمر يغيّر بيئة Production.
 
 ---
 
@@ -37,12 +39,12 @@
 
 تتكون حزمة الموافقة الفنية الحالية من المستندات التفصيلية التالية المترابطة:
 
-1. **وثيقة بوابة الموافقة (الوثيقة الحالية)**: [MEDICAL_PRODUCTION_ROLLOUT_APPROVAL_GATE_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_PRODUCTION_ROLLOUT_APPROVAL_GATE_AR.md)
-2. **التحقق من نسخة الإطلاق**: [MEDICAL_PRODUCTION_RELEASE_CANDIDATE_VERIFICATION_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_PRODUCTION_RELEASE_CANDIDATE_VERIFICATION_AR.md)
-3. **خطة الأوامر التنفيذية**: [MEDICAL_PRODUCTION_EXECUTION_COMMAND_PLAN_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_PRODUCTION_EXECUTION_COMMAND_PLAN_AR.md)
-4. **فحوصات الاستعادة والنسخ والتراجع النهائي**: [MEDICAL_PRODUCTION_BACKUP_ROLLBACK_FINAL_CHECK_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_PRODUCTION_BACKUP_ROLLBACK_FINAL_CHECK_AR.md)
-5. **سجل مخاطر النشر والحد منها**: [MEDICAL_PRODUCTION_DEPLOYMENT_RISK_REGISTER_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_PRODUCTION_DEPLOYMENT_RISK_REGISTER_AR.md)
-6. **طلب الموافقة النهائية والتنفيذية للإنتاج**: [MEDICAL_PRODUCTION_FINAL_APPROVAL_REQUEST_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_PRODUCTION_FINAL_APPROVAL_REQUEST_AR.md)
+1. **وثيقة بوابة الموافقة (الوثيقة الحالية)**: [MEDICAL_PRODUCTION_ROLLOUT_APPROVAL_GATE_AR.md](./MEDICAL_PRODUCTION_ROLLOUT_APPROVAL_GATE_AR.md)
+2. **التحقق من نسخة الإطلاق**: [MEDICAL_PRODUCTION_RELEASE_CANDIDATE_VERIFICATION_AR.md](./MEDICAL_PRODUCTION_RELEASE_CANDIDATE_VERIFICATION_AR.md)
+3. **خطة الأوامر التنفيذية**: [MEDICAL_PRODUCTION_EXECUTION_COMMAND_PLAN_AR.md](./MEDICAL_PRODUCTION_EXECUTION_COMMAND_PLAN_AR.md)
+4. **فحوصات الاستعادة والنسخ والتراجع النهائي**: [MEDICAL_PRODUCTION_BACKUP_ROLLBACK_FINAL_CHECK_AR.md](./MEDICAL_PRODUCTION_BACKUP_ROLLBACK_FINAL_CHECK_AR.md)
+5. **سجل مخاطر النشر والحد منها**: [MEDICAL_PRODUCTION_DEPLOYMENT_RISK_REGISTER_AR.md](./MEDICAL_PRODUCTION_DEPLOYMENT_RISK_REGISTER_AR.md)
+6. **طلب الموافقة النهائية والتنفيذية للإنتاج**: [MEDICAL_PRODUCTION_FINAL_APPROVAL_REQUEST_AR.md](./MEDICAL_PRODUCTION_FINAL_APPROVAL_REQUEST_AR.md)
 
 ---
 

@@ -9,10 +9,10 @@
 
 تم مطابقة وتجميد نسخة الإطلاق بناءً على البيانات التالية المستخرجة من مستودع Git:
 
-* **المستودع الرئيسي الأب ([NamaMedical](file:///c:/Users/ice/Desktop/NamaMedical/))**:
+* **المستودع الرئيسي الأب ([NamaMedical](../))**:
   * الهاش المعتمد: `91a009c1ad79263f910f2c8acc3dc7b630b14204` (مختصر: `91a009c`).
   * الحالة: مستقر، ويحتوي على كافة وثائق الجاهزية وأدلة التشغيل وسكربتات التدقيق المعتمدة.
-* **المستودع الفرعي لتطبيق الويب ([namaweb](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/))**:
+* **المستودع الفرعي لتطبيق الويب ([namaweb](../namaweb/))**:
   * الهاش المعتمد: `d6c29d10ce4a31b3c62e537be8c66281a2d65de0` (مختصر: `d6c29d1`).
   * الحالة: يشتمل على الإصلاح الفوري البرمجي لربط مكتبة `connect-redis` بنجاح كامل والتراجع للميموري ستور عند غياب الاتصال لحماية الخادم.
 
@@ -20,7 +20,7 @@
 
 ### 2. مراجعة التغييرات البرمجية والتبعيات (Code & Dependency Audit)
 
-* **ملف الخادم الرئيسي ([server.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/server.js))**:
+* **ملف الخادم الرئيسي ([server.js](../namaweb/server.js))**:
   * تم مراجعة آلية معالجة الجلسات والتحقق من نجاح تصدير مكتبة الجلسات الموزعة:
     ```javascript
     const { RedisStore } = require('connect-redis');
@@ -33,7 +33,7 @@
       sameSite: 'lax'
     }
     ```
-* **التبعيات المحدثة ([package.json](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/package.json))**:
+* **التبعيات المحدثة ([package.json](../namaweb/package.json))**:
   * التأكد من إدراج وتثبيت حزمة `redis` وحزمة `connect-redis` للتخزين الموزع.
 
 ---
@@ -42,7 +42,7 @@
 
 * **اختبارات الاستقرار على Staging**:
   * تم تشغيل كامل اختبارات عزل المستأجرين بنسبة نجاح 100% (اجتياز 395 فحصاً فرعياً) وتحت اتصال Redis الفعلي وبدون أي تحذيرات أو أخطاء جلسة.
-  * اجتاز فحص E2E محلياً بنجاح 100% عبر السكربت [e2e_local_smoke_test.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/e2e_local_smoke_test.js) و [cross_tenant_leak_test.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/cross_tenant_leak_test.js).
+  * اجتاز فحص E2E محلياً بنجاح 100% عبر السكربت [e2e_local_smoke_test.js](../namaweb/e2e_local_smoke_test.js) و [cross_tenant_leak_test.js](../namaweb/cross_tenant_leak_test.js).
 * **فحص نظافة المستودع**:
   * الكود نظيف وخالٍ تماماً من أي تسريب للأسرار أو مسارات المطورين المطلقة.
 
