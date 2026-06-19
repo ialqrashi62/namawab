@@ -675,6 +675,28 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - إتمام التراجع الفوري الكامل وإلغاء RLS وحذف كافة السياسات والأدوار المؤقتة لتصفير البنية الأمنية وإبقاء حالة RLS معطلة (DISABLED).
   - نجاح اختبارات E2E Smoke Tests واستقرار تصفح الواجهات عبر روابط الاتصال الآمنة HTTPS.
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_DRY_RUN_VALIDATED_NOT_FULL_PRODUCTION` (العزل معطل).
-* **المرحلة التالية الموصى بها**: `Gradual RLS Enablement Batch 1` أو `Implement Advanced Medical Features Batch 1`
+* **المرحلة التالية الموصى بها**: `Gradual RLS Enablement Batch 1`
+
+### Phase 52: Gradual RLS Enablement Batch 1
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_GRADUAL_RLS_BATCH1_ENABLEMENT_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تفعيل RLS مع عزل السجلات تم بنجاح على الجداول المحددة)
+* **المخرجات**:
+  - [docs/sql/rls_staging_batch1_enable_patients_appointments.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch1_enable_patients_appointments.sql)
+  - [docs/sql/rls_staging_batch1_validate_patients_appointments.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch1_validate_patients_appointments.sql)
+  - [docs/sql/rls_staging_batch1_rollback_patients_appointments.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch1_rollback_patients_appointments.sql)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH1_BACKUP_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH1_BACKUP_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH1_ENDPOINT_READINESS_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH1_ENDPOINT_READINESS_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH1_POST_ENABLEMENT_MONITORING_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH1_POST_ENABLEMENT_MONITORING_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH1_ENABLEMENT_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH1_ENABLEMENT_REPORT_AR.md)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_GRADUAL_RLS_BATCH1_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_SECURITY_READINESS_AFTER_GRADUAL_RLS_BATCH1_AR.md)
+* **نتائج الاختبارات**:
+  - أخذ نسخة احتياطية جديدة كاملة والتحقق من سلامتها.
+  - تمكين سياسات أمان السجلات (RLS) بنجاح على جدولي المرضى (`patients`) والمواعيد (`appointments`) على قاعدة بيانات الاستضافة الاستباقية (Staging Server) وتأجيل الفواتير.
+  - اجتياز جميع اختبارات العزل الخمسة بنسبة 100% لفهارس السجلات تحت حساب الاختبار المقيد.
+  - ثبوت استقرار خدمات الويب ولوحة التحكم وسجلات الحركة بالكامل وخلوها من الأخطاء والأسرار.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH1_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لجدولين).
+* **المرحلة التالية الموصى بها**: `Gradual RLS Enablement Batch 2 - invoices and clinical financial tables`
+
 
 
