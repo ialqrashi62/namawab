@@ -109,7 +109,17 @@ function buildNav() {
   const userPerms = currentUser?.permissions ? currentUser.permissions.split(',') : [];
   const isAdmin = currentUser?.role === 'Admin';
 
-  nav.innerHTML = NAV_ITEMS.map((item, i) => {
+  const CLINICAL_ORDER = [0, 40, 29, 30, 31, 39, 50, 51, 49, 32, 33, 34, 41, 36, 37, 38, 58, 42, 70];
+  const allIndices = [...CLINICAL_ORDER];
+  for (let idx = 0; idx < NAV_ITEMS.length; idx++) {
+    if (!allIndices.includes(idx)) {
+      allIndices.push(idx);
+    }
+  }
+
+  nav.innerHTML = allIndices.map(i => {
+    const item = NAV_ITEMS[i];
+    if (!item) return '';
     const hasPerm = isAdmin || i === 0 || userPerms.includes(i.toString());
     if (!hasPerm) return '';
     // Filter by facility type
@@ -241,7 +251,7 @@ function updateShellLanguage() {
 
 async function navigateTo(page) {
   currentPage = page;
-  document.querySelectorAll('.nav-item').forEach((el, i) => el.classList.toggle('active', i === page));
+  document.querySelectorAll('.nav-item').forEach((el) => el.classList.toggle('active', parseInt(el.dataset.page) === page));
   const item = NAV_ITEMS[page];
   document.getElementById('headerTitle').textContent = tr(item.en, item.ar);
   // Close sidebar on mobile after navigation
@@ -1329,11 +1339,83 @@ window.sendDirectRad = async () => {
 };
 
 async function renderDashboard(el) {
-  const [s, enhanced] = await Promise.all([
-    API.get('/api/dashboard/stats'),
-    API.get('/api/dashboard/enhanced').catch(() => ({}))
-  ]);
-  
+  // Render skeleton loading immediately
+  el.innerHTML = `
+    <!-- Skeleton Header -->
+    <div class="flex justify-between items-end mb-lg animate-pulse">
+      <div class="w-1/2">
+        <div class="skeleton-loader skeleton-bar title"></div>
+        <div class="skeleton-loader skeleton-bar w-1/3 mt-2"></div>
+      </div>
+      <div class="flex gap-3">
+        <div class="skeleton-loader h-10 w-28 rounded-xl"></div>
+        <div class="skeleton-loader h-10 w-28 rounded-xl"></div>
+      </div>
+    </div>
+    
+    <!-- Skeleton Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md mb-lg">
+      <div class="glass-card-premium p-6 rounded-2xl flex flex-col gap-3">
+        <div class="flex justify-between items-center"><div class="skeleton-loader skeleton-circle"></div><div class="skeleton-loader h-6 w-12 rounded"></div></div>
+        <div class="skeleton-loader skeleton-bar w-1/2"></div>
+        <div class="skeleton-loader h-10 w-full rounded-lg"></div>
+      </div>
+      <div class="glass-card-premium p-6 rounded-2xl flex flex-col gap-3">
+        <div class="flex justify-between items-center"><div class="skeleton-loader skeleton-circle"></div><div class="skeleton-loader h-6 w-12 rounded"></div></div>
+        <div class="skeleton-loader skeleton-bar w-1/2"></div>
+        <div class="skeleton-loader h-10 w-full rounded-lg"></div>
+      </div>
+      <div class="glass-card-premium p-6 rounded-2xl flex flex-col gap-3">
+        <div class="flex justify-between items-center"><div class="skeleton-loader skeleton-circle"></div><div class="skeleton-loader h-6 w-12 rounded"></div></div>
+        <div class="skeleton-loader skeleton-bar w-1/2"></div>
+        <div class="skeleton-loader h-10 w-full rounded-lg"></div>
+      </div>
+      <div class="glass-card-premium p-6 rounded-2xl flex flex-col gap-3">
+        <div class="flex justify-between items-center"><div class="skeleton-loader skeleton-circle"></div><div class="skeleton-loader h-6 w-12 rounded"></div></div>
+        <div class="skeleton-loader skeleton-bar w-1/2"></div>
+        <div class="skeleton-loader h-10 w-full rounded-lg"></div>
+      </div>
+    </div>
+
+    <!-- Skeleton Bento Grid -->
+    <div class="grid grid-cols-12 gap-gutter mb-lg">
+      <div class="col-span-12 lg:col-span-8 glass-card-premium p-6 h-80 flex flex-col gap-4">
+        <div class="skeleton-loader skeleton-bar title"></div>
+        <div class="skeleton-loader flex-1 rounded-xl"></div>
+      </div>
+      <div class="col-span-12 lg:col-span-4 glass-card-premium p-6 h-80 flex flex-col gap-4">
+        <div class="skeleton-loader skeleton-bar title"></div>
+        <div class="space-y-3 flex-1">
+          <div class="skeleton-loader h-12 rounded-xl"></div>
+          <div class="skeleton-loader h-12 rounded-xl"></div>
+          <div class="skeleton-loader h-12 rounded-xl"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  let s, enhanced;
+  try {
+    [s, enhanced] = await Promise.all([
+      API.get('/api/dashboard/stats'),
+      API.get('/api/dashboard/enhanced').catch(() => ({}))
+    ]);
+  } catch (err) {
+    el.innerHTML = `
+      <div class="flex flex-col items-center justify-center p-xl">
+        <div class="error-card-premium max-w-md w-full">
+          <span class="material-symbols-outlined error-card-icon">error</span>
+          <h3 class="text-lg font-bold">${tr('Failed to Load Dashboard', 'فشل في تحميل لوحة التحكم')}</h3>
+          <p class="text-sm">${tr('Connection error or session expired. Please verify connection and retry.', 'حدث خطأ في الاتصال بالخادم أو انتهت الجلسة. يرجى التحقق وإعادة المحاولة.')}</p>
+          <button onclick="navigateTo(0)" class="mt-4 px-6 py-2.5 bg-primary text-on-primary rounded-xl font-label-md shadow-md hover:opacity-90 transition-all">
+            ${tr('Retry Connection', 'إعادة المحاولة')}
+          </button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
   // Schedule Chart.js rendering
   setTimeout(() => {
     renderDashboardCharts(el, enhanced);
@@ -1359,7 +1441,12 @@ async function renderDashboard(el) {
       </div>
     `).join('');
   } else {
-    topDrHtml = `<div class="empty-state"><p>${tr('No data yet', 'لا توجد بيانات')}</p></div>`;
+    topDrHtml = `
+      <div class="empty-state-card w-full">
+        <span class="material-symbols-outlined empty-state-icon">person_off</span>
+        <p class="text-xs font-bold text-on-surface-variant">${tr('No Active Physicians Today', 'لا توجد بيانات للأطباء المتاحين اليوم')}</p>
+      </div>
+    `;
   }
 
   let revTypeHtml = '';
@@ -1382,7 +1469,12 @@ async function renderDashboard(el) {
       `;
     }).join('');
   } else {
-    revTypeHtml = `<div class="empty-state"><p>${tr('No data yet', 'لا توجد بيانات')}</p></div>`;
+    revTypeHtml = `
+      <div class="empty-state-card w-full">
+        <span class="material-symbols-outlined empty-state-icon">receipt_long</span>
+        <p class="text-xs font-bold text-on-surface-variant">${tr('No Operational Revenue Recorded', 'لا توجد إيرادات عمليات مسجلة بعد')}</p>
+      </div>
+    `;
   }
 
   el.innerHTML = `
@@ -1416,7 +1508,7 @@ async function renderDashboard(el) {
     <!-- KPI Cards Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md mb-lg">
       <!-- Card: Bed Occupancy -->
-      <div class="glass-card p-6 rounded-2xl flex flex-col transition-all duration-300 hover:-translate-y-1">
+      <div class="glass-card-premium p-6 rounded-2xl flex flex-col transition-all duration-300">
         <div class="flex justify-between items-start mb-4">
           <div class="p-3 bg-primary/5 text-primary rounded-xl">
             <span class="material-symbols-outlined text-2xl">bed</span>
@@ -1437,7 +1529,7 @@ async function renderDashboard(el) {
       </div>
 
       <!-- Card: Wait Time -->
-      <div class="glass-card p-6 rounded-2xl flex flex-col transition-all duration-300 hover:-translate-y-1">
+      <div class="glass-card-premium p-6 rounded-2xl flex flex-col transition-all duration-300">
         <div class="flex justify-between items-start mb-4">
           <div class="p-3 bg-primary/5 text-primary rounded-xl">
             <span class="material-symbols-outlined text-2xl">timer</span>
@@ -1456,7 +1548,7 @@ async function renderDashboard(el) {
       </div>
 
       <!-- Card: Compliance Index -->
-      <div class="glass-card p-6 rounded-2xl flex flex-col border-r-4 border-r-secondary transition-all duration-300 hover:-translate-y-1">
+      <div class="glass-card-premium p-6 rounded-2xl flex flex-col border-r-4 border-r-secondary transition-all duration-300">
         <div class="flex justify-between items-start mb-4">
           <div class="p-3 bg-secondary/5 text-secondary rounded-xl">
             <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">verified</span>
@@ -1471,7 +1563,7 @@ async function renderDashboard(el) {
       </div>
 
       <!-- Card: Emergency Cases -->
-      <div class="glass-card p-6 rounded-2xl flex flex-col border-r-4 border-r-error transition-all duration-300 hover:-translate-y-1">
+      <div class="glass-card-premium p-6 rounded-2xl flex flex-col border-r-4 border-r-error transition-all duration-300">
         <div class="flex justify-between items-start mb-4">
           <div class="p-3 bg-error/5 text-error rounded-xl">
             <span class="material-symbols-outlined text-2xl">emergency</span>
@@ -1495,7 +1587,7 @@ async function renderDashboard(el) {
     <!-- Bento Grid Row -->
     <div class="grid grid-cols-12 gap-gutter mb-lg">
       <!-- Main Analytics: Revenue Trend & Weekly Patient Flow -->
-      <div class="col-span-12 lg:col-span-8 glass-card rounded-3xl p-6 flex flex-col justify-between">
+      <div class="col-span-12 lg:col-span-8 glass-card-premium rounded-3xl p-6 flex flex-col justify-between">
         <div class="flex justify-between items-start mb-6">
           <div>
             <h4 class="font-title-lg text-title-lg text-primary">${tr('Weekly Operations & Revenue Trend', 'حجم العمليات الإشغال والإيرادات الأسبوعية')}</h4>
@@ -1513,7 +1605,7 @@ async function renderDashboard(el) {
       </div>
 
       <!-- Compliance Alerts Sidebar -->
-      <div class="col-span-12 lg:col-span-4 glass-card rounded-3xl p-6 flex flex-col justify-between">
+      <div class="col-span-12 lg:col-span-4 glass-card-premium rounded-3xl p-6 flex flex-col justify-between">
         <div class="flex items-center gap-2 mb-4">
           <span class="material-symbols-outlined text-secondary text-2xl">gavel</span>
           <h4 class="font-title-lg text-title-lg text-primary">${tr('Compliance Alerts Feed', 'تنبيهات الامتثال التنظيمي')}</h4>
@@ -1548,7 +1640,7 @@ async function renderDashboard(el) {
     </div>
 
     <!-- Vision 2030 Strategic Metrics Bento -->
-    <div class="glass-card rounded-3xl p-6 mb-lg">
+    <div class="glass-card-premium rounded-3xl p-6 mb-lg">
       <div class="flex justify-between items-start mb-4">
         <div>
           <h4 class="font-title-lg text-title-lg text-primary">${tr('Vision 2030 Strategic Alignment', 'محاذاة رؤية المملكة 2030')}</h4>
@@ -1595,7 +1687,7 @@ async function renderDashboard(el) {
       <h4 class="font-title-lg text-title-lg text-primary mb-6">${tr('Departmental Operational Performance', 'حالة الأقسام التشغيلية')}</h4>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md">
         <!-- Emergency -->
-        <div class="glass-card rounded-2xl p-5 border-t-4 border-t-error transition-all duration-300 hover:shadow-lg">
+        <div class="glass-card-premium rounded-2xl p-5 border-t-4 border-t-error">
           <div class="flex justify-between items-start mb-3">
             <div class="w-10 h-10 bg-error/10 rounded-lg flex items-center justify-center text-error">
               <span class="material-symbols-outlined">emergency</span>
@@ -1612,7 +1704,7 @@ async function renderDashboard(el) {
           </div>
         </div>
         <!-- Surgery -->
-        <div class="glass-card rounded-2xl p-5 border-t-4 border-t-secondary transition-all duration-300 hover:shadow-lg">
+        <div class="glass-card-premium rounded-2xl p-5 border-t-4 border-t-secondary">
           <div class="flex justify-between items-start mb-3">
             <div class="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center text-secondary">
               <span class="material-symbols-outlined">medical_mask</span>
@@ -1629,7 +1721,7 @@ async function renderDashboard(el) {
           </div>
         </div>
         <!-- ICU -->
-        <div class="glass-card rounded-2xl p-5 border-t-4 border-t-primary transition-all duration-300 hover:shadow-lg">
+        <div class="glass-card-premium rounded-2xl p-5 border-t-4 border-t-primary">
           <div class="flex justify-between items-start mb-3">
             <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
               <span class="material-symbols-outlined">vital_signs</span>
@@ -1646,7 +1738,7 @@ async function renderDashboard(el) {
           </div>
         </div>
         <!-- Radiology -->
-        <div class="glass-card rounded-2xl p-5 border-t-4 border-t-outline transition-all duration-300 hover:shadow-lg">
+        <div class="glass-card-premium rounded-2xl p-5 border-t-4 border-t-outline">
           <div class="flex justify-between items-start mb-3">
             <div class="w-10 h-10 bg-surface-container-high rounded-lg flex items-center justify-center text-on-surface-variant">
               <span class="material-symbols-outlined">radiology</span>
@@ -1667,7 +1759,7 @@ async function renderDashboard(el) {
 
     <!-- Row: Top Doctors & Revenue Breakdown & Charts -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-md mb-lg">
-      <div class="glass-card rounded-2xl p-6">
+      <div class="glass-card-premium rounded-2xl p-6">
         <h4 class="font-title-lg text-title-lg text-primary mb-4 flex items-center gap-2">
           <span class="material-symbols-outlined text-secondary">star</span>
           🏆 ${tr('Top Doctors (This Month)', 'أفضل الأطباء (هذا الشهر)')}
@@ -1676,7 +1768,7 @@ async function renderDashboard(el) {
           ${topDrHtml}
         </div>
       </div>
-      <div class="glass-card rounded-2xl p-6">
+      <div class="glass-card-premium rounded-2xl p-6">
         <h4 class="font-title-lg text-title-lg text-primary mb-4 flex items-center gap-2">
           <span class="material-symbols-outlined text-secondary">payments</span>
           📊 ${tr('Revenue by Service Type', 'الإيرادات حسب نوع الخدمة')}
@@ -1685,7 +1777,7 @@ async function renderDashboard(el) {
           ${revTypeHtml}
         </div>
       </div>
-      <div class="glass-card rounded-2xl p-6 flex flex-col justify-between">
+      <div class="glass-card-premium rounded-2xl p-6 flex flex-col justify-between">
         <h4 class="font-title-lg text-title-lg text-primary mb-4 flex items-center gap-2">
           <span class="material-symbols-outlined text-secondary">pie_chart</span>
           🔬 ${tr('Department Share & Payment Methods', 'توزيع التخصصات وطرق الدفع')}
@@ -1698,7 +1790,7 @@ async function renderDashboard(el) {
     </div>
 
     <!-- Quick Actions Panel -->
-    <div class="glass-card rounded-2xl p-6">
+    <div class="glass-card-premium rounded-2xl p-6">
       <h4 class="font-title-lg text-title-lg text-primary mb-4">${tr('Quick Administrative Actions', 'إجراءات إدارية سريعة')}</h4>
       <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
         <button class="flex items-center justify-center gap-2 p-3 bg-surface-container-low hover:bg-secondary hover:text-white rounded-xl text-primary font-medium text-xs transition-all border border-outline-variant/20 shadow-sm" onclick="navigateTo(1)">
