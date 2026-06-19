@@ -9,7 +9,7 @@
 
 قبل إجراء أي تعديل هيكلي، يتم أخذ لقطة كاملة لقاعدة البيانات الإنتاجية وحفظها في مجلد معزول خارج مستودع Git:
 ```bash
-# تمرير كلمة المرور مؤقتاً بصيغة مشفرة
+# أخذ نسخة احتياطية هيكلية وبيانية كاملة بصيغة مخصصة لتمكين الاستعادة التفصيلية
 pg_dump -h localhost -p 5432 -U postgres -d nama_medical_web -F c -b -v -f /var/backups/db/nama_medical_prod_before_rls_up.bak
 ```
 
@@ -19,9 +19,9 @@ pg_dump -h localhost -p 5432 -U postgres -d nama_medical_web -F c -b -v -f /var/
 
 الولوج لخادم التطبيق وتحديث مجلد العمل إلى نسخة الإطلاق المعتمدة:
 ```bash
-# جلب التحديثات
+# جلب التحديثات من الفرع الرئيسي للأب
 git fetch origin
-git checkout 626944f
+git checkout 91a009c
 
 # الانتقال لمجلد الويب
 cd namaweb
@@ -40,20 +40,24 @@ npm run build:css
 # 1. تفعيل FORCE RLS للجداول الـ 13
 psql -h localhost -p 5432 -U postgres -d nama_medical_web -f docs/sql/production_readiness_force_rls_up.sql
 
-# 2. التحقق من نجاح التفعيل وظهور حالة true
+# 2. التحقق من نجاح التفعيل وظهور حالة true لجميع الجداول
 psql -h localhost -p 5432 -U postgres -d nama_medical_web -f docs/sql/production_readiness_force_rls_validate.sql
 ```
+
+المخططات المستهدفة بالتفعيل موجودة في:
+* سكربت الترقية: [production_readiness_force_rls_up.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/production_readiness_force_rls_up.sql)
+* سكربت التحقق: [production_readiness_force_rls_validate.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/production_readiness_force_rls_validate.sql)
 
 ---
 
 ### 4. الخطوة الرابعة: تفعيل متغيرات البيئة وإعادة تشغيل التطبيق (Process Manager)
 
-ضبط متغيرات البيئة وإعادة تشغيل خادم الويب تحت PM2:
+ضبط متغيرات البيئة وإعادة تشغيل خادم الويب تحت PM2 للتأكد من ربط Redis الفعال:
 ```bash
 # إعادة تشغيل التطبيق وتحديث إعدادات البيئة
 pm2 restart nama-web --update-env
 
-# عرض السجلات للتأكد من نجاح الاتصال بـ Redis وغياب أي تراجع
+# عرض السجلات للتأكد من نجاح الاتصال بـ Redis وغياب أي تراجع للميموري ستور
 pm2 logs nama-web --lines 50
 ```
 
@@ -61,7 +65,7 @@ pm2 logs nama-web --lines 50
 
 ### 5. الخطوة الخامسة: فحص الصحة المبدئي (Smoke Test)
 
-التحقق محلياً من استجابة خادم الويب:
+التحقق محلياً من استجابة خادم الويب برمز 200 OK:
 ```bash
 curl -I http://localhost:3000/api/health
 ```
