@@ -872,8 +872,21 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH5_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 13 جدولاً، وتمت تهيئة وعزل جدول عينات المختبر).
 * **المرحلة التالية الموصى بها**: `RLS Batch 6 For Backfilled Tables`
 
-
-
-
-
-
+### Phase 62: Gradual RLS Enablement Batch 6 - For Backfilled Tables
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `MEDICAL_GRADUAL_RLS_BATCH6_LAB_SAMPLES_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تعديلات على سياسات قاعدة البيانات وملفات SQL التوثيقية فقط)
+* **الملفات الجديدة**:
+  - [docs/sql/rls_staging_batch6_enable_lab_samples.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch6_enable_lab_samples.sql)
+  - [docs/sql/rls_staging_batch6_validate_lab_samples.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch6_validate_lab_samples.sql)
+  - [docs/sql/rls_staging_batch6_rollback_lab_samples.sql](file:///c:/Users/ice/Desktop/NamaMedical/docs/sql/rls_staging_batch6_rollback_lab_samples.sql)
+* **المخرجات**:
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH6_BACKUP_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH6_BACKUP_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH6_LAB_SAMPLES_READINESS_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH6_LAB_SAMPLES_READINESS_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH6_POST_ENABLEMENT_MONITORING_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH6_POST_ENABLEMENT_MONITORING_REPORT_AR.md)
+  - [docs/MEDICAL_GRADUAL_RLS_BATCH6_ENABLEMENT_REPORT_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_GRADUAL_RLS_BATCH6_ENABLEMENT_REPORT_AR.md)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_GRADUAL_RLS_BATCH6_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/MEDICAL_SECURITY_READINESS_AFTER_GRADUAL_RLS_BATCH6_AR.md)
+* **الملخص**:
+  تم بنجاح تفعيل سياسات Row-Level Security (RLS) للدفعة السادسة على جدول عينات المختبر (`lab_samples`) الذي تم إعداده وتعبئته في المرحلة السابقة، مع اعتماد سياسة عزل المستأجرين `rls_lab_samples_tenant_isolation`. وبذلك ارتفع إجمالي الجداول المؤمنة بـ RLS إلى 14 جدولاً. تم التحقق من نجاح عزل البيانات وتأكيد العزل والقدرة على التراجع بنسبة 100%.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 14 جدولاً).
+* **المرحلة التالية الموصى بها**: `Tenant Catalog Override Design` أو `Beds Tenant Ownership Design`
