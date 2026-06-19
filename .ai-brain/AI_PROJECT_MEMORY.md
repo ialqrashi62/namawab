@@ -1046,3 +1046,25 @@ NamaMedical/ (المستودع الرئيسي الأب)
   تم إنجاز مرحلة تنظيف الدفعة الأولى وتصميم عزل حركات التنويم والتحويلات للدفعة الثانية بنظام الأوتو بايلوت بنجاح تام. شمل ذلك تنظيف الأسرار والروابط المطلقة `file:///` من كافة وثائق المشروع والتقارير والذاكرة، وتطبيع حالة المخطط وتوضيح كون تعديلات الدفعة الأولى أمنية. وتم صياغة مخطط وعلاقات ومصفوفة قرارات جداول التنويم والتحويلات دون أي تعديل فعلي في قاعدة البيانات. تم التحقق من استقرار النظام باجتياز 145 اختبار أمان وانحدار بنسبة 100%.
 * **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 16 جدولاً سابقاً، مع إتمام تنظيف الأسرار وتصميم عزل الدفعة الثانية).
 * **المرحلة التالية الموصى بها**: `BEDS_BATCH2_ADMISSIONS_TRANSFERS_IMPLEMENTATION_CONTROLLED_STAGING`
+
+### Phase 70: Beds Batch 2 Admissions & Transfers RLS Implementation
+* **تاريخ المحاولة**: 2026-06-19
+* **الحالة (Status)**: `BEDS_BATCH2_ADMISSIONS_TRANSFERS_IMPLEMENTATION_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تعديلات أمنية على مستوى قاعدة البيانات وتوثيقات فقط)
+* **الملفات الجديدة**:
+  - [docs/sql/beds_batch2_admissions_transfers_up.sql](docs/sql/beds_batch2_admissions_transfers_up.sql)
+  - [docs/sql/beds_batch2_admissions_transfers_down.sql](docs/sql/beds_batch2_admissions_transfers_down.sql)
+  - [docs/sql/beds_batch2_admissions_transfers_validate.sql](docs/sql/beds_batch2_admissions_transfers_validate.sql)
+  - [docs/MEDICAL_BEDS_BATCH2_ADMISSIONS_TRANSFERS_IMPLEMENTATION_PLAN_AR.md](docs/MEDICAL_BEDS_BATCH2_ADMISSIONS_TRANSFERS_IMPLEMENTATION_PLAN_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH2_BACKUP_REPORT_AR.md](docs/MEDICAL_BEDS_BATCH2_BACKUP_REPORT_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH2_SCHEMA_CHANGE_REPORT_AR.md](docs/MEDICAL_BEDS_BATCH2_SCHEMA_CHANGE_REPORT_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH2_RLS_ENABLEMENT_REPORT_AR.md](docs/MEDICAL_BEDS_BATCH2_RLS_ENABLEMENT_REPORT_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH2_API_CHANGE_REPORT_AR.md](docs/MEDICAL_BEDS_BATCH2_API_CHANGE_REPORT_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH2_SMOKE_TEST_REPORT_AR.md](docs/MEDICAL_BEDS_BATCH2_SMOKE_TEST_REPORT_AR.md)
+  - [docs/MEDICAL_BEDS_BATCH2_ROLLBACK_READINESS_REPORT_AR.md](docs/MEDICAL_BEDS_BATCH2_ROLLBACK_READINESS_REPORT_AR.md)
+  - [docs/MEDICAL_SECURITY_READINESS_AFTER_BEDS_BATCH2_AR.md](docs/MEDICAL_SECURITY_READINESS_AFTER_BEDS_BATCH2_AR.md)
+* **المخرجات**: التقارير الهيكلية وسكربتات SQL للفحص والتراجع والتحقق بنجاح بلغة عربية UTF-8 سليمة.
+* **الملخص**:
+  تم بنجاح تفعيل سياسات Row-Level Security (RLS) للدفعة الثانية الخاصة بجدولي التنويم والتحويلات (`admissions`, `bed_transfers`) وتفعيل `FORCE ROW LEVEL SECURITY` عليها للتأكد من خضوع كافة قنوات الاتصال الفائقة للتأمين والعزل التام للمسؤولين والمستأجرين ببيئة Staging. تم أخذ نسختين احتياطيتين بنجاح (نسخة كاملة وحزم جدولية محددة). تم التحقق من نجاح تفعيل السياسات وصحة العزل بنسبة 100% دون أي تسريب للبيانات. وتم التأكد من اجتياز اختبارات انحدار الأمان (53 اختباراً للتنويم والأسرة، و29 للكتالوج، و63 لمنع التسريب، واختبار الدخان الكلي بنجاح 100%) دون أي regressions أو تسريب للأسرار.
+* **القرار النهائي (Final Environment Classification)**: البيئة مصنفة كـ `PUBLIC_STAGING_HTTPS_RLS_BATCH6_ENABLED_NOT_FULL_PRODUCTION` (العزل مفعّل لـ 18 جدولاً في المجمل).
+* **المرحلة التالية الموصى بها**: `BEDS_BATCH3_DISCHARGE_OCCUPANCY_DESIGN`
