@@ -43,6 +43,19 @@ app.use(helmet({ contentSecurityPolicy: false }));
 // Rate limiting for login endpoint
 const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { error: 'Too many login attempts, please try again after 15 minutes' } });
 
+// Global per-IP rate limiter for /api/* (defense-in-depth). DISABLED by default so deploys are
+// behavior-neutral; enable explicitly via GLOBAL_API_RATE_LIMIT_ENABLED=true after traffic
+// observation. Window/max are env-tunable. /api/health and /api/auth/* are exempt (health for
+// uptime monitoring; auth/login already has its own stricter loginLimiter).
+const globalApiLimiter = rateLimit({
+    windowMs: parseInt(process.env.GLOBAL_API_RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
+    max: parseInt(process.env.GLOBAL_API_RATE_LIMIT_MAX, 10) || 1000,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => req.path === '/health' || req.path === '/api/health' || req.path.startsWith('/auth/') || req.path.startsWith('/api/auth/'),
+    message: { error: 'Too many requests, please slow down and try again later.' }
+});
+
 // Middleware
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
@@ -88,8 +101,18 @@ if (process.env.REDIS_URL || process.env.REDIS_HOST) {
     }
 }
 
+// SESSION_SECRET hardening: in production a strong, explicit secret is mandatory.
+// Reject absence and the historical hardcoded default (now public in source history).
+const INSECURE_DEFAULT_SESSION_SECRET = 'nama-medical-erp-secret-x7k9m2p4q8w1';
+if (process.env.NODE_ENV === 'production') {
+    if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === INSECURE_DEFAULT_SESSION_SECRET) {
+        console.error('[CRITICAL] SESSION_SECRET is missing or set to the insecure default in production. Refusing to start.');
+        process.exit(1);
+    }
+}
+
 const sessionConfig = {
-    secret: process.env.SESSION_SECRET || 'nama-medical-erp-secret-x7k9m2p4q8w1',
+    secret: process.env.SESSION_SECRET || INSECURE_DEFAULT_SESSION_SECRET,
     resave: true,
     saveUninitialized: true,
     cookie: {
@@ -106,6 +129,12 @@ if (sessionStore) {
 }
 
 app.use(session(sessionConfig));
+
+// Mount the global /api rate limiter only when explicitly enabled (behavior-neutral by default).
+if (process.env.GLOBAL_API_RATE_LIMIT_ENABLED === 'true') {
+    app.use('/api', globalApiLimiter);
+    console.log('[SECURITY] Global /api rate limiter ENABLED (max=' + (process.env.GLOBAL_API_RATE_LIMIT_MAX || 1000) + ' per window).');
+}
 
 // ===== TENANT CONTEXT MIDDLEWARE (RLS wiring) =====
 // يضبط سياق المستأجر للطلب بأكمله عبر AsyncLocalStorage، فيلتقطه pool.query تلقائياً
