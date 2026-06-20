@@ -2406,3 +2406,14 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **بيانات**: invoices=3 (2 مدفوعة، 0 استرداد)، journal=0، CoA=30، map=23، flag OFF.
 * **rollout**: OFF→code-complete(OFF)→shadow(opt)→canary→new-only(ON)→backfill(opt)→full؛ rollback=flag=false فوري. الفواتير القديمة: LEAVE_UNPOSTED_NOW + backfill اختياري لاحق (idempotency يمنع التكرار).
 * **المرحلة التالية**: `P1_PATIENT_INVOICE_RECEIPT_POSTING_CODE_BEHIND_FLAG` (تنفيذ G1/G2/G3 خلف flag OFF + تسوية مخطط invoices، بموافقات منفصلة).
+
+### Phase 130: MEDICAL_MASTER_AUTOPILOT — اختيار وتنفيذ P1_RLS_COVERAGE_RECONCILIATION_R1 (read-only)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `DOCS_ONLY_PASS` | read-only صرف، لا DDL/Data/Deploy/Stitch/force.
+* **القرار**: عبر محرك الأولوية اختير `P1_RLS_COVERAGE_RECONCILIATION_R1` (truth blocker P0 + isolation P1، بلا موافقة) ونُفِّذ قراءة-فقط.
+* **اكتشاف 1 (نقض)**: تباين RLS **مُسوّى** — الواقع الحالي على single-box prod = **115 FORCE / 115 policies / 118 جدول tenant_id** (ENABLE-only=0)، لا «13». الرقم القديم منقضٍ (طُبِّقت مجموعات RLS لاحقاً). نمط السياسة: `tenant_id = NULLIF(current_setting('app.tenant_id',true),'')::int`.
+* **اكتشاف 2 (حرج)**: RLS **مُسلّح لكن مُتجاوَز** — التطبيق يتصل بدور `postgres` (superuser, bypassrls=true)؛ اختبار `set_config('app.tenant_id','999')` ثم `SELECT patients` = 3 صفوف (كل الصفوف) ⇒ السياسات لا تُطبَّق. دور `nama_medical_app` (غير-superuser) موجود وغير موصول (مرشّح `app_runtime_role_candidate.sql`). **العزل الحالي = فلاتر التطبيق فقط، لا RLS.**
+* **اكتشاف 3**: refund IDOR (`/api/invoices/:id/refund` SELECT بلا فلتر tenant، server.js:6475) **مؤكَّد قابل للاستغلال** (لأن RLS متجاوَز) ⇒ رُفِع إلى P1، code-only.
+* **34 جدولاً غير محمية**: فجوات حقيقية = `audit_trail`,`portal_users` (بهما tenant_id بلا FORCE) + `packages`,`blood_bank_donors`,`blood_bank_units` (بلا tenant_id)؛ والباقي كتالوجات/auth عالمية بالتصميم.
+* **risk register**: R1 حُدِّث (115 مؤكَّد + superuser bypass)، R2 (approvals/package_sessions صارا FORCE؛ المتبقّي packages/blood_bank_*)، أُضيف R22 (refund IDOR).
+* **التقارير**: STATE_GUARD + OPEN_PHASE_REGISTER + NEXT_PHASE_DECISION + `P1_RLS_COVERAGE_RECONCILIATION_R1_AR.md`.
+* **NEXT_REQUIRED_ACTION**: `P1_REFUND_IDOR_TENANT_GUARD_CODE_FIX` (فوري code-only) ثم ربط دور `nama_medical_app` (يُفعّل الـ115 FORCE فعلياً، GRANTs+.env+redeploy بموافقات).
