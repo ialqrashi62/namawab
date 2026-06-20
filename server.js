@@ -711,9 +711,10 @@ app.post('/api/invoices', requireAuth, requireRole('invoices', 'accounts'), asyn
         // --- ACCOUNTING POSTING (flag-guarded; OFF in production). Pending-posting model: idempotent, non-blocking. ---
         if (postingService.isEnabled()) {
             const insurance = /insurance|تأمين/i.test(payment_method || '');
+            const pctx = { tenantId, facilityId, branchId: 0, createdBy };
             try {
-                await postingService.postInTransaction(pool, (c) =>
-                    postingService.postInvoiceIssued(c, invoiceRow, { tenantId, facilityId, branchId: 0, createdBy }, { insurance }));
+                await postingService.postInTransaction(pool, pctx, (c) =>
+                    postingService.postInvoiceIssued(c, invoiceRow, pctx, { insurance }));
             } catch (e) { console.error('[accounting] invoice issued posting deferred:', e.code || e.message); }
         }
         res.json(invoiceRow);
@@ -1713,9 +1714,10 @@ app.put('/api/invoices/:id/pay', requireAuth, requireRole('invoices', 'accounts'
         // --- ACCOUNTING POSTING (flag-guarded; OFF in production). Receipt posting, idempotent. ---
         if (postingService.isEnabled()) {
             const toBank = /bank|تحويل|card|بطاقة/i.test(payment_method || '');
+            const pctx = { tenantId, facilityId: inv.facility_id || 0, branchId: 0, createdBy: req.session.user?.display_name || '' };
             try {
-                await postingService.postInTransaction(pool, (c) =>
-                    postingService.postInvoicePayment(c, { id: inv.id, amount: inv.total }, { tenantId, facilityId: inv.facility_id || 0, branchId: 0, createdBy: req.session.user?.display_name || '' }, { toBank }));
+                await postingService.postInTransaction(pool, pctx, (c) =>
+                    postingService.postInvoicePayment(c, { id: inv.id, amount: inv.total }, pctx, { toBank }));
             } catch (e) { console.error('[accounting] payment posting deferred:', e.code || e.message); }
         }
         res.json((await pool.query('SELECT * FROM invoices WHERE id=$1', [req.params.id])).rows[0]);
@@ -5570,9 +5572,10 @@ app.post('/api/invoices/cancel/:id', requireAuth, requireRole('invoices', 'accou
         // --- ACCOUNTING POSTING (flag-guarded; OFF in production). Reversal of original invoice entry, idempotent. ---
         if (postingService.isEnabled()) {
             const insurance = /insurance|تأمين/i.test(inv.payment_method || '');
+            const pctx = { tenantId, facilityId: inv.facility_id || 0, branchId: 0, createdBy: req.session.user?.display_name || '' };
             try {
-                await postingService.postInTransaction(pool, (c) =>
-                    postingService.postInvoiceReversal(c, inv, { tenantId, facilityId: inv.facility_id || 0, branchId: 0, createdBy: req.session.user?.display_name || '' }, { insurance }));
+                await postingService.postInTransaction(pool, pctx, (c) =>
+                    postingService.postInvoiceReversal(c, inv, pctx, { insurance }));
             } catch (e) { console.error('[accounting] cancel reversal posting deferred:', e.code || e.message); }
         }
         res.json({ success: true });

@@ -125,16 +125,28 @@ async function postRefund(client, refund, ctx, { fromBank = false } = {}) {
   return postEntry(client, posting, ctx);
 }
 
-// يشغّل دالة ترحيل داخل معاملة مخصّصة من الـ pool (نموذج pending-posting: الترحيل
-// يحدث بعد حفظ حدث العمل؛ idempotency يجعل إعادة المحاولة آمنة بلا تكرار).
-async function postInTransaction(pool, fn) {
+// يربط سياق المستأجر على الاتصال حتى تُطبَّق سياسات finance RLS (عند تفعيلها مع دور غير-superuser).
+// SET LOCAL عبر set_config(...,true) يُعاد ضبطه تلقائياً عند COMMIT/ROLLBACK (لا تلوّث للـ pool).
+async function bindTenant(client, ctx) {
+  if (ctx && ctx.tenantId != null) await client.query("SELECT set_config('app.tenant_id', $1, true)", [String(ctx.tenantId)]);
+  if (ctx && ctx.facilityId != null) await client.query("SELECT set_config('app.facility_id', $1, true)", [String(ctx.facilityId)]);
+}
+
+// يشغّل دالة ترحيل داخل معاملة مخصّصة من الـ pool، مع ربط سياق المستأجر (RLS-ready).
+// نموذج pending-posting: الترحيل بعد حفظ حدث العمل؛ idempotency يجعل إعادة المحاولة آمنة بلا تكرار.
+async function postInTransaction(pool, ctx, fn) {
   const client = await pool.connect();
-  try { await client.query('BEGIN'); const r = await fn(client); await client.query('COMMIT'); return r; }
-  catch (e) { try { await client.query('ROLLBACK'); } catch (_) {} throw e; }
+  try {
+    await client.query('BEGIN');
+    await bindTenant(client, ctx);
+    const r = await fn(client);
+    await client.query('COMMIT');
+    return r;
+  } catch (e) { try { await client.query('ROLLBACK'); } catch (_) {} throw e; }
   finally { client.release(); }
 }
 
 module.exports = {
-  isEnabled, resolveAccountId, postEntry, postInTransaction,
+  isEnabled, resolveAccountId, postEntry, postInTransaction, bindTenant,
   postInvoiceIssued, postInvoicePayment, postInvoiceReversal, postRefund,
 };
