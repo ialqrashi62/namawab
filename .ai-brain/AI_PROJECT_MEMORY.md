@@ -2173,3 +2173,28 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **القاعدة المثبّتة**: لا إعلان `PRODUCTION_READY: YES_MULTI_TENANT_READY` إلا بعد إغلاق كل موجات P0 (Class A + Class B) ونشرها والتحقق منها؛ وإلا تبقى `YES_SINGLE_TENANT_ONLY` و`P0_OPEN: PARTIAL`.
 * **التعديلات الهيكلية والأمنية**: لا تغيير على DB/RLS/كود التطبيق (توثيق ومهارات فقط).
 * **المرحلة التالية الموصى بها**: `P0_TENANT_ISOLATION_WAVE2_REMEDIATION_AND_CONTROLLED_DEPLOY` (باستخدام المهارات الثلاث الجديدة).
+
+### Phase 112: P0 Tenant Isolation Wave 2 — Class B Remediation + Controlled Deploy
+* **تاريخ المرحلة**: 2026-06-20
+* **الحالة (Status)**: `P0_TENANT_ISOLATION_WAVE2_REMEDIATION_AND_DEPLOY_COMPLETED` (لـ Class B فقط؛ Class A مؤجّل)
+* **الملفات البرمجية المعدلة**:
+  - `namaweb/server.js` — تأمين 14 مساراً لـ Class B (telemedicine/pathology/social_work/mortuary/zatca) بـ `requireTenantScope` + فلتر + ختم + تحقق ملكية + IDOR. (commit `70e01cf`)
+* **الملفات الجديدة**:
+  - `namaweb/cross_tenant_wave2_modules_test.js` — 38/38 PASS.
+  - `docs/P0_TENANT_ISOLATION_WAVE2_01..08_*_AR.md` — 8 تقارير.
+  - `docs/sql/p0_tenant_isolation_wave2_{up,validate,down,noop_safety_checks}.sql` — SQL متتبع لـ Class A (blood_bank/approvals/package_sessions) — **غير مُطبَّق على الإنتاج**.
+* **التصنيف**: Class B (تحمل tenant_id على الإنتاج، code-only، نُشرت) = 5 موديولات؛ Class A (تفتقر tenant_id، تحتاج DDL) = blood_bank ×4 + approvals + package_sessions (SQL جاهز، كود + DDL مؤجّل لـ Wave 2b).
+* **النشر والتحقق على الإنتاج (alfaisal-erp.com / 204.168.144.74 / nama-medical-erp)**:
+  - نسخة احتياطية `server.js.bak.20260620_041618` + scp + `node --check` (OK) + `pm2 restart` (online).
+  - `/api/health` = 200 UP؛ PM2 online (~71mb)؛ لا أخطاء بالسجلات؛ Redis PONG (55 جلسة، لا MemoryStore)؛ FORCE RLS = 13 جدولاً سليمة؛ مسارات Class B = 401 بلا جلسة (حيّة، لا انهيار).
+  - ROLLBACK_REQUIRED: NO.
+* **الاختبارات**: 18/18 حزمة عزل exit 0؛ Wave 2 = 38/38؛ `node --check` سليم.
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: NO (الإنتاج) — لا DDL نُفّذ
+  - DATABASE_SECURITY_DDL_CHANGED: NO (الإنتاج) — SQL لـ Class A جاهز فقط
+  - MIGRATIONS_RUN: NO | DB_PUSH_RUN: NO | RLS_CHANGED: NO (الإنتاج)
+  - WEBSITE_DEPLOYED: YES (Class B code-only)
+  - PRODUCTION_READY: YES_SINGLE_TENANT_ONLY
+  - P0_OPEN: PARTIAL (Class B مغلق ومنشور؛ Class A: Wave 1 + blood_bank/approvals/packages + Wave 3 متبقية)
+* **Git**: namaweb `70e01cf` pushed؛ parent (هذا الالتزام) pushed.
+* **المرحلة التالية الموصى بها**: `P0_TENANT_ISOLATION_WAVE2B_CLASSA_CONTROLLED_DDL_DEPLOY` (موافقة نشر DDL مُتحكَّم به لـ Class A) ثم `WAVE3`.
