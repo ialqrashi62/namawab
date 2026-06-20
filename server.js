@@ -117,6 +117,49 @@ app.use((req, res, next) => {
     }
 });
 
+// ===== FACILITY ENTITLEMENT ENFORCEMENT (backend, API-layer) =====
+// يمنع الوصول إلى موديولات غير مسموحة حسب نوع المنشأة على مستوى الـ API،
+// لا الاعتماد على إخفاء القوائم في الواجهة. يعمل لكل مسارات /api/ (يهزم تجاوز الرابط المباشر).
+const facilityEnt = require('./facility_entitlements');
+const _ftCache = new Map(); // tenantId -> { value, exp }
+const _FT_TTL_MS = 60 * 1000;
+function invalidateFacilityTypeCache(tenantId) {
+    if (tenantId === undefined) _ftCache.clear(); else _ftCache.delete(tenantId);
+}
+async function getFacilityType(tenantId) {
+    const key = tenantId || 0;
+    const now = Date.now();
+    const cached = _ftCache.get(key);
+    if (cached && cached.exp > now) return cached.value;
+    let value = null;
+    try {
+        const q = tenantId
+            ? "SELECT setting_value FROM company_settings WHERE setting_key='facility_type' AND (tenant_id = $1 OR tenant_id IS NULL) ORDER BY tenant_id NULLS LAST LIMIT 1"
+            : "SELECT setting_value FROM company_settings WHERE setting_key='facility_type' LIMIT 1";
+        const r = await pool.query(q, tenantId ? [tenantId] : []);
+        value = r.rows[0] ? r.rows[0].setting_value : null;
+    } catch (e) { value = null; } // فشل القراءة → null → يُعامَل كافتراضي (توافق)
+    _ftCache.set(key, { value, exp: now + _FT_TTL_MS });
+    return value;
+}
+app.use(async (req, res, next) => {
+    try {
+        if (!req.path.startsWith('/api/')) return next();
+        if (req.path === '/api/health' || req.path.startsWith('/api/auth/')) return next();
+        const moduleKey = facilityEnt.pathToModule(req.path);
+        if (facilityEnt.COMMON_MODULES.has(moduleKey)) return next(); // مشترك دائماً
+        const { tenantId } = getRequestTenantContext(req);
+        if (!tenantId) return next(); // لا سياق مستأجر → تتركه طبقة requireAuth/requireTenantScope
+        const raw = await getFacilityType(tenantId);
+        const norm = facilityEnt.normalizeFacilityType(raw);
+        if (norm.status === 'unknown') {
+            return res.status(422).json({ error: 'Unknown facility type', facilityType: String(raw) });
+        }
+        if (facilityEnt.isModuleEntitled(norm.type, moduleKey)) return next();
+        return res.status(403).json({ error: 'Facility type not entitled for this module', module: moduleKey, facilityType: norm.type });
+    } catch (e) { return next(); } // fail-open على خطأ غير متوقع (الحماية الأساسية auth+RLS قائمة)
+});
+
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -1428,6 +1471,8 @@ app.put('/api/settings', requireAuth, requireRole('settings'), async (req, res) 
         for (const [key, value] of Object.entries(updates)) {
             await pool.query('INSERT INTO company_settings (setting_key, setting_value) VALUES ($1, $2) ON CONFLICT (setting_key) DO UPDATE SET setting_value=$2', [key, value]);
         }
+        // invalidate facility-type cache so entitlement enforcement reflects new value immediately
+        if (Object.prototype.hasOwnProperty.call(updates, 'facility_type')) invalidateFacilityTypeCache();
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
