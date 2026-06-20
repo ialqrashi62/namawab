@@ -2088,3 +2088,44 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - RLS_CHANGED: NO
   - PRODUCTION_READY: YES
 * **المرحلة التالية الموصى بها**: `OPERATIONS_CONTINUOUS_MONITORING` (التشغيل والمراقبة الدورية المستمرة).
+
+### Phase 109: Global System Audit & Gap Analysis (Benchmark vs World-Class Systems)
+* **تاريخ المرحلة**: 2026-06-20
+* **الحالة (Status)**: `GLOBAL_SYSTEM_AUDIT_AND_GAP_ANALYSIS_COMPLETED`
+* **الملفات البرمجية المعدلة**: لا يوجد (تدقيق قراءة-فقط وتوثيق فقط)
+* **الملفات الجديدة** (15 تقرير تدقيق عالمي + هذا السجل):
+  - [docs/GLOBAL_AUDIT_01_PROJECT_DISCOVERY_AR.md](docs/GLOBAL_AUDIT_01_PROJECT_DISCOVERY_AR.md)
+  - [docs/GLOBAL_AUDIT_02_FUNCTIONAL_COVERAGE_GAPS_AR.md](docs/GLOBAL_AUDIT_02_FUNCTIONAL_COVERAGE_GAPS_AR.md)
+  - [docs/GLOBAL_AUDIT_03_UX_UI_GAP_ANALYSIS_AR.md](docs/GLOBAL_AUDIT_03_UX_UI_GAP_ANALYSIS_AR.md)
+  - [docs/GLOBAL_AUDIT_04_ARCHITECTURE_REVIEW_AR.md](docs/GLOBAL_AUDIT_04_ARCHITECTURE_REVIEW_AR.md)
+  - [docs/GLOBAL_AUDIT_05_DATABASE_TENANT_ISOLATION_AR.md](docs/GLOBAL_AUDIT_05_DATABASE_TENANT_ISOLATION_AR.md)
+  - [docs/GLOBAL_AUDIT_06_SECURITY_RISK_REGISTER_AR.md](docs/GLOBAL_AUDIT_06_SECURITY_RISK_REGISTER_AR.md)
+  - [docs/GLOBAL_AUDIT_07_PRODUCTION_OPERATIONS_AR.md](docs/GLOBAL_AUDIT_07_PRODUCTION_OPERATIONS_AR.md)
+  - [docs/GLOBAL_AUDIT_08_QA_TESTING_COVERAGE_AR.md](docs/GLOBAL_AUDIT_08_QA_TESTING_COVERAGE_AR.md)
+  - [docs/GLOBAL_AUDIT_09_HEALTHCARE_COMPLIANCE_READINESS_AR.md](docs/GLOBAL_AUDIT_09_HEALTHCARE_COMPLIANCE_READINESS_AR.md)
+  - [docs/GLOBAL_AUDIT_10_INTEGRATION_READINESS_AR.md](docs/GLOBAL_AUDIT_10_INTEGRATION_READINESS_AR.md)
+  - [docs/GLOBAL_AUDIT_11_COMMERCIAL_SAAS_READINESS_AR.md](docs/GLOBAL_AUDIT_11_COMMERCIAL_SAAS_READINESS_AR.md)
+  - [docs/GLOBAL_AUDIT_12_GLOBAL_GAP_MATRIX_AR.md](docs/GLOBAL_AUDIT_12_GLOBAL_GAP_MATRIX_AR.md)
+  - [docs/GLOBAL_AUDIT_13_RECOMMENDED_ROADMAP_AR.md](docs/GLOBAL_AUDIT_13_RECOMMENDED_ROADMAP_AR.md)
+  - [docs/GLOBAL_AUDIT_14_KEEP_AS_IS_AND_STRENGTHS_AR.md](docs/GLOBAL_AUDIT_14_KEEP_AS_IS_AND_STRENGTHS_AR.md)
+  - [docs/GLOBAL_AUDIT_15_EXECUTIVE_SUMMARY_AR.md](docs/GLOBAL_AUDIT_15_EXECUTIVE_SUMMARY_AR.md)
+* **المخرجات**: تدقيق عالمي شامل (17 بوابة) يقارن النظام بأنظمة عالمية (Epic, Cerner, MEDITECH, Athenahealth, OpenEMR) عبر الوظائف، UX، المعمارية، قاعدة البيانات/العزل، الأمن، التشغيل، الاختبارات، الامتثال، التكاملات، وجاهزية SaaS.
+* **أهم نتائج الفحص**:
+  - النظام واسع وظيفياً (43 موديولاً، 371 مساراً)، منشور ومستقر في الإنتاج، بتوطين عربي كامل وبنية عزل مستأجرين مثبتة للموديولات الأساسية (63+ اختباراً).
+* **أخطر النواقص (P0/P1)**:
+  - **[P0]** عزل مستأجرين ناقص لموديولات حديثة (السجلات الطبية، الصيدلية السريرية، التأهيل، بوابة المرضى، التغذية) — تستخدم `requireAuth` فقط بلا `tenant_id`/`requireTenantScope`، وغير مغطّاة بالاختبارات. خطر تسريب بين المستأجرين عند تعدد المستأجرين. (مخفّف حالياً لأن الإنتاج يعمل بمستأجر واحد).
+  - **[P0]** حوكمة RLS خارج version control — 13 جدولاً بـ FORCE RLS مُطبّقة على الإنتاج فقط؛ الاستعادة من المصدر تُسقطها صامتاً.
+  - **[P1]** أسرار افتراضية مضمّنة (SESSION_SECRET/DB_PASSWORD)، CORS مفتوح بلا CSRF، لا قفل حساب.
+  - **[P1]** لا تكاملات خارجية فعّالة (SMS/دفع/NPHIES/HL7-FHIR/LIS/PACS)؛ ZATCA QR محلي فقط.
+  - **[P1]** لا طبقة SaaS تجارية (خطط/اشتراك/فوترة/provisioning/super-admin)؛ لا مراقبة/تنبيه آلي/HA؛ لا WCAG.
+* **أهم الأولويات**: إضافة العزل للموديولات الحديثة + اختباراتها (P0)، ترحيل RLS لملف متتبع (P0)، إلزام الأسرار من env (P1).
+* **القرار التنفيذي النهائي**: `READY_AFTER_P0_P1_FIXES` — جاهز للتشغيل أحادي المستأجر المُتحكَّم به (منشور فعلاً)؛ يصبح جاهزاً لعملاء متعددين بعد إغلاق P0؛ يحتاج تكاملات + طبقة SaaS ليصبح منافساً عالمياً ومناسباً للمستشفيات الكبيرة.
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: NO
+  - TABLE_COLUMN_SCHEMA_CHANGED: NO
+  - DATABASE_SECURITY_DDL_CHANGED: NO
+  - MIGRATIONS_RUN: NO
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: NO
+  - PRODUCTION_READY: YES (single-tenant) / NO_FOR_MULTI_TENANT_UNTIL_P0_CLOSED
+* **المرحلة التالية الموصى بها**: `P0_TENANT_ISOLATION_GAP_REMEDIATION` (سد فجوة عزل الموديولات الحديثة + ترحيل RLS لملف متتبع + اختباراتها).
