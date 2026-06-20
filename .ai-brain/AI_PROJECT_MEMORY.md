@@ -2299,3 +2299,16 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **التعديلات الهيكلية والأمنية**: DDL: NO | PRODUCTION_DATA_CHANGED: NO | PRODUCTION_DEPLOYED: NO | RLS_CHANGED: NO.
 * **Git**: namaweb (commit جديد بمسارات صريحة — login.html/app.js مستثناة) + parent — pushed بلا force.
 * **المرحلة التالية الموصى بها**: موافقة [ضبط facility_type على الإنتاج + نشر محكوم]، ثم بقية P1 (محرك الترحيل المحاسبي / اعتماد المختبر-الأشعة / FEFO / الأمن P1) أو Wave2B بموافقة DDL.
+
+### Phase 120: P1 Facility Type Production Seed + Fail-Closed Deploy
+* **تاريخ المرحلة**: 2026-06-20
+* **الحالة (Status)**: `P1_FACILITY_TYPE_PRODUCTION_SEED_AND_FAIL_CLOSED_DEPLOY_COMPLETED` — PASS، PRODUCTION_DEPLOYED: YES
+* **الملفات الجديدة**: `docs/P1_FACILITY_TYPE_PRODUCTION_SEED_PREFLIGHT_AR.md`, `docs/P1_FACILITY_TYPE_PRODUCTION_SEED_AND_DEPLOY_AR.md`, `docs/P1_FACILITY_ENTITLEMENT_FAIL_CLOSED_PRODUCTION_VERIFICATION_AR.md` + تحديث `docs/P1_FACILITY_ENTITLEMENT_FAIL_CLOSED_FINAL_CLOSEOUT_AR.md`.
+* **Preflight (read-only)**: مستأجر واحد (id=1، منشأة واحدة)، `facility_type` UNSET، يُخزَّن في company_settings (PK=setting_key، عام). التوصية: `large_hospital` (منشأة مفردة كاملة الموديولات؛ `'*'` → صفر كسر).
+* **تغيير بيانات محدود**: `INSERT facility_type='large_hospital' (tenant_id=1)` فقط (company_settings 8→9 صفاً). rollback=`DELETE ... setting_key='facility_type'`. لا مساس بمرضى/مالية/مخزون/صلاحيات؛ لا DDL.
+* **نشر fail-closed**: نسخة احتياطية `*.bak.20260620_062407` → scp لـ server.js (d7e74eeb) + facility_entitlements.js (dc9b4f6d) من namaweb `3e1c0cd` → node --check OK → pm2 restart → health 200/301.
+* **التحقق**: لا كسر (large_hospital → 12/12 مسار حساس مسموح)؛ fail-closed فعّال (missing/read-error→403، unknown→422، تجاوز pharmacy_only+lab→403)؛ login 401، protected-no-session 401؛ **RLS P0 سليم** (0→3→0)؛ Redis PONG (88 مفتاح). تحقق 403 الحيّ لمستأجر مقيّد غير متاح بلا تغيير بيانات إضافي (موثّق؛ أُثبت عبر الكود المنشور + الاختبارات).
+* **Rollback**: مُجهّز (بيانات + ملفات) ولم يُستخدم.
+* **التعديلات الهيكلية والأمنية**: DDL: NO | PRODUCTION_DATA_CHANGED: YES (facility_type فقط) | PRODUCTION_DEPLOYED: YES | RLS_CHANGED: NO.
+* **Git**: namaweb `3e1c0cd` (منشور سابقاً) / parent (هذا الالتزام) — pushed بلا force.
+* **المرحلة التالية الموصى بها**: بقية P1 (محرك الترحيل المحاسبي / فصل اعتماد المختبر-الأشعة / FEFO الصيدلية / الأمن P1: CORS/CSRF/أسرار/قفل حساب)، أو `WAVE2B` بموافقة DDL، أو تحقق 403 حيّ عند أول عميل مقيّد.
