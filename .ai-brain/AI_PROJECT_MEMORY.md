@@ -2230,7 +2230,7 @@ NamaMedical/ (المستودع الرئيسي الأب)
 
 ### Phase 115: P0 app.tenant_id RLS Binding Completion
 * **تاريخ المرحلة**: 2026-06-20
-* **الحالة (Status)**: `P0_APP_TENANT_ID_RLS_BINDING_COMPLETED` (الكود) / `PENDING_CONTROLLED_DEPLOY` (الإنتاج)
+* **الحالة (Status)**: `P0_APP_TENANT_ID_RLS_BINDING_COMPLETED_AND_DEPLOYED` — **PASS** (نُشر على الإنتاج بنجاح، الحاجز مُغلق)
 * **الملفات المعدّلة**: `namaweb/db_postgres.js` (AsyncLocalStorage + wrapper لـ pool.query + تصدير)، `namaweb/server.js` (import tenantStore + middleware سياق المستأجر + SET LOCAL في معاملة الإفراغ).
 * **الملفات الجديدة**:
   - `namaweb/cross_tenant_app_tenant_binding_test.js` (9/9 PASS).
@@ -2240,5 +2240,7 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **التحقق read-only من الإنتاج** (بمستخدم التطبيق `nama_medical_app`): patients = 0 بلا سياق → **3** مع `app.tenant_id=1` → 0 لمستأجر 999 → 0 بعد إعادة الضبط. يثبت أن الآلية تحل الحاجز وأن العزل يُفرَض على مستوى DB. لم تتغيّر بيانات/مخطط، لم يُنشر.
 * **مخاطر متبقية**: (1) الإنتاج لا يزال على الكود القديم → التطبيق يرى 0 صف في الـ13 جدولاً حتى النشر (مخفّف: بيانات seed فقط). (2) تكلفة أداء (اتصال لكل query عند وجود سياق) تُراجَع. (3) سياسات RLS لم تُمسّ.
 * **التعديلات الهيكلية والأمنية**: DB_CHANGED: NO | DDL: NO | RLS_CHANGED: NO | PRODUCTION_DEPLOYED: NO | PRODUCTION_DATA_CHANGED: NO.
-* **Git**: namaweb (commit جديد) + parent (هذا الالتزام) — pushed، بلا force.
-* **المرحلة التالية الموصى بها**: `CONTROLLED_CODE_DEPLOY` (نشر محكوم بموافقة لإغلاق الحاجز على الإنتاج فعلياً)، ثم تقارير الخيار (ب) (Modules Inventory، API Audit، Business Logic، Facility Entitlements، Data Flow Map، Testing Coverage، + مخرجات Stitch) مع إعادة استخدام GLOBAL_AUDIT_01–15.
+* **النشر المحكوم (تم بموافقة صريحة)**: نسخة احتياطية `*.bak.20260620_052651` → scp للملفين → `node --check` OK → `pm2 restart` (online) → health 200/UP + 301 redirect → Redis ACTIVE (مفاتيح 55→71، لا MemoryStore) → **معيار القبول**: `patients` عبر الكود المنشور بمستخدم التطبيق = 0 بلا سياق → **3** مع tenant 1 → 0 لـ tenant 999. ROLLBACK_REQUIRED: NO. لا DDL، لا تغيير بيانات.
+* **تنقية النطاق**: أُزيلت 8 ملفات Stitch/UI_REDESIGN من التتبّع (`git rm --cached`، تبقى على القرص) لأنها دخلت commit P0 بالخطأ عبر `git add docs/`؛ تُعاد عمداً في مرحلة Stitch لاحقاً.
+* **Git**: namaweb `c1ef62b` + parent (commitات الإغلاق والتنقية) — pushed، بلا force.
+* **المرحلة التالية الموصى بها**: الخيار (ب) — التقارير غير المغطّاة (Modules Inventory، API Audit، Business Logic، Facility Entitlements، Data Flow Map، Testing Coverage) ثم مخرجات Stitch، مع إعادة استخدام GLOBAL_AUDIT_01–15. (ملاحظة: Wave 2B Class A DDL ما زالت معلّقة بموافقة منفصلة).
