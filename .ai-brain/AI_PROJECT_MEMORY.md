@@ -2244,3 +2244,24 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **تنقية النطاق**: أُزيلت 8 ملفات Stitch/UI_REDESIGN من التتبّع (`git rm --cached`، تبقى على القرص) لأنها دخلت commit P0 بالخطأ عبر `git add docs/`؛ تُعاد عمداً في مرحلة Stitch لاحقاً.
 * **Git**: namaweb `c1ef62b` + parent (commitات الإغلاق والتنقية) — pushed، بلا force.
 * **المرحلة التالية الموصى بها**: الخيار (ب) — التقارير غير المغطّاة (Modules Inventory، API Audit، Business Logic، Facility Entitlements، Data Flow Map، Testing Coverage) ثم مخرجات Stitch، مع إعادة استخدام GLOBAL_AUDIT_01–15. (ملاحظة: Wave 2B Class A DDL ما زالت معلّقة بموافقة منفصلة).
+
+### Phase 116: Medical Extended Audit Gap Completion (after RLS P0 PASS)
+* **تاريخ المرحلة**: 2026-06-20
+* **الحالة (Status)**: `MEDICAL_EXTENDED_AUDIT_GAP_COMPLETION_COMPLETED` — PASS
+* **الملفات الجديدة** (8 تقارير، أُعيد استخدام GLOBAL_AUDIT_01–15 كمراجع بلا تكرار):
+  - `docs/MEDICAL_MODULES_AND_FEATURES_INVENTORY_AR.md`
+  - `docs/MEDICAL_API_ENDPOINTS_AUDIT_AR.md`
+  - `docs/MEDICAL_BUSINESS_LOGIC_AUDIT_AR.md`
+  - `docs/FACILITY_TYPE_ENTITLEMENTS_AUDIT_AR.md`
+  - `docs/MEDICAL_DATA_FLOW_MAP_AR.md`
+  - `docs/MEDICAL_TESTING_COVERAGE_AUDIT_AR.md`
+  - `docs/MEDICAL_EXTENDED_AUDIT_GAP_COMPLETION_SUMMARY_AR.md`
+  - `docs/MEDICAL_EXTENDED_AUDIT_FINAL_CLOSEOUT_AR.md`
+* **أهم الاكتشافات الجديدة (بأدلة)**:
+  - 370 مساراً، 212 منها requireAuth-only؛ التغطية المؤمّنة على الموديولات الأساسية + Wave1/Wave2.
+  - **إنفاذ نوع المنشأة على الـ backend مفقود تماماً** — `FACILITY_ALLOWED` في app.js فقط (3 أنواع: hospital/health_center/clinic مقابل 10 مطلوبة)، صفر إشارات في server.js، لا نموذج FacilityType في DB (tenants به plan_type فقط). خطر تجاوز عبر API. P1 معماري.
+  - فجوات منطق عمل P1: محرك ترحيل محاسبي آلي، دورة تأمين/مطالبات (NPHIES/EDI)، FEFO الصيدلية + منع منتهٍ، فصل اعتماد المختبر/الأشعة، دورة مشتريات (3-way/GRN).
+  - Class A (بنك الدم/الموافقات/الباقات) عزل ناقص — Wave2B بموافقة DDL.
+* **القواعد الحرجة المُحقّقة**: الوصفة لا تنقص المخزون قبل الصرف ✅؛ عزل المستأجرين بعد P0 ✅.
+* **لا تغييرات إنتاج، لا DDL، لا أسرار، UTF-8 PASS.**
+* **المرحلة التالية الموصى بها**: `P1_GLOBAL_PRODUCT_MATURITY_REMEDIATION` (استحقاقات المنشأة backend + الأمن P1 + الترحيل المحاسبي + اعتماد المختبر/الأشعة + FEFO)، أو `P0_TENANT_ISOLATION_WAVE2B_CLASSA` بموافقة DDL. Stitch مؤجّل حتى قرار صريح.
