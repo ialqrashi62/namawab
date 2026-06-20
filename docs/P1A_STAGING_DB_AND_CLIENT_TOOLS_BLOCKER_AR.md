@@ -1,6 +1,8 @@
-# P1A_STAGING_DB_AND_CLIENT_TOOLS — تقرير حظر (BLOCKER)
+# P1A_STAGING_DB_AND_CLIENT_TOOLS — تقرير حظر (BLOCKER) — **RESOLVED**
 
 > أُنشئ وفق القاعدة 11. التاريخ: 2026-06-20.
+>
+> **تحديث (RESOLVED 2026-06-20):** اعتمد المستخدم **الخيار B (عنقود محلي منفصل على 5433)**. تم التجهيز بنجاح: عنقود `nama_medical_staging_rehearsal @127.0.0.1:5433` (initdb منفصل) + استيراد schema-only (148 جدولاً) + Gate 6 PASS. الحالة الآن `STAGING_DB_AND_CLIENT_TOOLS_READY`. التفاصيل في [تقرير التجهيز](P1A_STAGING_DB_AND_CLIENT_TOOLS_PROVISIONING_REPORT_AR.md). ما يلي محفوظ كسجلّ تاريخي للحظر قبل حلّه.
 
 ## الحظر
 **Gate 5/6 — إنشاء قاعدة staging معزولة والتحقق منها: لم يكتمل.**

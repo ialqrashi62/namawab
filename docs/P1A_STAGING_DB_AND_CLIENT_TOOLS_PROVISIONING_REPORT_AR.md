@@ -1,8 +1,8 @@
 # P1A_STAGING_DB_AND_CLIENT_TOOLS — تقرير التجهيز
 
 > المرحلة: `PROVISION_ISOLATED_STAGING_DB_AND_CLIENT_TOOLS`. التاريخ: 2026-06-20.
-> الهدف: رفع حظر Gate 1 السابق بتجهيز قاعدة staging معزولة وأدوات العميل، بلا أي DDL/seed على الإنتاج.
-> **لم يُنفَّذ:** أي DDL/seed محاسبي · أي تغيير بيانات · أي كتابة على عنقود الإنتاج · توصيل المحرك · نشر تطبيق.
+> **النتيجة: `STAGING_DB_AND_CLIENT_TOOLS_READY` — حظر Gate 1 السابق مرفوع.**
+> **لم يُنفَّذ:** أي DDL/seed محاسبي · أي تغيير بيانات إنتاج · أي كتابة على عنقود الإنتاج · توصيل المحرك · نشر تطبيق · نسخ صفوف بيانات إلى staging (schema-only فقط).
 
 ## ACTIVE_SKILLS
 ```text
@@ -16,75 +16,79 @@ MEDICAL_REPORTS_HYGIENE_AND_CLOSEOUT_SKILL_AR · MEDICAL_ARABIC_UTF8_REPORTING_S
 ## ملخص تنفيذي
 | البند | الحالة |
 |---|---|
-| أدوات العميل (psql/pg_dump/pg_restore) | ✅ **READY** — PostgreSQL 16.14 في `C:\Program Files\PostgreSQL\16\bin` |
-| هوية الإنتاج (read-only) | ✅ مؤكَّدة: `nama_medical_web` @ localhost:5432، user `postgres` (superuser)، PG 16.14، NODE_ENV=production |
-| تصدير schema-only من الإنتاج | ✅ تم (read-only) → خارج المستودع: `C:\Users\ice\nama_staging_artifacts\prod_schema_only.sql` |
-| قاعدة staging معزولة | ⛔ **غير مُجهَّزة** — موقوفة (انظر BLOCKER) |
+| أدوات العميل (psql/pg_dump/pg_restore/initdb/pg_ctl) | ✅ PostgreSQL 16.14 (`C:\Program Files\PostgreSQL\16\bin`) |
+| هوية الإنتاج (read-only) | ✅ `nama_medical_web` @localhost:5432، postgres (superuser)، PG 16.14، NODE_ENV=production |
+| تصدير schema-only (read-only) | ✅ `C:\Users\ice\nama_staging_artifacts\prod_schema_only.sql` (148 جدولاً، بلا بيانات، خارج git) |
+| **قاعدة staging معزولة** | ✅ **مُجهَّزة** — عنقود منفصل عبر initdb على المنفذ **5433** |
+| التحقق من الجاهزية (Gate 6) | ✅ كل الفحوص ناجحة |
 | القالب الآمن للبيئة | ✅ [docs/staging/.env.staging.example](staging/.env.staging.example) (بلا أسرار) |
-| الحالة النهائية | `STAGING_DB_AND_CLIENT_TOOLS_BLOCKED` (أدوات جاهزة؛ القاعدة المعزولة تنتظر موافقة) |
+| الحالة النهائية | **`STAGING_DB_AND_CLIENT_TOOLS_READY`** |
 
 ---
 
 ## Gate 0 — المستودع: PASS
-HEAD = `2194012` (سليل آمن)، متزامن 0/0، كل وثائق الحظر السابقة + ملفات candidate موجودة. backup: branch/tag `backup/before-p1a-staging-provision` عند 2194012.
+HEAD سليل آمن لـ `2194012`، متزامن مع origin، كل الوثائق/الملفات المرشّحة موجودة. backup: `backup/before-p1a-staging-provision`.
 
-## Gate 1 — اكتشاف الأدوات
-| أداة | الحالة |
-|---|---|
-| psql / pg_dump / pg_restore / createdb / dropdb | ✅ PostgreSQL 16.14 (`C:\Program Files\PostgreSQL\16\bin`) — **Option B: عميل مثبّت موجود** |
-| initdb / pg_ctl | ✅ متاحان (يتيحان عنقوداً منفصلاً) |
-| node / npm / pg driver | ✅ node v24.14، npm 11.9، pg 8.18 |
-| docker / docker-compose | ✅ مثبّتان لكن **الـ daemon متوقف** (لا حاوية الآن) |
-| منفذ 5432 | ✅ خادم Postgres يستمع (= الإنتاج المحلي) |
-**نتيجة:** جزء الأدوات من حظر Gate 1 السابق **مرفوع** — psql/pg_dump متاحان.
+## Gate 1 — الأدوات: PASS
+psql/pg_dump/pg_restore/createdb/initdb/pg_ctl (PostgreSQL 16.14) — **Option B (عميل مثبّت موجود)**. node v24 + pg 8.18. Docker مثبّت لكن daemon متوقف (لذا اعتُمد العنقود المنفصل بدل الحاوية).
 
 ## Gate 2 — اكتشاف هدف staging
-لا توجد ملفات/متغيّرات staging: `.env.staging`/`.env.local`/`.env.test` غير موجودة؛ لا `STAGING_DATABASE_URL`/`DATABASE_URL_STAGING`/`PGHOST_STAGING`. لا CI configs (فقط `docs/dev-tooling/docker-compose.dev.yml`). ⇒ **لا قاعدة staging قائمة**؛ يلزم إنشاؤها.
+لا قاعدة/متغيّرات staging قائمة ⇒ أُنشئت جديدة.
 
 ## Gate 3 — حارس هوية الإنتاج (READ-ONLY)
-```
-db=nama_medical_web  user=postgres  server_addr=::1  port=5432  version=PostgreSQL 16.14
-role postgres: createdb=true  super=true
-databases on cluster: nama_medical_web , postgres   (لا staging)
-```
+`nama_medical_web` @5432، postgres superuser، PG 16.14. القواعد على العنقود: `nama_medical_web`, `postgres` فقط.
 
-## Gate 4 — تصدير schema-only (READ-ONLY) — تم
-- `pg_dump --schema-only --no-owner --no-privileges` من `nama_medical_web`.
-- المخرج (خارج git، غير ملتزَم): `C:\Users\ice\nama_staging_artifacts\prod_schema_only.sql` (≈240KB، **148 جدولاً**، بلا أي صفوف بيانات).
-- **اكتشاف مهم**: الإنتاج **يحتوي فعلاً** كل جداول `finance_*` الثمانية، و`finance_journal_lines.debit/credit` من نوع **`real`** في الإنتاج — ما يؤكّد أن فجوة نوع المال حقيقية في الإنتاج ويبرّر candidate DDL. (تصحيح لافتراض سابق بأن جداول الإنتاج قد لا تكون منشأة.)
+## Gate 4 — schema-only export (READ-ONLY): DONE
+`pg_dump --schema-only --no-owner --no-privileges` ⇒ 148 جدولاً، بلا صفوف بيانات، خارج المستودع.
+**اكتشاف:** الإنتاج يحوي فعلاً كل جداول `finance_*` الثمانية و`finance_journal_lines.debit/credit` من نوع **`real`** — يؤكّد فجوة نوع المال في الإنتاج.
 
-## Gate 5/6 — إنشاء/استيراد staging والتحقق: BLOCKED
-- **Docker daemon متوقف** ⇒ لا حاوية معزولة الآن.
-- **إنشاء قاعدة على عنقود الإنتاج (createdb @ 5432) رُفض** بوّابياً (auto-mode) لأنه كتابة على بنية الإنتاج وتعارض مع حد Gate 3 (read-only فقط على الإنتاج) ومتطلّب العزل. لم أحاول الالتفاف.
-- لم أُنشئ عنقوداً منفصلاً تلقائياً (initdb على 5433) لأنه إجراء بنية تحتية ثقيل يستحق موافقة صريحة بعد إشارة الرفض.
+## Gate 5 (Option B المعتمد من المستخدم) — إنشاء عنقود staging معزول: DONE
+- `initdb -D C:/Users/ice/nama_pg_staging_data -U postgres --auth=trust --encoding=UTF8` ⇒ عنقود جديد.
+- `pg_ctl ... -o "-p 5433" -w start` ⇒ خادم يستمع على **127.0.0.1:5433 و ::1:5433** (PID مستقل، مجلد بيانات مستقل، منفصل تماماً عن إنتاج 5432).
+- `createdb nama_medical_staging_rehearsal` على 5433.
+- استيراد `prod_schema_only.sql` ⇒ **148 جدولاً، 8 جداول finance**، بلا أخطاء.
 
-تفاصيل ومسارات الحل في [P1A_STAGING_DB_AND_CLIENT_TOOLS_BLOCKER_AR.md](P1A_STAGING_DB_AND_CLIENT_TOOLS_BLOCKER_AR.md).
+## Gate 6 — التحقق من جاهزية staging: PASS
+| فحص | نتيجة |
+|---|---|
+| الهوية | `db=nama_medical_staging_rehearsal port=5433` (ليست الإنتاج) |
+| المخطط الأساسي موجود | 148 جدولاً |
+| حالة هدف candidate (غائبة، جاهزة للبروفة) | `debit=real` · لا `uq_coa_tenant_code` · لا `uq_journal_idempotency` · لا `source_type` · لا `coa.tenant_id` · لا `fk_jl_account` (الكل = 0) |
+| المعاملات + التراجع | `tx_rollback_ok=true` |
+| لا بيانات إنتاج في staging | finance_chart_of_accounts/journal_entries/journal_lines = 0 صف (schema-only) |
 
-## Gate 7 — خطة الاستئناف (بعد تجهيز staging)
-بمجرّد توفّر قاعدة staging معزولة (`nama_medical_staging_rehearsal`) واستيراد schema:
+## إدارة عنقود staging (تشغيل/إيقاف)
 ```bash
-PGBIN="/c/Program Files/PostgreSQL/16/bin"; export PGPASSWORD=<staging_pw>
-# 1) DDL rehearsal
-"$PGBIN/psql.exe" -h localhost -p 5433 -U postgres -d nama_medical_staging_rehearsal -v ON_ERROR_STOP=1 -f docs/accounting_candidates/accounting_ddl_candidate_up.sql
-# 2) validate
-"$PGBIN/psql.exe" ... -f docs/accounting_candidates/accounting_ddl_candidate_validate.sql
-# 3) CoA seed
-"$PGBIN/psql.exe" ... -f docs/accounting_candidates/medical_coa_seed_candidate.sql
-# 4) mapping seed
-"$PGBIN/psql.exe" ... -f docs/accounting_candidates/account_mapping_seed_candidate.sql
-# 5) rollback rehearsal
-"$PGBIN/psql.exe" ... -f docs/accounting_candidates/accounting_ddl_candidate_down.sql
-# 6) app compatibility checks (against staging, بلا توصيل المحرك)
+PGBIN="/c/Program Files/PostgreSQL/16/bin"; export MSYS2_ARG_CONV_EXCL="*"
+# تشغيل:
+"$PGBIN/pg_ctl.exe" -D "C:/Users/ice/nama_pg_staging_data" -o "-p 5433" -l "C:/Users/ice/nama_pg_staging.log" -w start
+# إيقاف لطيف:
+"$PGBIN/pg_ctl.exe" -D "C:/Users/ice/nama_pg_staging_data" stop -m fast
+# اتصال:
+"$PGBIN/psql.exe" -h 127.0.0.1 -p 5433 -U postgres -d nama_medical_staging_rehearsal
 ```
-لا تُنفَّذ Gates 2–5 لمرحلة DDL السابقة إلا بتعليمة صريحة بالمتابعة بعد جاهزية staging.
+ملاحظة: العنقود وملف schema الخام خارج المستودع (غير ملتزَمين). أداة الاتصال للملفات تستخدم مسارات Windows (`C:/...`) مع `MSYS2_ARG_CONV_EXCL="*"`.
+
+## Gate 7 — خطة الاستئناف (بروفة DDL — لا تُنفَّذ إلا بتعليمة صريحة)
+```bash
+PGBIN="/c/Program Files/PostgreSQL/16/bin"; export MSYS2_ARG_CONV_EXCL="*"
+P(){ "$PGBIN/psql.exe" -h 127.0.0.1 -p 5433 -U postgres -d nama_medical_staging_rehearsal -v ON_ERROR_STOP=1 -f "$1"; }
+P "C:/Users/.../docs/accounting_candidates/accounting_ddl_candidate_validate.sql"   # preflight
+P "C:/Users/.../docs/accounting_candidates/accounting_ddl_candidate_up.sql"          # DDL
+P "C:/Users/.../docs/accounting_candidates/medical_coa_seed_candidate.sql"           # CoA
+P "C:/Users/.../docs/accounting_candidates/account_mapping_seed_candidate.sql"       # mapping
+# ثم: validate ثانية، اختبارات المحرك (node accounting_posting_test.js)، حالات ترحيل وهمية، rollback rehearsal.
+```
 
 ## الحالة
 ```text
-FINAL_STATUS: STAGING_DB_AND_CLIENT_TOOLS_BLOCKED
-CLIENT_TOOLS: READY (psql/pg_dump/pg_restore 16.14)
-PROD_IDENTITY_CONFIRMED: YES (nama_medical_web @5432, read-only)
-SCHEMA_ONLY_EXPORT: DONE (148 tables, out-of-repo, no data rows)
-ISOLATED_STAGING_DB: NOT_PROVISIONED (Docker down + prod-cluster write denied)
-DDL_EXECUTED: NO | DATA_CHANGED: NO | PRODUCTION_DEPLOYED: NO | ENGINE_WIRED: NO | FORCE_PUSH: NO
-NEXT_REQUIRED_ACTION: APPROVE_STAGING_PROVISIONING_METHOD (Docker | separate local cluster :5433 | createdb on local cluster)
+FINAL_STATUS: STAGING_DB_AND_CLIENT_TOOLS_READY
+CLIENT_TOOLS: READY (PostgreSQL 16.14)
+PROD_IDENTITY_CONFIRMED: YES (read-only)
+SCHEMA_ONLY_EXPORT: DONE (148 tables, no data, out-of-repo)
+ISOLATED_STAGING_DB: PROVISIONED (separate cluster, nama_medical_staging_rehearsal @127.0.0.1:5433)
+STAGING_NOT_PRODUCTION: CONFIRMED
+DDL_EXECUTED: NO | DATA_CHANGED: NO | PROD_DATA_COPIED: NO | PRODUCTION_DEPLOYED: NO | ENGINE_WIRED: NO | FORCE_PUSH: NO
+PREVIOUS_BLOCKER (GATE_1_STAGING_DB_READINESS): REMOVED
+NEXT_REQUIRED_ACTION: RESUME_DDL_AND_COA_SEED_STAGING_REHEARSAL (Gates 2-5 of the DDL phase) — awaiting explicit go
 ```
