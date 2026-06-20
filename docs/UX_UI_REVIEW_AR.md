@@ -23,7 +23,7 @@
 - Batches B/C/D/E **مطبّقة**؛ **Batch A (استقبال/مواعيد/بوابة) PENDING** (يحتاج سحب Stitch MCP — مؤجّل، انظر [P1_STITCH_DESIGN_TRANSFER_FINAL_CLOSEOUT_AR.md](P1_STITCH_DESIGN_TRANSFER_FINAL_CLOSEOUT_AR.md)).
 
 ## 5. تجربة الأدوار
-الطبيب/الاستقبال/التمريض/الإدارة: جيدة. **مالك SaaS**: لا تجربة مخصصة (لا control center). 
+الطبيب/الاستقبال/التمريض/الإدارة: جيدة. **مالك SaaS**: لا تجربة مخصصة (لا control center).
 
 ## القرار
 `UX_UI_STATUS: WARNING` (بسبب فجوة WCAG التي تعيق الشراء المؤسسي). الواجهة غنية ومتوطّنة بامتياز — لا إعادة بناء؛ إصلاحات مركّزة: الإتاحة، بحث الموبايل، pagination، focus trap، + Batch A عند توفّر MCP.
