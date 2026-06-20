@@ -6438,12 +6438,22 @@ app.post('/api/invoices/:id/refund', requireAuth, requireRole('invoices', 'accou
         if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
 
         const refundNum = 'REF-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-6);
-        await pool.query(
-            "INSERT INTO invoices (patient_id, patient_name, total, description, service_type, payment_method, invoice_number, created_by, discount_reason) VALUES ($1,$2,$3,$4,'Refund',$5,$6,$7,$8)",
-            [invoice.patient_id, invoice.patient_name, -(parseFloat(amount)), 'Refund for ' + invoice.invoice_number + ': ' + reason, invoice.payment_method, refundNum, req.session.user?.display_name, reason]
+        const createdBy = req.session.user?.display_name || '';
+        // --- FAIL-CLOSED: refund invoice + refund posting commit together (or both rollback). Flag OFF => invoice only. ---
+        // tenant/facility مستمدّان من الفاتورة الأصلية (عزل المستأجر).
+        const { tenantId } = getRequestTenantContext(req);
+        const pctx = { tenantId: invoice.tenant_id || tenantId, facilityId: invoice.facility_id || 0, branchId: 0, createdBy };
+        const fromBank = /bank|تحويل|card|بطاقة/i.test(invoice.payment_method || '');
+        await postingService.runEventWithPosting(pool, pctx,
+            async (c) => {
+                const r = await c.query(
+                    "INSERT INTO invoices (patient_id, patient_name, total, description, service_type, payment_method, invoice_number, created_by, discount_reason, tenant_id, facility_id) VALUES ($1,$2,$3,$4,'Refund',$5,$6,$7,$8,$9,$10) RETURNING id",
+                    [invoice.patient_id, invoice.patient_name, -(parseFloat(amount)), 'Refund for ' + invoice.invoice_number + ': ' + reason, invoice.payment_method, refundNum, createdBy, reason, pctx.tenantId || null, pctx.facilityId || null]);
+                return { id: r.rows[0].id };
+            },
+            async (c, ref) => postingService.postRefund(c, { id: ref.id, amount: parseFloat(amount) }, pctx, { fromBank })
         );
-
-        logAudit(req.session.user?.id, req.session.user?.display_name, 'REFUND', 'Invoice', refundNum + ' amount: ' + amount + ' reason: ' + reason, req.ip);
+        logAudit(req.session.user?.id, createdBy, 'REFUND', 'Invoice', refundNum + ' amount: ' + amount + ' reason: ' + reason, req.ip);
         res.json({ success: true, refund_number: refundNum });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
