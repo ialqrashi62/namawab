@@ -19,6 +19,10 @@ async function query(sql, params = []) {
 function getPool() { return pool; }
 
 async function initDatabase() {
+    if (process.env.NODE_ENV === 'production') {
+        console.log('[DB INFO] Production environment detected. Skipping table initialization and seeding.');
+        return;
+    }
     const client = await pool.connect();
     try {
         // ===== CORE TABLES =====

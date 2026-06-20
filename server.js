@@ -55,18 +55,34 @@ if (process.env.REDIS_URL || process.env.REDIS_HOST) {
         });
         redisClient.on('error', (err) => {
             console.warn('[REDIS WARNING] Could not connect to Redis, session store falling back to MemoryStore:', err.message);
+            if (process.env.NODE_ENV === 'production') {
+                console.error('[CRITICAL] Redis connection error in production. Crashing to prevent insecure fallback.');
+                process.exit(1);
+            }
         });
         redisClient.connect().then(() => {
             console.log('[REDIS SUCCESS] Connected to Redis successfully for distributed sessions.');
         }).catch(err => {
             console.warn('[REDIS WARNING] Failed to connect to Redis server, falling back to MemoryStore:', err.message);
+            if (process.env.NODE_ENV === 'production') {
+                console.error('[CRITICAL] Redis connection failed in production. Crashing.');
+                process.exit(1);
+            }
         });
         sessionStore = new RedisStore({ client: redisClient, prefix: "nama_session:" });
     } catch (e) {
         console.warn('[SESSION WARNING] Redis dependencies or connection failed, falling back to MemoryStore:', e.message);
+        if (process.env.NODE_ENV === 'production') {
+            console.error('[CRITICAL] Redis setup failed in production. Crashing.');
+            process.exit(1);
+        }
     }
 } else {
     console.log('[SESSION INFO] No Redis configuration detected, using default MemoryStore for sessions.');
+    if (process.env.NODE_ENV === 'production') {
+        console.error('[CRITICAL] Redis configuration is required in production. MemoryStore fallback is forbidden.');
+        process.exit(1);
+    }
 }
 
 const sessionConfig = {
