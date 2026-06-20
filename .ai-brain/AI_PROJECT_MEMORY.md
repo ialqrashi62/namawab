@@ -2287,3 +2287,15 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **خطر متبقٍ موثّق**: fail-open (نوع غير مضبوط→permissive، وخطأ قراءة→تمرير) — يُحوَّل لاحقاً إلى fail-closed للمسارات الحساسة بعد ضمان facility_type لكل tenant (كود+اختبارات منفصلة).
 * **التعديلات الهيكلية والأمنية**: DDL: NO | PRODUCTION_DATA_CHANGED: NO | RLS_CHANGED: NO | PRODUCTION_DEPLOYED: YES (code-only). لا لمس Wave2B، لا Stitch، login.html/app.js مستثناة من النشر.
 * **المرحلة التالية الموصى بها**: تحويل fail-open→fail-closed للمسارات الحساسة، ثم بقية P1 (الترحيل المحاسبي/اعتماد المختبر-الأشعة/FEFO/الأمن P1)، أو Wave2B بموافقة DDL.
+
+### Phase 119: P1 Facility Entitlement Fail-Closed Hardening
+* **تاريخ المرحلة**: 2026-06-20
+* **الحالة (Status)**: `P1_FACILITY_ENTITLEMENT_FAIL_CLOSED_HARDENING_COMPLETED` (code) — PASS؛ **النشر موقوف بشرط** (DEPLOY_PENDING_APPROVAL).
+* **الملفات المعدّلة**: `namaweb/facility_entitlements.js` (unset→missing بدل permissive؛ unmapped→unclassified؛ reports أصبح حساساً + أُضيف لمجموعات الأنواع؛ unclassified default-deny حتى '*'؛ isCommonModule؛ patient مفرد→patients)، `namaweb/server.js` (الحارس fail-closed: getFacilityType يعيد {value,error}؛ خطأ قراءة/missing على حساس→403؛ إزالة fail-open العام catch→next).
+* **الملفات الجديدة/المحدّثة**: `namaweb/cross_tenant_facility_failclosed_test.js` (50/50)؛ تحديث `cross_tenant_facility_entitlement_test.js` (41/41)؛ 5 تقارير `P1_FACILITY_ENTITLEMENT_FAIL_CLOSED_*_AR.md`.
+* **السياسة**: bootstrap(health/auth)+common(dashboard/settings/messaging/...) تمرّ؛ المسارات الحساسة (سريري/مالي/صيدلية/مختبر/أشعة/مخزون/HR/reports/unclassified) → fail-closed عند missing/unknown(422)/read-error/غير مستحق. تجاوز الرابط المباشر محجوب (قرار على req.path).
+* **الاختبارات**: 50/50 + 41/41 + انحدار 21/21 (RLS P0 binding 9/9 — **لا تراجع**). node --check OK.
+* **⚠️ شرط النشر الحرج**: الإنتاج `facility_type=unset` → نشر هذا الكود يحجب كل المسارات الحساسة (403). لذا النشر مشروط بـ: (1) ضبط facility_type على الإنتاج (تغيير بيانات + موافقة منفصلة)، (2) ثم نشر محكوم. أُوقِف بعد commit/push كما تتطلب القواعد.
+* **التعديلات الهيكلية والأمنية**: DDL: NO | PRODUCTION_DATA_CHANGED: NO | PRODUCTION_DEPLOYED: NO | RLS_CHANGED: NO.
+* **Git**: namaweb (commit جديد بمسارات صريحة — login.html/app.js مستثناة) + parent — pushed بلا force.
+* **المرحلة التالية الموصى بها**: موافقة [ضبط facility_type على الإنتاج + نشر محكوم]، ثم بقية P1 (محرك الترحيل المحاسبي / اعتماد المختبر-الأشعة / FEFO / الأمن P1) أو Wave2B بموافقة DDL.
