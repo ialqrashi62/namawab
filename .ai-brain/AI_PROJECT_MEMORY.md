@@ -2371,3 +2371,13 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **الالتزام**: لا DDL/seed/تغيير بيانات/نشر؛ لم يُربط المحرك بالفواتير؛ لم تُلمس `.gitmodules` ولا `df893ab`. repo متزامن (01908aa).
 * **درس حوكمة**: جلستان متوازيتان تعملان على نفس المستودع → التحقق من وجود المخرجات قبل البدء يمنع التكرار/التضارب (R17).
 * **المرحلة التالية الموصى بها**: انتظار موافقة `DDL_AND_COA_SEED_APPROVAL` لتنفيذ rehearsal ثم الإنتاج المحكوم؛ أو `تسوية تباين RLS (R1)`. **توحيد العمل على جلسة/نسخة واحدة موصى به بشدة.**
+
+### Phase 126: P1_ACCOUNTING_DDL_AND_COA_SEED_REHEARSAL — بروفة معزولة (PASS)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `REHEARSAL_PASS_PRODUCTION_APPROVAL_REQUIRED` | الإنتاج لم يُلمَس.
+* **المنهج**: قاعدة بروفة منفصلة قابلة للحذف `nama_acct_rehearsal` (نفس خادم PG16 المحلي، **ليست** `nama_medical_web`) بُنيت بأساس مطابق لِما قبل الترقية (CoA بلا tenant_id، debit/credit REAL)، ثم طُبّقت المرشّحات الثلاثة فوقه. أداة البروفة في `.rehearsal_tmp/` (خارج المستودع) وحُذفت بالكامل — لا أثر git، لا تعديل namaweb.
+* **النتائج**: 35 فحص بروفة + 28 وحدة محرك = **63/63 PASS، 0 FAIL**. DDL (NUMERIC + 6 فهارس + 5 قيود + idempotent re-run)؛ seed (CoA=30، map=23، idempotent)؛ validate (post-seed/scenarios = صفر)؛ سيناريوهات المحرك (توازن، **ترحيل مكرّر محظور 23505**، عزل مستأجرين، fail-closed، FK 23503، CHECK 23514، reversal)؛ rollback→REAL ثم re-apply→NUMERIC. انحدار: entitlement 41/0، failclosed 50/0، wave2 38/0، leak PASS.
+* **عدم لمس الإنتاج**: لقطة قراءة فقط لـ `nama_medical_web` قبل/بعد متطابقة (30/0/0). حارس صلب في الأداة يرفض هدف=nama_medical_web.
+* **⚠️ اكتشاف حوكمي مهم**: المرشّحات الثلاثة (DDL+CoA+mapping) **مُطبَّقة بالفعل على قاعدة التطبيق المحلية `nama_medical_web`** (CoA=30، map=23، NUMERIC، كل القيود/الفهارس) — ليس بهذه الجلسة وغير موثّق في إغلاق READINESS (يقول DDL/SEED=NO). الأرجح الجلسة الموازية (R17). **حالة الإنتاج البعيد مجهولة من هذه البيئة — يجب التحقق مستقلاً قبل أي تنفيذ.**
+* **ملاحظات للتنفيذ الإنتاجي (غير مانعة)**: ترتيب validate (فحوص tenant_id بعد up فقط)؛ ALTER TYPE يقفل/يعيد كتابة (نافذة صيانة)؛ down لا يحذف seed/جدول الخريطة (تراجع بيانات منفصل)؛ NUMERIC→REAL مفقود الدقة (يُفضّل backup restore).
+* **التقارير**: `P1_ACCOUNTING_REHEARSAL_WORKSPACE_BASELINE_AR.md` + `..._CANDIDATE_REVIEW_AR.md` + `P1_ACCOUNTING_DDL_AND_COA_SEED_REHEARSAL_REPORT_AR.md`.
+* **المرحلة التالية**: `ACCOUNTING_DDL_AND_COA_SEED_PRODUCTION_APPROVAL` (بشرط: backup + نافذة صيانة + التحقق من حالة الإنتاج البعيد + إبقاء `ACCOUNTING_POSTING_ENABLED=OFF` حتى مرحلة الربط المنفصلة).
