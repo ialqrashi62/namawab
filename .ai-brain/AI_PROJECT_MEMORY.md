@@ -2227,3 +2227,18 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **التعديلات الهيكلية والأمنية**: لا تغيير على DB/كود التطبيق/الإنتاج (توثيق ومهارات فقط).
 * **ملاحظة معلّقة**: يوجد تعديل غير ملتزم في submodule `namaweb` من مرحلة ربط `app.tenant_id` (Phase RLS wiring) لم يكتمل بعد (يحتاج patch لمعاملة الإفراغ + اختبارات) — منفصل عن هذه المرحلة.
 * **المرحلة التالية الموصى بها**: استكمال `P0_TENANT_ISOLATION_RLS_TENANT_CONTEXT_WIRING` (الحاجز الأهم)، أو تشغيل التدقيق الطبي الموسّع (تقارير C–U) إن طُلب — مع ملاحظة تداخله مع `GLOBAL_AUDIT_01–15` القائمة.
+
+### Phase 115: P0 app.tenant_id RLS Binding Completion
+* **تاريخ المرحلة**: 2026-06-20
+* **الحالة (Status)**: `P0_APP_TENANT_ID_RLS_BINDING_COMPLETED` (الكود) / `PENDING_CONTROLLED_DEPLOY` (الإنتاج)
+* **الملفات المعدّلة**: `namaweb/db_postgres.js` (AsyncLocalStorage + wrapper لـ pool.query + تصدير)، `namaweb/server.js` (import tenantStore + middleware سياق المستأجر + SET LOCAL في معاملة الإفراغ).
+* **الملفات الجديدة**:
+  - `namaweb/cross_tenant_app_tenant_binding_test.js` (9/9 PASS).
+  - `docs/P0_APP_TENANT_ID_RLS_BINDING_{01_BASELINE,02_IMPLEMENTATION,03_TEST_REPORT,04_PRODUCTION_READONLY_VERIFICATION,05_FINAL_CLOSEOUT}_AR.md`.
+* **الحل**: ربط `app.tenant_id` لكل طلب عبر AsyncLocalStorage + wrapper لـ `pool.query` (حجز اتصال → set_config → query → reset → release) + `SET LOCAL` في معاملة `pool.connect` الوحيدة. أصغر تغيير آمن يغطّي 804 موقع استدعاء دون كسر السلوك (بلا سياق → المسار الأصلي).
+* **الاختبارات**: الربط 9/9 (سياق/عزل/تتابعي/متزامن/معاملة/missing-context)؛ الانحدار 19/19 حزمة exit 0؛ `node --check` OK.
+* **التحقق read-only من الإنتاج** (بمستخدم التطبيق `nama_medical_app`): patients = 0 بلا سياق → **3** مع `app.tenant_id=1` → 0 لمستأجر 999 → 0 بعد إعادة الضبط. يثبت أن الآلية تحل الحاجز وأن العزل يُفرَض على مستوى DB. لم تتغيّر بيانات/مخطط، لم يُنشر.
+* **مخاطر متبقية**: (1) الإنتاج لا يزال على الكود القديم → التطبيق يرى 0 صف في الـ13 جدولاً حتى النشر (مخفّف: بيانات seed فقط). (2) تكلفة أداء (اتصال لكل query عند وجود سياق) تُراجَع. (3) سياسات RLS لم تُمسّ.
+* **التعديلات الهيكلية والأمنية**: DB_CHANGED: NO | DDL: NO | RLS_CHANGED: NO | PRODUCTION_DEPLOYED: NO | PRODUCTION_DATA_CHANGED: NO.
+* **Git**: namaweb (commit جديد) + parent (هذا الالتزام) — pushed، بلا force.
+* **المرحلة التالية الموصى بها**: `CONTROLLED_CODE_DEPLOY` (نشر محكوم بموافقة لإغلاق الحاجز على الإنتاج فعلياً)، ثم تقارير الخيار (ب) (Modules Inventory، API Audit، Business Logic، Facility Entitlements، Data Flow Map، Testing Coverage، + مخرجات Stitch) مع إعادة استخدام GLOBAL_AUDIT_01–15.
