@@ -2129,3 +2129,31 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - RLS_CHANGED: NO
   - PRODUCTION_READY: YES (single-tenant) / NO_FOR_MULTI_TENANT_UNTIL_P0_CLOSED
 * **المرحلة التالية الموصى بها**: `P0_TENANT_ISOLATION_GAP_REMEDIATION` (سد فجوة عزل الموديولات الحديثة + ترحيل RLS لملف متتبع + اختباراتها).
+
+### Phase 110: P0 Tenant Isolation Gap Remediation (Modern Modules — Wave 1)
+* **تاريخ المرحلة**: 2026-06-20
+* **الحالة (Status)**: `P0_TENANT_ISOLATION_GAP_REMEDIATION_READY_FOR_CONTROLLED_PRODUCTION_DEPLOY`
+* **الملفات البرمجية المعدلة**:
+  - `namaweb/server.js` — تأمين 29 مساراً للموديولات الخمسة الحديثة بـ `requireTenantScope` + فلتر `tenant_id` + ختم تلقائي + تحقق ملكية + منع IDOR.
+  - `namaweb/db_postgres.js` — تهيئة idempotent: `ADD COLUMN tenant_id/facility_id` + فهارس + backfill لـ 13 جدولاً.
+* **الملفات الجديدة**:
+  - `namaweb/cross_tenant_modern_modules_test.js` — اختبار عزل موحّد (86/86 PASS).
+  - `docs/P0_TENANT_ISOLATION_01..10_*_AR.md` — 11 تقريراً (اكتشاف، مخطط، مسارات، تصميم، backfill، معالجة كود، اختبارات، انحدار، جاهزية نشر، قرار نهائي).
+  - `docs/sql/p0_tenant_isolation_modern_modules_{up,validate,down,noop_safety_checks}.sql` — SQL متتبع (RLS + FORCE RLS + ADD COLUMN + backfill + فهارس + تحقق + تراجع).
+* **النطاق المعالَج (الموجة 1)**: السجلات الطبية، الصيدلية السريرية، إعادة التأهيل، بوابة المرضى، التغذية (12 جدول Class A، 29 مساراً).
+* **النتائج**:
+  - 18/18 حزمة عزل تنتهي بـ exit 0؛ الاختبار الجديد 86/86 PASS؛ `node --check` سليم للملفين.
+  - تحقق فعلي على قاعدة dev المحلية: 13/13 جدولاً يحمل `tenant_id` بعد التهيئة، backfill `null_tenant=0`، الخادم يقلع سليماً بالكود المعدّل.
+  - فشل e2e واحد (`ECONNRESET` في تدفق الدخول غير المعدَّل) — مشكلة بيئة/harness سابقة، **ليست انحداراً**.
+* **الموجات المتبقية ضمن P0 الأوسع** (موثّقة): الموجة 2 = بنك الدم (Class A) + telemedicine/pathology/social_work/mortuary/zatca (Class B query-gap، آمن للنشر)؛ الموجة 3 = internal_messages/cssd/cme والمتبقي.
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: NO (إنتاج) / YES (dev محلي عبر التهيئة)
+  - TABLE_COLUMN_SCHEMA_CHANGED: YES (في المصدر + dev؛ لم يُطبّق على الإنتاج)
+  - DATABASE_SECURITY_DDL_CHANGED: NO (إنتاج) — SQL مُعد للنشر المُعتمَد
+  - MIGRATIONS_RUN: NO (إنتاج)
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: NO (إنتاج) — RLS الجديدة version-controlled بانتظار النشر
+  - PRODUCTION_DEPLOYED: NO
+  - PRODUCTION_READY: YES_SINGLE_TENANT_ONLY
+  - P0_OPEN: NO_PENDING_PRODUCTION_DEPLOY (الموجة 1) / YES (الموجتان 2-3)
+* **المرحلة التالية الموصى بها**: `P0_TENANT_ISOLATION_CONTROLLED_PRODUCTION_DEPLOY_APPROVAL` (موافقة نشر مُتحكَّم به للموجة 1 + معالجة الموجتين 2-3).
