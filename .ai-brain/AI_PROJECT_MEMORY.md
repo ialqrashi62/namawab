@@ -2349,3 +2349,15 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **إعادة الفحص (autopilot)**: على كود ef1acf9: regression 22/22 حزمة PASS (binding/entitlement/fail-closed/accounting engine/كل cross-tenant)، smoke أخضر، `node --check` OK، التطبيق مستقر (restarts ثابتة، online).
 * **الالتزام**: لا force push، لا تعديل .gitmodules، لا دمج df893ab كقرار (موجود أصلاً على البعيد)، لا DDL، لا تغيير بيانات أعمال، لا تفعيل accounting، لا طباعة أسرار. الملفات خارج النطاق (app.js/login.* /walkthrough/Stitch docs) لم تُلمس (محفوظة في stash@{0} داخل namaweb + working tree للـ parent).
 * **المرحلة التالية الموصى بها**: `P1_ACCOUNTING_DDL_AND_COA_SEED_READINESS` (محاسبة) أو Batch A (Stitch UI بعد توفّر MCP).
+
+### Phase 124: Full Project Discovery & Audit Refresh (14 reports, current state ef1acf9)
+* **تاريخ المرحلة**: 2026-06-20 | الحالة: `DOCS_ONLY_PASS` (تدقيق قراءة-فقط؛ لا تعديل كود/DB/إنتاج)
+* **المخرجات (14 تقرير عربي UTF-8)**: `PROJECT_FULL_MAP_AR`, `MODULES_AND_FEATURES_INVENTORY_AR`, `FULL_SYSTEM_SCENARIOS_AR`, `DATA_FLOW_MAP_AR`, `DATABASE_SCHEMA_AUDIT_AR`, `API_ENDPOINTS_AUDIT_AR`, `RBAC_PERMISSIONS_AUDIT_AR`, `BUSINESS_LOGIC_AUDIT_AR`, `SECURITY_AUDIT_AR`, `PERFORMANCE_AUDIT_AR`, `UX_UI_REVIEW_AR`, `TESTING_COVERAGE_AUDIT_AR`, `RISKS_AND_GAPS_REGISTER_AR`, `NEXT_PHASE_ROADMAP_AR`. (تحديث للحالة الراهنة يحيل إلى GLOBAL_AUDIT_*/MEDICAL_* لتفادي التكرار).
+* **اكتشافات جوهرية على كود ef1acf9 (تحديث منذ آخر تدقيق)**:
+  - **تحسينات أمنية عولجت P1 سابقة**: حارس SESSION_SECRET في الإنتاج، rate limiter اختياري `/api`، Redis إلزامي (لا تراجع)، ربط app.tenant_id لكل طلب (binding)، استحقاقات نوع المنشأة fail-closed منشورة، least-privilege user.
+  - **محرك الترحيل المحاسبي مُوصَّل** (`accounting_posting_service.js`) خلف `ACCOUNTING_POSTING_ENABLED=OFF` (fail-closed، app.tenant_id داخل المعاملة) — لكن CoA فارغة → لا قيود.
+  - **⚠️ تباين RLS (R1, P1)**: commit توثيقية تدّعي 115 جدولاً، الفعلي على الإنتاج = **13 FORCE / 14 ENABLE / 14 policies** — يلزم تسوية فعلية.
+  - عزل ناقص متبقٍ: blood_bank/approvals/packages (Class A)؛ rate limiter `/api` opt-in؛ لا CSRF/قفل حساب.
+* **أبرز المخاطر**: R1 تباين RLS، R2 عزل بنك الدم، R5 تفعيل limiter، R6/R7 CSRF/قفل، R17 توحيد البيئتين المتوازيتين.
+* **التعديلات الهيكلية**: لا تغيير كود/DB/إنتاج (تدقيق فقط). Git: parent docs commit، بلا force.
+* **المرحلة التالية الموصى بها**: المرحلة 1 من `NEXT_PHASE_ROADMAP_AR` — **تسوية تباين RLS (R1)** ثم معالجة Class A، أو `P1_ACCOUNTING_DDL_AND_COA_SEED_READINESS`.
