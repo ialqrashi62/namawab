@@ -5011,13 +5011,22 @@ async function startServer() {
     try {
         console.log('\n  🐘 Connecting to PostgreSQL...');
         await initDatabase();
-        await insertSampleData();
-        await populateLabCatalog();
-        await populateRadiologyCatalog();
-        await addExtraLabTests();
-        await addExtraRadiology();
-        await populateMedicalServices();
-        await populateBaseDrugs();
+        // Dev-only bootstrap seeders. In production the data already exists and these run without a
+        // tenant context: under fail-closed RLS their emptiness checks read 0 rows, so they attempt
+        // INSERTs that the RLS WITH CHECK policy rejects (e.g. INSERT INTO patients with no tenant_id),
+        // aborting startup. Skip in production — consistent with initDatabase(), which already skips
+        // initialization/seeding in production.
+        if (process.env.NODE_ENV !== 'production') {
+            await insertSampleData();
+            await populateLabCatalog();
+            await populateRadiologyCatalog();
+            await addExtraLabTests();
+            await addExtraRadiology();
+            await populateMedicalServices();
+            await populateBaseDrugs();
+        } else {
+            console.log('[STARTUP] Production: skipping dev bootstrap seeders (data present; RLS-safe).');
+        }
         app.listen(PORT, () => {
             console.log(`\n  ✅ Nama Medical Web is running!`);
             console.log(`  🌐 Open: http://localhost:${PORT}`);
