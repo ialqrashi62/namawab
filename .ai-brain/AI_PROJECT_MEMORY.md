@@ -2213,3 +2213,17 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **التعديلات الهيكلية والأمنية**: DB_CHANGED: NO | DDL: NO | RLS_CHANGED: NO | PRODUCTION_DEPLOYED: NO | ROLLBACK_REQUIRED: NO.
 * **الحالة العامة**: PRODUCTION_READY: YES_SINGLE_TENANT_ONLY (مع تحذير: قراءة بيانات الـ13 جدولاً معطّلة فعلياً للتطبيق حتى يُربط الـ GUC) | P0_OPEN: PARTIAL.
 * **المرحلة التالية الموصى بها**: `P0_TENANT_ISOLATION_RLS_TENANT_CONTEXT_WIRING_AUTOPILOT` (إصلاح ربط app.tenant_id لكل طلب) ثم استئناف Wave 2B ثم Wave 3.
+
+### Phase 114: Agent Skills Discovery + 20 Local Medical Skills Created
+* **تاريخ المرحلة**: 2026-06-20
+* **الحالة (Status)**: `MEDICAL_AGENT_SKILLS_DISCOVERY_AND_LOCAL_SKILLS_CREATED`
+* **الملفات الجديدة**:
+  - `docs/MEDICAL_AGENT_SKILLS_DISCOVERY_AND_RECOMMENDATION_AR.md` (تقرير الاكتشاف — لم يُثبَّت أي مهارة عامة).
+  - `docs/MEDICAL_LOCAL_SKILLS_CREATION_REPORT_AR.md` (تقرير إنشاء المهارات المحلية).
+  - 19 مهارة محلية جديدة تحت `.ai-brain/skills/` (Global Discovery/Benchmark/Roadmap، Facility Entitlements، Patient Flow، EMR، Pharmacy/Inventory، Lab/Radiology، Billing/Insurance/Accounting، RBAC/Tenant، Security/Privacy، Test Scenarios، Performance، Arabic UTF-8، API Audit، DB Schema Audit، UX/UI، Risk Register، Business Logic).
+* **الملفات المعدّلة**: `.ai-brain/skills/MEDICAL_SKILLS_INDEX_AR.md` (إضافة الـ19 مهارة).
+* **اكتشاف مهم**: المكدّس الفعلي **Express.js + Vanilla JS + node-postgres (pg)** — **ليس Next.js/TypeScript/Prisma**؛ لذا مهارات تلك الأطر العامة غير قابلة للتطبيق. `MEDICAL_AUTOPILOT_CORE_SKILL_AR` كان موجوداً واحتُفظ به (الإجمالي 20).
+* **القرار**: لا تثبيت تلقائي من أسواق المهارات المفتوحة (نظام طبي إنتاجي حسّاس)؛ `skill-creator` (Anthropic) مرشّح للتثبيت بموافقة لاحقة؛ المهارات الطبية المحلية هي مصدر القيمة.
+* **التعديلات الهيكلية والأمنية**: لا تغيير على DB/كود التطبيق/الإنتاج (توثيق ومهارات فقط).
+* **ملاحظة معلّقة**: يوجد تعديل غير ملتزم في submodule `namaweb` من مرحلة ربط `app.tenant_id` (Phase RLS wiring) لم يكتمل بعد (يحتاج patch لمعاملة الإفراغ + اختبارات) — منفصل عن هذه المرحلة.
+* **المرحلة التالية الموصى بها**: استكمال `P0_TENANT_ISOLATION_RLS_TENANT_CONTEXT_WIRING` (الحاجز الأهم)، أو تشغيل التدقيق الطبي الموسّع (تقارير C–U) إن طُلب — مع ملاحظة تداخله مع `GLOBAL_AUDIT_01–15` القائمة.

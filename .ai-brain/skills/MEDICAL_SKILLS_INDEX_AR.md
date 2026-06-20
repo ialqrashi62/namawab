@@ -53,6 +53,25 @@
 | **[MEDICAL_P0_TENANT_ISOLATION_WAVE_AUTOPILOT_SKILL_AR](.ai-brain/skills/MEDICAL_P0_TENANT_ISOLATION_WAVE_AUTOPILOT_SKILL_AR.md)** | معالجة موجات P0 لعزل المستأجرين: تصنيف Class A/B، قواعد الإصلاح، SQL، الاختبارات، وقرارات الإغلاق. | **P0** |
 | **[MEDICAL_CONTROLLED_WEBSITE_DEPLOY_AND_GIT_SKILL_AR](.ai-brain/skills/MEDICAL_CONTROLLED_WEBSITE_DEPLOY_AND_GIT_SKILL_AR.md)** | النشر المحكوم على الموقع وGitHub: tests/smoke/hygiene، commit/push للـ submodule والـ parent، preflight، ونشر code-only مقابل DDL. | **P0** |
 | **[MEDICAL_REPORTS_HYGIENE_AND_CLOSEOUT_SKILL_AR](.ai-brain/skills/MEDICAL_REPORTS_HYGIENE_AND_CLOSEOUT_SKILL_AR.md)** | توحيد التقارير العربية وتدقيق النظافة (أسرار/mojibake/مسارات محلية) وصيغة الإغلاق الموحدة. | **P0** |
+| **[MEDICAL_GLOBAL_DISCOVERY_SKILL_AR](.ai-brain/skills/MEDICAL_GLOBAL_DISCOVERY_SKILL_AR.md)** | اكتشاف النظام الطبي الكامل (بنية/APIs/DB/tenant/موديولات) وإنتاج الخريطة والجرد. | **P1** |
+| **[MEDICAL_GLOBAL_BENCHMARK_SKILL_AR](.ai-brain/skills/MEDICAL_GLOBAL_BENCHMARK_SKILL_AR.md)** | المقارنة العالمية (27 بُعداً) مع Epic/Cerner/MEDITECH وتوقعات السعودية. | **P1** |
+| **[MEDICAL_FACILITY_TYPE_ENTITLEMENTS_SKILL_AR](.ai-brain/skills/MEDICAL_FACILITY_TYPE_ENTITLEMENTS_SKILL_AR.md)** | تدقيق وتصميم استحقاقات أنواع المنشآت العشرة وإنفاذها في UI/API/Service/DB. | **P1** |
+| **[MEDICAL_PATIENT_FLOW_AUDIT_SKILL_AR](.ai-brain/skills/MEDICAL_PATIENT_FLOW_AUDIT_SKILL_AR.md)** | تدقيق تدفّق المريض والاستقبال (تسجيل/MRN/تكرار/موعد/زيارة). | **P1** |
+| **[MEDICAL_EMR_WORKFLOW_AUDIT_SKILL_AR](.ai-brain/skills/MEDICAL_EMR_WORKFLOW_AUDIT_SKILL_AR.md)** | تدقيق سير عمل EMR السريري وعدم قابلية تعديل السجلات النهائية. | **P1** |
+| **[MEDICAL_PHARMACY_INVENTORY_SKILL_AR](.ai-brain/skills/MEDICAL_PHARMACY_INVENTORY_SKILL_AR.md)** | سلامة الصيدلية/المخزون (القاعدة الحرجة: لا خصم قبل الصرف + الدُفعة/الانتهاء). | **P1** |
+| **[MEDICAL_LAB_RADIOLOGY_AUDIT_SKILL_AR](.ai-brain/skills/MEDICAL_LAB_RADIOLOGY_AUDIT_SKILL_AR.md)** | تدقيق المختبر/الأشعة وقواعد الاعتماد وجاهزية LIS/PACS. | **P1** |
+| **[MEDICAL_BILLING_INSURANCE_ACCOUNTING_SKILL_AR](.ai-brain/skills/MEDICAL_BILLING_INSURANCE_ACCOUNTING_SKILL_AR.md)** | تدقيق الدورة الإيرادية والتأمين ومحرّك الترحيل المحاسبي وZATCA. | **P1** |
+| **[MEDICAL_RBAC_TENANT_ISOLATION_SKILL_AR](.ai-brain/skills/MEDICAL_RBAC_TENANT_ISOLATION_SKILL_AR.md)** | تدقيق الصلاحيات وعزل المستأجرين والاستحقاقات على كل الطبقات. | **P0** |
+| **[MEDICAL_SECURITY_PRIVACY_AUDIT_SKILL_AR](.ai-brain/skills/MEDICAL_SECURITY_PRIVACY_AUDIT_SKILL_AR.md)** | تدقيق الأمن وخصوصية المريض (IDOR/CSRF/XSS/الأسرار/سجل التدقيق). | **P0** |
+| **[MEDICAL_TEST_SCENARIOS_SKILL_AR](.ai-brain/skills/MEDICAL_TEST_SCENARIOS_SKILL_AR.md)** | استراتيجية الاختبار ومصفوفة التغطية واختبارات العزل. | **P1** |
+| **[MEDICAL_PERFORMANCE_AUDIT_SKILL_AR](.ai-brain/skills/MEDICAL_PERFORMANCE_AUDIT_SKILL_AR.md)** | تدقيق الأداء (استعلامات/فهارس/N+1/تجميع الاتصالات/الحزمة). | **P2** |
+| **[MEDICAL_ARABIC_UTF8_REPORTING_SKILL_AR](.ai-brain/skills/MEDICAL_ARABIC_UTF8_REPORTING_SKILL_AR.md)** | ضمان UTF-8 عربي نظيف وحظر الإغلاق عند mojibake. | **P1** |
+| **[MEDICAL_GLOBAL_ROADMAP_SKILL_AR](.ai-brain/skills/MEDICAL_GLOBAL_ROADMAP_SKILL_AR.md)** | خارطة طريق مرحلية (Phase 0-7) للوصول للمعايير العالمية. | **P1** |
+| **[MEDICAL_API_AUDIT_SKILL_AR](.ai-brain/skills/MEDICAL_API_AUDIT_SKILL_AR.md)** | تدقيق كل نهاية API (auth/tenant/entitlement/validation/risks). | **P0** |
+| **[MEDICAL_DATABASE_SCHEMA_AUDIT_SKILL_AR](.ai-brain/skills/MEDICAL_DATABASE_SCHEMA_AUDIT_SKILL_AR.md)** | تدقيق المخطط (tenant_id/RLS/الفهارس/سلامة المال/حوكمة RLS). | **P0** |
+| **[MEDICAL_UX_UI_AUDIT_SKILL_AR](.ai-brain/skills/MEDICAL_UX_UI_AUDIT_SKILL_AR.md)** | تدقيق UX/UI (RTL/الأدوار/الإتاحة WCAG/الموبايل/التجربة). | **P2** |
+| **[MEDICAL_RISK_REGISTER_SKILL_AR](.ai-brain/skills/MEDICAL_RISK_REGISTER_SKILL_AR.md)** | سجل المخاطر والفجوات الشامل عبر كل الفئات. | **P1** |
+| **[MEDICAL_BUSINESS_LOGIC_AUDIT_SKILL_AR](.ai-brain/skills/MEDICAL_BUSINESS_LOGIC_AUDIT_SKILL_AR.md)** | تدقيق منطق العمل الطبي الحقيقي مقابل شاشات CRUD + القواعد الحرجة. | **P0** |
 
 ---
 STATUS:
