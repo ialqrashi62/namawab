@@ -2008,3 +2008,32 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - PRODUCTION_READY: NO
 * **المرحلة التالية الموصى بها**: `BLOCKER_RESOLUTION` (معالجة وحل حاصرات الإنتاج الفعلي).
 
+### Phase 106: Full Production Redis and Force RLS Blocker Resolution
+* **تاريخ المرحلة**: 2026-06-20
+* **الحالة (Status)**: `FULL_PRODUCTION_P0_P1_BLOCKER_RESOLUTION_COMPLETED`
+* **الملفات البرمجية المعدلة**:
+  - `namaweb/db_postgres.js` (تخطي تهيئة الجداول والـ seed في بيئة الإنتاج)
+  - `namaweb/server.js` (حظر التراجع لـ MemoryStore والانهيار في حال فشل Redis بالإنتاج)
+* **الملفات الجديدة**:
+  - [docs/MEDICAL_FULL_PRODUCTION_BLOCKER_PREFLIGHT_BACKUP_AR.md](docs/MEDICAL_FULL_PRODUCTION_BLOCKER_PREFLIGHT_BACKUP_AR.md)
+  - [docs/MEDICAL_FULL_PRODUCTION_REDIS_BLOCKER_RESOLUTION_AR.md](docs/MEDICAL_FULL_PRODUCTION_REDIS_BLOCKER_RESOLUTION_AR.md)
+  - [docs/MEDICAL_FULL_PRODUCTION_DB_USER_RLS_OWNERSHIP_REVIEW_AR.md](docs/MEDICAL_FULL_PRODUCTION_DB_USER_RLS_OWNERSHIP_REVIEW_AR.md)
+  - [docs/MEDICAL_FULL_PRODUCTION_APP_DB_USER_HARDENING_AR.md](docs/MEDICAL_FULL_PRODUCTION_APP_DB_USER_HARDENING_AR.md)
+  - [docs/MEDICAL_FULL_PRODUCTION_FORCE_RLS_BLOCKER_RESOLUTION_AR.md](docs/MEDICAL_FULL_PRODUCTION_FORCE_RLS_BLOCKER_RESOLUTION_AR.md)
+  - [docs/MEDICAL_FULL_PRODUCTION_TENANT_ISOLATION_BLOCKER_RECHECK_AR.md](docs/MEDICAL_FULL_PRODUCTION_TENANT_ISOLATION_BLOCKER_RECHECK_AR.md)
+  - [docs/MEDICAL_FULL_PRODUCTION_BLOCKER_RUNTIME_SMOKE_RECHECK_AR.md](docs/MEDICAL_FULL_PRODUCTION_BLOCKER_RUNTIME_SMOKE_RECHECK_AR.md)
+  - [docs/MEDICAL_FULL_PRODUCTION_P0_P1_BLOCKER_RESOLUTION_FINAL_DECISION_AR.md](docs/MEDICAL_FULL_PRODUCTION_P0_P1_BLOCKER_RESOLUTION_FINAL_DECISION_AR.md)
+* **المخرجات**: تثبيت وتفعيل Redis للإنتاج لمنع تراجع الجلسات، إنشاء مستخدم قاعدة البيانات المحدود `nama_medical_app` وعزل الصلاحيات، تفعيل FORCE RLS قسرياً على الجداول الـ 13 الحساسة، وإعادة فحص الدخان وعزل المستأجرين بنسبة نجاح 100%.
+* **الملخص**:
+  تم معالجة وإغلاق الحواصر الحرجة بالكامل؛ حيث تم تثبيت وتفعيل خادم Redis على خادم الإنتاج وضبط التطبيق للاتصال به بنجاح مع حظر التراجع الصامت لـ MemoryStore. كما تم إنشاء مستخدم تشغيل محدود الصلاحيات `nama_medical_app` وتجريده من صلاحيات المشرف أو تجاوز RLS وتفعيل الـ FORCE RLS قسرياً على الجداول الـ 13 وتعديل كود البداية لتفادي أخطاء DDL. اجتازت جميع فحوصات عزل المستأجرين وفحوصات الدخان والـ health endpoints برمز 200 OK بنجاح كامل.
+* **التعديلات الهيكلية والأمنية**:
+  - DB_CHANGED: YES (FORCE RLS applied on 13 tables)
+  - TABLE_COLUMN_SCHEMA_CHANGED: NO
+  - DATABASE_SECURITY_DDL_CHANGED: YES (Least privilege user and FORCE RLS enforced)
+  - MIGRATIONS_RUN: NO
+  - DB_PUSH_RUN: NO
+  - RLS_CHANGED: YES
+  - PRODUCTION_READY: NO_PENDING_POST_BLOCKER_MONITORING
+* **المرحلة التالية الموصى بها**: `FULL_PRODUCTION_POST_BLOCKER_MONITORING` (مراقبة استقرار الإنتاج ما بعد معالجة الحاصرات).
+
+
