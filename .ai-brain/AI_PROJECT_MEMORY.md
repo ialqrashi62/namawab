@@ -2381,3 +2381,12 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **ملاحظات للتنفيذ الإنتاجي (غير مانعة)**: ترتيب validate (فحوص tenant_id بعد up فقط)؛ ALTER TYPE يقفل/يعيد كتابة (نافذة صيانة)؛ down لا يحذف seed/جدول الخريطة (تراجع بيانات منفصل)؛ NUMERIC→REAL مفقود الدقة (يُفضّل backup restore).
 * **التقارير**: `P1_ACCOUNTING_REHEARSAL_WORKSPACE_BASELINE_AR.md` + `..._CANDIDATE_REVIEW_AR.md` + `P1_ACCOUNTING_DDL_AND_COA_SEED_REHEARSAL_REPORT_AR.md`.
 * **المرحلة التالية**: `ACCOUNTING_DDL_AND_COA_SEED_PRODUCTION_APPROVAL` (بشرط: backup + نافذة صيانة + التحقق من حالة الإنتاج البعيد + إبقاء `ACCOUNTING_POSTING_ENABLED=OFF` حتى مرحلة الربط المنفصلة).
+
+### Phase 127: P1_ACCOUNTING_PRODUCTION_PREFLIGHT_AND_APPROVAL_GATE — فحص قراءة فقط (Case B)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `PRODUCTION_PREFLIGHT_READ_ONLY_PASS` | لا DDL/Seed/تغيير/deploy/restart.
+* **حقيقة الطوبولوجيا**: **لا قاعدة إنتاج بعيدة** مُهيّأة/قابلة للوصول — كل الاتصالات localhost (`.env`، `server.js:7059` افتراضي، ecosystem NODE_ENV=production)؛ لا cloud/RDS/SSH/DATABASE_URL بعيد؛ staging مُصمَّم على `127.0.0.1:5433` (غير مُشغَّل). النشر **single-box**؛ الإنتاج الفعلي = `nama_medical_web` @ ::1:5432 (PG 16.14).
+* **لقطة الإنتاج (read-only)**: CoA=30 (tenant 1)، mapping=23، journal=0/lines=0/vouchers=0، debit/credit=NUMERIC، tenant_id على الثلاثة، 6 أعمدة idempotency، uq_coa_tenant_code + uq_journal_idempotency، 6 فهارس، 3 FK، 2 CHECK. `validate.sql` read-only = كل الـ10 صفر. `ACCOUNTING_POSTING_ENABLED` غائب⇒OFF.
+* **التصنيف + القرار**: `FULLY_APPLIED_UNDOCUMENTED` ⇒ `PRODUCTION_ALREADY_APPLIED_RECONCILIATION_REQUIRED` (Case B) — **لا إعادة تنفيذ** (idempotent على أي حال؛ خطر مزدوج منخفض journal=0). الأرجح الجلسة الموازية R17 خلال 2026-06-20→21؛ لا سجل تدقيق داخل DB لتثبيت من/متى قطعياً.
+* **عائق ثانوي**: إن وُجد إنتاج بعيد منفصل خارج هذا الصندوق فحالته `UNVERIFIED_FROM_THIS_ENVIRONMENT` — يلزم تأكيد المالك للطوبولوجيا.
+* **التقارير**: `..._PREFLIGHT_WORKSPACE_GUARD/_SNAPSHOT/_CANDIDATE_COMPARISON/_PREFLIGHT_FINAL_CLOSEOUT_AR.md`.
+* **المرحلة التالية**: تأكيد المالك للطوبولوجيا ثم مصالحة توثيقية (تحديث READINESS ليعكس الواقع)؛ إبقاء المحرك OFF حتى موافقة ربط منفصلة.
