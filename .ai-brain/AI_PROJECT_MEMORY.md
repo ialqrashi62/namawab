@@ -2417,3 +2417,12 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **risk register**: R1 حُدِّث (115 مؤكَّد + superuser bypass)، R2 (approvals/package_sessions صارا FORCE؛ المتبقّي packages/blood_bank_*)، أُضيف R22 (refund IDOR).
 * **التقارير**: STATE_GUARD + OPEN_PHASE_REGISTER + NEXT_PHASE_DECISION + `P1_RLS_COVERAGE_RECONCILIATION_R1_AR.md`.
 * **NEXT_REQUIRED_ACTION**: `P1_REFUND_IDOR_TENANT_GUARD_CODE_FIX` (فوري code-only) ثم ربط دور `nama_medical_app` (يُفعّل الـ115 FORCE فعلياً، GRANTs+.env+redeploy بموافقات).
+
+### Phase 131: P1_REFUND_IDOR_TENANT_GUARD_CODE_FIX — إصلاح كودي (CODE_ONLY_PUSHED_NOT_DEPLOYED)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `CODE_ONLY_PUSHED_NOT_DEPLOYED` | code-only، لم يُنشَر، لا DDL/data/flag/journal.
+* **الإصلاح** (`namaweb/server.js`, مسار `POST /api/invoices/:id/refund` ~6472): أُضيف `requireTenantScope`؛ قراءة الفاتورة صارت `WHERE id=$1 AND tenant_id=$2` بدل `WHERE id=$1` (id فقط)؛ `pctx.tenantId` صار tenantId المُتحقَّق. لا اعتماد على RLS (التطبيق superuser يتجاوزها).
+* **الاختبار**: `namaweb/cross_tenant_refund_idor_test.js` (static+simulation) 11/11؛ انحدار: entitlement 41/0، failclosed 50/0، wave2 38/0، accounting 28/0، leak OK، `node --check` OK.
+* **النتائج**: cross-tenant refund → 404؛ سياق مفقود → 403 (requireTenantScope) / لا تطابق؛ flag OFF؛ journal=0.
+* **git**: commit في namaweb (`fix: enforce tenant guard on invoice refund`) + push namaweb origin/master؛ تحديث gitlink الأب + push parent — بلا force. لم يُلمَس `.gitmodules`.
+* **مهم**: `RLS_RUNTIME_ROLE_STILL_BYPASSED: YES` — الإصلاح لا يُغلق RLS. المرحلة التالية الإلزامية: `P0_RLS_RUNTIME_ROLE_ENFORCEMENT_RESTORE` (ربط nama_medical_app) + نشر محكوم لهذا الإصلاح (بموافقة).
+* **توصية متابعة**: تطبيق `requireTenantScope` نفسه على pay/partial-pay/cancel/generate (أصرم).
