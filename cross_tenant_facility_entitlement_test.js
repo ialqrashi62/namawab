@@ -38,8 +38,10 @@ function guardDecision(facilityTypeRaw, apiPath, hasTenant = true) {
     const mod = ent.pathToModule(apiPath);
     if (ent.COMMON_MODULES.has(mod)) return 200;
     if (!hasTenant) return 200; // يُترك لطبقة requireAuth/requireTenantScope
+    const isCommon = ent.isCommonModule(mod);
     const norm = ent.normalizeFacilityType(facilityTypeRaw);
     if (norm.status === 'unknown') return 422;
+    if (norm.status === 'missing') return isCommon ? 200 : 403; // fail-closed للحساس
     return ent.isModuleEntitled(norm.type, mod) ? 200 : 403;
 }
 
@@ -72,8 +74,9 @@ const T = [
     ['laboratory_only', '/api/settings', 200, 'Lab Only → الإعدادات مسموحة (common)'],
     // unknown + default + auth/health
     ['totally_made_up', '/api/patients', 422, 'نوع غير معروف → 422'],
-    ['', '/api/icu/patients', 200, 'نوع غير مضبوط (فارغ) → افتراضي مسموح (توافق)'],
-    [null, '/api/admissions', 200, 'نوع null → افتراضي مسموح (توافق)'],
+    ['', '/api/icu/patients', 403, 'نوع غير مضبوط على مسار حساس → fail-closed 403'],
+    [null, '/api/admissions', 403, 'نوع null على مسار حساس → fail-closed 403'],
+    ['', '/api/dashboard/stats', 200, 'نوع غير مضبوط على مسار عام → يمرّ'],
     ['pharmacy_only', '/api/auth/login', 200, 'auth مستثنى'],
     ['pharmacy_only', '/api/health', 200, 'health مستثنى'],
 ];

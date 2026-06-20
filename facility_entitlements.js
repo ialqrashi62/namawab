@@ -5,16 +5,20 @@
  * مصدر الحقيقة code-first لإنفاذ نوع المنشأة على مستوى الـ backend (API)،
  * بدلاً من الاعتماد على إخفاء القوائم في الواجهة فقط.
  *
- * المبدأ:
- *  - الموديولات "المشتركة" (auth/health/dashboard/settings/reports/...) مسموحة للجميع.
+ * المبدأ (fail-closed):
+ *  - الموديولات "المشتركة" (auth/health/dashboard/settings/messaging/...) مسموحة للجميع.
  *  - كل نوع منشأة له مجموعة موديولات مسموحة ('*' = الكل).
- *  - نوع المنشأة غير المضبوط (فارغ/null) → يُعامَل كـ 'hospital' (الكل) للحفاظ على التوافق مع المستأجرين الحاليين.
+ *  - نوع المنشأة غير المضبوط (فارغ/null) → 'missing': المسارات الحساسة تُحجب (403)، العامة تمرّ.
  *  - نوع مضبوط لكنه غير معروف → يُرفض (422).
+ *  - مسار غير مصنّف (unclassified) → default-deny (حتى للأنواع الكاملة).
+ *  - خطأ قراءة الإعدادات → المسارات الحساسة تُحجب، العامة تمرّ (يُعالَج في الحارس).
  */
 
 // ===== 1) الموديولات الأساسية (canonical module keys) =====
+// عام (يمرّ حتى بدون نوع منشأة). ملاحظة: 'reports' أُخرج عمداً ليصبح حساساً
+// (تقارير مالية/سريرية/مخزون) → fail-closed عند غياب النوع.
 const COMMON_MODULES = new Set([
-    'common', 'dashboard', 'reports', 'messaging', 'settings', 'forms',
+    'common', 'dashboard', 'messaging', 'settings', 'forms',
     'audit', 'catalog', 'print', 'consent', 'notifications'
 ]);
 
@@ -27,7 +31,7 @@ const SEGMENT_TO_MODULE = {
     consent: 'consent', 'consent-forms': 'consent', 'diagnosis-templates': 'common',
     admin: 'settings',
     // clinical core
-    patients: 'patients',
+    patients: 'patients', patient: 'patients',
     appointments: 'reception_appointments', bookings: 'reception_appointments',
     queue: 'reception_appointments', visits: 'reception_appointments',
     doctor: 'emr', medical: 'emr', 'medical-records': 'emr', 'medical-reports': 'emr',
@@ -69,42 +73,42 @@ const ENTITLEMENTS = {
     large_hospital: FULL,
     medium_hospital: FULL,
     small_hospital: new Set([
-        'patients', 'reception_appointments', 'emr', 'nursing', 'inpatient', 'emergency',
+        'reports', 'patients', 'reception_appointments', 'emr', 'nursing', 'inpatient', 'emergency',
         'surgery', 'pharmacy', 'lab', 'radiology', 'billing', 'insurance', 'accounting',
         'inventory', 'hr', 'quality', 'rehab', 'telemedicine', 'obgyn', 'portal', 'dietary',
         'social_work', 'cme', 'pathology', 'facility_ops'
         // محجوب: icu, blood_bank, cosmetic
     ]),
     polyclinic: new Set([
-        'patients', 'reception_appointments', 'emr', 'nursing', 'pharmacy', 'lab', 'radiology',
+        'reports', 'patients', 'reception_appointments', 'emr', 'nursing', 'pharmacy', 'lab', 'radiology',
         'billing', 'insurance', 'accounting', 'inventory', 'rehab', 'telemedicine', 'obgyn',
         'cosmetic', 'portal', 'dietary', 'hr', 'quality'
         // محجوب: inpatient, emergency, surgery, icu, blood_bank, facility_ops, pathology, social_work
     ]),
     primary_healthcare_center: new Set([
-        'patients', 'reception_appointments', 'emr', 'nursing', 'pharmacy', 'lab', 'radiology',
+        'reports', 'patients', 'reception_appointments', 'emr', 'nursing', 'pharmacy', 'lab', 'radiology',
         'billing', 'insurance', 'accounting', 'inventory', 'rehab', 'telemedicine', 'obgyn',
         'portal', 'dietary', 'quality', 'social_work'
         // محجوب: inpatient, emergency, surgery, icu, blood_bank, facility_ops, cosmetic, pathology
     ]),
     specialized_center: new Set([
-        'patients', 'reception_appointments', 'emr', 'nursing', 'pharmacy', 'lab', 'radiology',
+        'reports', 'patients', 'reception_appointments', 'emr', 'nursing', 'pharmacy', 'lab', 'radiology',
         'pathology', 'surgery', 'billing', 'insurance', 'accounting', 'inventory', 'rehab',
         'telemedicine', 'obgyn', 'cosmetic', 'portal', 'dietary', 'hr', 'quality'
         // محجوب: inpatient, icu, emergency, blood_bank, facility_ops
     ]),
     pharmacy_only: new Set([
-        'pharmacy', 'inventory', 'billing', 'accounting', 'hr'
+        'reports', 'pharmacy', 'inventory', 'billing', 'accounting', 'hr'
         // محجوب: patients, emr, reception_appointments, inpatient, lab, radiology, emergency,
         // surgery, icu, nursing, blood_bank, insurance, ...
     ]),
     laboratory_only: new Set([
-        'patients', 'reception_appointments', 'lab', 'pathology', 'inventory', 'billing',
+        'reports', 'patients', 'reception_appointments', 'lab', 'pathology', 'inventory', 'billing',
         'insurance', 'accounting', 'hr'
         // محجوب: pharmacy, emr, radiology, inpatient, emergency, surgery, icu, nursing, blood_bank
     ]),
     radiology_only: new Set([
-        'patients', 'reception_appointments', 'radiology', 'inventory', 'billing',
+        'reports', 'patients', 'reception_appointments', 'radiology', 'inventory', 'billing',
         'insurance', 'accounting', 'hr'
         // محجوب: pharmacy, lab, emr, inpatient, emergency, surgery, icu, nursing, blood_bank, pathology
     ]),
@@ -116,15 +120,22 @@ const KNOWN_TYPES = new Set(Object.keys(ENTITLEMENTS).concat(Object.keys(FACILIT
 function pathToModule(p) {
     // p مثل /api/lab/orders → القطعة الأولى بعد /api/
     const m = /^\/api\/([a-z0-9-]+)/i.exec(p || '');
-    if (!m) return 'common';
+    if (!m) return 'unclassified';
     const seg = m[1].toLowerCase();
-    return SEGMENT_TO_MODULE[seg] || 'common'; // غير معروف → common (لا نحجب أدوات/مرجعيات بالخطأ)
+    // غير معروف → 'unclassified' (يُعامَل كحساس → fail-closed، لا permissive)
+    return SEGMENT_TO_MODULE[seg] || 'unclassified';
 }
 
-// raw → { type, status } ؛ status: 'ok' | 'default' | 'unknown'
+// هل الموديول ضمن القائمة العامة (مسموح للجميع، يمرّ حتى بدون نوع منشأة)؟
+function isCommonModule(moduleKey) {
+    return COMMON_MODULES.has(moduleKey);
+}
+
+// raw → { type, status } ؛ status: 'ok' | 'missing' | 'unknown'
+// fail-closed: نوع غير مضبوط = 'missing' (لا يُعامَل permissive)؛ القرار يُترك للحارس حسب حساسية المسار.
 function normalizeFacilityType(raw) {
     if (raw === undefined || raw === null || String(raw).trim() === '') {
-        return { type: 'large_hospital', status: 'default' }; // غير مضبوط → الكل (توافق)
+        return { type: null, status: 'missing' };
     }
     const v = String(raw).trim().toLowerCase();
     if (ENTITLEMENTS[v]) return { type: v, status: 'ok' };
@@ -133,6 +144,7 @@ function normalizeFacilityType(raw) {
 }
 
 function isModuleEntitled(facilityTypeCanonical, moduleKey) {
+    if (moduleKey === 'unclassified') return false; // default-deny حتى للأنواع الكاملة (يجب تصنيف أي مسار جديد)
     if (COMMON_MODULES.has(moduleKey)) return true; // مشترك دائماً
     const set = ENTITLEMENTS[facilityTypeCanonical];
     if (set === FULL) return true;
@@ -142,5 +154,5 @@ function isModuleEntitled(facilityTypeCanonical, moduleKey) {
 
 module.exports = {
     COMMON_MODULES, SEGMENT_TO_MODULE, ENTITLEMENTS, FACILITY_TYPE_ALIASES, KNOWN_TYPES,
-    pathToModule, normalizeFacilityType, isModuleEntitled,
+    pathToModule, normalizeFacilityType, isModuleEntitled, isCommonModule,
 };

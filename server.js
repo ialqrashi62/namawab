@@ -126,38 +126,57 @@ const _FT_TTL_MS = 60 * 1000;
 function invalidateFacilityTypeCache(tenantId) {
     if (tenantId === undefined) _ftCache.clear(); else _ftCache.delete(tenantId);
 }
+// يعيد { value, error } ؛ error=true عند فشل قراءة company_settings (لا يُخزَّن الخطأ في الكاش).
 async function getFacilityType(tenantId) {
     const key = tenantId || 0;
     const now = Date.now();
     const cached = _ftCache.get(key);
-    if (cached && cached.exp > now) return cached.value;
-    let value = null;
+    if (cached && cached.exp > now) return { value: cached.value, error: false };
     try {
         const q = tenantId
             ? "SELECT setting_value FROM company_settings WHERE setting_key='facility_type' AND (tenant_id = $1 OR tenant_id IS NULL) ORDER BY tenant_id NULLS LAST LIMIT 1"
             : "SELECT setting_value FROM company_settings WHERE setting_key='facility_type' LIMIT 1";
         const r = await pool.query(q, tenantId ? [tenantId] : []);
-        value = r.rows[0] ? r.rows[0].setting_value : null;
-    } catch (e) { value = null; } // فشل القراءة → null → يُعامَل كافتراضي (توافق)
-    _ftCache.set(key, { value, exp: now + _FT_TTL_MS });
-    return value;
+        const value = r.rows[0] ? r.rows[0].setting_value : null;
+        _ftCache.set(key, { value, exp: now + _FT_TTL_MS });
+        return { value, error: false };
+    } catch (e) {
+        return { value: null, error: true }; // فشل قراءة → الحارس يقرّر fail-closed للمسارات الحساسة
+    }
 }
+// الحارس fail-closed: المسارات الحساسة تُحجب عند غياب/جهل/خطأ نوع المنشأة؛ العامة تمرّ.
 app.use(async (req, res, next) => {
+    if (!req.path.startsWith('/api/')) return next();
+    // قائمة bootstrap الآمنة (تمرّ دائماً، حتى عند خطأ قراءة): الصحة + المصادقة.
+    if (req.path === '/api/health' || req.path.startsWith('/api/auth/')) return next();
+    const moduleKey = facilityEnt.pathToModule(req.path); // 'unclassified' للمسارات غير المصنّفة → حساس
+    const isCommon = facilityEnt.isCommonModule(moduleKey);
+    const { tenantId } = getRequestTenantContext(req);
+    if (!tenantId) return next(); // لا سياق مستأجر → تتركه طبقة requireAuth/requireTenantScope (401/403)
+    let ft;
     try {
-        if (!req.path.startsWith('/api/')) return next();
-        if (req.path === '/api/health' || req.path.startsWith('/api/auth/')) return next();
-        const moduleKey = facilityEnt.pathToModule(req.path);
-        if (facilityEnt.COMMON_MODULES.has(moduleKey)) return next(); // مشترك دائماً
-        const { tenantId } = getRequestTenantContext(req);
-        if (!tenantId) return next(); // لا سياق مستأجر → تتركه طبقة requireAuth/requireTenantScope
-        const raw = await getFacilityType(tenantId);
-        const norm = facilityEnt.normalizeFacilityType(raw);
-        if (norm.status === 'unknown') {
-            return res.status(422).json({ error: 'Unknown facility type', facilityType: String(raw) });
-        }
-        if (facilityEnt.isModuleEntitled(norm.type, moduleKey)) return next();
-        return res.status(403).json({ error: 'Facility type not entitled for this module', module: moduleKey, facilityType: norm.type });
-    } catch (e) { return next(); } // fail-open على خطأ غير متوقع (الحماية الأساسية auth+RLS قائمة)
+        ft = await getFacilityType(tenantId);
+    } catch (e) {
+        ft = { value: null, error: true };
+    }
+    // (1) خطأ قراءة الإعدادات: عام → يمرّ (لا نكسر الواجهة)؛ حساس → fail-closed.
+    if (ft.error) {
+        if (isCommon) return next();
+        return res.status(403).json({ error: 'Facility entitlement unavailable (read error)', module: moduleKey });
+    }
+    const norm = facilityEnt.normalizeFacilityType(ft.value);
+    // (2) نوع غير معروف → 422 دائماً.
+    if (norm.status === 'unknown') {
+        return res.status(422).json({ error: 'Unknown facility type', facilityType: String(ft.value) });
+    }
+    // (3) نوع غير مضبوط: عام → يمرّ؛ حساس → fail-closed (403).
+    if (norm.status === 'missing') {
+        if (isCommon) return next();
+        return res.status(403).json({ error: 'Facility type not configured for this module', module: moduleKey });
+    }
+    // (4) نوع معروف: فحص الاستحقاق (العام مسموح للجميع داخل isModuleEntitled).
+    if (facilityEnt.isModuleEntitled(norm.type, moduleKey)) return next();
+    return res.status(403).json({ error: 'Facility type not entitled for this module', module: moduleKey, facilityType: norm.type });
 });
 
 // Static files
