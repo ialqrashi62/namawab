@@ -4187,112 +4187,184 @@ app.put('/api/portal/appointments/:id', requireAuth, requireTenantScope, async (
 });
 
 // ===== ZATCA E-INVOICING =====
-app.get('/api/zatca/invoices', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM zatca_invoices ORDER BY created_at DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/zatca/invoices', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        let q = 'SELECT * FROM zatca_invoices'; const params = [];
+        if (tenantId) { params.push(tenantId); q += ` WHERE tenant_id = $${params.length}`; }
+        q += ' ORDER BY created_at DESC';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/zatca/generate', requireAuth, async (req, res) => {
+app.post('/api/zatca/generate', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { invoice_id } = req.body;
-        const inv = (await pool.query('SELECT i.*, p.name_ar, p.name_en, p.national_id FROM invoices i LEFT JOIN patients p ON i.patient_id=p.id WHERE i.id=$1', [invoice_id])).rows[0];
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        // Verify the source invoice belongs to the current tenant (prevent cross-tenant ZATCA generation)
+        const invQ = tenantId
+            ? 'SELECT i.*, p.name_ar, p.name_en, p.national_id FROM invoices i LEFT JOIN patients p ON i.patient_id=p.id WHERE i.id=$1 AND i.tenant_id=$2'
+            : 'SELECT i.*, p.name_ar, p.name_en, p.national_id FROM invoices i LEFT JOIN patients p ON i.patient_id=p.id WHERE i.id=$1';
+        const inv = (await pool.query(invQ, tenantId ? [invoice_id, tenantId] : [invoice_id])).rows[0];
         if (!inv) return res.status(404).json({ error: 'Invoice not found' });
         const company = (await pool.query("SELECT setting_value FROM company_settings WHERE setting_key='company_name'")).rows[0];
         const vat = (await pool.query("SELECT setting_value FROM company_settings WHERE setting_key='vat_number'")).rows[0];
         const totalBeforeVat = Number(inv.total) / 1.15;
         const vatAmount = Number(inv.total) - totalBeforeVat;
         const qrData = Buffer.from(JSON.stringify({ seller: company?.setting_value || 'Nama Medical', vat: vat?.setting_value || '', date: new Date().toISOString(), total: inv.total, vatAmount: vatAmount.toFixed(2) })).toString('base64');
-        const result = await pool.query('INSERT INTO zatca_invoices (invoice_id, invoice_number, seller_name, seller_vat, buyer_name, total_before_vat, vat_amount, total_with_vat, qr_code, submission_status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
-            [invoice_id, 'INV-' + String(invoice_id).padStart(8, '0'), company?.setting_value || '', vat?.setting_value || '', inv.name_ar || inv.name_en || '', totalBeforeVat.toFixed(2), vatAmount.toFixed(2), inv.total, qrData, 'Generated']);
+        const result = await pool.query('INSERT INTO zatca_invoices (invoice_id, invoice_number, seller_name, seller_vat, buyer_name, total_before_vat, vat_amount, total_with_vat, qr_code, submission_status, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
+            [invoice_id, 'INV-' + String(invoice_id).padStart(8, '0'), company?.setting_value || '', vat?.setting_value || '', inv.name_ar || inv.name_en || '', totalBeforeVat.toFixed(2), vatAmount.toFixed(2), inv.total, qrData, 'Generated', tenantId, facilityId]);
         logAudit(req.session.user.id, req.session.user.name, 'ZATCA_GENERATE', 'ZATCA', `E-invoice for INV-${invoice_id}`, req.ip);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== TELEMEDICINE =====
-app.get('/api/telemedicine/sessions', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM telemedicine_sessions ORDER BY scheduled_date DESC, scheduled_time DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/telemedicine/sessions', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        let q = 'SELECT * FROM telemedicine_sessions'; const params = [];
+        if (tenantId) { params.push(tenantId); q += ` WHERE tenant_id = $${params.length}`; }
+        q += ' ORDER BY scheduled_date DESC, scheduled_time DESC';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/telemedicine/sessions', requireAuth, async (req, res) => {
+app.post('/api/telemedicine/sessions', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, speciality, session_type, scheduled_date, scheduled_time, duration_minutes, notes } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (patient_id && tenantId) {
+            const chk = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!chk) return res.status(403).json({ error: 'Invalid patient context or access denied' });
+        }
         const link = 'https://meet.nama.sa/' + Math.random().toString(36).substring(7);
-        const result = await pool.query('INSERT INTO telemedicine_sessions (patient_id, patient_name, doctor, speciality, session_type, scheduled_date, scheduled_time, duration_minutes, meeting_link, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
-            [patient_id, patient_name || '', req.session.user.name, speciality || '', session_type || 'Video', scheduled_date || '', scheduled_time || '', duration_minutes || 15, link, notes || '']);
+        const result = await pool.query('INSERT INTO telemedicine_sessions (patient_id, patient_name, doctor, speciality, session_type, scheduled_date, scheduled_time, duration_minutes, meeting_link, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
+            [patient_id, patient_name || '', req.session.user.name, speciality || '', session_type || 'Video', scheduled_date || '', scheduled_time || '', duration_minutes || 15, link, notes || '', tenantId, facilityId]);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/telemedicine/sessions/:id', requireAuth, async (req, res) => {
+app.put('/api/telemedicine/sessions/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { status, diagnosis, prescription } = req.body;
-        await pool.query('UPDATE telemedicine_sessions SET status=$1, diagnosis=$2, prescription=$3 WHERE id=$4', [status || 'Completed', diagnosis || '', prescription || '', req.params.id]);
+        const { tenantId } = getRequestTenantContext(req);
+        const chkQ = tenantId ? 'SELECT id FROM telemedicine_sessions WHERE id=$1 AND tenant_id=$2' : 'SELECT id FROM telemedicine_sessions WHERE id=$1';
+        const chk = (await pool.query(chkQ, tenantId ? [req.params.id, tenantId] : [req.params.id])).rows[0];
+        if (!chk) return res.status(404).json({ error: 'Session not found' });
+        const whereTail = tenantId ? ' AND tenant_id=$5' : '';
+        const params = tenantId ? [status || 'Completed', diagnosis || '', prescription || '', req.params.id, tenantId] : [status || 'Completed', diagnosis || '', prescription || '', req.params.id];
+        await pool.query(`UPDATE telemedicine_sessions SET status=$1, diagnosis=$2, prescription=$3 WHERE id=$4${whereTail}`, params);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== PATHOLOGY =====
-app.get('/api/pathology/cases', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM pathology_cases ORDER BY created_at DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/pathology/cases', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        let q = 'SELECT * FROM pathology_cases'; const params = [];
+        if (tenantId) { params.push(tenantId); q += ` WHERE tenant_id = $${params.length}`; }
+        q += ' ORDER BY created_at DESC';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/pathology/cases', requireAuth, async (req, res) => {
+app.post('/api/pathology/cases', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, specimen_type, collection_date, gross_description, notes } = req.body;
-        const result = await pool.query('INSERT INTO pathology_cases (patient_id, patient_name, specimen_type, collection_date, received_date, status) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *',
-            [patient_id, patient_name || '', specimen_type || '', collection_date || new Date().toISOString().split('T')[0], new Date().toISOString().split('T')[0], 'Received']);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (patient_id && tenantId) {
+            const chk = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!chk) return res.status(403).json({ error: 'Invalid patient context or access denied' });
+        }
+        const result = await pool.query('INSERT INTO pathology_cases (patient_id, patient_name, specimen_type, collection_date, received_date, status, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
+            [patient_id, patient_name || '', specimen_type || '', collection_date || new Date().toISOString().split('T')[0], new Date().toISOString().split('T')[0], 'Received', tenantId, facilityId]);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/pathology/cases/:id', requireAuth, async (req, res) => {
+app.put('/api/pathology/cases/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { gross_description, microscopic_findings, diagnosis, icd_code, stage, grade, status } = req.body;
-        await pool.query('UPDATE pathology_cases SET gross_description=$1, microscopic_findings=$2, diagnosis=$3, icd_code=$4, stage=$5, grade=$6, status=$7, pathologist=$8, report_date=$9 WHERE id=$10',
-            [gross_description || '', microscopic_findings || '', diagnosis || '', icd_code || '', stage || '', grade || '', status || 'Reported', req.session.user.name, new Date().toISOString().split('T')[0], req.params.id]);
+        const { tenantId } = getRequestTenantContext(req);
+        const chkQ = tenantId ? 'SELECT id FROM pathology_cases WHERE id=$1 AND tenant_id=$2' : 'SELECT id FROM pathology_cases WHERE id=$1';
+        const chk = (await pool.query(chkQ, tenantId ? [req.params.id, tenantId] : [req.params.id])).rows[0];
+        if (!chk) return res.status(404).json({ error: 'Case not found' });
+        const whereTail = tenantId ? ' AND tenant_id=$11' : '';
+        const params = [gross_description || '', microscopic_findings || '', diagnosis || '', icd_code || '', stage || '', grade || '', status || 'Reported', req.session.user.name, new Date().toISOString().split('T')[0], req.params.id];
+        if (tenantId) params.push(tenantId);
+        await pool.query(`UPDATE pathology_cases SET gross_description=$1, microscopic_findings=$2, diagnosis=$3, icd_code=$4, stage=$5, grade=$6, status=$7, pathologist=$8, report_date=$9 WHERE id=$10${whereTail}`, params);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== SOCIAL WORK =====
-app.get('/api/social-work/cases', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM social_work_cases ORDER BY created_at DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/social-work/cases', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        let q = 'SELECT * FROM social_work_cases'; const params = [];
+        if (tenantId) { params.push(tenantId); q += ` WHERE tenant_id = $${params.length}`; }
+        q += ' ORDER BY created_at DESC';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/social-work/cases', requireAuth, async (req, res) => {
+app.post('/api/social-work/cases', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, case_type, assessment, plan, priority } = req.body;
-        const result = await pool.query('INSERT INTO social_work_cases (patient_id, patient_name, case_type, social_worker, assessment, plan, priority) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
-            [patient_id, patient_name || '', case_type || 'General', req.session.user.name, assessment || '', plan || '', priority || 'Medium']);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (patient_id && tenantId) {
+            const chk = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!chk) return res.status(403).json({ error: 'Invalid patient context or access denied' });
+        }
+        const result = await pool.query('INSERT INTO social_work_cases (patient_id, patient_name, case_type, social_worker, assessment, plan, priority, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+            [patient_id, patient_name || '', case_type || 'General', req.session.user.name, assessment || '', plan || '', priority || 'Medium', tenantId, facilityId]);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/social-work/cases/:id', requireAuth, async (req, res) => {
+app.put('/api/social-work/cases/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { status, interventions, referrals, follow_up_date } = req.body;
-        await pool.query('UPDATE social_work_cases SET status=$1, interventions=$2, referrals=$3, follow_up_date=$4 WHERE id=$5',
-            [status || 'Open', interventions || '', referrals || '', follow_up_date || '', req.params.id]);
+        const { tenantId } = getRequestTenantContext(req);
+        const chkQ = tenantId ? 'SELECT id FROM social_work_cases WHERE id=$1 AND tenant_id=$2' : 'SELECT id FROM social_work_cases WHERE id=$1';
+        const chk = (await pool.query(chkQ, tenantId ? [req.params.id, tenantId] : [req.params.id])).rows[0];
+        if (!chk) return res.status(404).json({ error: 'Case not found' });
+        const whereTail = tenantId ? ' AND tenant_id=$6' : '';
+        const params = tenantId ? [status || 'Open', interventions || '', referrals || '', follow_up_date || '', req.params.id, tenantId] : [status || 'Open', interventions || '', referrals || '', follow_up_date || '', req.params.id];
+        await pool.query(`UPDATE social_work_cases SET status=$1, interventions=$2, referrals=$3, follow_up_date=$4 WHERE id=$5${whereTail}`, params);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== MORTUARY =====
-app.get('/api/mortuary/cases', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM mortuary_cases ORDER BY created_at DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/mortuary/cases', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        let q = 'SELECT * FROM mortuary_cases'; const params = [];
+        if (tenantId) { params.push(tenantId); q += ` WHERE tenant_id = $${params.length}`; }
+        q += ' ORDER BY created_at DESC';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/mortuary/cases', requireAuth, async (req, res) => {
+app.post('/api/mortuary/cases', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, deceased_name, date_of_death, time_of_death, cause_of_death, attending_physician, next_of_kin, next_of_kin_phone, notes } = req.body;
-        const result = await pool.query('INSERT INTO mortuary_cases (patient_id, deceased_name, date_of_death, time_of_death, cause_of_death, attending_physician, next_of_kin, next_of_kin_phone, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
-            [patient_id || 0, deceased_name || '', date_of_death || new Date().toISOString().split('T')[0], time_of_death || '', cause_of_death || '', attending_physician || '', next_of_kin || '', next_of_kin_phone || '', notes || '']);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (patient_id && tenantId) {
+            const chk = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!chk) return res.status(403).json({ error: 'Invalid patient context or access denied' });
+        }
+        const result = await pool.query('INSERT INTO mortuary_cases (patient_id, deceased_name, date_of_death, time_of_death, cause_of_death, attending_physician, next_of_kin, next_of_kin_phone, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
+            [patient_id || 0, deceased_name || '', date_of_death || new Date().toISOString().split('T')[0], time_of_death || '', cause_of_death || '', attending_physician || '', next_of_kin || '', next_of_kin_phone || '', notes || '', tenantId, facilityId]);
         logAudit(req.session.user.id, req.session.user.name, 'DEATH_RECORD', 'Mortuary', `Death record for ${deceased_name}`, req.ip);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/mortuary/cases/:id', requireAuth, async (req, res) => {
+app.put('/api/mortuary/cases/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { release_status, released_to, death_certificate_number } = req.body;
-        await pool.query('UPDATE mortuary_cases SET release_status=$1, released_to=$2, released_date=$3, death_certificate_number=$4 WHERE id=$5',
-            [release_status || 'Released', released_to || '', new Date().toISOString().split('T')[0], death_certificate_number || '', req.params.id]);
+        const { tenantId } = getRequestTenantContext(req);
+        const chkQ = tenantId ? 'SELECT id FROM mortuary_cases WHERE id=$1 AND tenant_id=$2' : 'SELECT id FROM mortuary_cases WHERE id=$1';
+        const chk = (await pool.query(chkQ, tenantId ? [req.params.id, tenantId] : [req.params.id])).rows[0];
+        if (!chk) return res.status(404).json({ error: 'Case not found' });
+        const whereTail = tenantId ? ' AND tenant_id=$6' : '';
+        const params = tenantId ? [release_status || 'Released', released_to || '', new Date().toISOString().split('T')[0], death_certificate_number || '', req.params.id, tenantId] : [release_status || 'Released', released_to || '', new Date().toISOString().split('T')[0], death_certificate_number || '', req.params.id];
+        await pool.query(`UPDATE mortuary_cases SET release_status=$1, released_to=$2, released_date=$3, death_certificate_number=$4 WHERE id=$5${whereTail}`, params);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
