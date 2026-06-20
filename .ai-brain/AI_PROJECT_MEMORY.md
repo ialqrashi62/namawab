@@ -2198,3 +2198,18 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - P0_OPEN: PARTIAL (Class B مغلق ومنشور؛ Class A: Wave 1 + blood_bank/approvals/packages + Wave 3 متبقية)
 * **Git**: namaweb `70e01cf` pushed؛ parent (هذا الالتزام) pushed.
 * **المرحلة التالية الموصى بها**: `P0_TENANT_ISOLATION_WAVE2B_CLASSA_CONTROLLED_DDL_DEPLOY` (موافقة نشر DDL مُتحكَّم به لـ Class A) ثم `WAVE3`.
+
+### Phase 113: Wave 2B Class A DDL Deploy — BLOCKED (RLS/GUC incompatibility discovered)
+* **تاريخ المرحلة**: 2026-06-20
+* **الحالة (Status)**: `P0_TENANT_ISOLATION_WAVE2B_CLASSA_DEPLOY_BLOCKED`
+* **الملفات البرمجية المعدلة**: لا يوجد. **لم يُنفَّذ أي DDL ولا backup ولا تغيير على الإنتاج** (أُوقِف عند بوابة السلامة في الـ Preflight).
+* **الملفات الجديدة**:
+  - [docs/P0_TENANT_ISOLATION_WAVE2B_01_PREFLIGHT_SCOPE_AR.md](docs/P0_TENANT_ISOLATION_WAVE2B_01_PREFLIGHT_SCOPE_AR.md)
+  - [docs/P0_TENANT_ISOLATION_WAVE2B_BLOCKER_RLS_GUC_INCOMPATIBILITY_AR.md](docs/P0_TENANT_ISOLATION_WAVE2B_BLOCKER_RLS_GUC_INCOMPATIBILITY_AR.md)
+* **الاكتشاف الحرج (P0 إنتاجي كامن)**: الجداول الـ13 المحمية بـ FORCE RLS على الإنتاج تستخدم سياسة تعتمد `current_setting('app.tenant_id')`، لكن التطبيق (`server.js` عبر `pg.Pool`) **لا يضبط `app.tenant_id` إطلاقاً** (0 إشارات set_config/withTenantTransaction). النتيجة المُثبتة قراءة-فقط: التطبيق `nama_medical_app` (NOBYPASSRLS) يرى **0 صفوف** في patients/invoices بينما الـ superuser يرى 3؛ وعند ضبط `app.tenant_id=1` يدوياً يعود الظهور إلى 3.
+* **الخلاصة**: طبقة FORCE RLS الحالية **تحجب بيانات التطبيق على الإنتاج** بدل أن تُكمّل العزل التطبيقي. مرّ هذا في المراحل 105-107 لأن المراقبة أصابت `/api/health` فقط. تشغيل Wave 2B كان سيوسّع نفس الكسر إلى blood_bank/approvals/package_sessions.
+* **القرار**: إيقاف Wave 2B (التزام Hard Stop: لا تكسر الإنتاج/أوقف عند الفشل). العزل التطبيقي (`WHERE tenant_id=$N`) سليم ومُختبَر؛ المشكلة في ربط RLS.
+* **الحل الموصى به (P0)**: ربط `app.tenant_id` لكل طلب (withTenantTransaction أو middleware يضبط السياق على اتصال الـ pool ويعيد ضبطه)، ثم التحقق من ظهور بيانات الـ13 وصحة العزل، **قبل** استئناف Wave 2B.
+* **التعديلات الهيكلية والأمنية**: DB_CHANGED: NO | DDL: NO | RLS_CHANGED: NO | PRODUCTION_DEPLOYED: NO | ROLLBACK_REQUIRED: NO.
+* **الحالة العامة**: PRODUCTION_READY: YES_SINGLE_TENANT_ONLY (مع تحذير: قراءة بيانات الـ13 جدولاً معطّلة فعلياً للتطبيق حتى يُربط الـ GUC) | P0_OPEN: PARTIAL.
+* **المرحلة التالية الموصى بها**: `P0_TENANT_ISOLATION_RLS_TENANT_CONTEXT_WIRING_AUTOPILOT` (إصلاح ربط app.tenant_id لكل طلب) ثم استئناف Wave 2B ثم Wave 3.
