@@ -4,8 +4,9 @@
 
 | ID | الخطر/الفجوة | الفئة | الخطورة | الدليل | القرار |
 | -- | ------------ | ----- | ------- | ------ | ------ |
-| R1 | تباين RLS: توثيق يدّعي 115 جدولاً، الفعلي على الإنتاج 13 FORCE/14 ENABLE | عزل/أمن | **P1** | prod pg_class + docs commit 54549e1 | FIX_NOW — تحقق وتسوية |
-| R2 | عزل ناقص: blood_bank/approvals/package_sessions (لا tenant_id/RLS) | عزل | **P1** | لا ALTER tenant_id | FIX_NEXT (Class A، DDL معلّق) |
+| R1 | تباين RLS **مُسوّى (2026-06-21)**: الواقع الآن **115 FORCE/115 policies** (لا 13)؛ **لكن RLS مُتجاوَز** لأن التطبيق يتصل بدور `postgres` (superuser/bypassrls). دور `nama_medical_app` غير-superuser موجود وغير موصول | عزل/أمن | **P1** | prod pg_class + اختبار set_config('app.tenant_id','999')→3 صفوف | **ربط الدور الأقل صلاحية** ليُفعَّل العزل على مستوى DB (GRANTs+`.env`+redeploy، موافقات). العزل الحالي = فلاتر التطبيق فقط |
+| R2 | عزل Class A: `approvals`/`package_sessions` **صارا FORCE الآن**؛ المتبقّي **`packages`/`blood_bank_donors`/`blood_bank_units`** (بلا tenant_id/RLS) | عزل | **P1** | pg_class 2026-06-21 | FIX_NEXT (Class A: backfill tenant_id + RLS، DDL معلّق) |
+| R22 | **Refund IDOR**: `POST /api/invoices/:id/refund` يقرأ الفاتورة `WHERE id=$1` بلا فلتر tenant ⇒ قابل للاستغلال (RLS مُتجاوَز) | أمن/عزل | **P1** | server.js:6475 | `P1_REFUND_IDOR_TENANT_GUARD_CODE_FIX` (code-only فوري) |
 | R3 | RLS DDL لموديولات Wave1 (medical_records/rehab/portal/dietary) غير منشور على الإنتاج | عزل | P1 | DDL ready, not deployed | FIX_NEXT (نشر مُعتمَد) |
 | R4 | المحاسبة مُوصَّلة لكن OFF؛ DDL+CoA+Mapping **مطبَّقة فعلاً** على إنتاج single-box (مُكتشَفة read-only 2026-06-21) | تكامل مالي | P2 | CoA=30، map=23، NUMERIC، journal=0، flag OFF | **DDL/Seed لا يُعادان**؛ مصالحة توثيقية تمّت؛ المتبقّي = خطة ربط المحرك بالفواتير ثم تفعيل تدريجي |
 | R5 | rate limiter `/api` opt-in (غير مفعّل افتراضياً) | أمن | P1 | 9 refs، اختياري | تفعيل افتراضي |
