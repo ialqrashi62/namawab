@@ -146,7 +146,31 @@ async function postInTransaction(pool, ctx, fn) {
   finally { client.release(); }
 }
 
+// ===== fail-closed: حدث العمل + الترحيل في معاملة واحدة (يثبّتان معاً أو يتدحرجان معاً) =====
+// doEvent(client) ينفّذ حدث العمل (إدراج/تحديث الفاتورة) ويعيد نتيجته (عادةً صف الفاتورة).
+// doPost(client, result) يرحّل القيد في نفس المعاملة — يُستدعى فقط عند تفعيل العلم.
+// أي فشل (حدث أو ترحيل) => ROLLBACK كامل => لا فاتورة جزئية ولا قيد يتيم.
+// idempotency محفوظ عبر SAVEPOINT داخل postEntry. سياق المستأجر مربوط داخل نفس المعاملة.
+async function runEventWithPosting(pool, ctx, doEvent, doPost) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await bindTenant(client, ctx);
+    const result = await doEvent(client);
+    if (isEnabled() && typeof doPost === 'function') {
+      await doPost(client, result);
+    }
+    await client.query('COMMIT');
+    return result;
+  } catch (e) {
+    try { await client.query('ROLLBACK'); } catch (_) {}
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
 module.exports = {
-  isEnabled, resolveAccountId, postEntry, postInTransaction, bindTenant,
+  isEnabled, resolveAccountId, postEntry, postInTransaction, bindTenant, runEventWithPosting,
   postInvoiceIssued, postInvoicePayment, postInvoiceReversal, postRefund,
 };
