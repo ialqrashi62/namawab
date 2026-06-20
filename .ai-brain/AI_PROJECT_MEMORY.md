@@ -2337,3 +2337,15 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **خارج النطاق (لم يُلمس)**: app.js/login.js/login.html/walkthrough.md + ملفات Stitch القديمة + tmp/*.
 * **Git**: parent (هذا الالتزام) — pushed بلا force؛ لا تغيير namaweb.
 * **المرحلة التالية الموصى بها**: ضبط MCP+مفتاح في بيئة التطوير ثم تنفيذ Batch A كـ UI_CODE_PUSHED_NOT_DEPLOYED؛ (وللمحاسبة: `P1_ACCOUNTING_DDL_AND_COA_SEED_READINESS`).
+
+### Phase 123: GATE 4A + Git Sync + Submodule Align (Autopilot)
+* **تاريخ المرحلة**: 2026-06-20 | المجلد الأساسي المعتمد: `C:\Users\ice\Desktop\NamaMedical`
+* **الحالة (Status)**: `PM2_REGISTER_START_AND_SECURITY_SMOKE_PASS` + `GIT_SYNCED` + `SUBMODULE_ALIGNED` (autopilot، صلاحيات كاملة)
+* **gate45 السابق**: BLOCKED (لا nama-app في PM2، :3000 غير مخدوم) → عولج في GATE 4A.
+* **GATE 4A**: تشغيل حاوية Redis (`docker redis:7-alpine` :6379) لحل تعطّل التطبيق في الإنتاج؛ ثم `pm2 start server.js --name nama-app` → online؛ smoke: health 200، `/` 200، `/login` 200، `/api/patients` 401، journals 0/0، accounting OFF، Redis PONG؛ `pm2 save`. (DB_USER=postgres محلياً؛ least-priv + RLS=115 خصائص إنتاج بعيد).
+* **تضارب Git**: نسختي كانت -28 commit عن المستودع (وكيل/جلسة موازية: security deltas + RLS 115 + df893ab). زامنت بأمان: stash للملفات خارج النطاق → `git rebase origin/master` (بلا force) → دفع تقارير الحاجز/PASS كـ FF (3dda0c5، b9438d4). HEAD = origin/master = b9438d4.
+* **محاذاة submodule**: `namaweb` كان e6608ba بينما الـ parent يشير ef1acf9. ثبت أن **ef1acf9 = FF نظيف فوق e6608ba (0 خلف/10 أمام) ويحوي accounting_posting.js** (الوكيل الموازي بنى فوق عملي — لا تشعّب، لا فقدان). نُفّذ `git checkout ef1acf9` في الـ submodule → الـ gitlink صار متطابقاً (لا commit للـ parent، لا تعديل .gitmodules).
+* **إصلاح تلقائي**: ef1acf9 يضيف حارس SESSION_SECRET أصرم رفض الإقلاع (السرّ المحلي الافتراضي) → دوّرت SESSION_SECRET المحلي (.env المحلي gitignored، **القيمة غير مطبوعة/غير ملتزمة**) → الإقلاع نجح.
+* **إعادة الفحص (autopilot)**: على كود ef1acf9: regression 22/22 حزمة PASS (binding/entitlement/fail-closed/accounting engine/كل cross-tenant)، smoke أخضر، `node --check` OK، التطبيق مستقر (restarts ثابتة، online).
+* **الالتزام**: لا force push، لا تعديل .gitmodules، لا دمج df893ab كقرار (موجود أصلاً على البعيد)، لا DDL، لا تغيير بيانات أعمال، لا تفعيل accounting، لا طباعة أسرار. الملفات خارج النطاق (app.js/login.* /walkthrough/Stitch docs) لم تُلمس (محفوظة في stash@{0} داخل namaweb + working tree للـ parent).
+* **المرحلة التالية الموصى بها**: `P1_ACCOUNTING_DDL_AND_COA_SEED_READINESS` (محاسبة) أو Batch A (Stitch UI بعد توفّر MCP).
