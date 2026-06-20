@@ -2276,3 +2276,14 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **الاختبارات**: 40/40 (سماح/حجب/422/افتراضي/تجاوز مباشر) + انحدار 20/20 حزمة + `node --check` OK. **عدم تراجع P0**: binding 9/9.
 * **مخاطر متبقية**: غير منشور بعد (نشر محكوم + تحقق HTTP حيّ لاحقاً بموافقة)؛ الاستحقاقات في company_settings (key/value) لا نموذج DB مخصّص (تحسين DDL مستقبلي)؛ fail-open عند خطأ قراءة.
 * **المرحلة التالية الموصى بها**: نشر محكوم لطبقة الإنفاذ (بموافقة) + تحقق HTTP حيّ، ثم بقية P1 (الترحيل المحاسبي/اعتماد المختبر-الأشعة/FEFO/الأمن P1)، أو Wave2B بموافقة DDL.
+
+### Phase 118: P1 Facility Entitlement Controlled Production Deploy
+* **تاريخ المرحلة**: 2026-06-20
+* **الحالة (Status)**: `P1_FACILITY_ENTITLEMENT_CONTROLLED_PRODUCTION_DEPLOY_COMPLETED` — PASS، PRODUCTION_DEPLOYED: YES
+* **الملفات الجديدة**: `docs/P1_FACILITY_ENTITLEMENT_CONTROLLED_DEPLOY_{BASELINE,VERIFICATION,FINAL_CLOSEOUT}_AR.md` (3 تقارير).
+* **النشر المحكوم** (alfaisal-erp.com / 204.168.144.74 / nama-medical-erp): نسخة احتياطية `server.js.bak.20260620_060249` → scp لـ server.js + facility_entitlements.js (md5 مطابق: 97aa0437 / 89a9e81c) → `node --check` OK → `pm2 restart` (online) → health 200/UP + 301.
+* **التحقق**: HTTP حيّ (common=200، protected بلا جلسة=401)؛ قرارات الإنفاذ عبر الكود المنشور read-only **9/9** (pharmacy/lab/radiology/health_center محجوبة، medical_city full، unknown→422، unset→permissive، تجاوز مباشر بمسار عميق→403). **نوع المنشأة على الإنتاج = unset/permissive** فلا 403 حيّ دون ضبط نوع مقيّد (تغيير بيانات لم يُنفَّذ). **RLS P0 سليم**: patients 0→3→0 عبر الكود المنشور. Redis PONG (79 مفتاح). login 401.
+* **الكوميت المنشور**: namaweb `9897a6a` / parent `b206272`. Rollback مُجهّز (نسخة + حذف الملف الجديد) ولم يُستخدم.
+* **خطر متبقٍ موثّق**: fail-open (نوع غير مضبوط→permissive، وخطأ قراءة→تمرير) — يُحوَّل لاحقاً إلى fail-closed للمسارات الحساسة بعد ضمان facility_type لكل tenant (كود+اختبارات منفصلة).
+* **التعديلات الهيكلية والأمنية**: DDL: NO | PRODUCTION_DATA_CHANGED: NO | RLS_CHANGED: NO | PRODUCTION_DEPLOYED: YES (code-only). لا لمس Wave2B، لا Stitch، login.html/app.js مستثناة من النشر.
+* **المرحلة التالية الموصى بها**: تحويل fail-open→fail-closed للمسارات الحساسة، ثم بقية P1 (الترحيل المحاسبي/اعتماد المختبر-الأشعة/FEFO/الأمن P1)، أو Wave2B بموافقة DDL.
