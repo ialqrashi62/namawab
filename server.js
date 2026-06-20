@@ -6469,18 +6469,19 @@ app.put('/api/invoices/:id/partial-pay', requireAuth, requireRole('invoices', 'a
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/invoices/:id/refund', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
+app.post('/api/invoices/:id/refund', requireAuth, requireRole('invoices', 'accounts'), requireTenantScope, async (req, res) => {
     try {
         const { amount, reason } = req.body;
-        const invoice = (await pool.query('SELECT * FROM invoices WHERE id=$1', [req.params.id])).rows[0];
+        // --- TENANT GUARD (IDOR fix): refund only an invoice owned by the caller's tenant.
+        //     Ownership is enforced in SQL — RLS is NOT relied upon here (the app connects via a superuser role that bypasses RLS). ---
+        const { tenantId } = getRequestTenantContext(req);
+        const invoice = (await pool.query('SELECT * FROM invoices WHERE id=$1 AND tenant_id=$2', [req.params.id, tenantId])).rows[0];
         if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
 
         const refundNum = 'REF-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-6);
         const createdBy = req.session.user?.display_name || '';
         // --- FAIL-CLOSED: refund invoice + refund posting commit together (or both rollback). Flag OFF => invoice only. ---
-        // tenant/facility مستمدّان من الفاتورة الأصلية (عزل المستأجر).
-        const { tenantId } = getRequestTenantContext(req);
-        const pctx = { tenantId: invoice.tenant_id || tenantId, facilityId: invoice.facility_id || 0, branchId: 0, createdBy };
+        const pctx = { tenantId, facilityId: invoice.facility_id || 0, branchId: 0, createdBy };
         const fromBank = /bank|تحويل|card|بطاقة/i.test(invoice.payment_method || '');
         await postingService.runEventWithPosting(pool, pctx,
             async (c) => {
