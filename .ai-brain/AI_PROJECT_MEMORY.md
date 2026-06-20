@@ -2265,3 +2265,14 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **القواعد الحرجة المُحقّقة**: الوصفة لا تنقص المخزون قبل الصرف ✅؛ عزل المستأجرين بعد P0 ✅.
 * **لا تغييرات إنتاج، لا DDL، لا أسرار، UTF-8 PASS.**
 * **المرحلة التالية الموصى بها**: `P1_GLOBAL_PRODUCT_MATURITY_REMEDIATION` (استحقاقات المنشأة backend + الأمن P1 + الترحيل المحاسبي + اعتماد المختبر/الأشعة + FEFO)، أو `P0_TENANT_ISOLATION_WAVE2B_CLASSA` بموافقة DDL. Stitch مؤجّل حتى قرار صريح.
+
+### Phase 117: P1 Facility Entitlement Backend Enforcement
+* **تاريخ المرحلة**: 2026-06-20
+* **الحالة (Status)**: `P1_FACILITY_ENTITLEMENT_BACKEND_ENFORCEMENT_COMPLETED` — PASS (code-only؛ غير منشور بعد)
+* **الملفات الجديدة**: `namaweb/facility_entitlements.js` (سجل مركزي: 10 أنواع + aliases + path→module + matrix)، `namaweb/cross_tenant_facility_entitlement_test.js` (40/40)، 5 تقارير `P1_FACILITY_ENTITLEMENT_BACKEND_*_AR.md`.
+* **الملفات المعدّلة**: `namaweb/server.js` (require + getFacilityType+cache TTL60s + حارس عالمي API بعد middleware سياق المستأجر + إبطال الكاش عند PUT /api/settings).
+* **الحل**: أُضيفت طبقة إنفاذ backend لنوع المنشأة على مستوى الـ API (لم تعد واجهة فقط). الحارس يحوّل `req.path`→موديول→يفحص استحقاق نوع المنشأة (من company_settings). يهزم تجاوز الرابط المباشر. الأنواع العشرة في السجل + توافق legacy (hospital/health_center/clinic).
+* **السلامة/التوافق**: نوع غير مضبوط→large_hospital (الكل) فلا كسر للإنتاج الحالي؛ نوع غير معروف→422؛ غير مستحق→403؛ common (dashboard/settings/reports...) مسموح للجميع؛ بلا tenant→يُترك لطبقات auth. **code-only، بلا DDL، لا تغيير بيانات.**
+* **الاختبارات**: 40/40 (سماح/حجب/422/افتراضي/تجاوز مباشر) + انحدار 20/20 حزمة + `node --check` OK. **عدم تراجع P0**: binding 9/9.
+* **مخاطر متبقية**: غير منشور بعد (نشر محكوم + تحقق HTTP حيّ لاحقاً بموافقة)؛ الاستحقاقات في company_settings (key/value) لا نموذج DB مخصّص (تحسين DDL مستقبلي)؛ fail-open عند خطأ قراءة.
+* **المرحلة التالية الموصى بها**: نشر محكوم لطبقة الإنفاذ (بموافقة) + تحقق HTTP حيّ، ثم بقية P1 (الترحيل المحاسبي/اعتماد المختبر-الأشعة/FEFO/الأمن P1)، أو Wave2B بموافقة DDL.
