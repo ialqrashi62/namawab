@@ -2397,3 +2397,12 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **التمييز الجوهري**: `EXECUTED_BY_THIS_PHASE: NO` ≠ `CURRENT_PRODUCTION_STATE: FULLY_APPLIED` ⇒ `DO_NOT_RERUN: YES`.
 * **التقارير المصحَّحة (7)**: RISKS R4 (خفض P1→P2)، DATABASE_SCHEMA_AUDIT، DATA_FLOW_MAP، BUSINESS_LOGIC_AUDIT، MODULES_AND_FEATURES_INVENTORY، FULL_SYSTEM_SCENARIOS، NEXT_PHASE_ROADMAP + صندوق تصحيح أعلى READINESS_FINAL_CLOSEOUT. التقرير الجامع: `P1_ACCOUNTING_APPLIED_UNDOCUMENTED_RECONCILIATION_AR.md`. (حقول DDL_EXECUTED:NO في مراحل غير المحاسبة تُركت — صحيحة لنطاقها.)
 * **المرحلة التالية**: `P1_PATIENT_INVOICE_RECEIPT_POSTING_INTEGRATION_PLAN` (خطة ربط المحرك بالفواتير/السندات؛ تخطيط فقط، المحرك يبقى OFF).
+
+### Phase 129: P1_PATIENT_INVOICE_RECEIPT_POSTING_INTEGRATION_PLAN — خطة ربط (PLAN_ONLY)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `DOCS_ONLY_INTEGRATION_PLAN_PASS` | لا كود/DDL/seed/تفعيل/نشر/journal.
+* **اكتشاف محوري**: الربط **موجود جزئياً بالفعل** — `server.js` يستورد `accounting_posting_service` (سطر 15) ويستدعي `runEventWithPosting` خلف flag OFF في **4 مسارات**: `POST /api/invoices` (738، postInvoiceIssued نقدي/تأمين)، `PUT /api/invoices/:id/pay` (1742، postInvoicePayment)، `POST /api/invoices/cancel/:id` (5609، postInvoiceReversal)، `POST /api/invoices/:id/refund` (6485، postRefund). الخدمة fail-closed (معاملة واحدة) + idempotent (SAVEPOINT حول 23505) + tenant-aware (resolveAccountId per tenant + bindTenant).
+* **الفجوات**: G1 `POST /api/invoices/generate` (1709) بلا ترحيل؛ G2 `PUT /api/invoices/:id/partial-pay` (6444) بلا ترحيل (+يحتاج مرجع idempotency مركّب للدفعة الجزئية لأن uq الحالي يسمح بسند واحد/فاتورة)؛ G3 SELECT الاسترداد (6475) بلا فلتر tenant ⇒ IDOR.
+* **precondition مهم**: انحراف مخطط `invoices` — الكود يكتب `discount/discount_reason/original_amount/created_by/cancelled/cancel_reason/cancelled_at/amount_paid/balance_due` لكنها **غير موجودة** في bootstrap `CREATE TABLE invoices` (db_postgres.js:97) ولا في القاعدة الحالية ⇒ مسارات الإنشاء/الإلغاء/الجزئي تُخفق بصرف النظر عن الـ flag حتى ALTER محكوم. (الفواتير الـ3 الحالية أُنشئت غالباً عبر `/generate` بالأعمدة الأساسية.)
+* **بيانات**: invoices=3 (2 مدفوعة، 0 استرداد)، journal=0، CoA=30، map=23، flag OFF.
+* **rollout**: OFF→code-complete(OFF)→shadow(opt)→canary→new-only(ON)→backfill(opt)→full؛ rollback=flag=false فوري. الفواتير القديمة: LEAVE_UNPOSTED_NOW + backfill اختياري لاحق (idempotency يمنع التكرار).
+* **المرحلة التالية**: `P1_PATIENT_INVOICE_RECEIPT_POSTING_CODE_BEHIND_FLAG` (تنفيذ G1/G2/G3 خلف flag OFF + تسوية مخطط invoices، بموافقات منفصلة).
