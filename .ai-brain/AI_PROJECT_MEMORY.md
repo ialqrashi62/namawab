@@ -2312,3 +2312,16 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **التعديلات الهيكلية والأمنية**: DDL: NO | PRODUCTION_DATA_CHANGED: YES (facility_type فقط) | PRODUCTION_DEPLOYED: YES | RLS_CHANGED: NO.
 * **Git**: namaweb `3e1c0cd` (منشور سابقاً) / parent (هذا الالتزام) — pushed بلا force.
 * **المرحلة التالية الموصى بها**: بقية P1 (محرك الترحيل المحاسبي / فصل اعتماد المختبر-الأشعة / FEFO الصيدلية / الأمن P1: CORS/CSRF/أسرار/قفل حساب)، أو `WAVE2B` بموافقة DDL، أو تحقق 403 حيّ عند أول عميل مقيّد.
+
+### Phase 121: P1 Medical Accounting Posting Engine — Audit + Foundation
+* **تاريخ المرحلة**: 2026-06-20
+* **الحالة (Status)**: `CODE_ONLY_PUSHED_NOT_DEPLOYED` (محرك مكتبة) + `DOCS_ONLY_PASS` (تدقيق)؛ التفعيل `BLOCKED_PENDING_DDL_APPROVAL` + `BLOCKED_PENDING_DATA_CHANGE_APPROVAL`.
+* **الاكتشاف القاطع**: **لا محرك ترحيل محاسبي إطلاقاً** — صفر INSERT في finance_journal_*/vouchers؛ شجرة الحسابات فارغة على الإنتاج (CoA=0، journal=0، vouchers=0، invoices=3 تُنشأ بلا ترحيل)؛ لا `POST /api/finance/journal`؛ لا CoA seed.
+* **الملفات الجديدة**: `namaweb/accounting_posting.js` (محرك دوال نقية: builders لـ فاتورة/سند قبض/استرداد/إشعار دائن/فاتورة مورّد/سند صرف/استهلاك مخزون + splitVatInclusive 15% + validateBalanced + buildPostingReference idempotency + buildReversalLines)، `namaweb/accounting_posting_test.js` (28/28)، 8 تقارير `docs/P1_MEDICAL_ACCOUNTING_POSTING_*_AR.md`.
+* **الحدود**: المحرك **غير موصول** بأي مسار (USER_VISIBLE_ON_WEBSITE: NO، لا أثر runtime). التفعيل يحتاج: DDL (source_type/source_id + فهرس فريد idempotency؛ tenant_id لـ CoA) + بيانات (seed شجرة حسابات قياسية) + ربط المسارات + نشر محكوم — مُقسّمة لمراحل فرعية مُعتمَدة.
+* **الاختبارات**: محرك 28/28 + انحدار 22/22 (RLS P0 binding 9/9، entitlement 41/41، fail-closed 50/50 — **لا تراجع**).
+* **التعديلات الهيكلية والأمنية**: DDL: NO | DATA_CHANGED: NO | PRODUCTION_DEPLOYED: NO | RLS_CHANGED: NO.
+* **خارج النطاق (لم يُلمس/يُلتزَم)**: public/js/app.js, login.js, login.html, walkthrough.md (معدّلة سابقاً، trailing whitespace)؛ ملفات Stitch؛ tmp/*.
+* **Git**: namaweb (commit جديد بمسارات صريحة) + parent — pushed بلا force.
+* **القاعدة المعتمدة حديثاً**: تصنيف حالة كل تغيير + حقول إغلاق إلزامية + جدول حالة + USER_VISIBLE_ON_WEBSITE.
+* **المرحلة التالية الموصى بها**: `P1_ACCOUNTING_DDL_AND_COA_SEED` (موافقة DDL+بيانات) ثم `P1_PATIENT_INVOICE_RECEIPT_POSTING` (ربط + نشر محكوم).
