@@ -42,7 +42,11 @@ INSERT INTO finance_posting_account_map (tenant_id, process_key, role, account_c
  (1,'payment_voucher','debit','2100','Dr ذمم موردين'),
  (1,'payment_voucher','credit','1000','Cr نقد (أو 1010 بنك)'),
  (1,'inventory_consumption','cogs','5000','Dr تكلفة'),
- (1,'inventory_consumption','inventory','1200','Cr مخزون')
+ (1,'inventory_consumption','inventory','1200','Cr مخزون'),
+ -- بدائل البنك (toBank=true في المحرك): تجعل رمز 1010 صريحاً بدل ملاحظة نصية فقط
+ (1,'receipt','debit_bank','1010','Dr بنك (بديل النقد عند toBank)'),
+ (1,'refund','credit_bank','1010','Cr بنك (بديل النقد عند fromBank)'),
+ (1,'payment_voucher','credit_bank','1010','Cr بنك (بديل النقد عند fromBank)')
 ON CONFLICT (tenant_id, process_key, role) DO NOTHING;
 
 -- عمليات مطلوبة مستقبلاً لكنها غير مغطّاة ببناة المحرك بعد (فجوة محرك — انظر تقرير الربط):
