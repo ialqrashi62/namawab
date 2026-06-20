@@ -2325,3 +2325,15 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **Git**: namaweb (commit جديد بمسارات صريحة) + parent — pushed بلا force.
 * **القاعدة المعتمدة حديثاً**: تصنيف حالة كل تغيير + حقول إغلاق إلزامية + جدول حالة + USER_VISIBLE_ON_WEBSITE.
 * **المرحلة التالية الموصى بها**: `P1_ACCOUNTING_DDL_AND_COA_SEED` (موافقة DDL+بيانات) ثم `P1_PATIENT_INVOICE_RECEIPT_POSTING` (ربط + نشر محكوم).
+* **اعتماد المستخدم (Phase 121)**: مقبول كـ `CODE_ONLY_PUSHED_NOT_DEPLOYED + DOCS_ONLY_PASS` (ليس Production PASS). القرار: **لا نشر للمحرك الآن**؛ الخطوة التالية للمحاسبة = `P1_ACCOUNTING_DDL_AND_COA_SEED_READINESS` (خطة جاهزية فقط: DDL candidate + CoA seed candidate + account mappings + rehearsal + production execution plan + rollback SQL + risk register)، **بلا تنفيذ DDL/seed/تغيير بيانات إلا بموافقة منفصلة**. الحالة: `ACCOUNTING_ENGINE_LIBRARY: READY_CODE_ONLY`, `CONNECTED_TO_RUNTIME: NO`, `DDL_REQUIRED: YES`, `DATA_SEED_REQUIRED: YES`.
+
+### Phase 122: P1 Stitch Design Transfer & Section Recomposition — Analysis (MCP blocked)
+* **تاريخ المرحلة**: 2026-06-20
+* **الحالة (Status)**: `DOCS_ONLY_PASS` (تحليل/تخطيط) + `BLOCKED_PENDING_MCP_AND_KEY` (السحب الحيّ + تنفيذ Batch A)
+* **السبب**: لا Stitch MCP مُسجّل ولا `STITCH_MCP_API_KEY` في البيئة → السحب الحيّ غير متاح؛ **لم يُختلق أي تصميم**. التصميم الأساسي مُعتمَد ومُطبَّق مسبقاً (Stitch Premium في styles.css؛ Batches B/C/D/E COMPLETED؛ **Batch A** استقبال/مواعيد/بوابة = PENDING).
+* **الملفات الجديدة**: `docs/P1_STITCH_DESIGN_TRANSFER_PREFLIGHT_AR.md`, `docs/P1_STITCH_CURRENT_UI_MAPPING_AR.md`, `docs/P1_STITCH_SECTION_RECOMPOSITION_PLAN_AR.md`, `docs/P1_STITCH_SECURITY_AND_SECRETS_AUDIT_AR.md`, `docs/P1_STITCH_DESIGN_TRANSFER_FINAL_CLOSEOUT_AR.md`.
+* **الأمن**: SECRETS_FOUND: NO؛ STITCH_MCP_KEY_COMMITTED: NO؛ توصية بتدوير أي مفتاح سبق كشفه + استخدام متغيّر بيئة فقط.
+* **لا UI code أُنتج** (لا اختلاق)؛ لا تغيير backend/RLS/entitlement/accounting/DB؛ USER_VISIBLE_ON_WEBSITE: NO؛ لا نشر.
+* **خارج النطاق (لم يُلمس)**: app.js/login.js/login.html/walkthrough.md + ملفات Stitch القديمة + tmp/*.
+* **Git**: parent (هذا الالتزام) — pushed بلا force؛ لا تغيير namaweb.
+* **المرحلة التالية الموصى بها**: ضبط MCP+مفتاح في بيئة التطوير ثم تنفيذ Batch A كـ UI_CODE_PUSHED_NOT_DEPLOYED؛ (وللمحاسبة: `P1_ACCOUNTING_DDL_AND_COA_SEED_READINESS`).
