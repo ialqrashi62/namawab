@@ -24,7 +24,7 @@ Client (SPA app.js) → HTTPS/Nginx → Express
 | 6 | فاتورة | requireRole(invoices) | ✅ | billing | invoices (FORCE RLS) | **OFF**: Dr ذمم/Cr إيراد/Cr ضريبة (داخل معاملة، app.tenant_id) |
 | 7 | سند قبض/استرداد | requireRole | ✅ | billing | — | **OFF**: Dr نقد/Cr ذمم ؛ استرداد fail-closed |
 | 8 | تنويم/إفراغ | requireTenantScope | ✅ (SET LOCAL في المعاملة) | inpatient | admissions/beds | — |
-| 9 | ترحيل محاسبي | — | app.tenant_id داخل المعاملة | — | journal_entries/lines | **معطّل (flag OFF) + CoA فارغة** |
+| 9 | ترحيل محاسبي | — | app.tenant_id داخل المعاملة | — | journal_entries/lines | **معطّل (flag OFF)؛ CoA+mapping مطبَّقان (30/23) — لا قيود بعد (journal=0)** |
 | 10 | تدقيق | — | tenant | — | audit_trail | — |
 
 ## fail-closed مضمون

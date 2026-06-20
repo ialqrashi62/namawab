@@ -2,6 +2,9 @@
 
 > مرحلة جاهزية (تصميم/وثائق/SQL مرشّح فقط). **لا DDL، لا seed، لا تغيير بيانات، لا نشر، لا توصيل محرك، لا Stitch.** التاريخ: 2026-06-20.
 
+> ### ⚠️ تصحيح لاحق (2026-06-21) — انظر [P1_ACCOUNTING_APPLIED_UNDOCUMENTED_RECONCILIATION_AR.md](P1_ACCOUNTING_APPLIED_UNDOCUMENTED_RECONCILIATION_AR.md)
+> الحقول أدناه (`DDL_EXECUTED: NO` / `DATA_CHANGED: NO`) **صحيحة لهذه المرحلة بالذات** (هذا الوكيل لم ينفّذ شيئاً). **لكنها لا تصف حالة قاعدة الإنتاج الحالية.** تبيّن في Phase 127 (فحص قراءة فقط) أن مرشّحات DDL+CoA+Mapping **مطبَّقة بالكامل فعلاً على قاعدة الإنتاج single-box** (`nama_medical_web`: CoA=30، mapping=23، NUMERIC، tenant_id، idempotency، FK/UNIQUE/CHECK/indexes؛ journal=0؛ المحرك OFF). أي: `EXECUTED_BY_THIS_PHASE: NO` بينما `CURRENT_PRODUCTION_STATE: FULLY_APPLIED_UNDOCUMENTED` و`DO_NOT_RERUN: YES`. لذلك تجاوزت المرحلة التالية `DDL_AND_COA_SEED_APPROVAL` (لم تعد لازمة) لصالح المصالحة التوثيقية ثم خطة ربط المحرك.
+
 ## الحقول
 ```text
 FINAL_STATUS: DOCS_AND_SQL_CANDIDATE_ONLY_PASS

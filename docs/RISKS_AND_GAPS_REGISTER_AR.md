@@ -7,7 +7,7 @@
 | R1 | تباين RLS: توثيق يدّعي 115 جدولاً، الفعلي على الإنتاج 13 FORCE/14 ENABLE | عزل/أمن | **P1** | prod pg_class + docs commit 54549e1 | FIX_NOW — تحقق وتسوية |
 | R2 | عزل ناقص: blood_bank/approvals/package_sessions (لا tenant_id/RLS) | عزل | **P1** | لا ALTER tenant_id | FIX_NEXT (Class A، DDL معلّق) |
 | R3 | RLS DDL لموديولات Wave1 (medical_records/rehab/portal/dietary) غير منشور على الإنتاج | عزل | P1 | DDL ready, not deployed | FIX_NEXT (نشر مُعتمَد) |
-| R4 | المحاسبة مُوصَّلة لكن OFF + CoA فارغة | تكامل مالي | P1 | flag OFF، CoA=0 | تفعيل محكوم (DDL+seed+موافقة) |
+| R4 | المحاسبة مُوصَّلة لكن OFF؛ DDL+CoA+Mapping **مطبَّقة فعلاً** على إنتاج single-box (مُكتشَفة read-only 2026-06-21) | تكامل مالي | P2 | CoA=30، map=23، NUMERIC، journal=0، flag OFF | **DDL/Seed لا يُعادان**؛ مصالحة توثيقية تمّت؛ المتبقّي = خطة ربط المحرك بالفواتير ثم تفعيل تدريجي |
 | R5 | rate limiter `/api` opt-in (غير مفعّل افتراضياً) | أمن | P1 | 9 refs، اختياري | تفعيل افتراضي |
 | R6 | لا CSRF صريح | أمن | P1 | لا token | FIX_NEXT |
 | R7 | لا قفل حساب بعد محاولات فاشلة | أمن | P1 | rate limit فقط | FIX_NEXT |

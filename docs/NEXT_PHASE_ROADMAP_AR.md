@@ -11,7 +11,7 @@
 | توحيد بيئة العمل على نسخة واحدة (`C:\Users\ice\Desktop\NamaMedical`) | منع تضارب multi-checkout | منخفض | متوسط |
 
 ## المرحلة 2 — إكمال المحاسبة المحكوم
-- `P1_ACCOUNTING_DDL_AND_COA_SEED_READINESS` (خطة) → ثم بموافقة: DDL idempotency (source_type/source_id + فهرس فريد) + tenant_id لـ CoA + seed شجرة حسابات → تفعيل `ACCOUNTING_POSTING_ENABLED` تدريجياً (فاتورة/سند أولاً) + اختبارات DB + نشر محكوم.
+- **[محدَّث 2026-06-21]** DDL idempotency (source_type/source_id + فهرس فريد) + tenant_id لـ CoA + seed شجرة الحسابات (CoA=30) + mapping (23) **مطبَّقة فعلاً** على الإنتاج single-box (مُكتشَفة read-only في Phase 127؛ بُرهنت سلامتها في بروفة معزولة 63/63). **لا يُعاد تنفيذ DDL/Seed.** المتبقّي: `P1_PATIENT_INVOICE_RECEIPT_POSTING_INTEGRATION_PLAN` (ربط المحرك بالفواتير/السندات) → ثم تفعيل `ACCOUNTING_POSTING_ENABLED` تدريجياً + اختبارات DB + نشر محكوم.
 
 ## المرحلة 3 — جودة ومنتج
 - إطار اختبار رسمي + CI (يشغّل cross_tenant_* + accounting + staging).

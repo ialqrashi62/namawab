@@ -21,7 +21,7 @@
 
 ## 4. مخطط المحاسبة (جديد)
 - finance_journal_entries/lines: بهما tenant_id؛ **لا `source_type`/`source_id` + لا فهرس فريد** → idempotency تطبيقي عبر `reference` (يُفضّل DDL لفهرس فريد).
-- finance_chart_of_accounts: **بلا tenant_id** (عام) + **فارغ على الإنتاج (CoA=0)** → الترحيل لا يمكن تفعيله قبل seed.
+- finance_chart_of_accounts: **[محدَّث 2026-06-21]** يحوي tenant_id + **مطبَّق على الإنتاج single-box (CoA=30، mapping=23، NUMERIC، FK/UNIQUE/CHECK/indexes، idempotency)** — الـ seed منفّذ فعلاً (مُكتشَف read-only، Phase 127)؛ التفعيل ينتظر **ربط المحرك** فقط، لا إعادة DDL/Seed. [سابقاً ذُكر خطأً: بلا tenant_id/CoA=0]
 
 ## 5. ملاحظات عامة
 - لا `soft-delete`/`updated_at`/`created_by` في معظم الجداول → تتبّع تغييرات ناقص.
