@@ -3,6 +3,15 @@
 > **تخطيط فقط — لا تنفيذ.** التنفيذ يتطلب: (1) نجاح بروفة staging، (2) موافقة صريحة `DDL_AND_COA_SEED_APPROVAL` في التعليمة.
 > حالياً كلاهما غير متوفّر ⇒ هذا الـ runbook جاهز للاستخدام لاحقاً فقط.
 
+## نتائج P1B Preflight (2026-06-20) — تُحدِّث تقدير المخاطر
+preflight read-only على الإنتاج (`nama_medical_web`@5432) أثبت:
+- **كل جداول finance فارغة (0 صف)** — journal_lines/journal_entries/vouchers/chart_of_accounts/cost_centers/fiscal_years/tax_declarations/doctor_commissions = 0؛ حجم كل جدول 16–24 kB؛ حجم القاعدة 16 MB.
+- `debit/credit = real`، لكن **0 صف ⇒ ALTER TYPE فوري، بلا إعادة كتابة بيانات، بلا فقد دقة ممكن** (REAL_TO_NUMERIC_SAFE).
+- فحوص القيود/المفاتيح كلها 0 (لا أيتام، لا تكرار رموز، لا قيود غير متوازنة، لا null tenant) ⇒ FK/CHECK/UNIQUE ستمرّ.
+- لا أقفال على جداول finance، لا معاملات طويلة، اتصال واحد فقط.
+- pg_dump 16.14 = الخادم 16.14؛ مساحة حرة 689GB؛ backup الـ16MB لحظي.
+**النتيجة:** خطر القفل/إعادة الكتابة الذي حُذِّر منه سابقاً **منتفٍ عملياً** لأن الجداول فارغة. التقدير: مخاطرة منخفضة.
+
 ## نطاق الأثر (Blast Radius)
 | الجدول | التغيير | المخاطرة |
 |---|---|---|
