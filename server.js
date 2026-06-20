@@ -7,7 +7,7 @@ const fs = require('fs');
 const multer = require('multer');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const { pool, initDatabase } = require('./db_postgres');
+const { pool, initDatabase, tenantStore } = require('./db_postgres');
 const bcrypt = require('bcryptjs');
 const { insertSampleData, populateLabCatalog, populateRadiologyCatalog } = require('./seed_data_pg');
 const { populateMedicalServices, populateBaseDrugs } = require('./seed_services_pg');
@@ -103,6 +103,19 @@ if (sessionStore) {
 }
 
 app.use(session(sessionConfig));
+
+// ===== TENANT CONTEXT MIDDLEWARE (RLS wiring) =====
+// يضبط سياق المستأجر للطلب بأكمله عبر AsyncLocalStorage، فيلتقطه pool.query تلقائياً
+// ويضبط app.tenant_id على اتصال قاعدة البيانات قبل أي استعلام محمي بـ RLS.
+// لكل طلب سياقه الخاص (لا تسرّب بين الطلبات)، ويُنظَّف ضمن دورة حياة الطلب.
+app.use((req, res, next) => {
+    const { tenantId, facilityId } = getRequestTenantContext(req);
+    if (tenantId) {
+        tenantStore.run({ tenantId, facilityId }, () => next());
+    } else {
+        next();
+    }
+});
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
@@ -3390,6 +3403,11 @@ app.put('/api/admissions/:id/discharge', requireAuth, requireTenantScope, async 
         const { tenantId } = getRequestTenantContext(req);
 
         await client.query('BEGIN');
+        // Bind tenant context on this raw transaction client so FORCE RLS policies
+        // (which depend on app.tenant_id) apply correctly. SET LOCAL auto-resets at COMMIT/ROLLBACK.
+        if (tenantId) {
+            await client.query("SELECT set_config('app.tenant_id', $1, true)", [String(tenantId)]);
+        }
 
         // Verify admission ownership first
         const checkQ = tenantId
