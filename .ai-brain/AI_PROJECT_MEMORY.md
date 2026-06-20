@@ -2361,3 +2361,13 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **أبرز المخاطر**: R1 تباين RLS، R2 عزل بنك الدم، R5 تفعيل limiter، R6/R7 CSRF/قفل، R17 توحيد البيئتين المتوازيتين.
 * **التعديلات الهيكلية**: لا تغيير كود/DB/إنتاج (تدقيق فقط). Git: parent docs commit، بلا force.
 * **المرحلة التالية الموصى بها**: المرحلة 1 من `NEXT_PHASE_ROADMAP_AR` — **تسوية تباين RLS (R1)** ثم معالجة Class A، أو `P1_ACCOUNTING_DDL_AND_COA_SEED_READINESS`.
+
+### Phase 125: P1_ACCOUNTING_DDL_AND_COA_SEED_READINESS — تحقق (مكتملة مسبقاً بجلسة موازية)
+* **تاريخ المرحلة**: 2026-06-20 | الحالة: `VERIFIED_ALREADY_COMPLETE` (لا تكرار)
+* **الاكتشاف**: المرحلة كانت **مكتملة ومدفوعة مسبقاً** بالجلسة الموازية في commit `d56a566` ("docs: prepare accounting ddl and coa seed readiness")، ضمن `01908aa` = origin/master.
+* **المخرجات الموجودة (مُتحقَّق منها)**: 9 تقارير `P1_ACCOUNTING_DDL_*` / `P1_MEDICAL_COA_*` + 5 ملفات SQL مرشّحة تحت `docs/accounting_candidates/` (up/down/validate + coa_seed + account_mapping). FINAL_STATUS: `DOCS_AND_SQL_CANDIDATE_ONLY_PASS`؛ NEXT: `DDL_AND_COA_SEED_APPROVAL`.
+* **جودة مُتحقَّقة**: gap analysis يغطّي money-type (REAL→NUMERIC)، idempotency (source_type/source_id)، FK، توازن القيد، tenant_id. الـ follow-up المطلوبان مُسجّلان في risk register: `REGISTER_GITMODULES_FOR_NAMAWEB_SUBMODULE` + `REVIEW_DF893AB_SECURITY_HARDENING_DELTA`.
+* **تنظيف خطئي**: أنشأت 5 ملفات SQL مكرّرة بالخطأ في `docs/sql/` (افتراض greenfield) — كانت **untracked** وحُذفت فوراً (لا commit، لا ضرر؛ النسخ المعتمدة في `docs/accounting_candidates/`).
+* **الالتزام**: لا DDL/seed/تغيير بيانات/نشر؛ لم يُربط المحرك بالفواتير؛ لم تُلمس `.gitmodules` ولا `df893ab`. repo متزامن (01908aa).
+* **درس حوكمة**: جلستان متوازيتان تعملان على نفس المستودع → التحقق من وجود المخرجات قبل البدء يمنع التكرار/التضارب (R17).
+* **المرحلة التالية الموصى بها**: انتظار موافقة `DDL_AND_COA_SEED_APPROVAL` لتنفيذ rehearsal ثم الإنتاج المحكوم؛ أو `تسوية تباين RLS (R1)`. **توحيد العمل على جلسة/نسخة واحدة موصى به بشدة.**
