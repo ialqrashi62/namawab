@@ -2390,3 +2390,10 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **عائق ثانوي**: إن وُجد إنتاج بعيد منفصل خارج هذا الصندوق فحالته `UNVERIFIED_FROM_THIS_ENVIRONMENT` — يلزم تأكيد المالك للطوبولوجيا.
 * **التقارير**: `..._PREFLIGHT_WORKSPACE_GUARD/_SNAPSHOT/_CANDIDATE_COMPARISON/_PREFLIGHT_FINAL_CLOSEOUT_AR.md`.
 * **المرحلة التالية**: تأكيد المالك للطوبولوجيا ثم مصالحة توثيقية (تحديث READINESS ليعكس الواقع)؛ إبقاء المحرك OFF حتى موافقة ربط منفصلة.
+
+### Phase 128: P1_ACCOUNTING_APPLIED_UNDOCUMENTED_RECONCILIATION — مصالحة توثيقية (docs/memory فقط)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `DOCS_ONLY_RECONCILIATION_PASS` | لا DDL/Seed/تغيير/deploy/restart/تفعيل/ربط.
+* **القرار المؤكَّد**: الطوبولوجيا **single-box** (لا remote DB منفصل). حالة الإنتاج = `FULLY_APPLIED_UNDOCUMENTED`: `DDL_CURRENTLY_APPLIED=YES`, `COA=YES(30)`, `MAPPING=YES(23)`, `JOURNAL=0`, `POSTING_ENGINE=OFF`, `EXECUTED_BY_THIS_PHASE=NO`, `SHOULD_RERUN_DDL/SEED=NO`.
+* **التمييز الجوهري**: `EXECUTED_BY_THIS_PHASE: NO` ≠ `CURRENT_PRODUCTION_STATE: FULLY_APPLIED` ⇒ `DO_NOT_RERUN: YES`.
+* **التقارير المصحَّحة (7)**: RISKS R4 (خفض P1→P2)، DATABASE_SCHEMA_AUDIT، DATA_FLOW_MAP، BUSINESS_LOGIC_AUDIT، MODULES_AND_FEATURES_INVENTORY، FULL_SYSTEM_SCENARIOS، NEXT_PHASE_ROADMAP + صندوق تصحيح أعلى READINESS_FINAL_CLOSEOUT. التقرير الجامع: `P1_ACCOUNTING_APPLIED_UNDOCUMENTED_RECONCILIATION_AR.md`. (حقول DDL_EXECUTED:NO في مراحل غير المحاسبة تُركت — صحيحة لنطاقها.)
+* **المرحلة التالية**: `P1_PATIENT_INVOICE_RECEIPT_POSTING_INTEGRATION_PLAN` (خطة ربط المحرك بالفواتير/السندات؛ تخطيط فقط، المحرك يبقى OFF).
