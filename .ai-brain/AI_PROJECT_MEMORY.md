@@ -2157,3 +2157,19 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - PRODUCTION_READY: YES_SINGLE_TENANT_ONLY
   - P0_OPEN: NO_PENDING_PRODUCTION_DEPLOY (الموجة 1) / YES (الموجتان 2-3)
 * **المرحلة التالية الموصى بها**: `P0_TENANT_ISOLATION_CONTROLLED_PRODUCTION_DEPLOY_APPROVAL` (موافقة نشر مُتحكَّم به للموجة 1 + معالجة الموجتين 2-3).
+
+### Phase 111: P0 Tenant Isolation Remediation Skills Created
+* **تاريخ المرحلة**: 2026-06-20
+* **الحالة (Status)**: `P0_TENANT_ISOLATION_SKILLS_CREATED`
+* **الملفات الجديدة**:
+  - `.ai-brain/skills/MEDICAL_P0_TENANT_ISOLATION_WAVE_AUTOPILOT_SKILL_AR.md`
+  - `.ai-brain/skills/MEDICAL_CONTROLLED_WEBSITE_DEPLOY_AND_GIT_SKILL_AR.md`
+  - `.ai-brain/skills/MEDICAL_REPORTS_HYGIENE_AND_CLOSEOUT_SKILL_AR.md`
+* **الملفات المعدلة**: `.ai-brain/skills/MEDICAL_SKILLS_INDEX_AR.md` (إضافة المهارات الثلاث بأولوية P0).
+* **المخرجات**: إنشاء ثلاث مهارات أوتوبيلوت لتقليل التوكنز وتوحيد مراحل P0 القادمة:
+  1. **معالجة موجات P0 لعزل المستأجرين** — تصنيف Class A (يحتاج DDL/backfill/RLS) مقابل Class B (code-only، فلتر+ختم+IDOR)، قواعد الإصلاح، مخرجات كل موجة، SQL المطلوب، الاختبارات، وقرارات الإغلاق.
+  2. **النشر المحكوم على الموقع وGitHub** — تسلسل tests/smoke/hygiene → commit/push submodule → commit/push parent → نشر، مع preflight وتمييز code-only عن DDL، وحظر force push/db push/طباعة الأسرار.
+  3. **التقارير والنظافة والإغلاق** — توحيد التقارير العربية UTF-8، أوامر hygiene audit، نتائج النظافة المطلوبة، وصيغة الإغلاق الموحدة.
+* **القاعدة المثبّتة**: لا إعلان `PRODUCTION_READY: YES_MULTI_TENANT_READY` إلا بعد إغلاق كل موجات P0 (Class A + Class B) ونشرها والتحقق منها؛ وإلا تبقى `YES_SINGLE_TENANT_ONLY` و`P0_OPEN: PARTIAL`.
+* **التعديلات الهيكلية والأمنية**: لا تغيير على DB/RLS/كود التطبيق (توثيق ومهارات فقط).
+* **المرحلة التالية الموصى بها**: `P0_TENANT_ISOLATION_WAVE2_REMEDIATION_AND_CONTROLLED_DEPLOY` (باستخدام المهارات الثلاث الجديدة).

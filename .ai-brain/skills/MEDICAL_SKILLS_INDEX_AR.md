@@ -50,6 +50,9 @@
 | **[MEDICAL_GLOBAL_MODULES_SKILL_AR](.ai-brain/skills/MEDICAL_GLOBAL_MODULES_SKILL_AR.md)** | استكشاف المخططات والمسارات للوحدات والـ 41 قسماً. | **P2** |
 | **[MEDICAL_QA_TESTING_SKILL_AR](.ai-brain/skills/MEDICAL_QA_TESTING_SKILL_AR.md)** | اختبارات الدخان للواجهة البرمجية ومعدلات الطلب Rate Limiter. | **P2** |
 | **[MEDICAL_NEXT_PHASE_SELECTOR_SKILL_AR](.ai-brain/skills/MEDICAL_NEXT_PHASE_SELECTOR_SKILL_AR.md)** | معايير الانتقال وترتيب المراحل وخارطة الطريق العامة. | **P2** |
+| **[MEDICAL_P0_TENANT_ISOLATION_WAVE_AUTOPILOT_SKILL_AR](.ai-brain/skills/MEDICAL_P0_TENANT_ISOLATION_WAVE_AUTOPILOT_SKILL_AR.md)** | معالجة موجات P0 لعزل المستأجرين: تصنيف Class A/B، قواعد الإصلاح، SQL، الاختبارات، وقرارات الإغلاق. | **P0** |
+| **[MEDICAL_CONTROLLED_WEBSITE_DEPLOY_AND_GIT_SKILL_AR](.ai-brain/skills/MEDICAL_CONTROLLED_WEBSITE_DEPLOY_AND_GIT_SKILL_AR.md)** | النشر المحكوم على الموقع وGitHub: tests/smoke/hygiene، commit/push للـ submodule والـ parent، preflight، ونشر code-only مقابل DDL. | **P0** |
+| **[MEDICAL_REPORTS_HYGIENE_AND_CLOSEOUT_SKILL_AR](.ai-brain/skills/MEDICAL_REPORTS_HYGIENE_AND_CLOSEOUT_SKILL_AR.md)** | توحيد التقارير العربية وتدقيق النظافة (أسرار/mojibake/مسارات محلية) وصيغة الإغلاق الموحدة. | **P0** |
 
 ---
 STATUS:
