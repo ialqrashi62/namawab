@@ -2649,13 +2649,15 @@ app.get('/api/blood-bank/units', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/blood-bank/units', requireAuth, async (req, res) => {
+app.post('/api/blood-bank/units', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { bag_number, blood_type, rh_factor, component, donor_id, collection_date, expiry_date, volume_ml, storage_location, notes } = req.body;
+        // --- RLS-READY (PHI Class A): stamp tenant_id/facility_id from trusted session, never from body (FORCE-RLS WITH CHECK post role-switch). ---
+        const { tenantId, facilityId } = getRequestTenantContext(req);
         const result = await pool.query(
-            'INSERT INTO blood_bank_units (bag_number, blood_type, rh_factor, component, donor_id, collection_date, expiry_date, volume_ml, storage_location, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id',
-            [bag_number || '', blood_type || '', rh_factor || '+', component || 'Whole Blood', donor_id || 0, collection_date || '', expiry_date || '', volume_ml || 450, storage_location || '', notes || '']);
-        res.json((await pool.query('SELECT * FROM blood_bank_units WHERE id=$1', [result.rows[0].id])).rows[0]);
+            'INSERT INTO blood_bank_units (bag_number, blood_type, rh_factor, component, donor_id, collection_date, expiry_date, volume_ml, storage_location, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id',
+            [bag_number || '', blood_type || '', rh_factor || '+', component || 'Whole Blood', donor_id || 0, collection_date || '', expiry_date || '', volume_ml || 450, storage_location || '', notes || '', tenantId, facilityId]);
+        res.json((await pool.query('SELECT * FROM blood_bank_units WHERE id=$1 AND tenant_id=$2', [result.rows[0].id, tenantId])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -2672,13 +2674,15 @@ app.get('/api/blood-bank/donors', requireAuth, async (req, res) => {
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/blood-bank/donors', requireAuth, async (req, res) => {
+app.post('/api/blood-bank/donors', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { donor_name, donor_name_ar, national_id, phone, blood_type, rh_factor, age, gender, medical_history, notes } = req.body;
+        // --- RLS-READY (PHI Class A): stamp tenant_id/facility_id from trusted session, never from body (FORCE-RLS WITH CHECK post role-switch). ---
+        const { tenantId, facilityId } = getRequestTenantContext(req);
         const result = await pool.query(
-            'INSERT INTO blood_bank_donors (donor_name, donor_name_ar, national_id, phone, blood_type, rh_factor, age, gender, last_donation_date, medical_history, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,CURRENT_DATE::TEXT,$9,$10) RETURNING id',
-            [donor_name || '', donor_name_ar || '', national_id || '', phone || '', blood_type || '', rh_factor || '+', age || 0, gender || '', medical_history || '', notes || '']);
-        res.json((await pool.query('SELECT * FROM blood_bank_donors WHERE id=$1', [result.rows[0].id])).rows[0]);
+            'INSERT INTO blood_bank_donors (donor_name, donor_name_ar, national_id, phone, blood_type, rh_factor, age, gender, last_donation_date, medical_history, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,CURRENT_DATE::TEXT,$9,$10,$11,$12) RETURNING id',
+            [donor_name || '', donor_name_ar || '', national_id || '', phone || '', blood_type || '', rh_factor || '+', age || 0, gender || '', medical_history || '', notes || '', tenantId, facilityId]);
+        res.json((await pool.query('SELECT * FROM blood_bank_donors WHERE id=$1 AND tenant_id=$2', [result.rows[0].id, tenantId])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
