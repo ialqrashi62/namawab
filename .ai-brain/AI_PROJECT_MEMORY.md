@@ -2644,3 +2644,12 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **الثوابت**: DB_ROLE=nama_medical_app (دون تبديل)، DATA_CHANGED=NO، RUNTIME_CODE=NO، ACCOUNTING OFF، journal=0، لا أسرار، لا force. backup: ~/nama_deploy_backups/audit_gov_ddl_20260621/ + down.sql.
 * **حوكمة**: test_rls_user (دور سابق له grants على audit_trail) لوحظ، خارج النطاق، لم يُلمس. ملفات .ps1 الموازية متعقّبة، لم تُلمس. FF-only.
 * **NEXT**: `MASTER_AUTOPILOT_RESELECT`. مرشّحات لاحقة: TEST_ACCOUNT_READY (Full Browser E2E)، تفعيل audit reader (A/B)، auth hardening P5. accounting يبقى OFF حتى موافقة صريحة.
+
+### Phase 155: P1_AUDIT_TRAIL_SUPER_ADMIN_RUNTIME_INTEGRATION_CANDIDATE (CODE_AND_SQL_CANDIDATE_ONLY_PASS)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `CODE_AND_SQL_CANDIDATE_ONLY_PASS` | candidate فقط — لا DDL/GRANT/deploy/restart على الإنتاج.
+* **القرار**: الخيار B (GRANT nama_audit_reader TO nama_medical_app + SET ROLE خلف requireSuperAdmin) **مع `WITH INHERIT FALSE` إلزامي**.
+* **🔴 اكتشاف بروفة حاسم**: المنح العادي (وراثة افتراضية) يجعل سياسة audit_trail_select_superadmin (TO nama_audit_reader) تنطبق على nama_medical_app مباشرةً ⇒ **انكسار عزل audit_trail** (المسار العادي يرى كل المستأجرين). الإصلاح: `WITH INHERIT FALSE` (PG16). بعده **rehearsal 6/6**: normal معزول(=2)، SET LOCAL ROLE عابر(=4)، reset تلقائي بعد COMMIT، reader read-only، لا patients. (أسماء reh_* فقط لأن nama_audit_reader إنتاجي؛ finally-cleanup؛ لا تسرّب.)
+* **مخرجات**: design doc + `docs/sql/audit_trail_reader_runtime_grant_candidate_{up,validate,down}.sql` (GRANT WITH INHERIT FALSE / validate membership+non-inherit / REVOKE) + `docs/code_candidates/audit_trail_global_route_candidate.js` (requireSuperAdmin + GET /api/admin/audit-trail/global + SET LOCAL ROLE داخل معاملة + pagination≤100 + فلاتر آمنة + لا body tenant_id + ميتاداتا فقط + تسجيل وصول). **لم يُمَس server.js الحيّ**.
+* **⚠️ اكتشاف حوكمة (تشعّب namaweb R17)**: فرع namaweb المنشور **039a7d7** لا يتضمّن commits الأمنية الخاصة بي (10ded01 logAudit stamping، 6ecbf4a blood-bank stamping). مؤكَّد: logAudit=6 أعمدة (NULL-tenant)؛ blood-bank units/donors POST بلا ختم tenant_id بينما الجدولان FORCE-RLS ⇒ **إدراجهما سيُرفض 42501**. القراءة العابرة مغطّاة بـRLS. ⇒ توصية مرحلة منفصلة `NAMAWEB_BRANCH_RECONCILIATION`.
+* **الثوابت**: GRANT لم يُنفَّذ على الإنتاج (GRANTED_TO_APP=no)، DB_ROLE=nama_medical_app، journal=0، flag OFF، nama_* roles intact، لا أسرار، لا force. ملفات .ps1 الموازية لم تُلمس.
+* **NEXT**: `APPROVE_AUDIT_READER_RUNTIME_GRANT_AND_DEPLOY` أو `TEST_ACCOUNT_READY` أو `NAMAWEB_BRANCH_RECONCILIATION` أو reselect.
