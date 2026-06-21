@@ -2768,3 +2768,11 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **PHASE 1C مؤجّل**: إزالة كود Batch B/C من server.js = نمط Batch A المُثبَت، مضمّن في بوابة `APPROVE_ROUTE_LEVEL_DDL_BATCH_B_C_DEPLOY_SEQUENCE` (gated؛ لم يُنفَّذ في هذا البرنامج).
 * **بوابات الموافقة (أولوية)**: (1) system_users role guard P0 (code، لا يحميه RLS)؛ (2) Batch B/C deploy sequence؛ (3) 14-table RLS DDL + backfill (DATA_CHANGE_APPROVAL، employees مملوء)؛ (4) API/RBAC defense-in-depth؛ (5) audit-reader GRANT. accounting OFF خارج النطاق.
 * **NEXT**: انتظار موافقات البوابات أعلاه. لا production DDL/deploy/GRANT/data في هذا البرنامج؛ الإنتاج مستقر (nama_medical_app، health 200، FORCE=125).
+
+### Phase 167: حادثة توقّف التطبيق الإنتاجي + استعادة (incident response، بموافقة المالك)
+* **تاريخ المرحلة**: 2026-06-21 | اكتُشفت أثناء PHASE 0 لإعادة إصدار master: التطبيق DOWN (pm2 list فارغ، port 3000 مغلق، health ECONNREFUSED).
+* **السبب الجذري**: **Docker Desktop كان متوقفاً** ⇒ حاوية nama-redis غير متاحة ⇒ التطبيق يرفض الإقلاع بلا Redis (لا MemoryStore fallback). لا إعادة تشغيل جهاز (uptime ~33h)؛ حدث خارجي، لم يسببه تغيير منّي (قراءة-فقط).
+* **الاستعادة (بموافقة «استعادة الخدمة الآن»، بلا DDL/GRANT/.env/code)**: تشغيل Docker Desktop → daemon جاهز (29.5.3) → `docker start nama-redis` (PONG) → `pm2 resurrect` (nama-app online restarts=0) → `pm2 save`.
+* **التحقق**: health 200 (6/6)، /=200 /login=200 /api/patients=401، الدور nama_medical_app (pg_stat_activity)، binding PASS (ctx1=3/999=0/no-ctx=0)، FORCE_RLS=125 بلا تغيير.
+* **درس وقائي**: التطبيق يعتمد على Docker/Redis؛ توصية (تحتاج قرار): auto-start لـDocker+nama-redis عند الإقلاع + `pm2 startup`+`pm2 save` لإحياء تلقائي.
+* **أثر على master**: لا شيء — البرنامج كان مكتملاً (c9ce6d9)؛ المرشّحات والبوابات كما هي. تقرير: `P0_INCIDENT_PRODUCTION_APP_DOWN_DOCKER_REDIS_RESTORE_AR.md`.
