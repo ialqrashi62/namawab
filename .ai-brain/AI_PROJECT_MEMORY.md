@@ -2444,3 +2444,13 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **رفع الحجب**: المالك يوفّر السرّ بقناة آمنة (ALTER ROLE/secret manager) + يضعه في `.env` + يمنح تنفيذ التحويل/restart؛ ثم Gate 6 (switch) → Gate 7 (تحقّق: tenant999→0) → Gate 8 (regression) → `PRODUCTION_DEPLOYED_PASS`.
 * **rollback جاهز**: إعادة `DB_USER=postgres` + restart (config-only، فوري). refund IDOR fix يبقى منشوراً (8f012a0). flag OFF، journal=0.
 * **التقارير**: BASELINE + GRANT_READINESS + GRANT_CANDIDATE + ROLLBACK_PLAN + ENFORCEMENT_RESTORE_FINAL_CLOSEOUT.
+
+### Phase 134: Master Autopilot Continuation → P1_SECURITY_TENANT_GUARD_SWEEP (CODE_ONLY_PUSHED_NOT_DEPLOYED)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `CODE_ONLY_PUSHED_NOT_DEPLOYED` | code-only، لم يُنشَر، لا DDL/data/flag/deploy.
+* **القرار**: السرّ غير جاهز ⇒ P0 RLS switch محجوب؛ وبما أن RLS مُتجاوَز (app=superuser) فالعزل = فلاتر التطبيق ⇒ اختير مسح المسارات عالية الخطورة (P1، آمن، بلا سرّ).
+* **3 ثغرات IDOR كتابة عابرة للمستأجر مُصلَحة** (`server.js`): `PUT /api/queue/patients/:id/status` (1798)، `PUT /api/patients/:id/referral` (1821)، `PUT /api/insurance/claims/:id` (781) — كانت `UPDATE … WHERE id=$2` بلا فلتر tenant. الإصلاح: فحص ملكية مشروط بـ tenant قبل الطفرة → 404 (نمط pay/cancel المُثبت). لا اعتماد على RLS.
+* **اختبار**: `cross_tenant_idor_sweep_test.js` (جديد) 8/8؛ انحدار: refund 11/0، leak OK، entitlement 41/0، failclosed 50/0، wave2 38/0، accounting 28/0؛ node --check OK.
+* **آمن (لم يُلمَس)**: UPDATE_PATIENT/pay/cancel/partial-pay محروسة أصلاً؛ معظم WHERE id=$1 = إعادة قراءة صف مُدرَج.
+* **مُسجَّل للمراجعة**: DELETE employees/system_users + form_templates (جداول بلا tenant_id ⇒ قرار تصميم).
+* **git**: namaweb commit `fix: tenant guard on high-risk by-id routes (IDOR sweep)` + push؛ parent gitlink + 4 تقارير (sweep + 3 master محدّثة) + memory؛ بلا force.
+* **النشر مؤجّل**: التطبيق الحيّ يبقى على 8f012a0 (refund fix فقط)؛ هذا المسح ينتظر `CONTROLLED_DEPLOY`. الحل الجذري يبقى تبديل دور RLS عند توفّر السرّ.
