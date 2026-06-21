@@ -4744,12 +4744,7 @@ app.post('/api/prescriptions', requireAuth, requireTenantScope, async (req, res)
             if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
         }
         const rxText = `${medication_name || ''} | ${dosage || ''}${quantity_per_day && quantity_per_day !== '1' ? ' (×' + quantity_per_day + ')' : ''} | ${frequency || ''} | ${duration || ''}`;
-        // Ensure individual columns exist
-        await pool.query(`ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN IF NOT EXISTS medication_name TEXT DEFAULT ''`).catch(() => { });
-        await pool.query(`ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN IF NOT EXISTS dosage TEXT DEFAULT ''`).catch(() => { });
-        await pool.query(`ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN IF NOT EXISTS quantity_per_day TEXT DEFAULT '1'`).catch(() => { });
-        await pool.query(`ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN IF NOT EXISTS frequency TEXT DEFAULT ''`).catch(() => { });
-        await pool.query(`ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN IF NOT EXISTS duration TEXT DEFAULT ''`).catch(() => { });
+        // pharmacy_prescriptions_queue columns provisioned out-of-band (route_level_ddl_batch_c); no DDL in handler
         const r = await pool.query(
             `INSERT INTO pharmacy_prescriptions_queue (patient_id, doctor_id, prescription_text, medication_name, dosage, quantity_per_day, frequency, duration, status, tenant_id, branch_id)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Pending', $9, $10) RETURNING *`,
@@ -4797,8 +4792,7 @@ app.put('/api/pharmacy/queue/:id', requireAuth, requireTenantScope, async (req, 
         }
 
         // Ensure columns exist
-        await pool.query(`ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN IF NOT EXISTS price REAL DEFAULT 0`).catch(() => { });
-        await pool.query(`ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT ''`).catch(() => { });
+        // pharmacy_prescriptions_queue price/payment_method columns provisioned out-of-band (route_level_ddl_batch_c); no DDL in handler
         const updateQuery = tenantId ?
             `UPDATE pharmacy_prescriptions_queue SET status=$1, dispensed_by=$2, dispensed_at=CURRENT_TIMESTAMP, price=$3, payment_method=$4 WHERE id=$5 AND tenant_id=$6` :
             `UPDATE pharmacy_prescriptions_queue SET status=$1, dispensed_by=$2, dispensed_at=CURRENT_TIMESTAMP, price=$3, payment_method=$4 WHERE id=$5`;
@@ -6681,8 +6675,8 @@ app.get('/api/finance/summary', requireAuth, requireRole('finance', 'accounts', 
 // ===== INVENTORY LOW STOCK =====
 app.get('/api/inventory/low-stock', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
-        await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS facility_id INTEGER`).catch(() => {});
+        // inventory.tenant_id provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
+        // inventory.facility_id provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
         const { tenantId } = getRequestTenantContext(req);
         const query = tenantId ?
             "SELECT * FROM inventory WHERE tenant_id=$1 AND CAST(quantity AS INTEGER) <= CAST(COALESCE(reorder_level,'10') AS INTEGER) ORDER BY CAST(quantity AS INTEGER) ASC" :
@@ -6706,7 +6700,7 @@ app.get('/api/medical-records/patient/:patientId', requireAuth, async (req, res)
 // ===== PATHOLOGY SPECIMENS =====
 app.get('/api/pathology/specimens', requireAuth, async (req, res) => {
     try {
-        await pool.query(`CREATE TABLE IF NOT EXISTS pathology_specimens (id SERIAL PRIMARY KEY, patient_name VARCHAR(200), specimen_type VARCHAR(100), site VARCHAR(200), doctor VARCHAR(200), clinical_details TEXT, priority VARCHAR(30), status VARCHAR(30) DEFAULT 'received', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        // pathology_specimens schema provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
         res.json((await pool.query('SELECT * FROM pathology_specimens ORDER BY created_at DESC')).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -6721,7 +6715,7 @@ app.post('/api/pathology/specimens', requireAuth, async (req, res) => {
 // ===== CSSD BATCHES =====
 app.get('/api/cssd/batches', requireAuth, async (req, res) => {
     try {
-        await pool.query(`CREATE TABLE IF NOT EXISTS cssd_batches (id SERIAL PRIMARY KEY, batch_number VARCHAR(50), items TEXT, department VARCHAR(100), method VARCHAR(50), temperature VARCHAR(20), operator VARCHAR(100), status VARCHAR(30) DEFAULT 'processing', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        // cssd_batches schema provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
         res.json((await pool.query('SELECT * FROM cssd_batches ORDER BY created_at DESC')).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -6743,7 +6737,7 @@ app.put('/api/cssd/batches/:id', requireAuth, async (req, res) => {
 // ===== CME EVENTS =====
 app.get('/api/cme/events', requireAuth, async (req, res) => {
     try {
-        await pool.query(`CREATE TABLE IF NOT EXISTS cme_events (id SERIAL PRIMARY KEY, title VARCHAR(300), speaker VARCHAR(200), event_date DATE, cme_hours NUMERIC(4,1), category VARCHAR(50), department VARCHAR(100), status VARCHAR(30) DEFAULT 'upcoming', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        // cme_events schema provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
         res.json((await pool.query('SELECT * FROM cme_events ORDER BY event_date DESC')).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -6760,20 +6754,9 @@ app.get('/api/infection-control/reports', requireAuth, requireTenantScope, async
     try {
         const { tenantId } = getRequestTenantContext(req);
 
-        await pool.query(`CREATE TABLE IF NOT EXISTS infection_control_reports (
-            id SERIAL PRIMARY KEY,
-            patient_name VARCHAR(200),
-            infection_type VARCHAR(100),
-            ward VARCHAR(100),
-            isolation_type VARCHAR(50),
-            culture_results TEXT,
-            action_taken TEXT,
-            status VARCHAR(30) DEFAULT 'active',
-            tenant_id INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`);
+        // infection_control_reports schema provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
 
-        await pool.query('ALTER TABLE infection_control_reports ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
+        // infection_control_reports.tenant_id provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
 
         const q = tenantId ?
             'SELECT * FROM infection_control_reports WHERE tenant_id=$1 ORDER BY created_at DESC' :
@@ -6788,7 +6771,7 @@ app.post('/api/infection-control/reports', requireAuth, requireTenantScope, asyn
         const { patient_name, infection_type, ward, isolation_type, culture_results, action_taken, status } = req.body;
         const { tenantId } = getRequestTenantContext(req);
 
-        await pool.query('ALTER TABLE infection_control_reports ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
+        // infection_control_reports.tenant_id provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
 
         const r = await pool.query(
             'INSERT INTO infection_control_reports (patient_name,infection_type,ward,isolation_type,culture_results,action_taken,status,tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
@@ -6802,7 +6785,7 @@ app.put('/api/infection-control/reports/:id', requireAuth, requireTenantScope, a
         const { status } = req.body;
         const { tenantId } = getRequestTenantContext(req);
 
-        await pool.query('ALTER TABLE infection_control_reports ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
+        // infection_control_reports.tenant_id provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
 
         const q = tenantId ?
             'UPDATE infection_control_reports SET status=$1 WHERE id=$2 AND tenant_id=$3 RETURNING *' :
@@ -6818,7 +6801,7 @@ app.put('/api/infection-control/reports/:id', requireAuth, requireTenantScope, a
 // ===== MAINTENANCE ORDERS =====
 app.get('/api/maintenance/orders', requireAuth, async (req, res) => {
     try {
-        await pool.query(`CREATE TABLE IF NOT EXISTS maintenance_orders (id SERIAL PRIMARY KEY, equipment VARCHAR(200), location VARCHAR(100), maintenance_type VARCHAR(50), priority VARCHAR(30), description TEXT, requested_by VARCHAR(100), status VARCHAR(30) DEFAULT 'pending', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        // maintenance_orders schema provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
         res.json((await pool.query('SELECT * FROM maintenance_orders ORDER BY created_at DESC')).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -6840,7 +6823,7 @@ app.put('/api/maintenance/orders/:id', requireAuth, async (req, res) => {
 // ===== INSURANCE POLICIES =====
 app.get('/api/insurance/policies', requireAuth, requireRole('insurance'), async (req, res) => {
     try {
-        await pool.query(`CREATE TABLE IF NOT EXISTS insurance_policies (id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name VARCHAR(200), company VARCHAR(200), policy_number VARCHAR(100), class VARCHAR(50), coverage_percent NUMERIC(5,2) DEFAULT 80, start_date DATE, end_date DATE, status VARCHAR(30) DEFAULT 'active', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+        // insurance_policies schema provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
         res.json((await pool.query('SELECT * FROM insurance_policies ORDER BY created_at DESC')).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -6849,14 +6832,9 @@ app.get('/api/insurance/policies', requireAuth, requireRole('insurance'), async 
 // ===== INVENTORY ITEMS =====
 app.get('/api/inventory', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        await pool.query(`CREATE TABLE IF NOT EXISTS inventory (
-            id SERIAL PRIMARY KEY, name VARCHAR(200), category VARCHAR(100),
-            quantity INTEGER DEFAULT 0, unit VARCHAR(50), reorder_level INTEGER DEFAULT 10,
-            location VARCHAR(100), supplier VARCHAR(200), cost NUMERIC(10,2),
-            expiry_date DATE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`);
-        await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
-        await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS facility_id INTEGER`).catch(() => {});
+        // inventory schema provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
+        // inventory.tenant_id provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
+        // inventory.facility_id provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
 
         const { tenantId } = getRequestTenantContext(req);
         const query = tenantId ?
@@ -6868,8 +6846,8 @@ app.get('/api/inventory', requireAuth, requireTenantScope, async (req, res) => {
 });
 app.post('/api/inventory', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
-        await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS facility_id INTEGER`).catch(() => {});
+        // inventory.tenant_id provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
+        // inventory.facility_id provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
 
         const { tenantId, facilityId } = getRequestTenantContext(req);
         const { name, category, quantity, unit, reorder_level, location, supplier, cost, expiry_date } = req.body;
@@ -6882,7 +6860,7 @@ app.post('/api/inventory', requireAuth, requireTenantScope, async (req, res) => 
 });
 app.put('/api/inventory/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
+        // inventory.tenant_id provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
         const { tenantId } = getRequestTenantContext(req);
         if (tenantId) {
             const check = (await pool.query('SELECT id FROM inventory WHERE id=$1 AND tenant_id=$2', [req.params.id, tenantId])).rows[0];
@@ -6903,7 +6881,7 @@ app.put('/api/inventory/:id', requireAuth, requireTenantScope, async (req, res) 
 });
 app.delete('/api/inventory/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        await pool.query(`ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
+        // inventory.tenant_id provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
         const { tenantId } = getRequestTenantContext(req);
         if (tenantId) {
             const check = (await pool.query('SELECT id FROM inventory WHERE id=$1 AND tenant_id=$2', [req.params.id, tenantId])).rows[0];
@@ -6921,15 +6899,7 @@ app.delete('/api/inventory/:id', requireAuth, requireTenantScope, async (req, re
 // ===== PHARMACY PRESCRIPTIONS =====
 app.get('/api/pharmacy/prescriptions', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        await pool.query(`CREATE TABLE IF NOT EXISTS pharmacy_prescriptions (
-            id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name VARCHAR(200),
-            medication VARCHAR(200), drug_name VARCHAR(200), dosage VARCHAR(100),
-            frequency VARCHAR(100), duration VARCHAR(100), quantity INTEGER,
-            doctor VARCHAR(200), status VARCHAR(30) DEFAULT 'pending',
-            notes TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`);
-        await pool.query(`ALTER TABLE pharmacy_prescriptions ADD COLUMN IF NOT EXISTS tenant_id INTEGER`).catch(() => {});
-        await pool.query(`ALTER TABLE pharmacy_prescriptions ADD COLUMN IF NOT EXISTS facility_id INTEGER`).catch(() => {});
+        // pharmacy_prescriptions schema provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
 
         const { tenantId } = getRequestTenantContext(req);
         const query = tenantId ?
