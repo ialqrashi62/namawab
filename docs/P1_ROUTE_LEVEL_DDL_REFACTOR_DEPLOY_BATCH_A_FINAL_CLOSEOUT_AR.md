@@ -1,67 +1,61 @@
-# P1 — نشر Batch A لإزالة DDL المسارات — إغلاق (متوقّف عند Gate 1: سلامة RLS)
+# P1 — نشر Batch A لإزالة DDL المسارات تحت الدور المقيَّد — إغلاق نهائي (مُنفَّذ)
 
-> المرحلة: `P1_ROUTE_LEVEL_DDL_REFACTOR_DEPLOY_BATCH_A` | التاريخ: 2026-06-21 | **توقّف إلزامي عند Gate 1** — لم يُنفَّذ أي DDL ولا نشر.
+> المرحلة: `P1_ROUTE_LEVEL_DDL_REFACTOR_DEPLOY_BATCH_A` | التاريخ: 2026-06-21 | نشر محكوم بموافقة محدودة.
+> المسار: توقّف عند Gate 1 (المرشّح الأصلي بلا RLS) ⇒ جُهِّز بديل آمن RLS ⇒ **وافق المالك «اعتمد البديل الآمن + انشر»** ⇒ نُفِّذ بنجاح.
 
-## لماذا التوقّف (Gate 1)
-التوجيه يفرض في Gate 1: «يجب أن يثبت أن SQL ... يضيف tenant_id/RLS/FORCE/policies where required. **إذا لا يحقق tenant/RLS safety، توقف**». المراجعة أثبتت أن `route_level_ddl_cleanup_candidate_up.sql` **لا يحقق ذلك**:
-- يحتوي **0** عبارات `ENABLE/FORCE ROW LEVEL SECURITY` أو `CREATE POLICY` أو `tenant_id DEFAULT`.
-- جداول Batch A الحاملة لـtenant_id وبيانات PHI — **obgyn_pregnancies, obgyn_deliveries, referrals, medical_reports** — كان سيُنشئها **بلا RLS**، بينما كل جدول PHI نظير قائم (`patients`, `medical_records`) هو **FORCE RLS + policy**.
-- **visit_lifecycle** لا يملك `tenant_id` إطلاقاً (مساراته تُرشّح بالتاريخ/الطبيب لا المستأجر) ⇒ **رؤية بيانات مرضى عابرة للمستأجرين** (patient_name).
-
-⇒ تنفيذ هذا الـSQL كان سيُنشئ جداول PHI **بلا عزل صفّي** تحت الدور المقيَّد — يناقض حملة RLS بأكملها. لذا **أوقفت قبل أي DDL** (لا أُنشئ جداول PHI غير معزولة).
-
-## تصحيح نطاق
-«13 جدولاً مفقوداً» في الحالة المعتمدة كان إجمالي A+B. **Batch A فعلياً = 6 جداول** (obgyn_pregnancies, obgyn_deliveries, referrals, medical_reports, visit_lifecycle, cash_drawer) — هي وحدها التي أُزيل DDLها من الكود (bf5497c). الباقي (7) = Batch B (DDLها ما زال في الكود ⇒ إنشاؤها بلا فائدة + خارج النطاق).
-
-## المُعالجة المُقترحة (candidate جاهز، غير مُنفَّذ)
-`docs/sql/route_level_ddl_batch_a_rls_safe_candidate_{up,validate}.sql`:
-- ينشئ **6 جداول Batch A فقط** (لا توسّع لـBatch B).
-- الجداول الخمسة الحاملة لـPHI/مستأجر (obgyn×2, referrals, medical_reports, **+ visit_lifecycle بإضافة tenant_id**): `tenant_id DEFAULT` + `ENABLE/FORCE ROW LEVEL SECURITY` + سياسة `rls_<t>_tenant_isolation` بنفس نمط patients/medical_records (`tenant_id = (NULLIF(current_setting('app.tenant_id',true),''))::integer`). تعمل مع الربط القائم (INSERT يُختَم عبر DEFAULT، SELECT/UPDATE يُرشّح عبر policy) — **بلا تعديل كود**.
-- **cash_drawer**: يُنشأ كما هو (معزول بـuser_id العالمي الفريد عبر `WHERE user_id=session_user` — لا يحتاج tenant RLS).
-- لا seed، لا backfill، لا GRANT، لا تغيير دور، لا accounting.
-- validate: الجداول موجودة + FORCE RLS + سياسات + DEFAULT + 0 صفوف + الدور غير-super.
-
-> ملاحظة قرار: إضافة `tenant_id`+RLS إلى visit_lifecycle تحسين عزل (التصميم الأصلي بلا عزل مستأجر). البديل: إنشاؤه كما هو (عزل app-layer بالتاريخ/الطبيب فقط). **موصى: النسخة المعزولة**.
+## التسلسل المُنفَّذ
+1. **Gate 1 (توقّف ثم تصحيح)**: المرشّح الأصلي `route_level_ddl_cleanup_candidate_up.sql` كان ينشئ جداول PHI بلا RLS ⇒ أوقفته. جُهِّز `route_level_ddl_batch_a_rls_safe_candidate_{up,validate,down}.sql`. وافق المالك.
+2. **Gate 2 (نسخة + تمرين)**: pg_dump schema-only (13107 سطر) + لقطات (149 جدول/122 سياسة/120 FORCE). تمرين على قاعدة معزولة `nama_route_ddl_rehearsal`: 6/6 جداول، 5/5 FORCE+policy+DEFAULT، cash_drawer بلا RLS، INSERT يُختَم tenant_id=1 ⇒ PASS، ثم أُسقطت القاعدة (لا تسرّب).
+3. **Gate 3 (تنفيذ على الإنتاج)**: `route_level_ddl_batch_a_rls_safe_candidate_up.sql` بدور postgres، atomic ⇒ committed.
+4. **Gate 4 (تحقق)**: 6/6 جداول؛ 5/5 FORCE RLS + سياسات + tenant_id DEFAULT؛ cash_drawer FORCE=false؛ 0 صفوف؛ nama_medical_app super=false/bypassrls=false؛ FORCE-RLS 120→**125**. PASS.
+5. **Gate 5 (نشر الكود)**: `pm2 restart` يحمّل namaweb **bf5497c** (إزالة DDL المسارات) ⇒ online بلا crash-loop، health 6/6، /=200، /login=200، /api/patients=401، سجلات نظيفة.
+6. **Gate 6 (تحقق المسارات)**: المسارات الستة → **401** (محمية، قابلة للوصول، بلا 500/DDL crash). DB-layer تحت الربط (ctx=1): الجداول الستة SELECT بلا **42501/42P01**. PASS.
+7. **Gate 7 (الربط + العزل)**: binding(patients) ctx1=3/999=0/no-ctx=0 PASS؛ isolation(referrals الجديد): INSERT مختوم tenant_id=1، ctx1=1، ctx999=0، 0 متبقٍّ بعد ROLLBACK ⇒ العزل يعمل على الجدول الجديد. PASS.
+8. **Gate 8**: accounting OFF، audit-reader غير ممنوح، لا GRANT.
 
 ## الحقول
 ```text
-FINAL_STATUS: BLOCKED_AT_GATE1_TENANT_RLS_SAFETY (لم يُنفَّذ DDL/نشر — توقّف أمان إلزامي)
+FINAL_STATUS: PRODUCTION_DEPLOYED_PASS_BATCH_A
 SELECTED_PHASE: P1_ROUTE_LEVEL_DDL_REFACTOR_DEPLOY_BATCH_A
-DB_ROLE_CURRENT: nama_medical_app (super=false, bypassrls=false ؛ بلا تغيير)
-APP_PATH_TENANT_BINDING: PASS (آخر إثبات Phase 163/164)
-BATCH_A_TABLES_CREATED: 0 (لم يُنفَّذ)
-BATCH_A_TABLE_COUNT_ACTUAL: 6 (تصحيح: «13» كان A+B)
-SQL_EXECUTED: NO
-SQL_VALIDATE_RESULT: N/A (لم يُنفَّذ)
-CODE_DEPLOYED: NO
-PM2_RESTARTED: NO
-DDL_EXECUTED: NO
-DATA_CHANGED: NO
-DATA_SEEDED: NO
-GRANT_EXECUTED: NO
+DB_ROLE_CURRENT: nama_medical_app (super=false, bypassrls=false)
+APP_PATH_TENANT_BINDING: PASS (ctx1=3, ctx999=0, no-ctx=0)
+BATCH_A_TABLES_CREATED: 6 (obgyn_pregnancies, obgyn_deliveries, referrals, medical_reports, visit_lifecycle, cash_drawer) [تصحيح: «13» كان A+B]
+SQL_EXECUTED: YES_LIMITED_BATCH_A_SCHEMA (النسخة الآمنة RLS؛ لا المرشّح الأصلي)
+SQL_VALIDATE_RESULT: PASS (rehearsal + prod validate)
+RLS_ADDED: 5 جداول (obgyn×2, referrals, medical_reports, visit_lifecycle) ENABLE+FORCE+policy+tenant_id DEFAULT؛ cash_drawer user-scoped (بلا RLS)
+FORCE_RLS_TABLE_COUNT: 120 → 125
+CODE_DEPLOYED: YES (namaweb bf5497c عبر pm2 restart)
+PM2_RESTARTED: YES_CONTROLLED
+NO_42501: YES
+NO_42P01: YES
+NO_SCHEMA_PERMISSION_ERRORS: YES
 ACCOUNTING_POSTING_ENABLED: OFF
 JOURNAL_COUNT: 0
 AUDIT_READER_GRANTED_TO_APP: NO
-ROLLBACK_READY: YES (لا شيء نُفِّذ)
+DATA_SEEDED: NO
+DATA_CHANGED: NO (التمرين/العزل كانا transaction ROLLBACK؛ patients=3 بلا تغيير)
+GRANT_EXECUTED: NO
+ENV_CHANGED: NO (الدور كما هو nama_medical_app؛ لا تغيير .env هذه المرحلة)
+ROLLBACK_READY: YES (route_level_ddl_batch_a_rls_safe_candidate_down.sql يُسقط الجداول الـ6 الفارغة + schema backup)
 ROLLBACK_USED: NO
 SECRETS_PRINTED: NO
 FORCE_PUSH_USED: NO
-HEALTH (current, unchanged): 200 ؛ pm2 online restarts=34
-NEXT_REQUIRED_ACTION: APPROVE_RLS_SAFE_BATCH_A_SQL_THEN_DEPLOY
+NEXT_REQUIRED_ACTION: POST_DEPLOY_MONITORING_THEN_ROUTE_DDL_BATCH_B_C
 ```
 
-## القرار المطلوب منك
-الموافقة على تشغيل **`route_level_ddl_batch_a_rls_safe_candidate_up.sql`** (بديل آمن RLS، Batch A فقط) بدل المرشّح الأصلي، ثم: validate → نشر bf5497c → restart → تحقق المسارات. أو توجيه بديل (مثل إنشاء visit_lifecycle بلا عزل، أو تأجيله).
+## ملاحظات
+- **انحراف موافَق عليه**: نُفِّذت النسخة الآمنة RLS (لا المرشّح الأصلي) بعد توقّف Gate 1 وموافقة المالك — لتفادي إنشاء جداول PHI بلا عزل.
+- **visit_lifecycle**: أُضيف له tenant_id + RLS (لم يكن له عزل أصلاً) — تحسين عزل يعمل عبر الربط بلا تعديل كود.
+- **متبقٍّ**: Batch B (8 جداول: pathology/cssd/cme/infection_control/maintenance/insurance_policies/inventory/pharmacy_prescriptions — DDLها ما زال في الكود) + Batch C (.catch ALTERs) ⇒ مرشّح متابعة منفصل بنفس النمط الآمن RLS.
 
 ## صيغة الإغلاق
 ```text
-STATUS: BLOCKED_AT_GATE1 — UNSAFE_CANDIDATE_NOT_EXECUTED; RLS_SAFE_CANDIDATE_PREPARED
-SCOPE: Batch A deploy — halted at mandatory tenant/RLS safety gate
-PRODUCTION_READY: NO (لم يُنشر؛ ينتظر موافقة على المرشّح الآمن)
-P0_OPEN: NO | P1_OPEN: YES (نشر Batch A بأمان RLS)
-GIT_COMMITTED: YES (RLS-safe candidate + closeout + memory ؛ docs فقط)
-GIT_PUSHED: YES (بلا force)
-NEXT_RECOMMENDED_PHASE: APPROVE_RLS_SAFE_BATCH_A_SQL_THEN_DEPLOY
+STATUS: ROUTE_DDL_BATCH_A_DEPLOYED_WITH_RLS (6 tables created, 5 FORCE-RLS; code bf5497c live; routes no 42501/42P01)
+SCOPE: Batch A only (6 tables) — SQL (RLS-safe) executed + code deployed
+PRODUCTION_READY: PARTIAL (Batch A حيّ ومعزول ؛ يبقى Batch B+C)
+P0_OPEN: NO | P1_OPEN: YES (Batch B+C route-DDL)
+GIT_COMMITTED: YES | GIT_PUSHED: YES (بلا force)
+NEXT_RECOMMENDED_PHASE: POST_DEPLOY_MONITORING_THEN_ROUTE_DDL_BATCH_B_C
 ```
 
-توقّفت عند بوابة سلامة المستأجر/RLS قبل تنفيذ أي DDL؛ المرشّح الأصلي كان سينشئ جداول PHI بلا عزل، وجُهِّز مرشّح آمن بديل ينتظر الموافقة
+تم اكتمال نشر Batch A لإزالة DDL داخل المسارات تحت الدور المحدود
