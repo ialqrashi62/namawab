@@ -2507,3 +2507,12 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **مؤجَّل (موثّق)**: cosmetic_cases PUT، nursing/assessment، appointments checkin/noshow، waiting-queue PUT، lab/rad defense-in-depth، patients soft-delete defense-in-depth. **غير قابل**: blood_bank_units (no tenant_id → PHI DDL)، obgyn_* (ABSENT).
 * **اختبار**: `cross_tenant_update_sweep_test.js` 14/14؛ انحدار أخضر (idor 29، refund 11، stamping 13، failclosed 50، accounting 28)؛ node --check. دُفع **namaweb 4176f4d→082c07b**.
 * **المتراكم غير المنشور**: refund(منشور) + 3768bf3 + c374879 + 0e008f7 + 4176f4d + 082c07b. الموقع الحيّ 8f012a0. الأولوية الحقيقية تبقى: موافقة نشر واحدة أو السرّ.
+
+### Phase 141: Master After-140 → P1_INVOICE_SCHEMA_DRIFT_RECONCILIATION_AND_SAFE_DDL_PLAN
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `DOCS_AND_SQL_CANDIDATE_ONLY_PASS` | read-only + DDL candidate، لا ALTER/data/deploy/runtime-code.
+* **القرار**: المالك وجّه بعدم مزيد من code-only tenant guards (backlog كبير) ⇒ اختير عمل غير-متراكم: تسوية انحراف مخطط الفواتير (precondition موثّق).
+* **الانحراف**: `invoices` الحيّة 15 عموداً؛ الكود يكتب **10 أعمدة مفقودة**: discount, discount_reason, created_by, original_amount, cancelled, cancel_reason, cancelled_by, cancelled_at, amount_paid, balance_due.
+* **الأثر**: `POST /api/invoices` (741)، cancel (5658)، partial-pay (6512)، **refund (6540)** تُخفق على الإنتاج بـ `column does not exist` عند الاستخدام الفعلي. ⇒ نشر الإصلاحات الأمنية وحده لا يكفي؛ يجب أن يرافقه هذا الـ DDL.
+* **المرشّحات (docs/sql/، candidate-only)**: `invoice_schema_drift_candidate_{up,validate,down}.sql` — `ADD COLUMN IF NOT EXISTS` للـ10 (additive، idempotent، 0 تغيير بيانات؛ أنواع تطابق أعراف الجدول).
+* **ملاحظة جانبية**: patients soft-delete يكتب is_deleted/deleted_at/deleted_by — تسوية مخطط patients منفصلة لاحقاً.
+* **NEXT**: `BLOCKED_PENDING_DDL_APPROVAL` (تطبيق المرشّح يُرافق نشر الكود المتراكم). الأولوية تبقى: APPROVE_DEPLOY + السرّ.
