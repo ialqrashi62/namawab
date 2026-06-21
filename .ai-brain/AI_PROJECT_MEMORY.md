@@ -2454,3 +2454,11 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **مُسجَّل للمراجعة**: DELETE employees/system_users + form_templates (جداول بلا tenant_id ⇒ قرار تصميم).
 * **git**: namaweb commit `fix: tenant guard on high-risk by-id routes (IDOR sweep)` + push؛ parent gitlink + 4 تقارير (sweep + 3 master محدّثة) + memory؛ بلا force.
 * **النشر مؤجّل**: التطبيق الحيّ يبقى على 8f012a0 (refund fix فقط)؛ هذا المسح ينتظر `CONTROLLED_DEPLOY`. الحل الجذري يبقى تبديل دور RLS عند توفّر السرّ.
+
+### Phase 135: تصليب fail-closed (مراجعة أمنية) + نشر مُنع (Master Continue-134)
+* **تاريخ المرحلة**: 2026-06-21 | حالتان: تصليب = `CODE_ONLY_PUSHED_NOT_DEPLOYED` ؛ النشر = `BLOCKED_PENDING_DEPLOY_APPROVAL`.
+* **مراجعة أمنية آلية** على `e52a140` كشفت أن حارس Phase 134 **fail-open** (الشرط `tenantId ? … : ''` يتخطّى عند غياب السياق) + `UPDATE` بلا tenant (TOCTOU). **صحيحة.**
+* **التصليب (code-only)**: الـ3 مسارات الآن fail-closed: `requireTenantScope` + تقييد UPDATE/SELECT بـ tenant_id (atomic). اختبار 15/15 + انحدار أخضر + node --check. دُفع **namaweb e52a140→3768bf3**.
+* **النشر مُنع (صواب، بواسطة المصنّف)**: تفويض المالك في Option A كان لـ **e52a140 فقط**؛ نشر `3768bf3` (المُصلَّب) يتجاوز التفويض ولم يراجعه المالك. لم يُنشر شيء؛ الموقع يبقى على 8f012a0.
+* **أثر حيّ**: ثغرات الـ3 مسارات (queue status/referral/claim status) **ما زالت حيّة** على 8f012a0 لأن الإصلاح غير منشور. لا يصح نشر e52a140 (fail-open). يلزم موافقة نشر `3768bf3`.
+* **NEXT**: `OWNER_APPROVE_DEPLOY_OF_3768bf3` (fail-closed، يُلغي e52a140 fail-open). لا تغيير DB/flag/journal؛ بلا force.
