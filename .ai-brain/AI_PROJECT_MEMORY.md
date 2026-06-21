@@ -2624,3 +2624,13 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **قيد**: لا بيانات اعتماد دخول للتطبيق (لم أُخمّن)؛ UAT غطّى التفويض + طبقة إنفاذ RLS (آلية الجلسات المصادقة) + ربط ALS (9/9 سابقاً).
 * **git**: 3 تقارير (register + decision + closeout) + ذاكرة (docs فقط).
 * **NEXT**: `MASTER_AUTOPILOT_RESELECT_NEXT_PHASE`. المحاسبة تبقى OFF حتى موافقة صريحة. مرشّحات: UAT سريري موسّع، audit_trail super-admin read governance، auth hardening.
+
+### Phase 153: P1_AUDIT_TRAIL_SUPER_ADMIN_GOVERNANCE_VIEW_OR_ROLE_CANDIDATE (DOCS_AND_SQL_CANDIDATE_ONLY_PASS)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `DOCS_AND_SQL_CANDIDATE_ONLY_PASS` | read-only + SQL candidate مُختبَر على DB معزول؛ لا DDL إنتاجي/تغيير دور/بيانات/نشر.
+* **القرار**: TEST_ACCOUNT_READY غير صادر ⇒ (حسب قاعدة الاختيار) المسار البديل = حوكمة قراءة super-admin لـ audit_trail. (Full Browser E2E مؤجّل NOT_YET.)
+* **التصميم (الخيار 2)**: `docs/sql/audit_trail_super_admin_view_candidate_{up,validate,down}.sql` — دور `nama_audit_reader` (NOLOGIN/NOSUPER/NOBYPASSRLS) + GRANT SELECT فقط على audit_trail + سياسة SELECT سماحية **مقيّدة بالدور** (`TO nama_audit_reader USING(true)`) تُدمج OR مع سياسة المستأجر. القارئ يرى كل الصفوف عابر-المستأجر (تدقيق فقط)؛ بقية الأدوار تبقى معزولة. لا BYPASSRLS/SUPERUSER، FORCE قائمة. التفعيل قرار مالك (A: LOGIN بسر منفصل؛ B: GRANT للتطبيق + SET ROLE خلف بوابة super-admin).
+* **rehearsal 9/9** (DB معزول، أُسقط): validate 0 bad؛ normal role معزول (t1=2/t2=1/none=0)؛ reader عابر (4/4)؛ reader read-only (writes 42501)؛ reader لا يصل patients؛ NOSUPER/NOBYPASS/NOLOGIN؛ down يستعيد.
+* **درس حرج: أدوار PostgreSQL عنقودية (لا تُعزل بقاعدة throwaway)**. البروفة الأولى سرّبت دور nama_audit_reader/reh_app للعنقود + قاعدة throwaway (خطأ validate على patients قبل التنظيف). عولج فوراً (أُسقطت + تأكيد سلامة nama_medical_app/postgres)، وأُعيد الharness بـ patients وهمي + finally-cleanup دائم. **لا تسرّب الآن؛ سياسات audit_trail الإنتاجية بلا تغيير (insert_writealways + select_tenant).**
+* **ثابت**: app=nama_medical_app، RLS مُنفَّذ، flag OFF، journal=0، LIVE namaweb 039a7d7.
+* **حوكمة جلسة موازية (R17)**: ملفات migrate.ps1/protocol_x.ps1 متعقّبة (للجلسة الموازية) لم تُلمس؛ FF-only، لا force.
+* **NEXT**: `APPROVE_AUDIT_TRAIL_SUPER_ADMIN_GOVERNANCE_DDL` (تطبيق + اختيار تفعيل A/B) أو `TEST_ACCOUNT_READY` (E2E) أو reselect. accounting OFF حتى موافقة صريحة.
