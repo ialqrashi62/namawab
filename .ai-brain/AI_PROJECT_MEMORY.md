@@ -2479,3 +2479,13 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **المرشّحات (candidate-only، docs/sql/)**: `phi_class_a_residual_rls_candidate_{up,validate,down}.sql` — تفعيل RLS (مجموعة لديها tenant_id) + ADD tenant_id/facility_id + RLS (مجموعة فارغة)، نمط السياسة مطابق للـ115، idempotent.
 * **تبعيات**: الفعالية تتطلّب P0 role switch (postgres يتجاوز)؛ + ختم tenant_id في كود إدراج packages/blood_bank_* (code-only منفصل)؛ + قرار تصميم audit_trail (قراءة super-admin عابرة؟).
 * **NEXT**: `BLOCKED_PENDING_DDL_APPROVAL` لتطبيق المرشّح. الأولوية الحقيقية تبقى: موافقة نشر c374879 + السرّ لتبديل الدور.
+
+### Phase 138: Master Post-Compact → P1_EXTENDED_CREATE_ROUTE_TENANT_OWNERSHIP_SWEEP (Option 3)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `CODE_ONLY_PUSHED_NOT_DEPLOYED` | code-only/audit، لا deploy/DDL/data/flag.
+* **التدقيق (Explore agent)**: 72 مساراً مملوك-المعرّف، **54 محروس، 18 غير محروس**.
+* **أُصلِح هذه الجولة (4، fail-closed، tenant_id موجود)**: `POST /api/medical/records` (804)، `POST /api/medical/certificates` (1970)، `POST /api/appointments/followup` (2053، +ملكية)، `PUT /api/bookings/:id` (1900، تقييد UPDATE). الأولان يختمان tenant_id في INSERT أيضاً.
+* **مُسجَّل للجولة التالية (tenant_id موجود، نفس النمط)**: nursing/assessment (5717)، blood-bank crossmatch (2673/2688) + transfusions (2704)، lab/rad UPDATE TOCTOU (1232/1239/1292).
+* **بلا tenant_id (يتطلّب PHI DDL candidate)**: blood_bank_units/donors. **جداول ABSENT (غير فعّالة)**: obgyn_* (5 مسارات).
+* **⚠️ اكتشاف نظامي (precondition لتبديل الدور)**: INSERTs كثيرة لا تختم tenant_id لجداول FORCE-RLS ⇒ ستفشل `WITH CHECK` بعد التحويل لـ nama_medical_app ⇒ يلزم تدقيق ختم tenant_id قبل P0 switch.
+* **اختبار**: cross_tenant_idor_sweep_test 29/29؛ انحدار أخضر؛ node --check. دُفع **namaweb c374879→(جديد)**.
+* **المتراكم غير المنشور يكبر**: refund(منشور) + 3768bf3 + c374879 + هذه الجولة. الموقع الحيّ على 8f012a0. الأولوية الحقيقية: موافقة نشر واحدة تشحن الكل، أو السرّ لتبديل الدور.
