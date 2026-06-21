@@ -2597,3 +2597,12 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **Gate 3 STOP (السبب الجذري)**: probe اتصال كـ nama_medical_app باستخدام `process.env.DB_PASSWORD` (من .env، دون طباعة) رجع **28P01 invalid_password**. مفاتيح .env: DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD/DB_MAX_CONNECTIONS/PORT/SESSION_SECRET/NODE_ENV/REDIS_HOST — **لا متغيّر كلمة مرور مخصص لـ nama_medical_app**، وDB_PASSWORD الحالية تخص postgres. pg_hba يسمح (وصلنا لفحص كلمة المرور)، الدور+الصلاحيات جاهزة — الناقص فقط **قيمة كلمة المرور في البيئة**.
 * **المطلوب لإكمال التبديل (خارج الشات)**: ضبط `DB_PASSWORD` في `namaweb/.env` = كلمة مرور nama_medical_app الحقيقية (أو ALTER ROLE nama_medical_app PASSWORD لتطابق DB_PASSWORD الحالية — يفعله المالك، لا أنا). ثم إعادة `SECRET_READY_EXECUTE_SWITCH` ⇒ أُعيد probe Gate 3 (SUCCESS) ثم أُكمل 4–11 (قلب DB_USER + restart + proof + RLS enforcement + regression) مع rollback فوري.
 * **NEXT**: `SET_SECRET_OUTSIDE_CHAT_THEN_SECRET_READY_EXECUTE_SWITCH`. كل المتطلبات الأخرى جاهزة (audit_trail policy + logAudit stamping + app.tenant_id binding كلها LIVE).
+
+### Phase 150: P0_RLS_RUNTIME_ROLE_SWITCH_RETRY_WITH_SAFE_SECRET_SOURCE (BLOCKED_PENDING_RUNTIME_ROLE_SWITCH_APPROVAL @ Gate 3)
+* **تاريخ المرحلة**: 2026-06-21 | تفويض: `SECRET_READY_EXECUTE_SWITCH` (مصدر آمن منفصل) | الحالة: `BLOCKED`. **لم يُغيَّر أي شيء** (app=postgres، online/200، لا restart).
+* **Gate 0/1 PASS**: 79c34cc/10ded01، RLS_FORCE=120، journal=0؛ nama_medical_app جاهز (login/non-super/non-bypass، DML 149/149).
+* **Gate 3 STOP**: المصدران المُحدَّدان غير قابلين للوصول من بيئة التنفيذ (win32، user ice): `DB_APP_PASSWORD` ABSENT على Process/User/Machine؛ ملف `/root/nama_medical_app_db_password` غير موجود (مسار Linux على صندوق Windows) ولا في أي مسار Windows مُحتمَل (C:\root, C:\Users\ice, .secrets, C:\, C:\ProgramData). لم يُجرَ probe الاتصال (لا قيمة).
+* **التشخيص**: دلالة `/root/` = مضيف Linux، لكن single-box الحالي **Windows أصلي**. السر ليس في مصدر يراه أمر المستخدم ice على هذا الصندوق.
+* **المطلوب (win32، دون شات)**: `[Environment]::SetEnvironmentVariable('DB_APP_PASSWORD','<secret>','User'|'Machine')` أو ملف `C:\Users\ice\nama_medical_app_db_password`، ثم إعادة `SECRET_READY_EXECUTE_SWITCH`. عندها probe→SUCCESS ⇒ تبديل ذرّي (DB_USER+DB_PASSWORD) + restart + proof + RLS enforcement + regression مع rollback فوري.
+* **ثابت**: كل بقية المتطلبات LIVE (audit_trail policy، logAudit stamping، app.tenant_id binding). الناقص الوحيد = إيصال السر لبيئة win32 المنفّذة.
+* **NEXT**: `SET_VALID_NAMA_MEDICAL_APP_SECRET_OUTSIDE_CHAT_THEN_RETRY`.
