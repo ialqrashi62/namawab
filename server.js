@@ -4660,13 +4660,22 @@ async function startServer() {
     try {
         console.log('\n  🐘 Connecting to PostgreSQL...');
         await initDatabase();
-        await insertSampleData();
-        await populateLabCatalog();
-        await populateRadiologyCatalog();
-        await addExtraLabTests();
-        await addExtraRadiology();
-        await populateMedicalServices();
-        await populateBaseDrugs();
+        // Boot-time demo seed + catalog population run ONLY outside production. In production the
+        // schema/catalogs already exist and the app runs as a non-superuser (nama_medical_app) that
+        // lacks CREATE/seed rights, so running these here crashed the app ("permission denied for
+        // schema public" / patients RLS violation). Production seed/schema is managed out-of-band
+        // (see docs/sql/boot_time_schema_cleanup_candidate_*). Tenant binding is unaffected.
+        if (process.env.NODE_ENV !== 'production') {
+            await insertSampleData();
+            await populateLabCatalog();
+            await populateRadiologyCatalog();
+            await addExtraLabTests();
+            await addExtraRadiology();
+            await populateMedicalServices();
+            await populateBaseDrugs();
+        } else {
+            console.log('[DB INFO] Production: skipping demo seed + catalog population (managed out-of-band).');
+        }
         app.listen(PORT, () => {
             console.log(`\n  ✅ Nama Medical Web is running!`);
             console.log(`  🌐 Open: http://localhost:${PORT}`);
@@ -7020,17 +7029,23 @@ app.put('/api/pharmacy/prescriptions/:id', requireAuth, requireTenantScope, asyn
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-// ===== MIGRATION: Add last_ip column to system_users =====
-(async () => { try { await pool.query(`DO $$ BEGIN ALTER TABLE system_users ADD COLUMN last_ip TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`); } catch (e) { } })();
-// ===== MIGRATION: Add doctor column to pharmacy_prescriptions_queue =====
-(async () => { try { await pool.query(`DO $$ BEGIN ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN doctor TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`); } catch (e) { } })();
-// ===== MIGRATION: Fix audit_trail schema (add user_name and details columns) =====
-(async () => {
-    try {
-        await pool.query(`DO $$ BEGIN ALTER TABLE audit_trail ADD COLUMN user_name TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`);
-        await pool.query(`DO $$ BEGIN ALTER TABLE audit_trail ADD COLUMN details TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`);
-    } catch (e) { }
-})();
+// ===== BOOT-TIME COLUMN MIGRATIONS (non-production only) =====
+// These additive ALTERs ran on every boot and silently swallowed errors. They require
+// table-owner/DDL rights the production app role (nama_medical_app) lacks. Disabled in
+// production and managed out-of-band (see docs/sql/boot_time_schema_cleanup_candidate_*).
+if (process.env.NODE_ENV !== 'production') {
+    // MIGRATION: Add last_ip column to system_users
+    (async () => { try { await pool.query(`DO $$ BEGIN ALTER TABLE system_users ADD COLUMN last_ip TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`); } catch (e) { } })();
+    // MIGRATION: Add doctor column to pharmacy_prescriptions_queue
+    (async () => { try { await pool.query(`DO $$ BEGIN ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN doctor TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`); } catch (e) { } })();
+    // MIGRATION: Fix audit_trail schema (add user_name and details columns)
+    (async () => {
+        try {
+            await pool.query(`DO $$ BEGIN ALTER TABLE audit_trail ADD COLUMN user_name TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`);
+            await pool.query(`DO $$ BEGIN ALTER TABLE audit_trail ADD COLUMN details TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`);
+        } catch (e) { }
+    })();
+}
 
 
 // ===== SPA CATCH-ALL (must be LAST route) =====
