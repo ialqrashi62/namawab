@@ -5559,30 +5559,8 @@ app.get('/api/obgyn/stats', requireAuth, requireTenantScope, async (req, res) =>
     try {
         const { tenantId } = getRequestTenantContext(req);
 
-        // Ensure tables exist dynamically
-        await pool.query(`CREATE TABLE IF NOT EXISTS obgyn_pregnancies (
-            id SERIAL PRIMARY KEY,
-            patient_id INTEGER, patient_name VARCHAR(200), lmp DATE, edd DATE,
-            gravida INTEGER, para INTEGER, abortions INTEGER, living_children INTEGER,
-            blood_group VARCHAR(20), rh_factor VARCHAR(20), risk_level VARCHAR(50),
-            pre_pregnancy_weight REAL, height REAL, allergies TEXT, chronic_conditions TEXT,
-            previous_cs INTEGER, previous_complications TEXT, husband_name VARCHAR(200),
-            husband_blood_group VARCHAR(20), attending_doctor VARCHAR(200), created_by VARCHAR(200),
-            status VARCHAR(50) DEFAULT 'Active', delivery_date DATE, delivery_type VARCHAR(100), outcome VARCHAR(100),
-            tenant_id INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`);
-        await pool.query(`CREATE TABLE IF NOT EXISTS obgyn_deliveries (
-            id SERIAL PRIMARY KEY,
-            pregnancy_id INTEGER, patient_id INTEGER, delivery_date DATE,
-            gestational_age_at_delivery VARCHAR(50), delivery_type VARCHAR(100), outcome VARCHAR(100),
-            birth_weight REAL, apgar_1min INTEGER, apgar_5min INTEGER, complications TEXT,
-            gender VARCHAR(20), neonatal_outcome VARCHAR(100), tenant_id INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`);
-
-        await pool.query(`ALTER TABLE obgyn_pregnancies ADD COLUMN IF NOT EXISTS tenant_id INTEGER`);
-        await pool.query(`ALTER TABLE obgyn_deliveries ADD COLUMN IF NOT EXISTS tenant_id INTEGER`);
-
+        // Schema for obgyn_pregnancies/obgyn_deliveries is provisioned out-of-band
+        // (docs/sql/route_level_ddl_cleanup_candidate_*); no DDL in handler under restricted role.
         const params = tenantId ? [tenantId] : [];
         const tenantFilter = tenantId ? ' AND tenant_id=$1' : '';
 
@@ -5740,13 +5718,7 @@ app.post('/api/referrals', requireAuth, requireTenantScope, async (req, res) => 
             }
         }
 
-        await pool.query(`CREATE TABLE IF NOT EXISTS referrals (
-            id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name TEXT DEFAULT '', from_doctor TEXT DEFAULT '', from_dept TEXT DEFAULT '',
-            to_dept TEXT DEFAULT '', to_doctor TEXT DEFAULT '', reason TEXT DEFAULT '', urgency TEXT DEFAULT 'Routine',
-            notes TEXT DEFAULT '', status TEXT DEFAULT 'Pending', response TEXT DEFAULT '', tenant_id INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
-
-        await pool.query('ALTER TABLE referrals ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
-
+        // referrals schema provisioned out-of-band (route_level_ddl_cleanup_candidate_*); no DDL in handler.
         const result = await pool.query('INSERT INTO referrals (patient_id, patient_name, from_doctor, from_dept, to_dept, to_doctor, reason, urgency, notes, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
             [patient_id, patient_name || '', from_doctor || req.session.user?.display_name || '', from_dept || '', to_dept || '', to_doctor || '', reason || '', urgency || 'Routine', notes || '', tenantId]);
         await pool.query('INSERT INTO notifications (target_role, title, message, type, module) VALUES ($1,$2,$3,$4,$5)',
@@ -5760,13 +5732,7 @@ app.get('/api/referrals', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
 
-        await pool.query(`CREATE TABLE IF NOT EXISTS referrals (
-            id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name TEXT DEFAULT '', from_doctor TEXT DEFAULT '', from_dept TEXT DEFAULT '',
-            to_dept TEXT DEFAULT '', to_doctor TEXT DEFAULT '', reason TEXT DEFAULT '', urgency TEXT DEFAULT 'Routine',
-            notes TEXT DEFAULT '', status TEXT DEFAULT 'Pending', response TEXT DEFAULT '', tenant_id INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
-
-        await pool.query('ALTER TABLE referrals ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
-
+        // referrals schema provisioned out-of-band (route_level_ddl_cleanup_candidate_*); no DDL in handler.
         const { patient_id } = req.query;
 
         // Verify patient context belongs to tenant if patient_id is passed
@@ -5879,28 +5845,7 @@ app.post('/api/medical-reports', requireAuth, requireTenantScope, async (req, re
             }
         }
 
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS medical_reports (
-                id SERIAL PRIMARY KEY,
-                report_number VARCHAR(30),
-                patient_id INTEGER,
-                patient_name VARCHAR(200),
-                report_type VARCHAR(50),
-                diagnosis TEXT,
-                icd_code VARCHAR(20),
-                start_date DATE,
-                end_date DATE,
-                duration_days INTEGER,
-                notes TEXT,
-                fitness_status VARCHAR(50),
-                doctor VARCHAR(200),
-                tenant_id INTEGER,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-
-        await pool.query('ALTER TABLE medical_reports ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
-
+        // medical_reports schema provisioned out-of-band (route_level_ddl_cleanup_candidate_*); no DDL in handler.
         const result = await pool.query(
             'INSERT INTO medical_reports (report_number, patient_id, patient_name, report_type, diagnosis, icd_code, start_date, end_date, duration_days, notes, fitness_status, doctor, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *',
             [reportNum, patient_id, patient_name, report_type, diagnosis, icd_code, start_date, end_date, duration_days || 0, notes, fitness_status, doctor, tenantId]
@@ -5924,8 +5869,6 @@ app.get('/api/medical-reports', requireAuth, requireTenantScope, async (req, res
             }
         }
 
-        await pool.query('ALTER TABLE medical_reports ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
-
         let q = 'SELECT * FROM medical_reports';
         let p = [];
         const conds = [];
@@ -5947,7 +5890,6 @@ app.get('/api/medical-reports', requireAuth, requireTenantScope, async (req, res
 app.get('/api/medical-reports/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
-        await pool.query('ALTER TABLE medical_reports ADD COLUMN IF NOT EXISTS tenant_id INTEGER');
 
         const q = tenantId ?
             'SELECT * FROM medical_reports WHERE id=$1 AND tenant_id=$2' :
@@ -6130,22 +6072,7 @@ app.post('/api/invoices/:id/refund', requireAuth, requireRole('invoices', 'accou
 app.post('/api/cash-drawer/open', requireAuth, async (req, res) => {
     try {
         const { opening_balance } = req.body;
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS cash_drawer (
-                id SERIAL PRIMARY KEY,
-                user_id INTEGER,
-                user_name VARCHAR(200),
-                opening_balance DECIMAL(12,2) DEFAULT 0,
-                closing_balance DECIMAL(12,2),
-                expected_balance DECIMAL(12,2),
-                difference DECIMAL(12,2),
-                status VARCHAR(20) DEFAULT 'open',
-                opened_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                closed_at TIMESTAMP,
-                notes TEXT
-            )
-        `);
-
+        // cash_drawer schema provisioned out-of-band (route_level_ddl_cleanup_candidate_*); no DDL in handler.
         // Check if already open
         const existing = (await pool.query("SELECT * FROM cash_drawer WHERE user_id=$1 AND status='open'", [req.session.user?.id])).rows[0];
         if (existing) return res.status(400).json({ error: 'Drawer already open. Close current session first.' });
@@ -6203,34 +6130,7 @@ app.get('/api/cash-drawer/current', requireAuth, async (req, res) => {
 // ===== VISIT LIFECYCLE TRACKING =====
 app.post('/api/visits/lifecycle', requireAuth, async (req, res) => {
     try {
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS visit_lifecycle (
-                id SERIAL PRIMARY KEY,
-                patient_id INTEGER,
-                patient_name VARCHAR(200),
-                appointment_id INTEGER,
-                doctor VARCHAR(200),
-                department VARCHAR(100),
-                status VARCHAR(30) DEFAULT 'arrived',
-                arrived_at TIMESTAMP,
-                triage_at TIMESTAMP,
-                consult_start TIMESTAMP,
-                consult_end TIMESTAMP,
-                lab_sent_at TIMESTAMP,
-                lab_done_at TIMESTAMP,
-                pharmacy_sent_at TIMESTAMP,
-                pharmacy_done_at TIMESTAMP,
-                payment_at TIMESTAMP,
-                completed_at TIMESTAMP,
-                wait_time_minutes INTEGER,
-                consult_duration_minutes INTEGER,
-                total_duration_minutes INTEGER,
-                triage_level VARCHAR(10),
-                pain_score INTEGER,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-
+        // visit_lifecycle schema provisioned out-of-band (route_level_ddl_cleanup_candidate_*); no DDL in handler.
         const { patient_id, patient_name, appointment_id, doctor, department } = req.body;
         const result = await pool.query(
             'INSERT INTO visit_lifecycle (patient_id, patient_name, appointment_id, doctor, department, status, arrived_at) VALUES ($1,$2,$3,$4,$5,$6,CURRENT_TIMESTAMP) RETURNING *',
@@ -6276,7 +6176,7 @@ app.put('/api/visits/lifecycle/:id', requireAuth, async (req, res) => {
 
 app.get('/api/visits/lifecycle/today', requireAuth, async (req, res) => {
     try {
-        await pool.query('CREATE TABLE IF NOT EXISTS visit_lifecycle (id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name VARCHAR(200), appointment_id INTEGER, doctor VARCHAR(200), department VARCHAR(100), status VARCHAR(30), arrived_at TIMESTAMP, triage_at TIMESTAMP, consult_start TIMESTAMP, consult_end TIMESTAMP, lab_sent_at TIMESTAMP, lab_done_at TIMESTAMP, pharmacy_sent_at TIMESTAMP, pharmacy_done_at TIMESTAMP, payment_at TIMESTAMP, completed_at TIMESTAMP, wait_time_minutes INTEGER, consult_duration_minutes INTEGER, total_duration_minutes INTEGER, triage_level VARCHAR(10), pain_score INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)');
+        // visit_lifecycle schema provisioned out-of-band; no DDL in handler.
         const { doctor } = req.query;
         let q = "SELECT * FROM visit_lifecycle WHERE created_at::date = CURRENT_DATE";
         let p = [];
@@ -6300,8 +6200,7 @@ app.put('/api/appointments/:id/checkin', requireAuth, requireRole('appointments'
         // Update appointment status
         await pool.query("UPDATE appointments SET status='Checked-In', check_in_time=CURRENT_TIMESTAMP WHERE id=$1", [req.params.id]);
 
-        // Create visit lifecycle entry
-        await pool.query('CREATE TABLE IF NOT EXISTS visit_lifecycle (id SERIAL PRIMARY KEY, patient_id INTEGER, patient_name VARCHAR(200), appointment_id INTEGER, doctor VARCHAR(200), department VARCHAR(100), status VARCHAR(30), arrived_at TIMESTAMP, triage_at TIMESTAMP, consult_start TIMESTAMP, consult_end TIMESTAMP, lab_sent_at TIMESTAMP, lab_done_at TIMESTAMP, pharmacy_sent_at TIMESTAMP, pharmacy_done_at TIMESTAMP, payment_at TIMESTAMP, completed_at TIMESTAMP, wait_time_minutes INTEGER, consult_duration_minutes INTEGER, total_duration_minutes INTEGER, triage_level VARCHAR(10), pain_score INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)');
+        // Create visit lifecycle entry (visit_lifecycle schema provisioned out-of-band; no DDL in handler)
         const visit = await pool.query(
             'INSERT INTO visit_lifecycle (patient_id, patient_name, appointment_id, doctor, department, status, arrived_at) VALUES ($1,$2,$3,$4,$5,$6,CURRENT_TIMESTAMP) RETURNING *',
             [appt.patient_id, appt.patient_name, appt.id, appt.doctor, appt.department || 'General', 'arrived']
