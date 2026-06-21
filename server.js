@@ -2699,11 +2699,15 @@ app.get('/api/blood-bank/crossmatch', requireAuth, async (req, res) => {
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.put('/api/blood-bank/crossmatch/:id', requireAuth, async (req, res) => {
+app.put('/api/blood-bank/crossmatch/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { result: matchResult } = req.body;
-        if (matchResult) await pool.query('UPDATE blood_bank_crossmatch SET result=$1 WHERE id=$2', [matchResult, req.params.id]);
-        res.json((await pool.query('SELECT * FROM blood_bank_crossmatch WHERE id=$1', [req.params.id])).rows[0]);
+        // --- TENANT GUARD (IDOR, fail-closed): scope crossmatch update by tenant_id. ---
+        const { tenantId } = getRequestTenantContext(req);
+        const owns = (await pool.query('SELECT id FROM blood_bank_crossmatch WHERE id=$1 AND tenant_id=$2', [req.params.id, tenantId])).rows[0];
+        if (!owns) return res.status(404).json({ error: 'Crossmatch not found' });
+        if (matchResult) await pool.query('UPDATE blood_bank_crossmatch SET result=$1 WHERE id=$2 AND tenant_id=$3', [matchResult, req.params.id, tenantId]);
+        res.json((await pool.query('SELECT * FROM blood_bank_crossmatch WHERE id=$1 AND tenant_id=$2', [req.params.id, tenantId])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -4098,17 +4102,21 @@ app.post('/api/quality/incidents', requireAuth, requireTenantScope, async (req, 
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/quality/incidents/:id', requireAuth, async (req, res) => {
+app.put('/api/quality/incidents/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { status, assigned_to, root_cause, corrective_action, preventive_action } = req.body;
+        // --- TENANT GUARD (IDOR, fail-closed): scope incident update by tenant_id. ---
+        const { tenantId } = getRequestTenantContext(req);
         const sets = []; const vals = []; let i = 1;
         if (status) { sets.push(`status=$${i++}`); vals.push(status); if (status === 'Closed') { sets.push(`closed_date=$${i++}`); vals.push(new Date().toISOString().split('T')[0]); } }
         if (assigned_to) { sets.push(`assigned_to=$${i++}`); vals.push(assigned_to); }
         if (root_cause) { sets.push(`root_cause=$${i++}`); vals.push(root_cause); }
         if (corrective_action) { sets.push(`corrective_action=$${i++}`); vals.push(corrective_action); }
         if (preventive_action) { sets.push(`preventive_action=$${i++}`); vals.push(preventive_action); }
-        vals.push(req.params.id);
-        await pool.query(`UPDATE quality_incidents SET ${sets.join(',')} WHERE id=$${i}`, vals);
+        if (!sets.length) return res.status(400).json({ error: 'No fields to update' });
+        vals.push(req.params.id); vals.push(tenantId);
+        const upd = await pool.query(`UPDATE quality_incidents SET ${sets.join(',')} WHERE id=$${i} AND tenant_id=$${i + 1}`, vals);
+        if (upd.rowCount === 0) return res.status(404).json({ error: 'Incident not found' });
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -4229,16 +4237,20 @@ app.post('/api/transport/requests', requireAuth, requireTenantScope, async (req,
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/transport/requests/:id', requireAuth, async (req, res) => {
+app.put('/api/transport/requests/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { status, assigned_porter, pickup_time, dropoff_time } = req.body;
+        // --- TENANT GUARD (IDOR, fail-closed): scope transport-request update by tenant_id. ---
+        const { tenantId } = getRequestTenantContext(req);
         const sets = []; const vals = []; let i = 1;
         if (status) { sets.push(`status=$${i++}`); vals.push(status); }
         if (assigned_porter) { sets.push(`assigned_porter=$${i++}`); vals.push(assigned_porter); }
         if (pickup_time) { sets.push(`pickup_time=$${i++}`); vals.push(pickup_time); }
         if (dropoff_time) { sets.push(`dropoff_time=$${i++}`); vals.push(dropoff_time); }
-        vals.push(req.params.id);
-        await pool.query(`UPDATE transport_requests SET ${sets.join(',')} WHERE id=$${i}`, vals);
+        if (!sets.length) return res.status(400).json({ error: 'No fields to update' });
+        vals.push(req.params.id); vals.push(tenantId);
+        const upd = await pool.query(`UPDATE transport_requests SET ${sets.join(',')} WHERE id=$${i} AND tenant_id=$${i + 1}`, vals);
+        if (upd.rowCount === 0) return res.status(404).json({ error: 'Request not found' });
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
