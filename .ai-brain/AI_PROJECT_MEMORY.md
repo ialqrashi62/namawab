@@ -2756,3 +2756,14 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **انحراف موافَق**: نُفِّذت النسخة الآمنة RLS لا المرشّح الأصلي (تفادي جداول PHI بلا عزل). visit_lifecycle أُضيف له tenant_id+RLS (لم يكن معزولاً). متبقٍّ: Batch B (8 جداول، DDL في الكود) + Batch C.
 * **git**: docs (down.sql + closeout مُحدَّث + memory). namaweb bf5497c (مدفوع سابقاً). لا force/أسرار. rollback جاهز (down.sql + schema backup) غير مُستخدَم.
 * **NEXT**: `POST_DEPLOY_MONITORING_THEN_ROUTE_DDL_BATCH_B_C`. accounting/audit-reader/Stitch موقوفة.
+
+### Phase 166: NAMA_MEDICAL_FULL_RLS_RUNTIME_HARDENING_MASTER_AUTOPILOT (FULL_MASTER_CANDIDATES_READY_NOT_DEPLOYED — قيد التنفيذ)
+* **تاريخ المرحلة**: 2026-06-21 | برنامج شامل 9 مراحل (0-8): candidates + read-only audits + rehearsals؛ كل deploy/GRANT/enablement = موقوف بموافقة.
+* **PHASE 0**: state green (nama_medical_app super=false/bypassrls=false، health 5/5، FORCE_RLS=125، tenant_default=125، accounting OFF، audit-reader NO). binding re-proven PASS.
+* **PHASE 1 (route-DDL Batch B/C)**: جرد كامل (runtime DDL في server.js فقط؛ database.js/migrate_*/inject_* أدوات يدوية غير-runtime). كل جداول Batch B = 0 صفوف ⇒ RLS آمن. SQL candidates جاهزة ومُجرّبة على قاعدة معزولة (PASS): `route_level_ddl_batch_b_rls_safe_candidate_*` (8 جداول، FORCE RLS+policy+DEFAULT tenant-scoped؛ pathology/cssd/cme/infection_control/maintenance/insurance_policies/inventory/pharmacy_prescriptions)، `route_level_ddl_batch_c_*` (أعمدة pharmacy_prescriptions_queue — الجدول محميّ FORCE RLS مسبقاً). **code removal (1C) مؤجّل** (تعارض مع قراءة وكيل PHASE 4 لـserver.js) — نفس نمط Batch A المُثبَت.
+* **PHASE 3 (وكيل، تمّ)**: تدقيق RLS كامل 155 جدول/125 FORCE. **14 جدول tenant-sensitive بلا عزل DB** (مالي: discount_rules, finance_cost_centers, finance_fiscal_years, insurance_companies, insurance_contracts؛ تشغيلي: branches, departments, **employees [رواتب/عمولات]**, form_templates, cme_activities, cme_registrations, cssd_instrument_sets/load_items/sterilization_cycles) ⇒ مرشّح إصلاح RLS مستقبلي. nama_medical_app يملك 0 جداول. تقرير: `P3_FULL_RLS_COVERAGE_ALL_TABLES_AUDIT_AR.md`.
+* **PHASE 4 (وكيل)**: تدقيق API/RBAC — قيد التشغيل (تقرير `P4_...` قادم).
+* **PHASE 5**: harness UAT (لا حساب اختبار ⇒ لا browser E2E): binding/isolation/write-stamping/fail-closed/protected-401 كلها PASS. `P5_...`.
+* **PHASE 6**: nama_audit_reader موجود (NOLOGIN/NOSUPER/NOBYPASSRLS، غير مرتبط بالتطبيق)؛ مرشّح التكامل موجود سابقاً ⇒ READY_NOT_DEPLOYED (GRANT موقوف).
+* **PHASE 7**: كل جداول المحاسبة absent ⇒ accounting OFF؛ مرشّحات CoA/DDL مُجرّبة سابقاً غير منشورة ⇒ READINESS_ONLY. `P7_...`.
+* **NEXT**: إكمال PHASE 1C (code removal) + PHASE 2 (tenant-stamping) + دمج PHASE 4 + master closeout عند انتهاء وكيل PHASE 4. كل النشر/GRANT/enablement موقوف بموافقة صريحة.
