@@ -2818,3 +2818,14 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **PHASES 2-7**: مغطّاة بتدقيقات قائمة سارية (P2/P4/P5/P7 + audit-reader candidate)؛ P0 system_users منشور؛ لا تكرار توليد.
 * **git**: docs فقط (P1 infra + P8 security/perf + P9 master closeout + memory). namaweb بلا تغيير. closeout: `NAMA_MEDICAL_POST_RLS_FULL_SYSTEM_HARDENING_MASTER_CLOSEOUT_AR.md`.
 * **NEXT (بوابات، مرتّبة)**: (1) APPROVE_PM2_WINDOWS_STARTUP_AND_HEALTH_WATCHDOG؛ (2) API/RBAC defense-in-depth؛ (3) audit-reader GRANT؛ (4) اختياري tenant_id index candidate. accounting OFF.
+
+### Phase 173: APPROVE_PM2_WINDOWS_STARTUP_AND_HEALTH_WATCHDOG (DEPLOYED_PASS — infra only)
+* **تاريخ المرحلة**: 2026-06-22 | hardening تشغيلي فقط (لا كود تطبيق/DB/.env/GRANT/أسرار). إغلاق فجوة الإحياء التلقائي بعد حادثة Docker/Redis/PM2.
+* **Gate 0/1**: health=200، nama-app online (restarts=2)، Redis PONG؛ pm2 dump محفوظ؛ nama-redis=unless-stopped؛ Docker autostart=HKCU Run (مُهيّأ)؛ **لا startup/watchdog سابقاً** (الفجوة).
+* **المُركَّب** (طبقتان، بلا رفع صلاحية، قابلتان للتراجع):
+  1. **Logon startup** عبر `HKCU\...\Run\NamaMedical-PM2-Resurrect` → `ops/startup/nama_pm2_resurrect.ps1` (ينتظر Redis ثم pm2 resurrect). [مهمة AtLogOn المجدولة فشلت بـAccess denied — تتطلّب Admin؛ HKCU Run هو البديل القياسي لكل-مستخدم].
+  2. **Health watchdog** Scheduled Task `NamaMedical-Health-Watchdog` كل 5 دقائق (Interval=PT5M، Duration فارغة=غير منتهية) → `ops/watchdogs/nama_health_watchdog.ps1` (يفحص health؛ عند السقوط docker start nama-redis + pm2 resurrect + يسجّل؛ تدوير log عند 1MB).
+* **اختبار (Gate 5)**: dry-run للسكربتين — watchdog سجّل OK health=200؛ resurrect استعاد دون قتل العملية (نفس PID، uptime مستمر)؛ health بقي 200، لا crash-loop. لم يُنفَّذ stop test (غير مُصرّح في بلوك الموافقة).
+* **git**: ops/ (سكربتان) + docs (runbook + closeout) + memory فقط. لا staging لملفات Stitch/MEDICAL ولا migrate.ps1/protocol_x.ps1. logs غير ملتزَمة. namaweb بلا تغيير. closeout: `APPROVE_PM2_WINDOWS_STARTUP_AND_HEALTH_WATCHDOG_FINAL_CLOSEOUT_AR.md` + runbook: `PM2_WINDOWS_STARTUP_AND_HEALTH_WATCHDOG_RUNBOOK_AR.md`.
+* **الحالة**: FINAL_STATUS=PM2_WINDOWS_STARTUP_AND_HEALTH_WATCHDOG_DEPLOYED_PASS؛ DB_ROLE=nama_medical_app؛ binding PASS؛ DDL/DATA/GRANT/APP_CODE=NO؛ accounting OFF؛ journal=0؛ no force push؛ no secrets.
+* **NEXT**: API_RBAC_DEFENSE_IN_DEPTH_BATCHES (ثم audit-reader GRANT؛ ثم اختياري tenant_id index). accounting OFF.
