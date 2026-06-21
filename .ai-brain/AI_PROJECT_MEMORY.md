@@ -2690,3 +2690,14 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **Gate 5 (read-only)**: app=nama_medical_app، RLS enforced (patients_noctx=0)، FORCE=120، tenant_defaults=120/120، journal=0، flag OFF، audit_reader غير ممنوح. لا تغيير إنتاج.
 * **git**: parent docs فقط (delta inventory + plan + patch spec + closeout + memory). namaweb 039a7d7 بلا تغيير. ملفات .ps1 الموازية لم تُلمس.
 * **NEXT**: `OWNER_RESOLVE_NAMAWEB_MAIN_MASTER_DIVERGENCE` (merge/cherry-pick بلا force) ثم APPLY_BATCH1_PATCH + APPROVE_RLS_CODE_STAMPING_DEPLOY. أو reselect آخر. المحاسبة/audit-reader GRANT/Stitch موقوفة.
+
+### Phase 160: OWNER_RESOLVE_NAMAWEB_MAIN_MASTER_DIVERGENCE_SECURITY_CHERRYPICK_CANDIDATE (BLOCKED_PENDING_BRANCH_DECISION — P0 discovery)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `BLOCKED_PENDING_BRANCH_DECISION` | candidate/تحليل فقط — لا تعديل/نشر namaweb.
+* **قرار المالك**: main@039a7d7 canonical. canonical branch = `main` (= origin/main@039a7d7؛ origin/HEAD→main)؛ master@10ded01 سطري القديم.
+* **🔴 اكتشاف P0 يتجاوز Batch-1**: الفرع المنشور 039a7d7 **لا يضبط app.tenant_id لكل طلب** — db_postgres.js بلا AsyncLocalStorage/tenantStore/pool.query-wrapper (Pool عادي + query رفيع، exports={pool,query,getPool,initDatabase})؛ server.js يستورد {pool,initDatabase} فقط، 784 نداء pool.query خام، withTenantTransaction (tenant_context_pg_session.js) غير مُستخدم؛ nama_medical_app rolconfig=NULL؛ لا db-role setting. **⇒ تحت FORCE RLS، كل قراءة tenant=0 وكل كتابة=42501. طبقة بيانات المستأجر معطّلة في الإنتاج منذ التبديل.** (إثبات: nama_medical_app بلا سياق → patients=0.) لم يُكتشف سابقاً لأن UATي ضبط app.tenant_id يدوياً في probe، لا عبر مسار التطبيق؛ pool التطبيق خامل.
+* **السبب**: تشعّب الفرعين — الربط موجود في سطري (10ded01: ALS pool.query wrapper + server.js:146 tenantStore.run middleware)، **غائب** من 039a7d7. التبديل نُشر بلا الربط.
+* **الأثر على Batch-1**: ختم tenant_id في INSERT بلا أثر دون الربط (WITH CHECK يحتاج app.tenant_id مضبوطاً) ⇒ أوقفت Batch-1.
+* **المرشّح الأساسي (جاهز، غير مُطبَّق)**: نقل الربط من 10ded01 → db_postgres.js (الـALS block + pool.query monkey-patch + exports) + server.js (import tenantStore + middleware) + (يُفضَّل) حارس initDatabase production. spec في `NAMAWEB_RUNTIME_TENANT_BINDING_CRITICAL_FINDING_AND_PORT_CANDIDATE_AR.md`. مُثبَت 9/9 سابقاً.
+* **لم أُطبّق/أدفع**: الربط تغيير runtime حرج (784 query) عالي الأثر؛ يحتاج قرار+نشر مالك بوعي، لا يُدفع inert. namaweb 039a7d7 بلا تغيير؛ ملفات .ps1 لم تُلمس.
+* **git**: parent docs فقط (finding+port candidate + security delta map + closeout + memory).
+* **NEXT**: `APPROVE_PORT_RUNTIME_TENANT_BINDING_FROM_10ded01_THEN_DEPLOY` (عاجل P0) + تحقق مالك بقراءة مصادقة فعلية ؛ ثم Batch-1 stamping. المحاسبة/audit-reader موقوفة.
