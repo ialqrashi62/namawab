@@ -2680,3 +2680,13 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **إعادة الاختيار (Gate 6)**: لا TEST_ACCOUNT_READY + monitoring PASS ⇒ المُختار **C** (code-level defense-in-depth ختم tenant_id + توفيق فرعَي namaweb) — أعلى خطر بنيوي (الكود يعتمد على DEFAULT وحده + تشعّب الفرعين). A مرفوض (لا حساب)، D/accounting محظور، B (audit-reader) مؤجّل. candidate؛ ينتظر "ابدأ وضع" صريح.
 * **git**: decision + closeout + memory (docs فقط). namaweb 039a7d7 بلا تغيير.
 * **NEXT**: انتظار توجيه المالك — C (موصى) أو B/D (بموافقة) أو reselect آخر. accounting/audit-reader GRANT/Stitch موقوفة حتى أمر صريح.
+
+### Phase 159: P1_RLS_CODE_LEVEL_TENANT_STAMPING_DEFENSE_IN_DEPTH_AND_NAMAWEB_RECONCILIATION (BLOCKED_PENDING_BRANCH_DECISION)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `BLOCKED_PENDING_BRANCH_DECISION` | candidate spec فقط — بلا تعديل/دفع namaweb، بلا deploy/restart/DDL/GRANT/accounting.
+* **العائق المؤكَّد (تشعّب namaweb)**: local `main`@039a7d7 (المنشور/الجاري) ↔ `origin/master`@10ded01 (سطري الأمني)؛ merge-base=c6e44ae؛ **متشعّبان (non-FF بالاتجاهين)**. ⇒ دفع كود إلى master يحتاج force (محظور)، وتعديل الفرع الحي يخالف "لا overwrite". القرار للمالك (أي سطر canonical + merge/cherry-pick انتقائي بلا force).
+* **القرار**: Option C — patch spec فقط (`docs/patches/rls_code_stamping_batch1_AR.md`)، صفر تعديل namaweb.
+* **Batch 1 spec جاهز**: import getCurrentTenantId + logAudit يختم tenant_id من ALS + 6 مسارات (blood_bank_units/donors, transport_requests, insurance_claims, medical_records, medical_certificates): requireTenantScope + getRequestTenantContext + ختم tenant_id (+facility_id حيث موجود؛ transport tenant_id فقط) + لا ثقة بالـbody. كله **فوق** DB default (fallback، لا يُكسَر). facility_id: موجود على units/donors/insurance/records/certificates، غائب على transport.
+* **حالة البنود الـ16**: logAudit/blood-bank stamping MISSING_IN_LIVE لكن **protected-by-DB-default (Phase 157)**؛ facility entitlement + app.tenant_id ALS binding PRESENT؛ حُرّاس القراءة/التحديث مُغطّاة بـRLS. الخطر الوظيفي مرفوع؛ Batch1 دفاع-في-العمق غير عاجل.
+* **Gate 5 (read-only)**: app=nama_medical_app، RLS enforced (patients_noctx=0)، FORCE=120، tenant_defaults=120/120، journal=0، flag OFF، audit_reader غير ممنوح. لا تغيير إنتاج.
+* **git**: parent docs فقط (delta inventory + plan + patch spec + closeout + memory). namaweb 039a7d7 بلا تغيير. ملفات .ps1 الموازية لم تُلمس.
+* **NEXT**: `OWNER_RESOLVE_NAMAWEB_MAIN_MASTER_DIVERGENCE` (merge/cherry-pick بلا force) ثم APPLY_BATCH1_PATCH + APPROVE_RLS_CODE_STAMPING_DEPLOY. أو reselect آخر. المحاسبة/audit-reader GRANT/Stitch موقوفة.
