@@ -2634,3 +2634,13 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **ثابت**: app=nama_medical_app، RLS مُنفَّذ، flag OFF، journal=0، LIVE namaweb 039a7d7.
 * **حوكمة جلسة موازية (R17)**: ملفات migrate.ps1/protocol_x.ps1 متعقّبة (للجلسة الموازية) لم تُلمس؛ FF-only، لا force.
 * **NEXT**: `APPROVE_AUDIT_TRAIL_SUPER_ADMIN_GOVERNANCE_DDL` (تطبيق + اختيار تفعيل A/B) أو `TEST_ACCOUNT_READY` (E2E) أو reselect. accounting OFF حتى موافقة صريحة.
+
+### Phase 154: P1_AUDIT_TRAIL_SUPER_ADMIN_GOVERNANCE_DDL_CONTROLLED_EXECUTION (PRODUCTION_DDL_PASS_RUNTIME_ROLE_UNCHANGED)
+* **تاريخ المرحلة**: 2026-06-21 | تفويض: تطبيق audit_trail_super_admin_view_candidate فقط | الحالة: `PRODUCTION_DDL_PASS_RUNTIME_ROLE_UNCHANGED`.
+* **طُبِّق على prod (psql atomic)**: `audit_trail_super_admin_view_candidate_up.sql` → دور `nama_audit_reader` (NOLOGIN/NOSUPER/NOBYPASSRLS) + GRANT USAGE schema + SELECT فقط على audit_trail + سياسة `audit_trail_select_superadmin` (FOR SELECT TO nama_audit_reader USING true). validate 7/7.
+* **enforcement على prod (SET ROLE، read-only، 7/7)**: reader يقرأ audit_trail غير مقيّد (no-ctx=45=ctx1)؛ INSERT مرفوض 42501؛ لا وصول patients؛ **app role nama_medical_app يبقى معزولاً** (audit no-ctx=0/ctx999=0/ctx1=45، patients no-ctx=0) — سياسة superadmin لا تنطبق عليه؛ reader NOSUPER/NOBYPASS/NOLOGIN؛ audit_trail=45 بلا تغيير.
+* **الأثر**: RLS_POLICY 121→**122** (+select_superadmin)، RLS_FORCE=120 (لا تغيير)، audit_trail سياساته الآن 3. **بلا restart** (DDL سياسة/منحة فقط)، smoke أخضر.
+* **الدور خامل**: NOLOGIN + غير ممنوح لأحد ⇒ لا استخدام فعلي بعد؛ السلوك الحالي بلا تغيير. التفعيل قرار مالك لاحق (A: LOGIN بسر؛ B: GRANT للتطبيق + SET ROLE خلف بوابة super-admin).
+* **الثوابت**: DB_ROLE=nama_medical_app (دون تبديل)، DATA_CHANGED=NO، RUNTIME_CODE=NO، ACCOUNTING OFF، journal=0، لا أسرار، لا force. backup: ~/nama_deploy_backups/audit_gov_ddl_20260621/ + down.sql.
+* **حوكمة**: test_rls_user (دور سابق له grants على audit_trail) لوحظ، خارج النطاق، لم يُلمس. ملفات .ps1 الموازية متعقّبة، لم تُلمس. FF-only.
+* **NEXT**: `MASTER_AUTOPILOT_RESELECT`. مرشّحات لاحقة: TEST_ACCOUNT_READY (Full Browser E2E)، تفعيل audit reader (A/B)، auth hardening P5. accounting يبقى OFF حتى موافقة صريحة.
