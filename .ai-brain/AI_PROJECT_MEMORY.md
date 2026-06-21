@@ -2776,3 +2776,12 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **التحقق**: health 200 (6/6)، /=200 /login=200 /api/patients=401، الدور nama_medical_app (pg_stat_activity)، binding PASS (ctx1=3/999=0/no-ctx=0)، FORCE_RLS=125 بلا تغيير.
 * **درس وقائي**: التطبيق يعتمد على Docker/Redis؛ توصية (تحتاج قرار): auto-start لـDocker+nama-redis عند الإقلاع + `pm2 startup`+`pm2 save` لإحياء تلقائي.
 * **أثر على master**: لا شيء — البرنامج كان مكتملاً (c9ce6d9)؛ المرشّحات والبوابات كما هي. تقرير: `P0_INCIDENT_PRODUCTION_APP_DOWN_DOCKER_REDIS_RESTORE_AR.md`.
+
+### Phase 168: P0_SYSTEM_USERS_ROLE_GUARD_CODE_ONLY_DEPLOY (PRODUCTION_DEPLOYED_PASS)
+* **تاريخ المرحلة**: 2026-06-21 | إصلاح كود + نشر محكوم (بلا DDL/DATA/GRANT/.env). أعلى بوابة P0 من master أُغلقت.
+* **الخطر**: `PUT /api/settings/users/:id` (server.js) كان `requireAuth` فقط ⇒ أي مستخدم مصادَق يغيّر role/permissions/password لأي مستخدم (ترقية ذاتية/اختطاف). RLS لا يحميه (system_users بلا RLS).
+* **الإصلاح (server.js +48/-2)**: الهوية من الجلسة فقط؛ غير-Admin يعدّل سجلّه + حقول profile الآمنة فقط (display_name/speciality/password)؛ تغيير role/permissions/status/username/commission على الذات ⇒ 403+audit؛ تعديل مستخدم آخر ⇒ 403+audit؛ Admin تحديث كامل + حماية آخر Admin نشط. الأعلى = role 'Admin' (ROLE_PERMISSIONS['*']).
+* **الاختبار**: guard-logic harness 6/6 PASS + PUT بلا جلسة=401 + node --check. (live browser E2E يحتاج حساب اختبار — غير متاح.)
+* **النشر**: namaweb `bf5497c→4d51031` (FF). pm2 restart ⇒ online، health 6/6، /=200 /login=200 /api/patients=401 /api/settings/users/1(noauth)=401، Redis PONG، binding PASS، FORCE_RLS=125، accounting OFF. rollback جاهز (`git checkout bf5497c -- server.js`) غير مُستخدَم.
+* **ملاحظة**: cross-tenant على system_users غير مُطبَّق (جدول عالمي بلا tenant_id ⇒ يحتاج DDL، خارج النطاق).
+* **NEXT**: `POST_DEPLOY_MONITORING_THEN_ROUTE_DDL_BATCH_B_C_DEPLOY`. بوابات master المتبقية: Batch B/C deploy (SQL مُجرّب جاهز)، 14-table RLS (DATA_CHANGE)، API/RBAC defense-in-depth، audit-reader GRANT.
