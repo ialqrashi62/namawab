@@ -2499,3 +2499,11 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **حدّ النطاق**: ختم tenant_id فقط (لا فحص ملكية patient_id — بند IDOR منفصل؛ UPDATE-by-id مثل quality/transport/crossmatch PUT = مسح multi-row منفصل). «لا خلط مراحل».
 * **اختبار**: `rls_insert_tenant_stamping_test.js` 13/13؛ node --check؛ انحدار أخضر. دُفع **namaweb 0e008f7→(جديد)**.
 * **NEXT**: نشر المتراكم (APPROVE_DEPLOY) ثم `SECRET_READY_EXECUTE_SWITCH`؛ إعادة المسح بعد أي مسارات INSERT جديدة.
+
+### Phase 140: Master After-139 → P1_EXTENDED_MULTI_ROW_UPDATE_TENANT_GUARD_SWEEP (Plan-mode approved)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `CODE_ONLY_PUSHED_NOT_DEPLOYED` | code-only، لا deploy/DDL/data/flag.
+* **plan mode**: فُعِّل أثناء التنفيذ؛ كتبتُ خطة (`lexical-petting-wozniak.md`)، وأقرّ المالك «Finalize 3 + document rest»، ثم ExitPlanMode وأكملت.
+* **التدقيق (Explore)**: 93 UPDATE؛ معظم جداول المستأجر محروسة. **3 غير محروسة أُصلِحت**: `PUT /api/blood-bank/crossmatch/:id` (2705)، `PUT /api/quality/incidents/:id` (4103)، `PUT /api/transport/requests/:id` (4241) — requireTenantScope + `UPDATE … WHERE id AND tenant_id` + rowCount 404.
+* **مؤجَّل (موثّق)**: cosmetic_cases PUT، nursing/assessment، appointments checkin/noshow، waiting-queue PUT، lab/rad defense-in-depth، patients soft-delete defense-in-depth. **غير قابل**: blood_bank_units (no tenant_id → PHI DDL)، obgyn_* (ABSENT).
+* **اختبار**: `cross_tenant_update_sweep_test.js` 14/14؛ انحدار أخضر (idor 29، refund 11، stamping 13، failclosed 50، accounting 28)؛ node --check. دُفع **namaweb 4176f4d→082c07b**.
+* **المتراكم غير المنشور**: refund(منشور) + 3768bf3 + c374879 + 0e008f7 + 4176f4d + 082c07b. الموقع الحيّ 8f012a0. الأولوية الحقيقية تبقى: موافقة نشر واحدة أو السرّ.
