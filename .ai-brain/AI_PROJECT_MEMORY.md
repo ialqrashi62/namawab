@@ -419,7 +419,7 @@ NamaMedical/ (المستودع الرئيسي الأب)
 ### Phase 31: Use Existing Local Windows PostgreSQL Service for RLS Dry-Run
 * **تاريخ المحاولة**: 2026-06-19
 * **الحالة (Status)**: `MEDICAL_LOCAL_POSTGRESQL_RLS_DRY_RUN_ENV_SETUP_COMPLETED`
-* **الملفات البرمجية المعدلة**: 
+* **الملفات البرمجية المعدلة**:
   - `namaweb/db_postgres.js` (تصحيح وإضافة إنشاء جدول `waiting_queue` وتجربة التهيئة)
   - `namaweb/rls_local_dry_run_3_tables.js` (تحديث مسار `pg_dump.exe` المطلق على ويندوز)
 * **المخرجات**:
@@ -2566,3 +2566,13 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **الثوابت**: DDL=NO, DATA=NO, RLS_CHANGED=NO, RLS_FORCE=120, role=postgres, RLS_RUNTIME_ENFORCEMENT=NOT_YET, ACCOUNTING=OFF, journal=0, audit_trail=44 unchanged, logAudit runtime بلا تغيير, لا أسرار, لا force.
 * **git**: closeout + memory (docs فقط؛ namaweb gitlink أصلاً 6ecbf4a، لا تغيير submodule هذه المرحلة).
 * **NEXT (شرطان قبل التبديل)**: (1) `P1_AUDIT_TRAIL_RLS_POLICY_COMPATIBILITY_PRECHECK` — سياسة سماحية/نظامية أو دور كاتب-تدقيق لـaudit_trail (وإلا توقّف تدقيق صامت بعد التبديل). (2) precheck ضبط app.tenant_id لكل طلب في db_postgres.js/server.js. ثم `SECRET_READY_EXECUTE_SWITCH`.
+
+### Phase 147: P1_AUDIT_TRAIL_RLS_POLICY_AND_TENANT_CONTEXT_SWITCH_READINESS (DOCS_AND_SQL_CANDIDATE_ONLY_PASS)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `DOCS_AND_SQL_CANDIDATE_ONLY_PASS` | read-only audit + SQL candidate مُختبَر على DB معزول؛ لا تنفيذ على الإنتاج، لا تبديل دور، لا .env.
+* **الشرط (2) ضبط app.tenant_id — مُستوفى ومنشور (اكتشاف مهم)**: db_postgres.js فيه AsyncLocalStorage + تغليف pool.query (يحجز client، set_config('app.tenant_id',tid,false) على نفس الاتصال، reset+release في finally) + server.js:143 middleware عام قبل كل المسارات `tenantStore.run({tenantId,facilityId},next)` من session موثوق (getRequestTenantContext)؛ login يجلب tenantId من user_tenants. **اختبار DB-backed cross_tenant_app_tenant_binding_test.js = 9/9 PASS** (نفس الاتصال، بلا تسرّب بين الطلبات المتزامنة، fail-closed). كل ذلك منشور في 6ecbf4a.
+* **الشرط (1) audit_trail — القرار Option B (SQL/Policy candidate)**: logAudit يُدرج بلا tenant_id (=>NULL) عبر ~70 نداءً مع catch يبتلع؛ تحت السياسة الصارمة FOR ALL يُرفض كل إدراج تدقيق بعد التبديل (42501) ⇒ **فقدان تدقيق صامت**.
+* **المرشّح** `docs/sql/audit_trail_rls_policy_candidate_{up,validate,down}.sql`: إسقاط السياسة الصارمة + INSERT write-always (tenant_id IS NULL OR =app.tenant_id) + SELECT tenant-isolated + لا UPDATE/DELETE (append-only) + FORCE يبقى + لا BYPASSRLS. قراءة super-admin العابرة = دور/VIEW محكوم لاحقاً (لم تُفتح).
+* **البروفة** على DB معزول `nama_audit_rehearsal` (أُسقط): **15/15 PASS** — قبل: رفض 42501 بسياق وبدونه؛ بعد: NULL/tenant-match مسموح، forge محجوب، SELECT معزول، system رؤية 0، UPDATE/DELETE 0 صفوف (append-only)، no BYPASSRLS؛ down يستعيد الصارمة. prod audit_trail بلا تغيير (44 صفاً، السياسة الصارمة قائمة).
+* **حد المرشّح**: يمنع فقدان التدقيق (توافق)، لكن بدون ختم logAudit ستُخزَّن صفوف الأحداث المُصادَقة بـ NULL (غير مرئية لقراءة المستأجر). يُوصى بمكمّل code-only: logAudit يقرأ getCurrentTenantId() (ALS) ويختم tenant_id — دون لمس ~70 نداءً.
+* **git**: 3 SQL candidates + preflight + closeout + memory (docs فقط؛ لا كود runtime، لا تنفيذ DDL).
+* **NEXT**: `APPROVE_AUDIT_TRAIL_RLS_POLICY_DDL` (+ logAudit ALS stamping code-only) ثم `SECRET_READY_EXECUTE_SWITCH`. الشرط (2) مكتمل؛ يبقى الشرط (1) بانتظار موافقة تطبيق المرشّح.
