@@ -2576,3 +2576,15 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **حد المرشّح**: يمنع فقدان التدقيق (توافق)، لكن بدون ختم logAudit ستُخزَّن صفوف الأحداث المُصادَقة بـ NULL (غير مرئية لقراءة المستأجر). يُوصى بمكمّل code-only: logAudit يقرأ getCurrentTenantId() (ALS) ويختم tenant_id — دون لمس ~70 نداءً.
 * **git**: 3 SQL candidates + preflight + closeout + memory (docs فقط؛ لا كود runtime، لا تنفيذ DDL).
 * **NEXT**: `APPROVE_AUDIT_TRAIL_RLS_POLICY_DDL` (+ logAudit ALS stamping code-only) ثم `SECRET_READY_EXECUTE_SWITCH`. الشرط (2) مكتمل؛ يبقى الشرط (1) بانتظار موافقة تطبيق المرشّح.
+
+### Phase 148: P1_AUDIT_TRAIL_POLICY_DDL_AND_LOGAUDIT_STAMPING_CONTROLLED_EXECUTION (PRODUCTION_DEPLOYED_PASS)
+* **تاريخ المرحلة**: 2026-06-21 | تفويض: `APPROVE_AUDIT_TRAIL_RLS_POLICY_DDL_AND_LOGAUDIT_STAMPING` | الحالة: `PRODUCTION_DEPLOYED_PASS`.
+* **آخر شرط قبل تبديل الدور — أُغلق**. شرطان كلاهما الآن LIVE.
+* **DDL (الإنتاج)**: نُفِّذ `audit_trail_rls_policy_candidate_up.sql` (psql atomic) → أُسقطت السياسة الصارمة rls_audit_trail_tenant_isolation وحُلّت محلها: `audit_trail_insert_writealways` (FOR INSERT WITH CHECK: tenant_id IS NULL OR =app.tenant_id) + `audit_trail_select_tenant` (FOR SELECT USING tenant_id=app.tenant_id). لا UPDATE/DELETE policy ⇒ append-only. FORCE يبقى، لا BYPASSRLS. validate 6/6.
+* **إنفاذ على الإنتاج** (SET ROLE nama_medical_app داخل BEGIN…ROLLBACK، بلا أثر): **8/8** — SELECT tenant1=44/tenant999=0/no-ctx=0؛ logAudit NULL insert ALLOWED؛ tenant-match ALLOWED؛ forge(tenant2,ctx1) BLOCKED 42501؛ system NULL ALLOWED؛ UPDATE/DELETE 0 صفوف؛ no persistence (44). ملاحظة: 42501 يُجهض المعاملة ⇒ اختبارات الإدراج تحتاج معاملة لكل اختبار.
+* **Code (logAudit stamping)**: server.js يستورد `getCurrentTenantId` ويُمرّره؛ logAudit صار INSERT بـ tenant_id (7 أعمدة) من ALS الموثوق (NULL للأحداث النظامية مثل LOGIN؛ لا من body). اختبار `audit_trail_tenant_stamping_test.js` 8/8؛ binding 9/9؛ regression exit 0.
+* **النشر**: namaweb **6ecbf4a → 10ded01** عبر pm2 restart؛ online (restarts 2→3)، Redis متصل؛ smoke /=200،health=200،login=200،protected=401.
+* **الثوابت**: DATA_CHANGED=NO (audit_trail=44 بلا تغيير)، RLS_FORCE_COUNT=120، DB_ROLE=postgres، RLS_RUNTIME_ENFORCEMENT=NOT_YET، ACCOUNTING=OFF، journal=0، لا أسرار، لا force، لا .env، لا .gitmodules.
+* **backup**: ~/nama_deploy_backups/audit_trail_policy_20260621/{audit_trail.sql, policies_before.json, server.js.6ecbf4a.bak}. rollback=down.sql.
+* **git**: namaweb 10ded01 (code+test) مدفوع؛ parent gitlink + closeout + memory.
+* **NEXT**: `SECRET_READY_EXECUTE_SWITCH` — كلا الشرطين (audit_trail compat + app.tenant_id binding) مُستوفيان ومنشوران. يتطلب توفير سر nama_medical_app خارج الشات (لا يُطلب/يُطبع). بند حوكمة متبقٍ غير حاجز: قراءة super-admin العابرة لـ audit_trail (دور/VIEW محكوم).
