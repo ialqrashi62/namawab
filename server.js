@@ -769,12 +769,14 @@ app.get('/api/insurance/claims', requireAuth, requireRole('insurance'), async (r
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/insurance/claims', requireAuth, requireRole('insurance'), async (req, res) => {
+app.post('/api/insurance/claims', requireAuth, requireRole('insurance'), requireTenantScope, async (req, res) => {
     try {
         const { patient_name, insurance_company, claim_amount } = req.body;
-        const result = await pool.query('INSERT INTO insurance_claims (patient_name, insurance_company, claim_amount) VALUES ($1,$2,$3) RETURNING id',
-            [patient_name, insurance_company, claim_amount || 0]);
-        res.json((await pool.query('SELECT * FROM insurance_claims WHERE id=$1', [result.rows[0].id])).rows[0]);
+        // --- RLS-READY: stamp tenant_id/facility_id from trusted session (INSERT must satisfy FORCE-RLS WITH CHECK post role-switch). ---
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        const result = await pool.query('INSERT INTO insurance_claims (patient_name, insurance_company, claim_amount, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5) RETURNING id',
+            [patient_name, insurance_company, claim_amount || 0, tenantId, facilityId || null]);
+        res.json((await pool.query('SELECT * FROM insurance_claims WHERE id=$1 AND tenant_id=$2', [result.rows[0].id, tenantId])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -2680,13 +2682,15 @@ app.post('/api/blood-bank/donors', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/blood-bank/crossmatch', requireAuth, async (req, res) => {
+app.post('/api/blood-bank/crossmatch', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, patient_blood_type, units_needed, unit_id, surgery_id, notes } = req.body;
+        // --- RLS-READY: stamp tenant_id from trusted session (FORCE-RLS WITH CHECK post role-switch). ---
+        const { tenantId } = getRequestTenantContext(req);
         const result = await pool.query(
-            'INSERT INTO blood_bank_crossmatch (patient_id, patient_name, patient_blood_type, units_needed, unit_id, lab_technician, surgery_id, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
-            [patient_id || 0, patient_name || '', patient_blood_type || '', units_needed || 1, unit_id || 0, req.session.user.name || '', surgery_id || 0, notes || '']);
-        res.json((await pool.query('SELECT * FROM blood_bank_crossmatch WHERE id=$1', [result.rows[0].id])).rows[0]);
+            'INSERT INTO blood_bank_crossmatch (patient_id, patient_name, patient_blood_type, units_needed, unit_id, lab_technician, surgery_id, notes, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id',
+            [patient_id || 0, patient_name || '', patient_blood_type || '', units_needed || 1, unit_id || 0, req.session.user.name || '', surgery_id || 0, notes || '', tenantId]);
+        res.json((await pool.query('SELECT * FROM blood_bank_crossmatch WHERE id=$1 AND tenant_id=$2', [result.rows[0].id, tenantId])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -2708,15 +2712,17 @@ app.get('/api/blood-bank/transfusions', requireAuth, async (req, res) => {
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/blood-bank/transfusions', requireAuth, async (req, res) => {
+app.post('/api/blood-bank/transfusions', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, unit_id, bag_number, blood_type, component, administered_by, start_time, volume_ml, notes } = req.body;
+        // --- RLS-READY: stamp tenant_id from trusted session (FORCE-RLS WITH CHECK post role-switch). ---
+        const { tenantId } = getRequestTenantContext(req);
         // Mark unit as Used
         if (unit_id) await pool.query("UPDATE blood_bank_units SET status='Used' WHERE id=$1", [unit_id]);
         const result = await pool.query(
-            'INSERT INTO blood_bank_transfusions (patient_id, patient_name, unit_id, bag_number, blood_type, component, administered_by, start_time, volume_ml, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id',
-            [patient_id || 0, patient_name || '', unit_id || 0, bag_number || '', blood_type || '', component || '', administered_by || req.session.user.name || '', start_time || new Date().toISOString(), volume_ml || 0, notes || '']);
-        res.json((await pool.query('SELECT * FROM blood_bank_transfusions WHERE id=$1', [result.rows[0].id])).rows[0]);
+            'INSERT INTO blood_bank_transfusions (patient_id, patient_name, unit_id, bag_number, blood_type, component, administered_by, start_time, volume_ml, notes, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id',
+            [patient_id || 0, patient_name || '', unit_id || 0, bag_number || '', blood_type || '', component || '', administered_by || req.session.user.name || '', start_time || new Date().toISOString(), volume_ml || 0, notes || '', tenantId]);
+        res.json((await pool.query('SELECT * FROM blood_bank_transfusions WHERE id=$1 AND tenant_id=$2', [result.rows[0].id, tenantId])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -4082,11 +4088,13 @@ app.get('/api/quality/incidents', requireAuth, async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM quality_incidents ORDER BY id DESC')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/quality/incidents', requireAuth, async (req, res) => {
+app.post('/api/quality/incidents', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { incident_type, severity, incident_date, incident_time, department, location, patient_id, patient_name, description, immediate_action, reported_by } = req.body;
-        const r = await pool.query('INSERT INTO quality_incidents (incident_type,severity,incident_date,incident_time,department,location,patient_id,patient_name,description,immediate_action,reported_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
-            [incident_type, severity || 'Minor', incident_date || new Date().toISOString().split('T')[0], incident_time, department, location, patient_id || 0, patient_name, description, immediate_action, reported_by]);
+        // --- RLS-READY: stamp tenant_id from trusted session (FORCE-RLS WITH CHECK post role-switch). ---
+        const { tenantId } = getRequestTenantContext(req);
+        const r = await pool.query('INSERT INTO quality_incidents (incident_type,severity,incident_date,incident_time,department,location,patient_id,patient_name,description,immediate_action,reported_by,tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
+            [incident_type, severity || 'Minor', incident_date || new Date().toISOString().split('T')[0], incident_time, department, location, patient_id || 0, patient_name, description, immediate_action, reported_by, tenantId]);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -4108,11 +4116,13 @@ app.get('/api/quality/satisfaction', requireAuth, async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM quality_patient_satisfaction ORDER BY id DESC')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/quality/satisfaction', requireAuth, async (req, res) => {
+app.post('/api/quality/satisfaction', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, department, overall_rating, cleanliness, staff_courtesy, wait_time, communication, pain_management, food_quality, comments, would_recommend } = req.body;
-        const r = await pool.query('INSERT INTO quality_patient_satisfaction (patient_id,patient_name,department,survey_date,overall_rating,cleanliness,staff_courtesy,wait_time,communication,pain_management,food_quality,comments,would_recommend) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *',
-            [patient_id || 0, patient_name, department, new Date().toISOString().split('T')[0], overall_rating, cleanliness, staff_courtesy, wait_time, communication, pain_management, food_quality, comments, would_recommend ? 1 : 0]);
+        // --- RLS-READY: stamp tenant_id from trusted session (FORCE-RLS WITH CHECK post role-switch). ---
+        const { tenantId } = getRequestTenantContext(req);
+        const r = await pool.query('INSERT INTO quality_patient_satisfaction (patient_id,patient_name,department,survey_date,overall_rating,cleanliness,staff_courtesy,wait_time,communication,pain_management,food_quality,comments,would_recommend,tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *',
+            [patient_id || 0, patient_name, department, new Date().toISOString().split('T')[0], overall_rating, cleanliness, staff_courtesy, wait_time, communication, pain_management, food_quality, comments, would_recommend ? 1 : 0, tenantId]);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -4209,11 +4219,13 @@ app.get('/api/transport/requests', requireAuth, async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM transport_requests ORDER BY request_time DESC')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/transport/requests', requireAuth, async (req, res) => {
+app.post('/api/transport/requests', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, from_location, to_location, transport_type, priority, requested_by, special_needs } = req.body;
-        const r = await pool.query('INSERT INTO transport_requests (patient_id,patient_name,from_location,to_location,transport_type,priority,requested_by,special_needs) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
-            [patient_id, patient_name, from_location, to_location, transport_type || 'Wheelchair', priority || 'Routine', requested_by, special_needs]);
+        // --- RLS-READY: stamp tenant_id from trusted session (FORCE-RLS WITH CHECK post role-switch). ---
+        const { tenantId } = getRequestTenantContext(req);
+        const r = await pool.query('INSERT INTO transport_requests (patient_id,patient_name,from_location,to_location,transport_type,priority,requested_by,special_needs,tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+            [patient_id, patient_name, from_location, to_location, transport_type || 'Wheelchair', priority || 'Routine', requested_by, special_needs, tenantId]);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -6705,10 +6717,10 @@ app.put('/api/appointments/:id/checkin', requireAuth, requireRole('appointments'
             [appt.patient_id, appt.patient_name, appt.id, appt.doctor, appt.department || 'General', 'arrived']
         );
 
-        // Auto-add to waiting queue
+        // Auto-add to waiting queue (RLS-ready: stamp tenant_id from the appointment's trusted tenant)
         await pool.query(
-            "INSERT INTO waiting_queue (patient_id, patient_name, doctor, department, status, check_in_time) VALUES ($1,$2,$3,$4,'Waiting',CURRENT_TIMESTAMP)",
-            [appt.patient_id, appt.patient_name, appt.doctor, appt.department || 'General']
+            "INSERT INTO waiting_queue (patient_id, patient_name, doctor, department, status, check_in_time, tenant_id) VALUES ($1,$2,$3,$4,'Waiting',CURRENT_TIMESTAMP,$5)",
+            [appt.patient_id, appt.patient_name, appt.doctor, appt.department || 'General', appt.tenant_id || null]
         );
 
         logAudit(req.session.user?.id, req.session.user?.display_name, 'CHECK_IN', 'Appointments',
