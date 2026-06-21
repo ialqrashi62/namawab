@@ -2671,3 +2671,12 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **audit_trail INCLUDED**: آمن (write-always يسمح NULL للنظامي؛ DEFAULT يختم تحت السياق).
 * **الثوابت**: DATA_CHANGED=NO, RUNTIME_CODE=NO, DB_ROLE=nama_medical_app (دون تبديل), GRANT لم يُنفَّذ, ACCOUNTING OFF, journal=0, لا أسرار, لا force. backup: ~/nama_deploy_backups/tenant_default_ddl_20260621/ + down.sql.
 * **NEXT**: `POST_DDL_MONITORING_THEN_MASTER_AUTOPILOT_RESELECT`. دفاع-في-العمق اختياري لاحقاً: B (إعادة ختم كود) + C (توفيق فرعَي namaweb). الـDEFAULT يكفي وظيفياً.
+
+### Phase 158: P0_RLS_TENANT_ID_DEFAULT_POST_DDL_MONITORING_AND_RESELECT (POST_DDL_MONITORING_PASS)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `POST_DDL_MONITORING_PASS` | read-only فقط (لا DDL/deploy/restart/GRANT/accounting).
+* **المراقبة**: pm2 online (restarts=4، بلا restart)، smoke أخضر، logs بلا 42501/RLS/auth جديدة، FORCE=120/policies=122/tenant_defaults=120/120، journal=0، flag OFF.
+* **recheck 31/31** (بيانات حقيقية، ROLLBACK): 9 جداول insert@ctx1 ليس 42501 + forge محجوب + no-ctx محجوب؛ audit_trail logAudit-style insert @ctx1 مسموح (DEFAULT يختم tenant)؛ عزل قراءة patients/invoices/audit_trail ctx999=0/ctx1>0؛ لا صفوف باقية (baselines 3/3/45).
+* **audit_trail**: dist={1:45} لا نمو NULL؛ nama_audit_reader NOLOGIN/non-super/non-bypass/غير ممنوح للتطبيق.
+* **إعادة الاختيار (Gate 6)**: لا TEST_ACCOUNT_READY + monitoring PASS ⇒ المُختار **C** (code-level defense-in-depth ختم tenant_id + توفيق فرعَي namaweb) — أعلى خطر بنيوي (الكود يعتمد على DEFAULT وحده + تشعّب الفرعين). A مرفوض (لا حساب)، D/accounting محظور، B (audit-reader) مؤجّل. candidate؛ ينتظر "ابدأ وضع" صريح.
+* **git**: decision + closeout + memory (docs فقط). namaweb 039a7d7 بلا تغيير.
+* **NEXT**: انتظار توجيه المالك — C (موصى) أو B/D (بموافقة) أو reselect آخر. accounting/audit-reader GRANT/Stitch موقوفة حتى أمر صريح.
