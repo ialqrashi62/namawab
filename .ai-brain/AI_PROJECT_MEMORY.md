@@ -2471,3 +2471,11 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **حدود المسح (موثّقة)**: لم تُغطَّ UPDATE متعددة الأسطر وكل create-routes المستقبِلة لمعرّفات مملوكة ⇒ يُوصى بمسح مكرّس لاحق.
 * **المتراكم غير المنشور**: 3768bf3 (3 مسارات) + c374879 (visits) — fail-closed، تنتظر موافقة نشر واحدة. الموقع الحيّ على 8f012a0 (الثغرات حيّة حتى النشر).
 * **NEXT**: موافقة نشر `c374879` (تُغلق المتراكم) أو `SECRET_READY_EXECUTE_SWITCH` (الحل الجذري). قرارات تصميم للجداول بلا tenant_id.
+
+### Phase 137: Master RESELECT → P1_PHI_HIGH_RISK_TABLES_TENANT_ISOLATION_REVIEW (Option 5)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `DOCS_AND_SQL_CANDIDATE_ONLY_PASS` | read-only + candidates، لا DDL/RLS/deploy/data/runtime-code.
+* **القرار**: السرّ + النشر محجوبان ⇒ اختير Option 5 (عزل PHI، read-only+candidates) لأنه أعلى P1 آمن **دون تراكم كود runtime غير منشور**.
+* **التصنيف (read-only)**: محمي بالفعل FORCE+tenant_id: blood_bank_crossmatch/transfusions، package_sessions، portal_appointments، consent_forms، mortuary_cases، patient_referrals. **فجوات Class A**: `portal_users` (tenant_id موجود، بلا RLS، 0 صفوف)؛ `audit_trail` (tenant_id موجود، بلا RLS، 44 صفاً كلها tenant_id غير NULL)؛ `packages`/`blood_bank_donors`/`blood_bank_units` (بلا tenant_id، **0 صفوف ⇒ بلا backfill**).
+* **المرشّحات (candidate-only، docs/sql/)**: `phi_class_a_residual_rls_candidate_{up,validate,down}.sql` — تفعيل RLS (مجموعة لديها tenant_id) + ADD tenant_id/facility_id + RLS (مجموعة فارغة)، نمط السياسة مطابق للـ115، idempotent.
+* **تبعيات**: الفعالية تتطلّب P0 role switch (postgres يتجاوز)؛ + ختم tenant_id في كود إدراج packages/blood_bank_* (code-only منفصل)؛ + قرار تصميم audit_trail (قراءة super-admin عابرة؟).
+* **NEXT**: `BLOCKED_PENDING_DDL_APPROVAL` لتطبيق المرشّح. الأولوية الحقيقية تبقى: موافقة نشر c374879 + السرّ لتبديل الدور.
