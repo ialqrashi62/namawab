@@ -2536,3 +2536,15 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **prod untouched**: invoices=3, invoice_cols=25, journal=0.
 * **git**: 4 تقارير (state-guard + register + decision + rehearsal) + ذاكرة (docs فقط؛ لا كود/DDL/بيانات).
 * **NEXT**: `APPROVE_PHI_CLASS_A_DDL` (تطبيق إنتاجي للمرشّح المُثبَت) أو `SECRET_READY_EXECUTE_SWITCH` (الجذر) أو Master Autopilot reselect. الترتيب المنطقي: PHI DDL ⟶ ختم tenant_id ⟶ نشر ⟶ role switch.
+
+### Phase 144: P1_PHI_CLASS_A_RESIDUAL_RLS_PRODUCTION_DDL_CONTROLLED_EXECUTION (PRODUCTION_DDL_PASS_RUNTIME_ROLE_NOT_SWITCHED)
+* **تاريخ المرحلة**: 2026-06-21 | تفويض: `APPROVE_PHI_CLASS_A_DDL` | الحالة: `PRODUCTION_DDL_PASS_RUNTIME_ROLE_NOT_SWITCHED`.
+* **ما طُبِّق على prod (nama_medical_web)**: `phi_class_a_residual_rls_candidate_up.sql` فقط (psql ON_ERROR_STOP، ذرّي). المجموعة 1 (portal_users، audit_trail): ENABLE+FORCE+policy. المجموعة 2 (packages، blood_bank_donors، blood_bank_units): ADD COLUMN tenant_id+facility_id (additive) + index + ENABLE+FORCE+policy. **الجداول الخمسة فقط**؛ لا DROP/DELETE/UPDATE/backfill.
+* **Gate 2 (شرط التوقف)**: الثلاثة بلا tenant_id كانت **فارغة (0 صفوف)** ⇒ آمن. audit_trail=44 كلها tenant_id=1 (null=0). portal_users=0.
+* **validate**: 7/7 checks = 0 bad_rows (FORCE+policy، tenant_id موجود، لا null-tenant). بعد DDL: الخمسة rls_enabled=true FORCE=true policies=1 tenant_id=true.
+* **Gate 4 enforcement (read-only, ROLLBACK txn، بلا تبديل دور التطبيق)**: عبر `SET ROLE nama_medical_app` (super=false, bypass=false) على بيانات حقيقية: audit_trail tenant1=44، tenant999=0، no-context=0 ⇒ **PASS**. الجداول الفارغة=0.
+* **Gate 5 regression**: pm2 online (restarts=1، **بلا restart**)، /=200، health=200، protected=401. **postgres يكتب audit_trail تحت FORCE RLS = OK** (bypass ⇒ التطبيق لم يتأثر). invoice_cols=25، journal=0، DB_USER=postgres، guards=177.
+* **backup**: ~/nama_deploy_backups/phi_class_a_20260621/{pg_dump 5 tables، snapshot.json} خارج المستودع. rollback=down.sql (آمن، الجداول فارغة).
+* **الثوابت**: لا تبديل دور، لا .env، لا runtime deploy، لا accounting، لا journal، لا أسرار، لا force push، لا .gitmodules.
+* **النتيجة على RLS**: prod الآن **120 FORCE policy** (115 + 5). لكن الإنفاذ الحيّ ما زال NOT_YET (app=postgres يتجاوز).
+* **NEXT**: `P1_PHI_TENANT_STAMPING_RUNTIME_COMPATIBILITY` (ختم tenant_id لمسارات packages/donors/units — code-only) أو `SECRET_READY_EXECUTE_SWITCH` (الجذر). تنبيه: راجع قراءة audit_trail العابرة للمستأجر من super-admin قبل التبديل.
