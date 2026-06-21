@@ -2489,3 +2489,13 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **⚠️ اكتشاف نظامي (precondition لتبديل الدور)**: INSERTs كثيرة لا تختم tenant_id لجداول FORCE-RLS ⇒ ستفشل `WITH CHECK` بعد التحويل لـ nama_medical_app ⇒ يلزم تدقيق ختم tenant_id قبل P0 switch.
 * **اختبار**: cross_tenant_idor_sweep_test 29/29؛ انحدار أخضر؛ node --check. دُفع **namaweb c374879→(جديد)**.
 * **المتراكم غير المنشور يكبر**: refund(منشور) + 3768bf3 + c374879 + هذه الجولة. الموقع الحيّ على 8f012a0. الأولوية الحقيقية: موافقة نشر واحدة تشحن الكل، أو السرّ لتبديل الدور.
+
+### Phase 139: Master After-138 → P0_RLS_INSERT_TENANT_STAMPING_READINESS_SWEEP
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `CODE_ONLY_PUSHED_NOT_DEPLOYED` | code-only/audit، لا deploy/DDL/data/switch.
+* **القرار**: لا secret/نشر ⇒ اختير الـ precondition الذي أعلنته Phase 138 (INSERT tenant stamping) — أعلى P0 آمن.
+* **التدقيق (Explore)**: 98 INSERT — **57 تختم tenant_id**، 33 جداول عالمية آمنة، **8 مجموعة كسر** (FORCE-RLS بلا ختم).
+* **أُصلِح (7، ختم tenant_id من سياق موثوق + requireTenantScope)**: insurance_claims POST (775)، blood_bank_crossmatch (2687)، blood_bank_transfusions (2717)، quality_incidents (4088)، quality_patient_satisfaction (4114)، transport_requests (4215)، waiting_queue (check-in 6709، من appt.tenant_id). الثامن `patient_visits` (5684): **الجدول ABSENT** ⇒ المسار غير فعّال، لا إصلاح.
+* **لماذا مهم**: تحت postgres تنجح INSERTs بـ tenant_id=NULL؛ بعد التحويل لـ nama_medical_app كانت ستفشل `WITH CHECK` ⇒ كسر. الآن جاهزة.
+* **حدّ النطاق**: ختم tenant_id فقط (لا فحص ملكية patient_id — بند IDOR منفصل؛ UPDATE-by-id مثل quality/transport/crossmatch PUT = مسح multi-row منفصل). «لا خلط مراحل».
+* **اختبار**: `rls_insert_tenant_stamping_test.js` 13/13؛ node --check؛ انحدار أخضر. دُفع **namaweb 0e008f7→(جديد)**.
+* **NEXT**: نشر المتراكم (APPROVE_DEPLOY) ثم `SECRET_READY_EXECUTE_SWITCH`؛ إعادة المسح بعد أي مسارات INSERT جديدة.
