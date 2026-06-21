@@ -2745,3 +2745,11 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **Gate 7/8**: node --check OK؛ Batch A DDL=0؛ binding سليم؛ diff=server.js فقط. الإنتاج لم يُمَس (online، health 200، role nama_medical_app، journal absent، audit-reader NO).
 * **git**: namaweb bf5497c. parent: inventory + plan + closeout + 3 SQL + memory + gitlink. بلا force/أسرار/mojibake.
 * **NEXT**: `APPROVE_ROUTE_LEVEL_DDL_REFACTOR_DEPLOY` (تشغيل migration SQL superuser لإنشاء الـ13 جدولاً → نشر patch الكود → تحقق → ثم Batch B+C). accounting/audit-reader/Stitch موقوفة.
+
+### Phase 165: P1_ROUTE_LEVEL_DDL_REFACTOR_DEPLOY_BATCH_A (BLOCKED_AT_GATE1_TENANT_RLS_SAFETY — لم يُنفَّذ DDL/نشر)
+* **تاريخ المرحلة**: 2026-06-21 | **توقّف أمان إلزامي عند Gate 1** قبل أي DDL أو نشر.
+* **السبب**: المرشّح `route_level_ddl_cleanup_candidate_up.sql` يُنشئ جداول PHL/PHI لـBatch A (obgyn_pregnancies, obgyn_deliveries, referrals, medical_reports) **بلا RLS** (0 عبارات ENABLE/FORCE/POLICY/DEFAULT)، وvisit_lifecycle **بلا tenant_id إطلاقاً** ⇒ يفشل بوابة «tenant/RLS safety» (النظائر patients/medical_records هي FORCE RLS+policy). تنفيذه كان سينشئ جداول PHI غير معزولة تحت الدور المقيَّد.
+* **تصحيح نطاق**: Batch A الفعلي = **6 جداول** (لا 13؛ «13» كان A+B). الباقي 7 = Batch B (DDLها ما زال في الكود).
+* **المُعالجة (جاهزة، غير مُنفَّذة)**: `docs/sql/route_level_ddl_batch_a_rls_safe_candidate_{up,validate}.sql` — ينشئ 6 جداول Batch A فقط؛ الخمسة الحاملة لمستأجر (obgyn×2/referrals/medical_reports/+visit_lifecycle بإضافة tenant_id) تأخذ FORCE RLS + policy `rls_<t>_tenant_isolation` + tenant_id DEFAULT (نمط patients)؛ cash_drawer كما هو (معزول بـuser_id). تعمل مع الربط بلا تعديل كود. لا seed/backfill/GRANT.
+* **الحالة**: لا DDL، لا نشر، لا restart، لا data/GRANT. الإنتاج لم يُمَس (online، health 200، nama_medical_app، journal absent، audit-reader NO). namaweb bf5497c بلا تغيير. git: docs فقط (المرشّح الآمن + closeout + memory).
+* **NEXT**: `APPROVE_RLS_SAFE_BATCH_A_SQL_THEN_DEPLOY` (موافقة على المرشّح الآمن → validate → نشر bf5497c → restart → تحقق المسارات → ثم Batch B+C).
