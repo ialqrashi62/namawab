@@ -2809,3 +2809,12 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **الأثر**: **كل الجداول tenant-sensitive (147) محميّة بـFORCE RLS — لا فجوة RLS tenant-sensitive متبقية على مستوى DB**. عزل على طبقتي DB+التطبيق.
 * **git**: docs (closeout + memory)؛ candidate SQL مُلتزَم سابقاً (1acd710). namaweb بلا تغيير. backup + down.sql جاهزان (غير مُستخدَمين). closeout: `APPROVE_FULL_REMAINING_RLS_DDL_AND_BACKFILL_FINAL_CLOSEOUT_AR.md`.
 * **NEXT**: `POST_DDL_MONITORING_THEN_PM2_WINDOWS_STARTUP_AND_API_RBAC`. المتبقّي: PM2 windows startup (infra gap)، API/RBAC defense-in-depth، audit-reader GRANT. accounting OFF.
+
+### Phase 172: POST_RLS_FULL_SYSTEM_HARDENING_MASTER_AUTOPILOT (AUDITS_COMPLETE_CANDIDATES_READY_NOT_DEPLOYED)
+* **تاريخ المرحلة**: 2026-06-21 | برنامج شامل بعد اكتمال RLS؛ مراقبة + تدقيقات قراءة-فقط + خطط. لا DDL/GRANT/accounting/deploy.
+* **PHASE 0**: POST_RLS_MONITORING_PASS — health 5/5، binding+isolation (patients 3/0/0، employees 3/0، branches 1/0)، FORCE_RLS=147، 0 فجوة.
+* **PHASE 8 (جديد مفيد)**: تغطية فهارس tenant_id = **59/147**؛ الـ88 غير المفهرسة **كلها صغيرة/فارغة (لا جدول >100 صف) ⇒ لا أثر أداء**؛ مرشّح فهارس اختياري للتوسّع (gated، غير عاجل). security config حاضر (helmet/cookie/rate-limit). rollback scripts (down.sql لكل دفعة) + backups جاهزة.
+* **PHASE 1 (infra)**: nama-redis unless-stopped (OK)، Docker autostart عند الدخول (OK)، **PM2 بلا Windows startup = الفجوة** ⇒ خطة (pm2-windows-startup + watchdog + logrotate + runbook) pending approval. `P1_INFRA_...`.
+* **PHASES 2-7**: مغطّاة بتدقيقات قائمة سارية (P2/P4/P5/P7 + audit-reader candidate)؛ P0 system_users منشور؛ لا تكرار توليد.
+* **git**: docs فقط (P1 infra + P8 security/perf + P9 master closeout + memory). namaweb بلا تغيير. closeout: `NAMA_MEDICAL_POST_RLS_FULL_SYSTEM_HARDENING_MASTER_CLOSEOUT_AR.md`.
+* **NEXT (بوابات، مرتّبة)**: (1) APPROVE_PM2_WINDOWS_STARTUP_AND_HEALTH_WATCHDOG؛ (2) API/RBAC defense-in-depth؛ (3) audit-reader GRANT؛ (4) اختياري tenant_id index candidate. accounting OFF.
