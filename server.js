@@ -781,6 +781,11 @@ app.post('/api/insurance/claims', requireAuth, requireRole('insurance'), async (
 app.put('/api/insurance/claims/:id', requireAuth, requireRole('insurance'), async (req, res) => {
     try {
         const { status } = req.body;
+        // --- TENANT GUARD (IDOR sweep): verify claim belongs to caller's tenant before mutating. ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tc = tenantId ? ' AND tenant_id=$2' : '';
+        const owns = (await pool.query(`SELECT id FROM insurance_claims WHERE id=$1${tc}`, tenantId ? [req.params.id, tenantId] : [req.params.id])).rows[0];
+        if (!owns) return res.status(404).json({ error: 'Claim not found' });
         if (status) await pool.query('UPDATE insurance_claims SET status=$1 WHERE id=$2', [status, req.params.id]);
         res.json((await pool.query('SELECT * FROM insurance_claims WHERE id=$1', [req.params.id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -1798,6 +1803,11 @@ app.get('/api/queue/patients', requireAuth, async (req, res) => {
 app.put('/api/queue/patients/:id/status', requireAuth, async (req, res) => {
     try {
         const { status } = req.body;
+        // --- TENANT GUARD (IDOR sweep): verify patient belongs to caller's tenant before mutating (RLS bypassed under superuser role). ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tc = tenantId ? ' AND tenant_id=$2' : '';
+        const owns = (await pool.query(`SELECT id FROM patients WHERE id=$1${tc}`, tenantId ? [req.params.id, tenantId] : [req.params.id])).rows[0];
+        if (!owns) return res.status(404).json({ error: 'Patient not found' });
         await pool.query('UPDATE patients SET status=$1 WHERE id=$2', [status, req.params.id]);
         res.json((await pool.query('SELECT * FROM patients WHERE id=$1', [req.params.id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -1821,6 +1831,11 @@ app.post('/api/queue/ads', requireAuth, async (req, res) => {
 app.put('/api/patients/:id/referral', requireAuth, requireRole('patients'), async (req, res) => {
     try {
         const { department } = req.body;
+        // --- TENANT GUARD (IDOR sweep): verify patient belongs to caller's tenant before mutating. ---
+        const { tenantId } = getRequestTenantContext(req);
+        const tc = tenantId ? ' AND tenant_id=$2' : '';
+        const owns = (await pool.query(`SELECT id FROM patients WHERE id=$1${tc}`, tenantId ? [req.params.id, tenantId] : [req.params.id])).rows[0];
+        if (!owns) return res.status(404).json({ error: 'Patient not found' });
         await pool.query('UPDATE patients SET department=$1 WHERE id=$2', [department, req.params.id]);
         res.json((await pool.query('SELECT * FROM patients WHERE id=$1', [req.params.id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
