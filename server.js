@@ -5659,14 +5659,18 @@ app.put('/api/notifications/:id/read', requireAuth, async (req, res) => {
 });
 
 // ===== VISIT TRACKING =====
-app.post('/api/visits', requireAuth, async (req, res) => {
+app.post('/api/visits', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, visit_type, department, doctor, chief_complaint } = req.body;
+        // --- TENANT GUARD (IDOR, fail-closed): patient_id must belong to caller's tenant before creating a visit / bumping counters. ---
+        const { tenantId } = getRequestTenantContext(req);
+        const owns = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+        if (!owns) return res.status(404).json({ error: 'Patient not found' });
         const count = (await pool.query('SELECT COUNT(*) as cnt FROM patient_visits WHERE patient_id=$1', [patient_id])).rows[0].cnt;
         const visitNum = 'V-' + patient_id + '-' + (parseInt(count) + 1);
         const result = await pool.query('INSERT INTO patient_visits (patient_id, visit_number, visit_type, department, doctor, chief_complaint, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
             [patient_id, visitNum, visit_type || 'Walk-in', department || '', doctor || '', chief_complaint || '', req.session.user?.display_name || '']);
-        await pool.query('UPDATE patients SET last_visit_at=NOW(), total_visits=total_visits+1 WHERE id=$1', [patient_id]);
+        await pool.query('UPDATE patients SET last_visit_at=NOW(), total_visits=total_visits+1 WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });

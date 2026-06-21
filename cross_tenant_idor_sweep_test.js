@@ -32,6 +32,13 @@ for (const r of routes) {
   assert(!/tenantId \? ' AND tenant_id=\$2' : ''/.test(b), `no fail-open conditional tenant predicate`);
 }
 
+console.log(`${BOLD}POST /api/visits${RESET}`);
+const rv = block(/app\.post\('\/api\/visits'[\s\S]*?\n\}\);/);
+assert(!!rv, 'visits route located');
+assert(/requireTenantScope/.test(rv), 'visits uses requireTenantScope');
+assert(/SELECT id FROM patients WHERE id=\$1 AND tenant_id=\$2/.test(rv), 'visits verifies patient ownership (tenant-scoped)');
+assert(/UPDATE patients SET last_visit_at=NOW\(\), total_visits=total_visits\+1 WHERE id=\$1 AND tenant_id=\$2/.test(rv), 'visits UPDATE scoped by tenant_id');
+
 console.log(`\n${BOLD}[simulation] منطق fail-closed${RESET}`);
 const rows=[{id:1,tenant_id:1}];
 // UPDATE ... WHERE id AND tenant_id => rowCount semantics
