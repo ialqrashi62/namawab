@@ -1,0 +1,12 @@
+-- boot_time_schema_cleanup_candidate_down.sql
+-- The up migration is ADDITIVE (ADD COLUMN IF NOT EXISTS) ⇒ there is NO safe automatic rollback:
+-- dropping these columns would destroy data. This down is a documented NOOP by design.
+-- If a deliberate rollback is ever required, a SUPERUSER may run the statements below MANUALLY
+-- after confirming the columns are unused. They are intentionally left commented out.
+--
+--   ALTER TABLE system_users                 DROP COLUMN IF EXISTS last_ip;
+--   ALTER TABLE pharmacy_prescriptions_queue DROP COLUMN IF EXISTS doctor;
+--   ALTER TABLE audit_trail                  DROP COLUMN IF EXISTS user_name;
+--   ALTER TABLE audit_trail                  DROP COLUMN IF EXISTS details;
+--
+SELECT 'noop — additive migration has no safe automatic down (see comments)' AS down_note;
