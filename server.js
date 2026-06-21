@@ -7,7 +7,7 @@ const fs = require('fs');
 const multer = require('multer');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const { pool, initDatabase, tenantStore } = require('./db_postgres');
+const { pool, initDatabase, tenantStore, getCurrentTenantId } = require('./db_postgres');
 const bcrypt = require('bcryptjs');
 const { insertSampleData, populateLabCatalog, populateRadiologyCatalog } = require('./seed_data_pg');
 // Accounting posting engine wiring — DISABLED by default (ACCOUNTING_POSTING_ENABLED!=='true').
@@ -257,9 +257,13 @@ function requireRole(...modules) {
 // Audit trail helper
 async function logAudit(userId, userName, action, module, details, ip) {
     try {
+        // RLS-READY: stamp tenant_id from the trusted ALS request context (set per-request by the
+        // tenant middleware), never from request body. NULL for system/auth events that have no
+        // tenant context (e.g. LOGIN) — permitted by the audit_trail write-always policy.
+        const tid = getCurrentTenantId();
         await pool.query(
-            'INSERT INTO audit_trail (user_id, username, action, module, new_values, ip_address) VALUES ($1,$2,$3,$4,$5,$6)',
-            [userId, userName || '', action || '', module || '', details || '', ip || '']
+            'INSERT INTO audit_trail (user_id, username, action, module, new_values, ip_address, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+            [userId, userName || '', action || '', module || '', details || '', ip || '', tid]
         );
     } catch (e) { console.error('Audit log error:', e.message); }
 }
