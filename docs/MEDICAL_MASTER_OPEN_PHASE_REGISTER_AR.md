@@ -7,8 +7,8 @@
 | أمن/RLS | تبديل دور التشغيل | جاهزية PASS، التحويل محجوب | **P0** | سرّ `nama_medical_app` | `SECRET_READY_EXECUTE_SWITCH` → switch |
 | أمن/RLS | 115 FORCE موجودة لكن غير نافذة (app=superuser) | مخطر قائم | **P0** | كما أعلاه | فلاتر التطبيق هي العزل |
 | أمن/عزل | Refund IDOR | `PRODUCTION_DEPLOYED_PASS` (8f012a0) | محسوم | — | — |
-| أمن/عزل | **Tenant-guard sweep (3 مسارات)** | **مُصلَّب fail-closed (3768bf3) مدفوع؛ غير منشور** — الثغرات حيّة | **P1** | موافقة نشر 3768bf3 | `BLOCKED_PENDING_DEPLOY_APPROVAL` |
-| أمن/عزل | مسح موسّع: DELETE employees/system_users، form_templates | مفتوح | P2 | جداول بلا tenant_id (قرار تصميم) | `P1_EXTENDED_IDOR_AND_TENANT_GUARD_DESIGN_SWEEP` |
+| أمن/عزل | **Tenant-guard fixes (4 مسارات fail-closed)** | مُصلَّبة + **visits IDOR مُصلَح**؛ مدفوعة `c374879`؛ **غير منشورة** — الثغرات حيّة على 8f012a0 | **P1** | موافقة نشر `c374879` | `BLOCKED_PENDING_DEPLOY_APPROVAL` |
+| أمن/عزل | مسح موسّع (Option B، منفّذ) — DELETE employees/system_users/messages، form_templates/cme/notifications | **مُصنّف**: بلا tenant_id ⇒ قرار تصميم؛ visits=must-fix أُصلِح | P2 | قرار تصميم للجداول بلا tenant_id | تنفيذ القرارات / مسح create-routes مكرّس |
 | محاسبة | invoice schema drift | precondition | **P2** | ALTER محكوم | candidate DDL + plan (read-only) |
 | محاسبة | محرك الترحيل + ربطه | جزئي خلف flag OFF؛ journal=0 | P3 | drift + P0 RLS + موافقة | بعدهما |
 | محاسبة | DDL/CoA/Mapping | مطبَّق (`DO_NOT_RERUN`) | حُسم | — | — |
