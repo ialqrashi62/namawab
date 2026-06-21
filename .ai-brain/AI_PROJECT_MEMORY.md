@@ -2785,3 +2785,11 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **النشر**: namaweb `bf5497c→4d51031` (FF). pm2 restart ⇒ online، health 6/6، /=200 /login=200 /api/patients=401 /api/settings/users/1(noauth)=401، Redis PONG، binding PASS، FORCE_RLS=125، accounting OFF. rollback جاهز (`git checkout bf5497c -- server.js`) غير مُستخدَم.
 * **ملاحظة**: cross-tenant على system_users غير مُطبَّق (جدول عالمي بلا tenant_id ⇒ يحتاج DDL، خارج النطاق).
 * **NEXT**: `POST_DEPLOY_MONITORING_THEN_ROUTE_DDL_BATCH_B_C_DEPLOY`. بوابات master المتبقية: Batch B/C deploy (SQL مُجرّب جاهز)، 14-table RLS (DATA_CHANGE)، API/RBAC defense-in-depth، audit-reader GRANT.
+
+### Phase 169: POST_P0_MONITORING_THEN_ROUTE_DDL_BATCH_B_C_DEPLOY (PRODUCTION_DEPLOYED_PASS_BATCH_B_C)
+* **تاريخ المرحلة**: 2026-06-21 | نشر محكوم (بلا data/GRANT/.env/accounting). مراقبة P0 system_users (مستقرة، نظيفة) ثم نشر Batch B/C.
+* **SQL (Gate 2-4)**: rehearsal معزول PASS → تنفيذ `route_level_ddl_batch_b/c_rls_safe_candidate_up.sql` على الإنتاج (postgres، atomic): 8 جداول Batch B (pathology_specimens, cssd_batches, cme_events, infection_control_reports, maintenance_orders, insurance_policies, inventory, pharmacy_prescriptions) بـtenant_id+FORCE RLS+policy+DEFAULT؛ أعمدة pharmacy_prescriptions_queue. **FORCE_RLS 125→133**. 0 صفوف، role غير-super.
+* **Code (Gate 5)**: إزالة DDL المسارات من server.js (+22/-52؛ replace_all للـALTERs المكررة) ⇒ namaweb `4d51031→9becc9e` (FF) ⇒ pm2 restart. باقي DDL = IIFEs startup محروسة فقط.
+* **التحقق (Gate 6-7)**: 8 مسارات Batch B/C → 401 (لا 500)؛ DB-layer تحت الربط: 8 جداول بلا 42501/42P01؛ binding PASS (ctx1=3/999=0/no-ctx=0)؛ system_users guard PUT=401؛ health 6/6؛ Redis PONG.
+* **الحالة**: accounting OFF، journal 0، audit-reader NO. rollback جاهز (`git checkout 4d51031 -- server.js` + down.sql + schema dump) غير مُستخدَم. closeout: `POST_P0_SYSTEM_USERS_GUARD_MONITORING_THEN_ROUTE_DDL_BATCH_B_C_DEPLOY_FINAL_CLOSEOUT_AR.md`.
+* **NEXT**: `POST_DEPLOY_MONITORING_THEN_14_TABLE_RLS_OR_API_RBAC`. متبقٍّ: 14-table RLS (+backfill DATA_CHANGE)، API/RBAC defense-in-depth، audit-reader GRANT. كلها موقوفة بموافقة.
