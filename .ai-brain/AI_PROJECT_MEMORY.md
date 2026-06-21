@@ -2614,3 +2614,13 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **المطلوب (خارج الشات)**: توحيد القيمة — إمّا كتابة كلمة مرور الدور الصحيحة في الملف (سطر واحد، بلا فراغ بادئ/زائل/BOM)، أو `ALTER ROLE nama_medical_app PASSWORD '<قيمة الملف>'` (المالك). ثم إعادة `SECRET_READY_EXECUTE_SWITCH`.
 * **ثابت**: كل بقية المتطلبات LIVE (audit_trail policy، logAudit stamping، app.tenant_id binding 9/9، role grants 149/149). الناقص الوحيد = تطابق كلمة المرور.
 * **NEXT**: `ALIGN_FILE_PASSWORD_WITH_ROLE_OUTSIDE_CHAT_THEN_RETRY`.
+
+### Phase 152: P0_RLS_RESTRICTED_ROLE_AUTHENTICATED_WORKFLOW_UAT (AUTHENTICATED_UAT_PASS)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `AUTHENTICATED_UAT_PASS` | UAT آمن، بلا تغيير إنتاج/بيانات.
+* **تحقق أرضي حاسم**: الحالة المُعلنة (التبديل نجح) **صحيحة ومُتحقَّقة** — لكن لم أقبلها عمياءً. التطبيق يتصل فعلاً كـ **nama_medical_app** (super=false, bypassrls=false) — أُثبت عبر اتصال بنفس .env config. التبديل أنجزته **جلسة موازية/المالك** بعد إرشادي حول PGPASSWORD: secret file صار 64-hex (08:36) → .env DB_USER=nama_medical_app (08:49:18) → restart (08:49:49). تصحيح: «اتصال postgres الوحيد» في pg_stat_activity كان probe خاصّتي لا التطبيق.
+* **LIVE_COMMIT الفعلي**: namaweb **039a7d7** (parent aa502c4) — الجلسة الموازية تقدّمت بعد 10ded01 المُعلن (redis hybrid store، /api/health، tailwind، switch، stabilization). **جلستان تشاركان المستودع (R17): تحقّق قبل الفعل، FF-only، لا force.**
+* **UAT PASS**: route authz (كل المحمي 401 بلا جلسة؛ public 200)؛ إنفاذ RLS تحت الدور على بيانات حقيقية: patients no-ctx=0/t1=3/t999=0، invoices 0/3/0، audit_trail 0/45/0، blood_bank_units 0/0/0 (كلها ISOLATED)؛ audit write(ctx1)=ALLOWED، forge(tenant2)=BLOCKED 42501. لا أخطاء RLS/auth في logs. flag OFF، journal=0.
+* **شاهد حيّ**: audit_trail نما 44→45 (صف tenant1 من نشاط حقيقي) ⇒ سياسة audit_trail + ختم logAudit يعملان إنتاجياً تحت الدور.
+* **قيد**: لا بيانات اعتماد دخول للتطبيق (لم أُخمّن)؛ UAT غطّى التفويض + طبقة إنفاذ RLS (آلية الجلسات المصادقة) + ربط ALS (9/9 سابقاً).
+* **git**: 3 تقارير (register + decision + closeout) + ذاكرة (docs فقط).
+* **NEXT**: `MASTER_AUTOPILOT_RESELECT_NEXT_PHASE`. المحاسبة تبقى OFF حتى موافقة صريحة. مرشّحات: UAT سريري موسّع، audit_trail super-admin read governance، auth hardening.
