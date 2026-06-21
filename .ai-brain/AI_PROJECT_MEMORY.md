@@ -2426,3 +2426,13 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **git**: commit في namaweb (`fix: enforce tenant guard on invoice refund`) + push namaweb origin/master؛ تحديث gitlink الأب + push parent — بلا force. لم يُلمَس `.gitmodules`.
 * **مهم**: `RLS_RUNTIME_ROLE_STILL_BYPASSED: YES` — الإصلاح لا يُغلق RLS. المرحلة التالية الإلزامية: `P0_RLS_RUNTIME_ROLE_ENFORCEMENT_RESTORE` (ربط nama_medical_app) + نشر محكوم لهذا الإصلاح (بموافقة).
 * **توصية متابعة**: تطبيق `requireTenantScope` نفسه على pay/partial-pay/cancel/generate (أصرم).
+
+### Phase 132: P1_REFUND_IDOR_CONTROLLED_PRODUCTION_DEPLOY — نشر محكوم (PRODUCTION_DEPLOYED_PASS)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `PRODUCTION_DEPLOYED_PASS` | single-box | لا DDL/data/flag/journal/RLS-role.
+* **الطوبولوجيا**: single-box — PM2 `nama-app` يعمل من `namaweb/server.js` مباشرةً. قبل: PM2 لا عملية، :3000 مغلق، لكن Docker UP + Redis :6379 OPEN.
+* **النشر**: backup للكود السابق (ef1acf9, 7421 سطر، خارج المستودع) → `node --check` OK → `pm2 start ecosystem.config.js` → online بعد ~9s، restarts=0 → `pm2 save`.
+* **smoke**: `/`=200، `/api/health`=200، `/api/invoices` بلا جلسة=401، `POST /api/invoices/1/refund` بلا جلسة=401. الملف المنشور فيه `WHERE id=$1 AND tenant_id=$2`؛ النمط المعرّض=0.
+* **لا تغيير DB**: لقطة قبل/بعد بدء التطبيق متطابقة (tables=149, FORCE=115, CoA=30, journal=0, invoices=3) — bootstrap idempotent no-op، seeders الإنتاج مُتخطّاة (ef1acf9).
+* **rollback**: backup + `git -C namaweb checkout ef1acf9 -- server.js` / revert 8f012a0 + pm2 restart (code-only، فوري). لم يُستخدم.
+* **مخطر متبقٍ صريح**: `RLS_RUNTIME_ROLE_STILL_BYPASSED: YES` (app=postgres/superuser). المرحلة التالية الإلزامية: `P0_RLS_RUNTIME_ROLE_ENFORCEMENT_RESTORE` (ربط nama_medical_app).
+* **git**: تقريرا النشر فقط (الكود نُشر سابقاً Phase 131)؛ بلا force.
