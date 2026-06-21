@@ -1434,7 +1434,52 @@ app.post('/api/settings/users', requireAuth, requireRole('settings'), async (req
 
 app.put('/api/settings/users/:id', requireAuth, async (req, res) => {
     try {
+        const actor = req.session.user;                       // identity from session only (never from body)
+        const targetId = parseInt(req.params.id, 10);
+        const isAdmin = actor.role === 'Admin';               // ROLE_PERMISSIONS['Admin'] = '*' (highest)
+        const isSelf = actor.id === targetId;
         const { username, password, display_name, role, speciality, permissions, is_active, commission_type, commission_value } = req.body;
+        const norm = v => (v === true || v === 1 || v === '1') ? 1 : (v === false || v === 0 || v === '0') ? 0 : v;
+
+        // ===== P0 GUARD: only Admin may change privileged/account-control fields; no self-escalation =====
+        if (!isAdmin) {
+            if (!isSelf) {
+                logAudit(actor.id, actor.display_name, 'BLOCKED_USER_EDIT', 'Settings', `Non-admin attempted to edit user #${targetId}`, req.ip);
+                return res.status(403).json({ error: 'Access denied' });
+            }
+            const cur = (await pool.query('SELECT username, role, permissions, is_active, commission_type, commission_value FROM system_users WHERE id=$1', [targetId])).rows[0];
+            if (!cur) return res.status(404).json({ error: 'User not found' });
+            const wantsPriv =
+                (role !== undefined && String(role) !== String(cur.role)) ||
+                (permissions !== undefined && String(permissions) !== String(cur.permissions || '')) ||
+                (is_active !== undefined && norm(is_active) !== norm(cur.is_active)) ||
+                (username !== undefined && username !== cur.username) ||
+                (commission_type !== undefined && commission_type !== cur.commission_type) ||
+                (commission_value !== undefined && parseFloat(commission_value) !== parseFloat(cur.commission_value));
+            if (wantsPriv) {
+                logAudit(actor.id, actor.display_name, 'BLOCKED_PRIVILEGE_ESCALATION', 'Settings', `Non-admin attempted to change role/permissions/status/username on own account`, req.ip);
+                return res.status(403).json({ error: 'Access denied: only an administrator can change role, permissions, status, username, or commission' });
+            }
+            // safe self-profile update only (display_name, speciality, optional password)
+            let sq = 'UPDATE system_users SET display_name=$1, speciality=$2';
+            let sp = [display_name !== undefined ? display_name : actor.display_name, speciality || ''];
+            let si = 3;
+            if (password && password.trim() !== '') { sq += `, password_hash=$${si}`; sp.push(await bcrypt.hash(password, 10)); si++; }
+            sq += ` WHERE id=$${si}`; sp.push(targetId);
+            await pool.query(sq, sp);
+            return res.json((await pool.query('SELECT id, username, display_name, role, speciality, permissions, commission_type, commission_value, is_active, created_at FROM system_users WHERE id=$1', [targetId])).rows[0]);
+        }
+
+        // ===== Admin path: full update, with last-active-admin protection =====
+        const target = (await pool.query('SELECT role FROM system_users WHERE id=$1', [targetId])).rows[0];
+        if (target && target.role === 'Admin') {
+            const demoting = (role !== undefined && role !== 'Admin');
+            const deactivating = (is_active !== undefined && norm(is_active) === 0);
+            if (demoting || deactivating) {
+                const adminCount = parseInt((await pool.query("SELECT COUNT(*) c FROM system_users WHERE role='Admin' AND is_active=1")).rows[0].c, 10);
+                if (adminCount <= 1) return res.status(400).json({ error: 'Cannot demote or deactivate the last active admin' });
+            }
+        }
         let query = 'UPDATE system_users SET username=$1, display_name=$2, role=$3, speciality=$4, permissions=$5, is_active=$6, commission_type=$7, commission_value=$8';
         let params = [username, display_name || '', role || 'Reception', speciality || '', permissions || '', is_active === undefined ? 1 : is_active, commission_type || 'percentage', parseFloat(commission_value) || 0];
         let idx = 9;
@@ -1445,9 +1490,10 @@ app.put('/api/settings/users/:id', requireAuth, async (req, res) => {
             idx++;
         }
         query += ` WHERE id=$${idx}`;
-        params.push(req.params.id);
+        params.push(targetId);
         await pool.query(query, params);
-        res.json((await pool.query('SELECT id, username, display_name, role, speciality, permissions, commission_type, commission_value, is_active, created_at FROM system_users WHERE id=$1', [req.params.id])).rows[0]);
+        logAudit(actor.id, actor.display_name, 'UPDATE_USER', 'Settings', `Admin updated user #${targetId}` + (role !== undefined ? ` role=${role}` : ''), req.ip);
+        res.json((await pool.query('SELECT id, username, display_name, role, speciality, permissions, commission_type, commission_value, is_active, created_at FROM system_users WHERE id=$1', [targetId])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
