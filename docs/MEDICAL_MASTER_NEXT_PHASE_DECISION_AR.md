@@ -1,24 +1,26 @@
 # Master Autopilot — قرار المرحلة التالية (Priority Decision)
 
-> الوضع: `..._CONTINUATION` — البوابة 2 | محدّث 2026-06-21.
+> الوضع: `..._CONTINUE_FROM_PHASE_134` — البوابة 2/3 | محدّث 2026-06-21.
 
 ## محرك الأولوية
-- **P0** تبديل دور RLS: محجوب على سرّ `nama_medical_app` (لم يُعطَ `SECRET_READY_EXECUTE_SWITCH`) ⇒ غير قابل للتنفيذ الآن.
-- **P1 Security/Isolation**: بما أن RLS مُتجاوَز (app=superuser)، فلاتر التطبيق هي العزل الوحيد ⇒ مسح المسارات عالية الخطورة بلا حارس tenant = أعلى أولوية آمنة بلا سرّ. **مختار.**
+- **P0** تبديل دور RLS: محجوب على سرّ `nama_medical_app` (لم يُعطَ `SECRET_READY_EXECUTE_SWITCH`) ⇒ غير قابل للتنفيذ.
+- **P1 Security/Isolation**: الموقع الحيّ (8f012a0) ما زال يحوي 3 ثغرات IDOR (queue status/referral/claim) — الإصلاحات في Git غير منشورة ⇒ أعلى خطر حيّ ⇒ Option A (نشر) هو الأعلى أولوية.
 
 ```text
-SELECTED_NEXT_PHASE: P1_SECURITY_TENANT_GUARD_SWEEP_FOR_HIGH_RISK_ROUTES (executed code-only this round)
-WHY_SELECTED: P1 isolation، code-only، بلا سرّ/DDL؛ يغلق ثغرات كتابة عابرة للمستأجر مؤكَّدة (نفس فئة refund IDOR) بينما RLS متجاوَز.
-WHY_NOT_RLS_ROLE_SWITCH: محجوب على سرّ `nama_medical_app` (scram، خارج git، لا يُخمَّن). ينتظر `SECRET_READY_EXECUTE_SWITCH`.
-WHY_NOT_ACCOUNTING: P3؛ محجوب بـ invoice schema drift + P0 RLS؛ flag OFF/journal=0 (لا ضرر آني).
-WHY_NOT_SCHEMA_DRIFT: P2 precondition للمحاسبة (P3)؛ أقل إلحاحاً من ثغرات العزل النشطة (P1).
+SELECTED_NEXT_PHASE: P1_TENANT_GUARD_SWEEP_CONTROLLED_PRODUCTION_DEPLOY (Option A)
+WHY_SELECTED: يغلق 3 ثغرات IDOR حيّة فوراً (أعلى تقليل خطر آمن، بلا سرّ).
+WHY_NOT_RLS_ROLE_SWITCH: محجوب على سرّ nama_medical_app (لم يُعطَ SECRET_READY_EXECUTE_SWITCH).
+WHY_NOT_TENANT_GUARD_DEPLOY: (هي المختارة) — لكن **النشر مُنع**: التصليب الأمني غيّر الكود إلى 3768bf3، وتفويض المالك كان لـ e52a140 فقط ⇒ يلزم موافقة جديدة.
+WHY_NOT_EXTENDED_IDOR_SWEEP: قيمة أقل من إغلاق ثغرات حيّة الآن؛ يُسجَّل لاحقاً (employees/system_users/form_templates — بلا tenant_id، قرار تصميم).
+WHY_NOT_INVOICE_SCHEMA_DRIFT: P2 precondition للمحاسبة (P3)؛ تحت أولوية العزل.
+WHY_NOT_ACCOUNTING: P3؛ محجوب بـ drift + P0 RLS؛ flag OFF/journal=0.
 WHY_NOT_FEFO: P4 clinical.
 WHY_NOT_LAB_RADIOLOGY: P4.
 WHY_NOT_STITCH: P5، محجوب MCP/key.
-BLOCKERS: لا blocker للمسح (code-only)؛ النشر يحتاج موافقة.
-APPROVAL_REQUIRED: نعم للنشر (CONTROLLED_DEPLOY)؛ نعم/سرّ لتبديل دور RLS.
+BLOCKERS: نشر 3768bf3 يتجاوز تفويض e52a140 ⇒ BLOCKED_PENDING_DEPLOY_APPROVAL.
+APPROVAL_REQUIRED: نعم — موافقة نشر `3768bf3` (fail-closed) بدل e52a140 (fail-open).
 ```
 
-التفاصيل والتنفيذ والإغلاق في [P1_SECURITY_TENANT_GUARD_SWEEP_FOR_HIGH_RISK_ROUTES_AR.md](P1_SECURITY_TENANT_GUARD_SWEEP_FOR_HIGH_RISK_ROUTES_AR.md).
+ملاحظة: استجابةً للمراجعة الأمنية الآلية، صُلِّب الكود من fail-open إلى **fail-closed** (namaweb e52a140→3768bf3، code-only مدفوع). التفاصيل في [P1_TENANT_GUARD_SWEEP_CONTROLLED_DEPLOY_CLOSEOUT_AR.md](P1_TENANT_GUARD_SWEEP_CONTROLLED_DEPLOY_CLOSEOUT_AR.md).
 
-`MASTER_NEXT_PHASE_DECISION_CONTINUATION_COMPLETE`
+`MASTER_NEXT_PHASE_DECISION_CONTINUE134_COMPLETE`
