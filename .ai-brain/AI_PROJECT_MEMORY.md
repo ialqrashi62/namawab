@@ -2662,3 +2662,12 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **الثوابت**: server.js لم يُلمس (CODE_CHANGED=NO؛ اختير DB-default بدل ~44 patch)، DDL/GRANT لم يُنفَّذ، prod tenant_id defaults=0، nama_* roles سليمة، journal=0، flag OFF، ملفات .ps1 الموازية لم تُلمس، لا force.
 * **حظر**: لا audit-reader GRANT ولا accounting قبل رفع انحدار الكتابة.
 * **NEXT**: `APPROVE_RLS_TENANT_ID_DEFAULT_DDL` (عاجل) ثم B (إعادة ختم كود دفاع-في-العمق) + C (توفيق الفرعين).
+
+### Phase 157: P0_RLS_TENANT_ID_DEFAULT_DDL_CONTROLLED_EXECUTION (PRODUCTION_DDL_PASS_WRITE_REGRESSION_FIXED)
+* **تاريخ المرحلة**: 2026-06-21 | تفويض: tenant_id DEFAULT فقط | الحالة: `PRODUCTION_DDL_PASS_WRITE_REGRESSION_FIXED`.
+* **طُبِّق على prod (psql atomic)**: `rls_tenant_id_default_reconciliation_candidate_up.sql` → `ALTER … tenant_id SET DEFAULT (NULLIF(current_setting('app.tenant_id',true),''))::integer` لكل **120** جدول FORCE-RLS (كلها tenant_id integer، 0 default سابق، شامل audit_trail). validate 3/3.
+* **رفع انحدار الكتابة (Phase 156)**: regression على بيانات حقيقية **27/27** (transport_requests, blood_bank_units/donors, insurance_claims, medical_records, medical_certificates, quality_incidents, hr_employees, zatca_invoices): INSERT بلا tenant_id @ctx=1 => أُدرج (كان 42501)؛ forge tenant_id=2 => 42501؛ no-ctx => 42501 (fail-closed). كل الاختبارات داخل ROLLBACK (لا بيانات دائمة).
+* **الأثر**: 120 عمود tenant_id له الآن DEFAULT؛ FORCE=120 وpolicies=122 بلا تغيير؛ يسدّ أيضاً إسناد logAudit. **بلا restart** (DDL DEFAULT فقط)، smoke أخضر، baselines (patients=3/invoices=3/audit_trail=45) بلا تغيير.
+* **audit_trail INCLUDED**: آمن (write-always يسمح NULL للنظامي؛ DEFAULT يختم تحت السياق).
+* **الثوابت**: DATA_CHANGED=NO, RUNTIME_CODE=NO, DB_ROLE=nama_medical_app (دون تبديل), GRANT لم يُنفَّذ, ACCOUNTING OFF, journal=0, لا أسرار, لا force. backup: ~/nama_deploy_backups/tenant_default_ddl_20260621/ + down.sql.
+* **NEXT**: `POST_DDL_MONITORING_THEN_MASTER_AUTOPILOT_RESELECT`. دفاع-في-العمق اختياري لاحقاً: B (إعادة ختم كود) + C (توفيق فرعَي namaweb). الـDEFAULT يكفي وظيفياً.
