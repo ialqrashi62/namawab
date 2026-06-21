@@ -2516,3 +2516,12 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **المرشّحات (docs/sql/، candidate-only)**: `invoice_schema_drift_candidate_{up,validate,down}.sql` — `ADD COLUMN IF NOT EXISTS` للـ10 (additive، idempotent، 0 تغيير بيانات؛ أنواع تطابق أعراف الجدول).
 * **ملاحظة جانبية**: patients soft-delete يكتب is_deleted/deleted_at/deleted_by — تسوية مخطط patients منفصلة لاحقاً.
 * **NEXT**: `BLOCKED_PENDING_DDL_APPROVAL` (تطبيق المرشّح يُرافق نشر الكود المتراكم). الأولوية تبقى: APPROVE_DEPLOY + السرّ.
+
+### Phase 142: P1_INVOICE_SCHEMA_DRIFT_DDL_AND_ACCUMULATED_SECURITY_DEPLOY (PRODUCTION_DEPLOYED_PASS)
+* **تاريخ المرحلة**: 2026-06-21 | تفويض: `APPROVE_DDL_AND_DEPLOY 082c07b` | الحالة: `PRODUCTION_DEPLOYED_PASS`.
+* **DDL**: نُفِّذ `invoice_schema_drift_candidate_up.sql` فقط (additive) على `nama_medical_web` → أُضيفت 10 أعمدة لـ`invoices` (discount/discount_reason/created_by/original_amount/cancelled/cancel_reason/cancelled_by/cancelled_at/amount_paid/balance_due). 10/10 موجودة، الأنواع مطابقة، invoices=3 (بلا تغيير بيانات)، total cols=25. لم يُلمَس accounting DDL/seed/RLS policies.
+* **النشر**: namaweb **8f012a0 → 082c07b** عبر pm2 restart (single-box). online، restarts=1 مستقر، Redis متصل (nama-redis Up). smoke: /=200، health=200، protected=401. كل الحُرّاس المتراكمة أصبحت **حيّة** (refund + tenant guards + create-route + insert stamping + multi-row update).
+* **backup**: server.js (8f012a0) + invoices_backup.json خارج المستودع؛ rollback = down.sql + checkout 8f012a0 + restart.
+* **الثوابت**: ACCOUNTING_POSTING_ENABLED=OFF، journal=0، DB_ROLE=postgres، RLS_RUNTIME_ENFORCEMENT=NOT_YET، FORCE_PUSH=NO، لا أسرار.
+* **git**: 6 تقارير deploy/DDL + ذاكرة (docs فقط؛ الكود 082c07b كان مدفوعاً، الـ DDL تغيير DB لا git). parent gitlink = 082c07b (متطابق).
+* **NEXT**: `SECRET_READY_EXECUTE_SWITCH` (تبديل دور RLS — الجاهزية مكتملة والإصلاحات الآن حيّة) أو Master Autopilot reselect. ملاحظة: patients soft-delete columns (is_deleted/deleted_at/deleted_by) قد تحتاج تسوية مخطط مماثلة.
