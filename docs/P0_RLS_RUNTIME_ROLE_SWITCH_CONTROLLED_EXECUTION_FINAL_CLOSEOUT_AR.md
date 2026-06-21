@@ -1,31 +1,30 @@
-# P0 — إغلاق تبديل دور RLS (Retry-2: BLOCKED at Gate 3 — مصدر السرّ غير قابل للوصول)
+# P0 — إغلاق تبديل دور RLS (Retry-3: BLOCKED at Gate 3 — قيمة السرّ لا تطابق الدور)
 
 > المرحلة: `P0_RLS_RUNTIME_ROLE_SWITCH_RETRY_WITH_SAFE_SECRET_SOURCE` | تفويض: `SECRET_READY_EXECUTE_SWITCH` | التاريخ: 2026-06-21.
 
 ## الخلاصة
-المحاولة الثانية باستخدام مصدر سرّ آمن منفصل. توقّفت عند **Gate 3** لأن المصدرين المحدَّدين (`DB_APP_PASSWORD` env و`/root/nama_medical_app_db_password`) **غير قابلين للوصول من بيئة التنفيذ (win32، المستخدم ice)**. **لم يُغيَّر أي شيء**: `.env` ما زال `DB_USER=postgres`، التطبيق online/200، لا restart، لا rollback لازم.
+المحاولة الثالثة باستخدام ملف سرّ على نفس الصندوق (`C:\Users\ice\nama_medical_app_db_password`). الملف **موجود ومقروء** هذه المرة، لكنه توقّف عند **Gate 3** لأن قيمته **لا تطابق كلمة مرور الدور `nama_medical_app`** (probe رجع `28P01 invalid_password` على القيمة الخام والمُجرَّدة معاً). **لم يُغيَّر أي شيء**: `.env` ما زال `DB_USER=postgres`، التطبيق online/200، لا restart.
 
 ## أدلة البوابات
-- **Gate 0 PASS**: متزامن 79c34cc، namaweb 10ded01، online (restarts=3)، health 200، RLS_FORCE=120، journal=0، DB_ROLE=postgres، flag OFF.
+- **Gate 0 PASS**: متزامن 388d47a، namaweb 10ded01، online (restarts=3)، health 200، DB_ROLE=postgres.
 - **Gate 1 PASS**: `nama_medical_app` جاهز (login=true، super=false، bypassrls=false، DML 149/149، sequences 147/147).
-- **Gate 2**: backup من المرحلة السابقة ساري (`~/nama_deploy_backups/rls_role_switch_20260621/`)؛ لم يلزم تعديل ⇒ لا backup جديد مطلوب.
-- **Gate 3 STOP**: فحص المصدرين الآمنين (دون طباعة قيم):
-  - `DB_APP_PASSWORD`: ABSENT على Process و User و Machine.
-  - ملف كلمة المرور: غير موجود في `/root/...` (مسار Linux على صندوق win32) ولا في أي مسار Windows مُحتمَل (`C:\root\`, `C:\Users\ice\`, `C:\Users\ice\.secrets\`, `C:\`, `C:\ProgramData\`).
-  - `TARGET_DB_USER_SECRET_PRESENT: NO` ⇒ لم يُجرَ probe الاتصال (لا قيمة لاستخدامها). التفاصيل في `P0_RLS_RUNTIME_ROLE_SWITCH_SAFE_SECRET_PROBE_AR.md`.
+- **Gate 3 STOP**: الملف موجود (63 بايت ASCII، محرف فراغ بادئ واحد، لا BOM). probe الاتصال كـ nama_medical_app:
+  - القيمة الخام (63) → FAILED 28P01.
+  - القيمة المُجرَّدة .trim() (62) → FAILED 28P01.
+  - لم تُجرَّب صيغ أخرى (تجنّب التخمين). التفاصيل في `P0_RLS_RUNTIME_ROLE_SWITCH_SAFE_SECRET_PROBE_AR.md`.
 
 ## التشخيص (دون أي سر)
-دلالة `/root/` تشير إلى مضيف Linux، بينما الـ single-box الحالي **Windows أصلي** (PostgreSQL 16 وPM2 تحت المستخدم ice). السر المُهيّأ "خارج الشات" ليس في أي مصدر يراه أمري على هذا الصندوق.
+محتوى الملف ≠ كلمة مرور الدور الحالية. السبب الأرجح: الملف يحوي كلمة مرور مختلفة عمّا ضُبط فعلياً على الدور بـ `ALTER ROLE`، أو عُدِّل أحدهما دون الآخر.
 
 ## الحقول
 ```text
 FINAL_STATUS: BLOCKED_PENDING_RUNTIME_ROLE_SWITCH_APPROVAL
-SELECTED_PHASE: P0_RLS_RUNTIME_ROLE_SWITCH_CONTROLLED_EXECUTION (retry with safe secret source)
+SELECTED_PHASE: P0_RLS_RUNTIME_ROLE_SWITCH_CONTROLLED_EXECUTION (retry-3, secret file)
 USER_VISIBLE_ON_WEBSITE: NO_CHANGE
 PRODUCTION_DEPLOYED: NO (لا تغيير)
 DB_ROLE_BEFORE: postgres
 DB_ROLE_AFTER: postgres (دون تغيير)
-APP_ROLE_SUPERUSER: (target nama_medical_app=false؛ لم يُطبَّق)
+APP_ROLE_SUPERUSER: (target=false؛ لم يُطبَّق)
 APP_ROLE_BYPASSRLS: (target=false؛ لم يُطبَّق)
 RLS_FORCE_COUNT: 120
 RLS_RUNTIME_ENFORCEMENT: NOT_YET
@@ -35,7 +34,7 @@ APP_TENANT_ID_CONNECTION_SCOPE_RESULT: PASS (جاهز ومنشور)
 AUDIT_TRAIL_POLICY_RESULT: LIVE
 LOGAUDIT_STAMPING_RESULT: LIVE
 HEALTH_SMOKE: PASS (postgres الحالي)
-PM2_STATUS: online (restarts=3، دون restart هذه المرحلة)
+PM2_STATUS: online (restarts=3، دون restart)
 REDIS_STATUS: connected
 DDL_EXECUTED: NO
 DATA_CHANGED: NO
@@ -44,17 +43,17 @@ JOURNAL_CREATED: NO
 ENV_BACKUP_PATH: ~/nama_deploy_backups/rls_role_switch_20260621/.env.before-switch.bak
 ROLLBACK_READY: YES
 ROLLBACK_USED: NO (لم يُغيَّر شيء)
-SECRETS_FOUND: NO (المصدران غير قابلين للوصول)
+SECRETS_FOUND: FILE_PRESENT_BUT_VALUE_MISMATCH
 SECRETS_PRINTED: NO
 FORCE_PUSH_USED: NO
-NEXT_REQUIRED_ACTION: SET_VALID_NAMA_MEDICAL_APP_SECRET_OUTSIDE_CHAT_THEN_RETRY
+NEXT_REQUIRED_ACTION: ALIGN_FILE_PASSWORD_WITH_ROLE_OUTSIDE_CHAT_THEN_RETRY
 ```
 
-## ما المطلوب لإكمال التبديل (على صندوق win32 هذا، دون كتابة السر في الشات)
-اجعل سر `nama_medical_app` مقروءاً لعملية المستخدم `ice` بأحد الخيارين:
-1. `[Environment]::SetEnvironmentVariable('DB_APP_PASSWORD','<secret>','User')` (أو `'Machine'`) عبر PowerShell.
-2. أو ملف نصّي بصلاحيات محدودة في مسار Windows مثل `C:\Users\ice\nama_medical_app_db_password`.
+## ما المطلوب لإكمال التبديل (دون كتابة السر في الشات)
+وحّد قيمة الملف مع كلمة مرور الدور بإحدى طريقتين خارج الشات:
+1. اكتب في `C:\Users\ice\nama_medical_app_db_password` كلمة مرور `nama_medical_app` **الحالية الصحيحة بالضبط** (سطر واحد، بلا فراغ بادئ/زائل، بلا BOM)، أو
+2. `ALTER ROLE nama_medical_app PASSWORD '<نفس قيمة الملف>'` (يُنفّذها المالك؛ لا أُغيّرها أنا).
 
-ثم أعد إصدار `SECRET_READY_EXECUTE_SWITCH`. عند SUCCESS لـ probe الاتصال، أُكمل البوابات 4–11: تبديل ذرّي (`DB_USER=nama_medical_app` + `DB_PASSWORD`=قيمة المصدر الآمن في نفس الخطوة) + restart محكوم + إثبات `current_user=nama_medical_app` + إنفاذ RLS الفعلي + regression — مع rollback فوري عند أي إخفاق مصادقة.
+ثم أعد إصدار `SECRET_READY_EXECUTE_SWITCH`. عند SUCCESS لـ probe الاتصال، أُكمل البوابات 4–11 (تبديل ذرّي `DB_USER`+`DB_PASSWORD` + restart محكوم + إثبات `current_user=nama_medical_app` + إنفاذ RLS الفعلي + regression) مع rollback فوري.
 
-`RLS_RUNTIME_ROLE_SWITCH_RETRY2_BLOCKED_AT_SAFE_SECRET_PROBE — NO_CHANGES_MADE`
+`RLS_RUNTIME_ROLE_SWITCH_RETRY3_BLOCKED_AT_SECRET_VALUE_MISMATCH — NO_CHANGES_MADE`

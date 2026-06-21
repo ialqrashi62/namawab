@@ -2606,3 +2606,11 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **المطلوب (win32، دون شات)**: `[Environment]::SetEnvironmentVariable('DB_APP_PASSWORD','<secret>','User'|'Machine')` أو ملف `C:\Users\ice\nama_medical_app_db_password`، ثم إعادة `SECRET_READY_EXECUTE_SWITCH`. عندها probe→SUCCESS ⇒ تبديل ذرّي (DB_USER+DB_PASSWORD) + restart + proof + RLS enforcement + regression مع rollback فوري.
 * **ثابت**: كل بقية المتطلبات LIVE (audit_trail policy، logAudit stamping، app.tenant_id binding). الناقص الوحيد = إيصال السر لبيئة win32 المنفّذة.
 * **NEXT**: `SET_VALID_NAMA_MEDICAL_APP_SECRET_OUTSIDE_CHAT_THEN_RETRY`.
+
+### Phase 151: P0_RLS_RUNTIME_ROLE_SWITCH retry-3 (secret file) — BLOCKED (value mismatch @ Gate 3)
+* **تاريخ المرحلة**: 2026-06-21 | تفويض: `SECRET_READY_EXECUTE_SWITCH` (ملف `C:\Users\ice\nama_medical_app_db_password`) | الحالة: `BLOCKED`. **لم يُغيَّر أي شيء** (app=postgres، online/200، لا restart).
+* **Gate 3 STOP**: الملف **موجود ومقروء** هذه المرة (63 بايت ASCII، محرف فراغ بادئ واحد، لا BOM)، لكن probe الاتصال كـ nama_medical_app فشل **28P01** على القيمة الخام (63) **والمُجرَّدة .trim() (62)** معاً ⇒ محتوى الملف ≠ كلمة مرور الدور. لم أُجرِّب صيغاً أخرى (تجنّب التخمين). لا تعديل .env، لا restart (التزام بقاعدة Gate 3).
+* **الفرق عن retry-2**: retry-2 المصدر غير موجود؛ retry-3 المصدر موجود لكن القيمة خاطئة.
+* **المطلوب (خارج الشات)**: توحيد القيمة — إمّا كتابة كلمة مرور الدور الصحيحة في الملف (سطر واحد، بلا فراغ بادئ/زائل/BOM)، أو `ALTER ROLE nama_medical_app PASSWORD '<قيمة الملف>'` (المالك). ثم إعادة `SECRET_READY_EXECUTE_SWITCH`.
+* **ثابت**: كل بقية المتطلبات LIVE (audit_trail policy، logAudit stamping، app.tenant_id binding 9/9، role grants 149/149). الناقص الوحيد = تطابق كلمة المرور.
+* **NEXT**: `ALIGN_FILE_PASSWORD_WITH_ROLE_OUTSIDE_CHAT_THEN_RETRY`.

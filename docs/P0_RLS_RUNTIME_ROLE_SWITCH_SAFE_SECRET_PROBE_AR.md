@@ -1,43 +1,41 @@
-# Gate 3 (Retry) — Safe Secret Source Probe (RLS Runtime Role Switch)
+# Gate 3 (Retry-3) — Safe Secret Source Probe (RLS Runtime Role Switch)
 
 > المرحلة: `P0_RLS_RUNTIME_ROLE_SWITCH_RETRY_WITH_SAFE_SECRET_SOURCE` | التاريخ: 2026-06-21 | بلا طباعة أي قيمة سرّية.
 
-## ما فُحِص (مصدران آمنان فقط، كما حدّدهما التفويض)
+## المصدر
 ```text
-المصدر 1: متغيّر بيئة DB_APP_PASSWORD
-  - [Process] : ABSENT
-  - [User]    : ABSENT
-  - [Machine] : ABSENT
-المصدر 2: ملف كلمة المرور
-  - /root/nama_medical_app_db_password           : غير موجود (مسار Linux؛ هذا صندوق win32)
-  - C:\root\nama_medical_app_db_password         : غير موجود
-  - C:\Users\ice\nama_medical_app_db_password    : غير موجود
-  - C:\Users\ice\.secrets\...                    : غير موجود
-  - C:\nama_medical_app_db_password              : غير موجود
-  - C:\ProgramData\nama_medical_app_db_password  : غير موجود
+ملف السر: C:\Users\ice\nama_medical_app_db_password — موجود وقابل للقراءة
+```
+
+## فحص صيغة الملف (ميتاداتا فقط، بلا أي قيمة)
+```text
+byte_length: 63 ; encoding: ASCII أحادي البايت ؛ لا BOM (UTF-8/UTF-16)
+trim: raw=63 → trimmed=62 (يُزيل محرف فراغ واحداً) ؛ آخر بايتين = 'll' (ليس سطراً جديداً)
+=> يوجد محرف فراغ بادئ واحد (leading whitespace) ؛ لا فراغ زائل ؛ لا محارف تحكّم داخلية
+```
+
+## محاولات القراءة المشروعة (تطبيع ترميز/فراغ فقط — ليست تخميناً)
+```text
+1) القيمة الخام (63 محرفاً، بلا أي تجريد لسطر زائل) → connect probe = FAILED (28P01)
+2) القيمة المُجرَّدة .trim() (62 محرفاً، بلا فراغ بادئ/زائل) → connect probe = FAILED (28P01)
 ```
 
 ## النتيجة
 ```text
-TARGET_DB_USER_SECRET_PRESENT: NO
-TARGET_ROLE_CONNECT_PROBE: NOT_RUN (لا مصدر سرّ متاح ⇒ لم يُجرَ probe الاتصال)
+TARGET_DB_USER_SECRET_PRESENT: FILE_PRESENT_BUT_VALUE_MISMATCH
+TARGET_ROLE_CONNECT_PROBE: FAILED (28P01 invalid_password) على كلا الصيغتين
 SECRET_PRINTED: NO
+DECISION: STOP — لا تعديل .env، لا restart (التزاماً بقاعدة Gate 3)
 ```
 
 ## التشخيص (دون أي سر)
-بيئة التنفيذ هنا **win32، المستخدم `ice`** (PostgreSQL وPM2 أصليان على Windows). المصدران المُحدَّدان غير قابلين للوصول من هذا السياق:
-- `DB_APP_PASSWORD` غير معرّف على أي نطاق Windows (Process/User/Machine) يراه أمري.
-- المسار `/root/nama_medical_app_db_password` هو مسار Linux ولا وجود له على صندوق Windows هذا.
+الملف موجود ومقروء، لكن قيمته (سواء الخام 63 أو المُجرَّدة 62) **لا تطابق كلمة مرور الدور `nama_medical_app`** الحالية في القاعدة (scram رفضها بـ 28P01). أي: محتوى الملف ≠ كلمة مرور الدور. لم أُجرِّب أي صيغ أخرى (تجنّباً للتخمين). توقّفت عند صيغتين مشروعتين فقط.
 
-الأرجح أن السر هُيّئ على **مضيف Linux مختلف** (دلالة `/root/`) لا يطابق صندوق الـ single-box الحالي، أو ضُبط متغيّر البيئة في جلسة/مستخدم لا يرثه أمري.
+## ما المطلوب (دون كتابة السر في الشات)
+وحّد القيمتين بإحدى طريقتين خارج الشات:
+1. ضع في `C:\Users\ice\nama_medical_app_db_password` **كلمة مرور `nama_medical_app` الحالية الصحيحة بالضبط** (سطر واحد، بلا فراغ بادئ/زائل، بلا BOM).
+2. أو أعد ضبط كلمة مرور الدور لتطابق محتوى الملف: `ALTER ROLE nama_medical_app PASSWORD '<نفس قيمة الملف>'` (يُنفّذها المالك خارج الشات؛ لا أُغيّر أنا كلمة مرور دور).
 
-## ما المطلوب (على هذا الصندوق win32، دون كتابة السر في الشات)
-أحد الخيارين بحيث يصبح السر **مقروءاً لعملية المستخدم `ice`**:
-1. ضبط متغيّر بيئة دائم على Windows:
-   - PowerShell: `[Environment]::SetEnvironmentVariable('DB_APP_PASSWORD','<secret>','User')` (أو `'Machine'`).
-   - (يصبح متاحاً للعمليات الجديدة؛ سأقرؤه عبر `process.env`/`[Environment]::GetEnvironmentVariable` دون طباعته.)
-2. أو وضع الملف في مسار Windows قابل للقراءة، مثل: `C:\Users\ice\nama_medical_app_db_password` بصلاحيات محدودة.
+ثم أعد إصدار `SECRET_READY_EXECUTE_SWITCH`. سأُعيد probe الاتصال؛ عند SUCCESS أُكمل التبديل الذرّي + restart + إثبات الدور + إنفاذ RLS + regression مع rollback فوري.
 
-ثم أعد إصدار `SECRET_READY_EXECUTE_SWITCH`. سأُعيد probe الاتصال كـ `nama_medical_app`؛ عند SUCCESS أُكمل التبديل الذرّي (DB_USER+DB_PASSWORD معاً) + restart + إثبات الدور + إنفاذ RLS، مع rollback فوري.
-
-`SAFE_SECRET_PROBE: NO_SOURCE_REACHABLE — NO_CHANGES_MADE`
+`SAFE_SECRET_PROBE: FILE_PRESENT_VALUE_MISMATCH — NO_CHANGES_MADE`
