@@ -2801,3 +2801,11 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **🔴 PHASE 8 (infra، جديد من الحادثة)**: nama-redis=unless-stopped (OK)، Docker Desktop autostart عند الدخول (OK)، لكن **PM2 بلا Windows startup** (`Init system not found`) ⇒ **التطبيق لا يُحيَ تلقائياً بعد reboot/logout/daemon-death** = الفجوة الرئيسية. خطة: pm2 windows startup + health watchdog + runbook ⇒ pending owner approval. `P8_...`.
 * **git**: docs/candidates فقط (14-table SQL + scope + infra plan + master closeout + memory). namaweb بلا تغيير (لا كود). لا DDL/data/GRANT/deploy. closeout: `NAMA_MEDICAL_FULL_REMAINING_HARDENING_MASTER_CLOSEOUT_AR.md`.
 * **NEXT (بوابات)**: (1) APPROVE_FULL_REMAINING_RLS_DDL_AND_BACKFILL (14-table)؛ (2) APPROVE_PM2_WINDOWS_STARTUP_AND_HEALTH_WATCHDOG؛ (3) API/RBAC defense-in-depth؛ (4) audit-reader GRANT. accounting OFF.
+
+### Phase 171: APPROVE_FULL_REMAINING_RLS_DDL_AND_BACKFILL (PRODUCTION_DDL_AND_BACKFILL_PASS — 🟢 آخر فجوة RLS أُغلقت)
+* **تاريخ المرحلة**: 2026-06-21 | موافقة صريحة جديدة ⇒ تنفيذ مرشّح الـ14 جدول (DDL + backfill tenant_id فقط). بلا code/GRANT/accounting/.env/restart.
+* **التنفيذ**: `14_table_rls_backfill_candidate_up.sql` على الإنتاج (postgres، atomic) ⇒ 14/14 جدول الآن tenant_id + FORCE RLS + policy `rls_<t>_tenant_isolation` + DEFAULT. backfill `tenant_id=1` لـbranches(1)+employees(3) فقط (قاعدة آمنة: tenant 2 فارغ تماماً؛ branches.facility_id=1). **FORCE_RLS 133→147**.
+* **تحقّق**: branches/employees null=0 tenant1=صحيح، row counts محفوظة، business columns بلا تغيير، role غير-super. RLS smoke: patients ctx1=3/999=0/no-ctx=0؛ employees ctx1=3/ctx999=0؛ branches ctx1=1/ctx999=0؛ health 5/5؛ لا 42501/42P01؛ PM2 لم يُعَد تشغيله (RLS يُفرَض فوراً على مستوى DB).
+* **الأثر**: **كل الجداول tenant-sensitive (147) محميّة بـFORCE RLS — لا فجوة RLS tenant-sensitive متبقية على مستوى DB**. عزل على طبقتي DB+التطبيق.
+* **git**: docs (closeout + memory)؛ candidate SQL مُلتزَم سابقاً (1acd710). namaweb بلا تغيير. backup + down.sql جاهزان (غير مُستخدَمين). closeout: `APPROVE_FULL_REMAINING_RLS_DDL_AND_BACKFILL_FINAL_CLOSEOUT_AR.md`.
+* **NEXT**: `POST_DDL_MONITORING_THEN_PM2_WINDOWS_STARTUP_AND_API_RBAC`. المتبقّي: PM2 windows startup (infra gap)، API/RBAC defense-in-depth، audit-reader GRANT. accounting OFF.
