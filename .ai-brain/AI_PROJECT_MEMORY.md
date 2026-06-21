@@ -2588,3 +2588,12 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **backup**: ~/nama_deploy_backups/audit_trail_policy_20260621/{audit_trail.sql, policies_before.json, server.js.6ecbf4a.bak}. rollback=down.sql.
 * **git**: namaweb 10ded01 (code+test) مدفوع؛ parent gitlink + closeout + memory.
 * **NEXT**: `SECRET_READY_EXECUTE_SWITCH` — كلا الشرطين (audit_trail compat + app.tenant_id binding) مُستوفيان ومنشوران. يتطلب توفير سر nama_medical_app خارج الشات (لا يُطلب/يُطبع). بند حوكمة متبقٍ غير حاجز: قراءة super-admin العابرة لـ audit_trail (دور/VIEW محكوم).
+
+### Phase 149: P0_RLS_RUNTIME_ROLE_SWITCH_CONTROLLED_EXECUTION (BLOCKED_PENDING_RUNTIME_ROLE_SWITCH_APPROVAL @ Gate 3)
+* **تاريخ المرحلة**: 2026-06-21 | تفويض: `SECRET_READY_EXECUTE_SWITCH` | الحالة: `BLOCKED_PENDING_RUNTIME_ROLE_SWITCH_APPROVAL`. **لم يُغيَّر أي شيء** (لا .env، لا restart، لا rollback لازم؛ التطبيق يعمل كما هو على postgres).
+* **Gate 0 PASS**: 82b0584/10ded01، online/200، RLS_FORCE=120، journal=0، active conn usename=postgres.
+* **Gate 1 PASS**: nama_medical_app جاهز — login=true، super=false، bypassrls=false، **DML 149/149 tables (MISSING NONE)**، sequences 147/147، schema USAGE.
+* **Gate 2**: backup .env + pm2 dump خارج المستودع.
+* **Gate 3 STOP (السبب الجذري)**: probe اتصال كـ nama_medical_app باستخدام `process.env.DB_PASSWORD` (من .env، دون طباعة) رجع **28P01 invalid_password**. مفاتيح .env: DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD/DB_MAX_CONNECTIONS/PORT/SESSION_SECRET/NODE_ENV/REDIS_HOST — **لا متغيّر كلمة مرور مخصص لـ nama_medical_app**، وDB_PASSWORD الحالية تخص postgres. pg_hba يسمح (وصلنا لفحص كلمة المرور)، الدور+الصلاحيات جاهزة — الناقص فقط **قيمة كلمة المرور في البيئة**.
+* **المطلوب لإكمال التبديل (خارج الشات)**: ضبط `DB_PASSWORD` في `namaweb/.env` = كلمة مرور nama_medical_app الحقيقية (أو ALTER ROLE nama_medical_app PASSWORD لتطابق DB_PASSWORD الحالية — يفعله المالك، لا أنا). ثم إعادة `SECRET_READY_EXECUTE_SWITCH` ⇒ أُعيد probe Gate 3 (SUCCESS) ثم أُكمل 4–11 (قلب DB_USER + restart + proof + RLS enforcement + regression) مع rollback فوري.
+* **NEXT**: `SET_SECRET_OUTSIDE_CHAT_THEN_SECRET_READY_EXECUTE_SWITCH`. كل المتطلبات الأخرى جاهزة (audit_trail policy + logAudit stamping + app.tenant_id binding كلها LIVE).
