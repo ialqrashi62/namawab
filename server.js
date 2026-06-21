@@ -7,7 +7,7 @@ const fs = require('fs');
 const multer = require('multer');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const { pool, initDatabase } = require('./db_postgres');
+const { pool, initDatabase, tenantStore } = require('./db_postgres');
 const bcrypt = require('bcryptjs');
 const { insertSampleData, populateLabCatalog, populateRadiologyCatalog } = require('./seed_data_pg');
 const { populateMedicalServices, populateBaseDrugs } = require('./seed_services_pg');
@@ -87,6 +87,20 @@ if (sessionStore) {
 }
 
 app.use(session(sessionConfig));
+
+// ===== TENANT CONTEXT MIDDLEWARE (RLS wiring, ported from 10ded01) =====
+// Binds the request's tenant (from trusted session via getRequestTenantContext) into
+// AsyncLocalStorage so the patched pool.query sets app.tenant_id on the DB connection before
+// any RLS-protected query. No tenant context (unauthenticated/public) -> passthrough; protected
+// routes still gate via requireTenantScope. Per-request, no cross-request leak.
+app.use((req, res, next) => {
+    const { tenantId, facilityId } = getRequestTenantContext(req);
+    if (tenantId) {
+        tenantStore.run({ tenantId, facilityId }, () => next());
+    } else {
+        next();
+    }
+});
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));

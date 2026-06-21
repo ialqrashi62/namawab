@@ -11,6 +11,31 @@ const pool = new Pool({
     max: parseInt(process.env.DB_MAX_CONNECTIONS) || 20
 });
 
+// ===== TENANT CONTEXT WIRING FOR ROW LEVEL SECURITY (ported from security line 10ded01) =====
+// Binds app.tenant_id per-request via AsyncLocalStorage. FORCE-RLS policies read
+// current_setting('app.tenant_id'); the app uses pool.query directly, so without this the
+// session tenant is never set and every protected-table query returns 0 / fails WITH CHECK.
+const { AsyncLocalStorage } = require('async_hooks');
+const tenantStore = new AsyncLocalStorage();
+function runWithTenant(context, fn) { return tenantStore.run(context || {}, fn); }
+function getCurrentTenantId() { const s = tenantStore.getStore(); return s && s.tenantId ? s.tenantId : null; }
+const _poolQuery = pool.query.bind(pool);
+pool.query = function (text, params) {
+    const tid = getCurrentTenantId();
+    // No tenant context (login/health/init) -> original behavior unchanged.
+    if (!tid) return _poolQuery(text, params);
+    return (async () => {
+        const client = await pool.connect();
+        try {
+            await client.query("SELECT set_config('app.tenant_id', $1, false)", [String(tid)]);
+            return params === undefined ? await client.query(text) : await client.query(text, params);
+        } finally {
+            try { await client.query("SELECT set_config('app.tenant_id', '', false)"); } catch (e) { /* reset best-effort */ }
+            client.release();
+        }
+    })();
+};
+
 async function query(sql, params = []) {
     const result = await pool.query(sql, params);
     return result;
@@ -2092,4 +2117,4 @@ UPDATE maintenance_equipment SET tenant_id = 1 WHERE tenant_id IS NULL;
     }
 }
 
-module.exports = { pool, query, getPool, initDatabase };
+module.exports = { pool, query, getPool, initDatabase, tenantStore, runWithTenant, getCurrentTenantId };
