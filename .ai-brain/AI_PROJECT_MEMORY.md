@@ -2558,3 +2558,11 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **اختبار**: `phi_class_a_runtime_stamping_test.js` 18/18 PASS؛ regression (idor sweep، refund، insert stamping، update sweep) exit 0؛ node --check OK.
 * **git**: namaweb commit (server.js + test) مدفوع بلا force (غير منشور؛ الحيّ يبقى 082c07b)؛ parent gitlink + closeout + memory.
 * **NEXT**: `APPROVE_DEPLOY_PHI_RUNTIME_COMPATIBILITY` ثم `SECRET_READY_EXECUTE_SWITCH`. ملاحظة: قرار سياسة audit_trail يجب حلّه قبل/مع التبديل.
+
+### Phase 146: P1_PHI_RUNTIME_COMPATIBILITY_CONTROLLED_DEPLOY (PRODUCTION_DEPLOYED_PASS)
+* **تاريخ المرحلة**: 2026-06-21 | تفويض: `APPROVE_DEPLOY_PHI_RUNTIME_COMPATIBILITY 6ecbf4a` | الحالة: `PRODUCTION_DEPLOYED_PASS`.
+* **النشر**: namaweb **082c07b → 6ecbf4a** عبر pm2 restart (single-box؛ القرص كان أصلاً 6ecbf4a من Phase 145). الفرق محصور حصراً في POST /api/blood-bank/units و POST /api/blood-bank/donors (requireTenantScope + ختم tenant_id/facility_id). online، restarts 1→2 مستقر، Redis متصل.
+* **Gate أدلة**: backup 082c07b (rollback) خارج المستودع؛ node --check OK؛ smoke /=200 health=200 login=200 protected=401 blood-bank POST بلا جلسة=401؛ تحقق ثابت للـruntime المنشور 18/18 PASS.
+* **الثوابت**: DDL=NO, DATA=NO, RLS_CHANGED=NO, RLS_FORCE=120, role=postgres, RLS_RUNTIME_ENFORCEMENT=NOT_YET, ACCOUNTING=OFF, journal=0, audit_trail=44 unchanged, logAudit runtime بلا تغيير, لا أسرار, لا force.
+* **git**: closeout + memory (docs فقط؛ namaweb gitlink أصلاً 6ecbf4a، لا تغيير submodule هذه المرحلة).
+* **NEXT (شرطان قبل التبديل)**: (1) `P1_AUDIT_TRAIL_RLS_POLICY_COMPATIBILITY_PRECHECK` — سياسة سماحية/نظامية أو دور كاتب-تدقيق لـaudit_trail (وإلا توقّف تدقيق صامت بعد التبديل). (2) precheck ضبط app.tenant_id لكل طلب في db_postgres.js/server.js. ثم `SECRET_READY_EXECUTE_SWITCH`.
