@@ -1,44 +1,25 @@
 # Master Autopilot — حارس الحالة العامة (State Guard)
 
-> الوضع: `MEDICAL_MASTER_AUTOPILOT_ALL_PHASES_AND_GROUPS` — البوابة 0 | التاريخ: 2026-06-21 | read-only.
+> الوضع: `MEDICAL_MASTER_AUTOPILOT_ALL_PHASES_AND_GROUPS_CONTINUATION` — البوابة 0 | محدّث 2026-06-21 | read-only.
 
-## ACTIVE_SKILLS
-```text
-ACTIVE_SKILLS:
-- MEDICAL_AUTOPILOT_CORE_SKILL_AR
-- MEDICAL_NEXT_PHASE_SELECTOR_SKILL_AR
-- MEDICAL_ULTIMATE_AUTOPILOT_DECISION_ENGINE_SKILL_AR
-- MEDICAL_RLS_RECONCILIATION_AUTOPILOT_SKILL_AR
-- MEDICAL_RLS_POLICY_DESIGN_SKILL_AR
-- MEDICAL_RLS_AUTOPILOT_BLOCKER_SKILL_AR
-- MEDICAL_RBAC_TENANT_ISOLATION_SKILL_AR
-- MEDICAL_DATABASE_SCHEMA_AUDIT_SKILL_AR
-- MEDICAL_PATIENT_DATA_SAFETY_SKILL_AR
-- MEDICAL_SECURITY_PRIVACY_AUDIT_SKILL_AR
-- MEDICAL_REPORTS_HYGIENE_AND_CLOSEOUT_SKILL_AR
-- MEDICAL_ARABIC_UTF8_REPORTING_SKILL_AR
-```
-
-## حارس الحالة
+## حارس الحالة (هذه الجولة)
 | البند | القيمة | الحالة |
 | ----- | ------ | ------ |
-| المسار | `C:\Users\ice\Desktop\NamaMedical` | ✅ الوحيد المعتمد |
-| `git status` | ملفات Stitch/UI سابقة فقط (خارج النطاق) | ✅ |
-| HEAD / origin | `7c613d6` = `7c613d6` | ✅ **local == origin/master** |
-| ahead/behind | `0 / 0` | ✅ لا split-brain |
-| جلسة كتابة ثانية نشطة | لا دليل آني | ⚠️ R17 قائم (حوكمة) |
-| namaweb | `ef1acf9` (نظيف) | ✅ |
+| المسار | `C:\Users\ice\Desktop\NamaMedical` | ✅ الوحيد |
+| git HEAD/origin (بداية الجولة) | `336ee02` = متزامن (0/0) | ✅ |
+| جلسة كتابة ثانية | لا دليل آني | ⚠️ R17 قائم |
+| PM2 `nama-app` | online (restarts=0) — يخدم 8f012a0 | ✅ |
+| `ACCOUNTING_POSTING_ENABLED` | غائب ⇒ OFF | ✅ |
+| journal_count | 0 | ✅ |
+| RLS runtime | 115 FORCE لكن **مُتجاوَز** (app=postgres superuser) | ⚠️ P0 محجوب على سرّ |
+| ملفات خارج النطاق | Stitch/UI سابقة فقط (لا تُلمَس) | ✅ |
 
-`git log --oneline -8`: من `7c613d6` (Phase 129) حتى `ee0e384` (rehearsal) — سلسلة المحاسبة/المصالحة الأخيرة.
+## ضوابط
+read-only للاختيار؛ تنفيذ المرحلة المختارة code-only بلا deploy/DDL/data/flag/force/Stitch. لا طلب أسرار.
 
-## ضوابط هذه الجولة
-read-only للاختيار + الفحص. لا DDL/Seed/Data/Deploy/Restart/تفعيل flag/force push/Stitch بلا موافقة. تنفيذ المرحلة المختارة ضمن نطاقها فقط.
-
-## النتيجة
 ```text
 GATE0_STATUS: GLOBAL_STATE_GUARD_PASS
-GIT_SYNCED: YES (7c613d6) ; SPLIT_BRAIN: NO ; FORCE_PUSH: NO
-NEXT: GATE1_OPEN_PHASE_REGISTER
+SELECTED_THIS_ROUND: P1_SECURITY_TENANT_GUARD_SWEEP_FOR_HIGH_RISK_ROUTES (code-only)
 ```
 
-`MASTER_AUTOPILOT_STATE_GUARD_COMPLETE`
+`MASTER_AUTOPILOT_STATE_GUARD_CONTINUATION_COMPLETE`
