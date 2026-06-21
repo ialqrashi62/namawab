@@ -2735,3 +2735,13 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **Gate 8/9**: accounting OFF (لا journal_entries)؛ nama_medical_app ليس عضو nama_audit_reader؛ لا GRANT/DDL؛ بعد flush+نشاط: سجلات نظيفة، restarts=34 ثابتة، uptime يتصاعد، mem ~85mb.
 * **الحالة النهائية**: DB_ROLE postgres→nama_medical_app (super=false, bypassrls=false)؛ BOOT_REFACTOR_DEPLOYED=YES؛ DDL/DATA/GRANT=NO؛ ENV_CHANGED=YES (التبديل المصرّح)؛ ROLLBACK_READY=YES USED=NO؛ FORCE_PUSH=NO؛ SECRETS_PRINTED=NO. namaweb d0f1f70 (بلا تغيير كود)، parent: closeout+memory.
 * **NEXT**: `POST_DEPLOY_MONITORING_THEN_ROUTE_LEVEL_DDL_REMOVAL_OR_BATCH1`. accounting/audit-reader/Stitch موقوفة حتى أمر صريح.
+
+### Phase 164: P0_RESTRICTED_ROLE_POST_DEPLOY_MONITORING_THEN_ROUTE_LEVEL_DDL_REFACTOR_CANDIDATE (CODE_ONLY_PUSHED_NOT_DEPLOYED)
+* **تاريخ المرحلة**: 2026-06-21 | code candidate فقط — بلا نشر/restart/DDL/data/GRANT.
+* **مراقبة (Gates 0–2)**: التطبيق مستقر بدور nama_medical_app (super=false, bypassrls=false)؛ health 5/5؛ restarts=34 ثابتة؛ سجلات نظيفة؛ accounting OFF. **أُعيد إثبات الربط عبر مسار التطبيق** (ctx1→app.tenant_id=1+patients=3، 999→0، بلا سياق→0) = PASS.
+* **patch (Gate 6، server.js +9/-110)**: أُزيلت **Batch A** (10 مواضع DDL): obgyn/stats، referrals POST+GET، medical-reports POST+GET+:id، cash-drawer/open، visit_lifecycle (POST+today+checkin). الربط/الغلاف محفوظان. لا startup DDL. commit namaweb `d0f1f70→bf5497c` (مدفوع FF).
+* **🔴 اكتشاف حاسم (تحقّق فعلي)**: **13 من جداول المسارات غير موجودة في الإنتاج** (كل جداول Batch A؛ الموجود فقط insurance_policies + pharmacy_prescriptions_queue) — المسارات لم تُستدعَ قط. ⇒ إزالة الكود وحدها تحوّل 42501→42P01 (نفس 500). **الإصلاح = الكود + تشغيل route_level_ddl_cleanup_candidate_up.sql (superuser) لإنشاء الجداول، معاً (SQL أولاً)**.
+* **مرشّحات (Gate 5، لم تُنفَّذ)**: `docs/sql/route_level_ddl_cleanup_candidate_{up,validate,down}.sql` تغطّي كل الجداول. Batch B (8 جداول) + Batch C (.catch ALTERs) مؤجّلة لمرشّح متابعة.
+* **Gate 7/8**: node --check OK؛ Batch A DDL=0؛ binding سليم؛ diff=server.js فقط. الإنتاج لم يُمَس (online، health 200، role nama_medical_app، journal absent، audit-reader NO).
+* **git**: namaweb bf5497c. parent: inventory + plan + closeout + 3 SQL + memory + gitlink. بلا force/أسرار/mojibake.
+* **NEXT**: `APPROVE_ROUTE_LEVEL_DDL_REFACTOR_DEPLOY` (تشغيل migration SQL superuser لإنشاء الـ13 جدولاً → نشر patch الكود → تحقق → ثم Batch B+C). accounting/audit-reader/Stitch موقوفة.
