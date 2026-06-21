@@ -2525,3 +2525,14 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **الثوابت**: ACCOUNTING_POSTING_ENABLED=OFF، journal=0، DB_ROLE=postgres، RLS_RUNTIME_ENFORCEMENT=NOT_YET، FORCE_PUSH=NO، لا أسرار.
 * **git**: 6 تقارير deploy/DDL + ذاكرة (docs فقط؛ الكود 082c07b كان مدفوعاً، الـ DDL تغيير DB لا git). parent gitlink = 082c07b (متطابق).
 * **NEXT**: `SECRET_READY_EXECUTE_SWITCH` (تبديل دور RLS — الجاهزية مكتملة والإصلاحات الآن حيّة) أو Master Autopilot reselect. ملاحظة: patients soft-delete columns (is_deleted/deleted_at/deleted_by) قد تحتاج تسوية مخطط مماثلة.
+
+### Phase 143: Master After-142 (SWITCH_OR_RESELECT) → P1_PHI_CLASS_A_RESIDUAL_RLS_REHEARSAL
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `REHEARSAL_PASS_PRODUCTION_APPROVAL_REQUIRED` | تنفيذ على DB معزول throwaway، بلا أي لمس للإنتاج.
+* **قرار الاختيار**: الأمر الصريح `SECRET_READY_EXECUTE_SWITCH` لم يصدر (ورد شرطياً فقط) + السر غير موجود بالبيئة (.env DB_USER=postgres؛ كلمة مرور nama_medical_app خارج الشات scram). ⇒ تبديل دور RLS **غير قابل للتنفيذ** ⇒ reselect أعلى عمل آمن: بروفة RLS لطبقة PHI Class A المتبقّية.
+* **Gate 0**: متزامن (parent f86c32d، namaweb 082c07b)، pm2 online/health 200، flag OFF، journal=0، nama_medical_app جاهز (super=f, bypassrls=f).
+* **البروفة (17/17 PASS)**: أُنشئ DB معزول `nama_phi_rehearsal` + 5 جداول (portal_users/audit_trail لديها tenant_id؛ packages/blood_bank_donors/blood_bank_units بدونها). طُبِّق `phi_class_a_residual_rls_candidate_up.sql` ⇒ الخمسة FORCE+policy+tenant_id. أُنشئ دور **غير-superuser** `phi_rehearsal_app`، وعبر `SET ROLE` أُثبت الإنفاذ: tenant1>0، tenant999=0، no-context=0، وWITH CHECK يرفض إدراجاً عابراً (42501). `..._down.sql` تراجع نظيف. أُسقط الـ DB والدور (لا تسريب).
+* **اكتشاف تشغيلي حرج**: السياسة **fail-closed بصرامة** — تحت دور غير-superuser، استعلام بلا `app.tenant_id` في **نطاق الاستعلام نفسه** يعيد **صفر صفوف** (ليس كل الصفوف). الخطأ الأولي كان `set_config(...,true)` محلي-للمعاملة مع autocommit؛ التصحيح session-level `(...,false)`. **الأثر على role switch**: بعد التبديل لـ nama_medical_app يجب أن يضبط التطبيق app.tenant_id لكل طلب في نفس الاتصال/المعاملة وإلا فكل استعلام يعيد فارغاً ⇒ precheck على آلية ضبط السياق في db_postgres.js/server.js قبل التبديل.
+* **متابعة كود لاحقة**: بعد تطبيق المجموعة 2 في الإنتاج (packages/donors/units)، تحتاج مسارات الإدراج ختم tenant_id (نمط requireTenantScope + INSERT يحوي tenant_id) — code-only يُجمَّع مع نشر.
+* **prod untouched**: invoices=3, invoice_cols=25, journal=0.
+* **git**: 4 تقارير (state-guard + register + decision + rehearsal) + ذاكرة (docs فقط؛ لا كود/DDL/بيانات).
+* **NEXT**: `APPROVE_PHI_CLASS_A_DDL` (تطبيق إنتاجي للمرشّح المُثبَت) أو `SECRET_READY_EXECUTE_SWITCH` (الجذر) أو Master Autopilot reselect. الترتيب المنطقي: PHI DDL ⟶ ختم tenant_id ⟶ نشر ⟶ role switch.
