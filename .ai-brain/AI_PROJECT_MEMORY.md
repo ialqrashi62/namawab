@@ -2723,3 +2723,15 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **git**: namaweb `825390b→d0f1f70` ("fix: remove boot-time ddl and seed from startup"، مدفوع FF). parent: inventory + plan + 3 SQL candidates + closeout + memory + gitlink. بلا force، بلا أسرار، بلا mojibake.
 * **متبقٍّ صريح**: DDL مستوى المسارات (obgyn/referrals/medical_reports/cash_drawer/inventory/…) ما زال؛ سيُرجِع 500 تحت nama_medical_app عند الطلب. إقلاع ≠ عمل كل المسارات. متابعة لاحقة.
 * **NEXT**: `APPROVE_BOOT_DDL_REFACTOR_DEPLOY_THEN_RETRY_RESTRICTED_ROLE` — نشر d0f1f70 + إعادة تبديل .env إلى nama_medical_app + restart + إثبات RLS عبر قراءة مصادقة فعلية ؛ ثم معالجة DDL المسارات. accounting/audit-reader/Stitch موقوفة.
+
+### Phase 163: P0_BOOT_DDL_REFACTOR_DEPLOY_AND_RETRY_RESTRICTED_ROLE (PRODUCTION_DEPLOYED_PASS — 🟢 RLS مُنفَّذ فعلياً في وقت التشغيل لأول مرة)
+* **تاريخ المرحلة**: 2026-06-21 | نشر محكوم بموافقة محدودة. **معلَم تاريخي**: بعد Phase 161 (التبديل لم يكن حيّاً قط)، أصبح الآن التطبيق يعمل فعلاً كـ nama_medical_app وRLS يُنفَّذ عبر مسار التطبيق.
+* **Gate 2**: restart تحت postgres لتحميل d0f1f70 ⇒ online، health 200، رسائل التخطّي، بلا أخطاء.
+* **Gate 3**: تبديل .env → nama_medical_app (السر من ملف آمن خارج المستودع، بلا طباعة) ⇒ اتصال متحقَّق super=false bypassrls=false.
+* **Gate 4**: restart محكوم ⇒ online بلا crash-loop؛ health 200؛ /=200 /login=200؛ /api/patients بلا جلسة=401؛ login وهمي=401 (الاستعلام نجح)؛ **pg_stat_activity أكّد التطبيق يتصل كـ nama_medical_app**.
+* **🟢 Gate 5 (إثبات الربط عبر مسار التطبيق)**: harness بـ db_postgres.js runWithTenant (نفس آلية الmiddleware) كـ nama_medical_app ⇒ ctx=1: app.tenant_id=1 patients=3 ؛ ctx=999: 0 ؛ بلا سياق: 0. **APP_PATH_TENANT_BINDING: PASS**.
+* **Gate 6 (smoke كتابة، ROLLBACK، صفر صفوف)**: insert بلا tenant_id @ctx=1 ⇒ مختوم 1 ؛ تزوير 999 ⇒ 42501 ؛ بلا سياق ⇒ 42501 ؛ audit ⇒ مختوم 1 ؛ صفر متبقٍّ (تأكيد مستقل).
+* **Gate 7 (تصنيف)**: `CREATE/ALTER IF NOT EXISTS` يرمي 42501 تحت الدور المقيَّد حتى لكائنات موجودة ⇒ **DDL مستوى المسارات متبقٍّ** = `P1_ROUTE_LEVEL_DDL_REMOVAL_FOR_RESTRICTED_ROLE`. المسارات المهدّدة (500 عند الطلب): obgyn/stats, referrals, medical_reports, cash_drawer, visit_lifecycle, inventory(GET), pathology, cssd, cme, infection_control, maintenance_orders, insurance_policies, pharmacy_prescriptions. الجداول الأساسية بلا DDL في المعالج ⇒ سليمة.
+* **Gate 8/9**: accounting OFF (لا journal_entries)؛ nama_medical_app ليس عضو nama_audit_reader؛ لا GRANT/DDL؛ بعد flush+نشاط: سجلات نظيفة، restarts=34 ثابتة، uptime يتصاعد، mem ~85mb.
+* **الحالة النهائية**: DB_ROLE postgres→nama_medical_app (super=false, bypassrls=false)؛ BOOT_REFACTOR_DEPLOYED=YES؛ DDL/DATA/GRANT=NO؛ ENV_CHANGED=YES (التبديل المصرّح)؛ ROLLBACK_READY=YES USED=NO؛ FORCE_PUSH=NO؛ SECRETS_PRINTED=NO. namaweb d0f1f70 (بلا تغيير كود)، parent: closeout+memory.
+* **NEXT**: `POST_DEPLOY_MONITORING_THEN_ROUTE_LEVEL_DDL_REMOVAL_OR_BATCH1`. accounting/audit-reader/Stitch موقوفة حتى أمر صريح.
