@@ -2462,3 +2462,12 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **النشر مُنع (صواب، بواسطة المصنّف)**: تفويض المالك في Option A كان لـ **e52a140 فقط**؛ نشر `3768bf3` (المُصلَّب) يتجاوز التفويض ولم يراجعه المالك. لم يُنشر شيء؛ الموقع يبقى على 8f012a0.
 * **أثر حيّ**: ثغرات الـ3 مسارات (queue status/referral/claim status) **ما زالت حيّة** على 8f012a0 لأن الإصلاح غير منشور. لا يصح نشر e52a140 (fail-open). يلزم موافقة نشر `3768bf3`.
 * **NEXT**: `OWNER_APPROVE_DEPLOY_OF_3768bf3` (fail-closed، يُلغي e52a140 fail-open). لا تغيير DB/flag/journal؛ بلا force.
+
+### Phase 136: Master Continue-134 (الجولة 2) → P1_EXTENDED_IDOR_AND_TENANT_GUARD_DESIGN_SWEEP (Option B)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `CODE_ONLY_PUSHED_NOT_DEPLOYED` | code-only/audit، لا deploy/DDL/data/flag.
+* **القرار**: السرّ غير جاهز + نشر 3768bf3 محجوب (يتجاوز تفويض e52a140) ⇒ اختير Option B (مسح موسّع آمن، بلا موافقة).
+* **التدقيق**: DELETE-by-id (7): appointments/surgeries/inventory/patients **محروسة**؛ employees/system_users/internal_messages **بلا tenant_id ⇒ قرار تصميم**. UPDATE-by-id أحادي (5): form_templates/cme/internal_messages/notifications بلا tenant_id (low/design)؛ **`POST /api/visits` = must-fix IDOR**.
+* **الإصلاح**: `POST /api/visits` (5662) كان يقبل patient_id بلا فحص ملكية ⇒ أضيف `requireTenantScope` + فحص ملكية `patients WHERE id=$1 AND tenant_id=$2` + تقييد UPDATE. اختبار 19/19؛ انحدار أخضر؛ node --check. دُفع **namaweb 3768bf3→c374879**.
+* **حدود المسح (موثّقة)**: لم تُغطَّ UPDATE متعددة الأسطر وكل create-routes المستقبِلة لمعرّفات مملوكة ⇒ يُوصى بمسح مكرّس لاحق.
+* **المتراكم غير المنشور**: 3768bf3 (3 مسارات) + c374879 (visits) — fail-closed، تنتظر موافقة نشر واحدة. الموقع الحيّ على 8f012a0 (الثغرات حيّة حتى النشر).
+* **NEXT**: موافقة نشر `c374879` (تُغلق المتراكم) أو `SECRET_READY_EXECUTE_SWITCH` (الحل الجذري). قرارات تصميم للجداول بلا tenant_id.
