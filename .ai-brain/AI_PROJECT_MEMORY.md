@@ -2548,3 +2548,13 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **الثوابت**: لا تبديل دور، لا .env، لا runtime deploy، لا accounting، لا journal، لا أسرار، لا force push، لا .gitmodules.
 * **النتيجة على RLS**: prod الآن **120 FORCE policy** (115 + 5). لكن الإنفاذ الحيّ ما زال NOT_YET (app=postgres يتجاوز).
 * **NEXT**: `P1_PHI_TENANT_STAMPING_RUNTIME_COMPATIBILITY` (ختم tenant_id لمسارات packages/donors/units — code-only) أو `SECRET_READY_EXECUTE_SWITCH` (الجذر). تنبيه: راجع قراءة audit_trail العابرة للمستأجر من super-admin قبل التبديل.
+
+### Phase 145: P1_PHI_TENANT_STAMPING_RUNTIME_COMPATIBILITY_AFTER_CLASS_A_DDL (CODE_ONLY_PUSHED_NOT_DEPLOYED)
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `CODE_ONLY_PUSHED_NOT_DEPLOYED` | code-only، لا DDL/data/deploy/role-switch/.env.
+* **السياق**: بعد تطبيق PHI Class A DDL (Phase 144)، الجداول الخمسة صارت FORCE-RLS WITH CHECK. مراجعة توافق Runtime لمسارات الإنشاء للجداول tenant-owned حديثاً قبل أي تبديل دور.
+* **الجرد**: packages = **ROUTES_ABSENT** (لا مسار runtime؛ CREATE TABLE فقط في db_postgres.js/database.js). blood_bank_units/blood_bank_donors INSERT كانا بلا tenant_id. audit_trail يُكتب عبر helper logAudit من ~70 موقعاً.
+* **الإصلاحات (نمط RLS-READY القائم crossmatch/transfusions)**: POST /api/blood-bank/units و POST /api/blood-bank/donors → أُضيف `requireTenantScope` + `getRequestTenantContext` + ختم `tenant_id`+`facility_id` من session موثوق (لا من body) + SELECT بعد الإدراج مقيّد `AND tenant_id`. requireTenantScope 177→179.
+* **قرار audit_trail**: سجل تدقيق نظامي عابر للوحدات؛ logAudit fire-and-forget مع catch يبتلع الخطأ. فرض سياسة tenant صارمة بعد التبديل ⇒ (1) فقدان تدقيق صامت (INSERT مرفوض 42501 يُبتلع)، (2) حجب قراءة super-admin العابرة. ⇒ **لا يُختم runtime**؛ يحتاج سياسة سماحية/نظامية أو دور كاتب-تدقيق كـ**شرط مسبق DDL لتبديل الدور**. (راجع أيضاً precheck ضبط app.tenant_id لكل طلب.)
+* **اختبار**: `phi_class_a_runtime_stamping_test.js` 18/18 PASS؛ regression (idor sweep، refund، insert stamping، update sweep) exit 0؛ node --check OK.
+* **git**: namaweb commit (server.js + test) مدفوع بلا force (غير منشور؛ الحيّ يبقى 082c07b)؛ parent gitlink + closeout + memory.
+* **NEXT**: `APPROVE_DEPLOY_PHI_RUNTIME_COMPATIBILITY` ثم `SECRET_READY_EXECUTE_SWITCH`. ملاحظة: قرار سياسة audit_trail يجب حلّه قبل/مع التبديل.
