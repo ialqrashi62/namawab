@@ -2436,3 +2436,11 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **rollback**: backup + `git -C namaweb checkout ef1acf9 -- server.js` / revert 8f012a0 + pm2 restart (code-only، فوري). لم يُستخدم.
 * **مخطر متبقٍ صريح**: `RLS_RUNTIME_ROLE_STILL_BYPASSED: YES` (app=postgres/superuser). المرحلة التالية الإلزامية: `P0_RLS_RUNTIME_ROLE_ENFORCEMENT_RESTORE` (ربط nama_medical_app).
 * **git**: تقريرا النشر فقط (الكود نُشر سابقاً Phase 131)؛ بلا force.
+
+### Phase 133: P0_RLS_RUNTIME_ROLE_ENFORCEMENT_RESTORE — جاهزية كاملة + BLOCKED على سرّ
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `BLOCKED_PENDING_RUNTIME_ROLE_SWITCH_APPROVAL` | read-only، لم يُنفَّذ تحويل (التطبيق يبقى postgres، لا انقطاع).
+* **الجاهزية مكتملة**: `nama_medical_app` موجود (login=t, super=f, bypassrls=f)، **GRANTs كاملة** (SELECT/INSERT/UPDATE/DELETE على 149/149 + 147 sequence + schema usage + functions — المرشّح `app_runtime_role_candidate.sql` مُطبَّق فعلاً). `initDatabase()` **يخرج مبكراً في الإنتاج** ⇒ لا DDL على الإقلاع (الدور لا يحتاج CREATE). RLS = 115 FORCE/115 policies جاهزة للإنفاذ فور التحويل.
+* **سبب الحجب**: `pg_hba` = **scram-sha-256** لكل local/host (لا trust) ⇒ التحويل يتطلّب كلمة مرور `nama_medical_app` الفعلية (`has_password=true`، مضبوطة خارج git، غير معروفة، **مُنع تخمينها تلقائياً — صواب**). تحويل بسرّ خاطئ ⇒ crash-loop ⇒ الموقع يسقط.
+* **رفع الحجب**: المالك يوفّر السرّ بقناة آمنة (ALTER ROLE/secret manager) + يضعه في `.env` + يمنح تنفيذ التحويل/restart؛ ثم Gate 6 (switch) → Gate 7 (تحقّق: tenant999→0) → Gate 8 (regression) → `PRODUCTION_DEPLOYED_PASS`.
+* **rollback جاهز**: إعادة `DB_USER=postgres` + restart (config-only، فوري). refund IDOR fix يبقى منشوراً (8f012a0). flag OFF، journal=0.
+* **التقارير**: BASELINE + GRANT_READINESS + GRANT_CANDIDATE + ROLLBACK_PLAN + ENFORCEMENT_RESTORE_FINAL_CLOSEOUT.
