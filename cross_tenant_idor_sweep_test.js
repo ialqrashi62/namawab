@@ -39,6 +39,20 @@ assert(/requireTenantScope/.test(rv), 'visits uses requireTenantScope');
 assert(/SELECT id FROM patients WHERE id=\$1 AND tenant_id=\$2/.test(rv), 'visits verifies patient ownership (tenant-scoped)');
 assert(/UPDATE patients SET last_visit_at=NOW\(\), total_visits=total_visits\+1 WHERE id=\$1 AND tenant_id=\$2/.test(rv), 'visits UPDATE scoped by tenant_id');
 
+console.log(`${BOLD}Extended create/mutation routes (round 2)${RESET}`);
+const r2 = [
+  { name:'POST /api/medical/records', re:/app\.post\('\/api\/medical\/records'[\s\S]*?\n\}\);/, own:/SELECT id FROM patients WHERE id=\$1 AND tenant_id=\$2/, extra:/INSERT INTO medical_records \([^)]*tenant_id\)/ },
+  { name:'POST /api/medical/certificates', re:/app\.post\('\/api\/medical\/certificates'[\s\S]*?\n\}\);/, own:/SELECT id FROM patients WHERE id=\$1 AND tenant_id=\$2/, extra:/INSERT INTO medical_certificates \([^)]*tenant_id\)/ },
+  { name:'POST /api/appointments/followup', re:/app\.post\('\/api\/appointments\/followup'[\s\S]*?\n\}\);/, own:/SELECT id FROM patients WHERE id=\$1 AND tenant_id=\$2/, extra:null },
+  { name:'PUT /api/bookings/:id', re:/app\.put\('\/api\/bookings\/:id'[\s\S]*?\n\}\);/, own:/UPDATE online_bookings SET status=\$1 WHERE id=\$2 AND tenant_id=\$3/, extra:null },
+];
+for (const r of r2) {
+  const b = block(r.re);
+  assert(!!b && /requireTenantScope/.test(b), `${r.name}: requireTenantScope`);
+  assert(r.own.test(b), `${r.name}: tenant ownership/scope present`);
+  if (r.extra) assert(r.extra.test(b), `${r.name}: stamps tenant_id on insert`);
+}
+
 console.log(`\n${BOLD}[simulation] منطق fail-closed${RESET}`);
 const rows=[{id:1,tenant_id:1}];
 // UPDATE ... WHERE id AND tenant_id => rowCount semantics

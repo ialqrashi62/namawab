@@ -801,11 +801,15 @@ app.get('/api/medical/records', requireAuth, requireRole('doctor', 'nursing'), a
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/medical/records', requireAuth, requireRole('doctor', 'nursing'), async (req, res) => {
+app.post('/api/medical/records', requireAuth, requireRole('doctor', 'nursing'), requireTenantScope, async (req, res) => {
     try {
         const { patient_id, doctor_id, diagnosis, symptoms, icd10_codes, notes } = req.body;
-        const result = await pool.query('INSERT INTO medical_records (patient_id, doctor_id, diagnosis, symptoms, icd10_codes, notes) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id',
-            [patient_id, doctor_id || 0, diagnosis || '', symptoms || '', icd10_codes || '', notes || '']);
+        // --- TENANT GUARD (IDOR, fail-closed): verify patient belongs to caller's tenant + stamp tenant_id (RLS-correct). ---
+        const { tenantId } = getRequestTenantContext(req);
+        const owns = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+        if (!owns) return res.status(404).json({ error: 'Patient not found' });
+        const result = await pool.query('INSERT INTO medical_records (patient_id, doctor_id, diagnosis, symptoms, icd10_codes, notes, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id',
+            [patient_id, doctor_id || 0, diagnosis || '', symptoms || '', icd10_codes || '', notes || '', tenantId]);
         res.json((await pool.query('SELECT * FROM medical_records WHERE id=$1', [result.rows[0].id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -1897,11 +1901,14 @@ app.get('/api/reports/lab', requireAuth, requireRole('reports'), requireTenantSc
 });
 
 // ===== ONLINE BOOKINGS MANAGEMENT =====
-app.put('/api/bookings/:id', requireAuth, async (req, res) => {
+app.put('/api/bookings/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { status } = req.body;
-        await pool.query('UPDATE online_bookings SET status=$1 WHERE id=$2', [status, req.params.id]);
-        res.json((await pool.query('SELECT * FROM online_bookings WHERE id=$1', [req.params.id])).rows[0]);
+        // --- TENANT GUARD (IDOR, fail-closed): scope booking update by tenant_id. ---
+        const { tenantId } = getRequestTenantContext(req);
+        const upd = await pool.query('UPDATE online_bookings SET status=$1 WHERE id=$2 AND tenant_id=$3', [status, req.params.id, tenantId]);
+        if (upd.rowCount === 0) return res.status(404).json({ error: 'Booking not found' });
+        res.json((await pool.query('SELECT * FROM online_bookings WHERE id=$1 AND tenant_id=$2', [req.params.id, tenantId])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -1967,14 +1974,18 @@ app.get('/api/medical/certificates', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/medical/certificates', requireAuth, async (req, res) => {
+app.post('/api/medical/certificates', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, cert_type, diagnosis, notes, start_date, end_date, days } = req.body;
         const doctorName = req.session.user.name || '';
         const doctorId = req.session.user.id || 0;
+        // --- TENANT GUARD (IDOR, fail-closed): verify patient belongs to caller's tenant + stamp tenant_id. ---
+        const { tenantId } = getRequestTenantContext(req);
+        const owns = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+        if (!owns) return res.status(404).json({ error: 'Patient not found' });
         const result = await pool.query(
-            'INSERT INTO medical_certificates (patient_id, patient_name, doctor_id, doctor_name, cert_type, diagnosis, notes, start_date, end_date, days) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id',
-            [patient_id, patient_name || '', doctorId, doctorName, cert_type || 'sick_leave', diagnosis || '', notes || '', start_date || '', end_date || '', days || 0]);
+            'INSERT INTO medical_certificates (patient_id, patient_name, doctor_id, doctor_name, cert_type, diagnosis, notes, start_date, end_date, days, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id',
+            [patient_id, patient_name || '', doctorId, doctorName, cert_type || 'sick_leave', diagnosis || '', notes || '', start_date || '', end_date || '', days || 0, tenantId]);
         res.json((await pool.query('SELECT * FROM medical_certificates WHERE id=$1', [result.rows[0].id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -2050,11 +2061,13 @@ app.put('/api/referrals/:id', requireAuth, requireTenantScope, async (req, res) 
 });
 
 // ===== FOLLOW-UP APPOINTMENTS =====
-app.post('/api/appointments/followup', requireAuth, requireRole('appointments'), async (req, res) => {
+app.post('/api/appointments/followup', requireAuth, requireRole('appointments'), requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, doctor_name, appt_date, appt_time, notes } = req.body;
-        // --- TENANT SCOPE: stamp tenant_id from session for follow-up appointments ---
+        // --- TENANT SCOPE: stamp tenant_id from session + verify patient ownership (IDOR, fail-closed) ---
         const { tenantId, facilityId } = getRequestTenantContext(req);
+        const owns = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+        if (!owns) return res.status(404).json({ error: 'Patient not found' });
         const result = await pool.query(
             'INSERT INTO appointments (patient_id, patient_name, doctor_name, department, appt_date, appt_time, notes, status, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id',
             [patient_id, patient_name, doctor_name || req.session.user?.display_name, '', appt_date, appt_time || '09:00', `متابعة: ${notes || ''}`, 'Confirmed', tenantId || null, facilityId || null]);
