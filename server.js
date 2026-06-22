@@ -9,6 +9,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { pool, initDatabase, tenantStore } = require('./db_postgres');
 const bcrypt = require('bcryptjs');
+const ce = require('./crypto_envelope'); // A3 at-rest envelope encryption (DPAPI KEK); graceful when not configured
 const { insertSampleData, populateLabCatalog, populateRadiologyCatalog } = require('./seed_data_pg');
 const { populateMedicalServices, populateBaseDrugs } = require('./seed_services_pg');
 const { addExtraLabTests, addExtraRadiology } = require('./seed_extra_catalog');
@@ -330,7 +331,8 @@ app.post('/api/mfa/enroll', requireAuth, async (req, res) => {
         const existing = (await pool.query('SELECT mfa_enabled FROM user_mfa WHERE user_id=$1', [uid])).rows[0];
         if (existing && existing.mfa_enabled) return res.status(409).json({ error: 'MFA already enabled' });
         const secret = mfaGenSecret();
-        await pool.query('INSERT INTO user_mfa (user_id, mfa_secret, mfa_enabled) VALUES ($1,$2,false) ON CONFLICT (user_id) DO UPDATE SET mfa_secret=$2, mfa_enabled=false, enrolled_at=NULL', [uid, secret]);
+        const storedSecret = ce.isEnabled() ? ce.encryptString(secret) : secret; // encrypt at-rest when KEK configured
+        await pool.query('INSERT INTO user_mfa (user_id, mfa_secret, mfa_enabled) VALUES ($1,$2,false) ON CONFLICT (user_id) DO UPDATE SET mfa_secret=$2, mfa_enabled=false, enrolled_at=NULL', [uid, storedSecret]);
         const label = encodeURIComponent('NamaMedical:' + (req.session.user.display_name || uid));
         logAudit(uid, req.session.user.display_name, 'MFA_ENROLL_START', 'Auth', 'MFA enrollment started', req.ip);
         res.json({ otpauth_url: `otpauth://totp/${label}?secret=${secret}&issuer=NamaMedical&period=30&digits=6`, secret });
@@ -343,7 +345,7 @@ app.post('/api/mfa/verify', requireAuth, async (req, res) => {
         const uid = req.session.user.id; const { token } = req.body;
         const row = (await pool.query('SELECT mfa_secret, mfa_enabled FROM user_mfa WHERE user_id=$1', [uid])).rows[0];
         if (!row || !row.mfa_secret) return res.status(400).json({ error: 'No enrollment in progress' });
-        if (!mfaVerify(row.mfa_secret, token)) return res.status(400).json({ error: 'Invalid code' });
+        if (!mfaVerify(ce.decryptString(row.mfa_secret), token)) return res.status(400).json({ error: 'Invalid code' });
         const justEnabled = !row.mfa_enabled;
         await pool.query('UPDATE user_mfa SET mfa_enabled=true, enrolled_at=COALESCE(enrolled_at, now()), last_verified_at=now() WHERE user_id=$1', [uid]);
         let recovery = null;
@@ -375,7 +377,7 @@ app.post('/api/auth/mfa', async (req, res) => {
         if (!u) { delete req.session.pendingMfaUserId; return res.status(401).json({ error: 'Invalid' }); }
         const mfa = (await pool.query('SELECT mfa_secret FROM user_mfa WHERE user_id=$1', [uid])).rows[0];
         let ok = false, via = '';
-        if (token && mfa && mfaConsume(uid, mfa.mfa_secret, token)) { ok = true; via = 'totp'; }   // replay-guarded
+        if (token && mfa && mfaConsume(uid, ce.decryptString(mfa.mfa_secret), token)) { ok = true; via = 'totp'; }   // replay-guarded (decrypt at-rest secret)
         else if (recoveryCode) {
             const codes = (await pool.query('SELECT id, code_hash FROM user_mfa_recovery_codes WHERE user_id=$1 AND used=false', [uid])).rows;
             for (const c of codes) { if (await bcrypt.compare(String(recoveryCode).trim(), c.code_hash)) { ok = true; via = 'recovery'; await pool.query('UPDATE user_mfa_recovery_codes SET used=true WHERE id=$1', [c.id]); break; } }
@@ -404,7 +406,7 @@ app.post('/api/mfa/disable', requireAuth, async (req, res) => {
         // step-up: require current password (bcrypt) in addition to a valid TOTP for this security-sensitive action
         const pw = (await pool.query('SELECT password_hash FROM system_users WHERE id=$1', [uid])).rows[0];
         if (!pw || !pw.password_hash || !pw.password_hash.startsWith('$2') || !(await bcrypt.compare(String(password || ''), pw.password_hash))) return res.status(401).json({ error: 'Password required' });
-        if (!mfaVerify(row.mfa_secret, token)) return res.status(400).json({ error: 'Invalid code' });
+        if (!mfaVerify(ce.decryptString(row.mfa_secret), token)) return res.status(400).json({ error: 'Invalid code' });
         await pool.query('UPDATE user_mfa SET mfa_enabled=false, mfa_secret=NULL WHERE user_id=$1', [uid]);
         await pool.query('DELETE FROM user_mfa_recovery_codes WHERE user_id=$1', [uid]);
         logAudit(uid, req.session.user.display_name, 'MFA_DISABLED_SELF', 'Auth', 'User disabled own MFA', req.ip);
@@ -1403,10 +1405,17 @@ app.post('/api/radiology/orders/:id/upload', requireAuth, upload.single('image')
         if (!order) return res.status(404).json({ error: 'Order not found' });
         // A3A: register file in tenant-scoped phi_files vault; serve only via guarded /api/phi-files/:id (never a public path)
         const crypto = require('crypto');
-        const sha256 = crypto.createHash('sha256').update(fs.readFileSync(req.file.path)).digest('hex');
+        const plainBuf = fs.readFileSync(req.file.path);
+        const sha256 = crypto.createHash('sha256').update(plainBuf).digest('hex'); // integrity hash of the ORIGINAL bytes
+        // A3: encrypt file at-rest (AES-256-GCM / DPAPI KEK) when configured — overwrite the on-disk file with ciphertext
+        let encrypted = false;
+        if (ce.isEnabled()) {
+            try { fs.writeFileSync(req.file.path, Buffer.from(ce.encrypt(plainBuf), 'utf8')); encrypted = true; }
+            catch (encErr) { console.error('PHI encrypt failed, storing plaintext:', encErr.message); }
+        }
         const phi = (await pool.query(
-            'INSERT INTO phi_files (record_type, record_id, stored_path, original_name, sha256, uploaded_by_user_id) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id',
-            ['radiology_order', orderId, req.file.path, req.file.originalname || req.file.filename, sha256, req.session.user?.id])).rows[0];
+            'INSERT INTO phi_files (record_type, record_id, stored_path, original_name, sha256, encrypted, uploaded_by_user_id) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id',
+            ['radiology_order', orderId, req.file.path, req.file.originalname || req.file.filename, sha256, encrypted, req.session.user?.id])).rows[0];
         const imagePath = `/api/phi-files/${phi.id}`;
         const existingResults = order.results || '';
         const imageTag = `[IMG:${imagePath}]`;
@@ -1428,7 +1437,7 @@ app.get('/api/phi-files/:id', requireAuth, async (req, res) => {
         const { tenantId } = getRequestTenantContext(req);
         const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
         const params = tenantId ? [id, tenantId] : [id];
-        const row = (await pool.query(`SELECT stored_path, original_name FROM phi_files WHERE id=$1${tenantCheck}`, params)).rows[0];
+        const row = (await pool.query(`SELECT stored_path, original_name, encrypted FROM phi_files WHERE id=$1${tenantCheck}`, params)).rows[0];
         if (!row) return res.status(404).json({ error: 'File not found' });   // other tenants -> no row -> 404
         const vaultRoot = path.resolve(path.join(__dirname, 'phi_vault'));
         const resolved = path.resolve(row.stored_path);
@@ -1442,6 +1451,11 @@ app.get('/api/phi-files/:id', requireAuth, async (req, res) => {
         res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(row.original_name || ('file' + ext))}"`);
         logAudit(req.session.user?.id, req.session.user?.display_name, 'PHI_FILE_DOWNLOAD', 'PHI',
             `Downloaded phi_file #${id}`, req.ip);
+        // A3: decrypt at-rest ciphertext on the fly for authorized requester (legacy plaintext served as-is)
+        if (row.encrypted) {
+            try { return res.send(ce.decryptToBuffer(fs.readFileSync(resolved, 'utf8'))); }
+            catch (decErr) { console.error('PHI decrypt failed:', decErr.message); return res.status(500).json({ error: 'Server error' }); }
+        }
         res.sendFile(resolved);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
