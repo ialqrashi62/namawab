@@ -222,6 +222,40 @@ function withTenantFilter(queryText, params, tenantId) {
 const activeUserSessions = new Map(); // userId -> sessionId
 
 // ===== AUTH ROUTES =====
+// A2: establish authenticated session — shared by password-only login and post-MFA completion
+async function establishSession(req, user, clientIp) {
+    const previousSessionId = activeUserSessions.get(user.id);
+    if (previousSessionId && previousSessionId !== req.sessionID) {
+        req.sessionStore.destroy(previousSessionId, (err) => { if (err) console.error('Error destroying old session:', err); });
+    }
+    let userTenantId = null, userFacilityId = null;
+    try {
+        const tenantRow = (await pool.query('SELECT tenant_id FROM user_tenants WHERE user_id=$1 AND is_active=true LIMIT 1', [user.id])).rows[0];
+        if (tenantRow) {
+            userTenantId = tenantRow.tenant_id;
+            const facRow = (await pool.query('SELECT facility_id FROM user_facilities WHERE user_id=$1 AND is_primary=true LIMIT 1', [user.id])).rows[0];
+            if (facRow) userFacilityId = facRow.facility_id;
+        }
+    } catch (e) { console.error('Error fetching tenant/facility scope for user:', e); }
+    if (!userTenantId && process.env.NODE_ENV !== 'production') { userTenantId = 1; userFacilityId = 1; }
+    req.session.user = {
+        id: user.id, name: user.display_name, display_name: user.display_name,
+        role: user.role, speciality: user.speciality || '', permissions: user.permissions || '',
+        tenantId: userTenantId, facilityId: userFacilityId
+    };
+    activeUserSessions.set(user.id, req.sessionID);
+    await pool.query('UPDATE system_users SET last_ip=$1 WHERE id=$2', [clientIp, user.id]).catch(() => { });
+    logAudit(user.id, user.display_name, 'LOGIN', 'Auth', `User logged in as ${user.role}`, clientIp);
+}
+
+// A2 MFA — RFC-6238 TOTP via built-in crypto (no external dependency); secrets are never logged
+const MFA_B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+function mfaB32Encode(buf) { let bits = 0, val = 0, out = ''; for (const b of buf) { val = (val << 8) | b; bits += 8; while (bits >= 5) { out += MFA_B32[(val >>> (bits - 5)) & 31]; bits -= 5; } } if (bits > 0) out += MFA_B32[(val << (5 - bits)) & 31]; return out; }
+function mfaB32Decode(str) { let bits = 0, val = 0; const out = []; for (const c of String(str).replace(/=+$/, '').toUpperCase()) { const idx = MFA_B32.indexOf(c); if (idx < 0) continue; val = (val << 5) | idx; bits += 5; if (bits >= 8) { out.push((val >>> (bits - 8)) & 0xff); bits -= 8; } } return Buffer.from(out); }
+function mfaGenSecret() { return mfaB32Encode(require('crypto').randomBytes(20)); }
+function mfaCodeAt(secret, counter) { const key = mfaB32Decode(secret); const buf = Buffer.alloc(8); buf.writeBigUInt64BE(BigInt(counter)); const h = require('crypto').createHmac('sha1', key).update(buf).digest(); const o = h[h.length - 1] & 0xf; const n = ((h[o] & 0x7f) << 24) | ((h[o + 1] & 0xff) << 16) | ((h[o + 2] & 0xff) << 8) | (h[o + 3] & 0xff); return (n % 1000000).toString().padStart(6, '0'); }
+function mfaVerify(secret, token, window = 1) { if (!secret || !token) return false; const t = Math.floor(Date.now() / 1000 / 30); const tok = String(token).trim(); for (let i = -window; i <= window; i++) { if (mfaCodeAt(secret, t + i) === tok) return true; } return false; }
+
 app.post('/api/auth/login', loginLimiter, async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -243,53 +277,17 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        // ===== SINGLE SESSION: Destroy previous session if exists =====
-        const previousSessionId = activeUserSessions.get(user.id);
-        if (previousSessionId && previousSessionId !== req.sessionID) {
-            // Destroy the old session from the store
-            req.sessionStore.destroy(previousSessionId, (err) => {
-                if (err) console.error('Error destroying old session:', err);
-            });
+        // A2 MFA gate: if user opted into MFA, require a second factor before establishing the session.
+        // Non-MFA users are unaffected (no row / mfa_enabled=false => normal login).
+        const mfaRow = (await pool.query('SELECT mfa_enabled FROM user_mfa WHERE user_id=$1', [user.id])).rows[0];
+        if (mfaRow && mfaRow.mfa_enabled) {
+            req.session.pendingMfaUserId = user.id;
+            req.session.pendingMfaAt = Date.now();
+            logAudit(user.id, user.display_name, 'MFA_CHALLENGE', 'Auth', 'Password verified; awaiting second factor', clientIp);
+            return res.json({ mfaRequired: true });
         }
 
-        // Fetch user's tenant and facility scope
-        let userTenantId = null;
-        let userFacilityId = null;
-        try {
-            const tenantRow = (await pool.query('SELECT tenant_id FROM user_tenants WHERE user_id=$1 AND is_active=true LIMIT 1', [user.id])).rows[0];
-            if (tenantRow) {
-                userTenantId = tenantRow.tenant_id;
-                const facRow = (await pool.query('SELECT facility_id FROM user_facilities WHERE user_id=$1 AND is_primary=true LIMIT 1', [user.id])).rows[0];
-                if (facRow) {
-                    userFacilityId = facRow.facility_id;
-                }
-            }
-        } catch (e) {
-            console.error('Error fetching tenant/facility scope for user:', e);
-        }
-
-        // Fallback logic for dev environment
-        if (!userTenantId && process.env.NODE_ENV !== 'production') {
-            userTenantId = 1; // Default Tenant ID
-            userFacilityId = 1; // Default Facility ID
-        }
-
-        req.session.user = {
-            id: user.id,
-            name: user.display_name,
-            display_name: user.display_name,
-            role: user.role,
-            speciality: user.speciality || '',
-            permissions: user.permissions || '',
-            tenantId: userTenantId,
-            facilityId: userFacilityId
-        };
-        // Track this user's active session
-        activeUserSessions.set(user.id, req.sessionID);
-
-        // Save last IP (clientIp computed at handler top)
-        await pool.query('UPDATE system_users SET last_ip=$1 WHERE id=$2', [clientIp, user.id]).catch(() => { });
-        logAudit(user.id, user.display_name, 'LOGIN', 'Auth', `User logged in as ${user.role}`, clientIp);
+        await establishSession(req, user, clientIp);
         res.json({ success: true, user: req.session.user });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -302,6 +300,109 @@ app.post('/api/auth/logout', (req, res) => {
     }
     req.session.destroy();
     res.json({ success: true });
+});
+
+// ===== A2 MFA (TOTP) — opt-in; NO global enforcement (mfa_enabled per-user, default false) =====
+app.get('/api/mfa/status', requireAuth, async (req, res) => {
+    try {
+        const r = (await pool.query('SELECT mfa_enabled FROM user_mfa WHERE user_id=$1', [req.session.user.id])).rows[0];
+        res.json({ enabled: !!(r && r.mfa_enabled) });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// begin enrollment: issue a fresh secret (mfa stays disabled until /verify confirms a live code)
+app.post('/api/mfa/enroll', requireAuth, async (req, res) => {
+    try {
+        const uid = req.session.user.id;
+        const existing = (await pool.query('SELECT mfa_enabled FROM user_mfa WHERE user_id=$1', [uid])).rows[0];
+        if (existing && existing.mfa_enabled) return res.status(409).json({ error: 'MFA already enabled' });
+        const secret = mfaGenSecret();
+        await pool.query('INSERT INTO user_mfa (user_id, mfa_secret, mfa_enabled) VALUES ($1,$2,false) ON CONFLICT (user_id) DO UPDATE SET mfa_secret=$2, mfa_enabled=false, enrolled_at=NULL', [uid, secret]);
+        const label = encodeURIComponent('NamaMedical:' + (req.session.user.display_name || uid));
+        logAudit(uid, req.session.user.display_name, 'MFA_ENROLL_START', 'Auth', 'MFA enrollment started', req.ip);
+        res.json({ otpauth_url: `otpauth://totp/${label}?secret=${secret}&issuer=NamaMedical&period=30&digits=6`, secret });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// confirm enrollment (or re-verify): on first enable, issue one-time recovery codes (returned once; only hashes stored)
+app.post('/api/mfa/verify', requireAuth, async (req, res) => {
+    try {
+        const uid = req.session.user.id; const { token } = req.body;
+        const row = (await pool.query('SELECT mfa_secret, mfa_enabled FROM user_mfa WHERE user_id=$1', [uid])).rows[0];
+        if (!row || !row.mfa_secret) return res.status(400).json({ error: 'No enrollment in progress' });
+        if (!mfaVerify(row.mfa_secret, token)) return res.status(400).json({ error: 'Invalid code' });
+        const justEnabled = !row.mfa_enabled;
+        await pool.query('UPDATE user_mfa SET mfa_enabled=true, enrolled_at=COALESCE(enrolled_at, now()), last_verified_at=now() WHERE user_id=$1', [uid]);
+        let recovery = null;
+        if (justEnabled) {
+            await pool.query('DELETE FROM user_mfa_recovery_codes WHERE user_id=$1', [uid]);
+            recovery = [];
+            for (let i = 0; i < 8; i++) {
+                const code = require('crypto').randomBytes(5).toString('hex');
+                recovery.push(code);
+                await pool.query('INSERT INTO user_mfa_recovery_codes (user_id, code_hash) VALUES ($1,$2)', [uid, await bcrypt.hash(code, 10)]);
+            }
+            logAudit(uid, req.session.user.display_name, 'MFA_ENABLED', 'Auth', 'MFA enabled (TOTP); recovery codes issued', req.ip);
+        } else {
+            logAudit(uid, req.session.user.display_name, 'MFA_VERIFY', 'Auth', 'MFA code verified', req.ip);
+        }
+        res.json({ success: true, ...(recovery ? { recovery_codes: recovery } : {}) });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// second factor at login — uses the pending challenge set by /api/auth/login; accepts TOTP or a one-time recovery code
+app.post('/api/auth/mfa', async (req, res) => {
+    try {
+        const uid = req.session.pendingMfaUserId;
+        if (!uid) return res.status(401).json({ error: 'No pending MFA challenge' });
+        if (req.session.pendingMfaAt && (Date.now() - req.session.pendingMfaAt > 5 * 60 * 1000)) { delete req.session.pendingMfaUserId; return res.status(401).json({ error: 'Challenge expired' }); }
+        const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+        const { token, recoveryCode } = req.body;
+        const u = (await pool.query('SELECT id, display_name, role, speciality, permissions FROM system_users WHERE id=$1 AND is_active=1', [uid])).rows[0];
+        if (!u) { delete req.session.pendingMfaUserId; return res.status(401).json({ error: 'Invalid' }); }
+        const mfa = (await pool.query('SELECT mfa_secret FROM user_mfa WHERE user_id=$1', [uid])).rows[0];
+        let ok = false, via = '';
+        if (token && mfa && mfaVerify(mfa.mfa_secret, token)) { ok = true; via = 'totp'; }
+        else if (recoveryCode) {
+            const codes = (await pool.query('SELECT id, code_hash FROM user_mfa_recovery_codes WHERE user_id=$1 AND used=false', [uid])).rows;
+            for (const c of codes) { if (await bcrypt.compare(String(recoveryCode).trim(), c.code_hash)) { ok = true; via = 'recovery'; await pool.query('UPDATE user_mfa_recovery_codes SET used=true WHERE id=$1', [c.id]); break; } }
+        }
+        if (!ok) { logAudit(uid, u.display_name, 'FAILED_MFA', 'Auth', 'Invalid second factor', clientIp); return res.status(401).json({ error: 'Invalid code' }); }
+        delete req.session.pendingMfaUserId; delete req.session.pendingMfaAt;
+        await pool.query('UPDATE user_mfa SET last_verified_at=now() WHERE user_id=$1', [uid]);
+        await establishSession(req, u, clientIp);
+        logAudit(uid, u.display_name, 'MFA_LOGIN', 'Auth', `Second factor OK (${via})`, clientIp);
+        res.json({ success: true, user: req.session.user });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// self-disable own MFA — requires a valid current TOTP
+app.post('/api/mfa/disable', requireAuth, async (req, res) => {
+    try {
+        const uid = req.session.user.id; const { token } = req.body;
+        const row = (await pool.query('SELECT mfa_secret, mfa_enabled FROM user_mfa WHERE user_id=$1', [uid])).rows[0];
+        if (!row || !row.mfa_enabled) return res.status(400).json({ error: 'MFA not enabled' });
+        if (!mfaVerify(row.mfa_secret, token)) return res.status(400).json({ error: 'Invalid code' });
+        await pool.query('UPDATE user_mfa SET mfa_enabled=false, mfa_secret=NULL WHERE user_id=$1', [uid]);
+        await pool.query('DELETE FROM user_mfa_recovery_codes WHERE user_id=$1', [uid]);
+        logAudit(uid, req.session.user.display_name, 'MFA_DISABLED_SELF', 'Auth', 'User disabled own MFA', req.ip);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// admin reset — Admin only; the recovery path so MFA can never permanently lock out any user (incl. the last admin)
+app.post('/api/mfa/admin-reset', requireAuth, async (req, res) => {
+    try {
+        if (req.session.user.role !== 'Admin') return res.status(403).json({ error: 'Access denied' });
+        const target = parseInt(req.body.userId, 10);
+        if (!Number.isInteger(target)) return res.status(400).json({ error: 'userId required' });
+        const tu = (await pool.query('SELECT id FROM system_users WHERE id=$1', [target])).rows[0];
+        if (!tu) return res.status(404).json({ error: 'User not found' });
+        await pool.query('UPDATE user_mfa SET mfa_enabled=false, mfa_secret=NULL WHERE user_id=$1', [target]);
+        await pool.query('DELETE FROM user_mfa_recovery_codes WHERE user_id=$1', [target]);
+        logAudit(req.session.user.id, req.session.user.display_name, 'MFA_ADMIN_RESET', 'Auth', `Admin reset MFA for user #${target}`, req.ip);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.get('/api/health', (req, res) => {
