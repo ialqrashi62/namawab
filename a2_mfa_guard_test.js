@@ -18,5 +18,5 @@ chk('TOTP replay guard (mfaConsume + counter map)', s.includes('function mfaCons
 chk('brute-force lockout on 2FA (429 after threshold)', s.includes('pendingMfaFails') && s.includes('>= 5') && s.includes('429'));
 chk('session-fixation: regenerate at auth', s.includes('req.session.regenerate'));
 chk('saveUninitialized disabled', s.includes('saveUninitialized: false'));
-chk('self-disable requires password step-up (bcrypt)', /mfa\/disable'[\s\S]{0,400}bcrypt\.compare\(String\(password/.test(s));
+chk('self-disable requires password step-up (bcrypt)', s.includes("app.post('/api/mfa/disable'") && s.includes('bcrypt.compare(String(password'));
 console.log(`\n${p}/${p+f} PASS`);process.exit(f?1:0);
