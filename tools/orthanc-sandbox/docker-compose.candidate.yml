@@ -1,0 +1,20 @@
+# Orthanc PACS — SANDBOX docker-compose CANDIDATE (NOT run in this gate).
+# Running pulls the Orthanc image (external network call), which this gate forbids without owner approval.
+# Loopback-only, dummy DICOM only, no PHI/certs, no production wiring.
+version: "3.8"
+services:
+  orthanc-sbx:
+    image: jodogne/orthanc-plugins:latest      # pull only at owner-approved run time
+    container_name: nama-orthanc-sbx
+    restart: "no"
+    ports:
+      - "127.0.0.1:8042:8042"                   # REST/DICOMweb — LOOPBACK ONLY
+      - "127.0.0.1:4242:4242"                   # DICOM C-STORE — loopback only
+    volumes:
+      - orthanc_sbx_db:/var/lib/orthanc/db      # ephemeral sandbox storage; remove with `down -v`
+    # NOTE: when run later, the app must remain the ONLY client-facing path:
+    #   images are served via the A3A guarded route /api/phi-files/:id (auth+RLS+tenant+encryption),
+    #   the app fetches from Orthanc internally on loopback. Orthanc is NEVER exposed to the browser.
+volumes:
+  orthanc_sbx_db:
+# Rollback: `docker compose -f docker-compose.candidate.yml down -v`.
