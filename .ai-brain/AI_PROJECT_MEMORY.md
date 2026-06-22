@@ -2872,3 +2872,8 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **حدود**: DATA_CHANGED=NO، BACKFILL=NO، GRANT=NO، CODE=NO، accounting OFF، journal=0، audit-reader غير ممنوح، no force push، no secrets. namaweb بلا تغيير (bc24a47).
 * **الأثر**: لا فجوة عزل خاملة متبقية؛ كل الجداول الحسّاسة (مملوءة+فارغة) محميّة. closeout: APPROVE_DAILY_CLOSE_TENANT_RLS_DDL_FINAL_CLOSEOUT_AR.md.
 * **NEXT**: PROVIDE_TEST_ACCOUNT_FOR_BROWSER_E2E، APPROVE_AUDIT_READER_GRANT، APPROVE_TENANT_ID_INDEX (اختياري). accounting OFF.
+
+### Phase 179: FULL_LIFECYCLE_ALL_PHASES_ALL_GROUPS_ACCEPTANCE (read-only) — NO_DUPLICATE
+* **تاريخ**: 2026-06-22 | مراجعة دورة قبول كاملة. PHASE 0 PASS (health 5/5، drift 0/0، FORCE=148، HEAD 9e0d806). 13 تقرير enterprise/post-RLS قائم ⇒ لم تُعَد (NO_DUPLICATE_REPORTS).
+* **جديد فقط**: P7_UX_UI_DASHBOARDS_REPORTS_AUDIT_AR (index/login dir=rtl lang=ar UTF-8، tr() 2288 ثنائي اللغة، FACILITY_ALLOWED map hospital=all/health_center=23/clinic=18 شاشة طبقة-UX + RLS/auth backstop، 447 مؤشر states، responsive @media+tailwind) + NAMA_MEDICAL_FULL_LIFECYCLE_ALL_PHASES_ALL_GROUPS_CLOSEOUT_AR (خريطة تغطية 13 مرحلة ↔ التقارير القائمة).
+* **الحالة**: FULL_LIFECYCLE_CANDIDATES_READY_PENDING_OWNER_INPUT. لا DDL/DATA/GRANT/code/deploy. namaweb بلا تغيير (bc24a47). البوابات المتبقية بيد المالك (test account/audit-reader/index/accounting) — لا حاجز إنتاج.
