@@ -2883,3 +2883,11 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **مستندات جديدة** (delivery/ops، ليست تكراراً): P1 owner-gates matrix، P2 browser-E2E test-account readiness، P3 client UAT package، P4 operations handover runbook، P5 security/compliance handover، P6 backup/restore/DR handover، P7 monitoring/SLA/incident، P8 training guides index، P9 release notes/known limitations، P10 go/no-go matrix، P11 final delivery closeout.
 * **Go/No-Go**: **GO_WITH_OWNER_GATES** — لا حاجز حرج؛ النواة المُصلَّبة جاهزة. بوابات المالك (test account/audit-reader/index/accounting) تحسينات/تأكيدات.
 * **الحالة**: FINAL_DELIVERY_PENDING_OWNER_GATES. لا DDL/DATA/GRANT/code/deploy. namaweb بلا تغيير (bc24a47).
+
+### Phase 181: FINAL OWNER ACCEPTANCE (harness-only, Browser E2E deferred) — milestone
+* **تاريخ**: 2026-06-22 | المالك اعتمد NamaMedical صراحة (APPROVE_OWNER_ACCEPTANCE_WITH_HARNESS_ONLY_AND_DEFER_BROWSER_E2E).
+* **FINAL_STATUS: FINAL_DELIVERY_ACCEPTED_WITH_BROWSER_E2E_DEFERRED** | ACCEPTANCE_MODE: OWNER_ACCEPTED_HARNESS_UAT.
+* **أساس القبول**: النواة مُصلَّبة (148 FORCE RLS، 0 فجوة، role nama_medical_app super/bypass=false، binding PASS، RBAC guards: system_users+employees+daily_close، autorecovery ACTIVE، UX PASS، backup/DR READY، harness UAT PASS). health 5/5.
+* **مؤجّل (غير حاجز)**: Browser E2E (لا حسابات اختبار)، audit-reader GRANT (optional)، tenant_id index (optional)، accounting (OFF، موافقة منفصلة).
+* **حدود**: لا DDL/DATA/GRANT/code/deploy. namaweb بلا تغيير (gitlink bc24a47؛ تعديلات الجلسة الموازية في server.js+app.js لم تُلمس). docs: NAMA_MEDICAL_OWNER_ACCEPTANCE_WITH_HARNESS_ONLY_AR + NAMA_MEDICAL_FINAL_OWNER_ACCEPTANCE_CLOSEOUT_AR.
+* **NEXT (post-acceptance، اختياري)**: PROVIDE_TEST_ACCOUNT_FOR_BROWSER_E2E، APPROVE_AUDIT_READER_GRANT، APPROVE_TENANT_ID_INDEX، APPROVE_ACCOUNTING_POSTING_ENABLEMENT.
