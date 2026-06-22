@@ -2829,3 +2829,14 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **git**: ops/ (سكربتان) + docs (runbook + closeout) + memory فقط. لا staging لملفات Stitch/MEDICAL ولا migrate.ps1/protocol_x.ps1. logs غير ملتزَمة. namaweb بلا تغيير. closeout: `APPROVE_PM2_WINDOWS_STARTUP_AND_HEALTH_WATCHDOG_FINAL_CLOSEOUT_AR.md` + runbook: `PM2_WINDOWS_STARTUP_AND_HEALTH_WATCHDOG_RUNBOOK_AR.md`.
 * **الحالة**: FINAL_STATUS=PM2_WINDOWS_STARTUP_AND_HEALTH_WATCHDOG_DEPLOYED_PASS؛ DB_ROLE=nama_medical_app؛ binding PASS؛ DDL/DATA/GRANT/APP_CODE=NO؛ accounting OFF؛ journal=0؛ no force push؛ no secrets.
 * **NEXT**: API_RBAC_DEFENSE_IN_DEPTH_BATCHES (ثم audit-reader GRANT؛ ثم اختياري tenant_id index). accounting OFF.
+
+### Phase 174: FINAL_ALL_PHASES_ALL_GROUPS_MASTER_AUTOPILOT_AFTER_RLS_INFRA (CANDIDATES_READY + 1 fix deployed)
+* **تاريخ المرحلة**: 2026-06-22 | برنامج نهائي شامل (مراحل 0–9). إصلاح أمني code-only واحد منشور؛ الباقي تدقيقات + مرشّحات.
+* **PHASE 0**: role nama_medical_app super/bypass=false، FORCE=147، عزل (patients 3/0/0، employees 3/0، branches 1/0)، journal_entries غائب (42P01 ⇒ accounting OFF/journal=0)، audit-reader role موجود NOLOGIN/NOSUPER/NOBYPASSRLS وnama_medical_app ليس عضواً، health 5/5، watchdog فعّال.
+* **PHASE 1 (منشور)**: حارس Admin على `POST /api/settings/users` (server.js:1425) — صلاحية 'settings' يملكها دور IT؛ بدونه يقدر non-admin ينشئ حساب Admin (تصعيد امتياز لا يغطّيه RLS). يطابق حارس PUT(1435)+DELETE(1500). test جديد `settings_user_create_admin_guard_test.js` 6/6، node --check OK، نُشر pm2 restart (health 5/5، unauth=401، عزل سليم). **مطابقة حاسمة**: باقي "IDOR" من وكيل التدقيق مُخفَّف بـRLS (لا تسريب عبر مستأجرين) ⇒ دفاع-في-العمق غير عاجل. employees GET بلا requireRole تُرك عمداً (يغذّي قوائم الأطباء؛ كشف راتب داخل المستأجر فقط).
+* **PHASE 2**: صفر ثقة بـtenant_id من body/query؛ DEFAULT+RLS يغطّي 147؛ الحرجة تختم صريحاً.
+* **PHASE 3**: 59/147 مفهرس tenant_id؛ 0 جدول غير مفهرس >100 صف ⇒ لا أثر أداء. مرشّح `docs/sql/tenant_id_index_candidate_{up,validate,down}.sql` (88 CREATE INDEX CONCURRENTLY، غير مُنفَّذ).
+* **PHASES 4-8**: module QA كله PASS؛ harness UAT PASS (لا browser/حساب)؛ audit-reader candidate ready؛ accounting OFF؛ security 10 مؤشرات + rollback per-batch + watchdog فعّال (سجل OK كل 5د).
+* **git/حوكمة R17**: **namaweb له فرعان على origin** — `origin/main` خطّي المنشور (9becc9e→**ae539b2**، دُفع FF) و`origin/master` خطّ الجلسة الموازية (10ded01، متباعد منذ c6e44ae). دفعت main فقط؛ **لم ألمس master** (push HEAD:master رُفض non-FF؛ صحّحت للفرع الصحيح main). الإنتاج يعمل على خطّي (main). gitlink الأب → ae539b2.
+* **الحالة**: FINAL_ALL_PHASES_ALL_GROUPS_CANDIDATES_READY_NOT_DEPLOYED؛ DDL/DATA/GRANT=NO؛ CODE_DEPLOYED=settings/users guard فقط؛ accounting OFF؛ journal=0؛ no force push؛ no secrets.
+* **NEXT**: (اختياري) APPROVE_TENANT_ID_INDEX_CANDIDATE؛ APPROVE_AUDIT_READER_GRANT_AND_DEPLOY؛ (قرار) employees POST/DELETE RBAC. accounting OFF.
