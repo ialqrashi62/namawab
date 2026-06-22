@@ -693,6 +693,47 @@ app.post('/api/medical/records', requireAuth, requireRole('doctor', 'nursing'), 
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
+// ===== EMR LOCK / SIGNATURE (Phase A1) — sign+lock, amend (no silent edit after lock); tenant-scoped via RLS =====
+app.post('/api/medical-records/:id/sign', requireAuth, requireRole('doctor', 'nursing'), async (req, res) => {
+    try {
+        const crypto = require('crypto');
+        const id = parseInt(req.params.id, 10);
+        const actor = req.session.user;
+        const cur = (await pool.query('SELECT diagnosis, symptoms, notes, emr_status FROM medical_records WHERE id=$1', [id])).rows[0];
+        if (!cur) return res.status(404).json({ error: 'Record not found' });
+        if (cur.emr_status === 'locked') return res.status(409).json({ error: 'Record already locked' });
+        const hash = crypto.createHash('sha256').update(`${cur.diagnosis || ''}|${cur.symptoms || ''}|${cur.notes || ''}`).digest('hex');
+        const r = await pool.query("UPDATE medical_records SET emr_status='locked', signed_by_user_id=$1, signed_at=now(), locked_at=now(), integrity_hash=$2 WHERE id=$3 AND emr_status<>'locked'",
+            [actor.id, hash, id]);
+        if (r.rowCount === 0) return res.status(409).json({ error: 'Record already locked or not found' });
+        logAudit(actor.id, actor.display_name, 'SIGN_LOCK_RECORD', 'EMR', `Signed+locked medical_record #${id}`, req.ip);
+        res.json({ success: true, id, emr_status: 'locked' });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/medical-records/:id/amend', requireAuth, requireRole('doctor', 'nursing'), async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        const actor = req.session.user;
+        const { reason, new_values_summary } = req.body;
+        if (!reason || !String(reason).trim()) return res.status(400).json({ error: 'Amendment reason required' });
+        const cur = (await pool.query('SELECT integrity_hash, emr_status FROM medical_records WHERE id=$1', [id])).rows[0];
+        if (!cur) return res.status(404).json({ error: 'Record not found' });
+        if (cur.emr_status !== 'locked') return res.status(409).json({ error: 'Amendment applies only to locked records' });
+        await pool.query('INSERT INTO emr_amendments (record_type, record_id, amended_by_user_id, reason, previous_integrity_hash, new_values_summary) VALUES ($1,$2,$3,$4,$5,$6)',
+            ['medical_records', id, actor.id, String(reason), cur.integrity_hash, new_values_summary || '']);
+        logAudit(actor.id, actor.display_name, 'AMEND_RECORD', 'EMR', `Amended locked medical_record #${id}: ${String(reason).slice(0, 120)}`, req.ip);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.get('/api/medical-records/:id/amendments', requireAuth, requireRole('doctor', 'nursing'), async (req, res) => {
+    try {
+        res.json((await pool.query('SELECT * FROM emr_amendments WHERE record_type=$1 AND record_id=$2 ORDER BY id DESC',
+            ['medical_records', parseInt(req.params.id, 10)])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
 // ===== MEDICAL SERVICES =====
 app.get('/api/medical/services', requireAuth, async (req, res) => {
     try {
