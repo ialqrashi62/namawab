@@ -1424,6 +1424,12 @@ app.get('/api/settings/users', requireAuth, requireRole('settings'), async (req,
 
 app.post('/api/settings/users', requireAuth, requireRole('settings'), async (req, res) => {
     try {
+        // ===== P0 GUARD: creating system users is Admin-only (mirrors PUT privilege guard + DELETE) =====
+        // 'settings' perm is held by non-admin roles (e.g. IT); without this, they could create an Admin account.
+        if (req.session.user.role !== 'Admin') {
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'BLOCKED_USER_CREATE', 'Settings', `Non-admin attempted to create user (role=${req.body?.role || ''})`, req.ip);
+            return res.status(403).json({ error: 'Access denied: only an administrator can create system users' });
+        }
         const { username, password, display_name, role, speciality, permissions, commission_type, commission_value } = req.body;
         const hash = await bcrypt.hash(password, 10);
         const result = await pool.query('INSERT INTO system_users (username, password_hash, display_name, role, speciality, permissions, commission_type, commission_value) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
