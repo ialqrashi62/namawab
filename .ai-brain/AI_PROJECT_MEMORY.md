@@ -2877,3 +2877,9 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **تاريخ**: 2026-06-22 | مراجعة دورة قبول كاملة. PHASE 0 PASS (health 5/5، drift 0/0، FORCE=148، HEAD 9e0d806). 13 تقرير enterprise/post-RLS قائم ⇒ لم تُعَد (NO_DUPLICATE_REPORTS).
 * **جديد فقط**: P7_UX_UI_DASHBOARDS_REPORTS_AUDIT_AR (index/login dir=rtl lang=ar UTF-8، tr() 2288 ثنائي اللغة، FACILITY_ALLOWED map hospital=all/health_center=23/clinic=18 شاشة طبقة-UX + RLS/auth backstop، 447 مؤشر states، responsive @media+tailwind) + NAMA_MEDICAL_FULL_LIFECYCLE_ALL_PHASES_ALL_GROUPS_CLOSEOUT_AR (خريطة تغطية 13 مرحلة ↔ التقارير القائمة).
 * **الحالة**: FULL_LIFECYCLE_CANDIDATES_READY_PENDING_OWNER_INPUT. لا DDL/DATA/GRANT/code/deploy. namaweb بلا تغيير (bc24a47). البوابات المتبقية بيد المالك (test account/audit-reader/index/accounting) — لا حاجز إنتاج.
+
+### Phase 180: FINAL_DELIVERY_OPERATIONS_ALL_PHASES_ALL_GROUPS (handover, read-only) — no prod change
+* **تاريخ**: 2026-06-22 | دورة تسليم/تشغيل (11 مرحلة). PHASE 0 PASS (health 5/5، drift 0/0، FORCE=148، daily_close enforced، journal absent، audit-reader غير ممنوح، HEAD d4db33a).
+* **مستندات جديدة** (delivery/ops، ليست تكراراً): P1 owner-gates matrix، P2 browser-E2E test-account readiness، P3 client UAT package، P4 operations handover runbook، P5 security/compliance handover، P6 backup/restore/DR handover، P7 monitoring/SLA/incident، P8 training guides index، P9 release notes/known limitations، P10 go/no-go matrix، P11 final delivery closeout.
+* **Go/No-Go**: **GO_WITH_OWNER_GATES** — لا حاجز حرج؛ النواة المُصلَّبة جاهزة. بوابات المالك (test account/audit-reader/index/accounting) تحسينات/تأكيدات.
+* **الحالة**: FINAL_DELIVERY_PENDING_OWNER_GATES. لا DDL/DATA/GRANT/code/deploy. namaweb بلا تغيير (bc24a47).
