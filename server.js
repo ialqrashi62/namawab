@@ -72,7 +72,7 @@ if (process.env.REDIS_URL || process.env.REDIS_HOST) {
 const sessionConfig = {
     secret: process.env.SESSION_SECRET || 'nama-medical-erp-secret-x7k9m2p4q8w1',
     resave: true,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
         maxAge: 8 * 60 * 60 * 1000,
         httpOnly: true,
@@ -224,6 +224,8 @@ const activeUserSessions = new Map(); // userId -> sessionId
 // ===== AUTH ROUTES =====
 // A2: establish authenticated session — shared by password-only login and post-MFA completion
 async function establishSession(req, user, clientIp) {
+    // prevent session fixation: issue a fresh session id at successful authentication
+    await new Promise((resolve, reject) => req.session.regenerate(err => (err ? reject(err) : resolve())));
     const previousSessionId = activeUserSessions.get(user.id);
     if (previousSessionId && previousSessionId !== req.sessionID) {
         req.sessionStore.destroy(previousSessionId, (err) => { if (err) console.error('Error destroying old session:', err); });
@@ -255,6 +257,17 @@ function mfaB32Decode(str) { let bits = 0, val = 0; const out = []; for (const c
 function mfaGenSecret() { return mfaB32Encode(require('crypto').randomBytes(20)); }
 function mfaCodeAt(secret, counter) { const key = mfaB32Decode(secret); const buf = Buffer.alloc(8); buf.writeBigUInt64BE(BigInt(counter)); const h = require('crypto').createHmac('sha1', key).update(buf).digest(); const o = h[h.length - 1] & 0xf; const n = ((h[o] & 0x7f) << 24) | ((h[o + 1] & 0xff) << 16) | ((h[o + 2] & 0xff) << 8) | (h[o + 3] & 0xff); return (n % 1000000).toString().padStart(6, '0'); }
 function mfaVerify(secret, token, window = 1) { if (!secret || !token) return false; const t = Math.floor(Date.now() / 1000 / 30); const tok = String(token).trim(); for (let i = -window; i <= window; i++) { if (mfaCodeAt(secret, t + i) === tok) return true; } return false; }
+function mfaMatchCounter(secret, token, window = 1) { if (!secret || !token) return null; const t = Math.floor(Date.now() / 1000 / 30); const tok = String(token).trim(); for (let i = -window; i <= window; i++) { if (mfaCodeAt(secret, t + i) === tok) return t + i; } return null; }
+// TOTP replay guard: reject any code whose 30s counter was already consumed for this user (in-memory; codes expire in ~90s so this needs no persistence)
+const mfaLastCounter = new Map();
+function mfaConsume(uid, secret, token) {
+    const ctr = mfaMatchCounter(secret, token);
+    if (ctr === null) return false;
+    const last = mfaLastCounter.get(uid);
+    if (last !== undefined && ctr <= last) return false;   // replay
+    mfaLastCounter.set(uid, ctr);
+    return true;
+}
 
 app.post('/api/auth/login', loginLimiter, async (req, res) => {
     try {
@@ -362,13 +375,19 @@ app.post('/api/auth/mfa', async (req, res) => {
         if (!u) { delete req.session.pendingMfaUserId; return res.status(401).json({ error: 'Invalid' }); }
         const mfa = (await pool.query('SELECT mfa_secret FROM user_mfa WHERE user_id=$1', [uid])).rows[0];
         let ok = false, via = '';
-        if (token && mfa && mfaVerify(mfa.mfa_secret, token)) { ok = true; via = 'totp'; }
+        if (token && mfa && mfaConsume(uid, mfa.mfa_secret, token)) { ok = true; via = 'totp'; }   // replay-guarded
         else if (recoveryCode) {
             const codes = (await pool.query('SELECT id, code_hash FROM user_mfa_recovery_codes WHERE user_id=$1 AND used=false', [uid])).rows;
             for (const c of codes) { if (await bcrypt.compare(String(recoveryCode).trim(), c.code_hash)) { ok = true; via = 'recovery'; await pool.query('UPDATE user_mfa_recovery_codes SET used=true WHERE id=$1', [c.id]); break; } }
         }
-        if (!ok) { logAudit(uid, u.display_name, 'FAILED_MFA', 'Auth', 'Invalid second factor', clientIp); return res.status(401).json({ error: 'Invalid code' }); }
-        delete req.session.pendingMfaUserId; delete req.session.pendingMfaAt;
+        if (!ok) {
+            // brute-force guard: cap attempts per challenge, then force a fresh password step
+            req.session.pendingMfaFails = (req.session.pendingMfaFails || 0) + 1;
+            logAudit(uid, u.display_name, 'FAILED_MFA', 'Auth', 'Invalid second factor', clientIp);
+            if (req.session.pendingMfaFails >= 5) { delete req.session.pendingMfaUserId; delete req.session.pendingMfaAt; delete req.session.pendingMfaFails; return res.status(429).json({ error: 'Too many attempts; please log in again' }); }
+            return res.status(401).json({ error: 'Invalid code' });
+        }
+        delete req.session.pendingMfaUserId; delete req.session.pendingMfaAt; delete req.session.pendingMfaFails;
         await pool.query('UPDATE user_mfa SET last_verified_at=now() WHERE user_id=$1', [uid]);
         await establishSession(req, u, clientIp);
         logAudit(uid, u.display_name, 'MFA_LOGIN', 'Auth', `Second factor OK (${via})`, clientIp);
@@ -379,9 +398,12 @@ app.post('/api/auth/mfa', async (req, res) => {
 // self-disable own MFA — requires a valid current TOTP
 app.post('/api/mfa/disable', requireAuth, async (req, res) => {
     try {
-        const uid = req.session.user.id; const { token } = req.body;
+        const uid = req.session.user.id; const { token, password } = req.body;
         const row = (await pool.query('SELECT mfa_secret, mfa_enabled FROM user_mfa WHERE user_id=$1', [uid])).rows[0];
         if (!row || !row.mfa_enabled) return res.status(400).json({ error: 'MFA not enabled' });
+        // step-up: require current password (bcrypt) in addition to a valid TOTP for this security-sensitive action
+        const pw = (await pool.query('SELECT password_hash FROM system_users WHERE id=$1', [uid])).rows[0];
+        if (!pw || !pw.password_hash || !pw.password_hash.startsWith('$2') || !(await bcrypt.compare(String(password || ''), pw.password_hash))) return res.status(401).json({ error: 'Password required' });
         if (!mfaVerify(row.mfa_secret, token)) return res.status(400).json({ error: 'Invalid code' });
         await pool.query('UPDATE user_mfa SET mfa_enabled=false, mfa_secret=NULL WHERE user_id=$1', [uid]);
         await pool.query('DELETE FROM user_mfa_recovery_codes WHERE user_id=$1', [uid]);
