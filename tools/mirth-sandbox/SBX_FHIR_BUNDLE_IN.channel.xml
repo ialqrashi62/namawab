@@ -1,0 +1,54 @@
+<!--
+  Mirth/NextGen Connect channel CANDIDATE — SBX_FHIR_BUNDLE_IN (sandbox, dummy only).
+  Import-ready skeleton: HTTP Listener (loopback) -> filter(type=transaction) -> HTTP Sender to local HAPI /fhir.
+  NOTE: validate/adjust against the exact running Mirth version on import (element schema varies by version).
+  SAFETY: loopback-only listener (127.0.0.1), no PHI, no certs, destination = local HAPI loopback only.
+-->
+<channel version="4.4.0">
+  <name>SBX_FHIR_BUNDLE_IN</name>
+  <description>Sandbox: receive a FHIR transaction Bundle (dummy) and forward to local HAPI FHIR. Loopback only, no PHI.</description>
+  <sourceConnector version="4.4.0">
+    <name>HTTP Listener (loopback)</name>
+    <properties class="com.mirth.connect.connectors.http.HttpReceiverProperties" version="4.4.0">
+      <listenerConnectorProperties version="4.4.0">
+        <host>127.0.0.1</host>
+        <port>6663</port>
+      </listenerConnectorProperties>
+      <contextPath>/sbx/fhir-bundle</contextPath>
+      <responseContentType>application/fhir+json</responseContentType>
+      <xmlBody>false</xmlBody>
+    </properties>
+    <transformer version="4.4.0">
+      <elements/>
+    </transformer>
+    <filter version="4.4.0">
+      <elements>
+        <!-- accept only FHIR transaction Bundles -->
+        <rule>
+          <name>Require Bundle type=transaction</name>
+          <script>var m = JSON.parse(connectorMessage.getRawData()); return m.resourceType === 'Bundle' &amp;&amp; m.type === 'transaction';</script>
+        </rule>
+      </elements>
+    </filter>
+  </sourceConnector>
+  <destinationConnectors>
+    <connector version="4.4.0">
+      <name>Forward to local HAPI</name>
+      <properties class="com.mirth.connect.connectors.http.HttpDispatcherProperties" version="4.4.0">
+        <host>http://127.0.0.1:8090/fhir</host>
+        <method>POST</method>
+        <headers>
+          <entry><string>Content-Type</string><list><string>application/fhir+json</string></list></entry>
+        </headers>
+        <content>${message.rawData}</content>
+      </properties>
+      <queueConnectorProperties version="4.4.0">
+        <queueEnabled>true</queueEnabled>
+        <retryCount>3</retryCount>
+        <regenerateTemplate>false</regenerateTemplate>
+      </queueConnectorProperties>
+    </connector>
+  </destinationConnectors>
+  <preprocessingScript>// no PHI in logs</preprocessingScript>
+  <postprocessingScript>// audit metadata only</postprocessingScript>
+</channel>
