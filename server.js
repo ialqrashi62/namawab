@@ -223,15 +223,22 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
     try {
         const { username, password } = req.body;
         if (!username || !password) return res.status(400).json({ error: 'Missing credentials' });
+        const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
         const { rows } = await pool.query('SELECT id, display_name, role, speciality, permissions, password_hash FROM system_users WHERE username=$1 AND is_active=1', [username]);
-        if (!rows.length) return res.status(401).json({ error: 'Invalid credentials' });
+        if (!rows.length) {
+            logAudit(null, String(username).slice(0, 64), 'FAILED_LOGIN', 'Auth', 'Failed login: unknown or inactive user', clientIp);
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
         const user = rows[0];
         // Check bcrypt hash (Plaintext password fallback is disabled for security)
         let valid = false;
         if (user.password_hash && user.password_hash.startsWith('$2')) {
             valid = await bcrypt.compare(password, user.password_hash);
         }
-        if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+        if (!valid) {
+            logAudit(user.id, user.display_name, 'FAILED_LOGIN', 'Auth', 'Failed login: incorrect password', clientIp);
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
 
         // ===== SINGLE SESSION: Destroy previous session if exists =====
         const previousSessionId = activeUserSessions.get(user.id);
@@ -277,8 +284,7 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
         // Track this user's active session
         activeUserSessions.set(user.id, req.sessionID);
 
-        // Save last IP
-        const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+        // Save last IP (clientIp computed at handler top)
         await pool.query('UPDATE system_users SET last_ip=$1 WHERE id=$2', [clientIp, user.id]).catch(() => { });
         logAudit(user.id, user.display_name, 'LOGIN', 'Auth', `User logged in as ${user.role}`, clientIp);
         res.json({ success: true, user: req.session.user });
@@ -289,6 +295,7 @@ app.post('/api/auth/logout', (req, res) => {
     // Remove from single-session tracking
     if (req.session && req.session.user) {
         activeUserSessions.delete(req.session.user.id);
+        logAudit(req.session.user.id, req.session.user.display_name, 'LOGOUT', 'Auth', 'User logged out', req.ip);
     }
     req.session.destroy();
     res.json({ success: true });
