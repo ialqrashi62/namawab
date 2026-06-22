@@ -2855,3 +2855,10 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **PHASES 3-7**: API/RBAC 28 مجموعة موفّق (P0=0، لا body/query tenant trust)؛ audit-reader candidate ready (غير ممنوح)؛ index 59/147 لا عائق؛ E2E harness PASS (لا حساب)؛ accounting OFF (journal_entries غائب).
 * **git**: docs (P2-P7 + final closeout) + memory + namaweb gitlink bc24a47 على الأب. لا DDL/DATA/GRANT.
 * **الحالة**: ALL_PHASES_ALL_GROUPS_RECONCILED_REMAINING_GATES_READY. NEXT: APPROVE_DAILY_CLOSE_TENANT_RLS_DDL، APPROVE_AUDIT_READER_GRANT، APPROVE_TENANT_ID_INDEX، PROVIDE_TEST_ACCOUNT. accounting OFF.
+
+### Phase 177: ENTERPRISE_FULL_SYSTEM_ALL_PHASES_ALL_MODULES (12-phase audit, read-only) — no prod change
+* **تاريخ**: 2026-06-22 | تدقيق ERP/HIS كامل. أدلة حيّة: **371 مسار** (187 GET/121 POST/55 PUT/8 DELETE)، 366/371 requireAuth (الخمسة العامة: login/logout/health/auth-me/catch-all)، 61 role-guard، 111 requireTenantScope، **0 ثقة بمستأجر من body/query**. 162 جدولاً، 147 FORCE RLS، 148 tenant_id.
+* **PHASE 0**: health 5/5، drift 0/0، role super/bypass=false، FORCE=147.
+* **المنشور سابقاً (مؤكَّد)**: system_users POST/PUT/DELETE guards، employees POST/DELETE requireRole('hr'). daily_close مرشّح مُرهَّن PASS (gated). accounting OFF (journal_entries غائب).
+* **12 تقرير**: P1 module inventory، P2 DB/RLS schema، P3 API/RBAC full، P4 clinical QA، P5 finance/insurance/accounting، P6 ops/HR/inventory/entitlements، P7 security/privacy/audit، P8 performance/indexes، P9 backup/rollback/DR، P10 E2E، P11 gates matrix، P12 enterprise closeout.
+* **الحالة**: ENTERPRISE_FULL_SYSTEM_CANDIDATES_READY_NOT_DEPLOYED. لا DDL/DATA/GRANT/code/deploy هذه الحملة. namaweb بلا تغيير (bc24a47). أولوية البوابات: daily_close DDL → test account → audit-reader GRANT → index → (accounting مؤجّل).
