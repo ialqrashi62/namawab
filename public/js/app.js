@@ -2699,6 +2699,28 @@ window.filterTable = (input, tableId) => {
   document.querySelectorAll(`#${tableId} tbody tr`).forEach(r => r.style.display = r.textContent.toLowerCase().includes(txt) ? '' : 'none');
 };
 
+// ===== EMR Lock/Signature UI (Phase A1) =====
+function emrStatusBadge(s) {
+  if (s === 'locked') return `<span class="badge" style="background:#c8e6c9;color:#1b5e20">🔒 ${tr('Locked/Signed', 'موقّع/مقفل')}</span>`;
+  if (s === 'signed') return `<span class="badge" style="background:#fff9c4;color:#827717">✍️ ${tr('Signed', 'موقّع')}</span>`;
+  return `<span class="badge" style="background:#eeeeee;color:#555">📝 ${tr('Draft', 'مسودة')}</span>`;
+}
+function emrRecordActions(r) {
+  if (r.emr_status === 'locked') return `<button class="btn btn-sm" onclick="amendMedicalRecord(${r.id})" style="background:#fff3e0;color:#e65100">📝 ${tr('Amend', 'تعديل موثّق')}</button>`;
+  return `<button class="btn btn-sm" onclick="signMedicalRecord(${r.id})" style="background:#c8e6c9;color:#1b5e20">✍️ ${tr('Sign & Finalize', 'توقيع وإنهاء')}</button>`;
+}
+window.signMedicalRecord = async (id) => {
+  if (!confirm(tr('Sign and lock this record? Editing will be disabled after locking.', 'توقيع وقفل هذا السجل؟ سيُمنع التعديل بعد القفل.'))) return;
+  try { await API.post('/api/medical-records/' + id + '/sign', {}); showToast(tr('Record signed & locked', 'تم التوقيع والقفل')); await navigateTo(3); }
+  catch (e) { showToast(tr('Sign failed (record may already be locked)', 'فشل التوقيع (قد يكون السجل مقفلاً)'), 'error'); }
+};
+window.amendMedicalRecord = async (id) => {
+  const reason = prompt(tr('Amendment reason (required) — original stays locked:', 'سبب التعديل (مطلوب) — الأصل يبقى مقفلاً:'));
+  if (!reason || !reason.trim()) return;
+  try { await API.post('/api/medical-records/' + id + '/amend', { reason: reason, new_values_summary: '' }); showToast(tr('Amendment recorded (audited)', 'تم تسجيل التعديل (موثّق)')); await navigateTo(3); }
+  catch (e) { showToast(tr('Amendment failed (record must be locked)', 'فشل التعديل (يجب أن يكون السجل مقفلاً)'), 'error'); }
+};
+
 // ===== DOCTOR STATION =====
 async function renderDoctor(el) {
   // Show premium loading skeletons instantly
@@ -3165,7 +3187,7 @@ margin-right:8px">${drSpecialty}</span>` : ''}</div>
       <div class="card glass-card-premium">
         <div class="card-title">📋 ${tr('Medical Records', 'السجلات الطبية')}</div>
         <input class="search-filter" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'drTable')">
-        <div id="drTable">${makeTable([tr('Patient', 'المريض'), tr('Diagnosis', 'التشخيص'), tr('Symptoms', 'الأعراض'), tr('Date/Time', 'التاريخ/الوقت')], records.map(r => ({ cells: [r.patient_name || '', r.diagnosis, r.symptoms, r.visit_date ? new Date(r.visit_date).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : ''] })))}</div>
+        <div id="drTable">${makeTable([tr('Patient', 'المريض'), tr('Diagnosis', 'التشخيص'), tr('Symptoms', 'الأعراض'), tr('Date/Time', 'التاريخ/الوقت'), tr('Status', 'الحالة'), tr('Actions', 'إجراءات')], records.map(r => ({ cells: [r.patient_name || '', r.diagnosis, r.symptoms, r.visit_date ? new Date(r.visit_date).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : '', emrStatusBadge(r.emr_status), emrRecordActions(r)] })))}</div>
       </div>
     </div>`;
 }
