@@ -2847,3 +2847,11 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **الاكتشاف الوحيد**: `daily_close` (إغلاق صندوق يومي: totals/balances/cashier) **بلا tenant_id/RLS**، مساراه (GET 4470/POST 4484) بلا نطاق مستأجر ⇒ **حسّاس مالياً عند الامتلاء**؛ حالياً **0 صف** ⇒ لا تسريب فعلي. مرشّح gated جاهز `docs/sql/daily_close_tenant_rls_candidate_{up,validate,down}.sql` (نمط الـ14؛ فارغ ⇒ لا backfill؛ RLS+DEFAULT يغطّي المسارين بلا كود). DDL ⇒ موافقة.
 * **تصحيح دقّة**: "0 فجوة" تبقى صحيحة للجداول المملوءة؛ الأدق: daily_close فجوة **خاملة (فارغة)** بمرشّح جاهز.
 * **doc**: `NAMA_MEDICAL_ALL_GROUPS_DEEP_RECONCILIATION_LIVE_AR.md`. لا DDL/DATA/GRANT/deploy. NEXT: APPROVE_DAILY_CLOSE_TENANT_RLS_DDL (اختياري قبل امتلاء الجدول).
+
+### Phase 176: ALL_PHASES_ALL_GROUPS_FINAL_RECONCILIATION + employees RBAC deployed + daily_close rehearsed
+* **تاريخ**: 2026-06-22 | 8 مراحل، 28 مجموعة. PHASE 0 reverify PASS (health 5/5، drift 0/0، FORCE=147، عزل 3/0/0).
+* **PHASE 1 (daily_close)**: رُهِن المرشّح على قاعدة معزولة (nama_dc_rehearsal + دور NOSUPER/NOBYPASSRLS) — insert@ctx1 auto-stamp tid=1، ctx999=0، forge tenant_id=1@ctx999→42501، no-ctx=0، force+policy، down.sql يرجع. **PASS**. الجدول فارغ على الإنتاج ⇒ غير عاجل. DDL gated → APPROVE_DAILY_CLOSE_TENANT_RLS_DDL.
+* **PHASE 2 (منشور)**: `POST/DELETE /api/employees` → requireRole('hr') (HR+Admin) + audit CREATE_EMPLOYEE/DELETE_EMPLOYEE؛ **GET يبقى مفتوحاً** (قوائم الأطباء، app.js 2040/2634/7788...). test `employees_rbac_guard_test.js` 6/6، node --check OK، نشر pm2: health 5/5، unauth POST/DELETE=401، عزل سليم. namaweb `ae539b2→bc24a47` (origin/main, FF).
+* **PHASES 3-7**: API/RBAC 28 مجموعة موفّق (P0=0، لا body/query tenant trust)؛ audit-reader candidate ready (غير ممنوح)؛ index 59/147 لا عائق؛ E2E harness PASS (لا حساب)؛ accounting OFF (journal_entries غائب).
+* **git**: docs (P2-P7 + final closeout) + memory + namaweb gitlink bc24a47 على الأب. لا DDL/DATA/GRANT.
+* **الحالة**: ALL_PHASES_ALL_GROUPS_RECONCILED_REMAINING_GATES_READY. NEXT: APPROVE_DAILY_CLOSE_TENANT_RLS_DDL، APPROVE_AUDIT_READER_GRANT، APPROVE_TENANT_ID_INDEX، PROVIDE_TEST_ACCOUNT. accounting OFF.
