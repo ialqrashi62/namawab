@@ -1,0 +1,21 @@
+# Mirth/NextGen Connect — SANDBOX docker-compose CANDIDATE (NOT run in this gate).
+# Running this pulls an image from a registry = an external network call, which this gate forbids.
+# Provided as the deployment artifact for a later gated run (loopback-only, dummy, no PHI/certs).
+# To run later (after APPROVE): bind ONLY to 127.0.0.1, never expose publicly.
+version: "3.8"
+services:
+  mirth-sbx:
+    image: nextgenhealthcare/connect:latest   # pull happens only at owner-approved run time
+    container_name: nama-mirth-sbx
+    restart: "no"                              # sandbox: do not auto-restart
+    environment:
+      - DATABASE=derby                         # embedded store for sandbox (no external DB)
+    ports:
+      - "127.0.0.1:8443:8443"                  # Admin/API — LOOPBACK ONLY, never 0.0.0.0
+      - "127.0.0.1:6661:6661"                  # dummy HL7 MLLP channel — loopback only
+    volumes:
+      - mirth_sbx_appdata:/opt/connect/appdata # ephemeral sandbox storage; remove with `down -v`
+volumes:
+  mirth_sbx_appdata:
+# SAFETY: loopback-only ports, no external endpoints, no certs, no PHI, no production wiring.
+# Rollback: `docker compose -f docker-compose.candidate.yml down -v` (removes container + volume).
