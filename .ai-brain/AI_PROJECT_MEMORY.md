@@ -2840,3 +2840,10 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **git/حوكمة R17**: **namaweb له فرعان على origin** — `origin/main` خطّي المنشور (9becc9e→**ae539b2**، دُفع FF) و`origin/master` خطّ الجلسة الموازية (10ded01، متباعد منذ c6e44ae). دفعت main فقط؛ **لم ألمس master** (push HEAD:master رُفض non-FF؛ صحّحت للفرع الصحيح main). الإنتاج يعمل على خطّي (main). gitlink الأب → ae539b2.
 * **الحالة**: FINAL_ALL_PHASES_ALL_GROUPS_CANDIDATES_READY_NOT_DEPLOYED؛ DDL/DATA/GRANT=NO؛ CODE_DEPLOYED=settings/users guard فقط؛ accounting OFF؛ journal=0؛ no force push؛ no secrets.
 * **NEXT**: (اختياري) APPROVE_TENANT_ID_INDEX_CANDIDATE؛ APPROVE_AUDIT_READER_GRANT_AND_DEPLOY؛ (قرار) employees POST/DELETE RBAC. accounting OFF.
+
+### Phase 175: ALL_GROUPS_DEEP_RECONCILIATION (live, read-only) — 1 dormant finding
+* **تاريخ**: 2026-06-22 | استبطان حيّ لكل المجموعات الـ28 (لا بوابات فقط). لا تغيير إنتاجي.
+* **حيّ**: 162 جدولاً · 147 FORCE RLS · 148 tenant_id. الـ15 غير المحميّة بـFORCE صُنّفت كلها: 14 غير حسّاسة بالتصميم (catalogs: cosmetic_procedures/lab_tests_catalog/medical_services/radiology_catalog/icd10/medications/drug_interactions؛ registries: system_users/tenants؛ junctions: user_tenants[tid]/user_facilities؛ RBAC user_permissions؛ user-scoped cash_drawer/internal_messages).
+* **الاكتشاف الوحيد**: `daily_close` (إغلاق صندوق يومي: totals/balances/cashier) **بلا tenant_id/RLS**، مساراه (GET 4470/POST 4484) بلا نطاق مستأجر ⇒ **حسّاس مالياً عند الامتلاء**؛ حالياً **0 صف** ⇒ لا تسريب فعلي. مرشّح gated جاهز `docs/sql/daily_close_tenant_rls_candidate_{up,validate,down}.sql` (نمط الـ14؛ فارغ ⇒ لا backfill؛ RLS+DEFAULT يغطّي المسارين بلا كود). DDL ⇒ موافقة.
+* **تصحيح دقّة**: "0 فجوة" تبقى صحيحة للجداول المملوءة؛ الأدق: daily_close فجوة **خاملة (فارغة)** بمرشّح جاهز.
+* **doc**: `NAMA_MEDICAL_ALL_GROUPS_DEEP_RECONCILIATION_LIVE_AR.md`. لا DDL/DATA/GRANT/deploy. NEXT: APPROVE_DAILY_CLOSE_TENANT_RLS_DDL (اختياري قبل امتلاء الجدول).
