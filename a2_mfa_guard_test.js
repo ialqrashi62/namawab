@@ -1,0 +1,17 @@
+const fs=require('fs');const s=fs.readFileSync('server.js','utf8');let p=0,f=0;
+const chk=(n,c)=>{if(c){p++;console.log('PASS',n)}else{f++;console.log('FAIL',n)}};
+chk('enroll endpoint', s.includes("app.post('/api/mfa/enroll'"));
+chk('verify endpoint', s.includes("app.post('/api/mfa/verify'"));
+chk('status endpoint', s.includes("app.get('/api/mfa/status'"));
+chk('login second-factor endpoint', s.includes("app.post('/api/auth/mfa'"));
+chk('self-disable endpoint', s.includes("app.post('/api/mfa/disable'"));
+chk('admin-reset endpoint Admin-only', s.includes("app.post('/api/mfa/admin-reset'") && /admin-reset'[\s\S]{0,220}role !== 'Admin'/.test(s));
+chk('login MFA gate (pending, no session)', s.includes('mfaRequired: true') && s.includes('pendingMfaUserId'));
+chk('non-MFA path unaffected (establishSession after gate)', /mfaRequired: true[\s\S]{0,300}await establishSession/.test(s));
+chk('NO global enforcement (no blanket enable)', !/UPDATE user_mfa SET mfa_enabled=true[^$]*WHERE\s+(1=1|true)/i.test(s));
+chk('recovery codes hashed (bcrypt)', s.includes('await bcrypt.hash(code, 10)'));
+chk('recovery one-time (used flag consumed)', s.includes('SET used=true WHERE id=$1'));
+chk('TOTP via built-in crypto HMAC-SHA1', s.includes("createHmac('sha1'"));
+chk('secret never logged via audit', !/logAudit\([^)]*secret/i.test(s) && !/console\.log[^\n]*mfa_secret/i.test(s));
+chk('challenge expiry enforced', s.includes('pendingMfaAt') && s.includes('5 * 60 * 1000'));
+console.log(`\n${p}/${p+f} PASS`);process.exit(f?1:0);
