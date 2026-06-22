@@ -102,6 +102,9 @@ app.use((req, res, next) => {
     }
 });
 
+// A3A: hard-deny legacy public PHI paths BEFORE static/SPA fallback (PHI now served only via /api/phi-files/:id)
+app.all('/uploads/radiology/*', (req, res) => res.status(404).json({ error: 'Not found' }));
+
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
