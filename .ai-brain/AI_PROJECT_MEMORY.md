@@ -2862,3 +2862,13 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **المنشور سابقاً (مؤكَّد)**: system_users POST/PUT/DELETE guards، employees POST/DELETE requireRole('hr'). daily_close مرشّح مُرهَّن PASS (gated). accounting OFF (journal_entries غائب).
 * **12 تقرير**: P1 module inventory، P2 DB/RLS schema، P3 API/RBAC full، P4 clinical QA، P5 finance/insurance/accounting، P6 ops/HR/inventory/entitlements، P7 security/privacy/audit، P8 performance/indexes، P9 backup/rollback/DR، P10 E2E، P11 gates matrix، P12 enterprise closeout.
 * **الحالة**: ENTERPRISE_FULL_SYSTEM_CANDIDATES_READY_NOT_DEPLOYED. لا DDL/DATA/GRANT/code/deploy هذه الحملة. namaweb بلا تغيير (bc24a47). أولوية البوابات: daily_close DDL → test account → audit-reader GRANT → index → (accounting مؤجّل).
+
+### Phase 178: APPROVE_DAILY_CLOSE_TENANT_RLS_DDL — DEPLOYED PASS (FORCE_RLS 147→148)
+* **تاريخ**: 2026-06-22 | بوابة DDL محدودة بـdaily_close فقط (موافقة صريحة). أُغلقت الفجوة الخاملة المالية.
+* **نُفِّذ**: `daily_close_tenant_rls_candidate_up.sql` على الإنتاج (postgres، atomic) — ADD tenant_id + DEFAULT(app.tenant_id) + ENABLE+FORCE RLS + policy rls_daily_close_tenant_isolation. الجدول فارغ (0 صف) ⇒ لا backfill. **FORCE_RLS 147→148**.
+* **تحقّق**: tenant_id+DEFAULT حاضران، RLS+FORCE مفعّلان، policy=1، rows=0.
+* **smoke (role nama_medical_app، super/bypass=false)**: patients 3/0/0؛ daily_close insert@ctx1→tid=1، ctx999=0، forge tenant_id=1@ctx999→42501، no-ctx=0، ROLLBACK→0 صف. health 5/5، unauth /api/patients=401. لا PM2 restart (الصحة لم تتأثر).
+* **backup**: ~/nama_deploy_backups/daily_close_20260622/ (before_snapshot.json + up/down.sql). rollback جاهز غير مُستخدَم.
+* **حدود**: DATA_CHANGED=NO، BACKFILL=NO، GRANT=NO، CODE=NO، accounting OFF، journal=0، audit-reader غير ممنوح، no force push، no secrets. namaweb بلا تغيير (bc24a47).
+* **الأثر**: لا فجوة عزل خاملة متبقية؛ كل الجداول الحسّاسة (مملوءة+فارغة) محميّة. closeout: APPROVE_DAILY_CLOSE_TENANT_RLS_DDL_FINAL_CLOSEOUT_AR.md.
+* **NEXT**: PROVIDE_TEST_ACCOUNT_FOR_BROWSER_E2E، APPROVE_AUDIT_READER_GRANT، APPROVE_TENANT_ID_INDEX (اختياري). accounting OFF.
