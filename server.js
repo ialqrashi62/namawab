@@ -584,18 +584,23 @@ app.get('/api/employees', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/employees', requireAuth, async (req, res) => {
+// employee create/delete = HR/Admin only (requireRole('hr') passes HR + Admin='*'); GET stays open for doctor/staff lists
+app.post('/api/employees', requireAuth, requireRole('hr'), async (req, res) => {
     try {
         const { name, name_ar, name_en, role, department_ar, department_en, salary, commission_type, commission_value } = req.body;
         const result = await pool.query('INSERT INTO employees (name, name_ar, name_en, role, department_ar, department_en, salary, commission_type, commission_value) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id',
             [name || name_en, name_ar || '', name_en || '', role || 'Staff', department_ar || '', department_en || '', salary || 0, commission_type || 'percentage', parseFloat(commission_value) || 0]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_EMPLOYEE', 'HR', `Created employee #${result.rows[0].id} (${name_en || name || ''})`, req.ip);
         res.json((await pool.query('SELECT * FROM employees WHERE id=$1', [result.rows[0].id])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.delete('/api/employees/:id', requireAuth, async (req, res) => {
-    try { await pool.query('DELETE FROM employees WHERE id=$1', [req.params.id]); res.json({ success: true }); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.delete('/api/employees/:id', requireAuth, requireRole('hr'), async (req, res) => {
+    try {
+        await pool.query('DELETE FROM employees WHERE id=$1', [req.params.id]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'DELETE_EMPLOYEE', 'HR', `Deleted employee #${req.params.id}`, req.ip);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== INVOICES =====
