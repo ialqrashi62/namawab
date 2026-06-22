@@ -44,3 +44,7 @@ local_backups/
 .local-backups/
 backups/private/
 
+
+# A3 KEK escrow package (owner-run output) — never commit
+nama_kek_escrow*.enc
+*.kek.escrow
