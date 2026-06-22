@@ -1,0 +1,57 @@
+# قائمة قرار المالك (موحّدة)
+
+> اختر بوابة/أكثر. كل تنفيذ عبر بروتوكول محكوم منفصل. المحاسبة OFF ما لم تُختر بوابتها صراحة.
+
+## أولوية فورية (DR، منخفض الجهد)
+```text
+APPROVE_A3_KEK_ESCROW_ACTUAL_OWNER_CONTROLLED   ← يسدّ فجوة فقدان المفتاح (موصى أولاً)
+```
+
+## مفاتيح / بنية تحتية
+```text
+APPROVE_VAULT_KMS_PHASE2
+APPROVE_OFFSITE_ENCRYPTED_BACKUP
+```
+
+## تكاملات (Phase B)
+```text
+APPROVE_PHASE_B_D1_MIRTH_SANDBOX_DEPLOYMENT
+APPROVE_PHASE_B_D2_FHIR_LOCAL_SANDBOX_CODE
+APPROVE_PHASE_B_D5_ORTHANC_PACS_SANDBOX
+APPROVE_ZATCA_PHASE2_READINESS_ONLY
+APPROVE_ZATCA_PHASE2_SANDBOX_AFTER_CERTS
+APPROVE_NPHIES_READINESS_ONLY
+APPROVE_NPHIES_SANDBOX_AFTER_CERTS
+```
+
+## سريري (Phase C)
+```text
+APPROVE_PHASE_C_BCMA_CANDIDATE
+APPROVE_PHASE_C_CLINICAL_SCORES_CANDIDATE
+```
+
+## UX/Ops/AI (Phase D)
+```text
+APPROVE_PHASE_D_OBSERVABILITY_CANDIDATE
+APPROVE_PHASE_D_AI_GOVERNANCE_ONLY
+```
+
+## محاسبة (Phase E — حسّاسة)
+```text
+APPROVE_ACCOUNTING_POSTING_ENABLEMENT_CANDIDATE_ONLY
+APPROVE_ACCOUNTING_POSTING_ENABLEMENT_PRODUCTION   ← عالية الخطورة؛ بوابة مخصّصة منفصلة فقط
+```
+
+## حوكمة / اختياري
+```text
+APPROVE_AUDIT_READER_GRANT_AND_DEPLOY
+APPROVE_TENANT_ID_INDEX_CANDIDATE
+APPROVE_R17_BETA_REVIEW_ONLY    (review فقط، لا merge)
+APPROVE_FINAL_ROADMAP_FREEZE
+```
+
+## التوصية
+1. `APPROVE_A3_KEK_ESCROW_ACTUAL_OWNER_CONTROLLED` (DR أولاً).
+2. `APPROVE_PHASE_B_D1_MIRTH_SANDBOX_DEPLOYMENT` + `APPROVE_PHASE_B_D2_FHIR_LOCAL_SANDBOX_CODE` (بدء تنفيذ B بلا شهادات).
+3. للتنظيمي: `APPROVE_VAULT_KMS_PHASE2` ثم ZATCA/NPHIES بعد الشهادات.
+4. المحاسبة عند الحاجة التجارية فقط، بوابتها المخصّصة.
