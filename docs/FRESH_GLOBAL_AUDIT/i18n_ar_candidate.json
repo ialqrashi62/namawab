@@ -1,0 +1,50 @@
+{
+  "_meta": "candidate only — not wired into app; keys mirror tr() usage",
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "search": "بحث",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "add": "إضافة",
+    "refresh": "تحديث",
+    "export": "تصدير",
+    "confirm": "تأكيد",
+    "loading": "جارٍ التحميل...",
+    "no_data": "لا توجد بيانات",
+    "error": "حدث خطأ"
+  },
+  "modules": {
+    "dashboard": "لوحة التحكم",
+    "patients": "المرضى",
+    "appointments": "المواعيد",
+    "doctor": "الطبيب",
+    "lab": "المختبر",
+    "radiology": "الأشعة",
+    "pharmacy": "الصيدلية",
+    "nursing": "التمريض",
+    "icu": "العناية المركزة",
+    "billing": "الفوترة",
+    "insurance": "التأمين",
+    "finance": "المالية",
+    "hr": "الموارد البشرية",
+    "inventory": "المخزون",
+    "reports": "التقارير",
+    "settings": "الإعدادات"
+  },
+  "status": {
+    "due": "مستحق",
+    "completed": "مكتمل",
+    "pending": "معلّق",
+    "critical": "حرج",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "paid": "مدفوع",
+    "unpaid": "غير مدفوع"
+  },
+  "validation": {
+    "required": "هذا الحقل مطلوب",
+    "duplicate_mrn": "رقم ملف مكرّر",
+    "access_denied": "تم رفض الوصول"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "_meta": "candidate only — not wired into app; keys mirror tr() usage",
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "search": "Search",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "refresh": "Refresh",
+    "export": "Export",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "no_data": "No data",
+    "error": "An error occurred"
+  },
+  "modules": {
+    "dashboard": "Dashboard",
+    "patients": "Patients",
+    "appointments": "Appointments",
+    "doctor": "Doctor",
+    "lab": "Laboratory",
+    "radiology": "Radiology",
+    "pharmacy": "Pharmacy",
+    "nursing": "Nursing",
+    "icu": "ICU",
+    "billing": "Billing",
+    "insurance": "Insurance",
+    "finance": "Finance",
+    "hr": "Human Resources",
+    "inventory": "Inventory",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
+  "status": {
+    "due": "Due",
+    "completed": "Completed",
+    "pending": "Pending",
+    "critical": "Critical",
+    "active": "Active",
+    "inactive": "Inactive",
+    "paid": "Paid",
+    "unpaid": "Unpaid"
+  },
+  "validation": {
+    "required": "This field is required",
+    "duplicate_mrn": "Duplicate MRN",
+    "access_denied": "Access denied"
+  }
+}
