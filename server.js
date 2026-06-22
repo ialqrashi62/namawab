@@ -13,8 +13,8 @@ const { insertSampleData, populateLabCatalog, populateRadiologyCatalog } = requi
 const { populateMedicalServices, populateBaseDrugs } = require('./seed_services_pg');
 const { addExtraLabTests, addExtraRadiology } = require('./seed_extra_catalog');
 
-// Multer setup for radiology image uploads
-const uploadsDir = path.join(__dirname, 'public', 'uploads', 'radiology');
+// Multer setup for radiology image uploads — A3A: PHI vault OUTSIDE public webroot (no static/direct access)
+const uploadsDir = path.join(__dirname, 'phi_vault', 'radiology');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 const upload = multer({
     storage: multer.diskStorage({
@@ -1275,15 +1275,37 @@ app.post('/api/radiology/orders/:id/upload', requireAuth, upload.single('image')
         const tenantParams = tenantId ? [orderId, tenantId] : [orderId];
         const order = (await pool.query(`SELECT * FROM lab_radiology_orders WHERE id=$1${tenantCheck}`, tenantParams)).rows[0];
         if (!order) return res.status(404).json({ error: 'Order not found' });
-        const imagePath = `/uploads/radiology/${req.file.filename}`;
+        // A3A: register file in tenant-scoped phi_files vault; serve only via guarded /api/phi-files/:id (never a public path)
+        const crypto = require('crypto');
+        const sha256 = crypto.createHash('sha256').update(fs.readFileSync(req.file.path)).digest('hex');
+        const phi = (await pool.query(
+            'INSERT INTO phi_files (record_type, record_id, stored_path, original_name, sha256, uploaded_by_user_id) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id',
+            ['radiology_order', orderId, req.file.path, req.file.originalname || req.file.filename, sha256, req.session.user?.id])).rows[0];
+        const imagePath = `/api/phi-files/${phi.id}`;
         const existingResults = order.results || '';
         const imageTag = `[IMG:${imagePath}]`;
         const newResults = existingResults ? `${existingResults}\n${imageTag}` : imageTag;
         await pool.query('UPDATE lab_radiology_orders SET results=$1 WHERE id=$2', [newResults, orderId]);
         logAudit(req.session.user?.id, req.session.user?.display_name, 'UPLOAD_RADIOLOGY_IMAGE', 'Radiology',
-            `Uploaded image for radiology order #${orderId}`, req.ip);
+            `Uploaded image for radiology order #${orderId} (phi_file #${phi.id})`, req.ip);
         const updated = (await pool.query('SELECT * FROM lab_radiology_orders WHERE id=$1', [orderId])).rows[0];
         res.json({ success: true, path: imagePath, order: updated });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// A3A: guarded PHI file download — auth required; tenant-scoped via RLS (other tenants -> no row -> 404); path-traversal denied
+app.get('/api/phi-files/:id', requireAuth, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        if (!Number.isInteger(id)) return res.status(404).json({ error: 'File not found' });
+        const row = (await pool.query('SELECT stored_path, original_name FROM phi_files WHERE id=$1', [id])).rows[0];
+        if (!row) return res.status(404).json({ error: 'File not found' });   // RLS hides other tenants' rows
+        const vaultRoot = path.resolve(path.join(__dirname, 'phi_vault'));
+        const resolved = path.resolve(row.stored_path);
+        if (!resolved.startsWith(vaultRoot + path.sep) || !fs.existsSync(resolved)) return res.status(404).json({ error: 'File not found' });
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'PHI_FILE_DOWNLOAD', 'PHI',
+            `Downloaded phi_file #${id}`, req.ip);
+        res.sendFile(resolved);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 

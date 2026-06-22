@@ -6,3 +6,6 @@ nama_medical_web.db-wal
 .env
 backups/
 find_lines.js
+
+# A3A PHI vault (radiology/clinical files) — never commit PHI
+phi_vault/
