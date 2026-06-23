@@ -71,7 +71,7 @@ if (process.env.REDIS_URL || process.env.REDIS_HOST) {
 }
 
 const sessionConfig = {
-    secret: process.env.SESSION_SECRET || 'nama-medical-erp-secret-x7k9m2p4q8w1',
+    secret: process.env.SESSION_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('SESSION_SECRET is required in production'); })() : 'dev-only-insecure-secret-change-me'),
     resave: true,
     saveUninitialized: false,
     cookie: {
@@ -345,7 +345,7 @@ app.post('/api/mfa/verify', requireAuth, async (req, res) => {
         const uid = req.session.user.id; const { token } = req.body;
         const row = (await pool.query('SELECT mfa_secret, mfa_enabled FROM user_mfa WHERE user_id=$1', [uid])).rows[0];
         if (!row || !row.mfa_secret) return res.status(400).json({ error: 'No enrollment in progress' });
-        if (!mfaVerify(ce.decryptString(row.mfa_secret), token)) return res.status(400).json({ error: 'Invalid code' });
+        if (!mfaConsume(uid, ce.decryptString(row.mfa_secret), token)) return res.status(400).json({ error: 'Invalid code' }); // replay-guarded (was mfaVerify)
         const justEnabled = !row.mfa_enabled;
         await pool.query('UPDATE user_mfa SET mfa_enabled=true, enrolled_at=COALESCE(enrolled_at, now()), last_verified_at=now() WHERE user_id=$1', [uid]);
         let recovery = null;
@@ -4387,7 +4387,9 @@ app.post('/api/portal/users', requireAuth, async (req, res) => {
     try {
         const { patient_id, username, password, email, phone } = req.body;
         const bcrypt = require('bcryptjs');
-        const hash = await bcrypt.hash(password || '123456', 10);
+        // Never default to a guessable password; generate a strong random one if none supplied (portal onboarding sets a real one).
+        const initPw = password || require('crypto').randomBytes(18).toString('base64');
+        const hash = await bcrypt.hash(initPw, 10);
         const result = await pool.query('INSERT INTO portal_users (patient_id, username, password_hash, email, phone) VALUES ($1,$2,$3,$4,$5) RETURNING *',
             [patient_id, username || '', hash, email || '', phone || '']);
         res.json(result.rows[0]);
@@ -4435,7 +4437,7 @@ app.get('/api/telemedicine/sessions', requireAuth, async (req, res) => {
 app.post('/api/telemedicine/sessions', requireAuth, async (req, res) => {
     try {
         const { patient_id, patient_name, speciality, session_type, scheduled_date, scheduled_time, duration_minutes, notes } = req.body;
-        const link = 'https://meet.nama.sa/' + Math.random().toString(36).substring(7);
+        const link = 'https://meet.nama.sa/' + require('crypto').randomBytes(16).toString('hex');
         const result = await pool.query('INSERT INTO telemedicine_sessions (patient_id, patient_name, doctor, speciality, session_type, scheduled_date, scheduled_time, duration_minutes, meeting_link, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
             [patient_id, patient_name || '', req.session.user.name, speciality || '', session_type || 'Video', scheduled_date || '', scheduled_time || '', duration_minutes || 15, link, notes || '']);
         res.json(result.rows[0]);
@@ -5582,6 +5584,7 @@ app.get('/api/visits/:patient_id', requireAuth, async (req, res) => {
 // ===== AUDIT TRAIL VIEWER =====
 app.get('/api/admin/audit-trail', requireAuth, async (req, res) => {
     try {
+        if (req.session.user?.role !== 'Admin') return res.status(403).json({ error: 'Admin only' });
         const { module, action, limit: lim } = req.query;
         let query = 'SELECT * FROM audit_trail';
         const conds = [], params = [];
@@ -5627,6 +5630,7 @@ app.post('/api/nursing/assessment', requireAuth, async (req, res) => {
 // ===== BACKUP ENDPOINT =====
 app.get('/api/admin/backup-info', requireAuth, async (req, res) => {
     try {
+        if (req.session.user?.role !== 'Admin') return res.status(403).json({ error: 'Admin only' });
         const tables = (await pool.query("SELECT tablename, pg_total_relation_size(quote_ident(tablename)) as size FROM pg_tables WHERE schemaname='public' ORDER BY size DESC")).rows;
         const dbSize = (await pool.query("SELECT pg_database_size(current_database()) as size")).rows[0];
         res.json({

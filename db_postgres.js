@@ -7,7 +7,7 @@ const pool = new Pool({
     port: parseInt(process.env.DB_PORT) || 5432,
     database: process.env.DB_NAME || 'nama_medical_web',
     user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
+    password: process.env.DB_PASSWORD || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('DB_PASSWORD is required in production'); })() : 'postgres'),
     max: parseInt(process.env.DB_MAX_CONNECTIONS) || 20
 });
 
