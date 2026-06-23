@@ -43,24 +43,50 @@ app.use(helmet({ contentSecurityPolicy: false }));
 // carry no Origin (or a matching one) and never require ACAO. Set CORS_ALLOWED_ORIGINS
 // (comma-separated) only if a trusted cross-origin client must call the API with credentials.
 const corsAllowlist = (process.env.CORS_ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
-// Extra headers not covered by helmet defaults: Permissions-Policy + CSP in REPORT-ONLY mode.
-// Report-Only is deliberate: the SPA relies on inline event handlers/styles + CDN assets, so an
-// enforcing CSP would need 'unsafe-inline' and an asset-source review first. Observe reports, then enforce.
+// Extra headers not covered by helmet defaults: Permissions-Policy + CSP.
+// CSP mode is controlled by CSP_ENFORCE (default unset -> Report-Only). Enforcing stays OFF until a
+// separate approved deploy sets CSP_ENFORCE=true: the SPA still relies on inline handlers/styles + CDN
+// assets, so observe report-uri violations first. img-src/media-src cover the login page's external
+// avatar (googleusercontent) + promo video (cloudinary); report-uri points at the sanitized collector below.
+const CSP_ENFORCE = process.env.CSP_ENFORCE === 'true';   // default false => Content-Security-Policy-Report-Only
+const CSP_DIRECTIVES = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: blob: https://lh3.googleusercontent.com",
+    "media-src 'self' https://res.cloudinary.com",
+    "connect-src 'self'",
+    "frame-ancestors 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "report-uri /api/csp-report"
+].join('; ');
 app.use((req, res, next) => {
     res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=()');
-    res.setHeader('Content-Security-Policy-Report-Only', [
-        "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
-        "font-src 'self' https://fonts.gstatic.com data:",
-        "img-src 'self' data: blob:",
-        "connect-src 'self'",
-        "frame-ancestors 'self'",
-        "object-src 'none'",
-        "base-uri 'self'"
-    ].join('; '));
+    res.setHeader(CSP_ENFORCE ? 'Content-Security-Policy' : 'Content-Security-Policy-Report-Only', CSP_DIRECTIVES);
     next();
 });
+
+// CSP violation report collector (sanitized, PHI-free, no DB). Registered BEFORE session/CSRF so the
+// browser's unauthenticated report POST is always accepted. Logs a truncated summary only — never
+// cookies, Authorization, body, or PHI. Rate-limited to bound log volume.
+const cspReportLimiter = rateLimit({ windowMs: 60 * 1000, max: 60, standardHeaders: false, legacyHeaders: false });
+app.post('/api/csp-report',
+    cspReportLimiter,
+    express.json({ type: ['application/csp-report', 'application/reports+json', 'application/json'], limit: '16kb' }),
+    (req, res) => {
+        try {
+            const r = (req.body && (req.body['csp-report'] || req.body)) || {};
+            const summary = {
+                doc: String(r['document-uri'] || r.documentURL || '').slice(0, 200),
+                directive: String(r['violated-directive'] || r['effective-directive'] || r.effectiveDirective || '').slice(0, 120),
+                blocked: String(r['blocked-uri'] || r.blockedURL || '').slice(0, 200)
+            };
+            console.warn('[CSP-REPORT]', JSON.stringify(summary));
+        } catch (e) { /* ignore malformed report */ }
+        res.status(204).end();
+    });
 
 // Rate limiting for login endpoint
 const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { error: 'Too many login attempts, please try again after 15 minutes' } });
