@@ -1,0 +1,19 @@
+# HashiCorp Vault — SANDBOX docker-compose CANDIDATE (NOT run in this gate).
+# Running pulls the image (external call) and starts a key store — owner-approved gate only.
+# Loopback-only, sandbox/dev posture, no real keys/secrets in this file.
+version: "3.8"
+services:
+  vault-sbx:
+    image: hashicorp/vault:latest         # pull only at owner-approved run time
+    container_name: nama-vault-sbx
+    restart: "no"
+    cap_add: ["IPC_LOCK"]                  # mlock for secret memory protection
+    ports:
+      - "127.0.0.1:8200:8200"             # API/UI — LOOPBACK ONLY, never 0.0.0.0
+    environment:
+      # SANDBOX/dev posture only — production uses Integrated Storage (raft) + proper unseal (NOT dev mode).
+      - VAULT_DEV_LISTEN_ADDRESS=127.0.0.1:8200
+      # NOTE: do NOT set a dev root token here; provide at runtime via owner-controlled means, never committed.
+    # PRODUCTION (later gate): file/raft storage, TLS listener, auto-unseal or Shamir, audit device enabled.
+# Rollback: `docker compose -f docker-compose.candidate.yml down -v` (removes container + any dev data).
+# SAFETY: loopback-only, no real keys/secrets committed, sandbox only; production hardening per 02 doc.
