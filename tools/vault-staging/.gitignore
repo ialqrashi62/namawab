@@ -1,0 +1,12 @@
+# Vault staging — NEVER commit any runtime/secret material (all runtime lives outside repo in ~/vault_staging)
+*.key
+*.crt
+*.pem
+*.json
+*-init*
+*token*
+*unseal*
+data/
+audit/
+init/
+certs/
