@@ -145,11 +145,11 @@ function renderUsersTable() {
   }
   tbody.innerHTML = allUsers.map((u, i) => `<tr>
     <td>${i + 1}</td>
-    <td><strong>${u.display_name || '-'}</strong></td>
-    <td><code style="color:var(--primary)">${u.username}</code></td>
+    <td><strong>${escapeHTML(u.display_name || '-')}</strong></td>
+    <td><code style="color:var(--primary)">${escapeHTML(u.username)}</code></td>
     <td>${roleBadge(u.role)}</td>
-    <td>${u.speciality || '-'}</td>
-    <td class="ip-cell">${u.last_ip || '—'}</td>
+    <td>${escapeHTML(u.speciality || '-')}</td>
+    <td class="ip-cell">${escapeHTML(u.last_ip || '—')}</td>
     <td>${u.is_active ? '<span class="badge badge-success">نشط</span>' : '<span class="badge badge-danger">معطّل</span>'}</td>
     <td style="font-size:12px;color:var(--text3)">${u.created_at ? new Date(u.created_at).toLocaleDateString('ar-SA') : '-'}</td>
     <td>
@@ -162,7 +162,7 @@ function renderUsersTable() {
 
 function roleBadge(role) {
   const map = { Admin:'primary', Doctor:'info', Nurse:'success', Pharmacist:'warning', 'Lab Technician':'info', Radiologist:'info', Reception:'success', Finance:'warning', HR:'warning', IT:'primary', Staff:'info' };
-  return `<span class="badge badge-${map[role] || 'info'}">${role}</span>`;
+  return `<span class="badge badge-${map[role] || 'info'}">${escapeHTML(role)}</span>`;
 }
 
 // ===== ADD/EDIT USER MODAL =====
@@ -173,13 +173,13 @@ function showAddUserModal(user) {
   overlay.innerHTML = `<div class="modal">
     <h3>${isEdit ? '✏️ تعديل مستخدم' : '➕ إضافة مستخدم جديد'}</h3>
     <div class="form-grid">
-      <div class="form-group"><label>الاسم الكامل</label><input class="form-input" id="muName" value="${isEdit ? user.display_name || '' : ''}"></div>
-      <div class="form-group"><label>اسم المستخدم</label><input class="form-input" id="muUsername" value="${isEdit ? user.username || '' : ''}"></div>
+      <div class="form-group"><label>الاسم الكامل</label><input class="form-input" id="muName" value="${isEdit ? escapeHTML(user.display_name || '') : ''}"></div>
+      <div class="form-group"><label>اسم المستخدم</label><input class="form-input" id="muUsername" value="${isEdit ? escapeHTML(user.username || '') : ''}"></div>
       <div class="form-group"><label>كلمة المرور ${isEdit ? '(اتركها فارغة للإبقاء)' : ''}</label><input type="password" class="form-input" id="muPassword" placeholder="${isEdit ? '••••••' : 'كلمة المرور'}"></div>
       <div class="form-group"><label>الدور</label><select class="form-input" id="muRole" onchange="toggleDoctorFields()">
         ${ROLES.map(r => `<option value="${r}" ${isEdit && user.role === r ? 'selected' : ''}>${r}</option>`).join('')}
       </select></div>
-      <div class="form-group" id="muSpecDiv" style="display:${isEdit && user.role === 'Doctor' ? 'flex' : 'none'}"><label>التخصص</label><input class="form-input" id="muSpec" value="${isEdit ? user.speciality || '' : ''}"></div>
+      <div class="form-group" id="muSpecDiv" style="display:${isEdit && user.role === 'Doctor' ? 'flex' : 'none'}"><label>التخصص</label><input class="form-input" id="muSpec" value="${isEdit ? escapeHTML(user.speciality || '') : ''}"></div>
       <div class="form-group" id="muCommDiv" style="display:${isEdit && user.role === 'Doctor' ? 'flex' : 'none'}">
         <label>العمولة</label>
         <div style="display:flex;gap:8px">
@@ -265,7 +265,7 @@ window.deleteUser = async (id) => {
 function populatePermUserSelect() {
   const sel = document.getElementById('permUser');
   sel.innerHTML = '<option value="">-- اختر مستخدم --</option>' +
-    allUsers.map(u => `<option value="${u.id}">${u.display_name || u.username} (${u.role})</option>`).join('');
+    allUsers.map(u => `<option value="${escapeHTML(u.id)}">${escapeHTML(u.display_name || u.username)} (${escapeHTML(u.role)})</option>`).join('');
 }
 
 window.loadUserPermissions = () => {

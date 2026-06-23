@@ -10,6 +10,13 @@ window.escapeHTML = function escapeHTML(str) {
     .replace(/'/g, '&#39;');
 };
 
+window.SafeHtml = class SafeHtml {
+  constructor(h) { this.html = (h === null || h === undefined) ? '' : String(h); }
+  toString() { return this.html; }
+};
+window.rawHtml = function (h) { return new window.SafeHtml(h); };
+window.cellHtml = function (c) { return (c instanceof window.SafeHtml) ? c.html : window.escapeHTML(c); };
+
 // ===== Nama Medical ERP - Main App =====
 let currentUser = null;
 let isArabic = localStorage.getItem('namaLang') === 'ar' ? true : (localStorage.getItem('namaLang') === 'en' ? false : false);
@@ -275,7 +282,7 @@ function makeTable(headers, rows, actions) {
   html += '</tr></thead><tbody>';
   rows.forEach(row => {
     html += '<tr>';
-    row.cells.forEach(c => html += `<td>${c}</td>`);
+    row.cells.forEach(c => html += `<td>${cellHtml(c)}</td>`);
     if (actions) html += `<td>${actions(row)}</td>`;
     html += '</tr>';
   });
@@ -293,7 +300,7 @@ window.createTable = function(container, id, headers, rows, actions) {
   } else {
     rows.forEach(row => {
       html += `<tr data-id="${row.id || ''}" class="hover:bg-primary/5 transition-colors cursor-pointer">`;
-      row.cells.forEach(c => html += `<td>${c}</td>`);
+      row.cells.forEach(c => html += `<td>${cellHtml(c)}</td>`);
       if (actions) html += `<td>${actions(row)}</td>`;
       html += '</tr>';
     });
@@ -302,7 +309,7 @@ window.createTable = function(container, id, headers, rows, actions) {
   container.innerHTML = html;
 };
 
-function badge(text, type) { return `<span class="badge badge-${type}">${text}</span>`; }
+function badge(text, type) { return rawHtml(`<span class="badge badge-${escapeHTML(type)}">${escapeHTML(text)}</span>`); }
 
 function statusBadge(status) {
   const map = { Waiting: 'warning', 'With Doctor': 'success', Confirmed: 'success', Pending: 'warning', Approved: 'success', Rejected: 'danger', Active: 'success', 'On Leave': 'info', Cancelled: 'danger', Completed: 'success', Requested: 'info', Done: 'success', Available: 'success', Reserved: 'warning', Used: 'info', Expired: 'danger', Compatible: 'success', Incompatible: 'danger', Signed: 'success', Dispensed: 'success', Scheduled: 'info', 'In Progress': 'warning' };
@@ -2507,11 +2514,11 @@ function renderPatientTable(patients) {
   const rows = patients.map(p => ({
     cells: [
       p.mrn || p.file_number,
-      `${p.gender === 'ذكر' ? '👨' : '👩'} ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}${p.allergies ? ' <span style="color:#ef4444;font-weight:700" title="' + p.allergies + '">⚠️</span>' : ''}`,
+      rawHtml(`${p.gender === 'ذكر' ? '👨' : '👩'} ${escapeHTML(isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar))}${p.allergies ? ' <span style="color:#ef4444;font-weight:700" title="' + escapeHTML(p.allergies) + '">⚠️</span>' : ''}`),
       p.national_id,
       p.phone,
-      p.blood_type ? `<span class="badge" style="background:#dc2626;color:#fff;font-size:10px">${p.blood_type}</span>` : '-',
-      p.insurance_company ? `<span style="font-size:11px">${p.insurance_company}${p.insurance_class ? ' (' + p.insurance_class + ')' : ''}</span>` : '-',
+      p.blood_type ? rawHtml(`<span class="badge" style="background:#dc2626;color:#fff;font-size:10px">${escapeHTML(p.blood_type)}</span>`) : '-',
+      p.insurance_company ? rawHtml(`<span style="font-size:11px">${escapeHTML(p.insurance_company)}${p.insurance_class ? ' (' + escapeHTML(p.insurance_class) + ')' : ''}</span>`) : '-',
       p.created_at ? new Date(p.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : '-',
       statusBadge(p.status)
     ],
@@ -2701,13 +2708,13 @@ window.filterTable = (input, tableId) => {
 
 // ===== EMR Lock/Signature UI (Phase A1) =====
 function emrStatusBadge(s) {
-  if (s === 'locked') return `<span class="badge" style="background:#c8e6c9;color:#1b5e20">🔒 ${tr('Locked/Signed', 'موقّع/مقفل')}</span>`;
-  if (s === 'signed') return `<span class="badge" style="background:#fff9c4;color:#827717">✍️ ${tr('Signed', 'موقّع')}</span>`;
-  return `<span class="badge" style="background:#eeeeee;color:#555">📝 ${tr('Draft', 'مسودة')}</span>`;
+  if (s === 'locked') return rawHtml(`<span class="badge" style="background:#c8e6c9;color:#1b5e20">🔒 ${tr('Locked/Signed', 'موقّع/مقفل')}</span>`);
+  if (s === 'signed') return rawHtml(`<span class="badge" style="background:#fff9c4;color:#827717">✍️ ${tr('Signed', 'موقّع')}</span>`);
+  return rawHtml(`<span class="badge" style="background:#eeeeee;color:#555">📝 ${tr('Draft', 'مسودة')}</span>`);
 }
 function emrRecordActions(r) {
-  if (r.emr_status === 'locked') return `<button class="btn btn-sm" onclick="amendMedicalRecord(${r.id})" style="background:#fff3e0;color:#e65100">📝 ${tr('Amend', 'تعديل موثّق')}</button>`;
-  return `<button class="btn btn-sm" onclick="signMedicalRecord(${r.id})" style="background:#c8e6c9;color:#1b5e20">✍️ ${tr('Sign & Finalize', 'توقيع وإنهاء')}</button>`;
+  if (r.emr_status === 'locked') return rawHtml(`<button class="btn btn-sm" onclick="amendMedicalRecord(${parseInt(r.id, 10)})" style="background:#fff3e0;color:#e65100">📝 ${tr('Amend', 'تعديل موثّق')}</button>`);
+  return rawHtml(`<button class="btn btn-sm" onclick="signMedicalRecord(${parseInt(r.id, 10)})" style="background:#c8e6c9;color:#1b5e20">✍️ ${tr('Sign & Finalize', 'توقيع وإنهاء')}</button>`);
 }
 window.signMedicalRecord = async (id) => {
   if (!confirm(tr('Sign and lock this record? Editing will be disabled after locking.', 'توقيع وقفل هذا السجل؟ سيُمنع التعديل بعد القفل.'))) return;
@@ -4256,9 +4263,9 @@ async function renderPharmacy(el) {
   }
   const stockBadge = (qty) => {
     const q = parseInt(qty) || 0;
-    if (q <= 5) return `<span class="badge badge-danger">⚠️ ${q} (${tr('Critical Low', 'حرجة جداً')})</span>`;
-    if (q <= 20) return `<span class="badge badge-warning">⚠️ ${q} (${tr('Low Stock', 'منخفض')})</span>`;
-    return `<span class="badge badge-success">✅ ${q}</span>`;
+    if (q <= 5) return rawHtml(`<span class="badge badge-danger">⚠️ ${q} (${tr('Critical Low', 'حرجة جداً')})</span>`);
+    if (q <= 20) return rawHtml(`<span class="badge badge-warning">⚠️ ${q} (${tr('Low Stock', 'منخفض')})</span>`);
+    return rawHtml(`<span class="badge badge-success">✅ ${q}</span>`);
   };
   // Helper to find drug price from catalog
   const findDrugPrice = (medName) => {
@@ -5074,10 +5081,10 @@ async function renderFinance(el) {
           [tr('Account Code', 'رمز الحساب'), tr('Account Name (AR)', 'اسم الحساب (عربي)'), tr('Account Name (EN)', 'اسم الحساب (إنجليزي)'), tr('Type', 'النوع')],
           displayAccounts.map(a => ({
             cells: [
-              `<span class="font-mono text-secondary">${a.account_code}</span>`,
+              rawHtml(`<span class="font-mono text-secondary">${escapeHTML(a.account_code)}</span>`),
               a.account_name_ar,
               a.account_name_en,
-              `<span class="text-caption bg-surface-container px-sm py-1 rounded-full">${a.account_type}</span>`
+              rawHtml(`<span class="text-caption bg-surface-container px-sm py-1 rounded-full">${escapeHTML(a.account_type)}</span>`)
             ],
             id: a.account_code
           }))
@@ -5129,7 +5136,7 @@ async function renderFinance(el) {
           [tr('Voucher #', 'رقم السند'), tr('Type', 'النوع'), tr('Amount', 'المبلغ'), tr('Date', 'التاريخ'), tr('Description', 'البيان')],
           displayVouchers.map(v => ({
             cells: [
-              `<span class="font-mono text-secondary font-bold">${v.voucher_number}</span>`,
+              rawHtml(`<span class="font-mono text-secondary font-bold">${escapeHTML(v.voucher_number)}</span>`),
               v.voucher_type,
               parseFloat(v.amount).toFixed(2) + ' ' + tr('SAR', 'ر.س'),
               v.voucher_date,
@@ -5200,7 +5207,7 @@ async function renderFinance(el) {
               c.insurance_company,
               parseFloat(c.claim_amount).toFixed(2) + ' ' + tr('SAR', 'ر.س'),
               statusBadge(c.status),
-              `<span class="font-mono text-secondary">${c.waseel_status}</span>`
+              rawHtml(`<span class="font-mono text-secondary">${escapeHTML(c.waseel_status)}</span>`)
             ],
             id: c.id
           }))
@@ -6393,7 +6400,7 @@ async function renderNursing(el) {
       [tr('Patient', 'المريض'), tr('Medication', 'الدواء'), tr('Dose', 'الجرعة'), tr('Route', 'الطريقة'), tr('Frequency', 'التكرار'), tr('Status', 'الحالة'), tr('Actions', 'إجراءات')],
       emarOrders.map(o => ({
         cells: [o.patient_name, o.medication, o.dose, o.route, o.frequency, statusBadge(o.status),
-        `<button class="btn btn-sm btn-success" onclick="administerMed(${o.id},${o.patient_id},'${o.medication}','${o.dose}')">💉 ${tr('Give', 'إعطاء')}</button>`
+        rawHtml(`<button class="btn btn-sm btn-success" onclick="administerMed(${parseInt(o.id, 10)},${parseInt(o.patient_id, 10)},'${escapeHTML(String(o.medication)).replace(/'/g, "\\'")}','${escapeHTML(String(o.dose)).replace(/'/g, "\\'")}')">💉 ${tr('Give', 'إعطاء')}</button>`)
         ]
       }))
     ) : `<div class="empty-state-card"><div class="empty-state-icon">💉</div><div>${tr('No active orders', 'لا توجد أوامر نشطة')}</div></div>`}
@@ -6403,7 +6410,7 @@ async function renderNursing(el) {
     <button class="btn btn-primary" onclick="nurseTab='newplan';navigateTo(11)" style="margin-bottom:12px">➕ ${tr('New Plan', 'خطة جديدة')}</button>
     ${carePlans.length ? makeTable(
       [tr('Patient', 'المريض'), tr('Diagnosis', 'التشخيص'), tr('Priority', 'الأولوية'), tr('Goals', 'الأهداف'), tr('Status', 'الحالة')],
-      carePlans.map(c => ({ cells: [c.patient_name, c.diagnosis, c.priority === 'High' ? `<span class="badge badge-danger">🔴 ${tr('High', 'عالية')}</span>` : c.priority === 'Low' ? `<span class="badge badge-success">🟢 ${tr('Low', 'منخفضة')}</span>` : `<span class="badge badge-warning">🟡 ${tr('Medium', 'متوسطة')}</span>`, c.goals?.substring(0, 60) || '-', statusBadge(c.status)] }))
+      carePlans.map(c => ({ cells: [c.patient_name, c.diagnosis, c.priority === 'High' ? rawHtml(`<span class="badge badge-danger">🔴 ${tr('High', 'عالية')}</span>`) : c.priority === 'Low' ? rawHtml(`<span class="badge badge-success">🟢 ${tr('Low', 'منخفضة')}</span>`) : rawHtml(`<span class="badge badge-warning">🟡 ${tr('Medium', 'متوسطة')}</span>`), c.goals?.substring(0, 60) || '-', statusBadge(c.status)] }))
     ) : `<div class="empty-state-card"><div class="empty-state-icon">📋</div><div>${tr('No care plans', 'لا توجد خطط رعاية')}</div></div>`}
     </div>`;
   } else if (nurseTab === 'assess') {
@@ -6412,9 +6419,9 @@ async function renderNursing(el) {
       [tr('Patient', 'المريض'), tr('Type', 'النوع'), tr('Fall Risk', 'خطر السقوط'), tr('Braden', 'Braden'), tr('Pain', 'ألم'), tr('GCS', 'GCS'), tr('Nurse', 'الممرض'), tr('Shift', 'الوردية')],
       assessments.map(a => ({
         cells: [a.patient_name, a.assessment_type,
-        `<span style="color:${a.fall_risk_score >= 45 ? '#ef4444' : a.fall_risk_score >= 25 ? '#f59e0b' : '#22c55e'}">${a.fall_risk_score}</span>`,
-        `<span style="color:${a.braden_score <= 12 ? '#ef4444' : a.braden_score <= 18 ? '#f59e0b' : '#22c55e'}">${a.braden_score}/23</span>`,
-        `<span style="color:${a.pain_score >= 7 ? '#ef4444' : a.pain_score >= 4 ? '#f59e0b' : '#22c55e'}">${a.pain_score}/10</span>`,
+        rawHtml(`<span style="color:${a.fall_risk_score >= 45 ? '#ef4444' : a.fall_risk_score >= 25 ? '#f59e0b' : '#22c55e'}">${escapeHTML(a.fall_risk_score)}</span>`),
+        rawHtml(`<span style="color:${a.braden_score <= 12 ? '#ef4444' : a.braden_score <= 18 ? '#f59e0b' : '#22c55e'}">${escapeHTML(a.braden_score)}/23</span>`),
+        rawHtml(`<span style="color:${a.pain_score >= 7 ? '#ef4444' : a.pain_score >= 4 ? '#f59e0b' : '#22c55e'}">${escapeHTML(a.pain_score)}/10</span>`),
         a.gcs_score + '/15', a.nurse, a.shift
         ]
       }))
@@ -6614,7 +6621,7 @@ async function renderPatientAccounts(el) {
       window._paData.map(p => ({
         cells: [p.mrn || p.file_number, isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar), p.phone, p.invoice_count,
         p.total_billed + ' ' + tr('SAR', 'ريال'), p.total_paid + ' ' + tr('SAR', 'ريال'),
-        '<span style="color:' + (parseFloat(p.balance) > 0 ? '#cc0000;font-weight:bold' : '#2e7d32') + '">' + p.balance + ' ' + tr('SAR', 'ريال') + '</span>'],
+        rawHtml('<span style="color:' + (parseFloat(p.balance) > 0 ? '#cc0000;font-weight:bold' : '#2e7d32') + '">' + escapeHTML(p.balance) + ' ' + tr('SAR', 'ريال') + '</span>')],
         id: p.id
       })),
       (row) => `<button class="btn btn-sm" onclick="viewPatientInvoices(${row.id})" style="background:#e3f2fd;color:#1565c0">📋 ${tr('Invoices', 'الفواتير')}</button>`
@@ -6792,7 +6799,7 @@ async function renderReports(el) {
           data = await API.get('/api/inventory');
           title.textContent = tr('Inventory Report', 'تقرير المخزون') + ' (' + data.length + ')';
           headers = [tr('Item', 'الصنف'), tr('Category', 'الفئة'), tr('Qty', 'الكمية'), tr('Reorder', 'إعادة الطلب'), tr('Unit', 'الوحدة'), tr('Status', 'الحالة')];
-          rows = data.map(i => ({ cells: [i.name, i.category, i.quantity, i.reorder_level || 10, i.unit, parseInt(i.quantity) <= parseInt(i.reorder_level || 10) ? '<span style="color:#cc0000;font-weight:bold">⚠️ ' + tr('Low', 'منخفض') + '</span>' : '<span style="color:#2e7d32">✅ ' + tr('OK', 'جيد') + '</span>'], id: i.id }));
+          rows = data.map(i => ({ cells: [i.name, i.category, i.quantity, i.reorder_level || 10, i.unit, parseInt(i.quantity) <= parseInt(i.reorder_level || 10) ? rawHtml('<span style="color:#cc0000;font-weight:bold">⚠️ ' + tr('Low', 'منخفض') + '</span>') : rawHtml('<span style="color:#2e7d32">✅ ' + tr('OK', 'جيد') + '</span>')], id: i.id }));
           break;
         case 'radiology':
           data = await API.get('/api/lab/orders');
@@ -7752,7 +7759,7 @@ async function renderDeptRequests(el) {
   if (dt) {
     createTable(dt, 'drTbl',
       [tr('Type', 'النوع'), tr('Dept', 'القسم'), tr('Item', 'البند'), tr('Qty', 'الكمية'), tr('Priority', 'الأولوية'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', '')],
-      requests.map(r => ({ cells: [r.request_type || r.type || '', r.department || '', r.item || r.description || '', r.quantity || '', r.priority || '', statusBadge(r.status), r.created_at ? new Date(r.created_at).toLocaleDateString('ar-SA') : '', r.status === 'pending' ? '<button class="btn btn-sm" style="background:#e8f5e9;color:#2e7d32" onclick="approveDeptReq(' + r.id + ')">✅ ' + tr('Approve', 'موافقة') + '</button> <button class="btn btn-sm" style="background:#fce4ec;color:#c62828" onclick="rejectDeptReq(' + r.id + ')">❌</button>' : ''], id: r.id }))
+      requests.map(r => ({ cells: [r.request_type || r.type || '', r.department || '', r.item || r.description || '', r.quantity || '', r.priority || '', statusBadge(r.status), r.created_at ? new Date(r.created_at).toLocaleDateString('ar-SA') : '', r.status === 'pending' ? rawHtml('<button class="btn btn-sm" style="background:#e8f5e9;color:#2e7d32" onclick="approveDeptReq(' + parseInt(r.id, 10) + ')">✅ ' + tr('Approve', 'موافقة') + '</button> <button class="btn btn-sm" style="background:#fce4ec;color:#c62828" onclick="rejectDeptReq(' + parseInt(r.id, 10) + ')">❌</button>') : ''], id: r.id }))
     );
   }
   window.saveDeptReq = async () => { try { await API.post('/api/dept-requests', { request_type: document.getElementById('drType').value, department: document.getElementById('drDept').value, item: document.getElementById('drItem').value, quantity: document.getElementById('drQty').value, priority: document.getElementById('drPriority').value, notes: document.getElementById('drNotes').value, requested_by: window.currentUser?.display_name || '' }); showToast(tr('Request submitted!', 'تم تقديم الطلب!')); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); } };
@@ -8818,7 +8825,7 @@ async function renderCSSD(el) {
       [tr('Batch#', 'الدفعة'), tr('Items', 'الأصناف'), tr('Dept', 'القسم'), tr('Method', 'الطريقة'), tr('Temp', 'الحرارة'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', 'إجراءات')],
       batches.map(b => ({
         cells: [b.batch_number, (b.items || '').substring(0, 30), b.department || '', b.method || '', b.temperature || '', statusBadge(b.status), b.created_at ? new Date(b.created_at).toLocaleDateString('ar-SA') : '',
-        b.status === 'processing' ? '<button class="btn btn-sm" onclick="completeCssd(' + b.id + ')">✅ ' + tr('Complete', 'إكمال') + '</button>' : '✅'], id: b.id
+        b.status === 'processing' ? rawHtml('<button class="btn btn-sm" onclick="completeCssd(' + parseInt(b.id, 10) + ')">✅ ' + tr('Complete', 'إكمال') + '</button>') : '✅'], id: b.id
       }))
     );
   }
@@ -8948,7 +8955,7 @@ async function renderInfectionControl(el) {
   if (ict) {
     createTable(ict, 'icTbl',
       [tr('Patient', 'المريض'), tr('Type', 'النوع'), tr('Ward', 'الجناح'), tr('Isolation', 'العزل'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', '')],
-      reports.map(r => ({ cells: [r.patient_name, r.infection_type, r.ward || '', r.isolation_type || '', statusBadge(r.status), r.created_at ? new Date(r.created_at).toLocaleDateString('ar-SA') : '', r.status === 'active' ? '<button class="btn btn-sm" onclick="resolveIc(' + r.id + ')">✅</button>' : '✅'], id: r.id }))
+      reports.map(r => ({ cells: [r.patient_name, r.infection_type, r.ward || '', r.isolation_type || '', statusBadge(r.status), r.created_at ? new Date(r.created_at).toLocaleDateString('ar-SA') : '', r.status === 'active' ? rawHtml('<button class="btn btn-sm" onclick="resolveIc(' + parseInt(r.id, 10) + ')">✅</button>') : '✅'], id: r.id }))
     );
   }
   window.saveIcReport = async () => { try { await API.post('/api/infection-control/reports', { patient_name: document.getElementById('icPatient').value, infection_type: document.getElementById('icType').value, ward: document.getElementById('icWard').value, isolation_type: document.getElementById('icIsolation').value, culture_results: document.getElementById('icCulture').value, action_taken: document.getElementById('icAction').value }); showToast(tr('Report submitted!', 'تم تقديم البلاغ!')); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); } };
@@ -10010,7 +10017,7 @@ async function renderMedicalRecords(el) {
   if (mrt) {
     createTable(mrt, 'mrTbl',
       [tr('File #', 'رقم الملف'), tr('Name (AR)', 'الاسم بالعربي'), tr('Name (EN)', 'الاسم بالإنجليزي'), tr('ID', 'الهوية'), tr('Phone', 'الجوال'), tr('DOB', 'تاريخ الميلاد'), tr('Nationality', 'الجنسية'), tr('Actions', '')],
-      patients.slice(0, 100).map(p => ({ cells: [p.file_number || p.id, p.name_ar || '', p.name_en || '', p.id_number || '', p.phone || '', p.dob || '', p.nationality || '', '<button class="btn btn-sm" onclick="viewPatientRecord(' + p.id + ')">📂 ' + tr('View', 'عرض') + '</button>'], id: p.id }))
+      patients.slice(0, 100).map(p => ({ cells: [p.file_number || p.id, p.name_ar || '', p.name_en || '', p.id_number || '', p.phone || '', p.dob || '', p.nationality || '', rawHtml('<button class="btn btn-sm" onclick="viewPatientRecord(' + parseInt(p.id, 10) + ')">📂 ' + tr('View', 'عرض') + '</button>')], id: p.id }))
     );
   }
   window.filterMedRecords = () => { const n = (document.getElementById('mrSearchName')?.value || '').toLowerCase(); const mrn = (document.getElementById('mrSearchMRN')?.value || ''); const sid = (document.getElementById('mrSearchID')?.value || ''); document.querySelectorAll('#mrTbl tbody tr').forEach(r => { const t = r.textContent.toLowerCase(); r.style.display = (t.includes(n) && (!mrn || t.includes(mrn)) && (!sid || t.includes(sid))) ? '' : 'none'; }); };
@@ -10132,7 +10139,7 @@ async function renderRehabilitation(el) {
       [tr('Patient', 'المريض'), tr('Diagnosis', 'التشخيص'), tr('Therapy', 'العلاج'), tr('Therapist', 'المعالج'), tr('Status', 'الحالة'), tr('Sessions', 'الجلسات')],
       rehabPatients.map(r => ({
         cells: [r.patient_name, r.diagnosis, r.therapy_type, r.therapist, statusBadge(r.status),
-        `<button class="btn btn-sm" onclick="viewRehabSessions(${r.id})">📋 ${tr('View', 'عرض')}</button>`
+        rawHtml(`<button class="btn btn-sm" onclick="viewRehabSessions(${parseInt(r.id, 10)})">📋 ${tr('View', 'عرض')}</button>`)
         ]
       }))
     ) : `<div class="empty-state"><span style="font-size:48px">🏋️</span><p>${tr('No rehab patients', 'لا يوجد مرضى تأهيل')}</p></div>`;
@@ -10153,8 +10160,8 @@ async function renderRehabilitation(el) {
       [tr('Session#', 'جلسة#'), tr('Date', 'التاريخ'), tr('Therapist', 'المعالج'), tr('Duration', 'المدة'), tr('Pain Before', 'ألم قبل'), tr('Pain After', 'ألم بعد'), tr('Notes', 'ملاحظات')],
       sessions.map(s => ({
         cells: [s.session_number, s.session_date, s.therapist, s.duration_minutes + ' ' + tr('min', 'د'),
-        `<span style="color:${s.pain_before > 5 ? '#ef4444' : '#22c55e'}">${s.pain_before}/10</span>`,
-        `<span style="color:${s.pain_after > 5 ? '#ef4444' : '#22c55e'}">${s.pain_after}/10</span>`,
+        rawHtml(`<span style="color:${s.pain_before > 5 ? '#ef4444' : '#22c55e'}">${escapeHTML(s.pain_before)}/10</span>`),
+        rawHtml(`<span style="color:${s.pain_after > 5 ? '#ef4444' : '#22c55e'}">${escapeHTML(s.pain_after)}/10</span>`),
         s.progress_notes?.substring(0, 50) || '-'
         ]
       }))
@@ -10418,7 +10425,7 @@ async function renderTelemedicine(el) {
   if (tt) {
     createTable(tt, 'teleTbl',
       [tr('Patient', 'المريض'), tr('Doctor', 'الطبيب'), tr('Date', 'التاريخ'), tr('Platform', 'المنصة'), tr('Link', 'الرابط'), tr('Status', 'الحالة')],
-      sessions.map(s => ({ cells: [s.patient_name || '', s.doctor || '', s.session_date ? new Date(s.session_date).toLocaleString('ar-SA') : '', s.platform || '', s.meeting_link ? '<a href="' + s.meeting_link + '" target="_blank" style="color:#1a73e8">🔗 ' + tr('Join', 'انضمام') + '</a>' : '', statusBadge(s.status)], id: s.id }))
+      sessions.map(s => ({ cells: [s.patient_name || '', s.doctor || '', s.session_date ? new Date(s.session_date).toLocaleString('ar-SA') : '', s.platform || '', s.meeting_link ? rawHtml('<a href="' + escapeHTML(s.meeting_link) + '" target="_blank" style="color:#1a73e8">🔗 ' + tr('Join', 'انضمام') + '</a>') : '', statusBadge(s.status)], id: s.id }))
     );
   }
   window.saveTeleSession = async () => {
@@ -10494,9 +10501,9 @@ async function renderPathology(el) {
       [tr('Patient', 'المريض'), tr('Type', 'النوع'), tr('Site', 'الموقع'), tr('Doctor', 'الطبيب'), tr('Priority', 'الأولوية'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', 'إجراءات')],
       specimens.map(s => ({
         cells: [s.patient_name, s.specimen_type, s.site || '', s.doctor || '',
-        '<span style="padding:2px 8px;border-radius:4px;font-size:11px;background:' + (s.priority === 'stat' ? '#fce4ec' : s.priority === 'urgent' ? '#fff3e0' : '#e8f5e9') + '">' + (s.priority || 'routine') + '</span>',
+        rawHtml('<span style="padding:2px 8px;border-radius:4px;font-size:11px;background:' + (s.priority === 'stat' ? '#fce4ec' : s.priority === 'urgent' ? '#fff3e0' : '#e8f5e9') + '">' + escapeHTML(s.priority || 'routine') + '</span>'),
         statusBadge(s.status), s.created_at ? new Date(s.created_at).toLocaleDateString('ar-SA') : '',
-        s.status !== 'completed' ? '<button class="btn btn-sm" onclick="updatePathStatus(' + s.id + ')">✅ ' + tr('Complete', 'إكمال') + '</button>' : '✅'], id: s.id
+        s.status !== 'completed' ? rawHtml('<button class="btn btn-sm" onclick="updatePathStatus(' + parseInt(s.id, 10) + ')">✅ ' + tr('Complete', 'إكمال') + '</button>') : '✅'], id: s.id
       }))
     );
   }
@@ -10717,9 +10724,9 @@ async function renderCosmeticSurgery(el) {
       [tr('Patient', 'المريض'), tr('Procedure', 'الإجراء'), tr('Surgeon', 'الجراح'), tr('Date', 'التاريخ'), tr('Cost', 'التكلفة'), tr('Payment', 'الدفع'), tr('Status', 'الحالة'), tr('Actions', 'إجراءات')],
       cases.map(c => ({
         cells: [c.patient_name, c.procedure_name, c.surgeon, c.surgery_date, Number(c.total_cost).toLocaleString() + ' SAR',
-        c.payment_status === 'Paid' ? '<span class="badge badge-success">' + tr('Paid', 'مدفوع') + '</span>' : '<span class="badge badge-danger">' + tr('Pending', 'معلق') + '</span>',
+        c.payment_status === 'Paid' ? rawHtml('<span class="badge badge-success">' + tr('Paid', 'مدفوع') + '</span>') : rawHtml('<span class="badge badge-danger">' + tr('Pending', 'معلق') + '</span>'),
         statusBadge(c.status),
-        c.status === 'Scheduled' ? `<button class="btn btn-sm btn-success" onclick="completeCosCase(${c.id})">✅ ${tr('Complete', 'إكمال')}</button>` : ''
+        c.status === 'Scheduled' ? rawHtml(`<button class="btn btn-sm btn-success" onclick="completeCosCase(${parseInt(c.id, 10)})">✅ ${tr('Complete', 'إكمال')}</button>`) : ''
         ]
       }))
     ) : `<div class="empty-state"><span style="font-size:48px">💎</span><p>${tr('No cases yet', 'لا توجد حالات بعد')}</p></div>`}</div>`;
@@ -10752,7 +10759,7 @@ async function renderCosmeticSurgery(el) {
         cells: [c.patient_name, c.procedure_name, c.consent_type, c.surgeon, c.consent_date,
         c.is_photography_consent ? '✅' : '❌', c.is_anesthesia_consent ? '✅' : '❌', c.is_blood_transfusion_consent ? '✅' : '❌',
         statusBadge(c.status),
-        `<button class="btn btn-sm" onclick="printCosConsent(${c.id})">🖨️ ${tr('Print', 'طباعة')}</button>`
+        rawHtml(`<button class="btn btn-sm" onclick="printCosConsent(${parseInt(c.id, 10)})">🖨️ ${tr('Print', 'طباعة')}</button>`)
         ]
       }))
     ) : `<div class="empty-state"><span style="font-size:48px">📜</span><p>${tr('No consents', 'لا توجد إقرارات')}</p></div>`}</div>`;
@@ -10784,7 +10791,7 @@ async function renderCosmeticSurgery(el) {
       followups.map(f => ({
         cells: [f.patient_name, f.followup_date, f.days_post_op + ' ' + tr('days', 'يوم'),
         f.healing_status === 'Excellent' ? '🟢 ' + tr('Excellent', 'ممتاز') : f.healing_status === 'Good' ? '🟡 ' + tr('Good', 'جيد') : '🔴 ' + tr('Poor', 'ضعيف'),
-        `<span style="color:${f.pain_level >= 7 ? '#ef4444' : f.pain_level >= 4 ? '#f59e0b' : '#22c55e'}">${f.pain_level}/10</span>`,
+        rawHtml(`<span style="color:${f.pain_level >= 7 ? '#ef4444' : f.pain_level >= 4 ? '#f59e0b' : '#22c55e'}">${escapeHTML(f.pain_level)}/10</span>`),
         f.swelling, '⭐'.repeat(Math.min(f.patient_satisfaction || 0, 5)), f.next_followup || '-'
         ]
       }))
