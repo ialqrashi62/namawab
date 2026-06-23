@@ -43,7 +43,7 @@
 ## 4) خطة التحويل (مراحل)
 - **Phase 1 — تحسين Report-Only:** إضافة `report-uri`/`report-to` + endpoint تجميع (server.js، code-readiness لاحقة)؛ إضافة img-src `https://lh3.googleusercontent.com https://res.cloudinary.com`؛ مراقبة المخالفات الحقيقية فترة.
 - **Phase 2 — إزالة inline منخفض المخاطر:** externalize سكربت login.html إلى ملف `.js` (أو sha256)؛ تثبيت قائمة CDN. (لا يزال Report-Only.)
-- **Phase 3 — script-src أقوى:** قرار: إما (أ) refactor 347 handler إلى event delegation تدريجياً ثم nonce-based script-src بلا `'unsafe-inline'`، أو (ب) قبول `script-src-attr 'unsafe-inline'` للمعالجات مع تشديد كل ما عداه (قرار حوكمة موثّق — الدفاع الأساسي ضد XSS هو ترميز Layer1+2 المنشور). 
+- **Phase 3 — script-src أقوى:** قرار: إما (أ) refactor 347 handler إلى event delegation تدريجياً ثم nonce-based script-src بلا `'unsafe-inline'`، أو (ب) قبول `script-src-attr 'unsafe-inline'` للمعالجات مع تشديد كل ما عداه (قرار حوكمة موثّق — الدفاع الأساسي ضد XSS هو ترميز Layer1+2 المنشور).
 - **Phase 4 — enforce على صفحات منخفضة المخاطر:** صفحات بلا handlers (مثل login بعد externalize) أولاً عبر CSP enforcing مقيّد لتلك المسارات.
 - **Phase 5 — enforce عام:** بعد ثبات Report-Only بلا مخالفات حرجة + smoke كامل.
 - **Phase 6 — مراقبة + rollback:** نافذة مراقبة، وعودة فورية إلى Report-Only عند أي كسر.
