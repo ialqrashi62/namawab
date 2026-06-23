@@ -34,6 +34,13 @@ function Derive([string]$pass, [byte[]]$salt, [int]$iter) {
   $kdf = New-Object System.Security.Cryptography.Rfc2898DeriveBytes($pass, $salt, $iter, [System.Security.Cryptography.HashAlgorithmName]::SHA256)
   try { ,$kdf.GetBytes(64) } finally { $kdf.Dispose() }   # 32 enc + 32 mac
 }
+function CtEqual([byte[]]$a, [byte[]]$b) {
+  # constant-time compare: no early-exit on first mismatch (avoids MAC timing oracle)
+  if ($null -eq $a -or $null -eq $b -or $a.Length -ne $b.Length) { return $false }
+  $diff = 0
+  for ($i = 0; $i -lt $a.Length; $i++) { $diff = $diff -bor ($a[$i] -bxor $b[$i]) }
+  return ($diff -eq 0)
+}
 
 if ($Mode -eq 'escrow') {
   if (-not $BlobPath -or -not (Test-Path $BlobPath)) { throw "KEK blob not found at '$BlobPath' (set -BlobPath or NAMA_KEK_PATH)" }
@@ -68,7 +75,7 @@ elseif ($Mode -eq 'recover') {
   $keys = Derive $pass $salt $iter; $encKey=$keys[0..31]; $macKey=$keys[32..63]
   $hmac = New-Object Security.Cryptography.HMACSHA256(,$macKey)
   $calc = $hmac.ComputeHash($salt + [BitConverter]::GetBytes($iter) + $iv + $ct)
-  if (-not [Linq.Enumerable]::SequenceEqual([byte[]]$calc,[byte[]]$mac)) { throw "MAC mismatch (wrong passphrase or tampered escrow)" }
+  if (-not (CtEqual ([byte[]]$calc) ([byte[]]$mac))) { throw "MAC mismatch (wrong passphrase or tampered escrow)" }
   $aes=[Security.Cryptography.Aes]::Create(); $aes.KeySize=256; $aes.Key=$encKey; $aes.IV=$iv
   $dec=$aes.CreateDecryptor(); $kek=$dec.TransformFinalBlock($ct,0,$ct.Length)
   if ($kek.Length -ne 32) { throw "Recovered KEK length invalid" }
