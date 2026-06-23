@@ -48,3 +48,9 @@ backups/private/
 # A3 KEK escrow package (owner-run output) — never commit
 nama_kek_escrow*.enc
 *.kek.escrow
+# defensive backstop: any KEK escrow / DPAPI backup artifacts (owner-run output stays OUTSIDE repo)
+*kek*.enc
+*.escrow
+*.escrow.enc
+*dpapi*.backup
+nama_kek*.dpapi
