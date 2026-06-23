@@ -38,11 +38,42 @@ const PORT = process.env.PORT || 3000;
 // Security Middleware
 app.use(helmet({ contentSecurityPolicy: false }));
 
+// ===== Gate 3: HTTP perimeter hardening (CODE-ONLY; activates on next PM2 restart) =====
+// CORS allowlist: the SPA is same-origin and needs NO cross-origin CORS. Same-origin requests
+// carry no Origin (or a matching one) and never require ACAO. Set CORS_ALLOWED_ORIGINS
+// (comma-separated) only if a trusted cross-origin client must call the API with credentials.
+const corsAllowlist = (process.env.CORS_ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+// Extra headers not covered by helmet defaults: Permissions-Policy + CSP in REPORT-ONLY mode.
+// Report-Only is deliberate: the SPA relies on inline event handlers/styles + CDN assets, so an
+// enforcing CSP would need 'unsafe-inline' and an asset-source review first. Observe reports, then enforce.
+app.use((req, res, next) => {
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=()');
+    res.setHeader('Content-Security-Policy-Report-Only', [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
+        "font-src 'self' https://fonts.gstatic.com data:",
+        "img-src 'self' data: blob:",
+        "connect-src 'self'",
+        "frame-ancestors 'self'",
+        "object-src 'none'",
+        "base-uri 'self'"
+    ].join('; '));
+    next();
+});
+
 // Rate limiting for login endpoint
 const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { error: 'Too many login attempts, please try again after 15 minutes' } });
 
-// Middleware
-app.use(cors({ origin: true, credentials: true }));
+// Middleware — CORS restricted to an allowlist (no more reflect-any-origin with credentials).
+app.use(cors({
+    origin: function (origin, cb) {
+        if (!origin) return cb(null, true);             // same-origin / non-browser (no Origin header)
+        if (corsAllowlist.includes(origin)) return cb(null, true);
+        return cb(null, false);                         // disallowed cross-origin: no ACAO emitted -> browser blocks
+    },
+    credentials: true
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 // Redis Session Store Setup with graceful Fallback
@@ -88,6 +119,22 @@ if (sessionStore) {
 }
 
 app.use(session(sessionConfig));
+
+// ===== Gate 3: CSRF defense-in-depth — Origin/Referer check for state-changing requests =====
+// Complements sameSite=lax cookies. Conservative & reversible: safe methods pass; missing Origin
+// (non-browser clients, health checks) passes (auth + sameSite still apply); same-origin always
+// passes; cross-origin mutations are blocked unless the Origin is in CORS_ALLOWED_ORIGINS.
+const CSRF_SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+app.use((req, res, next) => {
+    if (CSRF_SAFE_METHODS.has(req.method)) return next();
+    const origin = req.get('origin');
+    if (!origin) return next();
+    try {
+        if (new URL(origin).host === req.get('host')) return next();   // same-origin
+    } catch (e) { /* malformed Origin -> fall through to block */ }
+    if (corsAllowlist.includes(origin)) return next();                 // explicitly trusted cross-origin
+    return res.status(403).json({ error: 'Cross-origin request blocked' });
+});
 
 // ===== TENANT CONTEXT MIDDLEWARE (RLS wiring, ported from 10ded01) =====
 // Binds the request's tenant (from trusted session via getRequestTenantContext) into
