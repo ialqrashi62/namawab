@@ -6,7 +6,7 @@
 ```bash
 git status --short ; git -C namaweb status --short
 git diff --check ; git -C namaweb diff --check
-# mojibake audit: grep -rlE "Ø|Ù|ï»¿|�" <docs>   (يجب: none)
+# mojibake audit: grep على <docs> عن علامات UTF-8 المكسورة (Latin-1 O-slash/U-grave، BOM EF-BB-BF، U+FFFD) — يجب: none
 # secrets scan: لا .env/credentials/keys/DPAPI blob/PHI/.pem/.dcm staged
 git diff --cached --name-only   # تأكّد أنها فقط ملفات البوابة المقصودة
 ```
