@@ -16,6 +16,12 @@ window.SafeHtml = class SafeHtml {
 };
 window.rawHtml = function (h) { return new window.SafeHtml(h); };
 window.cellHtml = function (c) { return (c instanceof window.SafeHtml) ? c.html : window.escapeHTML(c); };
+// Coerce an id used inside onclick(...)/data-id="..."; numeric ids -> Number, else '' (fail-safe, never injects).
+window.safeId = function (v) { const n = Number(v); return (v !== null && v !== undefined && String(v).trim() !== '' && Number.isFinite(n)) ? n : ''; };
+// Validate a URL for href/src; allow http(s)/mailto/tel/relative/anchor, reject javascript:/data:/vbscript: etc. -> '' (rendered inert).
+window.safeUrl = function (u) { if (u === null || u === undefined) return ''; const s = String(u).trim(); if (/^(javascript|data|vbscript|file):/i.test(s)) return ''; return /^(https?:|mailto:|tel:|\/|\.\/|\.\.\/|#|\?)/i.test(s) ? window.escapeHTML(s) : ''; };
+// Escape a string for a single-quoted JS string that sits inside a double-quoted HTML attribute (e.g. onclick="fn('${jsStr(x)}')").
+window.jsStr = function (s) { if (s === null || s === undefined) return ''; return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
 
 // ===== Nama Medical ERP - Main App =====
 let currentUser = null;
@@ -271,7 +277,7 @@ function showToast(msg, type = 'success') {
   let t = document.querySelector('.toast');
   if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
   t.className = `toast toast-${type} show`;
-  t.innerHTML = `${type === 'success' ? '✅' : '❌'} ${msg}`;
+  t.innerHTML = `${type === 'success' ? '✅' : '❌'} ${escapeHTML(msg)}`;
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
@@ -299,7 +305,7 @@ window.createTable = function(container, id, headers, rows, actions) {
     html += `<tr><td colspan="${headers.length}" class="text-center py-4 text-on-surface-variant">${tr('No data found', 'لا توجد بيانات')}</td></tr>`;
   } else {
     rows.forEach(row => {
-      html += `<tr data-id="${row.id || ''}" class="hover:bg-primary/5 transition-colors cursor-pointer">`;
+      html += `<tr data-id="${escapeHTML(row.id || '')}" class="hover:bg-primary/5 transition-colors cursor-pointer">`;
       row.cells.forEach(c => html += `<td>${cellHtml(c)}</td>`);
       if (actions) html += `<td>${actions(row)}</td>`;
       html += '</tr>';
@@ -322,7 +328,7 @@ window.printDocument = function (title, content, options = {}) {
   const w = window.open('', '_blank', 'width=800,height=600');
   if (!w) { showToast(tr('Please allow pop-ups to print', 'يرجى السماح بالنوافذ المنبثقة للطباعة'), 'error'); return; }
   const showHeader = options.showHeader !== false;
-  w.document.write(`<!DOCTYPE html><html ${rtl}><head><meta charset="utf-8"><title>${title}</title>
+  w.document.write(`<!DOCTYPE html><html ${rtl}><head><meta charset="utf-8"><title>${escapeHTML(title)}</title>
     <style>
       *{margin:0;padding:0;box-sizing:border-box}
       body{font-family:'Segoe UI',Tahoma,sans-serif;padding:20px;color:#333;font-size:13px;direction:${isArabic ? 'rtl' : 'ltr'}}
@@ -342,7 +348,7 @@ window.printDocument = function (title, content, options = {}) {
       .signature div{text-align:center;min-width:150px;border-top:1px solid #333;padding-top:4px;font-size:11px}
       @media print{body{padding:10px} .no-print{display:none!important}}
     </style></head><body>
-    ${showHeader ? '<div class="header"><h1>' + (options.companyName || 'نما الطبي — Nama Medical') + '</h1><p>' + (options.companyInfo || 'مستشفى نما الطبي | Nama Medical Hospital') + '</p></div><h2 style="text-align:center;color:#1a5276;margin-bottom:16px">' + title + '</h2>' : ''}
+    ${showHeader ? '<div class="header"><h1>' + (options.companyName || 'نما الطبي — Nama Medical') + '</h1><p>' + (options.companyInfo || 'مستشفى نما الطبي | Nama Medical Hospital') + '</p></div><h2 style="text-align:center;color:#1a5276;margin-bottom:16px">' + escapeHTML(title) + '</h2>' : ''}
     ${content}
     <div class="footer">${tr('Printed on', 'طُبع بتاريخ')}: ${new Date().toLocaleString('ar-SA')} | ${tr('Nama Medical ERP', 'نما الطبي')}</div>
     <button class="no-print" onclick="window.print()" style="position:fixed;top:10px;right:10px;padding:10px 24px;background:#1a5276;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">🖨️ ${tr('Print', 'طباعة')}</button>
@@ -356,14 +362,14 @@ window.printInvoice = async function (id) {
     const data = await API.get('/api/print/invoice/' + id);
     const inv = data.invoice;
     const content = `<div class="info-grid">
-      <div><strong>${tr('Invoice #', 'فاتورة رقم')}:</strong> ${inv.invoice_number || inv.id}</div>
-      <div><strong>${tr('Date', 'التاريخ')}:</strong> ${inv.created_at?.split('T')[0]}</div>
-      <div><strong>${tr('Patient', 'المريض')}:</strong> ${inv.patient_name}</div>
-      <div><strong>${tr('Payment', 'الدفع')}:</strong> ${inv.payment_method || '-'}</div>
+      <div><strong>${tr('Invoice #', 'فاتورة رقم')}:</strong> ${escapeHTML(inv.invoice_number || inv.id)}</div>
+      <div><strong>${tr('Date', 'التاريخ')}:</strong> ${escapeHTML(inv.created_at?.split('T')[0])}</div>
+      <div><strong>${tr('Patient', 'المريض')}:</strong> ${escapeHTML(inv.patient_name)}</div>
+      <div><strong>${tr('Payment', 'الدفع')}:</strong> ${escapeHTML(inv.payment_method || '-')}</div>
     </div>
     <table><thead><tr><th>${tr('Description', 'الوصف')}</th><th>${tr('Amount', 'المبلغ')}</th><th>${tr('VAT', 'ضريبة')}</th><th>${tr('Total', 'الإجمالي')}</th></tr></thead>
-    <tbody><tr><td>${inv.description || inv.service_type}</td><td>${inv.amount} SAR</td><td>${inv.vat_amount || 0} SAR</td><td>${inv.total} SAR</td></tr>
-    <tr class="total-row"><td colspan="3">${tr('Grand Total', 'المجموع الكلي')}</td><td>${inv.total} SAR</td></tr></tbody></table>
+    <tbody><tr><td>${escapeHTML(inv.description || inv.service_type)}</td><td>${escapeHTML(inv.amount)} SAR</td><td>${escapeHTML(inv.vat_amount || 0)} SAR</td><td>${escapeHTML(inv.total)} SAR</td></tr>
+    <tr class="total-row"><td colspan="3">${tr('Grand Total', 'المجموع الكلي')}</td><td>${escapeHTML(inv.total)} SAR</td></tr></tbody></table>
     <div class="signature"><div>${tr('Cashier', 'أمين الصندوق')}</div><div>${tr('Patient Signature', 'توقيع المريض')}</div></div>`;
     printDocument(tr('Tax Invoice', 'فاتورة ضريبية'), content);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
@@ -373,13 +379,13 @@ window.printLabReport = async function (id) {
   try {
     const data = await API.get('/api/print/lab-report/' + id);
     const content = `<div class="info-grid">
-      <div><strong>${tr('Patient', 'المريض')}:</strong> ${data.patient?.name_ar || data.patient?.name_en || '-'}</div>
-      <div><strong>${tr('File #', 'رقم الملف')}:</strong> ${data.patient?.file_number || '-'}</div>
-      <div><strong>${tr('Test', 'الفحص')}:</strong> ${data.order?.description}</div>
-      <div><strong>${tr('Date', 'التاريخ')}:</strong> ${data.order?.created_at?.split('T')[0]}</div>
+      <div><strong>${tr('Patient', 'المريض')}:</strong> ${escapeHTML(data.patient?.name_ar || data.patient?.name_en || '-')}</div>
+      <div><strong>${tr('File #', 'رقم الملف')}:</strong> ${escapeHTML(data.patient?.file_number || '-')}</div>
+      <div><strong>${tr('Test', 'الفحص')}:</strong> ${escapeHTML(data.order?.description)}</div>
+      <div><strong>${tr('Date', 'التاريخ')}:</strong> ${escapeHTML(data.order?.created_at?.split('T')[0])}</div>
     </div>
     <table><thead><tr><th>${tr('Test', 'الفحص')}</th><th>${tr('Result', 'النتيجة')}</th><th>${tr('Normal Range', 'المعدل الطبيعي')}</th><th>${tr('Status', 'الحالة')}</th></tr></thead>
-    <tbody>${(data.results || []).map(r => `<tr style="${r.is_abnormal ? 'color:#e74c3c;font-weight:700' : ''}"><td>${r.test_name || '-'}</td><td>${r.result_value || '-'}</td><td>${r.normal_range || '-'}</td><td>${r.is_abnormal ? '⚠️ ' + tr('Abnormal', 'غير طبيعي') : '✅ ' + tr('Normal', 'طبيعي')}</td></tr>`).join('')}</tbody></table>
+    <tbody>${(data.results || []).map(r => `<tr style="${r.is_abnormal ? 'color:#e74c3c;font-weight:700' : ''}"><td>${escapeHTML(r.test_name || '-')}</td><td>${escapeHTML(r.result_value || '-')}</td><td>${escapeHTML(r.normal_range || '-')}</td><td>${r.is_abnormal ? '⚠️ ' + tr('Abnormal', 'غير طبيعي') : '✅ ' + tr('Normal', 'طبيعي')}</td></tr>`).join('')}</tbody></table>
     <div class="signature"><div>${tr('Lab Technician', 'فني المختبر')}</div><div>${tr('Doctor', 'الطبيب')}</div></div>`;
     printDocument(tr('Lab Report', 'تقرير مختبر'), content);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
@@ -535,12 +541,12 @@ window.viewSignedConsent = async function (id) {
       '<h3 style="margin-bottom:12px;color:var(--primary)">' + (tmpl.title_ar || c.title) + '</h3>' +
       '<div style="white-space:pre-wrap;line-height:2;font-size:14px;padding:12px;background:var(--hover);border-radius:8px;max-height:300px;overflow-y:auto;margin-bottom:16px">' + tmpl.body_text_ar + '</div>' +
       '<div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:12px">' +
-      '<div><strong>' + tr('Patient', 'المريض') + ':</strong> ' + c.patient_name + '</div>' +
-      '<div><strong>' + tr('Doctor', 'الطبيب') + ':</strong> ' + (c.doctor_name || c.created_by) + '</div>' +
+      '<div><strong>' + tr('Patient', 'المريض') + ':</strong> ' + escapeHTML(c.patient_name) + '</div>' +
+      '<div><strong>' + tr('Doctor', 'الطبيب') + ':</strong> ' + escapeHTML(c.doctor_name || c.created_by) + '</div>' +
       '<div><strong>' + tr('Date', 'التاريخ') + ':</strong> ' + new Date(c.signed_at || c.created_at).toLocaleString('ar-SA') + '</div>' +
-      (c.witness_name ? '<div><strong>' + tr('Witness', 'الشاهد') + ':</strong> ' + c.witness_name + '</div>' : '') +
+      (c.witness_name ? '<div><strong>' + tr('Witness', 'الشاهد') + ':</strong> ' + escapeHTML(c.witness_name) + '</div>' : '') +
       '</div>';
-    if (c.signature_data) html += '<div style="margin-top:12px"><strong>' + tr('Signature', 'التوقيع') + ':</strong><br><img src="' + c.signature_data + '" style="max-width:300px;border:1px solid var(--border);border-radius:4px;margin-top:4px"></div>';
+    if (c.signature_data) html += '<div style="margin-top:12px"><strong>' + tr('Signature', 'التوقيع') + ':</strong><br><img src="' + escapeHTML(c.signature_data) + '" style="max-width:300px;border:1px solid var(--border);border-radius:4px;margin-top:4px"></div>';
     html += '</div>';
     showModal(tr('Signed Consent', 'الإقرار الموقع'), html);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
@@ -555,15 +561,15 @@ window.printSignedConsent = async function (id) {
     let html = '<div style="direction:rtl;text-align:right;font-family:Arial,sans-serif">' +
       '<div style="text-align:center;margin-bottom:20px"><h2>مركز نما الطبي</h2><h3 style="color:#1a56db">' + tmpl.title_ar + '</h3></div>' +
       '<div style="white-space:pre-wrap;line-height:2.2;font-size:14px;margin-bottom:20px">' + tmpl.body_text_ar + '</div>' +
-      (c.procedure_details ? '<div style="margin-bottom:16px;padding:8px;border:1px solid #ccc;border-radius:4px"><strong>تفاصيل الإجراء:</strong> ' + c.procedure_details + '</div>' : '') +
+      (c.procedure_details ? '<div style="margin-bottom:16px;padding:8px;border:1px solid #ccc;border-radius:4px"><strong>تفاصيل الإجراء:</strong> ' + escapeHTML(c.procedure_details) + '</div>' : '') +
       '<div style="margin-top:30px;display:flex;justify-content:space-between">' +
-      '<div><strong>اسم المريض:</strong> ' + c.patient_name + '</div>' +
+      '<div><strong>اسم المريض:</strong> ' + escapeHTML(c.patient_name) + '</div>' +
       '<div><strong>التاريخ:</strong> ' + new Date(c.signed_at || c.created_at).toLocaleDateString('ar-SA') + '</div>' +
       '</div>' +
-      '<div style="margin-top:10px"><strong>الطبيب:</strong> ' + (c.doctor_name || '-') + '</div>' +
-      (c.witness_name ? '<div style="margin-top:10px"><strong>الشاهد:</strong> ' + c.witness_name + '</div>' : '') +
+      '<div style="margin-top:10px"><strong>الطبيب:</strong> ' + escapeHTML(c.doctor_name || '-') + '</div>' +
+      (c.witness_name ? '<div style="margin-top:10px"><strong>الشاهد:</strong> ' + escapeHTML(c.witness_name) + '</div>' : '') +
       '<div style="margin-top:20px"><strong>التوقيع:</strong><br>' +
-      (c.signature_data ? '<img src="' + c.signature_data + '" style="max-width:250px;margin-top:4px">' : '_______________') + '</div>' +
+      (c.signature_data ? '<img src="' + escapeHTML(c.signature_data) + '" style="max-width:250px;margin-top:4px">' : '_______________') + '</div>' +
       '</div>';
     printDocument(tmpl.title_ar, html, { showHeader: false });
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
@@ -616,7 +622,7 @@ async function renderOBGYN(el) {
       let html = '<table class="data-table"><thead><tr><th>' + tr('Patient', 'المريضة') + '</th><th>GPAL</th><th>' + tr('EDD', 'تاريخ الولادة المتوقع') + '</th><th>' + tr('Risk', 'الخطورة') + '</th><th>' + tr('Doctor', 'الطبيب') + '</th><th>' + tr('Actions', 'إجراءات') + '</th></tr></thead><tbody>';
       preg.forEach(p => {
         const riskColor = p.risk_level === 'High' ? '#ef4444' : p.risk_level === 'Medium' ? '#f59e0b' : '#22c55e';
-        html += '<tr><td>' + p.patient_name + '</td><td>G' + p.gravida + 'P' + p.para + 'A' + p.abortions + 'L' + p.living_children + '</td><td>' + (p.edd || '-') + '</td><td><span style="color:' + riskColor + ';font-weight:700">' + p.risk_level + '</span></td><td>' + (p.attending_doctor || '-') + '</td><td><button class="btn btn-sm" onclick="showAntenatalForm(' + p.id + ',' + p.patient_id + ')">📋 ' + tr('Antenatal', 'متابعة') + '</button></td></tr>';
+        html += '<tr><td>' + escapeHTML(p.patient_name) + '</td><td>G' + p.gravida + 'P' + p.para + 'A' + p.abortions + 'L' + p.living_children + '</td><td>' + escapeHTML(p.edd || '-') + '</td><td><span style="color:' + riskColor + ';font-weight:700">' + escapeHTML(p.risk_level) + '</span></td><td>' + escapeHTML(p.attending_doctor || '-') + '</td><td><button class="btn btn-sm" onclick="showAntenatalForm(' + safeId(p.id) + ',' + safeId(p.patient_id) + ')">📋 ' + tr('Antenatal', 'متابعة') + '</button></td></tr>';
       });
       html += '</tbody></table>';
       list.innerHTML = html;
@@ -628,7 +634,7 @@ async function renderOBGYN(el) {
     const panels = await API.get('/api/obgyn/lab-panels');
     let ph = '<div style="display:grid;gap:8px">';
     panels.forEach(p => {
-      ph += '<div style="padding:12px;border-radius:8px;background:var(--hover);border-right:3px solid #ec4899"><strong>' + p.panel_name_ar + '</strong> (' + p.trimester + ')<br><small style="color:var(--text-muted)">' + p.tests + '</small></div>';
+      ph += '<div style="padding:12px;border-radius:8px;background:var(--hover);border-right:3px solid #ec4899"><strong>' + escapeHTML(p.panel_name_ar) + '</strong> (' + escapeHTML(p.trimester) + ')<br><small style="color:var(--text-muted)">' + escapeHTML(p.tests) + '</small></div>';
     });
     ph += '</div>';
     document.getElementById('obLabPanels').innerHTML = ph;
@@ -755,7 +761,7 @@ window.showMedicalReportForm = (type) => {
       '<select class="form-input" id="mrFitness"><option value="fit">' + tr('Fit', 'لائق') + '</option><option value="unfit">' + tr('Unfit', 'غير لائق') + '</option><option value="conditional">' + tr('Conditional', 'مشروط') + '</option></select></div>' : '') +
     '<div class="form-group"><label>' + tr('Notes', 'ملاحظات') + '</label><textarea class="form-input" id="mrNotes" rows="3"></textarea></div>' +
     '<div style="display:flex;gap:12px;margin-top:16px">' +
-    '<button class="btn btn-primary" onclick="saveMedicalReport(\'' + type + '\', ' + patientId + ', \'' + patientName.replace(/'/g, '') + '\')" style="flex:1">💾 ' + tr('Save & Print', 'حفظ وطباعة') + '</button>' +
+    '<button class="btn btn-primary" onclick="saveMedicalReport(\'' + type + '\', ' + safeId(patientId) + ', \'' + jsStr(patientName) + '\')" style="flex:1">💾 ' + tr('Save & Print', 'حفظ وطباعة') + '</button>' +
     '<button class="btn btn-secondary" onclick="this.closest(\'.modal-overlay\').remove()" style="flex:1">' + tr('Cancel', 'إلغاء') + '</button>' +
     '</div></div>';
   document.body.appendChild(modal);
@@ -797,26 +803,26 @@ window.printMedicalReport = (report, type) => {
   html += '</div>';
   html += '<h3 style="text-align:center;background:#f0f6ff;padding:12px;border-radius:8px;margin:20px 0">' + label.ar + ' / ' + label.en + '</h3>';
   html += '<table style="width:100%;margin:16px 0;border-collapse:collapse">';
-  html += '<tr><td style="padding:8px;font-weight:bold;width:30%">رقم التقرير:</td><td style="padding:8px">' + (report.report_number || '') + '</td></tr>';
-  html += '<tr><td style="padding:8px;font-weight:bold">اسم المريض:</td><td style="padding:8px">' + (report.patient_name || '') + '</td></tr>';
-  html += '<tr><td style="padding:8px;font-weight:bold">التشخيص:</td><td style="padding:8px">' + (report.diagnosis || '') + '</td></tr>';
-  if (report.icd_code) html += '<tr><td style="padding:8px;font-weight:bold">رمز ICD:</td><td style="padding:8px">' + report.icd_code + '</td></tr>';
+  html += '<tr><td style="padding:8px;font-weight:bold;width:30%">رقم التقرير:</td><td style="padding:8px">' + escapeHTML(report.report_number || '') + '</td></tr>';
+  html += '<tr><td style="padding:8px;font-weight:bold">اسم المريض:</td><td style="padding:8px">' + escapeHTML(report.patient_name || '') + '</td></tr>';
+  html += '<tr><td style="padding:8px;font-weight:bold">التشخيص:</td><td style="padding:8px">' + escapeHTML(report.diagnosis || '') + '</td></tr>';
+  if (report.icd_code) html += '<tr><td style="padding:8px;font-weight:bold">رمز ICD:</td><td style="padding:8px">' + escapeHTML(report.icd_code) + '</td></tr>';
   if (type === 'sick_leave') {
-    html += '<tr><td style="padding:8px;font-weight:bold">من تاريخ:</td><td style="padding:8px">' + (report.start_date || '') + '</td></tr>';
-    html += '<tr><td style="padding:8px;font-weight:bold">إلى تاريخ:</td><td style="padding:8px">' + (report.end_date || '') + '</td></tr>';
-    html += '<tr><td style="padding:8px;font-weight:bold">عدد الأيام:</td><td style="padding:8px">' + (report.duration_days || '') + ' ' + (isArabic ? 'يوم' : 'days') + '</td></tr>';
+    html += '<tr><td style="padding:8px;font-weight:bold">من تاريخ:</td><td style="padding:8px">' + escapeHTML(report.start_date || '') + '</td></tr>';
+    html += '<tr><td style="padding:8px;font-weight:bold">إلى تاريخ:</td><td style="padding:8px">' + escapeHTML(report.end_date || '') + '</td></tr>';
+    html += '<tr><td style="padding:8px;font-weight:bold">عدد الأيام:</td><td style="padding:8px">' + escapeHTML(report.duration_days || '') + ' ' + (isArabic ? 'يوم' : 'days') + '</td></tr>';
   }
   if (type === 'fitness') {
     const statusAr = { fit: 'لائق طبياً', unfit: 'غير لائق', conditional: 'لائق بشروط' };
     html += '<tr><td style="padding:8px;font-weight:bold">الحالة:</td><td style="padding:8px;font-weight:bold;color:' + (report.fitness_status === 'fit' ? 'green' : 'red') + '">' + (statusAr[report.fitness_status] || '') + '</td></tr>';
   }
-  if (report.notes) html += '<tr><td style="padding:8px;font-weight:bold">ملاحظات:</td><td style="padding:8px">' + report.notes + '</td></tr>';
+  if (report.notes) html += '<tr><td style="padding:8px;font-weight:bold">ملاحظات:</td><td style="padding:8px">' + escapeHTML(report.notes) + '</td></tr>';
   html += '</table>';
   html += '<div style="margin-top:40px;display:flex;justify-content:space-between">';
-  html += '<div style="text-align:center"><p>_______________</p><p>توقيع الطبيب</p><p style="font-weight:bold">' + (report.doctor || '') + '</p></div>';
+  html += '<div style="text-align:center"><p>_______________</p><p>توقيع الطبيب</p><p style="font-weight:bold">' + escapeHTML(report.doctor || '') + '</p></div>';
   html += '<div style="text-align:center"><p>_______________</p><p>ختم المنشأة</p></div>';
   html += '</div>';
-  html += '<p style="text-align:center;margin-top:24px;font-size:11px;color:#999">تاريخ الإصدار: ' + new Date().toLocaleDateString('ar-SA') + ' | Report #' + (report.report_number || '') + '</p>';
+  html += '<p style="text-align:center;margin-top:24px;font-size:11px;color:#999">تاريخ الإصدار: ' + new Date().toLocaleDateString('ar-SA') + ' | Report #' + escapeHTML(report.report_number || '') + '</p>';
   html += '</div>';
 
   printDocument(label.ar, html, { showHeader: false });
@@ -833,8 +839,8 @@ window.checkDrugInteractions = async (drugs) => {
       result.interactions.forEach(i => {
         const color = i.severity === 'critical' ? '#cc0000' : i.severity === 'high' ? '#ff6600' : '#ff9900';
         alertHtml += '<div style="margin:8px 0;padding:8px;background:#fff;border-right:4px solid ' + color + ';border-radius:4px">';
-        alertHtml += '<strong>' + i.drugs.join(' ↔ ') + '</strong><br>';
-        alertHtml += '<span style="color:' + color + '">[' + i.severity.toUpperCase() + '] ' + (isArabic ? i.message_ar : i.message_en) + '</span>';
+        alertHtml += '<strong>' + escapeHTML(i.drugs.join(' ↔ ')) + '</strong><br>';
+        alertHtml += '<span style="color:' + color + '">[' + i.severity.toUpperCase() + '] ' + escapeHTML(isArabic ? i.message_ar : i.message_en) + '</span>';
         alertHtml += '</div>';
       });
       alertHtml += '</div>';
@@ -860,11 +866,11 @@ window.checkAllergyBeforePrescribe = async (patientId, drugs) => {
     if (result.alerts && result.alerts.length > 0) {
       let alertHtml = '<div style="background:#ffe0e0;border:3px solid #ff0000;border-radius:12px;padding:20px;direction:rtl">';
       alertHtml += '<h3 style="color:#cc0000;margin:0 0 12px">🚨 ' + tr('ALLERGY ALERT!', 'تحذير حساسية!') + '</h3>';
-      alertHtml += '<p style="margin:0 0 12px">' + tr('Patient allergies:', 'حساسية المريض:') + ' <strong style="color:#cc0000">' + result.patient_allergies + '</strong></p>';
+      alertHtml += '<p style="margin:0 0 12px">' + tr('Patient allergies:', 'حساسية المريض:') + ' <strong style="color:#cc0000">' + escapeHTML(result.patient_allergies) + '</strong></p>';
       result.alerts.forEach(a => {
         alertHtml += '<div style="margin:8px 0;padding:10px;background:#fff;border-right:5px solid #ff0000;border-radius:4px">';
-        alertHtml += '<strong style="color:#cc0000">💊 ' + a.drug + '</strong><br>';
-        alertHtml += '<span>' + (isArabic ? a.message_ar : a.message_en) + '</span>';
+        alertHtml += '<strong style="color:#cc0000">💊 ' + escapeHTML(a.drug) + '</strong><br>';
+        alertHtml += '<span>' + escapeHTML(isArabic ? a.message_ar : a.message_en) + '</span>';
         alertHtml += '</div>';
       });
       alertHtml += '</div>';
@@ -933,14 +939,14 @@ window.callNextPatient = async () => {
       '<span style="background:#e3f2fd;padding:4px 12px;border-radius:20px;font-size:14px">⏳ ' + result.waiting_count + ' ' + tr('waiting', 'بالانتظار') + '</span>' +
       '</div>' +
       '<div style="background:#f8f9fa;border-radius:12px;padding:16px;margin-bottom:16px">' +
-      '<h4 style="margin:0 0 8px;font-size:18px">' + (p.name_ar || p.name_en || q.patient_name || '') + '</h4>' +
+      '<h4 style="margin:0 0 8px;font-size:18px">' + escapeHTML(p.name_ar || p.name_en || q.patient_name || '') + '</h4>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:14px">' +
-      '<span>📁 ' + tr('MRN:', 'الملف:') + ' <strong>' + (p.mrn || p.file_number || '') + '</strong></span>' +
-      '<span>🎂 ' + tr('Age:', 'العمر:') + ' <strong>' + (p.age || '') + '</strong></span>' +
-      '<span>📱 ' + tr('Phone:', 'الجوال:') + ' <strong>' + (p.phone || '') + '</strong></span>' +
-      '<span>🆔 ' + tr('ID:', 'الهوية:') + ' <strong>' + (p.national_id || '') + '</strong></span>' +
-      (p.allergies ? '<span style="grid-column:1/-1;color:#cc0000;font-weight:bold">⚠️ ' + tr('Allergies:', 'حساسية:') + ' ' + p.allergies + '</span>' : '') +
-      (p.chronic_diseases ? '<span style="grid-column:1/-1;color:#e65100">🏥 ' + tr('Chronic:', 'أمراض مزمنة:') + ' ' + p.chronic_diseases + '</span>' : '') +
+      '<span>📁 ' + tr('MRN:', 'الملف:') + ' <strong>' + escapeHTML(p.mrn || p.file_number || '') + '</strong></span>' +
+      '<span>🎂 ' + tr('Age:', 'العمر:') + ' <strong>' + escapeHTML(p.age || '') + '</strong></span>' +
+      '<span>📱 ' + tr('Phone:', 'الجوال:') + ' <strong>' + escapeHTML(p.phone || '') + '</strong></span>' +
+      '<span>🆔 ' + tr('ID:', 'الهوية:') + ' <strong>' + escapeHTML(p.national_id || '') + '</strong></span>' +
+      (p.allergies ? '<span style="grid-column:1/-1;color:#cc0000;font-weight:bold">⚠️ ' + tr('Allergies:', 'حساسية:') + ' ' + escapeHTML(p.allergies) + '</span>' : '') +
+      (p.chronic_diseases ? '<span style="grid-column:1/-1;color:#e65100">🏥 ' + tr('Chronic:', 'أمراض مزمنة:') + ' ' + escapeHTML(p.chronic_diseases) + '</span>' : '') +
       '</div></div>' +
       (v.blood_pressure || v.temperature || v.pulse ?
         '<div style="background:#e8f5e9;border-radius:12px;padding:12px;margin-bottom:16px">' +
@@ -1040,8 +1046,8 @@ window.loadMyQueue = async () => {
       '<h3 style="margin:0 0 16px">📋 ' + tr('My Queue', 'طابوري') + ' (' + queue.length + ')</h3>';
     queue.forEach((q, i) => {
       const isActive = q.status === 'In Progress';
-      html += '<div style="padding:12px;margin:8px 0;background:' + (isActive ? '#e8f5e9' : '#f5f5f5') + ';border-radius:8px;border-right:4px solid ' + (isActive ? '#4caf50' : '#ccc') + ';cursor:pointer" onclick="selectPatientFromQueue(' + q.patient_id + ');this.closest(\'[style*=position]\').remove()">' +
-        '<div style="display:flex;justify-content:space-between"><strong>' + (i + 1) + '. ' + (q.patient_name || '') + '</strong><span style="font-size:12px;color:#666">' + (q.check_in_time ? new Date(q.check_in_time).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) : '') + '</span></div>' +
+      html += '<div style="padding:12px;margin:8px 0;background:' + (isActive ? '#e8f5e9' : '#f5f5f5') + ';border-radius:8px;border-right:4px solid ' + (isActive ? '#4caf50' : '#ccc') + ';cursor:pointer" onclick="selectPatientFromQueue(' + safeId(q.patient_id) + ');this.closest(\'[style*=position]\').remove()">' +
+        '<div style="display:flex;justify-content:space-between"><strong>' + (i + 1) + '. ' + escapeHTML(q.patient_name || '') + '</strong><span style="font-size:12px;color:#666">' + (q.check_in_time ? new Date(q.check_in_time).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) : '') + '</span></div>' +
         '<span style="font-size:12px;color:' + (isActive ? '#2e7d32' : '#999') + '">' + (isActive ? '🟢 ' + tr('In Progress', 'جاري') : '⏳ ' + tr('Waiting', 'بالانتظار')) + '</span>' +
         '</div>';
     });
@@ -1241,8 +1247,8 @@ window.toggleCalendarView = async () => {
         html += '<td style="padding:2px;border:1px solid #e0e0e0;vertical-align:top;height:50px">';
         hourAppts.forEach(a => {
           const statusColor = a.status === 'Cancelled' ? '#ffcdd2' : a.status === 'Checked-In' ? '#c8e6c9' : a.status === 'No-Show' ? '#ffe0b2' : '#e3f2fd';
-          html += '<div style="background:' + statusColor + ';border-radius:4px;padding:2px 4px;margin:1px 0;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer" title="' + (a.patient_name || '') + ' - ' + (a.doctor_name || a.doctor || '') + '">' +
-            (a.patient_name || '').split(' ')[0] + ' <span style="color:#666">' + (a.doctor_name || a.doctor || '').split(' ').slice(-1)[0] + '</span></div>';
+          html += '<div style="background:' + statusColor + ';border-radius:4px;padding:2px 4px;margin:1px 0;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer" title="' + escapeHTML((a.patient_name || '') + ' - ' + (a.doctor_name || a.doctor || '')) + '">' +
+            escapeHTML((a.patient_name || '').split(' ')[0]) + ' <span style="color:#666">' + escapeHTML((a.doctor_name || a.doctor || '').split(' ').slice(-1)[0]) + '</span></div>';
         });
         html += '</td>';
       });
@@ -1440,8 +1446,8 @@ async function renderDashboard(el) {
         <div class="flex items-center gap-3">
           <span class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">${index + 1}</span>
           <div>
-            <p class="font-bold text-primary text-sm">👨‍⚕️ ${d.display_name || tr('Unknown', 'غير معروف')}</p>
-            <p class="text-xs text-on-surface-variant font-medium">${d.patients} ${tr('patients', 'مريض')}</p>
+            <p class="font-bold text-primary text-sm">👨‍⚕️ ${escapeHTML(d.display_name || tr('Unknown', 'غير معروف'))}</p>
+            <p class="text-xs text-on-surface-variant font-medium">${escapeHTML(d.patients)} ${tr('patients', 'مريض')}</p>
           </div>
         </div>
         <span class="font-bold text-secondary text-sm">${Number(d.revenue).toLocaleString()} SAR</span>
@@ -1466,7 +1472,7 @@ async function renderDashboard(el) {
       return `
         <div class="space-y-1">
           <div class="flex justify-between text-xs font-medium text-on-surface-variant">
-            <span>${typeIcons[r.service_type] || '📄'} ${r.service_type} (${r.cnt})</span>
+            <span>${typeIcons[r.service_type] || '📄'} ${escapeHTML(r.service_type)} (${escapeHTML(r.cnt)})</span>
             <span class="font-bold text-primary">${Number(r.total).toLocaleString()} SAR</span>
           </div>
           <div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
@@ -1916,15 +1922,15 @@ window.printPatientStatement = async (patientId) => {
     const invoices = account.invoices || [];
     let rows = invoices.map(inv =>
       '<tr><td>' + (inv.created_at ? new Date(inv.created_at).toLocaleDateString('ar-SA') : '-') +
-      '</td><td>' + (inv.description || inv.service_type || '-') +
-      '</td><td>' + (inv.total || 0) + ' SAR</td><td>' +
+      '</td><td>' + escapeHTML(inv.description || inv.service_type || '-') +
+      '</td><td>' + escapeHTML(inv.total || 0) + ' SAR</td><td>' +
       (inv.paid ? '\u2705 ' + tr('Paid', 'مدفوع') : '\u26A0\uFE0F ' + tr('Unpaid', 'غير مدفوع')) + '</td></tr>'
     ).join('');
     const content = '<div style="text-align:center;margin-bottom:20px"><h2>\u{1F3E5} ' + tr('Nama Medical', 'نما الطبي') + '</h2><div style="margin-bottom:8px"><button class="btn btn-sm" onclick="exportPatients()" style="background:#e0f7fa;color:#00838f">📥 ${tr("Export CSV","تصدير CSV")}</button></div><h3>' + tr('Patient Financial Statement', 'كشف حساب المريض') + '</h3></div>' +
-      '<table style="width:100%;margin-bottom:15px"><tr><td><strong>' + tr('Name', 'الاسم') + ':</strong> ' + (p.name_ar || p.name_en) + '</td><td><strong>MRN:</strong> ' + (p.mrn || p.file_number) + '</td></tr>' +
-      '<tr><td><strong>' + tr('ID', 'الهوية') + ':</strong> ' + (p.national_id || '-') + '</td><td><strong>' + tr('Phone', 'الجوال') + ':</strong> ' + (p.phone || '-') + '</td></tr></table>' +
+      '<table style="width:100%;margin-bottom:15px"><tr><td><strong>' + tr('Name', 'الاسم') + ':</strong> ' + escapeHTML(p.name_ar || p.name_en) + '</td><td><strong>MRN:</strong> ' + escapeHTML(p.mrn || p.file_number) + '</td></tr>' +
+      '<tr><td><strong>' + tr('ID', 'الهوية') + ':</strong> ' + escapeHTML(p.national_id || '-') + '</td><td><strong>' + tr('Phone', 'الجوال') + ':</strong> ' + escapeHTML(p.phone || '-') + '</td></tr></table>' +
       '<table border="1" cellpadding="6" cellspacing="0" style="width:100%;border-collapse:collapse"><thead><tr style="background:#f0f0f0"><th>' + tr('Date', 'التاريخ') + '</th><th>' + tr('Description', 'الوصف') + '</th><th>' + tr('Amount', 'المبلغ') + '</th><th>' + tr('Status', 'الحالة') + '</th></tr></thead><tbody>' + rows + '</tbody></table>' +
-      '<div style="margin-top:20px;padding:10px;background:#f9f9f9;border-radius:8px"><strong>' + tr('Total Billed', 'إجمالي المبالغ') + ':</strong> ' + (account.totalBilled || 0) + ' SAR | <strong>' + tr('Total Paid', 'المدفوع') + ':</strong> ' + (account.totalPaid || 0) + ' SAR | <strong style="color:' + (account.balance > 0 ? 'red' : 'green') + '">' + tr('Balance', 'الرصيد') + ':</strong> ' + (account.balance || 0) + ' SAR</div>';
+      '<div style="margin-top:20px;padding:10px;background:#f9f9f9;border-radius:8px"><strong>' + tr('Total Billed', 'إجمالي المبالغ') + ':</strong> ' + escapeHTML(account.totalBilled || 0) + ' SAR | <strong>' + tr('Total Paid', 'المدفوع') + ':</strong> ' + escapeHTML(account.totalPaid || 0) + ' SAR | <strong style="color:' + (account.balance > 0 ? 'red' : 'green') + '">' + tr('Balance', 'الرصيد') + ':</strong> ' + escapeHTML(account.balance || 0) + ' SAR</div>';
     printDocument(tr('Patient Statement', 'كشف حساب المريض'), content);
   } catch (e) { showToast(tr('Error loading statement', 'خطأ في تحميل الكشف'), 'error'); }
 };
@@ -2052,7 +2058,7 @@ async function renderReception(el) {
       <div class="error-card-premium">
         <div class="error-card-icon">⚠️</div>
         <h3>${tr('Failed to load reception data', 'فشل في تحميل بيانات الاستقبال')}</h3>
-        <p>${e.message || e}</p>
+        <p>${escapeHTML(e.message || e)}</p>
         <button class="btn btn-primary" onclick="navigateTo(currentPage)">🔄 ${tr('Retry', 'إعادة المحاولة')}</button>
       </div>
     `;
@@ -2282,7 +2288,7 @@ async function renderReception(el) {
           </select></div>
           <div id="invDoctorRow"><label>${tr('Doctor', 'الطبيب')}</label><select id="invDoctor" class="form-control">
             <option value="">${tr('Select Doctor', 'اختر الطبيب')}</option>
-            ${(doctors || []).map(d => `<option value="${d.name}">${d.name}</option>`).join('')}
+            ${(doctors || []).map(d => `<option value="${escapeHTML(d.name)}">${escapeHTML(d.name)}</option>`).join('')}
           </select></div>
           <div><label>${tr('Description', 'الوصف')}</label><input id="invDescription" class="form-control" placeholder="${tr('Service details', 'تفاصيل الخدمة')}"></div>
           <div><label>${tr('Amount (SAR)', 'المبلغ (ر.س)')}</label><input id="invAmount" type="number" step="0.01" class="form-control" placeholder="0.00"></div>
@@ -2525,7 +2531,7 @@ function renderPatientTable(patients) {
     id: p.id, raw: p
   }));
   document.getElementById('rTable').innerHTML = makeTable(headers, rows, (row) =>
-    `<button class="btn btn-sm" onclick="editPatient(${row.id})" title="${tr('Edit', 'تعديل')}">✏️</button> <button class="btn btn-sm btn-success" onclick="showNewInvoiceModal(${row.id},'${(row.raw.name_ar || row.raw.name_en || '').replace(/'/g, "\\'")}')" title="${tr('Invoice', 'فاتورة')}">🧾</button> <button class="btn btn-danger btn-sm" onclick="deletePatient(${row.id})" title="${tr('Delete', 'حذف')}">🗑</button>`
+    `<button class="btn btn-sm" onclick="editPatient(${safeId(row.id)})" title="${tr('Edit', 'تعديل')}">✏️</button> <button class="btn btn-sm btn-success" onclick="showNewInvoiceModal(${safeId(row.id)},'${jsStr(row.raw.name_ar || row.raw.name_en || '')}')" title="${tr('Invoice', 'فاتورة')}">🧾</button> <button class="btn btn-danger btn-sm" onclick="deletePatient(${safeId(row.id)})" title="${tr('Delete', 'حذف')}">🗑</button>`
   );
 }
 
@@ -2647,7 +2653,7 @@ async function renderAppointments(el) {
       <div class="error-card-premium">
         <div class="error-card-icon">⚠️</div>
         <h3>${tr('Failed to load appointments data', 'فشل في تحميل بيانات المواعيد')}</h3>
-        <p>${e.message || e}</p>
+        <p>${escapeHTML(e.message || e)}</p>
         <button class="btn btn-primary" onclick="navigateTo(currentPage)">🔄 ${tr('Retry', 'إعادة المحاولة')}</button>
       </div>
     `;
@@ -2662,7 +2668,7 @@ async function renderAppointments(el) {
   ` : makeTable(
     [tr('Patient', 'المريض'), tr('Doctor', 'الطبيب'), tr('Dept', 'القسم'), tr('Date', 'التاريخ'), tr('Time', 'الوقت'), tr('Status', 'الحالة'), tr('Delete', 'حذف')],
     appts.map(a => ({ cells: [a.patient_name, a.doctor_name, a.department, a.appt_date, a.appt_time, statusBadge(a.status)], id: a.id })),
-    (row) => `<button class="btn btn-sm" onclick="checkInPatient(${row.id})" title="${tr('Check-in', 'تسجيل وصول')}" style="background:#e8f5e9;color:#2e7d32;margin:0 2px">✅</button><button class="btn btn-sm" onclick="markNoShow(${row.id})" title="${tr('No-Show', 'متغيب')}" style="background:#fff3e0;color:#e65100;margin:0 2px">⚠️</button><button class="btn btn-danger btn-sm" onclick="delAppt(${row.id})" style="margin:0 2px">🗑</button>`
+    (row) => `<button class="btn btn-sm" onclick="checkInPatient(${safeId(row.id)})" title="${tr('Check-in', 'تسجيل وصول')}" style="background:#e8f5e9;color:#2e7d32;margin:0 2px">✅</button><button class="btn btn-sm" onclick="markNoShow(${safeId(row.id)})" title="${tr('No-Show', 'متغيب')}" style="background:#fff3e0;color:#e65100;margin:0 2px">⚠️</button><button class="btn btn-danger btn-sm" onclick="delAppt(${safeId(row.id)})" style="margin:0 2px">🗑</button>`
   );
 
   el.innerHTML = `
@@ -2670,8 +2676,8 @@ async function renderAppointments(el) {
     <div class="split-layout">
       <div class="card glass-card-premium">
         <div class="card-title">📝 ${tr('Book Appointment', 'حجز موعد')}</div>
-        <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="aPatient"><option value="">${tr('Select patient', 'اختر مريض')}</option>${patients.map(p => `<option value="${p.name_en}" data-pid="${p.id}">${isArabic ? p.name_ar : p.name_en} (#${p.file_number})</option>`).join('')}</select></div>
-        <div class="form-group mb-12"><label>${tr('Doctor', 'الطبيب')}</label><select class="form-input" id="aDoctor"><option value="">${tr('Select doctor', 'اختر طبيب')}</option>${emps.map(d => `<option>${d.name}</option>`).join('')}</select></div>
+        <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="aPatient"><option value="">${tr('Select patient', 'اختر مريض')}</option>${patients.map(p => `<option value="${escapeHTML(p.name_en)}" data-pid="${safeId(p.id)}">${escapeHTML(isArabic ? p.name_ar : p.name_en)} (#${escapeHTML(p.file_number)})</option>`).join('')}</select></div>
+        <div class="form-group mb-12"><label>${tr('Doctor', 'الطبيب')}</label><select class="form-input" id="aDoctor"><option value="">${tr('Select doctor', 'اختر طبيب')}</option>${emps.map(d => `<option>${escapeHTML(d.name)}</option>`).join('')}</select></div>
         <div class="form-group mb-12"><label>${tr('Date', 'التاريخ')}</label><input class="form-input" type="date" id="aDate" value="${new Date().toISOString().split('T')[0]}"></div>
         <div class="form-group mb-12"><label>${tr('Time', 'الوقت')}</label><input class="form-input" type="time" id="aTime" value="${new Date().toTimeString().slice(0, 5)}"></div>
         <div class="form-group mb-12"><label>${tr('Notes', 'ملاحظات')}</label><input class="form-input" id="aNotes"></div>
@@ -2770,7 +2776,7 @@ async function renderDoctor(el) {
       <div class="error-card-premium">
         <div class="error-card-icon">⚠️</div>
         <h3>${tr('Failed to load doctor station data', 'فشل في تحميل بيانات محطة الطبيب')}</h3>
-        <p>${e.message || e}</p>
+        <p>${escapeHTML(e.message || e)}</p>
         <button class="btn btn-primary" onclick="navigateTo(currentPage)">🔄 ${tr('Retry', 'إعادة المحاولة')}</button>
       </div>
     `;
@@ -2791,7 +2797,7 @@ async function renderDoctor(el) {
           <div class="card-title">📝 ${tr('Select Patient', 'اختيار المريض')}</div>
           <select class="form-input w-full" id="drPatient" onchange="loadPatientInfo()">
             <option value="">${tr('-- Select --', '-- اختر مريض --')}</option>
-            ${patients.map(p => `<option value="${p.id}">${p.file_number} - ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)} (${statusText(p.status)})</option>`).join('')}
+            ${patients.map(p => `<option value="${safeId(p.id)}">${escapeHTML(p.file_number)} - ${escapeHTML(isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar))} (${statusText(p.status)})</option>`).join('')}
           </select>
           <div id="drPatientInfo" class="mt-16"></div>
         </div>
@@ -2818,15 +2824,15 @@ async function renderDoctor(el) {
           </div>
         <div class="card glass-card-premium mb-16">
           <div class="card-title">🏥 ${tr('Procedures / Services Performed', 'الإجراءات / الخدمات المنفذة')} ${drSpecialty ? `<span class="badge badge-info" style="font-size:11px;
-margin-right:8px">${drSpecialty}</span>` : ''}</div>
+margin-right:8px">${escapeHTML(drSpecialty)}</span>` : ''}</div>
           <div class="form-group mb-12"><label>${tr('Search Procedures', 'ابحث عن إجراء')}</label>
             <input class="form-input" id="drSvcSearch" placeholder="${tr('Type to search...', 'اكتب للبحث...')}" autocomplete="off" oninput="filterDrServices()">
             <div id="drSvcDropdown" style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;display:none;margin-top:4px;background:var(--card)"></div>
           </div>
           <div id="drSvcTags" class="flex gap-8" style="flex-wrap:wrap;margin-bottom:12px"></div>
-          <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">${tr('Available categories', 'التصنيفات المتاحة')}: <strong>${Object.keys(svcCategories).join(', ') || tr('All', 'الكل')}</strong></div>
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">${tr('Available categories', 'التصنيفات المتاحة')}: <strong>${escapeHTML(Object.keys(svcCategories).join(', ')) || tr('All', 'الكل')}</strong></div>
           <button class="btn btn-success w-full" onclick="billDrProcedures()" id="drBillBtn" style="height:40px;margin-top:8px">💵 ${tr('Bill Selected Procedures', 'فوتر الإجراءات المختارة')}</button>
-          <input type="hidden" id="drSvcData" value='${JSON.stringify(filteredServices)}'>
+          <input type="hidden" id="drSvcData" value='${escapeHTML(JSON.stringify(filteredServices))}'>
         </div>
         <div class="card glass-card-premium mb-16">
           <div class="card-title">🔬 ${tr('Refer to Laboratory', 'تحويل للمختبر')}</div>
@@ -3128,7 +3134,7 @@ margin-right:8px">${drSpecialty}</span>` : ''}</div>
           <div class="form-group mb-12"><label>${tr('Medication', 'الدواء')}</label>
             <input list="drugsDataList" class="form-input" id="drRxDrug" placeholder="${tr('Type to search medication...', 'ابحث عن اسم الدواء...')}" autocomplete="off">
             <datalist id="drugsDataList">
-              ${drugs.map(d => `<option value="${d.drug_name}">`).join('')}
+              ${drugs.map(d => `<option value="${escapeHTML(d.drug_name)}">`).join('')}
               <option value="${tr('Other', 'أخرى')}">
             </datalist>
           </div>
@@ -3220,20 +3226,20 @@ window.loadPatientInfo = async () => {
       vitalsHtml = `<div style="margin-top:12px;padding:12px;border:1px solid var(--border-color,#e5e7eb);border-radius:10px;background:var(--card-bg,#fff)">
         <div style="font-weight:600;margin-bottom:8px;font-size:13px">🌡️ ${tr('Vitals from Nursing', 'العلامات الحيوية من التمريض')} <span style="font-weight:400;font-size:11px;color:var(--text-dim)">${v.created_at ? new Date(v.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span></div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:12px">
-          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">🩸 ${tr('BP', 'الضغط')}<br><strong>${v.bp || '-'}</strong></div>
-          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">🌡️ ${tr('Temp', 'حرارة')}<br><strong>${v.temp ? v.temp + '°' : '-'}</strong></div>
-          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">❤️ ${tr('Pulse', 'نبض')}<br><strong>${v.pulse || '-'}</strong></div>
-          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">💨 ${tr('O2', 'أكسجين')}<br><strong>${v.o2_sat ? v.o2_sat + '%' : '-'}</strong></div>
+          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">🩸 ${tr('BP', 'الضغط')}<br><strong>${escapeHTML(v.bp || '-')}</strong></div>
+          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">🌡️ ${tr('Temp', 'حرارة')}<br><strong>${v.temp ? escapeHTML(v.temp) + '°' : '-'}</strong></div>
+          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">❤️ ${tr('Pulse', 'نبض')}<br><strong>${escapeHTML(v.pulse || '-')}</strong></div>
+          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">💨 ${tr('O2', 'أكسجين')}<br><strong>${v.o2_sat ? escapeHTML(v.o2_sat) + '%' : '-'}</strong></div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:12px;margin-top:6px">
-          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">💪 ${tr('Weight', 'وزن')}<br><strong>${v.weight ? v.weight + ' kg' : '-'}</strong></div>
-          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">📏 ${tr('Height', 'طول')}<br><strong>${v.height ? v.height + ' cm' : '-'}</strong></div>
-          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">🩸 ${tr('Sugar', 'سكر')}<br><strong>${v.blood_sugar || '-'}</strong></div>
-          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">🌬️ ${tr('Resp', 'تنفس')}<br><strong>${v.respiratory_rate || '-'}</strong></div>
+          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">💪 ${tr('Weight', 'وزن')}<br><strong>${v.weight ? escapeHTML(v.weight) + ' kg' : '-'}</strong></div>
+          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">📏 ${tr('Height', 'طول')}<br><strong>${v.height ? escapeHTML(v.height) + ' cm' : '-'}</strong></div>
+          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">🩸 ${tr('Sugar', 'سكر')}<br><strong>${escapeHTML(v.blood_sugar || '-')}</strong></div>
+          <div style="background:var(--bg-secondary,#f8f9fa);padding:6px;border-radius:6px;text-align:center">🌬️ ${tr('Resp', 'تنفس')}<br><strong>${escapeHTML(v.respiratory_rate || '-')}</strong></div>
         </div>
-        ${v.allergies ? `<div style="margin-top:6px"><span class="badge badge-danger">⚠️ ${tr('Allergies', 'حساسية')}: ${v.allergies}</span></div>` : ''}
-        ${v.chronic_diseases ? `<div style="margin-top:4px"><span class="badge badge-warning">🏥 ${tr('Chronic', 'أمراض مزمنة')}: ${v.chronic_diseases}</span></div>` : ''}
-        ${v.current_medications ? `<div style="margin-top:4px"><span class="badge badge-info">💊 ${tr('Medications', 'أدوية')}: ${v.current_medications}</span></div>` : ''}
+        ${v.allergies ? `<div style="margin-top:6px"><span class="badge badge-danger">⚠️ ${tr('Allergies', 'حساسية')}: ${escapeHTML(v.allergies)}</span></div>` : ''}
+        ${v.chronic_diseases ? `<div style="margin-top:4px"><span class="badge badge-warning">🏥 ${tr('Chronic', 'أمراض مزمنة')}: ${escapeHTML(v.chronic_diseases)}</span></div>` : ''}
+        ${v.current_medications ? `<div style="margin-top:4px"><span class="badge badge-info">💊 ${tr('Medications', 'أدوية')}: ${escapeHTML(v.current_medications)}</span></div>` : ''}
       </div>`;
     }
     // Build patient history timeline
@@ -3251,7 +3257,7 @@ window.loadPatientInfo = async () => {
           <div style="font-weight:600;margin-bottom:10px;font-size:14px">📜 ${tr('Patient Full History', 'السجل الكامل للمريض')} (${events.length})</div>
           ${events.map(e => `<div style="display:flex;gap:10px;padding:8px;margin:4px 0;border-radius:8px;border-right:4px solid ${e.color};background:var(--hover,#f8f9fa);font-size:12px;align-items:flex-start">
             <span style="font-size:18px;min-width:24px">${e.icon}</span>
-            <div style="flex:1"><strong style="color:${e.color}">${e.label}</strong><div style="margin-top:2px;color:var(--text)">${e.detail}</div></div>
+            <div style="flex:1"><strong style="color:${e.color}">${e.label}</strong><div style="margin-top:2px;color:var(--text)">${escapeHTML(e.detail)}</div></div>
             <span style="color:var(--text-dim);font-size:11px;white-space:nowrap">${e.date ? new Date(e.date).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : '-'}</span>
           </div>`).join('')}
         </div>`;
@@ -3264,7 +3270,7 @@ window.loadPatientInfo = async () => {
         `;
       }
     }
-    document.getElementById('drPatientInfo').innerHTML = `<div class="flex gap-8 mt-16" style="flex-wrap:wrap;align-items:center"><span class="badge badge-info">📁 ${p.mrn || p.file_number}</span><span class="badge badge-warning">🎂 ${tr('Age', 'العمر')}: ${p.age || '?'}</span>${p.blood_type ? `<span class="badge" style="background:#dc2626;color:#fff;font-weight:700">🩸 ${p.blood_type}</span>` : ''}<span class="badge badge-success">📞 ${p.phone}</span><span class="badge badge-purple">🆔 ${p.national_id}</span>${p.gender ? `<span class="badge" style="background:${p.gender === 'ذكر' ? '#3b82f6' : '#ec4899'};color:#fff">${p.gender === 'ذكر' ? '👨' : '👩'} ${p.gender}</span>` : ''}${p.insurance_company ? `<span class="badge" style="background:#0d9488;color:#fff">🏢 ${p.insurance_company}${p.insurance_class ? ' (' + p.insurance_class + ')' : ''}</span>` : ''}<span class="badge" style="background:#0ea5e9;color:#fff">📅 ${tr('Visit', 'الزيارة')}: ${new Date().toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</span><button class="btn btn-sm btn-primary" onclick="viewPatientResults(${p.id})">📋 ${tr('View Lab & Radiology Results', 'استعراض نتائج الفحوصات والأشعة')}</button><button class="btn btn-sm" onclick="dischargePatient(${p.id})" style="margin-right:auto;background:#dc3545;color:#fff;font-weight:600">🚪 ${tr('Patient Done', 'المريض طلع')}</button></div>${p.allergies ? `<div style="margin-top:8px;padding:10px;background:#fef2f2;border:2px solid #ef4444;border-radius:8px;font-size:13px;font-weight:600;color:#dc2626">⚠️ <strong>${tr('ALLERGIES', 'حساسية')}:</strong> </div>` : ''}${p.chronic_diseases ? `<div style="margin-top:6px;padding:8px;background:#fefce8;border:1px solid #facc15;border-radius:8px;font-size:12px;color:#854d0e">🩺 <strong>${tr('Chronic Diseases', 'أمراض مزمنة')}:</strong> </div>` : ''}${vitalsHtml}${historyHtml}<div id="drResultsPanel"></div>`;
+    document.getElementById('drPatientInfo').innerHTML = `<div class="flex gap-8 mt-16" style="flex-wrap:wrap;align-items:center"><span class="badge badge-info">📁 ${escapeHTML(p.mrn || p.file_number)}</span><span class="badge badge-warning">🎂 ${tr('Age', 'العمر')}: ${escapeHTML(p.age || '?')}</span>${p.blood_type ? `<span class="badge" style="background:#dc2626;color:#fff;font-weight:700">🩸 ${escapeHTML(p.blood_type)}</span>` : ''}<span class="badge badge-success">📞 ${escapeHTML(p.phone)}</span><span class="badge badge-purple">🆔 ${escapeHTML(p.national_id)}</span>${p.gender ? `<span class="badge" style="background:${p.gender === 'ذكر' ? '#3b82f6' : '#ec4899'};color:#fff">${p.gender === 'ذكر' ? '👨' : '👩'} ${escapeHTML(p.gender)}</span>` : ''}${p.insurance_company ? `<span class="badge" style="background:#0d9488;color:#fff">🏢 ${escapeHTML(p.insurance_company)}${p.insurance_class ? ' (' + escapeHTML(p.insurance_class) + ')' : ''}</span>` : ''}<span class="badge" style="background:#0ea5e9;color:#fff">📅 ${tr('Visit', 'الزيارة')}: ${new Date().toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</span><button class="btn btn-sm btn-primary" onclick="viewPatientResults(${safeId(p.id)})">📋 ${tr('View Lab & Radiology Results', 'استعراض نتائج الفحوصات والأشعة')}</button><button class="btn btn-sm" onclick="dischargePatient(${safeId(p.id)})" style="margin-right:auto;background:#dc3545;color:#fff;font-weight:600">🚪 ${tr('Patient Done', 'المريض طلع')}</button></div>${p.allergies ? `<div style="margin-top:8px;padding:10px;background:#fef2f2;border:2px solid #ef4444;border-radius:8px;font-size:13px;font-weight:600;color:#dc2626">⚠️ <strong>${tr('ALLERGIES', 'حساسية')}:</strong> </div>` : ''}${p.chronic_diseases ? `<div style="margin-top:6px;padding:8px;background:#fefce8;border:1px solid #facc15;border-radius:8px;font-size:12px;color:#854d0e">🩺 <strong>${tr('Chronic Diseases', 'أمراض مزمنة')}:</strong> </div>` : ''}${vitalsHtml}${historyHtml}<div id="drResultsPanel"></div>`;
   } catch (e) { }
 };
 window.dischargePatient = async (pid) => {
@@ -3280,14 +3286,14 @@ window.viewPatientResults = async (pid) => {
     const data = await API.get(`/api/patients/${pid}/results`);
     const p = data.patient;
     let html = `<div class="card mt-16" style="border:2px solid var(--accent)">
-          <div class="card-title">📋 ${tr('Results for', 'نتائج')} ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</div>`;
+          <div class="card-title">📋 ${tr('Results for', 'نتائج')} ${escapeHTML(isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar))}</div>`;
     // Lab Results
     if (data.labOrders.length > 0) {
       html += `<div class="mb-16"><h4 style="color:var(--accent);margin:0 0 8px">🔬 ${tr('Lab Results', 'نتائج المختبر')} (${data.labOrders.length})</h4>`;
       data.labOrders.forEach(o => {
         html += `<div style="padding:10px;margin:6px 0;background:var(--hover);border-radius:8px;border-right:4px solid ${o.status === 'Done' ? '#4ade80' : '#f59e0b'}">
-                  <div class="flex gap-8" style="flex-wrap:wrap;align-items:center"><strong>${o.order_type}</strong> ${statusBadge(o.status)} <span style="color:var(--text-dim);font-size:12px">${o.created_at ? new Date(o.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span></div>
-                  ${o.results ? `<div style="margin-top:8px;padding:8px;background:var(--bg);border-radius:6px;font-size:13px;white-space:pre-wrap">${o.results}</div>` : `<div style="margin-top:4px;color:var(--text-dim);font-size:12px">${tr('No results yet', 'لا توجد نتائج بعد')}</div>`}
+                  <div class="flex gap-8" style="flex-wrap:wrap;align-items:center"><strong>${escapeHTML(o.order_type)}</strong> ${statusBadge(o.status)} <span style="color:var(--text-dim);font-size:12px">${o.created_at ? new Date(o.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span></div>
+                  ${o.results ? `<div style="margin-top:8px;padding:8px;background:var(--bg);border-radius:6px;font-size:13px;white-space:pre-wrap">${escapeHTML(o.results)}</div>` : `<div style="margin-top:4px;color:var(--text-dim);font-size:12px">${tr('No results yet', 'لا توجد نتائج بعد')}</div>`}
                 </div>`;
       });
       html += `</div>`;
@@ -3299,7 +3305,7 @@ window.viewPatientResults = async (pid) => {
       html += `<div class="mb-16"><h4 style="color:var(--accent);margin:0 0 8px">📡 ${tr('Radiology Results', 'نتائج الأشعة')} (${data.radOrders.length})</h4>`;
       data.radOrders.forEach(o => {
         html += `<div style="padding:10px;margin:6px 0;background:var(--hover);border-radius:8px;border-right:4px solid ${o.status === 'Done' ? '#4ade80' : '#f59e0b'}">
-                  <div class="flex gap-8" style="flex-wrap:wrap;align-items:center"><strong>${o.order_type}</strong> ${statusBadge(o.status)} <span style="color:var(--text-dim);font-size:12px">${o.created_at ? new Date(o.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span></div>
+                  <div class="flex gap-8" style="flex-wrap:wrap;align-items:center"><strong>${escapeHTML(o.order_type)}</strong> ${statusBadge(o.status)} <span style="color:var(--text-dim);font-size:12px">${o.created_at ? new Date(o.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span></div>
                   ${o.results ? `<div style="margin-top:8px">${renderRadResults(o.results)}</div>` : `<div style="margin-top:4px;color:var(--text-dim);font-size:12px">${tr('No results yet', 'لا توجد نتائج بعد')}</div>`}
                 </div>`;
       });
@@ -3410,9 +3416,9 @@ window.filterDrServices = () => {
   const svcs = JSON.parse(document.getElementById('drSvcData').value || '[]');
   const matches = svcs.filter(s => s.name_en.toLowerCase().includes(q) || s.name_ar.includes(q) || s.category.toLowerCase().includes(q)).slice(0, 15);
   if (!matches.length) { dd.innerHTML = `<div style="padding:10px;color:var(--text-dim)">${tr('No results', 'لا توجد نتائج')}</div>`; dd.style.display = 'block'; return; }
-  dd.innerHTML = matches.map(s => `<div onclick="addDrService(${s.id},'${s.name_en.replace(/'/g, "\\'")}','${s.name_ar.replace(/'/g, "\\'")}',${s.price},'${s.category}')" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background=''">
-    <span><strong>${isArabic ? s.name_ar : s.name_en}</strong> <small style="color:var(--text-dim)">${s.category}</small></span>
-    <span style="color:var(--accent);font-weight:600">${s.price} ${tr('SAR', 'ر.س')}</span>
+  dd.innerHTML = matches.map(s => `<div onclick="addDrService(${safeId(s.id)},'${jsStr(s.name_en)}','${jsStr(s.name_ar)}',${safeId(s.price) || 0},'${jsStr(s.category)}')" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background=''">
+    <span><strong>${escapeHTML(isArabic ? s.name_ar : s.name_en)}</strong> <small style="color:var(--text-dim)">${escapeHTML(s.category)}</small></span>
+    <span style="color:var(--accent);font-weight:600">${escapeHTML(s.price)} ${tr('SAR', 'ر.س')}</span>
   </div>`).join('');
   dd.style.display = 'block';
 };
@@ -3431,7 +3437,7 @@ function renderSvcTags() {
   const c = document.getElementById('drSvcTags');
   if (!selectedServices.length) { c.innerHTML = `<span style="color:var(--text-dim);font-size:13px">${tr('No procedures selected', 'لم يتم اختيار إجراءات')}</span>`; return; }
   const total = selectedServices.reduce((s, x) => s + x.price, 0);
-  c.innerHTML = selectedServices.map(s => `<span class="badge badge-info" style="font-size:12px;padding:6px 10px">${isArabic ? s.nameAr : s.nameEn} (${s.price} ${tr('SAR', 'ر.س')}) <span onclick="removeDrService(${s.id})" style="cursor:pointer;margin-right:4px;font-weight:bold">\u2715</span></span>`).join('') +
+  c.innerHTML = selectedServices.map(s => `<span class="badge badge-info" style="font-size:12px;padding:6px 10px">${escapeHTML(isArabic ? s.nameAr : s.nameEn)} (${escapeHTML(s.price)} ${tr('SAR', 'ر.س')}) <span onclick="removeDrService(${safeId(s.id)})" style="cursor:pointer;margin-right:4px;font-weight:bold">\u2715</span></span>`).join('') +
     `<span class="badge badge-success" style="font-size:12px;padding:6px 10px;margin-right:auto">\ud83d\udcb0 ${tr('Total', 'الإجمالي')}: ${total} ${tr('SAR', 'ر.س')}</span>`;
 }
 window.billDrProcedures = async () => {
@@ -3650,7 +3656,7 @@ async function renderLab(el) {
       <div class="error-card-premium">
         <div class="error-card-icon">⚠️</div>
         <h3>${tr('Failed to load laboratory data', 'فشل في تحميل بيانات المختبر')}</h3>
-        <p>${e.message || e}</p>
+        <p>${escapeHTML(e.message || e)}</p>
         <button class="btn btn-primary" onclick="navigateTo(currentPage)">🔄 ${tr('Retry', 'إعادة المحاولة')}</button>
       </div>
     `;
@@ -3666,7 +3672,7 @@ async function renderLab(el) {
       <div class="card glass-card-premium" style="flex:1">
         <div class="card-title">➕ ${tr('Direct Lab Order', 'إنشاء طلب فحص')}</div>
         <div class="form-group mb-12"><label>${tr('Select Patient (Optional)', 'اختر مريض (اختياري)')}</label>
-          <select class="form-input" id="labPatientId"><option value="">--</option>${patients.map(p => `<option value="${p.id}">${p.name_ar || p.name_en}</option>`).join('')}</select>
+          <select class="form-input" id="labPatientId"><option value="">--</option>${patients.map(p => `<option value="${safeId(p.id)}">${escapeHTML(p.name_ar || p.name_en)}</option>`).join('')}</select>
         </div>
         <div class="form-group mb-12"><label>${tr('Test Name', 'اسم التحليل')}</label>
           <select class="form-input" id="labDirectType">
@@ -3867,12 +3873,12 @@ async function renderLab(el) {
           ${orders.length === 0 ? `<tr><td colspan="8"><div class="empty-state-card"><div class="empty-state-icon">🔬</div><div>${tr('No lab orders found', 'لا توجد طلبات مختبر')}</div></div></td></tr>` : orders.map(o => {
     const pt = patients.find(p => p.id == o.patient_id);
     const nRange = getLabNormalRange(o.order_type, pt ? pt.gender : ''); return `<tr>
-            <td><svg id="labBC${o.id}" class="barcode-svg"></svg><br><button class="btn btn-sm btn-info" onclick="printLabBarcode(${o.id}, '${(o.patient_name || '').replace(/'/g, '\\')}', '${(o.order_type || '').replace(/'/g, '\\')}')" style="margin-top:4px;font-size:11px">🖨️ ${tr('Print', 'طباعة')}</button></td>
-            <td>${o.patient_name || ''}</td><td>${o.order_type}</td>
+            <td><svg id="labBC${safeId(o.id)}" class="barcode-svg"></svg><br><button class="btn btn-sm btn-info" onclick="printLabBarcode(${safeId(o.id)}, '${jsStr(o.patient_name || '')}', '${jsStr(o.order_type || '')}')" style="margin-top:4px;font-size:11px">🖨️ ${tr('Print', 'طباعة')}</button></td>
+            <td>${escapeHTML(o.patient_name || '')}</td><td>${escapeHTML(o.order_type)}</td>
             <td style="font-size:11px;max-width:200px;color:var(--text-dim);white-space:pre-wrap">${nRange || '-'}</td>
             <td>${statusBadge(o.status)}</td><td>${o.created_at ? new Date(o.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : ''}</td>
-            <td>${o.status === 'Done' && o.results ? `<div style="max-width:200px;padding:6px 10px;background:var(--hover);border-radius:6px;font-size:12px;white-space:pre-wrap">${o.results}</div>` : o.status !== 'Requested' ? `<textarea class="form-input form-textarea" id="labRpt${o.id}" rows="2" placeholder="${tr('Write report...', 'اكتب التقرير...')}" style="min-height:60px;font-size:12px">${o.results || ''}</textarea><button class="btn btn-sm btn-primary mt-8" onclick="saveLabReport(${o.id})">💾 ${tr('Save', 'حفظ')}</button>` : `<span style="color:var(--text-dim)">—</span>`}</td>
-            <td>${o.status !== 'Done' ? `<button class="btn btn-sm btn-success" onclick="updateLabStatus(${o.id},'${o.status === 'Requested' ? 'In Progress' : 'Done'}')">▶ ${o.status === 'Requested' ? tr('Start', 'بدء') : tr('Complete', 'إتمام')}</button>` : `<span class="badge badge-success">✅</span>`}</td>
+            <td>${o.status === 'Done' && o.results ? `<div style="max-width:200px;padding:6px 10px;background:var(--hover);border-radius:6px;font-size:12px;white-space:pre-wrap">${escapeHTML(o.results)}</div>` : o.status !== 'Requested' ? `<textarea class="form-input form-textarea" id="labRpt${safeId(o.id)}" rows="2" placeholder="${tr('Write report...', 'اكتب التقرير...')}" style="min-height:60px;font-size:12px">${escapeHTML(o.results || '')}</textarea><button class="btn btn-sm btn-primary mt-8" onclick="saveLabReport(${safeId(o.id)})">💾 ${tr('Save', 'حفظ')}</button>` : `<span style="color:var(--text-dim)">—</span>`}</td>
+            <td>${o.status !== 'Done' ? `<button class="btn btn-sm btn-success" onclick="updateLabStatus(${safeId(o.id)},'${o.status === 'Requested' ? 'In Progress' : 'Done'}')">▶ ${o.status === 'Requested' ? tr('Start', 'بدء') : tr('Complete', 'إتمام')}</button>` : `<span class="badge badge-success">✅</span>`}</td>
           </tr>`;
   }).join('')}
           </tbody></table></div></div>
@@ -3898,8 +3904,8 @@ window.printLabBarcode = (orderId, patientName, testType) => {
     <div class="label">
       <div class="clinic">نما الطبي - Nama Medical</div>
       <div style="margin:10px 0">${svgData}</div>
-      <div class="patient">👤 ${patientName}</div>
-      <div class="test">🔬 ${testType}</div>
+      <div class="patient">👤 ${escapeHTML(patientName)}</div>
+      <div class="test">🔬 ${escapeHTML(testType)}</div>
       <div class="date">📅 ${new Date().toLocaleDateString('en-CA')}</div>
     </div>
     <script>setTimeout(()=>{window.print();},300);<\/script></body></html>`);
@@ -3948,15 +3954,15 @@ async function loadPendingPaymentOrders() {
       <th>${tr('Action', 'إجراء')}</th>
     </tr></thead><tbody>
     ${orders.map(o => `<tr style="background:${o.is_radiology ? '#fef9c3' : '#dbeafe'}">
-      <td>${o.id}</td>
-      <td><strong>${o.patient_name || o.name_en || ''}</strong></td>
-      <td>${o.file_number || ''}</td>
+      <td>${escapeHTML(o.id)}</td>
+      <td><strong>${escapeHTML(o.patient_name || o.name_en || '')}</strong></td>
+      <td>${escapeHTML(o.file_number || '')}</td>
       <td>${o.is_radiology ? `<span class="badge badge-warning">📡 ${tr('Radiology', 'أشعة')}</span>` : `<span class="badge badge-info">🔬 ${tr('Lab', 'مختبر')}</span>`}</td>
-      <td>${o.order_type || ''}</td>
-      <td>${o.description || ''}</td>
-      <td>${o.created_at?.split('T')[0] || ''}</td>
+      <td>${escapeHTML(o.order_type || '')}</td>
+      <td>${escapeHTML(o.description || '')}</td>
+      <td>${escapeHTML(o.created_at?.split('T')[0] || '')}</td>
       <td>
-        <button class="btn btn-sm btn-success" onclick="approveOrderPayment(${o.id}, '${(o.patient_name || o.name_en || '').replace(/'/g, "\\'")}', '${(o.order_type || '').replace(/'/g, "\\'")}', ${o.is_radiology})">
+        <button class="btn btn-sm btn-success" onclick="approveOrderPayment(${safeId(o.id)}, '${jsStr(o.patient_name || o.name_en || '')}', '${jsStr(o.order_type || '')}', ${o.is_radiology ? 'true' : 'false'})">
           💵 ${tr('Pay & Approve', 'سداد وتحويل')}
         </button>
       </td>
@@ -3982,7 +3988,7 @@ window.scanLabBarcode = async () => {
   const m = code.match(/LAB-(\d+)/); const oid = m ? m[1] : code;
   try {
     const orders = await API.get('/api/lab/orders'); const o = orders.find(x => x.id == oid);
-    document.getElementById('labScanResult').innerHTML = o ? `<div class="card" style="border:2px solid var(--accent);margin-top:12px"><div class="card-title">🔍 ${tr('Order Found', 'تم العثور على الطلب')} #${o.id}</div><div class="flex gap-8" style="flex-wrap:wrap"><span class="badge badge-info">👤 </span><span class="badge badge-purple">🔬 ${o.order_type}</span>${statusBadge(o.status)}</div>${getLabNormalRange(o.order_type) ? `<div style="margin-top:8px;padding:8px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-size:11px">📊 <strong>${tr('Normal Range', 'المعدل الطبيعي')}:</strong> ${getLabNormalRange(o.order_type)}</div>` : ''}${o.results ? `<div class="mt-16" style="padding:12px;background:var(--hover);border-radius:8px"><strong>${tr('Report:', 'التقرير:')}</strong><br><pre style="white-space:pre-wrap;margin:4px 0 0">${o.results}</pre></div>` : ''}</div>` : `<div class="badge badge-danger mt-16">${tr('Order not found', 'الطلب غير موجود')}</div>`;
+    document.getElementById('labScanResult').innerHTML = o ? `<div class="card" style="border:2px solid var(--accent);margin-top:12px"><div class="card-title">🔍 ${tr('Order Found', 'تم العثور على الطلب')} #${escapeHTML(o.id)}</div><div class="flex gap-8" style="flex-wrap:wrap"><span class="badge badge-info">👤 </span><span class="badge badge-purple">🔬 ${escapeHTML(o.order_type)}</span>${statusBadge(o.status)}</div>${getLabNormalRange(o.order_type) ? `<div style="margin-top:8px;padding:8px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-size:11px">📊 <strong>${tr('Normal Range', 'المعدل الطبيعي')}:</strong> ${escapeHTML(getLabNormalRange(o.order_type))}</div>` : ''}${o.results ? `<div class="mt-16" style="padding:12px;background:var(--hover);border-radius:8px"><strong>${tr('Report:', 'التقرير:')}</strong><br><pre style="white-space:pre-wrap;margin:4px 0 0">${escapeHTML(o.results)}</pre></div>` : ''}</div>` : `<div class="badge badge-danger mt-16">${tr('Order not found', 'الطلب غير موجود')}</div>`;
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
@@ -3995,9 +4001,9 @@ function renderRadResults(results) {
   parts.forEach(p => {
     const imgMatch = p.match(/\[IMG:(.*?)\]/);
     if (imgMatch) {
-      html += `<a href="${imgMatch[1]}" target="_blank"><img src="${imgMatch[1]}" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:2px solid var(--border);cursor:pointer;margin:2px" title="${tr('Click to enlarge', 'اضغط للتكبير')}"></a>`;
+      html += `<a href="${safeUrl(imgMatch[1])}" target="_blank"><img src="${safeUrl(imgMatch[1])}" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:2px solid var(--border);cursor:pointer;margin:2px" title="${tr('Click to enlarge', 'اضغط للتكبير')}"></a>`;
     } else if (p.trim()) {
-      html += `<div style="font-size:12px;color:var(--text)">${p}</div>`;
+      html += `<div style="font-size:12px;color:var(--text)">${escapeHTML(p)}</div>`;
     }
   });
   return html;
@@ -4036,7 +4042,7 @@ async function renderRadiology(el) {
       <div class="error-card-premium">
         <div class="error-card-icon">⚠️</div>
         <h3>${tr('Failed to load radiology data', 'فشل في تحميل بيانات الأشعة')}</h3>
-        <p>${e.message || e}</p>
+        <p>${escapeHTML(e.message || e)}</p>
         <button class="btn btn-primary" onclick="navigateTo(currentPage)">🔄 ${tr('Retry', 'إعادة المحاولة')}</button>
       </div>
     `;
@@ -4052,7 +4058,7 @@ async function renderRadiology(el) {
       <div class="card glass-card-premium" style="flex:1">
         <div class="card-title">➕ ${tr('Direct Radiology Order', 'إنشاء طلب أشعة')}</div>
         <div class="form-group mb-12"><label>${tr('Select Patient (Optional)', 'اختر مريض (اختياري)')}</label>
-          <select class="form-input" id="radPatientId"><option value="">--</option>${patients.map(p => `<option value="${p.id}">${p.name_ar || p.name_en}</option>`).join('')}</select>
+          <select class="form-input" id="radPatientId"><option value="">--</option>${patients.map(p => `<option value="${safeId(p.id)}">${escapeHTML(p.name_ar || p.name_en)}</option>`).join('')}</select>
         </div>
         <div class="form-group mb-12"><label>${tr('Scan Type', 'نوع الأشعة')}</label>
           <select class="form-input" id="radDirectType">
@@ -4174,20 +4180,20 @@ async function renderRadiology(el) {
             <th>${tr('Barcode', 'الباركود')}</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Type', 'النوع')}</th><th>${tr('Status', 'الحالة')}</th><th>${tr('Date', 'التاريخ')}</th><th>${tr('Report & Images', 'التقرير والصور')}</th><th>${tr('Actions', 'إجراءات')}</th>
           </tr></thead><tbody>
           ${orders.length === 0 ? `<tr><td colspan="7"><div class="empty-state-card"><div class="empty-state-icon">📡</div><div>${tr('No radiology orders found', 'لا توجد طلبات أشعة')}</div></div></td></tr>` : orders.map(o => `<tr>
-            <td><svg id="radBC${o.id}" class="barcode-svg"></svg></td>
-            <td>${o.patient_name || ''}</td><td>${o.order_type}</td>
-            <td>${statusBadge(o.status)}</td><td>${o.created_at?.split('T')[0] || ''}</td>
+            <td><svg id="radBC${safeId(o.id)}" class="barcode-svg"></svg></td>
+            <td>${escapeHTML(o.patient_name || '')}</td><td>${escapeHTML(o.order_type)}</td>
+            <td>${statusBadge(o.status)}</td><td>${escapeHTML(o.created_at?.split('T')[0] || '')}</td>
             <td>
               ${o.status === 'Done' ? `<div style="max-width:250px">${renderRadResults(o.results)}</div>` :
       o.status !== 'Requested' ? `
-                <textarea class="form-input form-textarea" id="radRpt${o.id}" rows="2" placeholder="${tr('Write report...', 'اكتب التقرير...')}" style="min-height:50px;font-size:12px">${(o.results || '').replace(/\[IMG:.*?\]\n?/g, '')}</textarea>
+                <textarea class="form-input form-textarea" id="radRpt${safeId(o.id)}" rows="2" placeholder="${tr('Write report...', 'اكتب التقرير...')}" style="min-height:50px;font-size:12px">${escapeHTML((o.results || '').replace(/\[IMG:.*?\]\n?/g, ''))}</textarea>
                 <div class="flex gap-8 mt-8">
-                  <button class="btn btn-sm btn-primary" onclick="saveRadReport(${o.id})">💾 ${tr('Save', 'حفظ')}</button>
-                  <label class="btn btn-sm btn-success" style="cursor:pointer">📷 ${tr('Upload Image', 'رفع صورة')}<input type="file" accept="image/*" style="display:none" onchange="uploadRadImage(${o.id}, this)"></label>
+                  <button class="btn btn-sm btn-primary" onclick="saveRadReport(${safeId(o.id)})">💾 ${tr('Save', 'حفظ')}</button>
+                  <label class="btn btn-sm btn-success" style="cursor:pointer">📷 ${tr('Upload Image', 'رفع صورة')}<input type="file" accept="image/*" style="display:none" onchange="uploadRadImage(${safeId(o.id)}, this)"></label>
                 </div>
                 <div class="mt-8">${renderRadResults(o.results)}</div>` : `<span style="color:var(--text-dim)">—</span>`}
             </td>
-            <td>${o.status !== 'Done' ? `<button class="btn btn-sm btn-success" onclick="updateRadStatus(${o.id},'${o.status === 'Requested' ? 'In Progress' : 'Done'}')">▶ ${o.status === 'Requested' ? tr('Start', 'بدء') : tr('Complete', 'إتمام')}</button>` : `<span class="badge badge-success">✅</span>`}</td>
+            <td>${o.status !== 'Done' ? `<button class="btn btn-sm btn-success" onclick="updateRadStatus(${safeId(o.id)},'${o.status === 'Requested' ? 'In Progress' : 'Done'}')">▶ ${o.status === 'Requested' ? tr('Start', 'بدء') : tr('Complete', 'إتمام')}</button>` : `<span class="badge badge-success">✅</span>`}</td>
           </tr>`).join('')}
           </tbody></table></div></div>
         </div>
@@ -4222,7 +4228,7 @@ window.scanRadBarcode = async () => {
   const m = code.match(/RAD-(\d+)/); const oid = m ? m[1] : code;
   try {
     const orders = await API.get('/api/radiology/orders'); const o = orders.find(x => x.id == oid);
-    document.getElementById('radScanResult').innerHTML = o ? `<div class="card" style="border:2px solid var(--accent);margin-top:12px"><div class="card-title">🔍 ${tr('Order Found', 'تم العثور على الطلب')} #${o.id}</div><div class="flex gap-8" style="flex-wrap:wrap"><span class="badge badge-info">👤 </span><span class="badge badge-purple">📡 ${o.order_type}</span>${statusBadge(o.status)}</div>${o.results ? `<div class="mt-16">${renderRadResults(o.results)}</div>` : ''}</div>` : `<div class="badge badge-danger mt-16">${tr('Order not found', 'الطلب غير موجود')}</div>`;
+    document.getElementById('radScanResult').innerHTML = o ? `<div class="card" style="border:2px solid var(--accent);margin-top:12px"><div class="card-title">🔍 ${tr('Order Found', 'تم العثور على الطلب')} #${escapeHTML(o.id)}</div><div class="flex gap-8" style="flex-wrap:wrap"><span class="badge badge-info">👤 </span><span class="badge badge-purple">📡 ${escapeHTML(o.order_type)}</span>${statusBadge(o.status)}</div>${o.results ? `<div class="mt-16">${renderRadResults(o.results)}</div>` : ''}</div>` : `<div class="badge badge-danger mt-16">${tr('Order not found', 'الطلب غير موجود')}</div>`;
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
@@ -4255,7 +4261,7 @@ async function renderPharmacy(el) {
       <div class="error-card-premium">
         <div class="error-card-icon">⚠️</div>
         <h3>${tr('Failed to load pharmacy data', 'فشل في تحميل بيانات الصيدلية')}</h3>
-        <p>${e.message || e}</p>
+        <p>${escapeHTML(e.message || e)}</p>
         <button class="btn btn-primary" onclick="navigateTo(currentPage)">🔄 ${tr('Retry', 'إعادة المحاولة')}</button>
       </div>
     `;
@@ -4294,16 +4300,16 @@ async function renderPharmacy(el) {
     const dur = (q.duration && q.duration.trim()) || parts[3] || '';
     const autoPrice = q.price > 0 ? q.price : findDrugPrice(med);
     return `<tr>
-        <td><svg id="rxBC${q.id}" class="barcode-svg"></svg><br>
-          <button class="btn btn-sm btn-info" onclick="printRxLabel(${q.id}, '${(q.patient_name || '').replace(/'/g, "\\'")}', '${(q.age || '').toString().replace(/'/g, "\\'")}', '${(q.department || '').replace(/'/g, "\\'")}', '${med.replace(/'/g, "\\'")}', '${dose.replace(/'/g, "\\'")}', '${qty.toString().replace(/'/g, "\\'")}', '${freq.replace(/'/g, "\\'")}', '${dur.replace(/'/g, "\\'")}')" style="margin-top:4px;font-size:11px">🖨️ ${tr('Print Label', 'طباعة')}</button>
+        <td><svg id="rxBC${safeId(q.id)}" class="barcode-svg"></svg><br>
+          <button class="btn btn-sm btn-info" onclick="printRxLabel(${safeId(q.id)}, '${jsStr(q.patient_name || '')}', '${jsStr((q.age || '').toString())}', '${jsStr(q.department || '')}', '${jsStr(med)}', '${jsStr(dose)}', '${jsStr(qty.toString())}', '${jsStr(freq)}', '${jsStr(dur)}')" style="margin-top:4px;font-size:11px">🖨️ ${tr('Print Label', 'طباعة')}</button>
         </td>
-        <td><strong>${q.patient_name || '#' + q.patient_id}</strong>${q.age ? '<br><small>🎂 ' + q.age + '</small>' : ''}${q.department ? '<br><small>🏥 ' + q.department + '</small>' : ''}</td>
-        <td style="color:var(--accent);font-weight:600">${q.doctor || q.doctor_name || '—'}</td>
-        <td><strong>${med}</strong>${dose ? '<br>💊 ' + dose : ''}${freq ? '<br>🔄 ' + freq : ''}${dur ? '<br>📅 ' + dur : ''}</td>
-        <td style="font-weight:bold;color:var(--accent)">${autoPrice > 0 ? autoPrice + ' ' + tr('SAR', 'ر.س') : '-'}</td>
+        <td><strong>${escapeHTML(q.patient_name || '#' + q.patient_id)}</strong>${q.age ? '<br><small>🎂 ' + escapeHTML(q.age) + '</small>' : ''}${q.department ? '<br><small>🏥 ' + escapeHTML(q.department) + '</small>' : ''}</td>
+        <td style="color:var(--accent);font-weight:600">${escapeHTML(q.doctor || q.doctor_name || '—')}</td>
+        <td><strong>${escapeHTML(med)}</strong>${dose ? '<br>💊 ' + escapeHTML(dose) : ''}${freq ? '<br>🔄 ' + escapeHTML(freq) : ''}${dur ? '<br>📅 ' + escapeHTML(dur) : ''}</td>
+        <td style="font-weight:bold;color:var(--accent)">${autoPrice > 0 ? escapeHTML(autoPrice) + ' ' + tr('SAR', 'ر.س') : '-'}</td>
         <td>${statusBadge(q.status)}</td>
-        <td>${q.created_at?.split('T')[0] || ''}</td>
-        <td>${q.status === 'Pending' ? `<button class="btn btn-sm btn-success" onclick="showDispensePanel(${q.id}, '${(q.patient_name || '').replace(/'/g, "\\'")}', '${med.replace(/'/g, "\\'")}', '${dose.replace(/'/g, "\\'")}', '${qty.toString().replace(/'/g, "\\'")}', '${freq.replace(/'/g, "\\'")}', '${dur.replace(/'/g, "\\'")}', ${q.patient_id || 0}, ${autoPrice}, '${(q.age || '').toString().replace(/'/g, "\\'")}', '${(q.department || '').replace(/'/g, "\\'")}')">💵 ${tr('Dispense & Sell', 'صرف وبيع')}</button>` : `<button class="btn btn-sm btn-info" onclick="printPharmacyInvoice(${q.id}, '${(q.patient_name || '').replace(/'/g, "\\'")}', '${med.replace(/'/g, "\\'")}', '${dose.replace(/'/g, "\\'")}', '${freq.replace(/'/g, "\\'")}', '${dur.replace(/'/g, "\\'")}', ${q.price || 0}, '${(q.payment_method || '').replace(/'/g, "\\'")}')">🧾 ${tr('Print Invoice', 'طباعة فاتورة')}</button>`}</td>
+        <td>${escapeHTML(q.created_at?.split('T')[0] || '')}</td>
+        <td>${q.status === 'Pending' ? `<button class="btn btn-sm btn-success" onclick="showDispensePanel(${safeId(q.id)}, '${jsStr(q.patient_name || '')}', '${jsStr(med)}', '${jsStr(dose)}', '${jsStr(qty.toString())}', '${jsStr(freq)}', '${jsStr(dur)}', ${safeId(q.patient_id) || 0}, ${safeId(autoPrice) || 0}, '${jsStr((q.age || '').toString())}', '${jsStr(q.department || '')}')">💵 ${tr('Dispense & Sell', 'صرف وبيع')}</button>` : `<button class="btn btn-sm btn-info" onclick="printPharmacyInvoice(${safeId(q.id)}, '${jsStr(q.patient_name || '')}', '${jsStr(med)}', '${jsStr(dose)}', '${jsStr(freq)}', '${jsStr(dur)}', ${safeId(q.price) || 0}, '${jsStr(q.payment_method || '')}')">🧾 ${tr('Print Invoice', 'طباعة فاتورة')}</button>`}</td>
       </tr>`;
   }).join('')}
     </tbody></table></div></div>
@@ -4347,9 +4353,9 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:10px;direction:rtl;f
   <div class="clinic">💊 نما الطبي — الصيدلية<br><small style="font-size:11px;color:#666">Nama Medical — Pharmacy</small></div>
   <div class="barcode-area">${svgData}</div>
   <div class="info-grid">
-    <span class="lk">👤 المريض / Patient:</span><span>${patientName}</span>
-    <span class="lk">🎂 العمر / Age:</span><span>${age || '-'}</span>
-    <span class="lk">🏥 القسم / Dept:</span><span>${dept || '-'}</span>
+    <span class="lk">👤 المريض / Patient:</span><span>${escapeHTML(patientName)}</span>
+    <span class="lk">🎂 العمر / Age:</span><span>${escapeHTML(age || '-')}</span>
+    <span class="lk">🏥 القسم / Dept:</span><span>${escapeHTML(dept || '-')}</span>
     <span class="lk">📅 التاريخ / Date:</span><span>${new Date().toLocaleDateString('ar-SA')}</span>
   </div>
   <table class="med-table">
@@ -4361,14 +4367,14 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:10px;direction:rtl;f
       <th>📅 الأيام<br>Days</th>
     </tr></thead>
     <tbody><tr>
-      <td style="font-size:12px;color:#4338ca">${med}</td>
-      <td>${pureDose || '-'}</td>
-      <td style="font-size:14px;font-weight:bold;color:#e74c3c">${qty}</td>
-      <td>${freq || '-'}</td>
-      <td>${dur || '-'}</td>
+      <td style="font-size:12px;color:#4338ca">${escapeHTML(med)}</td>
+      <td>${escapeHTML(pureDose || '-')}</td>
+      <td style="font-size:14px;font-weight:bold;color:#e74c3c">${escapeHTML(qty)}</td>
+      <td>${escapeHTML(freq || '-')}</td>
+      <td>${escapeHTML(dur || '-')}</td>
     </tr></tbody>
   </table>
-  <div class="footer">Rx #${rxId} | ${new Date().toLocaleDateString('en-CA')} | نما الطبي</div>
+  <div class="footer">Rx #${escapeHTML(rxId)} | ${new Date().toLocaleDateString('en-CA')} | نما الطبي</div>
 </div>
 <script>setTimeout(()=>{window.print();},400);<\\/script>
 </body></html>`);
@@ -4378,16 +4384,16 @@ window.showDispensePanel = (id, patientName, med, dose, qty, freq, dur, patientI
   const panel = document.getElementById('dispensePanel');
   panel.style.display = 'block';
   panel.innerHTML = `<div class="card mt-16" style="border:2px solid var(--accent);background:var(--hover)">
-    <div class="card-title">💵 ${tr('Confirm Dispense & Sale', 'تأكيد الصرف والبيع')} — RX-${id}</div>
+    <div class="card-title">💵 ${tr('Confirm Dispense & Sale', 'تأكيد الصرف والبيع')} — RX-${escapeHTML(id)}</div>
     <div class="flex gap-16" style="flex-wrap:wrap;align-items:flex-end">
       <div style="flex:1;min-width:150px">
-        <div style="font-size:13px;margin-bottom:4px"><strong>👤 ${tr('Patient', 'المريض')}:</strong> ${patientName}</div>
-        <div style="font-size:13px"><strong>💊 ${tr('Drug', 'الدواء')}:</strong> ${med} ${dose ? '— ' + dose : ''}</div>
-        <div style="font-size:13px"><strong>📦 ${tr('Qty/Day', 'الكمية/يوم')}:</strong> ${qty} | <strong>🔄</strong> ${freq} | <strong>📅</strong> ${dur}</div>
+        <div style="font-size:13px;margin-bottom:4px"><strong>👤 ${tr('Patient', 'المريض')}:</strong> ${escapeHTML(patientName)}</div>
+        <div style="font-size:13px"><strong>💊 ${tr('Drug', 'الدواء')}:</strong> ${escapeHTML(med)} ${dose ? '— ' + escapeHTML(dose) : ''}</div>
+        <div style="font-size:13px"><strong>📦 ${tr('Qty/Day', 'الكمية/يوم')}:</strong> ${escapeHTML(qty)} | <strong>🔄</strong> ${escapeHTML(freq)} | <strong>📅</strong> ${escapeHTML(dur)}</div>
       </div>
       <div class="form-group" style="flex:0.5;min-width:120px">
         <label>${tr('Price', 'السعر')} (${tr('SAR', 'ر.س')})</label>
-        <input class="form-input" id="dispPrice" type="number" value="${autoPrice}" min="0" step="0.5" style="font-size:16px;font-weight:bold;text-align:center">
+        <input class="form-input" id="dispPrice" type="number" value="${escapeHTML(autoPrice)}" min="0" step="0.5" style="font-size:16px;font-weight:bold;text-align:center">
       </div>
       <div class="form-group" style="flex:1;min-width:250px">
         <label>${tr('Payment Method', 'طريقة السداد')}</label>
@@ -4398,7 +4404,7 @@ window.showDispensePanel = (id, patientName, med, dose, qty, freq, dur, patientI
         </div>
       </div>
       <div class="flex gap-8">
-        <button class="btn btn-success" onclick="confirmDispense(${id}, '${patientName.replace(/'/g, "\\'")}', '${med.replace(/'/g, "\\'")}', '${dose.replace(/'/g, "\\'")}', '${qty.toString().replace(/'/g, "\\'")}', '${freq.replace(/'/g, "\\'")}', '${dur.replace(/'/g, "\\'")}', ${patientId}, '${(age || '').toString().replace(/'/g, "\\'")}', '${(dept || '').replace(/'/g, "\\'")}')">✅ ${tr('Confirm & Print', 'تأكيد وطباعة')}</button>
+        <button class="btn btn-success" onclick="confirmDispense(${safeId(id)}, '${jsStr(patientName)}', '${jsStr(med)}', '${jsStr(dose)}', '${jsStr(qty.toString())}', '${jsStr(freq)}', '${jsStr(dur)}', ${safeId(patientId)}, '${jsStr((age || '').toString())}', '${jsStr(dept || '')}')">✅ ${tr('Confirm & Print', 'تأكيد وطباعة')}</button>
         <button class="btn btn-danger" onclick="document.getElementById('dispensePanel').style.display='none'">✕ ${tr('Cancel', 'إلغاء')}</button>
       </div>
     </div>
@@ -4450,15 +4456,15 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:10px;direction:rtl;f
 </div>
 <div class="inv">
   <div class="header"><h2>🏥 نما الطبي — فاتورة صيدلية</h2><div style="margin-bottom:12px"><button class="btn btn-sm" onclick="toggleCalendarView()" id="calToggleBtn" style="background:#e3f2fd;color:#1565c0">📅 ${tr("Calendar View", "عرض التقويم")}</button></div><div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><button class="btn btn-primary" onclick="callNextPatient()" style="padding:8px 20px;font-size:15px;animation:pulse 2s infinite">🔔 ${tr("Next Patient", "المريض التالي")}</button><button class="btn btn-sm" onclick="loadMyQueue()" style="background:#e3f2fd;color:#1565c0">📋 ${tr("My Queue", "طابوري")}</button></div><small>Nama Medical — Pharmacy Invoice</small></div>
-  <div class="row"><span class="k">📄 رقم الفاتورة:</span><span>RX-${rxId}</span></div>
-  <div class="row"><span class="k">👤 المريض:</span><span>${patientName}</span></div>
+  <div class="row"><span class="k">📄 رقم الفاتورة:</span><span>RX-${escapeHTML(rxId)}</span></div>
+  <div class="row"><span class="k">👤 المريض:</span><span>${escapeHTML(patientName)}</span></div>
   <div class="row"><span class="k">📅 التاريخ:</span><span>${new Date().toLocaleDateString('ar-SA')} — ${new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span></div>
   <table class="med-tbl">
     <thead><tr><th>💊 الدواء</th><th>📏 الجرعة</th><th>🔄 المرات/يوم</th><th>📅 الأيام</th></tr></thead>
-    <tbody><tr><td>${med}</td><td>${dose || '-'}</td><td>${freq || '-'}</td><td>${dur || '-'}</td></tr></tbody>
+    <tbody><tr><td>${escapeHTML(med)}</td><td>${escapeHTML(dose || '-')}</td><td>${escapeHTML(freq || '-')}</td><td>${escapeHTML(dur || '-')}</td></tr></tbody>
   </table>
-  <div class="total-box">💰 الإجمالي: ${price || 0} ر.س</div>
-  <div class="row"><span class="k">💳 طريقة الدفع:</span><span>${payAr} (${payMethod || 'Cash'})</span></div>
+  <div class="total-box">💰 الإجمالي: ${escapeHTML(price || 0)} ر.س</div>
+  <div class="row"><span class="k">💳 طريقة الدفع:</span><span>${payAr} (${escapeHTML(payMethod || 'Cash')})</span></div>
   <div class="row"><span class="k">✅ الحالة:</span><span style="color:green;font-weight:bold">مدفوع — Paid</span></div>
   <div class="footer">نما الطبي | ${new Date().toLocaleDateString('en-CA')} | شكراً لكم</div>
 </div>
@@ -4670,7 +4676,7 @@ async function renderHR(el) {
             ],
             id: e.id
           })),
-          r => `<button class="btn btn-danger btn-sm" onclick="delEmp(${r.id})">🗑</button>`
+          r => `<button class="btn btn-danger btn-sm" onclick="delEmp(${safeId(r.id)})">🗑</button>`
         );
       }
     }, 50);
@@ -4715,7 +4721,7 @@ async function renderHR(el) {
             ],
             id: s.id
           })),
-          r => `<button class="btn btn-sm" style="background:rgba(0,105,112,0.1);color:#006970" onclick="showPayslip(${r.id})">📄 ${tr('Payslip', 'قسيمة الراتب')}</button>`
+          r => `<button class="btn btn-sm" style="background:rgba(0,105,112,0.1);color:#006970" onclick="showPayslip(${safeId(r.id)})">📄 ${tr('Payslip', 'قسيمة الراتب')}</button>`
         );
       }
     }, 50);
@@ -4734,7 +4740,7 @@ async function renderHR(el) {
           <div class="form-group">
             <label>${tr('Select Employee', 'اختر الموظف')}</label>
             <select class="form-input" id="leaveEmpId">
-              ${employees.map(e => `<option value="${e.id}">${isArabic ? e.name_ar : e.name_en}</option>`).join('')}
+              ${employees.map(e => `<option value="${safeId(e.id)}">${escapeHTML(isArabic ? e.name_ar : e.name_en)}</option>`).join('')}
             </select>
           </div>
           <div class="form-group">
@@ -4784,7 +4790,7 @@ async function renderHR(el) {
             ],
             id: l.id
           })),
-          r => r.cells[4].includes('Pending') || r.cells[4].includes('قيد المراجعة') ? `<button class="btn btn-success btn-sm" onclick="approveLeave(${r.id})">✅ ${tr('Approve', 'موافق')}</button>` : '-'
+          r => r.cells[4].includes('Pending') || r.cells[4].includes('قيد المراجعة') ? `<button class="btn btn-success btn-sm" onclick="approveLeave(${safeId(r.id)})">✅ ${tr('Approve', 'موافق')}</button>` : '-'
         );
       }
     }, 50);
@@ -4861,9 +4867,9 @@ async function renderHR(el) {
       <div class="glass-card p-xl rounded-2xl shadow-2xl max-w-lg w-full bg-white relative text-right" style="direction:rtl">
         <h3 class="font-display-lg text-primary border-b pb-md mb-md">📄 ${tr('Detailed Salary Slip', 'قسيمة راتب مفصلة')}</h3>
         <div class="grid grid-cols-2 gap-sm mb-md text-sm text-on-surface-variant">
-          <div><strong>${tr('Employee Name:', 'اسم الموظف:')}</strong> ${isArabic ? emp.name_ar : emp.name_en}</div>
-          <div><strong>${tr('Designation / Role:', 'الوظيفة / الدور:')}</strong> ${emp.role}</div>
-          <div><strong>${tr('Department:', 'القسم:')}</strong> ${isArabic ? emp.department_ar : emp.department_en}</div>
+          <div><strong>${tr('Employee Name:', 'اسم الموظف:')}</strong> ${escapeHTML(isArabic ? emp.name_ar : emp.name_en)}</div>
+          <div><strong>${tr('Designation / Role:', 'الوظيفة / الدور:')}</strong> ${escapeHTML(emp.role)}</div>
+          <div><strong>${tr('Department:', 'القسم:')}</strong> ${escapeHTML(isArabic ? emp.department_ar : emp.department_en)}</div>
           <div><strong>${tr('Salary Month:', 'شهر الراتب:')}</strong> ${new Date().toLocaleDateString('ar-SA', {month: 'long', year: 'numeric'})}</div>
         </div>
         <div class="border rounded-xl p-md bg-surface-lowest flex flex-col gap-xs mb-md text-sm text-on-surface">
@@ -5263,7 +5269,7 @@ async function renderFinance(el) {
               </div>
               <div class="mt-lg relative z-10">
                 <p class="text-on-surface-variant font-label-md text-label-md">${tr('Invoices Issued', 'إجمالي الفواتير الصادرة')}</p>
-                <h4 class="text-display-lg text-primary font-bold mt-xs">${data.count || 0}</h4>
+                <h4 class="text-display-lg text-primary font-bold mt-xs">${escapeHTML(data.count || 0)}</h4>
               </div>
             </div>
           </div>
@@ -5345,7 +5351,7 @@ async function renderInsurance(el) {
             <option value="CCHI">CCHI</option>
             <option value="AXA">AXA</option>
             <option value="Walaa">Walaa</option>
-            ${companies.map(c => `<option value="${c.name_en || c.name_ar}">${c.name_en || c.name_ar}</option>`).join('')}
+            ${companies.map(c => `<option value="${escapeHTML(c.name_en || c.name_ar)}">${escapeHTML(c.name_en || c.name_ar)}</option>`).join('')}
           </select></div>
         <div class="form-group mb-12"><label>${tr('Claim Amount', 'مبلغ المطالبة')}</label><input class="form-input" id="insAmount" type="number" placeholder="0.00"></div>
         <button class="btn btn-primary w-full" onclick="addClaim()">📤 ${tr('Submit Claim', 'إرسال المطالبة')}</button>
@@ -5366,7 +5372,7 @@ async function renderInsurance(el) {
       <div id="insClaimsT">${makeTable(
     [tr('Patient', 'المريض'), tr('Company', 'الشركة'), tr('Amount', 'المبلغ'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', 'إجراءات')],
     claims.map(c => ({ cells: [c.patient_name, c.insurance_company, c.claim_amount + ' SAR', statusBadge(c.status), c.created_at?.split('T')[0] || ''], id: c.id, status: c.status })),
-    (row) => row.status === 'Pending' ? `<div class="flex gap-4"><button class="btn btn-sm btn-success" onclick="updateClaim(${row.id},'Approved')">✅</button><button class="btn btn-sm btn-danger" onclick="updateClaim(${row.id},'Rejected')">❌</button></div>` : `<span class="badge badge-${row.status === 'Approved' ? 'success' : 'danger'}">${row.status}</span>`
+    (row) => row.status === 'Pending' ? `<div class="flex gap-4"><button class="btn btn-sm btn-success" onclick="updateClaim(${safeId(row.id)},'Approved')">✅</button><button class="btn btn-sm btn-danger" onclick="updateClaim(${safeId(row.id)},'Rejected')">❌</button></div>` : `<span class="badge badge-${row.status === 'Approved' ? 'success' : 'danger'}">${escapeHTML(row.status)}</span>`
   )}</div></div>`;
 }
 window.addClaim = async () => {
@@ -5543,8 +5549,8 @@ async function renderInventory(el) {
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-sm">
             ${lowStock.map(i => `
               <div class="flex items-center justify-between p-sm bg-error-container/20 rounded-lg border border-error/10">
-                <span class="font-body-md text-primary font-bold">${i.name}</span>
-                <span class="bg-error text-on-error px-sm py-1 rounded text-caption font-bold">${tr('Remaining:', 'المتبقي:')} ${i.quantity || 0} ${i.unit || ''}</span>
+                <span class="font-body-md text-primary font-bold">${escapeHTML(i.name)}</span>
+                <span class="bg-error text-on-error px-sm py-1 rounded text-caption font-bold">${tr('Remaining:', 'المتبقي:')} ${escapeHTML(i.quantity || 0)} ${escapeHTML(i.unit || '')}</span>
               </div>
             `).join('')}
           </div>
@@ -5563,7 +5569,7 @@ async function renderInventory(el) {
             <span class="font-label-md text-on-surface-variant">${tr('Filter by Category:', 'تصفية حسب الفئة:')}</span>
             <select class="bg-surface border-outline-variant/30 rounded-lg font-body-md py-1 pr-8 text-on-surface" id="invCatFilter" onchange="filterInvTable()">
               <option value="">${tr('All Categories', 'كافة الفئات')}</option>
-              ${Array.from(new Set(items.map(i => i.category || tr('Uncategorized', 'غير مصنف')))).map(c => `<option value="${c}">${c}</option>`).join('')}
+              ${Array.from(new Set(items.map(i => i.category || tr('Uncategorized', 'غير مصنف')))).map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('')}
             </select>
           </div>
         </div>
@@ -5601,13 +5607,13 @@ async function renderInventory(el) {
                 const isLow = parseInt(i.quantity || 0) <= parseInt(i.reorder_level || 10);
                 return `
                   <tr class="hover:bg-primary/5 transition-all cursor-pointer ${isLow ? 'bg-error-container/5' : ''}">
-                    <td class="p-md font-mono text-secondary">#MED-${String(i.id).padStart(4, '0')}</td>
-                    <td class="p-md font-bold text-primary">${i.name}</td>
-                    <td class="p-md"><span class="text-caption bg-surface-container px-sm py-1 rounded-full">${i.category || tr('Uncategorized', 'غير مصنف')}</span></td>
-                    <td class="p-md font-bold ${isLow ? 'text-error' : 'text-secondary'}">${i.quantity} ${i.unit || ''}</td>
-                    <td class="p-md text-on-surface-variant">${i.reorder_level || 10}</td>
+                    <td class="p-md font-mono text-secondary">#MED-${escapeHTML(String(i.id).padStart(4, '0'))}</td>
+                    <td class="p-md font-bold text-primary">${escapeHTML(i.name)}</td>
+                    <td class="p-md"><span class="text-caption bg-surface-container px-sm py-1 rounded-full">${escapeHTML(i.category || tr('Uncategorized', 'غير مصنف'))}</span></td>
+                    <td class="p-md font-bold ${isLow ? 'text-error' : 'text-secondary'}">${escapeHTML(i.quantity)} ${escapeHTML(i.unit || '')}</td>
+                    <td class="p-md text-on-surface-variant">${escapeHTML(i.reorder_level || 10)}</td>
                     <td class="p-md font-bold text-primary">${parseFloat(i.cost || 0).toFixed(2)}</td>
-                    <td class="p-md text-on-surface-variant">${i.supplier || tr('Not specified', 'غير محدد')}</td>
+                    <td class="p-md text-on-surface-variant">${escapeHTML(i.supplier || tr('Not specified', 'غير محدد'))}</td>
                     <td class="p-md">
                       ${isLow ? `
                         <span class="inline-flex items-center gap-1 px-sm py-1 bg-error/10 text-error rounded-full text-xs font-bold">
@@ -5623,10 +5629,10 @@ async function renderInventory(el) {
                     </td>
                     <td class="p-md">
                       <div class="flex gap-2">
-                        <button class="p-1 hover:bg-secondary/10 text-secondary rounded transition-colors" title="${tr('Edit Item', 'تعديل')}" onclick="showEditInvModal(${JSON.stringify(i).replace(/"/g, '&quot;')})">
+                        <button class="p-1 hover:bg-secondary/10 text-secondary rounded transition-colors" title="${tr('Edit Item', 'تعديل')}" onclick="showEditInvModal(${escapeHTML(JSON.stringify(i))})">
                           <span class="material-symbols-outlined text-sm">edit</span>
                         </button>
-                        <button class="p-1 hover:bg-error/10 text-error rounded transition-colors" title="${tr('Delete Item', 'حذف')}" onclick="deleteInvItem(${i.id})">
+                        <button class="p-1 hover:bg-error/10 text-error rounded transition-colors" title="${tr('Delete Item', 'حذف')}" onclick="deleteInvItem(${safeId(i.id)})">
                           <span class="material-symbols-outlined text-sm">delete</span>
                         </button>
                       </div>
@@ -5721,10 +5727,10 @@ async function renderInventory(el) {
             <tbody class="divide-y divide-outline-variant/10">
               ${window.localPOs.map(po => `
                 <tr class="hover:bg-primary/5 transition-all">
-                  <td class="p-md font-mono text-secondary">${po.id}</td>
-                  <td class="p-md font-bold text-primary">${po.supplier}</td>
-                  <td class="p-md text-on-surface-variant">${po.date}</td>
-                  <td class="p-md text-on-surface-variant">${po.delivery}</td>
+                  <td class="p-md font-mono text-secondary">${escapeHTML(po.id)}</td>
+                  <td class="p-md font-bold text-primary">${escapeHTML(po.supplier)}</td>
+                  <td class="p-md text-on-surface-variant">${escapeHTML(po.date)}</td>
+                  <td class="p-md text-on-surface-variant">${escapeHTML(po.delivery)}</td>
                   <td class="p-md font-bold text-primary">${parseFloat(po.amount).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                   <td class="p-md">
                     ${po.status === 'مكتمل' ? `
@@ -5747,7 +5753,7 @@ async function renderInventory(el) {
                   <td class="p-md">
                     <div class="flex gap-2">
                       ${po.status === 'قيد الانتظار' || po.status === 'متأخر' ? `
-                        <button class="bg-secondary text-on-secondary px-sm py-1 rounded text-caption hover:opacity-90" onclick="receivePO('${po.id}')">
+                        <button class="bg-secondary text-on-secondary px-sm py-1 rounded text-caption hover:opacity-90" onclick="receivePO('${jsStr(po.id)}')">
                           ✅ ${tr('Receive items', 'استلام')}
                         </button>
                       ` : `
@@ -5843,18 +5849,18 @@ async function renderInventory(el) {
               ${window.localSuppliers.map(s => `
                 <tr class="hover:bg-primary/5 transition-all">
                   <td class="p-md font-bold text-primary flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-full bg-secondary-container/30 flex items-center justify-center font-bold text-secondary text-xs">${s.name.charAt(0)}</div>
-                    <span>${s.name}</span>
+                    <div class="w-8 h-8 rounded-full bg-secondary-container/30 flex items-center justify-center font-bold text-secondary text-xs">${escapeHTML(s.name.charAt(0))}</div>
+                    <span>${escapeHTML(s.name)}</span>
                   </td>
-                  <td class="p-md text-on-surface-variant">${s.location}</td>
-                  <td class="p-md text-on-surface-variant font-mono text-sm">${s.email}</td>
-                  <td class="p-md text-on-surface-variant font-mono text-sm">${s.phone}</td>
-                  <td class="p-md"><span class="text-caption bg-surface-container px-sm py-1 rounded-full">${s.category}</span></td>
+                  <td class="p-md text-on-surface-variant">${escapeHTML(s.location)}</td>
+                  <td class="p-md text-on-surface-variant font-mono text-sm">${escapeHTML(s.email)}</td>
+                  <td class="p-md text-on-surface-variant font-mono text-sm">${escapeHTML(s.phone)}</td>
+                  <td class="p-md"><span class="text-caption bg-surface-container px-sm py-1 rounded-full">${escapeHTML(s.category)}</span></td>
                   <td class="p-md font-bold text-primary">${parseFloat(s.outstanding).toLocaleString()}</td>
                   <td class="p-md">
                     <span class="inline-flex items-center gap-1 px-sm py-1 bg-secondary/10 text-secondary rounded-full text-xs font-bold">
                       <span class="w-1.5 h-1.5 bg-secondary rounded-full"></span>
-                      ${s.status}
+                      ${escapeHTML(s.status)}
                     </span>
                   </td>
                 </tr>
@@ -5896,15 +5902,15 @@ async function renderInventory(el) {
                 return `
                   <div class="p-md bg-surface-container rounded-lg border border-outline-variant/30 flex flex-col md:flex-row md:items-center justify-between gap-sm">
                     <div>
-                      <div class="font-bold text-primary">${i.name}</div>
-                      <div class="text-caption text-on-surface-variant">${tr('Category:', 'الفئة:')} ${i.category} | ${tr('Current Stock:', 'المخزون الحالي:')} ${i.quantity} ${i.unit || ''}</div>
+                      <div class="font-bold text-primary">${escapeHTML(i.name)}</div>
+                      <div class="text-caption text-on-surface-variant">${tr('Category:', 'الفئة:')} ${escapeHTML(i.category)} | ${tr('Current Stock:', 'المخزون الحالي:')} ${escapeHTML(i.quantity)} ${escapeHTML(i.unit || '')}</div>
                     </div>
                     <div class="flex items-center gap-md">
                       <div class="text-right">
-                        <div class="text-sm font-bold text-primary">${tr('Suggested Order:', 'الطلب المقترح:')} ${suggestQty} ${i.unit || ''}</div>
+                        <div class="text-sm font-bold text-primary">${tr('Suggested Order:', 'الطلب المقترح:')} ${suggestQty} ${escapeHTML(i.unit || '')}</div>
                         <div class="text-caption text-secondary font-bold">${tr('Estimated Cost:', 'التكلفة المقدرة:')} ${estCost.toLocaleString()} ${tr('SAR', 'ر.س')}</div>
                       </div>
-                      <button class="bg-secondary text-on-secondary px-md py-sm rounded-lg font-bold hover:opacity-90 text-sm transition-all" onclick="approveAutoOrder('${i.name.replace(/'/g, "")}', ${suggestQty}, ${estCost}, '${i.supplier || tr('Aldawaa', 'شركة الدواء للخدمات الطبية')}')">
+                      <button class="bg-secondary text-on-secondary px-md py-sm rounded-lg font-bold hover:opacity-90 text-sm transition-all" onclick="approveAutoOrder('${jsStr(i.name)}', ${suggestQty}, ${estCost}, '${jsStr(i.supplier || tr('Aldawaa', 'شركة الدواء للخدمات الطبية'))}')">
                         ⚡ ${tr('Approve PO', 'اعتماد الطلب')}
                       </button>
                     </div>
@@ -6170,16 +6176,16 @@ async function renderInventory(el) {
           <button class="text-on-surface-variant hover:text-error" onclick="this.closest('.modal-overlay').remove()">❌</button>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-sm">
-          <input type="hidden" id="editInvId" value="${i.id}">
-          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Item Name (AR/EN)', 'اسم المنتج')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="editInvName" value="${i.name || ''}" required></div>
-          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Category', 'الفئة')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="editInvCat" value="${i.category || ''}"></div>
-          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Quantity', 'الكمية')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="number" id="editInvQty" value="${i.quantity || 0}"></div>
-          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Unit', 'الوحدة')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="editInvUnit" value="${i.unit || ''}"></div>
-          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Reorder Level', 'حد إعادة الطلب')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="number" id="editInvReorder" value="${i.reorder_level || 10}"></div>
-          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Warehouse Location', 'موقع التخزين بالقسم')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="editInvLoc" value="${i.location || ''}"></div>
-          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Supplier Name', 'اسم المورد المعتمد')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="editInvSupplier" value="${i.supplier || ''}"></div>
-          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Cost per Unit (SAR)', 'التكلفة')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="number" step="0.01" id="editInvCost" value="${i.cost || 0}"></div>
-          <div class="form-group md:col-span-2"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Expiry Date', 'تاريخ انتهاء الصلاحية')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="date" id="editInvExpiry" value="${i.expiry_date ? i.expiry_date.split('T')[0] : ''}"></div>
+          <input type="hidden" id="editInvId" value="${safeId(i.id)}">
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Item Name (AR/EN)', 'اسم المنتج')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="editInvName" value="${escapeHTML(i.name || '')}" required></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Category', 'الفئة')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="editInvCat" value="${escapeHTML(i.category || '')}"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Quantity', 'الكمية')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="number" id="editInvQty" value="${escapeHTML(i.quantity || 0)}"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Unit', 'الوحدة')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="editInvUnit" value="${escapeHTML(i.unit || '')}"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Reorder Level', 'حد إعادة الطلب')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="number" id="editInvReorder" value="${escapeHTML(i.reorder_level || 10)}"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Warehouse Location', 'موقع التخزين بالقسم')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="editInvLoc" value="${escapeHTML(i.location || '')}"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Supplier Name', 'اسم المورد المعتمد')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="editInvSupplier" value="${escapeHTML(i.supplier || '')}"></div>
+          <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Cost per Unit (SAR)', 'التكلفة')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="number" step="0.01" id="editInvCost" value="${escapeHTML(i.cost || 0)}"></div>
+          <div class="form-group md:col-span-2"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Expiry Date', 'تاريخ انتهاء الصلاحية')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="date" id="editInvExpiry" value="${escapeHTML(i.expiry_date ? i.expiry_date.split('T')[0] : '')}"></div>
         </div>
         <button class="bg-primary text-on-primary font-bold w-full py-3 rounded-xl mt-md hover:opacity-90 transition-all" onclick="updateInvItem()">${tr('Update Item', 'حفظ التعديلات')}</button>
       </div>
@@ -6281,13 +6287,13 @@ async function renderInventory(el) {
           <div class="form-group">
             <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Select Supplier', 'اختر المورد')}</label>
             <select class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="poSupplierSelect">
-              ${window.localSuppliers.map(s => `<option value="${s.name}">${s.name}</option>`).join('')}
+              ${window.localSuppliers.map(s => `<option value="${escapeHTML(s.name)}">${escapeHTML(s.name)}</option>`).join('')}
             </select>
           </div>
           <div class="form-group">
             <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Select Medical Item', 'اختر المنتج من المستودع')}</label>
             <select class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" id="poItemSelect">
-              ${items.map(i => `<option value="${i.name}" data-cost="${i.cost}">${i.name} (التكلفة: ${i.cost} ر.س)</option>`).join('')}
+              ${items.map(i => `<option value="${escapeHTML(i.name)}" data-cost="${escapeHTML(i.cost)}">${escapeHTML(i.name)} (التكلفة: ${escapeHTML(i.cost)} ر.س)</option>`).join('')}
             </select>
           </div>
           <div class="form-group"><label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Quantity Required', 'الكمية المطلوبة')}</label><input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg p-2" type="number" id="poQty" value="10" oninput="calcPOTotal()"></div>
@@ -6380,7 +6386,7 @@ async function renderNursing(el) {
       <div class="error-card-premium">
         <div class="error-card-icon">⚠️</div>
         <h3>${tr('Failed to load nursing data', 'فشل في تحميل بيانات محطة التمريض')}</h3>
-        <p>${e.message || e}</p>
+        <p>${escapeHTML(e.message || e)}</p>
         <button class="btn btn-primary" onclick="navigateTo(currentPage)">🔄 ${tr('Retry', 'إعادة المحاولة')}</button>
       </div>
     `;
@@ -6400,7 +6406,7 @@ async function renderNursing(el) {
       [tr('Patient', 'المريض'), tr('Medication', 'الدواء'), tr('Dose', 'الجرعة'), tr('Route', 'الطريقة'), tr('Frequency', 'التكرار'), tr('Status', 'الحالة'), tr('Actions', 'إجراءات')],
       emarOrders.map(o => ({
         cells: [o.patient_name, o.medication, o.dose, o.route, o.frequency, statusBadge(o.status),
-        rawHtml(`<button class="btn btn-sm btn-success" onclick="administerMed(${parseInt(o.id, 10)},${parseInt(o.patient_id, 10)},'${escapeHTML(String(o.medication)).replace(/'/g, "\\'")}','${escapeHTML(String(o.dose)).replace(/'/g, "\\'")}')">💉 ${tr('Give', 'إعطاء')}</button>`)
+        rawHtml(`<button class="btn btn-sm btn-success" onclick="administerMed(${parseInt(o.id, 10)},${parseInt(o.patient_id, 10)},'${jsStr(o.medication)}','${jsStr(o.dose)}')">💉 ${tr('Give', 'إعطاء')}</button>`)
         ]
       }))
     ) : `<div class="empty-state-card"><div class="empty-state-icon">💉</div><div>${tr('No active orders', 'لا توجد أوامر نشطة')}</div></div>`}
@@ -6430,7 +6436,7 @@ async function renderNursing(el) {
   } else if (nurseTab === 'newplan') {
     el.innerHTML += `<div class="card glass-card-premium"><h3>➕ ${tr('New Care Plan', 'خطة رعاية جديدة')}</h3>
     <div class="form-grid">
-      <div><label>${tr('Patient', 'المريض')}</label><select id="cpPatientN" class="form-input">${patients.map(p => `<option value="${p.id}" data-name="${p.name_ar || p.name_en}">${p.file_number} - ${isArabic ? p.name_ar : p.name_en}</option>`).join('')}</select></div>
+      <div><label>${tr('Patient', 'المريض')}</label><select id="cpPatientN" class="form-input">${patients.map(p => `<option value="${safeId(p.id)}" data-name="${escapeHTML(p.name_ar || p.name_en)}">${escapeHTML(p.file_number)} - ${escapeHTML(isArabic ? p.name_ar : p.name_en)}</option>`).join('')}</select></div>
       <div><label>${tr('Priority', 'الأولوية')}</label><select id="cpPriorityN" class="form-input"><option value="Low">${tr('Low', 'منخفضة')}</option><option value="Medium" selected>${tr('Medium', 'متوسطة')}</option><option value="High">${tr('High', 'عالية')}</option></select></div>
       <div style="grid-column:1/-1"><label>${tr('Diagnosis', 'التشخيص')}</label><input id="cpDiagN" class="form-input"></div>
       <div style="grid-column:1/-1"><label>${tr('Goals', 'الأهداف')}</label><textarea id="cpGoalsN" class="form-input" rows="2"></textarea></div>
@@ -6442,7 +6448,7 @@ async function renderNursing(el) {
       <div>
         <div class="card glass-card-premium mb-16">
           <div class="card-title">🌡️ ${tr('Record Patient Vitals', 'تسجيل العلامات الحيوية')}</div>
-          <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="nsPatient"><option value="">${tr('-- Select --', '-- اختر مريض --')}</option>${patients.map(p => `<option value="${p.id}" data-name="">${p.file_number} - ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</option>`).join('')}</select></div>
+          <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="nsPatient"><option value="">${tr('-- Select --', '-- اختر مريض --')}</option>${patients.map(p => `<option value="${safeId(p.id)}" data-name="">${escapeHTML(p.file_number)} - ${escapeHTML(isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar))}</option>`).join('')}</select></div>
           <div class="flex gap-8 mb-12">
             <div class="form-group" style="flex:1"><label>🩸 ${tr('Blood Pressure', 'ضغط الدم')}</label><input class="form-input" id="nsBp" placeholder="120/80"></div>
             <div class="form-group" style="flex:1"><label>🌡️ ${tr('Temp (°C)', 'الحرارة')}</label><input class="form-input" id="nsTemp" type="number" step="0.1" placeholder="37.0"></div>
@@ -6475,23 +6481,23 @@ async function renderNursing(el) {
         <div id="nsTable">${vitals.length === 0 ? `<div class="empty-state-card"><div class="empty-state-icon">📭</div><div>${tr('No vitals data found', 'لا توجد علامات حيوية مسجلة')}</div></div>` : vitals.map(v => `
           <div class="card mb-12" style="padding:12px;border:1px solid var(--border-color,#e5e7eb);border-radius:10px;background:var(--card-bg,#fff)">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-              <strong style="font-size:14px">👤 ${v.patient_name || v.patient_id}</strong>
-              <span style="font-size:12px;color:var(--text-muted,#999)">📅 ${v.created_at?.split('T')[0] || ''}</span>
+              <strong style="font-size:14px">👤 ${escapeHTML(v.patient_name || v.patient_id)}</strong>
+              <span style="font-size:12px;color:var(--text-muted,#999)">📅 ${escapeHTML(v.created_at?.split('T')[0] || '')}</span>
             </div>
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:13px">
-              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">🩸 ${tr('BP', 'الضغط')}<br><strong>${v.bp || '-'}</strong></div>
-              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">🌡️ ${tr('Temp', 'حرارة')}<br><strong>${v.temp ? v.temp + '°' : '-'}</strong></div>
-              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">❤️ ${tr('Pulse', 'نبض')}<br><strong>${v.pulse || '-'}</strong></div>
-              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">💨 ${tr('O2', 'أكسجين')}<br><strong>${v.o2_sat ? v.o2_sat + '%' : '-'}</strong></div>
+              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">🩸 ${tr('BP', 'الضغط')}<br><strong>${escapeHTML(v.bp || '-')}</strong></div>
+              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">🌡️ ${tr('Temp', 'حرارة')}<br><strong>${v.temp ? escapeHTML(v.temp) + '°' : '-'}</strong></div>
+              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">❤️ ${tr('Pulse', 'نبض')}<br><strong>${escapeHTML(v.pulse || '-')}</strong></div>
+              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">💨 ${tr('O2', 'أكسجين')}<br><strong>${v.o2_sat ? escapeHTML(v.o2_sat) + '%' : '-'}</strong></div>
             </div>
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:13px;margin-top:6px">
-              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">💪 ${tr('Weight', 'وزن')}<br><strong>${v.weight ? v.weight + ' kg' : '-'}</strong></div>
-              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">📏 ${tr('Height', 'طول')}<br><strong>${v.height ? v.height + ' cm' : '-'}</strong></div>
-              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">🌬️ ${tr('Resp', 'تنفس')}<br><strong>${v.respiratory_rate || '-'}</strong></div>
-              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">🩸 ${tr('Sugar', 'سكر')}<br><strong>${v.blood_sugar || '-'}</strong></div>
+              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">💪 ${tr('Weight', 'وزن')}<br><strong>${v.weight ? escapeHTML(v.weight) + ' kg' : '-'}</strong></div>
+              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">📏 ${tr('Height', 'طول')}<br><strong>${v.height ? escapeHTML(v.height) + ' cm' : '-'}</strong></div>
+              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">🌬️ ${tr('Resp', 'تنفس')}<br><strong>${escapeHTML(v.respiratory_rate || '-')}</strong></div>
+              <div style="background:var(--bg-secondary,#f8f9fa);padding:6px 8px;border-radius:6px;text-align:center">🩸 ${tr('Sugar', 'سكر')}<br><strong>${escapeHTML(v.blood_sugar || '-')}</strong></div>
             </div>
-            ${v.allergies ? `<div style="margin-top:6px"><span class="badge badge-danger">⚠️ ${v.allergies}</span></div>` : ''}
-            ${v.chronic_diseases ? `<div style="margin-top:4px;font-size:12px;color:var(--text-muted,#888)">🏥 ${v.chronic_diseases}</div>` : ''}
+            ${v.allergies ? `<div style="margin-top:6px"><span class="badge badge-danger">⚠️ ${escapeHTML(v.allergies)}</span></div>` : ''}
+            ${v.chronic_diseases ? `<div style="margin-top:4px;font-size:12px;color:var(--text-muted,#888)">🏥 ${escapeHTML(v.chronic_diseases)}</div>` : ''}
           </div>
         `).join('')}</div>
       </div>
@@ -6572,7 +6578,7 @@ async function renderWaitingQueue(el) {
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:16px">
-      ${Object.entries(byDoctor).map(([doc, pts]) => '<div class="card" style="padding:16px"><h4 style="margin:0 0 8px;color:#1565c0">👨‍⚕️ ' + doc + ' <span style="font-size:12px;color:#666">(' + pts.length + ')</span></h4>' + pts.map((p, i) => '<div style="padding:8px;margin:4px 0;border-radius:8px;background:' + (i === 0 ? '#e8f5e9' : '#f5f5f5') + ';display:flex;justify-content:space-between;align-items:center"><span>' + (i + 1) + '. ' + (p.patient_name || p.name || '') + '</span><span style="font-size:11px;color:#666">' + ((p.queue_number || '') || '#' + (i + 1)) + '</span></div>').join('') + '</div>').join('')}
+      ${Object.entries(byDoctor).map(([doc, pts]) => '<div class="card" style="padding:16px"><h4 style="margin:0 0 8px;color:#1565c0">👨‍⚕️ ' + escapeHTML(doc) + ' <span style="font-size:12px;color:#666">(' + pts.length + ')</span></h4>' + pts.map((p, i) => '<div style="padding:8px;margin:4px 0;border-radius:8px;background:' + (i === 0 ? '#e8f5e9' : '#f5f5f5') + ';display:flex;justify-content:space-between;align-items:center"><span>' + (i + 1) + '. ' + escapeHTML(p.patient_name || p.name || '') + '</span><span style="font-size:11px;color:#666">' + escapeHTML((p.queue_number || '') || '#' + (i + 1)) + '</span></div>').join('') + '</div>').join('')}
       ${Object.keys(byDoctor).length === 0 ? '<div class="card" style="padding:40px;text-align:center;color:#999;grid-column:1/-1">' + tr('No patients in queue', 'لا يوجد مرضى في الانتظار') + '</div>' : ''}
     </div>`;
 
@@ -6624,7 +6630,7 @@ async function renderPatientAccounts(el) {
         rawHtml('<span style="color:' + (parseFloat(p.balance) > 0 ? '#cc0000;font-weight:bold' : '#2e7d32') + '">' + escapeHTML(p.balance) + ' ' + tr('SAR', 'ريال') + '</span>')],
         id: p.id
       })),
-      (row) => `<button class="btn btn-sm" onclick="viewPatientInvoices(${row.id})" style="background:#e3f2fd;color:#1565c0">📋 ${tr('Invoices', 'الفواتير')}</button>`
+      (row) => `<button class="btn btn-sm" onclick="viewPatientInvoices(${safeId(row.id)})" style="background:#e3f2fd;color:#1565c0">📋 ${tr('Invoices', 'الفواتير')}</button>`
     );
   };
 
@@ -6632,7 +6638,7 @@ async function renderPatientAccounts(el) {
     const invoices = await API.get('/api/invoices?patient_id=' + pid);
     const modal = document.createElement('div');
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
-    let rows = invoices.map(i => '<tr><td style="padding:6px;border-bottom:1px solid #eee">' + (i.invoice_number || i.id) + '</td><td style="padding:6px;border-bottom:1px solid #eee">' + (i.description || i.service_type || '') + '</td><td style="padding:6px;border-bottom:1px solid #eee">' + parseFloat(i.total || 0).toFixed(2) + '</td><td style="padding:6px;border-bottom:1px solid #eee"><span style="color:' + (i.paid ? '#2e7d32' : '#cc0000') + '">' + (i.paid ? tr('Paid', 'مدفوع') : tr('Unpaid', 'غير مدفوع')) + '</span></td></tr>').join('');
+    let rows = invoices.map(i => '<tr><td style="padding:6px;border-bottom:1px solid #eee">' + escapeHTML(i.invoice_number || i.id) + '</td><td style="padding:6px;border-bottom:1px solid #eee">' + escapeHTML(i.description || i.service_type || '') + '</td><td style="padding:6px;border-bottom:1px solid #eee">' + parseFloat(i.total || 0).toFixed(2) + '</td><td style="padding:6px;border-bottom:1px solid #eee"><span style="color:' + (i.paid ? '#2e7d32' : '#cc0000') + '">' + (i.paid ? tr('Paid', 'مدفوع') : tr('Unpaid', 'غير مدفوع')) + '</span></td></tr>').join('');
     modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:600px;direction:rtl;max-height:80vh;overflow:auto"><h3 style="margin:0 0 16px">' + tr('Patient Invoices', 'فواتير المريض') + '</h3><table style="width:100%"><thead><tr style="background:#f5f5f5"><th style="padding:8px;text-align:right">#</th><th style="padding:8px;text-align:right">' + tr('Service', 'الخدمة') + '</th><th style="padding:8px;text-align:right">' + tr('Amount', 'المبلغ') + '</th><th style="padding:8px;text-align:right">' + tr('Status', 'الحالة') + '</th></tr></thead><tbody>' + rows + '</tbody></table><button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()" style="margin-top:16px;width:100%">' + tr('Close', 'إغلاق') + '</button></div>';
     document.body.appendChild(modal);
     modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
@@ -6652,13 +6658,13 @@ window.loadPatientAccount = async () => {
     const typeNames = { 'File Opening': tr('File Opening', 'فتح ملف'), 'Lab Test': tr('Lab Tests', 'فحوصات المختبر'), 'Radiology': tr('Radiology', 'الأشعة'), 'Consultation': tr('Consultation', 'الكشفية'), 'Pharmacy': tr('Pharmacy/Drugs', 'الصيدلية/الأدوية'), 'Appointment': tr('Appointments', 'المواعيد'), 'Medical Services': tr('Medical Services', 'خدمات طبية') };
     for (const [type, info] of Object.entries(data.byType)) {
       breakdownHtml += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--hover);border-radius:8px;margin:6px 0">
-        <span>${typeIcons[type] || '📄'} <strong>${typeNames[type] || type}</strong> <span class="badge badge-info" style="font-size:11px">${info.count}</span></span>
+        <span>${typeIcons[type] || '📄'} <strong>${escapeHTML(typeNames[type] || type)}</strong> <span class="badge badge-info" style="font-size:11px">${escapeHTML(info.count)}</span></span>
         <span style="font-weight:600">${info.total.toLocaleString()} ${tr('SAR', 'ر.س')}</span>
       </div>`;
     }
     document.getElementById('paResult').innerHTML = `
         <div class="card mb-16">
-          <div class="card-title">👤 ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)} - #${p.file_number}</div>
+          <div class="card-title">👤 ${escapeHTML(isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar))} - #${escapeHTML(p.file_number)}</div>
           <div class="stats-grid">
             <div class="stat-card" style="--stat-color:#3b82f6"><div class="stat-label">${tr('Total Billed', 'إجمالي الفواتير')}</div><div class="stat-value">${data.totalBilled.toLocaleString()} SAR</div></div>
             <div class="stat-card" style="--stat-color:#4ade80"><div class="stat-label">${tr('Total Paid', 'المدفوع')}</div><div class="stat-value">${data.totalPaid.toLocaleString()} SAR</div></div>
@@ -6672,10 +6678,10 @@ window.loadPatientAccount = async () => {
         <div class="card mb-16"><div class="card-title">🧾 ${tr('All Invoices', 'جميع الفواتير')} (${data.invoices.length})</div>
         ${makeTable([tr('Type', 'النوع'), tr('Description', 'الوصف'), tr('Amount', 'المبلغ'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', 'إجراءات')],
       data.invoices.map(i => ({ cells: [i.service_type || '', i.description || '', `${i.total} SAR`, i.paid ? badge(tr('Paid', 'مدفوع'), 'success') : badge(tr('Unpaid', 'غير مدفوع'), 'danger'), i.created_at?.split('T')[0] || ''], id: i.id, paid: i.paid })),
-      (row) => !row.paid ? `<button class="btn btn-sm btn-success" onclick="payInvoicePA(${row.id})">💵 ${tr('Pay', 'تسديد')}</button>` : `<span class="badge badge-success">✅</span>`
+      (row) => !row.paid ? `<button class="btn btn-sm btn-success" onclick="payInvoicePA(${safeId(row.id)})">💵 ${tr('Pay', 'تسديد')}</button>` : `<span class="badge badge-success">✅</span>`
     )}</div>
         <div style="display:flex;gap:8px;margin-top:12px">
-          <button class="btn btn-primary" onclick="printPatientStatement(${pid})">🖨️ ${tr('Print Statement', 'طباعة كشف الحساب')}</button>
+          <button class="btn btn-primary" onclick="printPatientStatement(${safeId(pid)})">🖨️ ${tr('Print Statement', 'طباعة كشف الحساب')}</button>
           <button class="btn" onclick="exportTableCSV('patient_account')">📥 ${tr('Export CSV', 'تصدير CSV')}</button>
         </div>`;
   } catch (e) { showToast(tr('Error loading account', 'خطأ في تحميل الحساب'), 'error'); }
@@ -6850,8 +6856,8 @@ async function renderReports(el) {
         <div class="error-card-premium">
           <div class="error-card-icon">⚠️</div>
           <h3>${tr('Failed to load report data', 'فشل في تحميل بيانات التقرير')}</h3>
-          <p>${e.message || e}</p>
-          <button class="btn btn-primary" onclick="genReport('${type}')">🔄 ${tr('Retry', 'إعادة المحاولة')}</button>
+          <p>${escapeHTML(e.message || e)}</p>
+          <button class="btn btn-primary" onclick="genReport('${jsStr(type)}')">🔄 ${tr('Retry', 'إعادة المحاولة')}</button>
         </div>
       `;
     }
@@ -6887,16 +6893,16 @@ async function renderMessaging(el) {
 
   // Render inbox
   const ib = document.getElementById('msgInbox');
-  if (ib) { ib.innerHTML = inbox.length ? inbox.map(m => '<div style="padding:12px;margin:4px 0;border-radius:8px;background:' + (m.read_at ? '#fff' : '#e3f2fd') + ';cursor:pointer;border-left:4px solid ' + (m.read_at ? '#ccc' : '#1a73e8') + '" onclick="readMsg(' + m.id + ')"><div style="display:flex;justify-content:space-between"><strong>' + (m.from_name || tr('System', 'النظام')) + '</strong><span style="font-size:11px;color:#666">' + (m.created_at ? new Date(m.created_at).toLocaleString('ar-SA') : '') + '</span></div><p style="margin:4px 0 0;font-size:13px;color:#666">' + (m.subject || m.content || '').substring(0, 80) + '</p></div>').join('') : '<p style="text-align:center;color:#999">' + tr('No messages', 'لا توجد رسائل') + '</p>'; }
+  if (ib) { ib.innerHTML = inbox.length ? inbox.map(m => '<div style="padding:12px;margin:4px 0;border-radius:8px;background:' + (m.read_at ? '#fff' : '#e3f2fd') + ';cursor:pointer;border-left:4px solid ' + (m.read_at ? '#ccc' : '#1a73e8') + '" onclick="readMsg(' + safeId(m.id) + ')"><div style="display:flex;justify-content:space-between"><strong>' + escapeHTML(m.from_name || tr('System', 'النظام')) + '</strong><span style="font-size:11px;color:#666">' + (m.created_at ? new Date(m.created_at).toLocaleString('ar-SA') : '') + '</span></div><p style="margin:4px 0 0;font-size:13px;color:#666">' + escapeHTML((m.subject || m.content || '').substring(0, 80)) + '</p></div>').join('') : '<p style="text-align:center;color:#999">' + tr('No messages', 'لا توجد رسائل') + '</p>'; }
 
   const st = document.getElementById('msgSent');
-  if (st) { st.innerHTML = sent.length ? sent.map(m => '<div style="padding:12px;margin:4px 0;border-radius:8px;background:#f5f5f5;border-left:4px solid #4caf50"><div style="display:flex;justify-content:space-between"><strong>→ ' + (m.to_name || '') + '</strong><span style="font-size:11px;color:#666">' + (m.created_at ? new Date(m.created_at).toLocaleString('ar-SA') : '') + '</span></div><p style="margin:4px 0 0;font-size:13px;color:#666">' + (m.subject || m.content || '').substring(0, 80) + '</p></div>').join('') : '<p style="text-align:center;color:#999">' + tr('No sent messages', 'لا توجد رسائل مرسلة') + '</p>'; }
+  if (st) { st.innerHTML = sent.length ? sent.map(m => '<div style="padding:12px;margin:4px 0;border-radius:8px;background:#f5f5f5;border-left:4px solid #4caf50"><div style="display:flex;justify-content:space-between"><strong>→ ' + escapeHTML(m.to_name || '') + '</strong><span style="font-size:11px;color:#666">' + (m.created_at ? new Date(m.created_at).toLocaleString('ar-SA') : '') + '</span></div><p style="margin:4px 0 0;font-size:13px;color:#666">' + escapeHTML((m.subject || m.content || '').substring(0, 80)) + '</p></div>').join('') : '<p style="text-align:center;color:#999">' + tr('No sent messages', 'لا توجد رسائل مرسلة') + '</p>'; }
 
   window.showMsgTab = (tab) => { document.getElementById('msgInbox').style.display = tab === 'inbox' ? '' : 'none'; document.getElementById('msgSent').style.display = tab === 'sent' ? '' : 'none'; };
-  window.readMsg = async (id) => { try { await API.put('/api/messages/' + id + '/read', {}); const m = messages.find(x => x.id === id); if (m) { const modal = document.createElement('div'); modal.className = 'modal-overlay'; modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center'; modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:500px;max-height:80vh;overflow:auto"><h3 style="margin:0 0 8px">' + (m.subject || tr('Message', 'رسالة')) + '</h3><p style="color:#666;font-size:12px;margin:0 0 16px">' + tr('From', 'من') + ': ' + (m.from_name || '') + ' — ' + (m.created_at ? new Date(m.created_at).toLocaleString('ar-SA') : '') + '</p><div style="padding:12px;background:#f5f5f5;border-radius:8px;white-space:pre-wrap">' + (m.content || '') + '</div><button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:16px">' + tr('Close', 'إغلاق') + '</button></div>'; document.body.appendChild(modal); modal.onclick = e => { if (e.target === modal) modal.remove(); } } } catch (e) { } };
+  window.readMsg = async (id) => { try { await API.put('/api/messages/' + id + '/read', {}); const m = messages.find(x => x.id === id); if (m) { const modal = document.createElement('div'); modal.className = 'modal-overlay'; modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center'; modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:500px;max-height:80vh;overflow:auto"><h3 style="margin:0 0 8px">' + escapeHTML(m.subject || tr('Message', 'رسالة')) + '</h3><p style="color:#666;font-size:12px;margin:0 0 16px">' + tr('From', 'من') + ': ' + escapeHTML(m.from_name || '') + '— ' + (m.created_at ? new Date(m.created_at).toLocaleString('ar-SA') : '') + '</p><div style="padding:12px;background:#f5f5f5;border-radius:8px;white-space:pre-wrap">' + escapeHTML(m.content || '') + '</div><button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:16px">' + tr('Close', 'إغلاق') + '</button></div>'; document.body.appendChild(modal); modal.onclick = e => { if (e.target === modal) modal.remove(); } } } catch (e) { } };
   window.showComposeModal = () => {
     const modal = document.createElement('div'); modal.className = 'modal-overlay'; modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
-    modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:500px"><h3 style="margin:0 0 16px">✏️ ' + tr('New Message', 'رسالة جديدة') + '</h3><div class="form-group"><label>' + tr('To', 'إلى') + '</label><select class="form-input" id="msgTo">' + users.map(u => '<option value="' + u.id + '">' + u.display_name + '</option>').join('') + '</select></div><div class="form-group"><label>' + tr('Subject', 'الموضوع') + '</label><input class="form-input" id="msgSubject"></div><div class="form-group"><label>' + tr('Message', 'الرسالة') + '</label><textarea class="form-input" id="msgContent" rows="4"></textarea></div><div style="display:flex;gap:8px"><button class="btn btn-primary" onclick="sendMessage()" style="flex:1">📤 ' + tr('Send', 'إرسال') + '</button><button class="btn btn-secondary" onclick="this.parentElement.parentElement.parentElement.remove()" style="flex:1">' + tr('Cancel', 'إلغاء') + '</button></div></div>';
+    modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:500px"><h3 style="margin:0 0 16px">✏️ ' + tr('New Message', 'رسالة جديدة') + '</h3><div class="form-group"><label>' + tr('To', 'إلى') + '</label><select class="form-input" id="msgTo">' + users.map(u => '<option value="' + escapeHTML(u.id) + '">' + escapeHTML(u.display_name) + '</option>').join('') + '</select></div><div class="form-group"><label>' + tr('Subject', 'الموضوع') + '</label><input class="form-input" id="msgSubject"></div><div class="form-group"><label>' + tr('Message', 'الرسالة') + '</label><textarea class="form-input" id="msgContent" rows="4"></textarea></div><div style="display:flex;gap:8px"><button class="btn btn-primary" onclick="sendMessage()" style="flex:1">📤 ' + tr('Send', 'إرسال') + '</button><button class="btn btn-secondary" onclick="this.parentElement.parentElement.parentElement.remove()" style="flex:1">' + tr('Cancel', 'إلغاء') + '</button></div></div>';
     document.body.appendChild(modal); modal.onclick = e => { if (e.target === modal) modal.remove(); };
   };
   window.sendMessage = async () => { try { await API.post('/api/messages', { to_user_id: document.getElementById('msgTo').value, subject: document.getElementById('msgSubject').value, content: document.getElementById('msgContent').value }); document.querySelector('.modal-overlay')?.remove(); showToast(tr('Message sent!', 'تم إرسال الرسالة!')); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); } };
@@ -7017,11 +7023,11 @@ async function renderSettings(el) {
 
   const getActionBadge = (act) => {
     const action = act.toUpperCase();
-    if (action.includes('CREATE') || action.includes('INSERT') || action.includes('ADD')) return `<span class="badge badge-success">${act}</span>`;
-    if (action.includes('UPDATE') || action.includes('EDIT') || action.includes('SAVE')) return `<span class="badge badge-warning">${act}</span>`;
-    if (action.includes('DELETE') || action.includes('REMOVE') || action.includes('DESTROY')) return `<span class="badge badge-danger">${act}</span>`;
-    if (action.includes('LOGIN') || action.includes('AUTH')) return `<span class="badge badge-info">${act}</span>`;
-    return `<span class="badge">${act}</span>`;
+    if (action.includes('CREATE') || action.includes('INSERT') || action.includes('ADD')) return `<span class="badge badge-success">${escapeHTML(act)}</span>`;
+    if (action.includes('UPDATE') || action.includes('EDIT') || action.includes('SAVE')) return `<span class="badge badge-warning">${escapeHTML(act)}</span>`;
+    if (action.includes('DELETE') || action.includes('REMOVE') || action.includes('DESTROY')) return `<span class="badge badge-danger">${escapeHTML(act)}</span>`;
+    if (action.includes('LOGIN') || action.includes('AUTH')) return `<span class="badge badge-info">${escapeHTML(act)}</span>`;
+    return `<span class="badge">${escapeHTML(act)}</span>`;
   };
 
   let backupInfo = { database: 'nama_medical_web', totalSizeMB: '0.00', backupCommand: '', tables: [] };
@@ -7048,7 +7054,7 @@ async function renderSettings(el) {
       <div class="error-card-premium">
         <div class="error-card-icon">⚠️</div>
         <h3>${tr('Failed to load settings data', 'فشل في تحميل بيانات الإعدادات')}</h3>
-        <p>${e.message || e}</p>
+        <p>${escapeHTML(e.message || e)}</p>
         <button class="btn btn-primary" onclick="navigateTo(currentPage)">🔄 ${tr('Retry', 'إعادة المحاولة')}</button>
       </div>
     `;
@@ -7239,14 +7245,14 @@ async function renderSettings(el) {
               <tbody class="font-body-md text-body-md divide-y divide-outline-variant/10">
                 ${settingsUsersList.map(u => `
                   <tr class="hover:bg-primary/5 transition-colors">
-                    <td class="p-3 font-bold text-primary">${u.display_name || '—'}</td>
-                    <td class="p-3 font-mono text-sm">${u.username}</td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-xs bg-primary-container text-on-primary-fixed-variant font-bold">${u.role}</span></td>
-                    <td class="p-3 text-on-surface-variant">${u.speciality || '—'}</td>
+                    <td class="p-3 font-bold text-primary">${escapeHTML(u.display_name || '—')}</td>
+                    <td class="p-3 font-mono text-sm">${escapeHTML(u.username)}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-xs bg-primary-container text-on-primary-fixed-variant font-bold">${escapeHTML(u.role)}</span></td>
+                    <td class="p-3 text-on-surface-variant">${escapeHTML(u.speciality || '—')}</td>
                     <td class="p-3 text-center">
                       <div class="flex justify-center gap-2">
-                        <button class="btn btn-sm bg-secondary/10 text-secondary hover:bg-secondary/20 p-2 rounded-lg" onclick="editUser(${u.id})">✏️</button>
-                        <button class="btn btn-sm bg-error/10 text-error hover:bg-error/20 p-2 rounded-lg" onclick="deleteUser(${u.id})">🗑️</button>
+                        <button class="btn btn-sm bg-secondary/10 text-secondary hover:bg-secondary/20 p-2 rounded-lg" onclick="editUser(${safeId(u.id)})">✏️</button>
+                        <button class="btn btn-sm bg-error/10 text-error hover:bg-error/20 p-2 rounded-lg" onclick="deleteUser(${safeId(u.id)})">🗑️</button>
                       </div>
                     </td>
                   </tr>
@@ -7336,8 +7342,8 @@ async function renderSettings(el) {
               <div>
                 <h4 class="font-title-lg text-title-lg text-primary mb-3">💾 ${tr('Database Infrastructure', 'بنية قاعدة البيانات')}</h4>
                 <div class="space-y-2 text-xs">
-                  <div class="flex justify-between p-1 border-b border-outline-variant/20"><span class="text-on-surface-variant">اسم قاعدة البيانات:</span><span class="font-bold text-primary">${backupInfo.database}</span></div>
-                  <div class="flex justify-between p-1 border-b border-outline-variant/20"><span class="text-on-surface-variant">الحجم الإجمالي:</span><span class="font-bold text-primary">${backupInfo.totalSizeMB} MB</span></div>
+                  <div class="flex justify-between p-1 border-b border-outline-variant/20"><span class="text-on-surface-variant">اسم قاعدة البيانات:</span><span class="font-bold text-primary">${escapeHTML(backupInfo.database)}</span></div>
+                  <div class="flex justify-between p-1 border-b border-outline-variant/20"><span class="text-on-surface-variant">الحجم الإجمالي:</span><span class="font-bold text-primary">${escapeHTML(backupInfo.totalSizeMB)} MB</span></div>
                   <div class="flex justify-between p-1 border-b border-outline-variant/20"><span class="text-on-surface-variant">أداة النسخ الاحتياطي:</span><span class="font-mono text-[10px] text-secondary">pg_dump</span></div>
                 </div>
               </div>
@@ -7363,8 +7369,8 @@ async function renderSettings(el) {
                   <tbody class="divide-y divide-outline-variant/10">
                     ${backupList.length ? backupList.map(b => `
                       <tr class="hover:bg-primary/5 transition-colors">
-                        <td class="p-2 font-mono text-[11px] text-primary">${b.name}</td>
-                        <td class="p-2 font-bold">${b.size}</td>
+                        <td class="p-2 font-mono text-[11px] text-primary">${escapeHTML(b.name)}</td>
+                        <td class="p-2 font-bold">${escapeHTML(b.size)}</td>
                         <td class="p-2 text-on-surface-variant">${new Date(b.date).toLocaleString('ar-SA')}</td>
                       </tr>
                     `).join('') : `<tr><td colspan="3"><div class="empty-state-card"><div class="empty-state-icon">📂</div><div>${tr('No backups found', 'لا توجد نسخ احتياطية متوفرة')}</div></div></td></tr>`}
@@ -7392,11 +7398,11 @@ async function renderSettings(el) {
                 <tbody class="divide-y divide-outline-variant/10">
                   ${auditLogs.length ? auditLogs.map(log => `
                     <tr class="hover:bg-primary/5 transition-colors">
-                      <td class="p-3 font-bold text-primary">${log.user_name || '—'}</td>
-                      <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-secondary/10 text-secondary font-bold">${log.module}</span></td>
+                      <td class="p-3 font-bold text-primary">${escapeHTML(log.user_name || '—')}</td>
+                      <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-secondary/10 text-secondary font-bold">${escapeHTML(log.module)}</span></td>
                       <td class="p-3">${getActionBadge(log.action)}</td>
-                      <td class="p-3 text-on-surface-variant max-w-xs truncate" title="${log.details || ''}">${log.details || '—'}</td>
-                      <td class="p-3 font-mono text-[11px]">${log.ip_address || '—'}</td>
+                      <td class="p-3 text-on-surface-variant max-w-xs truncate" title="${escapeHTML(log.details || '')}">${escapeHTML(log.details || '—')}</td>
+                      <td class="p-3 font-mono text-[11px]">${escapeHTML(log.ip_address || '—')}</td>
                       <td class="p-3 text-on-surface-variant">${new Date(log.created_at).toLocaleString('ar-SA')}</td>
                     </tr>
                   `).join('') : `<tr><td colspan="6"><div class="empty-state-card"><div class="empty-state-icon">🔍</div><div>${tr('No audit trail events logged', 'لا توجد حركات مسجلة حالياً')}</div></div></td></tr>`}
@@ -7609,7 +7615,7 @@ async function renderCatalog(el) {
       ${Object.entries(labGroups).map(([cat, tests]) => `
         <div class="card mb-12 cat-item">
           <div class="card-title" style="cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-            🧪 ${cat} <span class="badge badge-info">${tests.length}</span> <span style="float:left;font-size:12px;color:var(--text-dim)">▼</span>
+            🧪 ${escapeHTML(cat)} <span class="badge badge-info">${tests.length}</span> <span style="float:left;font-size:12px;color:var(--text-dim)">▼</span>
           </div>
           <div style="display:none">
             <table class="data-table"><thead><tr>
@@ -7618,11 +7624,11 @@ async function renderCatalog(el) {
               <th style="width:100px">${tr('Price', 'السعر')}</th>
               <th style="width:60px"></th>
             </tr></thead><tbody>
-            ${tests.map(t => `<tr class="cat-row" data-name="${t.test_name.toLowerCase()}">
-              <td>${t.test_name}</td>
-              <td style="font-size:11px;color:var(--text-dim)">${t.normal_range || '-'}</td>
-              <td><input type="number" class="form-input" value="${t.price}" id="labP${t.id}" style="width:80px;text-align:center;padding:4px 6px;font-size:12px"></td>
-              <td><button class="btn btn-sm btn-success" onclick="saveCatPrice('lab',${t.id})">💾</button></td>
+            ${tests.map(t => `<tr class="cat-row" data-name="${escapeHTML(t.test_name.toLowerCase())}">
+              <td>${escapeHTML(t.test_name)}</td>
+              <td style="font-size:11px;color:var(--text-dim)">${escapeHTML(t.normal_range || '-')}</td>
+              <td><input type="number" class="form-input" value="${escapeHTML(t.price)}" id="labP${safeId(t.id)}" style="width:80px;text-align:center;padding:4px 6px;font-size:12px"></td>
+              <td><button class="btn btn-sm btn-success" onclick="saveCatPrice('lab',${safeId(t.id)})">💾</button></td>
             </tr>`).join('')}
             </tbody></table>
           </div>
@@ -7634,7 +7640,7 @@ async function renderCatalog(el) {
       ${Object.entries(radGroups).map(([mod, exams]) => `
         <div class="card mb-12 cat-item">
           <div class="card-title" style="cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-            📡 ${mod} <span class="badge badge-info">${exams.length}</span> <span style="float:left;font-size:12px;color:var(--text-dim)">▼</span>
+            📡 ${escapeHTML(mod)} <span class="badge badge-info">${exams.length}</span> <span style="float:left;font-size:12px;color:var(--text-dim)">▼</span>
           </div>
           <div style="display:none">
             <table class="data-table"><thead><tr>
@@ -7642,10 +7648,10 @@ async function renderCatalog(el) {
               <th style="width:100px">${tr('Price', 'السعر')}</th>
               <th style="width:60px"></th>
             </tr></thead><tbody>
-            ${exams.map(r => `<tr class="cat-row" data-name="${r.exact_name.toLowerCase()}">
-              <td>${r.exact_name}</td>
-              <td><input type="number" class="form-input" value="${r.price}" id="radP${r.id}" style="width:80px;text-align:center;padding:4px 6px;font-size:12px"></td>
-              <td><button class="btn btn-sm btn-success" onclick="saveCatPrice('rad',${r.id})">💾</button></td>
+            ${exams.map(r => `<tr class="cat-row" data-name="${escapeHTML(r.exact_name.toLowerCase())}">
+              <td>${escapeHTML(r.exact_name)}</td>
+              <td><input type="number" class="form-input" value="${escapeHTML(r.price)}" id="radP${safeId(r.id)}" style="width:80px;text-align:center;padding:4px 6px;font-size:12px"></td>
+              <td><button class="btn btn-sm btn-success" onclick="saveCatPrice('rad',${safeId(r.id)})">💾</button></td>
             </tr>`).join('')}
             </tbody></table>
           </div>
@@ -7656,29 +7662,29 @@ async function renderCatalog(el) {
     <div id="catSvcContent" style="display:none">
       <div class="flex gap-8 mb-12" style="flex-wrap:wrap" id="catSpecFilter">
         <button class="btn btn-sm btn-primary" onclick="filterSpec('all')">📋 ${tr('All', 'الكل')}</button>
-        ${Object.keys(svcGroups).map(s => `<button class="btn btn-sm btn-secondary" onclick="filterSpec('${s}')">${specNames[s] || s}</button>`).join('')}
+        ${Object.keys(svcGroups).map(s => `<button class="btn btn-sm btn-secondary" onclick="filterSpec('${jsStr(s)}')">${escapeHTML(specNames[s] || s)}</button>`).join('')}
       </div>
       ${Object.entries(svcGroups).map(([spec, cats]) => `
-        <div class="spec-group" data-spec="${spec}">
+        <div class="spec-group" data-spec="${escapeHTML(spec)}">
           <div class="card mb-12">
             <div class="card-title" style="cursor:pointer;background:var(--hover);border-radius:8px;padding:12px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-              🏥 ${specNames[spec] || spec} — ${spec} <span class="badge badge-info">${Object.values(cats).flat().length}</span> <span style="float:left;font-size:12px;color:var(--text-dim)">▼</span>
+              🏥 ${escapeHTML(specNames[spec] || spec)} — ${escapeHTML(spec)} <span class="badge badge-info">${Object.values(cats).flat().length}</span> <span style="float:left;font-size:12px;color:var(--text-dim)">▼</span>
             </div>
             <div style="display:none">
               ${Object.entries(cats).map(([cat, items]) => `
                 <div style="margin:12px 0">
-                  <div style="font-weight:600;margin-bottom:8px;padding:6px 12px;background:var(--hover);border-radius:6px">${catIcons[cat] || '📌'} ${cat} <span class="badge badge-info" style="font-size:10px">${items.length}</span></div>
+                  <div style="font-weight:600;margin-bottom:8px;padding:6px 12px;background:var(--hover);border-radius:6px">${catIcons[cat] || '📌'} ${escapeHTML(cat)} <span class="badge badge-info" style="font-size:10px">${items.length}</span></div>
                   <table class="data-table"><thead><tr>
                     <th>${tr('Procedure (EN)', 'الإجراء (إنجليزي)')}</th>
                     <th>${tr('Procedure (AR)', 'الإجراء (عربي)')}</th>
                     <th style="width:100px">${tr('Price', 'السعر')}</th>
                     <th style="width:60px"></th>
                   </tr></thead><tbody>
-                  ${items.map(s => `<tr class="cat-row" data-name="${s.name_en.toLowerCase()} ${s.name_ar}">
-                    <td style="font-size:12px">${s.name_en}</td>
-                    <td style="font-size:12px">${s.name_ar}</td>
-                    <td><input type="number" class="form-input" value="${s.price}" id="svcP${s.id}" style="width:80px;text-align:center;padding:4px 6px;font-size:12px"></td>
-                    <td><button class="btn btn-sm btn-success" onclick="saveCatPrice('svc',${s.id})">💾</button></td>
+                  ${items.map(s => `<tr class="cat-row" data-name="${escapeHTML(s.name_en.toLowerCase())} ${escapeHTML(s.name_ar)}">
+                    <td style="font-size:12px">${escapeHTML(s.name_en)}</td>
+                    <td style="font-size:12px">${escapeHTML(s.name_ar)}</td>
+                    <td><input type="number" class="form-input" value="${escapeHTML(s.price)}" id="svcP${safeId(s.id)}" style="width:80px;text-align:center;padding:4px 6px;font-size:12px"></td>
+                    <td><button class="btn btn-sm btn-success" onclick="saveCatPrice('svc',${safeId(s.id)})">💾</button></td>
                   </tr>`).join('')}
                   </tbody></table>
                 </div>
@@ -7782,7 +7788,7 @@ function renderDrqItems() {
   const c = document.getElementById('drqItemsList');
   if (!drqItems.length) { c.innerHTML = `<span style="color:var(--text-dim);font-size:13px">${tr('No items added', 'لم تتم إضافة أصناف')}</span>`; return; }
   c.innerHTML = drqItems.map((item, i) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--hover);border-radius:8px;margin:4px 0">
-    <span>${item.name} × <strong>${item.qty}</strong></span>
+    <span>${escapeHTML(item.name)} × <strong>${escapeHTML(item.qty)}</strong></span>
     <button class="btn btn-danger btn-sm" onclick="drqItems.splice(${i},1);renderDrqItems()">🗑</button>
   </div>`).join('');
 }
@@ -7835,13 +7841,13 @@ async function renderSurgery(el) {
     cont.innerHTML = `
     <div class="split-layout"><div class="card">
       <div class="card-title">📝 ${tr('Schedule New Surgery', 'جدولة عملية جديدة')}</div>
-      <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="srgPatient">${patients.map(p => `<option value="${p.id}" data-name="">${p.file_number} - ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</option>`).join('')}</select></div>
+      <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="srgPatient">${patients.map(p => `<option value="${safeId(p.id)}" data-name="">${escapeHTML(p.file_number)} - ${escapeHTML(isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar))}</option>`).join('')}</select></div>
       <div class="form-group mb-12"><label>${tr('Procedure', 'الإجراء')}</label><input class="form-input" id="srgProc" placeholder="${tr('e.g. Appendectomy', 'مثال: استئصال الزائدة')}"></div>
       <div class="form-group mb-12"><label>${tr('Procedure (Arabic)', 'الإجراء بالعربية')}</label><input class="form-input" id="srgProcAr"></div>
-      <div class="form-group mb-12"><label>${tr('Surgeon', 'الجراح')}</label><select class="form-input" id="srgSurgeon"><option value="">${tr('Select', 'اختر')}</option>${doctors.map(d => `<option value="${d.id}" data-name="${d.name}">${d.name}</option>`).join('')}</select></div>
-      <div class="form-group mb-12"><label>${tr('Anesthetist', 'طبيب التخدير')}</label><select class="form-input" id="srgAnesth"><option value="">${tr('Select', 'اختر')}</option>${doctors.map(d => `<option value="${d.id}" data-name="${d.name}">${d.name}</option>`).join('')}</select></div>
+      <div class="form-group mb-12"><label>${tr('Surgeon', 'الجراح')}</label><select class="form-input" id="srgSurgeon"><option value="">${tr('Select', 'اختر')}</option>${doctors.map(d => `<option value="${safeId(d.id)}" data-name="${escapeHTML(d.name)}">${escapeHTML(d.name)}</option>`).join('')}</select></div>
+      <div class="form-group mb-12"><label>${tr('Anesthetist', 'طبيب التخدير')}</label><select class="form-input" id="srgAnesth"><option value="">${tr('Select', 'اختر')}</option>${doctors.map(d => `<option value="${safeId(d.id)}" data-name="${escapeHTML(d.name)}">${escapeHTML(d.name)}</option>`).join('')}</select></div>
       <div class="form-group mb-12"><label>${tr('Type', 'النوع')}</label><select class="form-input" id="srgType"><option value="Elective">${tr('Elective', 'اختيارية')}</option><option value="Urgent">${tr('Urgent', 'عاجلة')}</option><option value="Emergency">${tr('Emergency', 'طارئة')}</option></select></div>
-      <div class="form-group mb-12"><label>${tr('Operating Room', 'غرفة العمليات')}</label><select class="form-input" id="srgOR">${ors.map(o => `<option value="${isArabic ? o.room_name_ar : o.room_name}">${isArabic ? o.room_name_ar : o.room_name} (${o.location})</option>`).join('')}</select></div>
+      <div class="form-group mb-12"><label>${tr('Operating Room', 'غرفة العمليات')}</label><select class="form-input" id="srgOR">${ors.map(o => `<option value="${escapeHTML(isArabic ? o.room_name_ar : o.room_name)}">${escapeHTML(isArabic ? o.room_name_ar : o.room_name)} (${escapeHTML(o.location)})</option>`).join('')}</select></div>
       <div class="form-group mb-12"><label>${tr('Date', 'التاريخ')}</label><input class="form-input" type="date" id="srgDate" value="${new Date().toISOString().split('T')[0]}"></div>
       <div class="form-group mb-12"><label>${tr('Time', 'الوقت')}</label><input class="form-input" type="time" id="srgTime" value="08:00"></div>
       <div class="form-group mb-12"><label>${tr('Duration (min)', 'المدة (دقيقة)')}</label><input class="form-input" type="number" id="srgDur" value="60"></div>
@@ -7855,9 +7861,9 @@ async function renderSurgery(el) {
       [tr('ID', '#'), tr('Patient', 'المريض'), tr('Procedure', 'الإجراء'), tr('Surgeon', 'الجراح'), tr('Date', 'التاريخ'), tr('Time', 'الوقت'), tr('OR', 'الغرفة'), tr('Priority', 'الأولوية'), tr('Pre-Op', 'ما قبل'), tr('Status', 'الحالة'), tr('Actions', 'إجراءات')],
       surgeries.map(s => ({ cells: [s.id, s.patient_name, isArabic ? (s.procedure_name_ar || s.procedure_name) : s.procedure_name, s.surgeon_name, s.scheduled_date, s.scheduled_time, s.operating_room, priorityBadge(s.priority), badge(s.preop_status, s.preop_status === 'Complete' ? 'success' : s.preop_status === 'In Progress' ? 'warning' : 'danger'), badge(s.status, surgStatusBadge(s.status))], id: s.id })),
       row => `<div class="flex gap-4" style="flex-wrap:wrap">
-              ${row.cells[9]?.includes('Scheduled') || row.cells[9]?.includes('info') ? `<button class="btn btn-warning btn-sm" onclick="updateSurgStatus(${row.id},'In Progress')" style="font-size:11px">▶ ${tr('Start', 'بدء')}</button>` : ''}
-              ${!row.cells[9]?.includes('Completed') && !row.cells[9]?.includes('success') ? `<button class="btn btn-success btn-sm" onclick="updateSurgStatus(${row.id},'Completed')" style="font-size:11px;font-weight:bold">✅ ${tr('Surgery Done', 'انتهت العملية')}</button>` : `<span class="badge badge-success">✅ ${tr('Done', 'منتهية')}</span>`}
-              <button class="btn btn-danger btn-sm" onclick="deleteSurgery(${row.id})" style="font-size:11px">🗑</button>
+              ${row.cells[9]?.includes('Scheduled') || row.cells[9]?.includes('info') ? `<button class="btn btn-warning btn-sm" onclick="updateSurgStatus(${safeId(row.id)},'In Progress')" style="font-size:11px">▶ ${tr('Start', 'بدء')}</button>` : ''}
+              ${!row.cells[9]?.includes('Completed') && !row.cells[9]?.includes('success') ? `<button class="btn btn-success btn-sm" onclick="updateSurgStatus(${safeId(row.id)},'Completed')" style="font-size:11px;font-weight:bold">✅ ${tr('Surgery Done', 'انتهت العملية')}</button>` : `<span class="badge badge-success">✅ ${tr('Done', 'منتهية')}</span>`}
+              <button class="btn btn-danger btn-sm" onclick="deleteSurgery(${safeId(row.id)})" style="font-size:11px">🗑</button>
             </div>`
     )}</div>
     </div></div>`;
@@ -7867,7 +7873,7 @@ async function renderSurgery(el) {
       <div class="form-group mb-12"><label>${tr('Select Surgery', 'اختر العملية')}</label>
         <select class="form-input" id="preopSurgery" onchange="loadPreopAssessment()">
           <option value="">${tr('-- Select --', '-- اختر --')}</option>
-          ${surgeries.filter(s => s.status === 'Scheduled').map(s => `<option value="${s.id}">${s.id} - ${s.patient_name} - ${s.procedure_name} (${s.scheduled_date})</option>`).join('')}
+          ${surgeries.filter(s => s.status === 'Scheduled').map(s => `<option value="${safeId(s.id)}">${escapeHTML(s.id)} - ${escapeHTML(s.patient_name)} - ${escapeHTML(s.procedure_name)} (${escapeHTML(s.scheduled_date)})</option>`).join('')}
         </select>
       </div>
       <div id="preopForm" style="display:none">
@@ -7897,7 +7903,7 @@ async function renderSurgery(el) {
       <div class="form-group mb-12"><label>${tr('Select Surgery', 'اختر العملية')}</label>
         <select class="form-input" id="anesthSurgery" onchange="loadAnesthRecord()">
           <option value="">${tr('-- Select --', '-- اختر --')}</option>
-          ${surgeries.map(s => `<option value="${s.id}">${s.id} - ${s.patient_name} - ${s.procedure_name} (${s.scheduled_date})</option>`).join('')}
+          ${surgeries.map(s => `<option value="${safeId(s.id)}">${escapeHTML(s.id)} - ${escapeHTML(s.patient_name)} - ${escapeHTML(s.procedure_name)} (${escapeHTML(s.scheduled_date)})</option>`).join('')}
         </select></div>
       <div id="anesthForm" style="display:none">
         <div class="grid-equal"><div>
@@ -7926,8 +7932,8 @@ async function renderSurgery(el) {
     cont.innerHTML = `<div class="card">
       <div class="card-title">🚪 ${tr('Operating Rooms', 'غرف العمليات')}</div>
       <div class="stats-grid" style="margin-bottom:16px">${ors.map(o => `<div class="stat-card" style="--stat-color:${o.status === 'Available' ? '#4ade80' : '#f87171'}">
-        <span class="stat-icon">🚪</span><div class="stat-label">${isArabic ? o.room_name_ar : o.room_name}</div>
-        <div class="stat-value" style="font-size:14px">${o.location}</div>
+        <span class="stat-icon">🚪</span><div class="stat-label">${escapeHTML(isArabic ? o.room_name_ar : o.room_name)}</div>
+        <div class="stat-value" style="font-size:14px">${escapeHTML(o.location)}</div>
         <div>${badge(o.status, o.status === 'Available' ? 'success' : 'danger')}</div>
       </div>`).join('')}</div>
     </div>`;
@@ -7975,7 +7981,7 @@ window.loadPreopAssessment = async () => {
     const tl = document.getElementById('preopTestsList');
     tl.innerHTML = tests.length ? makeTable([tr('Type', 'النوع'), tr('Test', 'الفحص'), tr('Status', 'الحالة'), tr('Result', 'النتيجة'), tr('Action', 'إجراء')],
       tests.map(t => ({ cells: [t.test_type, t.test_name, t.is_completed ? badge(tr('Done', 'تم'), 'success') : badge(tr('Pending', 'معلق'), 'warning'), t.result_summary || '-'], id: t.id })),
-      row => `<button class="btn btn-success btn-sm" onclick="markTestDone(${row.id})">✅</button>`) : `<p style="color:var(--text-dim)">${tr('No tests added', 'لم تتم إضافة فحوصات')}</p>`;
+      row => `<button class="btn btn-success btn-sm" onclick="markTestDone(${safeId(row.id)})">✅</button>`) : `<p style="color:var(--text-dim)">${tr('No tests added', 'لم تتم إضافة فحوصات')}</p>`;
   } catch (e) { console.error(e); }
 };
 window.savePreopAssessment = async () => {
@@ -8111,7 +8117,7 @@ async function renderBloodBank(el) {
   } else if (bbTab === 'crossmatch') {
     cont.innerHTML = `<div class="split-layout"><div class="card">
       <div class="card-title">🧪 ${tr('Request Cross-Match', 'طلب فحص توافق')}</div>
-      <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="bbCMPatient">${patients.map(p => `<option value="${p.id}" data-name="">${p.file_number} - ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</option>`).join('')}</select></div>
+      <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="bbCMPatient">${patients.map(p => `<option value="${safeId(p.id)}" data-name="">${escapeHTML(p.file_number)} - ${escapeHTML(isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar))}</option>`).join('')}</select></div>
       <div class="form-group mb-12"><label>${tr('Blood Type', 'فصيلة المريض')}</label><select class="form-input" id="bbCMBT"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div>
       <div class="form-group mb-12"><label>${tr('Units Needed', 'الوحدات المطلوبة')}</label><input class="form-input" type="number" id="bbCMUnits" value="1"></div>
       <button class="btn btn-primary w-full" onclick="requestCrossmatch()" style="height:44px">🧪 ${tr('Request', 'طلب')}</button>
@@ -8119,13 +8125,13 @@ async function renderBloodBank(el) {
       <div class="card-title">📋 ${tr('Cross-Match Results', 'نتائج التوافق')}</div>
       <div id="bbCMTable">${makeTable([tr('Patient', 'المريض'), tr('Type', 'الفصيلة'), tr('Units', 'الوحدات'), tr('Technician', 'الفني'), tr('Result', 'النتيجة'), tr('Action', 'إجراء')],
       crossmatches.map(c => ({ cells: [c.patient_name, c.patient_blood_type, c.units_needed, c.lab_technician, c.result === 'Pending' ? badge(c.result, 'warning') : c.result === 'Compatible' ? badge(c.result, 'success') : badge(c.result, 'danger')], id: c.id })),
-      row => `<button class="btn btn-success btn-sm" onclick="updateCrossmatch(${row.id},'Compatible')">✅</button><button class="btn btn-danger btn-sm" onclick="updateCrossmatch(${row.id},'Incompatible')">❌</button>`)}</div>
+      row => `<button class="btn btn-success btn-sm" onclick="updateCrossmatch(${safeId(row.id)},'Compatible')">✅</button><button class="btn btn-danger btn-sm" onclick="updateCrossmatch(${safeId(row.id)},'Incompatible')">❌</button>`)}</div>
     </div></div>`;
   } else if (bbTab === 'transfusions') {
     cont.innerHTML = `<div class="split-layout"><div class="card">
       <div class="card-title">💉 ${tr('Record Transfusion', 'تسجيل نقل دم')}</div>
-      <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="bbTrPatient">${patients.map(p => `<option value="${p.id}" data-name="">${p.file_number} - ${isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</option>`).join('')}</select></div>
-      <div class="form-group mb-12"><label>${tr('Blood Unit', 'وحدة الدم')}</label><select class="form-input" id="bbTrUnit">${units.filter(u => u.status === 'Available').map(u => `<option value="${u.id}" data-bag="${u.bag_number}" data-bt="${u.blood_type + u.rh_factor}" data-comp="${u.component}">${u.bag_number} (${u.blood_type}${u.rh_factor} - ${u.component})</option>`).join('')}</select></div>
+      <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="bbTrPatient">${patients.map(p => `<option value="${safeId(p.id)}" data-name="">${escapeHTML(p.file_number)} - ${escapeHTML(isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar))}</option>`).join('')}</select></div>
+      <div class="form-group mb-12"><label>${tr('Blood Unit', 'وحدة الدم')}</label><select class="form-input" id="bbTrUnit">${units.filter(u => u.status === 'Available').map(u => `<option value="${safeId(u.id)}" data-bag="${escapeHTML(u.bag_number)}" data-bt="${escapeHTML(u.blood_type + u.rh_factor)}" data-comp="${escapeHTML(u.component)}">${escapeHTML(u.bag_number)} (${escapeHTML(u.blood_type)}${escapeHTML(u.rh_factor)} - ${escapeHTML(u.component)})</option>`).join('')}</select></div>
       <div class="form-group mb-12"><label>${tr('Volume (ml)', 'الحجم (مل)')}</label><input class="form-input" type="number" id="bbTrVol" value="450"></div>
       <button class="btn btn-primary w-full" onclick="recordTransfusion()" style="height:44px">💉 ${tr('Record', 'تسجيل')}</button>
     </div><div class="card">
@@ -8208,10 +8214,10 @@ window.printConsentForm = async (formId) => {
     const arabicContent = contentParts.filter(l => /[\u0600-\u06FF]/.test(l));
     const englishContent = contentParts.filter(l => !/[\u0600-\u06FF]/.test(l.replace(/[⚠️]/g, '')));
     const signedDate = form.signed_at ? new Date(form.signed_at).toLocaleDateString('ar-SA') : new Date().toLocaleDateString('ar-SA');
-    const sigImg = form.patient_signature && form.patient_signature.startsWith('data:') ? `<img src="${form.patient_signature}" style="max-height:80px;max-width:200px">` : '<div style="height:60px;border-bottom:2px solid #333;width:200px"></div>';
+    const sigImg = form.patient_signature && form.patient_signature.startsWith('data:') ? `<img src="${escapeHTML(form.patient_signature)}" style="max-height:80px;max-width:200px">` : '<div style="height:60px;border-bottom:2px solid #333;width:200px"></div>';
     const w = window.open('', '_blank');
     w.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">
-<title>${title}</title>
+<title>${escapeHTML(title)}</title>
 <style>
 @page{size:A4;margin:18mm}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -8244,24 +8250,24 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:30px;color:#222;dire
   <button onclick="window.close()" style="padding:12px 30px;font-size:16px;background:#dc3545;color:#fff;border:none;border-radius:8px;cursor:pointer;margin-right:10px">✕ إغلاق</button>
 </div>
 <div class="header">
-  <h1>${hospitalAr}</h1>
-  <h2>${hospitalEn}</h2><div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap"><button class="btn" onclick="showChangePassword()" style="background:#fff3e0;border:1px solid #ff9800;color:#e65100">🔑 ${tr("Change Password", "تغيير كلمة المرور")}</button><button class="btn" onclick="startBackup()" style="background:#e8f5e9;border:1px solid #4caf50;color:#2e7d32">💾 ${tr("Database Backup", "نسخة احتياطية")}</button></div>
+  <h1>${escapeHTML(hospitalAr)}</h1>
+  <h2>${escapeHTML(hospitalEn)}</h2><div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap"><button class="btn" onclick="showChangePassword()" style="background:#fff3e0;border:1px solid #ff9800;color:#e65100">🔑 ${tr("Change Password", "تغيير كلمة المرور")}</button><button class="btn" onclick="startBackup()" style="background:#e8f5e9;border:1px solid #4caf50;color:#2e7d32">💾 ${tr("Database Backup", "نسخة احتياطية")}</button></div>
   <div class="hospital-info">
-    ${phone ? '📞 ' + phone + ' | ' : ''}${address ? '📍 ' + address + ' | ' : ''}${taxNum ? 'الرقم الضريبي: ' + taxNum : ''}
+    ${phone ? '📞 ' + escapeHTML(phone) + ' | ' : ''}${address ? '📍 ' + escapeHTML(address) + ' | ' : ''}${taxNum ? 'الرقم الضريبي: ' + escapeHTML(taxNum) : ''}
   </div>
 </div>
-<h3 style="text-align:center;color:#1a365d;font-size:18px;margin-bottom:5px">📜 ${title}</h3>
-<p style="text-align:center;color:#777;font-size:13px;margin-bottom:20px">${titleEn}</p>
+<h3 style="text-align:center;color:#1a365d;font-size:18px;margin-bottom:5px">📜 ${escapeHTML(title)}</h3>
+<p style="text-align:center;color:#777;font-size:13px;margin-bottom:20px">${escapeHTML(titleEn)}</p>
 <div class="patient-box">
-  <div class="field"><label>اسم المريض / Patient Name:</label> ${form.patient_name || ''}</div>
+  <div class="field"><label>اسم المريض / Patient Name:</label> ${escapeHTML(form.patient_name || '')}</div>
   <div class="field"><label>تاريخ الإقرار / Date:</label> ${signedDate}</div>
-  <div class="field"><label>الطبيب المعالج / Doctor:</label> ${form.doctor_name || ''}</div>
+  <div class="field"><label>الطبيب المعالج / Doctor:</label> ${escapeHTML(form.doctor_name || '')}</div>
   <div class="field"><label>الحالة / Status:</label> <span class="status-badge ${form.status === 'Signed' ? 'status-signed' : 'status-pending'}">${form.status === 'Signed' ? '✅ موقع Signed' : '⏳ معلق Pending'}</span></div>
 </div>
 <div class="consent-section">
   <h3>📋 نص الإقرار — Consent Declaration</h3>
-  <div class="consent-text-ar">${arabicContent.join('<br>')}</div>
-  ${englishContent.length ? `<div class="consent-text-en">${englishContent.join('<br>')}</div>` : ''}
+  <div class="consent-text-ar">${arabicContent.map(escapeHTML).join('<br>')}</div>
+  ${englishContent.length ? `<div class="consent-text-en">${englishContent.map(escapeHTML).join('<br>')}</div>` : ''}
 </div>
 <div class="sig-grid">
   <div class="sig-box">
@@ -8272,16 +8278,16 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:30px;color:#222;dire
   <div class="sig-box">
     <div class="sig-label">توقيع الطبيب</div>
     <div class="sig-label-en">Physician Signature</div>
-    <div class="sig-area"><div class="sig-line">${form.doctor_name || ''}</div></div>
+    <div class="sig-area"><div class="sig-line">${escapeHTML(form.doctor_name || '')}</div></div>
   </div>
   <div class="sig-box">
     <div class="sig-label">توقيع الشاهد</div>
     <div class="sig-label-en">Witness</div>
-    <div class="sig-area"><div class="sig-line">${form.witness_name || ''}</div></div>
+    <div class="sig-area"><div class="sig-line">${escapeHTML(form.witness_name || '')}</div></div>
   </div>
 </div>
 <div class="footer">
-  ${hospitalAr} — ${hospitalEn} | ${tr('Form #', 'إقرار رقم')} ${form.id} | ${tr('Printed on', 'طُبع بتاريخ')} ${new Date().toLocaleDateString('ar-SA')}
+  ${escapeHTML(hospitalAr)} — ${escapeHTML(hospitalEn)} | ${tr('Form #', 'إقرار رقم')} ${escapeHTML(form.id)} | ${tr('Printed on', 'طُبع بتاريخ')} ${new Date().toLocaleDateString('ar-SA')}
 </div>
 </body></html>`);
     w.document.close();
@@ -8315,7 +8321,7 @@ window.loadConsentForSign = async () => {
   document.getElementById('cfSignArea').style.display = 'block';
   try {
     const f = await API.get(`/ api / consent - forms / ${fid} `);
-    document.getElementById('cfSignContent').innerHTML = `< h3 > ${isArabic ? (f.form_title_ar || f.form_title) : f.form_title}</h3 ><p>${f.content}</p><p><strong>${tr('Patient', 'المريض')}:</strong> ${f.patient_name}<br><strong>${tr('Doctor', 'الطبيب')}:</strong> ${f.doctor_name}</p>`;
+    document.getElementById('cfSignContent').innerHTML = `< h3 > ${escapeHTML(isArabic ? (f.form_title_ar || f.form_title) : f.form_title)}</h3 ><p>${escapeHTML(f.content)}</p><p><strong>${tr('Patient', 'المريض')}:</strong> ${escapeHTML(f.patient_name)}<br><strong>${tr('Doctor', 'الطبيب')}:</strong> ${escapeHTML(f.doctor_name)}</p>`;
     // Setup canvas
     setTimeout(() => {
       const canvas = document.getElementById('cfSigCanvas');
@@ -8384,7 +8390,7 @@ async function renderEmergency(el) {
       <div class="error-card-premium">
         <div class="error-card-icon">⚠️</div>
         <h3>${tr('Failed to load emergency data', 'فشل في تحميل بيانات الطوارئ')}</h3>
-        <p>${e.message || e}</p>
+        <p>${escapeHTML(e.message || e)}</p>
         <button class="btn btn-primary" onclick="navigateTo(currentPage)">🔄 ${tr('Retry', 'إعادة المحاولة')}</button>
       </div>
     `;
@@ -8431,23 +8437,23 @@ async function renderEmergency(el) {
       <input class="form-control" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'erTable')" style="margin-bottom:12px">
       ${active.length ? `<table class="data-table" id="erTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Complaint', 'الشكوى')}</th><th>${tr('Triage', 'الفرز')}</th><th>${tr('Arrival', 'الوصول')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Bed', 'السرير')}</th><th>${tr('Actions', 'إجراءات')}</th></tr></thead><tbody>${active.map(v => {
       const tc = triageColors[v.triage_color] || '#999';
-      return `<tr><td>${v.id}</td><td>${v.patient_name}</td><td>${v.chief_complaint_ar || v.chief_complaint}</td>
-          <td><span class="badge" style="background:${tc};color:#fff;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.1)">🚨 ${tr('ESI ' + v.triage_level, 'ESI ' + v.triage_level)} - ${v.triage_color}</span></td>
-          <td>${new Date(v.arrival_time).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</td><td>${v.assigned_doctor || '-'}</td><td>${v.assigned_bed || '-'}</td>
-          <td><button class="btn btn-sm" onclick="showERDischargeModal(${v.id})">🚪 ${tr('Discharge', 'خروج')}</button> <button class="btn btn-sm btn-success" onclick="transferERToInpatient(${v.id},'${(v.patient_name || '').replace(/'/g, "\\'")}',${v.patient_id},'${(v.assigned_doctor || '').replace(/'/g, "\\'")}','${v.chief_complaint_ar || v.chief_complaint || ''}')">${tr('Admit', 'تنويم')}</button></td></tr>`;
+      return `<tr><td>${escapeHTML(v.id)}</td><td>${escapeHTML(v.patient_name)}</td><td>${escapeHTML(v.chief_complaint_ar || v.chief_complaint)}</td>
+          <td><span class="badge" style="background:${tc};color:#fff;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.1)">🚨 ${escapeHTML(tr('ESI ' + v.triage_level, 'ESI ' + v.triage_level))} - ${escapeHTML(v.triage_color)}</span></td>
+          <td>${new Date(v.arrival_time).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</td><td>${escapeHTML(v.assigned_doctor || '-')}</td><td>${escapeHTML(v.assigned_bed || '-')}</td>
+          <td><button class="btn btn-sm" onclick="showERDischargeModal(${safeId(v.id)})">🚪 ${tr('Discharge', 'خروج')}</button> <button class="btn btn-sm btn-success" onclick="transferERToInpatient(${safeId(v.id)},'${jsStr(v.patient_name || '')}',${safeId(v.patient_id)},'${jsStr(v.assigned_doctor || '')}','${jsStr(v.chief_complaint_ar || v.chief_complaint || '')}')">${tr('Admit', 'تنويم')}</button></td></tr>`;
     }).join('')}</tbody></table>` : `<div class="empty-state-card"><div class="empty-state-icon">🚨</div><div>${tr('No active emergency cases', 'لا توجد حالات طوارئ نشطة')}</div></div>`}`;
   } else if (erTab === 'register') {
     c.innerHTML = `<h3>➕ ${tr('Register ER Visit', 'تسجيل حالة طوارئ')}</h3>
       <div class="form-grid">
-        <div><label>${tr('Patient', 'المريض')}</label><select id="erPatient" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(patients || []).map(p => `<option value="${p.id}" data-name="${p.name_ar || p.name_en}">${p.name_ar || p.name_en} (${p.file_number})</option>`).join('')}</select></div>
+        <div><label>${tr('Patient', 'المريض')}</label><select id="erPatient" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(patients || []).map(p => `<option value="${safeId(p.id)}" data-name="${escapeHTML(p.name_ar || p.name_en)}">${escapeHTML(p.name_ar || p.name_en)} (${escapeHTML(p.file_number)})</option>`).join('')}</select></div>
         <div><label>${tr('Arrival Mode', 'طريقة الوصول')}</label><select id="erArrival" class="form-control"><option value="Walk-in">${tr('Walk-in', 'مشي')}</option><option value="Ambulance">${tr('Ambulance', 'إسعاف')}</option><option value="Referred">${tr('Referred', 'محوّل')}</option><option value="Police">${tr('Police', 'شرطة')}</option></select></div>
         <div><label>${tr('Chief Complaint', 'الشكوى الرئيسية')}</label><input id="erComplaint" class="form-control"></div>
         <div><label>${tr('Complaint (AR)', 'الشكوى بالعربي')}</label><input id="erComplaintAr" class="form-control"></div>
         <div><label>${tr('Triage Level', 'مستوى الفرز')}</label><select id="erTriage" class="form-control" onchange="document.getElementById('erTriageColor').value=['','Red','Orange','Yellow','Green','Blue'][this.value]">
           <option value="1">1 - ${tr('Resuscitation', 'إنعاش')}</option><option value="2">2 - ${tr('Emergent', 'طارئ')}</option><option value="3" selected>3 - ${tr('Urgent', 'عاجل')}</option><option value="4">4 - ${tr('Less Urgent', 'أقل إلحاحاً')}</option><option value="5">5 - ${tr('Non-Urgent', 'غير طارئ')}</option></select></div>
         <div><label>${tr('Triage Color', 'لون الفرز')}</label><select id="erTriageColor" class="form-control"><option value="Red">${tr('Red', 'أحمر')}</option><option value="Orange">${tr('Orange', 'برتقالي')}</option><option value="Yellow" selected>${tr('Yellow', 'أصفر')}</option><option value="Green">${tr('Green', 'أخضر')}</option><option value="Blue">${tr('Blue', 'أزرق')}</option></select></div>
-        <div><label>${tr('Doctor', 'الطبيب')}</label><select id="erDoctor" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${drs.map(d => `<option value="${d.name_ar || d.name}">${d.name_ar || d.name}</option>`).join('')}</select></div>
-        <div><label>${tr('ER Bed', 'سرير الطوارئ')}</label><select id="erBed" class="form-control"><option value="">${tr('None', 'بدون')}</option>${(beds || []).filter(b => b.status === 'Available').map(b => `<option value="${b.bed_name}">${b.bed_name_ar} (${b.zone_ar})</option>`).join('')}</select></div>
+        <div><label>${tr('Doctor', 'الطبيب')}</label><select id="erDoctor" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${drs.map(d => `<option value="${escapeHTML(d.name_ar || d.name)}">${escapeHTML(d.name_ar || d.name)}</option>`).join('')}</select></div>
+        <div><label>${tr('ER Bed', 'سرير الطوارئ')}</label><select id="erBed" class="form-control"><option value="">${tr('None', 'بدون')}</option>${(beds || []).filter(b => b.status === 'Available').map(b => `<option value="${escapeHTML(b.bed_name)}">${escapeHTML(b.bed_name_ar)} (${escapeHTML(b.zone_ar)})</option>`).join('')}</select></div>
       </div>
       <button class="btn btn-primary" onclick="registerERVisit()" style="margin-top:16px">🚨 ${tr('Register', 'تسجيل')}</button>`;
   } else if (erTab === 'discharged') {
@@ -8455,20 +8461,20 @@ async function renderEmergency(el) {
       <input class="form-control" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'erDischTable')" style="margin-bottom:12px">
       ${discharged.length ? `<table class="data-table" id="erDischTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Complaint', 'الشكوى')}</th><th>${tr('Triage', 'الفرز')}</th><th>${tr('Arrival', 'الوصول')}</th><th>${tr('Discharge', 'الخروج')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Diagnosis', 'التشخيص')}</th></tr></thead><tbody>${discharged.map(v => {
       const tc = triageColors[v.triage_color] || '#999';
-      return `<tr><td>${v.id}</td><td>${v.patient_name}</td><td>${v.chief_complaint_ar || v.chief_complaint || '-'}</td>
-        <td><span style="background:${tc};color:#fff;padding:2px 8px;border-radius:12px;font-size:.85em">${v.triage_color}</span></td>
+      return `<tr><td>${escapeHTML(v.id)}</td><td>${escapeHTML(v.patient_name)}</td><td>${escapeHTML(v.chief_complaint_ar || v.chief_complaint || '-')}</td>
+        <td><span style="background:${tc};color:#fff;padding:2px 8px;border-radius:12px;font-size:.85em">${escapeHTML(v.triage_color)}</span></td>
         <td>${v.arrival_time ? new Date(v.arrival_time).toLocaleString('ar-SA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}</td>
         <td>${v.discharge_time ? new Date(v.discharge_time).toLocaleString('ar-SA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}</td>
-        <td>${v.assigned_doctor || '-'}</td><td>${v.discharge_diagnosis || '-'}</td></tr>`;
+        <td>${escapeHTML(v.assigned_doctor || '-')}</td><td>${escapeHTML(v.discharge_diagnosis || '-')}</td></tr>`;
     }).join('')}</tbody></table>` : `<div class="empty-state-card"><div class="empty-state-icon">🚪</div><div>${tr('No discharged emergency patients', 'لا يوجد مرضى خارجين من الطوارئ')}</div></div>`}`;
   } else if (erTab === 'transferred') {
     c.innerHTML = `<h3>🔄 ${tr('Transferred to Inpatient', 'المحولين للتنويم')} (${admitted.length})</h3>
       <input class="form-control" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'erTransTable')" style="margin-bottom:12px">
       ${admitted.length ? `<table class="data-table" id="erTransTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Complaint', 'الشكوى')}</th><th>${tr('Triage', 'الفرز')}</th><th>${tr('ER Doctor', 'طبيب الطوارئ')}</th><th>${tr('Arrival', 'الوصول')}</th><th>${tr('Status', 'الحالة')}</th></tr></thead><tbody>${admitted.map(v => {
       const tc = triageColors[v.triage_color] || '#999';
-      return `<tr><td>${v.id}</td><td>${v.patient_name}</td><td>${v.chief_complaint_ar || v.chief_complaint || '-'}</td>
-        <td><span style="background:${tc};color:#fff;padding:2px 8px;border-radius:12px;font-size:.85em">${v.triage_color}</span></td>
-        <td>${v.assigned_doctor || '-'}</td>
+      return `<tr><td>${escapeHTML(v.id)}</td><td>${escapeHTML(v.patient_name)}</td><td>${escapeHTML(v.chief_complaint_ar || v.chief_complaint || '-')}</td>
+        <td><span style="background:${tc};color:#fff;padding:2px 8px;border-radius:12px;font-size:.85em">${escapeHTML(v.triage_color)}</span></td>
+        <td>${escapeHTML(v.assigned_doctor || '-')}</td>
         <td>${v.arrival_time ? new Date(v.arrival_time).toLocaleString('ar-SA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}</td>
         <td>${badge(tr('Admitted', 'تم التنويم'), 'success')}</td></tr>`;
     }).join('')}</tbody></table>` : `<div class="empty-state-card"><div class="empty-state-icon">🔄</div><div>${tr('No transferred patients', 'لا يوجد مرضى محولين')}</div></div>`}`;
@@ -8477,7 +8483,7 @@ async function renderEmergency(el) {
     c.innerHTML = `<h3>🛏️ ${tr('ER Bed Map', 'خريطة أسرّة الطوارئ')}</h3>
       ${zones.map(z => `<h4 style="margin:16px 0 8px">${tr(z, z === 'Resuscitation' ? 'الإنعاش' : z === 'Critical' ? 'الحرجة' : z === 'Acute' ? 'الحادة' : 'المراقبة')}</h4>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">${(beds || []).filter(b => b.zone === z).map(b => `<div style="padding:16px;border-radius:12px;text-align:center;background:${b.status === 'Available' ? '#d4edda' : '#f8d7da'};border:2px solid ${b.status === 'Available' ? '#28a745' : '#dc3545'}">
-          <div style="font-size:1.4em;font-weight:700">${b.bed_name_ar}</div><div style="font-size:.85em;margin-top:4px">${statusBadge(b.status)}</div></div>`).join('')}</div>`).join('')}`;
+          <div style="font-size:1.4em;font-weight:700">${escapeHTML(b.bed_name_ar)}</div><div style="font-size:.85em;margin-top:4px">${statusBadge(b.status)}</div></div>`).join('')}</div>`).join('')}`;
   }
 }
 window.registerERVisit = async function () {
@@ -8561,7 +8567,7 @@ async function renderInpatient(el) {
           <div style="grid-column:span 2"><label>${tr('Instructions', 'تعليمات للمريض')}</label><textarea id="adtDischargeInst" class="form-control" rows="2"></textarea></div>
           <div><label>${tr('Medications', 'أدوية الخروج')}</label><textarea id="adtDischargeMeds" class="form-control" rows="2"></textarea></div>
           <div><label>${tr('Follow-up Date', 'موعد المراجعة')}</label><input id="adtFollowupDate" type="date" class="form-control"></div>
-          <div><label>${tr('Follow-up Doctor', 'طبيب المتابعة')}</label><select id="adtFollowupDoctor" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${drs.map(d => `<option value="${d.name_ar || d.name}">${d.name_ar || d.name}</option>`).join('')}</select></div>
+          <div><label>${tr('Follow-up Doctor', 'طبيب المتابعة')}</label><select id="adtFollowupDoctor" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${drs.map(d => `<option value="${escapeHTML(d.name_ar || d.name)}">${escapeHTML(d.name_ar || d.name)}</option>`).join('')}</select></div>
         </div>
         <div style="display:flex;gap:10px;margin-top:16px">
           <button class="btn btn-primary" onclick="confirmInpatientDischarge()" style="flex:1">✅ ${tr('Confirm Discharge', 'تأكيد الخروج')}</button>
@@ -8574,17 +8580,17 @@ async function renderInpatient(el) {
     c.innerHTML = (census.wards || []).map(w => {
       const wBeds = (census.beds || []).filter(b => b.ward_id === w.id);
       const occ = wBeds.filter(b => b.status === 'Occupied').length;
-      return `<div style="margin-bottom:20px"><h4>${w.ward_name_ar} (${w.ward_name}) — <span style="color:${occ / wBeds.length > 0.8 ? '#e74c3c' : '#2ecc71'}">${occ}/${wBeds.length}</span></h4>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px">${wBeds.map(b => `<div style="padding:10px;border-radius:10px;text-align:center;font-size:.85em;background:${b.status === 'Available' ? '#d4edda' : '#f8d7da'};border:1px solid ${b.status === 'Available' ? '#28a745' : '#dc3545'};cursor:pointer" title="${b.patient_name || ''} ${b.diagnosis || ''}">
-          <strong>${tr('Bed', 'سرير')} ${b.bed_number}</strong><br><small>${tr('Room', 'غرفة')} ${b.room_number}</small><br>${b.patient_name ? `<small>${b.patient_name}</small>` : statusBadge(b.status)}</div>`).join('')}</div></div>`;
+      return `<div style="margin-bottom:20px"><h4>${escapeHTML(w.ward_name_ar)} (${escapeHTML(w.ward_name)}) — <span style="color:${occ / wBeds.length > 0.8 ? '#e74c3c' : '#2ecc71'}">${occ}/${wBeds.length}</span></h4>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px">${wBeds.map(b => `<div style="padding:10px;border-radius:10px;text-align:center;font-size:.85em;background:${b.status === 'Available' ? '#d4edda' : '#f8d7da'};border:1px solid ${b.status === 'Available' ? '#28a745' : '#dc3545'};cursor:pointer" title="${escapeHTML(b.patient_name || '')} ${escapeHTML(b.diagnosis || '')}">
+          <strong>${tr('Bed', 'سرير')} ${escapeHTML(b.bed_number)}</strong><br><small>${tr('Room', 'غرفة')} ${escapeHTML(b.room_number)}</small><br>${b.patient_name ? `<small>${escapeHTML(b.patient_name)}</small>` : statusBadge(b.status)}</div>`).join('')}</div></div>`;
     }).join('');
   } else if (adtTab === 'admit') {
     c.innerHTML = `<h3>➕ ${tr('New Admission', 'تنويم جديد')}</h3><div class="form-grid">
-      <div><label>${tr('Patient', 'المريض')}</label><select id="admPatient" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(patients || []).map(p => `<option value="${p.id}" data-name="${p.name_ar || p.name_en}">${p.name_ar || p.name_en} (${p.file_number})</option>`).join('')}</select></div>
+      <div><label>${tr('Patient', 'المريض')}</label><select id="admPatient" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(patients || []).map(p => `<option value="${safeId(p.id)}" data-name="${escapeHTML(p.name_ar || p.name_en)}">${escapeHTML(p.name_ar || p.name_en)} (${escapeHTML(p.file_number)})</option>`).join('')}</select></div>
       <div><label>${tr('Type', 'النوع')}</label><select id="admType" class="form-control"><option value="Regular">${tr('Regular', 'عادي')}</option><option value="Emergency">${tr('Emergency', 'طوارئ')}</option><option value="Transfer">${tr('Transfer', 'تحويل')}</option></select></div>
-      <div><label>${tr('Attending Doctor', 'الطبيب المعالج')}</label><select id="admDoctor" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${drs.map(d => `<option value="${d.name_ar || d.name}">${d.name_ar || d.name}</option>`).join('')}</select></div>
+      <div><label>${tr('Attending Doctor', 'الطبيب المعالج')}</label><select id="admDoctor" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${drs.map(d => `<option value="${escapeHTML(d.name_ar || d.name)}">${escapeHTML(d.name_ar || d.name)}</option>`).join('')}</select></div>
       <div><label>${tr('Department', 'القسم')}</label><input id="admDept" class="form-control"></div>
-      <div><label>${tr('Ward', 'الجناح')}</label><select id="admWard" class="form-control" onchange="loadWardBeds(this.value)"><option value="">${tr('Select', 'اختر')}</option>${(wards || []).map(w => `<option value="${w.id}">${w.ward_name_ar}</option>`).join('')}</select></div>
+      <div><label>${tr('Ward', 'الجناح')}</label><select id="admWard" class="form-control" onchange="loadWardBeds(this.value)"><option value="">${tr('Select', 'اختر')}</option>${(wards || []).map(w => `<option value="${safeId(w.id)}">${escapeHTML(w.ward_name_ar)}</option>`).join('')}</select></div>
       <div><label>${tr('Bed', 'السرير')}</label><select id="admBed" class="form-control"><option value="">${tr('Select ward first', 'اختر الجناح أولاً')}</option></select></div>
       <div style="grid-column:span 2"><label>${tr('Diagnosis', 'التشخيص')}</label><textarea id="admDiagnosis" class="form-control" rows="2"></textarea></div>
       <div><label>${tr('Diet', 'الحمية')}</label><select id="admDiet" class="form-control"><option value="Regular">${tr('Regular', 'عادية')}</option><option value="Diabetic">${tr('Diabetic', 'سكري')}</option><option value="Renal">${tr('Renal', 'كلوي')}</option><option value="Cardiac">${tr('Cardiac', 'قلبي')}</option><option value="NPO">${tr('NPO', 'صائم')}</option><option value="Liquid">${tr('Liquid', 'سوائل')}</option></select></div>
@@ -8596,8 +8602,8 @@ async function renderInpatient(el) {
       ${(activeAdm || []).length ? `<table class="data-table" id="adtPatientsTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Type', 'النوع')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Diagnosis', 'التشخيص')}</th><th>${tr('Admission Date', 'تاريخ التنويم')}</th><th>${tr('Days', 'أيام')}</th><th>${tr('Actions', 'إجراءات')}</th></tr></thead><tbody>${(activeAdm || []).map(a => {
       const days = Math.floor((new Date() - new Date(a.admission_date)) / 86400000);
       const typeBadge = a.admission_type === 'Emergency' ? badge(tr('ER', 'طوارئ'), 'danger') : a.admission_type === 'Transfer' ? badge(tr('Transfer', 'تحويل'), 'warning') : badge(tr('Regular', 'عادي'), 'info');
-      return `<tr><td>${a.id}</td><td><strong>${a.patient_name}</strong></td><td>${typeBadge}</td><td>${a.attending_doctor || '-'}</td><td>${a.diagnosis || '-'}</td><td>${new Date(a.admission_date).toLocaleDateString('ar-SA')}</td><td><span style="font-weight:700;color:${days > 7 ? '#e74c3c' : '#2ecc71'}">${days}</span></td>
-        <td><button class="btn btn-sm" onclick="showInpatientDischargeModal(${a.id})">🚪 ${tr('Discharge', 'خروج')}</button></td></tr>`;
+      return `<tr><td>${escapeHTML(a.id)}</td><td><strong>${escapeHTML(a.patient_name)}</strong></td><td>${typeBadge}</td><td>${escapeHTML(a.attending_doctor || '-')}</td><td>${escapeHTML(a.diagnosis || '-')}</td><td>${new Date(a.admission_date).toLocaleDateString('ar-SA')}</td><td><span style="font-weight:700;color:${days > 7 ? '#e74c3c' : '#2ecc71'}">${days}</span></td>
+        <td><button class="btn btn-sm" onclick="showInpatientDischargeModal(${safeId(a.id)})">🚪 ${tr('Discharge', 'خروج')}</button></td></tr>`;
     }).join('')}</tbody></table>` : `<div class="empty-state"><div class="empty-icon">🛏️</div><p>${tr('No inpatients', 'لا يوجد منومين')}</p></div>`}`;
   } else if (adtTab === 'discharged') {
     c.innerHTML = `<h3>🚪 ${tr('Discharged Patients', 'الخارجين من التنويم')} (${(dischargedAdm || []).length})</h3>
@@ -8605,7 +8611,7 @@ async function renderInpatient(el) {
       ${(dischargedAdm || []).length ? `<table class="data-table" id="adtDischTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Type', 'نوع الخروج')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Diagnosis', 'التشخيص')}</th><th>${tr('Admitted', 'التنويم')}</th><th>${tr('Discharged', 'الخروج')}</th><th>${tr('LOS', 'المدة')}</th></tr></thead><tbody>${(dischargedAdm || []).map(a => {
       const los = a.discharge_date && a.admission_date ? Math.floor((new Date(a.discharge_date) - new Date(a.admission_date)) / 86400000) : '-';
       const dtBadge = a.discharge_type === 'AMA' ? badge(tr('AMA', 'ضد المشورة'), 'danger') : a.discharge_type === 'Death' ? badge(tr('Death', 'وفاة'), 'danger') : a.discharge_type === 'Transfer' ? badge(tr('Transfer', 'تحويل'), 'warning') : badge(tr('Regular', 'عادي'), 'success');
-      return `<tr><td>${a.id}</td><td>${a.patient_name}</td><td>${dtBadge}</td><td>${a.attending_doctor || '-'}</td><td>${a.diagnosis || '-'}</td>
+      return `<tr><td>${escapeHTML(a.id)}</td><td>${escapeHTML(a.patient_name)}</td><td>${dtBadge}</td><td>${escapeHTML(a.attending_doctor || '-')}</td><td>${escapeHTML(a.diagnosis || '-')}</td>
         <td>${a.admission_date ? new Date(a.admission_date).toLocaleDateString('ar-SA') : '-'}</td>
         <td>${a.discharge_date ? new Date(a.discharge_date).toLocaleDateString('ar-SA') : '-'}</td>
         <td><strong>${los}</strong> ${tr('days', 'يوم')}</td></tr>`;
@@ -8616,7 +8622,7 @@ window.loadWardBeds = async function (wardId) {
   if (!wardId) return;
   const beds = await API.get('/api/beds?ward_id=' + wardId);
   const s = document.getElementById('admBed');
-  s.innerHTML = `<option value="">${tr('Select', 'اختر')}</option>${(beds || []).filter(b => b.status === 'Available').map(b => `<option value="${b.id}">${tr('Bed', 'سرير')} ${b.bed_number} - ${tr('Room', 'غرفة')} ${b.room_number}</option>`).join('')}`;
+  s.innerHTML = `<option value="">${tr('Select', 'اختر')}</option>${(beds || []).filter(b => b.status === 'Available').map(b => `<option value="${safeId(b.id)}">${tr('Bed', 'سرير')} ${escapeHTML(b.bed_number)} - ${tr('Room', 'غرفة')} ${escapeHTML(b.room_number)}</option>`).join('')}`;
 };
 window.admitPatient = async function () {
   const ps = document.getElementById('admPatient'); if (!ps.value) return showToast(tr('Select patient', 'اختر المريض'), 'error');
@@ -8683,14 +8689,14 @@ async function renderICU(el) {
       <input class="form-control" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'icuPTable')" style="margin-bottom:12px">
       ${totalICU ? `<table class="data-table" id="icuPTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Ward', 'الجناح')}</th><th>${tr('Bed', 'السرير')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Diagnosis', 'التشخيص')}</th><th>${tr('Days', 'أيام')}</th><th>${tr('Actions', 'إجراءات')}</th></tr></thead><tbody>${(icuPatients || []).map(p => {
       const days = Math.floor((new Date() - new Date(p.admission_date)) / 86400000);
-      return `<tr><td>${p.id}</td><td><strong>${p.patient_name}</strong></td><td>${p.ward_name_ar || '-'}</td><td>${tr('Bed', 'سرير')} ${p.bed_number || '-'}</td><td>${p.attending_doctor || '-'}</td><td>${p.diagnosis || '-'}</td>
+      return `<tr><td>${escapeHTML(p.id)}</td><td><strong>${escapeHTML(p.patient_name)}</strong></td><td>${escapeHTML(p.ward_name_ar || '-')}</td><td>${tr('Bed', 'سرير')} ${escapeHTML(p.bed_number || '-')}</td><td>${escapeHTML(p.attending_doctor || '-')}</td><td>${escapeHTML(p.diagnosis || '-')}</td>
         <td><span style="font-weight:700;color:${days > 7 ? '#e74c3c' : '#2ecc71'}">${days}</span></td>
-        <td><button class="btn btn-sm" onclick="showInpatientDischargeModal(${p.id})">🚪 ${tr('Discharge', 'خروج')}</button></td></tr>`;
+        <td><button class="btn btn-sm" onclick="showInpatientDischargeModal(${safeId(p.id)})">🚪 ${tr('Discharge', 'خروج')}</button></td></tr>`;
     }).join('')}</tbody></table>` : `<div class="empty-state"><div class="empty-icon">🫀</div><p>${tr('No ICU patients', 'لا يوجد مرضى بالعناية')}</p></div>`}`;
   } else if (icuTab === 'monitor') {
     c.innerHTML = `<h3>📊 ${tr('Record Vitals', 'تسجيل العلامات الحيوية')}</h3>
       <div class="form-grid">
-        <div><label>${tr('Patient', 'المريض')}</label><select id="icuPatientMon" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(icuPatients || []).map(p => `<option value="${p.id}" data-pid="${p.patient_id}">${p.patient_name} - ${p.ward_name_ar || ''} ${tr('Bed', 'سرير')} ${p.bed_number || ''}</option>`).join('')}</select></div>
+        <div><label>${tr('Patient', 'المريض')}</label><select id="icuPatientMon" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(icuPatients || []).map(p => `<option value="${safeId(p.id)}" data-pid="${safeId(p.patient_id)}">${escapeHTML(p.patient_name)} - ${escapeHTML(p.ward_name_ar || '')} ${tr('Bed', 'سرير')} ${escapeHTML(p.bed_number || '')}</option>`).join('')}</select></div>
         <div><label>HR</label><input id="icuHR" type="number" class="form-control" placeholder="bpm"></div>
         <div><label>SBP/DBP</label><div style="display:flex;gap:4px"><input id="icuSBP" type="number" class="form-control" placeholder="SBP"><input id="icuDBP" type="number" class="form-control" placeholder="DBP"></div></div>
         <div><label>SpO2</label><input id="icuSpO2" type="number" class="form-control" placeholder="%"></div>
@@ -8702,7 +8708,7 @@ async function renderICU(el) {
   } else if (icuTab === 'ventilator') {
     c.innerHTML = `<h3>🫁 ${tr('Ventilator Settings', 'إعدادات التنفس الصناعي')}</h3>
       <div class="form-grid">
-        <div><label>${tr('Patient', 'المريض')}</label><select id="icuPatientVent" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(icuPatients || []).map(p => `<option value="${p.id}" data-pid="${p.patient_id}">${p.patient_name}</option>`).join('')}</select></div>
+        <div><label>${tr('Patient', 'المريض')}</label><select id="icuPatientVent" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(icuPatients || []).map(p => `<option value="${safeId(p.id)}" data-pid="${safeId(p.patient_id)}">${escapeHTML(p.patient_name)}</option>`).join('')}</select></div>
         <div><label>${tr('Mode', 'الوضع')}</label><select id="ventMode" class="form-control"><option>CMV</option><option>SIMV</option><option>PSV</option><option>CPAP</option><option>BiPAP</option><option>APRV</option></select></div>
         <div><label>FiO2 %</label><input id="ventFiO2" type="number" value="21" class="form-control"></div>
         <div><label>TV (ml)</label><input id="ventTV" type="number" class="form-control"></div>
@@ -8715,7 +8721,7 @@ async function renderICU(el) {
   } else if (icuTab === 'scores') {
     c.innerHTML = `<h3>📋 ${tr('Clinical Scores', 'المقاييس السريرية')}</h3>
       <div class="form-grid">
-        <div><label>${tr('Patient', 'المريض')}</label><select id="icuPatientScore" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(icuPatients || []).map(p => `<option value="${p.id}" data-pid="${p.patient_id}">${p.patient_name}</option>`).join('')}</select></div>
+        <div><label>${tr('Patient', 'المريض')}</label><select id="icuPatientScore" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(icuPatients || []).map(p => `<option value="${safeId(p.id)}" data-pid="${safeId(p.patient_id)}">${escapeHTML(p.patient_name)}</option>`).join('')}</select></div>
         <div><label>APACHE II</label><input id="scoreAPACHE" type="number" class="form-control"></div>
         <div><label>SOFA</label><input id="scoreSOFA" type="number" class="form-control"></div>
         <div><label>GCS</label><input id="scoreGCS" type="number" value="15" class="form-control"></div>
@@ -8727,7 +8733,7 @@ async function renderICU(el) {
   } else if (icuTab === 'fluid') {
     c.innerHTML = `<h3>💧 ${tr('Fluid Balance', 'توازن السوائل')}</h3>
       <div class="form-grid">
-        <div><label>${tr('Patient', 'المريض')}</label><select id="icuPatientFluid" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(icuPatients || []).map(p => `<option value="${p.id}" data-pid="${p.patient_id}">${p.patient_name}</option>`).join('')}</select></div>
+        <div><label>${tr('Patient', 'المريض')}</label><select id="icuPatientFluid" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(icuPatients || []).map(p => `<option value="${safeId(p.id)}" data-pid="${safeId(p.patient_id)}">${escapeHTML(p.patient_name)}</option>`).join('')}</select></div>
         <div><label>${tr('Shift', 'الوردية')}</label><select id="fluidShift" class="form-control"><option value="Day">${tr('Day', 'نهاري')}</option><option value="Night">${tr('Night', 'ليلي')}</option></select></div>
         <div style="grid-column:span 2"><h4 style="color:#2ecc71">⬇️ ${tr('Intake', 'الوارد')}</h4></div>
         <div><label>IV Fluids (ml)</label><input id="fluidIV" type="number" class="form-control"></div>
@@ -8746,7 +8752,7 @@ async function renderICU(el) {
       ${discharged.length ? `<table class="data-table" id="icuDischTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Discharge Type', 'نوع الخروج')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Diagnosis', 'التشخيص')}</th><th>${tr('Admitted', 'التنويم')}</th><th>${tr('Discharged', 'الخروج')}</th><th>${tr('LOS', 'المدة')}</th></tr></thead><tbody>${discharged.map(a => {
       const los = a.discharge_date && a.admission_date ? Math.floor((new Date(a.discharge_date) - new Date(a.admission_date)) / 86400000) : '-';
       const dtBadge = a.discharge_type === 'AMA' ? badge(tr('AMA', 'ضد المشورة'), 'danger') : a.discharge_type === 'Death' ? badge(tr('Death', 'وفاة'), 'danger') : a.discharge_type === 'Transfer' ? badge(tr('Transfer', 'تحويل'), 'warning') : badge(tr('Regular', 'عادي'), 'success');
-      return `<tr><td>${a.id}</td><td>${a.patient_name}</td><td>${dtBadge}</td><td>${a.attending_doctor || '-'}</td><td>${a.diagnosis || '-'}</td>
+      return `<tr><td>${escapeHTML(a.id)}</td><td>${escapeHTML(a.patient_name)}</td><td>${dtBadge}</td><td>${escapeHTML(a.attending_doctor || '-')}</td><td>${escapeHTML(a.diagnosis || '-')}</td>
         <td>${a.admission_date ? new Date(a.admission_date).toLocaleDateString('ar-SA') : '-'}</td>
         <td>${a.discharge_date ? new Date(a.discharge_date).toLocaleDateString('ar-SA') : '-'}</td>
         <td><strong>${los}</strong> ${tr('days', 'يوم')}</td></tr>`;
@@ -8885,7 +8891,7 @@ async function renderDietary(el) {
 
   const list = document.getElementById('dietOrdersList');
   if (list && patients.length > 0) {
-    list.innerHTML = patients.map(p => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (p.diet_type === 'NPO' ? '#cc0000' : p.diet_type === 'diabetic' ? '#ff9800' : '#4caf50') + '"><strong>' + (p.patient_name || '') + '</strong> - ' + (p.room || '') + '<br><span style="font-size:13px;color:#666">' + (p.diet_type || '') + ' | ' + (p.meal_time || '') + '</span></div>').join('');
+    list.innerHTML = patients.map(p => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (p.diet_type === 'NPO' ? '#cc0000' : p.diet_type === 'diabetic' ? '#ff9800' : '#4caf50') + '"><strong>' + escapeHTML(p.patient_name || '') + '</strong> - ' + escapeHTML(p.room || '') + '<br><span style="font-size:13px;color:#666">' + escapeHTML(p.diet_type || '') + ' | ' + escapeHTML(p.meal_time || '') + '</span></div>').join('');
   } else if (list) { list.innerHTML = '<p style="color:#999;text-align:center">' + tr('No active orders', 'لا توجد طلبات') + '</p>'; }
 
   window.saveDietOrder = async () => {
@@ -8923,7 +8929,7 @@ async function renderInfectionControl(el) {
       <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${active}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Active Cases', 'حالات نشطة')}</p></div>
       <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${resolved}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Resolved', 'محلولة')}</p></div>
     </div>
-    ${Object.keys(byType).length > 0 ? '<div class="card" style="padding:16px;margin-bottom:16px"><h4 style="margin:0 0 8px">' + tr('By Infection Type', 'حسب نوع العدوى') + '</h4><div style="display:flex;gap:8px;flex-wrap:wrap">' + Object.entries(byType).map(([t, c]) => '<span style="padding:4px 12px;border-radius:16px;background:#fce4ec;font-size:12px">' + t + ': <strong>' + c + '</strong></span>').join('') + '</div></div>' : ''}
+    ${Object.keys(byType).length > 0 ? '<div class="card" style="padding:16px;margin-bottom:16px"><h4 style="margin:0 0 8px">' + tr('By Infection Type', 'حسب نوع العدوى') + '</h4><div style="display:flex;gap:8px;flex-wrap:wrap">' + Object.entries(byType).map(([t, c]) => '<span style="padding:4px 12px;border-radius:16px;background:#fce4ec;font-size:12px">' + escapeHTML(t) + ': <strong>' + escapeHTML(c) + '</strong></span>').join('') + '</div></div>' : ''}
     <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
       <div class="card" style="padding:20px">
         <h4 style="margin:0 0 12px">${tr('Report Infection', 'إبلاغ عن عدوى')}</h4>
@@ -9150,13 +9156,13 @@ async function renderQuality(el) {
                   
                   return `
                     <tr class="hover:bg-surface-variant/20 transition-all">
-                      <td class="py-sm px-md font-bold">${k.kpi_name || k.kpi_name_ar}</td>
-                      <td class="py-sm px-md">${k.target_value}${k.unit || '%'}</td>
-                      <td class="py-sm px-md">${k.actual_value}${k.unit || '%'}</td>
-                      <td class="py-sm px-md">${k.period || ''}</td>
+                      <td class="py-sm px-md font-bold">${escapeHTML(k.kpi_name || k.kpi_name_ar)}</td>
+                      <td class="py-sm px-md">${escapeHTML(k.target_value)}${escapeHTML(k.unit || '%')}</td>
+                      <td class="py-sm px-md">${escapeHTML(k.actual_value)}${escapeHTML(k.unit || '%')}</td>
+                      <td class="py-sm px-md">${escapeHTML(k.period || '')}</td>
                       <td class="py-sm px-md">
                         <span class="px-sm py-xs rounded-full font-label-md ${statusClass}">
-                          ${tr(k.status, k.status === 'On Track' ? 'مستقر' : k.status === 'At Risk' ? 'معرض للخطر' : 'تحت المستهدف')}
+                          ${escapeHTML(tr(k.status, k.status === 'On Track' ? 'مستقر' : k.status === 'At Risk' ? 'معرض للخطر' : 'تحت المستهدف'))}
                         </span>
                       </td>
                     </tr>
@@ -9248,22 +9254,22 @@ async function renderQuality(el) {
                   
                   return `
                     <tr class="hover:bg-surface-variant/20 transition-all">
-                      <td class="py-sm px-md font-bold">${typeName}</td>
+                      <td class="py-sm px-md font-bold">${escapeHTML(typeName)}</td>
                       <td class="py-sm px-md">
                         <span class="px-sm py-xs rounded-full font-label-md ${sevColor}">
-                          ${tr(i.severity, i.severity === 'low' ? 'منخفضة' : i.severity === 'medium' ? 'متوسطة' : i.severity === 'high' ? 'عالية' : 'حرجة')}
+                          ${escapeHTML(tr(i.severity, i.severity === 'low' ? 'منخفضة' : i.severity === 'medium' ? 'متوسطة' : i.severity === 'high' ? 'عالية' : 'حرجة'))}
                         </span>
                       </td>
-                      <td class="py-sm px-md">${i.department || ''}</td>
+                      <td class="py-sm px-md">${escapeHTML(i.department || '')}</td>
                       <td class="py-sm px-md">${i.created_at ? new Date(i.created_at).toLocaleDateString('ar-SA') : ''}</td>
                       <td class="py-sm px-md">
                         <span class="px-sm py-xs rounded-full font-label-md ${i.status === 'Closed' ? 'bg-success/10 text-success' : 'bg-error/10 text-error'}">
-                          ${tr(i.status, i.status === 'Closed' ? 'مغلق' : 'مفتوح')}
+                          ${escapeHTML(tr(i.status, i.status === 'Closed' ? 'مغلق' : 'مفتوح'))}
                         </span>
                       </td>
                       <td class="py-sm px-md">
                         ${i.status !== 'Closed' ? `
-                          <button class="px-sm py-xs bg-secondary text-white rounded hover:opacity-90 font-label-md inline-flex items-center gap-xs" onclick="window.closeIncident(${i.id})">
+                          <button class="px-sm py-xs bg-secondary text-white rounded hover:opacity-90 font-label-md inline-flex items-center gap-xs" onclick="window.closeIncident(${safeId(i.id)})">
                             <span class="material-symbols-outlined text-body-sm">check</span>
                             <span>${tr('Close', 'إغلاق')}</span>
                           </button>
@@ -9363,19 +9369,19 @@ async function renderQuality(el) {
             <tbody class="divide-y divide-outline-variant/10 text-body-md text-on-surface">
               ${auditLogs.length ? auditLogs.map(l => `
                 <tr class="hover:bg-surface-variant/20 transition-all">
-                  <td class="py-sm px-md font-bold">${l.user_name || l.user_id || 'System'}</td>
+                  <td class="py-sm px-md font-bold">${escapeHTML(l.user_name || l.user_id || 'System')}</td>
                   <td class="py-sm px-md">
                     <span class="px-sm py-xs rounded font-label-md text-caption ${
                       l.action === 'DELETE' || l.action === 'SOFT_DELETE' ? 'bg-error/10 text-error' :
                       l.action === 'CHANGE_PASSWORD' || l.action === 'LOGIN' ? 'bg-primary/10 text-primary' :
                       'bg-secondary/10 text-secondary'
                     }">
-                      ${l.action || ''}
+                      ${escapeHTML(l.action || '')}
                     </span>
                   </td>
-                  <td class="py-sm px-md font-label-md text-caption text-on-surface-variant">${l.module || ''}</td>
-                  <td class="py-sm px-md text-body-sm text-on-surface-variant">${l.details || l.description || ''}</td>
-                  <td class="py-sm px-md font-mono text-caption text-on-surface-variant">${l.ip_address || ''}</td>
+                  <td class="py-sm px-md font-label-md text-caption text-on-surface-variant">${escapeHTML(l.module || '')}</td>
+                  <td class="py-sm px-md text-body-sm text-on-surface-variant">${escapeHTML(l.details || l.description || '')}</td>
+                  <td class="py-sm px-md font-mono text-caption text-on-surface-variant">${escapeHTML(l.ip_address || '')}</td>
                   <td class="py-sm px-md text-caption">${l.created_at ? new Date(l.created_at).toLocaleString('ar-SA') : ''}</td>
                 </tr>
               `).join('') : `
@@ -9733,17 +9739,17 @@ async function renderMaintenance(el) {
                 <tbody class="divide-y divide-outline-variant/10 font-body-md">
                   ${mntOrders.length ? mntOrders.map(o => `
                     <tr class="hover:bg-primary/5 transition-colors">
-                      <td class="p-3 font-bold text-primary">${o.equipment}</td>
-                      <td class="p-3 text-on-surface-variant">${o.location || '—'}</td>
-                      <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-primary/10 text-primary font-bold">${o.maintenance_type || '—'}</span></td>
+                      <td class="p-3 font-bold text-primary">${escapeHTML(o.equipment)}</td>
+                      <td class="p-3 text-on-surface-variant">${escapeHTML(o.location || '—')}</td>
+                      <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-primary/10 text-primary font-bold">${escapeHTML(o.maintenance_type || '—')}</span></td>
                       <td class="p-3">
                         <span class="px-2 py-0.5 rounded text-[10px] font-bold ${o.priority === 'urgent' || o.priority === 'high' ? 'bg-error-container text-on-error-container' : 'bg-primary-container text-on-primary-fixed-variant'}">
-                          ${o.priority}
+                          ${escapeHTML(o.priority)}
                         </span>
                       </td>
                       <td class="p-3">${statusBadge(o.status)}</td>
                       <td class="p-3 text-center">
-                        ${o.status !== 'completed' ? `<button class="btn btn-sm bg-green-100 text-green-700 hover:bg-green-200 px-2 py-1 rounded" onclick="completeMnt(${o.id})">✅ ${tr('Complete', 'إتمام')}</button>` : '—'}
+                        ${o.status !== 'completed' ? `<button class="btn btn-sm bg-green-100 text-green-700 hover:bg-green-200 px-2 py-1 rounded" onclick="completeMnt(${safeId(o.id)})">✅ ${tr('Complete', 'إتمام')}</button>` : '—'}
                       </td>
                     </tr>
                   `).join('') : `<tr><td colspan="6" class="text-center py-4 text-on-surface-variant">${tr('No records found', 'لا توجد طلبات مسجلة')}</td></tr>`}
@@ -9768,17 +9774,17 @@ async function renderMaintenance(el) {
                 <tbody class="divide-y divide-outline-variant/10 font-body-md">
                   ${workOrders.length ? workOrders.map(w => `
                     <tr class="hover:bg-primary/5 transition-colors">
-                      <td class="p-3 font-mono font-bold text-primary">${w.wo_number}</td>
-                      <td class="p-3 text-on-surface-variant">${w.department || ''} / ${w.location || ''}</td>
-                      <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-secondary/10 text-secondary font-bold">${w.request_type}</span></td>
+                      <td class="p-3 font-mono font-bold text-primary">${escapeHTML(w.wo_number)}</td>
+                      <td class="p-3 text-on-surface-variant">${escapeHTML(w.department || '')} / ${escapeHTML(w.location || '')}</td>
+                      <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-secondary/10 text-secondary font-bold">${escapeHTML(w.request_type)}</span></td>
                       <td class="p-3">
                         <span class="px-2 py-0.5 rounded text-[10px] font-bold ${w.priority === 'High' || w.priority === 'Emergency' ? 'bg-error-container text-on-error-container' : 'bg-primary-container text-on-primary-fixed-variant'}">
-                          ${w.priority}
+                          ${escapeHTML(w.priority)}
                         </span>
                       </td>
                       <td class="p-3">${statusBadge(w.status)}</td>
                       <td class="p-3 text-center">
-                        ${w.status !== 'Completed' ? `<button class="btn btn-sm bg-green-100 text-green-700 hover:bg-green-200 px-2 py-1 rounded" onclick="completeWO(${w.id})">✅ ${tr('Resolve', 'حل التكليف')}</button>` : '—'}
+                        ${w.status !== 'Completed' ? `<button class="btn btn-sm bg-green-100 text-green-700 hover:bg-green-200 px-2 py-1 rounded" onclick="completeWO(${safeId(w.id)})">✅ ${tr('Resolve', 'حل التكليف')}</button>` : '—'}
                       </td>
                     </tr>
                   `).join('') : `<tr><td colspan="6" class="text-center py-4 text-on-surface-variant">${tr('No records found', 'لا توجد أوامر عمل حالية')}</td></tr>`}
@@ -9841,14 +9847,14 @@ async function renderMaintenance(el) {
               <tbody class="divide-y divide-outline-variant/10 font-body-md">
                 ${equipment.length ? equipment.map(e => `
                   <tr class="hover:bg-primary/5 transition-colors">
-                    <td class="p-3 font-mono font-bold text-primary">${e.equipment_code || `EQ-${e.id}`}</td>
+                    <td class="p-3 font-mono font-bold text-primary">${escapeHTML(e.equipment_code || `EQ-${e.id}`)}</td>
                     <td class="p-3">
-                      <div class="font-bold text-primary">${isArabic ? (e.equipment_name_ar || e.equipment_name) : (e.equipment_name || e.equipment_name_ar)}</div>
-                      <div class="text-[10px] text-on-surface-variant">${e.department || ''} - ${e.location || ''}</div>
+                      <div class="font-bold text-primary">${escapeHTML(isArabic ? (e.equipment_name_ar || e.equipment_name) : (e.equipment_name || e.equipment_name_ar))}</div>
+                      <div class="text-[10px] text-on-surface-variant">${escapeHTML(e.department || '')} - ${escapeHTML(e.location || '')}</div>
                     </td>
-                    <td class="p-3 text-on-surface-variant">${e.category || ''}</td>
-                    <td class="p-3 text-on-surface-variant">${e.manufacturer || ''}</td>
-                    <td class="p-3 font-mono text-[11px]">${e.serial_number || '—'}</td>
+                    <td class="p-3 text-on-surface-variant">${escapeHTML(e.category || '')}</td>
+                    <td class="p-3 text-on-surface-variant">${escapeHTML(e.manufacturer || '')}</td>
+                    <td class="p-3 font-mono text-[11px]">${escapeHTML(e.serial_number || '—')}</td>
                     <td class="p-3">${statusBadge(e.status || 'Active')}</td>
                   </tr>
                 `).join('') : `<tr><td colspan="6" class="text-center py-4 text-on-surface-variant">${tr('No equipment registered', 'لا توجد أجهزة مسجلة حالياً')}</td></tr>`}
@@ -9963,7 +9969,7 @@ async function renderTransport(el) {
       </div>
       <div class="card" style="padding:20px">
         <h4 style="margin:0 0 12px">${tr('Active Requests', 'الطلبات النشطة')}</h4>
-        <div id="trList">${requests.filter(r => r.status !== 'completed').map(r => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (r.status === 'in_transit' ? '#1565c0' : '#ff9800') + ';display:flex;justify-content:space-between;align-items:center"><div><strong>' + (r.patient_name || '') + '</strong><br><span style="font-size:12px;color:#666">' + (r.from_location || '') + ' → ' + (r.to_location || '') + ' | ' + (r.transport_type || '') + '</span></div><button class="btn btn-sm" onclick="updateTransport(' + r.id + ',\'completed\')" style="background:#e8f5e9;color:#2e7d32">✅</button></div>').join('') || '<p style="color:#999;text-align:center">' + tr('No active requests', 'لا توجد طلبات') + '</p>'}</div>
+        <div id="trList">${requests.filter(r => r.status !== 'completed').map(r => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (r.status === 'in_transit' ? '#1565c0' : '#ff9800') + ';display:flex;justify-content:space-between;align-items:center"><div><strong>' + escapeHTML(r.patient_name || '') + '</strong><br><span style="font-size:12px;color:#666">' + escapeHTML(r.from_location || '') + ' → ' + escapeHTML(r.to_location || '') + ' | ' + escapeHTML(r.transport_type || '') + '</span></div><button class="btn btn-sm" onclick="updateTransport(' + safeId(r.id) + ',\'completed\')" style="background:#e8f5e9;color:#2e7d32">✅</button></div>').join('') || '<p style="color:#999;text-align:center">' + tr('No active requests', 'لا توجد طلبات') + '</p>'}</div>
       </div>
     </div>`;
 
@@ -10021,7 +10027,7 @@ async function renderMedicalRecords(el) {
     );
   }
   window.filterMedRecords = () => { const n = (document.getElementById('mrSearchName')?.value || '').toLowerCase(); const mrn = (document.getElementById('mrSearchMRN')?.value || ''); const sid = (document.getElementById('mrSearchID')?.value || ''); document.querySelectorAll('#mrTbl tbody tr').forEach(r => { const t = r.textContent.toLowerCase(); r.style.display = (t.includes(n) && (!mrn || t.includes(mrn)) && (!sid || t.includes(sid))) ? '' : 'none'; }); };
-  window.viewPatientRecord = async (id) => { try { const visits = await API.get('/api/visits?patient_id=' + id).catch(() => []); const p = patients.find(x => x.id === id) || {}; const modal = document.createElement('div'); modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center'; modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:700px;max-height:85vh;overflow:auto"><h3 style="margin:0 0 16px">📂 ' + (p.name_ar || p.name_en || '') + '</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;font-size:13px"><div><strong>' + tr('File', 'ملف') + ':</strong> ' + (p.file_number || p.id) + '</div><div><strong>' + tr('ID', 'الهوية') + ':</strong> ' + (p.id_number || '') + '</div><div><strong>' + tr('Phone', 'الجوال') + ':</strong> ' + (p.phone || '') + '</div><div><strong>' + tr('DOB', 'الميلاد') + ':</strong> ' + (p.dob || '') + '</div></div><h4>' + tr('Visit History', 'سجل الزيارات') + ' (' + visits.length + ')</h4>' + (visits.length ? visits.map(v => '<div style="padding:8px;margin:4px 0;background:#f5f5f5;border-radius:8px"><strong>' + (v.visit_date || v.created_at ? new Date(v.visit_date || v.created_at).toLocaleDateString('ar-SA') : '') + '</strong> — ' + (v.diagnosis || v.complaint || tr('No details', 'بدون تفاصيل')) + '</div>').join('') : '<p style="color:#999">' + tr('No visits', 'لا توجد زيارات') + '</p>') + '<button class="btn btn-secondary w-full" onclick="this.parentElement.parentElement.remove()" style="margin-top:16px">' + tr('Close', 'إغلاق') + '</button></div>'; document.body.appendChild(modal); modal.onclick = e => { if (e.target === modal) modal.remove(); }; } catch (e) { } };
+  window.viewPatientRecord = async (id) => { try { const visits = await API.get('/api/visits?patient_id=' + id).catch(() => []); const p = patients.find(x => x.id === id) || {}; const modal = document.createElement('div'); modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center'; modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:700px;max-height:85vh;overflow:auto"><h3 style="margin:0 0 16px">📂 ' + escapeHTML(p.name_ar || p.name_en || '') + '</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;font-size:13px"><div><strong>' + tr('File', 'ملف') + ':</strong> ' + escapeHTML(p.file_number || p.id) + '</div><div><strong>' + tr('ID', 'الهوية') + ':</strong> ' + escapeHTML(p.id_number || '') + '</div><div><strong>' + tr('Phone', 'الجوال') + ':</strong> ' + escapeHTML(p.phone || '') + '</div><div><strong>' + tr('DOB', 'الميلاد') + ':</strong> ' + escapeHTML(p.dob || '') + '</div></div><h4>' + tr('Visit History', 'سجل الزيارات') + ' (' + visits.length + ')</h4>' + (visits.length ? visits.map(v => '<div style="padding:8px;margin:4px 0;background:#f5f5f5;border-radius:8px"><strong>' + (v.visit_date || v.created_at ? new Date(v.visit_date || v.created_at).toLocaleDateString('ar-SA') : '') + '</strong> — ' + escapeHTML(v.diagnosis || v.complaint || tr('No details', 'بدون تفاصيل')) + '</div>').join('') : '<p style="color:#999">' + tr('No visits', 'لا توجد زيارات') + '</p>') + '<button class="btn btn-secondary w-full" onclick="this.parentElement.parentElement.remove()" style="margin-top:16px">' + tr('Close', 'إغلاق') + '</button></div>'; document.body.appendChild(modal); modal.onclick = e => { if (e.target === modal) modal.remove(); }; } catch (e) { } };
 
 }
 window.submitMRRequest = async function () {
@@ -10072,7 +10078,7 @@ async function renderClinicalPharmacy(el) {
       </div>
       <div class="card" style="padding:20px">
         <h4 style="margin:0 0 12px">⚠️ ${tr('Known Drug Interactions', 'التداخلات الدوائية المعروفة')}</h4>
-        <div style="max-height:300px;overflow-y:auto">${interactions.map(i => '<div style="padding:8px;margin:4px 0;border-radius:8px;background:' + (i.severity === 'high' ? '#fce4ec' : '#fff3e0') + '"><strong>' + i.drug1 + ' + ' + i.drug2 + '</strong><br><span style="font-size:12px;color:#666">' + i.effect + '</span><span style="float:left;font-size:11px;padding:2px 6px;border-radius:4px;background:' + (i.severity === 'high' ? '#c62828' : '#e65100') + ';color:#fff">' + i.severity + '</span></div>').join('')}</div>
+        <div style="max-height:300px;overflow-y:auto">${interactions.map(i => '<div style="padding:8px;margin:4px 0;border-radius:8px;background:' + (i.severity === 'high' ? '#fce4ec' : '#fff3e0') + '"><strong>' + escapeHTML(i.drug1) + ' + ' + escapeHTML(i.drug2) + '</strong><br><span style="font-size:12px;color:#666">' + escapeHTML(i.effect) + '</span><span style="float:left;font-size:11px;padding:2px 6px;border-radius:4px;background:' + (i.severity === 'high' ? '#c62828' : '#e65100') + ';color:#fff">' + escapeHTML(i.severity) + '</span></div>').join('')}</div>
       </div>
     </div>
     <div class="card" style="padding:20px;margin-top:16px">
@@ -10094,7 +10100,7 @@ async function renderClinicalPharmacy(el) {
     const res = document.getElementById('cpResult');
     if (!d1 || !d2) { res.innerHTML = '<p style="color:#666">' + tr('Enter both drugs', 'أدخل الدوائين') + '</p>'; return; }
     const found = interactions.find(i => (i.drug1.toLowerCase().includes(d1) && i.drug2.toLowerCase().includes(d2)) || (i.drug1.toLowerCase().includes(d2) && i.drug2.toLowerCase().includes(d1)));
-    if (found) { res.innerHTML = '<div style="padding:12px;background:#fce4ec;border-radius:8px;border-left:4px solid #c62828"><strong>⚠️ ' + tr('INTERACTION FOUND', 'تم اكتشاف تداخل') + '</strong><br>' + found.effect + '<br><span style="color:#c62828;font-weight:bold">' + tr('Severity', 'الخطورة') + ': ' + found.severity.toUpperCase() + '</span></div>'; }
+    if (found) { res.innerHTML = '<div style="padding:12px;background:#fce4ec;border-radius:8px;border-left:4px solid #c62828"><strong>⚠️ ' + tr('INTERACTION FOUND', 'تم اكتشاف تداخل') + '</strong><br>' + escapeHTML(found.effect) + '<br><span style="color:#c62828;font-weight:bold">' + tr('Severity', 'الخطورة') + ': ' + escapeHTML(found.severity.toUpperCase()) + '</span></div>'; }
     else { res.innerHTML = '<div style="padding:12px;background:#e8f5e9;border-radius:8px;border-left:4px solid #2e7d32"><strong>✅ ' + tr('No known interaction', 'لا يوجد تداخل معروف') + '</strong></div>'; }
   };
 
@@ -10147,7 +10153,7 @@ async function renderRehabilitation(el) {
     const therapyTypes = ['Physical Therapy', 'Occupational Therapy', 'Speech Therapy', 'Cardiac Rehab', 'Pulmonary Rehab', 'Neurological Rehab'];
     mc.innerHTML = `<h3>➕ ${tr('New Rehabilitation Referral', 'تحويل تأهيل جديد')}</h3>
     <div class="form-grid">
-      <div><label>${tr('Patient', 'المريض')}</label><select id="rehabPatient" class="form-input">${allPatients.map(p => `<option value="${p.id}" data-name="${p.name_ar || p.name_en}">${p.file_number} - ${isArabic ? p.name_ar : p.name_en}</option>`).join('')}</select></div>
+      <div><label>${tr('Patient', 'المريض')}</label><select id="rehabPatient" class="form-input">${allPatients.map(p => `<option value="${safeId(p.id)}" data-name="${escapeHTML(p.name_ar || p.name_en)}">${escapeHTML(p.file_number)} - ${escapeHTML(isArabic ? p.name_ar : p.name_en)}</option>`).join('')}</select></div>
       <div><label>${tr('Therapy Type', 'نوع العلاج')}</label><select id="rehabType" class="form-input">${therapyTypes.map(t => `<option>${t}</option>`).join('')}</select></div>
       <div><label>${tr('Therapist', 'المعالج')}</label><input id="rehabTherapist" class="form-input"></div>
       <div><label>${tr('Referral Source', 'مصدر التحويل')}</label><input id="rehabSource" class="form-input" placeholder="${tr('Dr. Name / Dept', 'اسم الطبيب / القسم')}"></div>
@@ -10219,12 +10225,12 @@ async function renderPatientPortal(el) {
                 <span class="material-symbols-outlined text-2xl">medical_services</span>
               </div>
               <div class="text-right flex-1">
-                <h4 class="font-bold text-primary">${appointments[appointments.length - 1].doctor_name}</h4>
-                <p class="text-xs text-on-surface-variant">${appointments[appointments.length - 1].department || tr('General Specialist', 'استشاري عام')}</p>
+                <h4 class="font-bold text-primary">${escapeHTML(appointments[appointments.length - 1].doctor_name)}</h4>
+                <p class="text-xs text-on-surface-variant">${escapeHTML(appointments[appointments.length - 1].department || tr('General Specialist', 'استشاري عام'))}</p>
               </div>
               <div class="text-left">
-                <p class="font-bold text-secondary">${appointments[appointments.length - 1].appt_date}</p>
-                <p class="text-xs text-on-surface-variant">${appointments[appointments.length - 1].appt_time}</p>
+                <p class="font-bold text-secondary">${escapeHTML(appointments[appointments.length - 1].appt_date)}</p>
+                <p class="text-xs text-on-surface-variant">${escapeHTML(appointments[appointments.length - 1].appt_time)}</p>
               </div>
             </div>
           ` : `
@@ -10552,7 +10558,7 @@ async function renderSocialWork(el) {
     </div>`;
 
   const sl = document.getElementById('swList');
-  if (sl) { sl.innerHTML = cases.length ? cases.map(c => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (c.status === 'resolved' ? '#4caf50' : c.priority === 'urgent' ? '#cc0000' : '#ff9800') + '"><strong>' + (c.patient_name || '') + '</strong> - ' + (c.case_type || '') + '<br><span style="font-size:12px;color:#666">' + (c.status || '') + ' | ' + (c.priority || '') + (c.assigned_to ? ' | ' + c.assigned_to : '') + '</span></div>').join('') : '<p style="color:#999;text-align:center">' + tr('No cases', 'لا توجد حالات') + '</p>'; }
+  if (sl) { sl.innerHTML = cases.length ? cases.map(c => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (c.status === 'resolved' ? '#4caf50' : c.priority === 'urgent' ? '#cc0000' : '#ff9800') + '"><strong>' + escapeHTML(c.patient_name || '') + '</strong> - ' + escapeHTML(c.case_type || '') + '<br><span style="font-size:12px;color:#666">' + escapeHTML(c.status || '') + ' | ' + escapeHTML(c.priority || '') + (c.assigned_to ? ' | ' + escapeHTML(c.assigned_to) : '') + '</span></div>').join('') : '<p style="color:#999;text-align:center">' + tr('No cases', 'لا توجد حالات') + '</p>'; }
 
   window.saveSWCase = async () => {
     try {
@@ -10594,7 +10600,7 @@ async function renderMortuary(el) {
     </div>`;
 
   const ml = document.getElementById('mortList');
-  if (ml) { ml.innerHTML = cases.length ? cases.map(c => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (c.status === 'released' ? '#4caf50' : '#ff9800') + '"><strong>' + (c.name || '') + '</strong><br><span style="font-size:12px;color:#666">' + (c.cause_of_death || '') + ' | ' + (c.status || '') + '</span></div>').join('') : '<p style="color:#999;text-align:center">' + tr('No cases', 'لا توجد حالات') + '</p>'; }
+  if (ml) { ml.innerHTML = cases.length ? cases.map(c => '<div style="padding:10px;margin:6px 0;background:#f8f9fa;border-radius:8px;border-right:4px solid ' + (c.status === 'released' ? '#4caf50' : '#ff9800') + '"><strong>' + escapeHTML(c.name || '') + '</strong><br><span style="font-size:12px;color:#666">' + escapeHTML(c.cause_of_death || '') + ' | ' + escapeHTML(c.status || '') + '</span></div>').join('') : '<p style="color:#999;text-align:center">' + tr('No cases', 'لا توجد حالات') + '</p>'; }
 
   window.saveMortuaryCase = async () => {
     try {
@@ -10701,19 +10707,19 @@ async function renderCosmeticSurgery(el) {
     procedures.forEach(p => { if (!cats[p.category]) cats[p.category] = []; cats[p.category].push(p); });
     mc.innerHTML = Object.entries(cats).map(([cat, procs]) => `
       <div class="card mb-16">
-        <div class="card-title">${catIcons[cat] || '💎'} ${cat}</div>
+        <div class="card-title">${catIcons[cat] || '💎'} ${escapeHTML(cat)}</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
           ${procs.map(p => `
             <div style="border:1px solid var(--border-color,#e5e7eb);border-radius:12px;padding:14px;background:var(--card-bg)">
-              <div style="font-weight:700;font-size:15px;margin-bottom:6px">${isArabic ? p.name_ar : p.name_en}</div>
-              <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">${p.description?.substring(0, 80) || ''}</div>
+              <div style="font-weight:700;font-size:15px;margin-bottom:6px">${escapeHTML(isArabic ? p.name_ar : p.name_en)}</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">${escapeHTML(p.description?.substring(0, 80) || '')}</div>
               <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:4px;font-size:11px">
-                <span>⏱️ ${p.estimated_duration} ${tr('min', 'د')}</span>
-                <span>💉 ${p.anesthesia_type}</span>
+                <span>⏱️ ${escapeHTML(p.estimated_duration)} ${tr('min', 'د')}</span>
+                <span>💉 ${escapeHTML(p.anesthesia_type)}</span>
                 <span>💰 ${Number(p.average_cost).toLocaleString()} SAR</span>
-                <span>🔄 ${p.recovery_days} ${tr('days', 'يوم')}</span>
+                <span>🔄 ${escapeHTML(p.recovery_days)} ${tr('days', 'يوم')}</span>
               </div>
-              <div style="margin-top:8px;font-size:11px;color:#ef4444">⚠️ ${p.risks?.substring(0, 60) || ''}...</div>
+              <div style="margin-top:8px;font-size:11px;color:#ef4444">⚠️ ${escapeHTML(p.risks?.substring(0, 60) || '')}...</div>
             </div>
           `).join('')}
         </div>
@@ -10733,8 +10739,8 @@ async function renderCosmeticSurgery(el) {
   } else if (cosTab === 'newcase') {
     mc.innerHTML = `<div class="card"><h3>➕ ${tr('Schedule New Cosmetic Case', 'جدولة حالة تجميل جديدة')}</h3>
     <div class="form-grid">
-      <div><label>${tr('Patient', 'المريض')}</label><select id="cosPatient" class="form-input">${patients.map(p => `<option value="${p.id}" data-name="${p.name_ar || p.name_en}">${p.file_number} - ${isArabic ? p.name_ar : p.name_en}</option>`).join('')}</select></div>
-      <div><label>${tr('Procedure', 'الإجراء')}</label><select id="cosProc" class="form-input" onchange="updateCosFields()">${procedures.map(p => `<option value="${p.id}" data-name="${isArabic ? p.name_ar : p.name_en}" data-cost="${p.average_cost}" data-anes="${p.anesthesia_type}" data-dur="${p.estimated_duration}">${isArabic ? p.name_ar : p.name_en}</option>`).join('')}</select></div>
+      <div><label>${tr('Patient', 'المريض')}</label><select id="cosPatient" class="form-input">${patients.map(p => `<option value="${safeId(p.id)}" data-name="${escapeHTML(p.name_ar || p.name_en)}">${escapeHTML(p.file_number)} - ${escapeHTML(isArabic ? p.name_ar : p.name_en)}</option>`).join('')}</select></div>
+      <div><label>${tr('Procedure', 'الإجراء')}</label><select id="cosProc" class="form-input" onchange="updateCosFields()">${procedures.map(p => `<option value="${safeId(p.id)}" data-name="${escapeHTML(isArabic ? p.name_ar : p.name_en)}" data-cost="${escapeHTML(p.average_cost)}" data-anes="${escapeHTML(p.anesthesia_type)}" data-dur="${escapeHTML(p.estimated_duration)}">${escapeHTML(isArabic ? p.name_ar : p.name_en)}</option>`).join('')}</select></div>
       <div><label>${tr('Date', 'التاريخ')}</label><input id="cosSurgDate" type="date" class="form-input"></div>
       <div><label>${tr('Time', 'الوقت')}</label><input id="cosSurgTime" type="time" class="form-input"></div>
       <div><label>${tr('Anesthesia', 'التخدير')}</label><select id="cosAnes" class="form-input"><option>Local</option><option>General</option><option>Sedation</option><option>None</option></select></div>
@@ -10766,8 +10772,8 @@ async function renderCosmeticSurgery(el) {
   } else if (cosTab === 'newconsent') {
     mc.innerHTML = `<div class="card"><h3>✍️ ${tr('New Consent Form', 'نموذج إقرار جديد')}</h3>
     <div class="form-grid">
-      <div><label>${tr('Patient', 'المريض')}</label><select id="conPatient" class="form-input">${patients.map(p => `<option value="${p.id}" data-name="${p.name_ar || p.name_en}">${p.file_number} - ${isArabic ? p.name_ar : p.name_en}</option>`).join('')}</select></div>
-      <div><label>${tr('Procedure', 'الإجراء')}</label><select id="conProc" class="form-input" onchange="fillConsentRisks()">${procedures.map(p => `<option value="${p.id}" data-name="${isArabic ? p.name_ar : p.name_en}" data-risks="${p.risks}" data-desc="${p.description}">${isArabic ? p.name_ar : p.name_en}</option>`).join('')}</select></div>
+      <div><label>${tr('Patient', 'المريض')}</label><select id="conPatient" class="form-input">${patients.map(p => `<option value="${safeId(p.id)}" data-name="${escapeHTML(p.name_ar || p.name_en)}">${escapeHTML(p.file_number)} - ${escapeHTML(isArabic ? p.name_ar : p.name_en)}</option>`).join('')}</select></div>
+      <div><label>${tr('Procedure', 'الإجراء')}</label><select id="conProc" class="form-input" onchange="fillConsentRisks()">${procedures.map(p => `<option value="${safeId(p.id)}" data-name="${escapeHTML(isArabic ? p.name_ar : p.name_en)}" data-risks="${escapeHTML(p.risks)}" data-desc="${escapeHTML(p.description)}">${escapeHTML(isArabic ? p.name_ar : p.name_en)}</option>`).join('')}</select></div>
       <div><label>${tr('Consent Type', 'نوع الإقرار')}</label><select id="conType" class="form-input"><option value="Surgery">${tr('Surgery Consent', 'إقرار جراحة')}</option><option value="Non-Surgical">${tr('Non-Surgical', 'غير جراحي')}</option><option value="Anesthesia">${tr('Anesthesia', 'تخدير')}</option></select></div>
       <div><label>${tr('Witness', 'الشاهد')}</label><input id="conWitness" class="form-input"></div>
       <div style="grid-column:1/-1"><label>⚠️ ${tr('Risks Explained', 'المخاطر الموضّحة')}</label><textarea id="conRisks" class="form-input" rows="3"></textarea></div>
@@ -10871,26 +10877,26 @@ window.printCosConsent = async function (id) {
   </div>
   <div class="section">
     <h3>📋 بيانات المريض / Patient Information</h3>
-    <div class="field"><label>اسم المريض / Patient Name:</label> ${c.patient_name}</div>
-    <div class="field"><label>الإجراء / Procedure:</label> ${c.procedure_name}</div>
-    <div class="field"><label>الجراح / Surgeon:</label> ${c.surgeon}</div>
-    <div class="field"><label>التاريخ / Date:</label> ${c.consent_date} &nbsp; <label>الوقت / Time:</label> ${c.consent_time}</div>
+    <div class="field"><label>اسم المريض / Patient Name:</label> ${escapeHTML(c.patient_name)}</div>
+    <div class="field"><label>الإجراء / Procedure:</label> ${escapeHTML(c.procedure_name)}</div>
+    <div class="field"><label>الجراح / Surgeon:</label> ${escapeHTML(c.surgeon)}</div>
+    <div class="field"><label>التاريخ / Date:</label> ${escapeHTML(c.consent_date)} &nbsp; <label>الوقت / Time:</label> ${escapeHTML(c.consent_time)}</div>
   </div>
   <div class="section">
     <h3>⚠️ المخاطر والمضاعفات المحتملة / Risks & Complications</h3>
-    <p>${c.risks_explained || 'N/A'}</p>
+    <p>${escapeHTML(c.risks_explained || 'N/A')}</p>
   </div>
   <div class="section">
     <h3>🔄 البدائل المتاحة / Available Alternatives</h3>
-    <p>${c.alternatives_explained || 'N/A'}</p>
+    <p>${escapeHTML(c.alternatives_explained || 'N/A')}</p>
   </div>
   <div class="section">
     <h3>✅ النتائج المتوقعة / Expected Results</h3>
-    <p>${c.expected_results || 'N/A'}</p>
+    <p>${escapeHTML(c.expected_results || 'N/A')}</p>
   </div>
   <div class="section">
     <h3>⛔ القيود والمحددات / Limitations</h3>
-    <p>${c.limitations || 'N/A'}</p>
+    <p>${escapeHTML(c.limitations || 'N/A')}</p>
   </div>
   <div class="section">
     <h3>📋 موافقات إضافية / Additional Consents</h3>
@@ -10905,8 +10911,8 @@ window.printCosConsent = async function (id) {
   </div>
   <div class="sig-area">
     <div class="sig-box"><strong>توقيع المريض<br>Patient Signature</strong></div>
-    <div class="sig-box"><strong>توقيع الجراح<br>Surgeon: ${c.surgeon}</strong></div>
-    <div class="sig-box"><strong>توقيع الشاهد<br>Witness: ${c.witness_name || ''}</strong></div>
+    <div class="sig-box"><strong>توقيع الجراح<br>Surgeon: ${escapeHTML(c.surgeon)}</strong></div>
+    <div class="sig-box"><strong>توقيع الشاهد<br>Witness: ${escapeHTML(c.witness_name || '')}</strong></div>
   </div>
   </body></html>`);
   setTimeout(() => { w.print(); }, 500);
