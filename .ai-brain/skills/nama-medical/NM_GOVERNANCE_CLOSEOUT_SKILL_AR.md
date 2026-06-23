@@ -10,7 +10,7 @@ git diff --check ; git -C namaweb diff --check
 # secrets scan: لا .env/credentials/keys/DPAPI blob/PHI/.pem/.dcm staged
 git diff --cached --name-only   # تأكّد أنها فقط ملفات البوابة المقصودة
 ```
-- التقارير: عربية UTF-8 فقط؛ لا mojibake (Ø Ù ï»¿ �).
+- التقارير: عربية UTF-8 فقط؛ لا mojibake (احجب علامات UTF-8 المكسورة: Latin-1 mis-decode، BOM، U+FFFD).
 - Push FF فقط؛ تأكيد `drift 0/0` بعد الدفع.
 - لا تُجهّز ملفات خارج النطاق (STITCH/UI/migrate القديمة = تغييرات سابقة، لا تُلتزَم).
 

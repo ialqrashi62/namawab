@@ -15,7 +15,7 @@ NO_REAL_PHI: YES
 NO_ACCOUNTING_ENABLEMENT_WITHOUT_EXPLICIT_APPROVAL: YES (must remain OFF)
 NO_R17_BRANCH_MERGE: YES
 ARABIC_UTF8_REPORTS_ONLY: YES
-MOJIBAKE_BLOCKERS: Ø Ù ï»¿ �
+MOJIBAKE_BLOCKERS: احجب علامات UTF-8 المكسورة الشائعة (Latin-1 mis-decode بادئة O-slash / U-grave، علامة BOM، ورمز الاستبدال U+FFFD)
 ```
 
 ## Gate 0 — Baseline الثابت (نفّذه أول كل بوابة)
