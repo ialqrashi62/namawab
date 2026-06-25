@@ -829,10 +829,14 @@ window.printMedicalReport = (report, type) => {
 };
 
 // ===== DRUG INTERACTION CHECK =====
+// Returns { hasCritical, failed }. IMPORTANT-2/IMPORTANT-3: a CRITICAL interaction is a HARD-STOP
+// signal for the caller (sendRx), and a network/CDS failure FAILS CLOSED (failed:true) — never a
+// silent "all clear". The advisory modal is still shown for non-critical interactions.
 window.checkDrugInteractions = async (drugs) => {
   try {
-    if (!drugs || drugs.length < 2) return;
+    if (!drugs || drugs.length < 2) return { hasCritical: false, failed: false };
     const result = await API.post('/api/drug-interactions/check', { drugs });
+    const hasCritical = !!(result.interactions && result.interactions.some(i => String(i.severity).toLowerCase() === 'critical'));
     if (result.interactions && result.interactions.length > 0) {
       let alertHtml = '<div style="background:#fff3f3;border:2px solid #ff4444;border-radius:12px;padding:16px;direction:rtl">';
       alertHtml += '<h4 style="color:#cc0000;margin:0 0 12px">⚠️ ' + tr('Drug Interactions Found!', 'تم العثور على تعارضات دوائية!') + '</h4>';
@@ -855,7 +859,12 @@ window.checkDrugInteractions = async (drugs) => {
         '</div></div>';
       document.body.appendChild(modal);
     }
-  } catch (e) { console.error('Interaction check failed:', e); }
+    return { hasCritical, failed: false };
+  } catch (e) {
+    // IMPORTANT-2: FAIL-CLOSED — a failed interaction check must NOT read as "no interactions".
+    console.error('Interaction check failed:', e);
+    return { hasCritical: false, failed: true };
+  }
 };
 
 // ===== ALLERGY CHECK =====
@@ -886,7 +895,17 @@ window.checkAllergyBeforePrescribe = async (patientId, drugs) => {
       return false;
     }
     return true;
-  } catch (e) { return true; }
+  } catch (e) {
+    // IMPORTANT-2: FAIL-CLOSED — if the allergy check cannot complete (network/server failure) we
+    // must NOT silently allow the prescription. Surface a warning and BLOCK; the prescriber can
+    // still proceed only by supplying an explicit, audited override reason in sendRx.
+    console.error('Allergy check failed:', e);
+    try {
+      showToast(tr('Allergy check failed — fail-closed (blocked). Override requires a reason.',
+        'تعذّر فحص الحساسية — تم الحظر احترازياً. التجاوز يتطلب سبباً.'), 'error');
+    } catch (_) { /* toast best-effort */ }
+    return false;
+  }
 };
 
 // =====================================================================
@@ -3538,41 +3557,67 @@ window.sendToRad = async () => {
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 window.sendRx = async () => {
-  const pid = document.getElementById('drPatient').value;
-  if (!pid) { showToast(tr('Select patient first', 'اختر المريض أولاً'), 'error'); return; }
-  const drugName = document.getElementById('drRxDrug').value;
-  if (!drugName || !drugName.trim()) { showToast(tr('Enter medication name', 'أدخل اسم الدواء'), 'error'); return; }
-
-  // E1 CDS HARDENING (clinical safety): use the SERVER-BACKED checks instead of the weak
-  // client-only substring helper. Allergy is a HARD-STOP (modal blocks); drug-drug interactions
-  // surface a modal. We pass the patient's CURRENT meds (existing pharmacy queue) so interactions
-  // are evaluated, not just the single new drug.
-  // 1) Allergy cross-check (server: /api/allergy-check) — returns false (and shows modal) on alert.
-  const allergyOk = await checkAllergyBeforePrescribe(pid, [drugName]);
-  if (!allergyOk) {
-    // Hard-stop unless the prescriber explicitly captures an override reason.
-    const reason = window.prompt(tr('CRITICAL allergy alert. To override you MUST enter a clinical reason (audited):',
-      'تحذير حساسية حرج. للمتابعة يجب إدخال سبب سريري (يُسجّل في التدقيق):'), '');
-    if (!reason || !reason.trim()) { showToast(tr('Prescription cancelled (allergy, no override reason)', 'أُلغيت الوصفة (حساسية، بدون سبب تجاوز)'), 'error'); return; }
-    window.__rxOverrideReason = reason.trim();
-  }
-  // 2) Drug-drug interaction check (server: /api/drug-interactions/check) against current meds.
+  // IMPORTANT-1: clear any stale override reason from a PRIOR prescription BEFORE any checks, so a
+  // previous override can never carry over to this (or the next) prescription. Also cleared in finally.
+  window.__rxOverrideReason = null;
   try {
-    const current = await API.get('/api/pharmacy/queue').catch(() => []);
-    const mine = Array.isArray(current) ? current.filter(q => String(q.patient_id) === String(pid)).map(q => q.medication_name).filter(Boolean) : [];
-    await checkDrugInteractions([drugName, ...mine]);
-  } catch (e) { /* non-blocking advisory modal handled inside checkDrugInteractions */ }
+    const pid = document.getElementById('drPatient').value;
+    if (!pid) { showToast(tr('Select patient first', 'اختر المريض أولاً'), 'error'); return; }
+    const drugName = document.getElementById('drRxDrug').value;
+    if (!drugName || !drugName.trim()) { showToast(tr('Enter medication name', 'أدخل اسم الدواء'), 'error'); return; }
 
-  try {
-    const qty = document.getElementById('drRxQty')?.value || '1';
-    await API.post('/api/prescriptions', {
-      patient_id: pid, medication_name: drugName, dosage: document.getElementById('drRxDose').value,
-      quantity_per_day: qty, frequency: document.getElementById('drRxFreq').value, duration: document.getElementById('drRxDur').value,
-      override_reason: window.__rxOverrideReason || undefined
-    });
+    // E1 CDS HARDENING (clinical safety): use the SERVER-BACKED checks instead of the weak
+    // client-only substring helper. Allergy AND critical drug-drug interactions are HARD-STOPS that
+    // require an explicit, audited override reason (matching the server-enforced 422). We pass the
+    // patient's CURRENT meds (existing pharmacy queue) so interactions are evaluated, not just the
+    // single new drug. The server independently re-derives the authoritative active-med list.
+    // 1) Allergy cross-check (server: /api/allergy-check). FAIL-CLOSED: returns false on alert OR error.
+    const allergyOk = await checkAllergyBeforePrescribe(pid, [drugName]);
+    if (!allergyOk) {
+      // Hard-stop unless the prescriber explicitly captures an override reason.
+      const reason = window.prompt(tr('CRITICAL allergy alert (or allergy check unavailable). To override you MUST enter a clinical reason (audited):',
+        'تحذير حساسية حرج (أو تعذّر فحص الحساسية). للمتابعة يجب إدخال سبب سريري (يُسجّل في التدقيق):'), '');
+      if (!reason || !reason.trim()) { showToast(tr('Prescription cancelled (allergy, no override reason)', 'أُلغيت الوصفة (حساسية، بدون سبب تجاوز)'), 'error'); return; }
+      window.__rxOverrideReason = reason.trim();
+    }
+    // 2) Drug-drug interaction check (server: /api/drug-interactions/check) against current meds.
+    //    IMPORTANT-3: a CRITICAL interaction is a HARD-STOP (require explicit override reason),
+    //    consistent with the server 422. IMPORTANT-2: a failed check FAILS CLOSED (treat as hard-stop).
+    let ddResult = { hasCritical: false, failed: false };
+    try {
+      const current = await API.get('/api/pharmacy/queue').catch(() => ({ __failed: true }));
+      const failedFetch = current && current.__failed;
+      const mine = Array.isArray(current) ? current.filter(q => String(q.patient_id) === String(pid)).map(q => q.medication_name).filter(Boolean) : [];
+      ddResult = await checkDrugInteractions([drugName, ...mine]);
+      if (failedFetch) ddResult = { hasCritical: ddResult.hasCritical, failed: true };
+    } catch (e) { ddResult = { hasCritical: false, failed: true }; }
+    if (ddResult.hasCritical || ddResult.failed) {
+      // Only prompt if we don't already hold an override reason from the allergy hard-stop.
+      if (!window.__rxOverrideReason) {
+        const reason = window.prompt(ddResult.hasCritical
+          ? tr('CRITICAL drug-drug interaction. To override you MUST enter a clinical reason (audited):',
+              'تداخل دوائي حرج. للمتابعة يجب إدخال سبب سريري (يُسجّل في التدقيق):')
+          : tr('Interaction check unavailable — fail-closed. To proceed you MUST enter a clinical reason (audited):',
+              'تعذّر فحص التداخل — تم الحظر احترازياً. للمتابعة يجب إدخال سبب سريري (يُسجّل في التدقيق):'), '');
+        if (!reason || !reason.trim()) { showToast(tr('Prescription cancelled (interaction, no override reason)', 'أُلغيت الوصفة (تداخل، بدون سبب تجاوز)'), 'error'); return; }
+        window.__rxOverrideReason = reason.trim();
+      }
+    }
+
+    try {
+      const qty = document.getElementById('drRxQty')?.value || '1';
+      await API.post('/api/prescriptions', {
+        patient_id: pid, medication_name: drugName, dosage: document.getElementById('drRxDose').value,
+        quantity_per_day: qty, frequency: document.getElementById('drRxFreq').value, duration: document.getElementById('drRxDur').value,
+        override_reason: window.__rxOverrideReason || undefined
+      });
+      showToast(tr('Prescription sent to Pharmacy!', 'تم إرسال الوصفة للصيدلية!'));
+    } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  } finally {
+    // IMPORTANT-1: ALWAYS clear the override reason so a stale value cannot leak to the NEXT Rx,
+    // even when the POST fails or an early return is taken.
     window.__rxOverrideReason = null;
-    showToast(tr('Prescription sent to Pharmacy!', 'تم إرسال الوصفة للصيدلية!'));
-  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  }
 };
 window.issueCertificate = async () => {
   const pid = document.getElementById('drPatient').value;

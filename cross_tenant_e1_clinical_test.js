@@ -111,6 +111,17 @@ ok(/set_config\('app\.tenant_id', '', false\)/.test(src), 'CPOE resets app.tenan
     const patchOwn = await invoke(routes['PATCH /api/problems/:id'], { status: 'resolved' }, {}, { id: '100' });
     ok(patchOwn.code === 200, 'ctx=1 PATCH own problem #100 => 200');
 
+    // IMPORTANT-4: NULL tenant context must FAIL-CLOSED — never an unfiltered query that leaks all
+    // tenants' rows. GET /api/problems and GET /api/clinical-notes must return ZERO rows (not the
+    // whole DB). The mock pool's unfiltered branch would return everything if the route ran it.
+    ctxTenant = null;
+    const probsNull = await invoke(routes['GET /api/problems'], null, {});
+    ok(Array.isArray(probsNull.payload) && probsNull.payload.length === 0,
+       'IMPORTANT-4: null tenant GET /api/problems => 0 rows (fail-closed, no unfiltered leak)');
+    const notesNull = await invoke(routes['GET /api/clinical-notes'], null, {});
+    ok(Array.isArray(notesNull.payload) && notesNull.payload.length === 0,
+       'IMPORTANT-4: null tenant GET /api/clinical-notes => 0 rows (fail-closed, no unfiltered leak)');
+
     console.log(`\n${fail === 0 ? 'ALL PASS' : 'FAIL'}: ${pass} passed, ${fail} failed`);
     process.exit(fail === 0 ? 0 : 1);
 })();

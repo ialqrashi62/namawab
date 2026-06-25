@@ -51,6 +51,30 @@ ok(/res\.status\(422\)\.json\(\{ error: 'CDS hard-stop', blocked: true/.test(ser
 // drug-interactions DB augmentation (additive, fail-safe)
 ok(server.includes('FROM drug_interactions') && server.includes('cds.mapSeverity'), 'drug-interactions endpoint augmented with DB table (cds.mapSeverity)');
 
+// CRITICAL-1: /api/prescriptions now ALSO runs a server-side drug-drug interaction check against
+// the patient's CURRENT active meds derived SERVER-SIDE (never trusted from the client body).
+ok(server.includes('async function getPatientActiveMeds('), 'CRITICAL-1: server-side active-meds helper defined (getPatientActiveMeds)');
+ok(server.includes('cds.checkDrugDrugInteraction([medication_name].concat(activeMeds))'),
+   'CRITICAL-1: prescriptions runs drug-drug interaction (new drug + server-derived active meds)');
+ok(server.includes('await getPatientActiveMeds(patient_id, tenantId)'),
+   'CRITICAL-1: active meds queried server-side scoped to patient + tenant');
+// the helper sources from the authoritative server tables (queue + med orders), NOT the request body
+ok(/FROM pharmacy_prescriptions_queue WHERE patient_id=\$1[\s\S]*NOT IN \('Dispensed'/.test(server),
+   'CRITICAL-1: active meds include non-dispensed pharmacy queue rows (tenant-scoped)');
+ok(/FROM order_items oi JOIN orders o[\s\S]*o\.type='med' AND o\.status IN \('pending','active'\)/.test(server),
+   'CRITICAL-1: active meds include active/pending med-type orders (E-X orders table)');
+ok(!/req\.body[\s\S]{0,40}active_meds/.test(server), 'CRITICAL-1: prescriptions route does not trust client active_meds');
+
+// CRITICAL-2: clinical_cpoe CPOE no longer trusts client active_meds; derives them server-side.
+ok(!/activeMeds: Array\.isArray\(active_meds\)/.test(src), 'CRITICAL-2: CPOE no longer feeds client active_meds into evaluateOrder');
+ok(/activeMeds: serverActiveMeds/.test(src), 'CRITICAL-2: CPOE feeds SERVER-derived active meds into evaluateOrder');
+ok(/FROM order_items oi JOIN orders o[\s\S]*o\.type='med' AND o\.status IN \('pending','active'\)/.test(src),
+   'CRITICAL-2: CPOE derives active meds from active/pending med orders (server-side)');
+
+// IMPORTANT-4: clinical reads FAIL-CLOSED when there is no tenant context (no unfiltered query).
+ok((src.match(/if \(!tenantId\) return res\.json\(\[\]\);/g) || []).length >= 2,
+   'IMPORTANT-4: GET /api/problems and /api/clinical-notes fail-closed (empty) when tenant context is null');
+
 // ---------- 3) unit: drive mountClinicalRoutes with mocks (no real DB) ----------
 (async () => {
     const { mountClinicalRoutes } = require('./clinical_cpoe');
@@ -66,6 +90,9 @@ ok(server.includes('FROM drug_interactions') && server.includes('cds.mapSeverity
     // Mock pool: pool.query (auto-bound wrapper) + pool.connect (dedicated tx client).
     const sql = [];
     let patientAllergies = 'penicillin';   // tenant patient has a penicillin allergy
+    // CRITICAL-2: the patient's REAL active meds live on the SERVER (med orders). The client cannot
+    // see or alter this; the test will send an empty/forged active_meds yet the gate must still fire.
+    let serverActiveMedOrders = [];        // e.g. [{ catalog_ref: 'Sildenafil' }]
     const client = {
         query: async (text, params) => {
             sql.push(text.replace(/\s+/g, ' ').trim());
@@ -79,6 +106,10 @@ ok(server.includes('FROM drug_interactions') && server.includes('cds.mapSeverity
         connect: async () => client,
         query: async (text, params) => {
             if (/SELECT allergies FROM patients/.test(text)) return { rows: [{ allergies: patientAllergies }] };
+            // CRITICAL-2: server-derived active meds (med-type orders). Authoritative, client-independent.
+            if (/FROM order_items oi JOIN orders o/.test(text)) return { rows: serverActiveMedOrders };
+            // pharmacy queue source for server-derived active meds (none in this mock)
+            if (/FROM pharmacy_prescriptions_queue WHERE patient_id/.test(text)) return { rows: [] };
             if (/FROM orders WHERE patient_id/.test(text)) return { rows: [] };
             if (/SELECT id FROM patients/.test(text)) return { rows: [{ id: (params && params[0]) }] };
             if (/INSERT INTO problems/.test(text)) return { rows: [{ id: 11, status: params[7], description: params[6] }] };
@@ -149,6 +180,37 @@ ok(server.includes('FROM drug_interactions') && server.includes('cds.mapSeverity
     sql.length = 0; audits.length = 0;
     const lab = await invoke(routes['POST /api/cpoe/order'], { patient_id: 9, type: 'lab', items: [{ catalog_ref: 'CBC', qty: 1 }] });
     ok(lab.code === 200, 'CPOE: lab order with no critical alert => 200');
+
+    // 3d-1: CRITICAL-2 — client-supplied active_meds CANNOT hide an interaction. The patient is
+    //       already on Sildenafil (server-side med order). The client orders a Nitrate and forges an
+    //       EMPTY active_meds (omitting the Sildenafil) to dodge the gate. The server must STILL derive
+    //       the real list and 422 on the fatal Nitrate+Sildenafil combo. No allergy here.
+    patientAllergies = '';
+    serverActiveMedOrders = [{ catalog_ref: 'Sildenafil' }];
+    sql.length = 0; audits.length = 0;
+    const spoofed = await invoke(routes['POST /api/cpoe/order'], {
+        patient_id: 9, type: 'med', items: [{ catalog_ref: 'Nitroglycerin', qty: 1 }],
+        active_meds: [],                 // FORGED: client omits the dangerous Sildenafil
+    });
+    ok(spoofed.code === 422 && spoofed.payload.blocked === true,
+       'CRITICAL-2: forged empty active_meds cannot hide Nitrate+Sildenafil — server derives list => 422');
+    ok(Array.isArray(spoofed.payload.alerts) && spoofed.payload.alerts.some(a => a.rule === 'drug-drug' && a.severity === 'critical'),
+       'CRITICAL-2: 422 carries the critical drug-drug interaction');
+    await drain();
+    ok(!sql.some(s => /INSERT INTO orders/.test(s)), 'CRITICAL-2: NO order written on the spoofed interaction hard-stop');
+
+    // 3d-2: same order WITH override_reason -> proceeds (200) + CDS_OVERRIDE audited
+    sql.length = 0; audits.length = 0;
+    const spoofedOverride = await invoke(routes['POST /api/cpoe/order'], {
+        patient_id: 9, type: 'med', items: [{ catalog_ref: 'Nitroglycerin', qty: 1 }],
+        active_meds: [], override_reason: 'Cardiology aware; nitrate-free interval enforced',
+    });
+    ok(spoofedOverride.code === 200, 'CRITICAL-2: interaction proceeds with explicit override reason (200)');
+    await drain();
+    ok(audits.some(a => a[2] === 'CDS_OVERRIDE'), 'CRITICAL-2: override audited as CDS_OVERRIDE');
+    // reset shared mock state for subsequent cases
+    patientAllergies = 'penicillin';
+    serverActiveMedOrders = [];
 
     // 3e: problems POST validation + tenant stamping
     const probBad = await invoke(routes['POST /api/problems'], { patient_id: 9 });

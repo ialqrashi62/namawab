@@ -45,6 +45,47 @@ ok(/return window\.e1SubmitOrder\(pid, reason\.trim\(\)\)/.test(app), 'CPOE subm
 ok(/API\.post\('\/api\/problems'/.test(app) && /API\.patch\('\/api\/problems\/'/.test(app), 'problems handlers call /api/problems');
 ok(/API\.post\('\/api\/clinical-notes'/.test(app) && /API\.post\('\/api\/clinical-notes\/' \+ id \+ '\/sign'/.test(app), 'SOAP handlers call /api/clinical-notes (+sign)');
 
+// ---------- IMPORTANT-1: override reason cleared at TOP of sendRx and in finally ----------
+(() => {
+    const start = app.indexOf('window.sendRx = async');
+    const end = app.indexOf('window.issueCertificate', start);
+    const block = app.slice(start, end > start ? end : start + 4000);
+    // first statement clears the global before any checks
+    ok(/window\.sendRx = async \(\) => \{\s*[^]*?window\.__rxOverrideReason = null;/.test(block.slice(0, 400)),
+       'IMPORTANT-1: sendRx clears __rxOverrideReason at the TOP (before checks)');
+    ok(/finally \{[^]*window\.__rxOverrideReason = null;[^]*\}/.test(block),
+       'IMPORTANT-1: sendRx clears __rxOverrideReason in a finally block (no stale carry-over on failure)');
+})();
+
+// ---------- IMPORTANT-2: client checks FAIL-CLOSED on error ----------
+(() => {
+    const start = app.indexOf('window.checkAllergyBeforePrescribe = async');
+    const end = app.indexOf('// =====', start);
+    const block = app.slice(start, end > start ? end : start + 2000);
+    // the catch must NOT return true; it must return false (block)
+    ok(/catch \(e\) \{[^]*return false;[^]*\}/.test(block) && !/catch \(e\) \{ return true; \}/.test(block),
+       'IMPORTANT-2: checkAllergyBeforePrescribe FAILS CLOSED (catch returns false, never true)');
+})();
+(() => {
+    const start = app.indexOf('window.checkDrugInteractions = async');
+    const end = app.indexOf('window.checkAllergyBeforePrescribe', start);
+    const block = app.slice(start, end > start ? end : start + 2000);
+    ok(/catch \(e\) \{[^]*failed: true[^]*\}/.test(block),
+       'IMPORTANT-2: checkDrugInteractions FAILS CLOSED (catch returns failed:true, never silent all-clear)');
+    ok(/hasCritical/.test(block), 'IMPORTANT-3: checkDrugInteractions reports hasCritical to the caller');
+})();
+
+// ---------- IMPORTANT-3: sendRx hard-stops on critical interaction / fail-closed (override required) ----------
+(() => {
+    const start = app.indexOf('window.sendRx = async');
+    const end = app.indexOf('window.issueCertificate', start);
+    const block = app.slice(start, end > start ? end : start + 4000);
+    ok(/ddResult\.hasCritical \|\| ddResult\.failed/.test(block),
+       'IMPORTANT-3: sendRx treats a CRITICAL interaction OR a failed check as a hard-stop');
+    ok(/CRITICAL drug-drug interaction/.test(block) && /window\.prompt/.test(block),
+       'IMPORTANT-3: sendRx prompts for an explicit (audited) override reason on critical interaction');
+})();
+
 // ---------- API.patch ----------
 ok(/patch: \(url, data\) => API\.request\(url, \{ method: 'PATCH'/.test(api), 'API.patch method added (additive)');
 

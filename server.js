@@ -5044,6 +5044,42 @@ async function startServer() {
 }
 
 // ===== PHARMACY & PRESCRIPTIONS =====
+// CRITICAL-1 helper: derive the patient's CURRENT active medications from AUTHORITATIVE server-side
+// sources (never the client body), scoped to patient + tenant. Sources:
+//   1) pharmacy_prescriptions_queue rows not yet dispensed/cancelled (medication_name).
+//   2) active/pending med-type orders (orders.type='med' -> order_items.catalog_ref) via the E-X tables.
+// Returns a de-duplicated array of drug-name strings. RLS also enforces tenant isolation; the explicit
+// tenant_id predicate is defense-in-depth. Caller treats a thrown error as FAIL-SAFE (warns, never skips).
+async function getPatientActiveMeds(patientId, tenantId) {
+    const meds = [];
+    // 1) Pharmacy queue (not dispensed / cancelled)
+    const qSql = tenantId
+        ? "SELECT medication_name FROM pharmacy_prescriptions_queue WHERE patient_id=$1 AND tenant_id=$2 AND COALESCE(status,'') NOT IN ('Dispensed','Cancelled','Rejected')"
+        : "SELECT medication_name FROM pharmacy_prescriptions_queue WHERE patient_id=$1 AND COALESCE(status,'') NOT IN ('Dispensed','Cancelled','Rejected')";
+    const qParams = tenantId ? [patientId, tenantId] : [patientId];
+    for (const r of (await pool.query(qSql, qParams)).rows) {
+        if (r.medication_name) meds.push(String(r.medication_name));
+    }
+    // 2) Active/pending med-type orders (E-X orders/order_items). Best-effort: a missing orders table
+    //    must not break the gate — but a real query error propagates so the caller fails SAFE (warns).
+    try {
+        const oSql = tenantId
+            ? "SELECT oi.catalog_ref FROM order_items oi JOIN orders o ON oi.order_id=o.id WHERE o.patient_id=$1 AND o.tenant_id=$2 AND o.type='med' AND o.status IN ('pending','active')"
+            : "SELECT oi.catalog_ref FROM order_items oi JOIN orders o ON oi.order_id=o.id WHERE o.patient_id=$1 AND o.type='med' AND o.status IN ('pending','active')";
+        const oParams = tenantId ? [patientId, tenantId] : [patientId];
+        for (const r of (await pool.query(oSql, oParams)).rows) {
+            if (r.catalog_ref) meds.push(String(r.catalog_ref));
+        }
+    } catch (e) {
+        // orders table may be absent in some deployments; the queue source above still applies.
+        // Do NOT swallow into a silent pass at the caller — but a missing-relation here is tolerated.
+        if (!/relation .* does not exist/i.test(e.message || '')) throw e;
+    }
+    // de-duplicate (case-insensitive)
+    const seen = new Set();
+    return meds.filter(m => { const k = m.trim().toLowerCase(); if (!k || seen.has(k)) return false; seen.add(k); return true; });
+}
+
 // Doctor sends prescription → Pharmacy queue
 app.post('/api/prescriptions', requireAuth, requireTenantScope, async (req, res) => {
     try {
@@ -5058,9 +5094,10 @@ app.post('/api/prescriptions', requireAuth, requireTenantScope, async (req, res)
             prescribedPatient = (await pool.query('SELECT id, allergies FROM patients WHERE id=$1', [patient_id])).rows[0] || null;
         }
 
-        // E1 CDS GATE (clinical safety, FAIL-SAFE): allergy + dose checks BEFORE writing. A CRITICAL
-        // alert HARD-STOPS with 422 unless override_reason is provided (then the override is AUDITED).
-        // This ENHANCES (does not replace) the client checkAllergyBeforePrescribe/checkDrugInteractions.
+        // E1 CDS GATE (clinical safety, FAIL-SAFE): allergy + dose + DRUG-DRUG INTERACTION checks
+        // BEFORE writing. A CRITICAL alert HARD-STOPS with 422 unless override_reason is provided
+        // (then the override is AUDITED). This ENHANCES (does not replace) the client
+        // checkAllergyBeforePrescribe/checkDrugInteractions.
         let rxCdsAlerts = [];
         try {
             rxCdsAlerts = rxCdsAlerts
@@ -5070,6 +5107,24 @@ app.post('/api/prescriptions', requireAuth, requireTenantScope, async (req, res)
             // FAIL-SAFE: if the engine itself errors, surface a warning rather than silently passing.
             rxCdsAlerts.push({ rule: 'dose', severity: 'warning', message: 'CDS unavailable — verify manually',
                 message_en: 'CDS unavailable — verify manually', message_ar: 'تعذّر تشغيل CDS — تأكد يدوياً', overridable: true, fail_safe: true });
+        }
+        // CRITICAL-1: server-side DRUG-DRUG interaction. The patient's CURRENT active medications are
+        // queried SERVER-SIDE (never trusted from the client) from the pharmacy prescriptions queue
+        // (not yet dispensed/cancelled) + active med-type orders, scoped to this patient + tenant.
+        // The new drug is checked against that authoritative list. FAIL-SAFE: if the active-med
+        // lookup fails we surface a warning (never silently skip the interaction check).
+        if (patient_id && medication_name) {
+            try {
+                const activeMeds = await getPatientActiveMeds(patient_id, tenantId);
+                const ddAlerts = cds.checkDrugDrugInteraction([medication_name].concat(activeMeds));
+                rxCdsAlerts = rxCdsAlerts.concat(ddAlerts);
+            } catch (e) {
+                // FAIL-SAFE: cannot enumerate current meds => interaction check inconclusive => warn.
+                rxCdsAlerts.push({ rule: 'drug-drug', severity: 'warning',
+                    message: 'Active medications unavailable — interaction check inconclusive',
+                    message_en: 'Active medications unavailable — interaction check inconclusive',
+                    message_ar: 'تعذّر جلب الأدوية الفعالة — فحص التداخل غير حاسم', overridable: true, subjects: [], fail_safe: true });
+            }
         }
         const rxDecision = cds.decide(rxCdsAlerts, override_reason);
         if (!rxDecision.allow) {

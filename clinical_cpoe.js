@@ -78,13 +78,17 @@ function mountClinicalRoutes(app, deps) {
     app.get('/api/problems', ...chain('doctor', 'problems:view'), async (req, res) => {
         try {
             const { tenantId } = getRequestTenantContext(req);
+            // IMPORTANT-4: FAIL-CLOSED — never run an UNFILTERED clinical query. With no tenant context
+            // there is no authoritative scope, so return zero rows rather than leaking every tenant's
+            // problem list. The query below ALWAYS carries an explicit tenant_id predicate; RLS also enforces it.
+            if (!tenantId) return res.json([]);
             const { patient_id } = req.query;
             const where = [];
             const params = [];
-            if (tenantId) { params.push(tenantId); where.push(`tenant_id = $${params.length}`); }
+            params.push(tenantId); where.push(`tenant_id = $${params.length}`);
             if (patient_id) { params.push(patient_id); where.push(`patient_id = $${params.length}`); }
             const sql = `SELECT id, tenant_id, facility_id, patient_id, encounter_ref, icd10, snomed, description, status, onset_date, recorded_by, created_at
-                         FROM problems${where.length ? ' WHERE ' + where.join(' AND ') : ''} ORDER BY id DESC`;
+                         FROM problems WHERE ${where.join(' AND ')} ORDER BY id DESC`;
             const { rows } = await pool.query(sql, params);
             return res.json(rows);
         } catch (e) {
@@ -166,13 +170,17 @@ function mountClinicalRoutes(app, deps) {
     app.get('/api/clinical-notes', ...chain('doctor', 'notes:view'), async (req, res) => {
         try {
             const { tenantId } = getRequestTenantContext(req);
+            // IMPORTANT-4: FAIL-CLOSED — never run an UNFILTERED clinical query. With no tenant context,
+            // return zero rows rather than leaking every tenant's notes. The query below ALWAYS carries
+            // an explicit tenant_id predicate; RLS also enforces it.
+            if (!tenantId) return res.json([]);
             const { patient_id } = req.query;
             const where = [];
             const params = [];
-            if (tenantId) { params.push(tenantId); where.push(`tenant_id = $${params.length}`); }
+            params.push(tenantId); where.push(`tenant_id = $${params.length}`);
             if (patient_id) { params.push(patient_id); where.push(`patient_id = $${params.length}`); }
             const sql = `SELECT id, tenant_id, facility_id, patient_id, encounter_ref, type, subjective, objective, assessment, plan, author_id, emr_status, signed_by_user_id, signed_at, locked_at, created_at
-                         FROM clinical_notes${where.length ? ' WHERE ' + where.join(' AND ') : ''} ORDER BY id DESC`;
+                         FROM clinical_notes WHERE ${where.join(' AND ')} ORDER BY id DESC`;
             const { rows } = await pool.query(sql, params);
             return res.json(rows);
         } catch (e) {
@@ -243,7 +251,9 @@ function mountClinicalRoutes(app, deps) {
     // ============================================================
     app.post('/api/cpoe/order', ...chain('doctor', 'orders:create'), async (req, res) => {
         const { patient_id, type, encounter_ref, order_set_id, status, items, override_reason,
-                dose, active_meds } = req.body || {};
+                dose } = req.body || {};
+        // NOTE: req.body.active_meds is intentionally NOT read here — CRITICAL-2: the drug-drug
+        // interaction list is derived SERVER-SIDE below; the client list is untrusted/ignored.
 
         // --- validation (mirrors orders.js CHECK constraints) ---
         if (!ORDER_TYPES.includes(type)) {
@@ -282,6 +292,48 @@ function mountClinicalRoutes(app, deps) {
         }
 
         const primaryMed = lineItems[0] ? (lineItems[0].catalog_ref || lineItems[0].name) : (req.body.medication_name || null);
+
+        // CRITICAL-2: do NOT trust client-supplied active_meds for the drug-drug interaction check —
+        // it is spoofable (the client can omit a dangerous med to defeat the gate). Derive the
+        // patient's CURRENT active medications SERVER-SIDE, scoped to this tenant: med-type orders
+        // (orders.type='med' -> order_items.catalog_ref) that are pending/active, plus the pharmacy
+        // prescriptions queue (not yet dispensed/cancelled). RLS also enforces isolation; the explicit
+        // tenant_id predicate is defense-in-depth. FAIL-SAFE: a lookup failure surfaces a warning
+        // (never a silent skip of the interaction check). The client `active_meds` is IGNORED.
+        let serverActiveMeds = [];
+        if (type === 'med') {
+            try {
+                const meds = [];
+                const moSql = tenantId
+                    ? "SELECT oi.catalog_ref FROM order_items oi JOIN orders o ON oi.order_id=o.id WHERE o.patient_id=$1 AND o.tenant_id=$2 AND o.type='med' AND o.status IN ('pending','active')"
+                    : "SELECT oi.catalog_ref FROM order_items oi JOIN orders o ON oi.order_id=o.id WHERE o.patient_id=$1 AND o.type='med' AND o.status IN ('pending','active')";
+                const moParams = tenantId ? [patient_id, tenantId] : [patient_id];
+                for (const r of (await pool.query(moSql, moParams)).rows) {
+                    if (r.catalog_ref) meds.push(String(r.catalog_ref));
+                }
+                const pqSql = tenantId
+                    ? "SELECT medication_name FROM pharmacy_prescriptions_queue WHERE patient_id=$1 AND tenant_id=$2 AND COALESCE(status,'') NOT IN ('Dispensed','Cancelled','Rejected')"
+                    : "SELECT medication_name FROM pharmacy_prescriptions_queue WHERE patient_id=$1 AND COALESCE(status,'') NOT IN ('Dispensed','Cancelled','Rejected')";
+                const pqParams = tenantId ? [patient_id, tenantId] : [patient_id];
+                try {
+                    for (const r of (await pool.query(pqSql, pqParams)).rows) {
+                        if (r.medication_name) meds.push(String(r.medication_name));
+                    }
+                } catch (e2) {
+                    if (!/relation .* does not exist/i.test(e2.message || '')) throw e2;
+                }
+                const seen = new Set();
+                serverActiveMeds = meds.filter(m => { const k = m.trim().toLowerCase(); if (!k || seen.has(k)) return false; seen.add(k); return true; });
+            } catch (e) {
+                // FAIL-SAFE: cannot enumerate current meds => interaction check inconclusive => warning.
+                cdsResult.alerts.push({
+                    rule: 'drug-drug', severity: 'warning', message: 'Active medications unavailable — interaction check inconclusive',
+                    message_en: 'Active medications unavailable — interaction check inconclusive', message_ar: 'تعذّر جلب الأدوية الفعالة — فحص التداخل غير حاسم',
+                    overridable: true, subjects: [], fail_safe: true,
+                });
+            }
+        }
+
         let activeOrders = [];
         try {
             const aoSql = tenantId
@@ -311,7 +363,8 @@ function mountClinicalRoutes(app, deps) {
             med: (type === 'med') ? primaryMed : null,
             dose: (type === 'med') ? dose : undefined,
             patient: { allergies: patientForCds ? patientForCds.allergies : null },
-            activeMeds: Array.isArray(active_meds) ? active_meds : [],
+            // CRITICAL-2: authoritative server-derived active meds (client `active_meds` is NOT trusted).
+            activeMeds: serverActiveMeds,
             activeOrders,
             catalog_ref: primaryMed,
         });
