@@ -4198,7 +4198,22 @@ async function renderRadiology(el) {
           </tbody></table></div></div>
         </div>
       </div>
+    </div>
+    <div class="card glass-card-premium mt-16">
+      <div class="card-title">🗂️ ${tr('RIS Worklist', 'قائمة عمل الأشعة (RIS)')}</div>
+      <div class="flex gap-8 mb-12" style="flex-wrap:wrap;align-items:flex-end">
+        <div class="form-group" style="flex:2;margin:0"><label>${tr('Add order to worklist', 'إضافة طلب لقائمة العمل')}</label>
+          <select class="form-input" id="risOrderId"><option value="">--</option>${orders.map(o => `<option value="${safeId(o.id)}">#${safeId(o.id)} · ${escapeHTML(o.order_type || '')}</option>`).join('')}</select></div>
+        <div class="form-group" style="flex:1;margin:0"><label>${tr('Modality', 'الجهاز')}</label>
+          <select class="form-input" id="risModality"><option value="">--</option><option>XR</option><option>CT</option><option>MR</option><option>US</option><option>MG</option><option>OTHER</option></select></div>
+        <button class="btn btn-success" onclick="risAddToWorklist()">➕ ${tr('Add to Worklist', 'إضافة لقائمة العمل')}</button>
+      </div>
+      <div class="split-layout">
+        <div id="risWorklistBox" style="flex:2"></div>
+        <div class="card" id="risReportBox" style="flex:1.5"><div style="color:var(--text-dim);font-size:12px">${tr('Select an exam to report.', 'اختر فحصاً لكتابة التقرير.')}</div></div>
+      </div>
     </div>`;
+  window.loadRisWorklist();
   setTimeout(() => { orders.forEach(o => { try { JsBarcode('#radBC' + o.id, 'RAD-' + o.id + '-' + (o.patient_name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 8), { format: 'CODE128', width: 1.2, height: 35, fontSize: 9, displayValue: true, margin: 2, textMargin: 1 }); } catch (e) { } }); }, 100);
 }
 window.updateRadStatus = async (id, status) => {
@@ -4230,6 +4245,118 @@ window.scanRadBarcode = async () => {
     const orders = await API.get('/api/radiology/orders'); const o = orders.find(x => x.id == oid);
     document.getElementById('radScanResult').innerHTML = o ? `<div class="card" style="border:2px solid var(--accent);margin-top:12px"><div class="card-title">🔍 ${tr('Order Found', 'تم العثور على الطلب')} #${escapeHTML(o.id)}</div><div class="flex gap-8" style="flex-wrap:wrap"><span class="badge badge-info">👤 </span><span class="badge badge-purple">📡 ${escapeHTML(o.order_type)}</span>${statusBadge(o.status)}</div>${o.results ? `<div class="mt-16">${renderRadResults(o.results)}</div>` : ''}</div>` : `<div class="badge badge-danger mt-16">${tr('Order not found', 'الطلب غير موجود')}</div>`;
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+// ===== E4: RIS WORKLIST + STRUCTURED REPORTING + CRITICAL + PRIOR COMPARE =====
+const RIS_STATES = ['Scheduled', 'Arrived', 'InProgress', 'Completed', 'Reported'];
+const RIS_NEXT = { Scheduled: 'Arrived', Arrived: 'InProgress', InProgress: 'Completed', Completed: 'Reported', Reported: null };
+window.__risExams = [];
+window.__risReports = {};
+
+// Render the RIS worklist board into #risWorklistBox (called from renderRadiology)
+window.loadRisWorklist = async () => {
+  const box = document.getElementById('risWorklistBox');
+  if (!box) return;
+  let exams = [];
+  try { exams = await API.get('/api/radiology/worklist'); }
+  catch (e) { box.innerHTML = `<div class="badge badge-danger">${tr('Failed to load worklist', 'فشل تحميل قائمة العمل')}</div>`; return; }
+  window.__risExams = exams || [];
+  if (!exams.length) { box.innerHTML = `<div class="empty-state-card"><div class="empty-state-icon">🗂️</div><div>${tr('No scheduled exams. Use \"Add to Worklist\" on an order.', 'لا توجد فحوصات مجدولة. استخدم "إضافة لقائمة العمل" على الطلب.')}</div></div>`; return; }
+  box.innerHTML = `<div class="table-wrapper"><table class="data-table"><thead><tr>
+    <th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Modality', 'الجهاز')}</th><th>${tr('Exam', 'الفحص')}</th><th>${tr('State', 'الحالة')}</th><th>${tr('Actions', 'إجراءات')}</th>
+  </tr></thead><tbody>
+  ${exams.map(e => `<tr>
+    <td>${safeId(e.id)}</td>
+    <td>${escapeHTML(e.patient_name || ('#' + (e.patient_id || '')))}</td>
+    <td>${escapeHTML(e.modality || '')}</td>
+    <td>${escapeHTML(e.exam_name || '')}</td>
+    <td>${statusBadge(e.state)}</td>
+    <td>
+      ${RIS_NEXT[e.state] ? `<button class="btn btn-sm btn-primary" onclick="risAdvance(${safeId(e.id)},'${escapeHTML(RIS_NEXT[e.state])}')">▶ ${escapeHTML(RIS_NEXT[e.state])}</button>` : `<span class="badge badge-success">✅</span>`}
+      <button class="btn btn-sm btn-success" onclick="risOpenReport(${safeId(e.id)})">📝 ${tr('Report', 'تقرير')}</button>
+    </td>
+  </tr>`).join('')}
+  </tbody></table></div>`;
+};
+
+window.risAddToWorklist = async () => {
+  const orderId = safeId(document.getElementById('risOrderId')?.value);
+  const modality = document.getElementById('risModality')?.value || '';
+  if (!orderId) { showToast(tr('Select an order', 'اختر طلباً'), 'error'); return; }
+  try {
+    await API.post('/api/radiology/worklist', { rad_order_id: orderId, modality });
+    showToast(tr('Added to worklist', 'تمت الإضافة لقائمة العمل'));
+    await window.loadRisWorklist();
+  } catch (e) { showToast(tr('Error', 'خطأ') + ': ' + escapeHTML(e.message || ''), 'error'); }
+};
+
+window.risAdvance = async (examId, state) => {
+  try { await API.put(`/api/radiology/worklist/${examId}/state`, { state }); showToast(tr('State updated', 'تم تحديث الحالة')); await window.loadRisWorklist(); }
+  catch (e) { showToast(tr('Error', 'خطأ') + ': ' + escapeHTML(e.message || ''), 'error'); }
+};
+
+// Open the structured report editor for an exam (loads priors + existing reports)
+window.risOpenReport = async (examId) => {
+  const exam = (window.__risExams || []).find(x => x.id == examId);
+  const box = document.getElementById('risReportBox');
+  if (!box) return;
+  let priors = [], reports = [];
+  try {
+    if (exam && exam.patient_id) priors = await API.get(`/api/radiology/reports/priors?patient_id=${encodeURIComponent(exam.patient_id)}&modality=${encodeURIComponent(exam.modality || '')}`);
+    reports = await API.get(`/api/radiology/reports?rad_exam_id=${encodeURIComponent(examId)}`);
+  } catch (e) { /* non-fatal */ }
+  window.__risReports[examId] = reports || [];
+  const priorHtml = (priors && priors.length)
+    ? priors.map(p => `<div style="font-size:12px;border-${isArabic ? 'right' : 'left'}:3px solid var(--accent);padding:4px 8px;margin:4px 0">
+        <b>#${safeId(p.id)}</b> ${escapeHTML((p.signed_at || '').split('T')[0])} · ${escapeHTML(p.modality || '')}${p.birads ? ' · BI-RADS ' + escapeHTML(p.birads) : ''}<br>
+        <span style="color:var(--text-dim)">${escapeHTML(p.impression || '')}</span></div>`).join('')
+    : `<div style="color:var(--text-dim);font-size:12px">${tr('No signed prior reports', 'لا توجد تقارير سابقة موقعة')}</div>`;
+  const reportsHtml = (reports && reports.length)
+    ? reports.map(r => `<div style="font-size:12px;padding:4px 0">#${safeId(r.id)} · ${statusBadge(r.status)} ${r.is_critical ? `<span class="badge badge-danger">${tr('CRITICAL', 'حرج')}</span>` : ''} ${r.critical_notified_at ? `<span class="badge badge-info">${tr('Notified', 'تم الإبلاغ')}</span>` : ''}
+        ${r.status === 'Draft' ? `${r.is_critical && !r.critical_notified_at ? `<button class="btn btn-sm btn-warning" onclick="risCriticalNotify(${safeId(r.id)},${safeId(examId)})">📞 ${tr('Notify Critical', 'إبلاغ حرج')}</button>` : ''}<button class="btn btn-sm btn-success" onclick="risSignReport(${safeId(r.id)},${safeId(examId)})">✍ ${tr('Sign', 'توقيع')}</button>` : ''}</div>`).join('')
+    : `<div style="color:var(--text-dim);font-size:12px">${tr('No reports yet', 'لا توجد تقارير بعد')}</div>`;
+  box.innerHTML = `
+    <div class="card-title">📝 ${tr('Structured Report', 'تقرير منظم')} — ${tr('Exam', 'فحص')} #${safeId(examId)}</div>
+    <div class="form-group mb-8"><label>${tr('Template', 'القالب')}</label>
+      <select class="form-input" id="rrTemplate"><option value="generic">${tr('Generic', 'عام')}</option><option value="BI-RADS">BI-RADS</option></select></div>
+    <div class="form-group mb-8"><label>${tr('Findings', 'النتائج')}</label><textarea class="form-input form-textarea" id="rrFindings" rows="3"></textarea></div>
+    <div class="form-group mb-8"><label>${tr('Impression', 'الانطباع')}</label><textarea class="form-input form-textarea" id="rrImpression" rows="2"></textarea></div>
+    <div class="form-group mb-8"><label>BI-RADS</label><input class="form-input" id="rrBirads" placeholder="0-6"></div>
+    <label class="flex gap-8" style="align-items:center;margin-bottom:8px"><input type="checkbox" id="rrCritical"> <span style="color:#ef4444;font-weight:600">${tr('Critical finding (requires notification before signing)', 'نتيجة حرجة (تتطلب إبلاغاً قبل التوقيع)')}</span></label>
+    <button class="btn btn-primary w-full mb-12" onclick="risSaveReport(${safeId(examId)})">💾 ${tr('Save Draft', 'حفظ مسودة')}</button>
+    <div class="card-title" style="font-size:13px">📚 ${tr('Prior Signed Reports', 'تقارير سابقة موقعة')}</div>
+    <div class="mb-12">${priorHtml}</div>
+    <div class="card-title" style="font-size:13px">📄 ${tr('Reports for this exam', 'تقارير هذا الفحص')}</div>
+    <div id="rrList">${reportsHtml}</div>`;
+};
+
+window.risSaveReport = async (examId) => {
+  const body = {
+    rad_exam_id: examId,
+    template: document.getElementById('rrTemplate')?.value || 'generic',
+    findings: document.getElementById('rrFindings')?.value || '',
+    impression: document.getElementById('rrImpression')?.value || '',
+    birads: document.getElementById('rrBirads')?.value || '',
+    is_critical: !!document.getElementById('rrCritical')?.checked
+  };
+  if (!body.findings && !body.impression) { showToast(tr('Enter findings or impression', 'أدخل النتائج أو الانطباع'), 'error'); return; }
+  try { await API.post('/api/radiology/reports', body); showToast(tr('Draft saved', 'تم حفظ المسودة')); await window.risOpenReport(examId); }
+  catch (e) { showToast(tr('Error', 'خطأ') + ': ' + escapeHTML(e.message || ''), 'error'); }
+};
+
+window.risCriticalNotify = async (reportId, examId) => {
+  const note = prompt(tr('Critical finding note / who was called:', 'ملاحظة النتيجة الحرجة / من تم إبلاغه:'), '');
+  if (note === null) return;
+  try { await API.post(`/api/radiology/reports/${reportId}/critical-notify`, { note }); showToast(tr('Critical notification documented', 'تم توثيق الإبلاغ الحرج')); await window.risOpenReport(examId); }
+  catch (e) { showToast(tr('Error', 'خطأ') + ': ' + escapeHTML(e.message || ''), 'error'); }
+};
+
+window.risSignReport = async (reportId, examId) => {
+  try { await API.put(`/api/radiology/reports/${reportId}/sign`, {}); showToast(tr('Report signed', 'تم توقيع التقرير')); await window.risOpenReport(examId); await window.loadRisWorklist(); }
+  catch (e) {
+    // FAIL-CLOSED feedback: critical must be notified before signing
+    showToast(tr('Cannot sign: ', 'تعذّر التوقيع: ') + escapeHTML(e.message || ''), 'error');
+  }
 };
 
 // ===== PHARMACY =====
