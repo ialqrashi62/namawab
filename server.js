@@ -1577,42 +1577,10 @@ app.post('/api/pharmacy/drugs', requireAuth, requireTenantScope, async (req, res
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/pharmacy/queue', requireAuth, requireTenantScope, async (req, res) => {
-    try {
-        const { tenantId } = getRequestTenantContext(req);
-        const query = tenantId ?
-            'SELECT pq.*, p.name_en as patient_name FROM pharmacy_prescriptions_queue pq LEFT JOIN patients p ON pq.patient_id=p.id WHERE pq.tenant_id=$1 ORDER BY pq.id DESC' :
-            'SELECT pq.*, p.name_en as patient_name FROM pharmacy_prescriptions_queue pq LEFT JOIN patients p ON pq.patient_id=p.id ORDER BY pq.id DESC';
-        const params = tenantId ? [tenantId] : [];
-        res.json((await pool.query(query, params)).rows);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-
-app.put('/api/pharmacy/queue/:id', requireAuth, requireTenantScope, async (req, res) => {
-    try {
-        const { status } = req.body;
-        const { tenantId } = getRequestTenantContext(req);
-        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
-        const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        const rxCheck = (await pool.query(`SELECT id FROM pharmacy_prescriptions_queue WHERE id=$1${tenantCheck}`, checkParams)).rows[0];
-        if (!rxCheck) return res.status(404).json({ error: 'Queue item not found' });
-
-        if (status) {
-            const updateQuery = tenantId ?
-                'UPDATE pharmacy_prescriptions_queue SET status=$1, dispensed_at=CURRENT_TIMESTAMP WHERE id=$2 AND tenant_id=$3' :
-                'UPDATE pharmacy_prescriptions_queue SET status=$1, dispensed_at=CURRENT_TIMESTAMP WHERE id=$2';
-            const updateParams = tenantId ? [status, req.params.id, tenantId] : [status, req.params.id];
-            await pool.query(updateQuery, updateParams);
-        }
-        logAudit(req.session.user?.id, req.session.user?.display_name, 'DISPENSE_MEDICATION', 'Pharmacy',
-            `Dispensed queue item #${req.params.id} status:${status}`, req.ip);
-        const finalQuery = tenantId ?
-            'SELECT * FROM pharmacy_prescriptions_queue WHERE id=$1 AND tenant_id=$2' :
-            'SELECT * FROM pharmacy_prescriptions_queue WHERE id=$1';
-        const finalParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        res.json((await pool.query(finalQuery, finalParams)).rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
+// NOTE: GET /api/pharmacy/queue and PUT /api/pharmacy/queue/:id are registered below
+// (E5 enriched versions, ~line 5165) with file_number/phone/age/department + VAT +
+// patient verification. The legacy duplicates that used to live here were removed
+// (I1) because Express only honours the FIRST registration, leaving the E5 routes dead.
 
 // ===== INVENTORY =====
 app.get('/api/inventory/items', requireAuth, requireTenantScope, async (req, res) => {
@@ -5450,6 +5418,13 @@ app.post('/api/pharmacy/dispense', requireAuth, requireRole('pharmacy'), require
             if (totalAvailable < qty) {
                 return { conflict: true, available: totalAvailable };
             }
+            // I2: controlled-register balance must come from the AUTHORITATIVE batch sum
+            // (SUM(drug_batches.qty_on_hand)), not the denormalized catalog stock_qty. Computed
+            // here under the FOR UPDATE lock, tenant-scoped, so it is consistent within the tx.
+            const balanceBefore = parseInt((await client.query(
+                'SELECT COALESCE(SUM(qty_on_hand),0) AS bal FROM drug_batches WHERE tenant_id=$1 AND drug_id=$2',
+                [tenantId, drug.id])).rows[0].bal, 10) || 0;
+            const balanceAfter = balanceBefore - qty;
             let remaining = qty;
             const consumed = [];
             for (const b of batches) {
@@ -5484,7 +5459,7 @@ app.post('/api/pharmacy/dispense', requireAuth, requireRole('pharmacy'), require
                     `INSERT INTO controlled_drug_log (tenant_id, branch_id, drug_id, drug_name, drug_batch_id, dispense_id, prescription_id, patient_id, qty, balance_before, balance_after, schedule_class, dispensed_by, witnessed_by)
                      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
                     [tenantId, facilityId || null, drug.id, drug.drug_name, consumed[0] ? consumed[0].batch_id : null, dispenseIds[0] || null,
-                     prescription_id, rx.patient_id, qty, prevCatalog, newCatalog, drug.schedule_class || 'controlled', req.session.user?.id || 0, witness_user_id]);
+                     prescription_id, rx.patient_id, qty, balanceBefore, balanceAfter, drug.schedule_class || 'controlled', req.session.user?.id || 0, witness_user_id]);
             }
 
             // mark the queue item Dispensed
@@ -5954,7 +5929,7 @@ app.post('/api/pharmacy/deduct-stock', requireAuth, requireTenantScope, async (r
 });
 
 // ===== DRUG EXPIRY ALERTS (E5: FEFO-accurate, repointed to drug_batches DATE per lot) =====
-app.get('/api/pharmacy/expiring', requireAuth, requireTenantScope, async (req, res) => {
+app.get('/api/pharmacy/expiring', requireAuth, requireRole('pharmacy'), requireTenantScope, async (req, res) => {
     try {
         const days = Math.max(1, parseInt(req.query.days, 10) || 90);
         const { tenantId } = getRequestTenantContext(req);

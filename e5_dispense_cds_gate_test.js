@@ -29,6 +29,7 @@ const failures = [];
 const ok = (c, m) => { if (c) { pass++; console.log('  \x1b[32mPASS\x1b[0m', m); } else { fail++; failures.push(m); console.log('  \x1b[31mFAIL\x1b[0m', m); } };
 
 const server = fs.readFileSync(path.join(__dirname, 'server.js'), 'utf8');
+const appjs = fs.readFileSync(path.join(__dirname, 'public', 'js', 'app.js'), 'utf8');
 
 console.log('\n\x1b[1m\x1b[34m============================================================\x1b[0m');
 console.log('\x1b[1m\x1b[34m  E5 — Verify(CDS reuse) + FEFO + Controlled (fail-closed)\x1b[0m');
@@ -63,6 +64,14 @@ ok(server.includes("error: 'Witness must be a different user'"),
    'witness must differ from the dispensing pharmacist');
 ok(server.includes('INSERT INTO controlled_drug_log') && server.includes('balance_before') && server.includes('balance_after'),
    'controlled dispense writes a double-entry register row (balance before/after)');
+// I2: controlled-register balance derives from the AUTHORITATIVE batch sum, not the denormalized catalog.
+ok(server.includes('SELECT COALESCE(SUM(qty_on_hand),0) AS bal FROM drug_batches WHERE tenant_id=$1 AND drug_id=$2') &&
+   server.includes('const balanceAfter = balanceBefore - qty'),
+   'I2: controlled balance_before/after come from SUM(drug_batches.qty_on_hand), tenant-scoped, under FOR UPDATE');
+// C1: the primary Prescription-Queue dispense panel routes through the E5 safety stack, NOT the legacy PUT.
+ok(appjs.includes("API.post('/api/pharmacy/dispense'") &&
+   /window\.confirmDispense[\s\S]{0,1200}\/api\/pharmacy\/dispense/.test(appjs),
+   'C1: confirmDispense() posts to /api/pharmacy/dispense (FEFO/CDS/controlled stack), not legacy PUT /queue/:id');
 ok(server.includes("'CONTROLLED_DISPENSE'") && server.includes("'CONTROLLED_WITNESS'"),
    'controlled dispense audits CONTROLLED_DISPENSE + CONTROLLED_WITNESS');
 ok(server.includes("'DISPENSE_FEFO'"), 'FEFO dispense audited as DISPENSE_FEFO');
