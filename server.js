@@ -13,6 +13,8 @@ const ce = require('./crypto_envelope'); // A3 at-rest envelope encryption (DPAP
 const { insertSampleData, populateLabCatalog, populateRadiologyCatalog } = require('./seed_data_pg');
 const { populateMedicalServices, populateBaseDrugs } = require('./seed_services_pg');
 const { addExtraLabTests, addExtraRadiology } = require('./seed_extra_catalog');
+const { mountOrderRoutes } = require('./orders');           // E-X1 unified orders (additive)
+const { makeRequirePermission } = require('./rbac');        // E-X3 RBAC matrix middleware (additive)
 
 // Multer setup for radiology image uploads — A3A: PHI vault OUTSIDE public webroot (no static/direct access)
 const uploadsDir = path.join(__dirname, 'phi_vault', 'radiology');
@@ -7252,6 +7254,25 @@ app.put('/api/pharmacy/prescriptions/:id', requireAuth, requireTenantScope, asyn
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
+
+// ===== E-X FOUNDATIONAL ROUTES (mounted AFTER all existing routes, BEFORE SPA catch-all) =====
+// Additive only: does NOT modify requireRole / ROLE_PERMISSIONS or any existing route.
+// requirePermission enforces the DB role_permissions matrix (closes L6) and falls back to the
+// legacy ROLE_PERMISSIONS module check when no matrix row exists for the role (non-breaking).
+const requirePermission = makeRequirePermission({
+    pool,
+    getRequestTenantContext,
+    // Legacy fallback: reuse the in-code ROLE_PERMISSIONS module intersection used by requireRole.
+    // For orders we map to clinical modules already granted to ordering roles (doctor/lab/radiology/pharmacy).
+    roleFallback: (req) => {
+        const role = req.session?.user?.role;
+        const perms = ROLE_PERMISSIONS[role];
+        if (perms === '*') return true; // Admin
+        const orderModules = ['doctor', 'lab', 'radiology', 'pharmacy'];
+        return !!(perms && orderModules.some(m => perms.includes(m)));
+    }
+});
+mountOrderRoutes(app, { pool, requireAuth, requireTenantScope, getRequestTenantContext, logAudit, requirePermission });
 
 // ===== BOOT-TIME COLUMN MIGRATIONS (non-production only) =====
 // These additive ALTERs ran on every boot and silently swallowed errors. They require
