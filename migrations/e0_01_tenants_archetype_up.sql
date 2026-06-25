@@ -13,6 +13,12 @@ BEGIN;
 
 ALTER TABLE tenants ADD COLUMN IF NOT EXISTS archetype VARCHAR(50);
 
+-- معرّفات تنظيمية للمنشأة (غير سرية): ترخيص وزارة الصحة، السجل التجاري، الرقم الضريبي.
+-- idempotent: ADD COLUMN IF NOT EXISTS. تُملأ من الويزرد (اختيارية).
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS moh_license TEXT;
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS cr_no TEXT;
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS vat_no TEXT;
+
 -- قيد فحص قِيَم النمط المسموحة (idempotent: يُسقط ثم يُنشأ). NULL مسموح (مستأجرون قدماء).
 ALTER TABLE tenants DROP CONSTRAINT IF EXISTS chk_tenants_archetype;
 ALTER TABLE tenants ADD CONSTRAINT chk_tenants_archetype

@@ -64,6 +64,28 @@ ok(!/api_key|api_secret|client_secret|certificate|private_key/i.test(obCode),
   'no secret column writes in provisioning code (api_key/api_secret/cert/private_key absent)');
 ok(/gated:\s*true/.test(ob), 'integration config marked gated:true (no live secrets)');
 
+console.log('\n== Tenant-scoping of provisioning writes (C1/I2/I3) ==');
+// C1: integration_settings INSERT must include tenant_id as the first column + param.
+ok(/INSERT INTO integration_settings\s*\(\s*tenant_id\s*,/.test(obCode),
+  'C1: integration_settings INSERT includes tenant_id (first column)');
+ok(/INSERT INTO integration_settings[\s\S]*?VALUES\s*\(\s*\$1\s*,/.test(obCode) &&
+   /integration_settings[\s\S]*?\[\s*tenantId\s*,/.test(obCode),
+  'C1: integration_settings VALUES binds tenantId first');
+// I3: tenants INSERT persists moh_license / cr_no / vat_no.
+ok(/INSERT INTO tenants[\s\S]*?moh_license[\s\S]*?cr_no[\s\S]*?vat_no/.test(obCode),
+  'I3: INSERT INTO tenants persists moh_license/cr_no/vat_no');
+ok(/v\.mohLicense/.test(obCode) && /v\.crNo/.test(obCode) && /v\.vatNo/.test(obCode),
+  'I3: validated reg-id values bound into tenants INSERT');
+// I2: facility_type persisted to company_settings = archetype string (drives app.js facilityType).
+ok(/INSERT INTO company_settings[\s\S]*?'facility_type'[\s\S]*?v\.archetype/.test(obCode),
+  'I2: facility_type written to company_settings as archetype string');
+
+console.log('\n== integration_settings RLS migration present (C1) ==');
+ok(/FORCE ROW LEVEL SECURITY/.test(fs.readFileSync(path.join(__dirname, 'migrations', 'e0_04_integration_settings_rls_up.sql'), 'utf8')),
+  'C1: e0_04 integration_settings migration FORCE-RLS present');
+ok(/rls_integration_settings_tenant_isolation/.test(fs.readFileSync(path.join(__dirname, 'migrations', 'e0_04_integration_settings_rls_up.sql'), 'utf8')),
+  'C1: e0_04 isolation policy present (matching template)');
+
 console.log('\n== Response shape ==');
 ok(/res\.status\(201\)\.json\(/.test(ob), 'returns 201');
 ok(/tenant_id:\s*tenantId/.test(ob), '201 body includes tenant_id');

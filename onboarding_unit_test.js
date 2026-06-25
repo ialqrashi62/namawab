@@ -38,6 +38,11 @@ ok(ob.validateProvisionInput(base).ok, 'valid minimal payload passes');
 ok(!ob.validateProvisionInput({ ...base, archetype: 'bogus' }).ok, 'invalid archetype rejected');
 ok(!ob.validateProvisionInput({ ...base, subdomain: 'Bad_Sub!' }).ok, 'invalid subdomain rejected');
 ok(!ob.validateProvisionInput({ ...base, subdomain: '' }).ok, 'empty subdomain rejected');
+ok(!ob.validateProvisionInput({ ...base, subdomain: 'a' }).ok, '1-char subdomain rejected (I4: enforces 2..63)');
+ok(ob.validateProvisionInput({ ...base, subdomain: 'ab' }).ok, '2-char subdomain accepted');
+ok(!ob.validateProvisionInput({ ...base, subdomain: '-ab' }).ok, 'leading-hyphen subdomain rejected');
+ok(!ob.validateProvisionInput({ ...base, subdomain: 'ab-' }).ok, 'trailing-hyphen subdomain rejected');
+ok(!ob.validateProvisionInput({ ...base, subdomain: 'a'.repeat(64) }).ok, '64-char subdomain rejected (>63)');
 ok(!ob.validateProvisionInput({ ...base, tenant_name: 'x' }).ok, 'too-short tenant name rejected');
 ok(!ob.validateProvisionInput({ ...base, admin_username: 'ab' }).ok, 'too-short admin username rejected');
 ok(!ob.validateProvisionInput({ ...base, admin_username: 'has space' }).ok, 'admin username with space rejected');
@@ -53,6 +58,14 @@ ok(ob.validateProvisionInput({ ...base, integrations: [{ name: 'nphies', enabled
   'allowed integration normalized, no secret fields retained');
 const intVal = ob.validateProvisionInput({ ...base, integrations: [{ name: 'ZATCA', enabled: true, api_key: 'SECRET', api_secret: 'X' }] }).value.integrations[0];
 ok(!('api_key' in intVal) && !('api_secret' in intVal), 'integration object carries NO secret fields');
+
+console.log('\n== Regulatory identifiers (I3: moh_license / cr_no / vat_no) ==');
+const regVal = ob.validateProvisionInput({ ...base, moh_license: ' MOH-123 ', cr_no: 'CR-9', vat_no: '3001' }).value;
+ok(regVal.mohLicense === 'MOH-123', 'moh_license validated + trimmed into value');
+ok(regVal.crNo === 'CR-9', 'cr_no validated into value');
+ok(regVal.vatNo === '3001', 'vat_no validated into value');
+ok(ob.validateProvisionInput(base).value.mohLicense === '', 'absent moh_license -> empty string');
+ok(!ob.validateProvisionInput({ ...base, vat_no: 'x'.repeat(101) }).ok, 'over-long vat_no rejected (>100)');
 
 console.log('\n== No-default-password rule ==');
 ok(ob.validateProvisionInput(base).value.adminPassword === '', 'no password supplied -> empty (server generates strong one)');

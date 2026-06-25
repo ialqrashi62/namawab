@@ -95,8 +95,11 @@ function validateProvisionInput(body) {
     }
 
     // subdomain: lowercase alnum + hyphen, 2..63 (DNS label). Required & UNIQUE in DB.
+    // Must start AND end with alnum (no edge hyphen); explicit length guard enforces the
+    // stated 2..63 (the regex alone would accept a single character).
     const subdomain = String(body.subdomain || '').trim().toLowerCase();
-    if (!/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/.test(subdomain)) {
+    if (subdomain.length < 2 || subdomain.length > 63 ||
+        !/^[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/.test(subdomain)) {
         errors.push('subdomain must be a valid DNS label (a-z, 0-9, hyphen; 2..63 chars)');
     }
 
@@ -104,6 +107,14 @@ function validateProvisionInput(body) {
     if (facilityName.length < 2 || facilityName.length > 255) {
         errors.push('facility_name is required (2..255 chars)');
     }
+
+    // Optional regulatory identifiers (non-secret). Trimmed, length-bounded; '' if absent.
+    const mohLicense = String(body.moh_license || '').trim();
+    if (mohLicense.length > 100) errors.push('moh_license must be at most 100 chars');
+    const crNo = String(body.cr_no || '').trim();
+    if (crNo.length > 100) errors.push('cr_no must be at most 100 chars');
+    const vatNo = String(body.vat_no || '').trim();
+    if (vatNo.length > 100) errors.push('vat_no must be at most 100 chars');
 
     // beds: integer >= 0. Bed-less archetypes must have 0.
     let beds = body.beds === undefined || body.beds === null || body.beds === '' ? 0 : Number(body.beds);
@@ -166,7 +177,7 @@ function validateProvisionInput(body) {
         ok: true,
         errors: [],
         value: {
-            archetype, tenantName, subdomain, facilityName, beds, currency, timezone,
+            archetype, tenantName, subdomain, facilityName, mohLicense, crNo, vatNo, beds, currency, timezone,
             adminUsername, adminDisplayName, adminPassword, modules, integrations, language, brandColor
         }
     };
@@ -222,9 +233,9 @@ function mountOnboardingRoutes(app, deps) {
 
             // 1) tenant (archetype). subdomain UNIQUE — duplicate -> 409.
             const tenantRow = (await client.query(
-                `INSERT INTO tenants (name, subdomain, status, plan_type, archetype)
-                 VALUES ($1,$2,'active','standard',$3) RETURNING id`,
-                [v.tenantName, v.subdomain, v.archetype]
+                `INSERT INTO tenants (name, subdomain, status, plan_type, archetype, moh_license, cr_no, vat_no)
+                 VALUES ($1,$2,'active','standard',$3,$4,$5,$6) RETURNING id`,
+                [v.tenantName, v.subdomain, v.archetype, v.mohLicense, v.crNo, v.vatNo]
             )).rows[0];
             const tenantId = tenantRow.id;
 
@@ -284,9 +295,9 @@ function mountOnboardingRoutes(app, deps) {
             //    a non-secret marker so the UI can show "configured later".
             for (const it of v.integrations) {
                 await client.query(
-                    `INSERT INTO integration_settings (integration_name, provider, is_enabled, config_json)
-                     VALUES ($1,$2,$3,$4)`,
-                    [it.name, it.name, it.enabled ? 1 : 0, JSON.stringify({ gated: true, configured: false })]
+                    `INSERT INTO integration_settings (tenant_id, integration_name, provider, is_enabled, config_json)
+                     VALUES ($1,$2,$3,$4,$5)`,
+                    [tenantId, it.name, it.name, it.enabled ? 1 : 0, JSON.stringify({ gated: true, configured: false })]
                 );
             }
 
@@ -303,6 +314,17 @@ function mountOnboardingRoutes(app, deps) {
                     [tenantId, v.brandColor]
                 );
             }
+
+            // 8) facility_type -> company_settings (tenant-scoped, RLS-bound via app.tenant_id set above).
+            //    GET /api/settings reads company_settings(setting_key='facility_type') and app.js maps it to
+            //    `facilityType`, driving FACILITY_ALLOWED. The archetype string IS the facility_type key
+            //    (medical_city/large_hospital/general_hospital/polyclinic/health_center) — exact match in app.js.
+            //    Server route remains the real module authority; this only makes the UI load the right set.
+            await client.query(
+                `INSERT INTO company_settings (tenant_id, setting_key, setting_value) VALUES ($1,'facility_type',$2)
+                 ON CONFLICT (setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value`,
+                [tenantId, v.archetype]
+            );
 
             await client.query('COMMIT');
 
