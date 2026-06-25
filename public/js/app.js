@@ -889,7 +889,200 @@ window.checkAllergyBeforePrescribe = async (patientId, drugs) => {
   } catch (e) { return true; }
 };
 
+// =====================================================================
+// E1 DOCTOR STATION — Problem List + CPOE + SOAP notes (additive tabs).
+// Rendered into #drE1Panel by loadPatientInfo() once a patient is selected.
+// All sinks use escapeHTML(); ids coerced via safeId(); RTL via tr().
+// =====================================================================
+window.renderE1Panel = async (pid) => {
+  const panel = document.getElementById('drE1Panel');
+  if (!panel || !pid) return;
+  panel.innerHTML = `
+    <div class="card mt-16" style="border:2px solid var(--accent,#0ea5e9)">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--border-color,#e5e7eb);padding-bottom:8px;margin-bottom:12px">
+        <button class="btn btn-sm e1-tab" data-tab="problems" onclick="e1SwitchTab('problems',${safeId(pid)})">📋 ${tr('Problem List', 'قائمة المشاكل')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="cpoe" onclick="e1SwitchTab('cpoe',${safeId(pid)})">🧾 ${tr('CPOE Orders', 'أوامر CPOE')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="soap" onclick="e1SwitchTab('soap',${safeId(pid)})">📝 ${tr('SOAP Note', 'ملاحظة SOAP')}</button>
+      </div>
+      <div id="e1TabBody"></div>
+    </div>`;
+  window.e1SwitchTab('problems', pid);
+};
 
+window.e1SwitchTab = async (tab, pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  if (tab === 'problems') return window.e1RenderProblems(pid);
+  if (tab === 'cpoe') return window.e1RenderCpoe(pid);
+  if (tab === 'soap') return window.e1RenderSoap(pid);
+};
+
+// ---------- Problem List ----------
+window.e1RenderProblems = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  let probs = [];
+  try { probs = await API.get('/api/problems?patient_id=' + encodeURIComponent(pid)); } catch (e) { probs = []; }
+  const rows = (probs || []).map(p => `
+    <div style="display:flex;gap:8px;align-items:center;padding:8px;margin:4px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid ${p.status === 'resolved' ? '#94a3b8' : '#16a34a'}">
+      <div style="flex:1">
+        <strong>${escapeHTML(p.description)}</strong>
+        ${p.icd10 ? `<span class="badge badge-info" style="margin-right:6px">ICD: ${escapeHTML(p.icd10)}</span>` : ''}
+        <span class="badge ${p.status === 'resolved' ? '' : 'badge-success'}">${escapeHTML(p.status)}</span>
+      </div>
+      ${p.status === 'active'
+        ? `<button class="btn btn-sm" onclick="e1ResolveProblem(${safeId(p.id)},${safeId(pid)})">✅ ${tr('Resolve', 'حل')}</button>`
+        : ''}
+    </div>`).join('');
+  body.innerHTML = `
+    <div class="form-group mb-8"><label>${tr('Problem description', 'وصف المشكلة')}</label><input class="form-input" id="e1ProbDesc"></div>
+    <div class="flex gap-8 mb-8">
+      <div class="form-group" style="flex:1"><label>ICD-10</label><input class="form-input" id="e1ProbIcd"></div>
+      <div class="form-group" style="flex:1"><label>SNOMED</label><input class="form-input" id="e1ProbSnomed"></div>
+    </div>
+    <button class="btn btn-primary btn-sm mb-12" onclick="e1AddProblem(${safeId(pid)})">➕ ${tr('Add Problem', 'إضافة مشكلة')}</button>
+    <div>${rows || `<div style="color:var(--text-dim)">${tr('No problems recorded', 'لا توجد مشاكل مسجلة')}</div>`}</div>`;
+};
+
+window.e1AddProblem = async (pid) => {
+  const desc = document.getElementById('e1ProbDesc')?.value;
+  if (!desc || !desc.trim()) { showToast(tr('Enter a description', 'أدخل وصفاً'), 'error'); return; }
+  try {
+    await API.post('/api/problems', {
+      patient_id: pid, description: desc,
+      icd10: document.getElementById('e1ProbIcd')?.value || '',
+      snomed: document.getElementById('e1ProbSnomed')?.value || ''
+    });
+    showToast(tr('Problem added', 'تمت إضافة المشكلة'));
+    window.e1RenderProblems(pid);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+window.e1ResolveProblem = async (id, pid) => {
+  try {
+    await API.patch('/api/problems/' + id, { status: 'resolved' });
+    showToast(tr('Problem resolved', 'تم حل المشكلة'));
+    window.e1RenderProblems(pid);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+// ---------- CPOE (orders via the E-X unified orders table, CDS-gated server-side) ----------
+window.e1RenderCpoe = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  let orders = [];
+  try { orders = await API.get('/api/orders?patient_id=' + encodeURIComponent(pid)); } catch (e) { orders = []; }
+  const rows = (orders || []).map(o => `
+    <div style="display:flex;gap:8px;align-items:center;padding:8px;margin:4px 0;border-radius:8px;background:var(--hover,#f8f9fa)">
+      <span class="badge badge-info">${escapeHTML(o.type)}</span>
+      <span class="badge">${escapeHTML(o.status)}</span>
+      <span style="color:var(--text-dim);font-size:12px">#${safeId(o.id)}</span>
+    </div>`).join('');
+  body.innerHTML = `
+    <div class="flex gap-8 mb-8">
+      <div class="form-group" style="flex:1"><label>${tr('Order type', 'نوع الأمر')}</label>
+        <select class="form-input" id="e1OrdType">
+          <option value="lab">${tr('Lab', 'مختبر')}</option>
+          <option value="rad">${tr('Radiology', 'أشعة')}</option>
+          <option value="med">${tr('Medication', 'دواء')}</option>
+          <option value="consult">${tr('Consult', 'استشارة')}</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex:2"><label>${tr('Item / catalog ref', 'الصنف')}</label><input class="form-input" id="e1OrdRef"></div>
+    </div>
+    <div class="flex gap-8 mb-8">
+      <div class="form-group" style="flex:1"><label>${tr('Qty', 'الكمية')}</label><input class="form-input" id="e1OrdQty" value="1"></div>
+      <div class="form-group" style="flex:1"><label>${tr('Dose (mg, for meds)', 'الجرعة (mg للأدوية)')}</label><input class="form-input" id="e1OrdDose"></div>
+      <div class="form-group" style="flex:2"><label>${tr('Instructions', 'تعليمات')}</label><input class="form-input" id="e1OrdInstr"></div>
+    </div>
+    <button class="btn btn-primary btn-sm mb-12" onclick="e1SubmitOrder(${safeId(pid)})">🧾 ${tr('Place Order (CDS checked)', 'إنشاء أمر (يُفحص بـ CDS)')}</button>
+    <div>${rows || `<div style="color:var(--text-dim)">${tr('No orders yet', 'لا توجد أوامر')}</div>`}</div>`;
+};
+
+// Submit a CPOE order. The server runs CDS; a 422 hard-stop returns alerts. We then capture an
+// override reason and resubmit (audited server-side). Warnings do not 422.
+window.e1SubmitOrder = async (pid, overrideReason) => {
+  const type = document.getElementById('e1OrdType')?.value;
+  const ref = document.getElementById('e1OrdRef')?.value;
+  if (!ref || !ref.trim()) { showToast(tr('Enter an item', 'أدخل صنفاً'), 'error'); return; }
+  const payload = {
+    patient_id: pid, type,
+    dose: document.getElementById('e1OrdDose')?.value || undefined,
+    items: [{ catalog_ref: ref, qty: document.getElementById('e1OrdQty')?.value || 1, instructions: document.getElementById('e1OrdInstr')?.value || '' }],
+    override_reason: overrideReason || undefined
+  };
+  try {
+    // NOTE: API.request resolves the JSON body even for non-2xx (it does not throw), so a CDS
+    // 422 hard-stop arrives as a resolved payload with {blocked:true, alerts:[...]}.
+    const r = await API.post('/api/cpoe/order', payload);
+    if (r && (r.blocked || r.requires_override_reason)) {
+      // CRITICAL CDS hard-stop: capture an override reason (audited server-side) and resubmit.
+      const alerts = r.alerts || [];
+      const txt = alerts.map(a => '[' + (a.severity || '').toUpperCase() + '] ' + (isArabic ? (a.message_ar || a.message) : (a.message_en || a.message))).join('\n');
+      const reason = window.prompt('🚨 ' + tr('CRITICAL CDS alert — hard stop. To override you MUST enter a clinical reason (audited):',
+        'تنبيه CDS حرج — إيقاف إلزامي. للتجاوز يجب إدخال سبب سريري (يُسجّل):') + '\n\n' + txt, '');
+      if (reason && reason.trim()) { return window.e1SubmitOrder(pid, reason.trim()); }
+      showToast(tr('Order blocked by CDS (no override reason)', 'تم حظر الأمر بواسطة CDS (بدون سبب تجاوز)'), 'error');
+      return;
+    }
+    if (r && r.error) { showToast(tr('Error placing order', 'خطأ في إنشاء الأمر'), 'error'); return; }
+    if (r && r.cds_alerts && r.cds_alerts.length) {
+      const warn = r.cds_alerts.map(a => '[' + (a.severity || '').toUpperCase() + '] ' + (isArabic ? (a.message_ar || a.message) : (a.message_en || a.message))).join('\n');
+      showToast(tr('Order placed (with CDS advisories)', 'تم إنشاء الأمر (مع تنبيهات CDS)'));
+      if (warn) alert(warn);
+    } else {
+      showToast(tr('Order placed', 'تم إنشاء الأمر'));
+    }
+    window.e1RenderCpoe(pid);
+  } catch (e) {
+    showToast(tr('Error placing order', 'خطأ في إنشاء الأمر'), 'error');
+  }
+};
+
+// ---------- SOAP note ----------
+window.e1RenderSoap = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  let notes = [];
+  try { notes = await API.get('/api/clinical-notes?patient_id=' + encodeURIComponent(pid)); } catch (e) { notes = []; }
+  const rows = (notes || []).map(n => `
+    <div style="padding:8px;margin:4px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid ${n.emr_status === 'locked' ? '#16a34a' : '#f59e0b'}">
+      <div class="flex gap-8" style="align-items:center"><strong>SOAP #${safeId(n.id)}</strong>
+        <span class="badge ${n.emr_status === 'locked' ? 'badge-success' : 'badge-warning'}">${escapeHTML(n.emr_status)}</span>
+        ${n.emr_status !== 'locked' ? `<button class="btn btn-sm" onclick="e1SignNote(${safeId(n.id)},${safeId(pid)})">🔏 ${tr('Sign & Lock', 'توقيع وقفل')}</button>` : ''}
+      </div>
+      ${n.assessment ? `<div style="font-size:12px;margin-top:4px"><strong>A:</strong> ${escapeHTML(n.assessment)}</div>` : ''}
+    </div>`).join('');
+  body.innerHTML = `
+    <div class="form-group mb-8"><label>S — ${tr('Subjective', 'الشكوى')}</label><textarea class="form-input form-textarea" id="e1S"></textarea></div>
+    <div class="form-group mb-8"><label>O — ${tr('Objective', 'الفحص')}</label><textarea class="form-input form-textarea" id="e1O"></textarea></div>
+    <div class="form-group mb-8"><label>A — ${tr('Assessment', 'التقييم')}</label><textarea class="form-input form-textarea" id="e1A"></textarea></div>
+    <div class="form-group mb-8"><label>P — ${tr('Plan', 'الخطة')}</label><textarea class="form-input form-textarea" id="e1P"></textarea></div>
+    <button class="btn btn-primary btn-sm mb-12" onclick="e1SaveSoap(${safeId(pid)})">💾 ${tr('Save SOAP Note', 'حفظ ملاحظة SOAP')}</button>
+    <div>${rows || `<div style="color:var(--text-dim)">${tr('No SOAP notes', 'لا توجد ملاحظات SOAP')}</div>`}</div>`;
+};
+
+window.e1SaveSoap = async (pid) => {
+  try {
+    await API.post('/api/clinical-notes', {
+      patient_id: pid,
+      subjective: document.getElementById('e1S')?.value || '',
+      objective: document.getElementById('e1O')?.value || '',
+      assessment: document.getElementById('e1A')?.value || '',
+      plan: document.getElementById('e1P')?.value || ''
+    });
+    showToast(tr('SOAP note saved', 'تم حفظ ملاحظة SOAP'));
+    window.e1RenderSoap(pid);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+window.e1SignNote = async (id, pid) => {
+  try {
+    await API.post('/api/clinical-notes/' + id + '/sign', {});
+    showToast(tr('Note signed & locked', 'تم توقيع وقفل الملاحظة'));
+    window.e1RenderSoap(pid);
+  } catch (e) { showToast(tr('Error signing', 'خطأ في التوقيع'), 'error'); }
+};
 
 
 // ===== APPOINTMENT CHECK-IN (Receptionist) =====
@@ -3270,7 +3463,9 @@ window.loadPatientInfo = async () => {
         `;
       }
     }
-    document.getElementById('drPatientInfo').innerHTML = `<div class="flex gap-8 mt-16" style="flex-wrap:wrap;align-items:center"><span class="badge badge-info">📁 ${escapeHTML(p.mrn || p.file_number)}</span><span class="badge badge-warning">🎂 ${tr('Age', 'العمر')}: ${escapeHTML(p.age || '?')}</span>${p.blood_type ? `<span class="badge" style="background:#dc2626;color:#fff;font-weight:700">🩸 ${escapeHTML(p.blood_type)}</span>` : ''}<span class="badge badge-success">📞 ${escapeHTML(p.phone)}</span><span class="badge badge-purple">🆔 ${escapeHTML(p.national_id)}</span>${p.gender ? `<span class="badge" style="background:${p.gender === 'ذكر' ? '#3b82f6' : '#ec4899'};color:#fff">${p.gender === 'ذكر' ? '👨' : '👩'} ${escapeHTML(p.gender)}</span>` : ''}${p.insurance_company ? `<span class="badge" style="background:#0d9488;color:#fff">🏢 ${escapeHTML(p.insurance_company)}${p.insurance_class ? ' (' + escapeHTML(p.insurance_class) + ')' : ''}</span>` : ''}<span class="badge" style="background:#0ea5e9;color:#fff">📅 ${tr('Visit', 'الزيارة')}: ${new Date().toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</span><button class="btn btn-sm btn-primary" onclick="viewPatientResults(${safeId(p.id)})">📋 ${tr('View Lab & Radiology Results', 'استعراض نتائج الفحوصات والأشعة')}</button><button class="btn btn-sm" onclick="dischargePatient(${safeId(p.id)})" style="margin-right:auto;background:#dc3545;color:#fff;font-weight:600">🚪 ${tr('Patient Done', 'المريض طلع')}</button></div>${p.allergies ? `<div style="margin-top:8px;padding:10px;background:#fef2f2;border:2px solid #ef4444;border-radius:8px;font-size:13px;font-weight:600;color:#dc2626">⚠️ <strong>${tr('ALLERGIES', 'حساسية')}:</strong> </div>` : ''}${p.chronic_diseases ? `<div style="margin-top:6px;padding:8px;background:#fefce8;border:1px solid #facc15;border-radius:8px;font-size:12px;color:#854d0e">🩺 <strong>${tr('Chronic Diseases', 'أمراض مزمنة')}:</strong> </div>` : ''}${vitalsHtml}${historyHtml}<div id="drResultsPanel"></div>`;
+    document.getElementById('drPatientInfo').innerHTML = `<div class="flex gap-8 mt-16" style="flex-wrap:wrap;align-items:center"><span class="badge badge-info">📁 ${escapeHTML(p.mrn || p.file_number)}</span><span class="badge badge-warning">🎂 ${tr('Age', 'العمر')}: ${escapeHTML(p.age || '?')}</span>${p.blood_type ? `<span class="badge" style="background:#dc2626;color:#fff;font-weight:700">🩸 ${escapeHTML(p.blood_type)}</span>` : ''}<span class="badge badge-success">📞 ${escapeHTML(p.phone)}</span><span class="badge badge-purple">🆔 ${escapeHTML(p.national_id)}</span>${p.gender ? `<span class="badge" style="background:${p.gender === 'ذكر' ? '#3b82f6' : '#ec4899'};color:#fff">${p.gender === 'ذكر' ? '👨' : '👩'} ${escapeHTML(p.gender)}</span>` : ''}${p.insurance_company ? `<span class="badge" style="background:#0d9488;color:#fff">🏢 ${escapeHTML(p.insurance_company)}${p.insurance_class ? ' (' + escapeHTML(p.insurance_class) + ')' : ''}</span>` : ''}<span class="badge" style="background:#0ea5e9;color:#fff">📅 ${tr('Visit', 'الزيارة')}: ${new Date().toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</span><button class="btn btn-sm btn-primary" onclick="viewPatientResults(${safeId(p.id)})">📋 ${tr('View Lab & Radiology Results', 'استعراض نتائج الفحوصات والأشعة')}</button><button class="btn btn-sm" onclick="dischargePatient(${safeId(p.id)})" style="margin-right:auto;background:#dc3545;color:#fff;font-weight:600">🚪 ${tr('Patient Done', 'المريض طلع')}</button></div>${p.allergies ? `<div style="margin-top:8px;padding:10px;background:#fef2f2;border:2px solid #ef4444;border-radius:8px;font-size:13px;font-weight:600;color:#dc2626">⚠️ <strong>${tr('ALLERGIES', 'حساسية')}:</strong> ${escapeHTML(p.allergies)}</div>` : ''}${p.chronic_diseases ? `<div style="margin-top:6px;padding:8px;background:#fefce8;border:1px solid #facc15;border-radius:8px;font-size:12px;color:#854d0e">🩺 <strong>${tr('Chronic Diseases', 'أمراض مزمنة')}:</strong> ${escapeHTML(p.chronic_diseases)}</div>` : ''}${vitalsHtml}${historyHtml}<div id="drE1Panel"></div><div id="drResultsPanel"></div>`;
+    // E1: render Problem List / CPOE / SOAP tabs for the selected patient.
+    if (typeof window.renderE1Panel === 'function') { window.renderE1Panel(p.id); }
   } catch (e) { }
 };
 window.dischargePatient = async (pid) => {
@@ -3346,15 +3541,36 @@ window.sendRx = async () => {
   const pid = document.getElementById('drPatient').value;
   if (!pid) { showToast(tr('Select patient first', 'اختر المريض أولاً'), 'error'); return; }
   const drugName = document.getElementById('drRxDrug').value;
-  // Check drug allergy before prescribing
-  const allergyMatch = await checkDrugAllergy(pid, drugName);
-  if (allergyMatch) {
-    const proceed = confirm('⚠️🚨 ' + tr('ALLERGY ALERT! Patient is allergic to: ', 'تنبيه حساسية! المريض لديه حساسية من: ') + allergyMatch.toUpperCase() + '\n\n' + tr('Drug: ', 'الدواء: ') + drugName + '\n\n' + tr('Do you want to proceed anyway?', 'هل تريد المتابعة رغم ذلك؟'));
-    if (!proceed) return;
+  if (!drugName || !drugName.trim()) { showToast(tr('Enter medication name', 'أدخل اسم الدواء'), 'error'); return; }
+
+  // E1 CDS HARDENING (clinical safety): use the SERVER-BACKED checks instead of the weak
+  // client-only substring helper. Allergy is a HARD-STOP (modal blocks); drug-drug interactions
+  // surface a modal. We pass the patient's CURRENT meds (existing pharmacy queue) so interactions
+  // are evaluated, not just the single new drug.
+  // 1) Allergy cross-check (server: /api/allergy-check) — returns false (and shows modal) on alert.
+  const allergyOk = await checkAllergyBeforePrescribe(pid, [drugName]);
+  if (!allergyOk) {
+    // Hard-stop unless the prescriber explicitly captures an override reason.
+    const reason = window.prompt(tr('CRITICAL allergy alert. To override you MUST enter a clinical reason (audited):',
+      'تحذير حساسية حرج. للمتابعة يجب إدخال سبب سريري (يُسجّل في التدقيق):'), '');
+    if (!reason || !reason.trim()) { showToast(tr('Prescription cancelled (allergy, no override reason)', 'أُلغيت الوصفة (حساسية، بدون سبب تجاوز)'), 'error'); return; }
+    window.__rxOverrideReason = reason.trim();
   }
+  // 2) Drug-drug interaction check (server: /api/drug-interactions/check) against current meds.
+  try {
+    const current = await API.get('/api/pharmacy/queue').catch(() => []);
+    const mine = Array.isArray(current) ? current.filter(q => String(q.patient_id) === String(pid)).map(q => q.medication_name).filter(Boolean) : [];
+    await checkDrugInteractions([drugName, ...mine]);
+  } catch (e) { /* non-blocking advisory modal handled inside checkDrugInteractions */ }
+
   try {
     const qty = document.getElementById('drRxQty')?.value || '1';
-    await API.post('/api/prescriptions', { patient_id: pid, medication_name: drugName, dosage: document.getElementById('drRxDose').value, quantity_per_day: qty, frequency: document.getElementById('drRxFreq').value, duration: document.getElementById('drRxDur').value });
+    await API.post('/api/prescriptions', {
+      patient_id: pid, medication_name: drugName, dosage: document.getElementById('drRxDose').value,
+      quantity_per_day: qty, frequency: document.getElementById('drRxFreq').value, duration: document.getElementById('drRxDur').value,
+      override_reason: window.__rxOverrideReason || undefined
+    });
+    window.__rxOverrideReason = null;
     showToast(tr('Prescription sent to Pharmacy!', 'تم إرسال الوصفة للصيدلية!'));
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
