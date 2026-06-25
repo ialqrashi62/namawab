@@ -21,6 +21,7 @@
 'use strict';
 
 const VALID_TYPES = ['lab', 'rad', 'med', 'consult'];
+const VALID_STATUSES = ['pending', 'active', 'completed', 'cancelled'];
 
 function mountOrderRoutes(app, deps) {
     const {
@@ -60,6 +61,12 @@ function mountOrderRoutes(app, deps) {
             return res.status(400).json({ error: 'patient_id is required' });
         }
 
+        // Validate status against the same CHECK constraint the DB enforces; default to 'pending' if absent.
+        const orderStatus = (status === undefined || status === null || status === '') ? 'pending' : status;
+        if (!VALID_STATUSES.includes(orderStatus)) {
+            return res.status(400).json({ error: 'Invalid order status', allowed: VALID_STATUSES });
+        }
+
         const { tenantId, facilityId } = getRequestTenantContext(req);
         const orderedBy = req.session?.user?.id || null;
         const lineItems = Array.isArray(items) ? items : [];
@@ -80,11 +87,22 @@ function mountOrderRoutes(app, deps) {
                 }
             }
 
+            // RLS-bypass defense (C1): the orders->order_sets FK is checked by PostgreSQL BYPASSING RLS,
+            // so a caller could reference another tenant's order_set. Validate ownership in the SAME
+            // transaction/client before the INSERT (mirrors the patient_id ownership check above).
+            if (order_set_id && tenantId) {
+                const setChk = await client.query('SELECT id FROM order_sets WHERE id=$1 AND tenant_id=$2', [order_set_id, tenantId]);
+                if (setChk.rowCount === 0) {
+                    await client.query('ROLLBACK');
+                    return res.status(400).json({ error: 'Invalid order_set' });
+                }
+            }
+
             const orderRes = await client.query(
                 `INSERT INTO orders (tenant_id, facility_id, encounter_id, patient_id, type, status, ordered_by, order_set_id)
                  VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id, type, status, patient_id, encounter_id`,
                 [tenantId || null, facilityId || null, encounter_id || null, patient_id, type,
-                 status || 'pending', orderedBy, order_set_id || null]
+                 orderStatus, orderedBy, order_set_id || null]
             );
             const order = orderRes.rows[0];
 
@@ -137,4 +155,4 @@ function mountOrderRoutes(app, deps) {
     });
 }
 
-module.exports = { mountOrderRoutes, VALID_TYPES };
+module.exports = { mountOrderRoutes, VALID_TYPES, VALID_STATUSES };

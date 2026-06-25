@@ -31,7 +31,9 @@ function makeRequirePermission(deps) {
 
     // Legacy Admin/'*' short-circuit set — kept here so we never need to import ROLE_PERMISSIONS.
     // Admin is the canonical superuser role in server.js ROLE_PERMISSIONS ('Admin': '*').
-    const ADMIN_ROLES = new Set(['Admin', 'admin', 'administrator', 'Administrator']);
+    // Mirror the canonical set EXACTLY: only 'Admin' maps to '*' (server.js:204). Broadening this to
+    // case variants / 'administrator' would over-trust roles the canonical requireRole never treats as wildcard.
+    const ADMIN_ROLES = new Set(['Admin']);
 
     return function requirePermission(key) {
         if (!key || typeof key !== 'string') {

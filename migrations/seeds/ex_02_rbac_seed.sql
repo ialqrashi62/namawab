@@ -42,6 +42,11 @@ DECLARE
     grant_row RECORD;
 BEGIN
     FOR t IN SELECT id FROM tenants LOOP
+        -- I1 fix: role_permissions is under FORCE RLS. Without binding app.tenant_id, the policy
+        -- WITH CHECK rejects every INSERT when this seed runs as a NON-superuser app role (silent 0 rows).
+        -- Set the tenant context per loop so each tenant's rows pass the policy. A superuser/owner run
+        -- BYPASSES RLS entirely (set_config is harmless there) — so this is correct for EITHER role.
+        PERFORM set_config('app.tenant_id', t.id::text, false);
         FOR grant_row IN
             SELECT * FROM (VALUES
                 ('Doctor',         'orders:create'),

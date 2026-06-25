@@ -26,6 +26,10 @@ const rlsPolicy = (t) => new RegExp(
     ok(up.includes('CREATE TABLE IF NOT EXISTS order_sets'), 'ex_01: order_sets created (IF NOT EXISTS)');
     ok(/tenant_id INTEGER NOT NULL REFERENCES tenants\(id\) ON DELETE CASCADE/.test(up), 'ex_01: tenant_id NOT NULL REFERENCES tenants(id)');
     ok(up.includes("type IN ('lab', 'rad', 'med', 'consult')"), 'ex_01: orders.type CHECK in (lab,rad,med,consult)');
+    // I2: orders.status CHECK present + idempotent (DROP IF EXISTS then ADD)
+    ok(up.includes("status IN ('pending', 'active', 'completed', 'cancelled')"), 'ex_01: orders.status CHECK in (pending,active,completed,cancelled)');
+    ok(/ALTER TABLE orders DROP CONSTRAINT IF EXISTS chk_orders_status;[\s\S]*?ALTER TABLE orders ADD CONSTRAINT chk_orders_status CHECK/.test(up),
+       'ex_01: status CHECK idempotent (DROP CONSTRAINT IF EXISTS then ADD)');
     ok(/encounter_id INTEGER,/.test(up) && !/encounter_id INTEGER NOT NULL/.test(up), 'ex_01: encounter_id nullable (no encounters parent yet)');
     ok(rlsPolicy('orders').test(up), 'ex_01: orders ENABLE+FORCE RLS + canonical isolation policy');
     ok(rlsPolicy('order_items').test(up), 'ex_01: order_items ENABLE+FORCE RLS + canonical isolation policy');
@@ -71,6 +75,10 @@ const rlsPolicy = (t) => new RegExp(
     ok(/INSERT INTO permissions/.test(seed) && /ON CONFLICT \(key\) DO NOTHING/.test(seed), 'ex_02 seed: permissions seeded idempotently');
     ok(/INSERT INTO role_permissions/.test(seed) && /ON CONFLICT \(tenant_id, role, permission_key\) DO NOTHING/.test(seed), 'ex_02 seed: role_permissions seeded idempotently per tenant');
     ok(/FOR t IN SELECT id FROM tenants/.test(seed), 'ex_02 seed: fans out across all tenants');
+    // I1: seed binds app.tenant_id per tenant so FORCE-RLS WITH CHECK accepts rows as a non-superuser app role
+    ok(/PERFORM set_config\('app\.tenant_id', t\.id::text, false\)/.test(seed), 'ex_02 seed: I1 — sets app.tenant_id per tenant (FORCE-RLS WITH CHECK passes)');
+    // set_config must come BEFORE the INSERT inside the per-tenant loop
+    ok(seed.indexOf("set_config('app.tenant_id'") < seed.indexOf('INSERT INTO role_permissions'), 'ex_02 seed: set_config precedes role_permissions INSERT');
     ok(seed.includes("'orders:create'") && seed.includes("'orders:view'"), 'ex_02 seed: includes orders:create / orders:view keys');
 }
 

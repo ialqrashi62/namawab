@@ -7,6 +7,7 @@ DROP POLICY IF EXISTS rls_order_items_tenant_isolation ON order_items;
 DROP TABLE IF EXISTS order_items;
 
 DROP POLICY IF EXISTS rls_orders_tenant_isolation ON orders;
+ALTER TABLE IF EXISTS orders DROP CONSTRAINT IF EXISTS chk_orders_status;
 DROP TABLE IF EXISTS orders;
 
 DROP POLICY IF EXISTS rls_order_sets_tenant_isolation ON order_sets;

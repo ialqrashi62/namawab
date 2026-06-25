@@ -10,6 +10,7 @@ SELECT
   (SELECT relforcerowsecurity FROM pg_class WHERE relname='orders') AS orders_force_rls,                          -- expect t
   (SELECT count(*) FROM pg_policies WHERE tablename='orders' AND policyname='rls_orders_tenant_isolation') AS orders_policy, -- expect 1
   (SELECT count(*) FROM pg_constraint WHERE conname='chk_orders_type') AS orders_type_check,                      -- expect 1
+  (SELECT count(*) FROM pg_constraint WHERE conname='chk_orders_status') AS orders_status_check,                  -- expect 1
   (SELECT count(*) FROM pg_indexes WHERE tablename='orders' AND indexname='idx_orders_tenant_id') AS orders_idx;  -- expect 1
 
 -- ----- order_items -----

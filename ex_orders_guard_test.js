@@ -26,6 +26,13 @@ ok(/INSERT INTO orders \(tenant_id/.test(ordersSrc), 'orders INSERT stamps tenan
 ok(/INSERT INTO order_items \(tenant_id/.test(ordersSrc), 'order_items INSERT stamps tenant_id');
 ok(ordersSrc.includes("'CREATE_ORDER'"), 'POST audited (CREATE_ORDER)');
 ok(ordersSrc.includes("VALID_TYPES.includes(type)"), 'POST validates type against VALID_TYPES (400 on bad type)');
+// I2: status validation, mirroring VALID_TYPES
+ok(/VALID_STATUSES\s*=\s*\[\s*'pending',\s*'active',\s*'completed',\s*'cancelled'\s*\]/.test(ordersSrc), 'VALID_STATUSES = pending/active/completed/cancelled (matches DB CHECK)');
+ok(ordersSrc.includes('VALID_STATUSES.includes(orderStatus)'), 'POST validates status against VALID_STATUSES (400 on bad status)');
+ok(/module\.exports\s*=\s*{[^}]*VALID_STATUSES/.test(ordersSrc), 'orders.js exports VALID_STATUSES');
+// C1: order_set ownership validated in-txn before INSERT (RLS-bypass-via-FK defense)
+ok(/SELECT id FROM order_sets WHERE id=\$1 AND tenant_id=\$2/.test(ordersSrc), 'C1: POST validates order_set tenant ownership before INSERT (FK-RLS-bypass defense)');
+ok(ordersSrc.includes("'Invalid order_set'"), 'C1: cross-tenant order_set -> 400 Invalid order_set');
 ok(ordersSrc.includes("requirePermission('orders:create')"), 'POST guarded by requirePermission(orders:create) when provided');
 ok(ordersSrc.includes("requirePermission('orders:view')"), 'GET guarded by requirePermission(orders:view) when provided');
 ok(/encounter_id \|\| null/.test(ordersSrc), 'encounter_id is nullable (no encounters parent table yet)');
@@ -55,14 +62,20 @@ ok(/function requireRole\(\.\.\.modules\)/.test(serverSrc), 'requireRole definit
         post: (p, ...h) => { routes['POST ' + p] = h[h.length - 1]; },
         get: (p, ...h) => { routes['GET ' + p] = h[h.length - 1]; },
     };
-    // mock transaction-capable pool
+    // mock transaction-capable pool.
+    // `ownedSetId` controls which order_set id the mock "owns" for the tenant (C1 cross-tenant simulation).
     const sql = [];
+    let ownedSetId = 99; // the tenant owns order_set 99; anything else is cross-tenant -> rowCount 0
     const client = {
         query: async (text, params) => {
             sql.push(text.replace(/\s+/g, ' ').trim());
-            if (/SELECT id FROM patients/.test(text)) return { rows: [{ id: params[0] }] };
-            if (/INSERT INTO orders/.test(text)) return { rows: [{ id: 555, type: params[4], status: params[5], patient_id: params[3], encounter_id: params[2] }] };
-            return { rows: [] };
+            if (/SELECT id FROM patients/.test(text)) return { rows: [{ id: params[0] }], rowCount: 1 };
+            if (/SELECT id FROM order_sets/.test(text)) {
+                const owns = params[0] === ownedSetId;
+                return { rows: owns ? [{ id: params[0] }] : [], rowCount: owns ? 1 : 0 };
+            }
+            if (/INSERT INTO orders/.test(text)) return { rows: [{ id: 555, type: params[4], status: params[5], patient_id: params[3], encounter_id: params[2] }], rowCount: 1 };
+            return { rows: [], rowCount: 0 };
         },
         release: () => { sql.push('RELEASE'); },
     };
@@ -115,6 +128,40 @@ ok(/function requireRole\(\.\.\.modules\)/.test(serverSrc), 'requireRole definit
     ok(beginAt >= 0 && ordAt > beginAt && itemAt > ordAt && commitAt > itemAt, 'order: BEGIN -> INSERT orders -> INSERT order_items -> COMMIT (single txn)');
     ok(auditCalled && auditCalled[2] === 'CREATE_ORDER', 'CREATE_ORDER audit fired on success');
     ok(sql[sql.length - 1] === 'RELEASE' && /set_config\('app\.tenant_id', ''/.test(sql[sql.length - 2]), 'tenant_id reset + client released in finally');
+
+    // 3d (I2): invalid status -> 400, no transaction opened
+    sql.length = 0;
+    const badStatus = await invoke(routes['POST /api/orders'], { patient_id: 42, type: 'lab', status: 'frozen' });
+    ok(badStatus.code === 400 && badStatus.payload && badStatus.payload.error === 'Invalid order status', 'I2: invalid status -> 400 Invalid order status');
+    ok(!sql.some(s => s === 'BEGIN'), 'I2: no transaction opened for invalid status');
+
+    // 3e (I2): absent status defaults to 'pending' on the orders INSERT
+    sql.length = 0;
+    await invoke(routes['POST /api/orders'], { patient_id: 42, type: 'lab' });
+    await new Promise(r => setTimeout(r, 10));
+    {
+        const insertIdx = sql.findIndex(s => /INSERT INTO orders/.test(s));
+        ok(insertIdx >= 0, 'I2: orders INSERT reached when status absent');
+    }
+
+    // 3f (C1): order_set owned by THIS tenant -> proceeds (BEGIN .. set ownership check .. INSERT .. COMMIT)
+    sql.length = 0;
+    const okSet = await invoke(routes['POST /api/orders'], { patient_id: 42, type: 'lab', order_set_id: ownedSetId, items: [] });
+    await new Promise(r => setTimeout(r, 10));
+    ok(okSet.code === 200, 'C1: own-tenant order_set -> 200');
+    {
+        const setChkAt = sql.findIndex(s => /SELECT id FROM order_sets/.test(s));
+        const ordAt2 = sql.findIndex(s => /INSERT INTO orders/.test(s));
+        ok(setChkAt >= 0 && ordAt2 > setChkAt, 'C1: order_set ownership checked BEFORE orders INSERT');
+    }
+
+    // 3g (C1): order_set from ANOTHER tenant -> 400 + ROLLBACK, no orders INSERT (no cross-tenant insert)
+    sql.length = 0;
+    const crossSet = await invoke(routes['POST /api/orders'], { patient_id: 42, type: 'lab', order_set_id: 12345, items: [] });
+    await new Promise(r => setTimeout(r, 10));
+    ok(crossSet.code === 400 && crossSet.payload && crossSet.payload.error === 'Invalid order_set', 'C1: cross-tenant order_set -> 400 Invalid order_set');
+    ok(sql.some(s => s === 'ROLLBACK'), 'C1: cross-tenant order_set -> ROLLBACK issued');
+    ok(!sql.some(s => /INSERT INTO orders/.test(s)), 'C1: NO orders INSERT for cross-tenant order_set (no cross-tenant insert)');
 
     console.log(`\n${fail === 0 ? 'ALL PASS' : 'FAILURES'}: ${pass} passed, ${fail} failed`);
     process.exit(fail === 0 ? 0 : 1);

@@ -45,8 +45,14 @@ CREATE TABLE IF NOT EXISTS orders (
     ordered_by INTEGER,
     order_set_id INTEGER REFERENCES order_sets(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT chk_orders_type CHECK (type IN ('lab', 'rad', 'med', 'consult'))
+    CONSTRAINT chk_orders_type CHECK (type IN ('lab', 'rad', 'med', 'consult')),
+    CONSTRAINT chk_orders_status CHECK (status IN ('pending', 'active', 'completed', 'cancelled'))
 );
+
+-- idempotent: ensure the status CHECK exists even when the table pre-dates this migration
+-- (CREATE TABLE IF NOT EXISTS skips the inline constraint on an existing table). DROP then ADD.
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS chk_orders_status;
+ALTER TABLE orders ADD CONSTRAINT chk_orders_status CHECK (status IN ('pending', 'active', 'completed', 'cancelled'));
 
 CREATE INDEX IF NOT EXISTS idx_orders_tenant_id ON orders (tenant_id);
 CREATE INDEX IF NOT EXISTS idx_orders_patient_id ON orders (patient_id);

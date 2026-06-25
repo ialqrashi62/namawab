@@ -55,6 +55,22 @@ function run(mw, req) {
         ok(r.nexted && !queried, 'Admin short-circuits to next() without querying DB');
     }
 
+    // 2b) I3: ONLY 'Admin' short-circuits — 'administrator' / case-variants do NOT (mirror canonical server.js set).
+    {
+        let queried = false;
+        const pool = { query: async () => { queried = true; return { rows: [] }; } };
+        const rp = makeRequirePermission({ pool, getRequestTenantContext: getCtx, roleFallback: () => false })('orders:create');
+        const r = await run(rp, { session: { user: { role: 'administrator' } } });
+        ok(queried && !r.nexted && r.code === 403, "I3: 'administrator' does NOT short-circuit (queries DB, then fallback-deny)");
+    }
+    {
+        let queried = false;
+        const pool = { query: async () => { queried = true; return { rows: [] }; } };
+        const rp = makeRequirePermission({ pool, getRequestTenantContext: getCtx, roleFallback: () => false })('orders:create');
+        const r = await run(rp, { session: { user: { role: 'admin' } } });
+        ok(queried && !r.nexted && r.code === 403, "I3: lowercase 'admin' does NOT short-circuit");
+    }
+
     // 3) matrix HIT
     {
         const pool = mkPool([{ permission_key: 'orders:create' }, { permission_key: 'orders:view' }]);
@@ -109,6 +125,15 @@ function run(mw, req) {
         try { makeRequirePermission({}); } catch (e) { threw = true; }
         ok(threw, 'makeRequirePermission throws without pool/getRequestTenantContext');
     }
+
+    // ---------- static: I3 — rbac.js ADMIN_ROLES mirrors canonical server.js set EXACTLY ('Admin' only) ----------
+    const rbacSrc = fs.readFileSync(path.join(__dirname, 'rbac.js'), 'utf8');
+    const adminSetMatch = rbacSrc.match(/const ADMIN_ROLES = new Set\(\[([^\]]*)\]\)/);
+    ok(adminSetMatch && /^\s*'Admin'\s*$/.test(adminSetMatch[1]), "I3: ADMIN_ROLES = new Set(['Admin']) (canonical, not over-broad)");
+    // inspect only the Set's contents (not explanatory comments) for over-broad variants.
+    // The canonical entry is 'Admin' (capital A); reject lowercase 'admin' and any 'administrator'/'Administrator'.
+    const adminEntries = adminSetMatch ? (adminSetMatch[1].match(/'[^']*'/g) || []) : [];
+    ok(adminEntries.length === 1 && adminEntries[0] === "'Admin'", 'I3: no over-broad administrator/case-variant in ADMIN_ROLES Set (only \'Admin\')');
 
     // ---------- static: server.js wiring is additive ----------
     const serverSrc = fs.readFileSync(path.join(__dirname, 'server.js'), 'utf8');
