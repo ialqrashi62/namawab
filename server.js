@@ -13,6 +13,7 @@ const ce = require('./crypto_envelope'); // A3 at-rest envelope encryption (DPAP
 const { insertSampleData, populateLabCatalog, populateRadiologyCatalog } = require('./seed_data_pg');
 const { populateMedicalServices, populateBaseDrugs } = require('./seed_services_pg');
 const { addExtraLabTests, addExtraRadiology } = require('./seed_extra_catalog');
+const { mountOnboardingRoutes } = require('./onboarding'); // E0 Facility Onboarding Wizard (super-admin provisioning)
 
 // Multer setup for radiology image uploads — A3A: PHI vault OUTSIDE public webroot (no static/direct access)
 const uploadsDir = path.join(__dirname, 'phi_vault', 'radiology');
@@ -1818,6 +1819,14 @@ app.delete('/api/settings/users/:id', requireAuth, async (req, res) => {
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
+
+// ===== E0 FACILITY ONBOARDING WIZARD (super-admin facility provisioning) =====
+// Mounted here (among route handlers, after :393) so it inherits CORS, session, CSRF-Origin check,
+// and tenant-context middleware. The route is guarded inside the module by:
+//   requireAuth + requireRole('settings') + inline (role !== 'Admin') -> 403 + audit BLOCKED_.
+// It runs a single DB transaction, generates a strong random Admin password if none supplied
+// (no default password), records integrations gated (no secrets), and writes FACILITY_PROVISIONED audit.
+mountOnboardingRoutes(app, { pool, requireAuth, requireRole, logAudit });
 
 // ===== MESSAGING =====
 app.get('/api/messages', requireAuth, async (req, res) => {
