@@ -44,7 +44,35 @@ function freshDb() {
         dicom_studies: [],
         notifications: [],
         audit: [],
+        // system_users has NO tenant_id; tenant linkage is via user_tenants (active)
+        system_users: [
+            { id: 9, role: 'Radiologist' },   // tenant1 radiologist
+            { id: 7, role: 'Doctor' },         // tenant1 doctor
+            { id: 8, role: 'Doctor' },         // tenant2 doctor
+            { id: 5, role: 'Reception' },      // tenant1 reception (no radiology module)
+        ],
+        user_tenants: [
+            { user_id: 9, tenant_id: 1, is_active: true },
+            { user_id: 7, tenant_id: 1, is_active: true },
+            { user_id: 8, tenant_id: 2, is_active: true },
+            { user_id: 5, tenant_id: 1, is_active: true },
+        ],
     };
+}
+
+// RBAC: report state-mutating endpoints admit only radiology/doctor (mirrors requireRole('radiology','doctor'))
+const ROLE_PERMS = {
+    Admin: '*',
+    Doctor: ['doctor', 'radiology', 'lab', 'patients'],
+    Radiologist: ['radiology'],
+    Reception: ['patients', 'appointments', 'accounts'],
+    Nurse: ['nursing', 'patients'],
+    Finance: ['finance', 'invoices', 'accounts'],
+};
+function roleAllows(role, modules) {
+    const perms = ROLE_PERMS[role];
+    if (perms === '*') return true;
+    return !!(perms && modules.some(m => perms.includes(m)));
 }
 
 // --- handler: schedule worklist exam (mirrors POST /api/radiology/worklist) ---
@@ -78,19 +106,32 @@ function hCreateReport(db, tenantId, body) {
     db.rad_reports.push(r); db.audit.push('CREATE_RAD_REPORT');
     return { status: 200, report: r };
 }
-// --- handler: critical notify ---
-function hCriticalNotify(db, tenantId, reportId, note) {
+// --- handler: critical notify (RBAC radiology/doctor; validates notified_doctor_id) ---
+// role defaults to 'Radiologist' so prior callers (no role arg) stay valid; opts.notifiedDoctorId optional.
+function hCriticalNotify(db, tenantId, reportId, note, role = 'Radiologist', opts = {}) {
+    if (!roleAllows(role, ['radiology', 'doctor'])) return { status: 403 };   // RBAC
     if (!tenantId) return { status: 403 };
     const r = db.rad_reports.find(x => x.id === reportId && x.tenant_id === tenantId);
     if (!r) return { status: 404 };
-    const n = { id: ++db.seq.notif, target_role: 'Doctor', type: 'critical', module: 'Radiology', record_id: reportId };
+    // Issue 2: validate notified_doctor_id is a REAL user linked to the session tenant (no dangling/foreign id)
+    let target = (opts.notifiedDoctorId !== undefined && opts.notifiedDoctorId !== null) ? parseInt(opts.notifiedDoctorId, 10) : null;
+    if (target !== null) {
+        if (!Number.isInteger(target) || target <= 0) return { status: 400 };
+        const u = db.system_users.find(su => su.id === target) &&
+            db.user_tenants.find(ut => ut.user_id === target && ut.tenant_id === tenantId && ut.is_active);
+        if (!u) return { status: 400 };
+    }
+    const n = target
+        ? { id: ++db.seq.notif, user_id: target, type: 'critical', module: 'Radiology', record_id: reportId }
+        : { id: ++db.seq.notif, target_role: 'Doctor', type: 'critical', module: 'Radiology', record_id: reportId };
     db.notifications.push(n);
     r.critical_notified_at = '2026-06-26T00:00:00'; r.critical_notify_ref = n.id;
     db.audit.push('RAD_CRITICAL_NOTIFY');
-    return { status: 200, report: r };
+    return { status: 200, report: r, notif: n };
 }
-// --- handler: sign report (CRITICAL FAIL-CLOSED) ---
-function hSign(db, tenantId, reportId, signerId) {
+// --- handler: sign report (RBAC radiology/doctor; CRITICAL FAIL-CLOSED) ---
+function hSign(db, tenantId, reportId, signerId, role = 'Radiologist') {
+    if (!roleAllows(role, ['radiology', 'doctor'])) return { status: 403 };   // RBAC
     if (!tenantId) return { status: 403 };
     const r = db.rad_reports.find(x => x.id === reportId && x.tenant_id === tenantId);
     if (!r) return { status: 404 };
@@ -100,6 +141,17 @@ function hSign(db, tenantId, reportId, signerId) {
     const ex = db.rad_exams.find(e => e.id === r.rad_exam_id && e.tenant_id === tenantId);
     if (ex) ex.state = 'Reported';
     db.audit.push('SIGN_RAD_REPORT');
+    return { status: 200, report: r };
+}
+// --- handler: addendum to a SIGNED report (RBAC radiology/doctor) ---
+function hAddendum(db, tenantId, parentId, body = {}, role = 'Radiologist') {
+    if (!roleAllows(role, ['radiology', 'doctor'])) return { status: 403 };   // RBAC
+    if (!tenantId) return { status: 403 };
+    const parent = db.rad_reports.find(x => x.id === parentId && x.tenant_id === tenantId && x.status === 'Signed');
+    if (!parent) return { status: 404 };
+    const r = { id: ++db.seq.report, tenant_id: tenantId, rad_exam_id: parent.rad_exam_id, patient_id: parent.patient_id, modality: parent.modality, status: 'Draft', addendum_of: parentId, signed_at: null };
+    db.rad_reports.push(r); parent.status = 'Addended';
+    db.audit.push('ADDENDUM_RAD_REPORT');
     return { status: 200, report: r };
 }
 // --- handler: prior compare (signed-only, tenant + modality) ---
@@ -227,6 +279,48 @@ console.log(`\n${BOLD}[5] MWL gated${RESET}`);
     const en = hMwl(db, 1, true);
     assert(en.status === 200 && en.worklist.every(e => e.tenant_id === 1), 'MWL when enabled serves only tenant1 local scheduled exams');
     assert(hMwl(db, null, true).status === 403, 'MWL enabled but null tenant -> 403 (fail-closed)');
+}
+
+// ============================================================================
+// [7] RBAC on report state-mutating endpoints + notified_doctor_id validation
+// ============================================================================
+console.log(`\n${BOLD}[7] RBAC (radiology/doctor only) + notified_doctor_id validation${RESET}`);
+{
+    const db = freshDb();
+    const ex = hSchedule(db, 1, { rad_order_id: 1, modality: 'CT' }).exam;
+    const rep = hCreateReport(db, 1, { rad_exam_id: ex.id, impression: 'mass', is_critical: true }).report;
+
+    // --- non-radiology / non-doctor roles are DENIED (403) on critical-notify / sign / addendum ---
+    ['Reception', 'Nurse', 'Finance'].forEach(role => {
+        assert(hCriticalNotify(db, 1, rep.id, 'x', role).status === 403, `${role} cannot critical-notify -> 403`);
+        assert(hSign(db, 1, rep.id, 9, role).status === 403, `${role} cannot sign -> 403`);
+        assert(hAddendum(db, 1, rep.id, {}, role).status === 403, `${role} cannot addendum -> 403`);
+    });
+    // report stayed Draft + unnotified after all denied attempts (no side effects)
+    assert(rep.status === 'Draft' && !rep.critical_notified_at, 'denied roles produced no state change');
+
+    // --- radiologist / doctor are ALLOWED ---
+    assert(hCriticalNotify(db, 1, rep.id, 'called', 'Radiologist').status === 200, 'Radiologist CAN critical-notify -> 200');
+    assert(hSign(db, 1, rep.id, 9, 'Doctor').status === 200, 'Doctor CAN sign -> 200');
+    assert(hAddendum(db, 1, rep.id, {}, 'Radiologist').status === 200, 'Radiologist CAN addendum a signed report -> 200');
+
+    // --- notified_doctor_id validation: real tenant user accepted, foreign/non-existent rejected/dropped ---
+    const db2 = freshDb();
+    const ex2 = hSchedule(db2, 1, { rad_order_id: 1, modality: 'CT' }).exam;
+    const rep2 = hCreateReport(db2, 1, { rad_exam_id: ex2.id, impression: 'mass', is_critical: true }).report;
+    // valid tenant1 user (id 7 Doctor) -> notification carries that user_id
+    const okN = hCriticalNotify(db2, 1, rep2.id, 'call', 'Radiologist', { notifiedDoctorId: 7 });
+    assert(okN.status === 200 && okN.notif.user_id === 7, 'valid notified_doctor_id used as notification user_id');
+    // non-existent user id -> 400 (no dangling user_id inserted)
+    const rep3 = hCreateReport(db2, 1, { rad_exam_id: ex2.id, impression: 'mass2', is_critical: true }).report;
+    const bad = hCriticalNotify(db2, 1, rep3.id, 'call', 'Radiologist', { notifiedDoctorId: 99999 });
+    assert(bad.status === 400, 'non-existent notified_doctor_id rejected -> 400');
+    // foreign-tenant user (id 8 belongs to tenant2) -> rejected for tenant1 session (no cross-tenant leak)
+    const foreign = hCriticalNotify(db2, 1, rep3.id, 'call', 'Radiologist', { notifiedDoctorId: 8 });
+    assert(foreign.status === 400, 'foreign-tenant notified_doctor_id rejected -> 400');
+    // confirm NO dangling/foreign user_id ever made it into notifications: every user_id is a real active tenant1 user
+    assert(db2.notifications.every(n => !n.user_id || db2.user_tenants.some(ut => ut.user_id === n.user_id && ut.tenant_id === 1 && ut.is_active)),
+        'no dangling/foreign user_id in notifications (every user_id is a real active tenant1 user)');
 }
 
 // ============================================================================

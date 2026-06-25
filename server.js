@@ -1732,7 +1732,8 @@ app.post('/api/radiology/reports', requireAuth, requireTenantScope, async (req, 
 });
 
 // --- E4-S3: record critical-finding notification (documents the call-back; required before signing) ---
-app.post('/api/radiology/reports/:id/critical-notify', requireAuth, requireTenantScope, async (req, res) => {
+// RBAC: report state-mutating endpoints are restricted to radiology/doctor (medico-legal) — not any tenant user.
+app.post('/api/radiology/reports/:id/critical-notify', requireAuth, requireRole('radiology', 'doctor'), requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
         if (!tenantId) return res.status(403).json({ error: 'Tenant scope required' }); // FAIL-CLOSED
@@ -1744,7 +1745,18 @@ app.post('/api/radiology/reports/:id/critical-notify', requireAuth, requireTenan
         if (!rep) return res.status(404).json({ error: 'Report not found' });
         // document the critical notification: notifications row (type='critical') + audit (canonical channel)
         let notifId = null;
-        const target = notified_doctor_id ? parseInt(notified_doctor_id, 10) : null;
+        let target = notified_doctor_id ? parseInt(notified_doctor_id, 10) : null;
+        // validate notified_doctor_id is a REAL existing user before using it as a notification user_id
+        // (never insert a dangling/foreign user_id). system_users has no tenant_id; scope via user_tenants to the session tenant.
+        if (target) {
+            if (!Number.isInteger(target) || target <= 0) return res.status(400).json({ error: 'Invalid notified_doctor_id' });
+            const u = (await pool.query(
+                `SELECT u.id FROM system_users u
+                 JOIN user_tenants ut ON ut.user_id = u.id
+                 WHERE u.id = $1 AND ut.tenant_id = $2 AND ut.is_active = true`,
+                [target, tenantId])).rows[0];
+            if (!u) return res.status(400).json({ error: 'notified_doctor_id not found in this tenant' });
+        }
         const msg = `CRITICAL radiology finding for patient #${rep.patient_id} (report #${reportId})${note ? ': ' + note : ''}`;
         if (target) {
             const n = await pool.query('INSERT INTO notifications (user_id, title, message, type, module, record_id) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id',
@@ -1764,7 +1776,7 @@ app.post('/api/radiology/reports/:id/critical-notify', requireAuth, requireTenan
 });
 
 // --- E4-S3: SIGN report — FAIL-CLOSED if critical without documented notification ---
-app.put('/api/radiology/reports/:id/sign', requireAuth, requireTenantScope, async (req, res) => {
+app.put('/api/radiology/reports/:id/sign', requireAuth, requireRole('radiology', 'doctor'), requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
         if (!tenantId) return res.status(403).json({ error: 'Tenant scope required' }); // FAIL-CLOSED
@@ -1791,7 +1803,7 @@ app.put('/api/radiology/reports/:id/sign', requireAuth, requireTenantScope, asyn
 });
 
 // --- E4-S3: addendum to a SIGNED report (creates a new linked report) ---
-app.post('/api/radiology/reports/:id/addendum', requireAuth, requireTenantScope, async (req, res) => {
+app.post('/api/radiology/reports/:id/addendum', requireAuth, requireRole('radiology', 'doctor'), requireTenantScope, async (req, res) => {
     try {
         const { tenantId, facilityId } = getRequestTenantContext(req);
         if (!tenantId) return res.status(403).json({ error: 'Tenant scope required' }); // FAIL-CLOSED

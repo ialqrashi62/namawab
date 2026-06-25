@@ -71,6 +71,43 @@ chk('critical notify documented via critical_notified_at', s.includes('critical_
 chk('critical notify audited', s.includes("'RAD_CRITICAL_NOTIFY'"));
 chk('sign audited', s.includes("'SIGN_RAD_REPORT'"));
 
+// ---- RBAC: report state-mutating endpoints restricted to radiology/doctor (medico-legal) ----
+{
+  // helper: assert the route line that mounts a given path carries requireRole('radiology', 'doctor')
+  function routeLine(method, route) {
+    const re = new RegExp(`app\\.${method}\\('${route.replace(/[/:]/g, m => '\\' + m)}'[^\\n]*`);
+    const mm = s.match(re);
+    return mm ? mm[0] : '';
+  }
+  const cn = routeLine('post', '/api/radiology/reports/:id/critical-notify');
+  const sg = routeLine('put', '/api/radiology/reports/:id/sign');
+  const ad = routeLine('post', '/api/radiology/reports/:id/addendum');
+  chk('critical-notify requires requireRole(radiology,doctor)', /requireRole\('radiology', 'doctor'\)/.test(cn));
+  chk('sign requires requireRole(radiology,doctor)', /requireRole\('radiology', 'doctor'\)/.test(sg));
+  chk('addendum requires requireRole(radiology,doctor)', /requireRole\('radiology', 'doctor'\)/.test(ad));
+  // requireAuth + requireTenantScope must still be present on all three (RBAC is additive, not a replacement)
+  ['requireAuth', 'requireTenantScope'].forEach(mw => {
+    chk(`critical-notify keeps ${mw}`, cn.includes(mw));
+    chk(`sign keeps ${mw}`, sg.includes(mw));
+    chk(`addendum keeps ${mw}`, ad.includes(mw));
+  });
+  // role set admits Radiologist (radiology) + Doctor, denies Reception/Nurse/Finance — verify ROLE_PERMISSIONS mapping
+  chk('Radiologist role maps to radiology module', /'Radiologist':\s*\[[^\]]*'radiology'/.test(s));
+  chk('Reception role does NOT map to radiology', !/'Reception':\s*\[[^\]]*'radiology'/.test(s));
+}
+
+// ---- Issue 2: notified_doctor_id is validated as a REAL tenant user (no dangling/foreign user_id) ----
+{
+  const e4Block = s.slice(s.indexOf('===== E4: RADIOLOGY'), s.indexOf('===== END E4 RADIOLOGY ====='));
+  chk('notified_doctor_id validated against system_users', /FROM system_users[\s\S]{0,200}user_tenants/.test(e4Block));
+  chk('notified_doctor_id scoped to session tenant via user_tenants', /user_tenants[\s\S]{0,160}tenant_id = \$2[\s\S]{0,80}is_active = true/.test(e4Block));
+  chk('invalid notified_doctor_id rejected (400)', /Invalid notified_doctor_id|notified_doctor_id not found in this tenant/.test(e4Block));
+  // validation must occur BEFORE the notifications INSERT that uses the user_id target
+  const valIdx = e4Block.search(/FROM system_users[\s\S]{0,200}user_tenants/);
+  const insIdx = e4Block.indexOf('INSERT INTO notifications (user_id');
+  chk('notified_doctor_id validated before notifications insert', valIdx !== -1 && insIdx !== -1 && valIdx < insIdx);
+}
+
 // ---- PRIOR-COMPARE: signed priors only, tenant + modality scoped ----
 chk('priors query is signed-only', /status='Signed' AND signed_at IS NOT NULL/.test(s));
 chk('priors query is tenant + patient scoped', s.includes('WHERE tenant_id=$1 AND patient_id=$2'));
