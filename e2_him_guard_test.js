@@ -29,7 +29,7 @@ console.log('\n=== [2] LONGITUDINAL RECORD ENDPOINT (access-logged) ===');
 ok(server.includes("app.get('/api/him/record/:patientId', requireAuth, requireRole('him', 'medical-records'), requireTenantScope"), 'GET /api/him/record/:patientId auth+RBAC+tenant-scope guarded');
 ok(/INSERT INTO record_access_log[\s\S]{0,200}'normal'/.test(server), 'every record open writes record_access_log (normal)');
 ok(/'VIEW_RECORD'/.test(server), 'record open raises VIEW_RECORD audit');
-ok(/Patient not found/.test(server) && /WHERE id=\$1\$\{tenantCheck\}/.test(server), 'patient verified within tenant (fail-closed 404)');
+ok(/Patient not found/.test(server) && /FROM patients WHERE id=\$1 AND tenant_id=\$2/.test(server), 'patient verified within tenant via explicit predicate (fail-closed 404)');
 ok(/_himPushSource/.test(server) && /table may not exist yet/.test(server), 'aggregation degrades gracefully for optional tables (problems/clinical_notes/coding)');
 ok(/FROM problems WHERE patient_id/.test(server) && /FROM clinical_notes WHERE patient_id/.test(server), 'aggregates E1 problems + clinical_notes');
 ok(/FROM medical_records WHERE patient_id/.test(server) && /FROM prescriptions WHERE patient_id/.test(server) && /FROM lab_radiology_orders/.test(server), 'aggregates records + prescriptions + lab/rad');
@@ -93,6 +93,47 @@ ok(/isHimAdmin/.test(app) && /mrTab === 'access'/.test(app), 'access-log tab gat
 ok(/escapeHTML\(/.test(app.slice(app.indexOf('viewLongitudinalRecord'))), 'longitudinal viewer escapes PHI (escapeHTML)');
 ok(/safeId\(/.test(app.slice(app.indexOf('renderMedicalRecords'))), 'HIM screen uses safeId for ids');
 ok(/window\.submitMRRequest/.test(app) && /window\.updateMRRequest/.test(app), 'legacy MR request handlers preserved (no regression)');
+
+console.log('\n=== [8] DEFENSE-IN-DEPTH: explicit tenant_id predicate on EVERY HIM read/update (reviewer fixes) ===');
+// CRIT-1: every longitudinal sub-query binds tenant_id=$2
+ok(/FROM visits WHERE patient_id=\$1 AND tenant_id=\$2/.test(server), 'CRIT-1 visits sub-query tenant_id=$2');
+ok(/FROM visit_lifecycle WHERE patient_id=\$1 AND tenant_id=\$2/.test(server), 'CRIT-1 visit_lifecycle sub-query tenant_id=$2');
+ok(/FROM problems WHERE patient_id=\$1 AND tenant_id=\$2/.test(server), 'CRIT-1 problems sub-query tenant_id=$2');
+ok(/FROM clinical_notes WHERE patient_id=\$1 AND tenant_id=\$2/.test(server), 'CRIT-1 clinical_notes sub-query tenant_id=$2');
+ok(/FROM medical_records WHERE patient_id=\$1 AND tenant_id=\$2/.test(server), 'CRIT-1 medical_records sub-query tenant_id=$2');
+ok((server.match(/FROM lab_radiology_orders WHERE patient_id=\$1 AND tenant_id=\$2/g) || []).length === 2, 'CRIT-1 lab + radiology sub-queries tenant_id=$2');
+ok(/FROM prescriptions WHERE patient_id=\$1 AND tenant_id=\$2/.test(server), 'CRIT-1 prescriptions sub-query tenant_id=$2');
+ok(/FROM coding WHERE patient_id=\$1 AND tenant_id=\$2/.test(server), 'CRIT-1 coding sub-query tenant_id=$2');
+ok(/_himPushSource\(events,[^\n]+\[pid, tenantId\]/.test(server), 'CRIT-1 tenantId passed as a parameter to _himPushSource');
+// CRIT-1 fail-closed + CORR-2 LIMIT 500
+ok(/if \(!tenantId\) return res\.status\(403\)\.json\(\{ error: 'Tenant scope required' \}\);[\s\S]{0,400}FROM patients WHERE id=\$1 AND tenant_id=\$2/.test(server), 'CRIT-1 record view fail-closed on null tenant (403, no unfiltered sub-queries)');
+ok((server.match(/ORDER BY id DESC LIMIT 500/g) || []).length >= 3, 'CORR-2 default LIMIT 500 on unbounded HIM lists');
+// CRIT-2 ROI list
+ok(/SELECT \* FROM roi_requests WHERE tenant_id=\$1 ORDER BY id DESC LIMIT 500/.test(server), 'CRIT-2 GET /him/roi tenant_id=$1 + LIMIT');
+// CRIT-3 access-log list
+ok(/FROM record_access_log WHERE ' \+ where\.join/.test(server) && /where = \['tenant_id=\$1'\]/.test(server.slice(server.indexOf('/api/him/access-log'))), 'CRIT-3 GET /him/access-log tenant_id=$1 always');
+// CRIT-4 ROI mutation: SELECT + all 3 UPDATEs tenant-bound
+ok(/SELECT id, status, requested_by FROM roi_requests WHERE id=\$1 AND tenant_id=\$2/.test(server), 'CRIT-4 ROI PUT SELECT tenant-bound');
+ok((server.match(/UPDATE roi_requests SET[\s\S]*?AND tenant_id=\$\d RETURNING \*/g) || []).length === 3, 'CRIT-4 all 3 ROI UPDATEs tenant-bound');
+// IMP-1 coding GET
+ok(/where = \['tenant_id=\$1'\]/.test(server.slice(server.indexOf('/api/him/coding'))), 'IMP-1 GET /him/coding tenant_id=$1 always');
+// IMP-2 deficiencies
+ok(/FROM medical_records WHERE tenant_id=\$1 AND COALESCE\(emr_status/.test(server), 'IMP-2 deficiencies unsigned tenant-scoped');
+ok(/mr\.tenant_id=\$1 AND NOT EXISTS \(SELECT 1 FROM coding c WHERE c\.patient_id = mr\.patient_id AND c\.tenant_id=\$1\)/.test(server), 'IMP-2 deficiencies uncoded tenant-scoped both sides');
+// IMP-3 audit fail-closed
+ok(/record_access_log insert FAILED[\s\S]{0,400}return res\.status\(500\)\.json\(\{ error: 'Access could not be logged/.test(server), 'IMP-3 record view fails CLOSED if access-log write fails (500)');
+ok(/'VIEW_RECORD_AUDIT_FAIL'/.test(server), 'IMP-3 failed-to-log access raises a loud audit_trail entry');
+// IMP-4 self-approval
+ok(/action === 'approve' && cur\.requested_by === actor\.id\) return res\.status\(403\)\.json\(\{ error: 'Cannot self-approve ROI request' \}\)/.test(server), 'IMP-4 ROI self-approval blocked (403)');
+// IMP-5 strict server-side role gate
+ok(/function isHimOrAdmin\(req\)[\s\S]{0,120}role === 'HIM' \|\| role === 'Admin'/.test(server), 'IMP-5 isHimOrAdmin strict (HIM/Admin only, not broad module)');
+ok(/access-log[\s\S]{0,200}if \(!isHimOrAdmin\(req\)\) return res\.status\(403\)/.test(server), 'IMP-5 access-log strict server-side role gate');
+ok(/break-glass[\s\S]{0,200}if \(!isHimOrAdmin\(req\)\) return res\.status\(403\)/.test(server), 'IMP-5 break-glass strict server-side role gate');
+
+console.log('\n=== [9] MIGRATIONS — down DROP INDEX IF EXISTS (CORR-3) ===');
+ok(/DROP INDEX IF EXISTS idx_coding_tenant_id/.test(mig('e2_01_coding_down.sql')) && /DROP INDEX IF EXISTS idx_coding_patient_id/.test(mig('e2_01_coding_down.sql')) && /DROP INDEX IF EXISTS idx_coding_encounter_ref/.test(mig('e2_01_coding_down.sql')), 'CORR-3 coding down drops all 3 indexes');
+ok(/DROP INDEX IF EXISTS idx_roi_requests_tenant_id/.test(mig('e2_02_roi_down.sql')) && /DROP INDEX IF EXISTS idx_roi_requests_patient_id/.test(mig('e2_02_roi_down.sql')) && /DROP INDEX IF EXISTS idx_roi_requests_status/.test(mig('e2_02_roi_down.sql')), 'CORR-3 roi down drops all 3 indexes');
+ok(/DROP INDEX IF EXISTS idx_record_access_log_tenant_id/.test(mig('e2_03_record_access_down.sql')) && /DROP INDEX IF EXISTS idx_record_access_log_patient_id/.test(mig('e2_03_record_access_down.sql')) && /DROP INDEX IF EXISTS idx_record_access_log_at/.test(mig('e2_03_record_access_down.sql')), 'CORR-3 record_access_log down drops all 3 indexes');
 
 console.log(`\n${fail === 0 ? 'ALL PASS' : 'FAILURES'}: ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

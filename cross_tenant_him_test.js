@@ -134,6 +134,83 @@ console.log(`\n${BOLD}[7] Break-glass requires a reason${RESET}`);
   assert(okBg.alert === 'BREAK_GLASS', 'break-glass raises BREAK_GLASS audit alert');
 }
 
+console.log(`\n${BOLD}[8] Explicit tenant_id predicate enforced on EVERY HIM read/update (defense-in-depth, RLS-independent)${RESET}`);
+{
+  // Mirror: every list query filters rows by `tenant_id = sessionTenant` in the app layer,
+  // so even a DB role that BYPASSES RLS cannot return foreign rows.
+  function appLayerList(rows, sessionTenant) {
+    if (!sessionTenant) return []; // FAIL-CLOSED: null tenant -> [] (never run unfiltered)
+    return rows.filter(r => r.tenant_id === sessionTenant);
+  }
+  const allRoi = [{ id: 1, tenant_id: 1 }, { id: 2, tenant_id: 2 }, { id: 3, tenant_id: 1 }];
+  assert(appLayerList(allRoi, 1).every(r => r.tenant_id === 1) && appLayerList(allRoi, 1).length === 2, 'ROI list: session tenant 1 sees only tenant-1 rows (2)');
+  assert(appLayerList(allRoi, 2).length === 1, 'ROI list: session tenant 2 sees only tenant-2 rows (1)');
+  assert(appLayerList(allRoi, null).length === 0, 'ROI list: null/forged-missing tenant -> 0 rows (fail-closed, not all rows)');
+  // coding / access-log share the same app-layer filter
+  const allCoding = [{ id: 9, tenant_id: 5 }, { id: 10, tenant_id: 6 }];
+  assert(appLayerList(allCoding, 5).length === 1 && appLayerList(allCoding, 6).length === 1, 'coding + access-log lists filter by session tenant');
+  assert(appLayerList(allCoding, null).length === 0, 'coding/access-log null tenant -> 0 rows');
+}
+
+console.log(`\n${BOLD}[9] Longitudinal sub-queries bind tenant_id; null tenant -> 403 (no unfiltered PHI)${RESET}`);
+{
+  // Mirror the endpoint guard: if (!tenantId) return 403 BEFORE any sub-query runs.
+  function openRecordGuard(tenantId) {
+    if (!tenantId) return { status: 403, ranSubQueries: false };
+    return { status: 200, ranSubQueries: true };
+  }
+  assert(openRecordGuard(null).status === 403 && openRecordGuard(null).ranSubQueries === false, 'null tenant -> 403, sub-queries never run (fail-closed)');
+  assert(openRecordGuard(2).ranSubQueries === true, 'valid tenant -> sub-queries run (each bound to tenant_id=$2)');
+  // each sub-query carries tenant_id=$2 -> a foreign-tenant patient yields 0 rows even if patient_id collides
+  function subQueryRows(rows, pid, sessionTenant) {
+    return rows.filter(r => r.patient_id === pid && r.tenant_id === sessionTenant);
+  }
+  const visits = [{ id: 1, patient_id: 77, tenant_id: 1 }, { id: 2, patient_id: 77, tenant_id: 2 }];
+  assert(subQueryRows(visits, 77, 1).length === 1 && subQueryRows(visits, 77, 1)[0].tenant_id === 1, 'visits sub-query returns only own-tenant rows for a shared patient_id');
+}
+
+console.log(`\n${BOLD}[10] ROI mutation: cross-tenant blocked + self-approval blocked (CRIT-4 / IMP-4)${RESET}`);
+{
+  // Mirror PUT /him/roi/:id : SELECT ... WHERE id=$1 AND tenant_id=$2 ; UPDATE ... AND tenant_id=$N
+  function putRoi(row, sessionTenant, action, actorId) {
+    if (!sessionTenant) return { status: 403 };                       // fail-closed
+    const cur = (row && row.tenant_id === sessionTenant) ? row : null; // tenant-scoped SELECT
+    if (!cur) return { status: 404 };                                  // cross-tenant -> 404
+    if (action === 'approve' && cur.requested_by === actorId) return { status: 403, error: 'Cannot self-approve ROI request' };
+    if (action === 'approve' && cur.status === 'pending') return { status: 200, newStatus: 'approved' };
+    return { status: 409 };
+  }
+  const roi2 = { id: 5, tenant_id: 2, status: 'pending', requested_by: 50 };
+  assert(putRoi(roi2, 1, 'approve', 99).status === 404, 'tenant 1 approving a tenant-2 ROI -> 404 (cross-tenant mutation impossible)');
+  assert(putRoi(roi2, null, 'approve', 99).status === 403, 'null tenant ROI mutation -> 403 (fail-closed)');
+  assert(putRoi(roi2, 2, 'approve', 50).status === 403, 'requester approving own ROI -> 403 (IMP-4 self-approval blocked)');
+  assert(putRoi(roi2, 2, 'approve', 99).status === 200, 'different HIM actor approves in-tenant pending ROI -> 200');
+}
+
+console.log(`\n${BOLD}[11] Access-log + break-glass strict server-side role gate (IMP-5: HIM/Admin only)${RESET}`);
+{
+  // Mirror isHimOrAdmin(req): role must be exactly 'HIM' or 'Admin' — NOT a Doctor (who holds the 'him' module).
+  function isHimOrAdmin(role) { return role === 'HIM' || role === 'Admin'; }
+  function himAuditEndpoint(role) { return isHimOrAdmin(role) ? { status: 200 } : { status: 403 }; }
+  assert(himAuditEndpoint('HIM').status === 200, 'HIM role allowed on access-log / break-glass');
+  assert(himAuditEndpoint('Admin').status === 200, 'Admin role allowed on access-log / break-glass');
+  assert(himAuditEndpoint('Doctor').status === 403, 'Doctor (broad him module) REJECTED server-side (403) — not just client-gated');
+  assert(himAuditEndpoint('Nurse').status === 403, 'Nurse rejected server-side (403)');
+}
+
+console.log(`\n${BOLD}[12] Record view fails CLOSED if access-log write fails (IMP-3: audit fail-closed)${RESET}`);
+{
+  // Mirror: INSERT record_access_log; on failure -> log loud audit + return 500 (do NOT serve PHI).
+  function viewRecord(accessLogWriteOk) {
+    if (!accessLogWriteOk) return { status: 500, served: false, audit: 'VIEW_RECORD_AUDIT_FAIL' };
+    return { status: 200, served: true, audit: 'VIEW_RECORD' };
+  }
+  const blocked = viewRecord(false);
+  assert(blocked.status === 500 && blocked.served === false, 'access-log INSERT failure -> 500, PHI NOT served (fail-closed)');
+  assert(blocked.audit === 'VIEW_RECORD_AUDIT_FAIL', 'failed-to-log access raises a loud audit entry');
+  assert(viewRecord(true).status === 200 && viewRecord(true).served === true, 'successful access-log write -> PHI served + VIEW_RECORD audit');
+}
+
 console.log(`\n${BOLD}${BLUE}=== Summary ===${RESET}`);
 console.log(`  ${GREEN}passed${RESET}: ${passed}   ${RED}failed${RESET}: ${failed}`);
 if (failureLog.length) { console.log(`\n${RED}Failures:${RESET}`); failureLog.forEach(f => console.log(`  - ${f.name}: ${f.details}`)); }
