@@ -39,6 +39,11 @@ console.log('[1] e3_01 lab_samples');
     chk('up tenant_id index', up.includes('idx_lab_samples_tenant_id'));
     chk('up per-tenant unique barcode', up.includes('uq_lab_samples_tenant_barcode'));
     chk('up state CHECK idempotent (DROP+ADD)', up.includes('DROP CONSTRAINT IF EXISTS chk_lab_samples_state') && up.includes('ADD CONSTRAINT chk_lab_samples_state'));
+    // state set must list ONLY reachable states; the unreachable 'Verified' was removed (no transition reaches it).
+    chk('up state CHECK lists reachable states', /state IN \('Collected','Received','InProcess','Reported','Rejected'\)/.test(up));
+    // assert against the actual CHECK clauses (state IN (...)) only — comments may still mention the word.
+    const stateCheckClauses = up.match(/state IN \([^)]*\)/g) || [];
+    chk("up state CHECK clause(s) no longer list 'Verified'", stateCheckClauses.length > 0 && stateCheckClauses.every(c => !c.includes("'Verified'")));
     chk('up wrapped BEGIN/COMMIT', up.trim().startsWith('--') && up.includes('BEGIN;') && up.trim().endsWith('COMMIT;'));
     chk('down DROP POLICY IF EXISTS', down.includes('DROP POLICY IF EXISTS rls_lab_samples_tenant_isolation'));
     chk('down drops its indexes', down.includes('DROP INDEX IF EXISTS uq_lab_samples_tenant_barcode') && down.includes('DROP INDEX IF EXISTS idx_lab_samples_tenant_id'));

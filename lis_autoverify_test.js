@@ -140,8 +140,43 @@ console.log('[13] parseHL7ORU — malformed rejected safely (no throw)');
     chk('no OBX -> not ok', lis.parseHL7ORU('MSH|^~\\&|A\rOBR|1||LAB-7').ok === false);
 }
 
+// ---------- delta baseline selection (server prior-query semantics) ----------
+// CLINICAL SAFETY: the server's prior-result query selects ONLY status='verified' priors as the
+// delta baseline (server.js POST /api/lab/results). A held/pending prior must be IGNORED so it
+// cannot suppress a true significant delta. Simulate that selection here, then feed into autoVerify.
+console.log('[14] delta baseline ignores a HELD prior (only VERIFIED baseline) -> correct hold/verify');
+{
+    // mirrors:  ... AND lr.status = 'verified' ORDER BY lr.id DESC LIMIT 1
+    function selectPriorBaseline(priorRows) {
+        return priorRows.filter(r => r.status === 'verified').sort((a, b) => b.id - a.id)[0] || null;
+    }
+    // History for an analyte: a recent HELD erroneous low prior, plus an older VERIFIED stable prior.
+    const history = [
+        { id: 10, test_name: 'Creatinine', value: 0.6, status: 'verified' }, // true baseline
+        { id: 20, test_name: 'Creatinine', value: 1.19, status: 'held' },     // unverified/erroneous, must be ignored
+    ];
+    const baseline = selectPriorBaseline(history);
+    chk('held prior is NOT chosen as baseline', baseline && baseline.id === 10);
+    chk('verified prior IS chosen as baseline', baseline && baseline.status === 'verified' && baseline.value === 0.6);
+
+    // New value 1.2 vs the VERIFIED baseline 0.6 = +100% -> significant delta -> HOLD (correct/safe).
+    const vAgainstVerified = lis.autoVerify({ test_name: 'Creatinine', value: 1.2, ref_low: 0.6, ref_high: 1.3 }, baseline);
+    chk('delta vs VERIFIED baseline -> HOLD (significant_delta)',
+        vAgainstVerified.status === 'held' && vAgainstVerified.reasons.includes('significant_delta'));
+
+    // Counter-proof: had the HELD prior (1.19) been (wrongly) used, the delta would be ~+0.8% and
+    // the result would have been silently VERIFIED — the exact suppression this fix prevents.
+    const wrongBaseline = history.find(r => r.id === 20);
+    const vAgainstHeld = lis.autoVerify({ test_name: 'Creatinine', value: 1.2, ref_low: 0.6, ref_high: 1.3 }, wrongBaseline);
+    chk('using the HELD prior would have WRONGLY verified (suppression demonstrated)',
+        vAgainstHeld.status === 'verified');
+
+    // No verified prior at all -> baseline null -> first-result path (in-range -> verified).
+    chk('no verified prior -> null baseline', selectPriorBaseline([{ id: 5, test_name: 'X', value: 1, status: 'held' }]) === null);
+}
+
 // ---------- QC ----------
-console.log('[14] qcFlag — Levey-Jennings 1-3s + fail-safe');
+console.log('[15] qcFlag — Levey-Jennings 1-3s + fail-safe');
 {
     chk('in control (z<2)', lis.qcFlag(10.1, 10.0, 0.2).breach === false);
     chk('1-2s warning not breach', lis.qcFlag(10.5, 10.0, 0.2).rule === '1-2s_warning');

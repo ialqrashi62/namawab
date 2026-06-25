@@ -1501,13 +1501,16 @@ app.post('/api/lab/results', requireAuth, requireTenantScope, async (req, res) =
             sample = (await pool.query('SELECT * FROM lab_samples WHERE id=$1 AND tenant_id=$2', [lab_sample_id, ctx.tenantId])).rows[0];
             if (!sample) return res.status(404).json({ error: 'Sample not found' });
         }
-        // Prior result for the same analyte (delta-check) within tenant — most recent verified/reported.
+        // Prior result for the same analyte (delta-check) within tenant — most recent VERIFIED.
+        // CLINICAL SAFETY: only a VERIFIED prior may serve as the delta baseline. A held/pending
+        // (unverified/erroneous) prior must NOT suppress a true significant delta. ('reported' is
+        // tracked by the separate `reported` column, not status, so status='verified' covers it.)
         let prior = null;
         if (sample && sample.patient_id) {
             prior = (await pool.query(
                 `SELECT lr.* FROM lab_results lr
                  JOIN lab_samples s ON lr.lab_sample_id = s.id AND s.tenant_id = lr.tenant_id
-                 WHERE lr.tenant_id=$1 AND s.patient_id=$2 AND lower(lr.test_name)=lower($3) AND lr.id <> -1
+                 WHERE lr.tenant_id=$1 AND s.patient_id=$2 AND lower(lr.test_name)=lower($3) AND lr.status = 'verified'
                  ORDER BY lr.id DESC LIMIT 1`, [ctx.tenantId, sample.patient_id, test_name])).rows[0] || null;
         }
         // CLINICAL SAFETY: pure-function auto-verify (any uncertainty -> HOLD).
@@ -1568,6 +1571,8 @@ app.put('/api/lab/results/:id/report', requireAuth, requireTenantScope, async (r
         const ctx = lisRequireTenant(req, res); if (!ctx) return;
         const r = (await pool.query('SELECT * FROM lab_results WHERE id=$1 AND tenant_id=$2', [req.params.id, ctx.tenantId])).rows[0];
         if (!r) return res.status(404).json({ error: 'Result not found' });
+        // AUDIT/INTEGRITY: re-reporting an already-reported result is rejected (not silently idempotent).
+        if (r.reported) return res.status(409).json({ error: 'Result already reported' });
         // must be verified first.
         if (r.status !== 'verified') return res.status(409).json({ error: 'Result must be verified before reporting' });
         // CLINICAL SAFETY (FAIL-CLOSED): a critical result cannot be reported without a documented call-back.
@@ -1577,7 +1582,8 @@ app.put('/api/lab/results/:id/report', requireAuth, requireTenantScope, async (r
                 return res.status(409).json({ error: 'Critical result requires a documented call-back before reporting', code: 'CRITICAL_CALLBACK_REQUIRED' });
             }
         }
-        await pool.query('UPDATE lab_results SET reported=1, reported_at=CURRENT_TIMESTAMP WHERE id=$1 AND tenant_id=$2', [req.params.id, ctx.tenantId]);
+        // belt-and-suspenders: only flip an as-yet-unreported row (concurrency-safe with the 409 above).
+        await pool.query('UPDATE lab_results SET reported=1, reported_at=CURRENT_TIMESTAMP WHERE id=$1 AND tenant_id=$2 AND reported = 0', [req.params.id, ctx.tenantId]);
         // advance the sample to Reported when present.
         if (r.lab_sample_id) {
             await pool.query("UPDATE lab_samples SET state='Reported' WHERE id=$1 AND tenant_id=$2", [r.lab_sample_id, ctx.tenantId]);

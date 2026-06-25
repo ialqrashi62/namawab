@@ -3,8 +3,9 @@
 -- E3 LABORATORY / LIS — specimen lifecycle (1 of group E3).
 -- CANDIDATE ONLY — DO NOT EXECUTE ON PRODUCTION WITHOUT EXPLICIT DDL APPROVAL (DB gate).
 --
--- الهدف: تتبع دورة حياة العينة المخبرية: Collected -> Received -> InProcess -> Verified
---   -> Reported (أو Rejected). صف واحد لكل عينة، يشير إلى أمر المختبر (lab_order_id
+-- الهدف: تتبع دورة حياة العينة المخبرية: Collected -> Received -> InProcess
+--   -> Reported (أو Rejected). (التحقق Verified مفهوم خاص بالنتيجة lab_results.status لا بالعينة.)
+--   صف واحد لكل عينة، يشير إلى أمر المختبر (lab_order_id
 --   يطابق lab_radiology_orders.id اليوم؛ وعند تفعيل E-X يطابق orders.id من النوع 'lab').
 --   الربط على patient_id مثل بقية النظام؛ لا يوجد جدول encounters بعد.
 --   نفس قالب الـ 150 سياسة FORCE RLS: tenant_id NOT NULL REFERENCES tenants(id)
@@ -33,12 +34,14 @@ CREATE TABLE IF NOT EXISTS lab_samples (
     rejected_at TIMESTAMP,
     notes TEXT DEFAULT '',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT chk_lab_samples_state CHECK (state IN ('Collected','Received','InProcess','Verified','Reported','Rejected'))
+    -- state set limited to REACHABLE states only; 'Verified' was unreachable (no transition advances
+    -- a sample to 'Verified' — verification is a RESULT concept, samples go ...InProcess->Reported).
+    CONSTRAINT chk_lab_samples_state CHECK (state IN ('Collected','Received','InProcess','Reported','Rejected'))
 );
 
 -- idempotent: ensure the state CHECK exists even when the table pre-dates this migration.
 ALTER TABLE lab_samples DROP CONSTRAINT IF EXISTS chk_lab_samples_state;
-ALTER TABLE lab_samples ADD CONSTRAINT chk_lab_samples_state CHECK (state IN ('Collected','Received','InProcess','Verified','Reported','Rejected'));
+ALTER TABLE lab_samples ADD CONSTRAINT chk_lab_samples_state CHECK (state IN ('Collected','Received','InProcess','Reported','Rejected'));
 
 CREATE INDEX IF NOT EXISTS idx_lab_samples_tenant_id ON lab_samples (tenant_id);
 CREATE INDEX IF NOT EXISTS idx_lab_samples_lab_order_id ON lab_samples (lab_order_id);
