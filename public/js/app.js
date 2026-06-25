@@ -3884,9 +3884,223 @@ async function renderLab(el) {
           </tbody></table></div></div>
         </div>
       </div>
-    </div>`;
+    </div>
+    <div id="lisPanel" class="mt-16"></div>`;
   setTimeout(() => { orders.forEach(o => { try { JsBarcode('#labBC' + o.id, 'LAB-' + o.id + '-' + (o.patient_name || '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 8), { format: 'CODE128', width: 1.2, height: 35, fontSize: 9, displayValue: true, margin: 2, textMargin: 1 }); } catch (e) { } }); }, 100);
+  try { renderLisPanel(); } catch (e) { console.log('LIS panel error:', e); }
 }
+
+// ============================================================
+// E3 LIS panel — specimen lifecycle, structured results (verify/hold),
+// critical call-back capture, QC entry. All output escaped via escapeHTML/safeId.
+// Degrades silently if the E3 endpoints are not yet deployed (404/500 -> empty).
+// ============================================================
+async function renderLisPanel() {
+  const host = document.getElementById('lisPanel');
+  if (!host) return;
+  let samples = [], results = [], qc = [];
+  try { samples = await API.get('/api/lab/samples'); } catch (e) { samples = null; }
+  // API.request returns parsed JSON even on errors; if the endpoint is missing/blocked it
+  // returns a non-array {error} object. Render nothing rather than break the legacy screen.
+  if (samples === null || !Array.isArray(samples)) { host.innerHTML = ''; return; }
+  try { results = await API.get('/api/lab/results'); } catch (e) { results = []; }
+  if (!Array.isArray(results)) results = [];
+  try { qc = await API.get('/api/lab/qc'); } catch (e) { qc = []; }
+  if (!Array.isArray(qc)) qc = [];
+
+  const stateBadge = (st) => {
+    const map = { Collected: '#64748b', Received: '#3b82f6', InProcess: '#f59e0b', Verified: '#8b5cf6', Reported: '#22c55e', Rejected: '#ef4444' };
+    return `<span class="badge" style="background:${map[st] || '#64748b'}">${escapeHTML(st)}</span>`;
+  };
+  const resStatusBadge = (r) => {
+    if (r.is_critical) return `<span class="badge" style="background:#dc2626">🚨 ${tr('CRITICAL', 'حرجة')}</span>`;
+    const m = { verified: '#22c55e', held: '#f59e0b', pending: '#64748b' };
+    return `<span class="badge" style="background:${m[r.status] || '#64748b'}">${escapeHTML(r.status || '')}</span>`;
+  };
+
+  host.innerHTML = `
+    <div class="card glass-card-premium">
+      <div class="card-title">🧪 ${tr('LIS — Sample Lifecycle', 'نظام المختبر — دورة حياة العينة')}</div>
+      <div class="flex gap-8 mb-12" style="flex-wrap:wrap">
+        <input class="form-input" id="lisCollectOrder" placeholder="${tr('Lab order ID (optional)', 'رقم أمر المختبر (اختياري)')}" style="flex:1;min-width:140px">
+        <input class="form-input" id="lisCollectPatient" placeholder="${tr('Patient ID (optional)', 'رقم المريض (اختياري)')}" style="flex:1;min-width:140px">
+        <button class="btn btn-success" onclick="lisCollectSample()">➕ ${tr('Collect Sample', 'سحب عينة')}</button>
+      </div>
+      <div class="table-wrapper"><table class="data-table"><thead><tr>
+        <th>${tr('Barcode', 'الباركود')}</th><th>${tr('Patient', 'المريض')}</th><th>${tr('State', 'الحالة')}</th><th>${tr('Actions', 'إجراءات')}</th>
+      </tr></thead><tbody>
+      ${samples.length === 0 ? `<tr><td colspan="4"><div class="empty-state-card"><div class="empty-state-icon">🧪</div><div>${tr('No samples', 'لا توجد عينات')}</div></div></td></tr>` : samples.map(sm => `<tr>
+        <td style="font-family:monospace;font-size:12px">${escapeHTML(sm.barcode || '')}</td>
+        <td>${escapeHTML(sm.patient_name || (sm.patient_id ? '#' + safeId(sm.patient_id) : '—'))}</td>
+        <td>${stateBadge(sm.state)}</td>
+        <td>
+          ${sm.state === 'Collected' ? `<button class="btn btn-sm btn-primary" onclick="lisSampleAction(${safeId(sm.id)},'receive')">📥 ${tr('Receive', 'استلام')}</button>` : ''}
+          ${sm.state === 'Received' ? `<button class="btn btn-sm btn-info" onclick="lisSampleAction(${safeId(sm.id)},'process')">⚙️ ${tr('Process', 'تشغيل')}</button>` : ''}
+          ${['Collected', 'Received', 'InProcess'].includes(sm.state) ? `<button class="btn btn-sm btn-danger" onclick="lisRejectSample(${safeId(sm.id)})">🚫 ${tr('Reject', 'رفض')}</button>` : ''}
+          ${sm.state === 'InProcess' ? `<button class="btn btn-sm btn-success" onclick="lisOpenResultForm(${safeId(sm.id)})">🧬 ${tr('Enter Result', 'إدخال نتيجة')}</button>` : ''}
+        </td>
+      </tr>`).join('')}
+      </tbody></table></div>
+      <div id="lisResultForm" class="mt-12"></div>
+    </div>
+
+    <div class="card glass-card-premium mt-16">
+      <div class="card-title">🧬 ${tr('Results — Verify / Hold / Report', 'النتائج — تحقق / تعليق / إصدار')}</div>
+      <div class="table-wrapper"><table class="data-table"><thead><tr>
+        <th>${tr('Test', 'الفحص')}</th><th>${tr('Value', 'القيمة')}</th><th>${tr('Flag', 'العلم')}</th><th>${tr('Status', 'الحالة')}</th><th>${tr('Hold Reasons', 'أسباب التعليق')}</th><th>${tr('Actions', 'إجراءات')}</th>
+      </tr></thead><tbody>
+      ${results.length === 0 ? `<tr><td colspan="6"><div class="empty-state-card"><div class="empty-state-icon">🧬</div><div>${tr('No results', 'لا توجد نتائج')}</div></div></td></tr>` : results.map(r => `<tr>
+        <td>${escapeHTML(r.test_name || '')}${r.loinc ? ` <span style="color:var(--text-dim);font-size:11px">(${escapeHTML(r.loinc)})</span>` : ''}</td>
+        <td>${escapeHTML(String(r.value ?? ''))} ${escapeHTML(r.unit || '')}</td>
+        <td>${escapeHTML(r.abnormal_flag || '—')}</td>
+        <td>${resStatusBadge(r)}${r.reported ? ` <span class="badge" style="background:#22c55e">📤 ${tr('Reported', 'صدر')}</span>` : ''}</td>
+        <td style="font-size:11px;color:var(--text-dim);max-width:180px">${escapeHTML(r.hold_reasons || '')}</td>
+        <td>
+          ${r.status === 'held' ? `<button class="btn btn-sm btn-primary" onclick="lisVerifyResult(${safeId(r.id)})">✔️ ${tr('Verify', 'اعتماد')}</button>` : ''}
+          ${r.is_critical ? `<button class="btn btn-sm btn-danger" onclick="lisCriticalCallback(${safeId(r.id)})">📞 ${tr('Call-back', 'إبلاغ هاتفي')}</button>` : ''}
+          ${r.status === 'verified' && !r.reported ? `<button class="btn btn-sm btn-success" onclick="lisReportResult(${safeId(r.id)}, ${r.is_critical ? 'true' : 'false'})">📤 ${tr('Report', 'إصدار')}</button>` : ''}
+        </td>
+      </tr>`).join('')}
+      </tbody></table></div>
+    </div>
+
+    <div class="card glass-card-premium mt-16">
+      <div class="card-title">📈 ${tr('Quality Control (Levey-Jennings)', 'ضبط الجودة')}</div>
+      <div class="flex gap-8 mb-12" style="flex-wrap:wrap">
+        <input class="form-input" id="qcAnalyzer" placeholder="${tr('Analyzer', 'المحلّل')}" style="flex:1;min-width:110px">
+        <input class="form-input" id="qcAnalyte" placeholder="${tr('Analyte', 'المادة')}" style="flex:1;min-width:110px">
+        <input class="form-input" id="qcLevel" placeholder="${tr('Level', 'المستوى')}" style="width:90px">
+        <input class="form-input" id="qcValue" type="number" step="any" placeholder="${tr('Value', 'القيمة')}" style="width:100px">
+        <input class="form-input" id="qcTarget" type="number" step="any" placeholder="${tr('Target', 'الهدف')}" style="width:100px">
+        <input class="form-input" id="qcSd" type="number" step="any" placeholder="SD" style="width:80px">
+        <button class="btn btn-primary" onclick="lisEnterQc()">➕ ${tr('Enter QC', 'إدخال')}</button>
+      </div>
+      <div class="table-wrapper"><table class="data-table"><thead><tr>
+        <th>${tr('Analyzer', 'المحلّل')}</th><th>${tr('Analyte', 'المادة')}</th><th>${tr('Level', 'المستوى')}</th><th>${tr('Value', 'القيمة')}</th><th>Z</th><th>${tr('Rule', 'القاعدة')}</th>
+      </tr></thead><tbody>
+      ${qc.length === 0 ? `<tr><td colspan="6"><div class="empty-state-card"><div class="empty-state-icon">📈</div><div>${tr('No QC points', 'لا توجد نقاط')}</div></div></td></tr>` : qc.map(q => `<tr style="${q.breach ? 'background:rgba(239,68,68,.12)' : ''}">
+        <td>${escapeHTML(q.analyzer || '')}</td><td>${escapeHTML(q.analyte || '')}</td><td>${escapeHTML(q.level || '')}</td>
+        <td>${escapeHTML(String(q.value ?? ''))}</td><td>${q.z !== null && q.z !== undefined ? escapeHTML(Number(q.z).toFixed(2)) : '—'}</td>
+        <td>${q.breach ? `<span class="badge" style="background:#ef4444">⚠️ ${escapeHTML(q.westgard_flag || 'breach')}</span>` : `<span class="badge" style="background:#22c55e">${escapeHTML(q.westgard_flag || 'in_control')}</span>`}</td>
+      </tr>`).join('')}
+      </tbody></table></div>
+    </div>`;
+}
+
+// API.request returns parsed JSON even on non-2xx (it does not throw); treat {error} as failure.
+function lisErr(out) { return out && typeof out === 'object' && out.error ? (out.code ? out.code + ': ' : '') + out.error : null; }
+window.lisCollectSample = async () => {
+  const order = document.getElementById('lisCollectOrder').value.trim();
+  const patient = document.getElementById('lisCollectPatient').value.trim();
+  try {
+    const out = await API.post('/api/lab/samples', { lab_order_id: order || null, patient_id: patient || null });
+    const err = lisErr(out); if (err) { showToast(tr('Error', 'خطأ') + ': ' + err, 'error'); return; }
+    showToast(tr('Sample collected', 'تم سحب العينة'));
+    await renderLisPanel();
+  } catch (e) { showToast(tr('Error', 'خطأ') + ': ' + (e.message || e), 'error'); }
+};
+window.lisSampleAction = async (id, action) => {
+  try {
+    const out = await API.put(`/api/lab/samples/${id}`, { action });
+    const err = lisErr(out); if (err) { showToast(tr('Error', 'خطأ') + ': ' + err, 'error'); return; }
+    showToast(tr('Updated', 'تم التحديث')); await renderLisPanel();
+  } catch (e) { showToast(tr('Error', 'خطأ') + ': ' + (e.message || e), 'error'); }
+};
+window.lisRejectSample = async (id) => {
+  const reason = prompt(tr('Rejection reason:', 'سبب الرفض:'));
+  if (!reason) return;
+  try {
+    const out = await API.put(`/api/lab/samples/${id}`, { action: 'reject', rejected_reason: reason });
+    const err = lisErr(out); if (err) { showToast(tr('Error', 'خطأ') + ': ' + err, 'error'); return; }
+    showToast(tr('Sample rejected', 'تم رفض العينة')); await renderLisPanel();
+  } catch (e) { showToast(tr('Error', 'خطأ') + ': ' + (e.message || e), 'error'); }
+};
+window.lisOpenResultForm = (sampleId) => {
+  const f = document.getElementById('lisResultForm');
+  if (!f) return;
+  f.innerHTML = `<div class="card glass-card-premium" style="border:1px solid var(--accent)">
+    <div class="card-title">🧬 ${tr('Enter Result for Sample', 'إدخال نتيجة للعينة')} #${safeId(sampleId)}</div>
+    <div class="flex gap-8 mb-8" style="flex-wrap:wrap">
+      <input class="form-input" id="resTestName" placeholder="${tr('Test name', 'اسم الفحص')}" style="flex:1;min-width:140px">
+      <input class="form-input" id="resLoinc" placeholder="LOINC" style="width:120px">
+      <input class="form-input" id="resValue" placeholder="${tr('Value', 'القيمة')}" style="width:110px">
+      <input class="form-input" id="resUnit" placeholder="${tr('Unit', 'الوحدة')}" style="width:90px">
+      <input class="form-input" id="resLow" type="number" step="any" placeholder="${tr('Ref low', 'الحد الأدنى')}" style="width:100px">
+      <input class="form-input" id="resHigh" type="number" step="any" placeholder="${tr('Ref high', 'الحد الأعلى')}" style="width:100px">
+      <button class="btn btn-success" onclick="lisSubmitResult(${safeId(sampleId)})">💾 ${tr('Save & Auto-verify', 'حفظ وتحقق آلي')}</button>
+    </div>
+    <div style="font-size:11px;color:var(--text-dim)">${tr('Auto-verify HOLDS on out-of-range, critical, missing range, or significant delta.', 'التحقق الآلي يعلّق عند الخروج عن المعدل أو القيمة الحرجة أو غياب المعدل أو فرق كبير.')}</div>
+  </div>`;
+};
+window.lisSubmitResult = async (sampleId) => {
+  const body = {
+    lab_sample_id: sampleId,
+    test_name: document.getElementById('resTestName').value.trim(),
+    loinc: document.getElementById('resLoinc').value.trim(),
+    value: document.getElementById('resValue').value.trim(),
+    unit: document.getElementById('resUnit').value.trim(),
+    ref_low: document.getElementById('resLow').value.trim(),
+    ref_high: document.getElementById('resHigh').value.trim(),
+  };
+  if (!body.test_name || body.value === '') { showToast(tr('Test name and value required', 'الاسم والقيمة مطلوبان'), 'error'); return; }
+  try {
+    const out = await API.post('/api/lab/results', body);
+    const err = lisErr(out); if (err) { showToast(tr('Error', 'خطأ') + ': ' + err, 'error'); return; }
+    const v = out.verdict || {};
+    if (v.status === 'held') showToast('⏸️ ' + tr('HELD for review', 'مُعلّقة للمراجعة') + (v.is_critical ? ' 🚨 ' + tr('CRITICAL', 'حرجة') : '') + ' — ' + (v.reasons || []).join(', '), 'error');
+    else showToast('✔️ ' + tr('Auto-verified', 'تم الاعتماد آلياً'));
+    document.getElementById('lisResultForm').innerHTML = '';
+    await renderLisPanel();
+  } catch (e) { showToast(tr('Error', 'خطأ') + ': ' + (e.message || e), 'error'); }
+};
+window.lisVerifyResult = async (id) => {
+  try {
+    const out = await API.put(`/api/lab/results/${id}/verify`, {});
+    const err = lisErr(out); if (err) { showToast(tr('Error', 'خطأ') + ': ' + err, 'error'); return; }
+    showToast(tr('Verified', 'تم الاعتماد')); await renderLisPanel();
+  } catch (e) { showToast(tr('Error', 'خطأ') + ': ' + (e.message || e), 'error'); }
+};
+window.lisCriticalCallback = async (id) => {
+  const notified = prompt(tr('Notified whom (physician name/contact)?', 'تم إبلاغ من (اسم/جهة الطبيب)؟'));
+  if (!notified) return;
+  try {
+    const out = await API.post(`/api/lab/results/${id}/callback`, { notified_to: notified, ack: 1 });
+    const err = lisErr(out); if (err) { showToast(tr('Error', 'خطأ') + ': ' + err, 'error'); return; }
+    showToast(tr('Call-back documented', 'تم توثيق الإبلاغ'));
+    await renderLisPanel();
+  } catch (e) { showToast(tr('Error', 'خطأ') + ': ' + (e.message || e), 'error'); }
+};
+window.lisReportResult = async (id, isCritical) => {
+  try {
+    const out = await API.put(`/api/lab/results/${id}/report`, {});
+    const err = lisErr(out);
+    if (err) {
+      if (err.includes('CRITICAL_CALLBACK_REQUIRED') || err.includes('call-back')) {
+        showToast('🚨 ' + tr('Critical result requires a documented call-back first', 'النتيجة الحرجة تتطلب توثيق إبلاغ هاتفي أولاً'), 'error');
+      } else { showToast(tr('Error', 'خطأ') + ': ' + err, 'error'); }
+      return;
+    }
+    showToast(tr('Reported', 'تم الإصدار'));
+    await renderLisPanel();
+  } catch (e) { showToast(tr('Error', 'خطأ') + ': ' + ((e && e.message) || String(e)), 'error'); }
+};
+window.lisEnterQc = async () => {
+  const body = {
+    analyzer: document.getElementById('qcAnalyzer').value.trim(),
+    analyte: document.getElementById('qcAnalyte').value.trim(),
+    level: document.getElementById('qcLevel').value.trim(),
+    value: document.getElementById('qcValue').value.trim(),
+    target: document.getElementById('qcTarget').value.trim(),
+    sd: document.getElementById('qcSd').value.trim(),
+  };
+  try {
+    const out = await API.post('/api/lab/qc', body);
+    const err = lisErr(out); if (err) { showToast(tr('Error', 'خطأ') + ': ' + err, 'error'); return; }
+    if (out.flag && out.flag.breach) showToast('⚠️ ' + tr('QC BREACH', 'انحراف ضبط الجودة') + ' (' + (out.flag.rule || '') + ')', 'error');
+    else showToast(tr('QC recorded', 'تم تسجيل الضبط'));
+    await renderLisPanel();
+  } catch (e) { showToast(tr('Error', 'خطأ') + ': ' + (e.message || e), 'error'); }
+};
 window.printLabBarcode = (orderId, patientName, testType) => {
   const svgEl = document.getElementById('labBC' + orderId);
   if (!svgEl) { showToast(tr('Barcode not found', 'الباركود غير موجود'), 'error'); return; }
