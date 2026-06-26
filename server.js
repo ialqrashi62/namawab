@@ -10,6 +10,7 @@ const rateLimit = require('express-rate-limit');
 const { pool, initDatabase, tenantStore } = require('./db_postgres');
 const bcrypt = require('bcryptjs');
 const ce = require('./crypto_envelope'); // A3 at-rest envelope encryption (DPAPI KEK); graceful when not configured
+const fe = require('./finance_engine'); // E10 GL/ZATCA pure engine (balanced-entry, VAT, aging, UBL/QR)
 const { insertSampleData, populateLabCatalog, populateRadiologyCatalog } = require('./seed_data_pg');
 const { populateMedicalServices, populateBaseDrugs } = require('./seed_services_pg');
 const { addExtraLabTests, addExtraRadiology } = require('./seed_extra_catalog');
@@ -1671,29 +1672,256 @@ app.get('/api/hr/attendance', requireAuth, requireRole('hr'), async (req, res) =
 });
 
 // ===== FINANCE =====
-app.get('/api/finance/accounts', requireAuth, requireRole('finance', 'accounts', 'invoices'), async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM finance_chart_of_accounts WHERE is_active=1 ORDER BY account_code')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
+// ============================================================================================
+// ===== E10 FINANCE / GENERAL LEDGER (double-entry) + ZATCA E-INVOICE =========================
+// Posting to the ledger is GATED OFF by default (ACCOUNTING_POSTING_ENABLED). Journal entries are
+// created as DRAFT; an explicit POST flips them to POSTED only when the flag is on. A POSTED entry
+// is immutable (reversal-only). Every monetary mutation is auth+role+tenant guarded and audited.
+// CRITICAL invariants: balanced-entry (sum debit==credit), posting-gate, tenant scoping.
+// ============================================================================================
 
-app.post('/api/finance/accounts', requireAuth, requireRole('finance', 'accounts', 'invoices'), async (req, res) => {
+// posting gate — default OFF. Only "1"/"true" (case-insensitive) enables ledger posting.
+function e10PostingEnabled() {
+    return /^(1|true|on|yes)$/i.test(String(process.env.ACCOUNTING_POSTING_ENABLED || '').trim());
+}
+// ZATCA external clearance/reporting gate — default OFF (no real CSID => never call ZATCA).
+function e10ZatcaEnabled() {
+    return /^(1|true|on|yes)$/i.test(String(process.env.ZATCA_ENABLED || '').trim());
+}
+// fail-closed tenant resolver: null tenant => throw 403 (no unscoped fallback). Mirrors e7/e8/e9.
+function e10RequireTenant(req) {
+    const { tenantId } = getRequestTenantContext(req);
+    if (!tenantId) { const err = new Error('Tenant scope required'); err.e10Status = 403; throw err; }
+    return tenantId;
+}
+// integer-id coercion guard: positive integer or null (no padded-string / float bypass — E6 lesson).
+function e10IntId(v) {
+    if (v === null || v === undefined || v === '') return null;
+    const n = Number(v);
+    if (!Number.isInteger(n) || n <= 0) return null;
+    return n;
+}
+function e10Err(res, e) {
+    if (e && e.e10Status) return res.status(e.e10Status).json({ error: e.message });
+    console.error('E10 finance error:', e && e.message);
+    return res.status(500).json({ error: 'Server error' });
+}
+
+// ----- Chart of Accounts (tenant-scoped; account_class validated server-side) -----
+const E10_ACCOUNT_CLASSES = ['Asset', 'Liability', 'Equity', 'Revenue', 'Expense'];
+app.get('/api/finance/accounts', requireAuth, requireRole('finance', 'accounts', 'invoices'), requireTenantScope, async (req, res) => {
     try {
-        const { account_code, account_name_ar, account_name_en, parent_id, account_type } = req.body;
-        const result = await pool.query('INSERT INTO finance_chart_of_accounts (account_code, account_name_ar, account_name_en, parent_id, account_type) VALUES ($1,$2,$3,$4,$5) RETURNING id',
-            [account_code || '', account_name_ar || '', account_name_en || '', parent_id || 0, account_type || '']);
-        res.json((await pool.query('SELECT * FROM finance_chart_of_accounts WHERE id=$1', [result.rows[0].id])).rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+        const tenantId = e10RequireTenant(req);
+        res.json((await pool.query('SELECT * FROM finance_chart_of_accounts WHERE tenant_id=$1 AND is_active=1 ORDER BY account_code', [tenantId])).rows);
+    } catch (e) { e10Err(res, e); }
 });
 
-app.get('/api/finance/journal', requireAuth, requireRole('finance', 'accounts', 'invoices'), async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM finance_journal_entries ORDER BY id DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.post('/api/finance/accounts', requireAuth, requireRole('finance', 'accounts', 'invoices'), requireTenantScope, async (req, res) => {
+    try {
+        const tenantId = e10RequireTenant(req);
+        const { account_code, account_name_ar, account_name_en, parent_id } = req.body;
+        // account_class is server-validated (client cannot inject an arbitrary class).
+        const account_class = E10_ACCOUNT_CLASSES.includes(req.body.account_class) ? req.body.account_class
+            : (E10_ACCOUNT_CLASSES.includes(req.body.account_type) ? req.body.account_type : null);
+        if (!account_code || !String(account_code).trim()) return res.status(422).json({ error: 'account_code required' });
+        if (!account_class) return res.status(422).json({ error: 'account_class must be one of ' + E10_ACCOUNT_CLASSES.join('/') });
+        const parentId = e10IntId(parent_id); // null if not a positive int
+        // uniqueness within tenant
+        const dup = (await pool.query('SELECT id FROM finance_chart_of_accounts WHERE tenant_id=$1 AND account_code=$2', [tenantId, String(account_code).trim()])).rows[0];
+        if (dup) return res.status(409).json({ error: 'Account code already exists' });
+        const result = await pool.query(
+            'INSERT INTO finance_chart_of_accounts (account_code, account_name_ar, account_name_en, parent_id, account_type, account_class, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id',
+            [String(account_code).trim(), account_name_ar || '', account_name_en || '', parentId || 0, account_class, account_class, tenantId]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_LEDGER_ACCOUNT', 'Finance', `CoA ${account_code} (${account_class})`, req.ip);
+        res.json((await pool.query('SELECT * FROM finance_chart_of_accounts WHERE id=$1 AND tenant_id=$2', [result.rows[0].id, tenantId])).rows[0]);
+    } catch (e) { e10Err(res, e); }
 });
 
-app.get('/api/finance/vouchers', requireAuth, requireRole('finance', 'accounts', 'invoices'), async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM finance_vouchers ORDER BY id DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+// ----- General Ledger: list journal entries (tenant-scoped, with totals) -----
+app.get('/api/finance/journal', requireAuth, requireRole('finance', 'accounts', 'invoices'), requireTenantScope, async (req, res) => {
+    try {
+        const tenantId = e10RequireTenant(req);
+        const rows = (await pool.query(
+            `SELECT je.*,
+                    COALESCE((SELECT SUM(jl.debit)  FROM finance_journal_lines jl WHERE jl.entry_id=je.id AND jl.tenant_id=$1),0)  AS total_debit,
+                    COALESCE((SELECT SUM(jl.credit) FROM finance_journal_lines jl WHERE jl.entry_id=je.id AND jl.tenant_id=$1),0) AS total_credit
+               FROM finance_journal_entries je
+              WHERE je.tenant_id=$1
+              ORDER BY je.id DESC`, [tenantId])).rows;
+        res.json(rows);
+    } catch (e) { e10Err(res, e); }
 });
+
+// ----- General Ledger: read one entry with its lines (tenant-scoped, IDOR-safe) -----
+app.get('/api/finance/journal/:id', requireAuth, requireRole('finance', 'accounts', 'invoices'), requireTenantScope, async (req, res) => {
+    try {
+        const tenantId = e10RequireTenant(req);
+        const entryId = e10IntId(req.params.id);
+        if (!entryId) return res.status(422).json({ error: 'Invalid entry id' });
+        const entry = (await pool.query('SELECT * FROM finance_journal_entries WHERE id=$1 AND tenant_id=$2', [entryId, tenantId])).rows[0];
+        if (!entry) return res.status(404).json({ error: 'Not found' });
+        const lines = (await pool.query(
+            `SELECT jl.*, coa.account_code, coa.account_name_en, coa.account_name_ar
+               FROM finance_journal_lines jl
+               LEFT JOIN finance_chart_of_accounts coa ON coa.id=jl.account_id AND coa.tenant_id=$2
+              WHERE jl.entry_id=$1 AND jl.tenant_id=$2
+              ORDER BY jl.id`, [entryId, tenantId])).rows;
+        res.json({ entry, lines });
+    } catch (e) { e10Err(res, e); }
+});
+
+// ----- General Ledger: create a balanced journal entry (DRAFT) — SERVER-SIDE balance enforcement -----
+// Body: { entry_date, description, reference, source_type?, lines:[{account_id, debit, credit, notes?}] }
+// Unbalanced (sum debit != sum credit) => 422. Created as DRAFT regardless of the posting flag.
+app.post('/api/finance/journal', requireAuth, requireRole('finance', 'accounts'), requireTenantScope, async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const tenantId = e10RequireTenant(req);
+        await client.query("SELECT set_config('app.tenant_id', $1, false)", [String(tenantId)]);
+        const { entry_date, description, reference, lines } = req.body;
+        const sourceType = ['MANUAL', 'INVOICE', 'SYSTEM'].includes(req.body.source_type) ? req.body.source_type : 'MANUAL';
+
+        // 1) SERVER-SIDE balanced-entry validation (anti-spoof: client totals never trusted).
+        const v = fe.validateBalancedEntry(lines);
+        if (!v.ok) {
+            const code = v.reason === 'unbalanced' ? 422 : 422;
+            return res.status(code).json({ error: 'Unbalanced or invalid journal entry', reason: v.reason, debit: v.debit, credit: v.credit });
+        }
+
+        // 2) every referenced account must belong to THIS tenant (cross-tenant account => 422, no leak).
+        const accountIds = [...new Set(v.lines.map(l => l.account_id))];
+        const owned = (await client.query('SELECT id FROM finance_chart_of_accounts WHERE tenant_id=$1 AND id = ANY($2::int[])', [tenantId, accountIds])).rows;
+        if (owned.length !== accountIds.length) return res.status(422).json({ error: 'One or more accounts are invalid for this tenant' });
+
+        await client.query('BEGIN');
+        const entryNumber = 'JV-' + new Date().getFullYear() + '-' + Date.now().toString().slice(-8);
+        const entry = (await client.query(
+            `INSERT INTO finance_journal_entries (entry_number, entry_date, description, reference, source_type, posting_status, is_posted, created_by, tenant_id, balanced_at)
+             VALUES ($1,$2,$3,$4,$5,'DRAFT',0,$6,$7, now()) RETURNING *`,
+            [entryNumber, entry_date || new Date().toISOString().slice(0, 10), description || '', reference || '', sourceType, req.session.user?.display_name || '', tenantId])).rows[0];
+        for (const ln of v.lines) {
+            await client.query(
+                'INSERT INTO finance_journal_lines (entry_id, account_id, debit, credit, notes, tenant_id) VALUES ($1,$2,$3,$4,$5,$6)',
+                [entry.id, ln.account_id, ln.debit, ln.credit, '', tenantId]);
+        }
+        await client.query('COMMIT');
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_JOURNAL_ENTRY', 'Finance',
+            `${entryNumber} DRAFT balanced (${v.debit}=${v.credit}) src=${sourceType}`, req.ip);
+        res.json({ entry, debit: v.debit, credit: v.credit, posting_status: 'DRAFT' });
+    } catch (e) {
+        try { await client.query('ROLLBACK'); } catch (_) { }
+        e10Err(res, e);
+    } finally {
+        try { await client.query("SELECT set_config('app.tenant_id', '', false)"); } catch (_) { }
+        client.release();
+    }
+});
+
+// ----- General Ledger: POST a draft entry to the ledger — GATED by ACCOUNTING_POSTING_ENABLED -----
+// State machine: DRAFT -> POSTED. Posting is irreversible (immutable); re-posting => 409.
+app.post('/api/finance/journal/:id/post', requireAuth, requireRole('finance', 'accounts'), requireTenantScope, async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const tenantId = e10RequireTenant(req);
+        await client.query("SELECT set_config('app.tenant_id', $1, false)", [String(tenantId)]);
+        const entryId = e10IntId(req.params.id);
+        if (!entryId) return res.status(422).json({ error: 'Invalid entry id' });
+        if (!e10PostingEnabled()) {
+            return res.status(403).json({ error: 'Accounting posting is disabled (ACCOUNTING_POSTING_ENABLED off)', posting_enabled: false });
+        }
+        await client.query('BEGIN');
+        // lock the row before the state flip (no double-post race).
+        const entry = (await client.query('SELECT * FROM finance_journal_entries WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [entryId, tenantId])).rows[0];
+        if (!entry) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'Not found' }); }
+        if (entry.posting_status !== 'DRAFT') { await client.query('ROLLBACK'); return res.status(409).json({ error: `Cannot post entry in ${entry.posting_status} state` }); }
+        // re-verify balance from PERSISTED lines before posting (defence-in-depth; never trust prior state).
+        const lines = (await client.query('SELECT account_id, debit, credit FROM finance_journal_lines WHERE entry_id=$1 AND tenant_id=$2', [entryId, tenantId])).rows;
+        const v = fe.validateBalancedEntry(lines);
+        if (!v.ok) { await client.query('ROLLBACK'); return res.status(422).json({ error: 'Persisted lines are not balanced; refusing to post', reason: v.reason }); }
+        await client.query(
+            `UPDATE finance_journal_entries SET posting_status='POSTED', is_posted=1, posted_by=$1, posted_at=now() WHERE id=$2 AND tenant_id=$3`,
+            [req.session.user?.id || null, entryId, tenantId]);
+        await client.query('COMMIT');
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'POST_JOURNAL_ENTRY', 'Finance',
+            `${entry.entry_number} POSTED (${v.debit}=${v.credit})`, req.ip);
+        res.json({ success: true, id: entryId, posting_status: 'POSTED' });
+    } catch (e) {
+        try { await client.query('ROLLBACK'); } catch (_) { }
+        e10Err(res, e);
+    } finally {
+        try { await client.query("SELECT set_config('app.tenant_id', '', false)"); } catch (_) { }
+        client.release();
+    }
+});
+
+// ----- General Ledger: REVERSE a posted entry (the only mutation of a POSTED entry) -----
+app.post('/api/finance/journal/:id/reverse', requireAuth, requireRole('finance', 'accounts'), requireTenantScope, async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const tenantId = e10RequireTenant(req);
+        await client.query("SELECT set_config('app.tenant_id', $1, false)", [String(tenantId)]);
+        const entryId = e10IntId(req.params.id);
+        if (!entryId) return res.status(422).json({ error: 'Invalid entry id' });
+        if (!e10PostingEnabled()) return res.status(403).json({ error: 'Accounting posting is disabled', posting_enabled: false });
+        await client.query('BEGIN');
+        const entry = (await client.query('SELECT * FROM finance_journal_entries WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [entryId, tenantId])).rows[0];
+        if (!entry) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'Not found' }); }
+        if (entry.posting_status !== 'POSTED') { await client.query('ROLLBACK'); return res.status(409).json({ error: `Only POSTED entries can be reversed (state ${entry.posting_status})` }); }
+        const origLines = (await client.query('SELECT account_id, debit, credit FROM finance_journal_lines WHERE entry_id=$1 AND tenant_id=$2', [entryId, tenantId])).rows;
+        const revLines = fe.buildReversalLines(origLines);
+        const v = fe.validateBalancedEntry(revLines);
+        if (!v.ok) { await client.query('ROLLBACK'); return res.status(422).json({ error: 'Reversal not balanced', reason: v.reason }); }
+        const revNumber = 'JV-' + new Date().getFullYear() + '-' + Date.now().toString().slice(-8) + 'R';
+        const rev = (await client.query(
+            `INSERT INTO finance_journal_entries (entry_number, entry_date, description, reference, source_type, posting_status, is_posted, created_by, posted_by, posted_at, balanced_at, reversal_of, tenant_id)
+             VALUES ($1,$2,$3,$4,'REVERSAL','POSTED',1,$5,$6,now(),now(),$7,$8) RETURNING *`,
+            [revNumber, new Date().toISOString().slice(0, 10), 'Reversal of ' + entry.entry_number, entry.entry_number, req.session.user?.display_name || '', req.session.user?.id || null, entryId, tenantId])).rows[0];
+        for (const ln of v.lines) {
+            await client.query('INSERT INTO finance_journal_lines (entry_id, account_id, debit, credit, notes, tenant_id) VALUES ($1,$2,$3,$4,$5,$6)',
+                [rev.id, ln.account_id, ln.debit, ln.credit, 'Reversal', tenantId]);
+        }
+        await client.query(`UPDATE finance_journal_entries SET posting_status='REVERSED' WHERE id=$1 AND tenant_id=$2`, [entryId, tenantId]);
+        await client.query('COMMIT');
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'REVERSE_JOURNAL_ENTRY', 'Finance', `${entry.entry_number} reversed by ${revNumber}`, req.ip);
+        res.json({ success: true, reversal: rev, posting_status: 'REVERSED' });
+    } catch (e) {
+        try { await client.query('ROLLBACK'); } catch (_) { }
+        e10Err(res, e);
+    } finally {
+        try { await client.query("SELECT set_config('app.tenant_id', '', false)"); } catch (_) { }
+        client.release();
+    }
+});
+
+// ----- AR Aging report (tenant-scoped buckets 0-30/31-60/61-90/90+) -----
+app.get('/api/finance/aging', requireAuth, requireRole('finance', 'accounts', 'invoices'), requireTenantScope, async (req, res) => {
+    try {
+        const tenantId = e10RequireTenant(req);
+        // outstanding balance per invoice = total - paid; aged by created_at. Tenant-scoped.
+        const rows = (await pool.query(
+            `SELECT id, patient_name,
+                    (COALESCE(total,0) - COALESCE(paid,0))               AS balance,
+                    GREATEST(0, DATE_PART('day', now() - created_at))::int AS age_days
+               FROM invoices
+              WHERE tenant_id=$1 AND (COALESCE(total,0) - COALESCE(paid,0)) > 0`, [tenantId])).rows;
+        const summary = fe.ageInvoices(rows);
+        res.json({ summary, invoices: rows });
+    } catch (e) { e10Err(res, e); }
+});
+
+// ----- Posting / ZATCA gate status (read-only; lets the UI show OFF state) -----
+app.get('/api/finance/posting-status', requireAuth, requireRole('finance', 'accounts', 'invoices'), requireTenantScope, async (req, res) => {
+    try { e10RequireTenant(req); res.json({ posting_enabled: e10PostingEnabled(), zatca_enabled: e10ZatcaEnabled() }); }
+    catch (e) { e10Err(res, e); }
+});
+
+app.get('/api/finance/vouchers', requireAuth, requireRole('finance', 'accounts', 'invoices'), requireTenantScope, async (req, res) => {
+    try {
+        const tenantId = e10RequireTenant(req);
+        res.json((await pool.query('SELECT * FROM finance_vouchers WHERE tenant_id=$1 ORDER BY id DESC', [tenantId])).rows);
+    } catch (e) { e10Err(res, e); }
+});
+// ===== end E10 FINANCE / GENERAL LEDGER ======================================================
 
 // ===== SETTINGS =====
 // GET settings is allowed for all authenticated users (needed for theme loading)
@@ -4481,25 +4709,88 @@ app.put('/api/portal/appointments/:id', requireAuth, async (req, res) => {
 });
 
 // ===== ZATCA E-INVOICING =====
-app.get('/api/zatca/invoices', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM zatca_invoices ORDER BY created_at DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-app.post('/api/zatca/generate', requireAuth, async (req, res) => {
+// ===== E10 ZATCA PHASE-2 E-INVOICE (tenant-scoped, role-gated; clearance GATED off) =====
+// generate => deterministic UBL 2.1 XML + TLV base64 QR + stamp PLACEHOLDER (no CSID => no real stamp).
+// submit   => records intent only; when ZATCA_ENABLED is off the external call is stubbed 503.
+app.get('/api/zatca/invoices', requireAuth, requireRole('finance', 'accounts', 'invoices'), requireTenantScope, async (req, res) => {
     try {
-        const { invoice_id } = req.body;
-        const inv = (await pool.query('SELECT i.*, p.name_ar, p.name_en, p.national_id FROM invoices i LEFT JOIN patients p ON i.patient_id=p.id WHERE i.id=$1', [invoice_id])).rows[0];
+        const tenantId = e10RequireTenant(req);
+        res.json((await pool.query('SELECT * FROM zatca_invoices WHERE tenant_id=$1 ORDER BY created_at DESC', [tenantId])).rows);
+    } catch (e) { e10Err(res, e); }
+});
+
+app.post('/api/zatca/generate', requireAuth, requireRole('finance', 'accounts'), requireTenantScope, async (req, res) => {
+    try {
+        const tenantId = e10RequireTenant(req);
+        const invoiceId = e10IntId(req.body.invoice_id);
+        if (!invoiceId) return res.status(422).json({ error: 'Invalid invoice_id' });
+        // tenant-scoped invoice lookup (cross-tenant invoice => 404, no leak).
+        const inv = (await pool.query(
+            'SELECT i.*, p.name_ar, p.name_en FROM invoices i LEFT JOIN patients p ON i.patient_id=p.id AND p.tenant_id=$2 WHERE i.id=$1 AND i.tenant_id=$2',
+            [invoiceId, tenantId])).rows[0];
         if (!inv) return res.status(404).json({ error: 'Invoice not found' });
         const company = (await pool.query("SELECT setting_value FROM company_settings WHERE setting_key='company_name'")).rows[0];
-        const vat = (await pool.query("SELECT setting_value FROM company_settings WHERE setting_key='vat_number'")).rows[0];
-        const totalBeforeVat = Number(inv.total) / 1.15;
-        const vatAmount = Number(inv.total) - totalBeforeVat;
-        const qrData = Buffer.from(JSON.stringify({ seller: company?.setting_value || 'Nama Medical', vat: vat?.setting_value || '', date: new Date().toISOString(), total: inv.total, vatAmount: vatAmount.toFixed(2) })).toString('base64');
-        const result = await pool.query('INSERT INTO zatca_invoices (invoice_id, invoice_number, seller_name, seller_vat, buyer_name, total_before_vat, vat_amount, total_with_vat, qr_code, submission_status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
-            [invoice_id, 'INV-' + String(invoice_id).padStart(8, '0'), company?.setting_value || '', vat?.setting_value || '', inv.name_ar || inv.name_en || '', totalBeforeVat.toFixed(2), vatAmount.toFixed(2), inv.total, qrData, 'Generated']);
-        logAudit(req.session.user.id, req.session.user.name, 'ZATCA_GENERATE', 'ZATCA', `E-invoice for INV-${invoice_id}`, req.ip);
+        const vatNo = (await pool.query("SELECT setting_value FROM company_settings WHERE setting_key='vat_number'")).rows[0];
+
+        // VAT computed SERVER-SIDE from the invoice total (treated as VAT-inclusive). Client vat never trusted.
+        const vatBreak = fe.vatFromInclusive(inv.total);
+        if (!vatBreak) return res.status(422).json({ error: 'Invoice total is not a valid amount' });
+        const issueDate = new Date().toISOString().slice(0, 10);
+        const issueTime = new Date().toISOString().slice(11, 19);
+        const sellerName = company?.setting_value || 'Nama Medical';
+        const sellerVat = vatNo?.setting_value || '';
+        const invNumber = inv.invoice_number || ('INV-' + String(invoiceId).padStart(8, '0'));
+
+        const qrTlv = fe.buildZatcaQR({
+            sellerName, sellerVat, timestamp: issueDate + 'T' + issueTime + 'Z',
+            total: vatBreak.total_incl, vat: vatBreak.vat_amount
+        });
+        const ubl = fe.buildUBLInvoice({
+            invoiceNumber: invNumber, issueDate, issueTime, invoiceTypeCode: '388',
+            sellerName, sellerVat, buyerName: inv.name_ar || inv.name_en || inv.patient_name || '',
+            buyerVat: '', baseExcl: vatBreak.base_excl, vat: vatBreak.vat_amount, total: vatBreak.total_incl,
+            currency: 'SAR', stampPlaceholder: 'UNSIGNED-NO-CSID'
+        });
+        const xmlHash = fe.ublHash(ubl);
+        // stamp PLACEHOLDER — a real cryptographic stamp requires an onboarded CSID (gated). We persist
+        // a deterministic placeholder derived from the doc hash, never a forged ZATCA stamp.
+        const stampPlaceholder = 'PLACEHOLDER:' + xmlHash.slice(0, 32);
+
+        // idempotent upsert on (tenant_id, invoice_id).
+        const result = await pool.query(
+            `INSERT INTO zatca_invoices
+               (invoice_id, invoice_number, seller_name, seller_vat, buyer_name, total_before_vat, vat_amount, total_with_vat,
+                qr_code, qr_tlv, ubl_xml, xml_hash, digital_stamp, submission_status, clearance_status, tenant_id)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$9,$10,$11,$12,'Generated','NOT_SUBMITTED',$13)
+             ON CONFLICT (tenant_id, invoice_id) DO UPDATE SET
+               qr_code=$9, qr_tlv=$9, ubl_xml=$10, xml_hash=$11, digital_stamp=$12,
+               total_before_vat=$6, vat_amount=$7, total_with_vat=$8, submission_status='Generated'
+             RETURNING *`,
+            [invoiceId, invNumber, sellerName, sellerVat, inv.name_ar || inv.name_en || inv.patient_name || '',
+            vatBreak.base_excl, vatBreak.vat_amount, vatBreak.total_incl, qrTlv, ubl, xmlHash, stampPlaceholder, tenantId]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'ZATCA_GENERATE', 'ZATCA', `E-invoice for ${invNumber} (VAT ${vatBreak.vat_amount})`, req.ip);
         res.json(result.rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { e10Err(res, e); }
+});
+
+// submit/report to ZATCA — GATED: without ZATCA_ENABLED + real CSID we stub 503 and only record intent.
+app.post('/api/zatca/submit', requireAuth, requireRole('finance', 'accounts'), requireTenantScope, async (req, res) => {
+    try {
+        const tenantId = e10RequireTenant(req);
+        const invoiceId = e10IntId(req.body.invoice_id);
+        if (!invoiceId) return res.status(422).json({ error: 'Invalid invoice_id' });
+        const z = (await pool.query('SELECT * FROM zatca_invoices WHERE invoice_id=$1 AND tenant_id=$2', [invoiceId, tenantId])).rows[0];
+        if (!z) return res.status(404).json({ error: 'E-invoice not generated yet' });
+        // record submission INTENT regardless of gate (auditable).
+        await pool.query('UPDATE zatca_invoices SET clearance_status=$1 WHERE invoice_id=$2 AND tenant_id=$3', ['RECORDED', invoiceId, tenantId]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'ZATCA_SUBMIT_INTENT', 'ZATCA', `Submit intent for ${z.invoice_number}`, req.ip);
+        if (!e10ZatcaEnabled()) {
+            // no external call without a real CSID — fail closed with 503 (intent recorded above).
+            return res.status(503).json({ error: 'ZATCA clearance disabled (ZATCA_ENABLED off; no CSID configured)', clearance_status: 'RECORDED', zatca_enabled: false });
+        }
+        // (real clearance call would go here once a CSID is onboarded — intentionally not implemented)
+        return res.status(503).json({ error: 'ZATCA clearance endpoint not configured', clearance_status: 'RECORDED', zatca_enabled: true });
+    } catch (e) { e10Err(res, e); }
 });
 
 // ===== TELEMEDICINE =====
@@ -4767,26 +5058,29 @@ app.post('/api/nursing/assessments', requireAuth, requireTenantScope, async (req
 });
 
 // ===== FINANCIAL DAILY CLOSE =====
-app.get('/api/finance/daily-close', requireAuth, requireRole('finance', 'accounts', 'invoices'), async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM daily_close ORDER BY created_at DESC LIMIT 30')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-app.post('/api/finance/daily-close', requireAuth, requireRole('finance', 'accounts', 'invoices'), async (req, res) => {
+app.get('/api/finance/daily-close', requireAuth, requireRole('finance', 'accounts', 'invoices'), requireTenantScope, async (req, res) => {
     try {
+        const tenantId = e10RequireTenant(req);
+        res.json((await pool.query('SELECT * FROM daily_close WHERE tenant_id=$1 ORDER BY created_at DESC LIMIT 30', [tenantId])).rows);
+    } catch (e) { e10Err(res, e); }
+});
+app.post('/api/finance/daily-close', requireAuth, requireRole('finance', 'accounts', 'invoices'), requireTenantScope, async (req, res) => {
+    try {
+        const tenantId = e10RequireTenant(req); // E10: fail-closed; aggregate only THIS tenant's invoices (no cross-tenant leak)
         const today = new Date().toISOString().split('T')[0];
-        // Aggregate today's transactions
-        const cash = (await pool.query("SELECT COALESCE(SUM(total),0) as t, COUNT(*) as c FROM invoices WHERE created_at::date=CURRENT_DATE AND payment_method='Cash'")).rows[0];
-        const card = (await pool.query("SELECT COALESCE(SUM(total),0) as t FROM invoices WHERE created_at::date=CURRENT_DATE AND payment_method='Card'")).rows[0];
-        const ins = (await pool.query("SELECT COALESCE(SUM(total),0) as t FROM invoices WHERE created_at::date=CURRENT_DATE AND payment_method='Insurance'")).rows[0];
-        const totalTx = (await pool.query("SELECT COUNT(*) as c FROM invoices WHERE created_at::date=CURRENT_DATE")).rows[0];
+        // Aggregate today's transactions — every invoices aggregation explicitly tenant-scoped.
+        const cash = (await pool.query("SELECT COALESCE(SUM(total),0) as t, COUNT(*) as c FROM invoices WHERE tenant_id=$1 AND created_at::date=CURRENT_DATE AND payment_method='Cash'", [tenantId])).rows[0];
+        const card = (await pool.query("SELECT COALESCE(SUM(total),0) as t FROM invoices WHERE tenant_id=$1 AND created_at::date=CURRENT_DATE AND payment_method='Card'", [tenantId])).rows[0];
+        const ins = (await pool.query("SELECT COALESCE(SUM(total),0) as t FROM invoices WHERE tenant_id=$1 AND created_at::date=CURRENT_DATE AND payment_method='Insurance'", [tenantId])).rows[0];
+        const totalTx = (await pool.query("SELECT COUNT(*) as c FROM invoices WHERE tenant_id=$1 AND created_at::date=CURRENT_DATE", [tenantId])).rows[0];
         const { opening_balance, closing_balance, notes } = req.body;
         const totalCash = Number(cash.t); const totalCard = Number(card.t); const totalIns = Number(ins.t);
         const variance = Number(closing_balance || 0) - (Number(opening_balance || 0) + totalCash);
-        const result = await pool.query('INSERT INTO daily_close (close_date, cashier, total_cash, total_card, total_insurance, total_transactions, opening_balance, closing_balance, variance, notes, status, closed_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
-            [today, req.session.user.name, totalCash, totalCard, totalIns, Number(totalTx.c), Number(opening_balance || 0), Number(closing_balance || 0), variance, notes || '', 'Closed', req.session.user.name]);
+        const result = await pool.query('INSERT INTO daily_close (close_date, cashier, total_cash, total_card, total_insurance, total_transactions, opening_balance, closing_balance, variance, notes, status, closed_by, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *',
+            [today, req.session.user.name, totalCash, totalCard, totalIns, Number(totalTx.c), Number(opening_balance || 0), Number(closing_balance || 0), variance, notes || '', 'Closed', req.session.user.name, tenantId]);
         logAudit(req.session.user.id, req.session.user.name, 'DAILY_CLOSE', 'Finance', `Daily close for ${today}: Cash=${totalCash}, Card=${totalCard}`, req.ip);
         res.json(result.rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { e10Err(res, e); }
 });
 
 // ===== MEDICAL RECORDS / HIM =====

@@ -4972,6 +4972,12 @@ async function renderFinance(el) {
       <button class="tab-btn px-lg py-sm border-b-2 font-bold transition-all ${window.financeTab === 'denials' ? 'active border-secondary text-secondary' : 'border-transparent text-on-surface-variant hover:text-primary'}" onclick="window.financeTab='denials'; navigateTo(currentPage)">
         🛡️ ${tr('Revenue Cycle & Denials', 'دورة الإيرادات والرفوضات')}
       </button>
+      <button class="tab-btn px-lg py-sm border-b-2 font-bold transition-all ${window.financeTab === 'ledger' ? 'active border-secondary text-secondary' : 'border-transparent text-on-surface-variant hover:text-primary'}" onclick="window.financeTab='ledger'; navigateTo(currentPage)">
+        📒 ${tr('General Ledger', 'الدفتر العام')}
+      </button>
+      <button class="tab-btn px-lg py-sm border-b-2 font-bold transition-all ${window.financeTab === 'aging' ? 'active border-secondary text-secondary' : 'border-transparent text-on-surface-variant hover:text-primary'}" onclick="window.financeTab='aging'; navigateTo(currentPage)">
+        ⏳ ${tr('AR Aging', 'أعمار الذمم المدينة')}
+      </button>
     </div>
   `;
 
@@ -5220,6 +5226,48 @@ async function renderFinance(el) {
         );
       }
     }, 50);
+
+  } else if (window.financeTab === 'ledger') {
+    // E10 General Ledger: balanced double-entry journal. Posting to the ledger is GATED OFF by
+    // default (server flag ACCOUNTING_POSTING_ENABLED). Entries are created as DRAFT.
+    htmlContent += `
+      <div id="glGateBanner" class="mb-md"></div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+        <div class="glass-card p-lg rounded-2xl border border-outline-variant/30 flex flex-col gap-md">
+          <h4 class="font-title-lg text-title-lg text-primary">${tr('New Journal Entry', 'قيد يومية جديد')}</h4>
+          <div class="form-group">
+            <label>${tr('Entry Date', 'تاريخ القيد')}</label>
+            <input class="form-input" id="jeDate" type="date" value="${today}">
+          </div>
+          <div class="form-group">
+            <label>${tr('Description', 'البيان')}</label>
+            <input class="form-input" id="jeDesc" placeholder="${tr('e.g. Cash sale', 'مثال: مبيعات نقدية')}">
+          </div>
+          <div id="jeLines" class="flex flex-col gap-sm"></div>
+          <button class="btn btn-secondary btn-sm" onclick="e10AddJournalLine()">+ ${tr('Add Line', 'إضافة سطر')}</button>
+          <div class="text-caption text-on-surface-variant" id="jeBalanceHint"></div>
+          <button class="btn btn-primary w-full py-3 rounded-xl font-bold" onclick="postJournalEntry()">
+            <span class="material-symbols-outlined">post_add</span>
+            <span>${tr('Create Draft Entry', 'إنشاء قيد (مسودة)')}</span>
+          </button>
+        </div>
+        <div class="glass-card p-lg rounded-2xl border border-outline-variant/30 lg:col-span-2">
+          <h4 class="font-title-lg text-title-lg text-primary mb-md">${tr('Journal Entries', 'قيود اليومية')}</h4>
+          <div id="glTable" class="overflow-x-auto custom-scrollbar"></div>
+        </div>
+      </div>
+    `;
+    setTimeout(() => { if (typeof e10ResetJournalForm === 'function') e10ResetJournalForm(); loadGeneralLedger(); }, 50);
+
+  } else if (window.financeTab === 'aging') {
+    htmlContent += `
+      <div id="agingStats" class="mb-xl"></div>
+      <div class="glass-card p-lg rounded-2xl border border-outline-variant/30">
+        <h4 class="font-title-lg text-title-lg text-primary mb-md">${tr('Accounts Receivable Aging', 'تقرير أعمار الذمم المدينة')}</h4>
+        <div id="agingTable" class="overflow-x-auto custom-scrollbar"></div>
+      </div>
+    `;
+    setTimeout(() => { loadARaging(); }, 50);
   }
 
   content.innerHTML = htmlContent;
@@ -5320,6 +5368,114 @@ window.performDailyClose = async function () {
     showToast(tr('Day closed! Variance: ' + result.variance + ' SAR', 'تم الإغلاق! الفرق: ' + result.variance + ' ر.س'));
     navigateTo(8);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+// ===== E10 GENERAL LEDGER (double-entry) + AR AGING UI handlers =====
+// All server values rendered via escapeHTML/safeId; the balanced-entry rule + posting gate are
+// enforced SERVER-SIDE — these handlers are convenience only and never assert authority.
+window._e10JournalLines = [];
+window.e10ResetJournalForm = function () {
+  window._e10JournalLines = [{ account_id: '', debit: '', credit: '' }, { account_id: '', debit: '', credit: '' }];
+  e10RenderJournalLines();
+};
+window.e10AddJournalLine = function () {
+  window._e10JournalLines.push({ account_id: '', debit: '', credit: '' });
+  e10RenderJournalLines();
+};
+window.e10RenderJournalLines = function () {
+  const host = document.getElementById('jeLines');
+  if (!host) return;
+  host.innerHTML = window._e10JournalLines.map((ln, i) => `
+    <div class="flex gap-1 items-center">
+      <input class="form-input flex-1" placeholder="${tr('Acct ID', 'رقم الحساب')}" value="${escapeHTML(ln.account_id)}" oninput="window._e10JournalLines[${safeId(i)}].account_id=this.value">
+      <input class="form-input w-24" type="number" placeholder="${tr('Debit', 'مدين')}" value="${escapeHTML(ln.debit)}" oninput="window._e10JournalLines[${safeId(i)}].debit=this.value; e10UpdateBalanceHint()">
+      <input class="form-input w-24" type="number" placeholder="${tr('Credit', 'دائن')}" value="${escapeHTML(ln.credit)}" oninput="window._e10JournalLines[${safeId(i)}].credit=this.value; e10UpdateBalanceHint()">
+    </div>`).join('');
+  e10UpdateBalanceHint();
+};
+window.e10UpdateBalanceHint = function () {
+  const hint = document.getElementById('jeBalanceHint');
+  if (!hint) return;
+  const d = window._e10JournalLines.reduce((s, l) => s + (parseFloat(l.debit) || 0), 0);
+  const c = window._e10JournalLines.reduce((s, l) => s + (parseFloat(l.credit) || 0), 0);
+  const balanced = Math.round(d * 100) === Math.round(c * 100) && d > 0;
+  hint.innerHTML = `${tr('Debit', 'مدين')}: ${escapeHTML(d.toFixed(2))} | ${tr('Credit', 'دائن')}: ${escapeHTML(c.toFixed(2))} ` +
+    (balanced ? `<span class="text-success font-bold">✓ ${tr('Balanced', 'متوازن')}</span>` : `<span class="text-error font-bold">✗ ${tr('Unbalanced', 'غير متوازن')}</span>`);
+};
+window.postJournalEntry = async function () {
+  const lines = (window._e10JournalLines || [])
+    .map(l => ({ account_id: parseInt(l.account_id, 10), debit: parseFloat(l.debit) || 0, credit: parseFloat(l.credit) || 0 }))
+    .filter(l => Number.isInteger(l.account_id) && (l.debit > 0 || l.credit > 0));
+  try {
+    const r = await API.post('/api/finance/journal', {
+      entry_date: document.getElementById('jeDate')?.value || '',
+      description: document.getElementById('jeDesc')?.value || '',
+      lines
+    });
+    if (r && r.error) { showToast(tr('Rejected: ' + r.error, 'مرفوض: ' + r.error), 'error'); return; }
+    showToast(tr('Draft journal entry created', 'تم إنشاء قيد مسودة'));
+    e10ResetJournalForm();
+    loadGeneralLedger();
+  } catch (e) { showToast(tr('Error creating entry', 'خطأ في إنشاء القيد'), 'error'); }
+};
+window.loadGeneralLedger = async function () {
+  const banner = document.getElementById('glGateBanner');
+  if (banner) {
+    const st = await API.get('/api/finance/posting-status').catch(() => ({ posting_enabled: false }));
+    banner.innerHTML = st.posting_enabled
+      ? `<div class="p-sm rounded-lg bg-success/10 text-success text-caption">${tr('Ledger posting ENABLED', 'ترحيل الدفتر مُفعّل')}</div>`
+      : `<div class="p-sm rounded-lg bg-warning/10 text-warning text-caption">${tr('Ledger posting is OFF — entries stay DRAFT (ACCOUNTING_POSTING_ENABLED off)', 'ترحيل الدفتر مُعطّل — تبقى القيود مسودة')}</div>`;
+  }
+  const el = document.getElementById('glTable');
+  if (!el) return;
+  const entries = await API.get('/api/finance/journal').catch(() => []);
+  createTable(el, 'glTbl',
+    [tr('Entry #', 'رقم القيد'), tr('Date', 'التاريخ'), tr('Description', 'البيان'), tr('Debit', 'مدين'), tr('Credit', 'دائن'), tr('Status', 'الحالة')],
+    (Array.isArray(entries) ? entries : []).map(e => ({
+      cells: [
+        rawHtml(`<span class="font-mono text-secondary">${escapeHTML(e.entry_number)}</span>`),
+        e.entry_date,
+        e.description,
+        parseFloat(e.total_debit || 0).toFixed(2),
+        parseFloat(e.total_credit || 0).toFixed(2),
+        statusBadge(e.posting_status || 'DRAFT')
+      ],
+      id: e.id
+    }))
+  );
+};
+window.loadARaging = async function () {
+  const data = await API.get('/api/finance/aging').catch(() => ({ summary: {}, invoices: [] }));
+  const s = data.summary || {};
+  const stats = document.getElementById('agingStats');
+  if (stats) {
+    const card = (label, val, color) => `
+      <div class="glass-card p-md rounded-2xl">
+        <p class="text-on-surface-variant font-label-md text-label-md">${label}</p>
+        <h4 class="text-display-lg ${color} font-bold mt-xs">${escapeHTML(parseFloat(val || 0).toLocaleString())} <span class="text-title-lg">${tr('SAR', 'ر.س')}</span></h4>
+      </div>`;
+    stats.innerHTML = `<div class="grid grid-cols-2 md:grid-cols-5 gap-gutter">
+      ${card(tr('0-30 days', '0-30 يوم'), s['0-30'], 'text-success')}
+      ${card(tr('31-60 days', '31-60 يوم'), s['31-60'], 'text-primary')}
+      ${card(tr('61-90 days', '61-90 يوم'), s['61-90'], 'text-warning')}
+      ${card(tr('90+ days', '90+ يوم'), s['90+'], 'text-error')}
+      ${card(tr('Total Outstanding', 'إجمالي المستحق'), s.total, 'text-primary')}
+    </div>`;
+  }
+  const el = document.getElementById('agingTable');
+  if (!el) return;
+  createTable(el, 'agingTbl',
+    [tr('Invoice', 'الفاتورة'), tr('Patient', 'المريض'), tr('Balance', 'الرصيد'), tr('Age (days)', 'العمر (أيام)')],
+    (data.invoices || []).map(inv => ({
+      cells: [
+        rawHtml(`<span class="font-mono text-secondary">#${safeId(inv.id)}</span>`),
+        inv.patient_name,
+        parseFloat(inv.balance || 0).toFixed(2) + ' ' + tr('SAR', 'ر.س'),
+        String(parseInt(inv.age_days, 10) || 0)
+      ],
+      id: inv.id
+    }))
+  );
 };
 
 // ===== INSURANCE =====
@@ -10369,7 +10525,7 @@ async function renderZATCA(el) {
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <h4 style="margin:0">${tr('Invoices', 'الفواتير')}</h4>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-sm" onclick="generateZATCA()" style="background:#e8f5e9;color:#2e7d32">📤 ${tr('Submit Selected', 'إرسال المحددة')}</button>
+          <button class="btn btn-sm" onclick="zatcaBulkInfo()" style="background:#e8f5e9;color:#2e7d32">📤 ${tr('Submit', 'إرسال')}</button>
           <button class="btn btn-sm" onclick="exportToCSV(window._zatcaData||[],'zatca_invoices')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export', 'تصدير')}</button>
         </div>
       </div>
@@ -10380,17 +10536,40 @@ async function renderZATCA(el) {
   const zt = document.getElementById('zatcaTable');
   if (zt && invoices.length > 0) {
     createTable(zt, 'ztbl',
-      [tr('Invoice #', 'رقم الفاتورة'), tr('Patient', 'المريض'), tr('Amount', 'المبلغ'), tr('VAT', 'الضريبة'), tr('Date', 'التاريخ'), tr('Status', 'الحالة')],
+      [tr('Invoice #', 'رقم الفاتورة'), tr('Patient', 'المريض'), tr('Amount', 'المبلغ'), tr('VAT', 'الضريبة'), tr('Date', 'التاريخ'), tr('Status', 'الحالة'), tr('Action', 'إجراء')],
       invoices.map(i => ({
-        cells: [i.invoice_number || i.id, i.patient_name || '', parseFloat(i.total || 0).toFixed(2), parseFloat(i.vat_amount || 0).toFixed(2), i.created_at ? new Date(i.created_at).toLocaleDateString('ar-SA') : '', statusBadge(i.zatca_status || 'pending')],
+        // i.invoice_id is the source invoice (FK). Generate/submit are tenant-scoped & gated server-side.
+        cells: [i.invoice_number || i.id, i.buyer_name || i.patient_name || '', parseFloat(i.total_with_vat || i.total || 0).toFixed(2), parseFloat(i.vat_amount || 0).toFixed(2), i.created_at ? new Date(i.created_at).toLocaleDateString('ar-SA') : '', statusBadge(i.clearance_status || i.submission_status || 'pending'),
+        rawHtml(`<button class="btn btn-sm" onclick="generateZatcaInvoice(${safeId(i.invoice_id)})">↻ ${tr('Regenerate', 'إعادة توليد')}</button> <button class="btn btn-sm" onclick="submitZatcaInvoice(${safeId(i.invoice_id)})">📤 ${tr('Submit', 'إرسال')}</button>`)],
         id: i.id
       }))
     );
   } else if (zt) { zt.innerHTML = '<p style="color:#999;text-align:center;padding:20px">' + tr('No invoices', 'لا توجد فواتير') + '</p>'; }
 
-  window.generateZATCA = async () => {
-    showToast(tr('Generating ZATCA submission...', 'جاري إنشاء إرسال زاتكا...'));
-    try { await API.post('/api/zatca/generate', {}); showToast(tr('ZATCA submitted!', 'تم الإرسال لزاتكا!')); renderZATCA(content); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  // E10: generate a ZATCA e-invoice (UBL+QR) for a SPECIFIC invoice. Server computes VAT + artifacts.
+  window.generateZatcaInvoice = async (invoiceId) => {
+    const id = parseInt(invoiceId, 10);
+    if (!Number.isInteger(id) || id <= 0) { showToast(tr('Invalid invoice', 'فاتورة غير صالحة'), 'error'); return; }
+    try {
+      const r = await API.post('/api/zatca/generate', { invoice_id: id });
+      if (r && r.error) { showToast(tr('Error: ' + r.error, 'خطأ: ' + r.error), 'error'); return; }
+      showToast(tr('E-invoice generated (UBL + QR)', 'تم توليد الفاتورة الإلكترونية'));
+      renderZATCA(content);
+    } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
+  // Legacy bulk button: per-invoice generate/submit is the safe flow (each row has its own buttons).
+  window.zatcaBulkInfo = () => { showToast(tr('Use the Generate/Submit buttons on each invoice row', 'استخدم أزرار التوليد/الإرسال لكل فاتورة'), 'info'); };
+  // E10: record submission intent. Clearance is GATED off (no CSID) — server returns 503, intent logged.
+  window.submitZatcaInvoice = async (invoiceId) => {
+    const id = parseInt(invoiceId, 10);
+    if (!Number.isInteger(id) || id <= 0) { showToast(tr('Invalid invoice', 'فاتورة غير صالحة'), 'error'); return; }
+    try {
+      const r = await API.post('/api/zatca/submit', { invoice_id: id });
+      // 503 (gated) returns {error, clearance_status:'RECORDED'} — treat as informational, not a crash.
+      if (r && r.clearance_status === 'RECORDED') { showToast(tr('Submission intent recorded (clearance gated off)', 'تم تسجيل نية الإرسال (المقاصة معطّلة)')); }
+      else if (r && r.error) { showToast(tr('Error: ' + r.error, 'خطأ: ' + r.error), 'error'); }
+      renderZATCA(content);
+    } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
   };
 
 }
