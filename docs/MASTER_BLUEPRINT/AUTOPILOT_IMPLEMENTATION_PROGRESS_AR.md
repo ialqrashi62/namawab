@@ -1,7 +1,7 @@
 # تقرير تقدّم التنفيذ — Master Autopilot (E0 → E9)
 
 > سجلّ حيّ لكل ما بُني/طُوِّر ضمن الأوتوبيلوت متعدّد الوكلاء. يُحدَّث بعد كل إبيك.
-> **آخر تحديث:** 2026-06-26 — بعد اكتمال E5 وأثناء بناء E6.
+> **آخر تحديث:** 2026-06-26 — بعد اكتمال E6 وأثناء بناء E7.
 
 ---
 
@@ -41,16 +41,16 @@
 | E3 | المختبر (LIS) | `feat/e3-laboratory` `df9f4b3` | autoVerify fail-safe، lab_samples/results/critical_callbacks/qc، HL7 gated | 160 | Issue-1 delta baseline من verified فقط، Issue-2 re-report 409، Issue-3 حالة ميتة |
 | E4 | الأشعة (RIS/PACS) | `feat/e4-radiology` `b61d1fd` | rad_exams/dicom_studies/rad_reports، MWL gated، صور عبر /api/phi-files المحمي | 149 | Issue-1 RBAC على sign/notify/addendum، Issue-2 تحقّق notified_doctor عبر user_tenants |
 | **E5** | **الصيدلية (Pharmacy)** | `feat/e5-pharmacy` `25b06c9` | FEFO صرف ذرّي، تحقّق صيدلي (إعادة تشغيل cds.js على أدوية مشتقّة من الخادم)، أدوية مراقَبة بقيد مزدوج + شاهد، Wasfaty gated | 44+74 | **C1 زر الصرف الأساسي في الواجهة كان يلتفّ على كامل منظومة أمان E5 عبر مسار PUT قديم** → أُعيد توجيهه لـ`POST /api/pharmacy/dispense`؛ **C2** صلاحية مفقودة على `/expiring`؛ **I1** مسارات مكرّرة (legacy تظلّل E5)؛ **I2** رصيد سجل المراقَبة من عدّاد catalog قديم → `SUM(drug_batches.qty_on_hand)` |
+| **E6** | **التمريض/MAR (Nursing/MAR)** | `feat/e6-nursing-mar` `2b0fe25` | MAR بـ«5 حقوق» بالباركود (مريض/دواء/جرعة/طريق/وقت) مفروضة server-side fail-closed، شاهد للأدوية عالية الخطورة، CDS عند الإعطاء، درجات (Morse/Braden/NEWS2) محسوبة بالخادم، تقييمات، سجلّ I/O | 25+34+49 | **جولتان مراجعة.** الجولة-1 BLOCK: البناء مات في منتصف الاتصال (DDL+المحرّك فقط، لا مسارات/توصيل) → أُكمل (8 بنود: مسار `/api/mar/administer` آمن، `/api/nursing/scores` يحسب بالخادم، RBAC+tenant على التقييم، FKs، audit، اختبارات). الجولة-2 APPROVE_WITH_FIXES: **C1 تجاوز الشاهد-الذاتي عبر معرّف مبطّن بمسافة** → مقارنة `parseInt`؛ I3 خطأ محرّك الحساسية fail-soft → fail-closed؛ I2 fallback غير مُنطَّق في getPatientActiveMeds → throw؛ I1 route='Oral' مفروض → null عند عدم المعرفة؛ L1/L3 اختبارات+RBAC |
 
 ---
 
 ## 4) قيد التنفيذ
 
-- **E6 — التمريض/MAR** 🔄 (بناء): MAR بـ«5 حقوق» بالباركود (مريض/دواء/جرعة/طريق/وقت) مفروضة server-side fail-closed، تقييمات تمريضية، خطط رعاية، علامات حيوية، درجات (Morse/Braden/NEWS)، سجلّ I/O.
+- **E7 — الطوارئ/ED** 🔄 (بناء): فرز ESI، tracking board، مؤقّت time-to-provider.
 
 ## 5) في الطابور
 
-- **E7** الطوارئ/ED (فرز ESI، tracking board، مؤقّت time-to-provider).
 - **E8** التنويم/ADT (admit/transfer/discharge، أسرّة/أجنحة، census).
 - **E9** العناية المركّزة/ICU (flowsheets، ventilator، scores).
 
