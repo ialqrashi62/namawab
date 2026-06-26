@@ -13,6 +13,7 @@ const ce = require('./crypto_envelope'); // A3 at-rest envelope encryption (DPAP
 const { insertSampleData, populateLabCatalog, populateRadiologyCatalog } = require('./seed_data_pg');
 const { populateMedicalServices, populateBaseDrugs } = require('./seed_services_pg');
 const { addExtraLabTests, addExtraRadiology } = require('./seed_extra_catalog');
+const e16 = require('./e16_inventory_engine'); // E16 inventory/CSSD pure engine (FEFO, no-negative, BI gate)
 
 // Multer setup for radiology image uploads — A3A: PHI vault OUTSIDE public webroot (no static/direct access)
 const uploadsDir = path.join(__dirname, 'phi_vault', 'radiology');
@@ -200,9 +201,11 @@ const MAX_DISCOUNT_BY_ROLE = { admin: 100, manager: 50, cashier: 10, receptionis
 // RBAC middleware - role-based access control
 const ROLE_PERMISSIONS = {
     'Admin': '*',
-    'Doctor': ['dashboard', 'patients', 'appointments', 'doctor', 'lab', 'radiology', 'pharmacy', 'nursing', 'waiting', 'reports', 'messaging', 'surgery', 'consent', 'icu'],
-    'Nurse': ['dashboard', 'patients', 'nursing', 'waiting', 'vitals', 'icu', 'emergency', 'inpatient', 'transport', 'dietary'],
+    'Doctor': ['dashboard', 'patients', 'appointments', 'doctor', 'lab', 'radiology', 'pharmacy', 'nursing', 'waiting', 'reports', 'messaging', 'surgery', 'consent', 'icu', 'cssd'],
+    'Nurse': ['dashboard', 'patients', 'nursing', 'waiting', 'vitals', 'icu', 'emergency', 'inpatient', 'transport', 'dietary', 'cssd', 'nursing'],
     'Pharmacist': ['dashboard', 'pharmacy', 'inventory', 'messaging'],
+    'CSSD Manager': ['dashboard', 'cssd', 'inventory', 'messaging'],
+    'Inventory Manager': ['dashboard', 'inventory', 'messaging'],
     'Lab Technician': ['dashboard', 'lab', 'messaging'],
     'Radiologist': ['dashboard', 'radiology', 'messaging'],
     'Reception': ['dashboard', 'patients', 'appointments', 'waiting', 'messaging', 'accounts'],
@@ -1612,7 +1615,7 @@ app.put('/api/pharmacy/queue/:id', requireAuth, requireTenantScope, async (req, 
 });
 
 // ===== INVENTORY =====
-app.get('/api/inventory/items', requireAuth, requireTenantScope, async (req, res) => {
+app.get('/api/inventory/items', requireAuth, requireRole('inventory', 'pharmacy'), requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
         const query = tenantId ?
@@ -1623,7 +1626,7 @@ app.get('/api/inventory/items', requireAuth, requireTenantScope, async (req, res
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/inventory/items', requireAuth, requireTenantScope, async (req, res) => {
+app.post('/api/inventory/items', requireAuth, requireRole('inventory', 'pharmacy'), requireTenantScope, async (req, res) => {
     try {
         const { tenantId, facilityId } = getRequestTenantContext(req);
         const { item_name, item_code, category, unit, cost_price, stock_qty } = req.body;
@@ -4058,53 +4061,89 @@ app.get('/api/icu/fluid-balance/:admissionId', requireAuth, requireTenantScope, 
 });
 
 // ===== CSSD =====
-app.get('/api/cssd/instruments', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM cssd_instrument_sets ORDER BY id')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-app.post('/api/cssd/instruments', requireAuth, async (req, res) => {
+app.get('/api/cssd/instruments', requireAuth, requireRole('cssd', 'nursing', 'surgery'), requireTenantScope, async (req, res) => {
     try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        res.json((await pool.query('SELECT * FROM cssd_instrument_sets WHERE tenant_id=$1 ORDER BY id', [t.tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.post('/api/cssd/instruments', requireAuth, requireRole('cssd', 'nursing', 'surgery'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
         const { set_name, set_name_ar, set_code, category, instrument_count, instruments_list, department } = req.body;
-        const r = await pool.query('INSERT INTO cssd_instrument_sets (set_name,set_name_ar,set_code,category,instrument_count,instruments_list,department) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
-            [set_name, set_name_ar, set_code, category, instrument_count || 0, instruments_list, department]);
+        const r = await pool.query('INSERT INTO cssd_instrument_sets (set_name,set_name_ar,set_code,category,instrument_count,instruments_list,department,tenant_id,facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+            [set_name, set_name_ar, set_code, category, instrument_count || 0, instruments_list, department, t.tenantId, t.facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_CSSD_INSTRUMENT_SET', 'CSSD', `Created set ${set_name}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/cssd/cycles', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM cssd_sterilization_cycles ORDER BY start_time DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-app.post('/api/cssd/cycles', requireAuth, async (req, res) => {
+app.get('/api/cssd/cycles', requireAuth, requireRole('cssd', 'nursing', 'surgery'), requireTenantScope, async (req, res) => {
     try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        res.json((await pool.query('SELECT * FROM cssd_sterilization_cycles WHERE tenant_id=$1 ORDER BY start_time DESC', [t.tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.post('/api/cssd/cycles', requireAuth, requireRole('cssd', 'nursing', 'surgery'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
         const { cycle_number, machine_name, cycle_type, temperature, pressure, duration_minutes, operator } = req.body;
-        const r = await pool.query('INSERT INTO cssd_sterilization_cycles (cycle_number,machine_name,cycle_type,temperature,pressure,duration_minutes,operator) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
-            [cycle_number, machine_name, cycle_type || 'Steam Autoclave', temperature, pressure, duration_minutes, operator]);
+        // BI result starts Pending and is recorded ONLY via PUT /api/cssd/cycles/:id/bi-result (anti-spoof).
+        const r = await pool.query('INSERT INTO cssd_sterilization_cycles (cycle_number,machine_name,cycle_type,temperature,pressure,duration_minutes,operator,status,bi_test_result,tenant_id,facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
+            [cycle_number, machine_name, cycle_type || 'Steam Autoclave', temperature, pressure, duration_minutes, operator, 'running', 'Pending', t.tenantId, t.facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_CSSD_CYCLE', 'CSSD', `Started cycle ${cycle_number}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/cssd/cycles/:id', requireAuth, async (req, res) => {
+app.put('/api/cssd/cycles/:id', requireAuth, requireRole('cssd', 'nursing', 'surgery'), requireTenantScope, async (req, res) => {
+    // HARDENED (E16): server-side cycle state machine + tenant scope. BI/CI results are NOT
+    // accepted here (anti-spoof) — use PUT /api/cssd/cycles/:id/bi-result. Release for sterile
+    // issue is the separate fail-CLOSED gate PUT /api/cssd/cycles/:id/release.
     try {
-        const { status, bi_test_result, ci_result } = req.body;
-        const sets = []; const vals = []; let i = 1;
-        if (status) { sets.push(`status=$${i++}`); vals.push(status); if (status === 'Completed') { sets.push(`end_time=$${i++}`); vals.push(new Date().toISOString()); } }
-        if (bi_test_result) { sets.push(`bi_test_result=$${i++}`); vals.push(bi_test_result); }
-        if (ci_result) { sets.push(`ci_result=$${i++}`); vals.push(ci_result); }
-        vals.push(req.params.id);
-        await pool.query(`UPDATE cssd_sterilization_cycles SET ${sets.join(',')} WHERE id=$${i}`, vals);
-        res.json({ success: true });
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const cycleId = e16.e16IntId(req.params.id);
+        if (cycleId === null) return res.status(404).json({ error: 'Cycle not found' });
+        const target = String(req.body.status || '').toLowerCase();
+        if (!target) return res.status(422).json({ error: 'status required' });
+        const client = await e16BeginTenantTx(t.tenantId);
+        try {
+            const cyc = (await client.query('SELECT id, status FROM cssd_sterilization_cycles WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [cycleId, t.tenantId])).rows[0];
+            if (!cyc) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Cycle not found' }); }
+            if (!e16.canTransitionCycle(String(cyc.status || '').toLowerCase(), target)) {
+                await client.query('ROLLBACK'); client.release();
+                return res.status(409).json({ error: `Invalid cycle transition ${cyc.status} -> ${target}` });
+            }
+            const endStamp = (target === 'completed') ? new Date().toISOString() : null;
+            const r = (await client.query('UPDATE cssd_sterilization_cycles SET status=$1, end_time=COALESCE($2,end_time) WHERE id=$3 AND tenant_id=$4 RETURNING *', [target, endStamp, cycleId, t.tenantId])).rows[0];
+            await client.query('COMMIT'); client.release();
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_CSSD_CYCLE_STATUS', 'CSSD', `Cycle #${cycleId}: ${cyc.status} -> ${target}`, req.ip);
+            res.json(r);
+        } catch (e) { try { await client.query('ROLLBACK'); } catch (_) {} client.release(); throw e; }
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/cssd/load-items', requireAuth, async (req, res) => {
+app.post('/api/cssd/load-items', requireAuth, requireRole('cssd', 'nursing', 'surgery'), requireTenantScope, async (req, res) => {
     try {
-        const { cycle_id, set_id, set_name, barcode } = req.body;
-        const r = await pool.query('INSERT INTO cssd_load_items (cycle_id,set_id,set_name,barcode) VALUES ($1,$2,$3,$4) RETURNING *', [cycle_id, set_id, set_name, barcode]);
-        if (set_id) await pool.query("UPDATE cssd_instrument_sets SET status='In Sterilization' WHERE id=$1", [set_id]);
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const cycleId = e16.e16IntId(req.body.cycle_id);
+        const setId = e16.e16IntId(req.body.set_id);
+        const { set_name, barcode } = req.body;
+        const r = await pool.query('INSERT INTO cssd_load_items (cycle_id,set_id,set_name,barcode,tenant_id,facility_id) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *', [cycleId, setId, set_name, barcode, t.tenantId, t.facilityId || null]);
+        if (setId) await pool.query("UPDATE cssd_instrument_sets SET status='In Sterilization' WHERE id=$1 AND tenant_id=$2", [setId, t.tenantId]);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/cssd/load-items/:cycleId', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM cssd_load_items WHERE cycle_id=$1', [req.params.cycleId])).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/cssd/load-items/:cycleId', requireAuth, requireRole('cssd', 'nursing', 'surgery'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const cycleId = e16.e16IntId(req.params.cycleId);
+        res.json((await pool.query('SELECT * FROM cssd_load_items WHERE cycle_id=$1 AND tenant_id=$2', [cycleId, t.tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== DIETARY =====
@@ -7022,23 +7061,37 @@ app.post('/api/pathology/specimens', requireAuth, async (req, res) => {
 });
 
 // ===== CSSD BATCHES =====
-app.get('/api/cssd/batches', requireAuth, async (req, res) => {
+app.get('/api/cssd/batches', requireAuth, requireRole('cssd', 'nursing', 'surgery'), requireTenantScope, async (req, res) => {
     try {
         // cssd_batches schema provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
-        res.json((await pool.query('SELECT * FROM cssd_batches ORDER BY created_at DESC')).rows);
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        res.json((await pool.query('SELECT * FROM cssd_batches WHERE tenant_id=$1 ORDER BY created_at DESC', [t.tenantId])).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/cssd/batches', requireAuth, async (req, res) => {
+app.post('/api/cssd/batches', requireAuth, requireRole('cssd', 'nursing', 'surgery'), requireTenantScope, async (req, res) => {
     try {
-        const { batch_number, items, department, method, temperature, operator, status } = req.body;
-        const r = await pool.query('INSERT INTO cssd_batches (batch_number,items,department,method,temperature,operator,status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *', [batch_number, items, department, method, temperature, operator, status || 'processing']);
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const { batch_number, items, department, method, temperature, operator } = req.body;
+        // status server-set to 'processing'; completion goes through the hardened PUT (no client status).
+        const r = await pool.query('INSERT INTO cssd_batches (batch_number,items,department,method,temperature,operator,status,tenant_id,facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *', [batch_number, items, department, method, temperature, operator, 'processing', t.tenantId, t.facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_CSSD_BATCH', 'CSSD', `Started batch ${batch_number}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/cssd/batches/:id', requireAuth, async (req, res) => {
+app.put('/api/cssd/batches/:id', requireAuth, requireRole('cssd', 'nursing', 'surgery'), requireTenantScope, async (req, res) => {
     try {
-        const { status } = req.body;
-        const r = await pool.query('UPDATE cssd_batches SET status=$1 WHERE id=$2 RETURNING *', [status, req.params.id]);
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const batchId = e16.e16IntId(req.params.id);
+        if (batchId === null) return res.status(404).json({ error: 'Batch not found' });
+        const status = String(req.body.status || '');
+        if (!['processing', 'completed', 'failed'].includes(status)) return res.status(422).json({ error: 'Invalid status' });
+        const check = (await pool.query('SELECT id FROM cssd_batches WHERE id=$1 AND tenant_id=$2', [batchId, t.tenantId])).rows[0];
+        if (!check) return res.status(404).json({ error: 'Batch not found' });
+        const r = await pool.query('UPDATE cssd_batches SET status=$1 WHERE id=$2 AND tenant_id=$3 RETURNING *', [status, batchId, t.tenantId]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_CSSD_BATCH', 'CSSD', `Batch #${batchId} -> ${status}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -7271,6 +7324,423 @@ if (process.env.NODE_ENV !== 'production') {
     })();
 }
 
+
+
+// ============================================================================
+// ===== E16 — INVENTORY / SUPPLY CHAIN + CSSD (batches, PO, GRN, movements,
+//        transactional no-negative stock, CSSD biological-indicator gate) =====
+// All tables provisioned out-of-band via candidate migrations e16_01/e16_02/e16_03
+//   (NOT in db_postgres.js bootstrap). Every route: requireAuth + requireRole + tenant scope
+//   + explicit AND tenant_id=$N on top of FORCE RLS. Mutations stamped + logAudit.
+// ============================================================================
+
+// fail-CLOSED tenant resolver (mirrors e7/e8/e9RequireTenant convention): returns the
+// trusted session tenant or null; callers MUST 403 on null in production. Never invents a tenant.
+function e16RequireTenant(req) {
+    const { tenantId, facilityId, isProduction } = getRequestTenantContext(req);
+    if (!tenantId) {
+        if (isProduction) return { ok: false };           // fail-closed: no unscoped fallback in prod
+        return { ok: false };                              // dev: getRequestTenantContext already injects 1; null here => still block
+    }
+    return { ok: true, tenantId, facilityId };
+}
+
+// Transactionally bind app.tenant_id on a DEDICATED client (the patched pool.query wrapper does
+// NOT cover a client obtained via pool.connect(), so FORCE-RLS rows would be invisible without
+// this). SET LOCAL scopes the setting to the surrounding transaction only.
+async function e16BeginTenantTx(tenantId) {
+    const client = await pool.connect();
+    await client.query('BEGIN');
+    await client.query("SELECT set_config('app.tenant_id', $1, true)", [String(tenantId)]);
+    return client;
+}
+
+// ---- inventory items: low-stock by reorder_point (engine classification) ----
+app.get('/api/inventory/items/low-stock', requireAuth, requireRole('inventory', 'pharmacy'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const rows = (await pool.query(
+            'SELECT id, item_name, item_code, stock_qty, reorder_point, min_qty FROM inventory_items WHERE is_active=1 AND tenant_id=$1 ORDER BY stock_qty ASC',
+            [t.tenantId])).rows;
+        const out = rows.map(r => {
+            const rp = (r.reorder_point && r.reorder_point > 0) ? r.reorder_point : r.min_qty;
+            return { ...r, stock_status: e16.stockStatus(r.stock_qty, rp), is_low: e16.isLowStock(r.stock_qty, rp) };
+        }).filter(r => r.is_low);
+        res.json(out);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- batches: list per item / create (FEFO source of truth) ----
+app.get('/api/inventory/batches', requireAuth, requireRole('inventory', 'pharmacy'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const itemId = e16.e16IntId(req.query.item_id);
+        const params = [t.tenantId];
+        let q = 'SELECT * FROM inventory_batches WHERE tenant_id=$1';
+        if (itemId) { q += ' AND item_id=$2'; params.push(itemId); }
+        q += ' ORDER BY expiry_date ASC NULLS LAST, id ASC';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- purchase orders: create (draft) ----
+app.post('/api/inventory/purchase-orders', requireAuth, requireRole('inventory', 'pharmacy'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const { po_number, supplier_id, supplier_name, notes, items } = req.body;
+        if (!Array.isArray(items) || items.length === 0) return res.status(422).json({ error: 'PO must have at least one line item' });
+        // validate every line: integer item id owned by tenant, positive qty.
+        const lines = [];
+        for (const it of items) {
+            const iid = e16.e16IntId(it.item_id);
+            const qty = e16.e16Qty(it.qty_ordered);
+            if (iid === null || qty === null || qty <= 0) return res.status(422).json({ error: 'Invalid PO line' });
+            const own = (await pool.query('SELECT id FROM inventory_items WHERE id=$1 AND tenant_id=$2', [iid, t.tenantId])).rows[0];
+            if (!own) return res.status(404).json({ error: 'Item not found' });
+            lines.push({ iid, qty, unit_cost: e16.e16Qty(it.unit_cost) || 0 });
+        }
+        const total = lines.reduce((s, l) => s + l.qty * l.unit_cost, 0);
+        const client = await e16BeginTenantTx(t.tenantId);
+        try {
+            const po = (await client.query(
+                'INSERT INTO purchase_orders (po_number, supplier_id, supplier_name, status, total_amount, notes, created_by, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+                [po_number || '', e16.e16IntId(supplier_id), supplier_name || '', 'draft', total, notes || '', req.session.user?.display_name || '', t.tenantId, t.facilityId || null])).rows[0];
+            for (const l of lines) {
+                await client.query(
+                    'INSERT INTO purchase_order_items (po_id, item_id, qty_ordered, unit_cost, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6)',
+                    [po.id, l.iid, l.qty, l.unit_cost, t.tenantId, t.facilityId || null]);
+            }
+            await client.query('COMMIT');
+            client.release();
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_PURCHASE_ORDER', 'Inventory', `Created PO #${po.id} (${lines.length} lines, total ${total})`, req.ip);
+            res.json(po);
+        } catch (e) { try { await client.query('ROLLBACK'); } catch (_) {} client.release(); throw e; }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- purchase orders: state transition (approve / cancel) — server-side state machine ----
+app.put('/api/inventory/purchase-orders/:id/status', requireAuth, requireRole('inventory', 'pharmacy'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const poId = e16.e16IntId(req.params.id);
+        if (poId === null) return res.status(404).json({ error: 'PO not found' });
+        const target = String(req.body.status || '');
+        const client = await e16BeginTenantTx(t.tenantId);
+        try {
+            const po = (await client.query('SELECT id, status FROM purchase_orders WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [poId, t.tenantId])).rows[0];
+            if (!po) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'PO not found' }); }
+            if (!e16.canTransitionPO(po.status, target)) {
+                await client.query('ROLLBACK'); client.release();
+                return res.status(409).json({ error: `Invalid PO transition ${po.status} -> ${target}` });
+            }
+            const approving = target === 'approved';
+            const r = (await client.query(
+                'UPDATE purchase_orders SET status=$1, approved_by=COALESCE($2,approved_by), approved_at=COALESCE($3,approved_at) WHERE id=$4 AND tenant_id=$5 RETURNING *',
+                [target, approving ? (req.session.user?.display_name || '') : null, approving ? new Date().toISOString() : null, poId, t.tenantId])).rows[0];
+            await client.query('COMMIT'); client.release();
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_PO_STATUS', 'Inventory', `PO #${poId}: ${po.status} -> ${target}`, req.ip);
+            res.json(r);
+        } catch (e) { try { await client.query('ROLLBACK'); } catch (_) {} client.release(); throw e; }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- GRN: receive goods against an approved/partially-received PO (TRANSACTIONAL) ----
+// Increments stock by creating a batch + a 'receive' movement per line, advances PO line/header
+// state, all in one transaction. Receiving only valid from approved/partially_received (else 409).
+app.post('/api/inventory/goods-receipts', requireAuth, requireRole('inventory', 'pharmacy'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const poId = e16.e16IntId(req.body.po_id);
+        if (poId === null) return res.status(404).json({ error: 'PO not found' });
+        const { grn_number, notes, lines } = req.body;
+        if (!Array.isArray(lines) || lines.length === 0) return res.status(422).json({ error: 'GRN must have at least one line' });
+
+        const client = await e16BeginTenantTx(t.tenantId);
+        try {
+            // lock PO header first (ascending lock order: header before items)
+            const po = (await client.query('SELECT id, status FROM purchase_orders WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [poId, t.tenantId])).rows[0];
+            if (!po) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'PO not found' }); }
+            if (!e16.canReceivePO(po.status)) {
+                await client.query('ROLLBACK'); client.release();
+                return res.status(409).json({ error: `PO not receivable in status ${po.status}` });
+            }
+            // validate + lock each PO line (ascending id) before mutating
+            const validated = [];
+            const poItemIds = lines.map(l => e16.e16IntId(l.po_item_id)).filter(x => x !== null).sort((a, b) => a - b);
+            for (const pid of poItemIds) {
+                const line = lines.find(l => e16.e16IntId(l.po_item_id) === pid);
+                const qty = e16.e16Qty(line.qty_received);
+                if (qty === null || qty <= 0) { await client.query('ROLLBACK'); client.release(); return res.status(422).json({ error: 'Invalid GRN qty' }); }
+                const poItem = (await client.query('SELECT id, item_id, qty_ordered, qty_received FROM purchase_order_items WHERE id=$1 AND po_id=$2 AND tenant_id=$3 FOR UPDATE', [pid, poId, t.tenantId])).rows[0];
+                if (!poItem) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'PO line not found' }); }
+                const remaining = poItem.qty_ordered - poItem.qty_received;
+                if (qty > remaining) { await client.query('ROLLBACK'); client.release(); return res.status(409).json({ error: `Over-receipt: line ${pid} remaining ${remaining}, got ${qty}` }); }
+                validated.push({ poItem, qty, lot_number: line.lot_number || '', expiry_date: line.expiry_date || null, unit_cost: e16.e16Qty(line.unit_cost) || 0 });
+            }
+
+            const grn = (await client.query(
+                'INSERT INTO goods_receipts (grn_number, po_id, received_by, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *',
+                [grn_number || '', poId, req.session.user?.display_name || '', notes || '', t.tenantId, t.facilityId || null])).rows[0];
+
+            for (const v of validated) {
+                // 1. create batch (qty_received = qty_on_hand at receipt)
+                const batch = (await client.query(
+                    'INSERT INTO inventory_batches (item_id, lot_number, expiry_date, qty_received, qty_on_hand, unit_cost, status, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$4,$5,$6,$7,$8) RETURNING id',
+                    [v.poItem.item_id, v.lot_number, v.expiry_date, v.qty, v.unit_cost, 'active', t.tenantId, t.facilityId || null])).rows[0];
+                // 2. bump the item master stock_qty (server-authoritative)
+                const upd = (await client.query(
+                    'UPDATE inventory_items SET stock_qty = stock_qty + $1, updated_at=now() WHERE id=$2 AND tenant_id=$3 RETURNING stock_qty',
+                    [v.qty, v.poItem.item_id, t.tenantId])).rows[0];
+                // 3. ledger movement (receive, +qty)
+                await client.query(
+                    'INSERT INTO inventory_movements (item_id, batch_id, movement_type, qty_delta, balance_after, ref_table, ref_id, reason, created_by, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)',
+                    [v.poItem.item_id, batch.id, 'receive', v.qty, upd ? upd.stock_qty : null, 'goods_receipts', grn.id, 'GRN', req.session.user?.display_name || '', t.tenantId, t.facilityId || null]);
+                // 4. GRN line + PO line received bump
+                await client.query(
+                    'INSERT INTO goods_receipt_items (grn_id, po_item_id, item_id, batch_id, qty_received, lot_number, expiry_date, unit_cost, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',
+                    [grn.id, v.poItem.id, v.poItem.item_id, batch.id, v.qty, v.lot_number, v.expiry_date, v.unit_cost, t.tenantId, t.facilityId || null]);
+                await client.query('UPDATE purchase_order_items SET qty_received = qty_received + $1 WHERE id=$2 AND tenant_id=$3', [v.qty, v.poItem.id, t.tenantId]);
+            }
+
+            // recompute PO header status from line fulfilment (server-authoritative)
+            const agg = (await client.query('SELECT COALESCE(SUM(qty_ordered),0) AS ord, COALESCE(SUM(qty_received),0) AS rec FROM purchase_order_items WHERE po_id=$1 AND tenant_id=$2', [poId, t.tenantId])).rows[0];
+            const newStatus = (Number(agg.rec) >= Number(agg.ord)) ? 'received' : 'partially_received';
+            await client.query('UPDATE purchase_orders SET status=$1 WHERE id=$2 AND tenant_id=$3', [newStatus, poId, t.tenantId]);
+
+            await client.query('COMMIT'); client.release();
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_GOODS_RECEIPT', 'Inventory', `GRN #${grn.id} against PO #${poId}; PO now ${newStatus}`, req.ip);
+            res.json({ ...grn, po_status: newStatus });
+        } catch (e) { try { await client.query('ROLLBACK'); } catch (_) {} client.release(); throw e; }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- stock movement: issue / adjust / transfer (TRANSACTIONAL, no-negative, FEFO) ----
+// The server is authoritative on the movement sign — a client cannot turn an 'issue' into a
+// stock-increasing op. Decrements are FEFO across batches and blocked (409) if insufficient.
+app.post('/api/inventory/movements', requireAuth, requireRole('inventory', 'pharmacy'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const itemId = e16.e16IntId(req.body.item_id);
+        const qty = e16.e16Qty(req.body.qty);
+        const movementType = String(req.body.movement_type || '');
+        if (itemId === null || qty === null || qty <= 0) return res.status(422).json({ error: 'Invalid item or quantity' });
+        const sign = e16.movementSign(movementType);
+        if (sign === null) return res.status(422).json({ error: 'Invalid movement_type' });
+
+        const client = await e16BeginTenantTx(t.tenantId);
+        try {
+            const item = (await client.query('SELECT id, stock_qty FROM inventory_items WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [itemId, t.tenantId])).rows[0];
+            if (!item) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Item not found' }); }
+
+            if (sign < 0) {
+                // DECREMENT path: never allow negative. Allocate FEFO across active batches (locked ascending id).
+                const dec = e16.checkDecrement(item.stock_qty, qty);
+                if (!dec.ok) { await client.query('ROLLBACK'); client.release(); return res.status(409).json({ error: 'Insufficient stock', detail: dec }); }
+                const batches = (await client.query(
+                    'SELECT id, qty_on_hand, expiry_date FROM inventory_batches WHERE item_id=$1 AND tenant_id=$2 AND qty_on_hand > 0 ORDER BY id ASC FOR UPDATE',
+                    [itemId, t.tenantId])).rows;
+                const alloc = e16.fefoAllocate(batches, qty);
+                if (!alloc.ok) { await client.query('ROLLBACK'); client.release(); return res.status(409).json({ error: 'Insufficient batch stock', detail: alloc }); }
+                // apply allocations in ascending batch id order (deadlock-safe)
+                const ordered = [...alloc.allocations].sort((a, b) => a.batch_id - b.batch_id);
+                for (const a of ordered) {
+                    const ur = await client.query(
+                        'UPDATE inventory_batches SET qty_on_hand = qty_on_hand - $1 WHERE id=$2 AND tenant_id=$3 AND qty_on_hand >= $1 RETURNING qty_on_hand',
+                        [a.qty, a.batch_id, t.tenantId]);
+                    if (ur.rowCount === 0) { await client.query('ROLLBACK'); client.release(); return res.status(409).json({ error: 'Batch race / insufficient batch stock' }); }
+                }
+                const newQty = (await client.query(
+                    'UPDATE inventory_items SET stock_qty = stock_qty - $1, updated_at=now() WHERE id=$2 AND tenant_id=$3 AND stock_qty >= $1 RETURNING stock_qty',
+                    [qty, itemId, t.tenantId]));
+                if (newQty.rowCount === 0) { await client.query('ROLLBACK'); client.release(); return res.status(409).json({ error: 'Insufficient stock' }); }
+                await client.query(
+                    'INSERT INTO inventory_movements (item_id, batch_id, movement_type, qty_delta, balance_after, ref_table, ref_id, reason, created_by, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)',
+                    [itemId, ordered[0] ? ordered[0].batch_id : null, movementType, -qty, newQty.rows[0].stock_qty, String(req.body.ref_table || ''), e16.e16IntId(req.body.ref_id), String(req.body.reason || ''), req.session.user?.display_name || '', t.tenantId, t.facilityId || null]);
+                await client.query('COMMIT'); client.release();
+                logAudit(req.session.user?.id, req.session.user?.display_name, 'STOCK_MOVEMENT', 'Inventory', `${movementType} -${qty} item #${itemId}; FEFO over ${ordered.length} batch(es)`, req.ip);
+                return res.json({ success: true, balance_after: newQty.rows[0].stock_qty, allocations: ordered });
+            } else {
+                // INCREMENT path (adjust_in / transfer_in): bump master; optional batch.
+                const batchId = e16.e16IntId(req.body.batch_id);
+                if (batchId) {
+                    const br = await client.query('UPDATE inventory_batches SET qty_on_hand = qty_on_hand + $1 WHERE id=$2 AND tenant_id=$3 RETURNING id', [qty, batchId, t.tenantId]);
+                    if (br.rowCount === 0) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Batch not found' }); }
+                }
+                const newQty = (await client.query('UPDATE inventory_items SET stock_qty = stock_qty + $1, updated_at=now() WHERE id=$2 AND tenant_id=$3 RETURNING stock_qty', [qty, itemId, t.tenantId])).rows[0];
+                await client.query(
+                    'INSERT INTO inventory_movements (item_id, batch_id, movement_type, qty_delta, balance_after, ref_table, ref_id, reason, created_by, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)',
+                    [itemId, batchId, movementType, qty, newQty.stock_qty, String(req.body.ref_table || ''), e16.e16IntId(req.body.ref_id), String(req.body.reason || ''), req.session.user?.display_name || '', t.tenantId, t.facilityId || null]);
+                await client.query('COMMIT'); client.release();
+                logAudit(req.session.user?.id, req.session.user?.display_name, 'STOCK_MOVEMENT', 'Inventory', `${movementType} +${qty} item #${itemId}`, req.ip);
+                return res.json({ success: true, balance_after: newQty.stock_qty });
+            }
+        } catch (e) { try { await client.query('ROLLBACK'); } catch (_) {} client.release(); throw e; }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- stock movements ledger (read) ----
+app.get('/api/inventory/movements', requireAuth, requireRole('inventory', 'pharmacy'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const itemId = e16.e16IntId(req.query.item_id);
+        const params = [t.tenantId];
+        let q = 'SELECT * FROM inventory_movements WHERE tenant_id=$1';
+        if (itemId) { q += ' AND item_id=$2'; params.push(itemId); }
+        q += ' ORDER BY created_at DESC, id DESC LIMIT 500';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- periodic stock count / reconciliation (records variance; optional adjust movement) ----
+app.post('/api/inventory/stock-counts', requireAuth, requireRole('inventory', 'pharmacy'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const itemId = e16.e16IntId(req.body.item_id);
+        const counted = e16.e16Qty(req.body.counted_qty);
+        if (itemId === null || counted === null || counted < 0) return res.status(422).json({ error: 'Invalid item or counted_qty' });
+        const client = await e16BeginTenantTx(t.tenantId);
+        try {
+            const item = (await client.query('SELECT id, stock_qty FROM inventory_items WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [itemId, t.tenantId])).rows[0];
+            if (!item) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Item not found' }); }
+            const systemQty = item.stock_qty;
+            const diff = counted - systemQty;     // server computes variance (not client-trusted)
+            const reconcile = req.body.reconcile === true || req.body.reconcile === 'true';
+            const sc = (await client.query(
+                'INSERT INTO inventory_stock_counts (item_id, system_qty, counted_qty, difference, reconciled, counted_by, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+                [itemId, systemQty, counted, diff, reconcile ? 1 : 0, req.session.user?.display_name || '', String(req.body.notes || ''), t.tenantId, t.facilityId || null])).rows[0];
+            if (reconcile && diff !== 0) {
+                const mtype = diff > 0 ? 'adjust_in' : 'adjust_out';
+                const newQty = (await client.query('UPDATE inventory_items SET stock_qty=$1, updated_at=now() WHERE id=$2 AND tenant_id=$3 RETURNING stock_qty', [counted, itemId, t.tenantId])).rows[0];
+                await client.query(
+                    'INSERT INTO inventory_movements (item_id, movement_type, qty_delta, balance_after, ref_table, ref_id, reason, created_by, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',
+                    [itemId, mtype, diff, newQty.stock_qty, 'inventory_stock_counts', sc.id, 'reconciliation', req.session.user?.display_name || '', t.tenantId, t.facilityId || null]);
+            }
+            await client.query('COMMIT'); client.release();
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'STOCK_COUNT', 'Inventory', `Count item #${itemId}: sys ${systemQty} vs counted ${counted} (diff ${diff})${reconcile ? ' reconciled' : ''}`, req.ip);
+            res.json(sc);
+        } catch (e) { try { await client.query('ROLLBACK'); } catch (_) {} client.release(); throw e; }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ============================================================================
+// ===== E16 — CSSD biological-indicator (BI) gate (fail-CLOSED) =====
+// A cycle's BI result is recorded server-side; a cycle/tray can only be RELEASED for sterile
+// issue when the BI is an explicit recorded PASS. The client cannot self-assert 'Pass'.
+// ============================================================================
+
+// record the BI / CI result for a cycle (does NOT itself release — that is a separate gated step)
+app.put('/api/cssd/cycles/:id/bi-result', requireAuth, requireRole('cssd', 'nursing', 'surgery'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const cycleId = e16.e16IntId(req.params.id);
+        if (cycleId === null) return res.status(404).json({ error: 'Cycle not found' });
+        const bi = e16.normIndicator(req.body.bi_test_result);     // normalised server-side
+        const ci = e16.normIndicator(req.body.ci_result);
+        if (bi === null) return res.status(422).json({ error: 'bi_test_result required' });
+        const client = await e16BeginTenantTx(t.tenantId);
+        try {
+            const cyc = (await client.query('SELECT id, status FROM cssd_sterilization_cycles WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [cycleId, t.tenantId])).rows[0];
+            if (!cyc) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Cycle not found' }); }
+            const r = (await client.query(
+                'UPDATE cssd_sterilization_cycles SET bi_test_result=$1, ci_result=$2, bi_indicator_lot=$3, bi_result_recorded_at=now(), bi_result_by=$4 WHERE id=$5 AND tenant_id=$6 RETURNING *',
+                [bi, ci || '', String(req.body.bi_indicator_lot || ''), req.session.user?.display_name || '', cycleId, t.tenantId])).rows[0];
+            await client.query('COMMIT'); client.release();
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'CSSD_BI_RESULT', 'CSSD', `Cycle #${cycleId} BI=${bi} CI=${ci || 'n/a'}`, req.ip);
+            res.json(r);
+        } catch (e) { try { await client.query('ROLLBACK'); } catch (_) {} client.release(); throw e; }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// THE GATE: release a completed cycle's load for sterile issue — fail-CLOSED on BI.
+app.put('/api/cssd/cycles/:id/release', requireAuth, requireRole('cssd', 'nursing', 'surgery'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const cycleId = e16.e16IntId(req.params.id);
+        if (cycleId === null) return res.status(404).json({ error: 'Cycle not found' });
+        const client = await e16BeginTenantTx(t.tenantId);
+        try {
+            const cyc = (await client.query('SELECT * FROM cssd_sterilization_cycles WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [cycleId, t.tenantId])).rows[0];
+            if (!cyc) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Cycle not found' }); }
+            // require the cycle to be completed AND BI passed (engine is authoritative, fail-closed)
+            const gate = e16.canIssueSterileLoad(String(cyc.status || '').toLowerCase(), cyc.bi_test_result, cyc.ci_result);
+            if (!gate.allowed) {
+                await client.query('ROLLBACK'); client.release();
+                return res.status(409).json({ error: 'Sterile release blocked', reason: gate.reason });
+            }
+            await client.query('UPDATE cssd_sterilization_cycles SET released_for_issue=1 WHERE id=$1 AND tenant_id=$2', [cycleId, t.tenantId]);
+            // promote this cycle's trays to sterile (only those still in_cycle/packed)
+            await client.query("UPDATE cssd_trays SET status='sterile', sterilized_at=now() WHERE cycle_id=$1 AND tenant_id=$2 AND status IN ('packed','in_cycle')", [cycleId, t.tenantId]);
+            await client.query('COMMIT'); client.release();
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'CSSD_RELEASE_STERILE', 'CSSD', `Cycle #${cycleId} released for issue (BI passed)`, req.ip);
+            res.json({ success: true, released: true });
+        } catch (e) { try { await client.query('ROLLBACK'); } catch (_) {} client.release(); throw e; }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// CSSD trays: list / create (packed) ----
+app.get('/api/cssd/trays', requireAuth, requireRole('cssd', 'nursing', 'surgery'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        res.json((await pool.query('SELECT * FROM cssd_trays WHERE tenant_id=$1 ORDER BY id DESC LIMIT 500', [t.tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.post('/api/cssd/trays', requireAuth, requireRole('cssd', 'nursing', 'surgery'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const r = (await pool.query(
+            'INSERT INTO cssd_trays (tray_code, set_id, cycle_id, department, status, notes, created_by, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+            [String(req.body.tray_code || ''), e16.e16IntId(req.body.set_id), e16.e16IntId(req.body.cycle_id), String(req.body.department || ''), 'packed', String(req.body.notes || ''), req.session.user?.display_name || '', t.tenantId, t.facilityId || null])).rows[0];
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_CSSD_TRAY', 'CSSD', `Created tray ${r.tray_code} (#${r.id})`, req.ip);
+        res.json(r);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// issue a STERILE tray to OR/ward — fail-CLOSED: only a tray already 'sterile' may be issued.
+app.put('/api/cssd/trays/:id/issue', requireAuth, requireRole('cssd', 'nursing', 'surgery'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e16RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const trayId = e16.e16IntId(req.params.id);
+        if (trayId === null) return res.status(404).json({ error: 'Tray not found' });
+        const client = await e16BeginTenantTx(t.tenantId);
+        try {
+            const tray = (await client.query('SELECT id, status, cycle_id FROM cssd_trays WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [trayId, t.tenantId])).rows[0];
+            if (!tray) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Tray not found' }); }
+            if (tray.status !== 'sterile') {
+                await client.query('ROLLBACK'); client.release();
+                return res.status(409).json({ error: 'Tray not sterile-released', status: tray.status });
+            }
+            // defence-in-depth: re-confirm the parent cycle BI gate still holds at issue time
+            if (tray.cycle_id) {
+                const cyc = (await client.query('SELECT status, bi_test_result, ci_result, released_for_issue FROM cssd_sterilization_cycles WHERE id=$1 AND tenant_id=$2', [tray.cycle_id, t.tenantId])).rows[0];
+                const gate = cyc ? e16.canIssueSterileLoad(String(cyc.status || '').toLowerCase(), cyc.bi_test_result, cyc.ci_result) : { allowed: false, reason: 'cycle_missing' };
+                if (!gate.allowed || !cyc.released_for_issue) {
+                    await client.query('ROLLBACK'); client.release();
+                    return res.status(409).json({ error: 'Sterile issue blocked', reason: gate.reason || 'not_released' });
+                }
+            }
+            const r = (await client.query(
+                "UPDATE cssd_trays SET status='issued', issued_to=$1, issued_at=now(), used_in_surgery_id=$2 WHERE id=$3 AND tenant_id=$4 RETURNING *",
+                [String(req.body.issued_to || ''), e16.e16IntId(req.body.used_in_surgery_id), trayId, t.tenantId])).rows[0];
+            await client.query('COMMIT'); client.release();
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'CSSD_ISSUE_TRAY', 'CSSD', `Issued sterile tray #${trayId} to ${req.body.issued_to || 'n/a'}`, req.ip);
+            res.json(r);
+        } catch (e) { try { await client.query('ROLLBACK'); } catch (_) {} client.release(); throw e; }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+// ===== END E16 ROUTES =====
 
 // ===== SPA CATCH-ALL (must be LAST route) =====
 app.get('*', (req, res) => {
