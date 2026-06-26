@@ -9173,9 +9173,9 @@ window.saveOperativeNote = async () => {
 let bbTab = 'inventory';
 async function renderBloodBank(el) {
   const [stats, units, donors, crossmatches, transfusions, patients] = await Promise.all([
-    API.get('/api/blood-bank/stats'), API.get('/api/blood-bank/units'),
-    API.get('/api/blood-bank/donors'), API.get('/api/blood-bank/crossmatch'),
-    API.get('/api/blood-bank/transfusions'), API.get('/api/patients')
+    API.get('/api/bloodbank/stats'), API.get('/api/bloodbank/units'),
+    API.get('/api/bloodbank/donors'), API.get('/api/bloodbank/crossmatch'),
+    API.get('/api/bloodbank/transfusions'), API.get('/api/patients')
   ]);
   const btColors = { 'A': '#ef4444', 'B': '#3b82f6', 'AB': '#8b5cf6', 'O': '#22c55e' };
   el.innerHTML = `
@@ -9237,21 +9237,24 @@ async function renderBloodBank(el) {
   } else if (bbTab === 'crossmatch') {
     cont.innerHTML = `<div class="split-layout"><div class="card">
       <div class="card-title">🧪 ${tr('Request Cross-Match', 'طلب فحص توافق')}</div>
-      <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="bbCMPatient">${patients.map(p => `<option value="${safeId(p.id)}" data-name="">${escapeHTML(p.file_number)} - ${escapeHTML(isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar))}</option>`).join('')}</select></div>
-      <div class="form-group mb-12"><label>${tr('Blood Type', 'فصيلة المريض')}</label><select class="form-input" id="bbCMBT"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div>
+      <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="bbCMPatient">${patients.map(p => `<option value="${safeId(p.id)}">${escapeHTML(p.file_number)} - ${escapeHTML(isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar))}</option>`).join('')}</select></div>
+      <div class="form-group mb-12"><label>${tr('Unit (optional — validates ABO/Rh)', 'الوحدة (اختياري — يتحقق من التوافق)')}</label><select class="form-input" id="bbCMUnit"><option value="">${escapeHTML(tr('— Pending (no unit) —', '— معلق (بدون وحدة) —'))}</option>${units.filter(u => u.status === 'Available' && !u.is_expired).map(u => `<option value="${safeId(u.id)}">${escapeHTML(u.bag_number)} (${escapeHTML(u.blood_type)}${escapeHTML(u.rh_factor)} - ${escapeHTML(u.component)})</option>`).join('')}</select></div>
       <div class="form-group mb-12"><label>${tr('Units Needed', 'الوحدات المطلوبة')}</label><input class="form-input" type="number" id="bbCMUnits" value="1"></div>
+      <div class="text-muted" style="font-size:12px;margin-bottom:8px">${escapeHTML(tr('Patient blood type and compatibility are determined by the server.', 'فصيلة دم المريض والتوافق يُحددان من الخادم.'))}</div>
       <button class="btn btn-primary w-full" onclick="requestCrossmatch()" style="height:44px">🧪 ${tr('Request', 'طلب')}</button>
     </div><div class="card">
       <div class="card-title">📋 ${tr('Cross-Match Results', 'نتائج التوافق')}</div>
       <div id="bbCMTable">${makeTable([tr('Patient', 'المريض'), tr('Type', 'الفصيلة'), tr('Units', 'الوحدات'), tr('Technician', 'الفني'), tr('Result', 'النتيجة'), tr('Action', 'إجراء')],
-      crossmatches.map(c => ({ cells: [c.patient_name, c.patient_blood_type, c.units_needed, c.lab_technician, c.result === 'Pending' ? badge(c.result, 'warning') : c.result === 'Compatible' ? badge(c.result, 'success') : badge(c.result, 'danger')], id: c.id })),
-      row => `<button class="btn btn-success btn-sm" onclick="updateCrossmatch(${safeId(row.id)},'Compatible')">✅</button><button class="btn btn-danger btn-sm" onclick="updateCrossmatch(${safeId(row.id)},'Incompatible')">❌</button>`)}</div>
+      crossmatches.map(c => ({ cells: [c.patient_name, c.patient_blood_type, c.units_needed, c.lab_technician, c.result === 'Pending' ? badge(c.result, 'warning') : c.result === 'Compatible' ? badge(c.result, 'success') : badge(c.result, 'danger')], id: c.id, result: c.result })),
+      row => row.result === 'Pending'
+        ? `<select class="form-input" id="cmVU_${safeId(row.id)}" style="display:inline-block;width:auto;margin-${isArabic ? 'left' : 'right'}:6px">${units.filter(u => u.status === 'Available' && !u.is_expired).map(u => `<option value="${safeId(u.id)}">${escapeHTML(u.bag_number)} (${escapeHTML(u.blood_type)}${escapeHTML(u.rh_factor)})</option>`).join('')}</select><button class="btn btn-primary btn-sm" onclick="validateCrossmatch(${safeId(row.id)})">🔬 ${escapeHTML(tr('Validate', 'تحقق'))}</button>`
+        : `<span class="text-muted">${escapeHTML(tr('Finalized', 'منتهٍ'))}</span>`)}</div>
     </div></div>`;
   } else if (bbTab === 'transfusions') {
     cont.innerHTML = `<div class="split-layout"><div class="card">
       <div class="card-title">💉 ${tr('Record Transfusion', 'تسجيل نقل دم')}</div>
       <div class="form-group mb-12"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="bbTrPatient">${patients.map(p => `<option value="${safeId(p.id)}" data-name="">${escapeHTML(p.file_number)} - ${escapeHTML(isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar))}</option>`).join('')}</select></div>
-      <div class="form-group mb-12"><label>${tr('Blood Unit', 'وحدة الدم')}</label><select class="form-input" id="bbTrUnit">${units.filter(u => u.status === 'Available').map(u => `<option value="${safeId(u.id)}" data-bag="${escapeHTML(u.bag_number)}" data-bt="${escapeHTML(u.blood_type + u.rh_factor)}" data-comp="${escapeHTML(u.component)}">${escapeHTML(u.bag_number)} (${escapeHTML(u.blood_type)}${escapeHTML(u.rh_factor)} - ${escapeHTML(u.component)})</option>`).join('')}</select></div>
+      <div class="form-group mb-12"><label>${tr('Blood Unit', 'وحدة الدم')}</label><select class="form-input" id="bbTrUnit">${units.filter(u => u.status === 'Available' && !u.is_expired).map(u => `<option value="${safeId(u.id)}" data-bag="${escapeHTML(u.bag_number)}" data-bt="${escapeHTML(u.blood_type + u.rh_factor)}" data-comp="${escapeHTML(u.component)}">${escapeHTML(u.bag_number)} (${escapeHTML(u.blood_type)}${escapeHTML(u.rh_factor)} - ${escapeHTML(u.component)})</option>`).join('')}</select></div>
       <div class="form-group mb-12"><label>${tr('Volume (ml)', 'الحجم (مل)')}</label><input class="form-input" type="number" id="bbTrVol" value="450"></div>
       <button class="btn btn-primary w-full" onclick="recordTransfusion()" style="height:44px">💉 ${tr('Record', 'تسجيل')}</button>
     </div><div class="card">
@@ -9261,34 +9264,56 @@ async function renderBloodBank(el) {
     </div></div>`;
   }
 }
+// E13: PRIMARY blood-bank handlers now call the safe /api/bloodbank/* routes.
+// Server is authoritative for ABO/Rh compatibility, unit status, expiry and tenant scope;
+// the client never marks a crossmatch compatible. The API client resolves (does not throw)
+// on non-2xx, so we inspect the response: an { error } body means the server blocked/refused
+// (422/409/410) and we surface the server reason instead of a falsely-reassuring success.
+function bbBlocked(resp) { return resp && typeof resp === 'object' && (resp.error || resp.compatible === false); }
+function bbShowReason(resp, fallbackEn, fallbackAr) {
+  const reason = resp && (resp.reason || resp.error);
+  showToast(reason ? String(reason) : tr(fallbackEn, fallbackAr), 'error');
+}
 window.addBloodUnit = async () => {
   try {
-    await API.post('/api/blood-bank/units', { bag_number: document.getElementById('bbBag').value, blood_type: document.getElementById('bbType').value, rh_factor: document.getElementById('bbRh').value, component: document.getElementById('bbComp').value, collection_date: document.getElementById('bbCollDate').value, expiry_date: document.getElementById('bbExpDate').value, volume_ml: document.getElementById('bbVol').value });
+    const r = await API.post('/api/bloodbank/units', { bag_number: document.getElementById('bbBag').value, blood_type: document.getElementById('bbType').value, rh_factor: document.getElementById('bbRh').value, component: document.getElementById('bbComp').value, collection_date: document.getElementById('bbCollDate').value, expiry_date: document.getElementById('bbExpDate').value, volume_ml: document.getElementById('bbVol').value });
+    if (bbBlocked(r)) return bbShowReason(r, 'Error', 'خطأ');
     showToast(tr('Unit added!', 'تم إضافة الوحدة!')); bbTab = 'inventory'; await navigateTo(19);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 window.addDonor = async () => {
   try {
-    await API.post('/api/blood-bank/donors', { donor_name: document.getElementById('bbDonorName').value, donor_name_ar: document.getElementById('bbDonorNameAr').value, national_id: document.getElementById('bbDonorNID').value, phone: document.getElementById('bbDonorPhone').value, blood_type: document.getElementById('bbDonorBT').value, rh_factor: document.getElementById('bbDonorRh').value, age: document.getElementById('bbDonorAge').value });
+    const r = await API.post('/api/bloodbank/donors', { donor_name: document.getElementById('bbDonorName').value, donor_name_ar: document.getElementById('bbDonorNameAr').value, national_id: document.getElementById('bbDonorNID').value, phone: document.getElementById('bbDonorPhone').value, blood_type: document.getElementById('bbDonorBT').value, rh_factor: document.getElementById('bbDonorRh').value, age: document.getElementById('bbDonorAge').value });
+    if (bbBlocked(r)) return bbShowReason(r, 'Error', 'خطأ');
     showToast(tr('Donor registered!', 'تم تسجيل المتبرع!')); bbTab = 'donors'; await navigateTo(19);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 window.requestCrossmatch = async () => {
   const sel = document.getElementById('bbCMPatient');
+  const unitSel = document.getElementById('bbCMUnit');
   try {
-    await API.post('/api/blood-bank/crossmatch', { patient_id: sel.value, patient_name: sel.options[sel.selectedIndex]?.dataset?.name || '', patient_blood_type: document.getElementById('bbCMBT').value, units_needed: document.getElementById('bbCMUnits').value });
+    // Server reads patient blood type from the chart and validates ABO/Rh if a unit is chosen.
+    const r = await API.post('/api/bloodbank/crossmatch', { patient_id: sel.value, unit_id: unitSel.value || undefined, units_needed: document.getElementById('bbCMUnits').value });
+    if (bbBlocked(r)) return bbShowReason(r, 'Cross-match blocked', 'تم منع فحص التوافق');
     showToast(tr('Cross-match requested!', 'تم طلب فحص التوافق!')); bbTab = 'crossmatch'; await navigateTo(19);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
-window.updateCrossmatch = async (id, result) => {
-  try { await API.put(`/api/blood-bank/crossmatch/${id}`, { result }); showToast(tr('Updated', 'تم التحديث')); await navigateTo(19); }
-  catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+// validate a pending crossmatch against a selected unit (server-side ABO/Rh; client cannot force Compatible)
+window.validateCrossmatch = async (id) => {
+  const us = document.getElementById('cmVU_' + id);
+  const unitId = us ? us.value : '';
+  try {
+    const r = await API.put(`/api/bloodbank/crossmatch/${id}/validate`, { unit_id: unitId });
+    if (bbBlocked(r)) { bbShowReason(r, 'Incompatible / blocked', 'غير متوافق / محظور'); await navigateTo(19); return; }
+    showToast(tr('Compatible — validated', 'متوافق — تم التحقق')); await navigateTo(19);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 window.recordTransfusion = async () => {
   const pSel = document.getElementById('bbTrPatient'), uSel = document.getElementById('bbTrUnit');
-  const opt = uSel.options[uSel.selectedIndex];
   try {
-    await API.post('/api/blood-bank/transfusions', { patient_id: pSel.value, patient_name: pSel.options[pSel.selectedIndex]?.dataset?.name || '', unit_id: uSel.value, bag_number: opt?.dataset?.bag || '', blood_type: opt?.dataset?.bt || '', component: opt?.dataset?.comp || '', volume_ml: document.getElementById('bbTrVol').value });
+    // Transactional, ABO/Rh + expiry enforced server-side; double-issue -> 409.
+    const r = await API.post('/api/bloodbank/transfuse', { patient_id: pSel.value, unit_id: uSel.value, volume_ml: document.getElementById('bbTrVol').value });
+    if (bbBlocked(r)) return bbShowReason(r, 'Transfusion blocked', 'تم منع نقل الدم');
     showToast(tr('Transfusion recorded!', 'تم تسجيل نقل الدم!')); bbTab = 'transfusions'; await navigateTo(19);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
