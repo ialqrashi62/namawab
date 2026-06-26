@@ -10251,46 +10251,187 @@ window.completeTransport = async function (id) {
 };
 
 // ===== MEDICAL RECORDS / HIM =====
-let mrTab = 'requests';
+let mrTab = 'records';
 async function renderMedicalRecords(el) {
   const content = el;
 
   const patients = await API.get('/api/patients').catch(() => []);
+  const isHimAdmin = ['Admin', 'HIM'].includes(currentUser?.role);
 
+  const tabs = [
+    { k: 'records', en: 'Patient Records', ar: 'سجلات المرضى', icon: '📁' },
+    { k: 'coding', en: 'Coding', ar: 'الترميز', icon: '🏷️' },
+    { k: 'deficiencies', en: 'Deficiencies', ar: 'النواقص', icon: '⚠️' },
+    { k: 'roi', en: 'Release of Info', ar: 'الإفصاح عن المعلومات', icon: '📤' }
+  ];
+  if (isHimAdmin) tabs.push({ k: 'access', en: 'Access Log', ar: 'سجل الوصول', icon: '🔐' });
+
+  const tabBar = tabs.map(t => `<button class="btn btn-sm" onclick="mrTab='${t.k}';navigateTo(30)" style="${mrTab === t.k ? 'background:#1565c0;color:#fff' : 'background:#e3f2fd;color:#1565c0'}">${t.icon} ${tr(t.en, t.ar)}</button>`).join(' ');
+
+  // tabBar is composed only from a fixed allowlist (no user/PHI data) — no injection surface.
   content.innerHTML = `
     <h2>${tr('Medical Records', 'السجلات الطبية')}</h2>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${patients.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Records', 'إجمالي السجلات')}</p></div>
-    </div>
-    <div class="card" style="padding:20px;margin-bottom:16px">
-      <h4 style="margin:0 0 12px">🔍 ${tr('Search Medical Records', 'بحث في السجلات الطبية')}</h4>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end">
-        <div class="form-group"><label>${tr('Name', 'الاسم')}</label><input class="form-input" id="mrSearchName" oninput="filterMedRecords()"></div>
-        <div class="form-group"><label>${tr('MRN / File #', 'رقم الملف')}</label><input class="form-input" id="mrSearchMRN" oninput="filterMedRecords()"></div>
-        <div class="form-group"><label>${tr('ID / Iqama', 'الهوية/الإقامة')}</label><input class="form-input" id="mrSearchID" oninput="filterMedRecords()"></div>
-        <button class="btn btn-primary" onclick="filterMedRecords()">🔍</button>
-      </div>
-    </div>
-    <div class="card" style="padding:20px">
-      <div style="display:flex;justify-content:space-between;margin-bottom:12px">
-        <h4 style="margin:0">${tr('Patient Records', 'سجلات المرضى')}</h4>
-        <button class="btn btn-sm" onclick="exportToCSV(window._mrData||[],'medical_records')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export', 'تصدير')}</button>
-      </div>
-      <div id="mrTable"></div>
-    </div>`;
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">${tabBar}</div>
+    <div id="mrTabBody"></div>`;
 
+  const body = document.getElementById('mrTabBody');
   window._mrData = patients;
-  const mrt = document.getElementById('mrTable');
-  if (mrt) {
-    createTable(mrt, 'mrTbl',
-      [tr('File #', 'رقم الملف'), tr('Name (AR)', 'الاسم بالعربي'), tr('Name (EN)', 'الاسم بالإنجليزي'), tr('ID', 'الهوية'), tr('Phone', 'الجوال'), tr('DOB', 'تاريخ الميلاد'), tr('Nationality', 'الجنسية'), tr('Actions', '')],
-      patients.slice(0, 100).map(p => ({ cells: [p.file_number || p.id, p.name_ar || '', p.name_en || '', p.id_number || '', p.phone || '', p.dob || '', p.nationality || '', rawHtml('<button class="btn btn-sm" onclick="viewPatientRecord(' + parseInt(p.id, 10) + ')">📂 ' + tr('View', 'عرض') + '</button>')], id: p.id }))
-    );
-  }
-  window.filterMedRecords = () => { const n = (document.getElementById('mrSearchName')?.value || '').toLowerCase(); const mrn = (document.getElementById('mrSearchMRN')?.value || ''); const sid = (document.getElementById('mrSearchID')?.value || ''); document.querySelectorAll('#mrTbl tbody tr').forEach(r => { const t = r.textContent.toLowerCase(); r.style.display = (t.includes(n) && (!mrn || t.includes(mrn)) && (!sid || t.includes(sid))) ? '' : 'none'; }); };
-  window.viewPatientRecord = async (id) => { try { const visits = await API.get('/api/visits?patient_id=' + id).catch(() => []); const p = patients.find(x => x.id === id) || {}; const modal = document.createElement('div'); modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center'; modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:700px;max-height:85vh;overflow:auto"><h3 style="margin:0 0 16px">📂 ' + escapeHTML(p.name_ar || p.name_en || '') + '</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;font-size:13px"><div><strong>' + tr('File', 'ملف') + ':</strong> ' + escapeHTML(p.file_number || p.id) + '</div><div><strong>' + tr('ID', 'الهوية') + ':</strong> ' + escapeHTML(p.id_number || '') + '</div><div><strong>' + tr('Phone', 'الجوال') + ':</strong> ' + escapeHTML(p.phone || '') + '</div><div><strong>' + tr('DOB', 'الميلاد') + ':</strong> ' + escapeHTML(p.dob || '') + '</div></div><h4>' + tr('Visit History', 'سجل الزيارات') + ' (' + visits.length + ')</h4>' + (visits.length ? visits.map(v => '<div style="padding:8px;margin:4px 0;background:#f5f5f5;border-radius:8px"><strong>' + (v.visit_date || v.created_at ? new Date(v.visit_date || v.created_at).toLocaleDateString('ar-SA') : '') + '</strong> — ' + escapeHTML(v.diagnosis || v.complaint || tr('No details', 'بدون تفاصيل')) + '</div>').join('') : '<p style="color:#999">' + tr('No visits', 'لا توجد زيارات') + '</p>') + '<button class="btn btn-secondary w-full" onclick="this.parentElement.parentElement.remove()" style="margin-top:16px">' + tr('Close', 'إغلاق') + '</button></div>'; document.body.appendChild(modal); modal.onclick = e => { if (e.target === modal) modal.remove(); }; } catch (e) { } };
 
+  window.filterMedRecords = () => { const n = (document.getElementById('mrSearchName')?.value || '').toLowerCase(); const mrn = (document.getElementById('mrSearchMRN')?.value || ''); const sid = (document.getElementById('mrSearchID')?.value || ''); document.querySelectorAll('#mrTbl tbody tr').forEach(r => { const t = r.textContent.toLowerCase(); r.style.display = (t.includes(n) && (!mrn || t.includes(mrn)) && (!sid || t.includes(sid))) ? '' : 'none'; }); };
+
+  // ---- TAB: PATIENT RECORDS (longitudinal record entry) ----
+  if (mrTab === 'records') {
+    body.innerHTML = `
+      <div class="card" style="padding:20px;margin-bottom:16px">
+        <h4 style="margin:0 0 12px">🔍 ${tr('Search Medical Records', 'بحث في السجلات الطبية')}</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end">
+          <div class="form-group"><label>${tr('Name', 'الاسم')}</label><input class="form-input" id="mrSearchName" oninput="filterMedRecords()"></div>
+          <div class="form-group"><label>${tr('MRN / File #', 'رقم الملف')}</label><input class="form-input" id="mrSearchMRN" oninput="filterMedRecords()"></div>
+          <div class="form-group"><label>${tr('ID / Iqama', 'الهوية/الإقامة')}</label><input class="form-input" id="mrSearchID" oninput="filterMedRecords()"></div>
+          <button class="btn btn-primary" onclick="filterMedRecords()">🔍</button>
+        </div>
+      </div>
+      <div class="card" style="padding:20px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+          <h4 style="margin:0">${tr('Patient Records', 'سجلات المرضى')}</h4>
+          <button class="btn btn-sm" onclick="exportToCSV(window._mrData||[],'medical_records')" style="background:#e0f7fa;color:#00838f">📥 ${tr('Export', 'تصدير')}</button>
+        </div>
+        <div id="mrTable"></div>
+      </div>`;
+    const mrt = document.getElementById('mrTable');
+    if (mrt) {
+      createTable(mrt, 'mrTbl',
+        [tr('File #', 'رقم الملف'), tr('Name (AR)', 'الاسم بالعربي'), tr('Name (EN)', 'الاسم بالإنجليزي'), tr('ID', 'الهوية'), tr('Phone', 'الجوال'), tr('DOB', 'تاريخ الميلاد'), tr('Nationality', 'الجنسية'), tr('Actions', '')],
+        patients.slice(0, 100).map(p => ({ cells: [p.file_number || p.id, p.name_ar || '', p.name_en || '', p.id_number || '', p.phone || '', p.dob || '', p.nationality || '', rawHtml('<button class="btn btn-sm" onclick="viewLongitudinalRecord(' + (safeId(p.id) || 0) + ')">📂 ' + tr('Open Chart', 'فتح السجل') + '</button> <button class="btn btn-sm" onclick="breakGlassRecord(' + (safeId(p.id) || 0) + ')" style="background:#ffebee;color:#c62828">🚨 ' + tr('Break-Glass', 'وصول طارئ') + '</button>')], id: p.id }))
+      );
+    }
+  }
+
+  // ---- TAB: CODING ----
+  if (mrTab === 'coding') {
+    const codes = await API.get('/api/him/coding').catch(() => []);
+    body.innerHTML = `
+      <div class="card" style="padding:20px;margin-bottom:16px">
+        <h4 style="margin:0 0 12px">🏷️ ${tr('Add Code', 'إضافة كود')}</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 2fr auto;gap:12px;align-items:end">
+          <div class="form-group"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="codePatient">${patients.slice(0, 300).map(p => '<option value="' + (safeId(p.id) || '') + '">' + escapeHTML(p.name_ar || p.name_en || ('#' + p.id)) + '</option>').join('')}</select></div>
+          <div class="form-group"><label>${tr('System', 'النظام')}</label><select class="form-input" id="codeSystem"><option>ICD10</option><option>SNOMED</option><option>CPT</option></select></div>
+          <div class="form-group"><label>${tr('Code', 'الكود')}</label><input class="form-input" id="codeValue"></div>
+          <div class="form-group"><label>${tr('Description', 'الوصف')}</label><input class="form-input" id="codeDesc"></div>
+          <button class="btn btn-primary" onclick="addCoding()">${tr('Add', 'إضافة')}</button>
+        </div>
+      </div>
+      <div class="card" style="padding:20px"><h4 style="margin:0 0 12px">${tr('Codes', 'الأكواد')}</h4><div id="codeTable"></div></div>`;
+    const ct = document.getElementById('codeTable');
+    if (ct) createTable(ct, 'codeTbl',
+      [tr('System', 'النظام'), tr('Code', 'الكود'), tr('Description', 'الوصف'), tr('Patient', 'المريض'), tr('Date', 'التاريخ')],
+      codes.map(c => ({ cells: [c.code_system || '', c.code || '', c.description || '', c.patient_id || '', c.created_at ? new Date(c.created_at).toLocaleDateString('en-GB') : ''], id: c.id })));
+  }
+
+  // ---- TAB: DEFICIENCIES ----
+  if (mrTab === 'deficiencies') {
+    const defs = await API.get('/api/him/deficiencies').catch(() => []);
+    body.innerHTML = `<div class="card" style="padding:20px"><h4 style="margin:0 0 12px">⚠️ ${tr('Record Deficiencies', 'نواقص السجلات')} (${defs.length})</h4><div id="defTable"></div></div>`;
+    const dt = document.getElementById('defTable');
+    if (dt) createTable(dt, 'defTbl',
+      [tr('Type', 'النوع'), tr('Record', 'السجل'), tr('Patient', 'المريض'), tr('Detail', 'التفصيل'), tr('Date', 'التاريخ')],
+      defs.map(d => ({ cells: [d.type || '', (d.record_type || '') + ' #' + (d.record_id || ''), d.patient_id || '', d.detail || '', d.date ? new Date(d.date).toLocaleDateString('en-GB') : ''] })));
+  }
+
+  // ---- TAB: ROI ----
+  if (mrTab === 'roi') {
+    const roi = await API.get('/api/him/roi').catch(() => []);
+    body.innerHTML = `
+      <div class="card" style="padding:20px;margin-bottom:16px">
+        <h4 style="margin:0 0 12px">📤 ${tr('New ROI Request', 'طلب إفصاح جديد')}</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr 2fr auto;gap:12px;align-items:end">
+          <div class="form-group"><label>${tr('Patient', 'المريض')}</label><select class="form-input" id="roiPatient">${patients.slice(0, 300).map(p => '<option value="' + (safeId(p.id) || '') + '">' + escapeHTML(p.name_ar || p.name_en || ('#' + p.id)) + '</option>').join('')}</select></div>
+          <div class="form-group"><label>${tr('Requester', 'الجهة الطالبة')}</label><input class="form-input" id="roiRequester"></div>
+          <div class="form-group"><label>${tr('Purpose', 'الغرض')}</label><input class="form-input" id="roiPurpose"></div>
+          <button class="btn btn-primary" onclick="createROI()">${tr('Submit', 'إرسال')}</button>
+        </div>
+      </div>
+      <div class="card" style="padding:20px"><h4 style="margin:0 0 12px">${tr('ROI Requests', 'طلبات الإفصاح')}</h4><div id="roiTable"></div></div>`;
+    const rt = document.getElementById('roiTable');
+    if (rt) createTable(rt, 'roiTbl',
+      [tr('Patient', 'المريض'), tr('Requester', 'الجهة'), tr('Purpose', 'الغرض'), tr('Status', 'الحالة'), tr('Actions', '')],
+      roi.map(r => {
+        let actions = '';
+        if (r.status === 'pending') actions = '<button class="btn btn-sm" onclick="actROI(' + (safeId(r.id) || 0) + ",'approve'" + ')" style="background:#c8e6c9;color:#1b5e20">✓ ' + tr('Approve', 'موافقة') + '</button> <button class="btn btn-sm" onclick="actROI(' + (safeId(r.id) || 0) + ",'deny'" + ')" style="background:#ffcdd2;color:#b71c1c">✗ ' + tr('Deny', 'رفض') + '</button>';
+        else if (r.status === 'approved') actions = '<button class="btn btn-sm" onclick="actROI(' + (safeId(r.id) || 0) + ",'release'" + ')" style="background:#bbdefb;color:#0d47a1">📨 ' + tr('Release', 'إفراج') + '</button>';
+        return { cells: [r.patient_id || '', r.requester || '', r.purpose || '', r.status || '', rawHtml(actions)], id: r.id };
+      }));
+  }
+
+  // ---- TAB: ACCESS LOG (Admin/HIM only) ----
+  if (mrTab === 'access') {
+    if (!isHimAdmin) { body.innerHTML = '<div class="card" style="padding:20px;color:#c62828">' + tr('Access denied', 'الوصول مرفوض') + '</div>'; return; }
+    const logs = await API.get('/api/him/access-log').catch(() => []);
+    body.innerHTML = `<div class="card" style="padding:20px"><h4 style="margin:0 0 12px">🔐 ${tr('Record Access Log', 'سجل الوصول للسجلات')} (${logs.length})</h4><div id="accTable"></div></div>`;
+    const at = document.getElementById('accTable');
+    if (at) createTable(at, 'accTbl',
+      [tr('Patient', 'المريض'), tr('Accessor', 'المستخدم'), tr('Type', 'النوع'), tr('Reason', 'السبب'), tr('When', 'الوقت')],
+      logs.map(l => ({ cells: [l.patient_id || '', l.accessor_id || '', l.access_type === 'break_glass' ? rawHtml('<span class="badge" style="background:#ffcdd2;color:#b71c1c">🚨 break-glass</span>') : 'normal', l.reason || '', l.at ? new Date(l.at).toLocaleString('en-GB') : ''], id: l.id })));
+  }
 }
+
+// ---- Longitudinal record viewer (access-logged server-side) ----
+window.viewLongitudinalRecord = async (id) => {
+  try {
+    const pid = safeId(id); if (pid === '') return;
+    const data = await API.get('/api/him/record/' + pid).catch(() => null);
+    if (!data) { showToast(tr('Cannot open record', 'تعذّر فتح السجل')); return; }
+    const p = data.patient || {};
+    const events = data.events || [];
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+    const evHtml = events.length ? events.map(e =>
+      '<div style="padding:10px;margin:6px 0;background:#f5f5f5;border-radius:8px;border-left:3px solid #1565c0">' +
+      '<div style="font-size:11px;color:#777">' + escapeHTML(e.type || '') + ' — ' + escapeHTML(e.date ? new Date(e.date).toLocaleString('en-GB') : '') + '</div>' +
+      '<strong>' + escapeHTML((e.icon || '') + ' ' + (e.title || '')) + '</strong>' +
+      (e.subtitle ? '<div style="font-size:12px;color:#555">' + escapeHTML(e.subtitle) + '</div>' : '') +
+      '</div>').join('') : '<p style="color:#999">' + tr('No records', 'لا توجد سجلات') + '</p>';
+    modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:760px;max-height:85vh;overflow:auto">' +
+      '<h3 style="margin:0 0 8px">📂 ' + escapeHTML(p.name_ar || p.name_en || '') + '</h3>' +
+      '<div style="font-size:12px;color:#666;margin-bottom:12px">' + tr('File', 'ملف') + ': ' + escapeHTML(String(p.file_number || p.id || '')) + ' — ' + tr('Longitudinal Record', 'السجل الطولي') + ' (' + events.length + ')</div>' +
+      evHtml +
+      '<button class="btn btn-secondary w-full" onclick="this.parentElement.parentElement.remove()" style="margin-top:16px">' + tr('Close', 'إغلاق') + '</button></div>';
+    document.body.appendChild(modal);
+    modal.onclick = e => { if (e.target === modal) modal.remove(); };
+  } catch (e) { }
+};
+
+// ---- Break-glass (requires reason) ----
+window.breakGlassRecord = async (id) => {
+  const pid = safeId(id); if (pid === '') return;
+  const reason = prompt(tr('Break-glass requires a reason. Enter reason:', 'الوصول الطارئ يتطلب سبباً. أدخل السبب:'));
+  if (!reason || !reason.trim()) { showToast(tr('Reason required', 'السبب مطلوب')); return; }
+  const r = await API.post('/api/him/break-glass', { patient_id: pid, reason: reason.trim() }).catch(() => null);
+  if (r && r.success) { showToast(tr('Break-glass recorded', 'تم تسجيل الوصول الطارئ')); window.viewLongitudinalRecord(pid); }
+  else showToast(tr('Break-glass failed', 'فشل الوصول الطارئ'));
+};
+
+window.addCoding = async () => {
+  const patient_id = document.getElementById('codePatient')?.value;
+  const code = (document.getElementById('codeValue')?.value || '').trim();
+  if (!code) { showToast(tr('Code required', 'الكود مطلوب')); return; }
+  await API.post('/api/him/coding', { patient_id, code_system: document.getElementById('codeSystem')?.value, code, description: document.getElementById('codeDesc')?.value || '' }).catch(() => null);
+  showToast(tr('Code added', 'تمت الإضافة')); navigateTo(30);
+};
+
+window.createROI = async () => {
+  const patient_id = document.getElementById('roiPatient')?.value;
+  const requester = (document.getElementById('roiRequester')?.value || '').trim();
+  if (!requester) { showToast(tr('Requester required', 'الجهة الطالبة مطلوبة')); return; }
+  await API.post('/api/him/roi', { patient_id, requester, purpose: document.getElementById('roiPurpose')?.value || '' }).catch(() => null);
+  showToast(tr('ROI submitted', 'تم إرسال الطلب')); navigateTo(30);
+};
+
+window.actROI = async (id, action) => {
+  const rid = safeId(id); if (rid === '') return;
+  await API.put('/api/him/roi/' + rid, { action }).catch(() => null);
+  showToast(tr('Updated', 'تم التحديث')); navigateTo(30);
+};
 window.submitMRRequest = async function () {
   const sel = document.getElementById('mrPatient');
   const patient_id = sel.value;
