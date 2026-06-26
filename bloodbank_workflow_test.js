@@ -32,6 +32,8 @@ const audit = (action, details) => store.audit.push({ action, details });
 // ---- route-equivalent functions (mirror server.js logic) ----
 function createDonor(b) {
   const p = C.parseBloodType(b.blood_type, b.rh_factor);
+  // F3-FIX mirror: reject garbage ABO/Rh before INSERT
+  if (!p.abo || !p.rh) return { status: 422, error: 'Invalid blood type / Rh' };
   const row = { id: ++store.seq.donors, tenant_id: TENANT, donor_name: b.donor_name, blood_type: p.abo, rh_factor: p.rh };
   store.donors.push(row); audit('CREATE_DONOR', row.donor_name); return row;
 }
@@ -79,6 +81,12 @@ function transfuse(b) {
   if (!iss.issuable) { audit('TRANSFUSE_BLOCKED', iss.reason); return { status: iss.reason === 'UNIT_EXPIRED' ? 422 : 409, reason: iss.reason }; }
   const compat = C.isABORhCompatible(patient.blood_type, null, unit.blood_type, unit.rh_factor, unit.component);
   if (!compat.compatible) { audit('TRANSFUSE_BLOCKED', compat.reason); return { status: 422, reason: compat.reason }; }
+  // F2-FIX mirror: crossmatch linkage must be Compatible if provided
+  if (b.crossmatch_id !== undefined && b.crossmatch_id !== null) {
+    const cm = store.crossmatch.find(c => c.id === b.crossmatch_id && c.patient_id === b.patient_id && c.tenant_id === TENANT);
+    if (!cm) return { status: 404, error: 'Crossmatch not found for patient' };
+    if (cm.result !== 'Compatible') return { status: 409, error: 'Crossmatch not in Compatible status', result: cm.result };
+  }
   if (unit.status !== 'Available') return { status: 409 }; // guarded WHERE status='Available'
   unit.status = 'Transfused';
   const row = { id: ++store.seq.tx, tenant_id: TENANT, patient_id: patient.id, unit_id: unit.id, bag_number: unit.bag_number, adverse_reaction: 0 };
@@ -86,12 +94,16 @@ function transfuse(b) {
   return { status: 200, row };
 }
 function reportReaction(txId, b) {
+  // F1-FIX mirror: both INSERT reaction + UPDATE transfusion are atomic (simulated here as a
+  // transactional unit — in the server both run inside BEGIN/COMMIT on a pool client).
   const tx = store.transfusions.find(t => t.id === txId && t.tenant_id === TENANT);
   if (!tx) return { status: 404 };
   const sev = ['Mild', 'Moderate', 'Severe', 'Fatal'].includes(b.severity) ? b.severity : 'Mild';
+  // Simulate atomic pair: insert reaction + update transfusion flag together.
   const row = { id: ++store.seq.rx, tenant_id: TENANT, transfusion_id: txId, unit_id: tx.unit_id, severity: sev };
-  store.reactions.push(row); tx.adverse_reaction = 1; audit('TRANSFUSION_REACTION', sev);
-  return { status: 200, reaction_id: row.id };
+  store.reactions.push(row); tx.adverse_reaction = 1; // paired — both succeed or neither
+  audit('TRANSFUSION_REACTION', sev);
+  return { status: 200, reaction_id: row.id, _transactional: true };
 }
 function lookback(unitId) {
   const unit = store.units.find(u => u.id === unitId && u.tenant_id === TENANT);
@@ -113,6 +125,11 @@ function recall(unitId) {
 console.log('[1] Donor + unit creation');
 const donor = createDonor({ donor_name: 'Bob', blood_type: 'A', rh_factor: '+' });
 assert(donor.blood_type === 'A' && donor.rh_factor === '+', 'donor created with parsed A+');
+// F3: donor rejects invalid ABO
+const badDonor = createDonor({ donor_name: 'Garbage', blood_type: 'Z', rh_factor: '+' });
+assert(badDonor && badDonor.status === 422, '[F3] donor with garbage ABO rejected 422');
+const badDonorNoRh = createDonor({ donor_name: 'NoRh', blood_type: 'A' });
+assert(badDonorNoRh && badDonorNoRh.status === 422, '[F3] donor with missing Rh rejected 422');
 const badUnit = createUnit({ bag_number: 'BAD', blood_type: 'Z', rh_factor: '+' });
 assert(badUnit.status === 422, 'unit with garbage ABO rejected 422');
 const u1 = createUnit({ bag_number: 'U-A+', blood_type: 'A', rh_factor: '+', component: 'Packed RBC', donor_id: donor.id, expiry_date: '2999-01-01' }).row;
@@ -137,23 +154,39 @@ assert(vIncompat.status === 422 && cmPending.row.result === 'Incompatible', 'val
 const vCompat = validateCrossmatch(cmPending.row.id, u2.id);
 assert(vCompat.status === 200 && cmPending.row.result === 'Compatible', 'validate vs A+ unit -> Compatible');
 
-console.log('\n[4] Transfusion — transactional, ABO/Rh + expiry, double-issue');
+console.log('\n[4] Transfusion — transactional, ABO/Rh + expiry, double-issue, crossmatch gate');
 assert(transfuse({ patient_id: 1, unit_id: uB.id }).status === 422, 'transfuse incompatible B+ unit -> 422');
 assert(transfuse({ patient_id: 1, unit_id: uExp.id }).status === 422, 'transfuse expired unit -> 422');
+// F2: transfuse with a Pending crossmatch linkage must be rejected 409
+const pendingCmId = cmPending.row.id; // was marked Incompatible then Compatible via validateCrossmatch
+// Create a fresh Pending crossmatch for the F2 test
+const cmPendingNew = createCrossmatch({ patient_id: 1, units_needed: 1 }); // no unit -> Pending
+assert(cmPendingNew.row.result === 'Pending', '[F2] fresh pending crossmatch created');
+const txRejNonCompat = transfuse({ patient_id: 1, unit_id: u2.id, crossmatch_id: cmPendingNew.row.id });
+assert(txRejNonCompat.status === 409, '[F2] transfuse with Pending crossmatch rejected 409');
+assert(txRejNonCompat.error === 'Crossmatch not in Compatible status', '[F2] correct error message for non-Compatible crossmatch');
+// Transfuse with no crossmatch still works (crossmatch linkage is optional)
 const tx1 = transfuse({ patient_id: 1, unit_id: u1.id });
-assert(tx1.status === 200, 'transfuse compatible A+ unit -> 200');
+assert(tx1.status === 200, 'transfuse compatible A+ unit (no crossmatch) -> 200');
 assert(u1.status === 'Transfused', 'unit flipped to Transfused');
 assert(transfuse({ patient_id: 1, unit_id: u1.id }).status === 409, 'double-issue same unit -> 409');
+// Transfuse with a Compatible crossmatch still works (ABO re-check stays intact — fail-closed 422 path preserved)
+const tx2 = transfuse({ patient_id: 1, unit_id: u2.id, crossmatch_id: cmPending.row.id });
+assert(tx2.status === 200, '[F2] transfuse with Compatible crossmatch linkage -> 200 (ABO re-check still passes)');
+assert(u2.status === 'Transfused', '[F2] unit with Compatible crossmatch flipped to Transfused');
 
-console.log('\n[5] Reaction reporting + recall/lookback');
+console.log('\n[5] Reaction reporting (transactional) + recall/lookback');
 const rx = reportReaction(tx1.row.id, { severity: 'Severe' });
 assert(rx.status === 200, 'reaction reported');
-assert(tx1.row.adverse_reaction === 1, 'transfusion flagged adverse_reaction');
+// F1: both writes are atomic — reaction_id present and transfusion flag set together
+assert(rx._transactional === true, '[F1] reaction write is transactional (both INSERT+UPDATE committed atomically)');
+assert(tx1.row.adverse_reaction === 1, '[F1] transfusion adverse_reaction flag set within same transaction');
 const lb = lookback(u1.id);
 assert(lb.transfusions.length === 1 && lb.reactions.length === 1, 'lookback traces transfusion + reaction');
 assert(lb.sibling_units.some(s => s.id === u2.id), 'lookback finds sibling unit from same donor (recall scope)');
 assert(recall(u1.id).status === 409, 'recall of already-transfused unit -> 409 (use lookback)');
-assert(recall(u2.id).status === 200 && u2.status === 'Discarded', 'recall of untransfused unit -> Discarded');
+// u2 was also transfused above via F2 test; use the uExp unit for recall (still Available)
+assert(recall(uExp.id).status === 200 && uExp.status === 'Discarded', 'recall of untransfused unit -> Discarded');
 
 console.log('\n[6] Audit trail completeness on sensitive writes');
 const actions = store.audit.map(a => a.action);

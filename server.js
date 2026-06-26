@@ -2897,7 +2897,8 @@ app.get('/api/blood-bank/stats', requireAuth, requireRole('bloodbank', 'lab', 'n
     try {
         const tenantId = e13RequireTenant(req);
         const total = (await pool.query("SELECT COUNT(*)::int as cnt FROM blood_bank_units WHERE status='Available' AND tenant_id=$1", [tenantId])).rows[0].cnt;
-        const expiring = (await pool.query("SELECT COUNT(*)::int as cnt FROM blood_bank_units WHERE status='Available' AND tenant_id=$1 AND expiry_date <> '' AND expiry_date <= (CURRENT_DATE + INTERVAL '7 days')::TEXT", [tenantId])).rows[0].cnt;
+        // F4-FIX (legacy): added lower bound >= CURRENT_DATE so already-expired units are excluded from "Expiring Soon".
+        const expiring = (await pool.query("SELECT COUNT(*)::int as cnt FROM blood_bank_units WHERE status='Available' AND tenant_id=$1 AND expiry_date <> '' AND expiry_date >= CURRENT_DATE::TEXT AND expiry_date <= (CURRENT_DATE + INTERVAL '7 days')::TEXT", [tenantId])).rows[0].cnt;
         const todayTransfusions = (await pool.query("SELECT COUNT(*)::int as cnt FROM blood_bank_transfusions WHERE tenant_id=$1 AND created_at::date = CURRENT_DATE", [tenantId])).rows[0].cnt;
         const byType = (await pool.query("SELECT blood_type, rh_factor, COUNT(*)::int as cnt FROM blood_bank_units WHERE status='Available' AND tenant_id=$1 GROUP BY blood_type, rh_factor ORDER BY blood_type", [tenantId])).rows;
         const totalDonors = (await pool.query('SELECT COUNT(*)::int as cnt FROM blood_bank_donors WHERE tenant_id=$1', [tenantId])).rows[0].cnt;
@@ -3174,13 +3175,16 @@ app.post('/api/bloodbank/transfuse', requireAuth, requireRole('bloodbank', 'nurs
             return res.status(422).json({ error: 'ABO/Rh incompatible — transfusion blocked', reason: compat.reason, compatible: false });
         }
 
-        // Optional crossmatch linkage must belong to tenant + this patient.
+        // Optional crossmatch linkage must belong to tenant + this patient + be Compatible.
+        // F2-FIX: added AND result='Compatible' — a Pending or Incompatible crossmatch
+        //         must NOT be used to authorise a transfusion.
         let cmId = null;
         if (crossmatch_id !== undefined && crossmatch_id !== null && String(crossmatch_id).trim() !== '') {
             const c = Number(crossmatch_id);
             if (!Number.isInteger(c) || c <= 0) { await client.query('ROLLBACK'); client.release(); return res.status(422).json({ error: 'Invalid crossmatch id' }); }
-            const cmRow = (await client.query('SELECT id FROM blood_bank_crossmatch WHERE id=$1 AND tenant_id=$2 AND patient_id=$3', [c, tenantId, pid])).rows[0];
+            const cmRow = (await client.query("SELECT id, result FROM blood_bank_crossmatch WHERE id=$1 AND tenant_id=$2 AND patient_id=$3", [c, tenantId, pid])).rows[0];
             if (!cmRow) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Crossmatch not found for patient' }); }
+            if (cmRow.result !== 'Compatible') { await client.query('ROLLBACK'); client.release(); return res.status(409).json({ error: 'Crossmatch not in Compatible status', result: cmRow.result }); }
             cmId = c;
         }
 
@@ -3207,23 +3211,35 @@ app.post('/api/bloodbank/transfuse', requireAuth, requireRole('bloodbank', 'nurs
 });
 
 // --- Transfusion reaction reporting (audited; flags unit for recall lookback) ---
+// F1-FIX: Both writes (INSERT reaction + UPDATE transfusion) wrapped in a single
+//         BEGIN/COMMIT transaction on a pool client so an UPDATE failure cannot
+//         leave an orphaned reaction row.
 app.post('/api/bloodbank/transfusions/:id/reaction', requireAuth, requireRole('bloodbank', 'nursing', 'doctor'), requireTenantScope, async (req, res) => {
+    const client = await pool.connect();
     try {
         const tenantId = e13RequireTenant(req);
         const txId = Number(req.params.id);
-        if (!Number.isInteger(txId) || txId <= 0) return res.status(422).json({ error: 'Invalid transfusion id' });
-        const tx = (await pool.query('SELECT id, unit_id, patient_id FROM blood_bank_transfusions WHERE id=$1 AND tenant_id=$2', [txId, tenantId])).rows[0];
-        if (!tx) return res.status(404).json({ error: 'Transfusion not found' });
+        if (!Number.isInteger(txId) || txId <= 0) { client.release(); return res.status(422).json({ error: 'Invalid transfusion id' }); }
+        // Lock the transfusion row so concurrent reaction reports are serialised.
+        await client.query('BEGIN');
+        const tx = (await client.query('SELECT id, unit_id, patient_id FROM blood_bank_transfusions WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [txId, tenantId])).rows[0];
+        if (!tx) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Transfusion not found' }); }
         const { reaction_type, severity, reaction_details, vital_signs_after, action_taken } = req.body;
         const sev = ['Mild', 'Moderate', 'Severe', 'Fatal'].includes(severity) ? severity : 'Mild';
-        const ins = await pool.query(
+        const ins = await client.query(
             `INSERT INTO blood_bank_transfusion_reactions (tenant_id, transfusion_id, unit_id, patient_id, reaction_type, severity, reaction_details, vital_signs_after, action_taken, reported_by, created_by)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
             [tenantId, txId, tx.unit_id, tx.patient_id, reaction_type || '', sev, reaction_details || '', vital_signs_after || '', action_taken || '', req.session.user?.display_name || req.session.user?.name || '', req.session.user?.id || null]);
-        await pool.query('UPDATE blood_bank_transfusions SET adverse_reaction=1, reaction_details=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2 AND tenant_id=$3', [reaction_details || sev, txId, tenantId]);
+        await client.query('UPDATE blood_bank_transfusions SET adverse_reaction=1, reaction_details=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2 AND tenant_id=$3', [reaction_details || sev, txId, tenantId]);
+        await client.query('COMMIT');
+        client.release();
         logAudit(req.session.user?.id, req.session.user?.display_name || req.session.user?.name, 'TRANSFUSION_REACTION', 'BloodBank', `Reaction (${sev}) reported on transfusion #${txId} unit #${tx.unit_id}`, req.ip);
         res.json({ success: true, reaction_id: ins.rows[0].id, unit_id: tx.unit_id });
-    } catch (e) { e13Respond(res, e); }
+    } catch (e) {
+        try { await client.query('ROLLBACK'); } catch (_) {}
+        client.release();
+        e13Respond(res, e);
+    }
 });
 
 // --- Recall / lookback: trace a unit -> its donor's other units + all its transfusions ---
@@ -3286,10 +3302,12 @@ app.post('/api/bloodbank/donors', requireAuth, requireRole('bloodbank', 'lab'), 
         const tenantId = e13RequireTenant(req);
         const { donor_name, donor_name_ar, national_id, phone, blood_type, rh_factor, age, gender, medical_history, notes } = req.body;
         const parsed = bbCompat.parseBloodType(blood_type, rh_factor);
+        // F3-FIX: mirror unit-creation gate — reject garbage ABO/Rh instead of storing raw client value.
+        if (!parsed.abo || !parsed.rh) return res.status(422).json({ error: 'Invalid blood type / Rh' });
         const result = await pool.query(
             `INSERT INTO blood_bank_donors (tenant_id, donor_name, donor_name_ar, national_id, phone, blood_type, rh_factor, age, gender, last_donation_date, medical_history, notes, created_by)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,CURRENT_DATE::TEXT,$10,$11,$12) RETURNING id`,
-            [tenantId, donor_name || '', donor_name_ar || '', national_id || '', phone || '', parsed.abo || (blood_type || ''), parsed.rh || (rh_factor || '+'), Number(age) || 0, gender || '', medical_history || '', notes || '', req.session.user?.id || null]);
+            [tenantId, donor_name || '', donor_name_ar || '', national_id || '', phone || '', parsed.abo, parsed.rh, Number(age) || 0, gender || '', medical_history || '', notes || '', req.session.user?.id || null]);
         logAudit(req.session.user?.id, req.session.user?.display_name || req.session.user?.name, 'CREATE_DONOR', 'BloodBank', `Registered donor ${donor_name || ''}`, req.ip);
         const row = (await pool.query('SELECT * FROM blood_bank_donors WHERE id=$1 AND tenant_id=$2', [result.rows[0].id, tenantId])).rows[0];
         res.json(row);
@@ -3301,7 +3319,8 @@ app.get('/api/bloodbank/stats', requireAuth, requireRole('bloodbank', 'lab', 'nu
     try {
         const tenantId = e13RequireTenant(req);
         const total = (await pool.query("SELECT COUNT(*)::int AS cnt FROM blood_bank_units WHERE status='Available' AND tenant_id=$1", [tenantId])).rows[0].cnt;
-        const expiring = (await pool.query("SELECT COUNT(*)::int AS cnt FROM blood_bank_units WHERE status='Available' AND tenant_id=$1 AND expiry_date <> '' AND expiry_date <= (CURRENT_DATE + INTERVAL '7 days')::TEXT", [tenantId])).rows[0].cnt;
+        // F4-FIX: added lower bound >= CURRENT_DATE so already-expired units are excluded from "Expiring Soon".
+        const expiring = (await pool.query("SELECT COUNT(*)::int AS cnt FROM blood_bank_units WHERE status='Available' AND tenant_id=$1 AND expiry_date <> '' AND expiry_date >= CURRENT_DATE::TEXT AND expiry_date <= (CURRENT_DATE + INTERVAL '7 days')::TEXT", [tenantId])).rows[0].cnt;
         const todayTransfusions = (await pool.query("SELECT COUNT(*)::int AS cnt FROM blood_bank_transfusions WHERE tenant_id=$1 AND created_at::date = CURRENT_DATE", [tenantId])).rows[0].cnt;
         const byType = (await pool.query("SELECT blood_type, rh_factor, COUNT(*)::int AS cnt FROM blood_bank_units WHERE status='Available' AND tenant_id=$1 GROUP BY blood_type, rh_factor ORDER BY blood_type", [tenantId])).rows;
         const totalDonors = (await pool.query('SELECT COUNT(*)::int AS cnt FROM blood_bank_donors WHERE tenant_id=$1', [tenantId])).rows[0].cnt;
