@@ -6667,7 +6667,7 @@ async function renderNursing(el) {
       [tr('Patient', 'المريض'), tr('Medication', 'الدواء'), tr('Dose', 'الجرعة'), tr('Route', 'الطريقة'), tr('Frequency', 'التكرار'), tr('Status', 'الحالة'), tr('Actions', 'إجراءات')],
       emarOrders.map(o => ({
         cells: [o.patient_name, o.medication, o.dose, o.route, o.frequency, statusBadge(o.status),
-        rawHtml(`<button class="btn btn-sm btn-success" onclick="administerMed(${parseInt(o.id, 10)},${parseInt(o.patient_id, 10)},'${jsStr(o.medication)}','${jsStr(o.dose)}')">💉 ${tr('Give', 'إعطاء')}</button>`)
+        rawHtml(`<button class="btn btn-sm btn-success" onclick="administerMed(${parseInt(o.id, 10)},${parseInt(o.patient_id, 10)},'${jsStr(o.medication)}','${jsStr(o.dose)}','${jsStr(o.route || '')}')">💉 ${tr('Give', 'إعطاء')}</button>`)
         ]
       }))
     ) : `<div class="empty-state-card"><div class="empty-state-icon">💉</div><div>${tr('No active orders', 'لا توجد أوامر نشطة')}</div></div>`}
@@ -6798,10 +6798,49 @@ window.saveVitals = async () => {
     await navigateTo(11);
   } catch (e) { showToast(tr('Error saving', 'خطأ في الحفظ'), 'error'); }
 };
-window.administerMed = async function (orderId, patientId, med, dose) {
-  const time = new Date().toTimeString().substring(0, 5);
-  await API.post('/api/emar/administrations', { emar_order_id: orderId, patient_id: patientId, medication: med, dose: dose, scheduled_time: time, status: 'Given' });
-  showToast(tr('Medication administered', 'تم إعطاء الدواء')); navigateTo(11);
+// High-alert medications (mirror of the server MAR_HIGH_ALERT list) — used only to PRE-show the
+// witness field; the SERVER is the authority (it re-checks and fail-closes if witness is missing).
+const MAR_HIGH_ALERT_CLIENT = ['insulin', 'heparin', 'warfarin', 'morphine', 'hydromorphone', 'fentanyl',
+  'methadone', 'oxycodone', 'potassium chloride', 'kcl', 'magnesium sulfate', 'digoxin', 'epinephrine',
+  'norepinephrine', 'chemotherapy', 'methotrexate', 'oxytocin'];
+function isHighAlertClient(name) {
+  const n = String(name || '').trim().toLowerCase();
+  return !!n && MAR_HIGH_ALERT_CLIENT.some(h => n.includes(h));
+}
+// PRIMARY nurse "Give" path — posts to the SAFE /api/mar/administer route (server-enforced 5 rights
+// + CDS + witness). The server resolves drug/dose/route from the order; we send the scanned values so
+// the server can verify them. Errors (422/409 → {error}) are surfaced via showToast (no silent pass).
+window.administerMed = async function (orderId, patientId, med, dose, route) {
+  const highAlert = isHighAlertClient(med);
+  let witness_user_id = null;
+  if (highAlert) {
+    // High-alert drug: a distinct second-nurse witness user id is required (server re-verifies).
+    const w = prompt(tr('High-alert medication — enter WITNESS user ID (a different nurse):',
+      'دواء عالي الخطورة — أدخل معرّف المستخدم الشاهد (ممرض آخر):'));
+    if (!w) { showToast(tr('Witness required for high-alert medication', 'يلزم شاهد للأدوية عالية الخطورة'), 'error'); return; }
+    witness_user_id = parseInt(w, 10);
+  }
+  try {
+    const resp = await API.post('/api/mar/administer', {
+      emar_order_id: orderId,
+      patient_id: patientId,
+      scanned_patient_id: patientId,
+      scanned_drug: med,
+      scanned_dose: dose,
+      scanned_route: route || '',
+      scheduled_at: new Date().toISOString(),
+      witness_user_id: witness_user_id
+    });
+    if (resp && resp.error) {
+      // 422 (right/CDS/witness block) or 409 — server returns {error, right?, requires_*?}.
+      showToast(resp.error + (resp.right ? ` (${resp.right})` : ''), 'error');
+      return;
+    }
+    showToast(tr('Medication administered', 'تم إعطاء الدواء'));
+    navigateTo(11);
+  } catch (e) {
+    showToast(tr('Error administering medication', 'خطأ في إعطاء الدواء'), 'error');
+  }
 };
 window.saveCarePlan = async function () {
   const sel = document.getElementById('cpPatientN');
