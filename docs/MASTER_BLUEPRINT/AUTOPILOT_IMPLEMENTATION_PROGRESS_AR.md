@@ -1,7 +1,7 @@
 # تقرير تقدّم التنفيذ — Master Autopilot (E0 → E9)
 
 > سجلّ حيّ لكل ما بُني/طُوِّر ضمن الأوتوبيلوت متعدّد الوكلاء. يُحدَّث بعد كل إبيك.
-> **آخر تحديث:** 2026-06-26 — بعد اكتمال E8 وأثناء بناء E9 (الأخير).
+> **آخر تحديث:** 2026-06-26 — ✅ **كل الإبيكات التسعة (+E-X) مكتملة ومدفوعة على origin.** التالي: DEPLOY_ALL (المالك).
 
 ---
 
@@ -44,16 +44,17 @@
 | **E6** | **التمريض/MAR (Nursing/MAR)** | `feat/e6-nursing-mar` `2b0fe25` | MAR بـ«5 حقوق» بالباركود (مريض/دواء/جرعة/طريق/وقت) مفروضة server-side fail-closed، شاهد للأدوية عالية الخطورة، CDS عند الإعطاء، درجات (Morse/Braden/NEWS2) محسوبة بالخادم، تقييمات، سجلّ I/O | 25+34+49 | **جولتان مراجعة.** الجولة-1 BLOCK: البناء مات في منتصف الاتصال (DDL+المحرّك فقط، لا مسارات/توصيل) → أُكمل (8 بنود: مسار `/api/mar/administer` آمن، `/api/nursing/scores` يحسب بالخادم، RBAC+tenant على التقييم، FKs، audit، اختبارات). الجولة-2 APPROVE_WITH_FIXES: **C1 تجاوز الشاهد-الذاتي عبر معرّف مبطّن بمسافة** → مقارنة `parseInt`؛ I3 خطأ محرّك الحساسية fail-soft → fail-closed؛ I2 fallback غير مُنطَّق في getPatientActiveMeds → throw؛ I1 route='Oral' مفروض → null عند عدم المعرفة؛ L1/L3 اختبارات+RBAC |
 | **E7** | **الطوارئ/ED (Emergency)** | `feat/e7-emergency-ed` `14a6167` | محرّك ESI v4 (esi_engine.js) server-side مضادّ للانتحال، tracking board مرتّب بالأولوية، مؤقّت time-to-provider + علامات تجاوز ESI-1/2، state machine (وصول→فرز→سرير→طبيب→مصير)، تسليم ADT عند الإدخال | 35+41+25 | APPROVE_WITH_FIXES: **C1 ثلاثة مسارات واجهة تلتفّ على آلة الحالة عبر PUT قديم** (نفس نمط E5/E6) → أُعيد توجيه discharge/transfer لـ`POST /api/er/disposition`، حُذف updateERVisit، والمسار القديم صُلّب بـ`e7RequireTenant` + منع الحالات النهائية؛ I1 حقول الفرز موثوقة من العميل → حُذفت؛ I2 تدقيق تصعيد غير مؤكَّد؛ I3 منع إعادة الفرز في InTreatment |
 | **E8** | **التنويم/ADT (Inpatient)** | `feat/e8-inpatient-adt` `4b5c410` | إدخال/نقل/خروج آمن للتسابق (`SELECT … FOR UPDATE` على السرير داخل معاملة)، آلة حالة الأسرّة + الإدخال server-authoritative، census، تكامل متماسك مع تسليم E7، تقاعد 3 مسارات قديمة (409→`/api/adt/*`) | 39+48+30 | APPROVE_WITH_FIXES: **C1 تصادم اسم `window.dischargePatient` كسر زر «إنهاء المريض» في محطة الطبيب** → حُذف تعريف E8 المكرّر؛ **C2 تجمّد AB/BA في النقل** → قفل الأسرّة بترتيب id تصاعدي؛ I1 نموذج الإدخال يستخدم `/api/beds` غير مُنطَّق → `/api/adt/beds`؛ I2/L2 fallback غير مُنطَّق على rounds/admission GET → fail-closed |
+| **E9** | **العناية المركّزة/ICU (Critical Care)** | `feat/e9-icu` `9d08964` | محرّك درجات (SOFA 6 أعضاء / GCS / APACHE-II) server-side مضادّ للانتحال (icu_scoring.js)، flowsheet/ventilator/infusions مربوطة بإقامة Active مملوكة للمستأجر، ICU board بالحدّة، فحص حساسية cds عند الـinfusion | 55+50+22 | APPROVE_WITH_FIXES (نظيف على كل الأنماط المتكرّرة): **C1 GCS=null خُزِّن 0 فأفسد ترتيب الحدّة** (والقراءة `Number(null)=0` نصف خفيّ ثانٍ) → `?? null` في التخزين والقراءة؛ I1 عدم تطابق lookup الجناح بين بوابة الكتابة واللوحة → سجلّات ICU يتيمة غير مرئية → توحيد `COALESCE(b.ward_id,a.ward_id)`؛ I2 فحوص FK ناقصة في validate |
 
 ---
 
-## 4) قيد التنفيذ
+## 4) ✅ مكتمل — كل الإبيكات
 
-- **E9 — العناية المركّزة/ICU** 🔄 (بناء — الإبيك الأخير): flowsheets، سجلّات المنفسة (ventilator)، درجات (APACHE/SOFA/GCS) محسوبة بالخادم.
+كل الإبيكات التسعة (+E-X) مبنية/مُراجَعة/مُصلَّحة/مُتحقَّق منها مستقلاً/مدفوعة على `origin/feat/*`. **لا شيء منشور** (live main `171b7c2`).
 
-## 5) في الطابور
+## 5) الخطوة التالية الوحيدة — DEPLOY_ALL (المالك)
 
-- لا شيء — E9 هو الإبيك الأخير. بعده: تجميع **DEPLOY_ALL runbook**.
+انظر `DEPLOY_ALL_RUNBOOK_AR.md`: ترتيب الاعتماديات + بوابة DDL (المالك) + دمج تكامل (تحذير: الفروع تتعارض في server.js/app.js — دمج تسلسلي لا fast-forward) + نشر الكود + smoke + تراجع.
 
 ## 6) قواعد البناء الثابتة (كل الإبيكات)
 
