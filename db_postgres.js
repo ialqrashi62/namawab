@@ -2019,6 +2019,19 @@ ALTER TABLE pharmacy_opening_balances ADD COLUMN IF NOT EXISTS branch_id INTEGER
 ALTER TABLE audit_trail ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 CREATE INDEX IF NOT EXISTS idx_audit_trail_tenant ON audit_trail (tenant_id);
 ALTER TABLE quality_incidents ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
+-- E17: incident-management columns on pre-existing quality_incidents (canonical schema in migrations/e17_001; ALTERs kept idempotent so app boots before migration runs)
+-- I1 FIX: NOT NULL added to match migration canonical schema; ADD COLUMN IF NOT EXISTS is safe for existing rows (default fills them).
+ALTER TABLE quality_incidents ADD COLUMN IF NOT EXISTS harm_level TEXT NOT NULL DEFAULT 'None';
+ALTER TABLE quality_incidents ADD COLUMN IF NOT EXISTS near_miss INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE quality_incidents ADD COLUMN IF NOT EXISTS confidential INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE quality_incidents ADD COLUMN IF NOT EXISTS encounter_id INTEGER;
+ALTER TABLE quality_incidents ADD COLUMN IF NOT EXISTS visit_id INTEGER;
+ALTER TABLE quality_incidents ADD COLUMN IF NOT EXISTS workflow_state TEXT NOT NULL DEFAULT 'Open';
+-- I1 FIX: backfill any pre-existing rows that already have the column but with NULL (handles case where column existed without NOT NULL).
+UPDATE quality_incidents SET harm_level = 'None' WHERE harm_level IS NULL;
+UPDATE quality_incidents SET near_miss = 0 WHERE near_miss IS NULL;
+UPDATE quality_incidents SET confidential = 0 WHERE confidential IS NULL;
+UPDATE quality_incidents SET workflow_state = 'Open' WHERE workflow_state IS NULL;
 ALTER TABLE quality_patient_satisfaction ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 ALTER TABLE quality_kpis ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 ALTER TABLE infection_surveillance ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
@@ -2117,6 +2130,7 @@ UPDATE pharmacy_purchase_items SET tenant_id = 1 WHERE tenant_id IS NULL;
 UPDATE pharmacy_opening_balances SET tenant_id = 1, branch_id = 1 WHERE tenant_id IS NULL;
 UPDATE audit_trail SET tenant_id = 1 WHERE tenant_id IS NULL;
 UPDATE quality_incidents SET tenant_id = 1 WHERE tenant_id IS NULL;
+UPDATE quality_incidents SET workflow_state = CASE WHEN status = 'Closed' THEN 'Closed' ELSE 'Open' END WHERE workflow_state IS NULL;
 UPDATE quality_patient_satisfaction SET tenant_id = 1 WHERE tenant_id IS NULL;
 UPDATE quality_kpis SET tenant_id = 1 WHERE tenant_id IS NULL;
 UPDATE infection_surveillance SET tenant_id = 1 WHERE tenant_id IS NULL;
