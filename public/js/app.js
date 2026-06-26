@@ -8792,8 +8792,11 @@ async function renderCSSD(el) {
   const content = el;
 
   const batches = await API.get('/api/cssd/batches').catch(() => []);
+  const cycles = await API.get('/api/cssd/cycles').catch(() => []);
+  const trays = await API.get('/api/cssd/trays').catch(() => []);
   const processing = batches.filter(b => b.status === 'processing').length;
   const done = batches.filter(b => b.status === 'completed').length;
+  const sterileTrays = trays.filter(t => t.status === 'sterile').length;
 
   content.innerHTML = `
     <h2>${tr('CSSD - Sterilization', 'التعقيم المركزي')}</h2>
@@ -8801,6 +8804,7 @@ async function renderCSSD(el) {
       <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${batches.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Batches', 'إجمالي الدفعات')}</p></div>
       <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${processing}</h3><p style="margin:4px 0 0;font-size:12px">${tr('In Process', 'قيد التعقيم')}</p></div>
       <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${done}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Completed', 'مكتملة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#f3e5f5"><h3 style="margin:0;color:#6a1b9a">${sterileTrays}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Sterile Trays', 'صواني معقّمة')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
       <div class="card" style="padding:20px">
@@ -8817,12 +8821,17 @@ async function renderCSSD(el) {
           </select></div>
         <div class="form-group"><label>${tr('Temperature', 'الحرارة')}</label><input class="form-input" id="cssdTemp" placeholder="134°C"></div>
         <div class="form-group"><label>${tr('Operator', 'المشغّل')}</label><input class="form-input" id="cssdOp"></div>
-        <button class="btn btn-primary w-full" onclick="saveCssdBatch()">💾 ${tr('Start Cycle', 'بدء الدورة')}</button>
+        <button class="btn btn-primary w-full" onclick="e16SaveCssdBatch()">💾 ${tr('Start Cycle', 'بدء الدورة')}</button>
       </div>
       <div class="card" style="padding:20px">
         <h4 style="margin:0 0 12px">${tr('Batch History', 'سجل الدفعات')}</h4>
         <div id="cssdTable"></div>
       </div>
+    </div>
+    <div class="card" style="padding:20px;margin-top:16px">
+      <h4 style="margin:0 0 12px">${tr('Sterilization Cycles — Biological Indicator (BI) Gate', 'دورات التعقيم — بوّابة المؤشّر الحيوي')}</h4>
+      <p style="font-size:12px;color:#b71c1c;margin:0 0 12px">${tr('A cycle can only be released for sterile issue after a recorded BI = Pass. The system blocks release on missing/failed/pending BI (fail-closed).', 'لا يُمكن الإفراج عن الدورة للإصدار المعقّم إلا بعد تسجيل نتيجة مؤشّر حيوي = نجاح. يَحجب النظام الإفراج عند غياب/فشل/انتظار النتيجة (فشل-مغلق).')}</p>
+      <div id="cssdCyclesTable"></div>
     </div>`;
 
   const ct = document.getElementById('cssdTable');
@@ -8831,15 +8840,32 @@ async function renderCSSD(el) {
       [tr('Batch#', 'الدفعة'), tr('Items', 'الأصناف'), tr('Dept', 'القسم'), tr('Method', 'الطريقة'), tr('Temp', 'الحرارة'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', 'إجراءات')],
       batches.map(b => ({
         cells: [b.batch_number, (b.items || '').substring(0, 30), b.department || '', b.method || '', b.temperature || '', statusBadge(b.status), b.created_at ? new Date(b.created_at).toLocaleDateString('ar-SA') : '',
-        b.status === 'processing' ? rawHtml('<button class="btn btn-sm" onclick="completeCssd(' + parseInt(b.id, 10) + ')">✅ ' + tr('Complete', 'إكمال') + '</button>') : '✅'], id: b.id
+        b.status === 'processing' ? rawHtml('<button class="btn btn-sm" onclick="e16CompleteCssdBatch(' + parseInt(b.id, 10) + ')">✅ ' + tr('Complete', 'إكمال') + '</button>') : '✅'], id: b.id
       }))
     );
   }
-  window.saveCssdBatch = async () => {
-    try { await API.post('/api/cssd/batches', { batch_number: document.getElementById('cssdBatch').value, items: document.getElementById('cssdItems').value, department: document.getElementById('cssdDept').value, method: document.getElementById('cssdMethod').value, temperature: document.getElementById('cssdTemp').value, operator: document.getElementById('cssdOp').value }); showToast(tr('Cycle started!', 'بدأت الدورة!')); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
-  };
-  window.completeCssd = async (id) => { try { await API.put('/api/cssd/batches/' + id, { status: 'completed' }); showToast('✅'); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); } };
 
+  const cct = document.getElementById('cssdCyclesTable');
+  if (cct) {
+    createTable(cct, 'cssdCyclesTbl',
+      [tr('Cycle#', 'الدورة'), tr('Type', 'النوع'), tr('Status', 'الحالة'), tr('BI Result', 'نتيجة BI'), tr('Released', 'مُفرَج'), tr('Actions', 'إجراءات')],
+      cycles.map(c => {
+        const id = parseInt(c.id, 10);
+        const bi = (c.bi_test_result || 'Pending');
+        const released = (c.released_for_issue === 1 || c.released_for_issue === true);
+        let actions = '';
+        if (String(c.status).toLowerCase() === 'running') {
+          actions += '<button class="btn btn-sm" onclick="e16CompleteCycle(' + id + ')">⏹ ' + tr('Complete', 'إكمال') + '</button> ';
+        }
+        if (String(c.status).toLowerCase() === 'completed' && !released) {
+          actions += '<button class="btn btn-sm" onclick="e16RecordBI(' + id + ')">🧪 ' + tr('Record BI', 'تسجيل BI') + '</button> ';
+          actions += '<button class="btn btn-sm btn-primary" onclick="e16ReleaseSterile(' + id + ')">🔓 ' + tr('Release', 'إفراج') + '</button>';
+        }
+        if (released) actions = '✅ ' + tr('Released', 'مُفرَج');
+        return { cells: [escapeHTML(c.cycle_number || ''), escapeHTML(c.cycle_type || ''), statusBadge(c.status), escapeHTML(bi), released ? '✅' : '—', rawHtml(actions || '—')], id: c.id };
+      })
+    );
+  }
 }
 window.addInstrumentSet = async function () {
   try { await API.post('/api/cssd/instruments', { set_name: document.getElementById('cssdName').value, set_name_ar: document.getElementById('cssdNameAr').value, set_code: document.getElementById('cssdCode').value, category: document.getElementById('cssdCat').value, instrument_count: document.getElementById('cssdCount').value, department: document.getElementById('cssdDept').value }); showToast(tr('Added!', 'تمت الإضافة!')); await navigateTo(24); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
@@ -8847,9 +8873,54 @@ window.addInstrumentSet = async function () {
 window.startCycle = async function () {
   try { await API.post('/api/cssd/cycles', { cycle_number: document.getElementById('cycleNum').value, machine_name: document.getElementById('cycleMachine').value, cycle_type: document.getElementById('cycleType').value, temperature: document.getElementById('cycleTemp').value, duration_minutes: document.getElementById('cycleDur').value, operator: document.getElementById('cycleOp').value }); showToast(tr('Cycle started!', 'بدأت الدورة!')); await navigateTo(24); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
-window.completeCycle = async function (id) {
-  try { await API.put('/api/cssd/cycles/' + id, { status: 'Completed', bi_test_result: 'Pass' }); showToast(tr('Completed!', 'اكتملت!')); await navigateTo(24); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+// ===== E16 CSSD client handlers (safe routes; BI gate fail-closed) =====
+// NOTE (E16): the previous window.completeCssd / window.completeCycle hardcoded
+// bi_test_result:'Pass' and flipped status with no gate (client-asserted authority).
+// They are replaced by e16-prefixed handlers that NEVER self-assert a BI pass and
+// surface the server's 409 when the biological-indicator gate blocks release.
+// API.request resolves (does NOT throw) on non-2xx, so we inspect the returned object's .error.
+window.e16SaveCssdBatch = async () => {
+  try {
+    const r = await API.post('/api/cssd/batches', { batch_number: document.getElementById('cssdBatch').value, items: document.getElementById('cssdItems').value, department: document.getElementById('cssdDept').value, method: document.getElementById('cssdMethod').value, temperature: document.getElementById('cssdTemp').value, operator: document.getElementById('cssdOp').value });
+    if (r && r.error) return showToast(r.error, 'error');
+    showToast(tr('Cycle started!', 'بدأت الدورة!')); navigateTo(currentPage);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
+window.e16CompleteCssdBatch = async (id) => {
+  try {
+    const r = await API.put('/api/cssd/batches/' + parseInt(id, 10), { status: 'completed' });
+    if (r && r.error) return showToast(r.error, 'error');
+    showToast('✅'); navigateTo(currentPage);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+window.e16CompleteCycle = async (id) => {
+  try {
+    const r = await API.put('/api/cssd/cycles/' + parseInt(id, 10), { status: 'completed' });
+    if (r && r.error) return showToast(r.error, 'error');
+    showToast(tr('Cycle completed — record BI result next', 'اكتملت الدورة — سجّل نتيجة BI تالياً')); navigateTo(currentPage);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+// Record the biological-indicator result (the value comes from the technician's reading, NOT a hardcoded pass).
+window.e16RecordBI = async (id) => {
+  const v = (prompt(tr('Enter BI result: pass / fail / pending', 'أدخل نتيجة المؤشّر الحيوي: pass / fail / pending')) || '').trim();
+  if (!v) return;
+  try {
+    const r = await API.put('/api/cssd/cycles/' + parseInt(id, 10) + '/bi-result', { bi_test_result: v });
+    if (r && r.error) return showToast(r.error, 'error');
+    showToast(tr('BI result recorded', 'تم تسجيل نتيجة BI')); navigateTo(currentPage);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+// Attempt to release for sterile issue — fail-closed: server blocks (409) unless BI = pass.
+window.e16ReleaseSterile = async (id) => {
+  try {
+    const r = await API.put('/api/cssd/cycles/' + parseInt(id, 10) + '/release', {});
+    if (r && r.error) return showToast(tr('Release BLOCKED — BI not passed', 'الإفراج محجوب — لم ينجح BI') + (r.reason ? ': ' + r.reason : ''), 'error');
+    showToast(tr('Released for sterile issue (BI passed)', 'تم الإفراج للإصدار المعقّم (نجح BI)')); navigateTo(currentPage);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+// Legacy shims (kept for any cached references) — now route to the SAFE handlers, never self-assert a pass.
+window.completeCssd = window.e16CompleteCssdBatch;
+window.completeCycle = window.e16CompleteCycle;
 
 // ===== DIETARY =====
 async function renderDietary(el) {
