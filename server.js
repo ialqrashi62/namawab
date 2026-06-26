@@ -5883,7 +5883,7 @@ app.post('/api/obgyn/antenatal', requireAuth, requireRole(...OB_RBAC), requireTe
         const firstVisit = (await pool.query('SELECT weight FROM obgyn_antenatal_visits WHERE pregnancy_id=$1 AND tenant_id=$2 ORDER BY visit_number LIMIT 1', [preg.id, tenantId])).rows[0];
         const wGain = firstVisit ? ((Number(weight) || 0) - (Number(firstVisit.weight) || 0)) : 0;
         // Server-derived GA label from stored LMP (anti-spoof; client value advisory only).
-        const gaCalc = obEngine.gestationalAgeFromLMP(preg.lmp, next_visit ? null : undefined);
+        const gaCalc = obEngine.gestationalAgeFromLMP(preg.lmp, next_visit || undefined);
         const gaLabel = gaCalc ? gaCalc.label : (gestational_age || '');
         // Server-side risk classification (client risk_flags ignored).
         const flags = obEngine.antenatalRiskFlags({ systolic, diastolic, proteinuria, hemoglobin, fetal_heart_rate, fetal_movement });
@@ -5991,31 +5991,31 @@ app.post('/api/obgyn/deliveries', requireAuth, requireRole(...OB_RBAC), requireT
     const client = await pool.connect();
     try {
         const tenantId = e14RequireTenant(req);
-        if (tenantId === null) { client.release(); return res.status(403).json({ error: 'Tenant scope required' }); }
+        if (tenantId === null) { return res.status(403).json({ error: 'Tenant scope required' }); }
         const b = req.body || {};
         const pregId = e14IntId(b.pregnancy_id);
-        if (pregId === null) { client.release(); return res.status(400).json({ error: 'Invalid pregnancy_id' }); }
+        if (pregId === null) { return res.status(400).json({ error: 'Invalid pregnancy_id' }); }
 
         // Bind tenant on this dedicated connection so RLS applies to the locking SELECT.
         await client.query("SELECT set_config('app.tenant_id', $1, true)", [String(tenantId)]);
         await client.query('BEGIN');
         // Lock the pregnancy row before flipping status (race-safe single-row lock).
         const pregRow = (await client.query('SELECT * FROM obgyn_pregnancies WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [pregId, tenantId])).rows[0];
-        if (!pregRow) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Pregnancy not found' }); }
+        if (!pregRow) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'Pregnancy not found' }); }
         // Server-side state machine: reject delivery on a non-Active pregnancy (409).
         const transition = obEngine.deliveryTransitionAllowed(pregRow.status);
-        if (!transition.ok) { await client.query('ROLLBACK'); client.release(); return res.status(409).json({ error: transition.error }); }
+        if (!transition.ok) { await client.query('ROLLBACK'); return res.status(409).json({ error: transition.error }); }
 
         // Anti-spoof APGAR: computed from components; fail-closed if incomplete provided.
         let apgar1 = 0, apgar5 = 0;
         if (b.apgar_1min_components) {
             const a1 = obEngine.computeAPGAR(b.apgar_1min_components);
-            if (!a1.ok) { await client.query('ROLLBACK'); client.release(); return res.status(422).json({ error: 'Incomplete APGAR (1 min): ' + (a1.missing || []).join(',') }); }
+            if (!a1.ok) { await client.query('ROLLBACK'); return res.status(422).json({ error: 'Incomplete APGAR (1 min): ' + (a1.missing || []).join(',') }); }
             apgar1 = a1.total;
         }
         if (b.apgar_5min_components) {
             const a5 = obEngine.computeAPGAR(b.apgar_5min_components);
-            if (!a5.ok) { await client.query('ROLLBACK'); client.release(); return res.status(422).json({ error: 'Incomplete APGAR (5 min): ' + (a5.missing || []).join(',') }); }
+            if (!a5.ok) { await client.query('ROLLBACK'); return res.status(422).json({ error: 'Incomplete APGAR (5 min): ' + (a5.missing || []).join(',') }); }
             apgar5 = a5.total;
         }
 
@@ -6135,6 +6135,8 @@ app.post('/api/obgyn/nst', requireAuth, requireRole(...OB_RBAC), requireTenantSc
             await pool.query('INSERT INTO notifications (target_role, title, message, type, module) VALUES ($1,$2,$3,$4,$5)',
                 ['Doctor', 'Non-Reactive NST', 'Patient #' + preg.patient_id + ' - Non-reactive NST: ' + (b.interpretation || ''), 'danger', 'OB/GYN']);
         }
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'NST_ENTRY', 'OB/GYN',
+            `NST pregnancy #${preg.id}: result=${b.result || 'Reactive'} fhr=${e14IntId(b.baseline_fhr) || 0} dur=${b.duration_minutes || 20}min`, req.ip);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });

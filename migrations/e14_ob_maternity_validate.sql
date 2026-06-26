@@ -71,6 +71,19 @@ BEGIN
     SELECT COUNT(*) INTO n FROM obgyn_neonatal nn
         WHERE NOT EXISTS (SELECT 1 FROM obgyn_deliveries d WHERE d.id = nn.delivery_id);
     IF n > 0 THEN RAISE EXCEPTION 'E14 validate: % orphan neonatal', n; END IF;
+    -- no orphan partogram/ultrasound/nst/delivery rows (pregnancy linkage)
+    SELECT COUNT(*) INTO n FROM obgyn_partogram pt
+        WHERE NOT EXISTS (SELECT 1 FROM obgyn_pregnancies p WHERE p.id = pt.pregnancy_id);
+    IF n > 0 THEN RAISE EXCEPTION 'E14 validate: % orphan partogram', n; END IF;
+    SELECT COUNT(*) INTO n FROM obgyn_ultrasounds us
+        WHERE NOT EXISTS (SELECT 1 FROM obgyn_pregnancies p WHERE p.id = us.pregnancy_id);
+    IF n > 0 THEN RAISE EXCEPTION 'E14 validate: % orphan ultrasounds', n; END IF;
+    SELECT COUNT(*) INTO n FROM obgyn_nst ns
+        WHERE NOT EXISTS (SELECT 1 FROM obgyn_pregnancies p WHERE p.id = ns.pregnancy_id);
+    IF n > 0 THEN RAISE EXCEPTION 'E14 validate: % orphan nst', n; END IF;
+    SELECT COUNT(*) INTO n FROM obgyn_deliveries dv
+        WHERE NOT EXISTS (SELECT 1 FROM obgyn_pregnancies p WHERE p.id = dv.pregnancy_id);
+    IF n > 0 THEN RAISE EXCEPTION 'E14 validate: % orphan deliveries', n; END IF;
 
     RAISE NOTICE 'E14 validate: OK — 8 obgyn_* tables, FORCE RLS + canonical policy, tenant_id NOT NULL + FK, entity FKs, no orphans/null-tenant rows.';
 END $$;

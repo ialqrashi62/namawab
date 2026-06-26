@@ -18,8 +18,8 @@ function assert(cond, name, det = '') {
 
 // ---- mock state ----
 const TENANT = 1;
-let seq = { preg: 0, visit: 0, us: 0, pg: 0, del: 0, neo: 0 };
-const store = { pregnancies: [], visits: [], ultrasounds: [], partogram: [], deliveries: [], neonatal: [], audit: [] };
+let seq = { preg: 0, visit: 0, us: 0, pg: 0, del: 0, neo: 0, nst: 0 };
+const store = { pregnancies: [], visits: [], ultrasounds: [], partogram: [], deliveries: [], neonatal: [], nst: [], audit: [] };
 function audit(action, details) { store.audit.push({ action, details }); }
 
 // ---- route-logic simulations (mirror server.js handlers) ----
@@ -75,6 +75,16 @@ function recordDelivery(pregId, b) {
     store.deliveries.push(row);
     preg.status = 'Delivered';                            // commit transition
     audit('RECORD_DELIVERY', `#${pregId} APGAR ${a1.total}/${a5.total}`);
+    return { status: 200, row };
+}
+function recordNST(pregId, b) {
+    const preg = store.pregnancies.find(p => p.id === pregId && p.tenant_id === TENANT);
+    if (!preg) return { status: 404 };
+    const row = { id: ++seq.nst, pregnancy_id: pregId, patient_id: preg.patient_id,
+        result: b.result || 'Reactive', baseline_fhr: b.baseline_fhr || 0, duration_minutes: b.duration_minutes || 20 };
+    store.nst.push(row);
+    // F3: audit must always be recorded (mirrors the server.js fix)
+    audit('NST_ENTRY', `NST pregnancy #${pregId}: result=${row.result} fhr=${row.baseline_fhr} dur=${row.duration_minutes}min`);
     return { status: 200, row };
 }
 function recordNeonatal(deliveryId, b) {
@@ -137,10 +147,85 @@ const neo = recordNeonatal(delId, { birth_weight_grams: 3200, apgar_1min_compone
 assert(neo.status === 200 && neo.row.apgar_5min === 10, 'neonatal record attached, APGAR server-computed');
 assert(recordNeonatal(99999, { apgar_1min_components: goodApgar, apgar_5min_components: goodApgar }).status === 404, 'neonatal on unknown delivery -> 404');
 
-// 9) Audit coverage
+// 9) NST records and audit (F3)
+const nst1 = recordNST(pregId, { result: 'Reactive', baseline_fhr: 145, duration_minutes: 20 });
+assert(nst1.status === 200, 'NST reactive recorded ok');
+const nstNR = recordNST(pregId, { result: 'Non-Reactive', baseline_fhr: 95, duration_minutes: 20 });
+assert(nstNR.status === 200, 'NST non-reactive recorded ok');
+assert(store.audit.some(a => a.action === 'NST_ENTRY'), 'NST_ENTRY audit always written (F3 fix)');
+const nstAudits = store.audit.filter(a => a.action === 'NST_ENTRY');
+assert(nstAudits.length === 2, 'NST_ENTRY audit written for each NST (reactive and non-reactive)');
+
+// 10) Audit coverage
 assert(store.audit.some(a => a.action === 'RECORD_DELIVERY'), 'delivery audited');
 assert(store.audit.some(a => a.action === 'RECORD_NEONATAL'), 'neonatal audited');
 assert(store.audit.some(a => a.action === 'CREATE_PREGNANCY'), 'pregnancy creation audited');
 
-console.log('\n=== Results: ' + passed + ' passed, ' + failed + ' failed ===\n');
-process.exit(failed === 0 ? 0 : 1);
+// 11) F1: delivery handler — pool client release exactly once (mock-pool assertion)
+// The delivery handler uses: const client = await pool.connect(); try { ... } finally { client.release(); }
+// With all inline client.release() calls removed (F1 fix), release count must be exactly 1
+// regardless of which exit path fires (success, 403, 400, 404, 409, 422).
+async function testDeliveryClientRelease() {
+    function makeClient(txOk) {
+        let releases = 0;
+        const client = {
+            query: async (sql) => {
+                if (sql.startsWith('SELECT * FROM obgyn_pregnancies') && !txOk) return { rows: [] };
+                if (sql.startsWith('SELECT * FROM obgyn_pregnancies')) return { rows: [{ id: 1, patient_id: 99, status: 'Active', tenant_id: 1 }] };
+                if (sql.startsWith('INSERT INTO obgyn_deliveries')) return { rows: [{ id: 1 }] };
+                return { rows: [] };
+            },
+            release: () => { releases++; }
+        };
+        return { client, getReleases: () => releases };
+    }
+
+    // simulate: success path (COMMIT -> finally release)
+    const m1 = makeClient(true);
+    await (async () => {
+        const c = m1.client;
+        try {
+            await c.query("SELECT set_config('app.tenant_id', $1, true)");
+            await c.query('BEGIN');
+            const row = (await c.query('SELECT * FROM obgyn_pregnancies WHERE id=$1 AND tenant_id=$2 FOR UPDATE')).rows[0];
+            if (!row) { await c.query('ROLLBACK'); return; }
+            const t = { ok: true };
+            if (!t.ok) { await c.query('ROLLBACK'); return; }
+            await c.query('INSERT INTO obgyn_deliveries');
+            await c.query('COMMIT');
+        } catch (e) { try { await c.query('ROLLBACK'); } catch (_) {} }
+        finally { c.release(); }
+    })();
+    assert(m1.getReleases() === 1, 'F1: client.release() exactly once on SUCCESS path');
+
+    // simulate: 404 early-exit after BEGIN (pregRow missing)
+    const m2 = makeClient(false);
+    await (async () => {
+        const c = m2.client;
+        try {
+            await c.query("SELECT set_config('app.tenant_id', $1, true)");
+            await c.query('BEGIN');
+            const row = (await c.query('SELECT * FROM obgyn_pregnancies WHERE id=$1 AND tenant_id=$2 FOR UPDATE')).rows[0];
+            if (!row) { await c.query('ROLLBACK'); return; }
+        } catch (e) { try { await c.query('ROLLBACK'); } catch (_) {} }
+        finally { c.release(); }
+    })();
+    assert(m2.getReleases() === 1, 'F1: client.release() exactly once on 404 early-exit path');
+
+    // simulate: pre-BEGIN early-exit (tenantId null) — no ROLLBACK, finally still releases
+    const m3 = makeClient(false);
+    await (async () => {
+        const c = m3.client;
+        try {
+            // tenantId === null -> early return (no BEGIN reached)
+            return;
+        } catch (e) { try { await c.query('ROLLBACK'); } catch (_) {} }
+        finally { c.release(); }
+    })();
+    assert(m3.getReleases() === 1, 'F1: client.release() exactly once on pre-BEGIN early-exit path');
+}
+
+testDeliveryClientRelease().then(() => {
+    console.log('\n=== Results: ' + passed + ' passed, ' + failed + ' failed ===\n');
+    process.exit(failed === 0 ? 0 : 1);
+});

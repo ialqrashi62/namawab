@@ -669,7 +669,7 @@ window.createPregnancy = async () => {
 
 window.showAntenatalForm = async (pregId, patientId) => {
   const visits = await API.get('/api/obgyn/antenatal/' + pregId);
-  let vRows = visits.map(v => '<tr><td>' + v.visit_number + '</td><td>' + (v.gestational_age || '-') + '</td><td>' + v.blood_pressure + '</td><td>' + v.fetal_heart_rate + '</td><td>' + v.weight + 'kg</td><td>' + (v.risk_flags || '✅') + '</td></tr>').join('');
+  let vRows = visits.map(v => '<tr><td>' + v.visit_number + '</td><td>' + escapeHTML(v.gestational_age || '-') + '</td><td>' + escapeHTML(v.blood_pressure) + '</td><td>' + escapeHTML(v.fetal_heart_rate) + '</td><td>' + escapeHTML(v.weight) + 'kg</td><td>' + escapeHTML(v.risk_flags || '✅') + '</td></tr>').join('');
 
   let html = '<h4 style="margin-bottom:8px">' + tr('Previous Visits', 'الزيارات السابقة') + '</h4>' +
     (visits.length ? '<table class="data-table" style="margin-bottom:16px"><thead><tr><th>#</th><th>GA</th><th>BP</th><th>FHR</th><th>Wt</th><th>Flags</th></tr></thead><tbody>' + vRows + '</tbody></table>' : '<p style="color:var(--text-muted);margin-bottom:16px">' + tr('No visits yet', 'لا زيارات') + '</p>') +
@@ -688,7 +688,7 @@ window.showAntenatalForm = async (pregId, patientId) => {
     '</div>' +
     '<div class="form-group" style="margin-top:8px"><label>Complaints</label><textarea id="antComp" class="form-control" rows="2"></textarea></div>' +
     '<div class="form-group"><label>Plan</label><textarea id="antPlan" class="form-control" rows="2"></textarea></div>' +
-    '<button class="btn btn-primary" onclick="saveAntenatal(' + pregId + ',' + patientId + ')" style="margin-top:8px">💾 ' + tr('Save Visit', 'حفظ الزيارة') + '</button>';
+    '<button class="btn btn-primary" onclick="saveAntenatal(' + safeId(pregId) + ',' + safeId(patientId) + ')" style="margin-top:8px">💾 ' + tr('Save Visit', 'حفظ الزيارة') + '</button>';
   showModal(tr('Antenatal Visit', 'زيارة متابعة الحمل') + ' #' + pregId, html);
 };
 
