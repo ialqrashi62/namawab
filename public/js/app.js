@@ -9150,13 +9150,15 @@ async function renderEmergency(el) {
   let beds = [];
   let patients = [];
   let doctors = [];
+  let board = [];
   try {
-    [stats, visits, beds, patients, doctors] = await Promise.all([
+    [stats, visits, beds, patients, doctors, board] = await Promise.all([
       API.get('/api/emergency/stats'),
       API.get('/api/emergency/visits'),
       API.get('/api/emergency/beds'),
       API.get('/api/patients'),
-      API.get('/api/employees')
+      API.get('/api/employees'),
+      API.get('/api/er/board')
     ]);
   } catch (e) {
     el.innerHTML = `
@@ -9185,6 +9187,7 @@ async function renderEmergency(el) {
     </div>
     <div class="tab-bar"><button class="tab-btn ${erTab === 'board' ? 'active' : ''}" onclick="erTab='board';navigateTo(21)">🏥 ${tr('ER Board', 'لوحة الطوارئ')}</button>
       <button class="tab-btn ${erTab === 'register' ? 'active' : ''}" onclick="erTab='register';navigateTo(21)">➕ ${tr('Register', 'تسجيل حالة')}</button>
+      <button class="tab-btn ${erTab === 'triage' ? 'active' : ''}" onclick="erTab='triage';navigateTo(21)">🩺 ${tr('Triage (ESI)', 'الفرز ESI')}</button>
       <button class="tab-btn ${erTab === 'discharged' ? 'active' : ''}" onclick="erTab='discharged';navigateTo(21)">🚪 ${tr('Discharged', 'الخارجين')}</button>
       <button class="tab-btn ${erTab === 'transferred' ? 'active' : ''}" onclick="erTab='transferred';navigateTo(21)">🔄 ${tr('Transferred', 'المحولين للتنويم')}</button>
       <button class="tab-btn ${erTab === 'beds' ? 'active' : ''}" onclick="erTab='beds';navigateTo(21)">🛏️ ${tr('Bed Map', 'خريطة الأسرّة')}</button></div>
@@ -9204,18 +9207,73 @@ async function renderEmergency(el) {
           <button class="btn" onclick="document.getElementById('erDischargeModal').style.display='none'" style="flex:1">❌ ${tr('Cancel', 'إلغاء')}</button>
         </div>
       </div>
+    </div>
+    <div id="erDispositionModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
+      <div style="background:#fff;padding:30px;border-radius:16px;width:520px;max-width:90%;max-height:85vh;overflow-y:auto;direction:rtl">
+        <h3 style="margin-bottom:16px">📤 ${tr('ED Disposition', 'تصرّف الطوارئ')} — <span id="erDispPatient"></span></h3>
+        <input type="hidden" id="erDispId">
+        <div class="form-grid" style="gap:12px">
+          <div><label>${tr('Disposition', 'التصرّف')}</label><select id="erDispType" class="form-control">
+            <option value="Discharged">${tr('Discharge home', 'خروج للمنزل')}</option>
+            <option value="Admitted">${tr('Admit (inpatient ADT)', 'تنويم')}</option>
+            <option value="Transferred">${tr('Transfer out', 'تحويل خارجي')}</option>
+            <option value="LWBS">${tr('Left without being seen (LWBS)', 'غادر دون فحص')}</option></select></div>
+          <div><label>${tr('Diagnosis', 'التشخيص')}</label><input id="erDispDiag" class="form-control"></div>
+          <div><label>${tr('Instructions', 'التعليمات')}</label><textarea id="erDispInst" class="form-control" rows="2"></textarea></div>
+          <div><label>${tr('Medications', 'الأدوية')}</label><input id="erDispMeds" class="form-control"></div>
+          <div><label>${tr('Follow-up Date', 'موعد المراجعة')}</label><input id="erDispFollowup" type="date" class="form-control"></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button class="btn btn-primary" onclick="confirmERDisposition()" style="flex:1">✅ ${tr('Confirm', 'تأكيد')}</button>
+          <button class="btn" onclick="document.getElementById('erDispositionModal').style.display='none'" style="flex:1">❌ ${tr('Cancel', 'إلغاء')}</button>
+        </div>
+      </div>
     </div>`;
   const c = document.getElementById('erContent');
   if (erTab === 'board') {
-    c.innerHTML = `<h3>🚨 ${tr('Active ER Cases', 'حالات الطوارئ النشطة')} (${active.length})</h3>
+    // ESI-sorted tracking board (server-ordered: ESI priority then arrival). Columns:
+    // patient, ESI, complaint, location/bed, time-since-arrival, time-to-provider, phase, actions.
+    const rows = (board || []);
+    const phaseLabel = (p) => ({ Arrival: tr('Arrival', 'وصول'), Triage: tr('Triage', 'فرز'), Waiting: tr('Waiting', 'انتظار'), InTreatment: tr('In Treatment', 'قيد العلاج'), Disposition: tr('Disposition', 'تصرّف') }[p] || escapeHTML(p));
+    c.innerHTML = `<h3>🚨 ${tr('ED Tracking Board', 'لوحة متابعة الطوارئ')} (${rows.length}) — ${tr('sorted by ESI', 'مرتبة حسب ESI')}</h3>
       <input class="form-control" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'erTable')" style="margin-bottom:12px">
-      ${active.length ? `<table class="data-table" id="erTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Complaint', 'الشكوى')}</th><th>${tr('Triage', 'الفرز')}</th><th>${tr('Arrival', 'الوصول')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Bed', 'السرير')}</th><th>${tr('Actions', 'إجراءات')}</th></tr></thead><tbody>${active.map(v => {
+      ${rows.length ? `<table class="data-table" id="erTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>ESI</th><th>${tr('Complaint', 'الشكوى')}</th><th>${tr('Location', 'الموقع')}</th><th>${tr('Wait', 'الانتظار')}</th><th>${tr('To Provider', 'حتى الطبيب')}</th><th>${tr('Phase', 'المرحلة')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Actions', 'إجراءات')}</th></tr></thead><tbody>${rows.map(v => {
       const tc = triageColors[v.triage_color] || '#999';
-      return `<tr><td>${escapeHTML(v.id)}</td><td>${escapeHTML(v.patient_name)}</td><td>${escapeHTML(v.chief_complaint_ar || v.chief_complaint)}</td>
-          <td><span class="badge" style="background:${tc};color:#fff;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.1)">🚨 ${escapeHTML(tr('ESI ' + v.triage_level, 'ESI ' + v.triage_level))} - ${escapeHTML(v.triage_color)}</span></td>
-          <td>${new Date(v.arrival_time).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</td><td>${escapeHTML(v.assigned_doctor || '-')}</td><td>${escapeHTML(v.assigned_bed || '-')}</td>
-          <td><button class="btn btn-sm" onclick="showERDischargeModal(${safeId(v.id)})">🚪 ${tr('Discharge', 'خروج')}</button> <button class="btn btn-sm btn-success" onclick="transferERToInpatient(${safeId(v.id)},'${jsStr(v.patient_name || '')}',${safeId(v.patient_id)},'${jsStr(v.assigned_doctor || '')}','${jsStr(v.chief_complaint_ar || v.chief_complaint || '')}')">${tr('Admit', 'تنويم')}</button></td></tr>`;
+      const esiTxt = v.esi_level ? ('ESI ' + v.esi_level) : tr('Untriaged', 'غير مفروز');
+      const ttp = v.time_to_provider_min != null && v.provider_assigned_at ? (v.time_to_provider_min + 'm') : (v.time_to_provider_breach ? `<span style="color:#e74c3c;font-weight:700">⚠ ${tr('BREACH', 'تجاوز')}</span>` : '-');
+      return `<tr><td>${escapeHTML(v.id)}</td><td>${escapeHTML(v.patient_name)}</td>
+          <td><span class="badge" style="background:${tc};color:#fff;font-weight:700">🚨 ${escapeHTML(esiTxt)}</span></td>
+          <td>${escapeHTML(v.chief_complaint_ar || v.chief_complaint || '-')}</td>
+          <td>${escapeHTML(v.location || '-')}</td>
+          <td>${escapeHTML(String(v.minutes_since_arrival != null ? v.minutes_since_arrival : 0))}m</td>
+          <td>${rawHtml(ttp)}</td>
+          <td>${rawHtml(phaseLabel(v.phase))}</td>
+          <td>${escapeHTML(v.assigned_doctor || '-')}</td>
+          <td>
+            <button class="btn btn-sm" onclick="showERTriageModal(${safeId(v.id)},'${jsStr(v.chief_complaint || '')}','${jsStr(v.chief_complaint_ar || '')}')">🩺 ${tr('Triage', 'فرز')}</button>
+            <button class="btn btn-sm" onclick="assignERProvider(${safeId(v.id)})">👨‍⚕️ ${tr('Assign', 'إسناد')}</button>
+            <button class="btn btn-sm btn-warning" onclick="showERDispositionModal(${safeId(v.id)},'${jsStr(v.patient_name || '')}')">📤 ${tr('Disposition', 'تصرّف')}</button>
+          </td></tr>`;
     }).join('')}</tbody></table>` : `<div class="empty-state-card"><div class="empty-state-icon">🚨</div><div>${tr('No active emergency cases', 'لا توجد حالات طوارئ نشطة')}</div></div>`}`;
+  } else if (erTab === 'triage') {
+    c.innerHTML = `<h3>🩺 ${tr('ESI Triage (server computes the level)', 'فرز ESI (المستوى يُحسب خادمياً)')}</h3>
+      <p style="color:#888;font-size:.9em">${tr('Enter vitals and presentation. The ESI level is computed on the server from danger-zone vitals, high-risk presentation, and anticipated resources — it cannot be set by hand.', 'أدخل العلامات الحيوية والعرض السريري. يُحسب مستوى ESI على الخادم من العلامات الحرجة والعرض عالي الخطورة والموارد المتوقعة — ولا يمكن تعيينه يدوياً.')}</p>
+      <div class="form-grid">
+        <div><label>${tr('Active ER Visit', 'زيارة طوارئ نشطة')}</label><select id="trVisit" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${active.map(v => `<option value="${safeId(v.id)}">#${escapeHTML(v.id)} - ${escapeHTML(v.patient_name)} (${escapeHTML(v.chief_complaint_ar || v.chief_complaint || '')})</option>`).join('')}</select></div>
+        <div><label>${tr('Heart Rate (HR)', 'النبض')}</label><input id="trHr" type="number" class="form-control"></div>
+        <div><label>${tr('Resp Rate (RR)', 'التنفس')}</label><input id="trRr" type="number" class="form-control"></div>
+        <div><label>${tr('SpO2 %', 'الأكسجين %')}</label><input id="trSpo2" type="number" class="form-control"></div>
+        <div><label>${tr('Systolic BP', 'الضغط الانقباضي')}</label><input id="trSbp" type="number" class="form-control"></div>
+        <div><label>${tr('Temp °C', 'الحرارة')}</label><input id="trTemp" type="number" step="0.1" class="form-control"></div>
+        <div><label>${tr('Age (years)', 'العمر (سنوات)')}</label><input id="trAge" type="number" class="form-control"></div>
+        <div><label>${tr('LOC (AVPU)', 'مستوى الوعي')}</label><select id="trLoc" class="form-control"><option value="A">${tr('Alert', 'متنبه')}</option><option value="V">${tr('Verbal', 'يستجيب للصوت')}</option><option value="P">${tr('Pain', 'يستجيب للألم')}</option><option value="U">${tr('Unresponsive', 'لا يستجيب')}</option></select></div>
+        <div><label>${tr('Pain (0-10)', 'الألم (0-10)')}</label><input id="trPain" type="number" min="0" max="10" class="form-control"></div>
+        <div><label>${tr('Anticipated Resources', 'الموارد المتوقعة')}</label><input id="trResources" type="number" min="0" class="form-control" placeholder="${tr('e.g. labs+imaging = 2', 'مثال: تحاليل+أشعة = 2')}"></div>
+        <div><label>${tr('High-risk presentation', 'عرض عالي الخطورة')}</label><select id="trHighRisk" class="form-control"><option value="">${tr('No', 'لا')}</option><option value="1">${tr('Yes', 'نعم')}</option></select></div>
+        <div><label>${tr('Requires life-saving intervention', 'يتطلب تدخلاً منقذاً للحياة')}</label><select id="trLifesaving" class="form-control"><option value="">${tr('No', 'لا')}</option><option value="1">${tr('Yes', 'نعم')}</option></select></div>
+      </div>
+      <button class="btn btn-primary" onclick="submitERTriage()" style="margin-top:16px">🩺 ${tr('Compute ESI & Triage', 'احسب ESI وافرز')}</button>
+      <div id="trResult" style="margin-top:16px"></div>`;
   } else if (erTab === 'register') {
     c.innerHTML = `<h3>➕ ${tr('Register ER Visit', 'تسجيل حالة طوارئ')}</h3>
       <div class="form-grid">
@@ -9278,13 +9336,17 @@ window.showERDischargeModal = function (id) {
 window.confirmERDischarge = async function () {
   const id = document.getElementById('erDischargeId').value;
   try {
-    await API.put('/api/emergency/visits/' + id, {
-      status: 'Discharged',
-      discharge_diagnosis: document.getElementById('erDischargeDiag').value,
-      discharge_instructions: document.getElementById('erDischargeInst').value,
-      discharge_medications: document.getElementById('erDischargeMeds').value,
+    // Terminal disposition MUST go through the guarded /api/er/disposition route (server-authoritative
+    // state machine + ESI/triage gating). The legacy PUT no longer accepts terminal statuses.
+    const r = await API.post('/api/er/disposition', {
+      visit_id: Number(id),
+      disposition_type: 'Discharged',
+      diagnosis: document.getElementById('erDischargeDiag').value,
+      instructions: document.getElementById('erDischargeInst').value,
+      medications: document.getElementById('erDischargeMeds').value,
       followup_date: document.getElementById('erDischargeFollowup').value
     });
+    if (r && r.error) { showToast(escapeHTML(r.error), 'error'); return; }
     document.getElementById('erDischargeModal').style.display = 'none';
     showToast(tr('Patient discharged from ER!', 'تم خروج المريض من الطوارئ!'));
     erTab = 'discharged'; await navigateTo(21);
@@ -9293,18 +9355,103 @@ window.confirmERDischarge = async function () {
 window.transferERToInpatient = async function (visitId, patientName, patientId, doctor, complaint) {
   if (!confirm(tr('Transfer this patient to inpatient?', 'هل تريد تحويل هذا المريض للتنويم؟'))) return;
   try {
-    await API.put('/api/emergency/visits/' + visitId, { status: 'Admitted' });
-    await API.post('/api/admissions', {
-      patient_id: patientId, patient_name: patientName,
-      admission_type: 'Emergency', admitting_doctor: doctor, attending_doctor: doctor,
-      department: 'Emergency', diagnosis: complaint
+    // The disposition route performs the ER->ADT admission handoff internally; do NOT also POST
+    // /api/admissions here (would double-admit) nor use the legacy PUT.
+    const r = await API.post('/api/er/disposition', {
+      visit_id: Number(visitId),
+      disposition_type: 'Admitted',
+      admission_department: 'Emergency',
+      admitting_doctor: doctor,
+      diagnosis: complaint
     });
+    if (r && r.error) { showToast(escapeHTML(r.error), 'error'); return; }
     showToast(tr('Patient transferred to inpatient!', 'تم تحويل المريض للتنويم!'));
     erTab = 'transferred'; await navigateTo(21);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
-window.updateERVisit = async function (id, status) {
-  try { await API.put('/api/emergency/visits/' + id, { status }); showToast(tr('Updated', 'تم التحديث')); await navigateTo(21); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+
+// ===== E7: ESI triage / assign-provider / disposition (call the GUARDED /api/er/* routes) =====
+window._erTriagePreselect = null;
+window.showERTriageModal = function (visitId) {
+  // Jump to the triage tab with this visit pre-selected (server computes ESI from inputs).
+  window._erTriagePreselect = visitId;
+  erTab = 'triage';
+  navigateTo(21).then(() => {
+    const sel = document.getElementById('trVisit');
+    if (sel && visitId) sel.value = String(visitId);
+  });
+};
+window.submitERTriage = async function () {
+  const visitId = document.getElementById('trVisit').value;
+  if (!visitId) return showToast(tr('Select an ER visit', 'اختر زيارة طوارئ'), 'error');
+  const num = (id) => { const v = document.getElementById(id).value; return v === '' ? undefined : Number(v); };
+  // NOTE: no esi_level is sent — the server is authoritative and computes it from these inputs.
+  const payload = {
+    visit_id: Number(visitId),
+    vitals: { hr: num('trHr'), rr: num('trRr'), spo2: num('trSpo2'), sbp: num('trSbp'), temp: num('trTemp'), loc: document.getElementById('trLoc').value },
+    age: num('trAge'),
+    pain_score: num('trPain'),
+    resource_count: num('trResources'),
+    high_risk: document.getElementById('trHighRisk').value === '1',
+    requires_lifesaving: document.getElementById('trLifesaving').value === '1'
+  };
+  try {
+    const r = await API.post('/api/er/triage', payload);
+    if (r && r.error) { showToast(escapeHTML(r.error), 'error'); return; }
+    const colors = { 1: '#e74c3c', 2: '#e67e22', 3: '#f1c40f', 4: '#2ecc71', 5: '#3498db' };
+    const col = colors[r.esi_level] || '#999';
+    const rationale = Array.isArray(r.rationale) ? r.rationale : [];
+    document.getElementById('trResult').innerHTML = `
+      <div class="card" style="border-left:6px solid ${col};padding:16px">
+        <div style="font-size:1.3em;font-weight:700;color:${col}">🚨 ESI ${escapeHTML(r.esi_level)} — ${escapeHTML(r.triage_color)}${r.danger_zone ? ' ⚠️ ' + tr('DANGER ZONE', 'منطقة خطر') : ''}${r.fail_safe ? ' (' + tr('fail-safe', 'احتياطي آمن') + ')' : ''}</div>
+        <div style="margin-top:8px"><b>${tr('Decision point', 'نقطة القرار')}:</b> ${escapeHTML(r.decision_point)}</div>
+        <ul style="margin-top:8px">${rationale.map(x => `<li>${escapeHTML(x)}</li>`).join('')}</ul>
+      </div>`;
+    showToast(tr('Triage recorded (server-computed ESI)', 'تم تسجيل الفرز (ESI محسوب خادمياً)'));
+  } catch (e) {
+    showToast((e && e.message) ? e.message : tr('Triage failed', 'فشل الفرز'), 'error');
+  }
+};
+window.assignERProvider = async function (visitId) {
+  const provider = prompt(tr('Provider name (leave blank = you):', 'اسم الطبيب (فارغ = أنت):')) || '';
+  try {
+    const r = await API.post('/api/er/assign-provider', { visit_id: Number(visitId), provider });
+    if (r && r.error) { showToast(escapeHTML(r.error), 'error'); return; }
+    showToast(tr('Provider assigned', 'تم إسناد الطبيب') + ' (TTP ' + (r.time_to_provider_min != null ? r.time_to_provider_min : '-') + 'm)');
+    await navigateTo(21);
+  } catch (e) {
+    showToast((e && e.message) ? e.message : tr('Assign failed', 'فشل الإسناد'), 'error');
+  }
+};
+window.showERDispositionModal = function (visitId, patientName) {
+  document.getElementById('erDispId').value = visitId;
+  document.getElementById('erDispPatient').textContent = patientName || '';
+  document.getElementById('erDispType').value = 'Discharged';
+  document.getElementById('erDispDiag').value = '';
+  document.getElementById('erDispInst').value = '';
+  document.getElementById('erDispMeds').value = '';
+  document.getElementById('erDispFollowup').value = '';
+  document.getElementById('erDispositionModal').style.display = 'flex';
+};
+window.confirmERDisposition = async function () {
+  const id = document.getElementById('erDispId').value;
+  const payload = {
+    visit_id: Number(id),
+    disposition_type: document.getElementById('erDispType').value,
+    diagnosis: document.getElementById('erDispDiag').value,
+    instructions: document.getElementById('erDispInst').value,
+    medications: document.getElementById('erDispMeds').value,
+    followup_date: document.getElementById('erDispFollowup').value
+  };
+  try {
+    const r = await API.post('/api/er/disposition', payload);
+    if (r && r.error) { showToast(escapeHTML(r.error), 'error'); return; }
+    document.getElementById('erDispositionModal').style.display = 'none';
+    showToast(tr('Disposition recorded', 'تم تسجيل التصرّف') + ': ' + payload.disposition_type + (r.admission_id ? ' → ADT #' + r.admission_id : ''));
+    await navigateTo(21);
+  } catch (e) {
+    showToast((e && e.message) ? e.message : tr('Disposition failed', 'فشل التصرّف'), 'error');
+  }
 };
 
 // ===== INPATIENT ADT =====

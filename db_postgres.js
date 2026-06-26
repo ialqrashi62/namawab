@@ -1875,6 +1875,15 @@ CREATE INDEX IF NOT EXISTS idx_consent_forms_tenant_facility ON consent_forms (t
 ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS facility_id INTEGER;
 CREATE INDEX IF NOT EXISTS idx_er_visits_tenant_facility ON emergency_visits (tenant_id, facility_id);
+-- E7 ED workflow / ESI columns (dev-only convenience; production receives these via migrations/e7_01_emergency_ed_workflow_up.sql).
+ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS esi_level INTEGER DEFAULT 0;
+ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS esi_rationale TEXT DEFAULT '';
+ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS er_phase TEXT DEFAULT 'Arrival';
+ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS triage_started_at TEXT DEFAULT '';
+ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS provider_assigned_at TEXT DEFAULT '';
+ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS time_to_provider_min INTEGER DEFAULT 0;
+ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS disposition_type TEXT DEFAULT '';
+CREATE INDEX IF NOT EXISTS idx_er_visits_phase ON emergency_visits (tenant_id, status, esi_level);
 ALTER TABLE emergency_trauma_assessments ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 ALTER TABLE emergency_trauma_assessments ADD COLUMN IF NOT EXISTS facility_id INTEGER;
 ALTER TABLE admissions ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
