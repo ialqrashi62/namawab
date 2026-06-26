@@ -4491,7 +4491,7 @@ async function renderHR(el) {
   const [employees, salaries, leaves, attendance] = await Promise.all([
     API.get('/api/employees').catch(() => []),
     API.get('/api/hr/salaries').catch(() => []),
-    API.get('/api/hr/leaves').catch(() => []),
+    API.get('/api/hr/leave-requests').catch(() => []),  // E18 leave state machine (requested/approved/denied)
     API.get('/api/hr/attendance').catch(() => [])
   ]);
 
@@ -4788,9 +4788,10 @@ async function renderHR(el) {
               l.days + ' ' + tr('Days', 'أيام'),
               statusBadge(l.status)
             ],
-            id: l.id
+            id: l.id,
+            status: l.status
           })),
-          r => r.cells[4].includes('Pending') || r.cells[4].includes('قيد المراجعة') ? `<button class="btn btn-success btn-sm" onclick="approveLeave(${safeId(r.id)})">✅ ${tr('Approve', 'موافق')}</button>` : '-'
+          r => (r.status === 'requested' || r.cells[4].includes('Pending') || r.cells[4].includes('قيد المراجعة')) ? `<button class="btn btn-success btn-sm" onclick="approveLeave(${safeId(r.id)})">✅ ${tr('Approve', 'موافق')}</button>` : '-'
         );
       }
     }, 50);
@@ -4852,32 +4853,38 @@ async function renderHR(el) {
     showCommRow();
   }
 
-  window.showPayslip = (empId) => {
-    const emp = employees.find(e => e.id === empId) || { name_ar: tr('Employee', 'موظف'), name_en: 'Employee', role: 'Staff', salary: 4000 };
-    const basic = emp.salary || 4000;
-    const housing = basic * 0.25;
-    const transport = basic * 0.10;
-    const deductions = basic * 0.09; // GOSI deduction
-    const net = basic + housing + transport - deductions;
+  // Payslip: NET PAY is computed SERVER-SIDE (anti-spoof). We POST to the safe route to
+  // generate/recompute the draft slip and render ONLY the server-returned figures.
+  window.showPayslip = async (empId) => {
+    const emp = employees.find(e => e.id === empId) || { name_ar: tr('Employee', 'موظف'), name_en: 'Employee', role: 'Staff' };
+    const payMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+    let slip;
+    try {
+      const resp = await API.post('/api/hr/payroll-slips', { employee_id: empId, pay_month: payMonth });
+      slip = resp; // server-authoritative computed figures
+    } catch (e) {
+      showToast(tr('Could not generate payslip', 'تعذّر إنشاء قسيمة الراتب'), 'error');
+      return;
+    }
+    const num = (v) => (parseFloat(v) || 0).toFixed(2);
 
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
     modal.innerHTML = `
       <div class="glass-card p-xl rounded-2xl shadow-2xl max-w-lg w-full bg-white relative text-right" style="direction:rtl">
-        <h3 class="font-display-lg text-primary border-b pb-md mb-md">📄 ${tr('Detailed Salary Slip', 'قسيمة راتب مفصلة')}</h3>
+        <h3 class="font-display-lg text-primary border-b pb-md mb-md">📄 ${tr('Detailed Salary Slip', 'قسيمة راتب مفصلة')} (${escapeHTML(slip.status || 'draft')})</h3>
         <div class="grid grid-cols-2 gap-sm mb-md text-sm text-on-surface-variant">
           <div><strong>${tr('Employee Name:', 'اسم الموظف:')}</strong> ${escapeHTML(isArabic ? emp.name_ar : emp.name_en)}</div>
-          <div><strong>${tr('Designation / Role:', 'الوظيفة / الدور:')}</strong> ${escapeHTML(emp.role)}</div>
-          <div><strong>${tr('Department:', 'القسم:')}</strong> ${escapeHTML(isArabic ? emp.department_ar : emp.department_en)}</div>
-          <div><strong>${tr('Salary Month:', 'شهر الراتب:')}</strong> ${new Date().toLocaleDateString('ar-SA', {month: 'long', year: 'numeric'})}</div>
+          <div><strong>${tr('Salary Month:', 'شهر الراتب:')}</strong> ${escapeHTML(slip.pay_month || payMonth)}</div>
         </div>
         <div class="border rounded-xl p-md bg-surface-lowest flex flex-col gap-xs mb-md text-sm text-on-surface">
-          <div class="flex justify-between"><span>${tr('Basic Salary', 'الراتب الأساسي')}</span><strong>${basic.toFixed(2)} ${tr('SAR', 'ر.س')}</strong></div>
-          <div class="flex justify-between"><span>${tr('Housing Allowance', 'بدل السكن')}</span><strong>${housing.toFixed(2)} ${tr('SAR', 'ر.س')}</strong></div>
-          <div class="flex justify-between"><span>${tr('Transport Allowance', 'بدل الانتقال')}</span><strong>${transport.toFixed(2)} ${tr('SAR', 'ر.س')}</strong></div>
-          <div class="flex justify-between text-error"><span>${tr('GOSI Deduction (9%)', 'حسم التأمينات الاجتماعية (9%)')}</span><strong>-${deductions.toFixed(2)} ${tr('SAR', 'ر.س')}</strong></div>
-          <div class="border-t pt-xs flex justify-between font-bold text-primary text-base"><span>${tr('Net Salary', 'صافي الراتب المستحق')}</span><strong>${net.toFixed(2)} ${tr('SAR', 'ر.س')}</strong></div>
+          <div class="flex justify-between"><span>${tr('Basic Salary', 'الراتب الأساسي')}</span><strong>${num(slip.basic)} ${tr('SAR', 'ر.س')}</strong></div>
+          <div class="flex justify-between"><span>${tr('Housing Allowance', 'بدل السكن')}</span><strong>${num(slip.housing_allowance)} ${tr('SAR', 'ر.س')}</strong></div>
+          <div class="flex justify-between"><span>${tr('Transport Allowance', 'بدل الانتقال')}</span><strong>${num(slip.transport_allowance)} ${tr('SAR', 'ر.س')}</strong></div>
+          <div class="flex justify-between text-error"><span>${tr('GOSI Deduction', 'حسم التأمينات الاجتماعية')}</span><strong>-${num(slip.gosi_deduction)} ${tr('SAR', 'ر.س')}</strong></div>
+          <div class="flex justify-between text-error"><span>${tr('Advances / Other Deductions', 'سُلف / استقطاعات أخرى')}</span><strong>-${num((parseFloat(slip.advances_deducted)||0)+(parseFloat(slip.other_deductions)||0))} ${tr('SAR', 'ر.س')}</strong></div>
+          <div class="border-t pt-xs flex justify-between font-bold text-primary text-base"><span>${tr('Net Salary', 'صافي الراتب المستحق')}</span><strong>${num(slip.net_salary)} ${tr('SAR', 'ر.س')}</strong></div>
         </div>
         <div class="flex gap-2">
           <button class="btn btn-primary flex-1 py-2 rounded-xl" onclick="window.print()">${tr('Print Slip', 'طباعة القسيمة')}</button>
@@ -4889,17 +4896,29 @@ async function renderHR(el) {
     modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
   };
 
-  window.requestLeave = () => {
+  // Leave request: POSTs to the safe route — server forces status='requested' and computes days.
+  window.requestLeave = async () => {
     const empSel = document.getElementById('leaveEmpId');
     if (!empSel) return;
-    const name = empSel.selectedOptions[0]?.text;
-    showToast(tr(`Leave request submitted for ${name}`, `تم تقديم طلب الإجازة لـ ${name}`), 'success');
-    navigateTo(currentPage);
+    const employee_id = parseInt(empSel.value, 10);
+    const leave_type = document.getElementById('leaveType')?.value || 'Annual';
+    const start_date = document.getElementById('leaveFrom')?.value;
+    const end_date = document.getElementById('leaveTo')?.value;
+    if (!Number.isInteger(employee_id) || !start_date || !end_date) { showToast(tr('Complete the leave form', 'أكمل بيانات الطلب'), 'error'); return; }
+    try {
+      await API.post('/api/hr/leave-requests', { employee_id, leave_type, start_date, end_date });
+      showToast(tr('Leave request submitted', 'تم تقديم طلب الإجازة'), 'success');
+      navigateTo(currentPage);
+    } catch (e) { showToast(tr('Error submitting request', 'خطأ في تقديم الطلب'), 'error'); }
   };
 
-  window.approveLeave = (id) => {
-    showToast(tr('Leave request approved!', 'تم قبول طلب الإجازة بنجاح!'), 'success');
-    navigateTo(currentPage);
+  // Approve leave: PUTs the state transition through the server-side state machine (409 on invalid).
+  window.approveLeave = async (id) => {
+    try {
+      await API.put(`/api/hr/leave-requests/${id}/status`, { status: 'approved' });
+      showToast(tr('Leave request approved', 'تم قبول طلب الإجازة'), 'success');
+      navigateTo(currentPage);
+    } catch (e) { showToast(tr('Could not approve (invalid state?)', 'تعذّر القبول (حالة غير صالحة؟)'), 'error'); }
   };
 }
 
