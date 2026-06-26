@@ -24,6 +24,25 @@ PSQL="psql -v ON_ERROR_STOP=1 -X -q"
 run() { echo ">>> $1"; $PSQL -f "$1"; }
 val() { echo "--- validate: $1"; $PSQL -f "$1"; }
 
+# ---- PREFLIGHT SAFETY GATE (tenant-aware backfill protection) ----
+# Several _up scripts backfill tenant_id=1 for legacy NULL rows. That is only safe
+# on a SINGLE-tenant database. Abort if the live DB has >1 tenant unless the
+# operator explicitly confirms they have reviewed/edited the backfills.
+echo "=== PREFLIGHT ==="
+TENANTS=$($PSQL -tA -c "select count(*) from tenants" 2>/dev/null || echo "ERR")
+echo "tenant rows: ${TENANTS}"
+if [ "${TENANTS}" = "ERR" ]; then
+  echo "!! Could not read tenants table — check connection/role privileges. Aborting."; exit 1
+fi
+if [ "${TENANTS}" -gt 1 ] && [ "${CONFIRM_MULTITENANT:-0}" != "1" ]; then
+  echo "!! MULTI-TENANT DB DETECTED (${TENANTS} tenants). The tenant_id=1 backfills in the _up"
+  echo "!! scripts would mis-assign legacy NULL rows. Review/edit those backfills FIRST, then"
+  echo "!! re-run with:  CONFIRM_MULTITENANT=1 bash DEPLOY_RUN.sh"
+  exit 1
+fi
+echo "preflight OK (single-tenant or explicitly confirmed). proceeding."
+echo ""
+
 echo "=== E-X foundational ==="
 run migrations/ex_01_orders_up.sql;            val migrations/ex_01_orders_validate.sql
 run migrations/ex_02_rbac_up.sql;              val migrations/ex_02_rbac_validate.sql
