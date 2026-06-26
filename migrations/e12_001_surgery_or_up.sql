@@ -66,8 +66,8 @@ CREATE TABLE IF NOT EXISTS pacu_records (
     facility_id INTEGER,
     surgery_id INTEGER NOT NULL REFERENCES surgeries(id) ON DELETE CASCADE,
     patient_id INTEGER,
-    start_time TEXT DEFAULT '',
-    end_time TEXT DEFAULT '',
+    start_time TEXT DEFAULT '',   -- L1: freeform text; pending migration to TIMESTAMP (kept TEXT to avoid breaking existing inserts)
+    end_time   TEXT DEFAULT '',   -- L1: freeform text; pending migration to TIMESTAMP (kept TEXT to avoid breaking existing inserts)
     pain_score INTEGER DEFAULT 0,
     bp TEXT DEFAULT '',
     hr TEXT DEFAULT '',

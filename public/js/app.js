@@ -8093,11 +8093,11 @@ window.loadOrWorkflow = async () => {
       <div class="card mb-12"><div class="card-title">🛡️ ${tr('WHO Safe Surgery Checklist', 'قائمة WHO لسلامة الجراحة')}</div>
         <div class="flex gap-12" style="flex-wrap:wrap;align-items:center">
           <div>1) ${tr('Sign-In (before anesthesia)', 'تسجيل الدخول (قبل التخدير)')} ${phaseDone('sign_in')}
-            <button class="btn btn-primary btn-sm" onclick="completeWhoPhase('sign-in')">${tr('Complete', 'إكمال')}</button></div>
+            ${who && who['sign_in_completed'] ? '' : `<button class="btn btn-primary btn-sm" onclick="completeWhoPhase('sign-in')">${tr('Complete', 'إكمال')}</button>`}</div>
           <div>2) ${tr('Time-Out (before incision)', 'وقفة (قبل الشق)')} ${phaseDone('time_out')}
-            <button class="btn btn-primary btn-sm" onclick="completeWhoPhase('time-out')">${tr('Complete', 'إكمال')}</button></div>
+            ${who && who['time_out_completed'] ? '' : `<button class="btn btn-primary btn-sm" onclick="completeWhoPhase('time-out')">${tr('Complete', 'إكمال')}</button>`}</div>
           <div>3) ${tr('Sign-Out (before leaving OR)', 'تسجيل الخروج (قبل مغادرة الغرفة)')} ${phaseDone('sign_out')}
-            <button class="btn btn-primary btn-sm" onclick="completeWhoPhase('sign-out')">${tr('Complete', 'إكمال')}</button></div>
+            ${who && who['sign_out_completed'] ? '' : `<button class="btn btn-primary btn-sm" onclick="completeWhoPhase('sign-out')">${tr('Complete', 'إكمال')}</button>`}</div>
         </div>
         <div class="flex gap-8 mt-12">
           <button class="btn btn-warning btn-sm" onclick="updateSurgStatus(${safeId(sid)},'InProgress')">▶ ${tr('Start Incision (InProgress)', 'بدء الشق')}</button>
@@ -8108,9 +8108,9 @@ window.loadOrWorkflow = async () => {
       </div>
       <div class="card mb-12"><div class="card-title">🛏️ ${tr('PACU / Recovery (Aldrete)', 'الإفاقة (ألدريت)')}</div>
         <div class="grid-equal"><div>
-          ${[['activity', tr('Activity', 'الحركة')], ['respiration', tr('Respiration', 'التنفس')], ['circulation', tr('Circulation', 'الدورة')]].map(([k, l]) => `<div class="form-group mb-8"><label>${l} (0-2)</label><select class="form-input" id="pacu_${k}"><option value="">-</option><option ${pacu && pacu.aldrete_score != null ? '' : ''}>0</option><option>1</option><option selected>2</option></select></div>`).join('')}
+          ${[['activity', tr('Activity', 'الحركة')], ['respiration', tr('Respiration', 'التنفس')], ['circulation', tr('Circulation', 'الدورة')]].map(([k, l]) => `<div class="form-group mb-8"><label>${l} (0-2)</label><select class="form-input" id="pacu_${k}"><option value="">-</option><option>0</option><option>1</option><option>2</option></select></div>`).join('')}
         </div><div>
-          ${[['consciousness', tr('Consciousness', 'الوعي')], ['oxygen', tr('O2 Saturation', 'الأكسجين')]].map(([k, l]) => `<div class="form-group mb-8"><label>${l} (0-2)</label><select class="form-input" id="pacu_${k}"><option value="">-</option><option>0</option><option>1</option><option selected>2</option></select></div>`).join('')}
+          ${[['consciousness', tr('Consciousness', 'الوعي')], ['oxygen', tr('O2 Saturation', 'الأكسجين')]].map(([k, l]) => `<div class="form-group mb-8"><label>${l} (0-2)</label><select class="form-input" id="pacu_${k}"><option value="">-</option><option>0</option><option>1</option><option>2</option></select></div>`).join('')}
           <div class="form-group mb-8"><label>${tr('Pain Score (0-10)', 'مقياس الألم')}</label><input class="form-input" type="number" id="pacu_pain" value="${escapeHTML(pacu && pacu.pain_score != null ? pacu.pain_score : 0)}"></div>
           <div class="form-group mb-8"><label>${tr('Discharge?', 'الخروج؟')}</label><select class="form-input" id="pacu_discharge"><option value="In Recovery">${tr('In Recovery', 'في الإفاقة')}</option><option value="Discharged" ${pacu && pacu.discharge_status === 'Discharged' ? 'selected' : ''}>${tr('Discharge from PACU', 'الخروج من الإفاقة')}</option></select></div>
         </div></div>

@@ -95,5 +95,87 @@ assert(consume(stock, [{ item_id: 100, qty: 4 }, { item_id: 101, qty: 2 }]).stat
 assert(consume(stock, [{ item_id: 101, qty: 99 }]).status === 409, 'insufficient stock -> 409 (fail-closed)');
 assert(consume(stock, [{ item_id: 100, qty: 0 }]).status === 422, 'qty<=0 rejected 422');
 
+// ---- C1 FIX: operative-note re-save idempotency (stock must not double-decrement) ----
+console.log('\n[ 4 ] C1 fix — operative-note re-save idempotency (no double-decrement)');
+// Mirrors the server C1 fix: credit back prior rows, then debit new rows (net = delta).
+function consumeIdempotent(stock, prevLines, newLines) {
+    // Validate new lines
+    for (const l of newLines) {
+        if (!Number.isInteger(l.item_id) || !Number.isInteger(l.qty) || l.qty <= 0) return { status: 422 };
+    }
+    // Credit back previous consumption (as in server C1 fix)
+    for (const p of prevLines) {
+        if (p.qty > 0) stock[p.item_id] = (stock[p.item_id] || 0) + p.qty;
+    }
+    // Fail-closed check against post-credit stock
+    for (const l of newLines) {
+        if ((stock[l.item_id] || 0) < l.qty) return { status: 409 };
+    }
+    // Debit new consumption
+    for (const l of newLines) stock[l.item_id] -= l.qty;
+    return { status: 200 };
+}
+
+const stock2 = { 200: 10 };
+// First save: consume 4 units
+consumeIdempotent(stock2, [], [{ item_id: 200, qty: 4 }]);
+assert(stock2[200] === 6, 'C1: first save correctly decrements stock (10 -> 6)');
+// Second save (re-save): same 4 units — stock must remain 6, not drop to 2
+const prevSave1 = [{ item_id: 200, qty: 4 }];
+consumeIdempotent(stock2, prevSave1, [{ item_id: 200, qty: 4 }]);
+assert(stock2[200] === 6, 'C1: re-save with same qty is idempotent (no double-decrement, stays at 6)');
+// Third save: change qty from 4 to 7 — only the delta (3 more) should be consumed
+const prevSave2 = [{ item_id: 200, qty: 4 }];
+consumeIdempotent(stock2, prevSave2, [{ item_id: 200, qty: 7 }]);
+assert(stock2[200] === 3, 'C1: re-save with higher qty applies only delta (6 -> 3, not 6 -> -1)');
+// Re-save where new total would exceed post-credit stock -> 409
+const stock3 = { 200: 3 };
+consumeIdempotent(stock3, [], [{ item_id: 200, qty: 3 }]); // first save: 3 -> 0
+const r409 = consumeIdempotent(stock3, [{ item_id: 200, qty: 3 }], [{ item_id: 200, qty: 99 }]);
+assert(r409.status === 409, 'C1: re-save that would exceed stock still returns 409 (fail-closed)');
+
+// ---- C2 FIX: Aldrete defaults to null when selects are not filled (no auto-discharge) ----
+console.log('\n[ 5 ] C2 fix — Aldrete defaults to null/incomplete (no false auto-discharge)');
+function aldreteFromForm(b) {
+    // Mirror server.js computation: if any component is '' or undefined -> null
+    const comp = ['activity', 'respiration', 'circulation', 'consciousness', 'oxygen'];
+    const provided = comp.filter(c => b[c] !== undefined && b[c] !== null && b[c] !== '');
+    if (provided.length !== comp.length) return null;
+    return comp.reduce((sum, c) => { let v = parseInt(b[c], 10); if (!Number.isInteger(v)) v = 0; if (v < 0) v = 0; if (v > 2) v = 2; return sum + v; }, 0);
+}
+function dischargeStatus(aldrete, requested) {
+    return requested === 'Discharged' ? (aldrete !== null && aldrete >= 9 ? 'Discharged' : 'In Recovery') : 'In Recovery';
+}
+// Simulate C2 fix: selects have NO preselected value -> client sends empty string -> aldrete = null
+const emptyForm = { activity: '', respiration: '', circulation: '', consciousness: '', oxygen: '' };
+const a1 = aldreteFromForm(emptyForm);
+assert(a1 === null, 'C2: empty select values produce null Aldrete (no false 10)');
+assert(dischargeStatus(a1, 'Discharged') === 'In Recovery', 'C2: null Aldrete prevents auto-discharge even if Discharge requested');
+// Sanity: a complete form with all 2s gives 10 (legitimate max)
+const fullForm = { activity: '2', respiration: '2', circulation: '2', consciousness: '2', oxygen: '2' };
+assert(aldreteFromForm(fullForm) === 10, 'C2: fully-filled form with all 2s correctly gives Aldrete=10');
+assert(dischargeStatus(10, 'Discharged') === 'Discharged', 'C2: Aldrete=10 with Discharge requested -> Discharged (correct path)');
+// Partial form (3 of 5 filled) -> null -> no discharge
+const partialForm = { activity: '2', respiration: '2', circulation: '2' };
+assert(aldreteFromForm(partialForm) === null, 'C2: partial form (3/5 components) -> null Aldrete (incomplete)');
+assert(dischargeStatus(aldreteFromForm(partialForm), 'Discharged') === 'In Recovery', 'C2: incomplete Aldrete blocks discharge');
+
+// Also verify the app.js fix: no "selected" attribute on option value="2"
+const appSrc = fs.readFileSync(path.join(__dirname, 'public/js/app.js'), 'utf8');
+// After the C2 fix, there should be no `<option selected>2</option>` in the PACU Aldrete selects
+assert(!appSrc.includes('<option selected>2</option>'), 'C2: "option selected>2" removed from app.js Aldrete selects');
+// But "2" options should still exist (just without "selected")
+assert(appSrc.includes('<option>2</option>'), 'C2: "2" options still present (just no longer preselected)');
+
+// Also verify I1 fix: no-tenant else branch removed from conflict query
+assert(!server.includes(":[null,slot_date,roomId,surgeonId") && !server.includes(': [null, slot_date, roomId'), 'I1: dead no-tenant else branch removed from conflict query');
+// And the tenant-scoped query is still present
+assert(server.includes('[tenantId, slot_date, roomId, surgeonId, slot_start_time, slot_end_time]'), 'I1: tenant-scoped conflict params intact');
+
+// Verify I2 fix: WHO phase buttons conditionally rendered only when phase not yet completed
+assert(appSrc.includes("who && who['sign_in_completed'] ? '' :"), 'I2: sign-in button conditionally hidden when phase done');
+assert(appSrc.includes("who && who['time_out_completed'] ? '' :"), 'I2: time-out button conditionally hidden when phase done');
+assert(appSrc.includes("who && who['sign_out_completed'] ? '' :"), 'I2: sign-out button conditionally hidden when phase done');
+
 console.log(`\n[ E12 WORKFLOW ] passed=${passed} failed=${failed}`);
 process.exit(failed ? 1 : 0);

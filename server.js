@@ -2993,20 +2993,14 @@ app.post('/api/or/slots/reserve', requireAuth, requireRole('surgery', 'doctor'),
 
         // Conflict detection: lock candidate conflicting rows (room OR surgeon overlap on same date),
         // ordered by id ascending to avoid deadlocks. Overlap = start < existing_end AND end > existing_start.
-        const conflictQ = tenantId
-            ? `SELECT id, room_id, surgeon_id FROM or_slots
+        // I1 FIX: tenantId is guaranteed non-null here (e12RequireTenant throws 403 on null tenant),
+        // so the no-tenant else branch (which had mis-numbered $N bindings) is removed entirely.
+        const conflictQ = `SELECT id, room_id, surgeon_id FROM or_slots
                WHERE tenant_id=$1 AND slot_date=$2 AND status <> 'Cancelled'
                  AND (room_id=$3 OR surgeon_id=$4)
                  AND (slot_start_time < $6 AND slot_end_time > $5)
-               ORDER BY id ASC FOR UPDATE`
-            : `SELECT id, room_id, surgeon_id FROM or_slots
-               WHERE slot_date=$2 AND status <> 'Cancelled'
-                 AND (room_id=$3 OR surgeon_id=$4)
-                 AND (slot_start_time < $6 AND slot_end_time > $5)
                ORDER BY id ASC FOR UPDATE`;
-        const conflictParams = tenantId
-            ? [tenantId, slot_date, roomId, surgeonId, slot_start_time, slot_end_time]
-            : [null, slot_date, roomId, surgeonId, slot_start_time, slot_end_time];
+        const conflictParams = [tenantId, slot_date, roomId, surgeonId, slot_start_time, slot_end_time];
         const conflicts = (await client.query(conflictQ, conflictParams)).rows;
         if (conflicts.length > 0) {
             await client.query('ROLLBACK'); client.release();
@@ -3302,7 +3296,34 @@ app.post('/api/or/surgeries/:id/operative-note', requireAuth, requireRole('surge
         } catch (_) { inventoryPresent = false; }
 
         lines.sort((a, b2) => a.itemId - b2.itemId); // ascending id order — deadlock-safe locking
+
+        // C1 FIX: idempotent re-save. Credit back any prior or_consumption rows BEFORE applying new
+        // decrements so re-saving the operative note does not double-decrement stock. All locks are
+        // taken in ascending item_id order (consistent across credit + debit passes) to prevent deadlocks.
         if (inventoryPresent) {
+            // Step 1: load existing consumption rows for this surgery (prior save, if any), lock their
+            // inventory items in ascending id order and credit back the old quantities.
+            const prevConsQ = tenantId
+                ? 'SELECT item_id, qty_used FROM or_consumption WHERE surgery_id=$1 AND tenant_id=$2 ORDER BY item_id ASC'
+                : 'SELECT item_id, qty_used FROM or_consumption WHERE surgery_id=$1 ORDER BY item_id ASC';
+            const prevRows = (await client.query(prevConsQ, tenantId ? [surgeryId, tenantId] : [surgeryId])).rows;
+            for (const prev of prevRows) {
+                const prevItemId = parseInt(prev.item_id, 10);
+                const prevQty = parseInt(prev.qty_used, 10) || 0;
+                if (prevQty <= 0) continue;
+                // Lock the row (ascending id order — same as debit pass below, no deadlock)
+                const lockPrevQ = tenantId
+                    ? 'SELECT id, stock_qty FROM inventory_items WHERE id=$1 AND tenant_id=$2 FOR UPDATE'
+                    : 'SELECT id, stock_qty FROM inventory_items WHERE id=$1 FOR UPDATE';
+                await client.query(lockPrevQ, tenantId ? [prevItemId, tenantId] : [prevItemId]);
+                // Credit back the previously decremented quantity
+                const creditQ = tenantId
+                    ? 'UPDATE inventory_items SET stock_qty = stock_qty + $1 WHERE id=$2 AND tenant_id=$3'
+                    : 'UPDATE inventory_items SET stock_qty = stock_qty + $1 WHERE id=$2';
+                await client.query(creditQ, tenantId ? [prevQty, prevItemId, tenantId] : [prevQty, prevItemId]);
+            }
+
+            // Step 2: validate + debit the new consumption lines against post-credit stock.
             for (const ln of lines) {
                 const lockQ = tenantId
                     ? 'SELECT id, stock_qty FROM inventory_items WHERE id=$1 AND tenant_id=$2 FOR UPDATE'
