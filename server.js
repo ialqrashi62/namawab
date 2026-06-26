@@ -19,6 +19,8 @@ const { makeRequirePermission } = require('./rbac');        // E-X3 RBAC matrix 
 // E1 Doctor Station (additive): pure CDS engine + clinical routes (problems/SOAP/CPOE).
 const cds = require('./cds');
 const { mountClinicalRoutes } = require('./clinical_cpoe');
+// E6 Nursing / MAR (additive): pure clinical-scoring engine (Morse/Braden/NEWS/Pain).
+const nursingScores = require('./nursing_scores');
 
 // Multer setup for radiology image uploads — A3A: PHI vault OUTSIDE public webroot (no static/direct access)
 const uploadsDir = path.join(__dirname, 'phi_vault', 'radiology');
@@ -5185,7 +5187,7 @@ app.post('/api/cme/registrations', requireAuth, async (req, res) => {
 });
 
 // ===== eMAR =====
-app.get('/api/emar/orders', requireAuth, requireTenantScope, async (req, res) => {
+app.get('/api/emar/orders', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope, async (req, res) => {
     try {
         const { patient_id } = req.query;
         const { tenantId } = getRequestTenantContext(req);
@@ -5215,7 +5217,7 @@ app.get('/api/emar/orders', requireAuth, requireTenantScope, async (req, res) =>
         }
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/emar/orders', requireAuth, requireTenantScope, async (req, res) => {
+app.post('/api/emar/orders', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, medication, dose, route, frequency, start_date } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
@@ -5228,7 +5230,7 @@ app.post('/api/emar/orders', requireAuth, requireTenantScope, async (req, res) =
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/emar/administrations', requireAuth, requireTenantScope, async (req, res) => {
+app.get('/api/emar/administrations', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope, async (req, res) => {
     try {
         const { order_id } = req.query;
         const { tenantId } = getRequestTenantContext(req);
@@ -5258,9 +5260,13 @@ app.get('/api/emar/administrations', requireAuth, requireTenantScope, async (req
         }
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/emar/administrations', requireAuth, requireTenantScope, async (req, res) => {
+// LEGACY eMAR administration record. The PRIMARY nurse "Give" UI now posts to the safe
+// /api/mar/administer (5-rights + CDS + witness). This route is kept for compatibility but is
+// hardened: role-gated, status is FORCED 'Given' server-side (never trusted from the body), and
+// every insert is audited (item 5 + item 6).
+app.post('/api/emar/administrations', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope, async (req, res) => {
     try {
-        const { emar_order_id, patient_id, medication, dose, scheduled_time, status, reason_not_given, notes } = req.body;
+        const { emar_order_id, patient_id, medication, dose, scheduled_time, reason_not_given, notes } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
         if (tenantId) {
             const orderCheck = await pool.query('SELECT id FROM emar_orders WHERE id=$1 AND tenant_id=$2', [emar_order_id, tenantId]);
@@ -5268,9 +5274,276 @@ app.post('/api/emar/administrations', requireAuth, requireTenantScope, async (re
             const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
             if (patientCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
         }
+        // status is FORCED server-side (do not accept an arbitrary status from the body).
+        const status = 'Given';
         const result = await pool.query('INSERT INTO emar_administrations (emar_order_id, patient_id, medication, dose, scheduled_time, actual_time, administered_by, status, reason_not_given, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
-            [emar_order_id, patient_id || 0, medication || '', dose || '', scheduled_time || '', new Date().toISOString(), req.session.user.name, status || 'Given', reason_not_given || '', notes || '', tenantId || null, facilityId || null]);
+            [emar_order_id, patient_id || 0, medication || '', dose || '', scheduled_time || '', new Date().toISOString(), req.session.user.name, status, reason_not_given || '', notes || '', tenantId || null, facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.name, 'MAR_ADMINISTRATION', 'Nursing',
+            `eMAR (legacy) administration: patient #${patient_id} order #${emar_order_id} (${medication || ''} ${dose || ''}) status=${status}`, req.ip);
         res.json(result.rows[0]);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ============================================================================
+// E6 MAR — SAFE medication administration (server-enforced 5 RIGHTS + CDS + witness).
+// POST /api/mar/administer  — the PRIMARY nurse "Give" path (NOT /api/emar/administrations).
+//
+// Fail-CLOSED security model. Every right is verified SERVER-SIDE against the authoritative
+// prescription/order row (the client medication/dose/route strings are NEVER trusted):
+//   Right Patient — the source row's patient_id must equal the submitted patient_id, and the
+//                   patient must belong to this tenant. Mismatch => 422 MAR_WRONG_PATIENT.
+//   Right Drug    — scanned drug barcode/name must match the prescribed medication. => MAR_WRONG_DRUG.
+//   Right Dose    — administered dose must equal prescribed dose unless override_reason. => MAR_OVERRIDE_DOSE.
+//   Right Route   — administered route must equal prescribed route unless override_reason. => MAR_OVERRIDE_ROUTE.
+//   Right Time    — scheduled_at vs server clock within MAR_TIME_WINDOW_MIN; outside => override_reason. => MAR_OVERRIDE_TIME.
+//   CDS           — cds.checkDrugAllergy + checkDrugDrugInteraction (server-derived active meds),
+//                   fail-SAFE: an engine error becomes a WARNING (never a silent OK). A CRITICAL
+//                   alert HARD-STOPS (422 MAR_CDS_BLOCK) unless override_reason (then audited).
+//   Witness       — a high-alert drug (HIGH_ALERT list) requires a DISTINCT witness_user_id that is
+//                   a real system_users row in the SAME tenant. else 422 MAR_WITNESS_REQUIRED (fail-closed).
+// On success writes mar_administrations (tenant_id stamped; explicit AND tenant_id=$N on every query;
+// null tenant => fail-closed) and audits MAR_ADMINISTRATION. Every blocked right/override is audited.
+// ============================================================================
+const MAR_TIME_WINDOW_MIN = 60; // tolerance (minutes) between scheduled_at and server clock
+// High-alert medications (ISMP-style): administration requires an independent second-nurse witness.
+const MAR_HIGH_ALERT = [
+    'insulin', 'heparin', 'warfarin', 'morphine', 'hydromorphone', 'fentanyl', 'methadone',
+    'oxycodone', 'potassium chloride', 'kcl', 'magnesium sulfate', 'digoxin', 'epinephrine',
+    'norepinephrine', 'chemotherapy', 'methotrexate', 'insulin glargine', 'oxytocin',
+];
+function isHighAlertMed(name) {
+    const n = String(name || '').trim().toLowerCase();
+    if (!n) return false;
+    return MAR_HIGH_ALERT.some(h => n.includes(h));
+}
+function marNorm(s) { return String(s == null ? '' : s).trim().toLowerCase().replace(/\s+/g, ' '); }
+
+app.post('/api/mar/administer', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope, async (req, res) => {
+    const {
+        prescription_ref, emar_order_id, patient_id,
+        scanned_drug, scanned_dose, scanned_route, scanned_patient_id,
+        scheduled_at, override_reason, witness_user_id, notes,
+    } = req.body || {};
+    const { tenantId, facilityId } = getRequestTenantContext(req);
+    const uid = req.session.user?.id;
+    const uname = req.session.user?.name || req.session.user?.display_name || '';
+    // Null tenant => fail-closed (requireTenantScope already blocks in production; belt-and-braces here).
+    if (!tenantId) return res.status(403).json({ error: 'Tenant scope required' });
+    const reason = (override_reason == null) ? '' : String(override_reason).trim();
+    const auditBlock = (action, detail) => logAudit(uid, uname, action, 'Nursing',
+        `${detail} | tenant #${tenantId} by user #${uid}`, req.ip);
+
+    try {
+        // ----- Resolve the AUTHORITATIVE source row (drug/dose/route/patient) SERVER-SIDE -----
+        // Prefer prescription_ref (pharmacy_prescriptions_queue); else an emar_orders row.
+        let src = null;       // { patient_id, medication, dose, route }
+        if (prescription_ref) {
+            const r = (await pool.query(
+                'SELECT id, patient_id, medication_name, dosage, frequency FROM pharmacy_prescriptions_queue WHERE id=$1 AND tenant_id=$2',
+                [prescription_ref, tenantId])).rows[0];
+            if (!r) return res.status(404).json({ error: 'Prescription not found' });
+            // I1: pharmacy_prescriptions_queue has NO route column (no DDL allowed). Use route=null so the
+            // Right-Route check below treats the scanned route as authoritative (no spurious override). The
+            // emar_orders path (which HAS a route) keeps the hard Right-Route enforcement.
+            src = { patient_id: r.patient_id, medication: r.medication_name, dose: r.dosage, route: null };
+        } else if (emar_order_id) {
+            const r = (await pool.query(
+                'SELECT id, patient_id, medication, dose, route FROM emar_orders WHERE id=$1 AND tenant_id=$2',
+                [emar_order_id, tenantId])).rows[0];
+            if (!r) return res.status(404).json({ error: 'Order not found' });
+            src = { patient_id: r.patient_id, medication: r.medication, dose: r.dose, route: r.route };
+        } else {
+            return res.status(422).json({ error: 'A prescription_ref or emar_order_id is required', blocked: true });
+        }
+
+        // ----- RIGHT PATIENT -----
+        // The source row's patient must belong to this tenant.
+        const pat = (await pool.query('SELECT id, allergies FROM patients WHERE id=$1 AND tenant_id=$2', [src.patient_id, tenantId])).rows[0];
+        if (!pat) return res.status(404).json({ error: 'Patient not found' });
+        // The submitted/scanned patient must MATCH the prescription's patient.
+        const claimedPatient = (scanned_patient_id != null ? scanned_patient_id : patient_id);
+        if (claimedPatient == null || Number(claimedPatient) !== Number(src.patient_id)) {
+            auditBlock('MAR_WRONG_PATIENT', `Right-Patient FAIL: claimed #${claimedPatient} != prescribed #${src.patient_id}`);
+            return res.status(422).json({ error: 'Right Patient failed: scanned patient does not match the prescription', right: 'patient', blocked: true });
+        }
+
+        // ----- RIGHT DRUG ----- (scanned barcode/name must match prescribed drug; never trust client string blindly)
+        if (scanned_drug != null && marNorm(scanned_drug) && marNorm(scanned_drug) !== marNorm(src.medication)) {
+            auditBlock('MAR_WRONG_DRUG', `Right-Drug FAIL: scanned "${scanned_drug}" != prescribed "${src.medication}" (patient #${src.patient_id})`);
+            return res.status(422).json({ error: 'Right Drug failed: scanned drug does not match the prescription', right: 'drug', blocked: true });
+        }
+
+        // ----- RIGHT DOSE ----- (must equal prescribed dose unless override_reason supplied)
+        if (scanned_dose != null && marNorm(scanned_dose) && marNorm(scanned_dose) !== marNorm(src.dose)) {
+            if (!reason) {
+                auditBlock('MAR_WRONG_DOSE', `Right-Dose FAIL: given "${scanned_dose}" != prescribed "${src.dose}" (patient #${src.patient_id})`);
+                return res.status(422).json({ error: 'Right Dose failed: dose differs from prescription (override_reason required)', right: 'dose', requires_override_reason: true, blocked: true });
+            }
+            auditBlock('MAR_OVERRIDE_DOSE', `Dose override: given "${scanned_dose}" vs prescribed "${src.dose}". Reason: ${reason.slice(0, 160)}`);
+        }
+
+        // ----- RIGHT ROUTE ----- (must equal prescribed route unless override_reason)
+        // I1: only enforce when the source route is a KNOWN non-null value (emar_orders path). For the
+        // prescription path src.route is null (queue has no route column), so the scanned route is accepted
+        // as authoritative and recorded — no spurious mismatch/override polluting the audit trail.
+        if (src.route != null && scanned_route != null && marNorm(scanned_route) && marNorm(scanned_route) !== marNorm(src.route)) {
+            if (!reason) {
+                auditBlock('MAR_WRONG_ROUTE', `Right-Route FAIL: given "${scanned_route}" != prescribed "${src.route}" (patient #${src.patient_id})`);
+                return res.status(422).json({ error: 'Right Route failed: route differs from prescription (override_reason required)', right: 'route', requires_override_reason: true, blocked: true });
+            }
+            auditBlock('MAR_OVERRIDE_ROUTE', `Route override: given "${scanned_route}" vs prescribed "${src.route}". Reason: ${reason.slice(0, 160)}`);
+        }
+        // I1: when the source route is unknown (prescription path), record the scanned route as authoritative.
+        if (src.route == null && scanned_route != null && marNorm(scanned_route)) {
+            src.route = String(scanned_route).trim();
+        }
+
+        // ----- RIGHT TIME ----- (scheduled_at vs SERVER clock within tolerance; outside => override_reason)
+        if (scheduled_at) {
+            const sched = new Date(scheduled_at);
+            if (!isNaN(sched.getTime())) {
+                const driftMin = Math.abs(Date.now() - sched.getTime()) / 60000;
+                if (driftMin > MAR_TIME_WINDOW_MIN) {
+                    if (!reason) {
+                        auditBlock('MAR_WRONG_TIME', `Right-Time FAIL: ${driftMin.toFixed(0)}min outside ${MAR_TIME_WINDOW_MIN}min window (patient #${src.patient_id})`);
+                        return res.status(422).json({ error: `Right Time failed: ${Math.round(driftMin)} min outside the ${MAR_TIME_WINDOW_MIN}-min window (override_reason required)`, right: 'time', requires_override_reason: true, blocked: true });
+                    }
+                    auditBlock('MAR_OVERRIDE_TIME', `Time override: ${driftMin.toFixed(0)}min out of window. Reason: ${reason.slice(0, 160)}`);
+                }
+            }
+        }
+
+        // ----- CDS AT ADMINISTRATION (fail-SAFE; never a silent OK) -----
+        let cdsAlerts = [];
+        try {
+            cdsAlerts = cdsAlerts.concat(cds.checkDrugAllergy(src.medication, pat.allergies));
+        } catch (e) {
+            // I3: inability to VERIFY an allergy is a hard-stop (fail-safe), not a soft warning. severity:'critical'
+            // makes cds.decide() block administration unless an override_reason is supplied (then it is audited).
+            cdsAlerts.push({ rule: 'allergy', severity: 'critical', message: 'CDS allergy check unavailable — verify manually',
+                message_en: 'CDS allergy check unavailable — verify manually', message_ar: 'تعذّر فحص الحساسية — تأكد يدوياً', overridable: true, fail_safe: true });
+        }
+        try {
+            const activeMeds = await getPatientActiveMeds(src.patient_id, tenantId);
+            const others = (activeMeds || []).filter(m => marNorm(m) !== marNorm(src.medication));
+            cdsAlerts = cdsAlerts.concat(cds.checkDrugDrugInteraction([src.medication].concat(others)));
+        } catch (e) {
+            cdsAlerts.push({ rule: 'drug-drug', severity: 'warning', message: 'Active medications unavailable — interaction check inconclusive',
+                message_en: 'Active medications unavailable — interaction check inconclusive', message_ar: 'تعذّر جلب الأدوية الفعالة — فحص التداخل غير حاسم', overridable: true, subjects: [], fail_safe: true });
+        }
+        const cdsDecision = cds.decide(cdsAlerts, reason);
+        if (!cdsDecision.allow) {
+            auditBlock('MAR_CDS_BLOCK', `CDS hard-stop at administration (patient #${src.patient_id}, ${src.medication}): ${cdsAlerts.filter(a => a.severity === 'critical').map(a => a.message_en || a.message).join('; ').slice(0, 200)}`);
+            return res.status(422).json({ error: 'CDS hard-stop at administration', blocked: true, requires_override_reason: true, alerts: cdsAlerts });
+        }
+        const cdsCriticals = cdsAlerts.filter(a => a.severity === 'critical');
+        if (cdsCriticals.length > 0 && cdsDecision.reason) {
+            auditBlock('MAR_CDS_OVERRIDE', `CDS override at administration (patient #${src.patient_id}, ${src.medication}). Reason: ${String(cdsDecision.reason).slice(0, 160)}. Alerts: ${cdsCriticals.map(a => a.message_en || a.message).join('; ').slice(0, 200)}`);
+        }
+
+        // ----- WITNESS GATE (high-alert drug => DISTINCT, real, same-tenant second user) -----
+        const highAlert = isHighAlertMed(src.medication);
+        let witnessName = '';
+        let witnessId = null;
+        if (highAlert) {
+            if (witness_user_id == null || String(witness_user_id).trim() === '') {
+                auditBlock('MAR_WITNESS_REQUIRED', `High-alert "${src.medication}" without witness (patient #${src.patient_id})`);
+                return res.status(422).json({ error: 'High-alert medication requires a second-nurse witness', high_alert: true, requires_witness: true, blocked: true });
+            }
+            // C1: compare as INTEGERS. A space-padded value like ' 5' is cast to int 5 by PostgreSQL, so a
+            // string compare (`' 5' === '5'` => false) could let a nurse witness themselves. Parse both sides;
+            // reject a non-numeric/NaN witness outright, and use the parsed int for the self-check AND the DB
+            // lookup so a padded value cannot slip through.
+            witnessId = parseInt(witness_user_id, 10);
+            if (Number.isNaN(witnessId)) {
+                auditBlock('MAR_WITNESS_REQUIRED', `High-alert "${src.medication}" witness id not a valid integer (patient #${src.patient_id})`);
+                return res.status(422).json({ error: 'Witness id is invalid', high_alert: true, requires_witness: true, blocked: true });
+            }
+            if (witnessId === parseInt(uid, 10)) {
+                auditBlock('MAR_WITNESS_REQUIRED', `High-alert "${src.medication}" witness == administering nurse (patient #${src.patient_id})`);
+                return res.status(422).json({ error: 'Witness must be a different user from the administering nurse', high_alert: true, requires_witness: true, blocked: true });
+            }
+            // system_users has NO tenant_id column (global user table); tenant membership lives in
+            // user_tenants(user_id, tenant_id, is_active). Verify the witness is a REAL, ACTIVE user
+            // who is a member of THIS tenant (fail-closed: no membership row => reject).
+            const w = (await pool.query(
+                `SELECT su.id, su.display_name
+                   FROM system_users su
+                   JOIN user_tenants ut ON ut.user_id = su.id
+                  WHERE su.id=$1 AND su.is_active=1 AND ut.tenant_id=$2 AND ut.is_active=true`,
+                [witnessId, tenantId])).rows[0];
+            if (!w) {
+                auditBlock('MAR_WITNESS_REQUIRED', `High-alert "${src.medication}" witness #${witness_user_id} not a valid same-tenant active user (patient #${src.patient_id})`);
+                return res.status(422).json({ error: 'Witness is not a valid active user in this tenant', high_alert: true, requires_witness: true, blocked: true });
+            }
+            witnessName = w.display_name || '';
+        }
+
+        // ----- RECORD (status FORCED server-side; explicit tenant_id stamped) -----
+        const cdsSummary = cdsAlerts.map(a => a.message_en || a.message).filter(Boolean).join('; ').slice(0, 500);
+        const result = await pool.query(
+            `INSERT INTO mar_administrations
+               (tenant_id, facility_id, patient_id, prescription_ref, medication, dose, route,
+                scheduled_at, administered_at, administered_by, administered_by_name,
+                witness_by, witness_by_name, status, override_reason, cds_warnings, notes)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,CURRENT_TIMESTAMP,$9,$10,$11,$12,'given',$13,$14,$15)
+             RETURNING *`,
+            [tenantId, facilityId || null, src.patient_id, prescription_ref || null,
+             src.medication || '', src.dose || '', src.route || '',
+             scheduled_at || null, uid || null, uname,
+             highAlert ? witnessId : null, witnessName,
+             reason, cdsSummary, notes || '']);
+
+        logAudit(uid, uname, 'MAR_ADMINISTRATION', 'Nursing',
+            `MAR administered: patient #${src.patient_id} ${src.medication} ${src.dose || ''} ${src.route || ''}${highAlert ? ` (high-alert, witness #${witnessId})` : ''}${reason ? ` [override: ${reason.slice(0, 80)}]` : ''} | tenant #${tenantId}`, req.ip);
+        res.json({ success: true, administration: result.rows[0], cds_alerts: cdsAlerts });
+    } catch (e) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// ============================================================================
+// E6 NURSING SCORES — POST /api/nursing/scores
+// Accepts RAW observations and computes the score + band SERVER-SIDE via nursing_scores.js
+// (the client can NEVER forge a "score"). Writes nursing_scores (tenant_id + explicit AND
+// tenant_id predicate). Incomplete Braden (any missing subscale) => 422 (item 8, fail-closed).
+// ============================================================================
+app.post('/api/nursing/scores', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope, async (req, res) => {
+    try {
+        const { patient_id, score_type, observations, notes } = req.body || {};
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (!tenantId) return res.status(403).json({ error: 'Tenant scope required' });
+        const type = String(score_type || '').trim().toLowerCase();
+        if (!['morse', 'braden', 'news', 'pain'].includes(type)) {
+            return res.status(422).json({ error: 'Invalid score_type (morse|braden|news|pain)' });
+        }
+        // Right patient, tenant-scoped.
+        const pat = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+        if (!pat) return res.status(404).json({ error: 'Patient not found' });
+
+        const obs = observations || {};
+        let computed;
+        if (type === 'morse') computed = nursingScores.computeMorseFallRisk(obs);
+        else if (type === 'braden') computed = nursingScores.computeBraden(obs);
+        else if (type === 'news') computed = nursingScores.computeNEWS(obs);
+        else computed = nursingScores.computePainBand(obs.pain != null ? obs.pain : obs.score);
+
+        // Incomplete Braden => fail-closed 422 (never store a partial pressure-ulcer score).
+        if (type === 'braden' && (computed.score == null || computed.band === 'Incomplete')) {
+            return res.status(422).json({ error: computed.error || 'Incomplete Braden subscales', band: 'Incomplete', incomplete: true });
+        }
+
+        const uid = req.session.user?.id;
+        const uname = req.session.user?.name || req.session.user?.display_name || '';
+        const result = await pool.query(
+            `INSERT INTO nursing_scores
+               (tenant_id, facility_id, patient_id, score_type, score, band, inputs_json, recorded_by, recorded_by_name, notes)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+            [tenantId, facilityId || null, patient_id, type, computed.score, computed.band || '',
+             JSON.stringify(obs).slice(0, 4000), uid || null, uname, notes || '']);
+        logAudit(uid, uname, 'NURSING_SCORE', 'Nursing',
+            `${type} score ${computed.score} (${computed.band}) for patient #${patient_id} | tenant #${tenantId}`, req.ip);
+        res.json({ score: computed.score, band: computed.band, components: computed.components || null, record: result.rows[0] });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -5301,7 +5574,7 @@ app.post('/api/nursing/care-plans', requireAuth, requireTenantScope, async (req,
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/nursing/assessments', requireAuth, requireTenantScope, async (req, res) => {
+app.get('/api/nursing/assessments', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
         let q;
@@ -5315,16 +5588,21 @@ app.get('/api/nursing/assessments', requireAuth, requireTenantScope, async (req,
         res.json((await pool.query(q, params)).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/nursing/assessments', requireAuth, requireTenantScope, async (req, res) => {
+app.post('/api/nursing/assessments', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope, async (req, res) => {
     try {
-        const { patient_id, patient_name, assessment_type, fall_risk_score, braden_score, pain_score, gcs_score, shift, notes } = req.body;
+        const { patient_id, patient_name, assessment_type, pain_score, gcs_score, shift, notes } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
         if (tenantId) {
             const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
             if (patientCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
         }
+        // item 2: never store a CLIENT-sent fall_risk/Braden score as authoritative. The pain band is
+        // re-derived SERVER-SIDE from the raw 0–10 pain observation; authoritative Morse/Braden/NEWS
+        // scores must be computed via POST /api/nursing/scores (server-side engine) — so they are
+        // persisted here as 0 (not trusted) and the client score/band fields are ignored.
+        const pain = nursingScores.computePainBand(pain_score);
         const result = await pool.query('INSERT INTO nursing_assessments (patient_id, patient_name, assessment_type, fall_risk_score, braden_score, pain_score, gcs_score, nurse, shift, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
-            [patient_id, patient_name || '', assessment_type || 'General', fall_risk_score || 0, braden_score || 23, pain_score || 0, gcs_score || 15, req.session.user.name, shift || 'Morning', notes || '', tenantId || null, facilityId || null]);
+            [patient_id, patient_name || '', assessment_type || 'General', 0, 0, pain.score, gcs_score || 15, req.session.user.name, shift || 'Morning', notes || '', tenantId || null, facilityId || null]);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -5867,22 +6145,22 @@ async function startServer() {
 // Returns a de-duplicated array of drug-name strings. RLS also enforces tenant isolation; the explicit
 // tenant_id predicate is defense-in-depth. Caller treats a thrown error as FAIL-SAFE (warns, never skips).
 async function getPatientActiveMeds(patientId, tenantId) {
+    // I2: FAIL-CLOSED. Refuse to run unscoped — a falsy tenantId previously fell back to a cross-tenant query
+    // that returned meds across ALL tenants. Both callers run behind requireTenantScope, so this is
+    // defense-in-depth (the throw is treated FAIL-SAFE by callers, surfacing a warning, never a silent skip).
+    if (!tenantId) throw new Error('tenantId required for getPatientActiveMeds');
     const meds = [];
     // 1) Pharmacy queue (not dispensed / cancelled)
-    const qSql = tenantId
-        ? "SELECT medication_name FROM pharmacy_prescriptions_queue WHERE patient_id=$1 AND tenant_id=$2 AND COALESCE(status,'') NOT IN ('Dispensed','Cancelled','Rejected')"
-        : "SELECT medication_name FROM pharmacy_prescriptions_queue WHERE patient_id=$1 AND COALESCE(status,'') NOT IN ('Dispensed','Cancelled','Rejected')";
-    const qParams = tenantId ? [patientId, tenantId] : [patientId];
+    const qSql = "SELECT medication_name FROM pharmacy_prescriptions_queue WHERE patient_id=$1 AND tenant_id=$2 AND COALESCE(status,'') NOT IN ('Dispensed','Cancelled','Rejected')";
+    const qParams = [patientId, tenantId];
     for (const r of (await pool.query(qSql, qParams)).rows) {
         if (r.medication_name) meds.push(String(r.medication_name));
     }
     // 2) Active/pending med-type orders (E-X orders/order_items). Best-effort: a missing orders table
     //    must not break the gate — but a real query error propagates so the caller fails SAFE (warns).
     try {
-        const oSql = tenantId
-            ? "SELECT oi.catalog_ref FROM order_items oi JOIN orders o ON oi.order_id=o.id WHERE o.patient_id=$1 AND o.tenant_id=$2 AND o.type='med' AND o.status IN ('pending','active')"
-            : "SELECT oi.catalog_ref FROM order_items oi JOIN orders o ON oi.order_id=o.id WHERE o.patient_id=$1 AND o.type='med' AND o.status IN ('pending','active')";
-        const oParams = tenantId ? [patientId, tenantId] : [patientId];
+        const oSql = "SELECT oi.catalog_ref FROM order_items oi JOIN orders o ON oi.order_id=o.id WHERE o.patient_id=$1 AND o.tenant_id=$2 AND o.type='med' AND o.status IN ('pending','active')";
+        const oParams = [patientId, tenantId];
         for (const r of (await pool.query(oSql, oParams)).rows) {
             if (r.catalog_ref) meds.push(String(r.catalog_ref));
         }
@@ -6881,17 +7159,26 @@ app.get('/api/pharmacy/stock-log', requireAuth, requireTenantScope, async (req, 
 });
 
 // ===== NURSING ASSESSMENT SCALES =====
-app.post('/api/nursing/assessment', requireAuth, async (req, res) => {
+app.post('/api/nursing/assessment', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope, async (req, res) => {
     try {
-        const { patient_id, pain_scale, fall_risk_score, braden_score, notes } = req.body;
-        const vitals = (await pool.query('SELECT * FROM nursing_vitals WHERE patient_id=$1 ORDER BY id DESC LIMIT 1', [patient_id])).rows[0];
+        const { patient_id, pain_scale, notes } = req.body;
+        const { tenantId } = getRequestTenantContext(req);
+        if (!tenantId) return res.status(403).json({ error: 'Tenant scope required' });
+        // item 2: do NOT trust client-sent fall_risk_score/braden_score as authoritative scores.
+        // The pain band is computed SERVER-SIDE from the raw numeric pain_scale; authoritative
+        // Morse/Braden/NEWS scoring goes through POST /api/nursing/scores (server-derived).
+        const pain = nursingScores.computePainBand(pain_scale);
+        // item 3: SELECT/UPDATE carry explicit AND tenant_id=$N so a cross-tenant write is impossible.
+        const vitals = (await pool.query(
+            'SELECT id FROM nursing_vitals WHERE patient_id=$1 AND tenant_id=$2 ORDER BY id DESC LIMIT 1',
+            [patient_id, tenantId])).rows[0];
         if (vitals) {
-            await pool.query('UPDATE nursing_vitals SET notes=$1 WHERE id=$2', [
-                JSON.stringify({ pain_scale, fall_risk_score, braden_score, notes, assessed_at: new Date().toISOString() }),
-                vitals.id
+            await pool.query('UPDATE nursing_vitals SET notes=$1 WHERE id=$2 AND tenant_id=$3', [
+                JSON.stringify({ pain_scale: pain.score, pain_band: pain.band, notes, assessed_at: new Date().toISOString() }),
+                vitals.id, tenantId
             ]);
         }
-        res.json({ success: true, pain_scale, fall_risk_score, braden_score });
+        res.json({ success: true, pain_score: pain.score, pain_band: pain.band });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
