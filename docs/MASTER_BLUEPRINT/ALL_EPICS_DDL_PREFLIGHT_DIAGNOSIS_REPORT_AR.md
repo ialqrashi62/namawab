@@ -4,7 +4,25 @@
 > التاريخ: 2026-06-26. المهارات: NM_GLOBAL_GATES + NM_GOVERNANCE_CLOSEOUT (دائماً) + NM_OBSERVABILITY_OPS + NM_SECURITY_DR_KEY_MANAGEMENT + NM_FINANCE_ACCOUNTING_GUARD.
 
 ## الحالة النهائية
-**FINAL_STATUS: ALL_EPICS_DDL_PREFLIGHT_BLOCKED_AUTH** — السبب الجذري: أدوات عميل PostgreSQL ليست على PATH في Git Bash + `~/.pgpass` غير مهيّأ + المالك لم يُشغّل الأوامر بعد. **يتحوّل إلى SAFE_TO_OWNER_RUN فور إصلاح PATH + المصادقة.** كل الشروط الأخرى (الفرع/السكربت/webroot/مسار النسخة) خضراء ومُتحقَّقة.
+**FINAL_STATUS: ALL_EPICS_DDL_PREFLIGHT_BLOCKED_MULTI_TENANT_REVIEW** — فحص read-only (مُصرَّح) كشف أن **الإنتاج متعدّد المستأجرين (`tenants=2`)**. backfill `tenant_id=1` في الـmigrations قد يُسيء تعيين أيّ صفوف قديمة `tenant_id IS NULL`. **توقّف — راجِع الـbackfills قبل أيّ تنفيذ. ممنوع `CONFIRM_MULTITENANT=1`.** (حارس DEPLOY_RUN.sh سيوقف تلقائياً exit 1 على أيّ حال.)
+
+### تحديث 2 — حقائق قاعدة البيانات (read-only، SELECT فقط، بلا DDL/PHI/أسرار)
+| الحقيقة | القيمة | الأثر |
+|---|---|---|
+| current_user | `nama_medical_app` | دور التطبيق |
+| صلاحيات الدور | `rolsuper=false, rolbypassrls=false, rolcreaterole=false, rolcreatedb=false` | **لا يصلح للـDDL** → استخدم `postgres` أو دور migration مخوّل |
+| **عدد المستأجرين** | **2** | **MULTI-TENANT** → مراجعة backfill إلزامية قبل DDL |
+| FORCE_RLS tables | **150** ✓ | مطابق للمرجع |
+| policies | 152 | سليم |
+| journal count | **0** ✓ | accounting OFF محفوظ |
+
+**الخطوتان الحاسمتان قبل DDL:** (1) دور مخوّل (ليس nama_medical_app)، (2) مراجعة/تعديل backfills الـtenant_id (لأن المستأجرين 2). إصلاح PATH/.pgpass ثانوي.
+
+> **السطر التالي الآمن (read-only يقترحه الوكيل):** تدقيق صفوف `tenant_id IS NULL` في الجداول التي تُعدّلها الـmigrations. **إن كانت صفر في كل الجداول → الـbackfill عملية لا-أثر (no-op) وآمنة رغم تعدّد المستأجرين**، ويبقى الحاجز الوحيد الدورَ المخوّل. إن وُجدت صفوف NULL → يجب تحديد التعيين الصحيح للمستأجر يدوياً. (لم يُنفَّذ بعد — يحتاج موافقتك على جولة تدقيق read-only أخرى.)
+
+---
+### (التصنيف الأصلي AUTH أدناه ما زال صحيحاً كعائق ثانوي)
+السبب الجذري الإضافي: أدوات عميل PostgreSQL ليست على PATH + `~/.pgpass` غير مهيّأ + المالك لم يُشغّل بعد. كل الشروط الأخرى (الفرع/السكربت/webroot/مسار النسخة) خضراء.
 
 ## ما هو أخضر/جاهز
 | الفحص | النتيجة |
