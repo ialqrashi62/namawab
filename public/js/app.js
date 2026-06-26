@@ -5370,10 +5370,20 @@ async function renderInsurance(el) {
       <div class="card-title">📄 ${tr('Insurance Claims', 'المطالبات')}</div>
       <input class="search-filter" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'insClaimsT')">
       <div id="insClaimsT">${makeTable(
-    [tr('Patient', 'المريض'), tr('Company', 'الشركة'), tr('Amount', 'المبلغ'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', 'إجراءات')],
-    claims.map(c => ({ cells: [c.patient_name, c.insurance_company, c.claim_amount + ' SAR', statusBadge(c.status), c.created_at?.split('T')[0] || ''], id: c.id, status: c.status })),
-    (row) => row.status === 'Pending' ? `<div class="flex gap-4"><button class="btn btn-sm btn-success" onclick="updateClaim(${safeId(row.id)},'Approved')">✅</button><button class="btn btn-sm btn-danger" onclick="updateClaim(${safeId(row.id)},'Rejected')">❌</button></div>` : `<span class="badge badge-${row.status === 'Approved' ? 'success' : 'danger'}">${escapeHTML(row.status)}</span>`
+    [tr('Patient', 'المريض'), tr('Company', 'الشركة'), tr('Amount', 'المبلغ'), tr('Lifecycle', 'دورة الحياة'), tr('Date', 'التاريخ'), tr('Actions', 'إجراءات')],
+    claims.map(c => ({ cells: [c.patient_name, c.insurance_company, (c.claim_amount || 0) + ' SAR', statusBadge(c.lifecycle_status || c.status), c.created_at?.split('T')[0] || ''], id: c.id, lifecycle: c.lifecycle_status || 'draft' })),
+    (row) => insClaimActions(row)
   )}</div></div>`;
+}
+// Lifecycle-aware action buttons — every button calls a server-authoritative route (state machine enforced server-side).
+function insClaimActions(row) {
+  const id = safeId(row.id);
+  const ls = row.lifecycle;
+  if (ls === 'draft') return `<button class="btn btn-sm btn-primary" onclick="submitClaimNphies(${id})">📤 ${tr('Submit', 'إرسال')}</button>`;
+  if (ls === 'submitted') return `<div class="flex gap-4"><button class="btn btn-sm btn-success" onclick="transitionClaim(${id},'adjudicated')">✅ ${tr('Adjudicate', 'تسوية')}</button><button class="btn btn-sm btn-danger" onclick="transitionClaim(${id},'denied')">❌ ${tr('Deny', 'رفض')}</button></div>`;
+  if (ls === 'adjudicated') return `<button class="btn btn-sm btn-primary" onclick="transitionClaim(${id},'remittance_posted')">💰 ${tr('Post Remittance', 'ترحيل السداد')}</button>`;
+  if (ls === 'denied') return `<button class="btn btn-sm btn-warning" onclick="transitionClaim(${id},'appealed')">⚖️ ${tr('Appeal', 'استئناف')}</button>`;
+  return `<span class="badge badge-secondary">${escapeHTML(ls)}</span>`;
 }
 window.addClaim = async () => {
   const name = document.getElementById('insPatient').value.trim();
@@ -5383,9 +5393,55 @@ window.addClaim = async () => {
     showToast(tr('Claim submitted!', 'تم إرسال المطالبة!')); await navigateTo(9);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
+// Server-authoritative claim transitions. The state machine lives on the server; invalid transitions => 409.
+window.transitionClaim = async (id, target) => {
+  try {
+    const r = await API.put(`/api/insurance/claims/${id}/transition`, { target });
+    if (r && r.error) { showToast(r.error, 'error'); return; } // e.g. 409 invalid transition
+    showToast(tr('Updated', 'تم التحديث')); await navigateTo(9);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+// NPHIES claim submission — gated server-side (503 stub when NPHIES disabled); records intent.
+window.submitClaimNphies = async (id) => {
+  try {
+    const r = await API.post(`/api/nphies/submit-claim/${id}`, {});
+    if (r && r.gated) showToast(tr('NPHIES disabled — submission recorded', 'NPHIES معطّل — سُجّل الطلب'), 'warning');
+    else if (r && r.error) showToast(r.error, 'error');
+    else showToast(tr('Submitted', 'تم الإرسال'));
+    await navigateTo(9);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+// Eligibility check (NPHIES gated). Records the request; 503 stub when disabled.
+window.checkEligibility = async (patientId, companyId, policyNumber) => {
+  try {
+    const r = await API.post('/api/insurance/eligibility', { patient_id: patientId, insurance_company_id: companyId, policy_number: policyNumber });
+    if (r && r.gated) showToast(tr('NPHIES disabled — request recorded', 'NPHIES معطّل — سُجّل الطلب'), 'warning');
+    else if (r && r.error) showToast(r.error, 'error');
+    else showToast(tr('Eligibility requested', 'تم طلب الأهلية'));
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+// Pre-authorization request (NPHIES gated). Server creates it in 'requested' state.
+window.requestPreAuth = async (patientId, companyId, requestedAmount, justification) => {
+  try {
+    const r = await API.post('/api/insurance/pre-auth', { patient_id: patientId, insurance_company_id: companyId, requested_amount: requestedAmount, clinical_justification: justification });
+    if (r && r.gated) showToast(tr('NPHIES disabled — pre-auth recorded', 'NPHIES معطّل — سُجّل التفويض'), 'warning');
+    else if (r && r.error) showToast(r.error, 'error');
+    else showToast(tr('Pre-auth requested', 'تم طلب التفويض'));
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+// Appeal a denied claim's denial record (server moves claim denied->appealed on 'overturned').
+window.appealDenial = async (denialId, appealStatus, notes) => {
+  try {
+    const r = await API.put(`/api/insurance/denials/${denialId}/appeal`, { appeal_status: appealStatus, appeal_notes: notes });
+    if (r && r.error) { showToast(r.error, 'error'); return; }
+    showToast(tr('Appeal updated', 'تم تحديث الاستئناف')); await navigateTo(9);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+// LEGACY shim: old callers of updateClaim(id,'Approved'|'Rejected') now route through the state machine.
 window.updateClaim = async (id, status) => {
-  try { await API.put(`/api/insurance/claims/${id}`, { status }); showToast(tr('Updated', 'تم التحديث')); await navigateTo(9); }
-  catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  const target = status === 'Approved' ? 'adjudicated' : status === 'Rejected' ? 'denied' : null;
+  if (!target) { showToast(tr('Unsupported action', 'إجراء غير مدعوم'), 'error'); return; }
+  return window.transitionClaim(id, target);
 };
 window.addInsCompany = async () => {
   const ar = document.getElementById('insCoNameAr').value.trim();
