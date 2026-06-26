@@ -7817,6 +7817,7 @@ window.rejectDrq = async (id) => {
 
 // ===== SURGERY & PRE-OP =====
 let surgeryTab = 'schedule';
+let orWorkflowSurgery = null; // E12: currently-selected surgery id for the OR Workflow tab
 async function renderSurgery(el) {
   const [surgeries, patients, ors, emps] = await Promise.all([
     API.get('/api/surgeries'), API.get('/api/patients'),
@@ -7832,6 +7833,7 @@ async function renderSurgery(el) {
       <button class="btn ${surgeryTab === 'schedule' ? 'btn-primary' : 'btn-secondary'}" onclick="surgeryTab='schedule';navigateTo(18)">📅 ${tr('Surgery Schedule', 'جدول العمليات')}</button>
       <button class="btn ${surgeryTab === 'preop' ? 'btn-primary' : 'btn-secondary'}" onclick="surgeryTab='preop';navigateTo(18)">📋 ${tr('Pre-Op Assessment', 'تقييم ما قبل العملية')}</button>
       <button class="btn ${surgeryTab === 'anesthesia' ? 'btn-primary' : 'btn-secondary'}" onclick="surgeryTab='anesthesia';navigateTo(18)">💉 ${tr('Anesthesia', 'التخدير')}</button>
+      <button class="btn ${surgeryTab === 'orworkflow' ? 'btn-primary' : 'btn-secondary'}" onclick="surgeryTab='orworkflow';navigateTo(18)">✅ ${tr('OR Workflow (WHO/PACU)', 'سير العمليات (WHO/الإفاقة)')}</button>
       <button class="btn ${surgeryTab === 'rooms' ? 'btn-primary' : 'btn-secondary'}" onclick="surgeryTab='rooms';navigateTo(18)">🚪 ${tr('Operating Rooms', 'غرف العمليات')}</button>
     </div>
     <div id="surgeryContent"></div>`;
@@ -7861,8 +7863,8 @@ async function renderSurgery(el) {
       [tr('ID', '#'), tr('Patient', 'المريض'), tr('Procedure', 'الإجراء'), tr('Surgeon', 'الجراح'), tr('Date', 'التاريخ'), tr('Time', 'الوقت'), tr('OR', 'الغرفة'), tr('Priority', 'الأولوية'), tr('Pre-Op', 'ما قبل'), tr('Status', 'الحالة'), tr('Actions', 'إجراءات')],
       surgeries.map(s => ({ cells: [s.id, s.patient_name, isArabic ? (s.procedure_name_ar || s.procedure_name) : s.procedure_name, s.surgeon_name, s.scheduled_date, s.scheduled_time, s.operating_room, priorityBadge(s.priority), badge(s.preop_status, s.preop_status === 'Complete' ? 'success' : s.preop_status === 'In Progress' ? 'warning' : 'danger'), badge(s.status, surgStatusBadge(s.status))], id: s.id })),
       row => `<div class="flex gap-4" style="flex-wrap:wrap">
-              ${row.cells[9]?.includes('Scheduled') || row.cells[9]?.includes('info') ? `<button class="btn btn-warning btn-sm" onclick="updateSurgStatus(${safeId(row.id)},'In Progress')" style="font-size:11px">▶ ${tr('Start', 'بدء')}</button>` : ''}
-              ${!row.cells[9]?.includes('Completed') && !row.cells[9]?.includes('success') ? `<button class="btn btn-success btn-sm" onclick="updateSurgStatus(${safeId(row.id)},'Completed')" style="font-size:11px;font-weight:bold">✅ ${tr('Surgery Done', 'انتهت العملية')}</button>` : `<span class="badge badge-success">✅ ${tr('Done', 'منتهية')}</span>`}
+              ${row.cells[9]?.includes('Scheduled') || row.cells[9]?.includes('info') ? `<button class="btn btn-warning btn-sm" onclick="updateSurgStatus(${safeId(row.id)},'InProgress')" style="font-size:11px">▶ ${tr('Start', 'بدء')}</button>` : ''}
+              <button class="btn btn-secondary btn-sm" onclick="surgeryTab='orworkflow';orWorkflowSurgery=${safeId(row.id)};navigateTo(18)" style="font-size:11px">✅ ${tr('OR Workflow', 'سير العملية')}</button>
               <button class="btn btn-danger btn-sm" onclick="deleteSurgery(${safeId(row.id)})" style="font-size:11px">🗑</button>
             </div>`
     )}</div>
@@ -7928,6 +7930,17 @@ async function renderSurgery(el) {
         </div></div>
         <button class="btn btn-primary w-full" onclick="saveAnesthRecord()" style="height:44px">💾 ${tr('Save Anesthesia Record', 'حفظ سجل التخدير')}</button>
       </div></div>`;
+  } else if (surgeryTab === 'orworkflow') {
+    cont.innerHTML = `<div class="card">
+      <div class="card-title">✅ ${tr('OR Workflow — WHO Checklist, PACU & Operative Note', 'سير العملية — قائمة WHO والإفاقة والتقرير الجراحي')}</div>
+      <div class="form-group mb-12"><label>${tr('Select Surgery', 'اختر العملية')}</label>
+        <select class="form-input" id="orwfSurgery" onchange="orWorkflowSurgery=this.value;loadOrWorkflow()">
+          <option value="">${tr('-- Select --', '-- اختر --')}</option>
+          ${surgeries.map(s => `<option value="${safeId(s.id)}" ${String(s.id) === String(orWorkflowSurgery) ? 'selected' : ''}>${escapeHTML(s.id)} - ${escapeHTML(s.patient_name)} - ${escapeHTML(s.procedure_name)} [${escapeHTML(s.status)}]</option>`).join('')}
+        </select></div>
+      <div id="orwfBody"></div>
+    </div>`;
+    if (orWorkflowSurgery) loadOrWorkflow();
   } else if (surgeryTab === 'rooms') {
     cont.innerHTML = `<div class="card">
       <div class="card-title">🚪 ${tr('Operating Rooms', 'غرف العمليات')}</div>
@@ -7956,9 +7969,13 @@ window.scheduleSurgery = async () => {
     showToast(tr('Surgery scheduled!', 'تم جدولة العملية!')); surgeryTab = 'schedule'; await navigateTo(18);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
+// E12: status changes flow through the server-side state machine (rejects invalid transitions / WHO gating with 409).
 window.updateSurgStatus = async (id, status) => {
-  try { await API.put(`/api/surgeries/${id}`, { status }); showToast(tr('Updated', 'تم التحديث')); await navigateTo(18); }
-  catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  try {
+    const r = await API.put(`/api/or/surgeries/${id}/status`, { status });
+    if (r && r.error) { showToast(r.error, 'error'); return; }
+    showToast(tr('Updated', 'تم التحديث')); await navigateTo(18);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 window.deleteSurgery = async (id) => {
   if (!confirm(tr('Delete this surgery?', 'حذف هذه العملية؟'))) return;
@@ -8046,6 +8063,110 @@ window.saveAnesthRecord = async () => {
       complications: document.getElementById('anComp').value, recovery_notes: document.getElementById('anRecovery').value
     });
     showToast(tr('Anesthesia record saved!', 'تم حفظ سجل التخدير!'));
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+// ===== E12: OR WORKFLOW (WHO checklist + PACU + operative note) =====
+window.loadOrWorkflow = async () => {
+  const sid = window.safeId(orWorkflowSurgery);
+  const body = document.getElementById('orwfBody');
+  if (!body) return;
+  if (!sid) { body.innerHTML = ''; return; }
+  try {
+    const [surgery, who, pacu, opData] = await Promise.all([
+      API.get(`/api/surgeries/${sid}`),
+      API.get(`/api/or/surgeries/${sid}/who-checklist`),
+      API.get(`/api/or/surgeries/${sid}/pacu`),
+      API.get(`/api/or/surgeries/${sid}/operative-note`)
+    ]);
+    if (surgery && surgery.error) { body.innerHTML = `<p style="color:var(--danger)">${escapeHTML(surgery.error)}</p>`; return; }
+    const phaseDone = (n) => who && who[n + '_completed'] ? `<span class="badge badge-success">✅ ${escapeHTML(who[n + '_completed_by'] || tr('Done', 'تم'))}</span>` : `<span class="badge badge-warning">${tr('Pending', 'معلق')}</span>`;
+    const st = (surgery && surgery.status) || 'Scheduled';
+    const whoState = (who && who.state) || 'Not Started';
+    const op = opData && opData.note;
+    const cons = (opData && opData.consumption) || [];
+    body.innerHTML = `
+      <div class="flex gap-8 mb-12" style="flex-wrap:wrap">
+        <span class="badge badge-info">${tr('Surgery Status', 'حالة العملية')}: ${escapeHTML(st)}</span>
+        <span class="badge badge-purple">${tr('WHO State', 'حالة WHO')}: ${escapeHTML(whoState)}</span>
+      </div>
+      <div class="card mb-12"><div class="card-title">🛡️ ${tr('WHO Safe Surgery Checklist', 'قائمة WHO لسلامة الجراحة')}</div>
+        <div class="flex gap-12" style="flex-wrap:wrap;align-items:center">
+          <div>1) ${tr('Sign-In (before anesthesia)', 'تسجيل الدخول (قبل التخدير)')} ${phaseDone('sign_in')}
+            <button class="btn btn-primary btn-sm" onclick="completeWhoPhase('sign-in')">${tr('Complete', 'إكمال')}</button></div>
+          <div>2) ${tr('Time-Out (before incision)', 'وقفة (قبل الشق)')} ${phaseDone('time_out')}
+            <button class="btn btn-primary btn-sm" onclick="completeWhoPhase('time-out')">${tr('Complete', 'إكمال')}</button></div>
+          <div>3) ${tr('Sign-Out (before leaving OR)', 'تسجيل الخروج (قبل مغادرة الغرفة)')} ${phaseDone('sign_out')}
+            <button class="btn btn-primary btn-sm" onclick="completeWhoPhase('sign-out')">${tr('Complete', 'إكمال')}</button></div>
+        </div>
+        <div class="flex gap-8 mt-12">
+          <button class="btn btn-warning btn-sm" onclick="updateSurgStatus(${safeId(sid)},'InProgress')">▶ ${tr('Start Incision (InProgress)', 'بدء الشق')}</button>
+          <button class="btn btn-secondary btn-sm" onclick="updateSurgStatus(${safeId(sid)},'PACU')">🛏️ ${tr('Move to PACU', 'نقل للإفاقة')}</button>
+          <button class="btn btn-success btn-sm" onclick="updateSurgStatus(${safeId(sid)},'Completed')">✅ ${tr('Complete Surgery', 'إنهاء العملية')}</button>
+          <button class="btn btn-danger btn-sm" onclick="updateSurgStatus(${safeId(sid)},'Cancelled')">✖ ${tr('Cancel', 'إلغاء')}</button>
+        </div>
+      </div>
+      <div class="card mb-12"><div class="card-title">🛏️ ${tr('PACU / Recovery (Aldrete)', 'الإفاقة (ألدريت)')}</div>
+        <div class="grid-equal"><div>
+          ${[['activity', tr('Activity', 'الحركة')], ['respiration', tr('Respiration', 'التنفس')], ['circulation', tr('Circulation', 'الدورة')]].map(([k, l]) => `<div class="form-group mb-8"><label>${l} (0-2)</label><select class="form-input" id="pacu_${k}"><option value="">-</option><option ${pacu && pacu.aldrete_score != null ? '' : ''}>0</option><option>1</option><option selected>2</option></select></div>`).join('')}
+        </div><div>
+          ${[['consciousness', tr('Consciousness', 'الوعي')], ['oxygen', tr('O2 Saturation', 'الأكسجين')]].map(([k, l]) => `<div class="form-group mb-8"><label>${l} (0-2)</label><select class="form-input" id="pacu_${k}"><option value="">-</option><option>0</option><option>1</option><option selected>2</option></select></div>`).join('')}
+          <div class="form-group mb-8"><label>${tr('Pain Score (0-10)', 'مقياس الألم')}</label><input class="form-input" type="number" id="pacu_pain" value="${escapeHTML(pacu && pacu.pain_score != null ? pacu.pain_score : 0)}"></div>
+          <div class="form-group mb-8"><label>${tr('Discharge?', 'الخروج؟')}</label><select class="form-input" id="pacu_discharge"><option value="In Recovery">${tr('In Recovery', 'في الإفاقة')}</option><option value="Discharged" ${pacu && pacu.discharge_status === 'Discharged' ? 'selected' : ''}>${tr('Discharge from PACU', 'الخروج من الإفاقة')}</option></select></div>
+        </div></div>
+        <div class="flex gap-8" style="align-items:center"><button class="btn btn-primary btn-sm" onclick="savePacu()">💾 ${tr('Save PACU', 'حفظ الإفاقة')}</button>
+          ${pacu && pacu.aldrete_score != null ? `<span class="badge badge-info">${tr('Aldrete', 'ألدريت')}: ${escapeHTML(pacu.aldrete_score)} / 10 — ${escapeHTML(pacu.discharge_status || '')}</span>` : ''}</div>
+      </div>
+      <div class="card"><div class="card-title">📝 ${tr('Operative Note + Consumption', 'التقرير الجراحي + المستهلكات')}</div>
+        <div class="form-group mb-8"><label>${tr('Procedure Description', 'وصف الإجراء')}</label><textarea class="form-input form-textarea" id="op_desc">${escapeHTML(op && op.procedure_description || '')}</textarea></div>
+        <div class="form-group mb-8"><label>${tr('Findings', 'النتائج')}</label><input class="form-input" id="op_findings" value="${escapeHTML(op && op.findings || '')}"></div>
+        <div class="form-group mb-8"><label>${tr('Complications', 'المضاعفات')}</label><input class="form-input" id="op_comp" value="${escapeHTML(op && op.complications || '')}"></div>
+        <div class="flex gap-8"><div class="form-group mb-8" style="flex:1"><label>${tr('Blood Loss (ml)', 'فقدان الدم')}</label><input class="form-input" type="number" id="op_blood" value="${escapeHTML(op && op.blood_loss_final || 0)}"></div>
+          <div class="form-group mb-8" style="flex:1"><label>${tr('Counts Verified?', 'تأكيد العد؟')}</label><select class="form-input" id="op_counts"><option value="0">${tr('No / Incomplete', 'لا / غير مكتمل')}</option><option value="1" ${op && op.counts_verified === 'Verified' ? 'selected' : ''}>${tr('Yes — Verified', 'نعم — مؤكد')}</option></select></div></div>
+        <div class="card mt-8"><div class="card-title" style="font-size:13px">📦 ${tr('Consumption (decrements inventory)', 'المستهلكات (تخصم من المخزون)')}</div>
+          <div id="op_cons_rows">${cons.map(c => orConsRowHtml(c.item_id, c.qty_used)).join('')}</div>
+          <button class="btn btn-secondary btn-sm mt-8" onclick="addConsumptionRow()">➕ ${tr('Add Item', 'إضافة صنف')}</button>
+        </div>
+        <button class="btn btn-primary mt-12" onclick="saveOperativeNote()">💾 ${tr('Save Operative Note', 'حفظ التقرير')}</button>
+      </div>`;
+  } catch (e) { console.error(e); body.innerHTML = `<p style="color:var(--danger)">${tr('Error loading workflow', 'خطأ في التحميل')}</p>`; }
+};
+window.orConsRowHtml = (itemId, qty) => `<div class="flex gap-8 mb-4 op-cons-row"><input class="form-input op-cons-item" placeholder="${tr('Item ID', 'رقم الصنف')}" type="number" value="${escapeHTML(itemId != null ? itemId : '')}" style="flex:1"><input class="form-input op-cons-qty" placeholder="${tr('Qty', 'الكمية')}" type="number" value="${escapeHTML(qty != null ? qty : '')}" style="flex:1"></div>`;
+window.addConsumptionRow = () => { const w = document.getElementById('op_cons_rows'); if (w) w.insertAdjacentHTML('beforeend', orConsRowHtml(null, null)); };
+window.completeWhoPhase = async (phase) => {
+  const sid = window.safeId(orWorkflowSurgery); if (!sid) return;
+  try {
+    const r = await API.post(`/api/or/surgeries/${sid}/who-checklist/${phase}`, {});
+    if (r && r.error) { showToast(r.error, 'error'); return; }
+    showToast(tr('Checklist updated', 'تم تحديث القائمة')); loadOrWorkflow();
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+window.savePacu = async () => {
+  const sid = window.safeId(orWorkflowSurgery); if (!sid) return;
+  const v = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  try {
+    const r = await API.post(`/api/or/surgeries/${sid}/pacu`, {
+      activity: v('pacu_activity'), respiration: v('pacu_respiration'), circulation: v('pacu_circulation'),
+      consciousness: v('pacu_consciousness'), oxygen: v('pacu_oxygen'),
+      pain_score: v('pacu_pain'), discharge_status: v('pacu_discharge')
+    });
+    if (r && r.error) { showToast(r.error, 'error'); return; }
+    showToast(tr('PACU saved', 'تم حفظ الإفاقة')); loadOrWorkflow();
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+window.saveOperativeNote = async () => {
+  const sid = window.safeId(orWorkflowSurgery); if (!sid) return;
+  const v = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const consumption = Array.from(document.querySelectorAll('#op_cons_rows .op-cons-row')).map(r => ({
+    item_id: r.querySelector('.op-cons-item')?.value, qty_used: r.querySelector('.op-cons-qty')?.value
+  })).filter(c => c.item_id && c.qty_used);
+  try {
+    const r = await API.post(`/api/or/surgeries/${sid}/operative-note`, {
+      procedure_description: v('op_desc'), findings: v('op_findings'), complications: v('op_comp'),
+      blood_loss_final: v('op_blood'), counts_verified: v('op_counts') === '1', consumption
+    });
+    if (r && r.error) { showToast(r.error, 'error'); return; }
+    showToast(tr('Operative note saved', 'تم حفظ التقرير')); loadOrWorkflow();
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
