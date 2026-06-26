@@ -202,7 +202,7 @@ const MAX_DISCOUNT_BY_ROLE = { admin: 100, manager: 50, cashier: 10, receptionis
 const ROLE_PERMISSIONS = {
     'Admin': '*',
     'Doctor': ['dashboard', 'patients', 'appointments', 'doctor', 'lab', 'radiology', 'pharmacy', 'nursing', 'waiting', 'reports', 'messaging', 'surgery', 'consent', 'icu', 'cssd'],
-    'Nurse': ['dashboard', 'patients', 'nursing', 'waiting', 'vitals', 'icu', 'emergency', 'inpatient', 'transport', 'dietary', 'cssd', 'nursing'],
+    'Nurse': ['dashboard', 'patients', 'nursing', 'waiting', 'vitals', 'icu', 'emergency', 'inpatient', 'transport', 'dietary', 'cssd'],
     'Pharmacist': ['dashboard', 'pharmacy', 'inventory', 'messaging'],
     'CSSD Manager': ['dashboard', 'cssd', 'inventory', 'messaging'],
     'Inventory Manager': ['dashboard', 'inventory', 'messaging'],
