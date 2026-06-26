@@ -29,9 +29,14 @@ let isArabic = localStorage.getItem('namaLang') === 'ar' ? true : (localStorage.
 let currentPage = 0;
 let facilityType = 'hospital';
 const FACILITY_ALLOWED = {
-  hospital: null, // null = all allowed
+  hospital: null, // null = all allowed (legacy)
   health_center: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 20, 21, 30, 33, 34, 35, 41, 42],
-  clinic: [0, 1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 15, 20, 30, 34, 42]
+  clinic: [0, 1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 15, 20, 30, 34, 42],
+  // E0 archetypes (mirror of server-side onboarding.js ARCHETYPE_MODULES). null = all 43 allowed.
+  medical_city: null,
+  large_hospital: null,
+  general_hospital: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 30, 33, 34, 42],
+  polyclinic: [0, 1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 15, 20, 30, 34, 42]
 };
 
 const tr = (en, ar) => isArabic ? ar : en;
@@ -8151,6 +8156,7 @@ async function renderSettings(el) {
         <h2 class="font-headline-lg text-headline-lg text-primary">${tr('System Settings & Governance', 'إعدادات النظام والحوكمة')}</h2>
         <p class="text-on-surface-variant text-sm mt-1">${tr('Configure hospital records, manage users, and monitor cybersecurity compliance', 'تهيئة سجلات المنشأة، إدارة الصلاحيات ومراقبة الامتثال للأمن السيبراني')}</p>
       </div>
+      ${currentUser?.role === 'Admin' ? `<button onclick="window.NamaOnboardingWizard && window.NamaOnboardingWizard.open()" class="px-4 py-2 font-bold rounded-lg bg-primary text-white shadow-md hover:opacity-90 transition-all">🏗️ ${tr('Onboard New Facility', 'تهيئة منشأة جديدة')}</button>` : ''}
     </div>
     <div class="flex gap-4 mb-6 border-b border-outline-variant/30 pb-2">
       <button class="px-4 py-2 font-bold rounded-lg transition-all ${settingsTab === 'hospital' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high/50'}">
@@ -8216,6 +8222,7 @@ async function renderSettings(el) {
         <h2 class="font-headline-lg text-headline-lg text-primary">${tr('System Settings & Governance', 'إعدادات النظام والحوكمة')}</h2>
         <p class="text-on-surface-variant text-sm mt-1">${tr('Configure hospital records, manage users, and monitor cybersecurity compliance', 'تهيئة سجلات المنشأة، إدارة الصلاحيات ومراقبة الامتثال للأمن السيبراني')}</p>
       </div>
+      ${currentUser?.role === 'Admin' ? `<button onclick="window.NamaOnboardingWizard && window.NamaOnboardingWizard.open()" class="px-4 py-2 font-bold rounded-lg bg-primary text-white shadow-md hover:opacity-90 transition-all">🏗️ ${tr('Onboard New Facility', 'تهيئة منشأة جديدة')}</button>` : ''}
     </div>
 
     <!-- Tabs Navigation -->
