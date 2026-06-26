@@ -65,6 +65,13 @@ assert(has('e16.movementSign(movementType)') && has('if (sign === null) return r
 });
 // parameterized — no obvious interpolation of ids into inventory queries
 assert(!has('inventory_movements WHERE id = ${'), 'no string-interpolated ids in movements queries');
+// C1: empty-GRN guard -- all-invalid po_item_ids must yield 422 before creating goods_receipt header
+assert(has("No valid PO items to receive"), 'C1: empty poItemIds guard returns 422 (no silent empty GRN)');
+// I1: null cycle_id on tray issue must block (fail-closed), not silently skip BI re-check
+assert(has("{ error: 'cycle_missing' }"), 'I1: null cycle_id tray issue blocked 409 cycle_missing');
+// I2: CSSD batch PUT has state machine guard (no terminal->processing regression)
+assert(has('BATCH_TRANSITIONS') && has('Invalid batch transition'), 'I2: batch PUT state machine guard present');
+
 
 // ---------- (B) mock-pool simulation ----------
 console.log('\n[B] transactional decrement / PO-GRN / BI-release simulation (mock pool + real engine)');
@@ -144,6 +151,37 @@ assert(tryRelease({ status: 'completed', bi: 'pass', ci: 'pass' }).status === 20
 assert(tryRelease({ status: 'completed', bi: null, ci: null }).status === 409, 'release: BI missing => 409 (fail-closed)');
 assert(tryRelease({ status: 'completed', bi: 'fail', ci: 'pass' }).status === 409, 'release: BI fail => 409');
 assert(tryRelease({ status: 'running', bi: 'pass', ci: 'pass' }).status === 409, 'release: cycle not completed => 409');
+
+// C1 mock: GRN with all-invalid po_item_ids => 422 (no empty receipt created)
+function grnReceive(lines) {
+    const e16eng = require('./e16_inventory_engine');
+    const poItemIds = lines.map(l => e16eng.e16IntId(l.po_item_id)).filter(x => x !== null);
+    if (poItemIds.length === 0) return { status: 422, error: 'No valid PO items to receive' };
+    return { status: 200, created: true };
+}
+assert(grnReceive([{ po_item_id: 'bad' }, { po_item_id: '0' }, { po_item_id: null }]).status === 422, 'C1: all-invalid po_item_ids => 422 (no empty GRN)');
+assert(grnReceive([{ po_item_id: '5' }]).status === 200, 'C1: valid po_item_id passes guard');
+
+// I1 mock: tray issue with null cycle_id => 409 cycle_missing
+function issueTrayWithCycle(cycleId) {
+    if (!cycleId) return { status: 409, error: 'cycle_missing' };
+    return { status: 200 };
+}
+assert(issueTrayWithCycle(null).status === 409 && issueTrayWithCycle(null).error === 'cycle_missing', 'I1: null cycle_id => 409 cycle_missing (not silently skipped)');
+assert(issueTrayWithCycle(1000).status === 200, 'I1: non-null cycle_id proceeds to BI check');
+
+// I2 mock: batch state machine - terminal states cannot transition back
+const BATCH_TRANSITIONS_SIM = { processing: ['completed', 'failed'], completed: [], failed: [] };
+function tryBatchTransition(from, to) {
+    const allowed = (BATCH_TRANSITIONS_SIM[String(from).toLowerCase()] || []).includes(to);
+    return allowed ? { status: 200 } : { status: 409 };
+}
+assert(tryBatchTransition('processing', 'completed').status === 200, 'I2: processing -> completed allowed');
+assert(tryBatchTransition('processing', 'failed').status === 200, 'I2: processing -> failed allowed');
+assert(tryBatchTransition('completed', 'processing').status === 409, 'I2: completed -> processing BLOCKED (terminal)');
+assert(tryBatchTransition('failed', 'processing').status === 409, 'I2: failed -> processing BLOCKED (terminal)');
+assert(tryBatchTransition('completed', 'completed').status === 409, 'I2: completed -> completed BLOCKED (self-loop from terminal)');
+
 
 console.log('\n=== SUMMARY ===');
 console.log('  PASS: ' + passed + '  FAIL: ' + failed);

@@ -24,4 +24,11 @@ SELECT
   (SELECT count(*) FROM pg_policies WHERE tablename='cssd_load_items'
        AND policyname='rls_cssd_load_items_tenant_isolation')                                          AS load_policy,                -- 1
   (SELECT count(*)::int FROM information_schema.columns WHERE table_name='cssd_load_items'
-       AND column_name='tenant_id' AND is_nullable='NO')                                               AS load_tenant_not_null;       -- 1
+       AND column_name='tenant_id' AND is_nullable='NO')                                               AS load_tenant_not_null,       -- 1
+  -- tenant-FK existence assertions (I3: match ADD CONSTRAINT statements in up script)
+  (SELECT count(*)::int FROM pg_constraint WHERE conrelid='cssd_instrument_sets'::regclass
+       AND confrelid='tenants'::regclass AND contype='f')                                              AS sets_tenant_fk,            -- 1
+  (SELECT count(*)::int FROM pg_constraint WHERE conrelid='cssd_sterilization_cycles'::regclass
+       AND confrelid='tenants'::regclass AND contype='f')                                              AS cycles_tenant_fk,          -- 1
+  (SELECT count(*)::int FROM pg_constraint WHERE conrelid='cssd_load_items'::regclass
+       AND confrelid='tenants'::regclass AND contype='f')                                              AS load_tenant_fk;            -- 1

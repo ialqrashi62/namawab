@@ -7086,11 +7086,16 @@ app.put('/api/cssd/batches/:id', requireAuth, requireRole('cssd', 'nursing', 'su
         if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
         const batchId = e16.e16IntId(req.params.id);
         if (batchId === null) return res.status(404).json({ error: 'Batch not found' });
-        const status = String(req.body.status || '');
-        if (!['processing', 'completed', 'failed'].includes(status)) return res.status(422).json({ error: 'Invalid status' });
-        const check = (await pool.query('SELECT id FROM cssd_batches WHERE id=$1 AND tenant_id=$2', [batchId, t.tenantId])).rows[0];
+        const targetStatus = String(req.body.status || '');
+        if (!['processing', 'completed', 'failed'].includes(targetStatus)) return res.status(422).json({ error: 'Invalid status' });
+        // state machine: read current status (tenant-scoped) before update
+        const BATCH_TRANSITIONS = { processing: ['completed', 'failed'], completed: [], failed: [] };
+        const check = (await pool.query('SELECT id, status FROM cssd_batches WHERE id=$1 AND tenant_id=$2', [batchId, t.tenantId])).rows[0];
         if (!check) return res.status(404).json({ error: 'Batch not found' });
-        const r = await pool.query('UPDATE cssd_batches SET status=$1 WHERE id=$2 AND tenant_id=$3 RETURNING *', [status, batchId, t.tenantId]);
+        const currentStatus = String(check.status || '').toLowerCase();
+        const allowed = (BATCH_TRANSITIONS[currentStatus] || []).includes(targetStatus);
+        if (!allowed) return res.status(409).json({ error: `Invalid batch transition ${currentStatus} -> ${targetStatus}` });
+        const r = await pool.query('UPDATE cssd_batches SET status=$1 WHERE id=$2 AND tenant_id=$3 RETURNING *', [targetStatus, batchId, t.tenantId]);
         logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_CSSD_BATCH', 'CSSD', `Batch #${batchId} -> ${status}`, req.ip);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
@@ -7472,6 +7477,7 @@ app.post('/api/inventory/goods-receipts', requireAuth, requireRole('inventory', 
             // validate + lock each PO line (ascending id) before mutating
             const validated = [];
             const poItemIds = lines.map(l => e16.e16IntId(l.po_item_id)).filter(x => x !== null).sort((a, b) => a - b);
+            if (poItemIds.length === 0) { await client.query('ROLLBACK'); client.release(); return res.status(422).json({ error: 'No valid PO items to receive' }); }
             for (const pid of poItemIds) {
                 const line = lines.find(l => e16.e16IntId(l.po_item_id) === pid);
                 const qty = e16.e16Qty(line.qty_received);
@@ -7723,7 +7729,12 @@ app.put('/api/cssd/trays/:id/issue', requireAuth, requireRole('cssd', 'nursing',
                 return res.status(409).json({ error: 'Tray not sterile-released', status: tray.status });
             }
             // defence-in-depth: re-confirm the parent cycle BI gate still holds at issue time
-            if (tray.cycle_id) {
+            if (!tray.cycle_id) {
+                // cycle deleted (ON DELETE SET NULL) — a tray without a verifiable cycle must not be issued
+                await client.query('ROLLBACK'); client.release();
+                return res.status(409).json({ error: 'cycle_missing' });
+            }
+            {
                 const cyc = (await client.query('SELECT status, bi_test_result, ci_result, released_for_issue FROM cssd_sterilization_cycles WHERE id=$1 AND tenant_id=$2', [tray.cycle_id, t.tenantId])).rows[0];
                 const gate = cyc ? e16.canIssueSterileLoad(String(cyc.status || '').toLowerCase(), cyc.bi_test_result, cyc.ci_result) : { allowed: false, reason: 'cycle_missing' };
                 if (!gate.allowed || !cyc.released_for_issue) {

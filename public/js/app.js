@@ -8870,9 +8870,6 @@ async function renderCSSD(el) {
 window.addInstrumentSet = async function () {
   try { await API.post('/api/cssd/instruments', { set_name: document.getElementById('cssdName').value, set_name_ar: document.getElementById('cssdNameAr').value, set_code: document.getElementById('cssdCode').value, category: document.getElementById('cssdCat').value, instrument_count: document.getElementById('cssdCount').value, department: document.getElementById('cssdDept').value }); showToast(tr('Added!', 'تمت الإضافة!')); await navigateTo(24); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
-window.startCycle = async function () {
-  try { await API.post('/api/cssd/cycles', { cycle_number: document.getElementById('cycleNum').value, machine_name: document.getElementById('cycleMachine').value, cycle_type: document.getElementById('cycleType').value, temperature: document.getElementById('cycleTemp').value, duration_minutes: document.getElementById('cycleDur').value, operator: document.getElementById('cycleOp').value }); showToast(tr('Cycle started!', 'بدأت الدورة!')); await navigateTo(24); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
-};
 // ===== E16 CSSD client handlers (safe routes; BI gate fail-closed) =====
 // NOTE (E16): the previous window.completeCssd / window.completeCycle hardcoded
 // bi_test_result:'Pass' and flipped status with no gate (client-asserted authority).
