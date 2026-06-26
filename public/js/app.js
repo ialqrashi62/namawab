@@ -12182,26 +12182,31 @@ window.scheduleTele = async function () {
 async function renderPathology(el) {
   const content = el;
 
-  const [specimens, labOrders] = await Promise.all([
+  // E15: specimen->block->slide->report workflow with server-authoritative state machine.
+  const [specimens, patients] = await Promise.all([
     API.get('/api/pathology/specimens').catch(() => []),
-    API.get('/api/lab/orders').catch(() => [])
+    API.get('/api/patients').catch(() => [])
   ]);
-  const pending = specimens.filter(s => s.status === 'received').length;
-  const processing = specimens.filter(s => s.status === 'processing').length;
-  const completed = specimens.filter(s => s.status === 'completed').length;
+  const cnt = (st) => specimens.filter(s => s.state === st).length;
+  const STATES = ['Received', 'Grossing', 'Processing', 'Reported', 'SignedOut'];
+
+  const patientOptions = (Array.isArray(patients) ? patients : []).map(p =>
+    '<option value="' + safeId(p.id) + '">' + escapeHTML((p.name || '') + ' (#' + p.id + ')') + '</option>'
+  ).join('');
 
   content.innerHTML = `
     <h2>${tr('Pathology', 'علم الأمراض')}</h2>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px">
       <div class="card" style="padding:16px;text-align:center;background:#fff3e0"><h3 style="margin:0;color:#e65100">${specimens.length}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Total Specimens', 'إجمالي العينات')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${pending}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Received', 'مستلمة')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${processing}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Processing', 'قيد المعالجة')}</p></div>
-      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${completed}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Completed', 'مكتملة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#fce4ec"><h3 style="margin:0;color:#c62828">${cnt('Received')}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Received', 'مستلمة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e3f2fd"><h3 style="margin:0;color:#1565c0">${cnt('Processing') + cnt('Grossing')}</h3><p style="margin:4px 0 0;font-size:12px">${tr('In Process', 'قيد المعالجة')}</p></div>
+      <div class="card" style="padding:16px;text-align:center;background:#e8f5e9"><h3 style="margin:0;color:#2e7d32">${cnt('SignedOut')}</h3><p style="margin:4px 0 0;font-size:12px">${tr('Signed Out', 'تم اعتمادها')}</p></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
       <div class="card" style="padding:20px">
-        <h4 style="margin:0 0 12px">${tr('Register Specimen', 'تسجيل عينة')}</h4>
-        <div class="form-group"><label>${tr('Patient', 'المريض')}</label><input class="form-input" id="pathPatient" placeholder="${tr('Patient Name', 'اسم المريض')}"></div>
+        <h4 style="margin:0 0 12px">${tr('Accession Specimen', 'استقبال عينة')}</h4>
+        <div class="form-group"><label>${tr('Patient', 'المريض')}</label>
+          <select class="form-input" id="pathPatient"><option value="">${tr('Select...', 'اختر...')}</option>${patientOptions}</select></div>
         <div class="form-group"><label>${tr('Specimen Type', 'نوع العينة')}</label>
           <select class="form-input" id="pathType">
             <option value="biopsy">${tr('Biopsy', 'خزعة')}</option>
@@ -12211,7 +12216,6 @@ async function renderPathology(el) {
             <option value="frozen">${tr('Frozen Section', 'مقطع مجمد')}</option>
           </select></div>
         <div class="form-group"><label>${tr('Site', 'الموقع')}</label><input class="form-input" id="pathSite"></div>
-        <div class="form-group"><label>${tr('Doctor', 'الطبيب')}</label><input class="form-input" id="pathDoctor"></div>
         <div class="form-group"><label>${tr('Clinical Details', 'التفاصيل السريرية')}</label><textarea class="form-input" id="pathDetails" rows="2"></textarea></div>
         <div class="form-group"><label>${tr('Priority', 'الأولوية')}</label>
           <select class="form-input" id="pathPriority">
@@ -12219,45 +12223,141 @@ async function renderPathology(el) {
             <option value="urgent">${tr('Urgent', 'عاجل')}</option>
             <option value="stat">${tr('STAT', 'فوري')}</option>
           </select></div>
-        <button class="btn btn-primary w-full" onclick="savePathSpecimen()">💾 ${tr('Register', 'تسجيل')}</button>
+        <button class="btn btn-primary w-full" onclick="pathRegisterSpecimen()">💾 ${tr('Accession', 'استقبال')}</button>
+        <p style="font-size:11px;color:#888;margin-top:8px">${tr('Accession number is generated by the server.', 'يتم توليد رقم الاستقبال من الخادم.')}</p>
       </div>
       <div class="card" style="padding:20px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <h4 style="margin:0">${tr('Specimen List', 'قائمة العينات')}</h4>
-          <div style="display:flex;gap:8px">
-            <input class="form-input" id="pathSearch" placeholder="${tr('Search...', 'بحث...')}" style="width:200px" oninput="filterPathTable()">
-            <button class="btn btn-sm" onclick="exportToCSV(window._pathData||[],'pathology')" style="background:#e0f7fa;color:#00838f">📥</button>
-          </div>
+          <input class="form-input" id="pathSearch" placeholder="${tr('Search...', 'بحث...')}" style="width:200px" oninput="pathFilterTable()">
         </div>
         <div id="pathTable"></div>
+        <div id="pathDetailPane" style="margin-top:16px"></div>
       </div>
     </div>`;
 
   window._pathData = specimens;
+  const stateBadge = (st) => {
+    const colors = { Received: '#fce4ec', Grossing: '#fff3e0', Processing: '#e3f2fd', Reported: '#ede7f6', SignedOut: '#e8f5e9' };
+    return rawHtml('<span style="padding:2px 8px;border-radius:4px;font-size:11px;background:' + (colors[st] || '#eee') + '">' + escapeHTML(st || 'Received') + '</span>');
+  };
   const pt = document.getElementById('pathTable');
   if (pt) {
     createTable(pt, 'pathTbl',
-      [tr('Patient', 'المريض'), tr('Type', 'النوع'), tr('Site', 'الموقع'), tr('Doctor', 'الطبيب'), tr('Priority', 'الأولوية'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', 'إجراءات')],
-      specimens.map(s => ({
-        cells: [s.patient_name, s.specimen_type, s.site || '', s.doctor || '',
-        rawHtml('<span style="padding:2px 8px;border-radius:4px;font-size:11px;background:' + (s.priority === 'stat' ? '#fce4ec' : s.priority === 'urgent' ? '#fff3e0' : '#e8f5e9') + '">' + escapeHTML(s.priority || 'routine') + '</span>'),
-        statusBadge(s.status), s.created_at ? new Date(s.created_at).toLocaleDateString('ar-SA') : '',
-        s.status !== 'completed' ? rawHtml('<button class="btn btn-sm" onclick="updatePathStatus(' + parseInt(s.id, 10) + ')">✅ ' + tr('Complete', 'إكمال') + '</button>') : '✅'], id: s.id
-      }))
+      [tr('Accession', 'الاستقبال'), tr('Patient', 'المريض'), tr('Type', 'النوع'), tr('Site', 'الموقع'), tr('Priority', 'الأولوية'), tr('State', 'الحالة'), tr('Flags', 'إنذارات'), tr('Actions', 'إجراءات')],
+      specimens.map(s => {
+        const flags = (s.malignancy_flag ? '🔴 ' + tr('Malignant', 'خبيث') : '') + (s.critical_flag ? ' ⚠️ ' + tr('Critical', 'حرج') : '');
+        return {
+          cells: [s.accession_number || '', s.patient_name || ('#' + s.patient_id), s.specimen_type || '', s.site || '',
+            rawHtml('<span style="padding:2px 8px;border-radius:4px;font-size:11px;background:' + (s.priority === 'stat' ? '#fce4ec' : s.priority === 'urgent' ? '#fff3e0' : '#e8f5e9') + '">' + escapeHTML(s.priority || 'routine') + '</span>'),
+            stateBadge(s.state),
+            rawHtml('<span style="font-size:11px">' + escapeHTML(flags) + '</span>'),
+            rawHtml('<button class="btn btn-sm" onclick="viewPathSpecimen(' + parseInt(s.id, 10) + ')">📂 ' + tr('Open', 'فتح') + '</button>')],
+          id: s.id
+        };
+      })
     );
   }
 
-  window.savePathSpecimen = async () => {
+  // ---- Register: posts FK patient_id to the safe E15 route (no free-text identity) ----
+  window.pathRegisterSpecimen = async () => {
+    const pid = parseInt(document.getElementById('pathPatient').value, 10);
+    if (!Number.isInteger(pid)) { showToast(tr('Select a patient', 'اختر مريضاً'), 'error'); return; }
     try {
-      await API.post('/api/pathology/specimens', { patient_name: document.getElementById('pathPatient').value, specimen_type: document.getElementById('pathType').value, site: document.getElementById('pathSite').value, doctor: document.getElementById('pathDoctor').value, clinical_details: document.getElementById('pathDetails').value, priority: document.getElementById('pathPriority').value });
-      showToast(tr('Specimen registered!', 'تم تسجيل العينة!'));
+      await API.post('/api/pathology/specimens', {
+        patient_id: pid,
+        specimen_type: document.getElementById('pathType').value,
+        site: document.getElementById('pathSite').value,
+        clinical_details: document.getElementById('pathDetails').value,
+        priority: document.getElementById('pathPriority').value
+      });
+      showToast(tr('Specimen accessioned!', 'تم استقبال العينة!'));
       navigateTo(currentPage);
     } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
   };
-  window.updatePathStatus = async (id) => {
-    try { await API.put('/api/pathology/specimens/' + id, { status: 'completed' }); showToast('✅'); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+
+  // ---- Detail pane: blocks, slides, report, state machine, sign-out, addendum ----
+  window.viewPathSpecimen = async (id) => {
+    const sid = parseInt(id, 10);
+    if (!Number.isInteger(sid)) return;
+    const data = await API.get('/api/pathology/specimens/' + sid).catch(() => null);
+    const pane = document.getElementById('pathDetailPane');
+    if (!data || !pane) { if (pane) pane.innerHTML = ''; return; }
+    const sp = data.specimen, rep = data.report || {};
+    const immutable = sp.state === 'SignedOut';
+    const nextStates = STATES.slice(STATES.indexOf(sp.state) + 1);
+    const stateBtns = immutable ? '' : nextStates.map(ns =>
+      '<button class="btn btn-sm" style="margin:2px" onclick="pathAdvanceState(' + sid + ',\'' + jsStr(ns) + '\')">➡️ ' + escapeHTML(ns) + '</button>').join('');
+    const blocksHtml = (data.blocks || []).map(b =>
+      '<li>' + escapeHTML(b.block_no) + ' (' + escapeHTML(b.embedding_type || '') + ') ' +
+      (immutable ? '' : '<button class="btn btn-sm" onclick="pathAddSlide(' + parseInt(b.id, 10) + ')">+ ' + tr('Slide', 'شريحة') + '</button>') +
+      '<ul>' + (data.slides || []).filter(sl => sl.block_id === b.id).map(sl => '<li>' + escapeHTML(sl.slide_no) + ' — ' + escapeHTML(sl.stain_type || '') + '</li>').join('') + '</ul></li>'
+    ).join('');
+    pane.innerHTML = `
+      <div class="card" style="padding:16px;border:2px solid #1565c0">
+        <h4 style="margin:0 0 8px">${escapeHTML(sp.accession_number)} — ${stateBadge(sp.state).html}</h4>
+        <p style="font-size:12px;margin:0 0 8px">${tr('Type', 'النوع')}: ${escapeHTML(sp.specimen_type || '')} | ${tr('Site', 'الموقع')}: ${escapeHTML(sp.site || '')}</p>
+        <div style="margin-bottom:8px"><strong>${tr('Workflow', 'سير العمل')}:</strong> ${stateBtns || '<em>' + tr('Signed out (immutable)', 'تم الاعتماد (غير قابل للتعديل)') + '</em>'}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <strong>${tr('Blocks / Slides', 'القوالب / الشرائح')}</strong>
+            ${immutable ? '' : '<button class="btn btn-sm" style="margin-inline-start:8px" onclick="pathAddBlock(' + sid + ')">+ ' + tr('Block', 'قالب') + '</button>'}
+            <ul style="font-size:12px">${blocksHtml || '<li><em>' + tr('None', 'لا يوجد') + '</em></li>'}</ul>
+          </div>
+          <div>
+            <strong>${tr('Report', 'التقرير')}</strong>
+            <div class="form-group"><label>${tr('Gross', 'الوصف العياني')}</label><textarea class="form-input" id="rGross" rows="2" ${immutable ? 'disabled' : ''}>${escapeHTML(rep.gross_text || '')}</textarea></div>
+            <div class="form-group"><label>${tr('Microscopic', 'الوصف المجهري')}</label><textarea class="form-input" id="rMicro" rows="2" ${immutable ? 'disabled' : ''}>${escapeHTML(rep.micro_text || '')}</textarea></div>
+            <div class="form-group"><label>${tr('Diagnosis', 'التشخيص')}</label><input class="form-input" id="rDx" value="${escapeHTML(rep.diagnosis || '')}" ${immutable ? 'disabled' : ''}></div>
+            <div class="form-group"><label>${tr('SNOMED codes (comma)', 'رموز SNOMED (فاصلة)')}</label><input class="form-input" id="rSnomed" value="${escapeHTML((rep.snomed_codes || []).join(','))}" ${immutable ? 'disabled' : ''}></div>
+            <p style="font-size:11px">${rep.malignancy_flag ? '🔴 ' + tr('Malignant', 'خبيث') : ''} ${rep.critical_flag ? '⚠️ ' + tr('Critical', 'حرج') : ''}</p>
+            ${immutable
+              ? '<div class="form-group"><label>' + tr('Addendum', 'ملحق') + '</label><textarea class="form-input" id="rAddendum" rows="2"></textarea></div><button class="btn btn-sm" onclick="pathAddendum(' + sid + ')">➕ ' + tr('Add Addendum', 'إضافة ملحق') + '</button>'
+              : '<button class="btn btn-primary btn-sm" onclick="pathSaveReport(' + sid + ')">💾 ' + tr('Save Report', 'حفظ التقرير') + '</button> <button class="btn btn-sm" style="background:#2e7d32;color:#fff" onclick="pathSignOut(' + sid + ')">✍️ ' + tr('Sign Out', 'اعتماد') + '</button>'}
+          </div>
+        </div>
+      </div>`;
   };
-  window.filterPathTable = () => { const t = (document.getElementById('pathSearch')?.value || '').toLowerCase(); document.querySelectorAll('#pathTbl tbody tr').forEach(r => r.style.display = r.textContent.toLowerCase().includes(t) ? '' : 'none'); };
+
+  window.pathAdvanceState = async (id, st) => {
+    try { await API.put('/api/pathology/specimens/' + parseInt(id, 10) + '/state', { state: st }); showToast('✅'); navigateTo(currentPage); }
+    catch (e) { showToast(e?.message || tr('Invalid transition', 'انتقال غير صالح'), 'error'); }
+  };
+  window.pathAddBlock = async (id) => {
+    const no = prompt(tr('Block number', 'رقم القالب')); if (no === null) return;
+    try { await API.post('/api/pathology/specimens/' + parseInt(id, 10) + '/blocks', { block_no: no }); window.viewPathSpecimen(id); }
+    catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
+  window.pathAddSlide = async (blockId) => {
+    const no = prompt(tr('Slide number', 'رقم الشريحة')); if (no === null) return;
+    const stain = prompt(tr('Stain (H&E/IHC...)', 'الصبغة')) || 'H&E';
+    try { await API.post('/api/pathology/blocks/' + parseInt(blockId, 10) + '/slides', { slide_no: no, stain_type: stain }); navigateTo(currentPage); }
+    catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
+  window.pathSaveReport = async (id) => {
+    const snomed = (document.getElementById('rSnomed').value || '').split(',').map(x => x.trim()).filter(Boolean);
+    try {
+      await API.put('/api/pathology/specimens/' + parseInt(id, 10) + '/report', {
+        gross_text: document.getElementById('rGross').value,
+        micro_text: document.getElementById('rMicro').value,
+        diagnosis: document.getElementById('rDx').value,
+        snomed_codes: snomed
+      });
+      showToast(tr('Report saved', 'تم حفظ التقرير')); window.viewPathSpecimen(id);
+    } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
+  window.pathSignOut = async (id) => {
+    if (!confirm(tr('Sign out is final and locks the report. Continue?', 'الاعتماد نهائي ويقفل التقرير. متابعة؟'))) return;
+    try { await API.post('/api/pathology/specimens/' + parseInt(id, 10) + '/signout', {}); showToast(tr('Signed out', 'تم الاعتماد')); navigateTo(currentPage); }
+    catch (e) { showToast(e?.message || tr('Cannot sign out', 'تعذر الاعتماد'), 'error'); }
+  };
+  window.pathAddendum = async (id) => {
+    const text = document.getElementById('rAddendum')?.value;
+    if (!text || !text.trim()) { showToast(tr('Addendum text required', 'نص الملحق مطلوب'), 'error'); return; }
+    try { await API.post('/api/pathology/specimens/' + parseInt(id, 10) + '/addendum', { text }); showToast(tr('Addendum added', 'تمت إضافة الملحق')); window.viewPathSpecimen(id); }
+    catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  };
+  window.pathFilterTable = () => { const t = (document.getElementById('pathSearch')?.value || '').toLowerCase(); document.querySelectorAll('#pathTbl tbody tr').forEach(r => r.style.display = r.textContent.toLowerCase().includes(t) ? '' : 'none'); };
 
 }
 
