@@ -1038,6 +1038,9 @@ app.post('/api/insurance/claims', requireAuth, requireRole(...E11_INS_ROLES), re
         const companyId = e11IntId(req.body.insurance_company_id);
         const claimAmount = e11Money(req.body.claim_amount) || 0;
         const patientName = String(req.body.patient_name || '');
+        // L3: insurance_company is a free-text denormalized name (legacy display convenience).
+        // The authoritative FK link is insurance_company_id; that column is validated below.
+        // If only a name is supplied without a companyId, it is stored as-is with no FK constraint.
         const companyName = String(req.body.insurance_company || '');
         // verify referenced entities belong to this tenant (block cross-tenant claim fabrication)
         if (patientId) {
@@ -1079,7 +1082,7 @@ app.put('/api/insurance/claims/:id/transition', requireAuth, requireRole(...E11_
         const denialReason = String(req.body.denial_reason || '');
 
         await client.query('BEGIN');
-        const cur = await client.query('SELECT id, lifecycle_status FROM insurance_claims WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [claimId, tenantId]);
+        const cur = await client.query('SELECT id, lifecycle_status, claim_amount, policy_id FROM insurance_claims WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [claimId, tenantId]);
         if (!cur.rows.length) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'Claim not found' }); }
         const from = cur.rows[0].lifecycle_status || 'draft';
         if (!e11Engine.canTransitionClaim(from, target)) {
@@ -1090,9 +1093,38 @@ app.put('/api/insurance/claims/:id/transition', requireAuth, requireRole(...E11_
         let legacyStatus = null, sets = ['lifecycle_status=$1'], params = [target];
         if (target === 'submitted') { sets.push('submitted_at=now()'); }
         if (target === 'adjudicated') {
+            // --- Finding 1 fix: server-side adjudication amount enforcement ---
+            const claimAmount = Number(cur.rows[0].claim_amount) || 0;
+            // Prefer engine-computed split from policy if resolvable
+            let finalApproved = approvedAmount != null ? approvedAmount : 0;
+            let finalPatientShare = patientShare != null ? patientShare : 0;
+            const policyId = cur.rows[0].policy_id ? Number(cur.rows[0].policy_id) : null;
+            if (policyId) {
+                const pol = await client.query('SELECT co_pay_percent, co_pay_max, max_limit FROM insurance_policies WHERE id=$1', [policyId]);
+                if (pol.rows.length) {
+                    const engineResult = e11Engine.computePatientShare(finalApproved > 0 ? finalApproved : claimAmount, pol.rows[0]);
+                    if (engineResult.status === 'OK') {
+                        finalApproved = finalApproved > 0 ? finalApproved : claimAmount;
+                        finalPatientShare = engineResult.patientShare;
+                    }
+                }
+            }
+            // Mandatory guards: reject client-supplied amounts that violate business invariants
+            if (finalApproved < 0 || finalPatientShare < 0) {
+                await client.query('ROLLBACK');
+                return res.status(422).json({ error: 'Adjudication amounts must not be negative' });
+            }
+            if (finalApproved > claimAmount) {
+                await client.query('ROLLBACK');
+                return res.status(422).json({ error: `approved_amount (${finalApproved}) cannot exceed claim_amount (${claimAmount})` });
+            }
+            if (finalPatientShare > finalApproved) {
+                await client.query('ROLLBACK');
+                return res.status(422).json({ error: `patient_share (${finalPatientShare}) cannot exceed approved_amount (${finalApproved})` });
+            }
             legacyStatus = 'Approved'; sets.push('adjudicated_at=now()');
-            sets.push(`approved_amount=$${params.length + 1}`); params.push(approvedAmount != null ? approvedAmount : 0);
-            sets.push(`patient_share=$${params.length + 1}`); params.push(patientShare != null ? patientShare : 0);
+            sets.push(`approved_amount=$${params.length + 1}`); params.push(finalApproved);
+            sets.push(`patient_share=$${params.length + 1}`); params.push(finalPatientShare);
         }
         if (target === 'remittance_posted') {
             sets.push(`paid_amount=$${params.length + 1}`); params.push(paidAmount != null ? paidAmount : 0);
@@ -1178,10 +1210,13 @@ app.post('/api/insurance/claims/:id/lines', requireAuth, requireRole(...E11_INS_
         if (c.rows[0].lifecycle_status !== 'draft') return res.status(409).json({ error: 'Lines can only be added to a draft claim' });
         const serviceId = e11IntId(req.body.service_id);
         if (serviceId) {
+            // Finding 3: medical_services has no tenant_id column — it is an intentionally shared/global
+            // chargemaster catalog. Tenant isolation for claim lines is enforced by claim ownership above.
             const s = await pool.query('SELECT id FROM medical_services WHERE id=$1', [serviceId]);
             if (!s.rows.length) return res.status(404).json({ error: 'Service not found' });
         }
-        const qty = e11Money(req.body.quantity) || 1;
+        // L2: quantity must be a positive integer (>=1); e11Money would silently coerce 0/-ve to a valid number.
+        const qty = (() => { const n = Math.floor(Number(req.body.quantity)); return (Number.isFinite(n) && n >= 1) ? n : 1; })();
         const unitPrice = e11Money(req.body.unit_price) || 0;
         const lineAmount = e11Engine.round2(qty * unitPrice);
         const description = String(req.body.description || '');
@@ -1216,8 +1251,9 @@ app.put('/api/insurance/denials/:id/appeal', requireAuth, requireRole(...E11_INS
         if (!cur.rows.length) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'Denial not found' }); }
         await client.query('UPDATE insurance_claim_denials SET appeal_status=$1, appeal_notes=$2 WHERE id=$3 AND tenant_id=$4',
             [appealStatus, notes, denialId, tenantId]);
-        // overturning a denial moves the claim from denied -> appealed (re-adjudication path), if legal
-        if (appealStatus === 'overturned') {
+        // Finding 2 fix: 'appealed' (appeal filed) AND 'overturned' both move the claim denied->appealed.
+        // 'appealed' = appeal submitted by the provider; 'overturned' = payer reverses the denial.
+        if (appealStatus === 'appealed' || appealStatus === 'overturned') {
             const claimId = cur.rows[0].claim_id;
             const claim = await client.query('SELECT lifecycle_status FROM insurance_claims WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [claimId, tenantId]);
             if (claim.rows.length && e11Engine.canTransitionClaim(claim.rows[0].lifecycle_status, 'appealed')) {
@@ -1248,6 +1284,7 @@ app.post('/api/insurance/payer-pricing', requireAuth, requireRole(...E11_INS_ROL
         if (!companyId || !serviceId || payerPrice === null) return res.status(400).json({ error: 'company, service and payer_price required' });
         const c = await pool.query('SELECT id FROM insurance_companies WHERE id=$1 AND tenant_id=$2', [companyId, tenantId]);
         if (!c.rows.length) return res.status(404).json({ error: 'Insurance company not found' });
+        // Finding 3: medical_services has no tenant_id column — intentionally shared/global chargemaster catalog.
         const s = await pool.query('SELECT id FROM medical_services WHERE id=$1', [serviceId]);
         if (!s.rows.length) return res.status(404).json({ error: 'Service not found' });
         const ins = await pool.query(

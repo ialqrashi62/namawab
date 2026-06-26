@@ -85,6 +85,36 @@ assert(!bc.includes("UPDATEinsurance_claimsSETstatus=$1WHEREid=$2)"), 'old unsco
 // RBAC role wiring
 assert(serverContent.includes("'Insurance': ['dashboard', 'insurance', 'reports']"), 'dedicated Insurance role added to ROLE_PERMISSIONS');
 
+// ===== 1b. Finding 1 fix — adjudication amount guards (server-side, not client-trusted) =====
+console.log(`\n${BOLD}[1b] Adjudication amount server-side guards${RESET}`);
+// Guard: approved_amount > claim_amount => 422
+assert(bc.includes('approved_amount')&&bc.includes('claim_amount')&&bc.includes("approved_amount(")&&bc.includes("claim_amount("), 'server fetches claim_amount and validates approved_amount <= claim_amount');
+// The guards use status(422) — check we have the new Finding-1 422 guard text
+assert(bc.includes('approved_amount(${finalApproved})cannotexceedclaim_amount(${claimAmount})') ||
+    block.includes('approved_amount') && block.includes('cannot exceed claim_amount') && (block.match(/status\(422\)/g)||[]).length >= 3,
+    'Finding 1: 422 guard — approved_amount cannot exceed claim_amount');
+assert(bc.includes('patient_share(${finalPatientShare})cannotexceedapproved_amount(${finalApproved})') ||
+    block.includes('patient_share') && block.includes('cannot exceed approved_amount') && (block.match(/status\(422\)/g)||[]).length >= 3,
+    'Finding 1: 422 guard — patient_share cannot exceed approved_amount');
+assert(bc.includes('Adjudicationamountsmustnotbenegative') ||
+    block.includes('Adjudication amounts must not be negative'),
+    'Finding 1: 422 guard — negative amounts rejected');
+
+// ===== 1c. Finding 2 fix — appeal button updates denial record not transitionClaim =====
+console.log(`\n${BOLD}[1c] Finding 2 — appeal-denial path server-side${RESET}`);
+// denial-appeal route now also transitions claim to 'appealed' on appeal_status='appealed'
+assert(bc.includes("appealStatus==='appealed'||appealStatus==='overturned'") ||
+    block.includes("appealStatus === 'appealed' || appealStatus === 'overturned'"),
+    "Finding 2: denial-appeal route transitions claim to 'appealed' on appeal_status='appealed' OR 'overturned'");
+// client button calls appealDeniedClaim, not transitionClaim — static check on app.js
+const appContent = require('fs').readFileSync(require('path').join(__dirname, 'public/js/app.js'), 'utf8');
+assert(appContent.includes('appealDeniedClaim') && !appContent.includes("transitionClaim(${id},'appealed')"),
+    "Finding 2: client Appeal button calls appealDeniedClaim (not transitionClaim) — denial_id resolved first");
+assert(appContent.includes("window.appealDeniedClaim"),
+    'Finding 2: appealDeniedClaim function defined on window');
+assert(appContent.includes("/api/insurance/denials") && appContent.includes("window.appealDenial(denial.id"),
+    'Finding 2: appealDeniedClaim fetches denials list and calls appealDenial with resolved denial_id');
+
 // ===== 2. Claim state machine — legal path + illegal transitions =====
 console.log(`\n${BOLD}[2] Claim state machine${RESET}`);
 assert(eng.canTransitionClaim('draft', 'submitted'), 'draft -> submitted legal');

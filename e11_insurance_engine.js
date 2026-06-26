@@ -14,7 +14,9 @@
 
 // ---- Claim lifecycle state machine -------------------------------------------------
 // draft -> submitted -> adjudicated -> remittance_posted
-//                       adjudicated -> denied -> appealed -> (adjudicated | denied)
+//          submitted -> denied
+//          adjudicated -> denied -> appealed -> (adjudicated | denied)
+//          appealed -> denied
 const CLAIM_STATES = ['draft', 'submitted', 'adjudicated', 'remittance_posted', 'denied', 'appealed'];
 const CLAIM_TRANSITIONS = {
     draft: ['submitted'],

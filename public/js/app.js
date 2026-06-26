@@ -5382,7 +5382,7 @@ function insClaimActions(row) {
   if (ls === 'draft') return `<button class="btn btn-sm btn-primary" onclick="submitClaimNphies(${id})">📤 ${tr('Submit', 'إرسال')}</button>`;
   if (ls === 'submitted') return `<div class="flex gap-4"><button class="btn btn-sm btn-success" onclick="transitionClaim(${id},'adjudicated')">✅ ${tr('Adjudicate', 'تسوية')}</button><button class="btn btn-sm btn-danger" onclick="transitionClaim(${id},'denied')">❌ ${tr('Deny', 'رفض')}</button></div>`;
   if (ls === 'adjudicated') return `<button class="btn btn-sm btn-primary" onclick="transitionClaim(${id},'remittance_posted')">💰 ${tr('Post Remittance', 'ترحيل السداد')}</button>`;
-  if (ls === 'denied') return `<button class="btn btn-sm btn-warning" onclick="transitionClaim(${id},'appealed')">⚖️ ${tr('Appeal', 'استئناف')}</button>`;
+  if (ls === 'denied') return `<button class="btn btn-sm btn-warning" onclick="appealDeniedClaim(${id})">⚖️ ${tr('Appeal', 'استئناف')}</button>`;
   return `<span class="badge badge-secondary">${escapeHTML(ls)}</span>`;
 }
 window.addClaim = async () => {
@@ -5399,6 +5399,19 @@ window.transitionClaim = async (id, target) => {
     const r = await API.put(`/api/insurance/claims/${id}/transition`, { target });
     if (r && r.error) { showToast(r.error, 'error'); return; } // e.g. 409 invalid transition
     showToast(tr('Updated', 'تم التحديث')); await navigateTo(9);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+// Finding 2 fix: Appeal button resolves denial_id from server then routes through
+// POST /api/insurance/denials/:id/appeal — not transitionClaim — so the denial record's
+// appeal_status is updated AND the INSURANCE_DENIAL_APPEAL audit is logged correctly.
+window.appealDeniedClaim = async (claimId) => {
+  try {
+    const denials = await API.get('/api/insurance/denials');
+    // find the most recent open denial for this claim
+    const denial = (denials || []).filter(d => d.claim_id == claimId && d.appeal_status === 'open')
+      .sort((a, b) => b.id - a.id)[0];
+    if (!denial) { showToast(tr('No open denial found for this claim', 'لا يوجد رفض مفتوح لهذه المطالبة'), 'error'); return; }
+    await window.appealDenial(denial.id, 'appealed', '');
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 // NPHIES claim submission — gated server-side (503 stub when NPHIES disabled); records intent.
