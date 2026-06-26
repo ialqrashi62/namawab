@@ -325,16 +325,15 @@ function computeAPACHE2(input) {
     const components = {};
     const missing = [];
     let total = 0;
-    let present = 0;
     const physKeys = ['temperature', 'map', 'heart_rate', 'respiratory_rate', 'oxygenation'];
     for (const key of Object.keys(c)) {
         components[key] = { points: c[key].p, missing: c[key].missing };
         total += c[key].p;
-        if (c[key].missing) { missing.push(key); } else { present++; }
+        if (c[key].missing) { missing.push(key); }
     }
     // GCS contribution (server-computed; if missing => 0 but flagged).
     components.gcs = { points: gcsPoints, missing: gcs.gcs === null };
-    if (gcs.gcs === null) missing.push('gcs'); else { total += gcsPoints; present++; }
+    if (gcs.gcs === null) missing.push('gcs'); else { total += gcsPoints; }
 
     // Chronic health (server-trusted flag; never a score).
     if (input.chronic_health === true || input.immunocompromised === true) {
@@ -345,9 +344,8 @@ function computeAPACHE2(input) {
     }
 
     // Of the 5 acute physiology vars + GCS (6 measurable), require >=3 to band; else Incomplete.
+    // acutePresent counts strictly over acute-physiology + gcs (age is NOT acute physiology).
     const measurable = physKeys.length + 1; // +gcs
-    const measured = present; // age counted in present too — but age isn't acute physiology;
-    // recompute measured strictly over acute-physiology + gcs:
     let acutePresent = 0;
     for (const k of physKeys) if (!c[k].missing) acutePresent++;
     if (gcs.gcs !== null) acutePresent++;

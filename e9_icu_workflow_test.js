@@ -138,6 +138,70 @@ function buildBoard(rows) {
     assert(desc, 'board is sorted descending by acuity (sickest first)');
 }
 
+// ===== 4. C1 regression — unmeasured GCS persists as NULL (not 0), no acuity inflation =====
+console.log(`\n${BOLD}[4] C1 — unmeasured GCS persists as NULL (not 0) & does not inflate acuity${RESET}`);
+{
+    // Mirror the server store: icu_scores.gcs <- (result.gcs ?? null). GCS=0 is medically impossible.
+    const storeGcs = (resultGcs) => (resultGcs ?? null);
+    assert(storeGcs(null) === null, 'unmeasured GCS (result.gcs null) persists as NULL, not 0');
+    assert(storeGcs(0) === 0, 'a literal computed 0 is preserved (?? only nulls null/undefined) — engine never emits 0 anyway');
+    assert(storeGcs(7) === 7, 'measured GCS 7 persists unchanged');
+
+    // Board reads gcs back: Number(null) would be 0, so the board must treat null as null (no read coercion).
+    // Two patients, identical SOFA/APACHE; one has unmeasured GCS, the other a genuinely low GCS 3.
+    const readGcs = (stored) => (stored === null ? null : Number(stored));
+    const acuityOf = (sofa, apache, gcs) =>
+        (sofa !== null ? sofa : -1) * 1000 + (apache !== null ? apache : 0) + (gcs !== null ? (15 - gcs) : 0);
+
+    const unmeasured = acuityOf(5, 10, readGcs(storeGcs(null))); // gcs null => +0  => 5010
+    const criticalGcs3 = acuityOf(5, 10, readGcs(storeGcs(3)));  // gcs 3 => +12     => 5022
+    assert(unmeasured === 5010, 'unmeasured-GCS acuity adds 0 GCS points (5*1000+10+0=5010)');
+    assert(criticalGcs3 === 5022, 'genuine GCS 3 adds (15-3)=12 acuity points (5*1000+10+12=5022)');
+    assert(criticalGcs3 > unmeasured, 'genuinely critical (GCS 3) patient outranks the unmeasured-GCS patient (no false +15 inflation)');
+
+    // Pre-fix bug: storing 0 then reading 0 would have added (15-0)=15 and a clinically impossible "GCS 0".
+    const buggyStore = (resultGcs) => (resultGcs === null ? 0 : resultGcs);
+    const buggyAcuity = acuityOf(5, 10, readGcs(buggyStore(null))); // gcs 0 => +15  => 5025
+    assert(buggyAcuity === 5025 && buggyAcuity > criticalGcs3, 'guard: old (null->0) behavior WOULD have inflated acuity above the truly-critical patient (regression locked out)');
+
+    // Static audit: server STORES gcs as (result.gcs ?? null) and the board READS NULL back as null
+    // (Number(null)=0 would silently re-introduce the +15 inflation).
+    assert(serverContent.includes('(result.gcs ?? null)'), 'e9PostScore stores unmeasured GCS as NULL (result.gcs ?? null), not 0');
+    assert(serverContent.includes('(score && score.gcs != null) ? Number(score.gcs) : null'), 'board read keeps NULL gcs as null (guards Number(null)=0 acuity inflation)');
+}
+
+// ===== 5. I1 regression — bed-resolved ICU ward (b.ward_id) is visible on board/list =====
+console.log(`\n${BOLD}[5] I1 — admission reachable by write-gate (bed-resolved ICU ward) also appears on board${RESET}`);
+{
+    const ICU = ['ICU', 'NICU', 'CCU'];
+    // Ward resolution mirrors server: COALESCE(b.ward_id, a.ward_id) -> ward_type.
+    const wards = { 50: 'ICU', 60: 'General' };
+    const beds = { 500: { ward_id: 50, tenant_id: 1 } }; // bed in ICU ward 50
+    function resolveWardType(adm) {
+        const bed = adm.bed_id != null ? beds[adm.bed_id] : null;
+        const wardId = (bed && bed.ward_id != null) ? bed.ward_id : adm.ward_id; // COALESCE(b.ward_id, a.ward_id)
+        return wards[wardId] || null;
+    }
+    // Write-gate admit: ICU ward comes from the BED; a.ward_id is non-ICU/null.
+    const adm = { id: 301, patient_id: 33, status: 'Active', bed_id: 500, ward_id: 60, tenant_id: 1 };
+
+    // Write gate (e9LoadActiveIcuAdmission) accepts it -> data can be written.
+    const gateWardType = resolveWardType(adm);
+    assert(gateWardType === 'ICU', 'write-gate resolves ICU ward via COALESCE(b.ward_id, a.ward_id) -> data writable');
+
+    // Board/list query MUST use the SAME resolution -> patient appears (no orphaned/invisible ICU record).
+    const board = [adm].filter(a => a.status === 'Active' && a.tenant_id === 1 && ICU.includes(resolveWardType(a)));
+    assert(board.length === 1 && board[0].id === 301, 'bed-resolved ICU admission #301 appears on board (write-gate ↔ board aligned)');
+
+    // Guard: the OLD a.ward_id-only join would have hidden it (a.ward_id=60 General).
+    const oldBoard = [adm].filter(a => a.status === 'Active' && a.tenant_id === 1 && ICU.includes(wards[a.ward_id] || null));
+    assert(oldBoard.length === 0, 'guard: old a.ward_id-only join WOULD have hidden #301 (invisible ICU patient — regression locked out)');
+
+    // Static audit: both read queries now use the COALESCE bed-then-ward resolution.
+    const coalesceJoins = (serverContent.match(/JOIN wards w ON COALESCE\(b\.ward_id, a\.ward_id\) = w\.id AND w\.tenant_id/g) || []).length;
+    assert(coalesceJoins >= 3, 'write-gate + /api/icu/patients + /api/icu/board all resolve ward via COALESCE(b.ward_id, a.ward_id) (>=3 occurrences)');
+}
+
 console.log(`\n${BOLD}${BLUE}=== E9 ICU Workflow Test Results ===${RESET}`);
 console.log(`  ${GREEN}PASS${RESET}: ${passed}   ${RED}FAIL${RESET}: ${failed}`);
 if (failed > 0) { failures.forEach(f => console.log(`  - ${f.name}: ${f.details}`)); process.exit(1); }

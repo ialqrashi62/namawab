@@ -4685,8 +4685,8 @@ app.get('/api/icu/patients', requireAuth, requireRole('icu', 'nursing', 'doctor'
         const rows = (await pool.query(
             `SELECT a.*, b.bed_number, w.ward_name, w.ward_name_ar, w.ward_type
              FROM admissions a
-             JOIN beds b ON a.bed_id = b.id AND b.tenant_id = $1
-             JOIN wards w ON a.ward_id = w.id AND w.tenant_id = $1
+             LEFT JOIN beds b ON a.bed_id = b.id AND b.tenant_id = $1
+             JOIN wards w ON COALESCE(b.ward_id, a.ward_id) = w.id AND w.tenant_id = $1
              WHERE a.status='Active' AND a.tenant_id = $1 AND w.ward_type IN ('ICU','NICU','CCU')
              ORDER BY a.admission_date DESC`, [tenantId])).rows;
         res.json(rows);
@@ -4866,7 +4866,7 @@ async function e9PostScore(req, res) {
             `INSERT INTO icu_scores (admission_id,patient_id,score_date,apache_ii,sofa,gcs,rass,cam_icu,braden,morse_fall,pain_score,calculated_by,tenant_id,facility_id)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
             [adm.id, adm.patient_id, new Date().toISOString().split('T')[0],
-             result.apache, result.sofa, (result.gcs === null ? 0 : result.gcs), rass, cam, braden, morse, pain,
+             result.apache, result.sofa, (result.gcs ?? null), rass, cam, braden, morse, pain,
              String(b.calculated_by || req.session.user?.display_name || ''), tenantId, facilityId || null]);
         logAudit(req.session.user?.id, req.session.user?.display_name, 'ICU_SCORE', 'ICU',
             `Acuity scored admission #${adm.id}: SOFA ${result.sofa} (${result.sofa_band}), GCS ${result.gcs}, APACHE ${result.apache} (${result.apache_band})`, req.ip);
@@ -4947,8 +4947,8 @@ app.get('/api/icu/board', requireAuth, requireRole('icu', 'nursing', 'doctor'), 
             `SELECT a.id AS admission_id, a.patient_id, a.patient_name, a.diagnosis, a.attending_doctor, a.admission_date,
                     b.bed_number, w.ward_name, w.ward_name_ar, w.ward_type
              FROM admissions a
-             JOIN beds b ON a.bed_id = b.id AND b.tenant_id = $1
-             JOIN wards w ON a.ward_id = w.id AND w.tenant_id = $1
+             LEFT JOIN beds b ON a.bed_id = b.id AND b.tenant_id = $1
+             JOIN wards w ON COALESCE(b.ward_id, a.ward_id) = w.id AND w.tenant_id = $1
              WHERE a.status='Active' AND a.tenant_id = $1 AND w.ward_type IN ('ICU','NICU','CCU')`,
             [tenantId])).rows;
 
@@ -4962,7 +4962,7 @@ app.get('/api/icu/board', requireAuth, requireRole('icu', 'nursing', 'doctor'), 
                 [p.admission_id, tenantId])).rows[0] || null;
             const sofa = score ? Number(score.sofa) || 0 : null;
             const apache = score ? Number(score.apache_ii) || 0 : null;
-            const gcs = score ? Number(score.gcs) : null;
+            const gcs = (score && score.gcs != null) ? Number(score.gcs) : null; // NULL gcs (unmeasured) stays null — Number(null)=0 would wrongly add (15-0)=15
             // Acuity sort key: highest SOFA first, then APACHE, then lowest GCS. No score => treat as
             // unknown (sorted after scored patients, NOT as low acuity).
             const acuity = (sofa !== null ? sofa : -1) * 1000 + (apache !== null ? apache : 0) + (gcs !== null ? (15 - gcs) : 0);
