@@ -31,6 +31,7 @@ const icuScoring = require('./icu_scoring');
 const e11Engine = require('./e11_insurance_engine'); // E11 insurance/NPHIES pure engine (state machines + co-pay math)
 const pathologyEngine = require('./pathology_engine'); // E15: pure state-machine + accession + flag engine
 const e16 = require('./e16_inventory_engine'); // E16 inventory/CSSD pure engine (FEFO, no-negative, BI gate)
+const e18 = require('./e18_hr_engine'); // E18 HR/Workforce pure engine (license expiry, leave SM, payroll, PII mask)
 
 // Multer setup for radiology image uploads — A3A: PHI vault OUTSIDE public webroot (no static/direct access)
 const uploadsDir = path.join(__dirname, 'phi_vault', 'radiology');
@@ -2756,8 +2757,17 @@ app.get('/api/hr/leaves', requireAuth, requireRole('hr'), async (req, res) => {
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/hr/attendance', requireAuth, requireRole('hr'), async (req, res) => {
-    try { res.json((await pool.query('SELECT ha.*, he.name_en as employee_name FROM hr_attendance ha LEFT JOIN hr_employees he ON ha.employee_id=he.id ORDER BY ha.id DESC')).rows); }
+app.get('/api/hr/attendance', requireAuth, requireRole('hr'), requireTenantScope, async (req, res) => {
+    // I1: tenant-scoped read — hr_attendance rows are stamped with tenant_id on write;
+    // fail-closed if tenant cannot be resolved (mirrors all other E18 GET routes).
+    try {
+        const t = e18RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        res.json((await pool.query(
+            'SELECT ha.*, he.name_en as employee_name FROM hr_attendance ha LEFT JOIN hr_employees he ON ha.employee_id=he.id WHERE ha.tenant_id=$1 ORDER BY ha.id DESC',
+            [t.tenantId]
+        )).rows);
+    }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -9175,6 +9185,360 @@ app.get('/api/print/lab-report/:id', requireAuth, async (req, res) => {
         const results = (await pool.query('SELECT lr.*, lt.test_name, lt.normal_range FROM lab_results lr LEFT JOIN lab_tests_catalog lt ON lr.test_id=lt.id WHERE lr.order_id=$1', [req.params.id])).rows;
         const patient = (await pool.query('SELECT * FROM patients WHERE id=$1', [order.patient_id])).rows[0];
         res.json({ order, results, patient });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ============================================================================
+// ===== E18 — HR / WORKFORCE (employees PII, SCFHS licenses, shifts, attendance,
+//        leave state machine, payroll-slip [GL posting GATED OFF]) =====
+// All E18 tables provisioned out-of-band via candidate migration e18_01 (NOT in
+//   db_postgres.js bootstrap). Every route: requireAuth + requireRole('hr') (HR+Admin)
+//   + requireTenantScope + explicit AND tenant_id=$N on top of FORCE RLS. Mutations
+//   stamped + logAudit. PII (salary/national_id) is HR/Admin-only; license expiry,
+//   leave state, worked-hours and net pay are all computed SERVER-SIDE (anti-spoof).
+// ============================================================================
+
+// fail-CLOSED tenant resolver (mirrors e16RequireTenant): trusted session tenant or null.
+function e18RequireTenant(req) {
+    const { tenantId, facilityId } = getRequestTenantContext(req);
+    if (!tenantId) return { ok: false };               // fail-closed: no unscoped fallback
+    return { ok: true, tenantId, facilityId };
+}
+// Dedicated-client tenant tx (pool.connect bypasses the patched pool.query wrapper, so
+// app.tenant_id must be set explicitly for FORCE-RLS rows to be visible under FOR UPDATE).
+async function e18BeginTenantTx(tenantId) {
+    const client = await pool.connect();
+    await client.query('BEGIN');
+    await client.query("SELECT set_config('app.tenant_id', $1, true)", [String(tenantId)]);
+    return client;
+}
+
+// ---- LICENSES: list with SERVER-SIDE expiry classification (SCFHS alerts) ----
+app.get('/api/hr/licenses', requireAuth, requireRole('hr'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e18RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const empId = e18.e18IntId(req.query.employee_id);
+        const params = [t.tenantId];
+        let q = 'SELECT l.*, e.name_en AS employee_name FROM hr_licenses l LEFT JOIN hr_employees e ON l.employee_id=e.id WHERE l.tenant_id=$1';
+        if (empId) { q += ' AND l.employee_id=$2'; params.push(empId); }
+        q += ' ORDER BY l.expiry_date ASC NULLS LAST, l.id ASC';
+        const rows = (await pool.query(q, params)).rows;
+        // expiry computed SERVER-SIDE — client never decides validity
+        const out = rows.map(r => {
+            const c = e18.licenseStatus(r.expiry_date, r.alert_days);
+            return { ...r, expiry_status: c.status, days_to_expiry: c.daysToExpiry };
+        });
+        res.json(out);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- LICENSES: expiring/expired alert list (server-computed, on-demand) ----
+app.get('/api/hr/licenses/alerts', requireAuth, requireRole('hr'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e18RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const rows = (await pool.query(
+            'SELECT l.*, e.name_en AS employee_name FROM hr_licenses l LEFT JOIN hr_employees e ON l.employee_id=e.id WHERE l.tenant_id=$1 ORDER BY l.expiry_date ASC NULLS LAST',
+            [t.tenantId])).rows;
+        const out = rows.map(r => {
+            const c = e18.licenseStatus(r.expiry_date, r.alert_days);
+            return { ...r, expiry_status: c.status, days_to_expiry: c.daysToExpiry };
+        }).filter(r => r.expiry_status === 'expired' || r.expiry_status === 'expiring' || r.expiry_status === 'unknown');
+        res.json(out);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- LICENSES: create ----
+app.post('/api/hr/licenses', requireAuth, requireRole('hr'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e18RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const empId = e18.e18IntId(req.body.employee_id);
+        if (empId === null) return res.status(422).json({ error: 'Invalid employee_id' });
+        // verify employee belongs to this tenant (IDOR guard, integer-compared id)
+        const own = (await pool.query('SELECT id FROM hr_employees WHERE id=$1 AND tenant_id=$2', [empId, t.tenantId])).rows[0];
+        if (!own) return res.status(404).json({ error: 'Employee not found' });
+        const { license_type, license_number, authority, issue_date, expiry_date, alert_days, notes } = req.body;
+        const alert = e18.e18Num(alert_days);
+        const result = await pool.query(
+            `INSERT INTO hr_licenses (employee_id, license_type, license_number, authority, issue_date, expiry_date, alert_days, notes, created_by, tenant_id, facility_id)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+            [empId, license_type || 'SCFHS', license_number || '', authority || 'SCFHS', issue_date || null,
+             expiry_date || null, (alert !== null && alert >= 0) ? Math.floor(alert) : 30, notes || '',
+             req.session.user?.display_name || '', t.tenantId, t.facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_HR_LICENSE', 'HR', `License #${result.rows[0].id} for employee #${empId}`, req.ip);
+        res.json(result.rows[0]);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- SHIFTS: list ----
+app.get('/api/hr/shifts', requireAuth, requireRole('hr'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e18RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const empId = e18.e18IntId(req.query.employee_id);
+        const params = [t.tenantId];
+        let q = 'SELECT s.*, e.name_en AS employee_name FROM hr_shifts s LEFT JOIN hr_employees e ON s.employee_id=e.id WHERE s.tenant_id=$1';
+        if (empId) { q += ' AND s.employee_id=$2'; params.push(empId); }
+        q += ' ORDER BY s.shift_date DESC, s.start_time ASC';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- SHIFTS: create (server validates time + rejects overlap 409) ----
+app.post('/api/hr/shifts', requireAuth, requireRole('hr'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e18RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const empId = e18.e18IntId(req.body.employee_id);
+        if (empId === null) return res.status(422).json({ error: 'Invalid employee_id' });
+        const { shift_date, shift_name, start_time, end_time, department, notes } = req.body;
+        if (!shift_date) return res.status(422).json({ error: 'shift_date required' });
+        // server-authoritative time validation (start<end)
+        const v = e18.validateShift(start_time, end_time);
+        if (!v.ok) return res.status(422).json({ error: 'Invalid shift time: ' + v.error });
+        const client = await e18BeginTenantTx(t.tenantId);
+        try {
+            const own = (await client.query('SELECT id FROM hr_employees WHERE id=$1 AND tenant_id=$2', [empId, t.tenantId])).rows[0];
+            if (!own) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Employee not found' }); }
+            // lock same-day rows for this employee (ascending id) then overlap-check server-side
+            const existing = (await client.query(
+                'SELECT id, start_time, end_time FROM hr_shifts WHERE tenant_id=$1 AND employee_id=$2 AND shift_date=$3 AND status<>$4 ORDER BY id ASC FOR UPDATE',
+                [t.tenantId, empId, shift_date, 'cancelled'])).rows;
+            if (e18.hasShiftConflict(existing, { start_time, end_time })) {
+                await client.query('ROLLBACK'); client.release();
+                return res.status(409).json({ error: 'Shift overlaps an existing shift for this employee on this date' });
+            }
+            const result = (await client.query(
+                `INSERT INTO hr_shifts (employee_id, shift_date, shift_name, start_time, end_time, department, notes, created_by, tenant_id, facility_id)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+                [empId, shift_date, shift_name || '', start_time, end_time, department || '', notes || '',
+                 req.session.user?.display_name || '', t.tenantId, t.facilityId || null])).rows[0];
+            await client.query('COMMIT'); client.release();
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_HR_SHIFT', 'HR', `Shift #${result.id} for employee #${empId} on ${shift_date}`, req.ip);
+            res.json(result);
+        } catch (e) { try { await client.query('ROLLBACK'); } catch (_) {} client.release(); throw e; }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- ATTENDANCE: clock-in/out (worked-hours computed SERVER-SIDE, never trusted) ----
+app.post('/api/hr/attendance', requireAuth, requireRole('hr'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e18RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const empId = e18.e18IntId(req.body.employee_id);
+        if (empId === null) return res.status(422).json({ error: 'Invalid employee_id' });
+        const own = (await pool.query('SELECT id FROM hr_employees WHERE id=$1 AND tenant_id=$2', [empId, t.tenantId])).rows[0];
+        if (!own) return res.status(404).json({ error: 'Employee not found' });
+        const { attendance_date, check_in, check_out, status } = req.body;
+        // SERVER computes total_hours — client cannot supply it (anti-spoof). null when incomplete.
+        const total = e18.computeWorkedHours(check_in, check_out);
+        const result = await pool.query(
+            `INSERT INTO hr_attendance (employee_id, attendance_date, check_in, check_out, total_hours, status, source, tenant_id, branch_id)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+            [empId, attendance_date || new Date().toISOString().slice(0, 10), check_in || '', check_out || '',
+             total === null ? 0 : total, status || (check_out ? 'Present' : 'Open'), 'Manual', t.tenantId, t.facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'RECORD_HR_ATTENDANCE', 'HR', `Attendance for employee #${empId}`, req.ip);
+        res.json({ ...result.rows[0], computed_hours: total });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- LEAVE REQUESTS: list ----
+app.get('/api/hr/leave-requests', requireAuth, requireRole('hr'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e18RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        res.json((await pool.query(
+            'SELECT r.*, e.name_en AS employee_name FROM hr_leave_requests r LEFT JOIN hr_employees e ON r.employee_id=e.id WHERE r.tenant_id=$1 ORDER BY r.id DESC',
+            [t.tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- LEAVE REQUESTS: create (status forced 'requested'; days computed server-side) ----
+app.post('/api/hr/leave-requests', requireAuth, requireRole('hr'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e18RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const empId = e18.e18IntId(req.body.employee_id);
+        if (empId === null) return res.status(422).json({ error: 'Invalid employee_id' });
+        const { leave_type, start_date, end_date, reason } = req.body;
+        // server computes inclusive days; rejects inverted/invalid range
+        const days = e18.leaveDays(start_date, end_date);
+        if (days === null) return res.status(422).json({ error: 'Invalid leave date range' });
+        const own = (await pool.query('SELECT id FROM hr_employees WHERE id=$1 AND tenant_id=$2', [empId, t.tenantId])).rows[0];
+        if (!own) return res.status(404).json({ error: 'Employee not found' });
+        // status is server-authoritative: a new request is ALWAYS 'requested' (client cannot pre-approve)
+        const result = await pool.query(
+            `INSERT INTO hr_leave_requests (employee_id, leave_type, start_date, end_date, days, status, reason, requested_by, tenant_id, facility_id)
+             VALUES ($1,$2,$3,$4,$5,'requested',$6,$7,$8,$9) RETURNING *`,
+            [empId, leave_type || 'Annual', start_date, end_date, days, reason || '',
+             req.session.user?.display_name || '', t.tenantId, t.facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_LEAVE_REQUEST', 'HR', `Leave request #${result.rows[0].id} for employee #${empId} (${days}d)`, req.ip);
+        res.json(result.rows[0]);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- LEAVE REQUESTS: state transition (approve/deny/cancel) — 409 on invalid ----
+app.put('/api/hr/leave-requests/:id/status', requireAuth, requireRole('hr'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e18RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const id = e18.e18IntId(req.params.id);
+        if (id === null) return res.status(404).json({ error: 'Not found' });
+        const target = String(req.body.status || '').trim();
+        if (!e18.LEAVE_STATUSES.includes(target)) return res.status(422).json({ error: 'Invalid target status' });
+        const client = await e18BeginTenantTx(t.tenantId);
+        try {
+            const row = (await client.query('SELECT id, status FROM hr_leave_requests WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [id, t.tenantId])).rows[0];
+            if (!row) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Not found' }); }
+            // SERVER-SIDE state machine: reject invalid transition with 409
+            if (!e18.canTransitionLeave(row.status, target)) {
+                await client.query('ROLLBACK'); client.release();
+                return res.status(409).json({ error: `Invalid leave transition ${row.status} -> ${target}` });
+            }
+            const denial = target === 'denied' ? (req.body.denial_reason || '') : '';
+            const upd = (await client.query(
+                `UPDATE hr_leave_requests SET status=$1, approved_by=$2, approved_at=now(), denial_reason=$3
+                 WHERE id=$4 AND tenant_id=$5 RETURNING *`,
+                [target, req.session.user?.display_name || '', denial, id, t.tenantId])).rows[0];
+            await client.query('COMMIT'); client.release();
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_LEAVE_STATUS', 'HR', `Leave #${id}: ${row.status} -> ${target}`, req.ip);
+            res.json(upd);
+        } catch (e) { try { await client.query('ROLLBACK'); } catch (_) {} client.release(); throw e; }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- PAYROLL SLIPS: list ----
+app.get('/api/hr/payroll-slips', requireAuth, requireRole('hr'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e18RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const month = String(req.query.month || '').trim();
+        const params = [t.tenantId];
+        let q = 'SELECT s.*, e.name_en AS employee_name FROM hr_payroll_slips s LEFT JOIN hr_employees e ON s.employee_id=e.id WHERE s.tenant_id=$1';
+        if (month) { q += ' AND s.pay_month=$2'; params.push(month); }
+        q += ' ORDER BY s.id DESC';
+        res.json({ posting_enabled: e18.isPostingEnabled(), slips: (await pool.query(q, params)).rows });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- PAYROLL SLIP: generate computed DRAFT slip (NET PAY computed SERVER-SIDE) ----
+// No GL posting here. Slips are draft/computed only. Posting is a separate, GATED step.
+app.post('/api/hr/payroll-slips', requireAuth, requireRole('hr'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e18RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const empId = e18.e18IntId(req.body.employee_id);
+        if (empId === null) return res.status(422).json({ error: 'Invalid employee_id' });
+        const month = String(req.body.pay_month || '').trim();
+        if (!month) return res.status(422).json({ error: 'pay_month required' });
+        // pull authoritative salary components from the employee master (NOT from client body)
+        const emp = (await pool.query(
+            'SELECT id, name_en, basic_salary, housing_allowance, transport_allowance, national_id FROM hr_employees WHERE id=$1 AND tenant_id=$2',
+            [empId, t.tenantId])).rows[0];
+        if (!emp) return res.status(404).json({ error: 'Employee not found' });
+        // is_saudi inferred from national_id (starts with 1 = Saudi national); advances/other from body but clamped >=0 in engine
+        const isSaudi = String(emp.national_id || '').trim().startsWith('1');
+        const slip = e18.computePayrollSlip({
+            basic_salary: emp.basic_salary,
+            housing_allowance: emp.housing_allowance,
+            transport_allowance: emp.transport_allowance,
+            other_allowances: req.body.other_allowances,
+            advances_deducted: req.body.advances_deducted,
+            other_deductions: req.body.other_deductions,
+            is_saudi: isSaudi
+        });
+        if (!slip.ok) return res.status(422).json({ error: 'Cannot compute slip: ' + slip.error });
+        // upsert draft (unique per tenant+employee+month). NEVER auto-post.
+        const result = await pool.query(
+            `INSERT INTO hr_payroll_slips
+               (employee_id, pay_month, basic, housing_allowance, transport_allowance, other_allowances,
+                gross_earnings, gosi_deduction, advances_deducted, other_deductions, total_deductions,
+                net_salary, status, posted, created_by, tenant_id, facility_id)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'draft',0,$13,$14,$15)
+             ON CONFLICT (tenant_id, employee_id, pay_month)
+               DO UPDATE SET basic=EXCLUDED.basic, housing_allowance=EXCLUDED.housing_allowance,
+                 transport_allowance=EXCLUDED.transport_allowance, other_allowances=EXCLUDED.other_allowances,
+                 gross_earnings=EXCLUDED.gross_earnings, gosi_deduction=EXCLUDED.gosi_deduction,
+                 advances_deducted=EXCLUDED.advances_deducted, other_deductions=EXCLUDED.other_deductions,
+                 total_deductions=EXCLUDED.total_deductions, net_salary=EXCLUDED.net_salary
+               WHERE hr_payroll_slips.status='draft'
+             RETURNING *`,
+            [empId, month, slip.basic, slip.housing_allowance, slip.transport_allowance, slip.other_allowances,
+             slip.gross_earnings, slip.gosi_deduction, slip.advances_deducted, slip.other_deductions,
+             slip.total_deductions, slip.net_salary, req.session.user?.display_name || '', t.tenantId, t.facilityId || null]);
+        if (!result.rows[0]) return res.status(409).json({ error: 'Slip exists and is not in draft (cannot recompute)' });
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'GENERATE_PAYROLL_SLIP', 'HR', `Draft slip #${result.rows[0].id} employee #${empId} ${month} net ${slip.net_salary}`, req.ip);
+        res.json({ ...result.rows[0], posting_enabled: e18.isPostingEnabled() });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- PAYROLL SLIP: status transition. POSTING ('posted') is GATED OFF by flag (E10-style) ----
+app.put('/api/hr/payroll-slips/:id/status', requireAuth, requireRole('hr'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e18RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const id = e18.e18IntId(req.params.id);
+        if (id === null) return res.status(404).json({ error: 'Not found' });
+        const target = String(req.body.status || '').trim();
+        if (!e18.SLIP_STATUSES.includes(target)) return res.status(422).json({ error: 'Invalid target status' });
+        // HARD GATE: posting to GL is disabled by default. Reject 'posted' unless flag explicitly ON.
+        if (target === 'posted' && !e18.isPostingEnabled()) {
+            return res.status(403).json({ error: 'Payroll GL posting is disabled (HR_PAYROLL_POSTING_ENABLED is off)' });
+        }
+        const client = await e18BeginTenantTx(t.tenantId);
+        try {
+            const row = (await client.query('SELECT id, status FROM hr_payroll_slips WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [id, t.tenantId])).rows[0];
+            if (!row) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Not found' }); }
+            if (!e18.canTransitionSlip(row.status, target)) {
+                await client.query('ROLLBACK'); client.release();
+                return res.status(409).json({ error: `Invalid slip transition ${row.status} -> ${target}` });
+            }
+            const setPosted = target === 'posted';
+            const upd = (await client.query(
+                `UPDATE hr_payroll_slips SET status=$1, posted=$2, posted_at=$3 WHERE id=$4 AND tenant_id=$5 RETURNING *`,
+                [target, setPosted ? 1 : 0, setPosted ? new Date() : null, id, t.tenantId])).rows[0];
+            await client.query('COMMIT'); client.release();
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_PAYROLL_SLIP_STATUS', 'HR', `Slip #${id}: ${row.status} -> ${target}`, req.ip);
+            res.json(upd);
+        } catch (e) { try { await client.query('ROLLBACK'); } catch (_) {} client.release(); throw e; }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- COMPETENCIES / CME: list + create (SCFHS compliance) ----
+app.get('/api/hr/competencies', requireAuth, requireRole('hr'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e18RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const empId = e18.e18IntId(req.query.employee_id);
+        const params = [t.tenantId];
+        let q = 'SELECT c.*, e.name_en AS employee_name FROM hr_competencies c LEFT JOIN hr_employees e ON c.employee_id=e.id WHERE c.tenant_id=$1';
+        if (empId) { q += ' AND c.employee_id=$2'; params.push(empId); }
+        q += ' ORDER BY c.id DESC';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/hr/competencies', requireAuth, requireRole('hr'), requireTenantScope, async (req, res) => {
+    try {
+        const t = e18RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        const empId = e18.e18IntId(req.body.employee_id);
+        if (empId === null) return res.status(422).json({ error: 'Invalid employee_id' });
+        const own = (await pool.query('SELECT id FROM hr_employees WHERE id=$1 AND tenant_id=$2', [empId, t.tenantId])).rows[0];
+        if (!own) return res.status(404).json({ error: 'Employee not found' });
+        const cme = Math.max(0, e18.e18Num(req.body.cme_hours) ?? 0);
+        const required = Math.max(0, e18.e18Num(req.body.required_hours) ?? 0);
+        // compliance computed server-side (client cannot self-declare 'compliant')
+        const status = required > 0 ? (cme >= required ? 'compliant' : 'non_compliant') : 'in_progress';
+        const result = await pool.query(
+            `INSERT INTO hr_competencies (employee_id, competency_name, cme_hours, required_hours, period_start, period_end, status, notes, created_by, tenant_id, facility_id)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+            [empId, req.body.competency_name || '', cme, required, req.body.period_start || null, req.body.period_end || null,
+             status, req.body.notes || '', req.session.user?.display_name || '', t.tenantId, t.facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_HR_COMPETENCY', 'HR', `Competency #${result.rows[0].id} for employee #${empId} (${status})`, req.ip);
+        res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
