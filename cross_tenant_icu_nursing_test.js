@@ -58,14 +58,14 @@ const staticChecks = [
     { pattern: "app.get('/api/icu/scores/:admissionId', requireAuth, requireTenantScope", label: "ICU Scores Detail: GET /api/icu/scores/:admissionId محمي بـ requireTenantScope" },
     { pattern: "app.post('/api/icu/fluid-balance', requireAuth, requireTenantScope", label: "ICU Fluid Balance Insert: POST /api/icu/fluid-balance محمي بـ requireTenantScope" },
     { pattern: "app.get('/api/icu/fluid-balance/:admissionId', requireAuth, requireTenantScope", label: "ICU Fluid Balance Detail: GET /api/icu/fluid-balance/:admissionId محمي بـ requireTenantScope" },
-    { pattern: "app.get('/api/emar/orders', requireAuth, requireTenantScope", label: "eMAR Orders List: GET /api/emar/orders محمي بـ requireTenantScope" },
-    { pattern: "app.post('/api/emar/orders', requireAuth, requireTenantScope", label: "eMAR Orders Insert: POST /api/emar/orders محمي بـ requireTenantScope" },
-    { pattern: "app.get('/api/emar/administrations', requireAuth, requireTenantScope", label: "eMAR Administrations List: GET /api/emar/administrations محمي بـ requireTenantScope" },
-    { pattern: "app.post('/api/emar/administrations', requireAuth, requireTenantScope", label: "eMAR Administrations Insert: POST /api/emar/administrations محمي بـ requireTenantScope" },
+    { pattern: "app.get('/api/emar/orders', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope", label: "eMAR Orders List: GET /api/emar/orders محمي بـ requireRole + requireTenantScope" },
+    { pattern: "app.post('/api/emar/orders', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope", label: "eMAR Orders Insert: POST /api/emar/orders محمي بـ requireRole + requireTenantScope" },
+    { pattern: "app.get('/api/emar/administrations', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope", label: "eMAR Administrations List: GET /api/emar/administrations محمي بـ requireRole + requireTenantScope" },
+    { pattern: "app.post('/api/emar/administrations', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope", label: "eMAR Administrations Insert: POST /api/emar/administrations محمي بـ requireRole + requireTenantScope" },
     { pattern: "app.get('/api/nursing/care-plans', requireAuth, requireTenantScope", label: "Nursing Care Plans List: GET /api/nursing/care-plans محمي بـ requireTenantScope" },
     { pattern: "app.post('/api/nursing/care-plans', requireAuth, requireTenantScope", label: "Nursing Care Plans Insert: POST /api/nursing/care-plans محمي بـ requireTenantScope" },
-    { pattern: "app.get('/api/nursing/assessments', requireAuth, requireTenantScope", label: "Nursing Assessments List: GET /api/nursing/assessments محمي بـ requireTenantScope" },
-    { pattern: "app.post('/api/nursing/assessments', requireAuth, requireTenantScope", label: "Nursing Assessments Insert: POST /api/nursing/assessments محمي بـ requireTenantScope" }
+    { pattern: "app.get('/api/nursing/assessments', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope", label: "Nursing Assessments List: GET /api/nursing/assessments محمي بـ requireRole + requireTenantScope" },
+    { pattern: "app.post('/api/nursing/assessments', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope", label: "Nursing Assessments Insert: POST /api/nursing/assessments محمي بـ requireRole + requireTenantScope" }
 ];
 
 for (const { pattern, label } of staticChecks) {

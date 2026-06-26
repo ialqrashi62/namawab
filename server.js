@@ -4782,7 +4782,10 @@ app.post('/api/mar/administer', requireAuth, requireRole('nursing', 'doctor'), r
                 'SELECT id, patient_id, medication_name, dosage, frequency FROM pharmacy_prescriptions_queue WHERE id=$1 AND tenant_id=$2',
                 [prescription_ref, tenantId])).rows[0];
             if (!r) return res.status(404).json({ error: 'Prescription not found' });
-            src = { patient_id: r.patient_id, medication: r.medication_name, dose: r.dosage, route: 'Oral' };
+            // I1: pharmacy_prescriptions_queue has NO route column (no DDL allowed). Use route=null so the
+            // Right-Route check below treats the scanned route as authoritative (no spurious override). The
+            // emar_orders path (which HAS a route) keeps the hard Right-Route enforcement.
+            src = { patient_id: r.patient_id, medication: r.medication_name, dose: r.dosage, route: null };
         } else if (emar_order_id) {
             const r = (await pool.query(
                 'SELECT id, patient_id, medication, dose, route FROM emar_orders WHERE id=$1 AND tenant_id=$2',
@@ -4820,12 +4823,19 @@ app.post('/api/mar/administer', requireAuth, requireRole('nursing', 'doctor'), r
         }
 
         // ----- RIGHT ROUTE ----- (must equal prescribed route unless override_reason)
-        if (scanned_route != null && marNorm(scanned_route) && marNorm(scanned_route) !== marNorm(src.route)) {
+        // I1: only enforce when the source route is a KNOWN non-null value (emar_orders path). For the
+        // prescription path src.route is null (queue has no route column), so the scanned route is accepted
+        // as authoritative and recorded — no spurious mismatch/override polluting the audit trail.
+        if (src.route != null && scanned_route != null && marNorm(scanned_route) && marNorm(scanned_route) !== marNorm(src.route)) {
             if (!reason) {
                 auditBlock('MAR_WRONG_ROUTE', `Right-Route FAIL: given "${scanned_route}" != prescribed "${src.route}" (patient #${src.patient_id})`);
                 return res.status(422).json({ error: 'Right Route failed: route differs from prescription (override_reason required)', right: 'route', requires_override_reason: true, blocked: true });
             }
             auditBlock('MAR_OVERRIDE_ROUTE', `Route override: given "${scanned_route}" vs prescribed "${src.route}". Reason: ${reason.slice(0, 160)}`);
+        }
+        // I1: when the source route is unknown (prescription path), record the scanned route as authoritative.
+        if (src.route == null && scanned_route != null && marNorm(scanned_route)) {
+            src.route = String(scanned_route).trim();
         }
 
         // ----- RIGHT TIME ----- (scheduled_at vs SERVER clock within tolerance; outside => override_reason)
@@ -4848,7 +4858,9 @@ app.post('/api/mar/administer', requireAuth, requireRole('nursing', 'doctor'), r
         try {
             cdsAlerts = cdsAlerts.concat(cds.checkDrugAllergy(src.medication, pat.allergies));
         } catch (e) {
-            cdsAlerts.push({ rule: 'allergy', severity: 'warning', message: 'CDS allergy check unavailable — verify manually',
+            // I3: inability to VERIFY an allergy is a hard-stop (fail-safe), not a soft warning. severity:'critical'
+            // makes cds.decide() block administration unless an override_reason is supplied (then it is audited).
+            cdsAlerts.push({ rule: 'allergy', severity: 'critical', message: 'CDS allergy check unavailable — verify manually',
                 message_en: 'CDS allergy check unavailable — verify manually', message_ar: 'تعذّر فحص الحساسية — تأكد يدوياً', overridable: true, fail_safe: true });
         }
         try {
@@ -4872,12 +4884,22 @@ app.post('/api/mar/administer', requireAuth, requireRole('nursing', 'doctor'), r
         // ----- WITNESS GATE (high-alert drug => DISTINCT, real, same-tenant second user) -----
         const highAlert = isHighAlertMed(src.medication);
         let witnessName = '';
+        let witnessId = null;
         if (highAlert) {
-            if (witness_user_id == null || String(witness_user_id) === '') {
+            if (witness_user_id == null || String(witness_user_id).trim() === '') {
                 auditBlock('MAR_WITNESS_REQUIRED', `High-alert "${src.medication}" without witness (patient #${src.patient_id})`);
                 return res.status(422).json({ error: 'High-alert medication requires a second-nurse witness', high_alert: true, requires_witness: true, blocked: true });
             }
-            if (String(witness_user_id) === String(uid)) {
+            // C1: compare as INTEGERS. A space-padded value like ' 5' is cast to int 5 by PostgreSQL, so a
+            // string compare (`' 5' === '5'` => false) could let a nurse witness themselves. Parse both sides;
+            // reject a non-numeric/NaN witness outright, and use the parsed int for the self-check AND the DB
+            // lookup so a padded value cannot slip through.
+            witnessId = parseInt(witness_user_id, 10);
+            if (Number.isNaN(witnessId)) {
+                auditBlock('MAR_WITNESS_REQUIRED', `High-alert "${src.medication}" witness id not a valid integer (patient #${src.patient_id})`);
+                return res.status(422).json({ error: 'Witness id is invalid', high_alert: true, requires_witness: true, blocked: true });
+            }
+            if (witnessId === parseInt(uid, 10)) {
                 auditBlock('MAR_WITNESS_REQUIRED', `High-alert "${src.medication}" witness == administering nurse (patient #${src.patient_id})`);
                 return res.status(422).json({ error: 'Witness must be a different user from the administering nurse', high_alert: true, requires_witness: true, blocked: true });
             }
@@ -4889,7 +4911,7 @@ app.post('/api/mar/administer', requireAuth, requireRole('nursing', 'doctor'), r
                    FROM system_users su
                    JOIN user_tenants ut ON ut.user_id = su.id
                   WHERE su.id=$1 AND su.is_active=1 AND ut.tenant_id=$2 AND ut.is_active=true`,
-                [witness_user_id, tenantId])).rows[0];
+                [witnessId, tenantId])).rows[0];
             if (!w) {
                 auditBlock('MAR_WITNESS_REQUIRED', `High-alert "${src.medication}" witness #${witness_user_id} not a valid same-tenant active user (patient #${src.patient_id})`);
                 return res.status(422).json({ error: 'Witness is not a valid active user in this tenant', high_alert: true, requires_witness: true, blocked: true });
@@ -4909,11 +4931,11 @@ app.post('/api/mar/administer', requireAuth, requireRole('nursing', 'doctor'), r
             [tenantId, facilityId || null, src.patient_id, prescription_ref || null,
              src.medication || '', src.dose || '', src.route || '',
              scheduled_at || null, uid || null, uname,
-             highAlert ? witness_user_id : null, witnessName,
+             highAlert ? witnessId : null, witnessName,
              reason, cdsSummary, notes || '']);
 
         logAudit(uid, uname, 'MAR_ADMINISTRATION', 'Nursing',
-            `MAR administered: patient #${src.patient_id} ${src.medication} ${src.dose || ''} ${src.route || ''}${highAlert ? ` (high-alert, witness #${witness_user_id})` : ''}${reason ? ` [override: ${reason.slice(0, 80)}]` : ''} | tenant #${tenantId}`, req.ip);
+            `MAR administered: patient #${src.patient_id} ${src.medication} ${src.dose || ''} ${src.route || ''}${highAlert ? ` (high-alert, witness #${witnessId})` : ''}${reason ? ` [override: ${reason.slice(0, 80)}]` : ''} | tenant #${tenantId}`, req.ip);
         res.json({ success: true, administration: result.rows[0], cds_alerts: cdsAlerts });
     } catch (e) {
         res.status(500).json({ error: 'Server error' });
@@ -4992,7 +5014,7 @@ app.post('/api/nursing/care-plans', requireAuth, requireTenantScope, async (req,
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/nursing/assessments', requireAuth, requireTenantScope, async (req, res) => {
+app.get('/api/nursing/assessments', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope, async (req, res) => {
     try {
         const { tenantId } = getRequestTenantContext(req);
         let q;
@@ -5307,22 +5329,22 @@ async function startServer() {
 // Returns a de-duplicated array of drug-name strings. RLS also enforces tenant isolation; the explicit
 // tenant_id predicate is defense-in-depth. Caller treats a thrown error as FAIL-SAFE (warns, never skips).
 async function getPatientActiveMeds(patientId, tenantId) {
+    // I2: FAIL-CLOSED. Refuse to run unscoped — a falsy tenantId previously fell back to a cross-tenant query
+    // that returned meds across ALL tenants. Both callers run behind requireTenantScope, so this is
+    // defense-in-depth (the throw is treated FAIL-SAFE by callers, surfacing a warning, never a silent skip).
+    if (!tenantId) throw new Error('tenantId required for getPatientActiveMeds');
     const meds = [];
     // 1) Pharmacy queue (not dispensed / cancelled)
-    const qSql = tenantId
-        ? "SELECT medication_name FROM pharmacy_prescriptions_queue WHERE patient_id=$1 AND tenant_id=$2 AND COALESCE(status,'') NOT IN ('Dispensed','Cancelled','Rejected')"
-        : "SELECT medication_name FROM pharmacy_prescriptions_queue WHERE patient_id=$1 AND COALESCE(status,'') NOT IN ('Dispensed','Cancelled','Rejected')";
-    const qParams = tenantId ? [patientId, tenantId] : [patientId];
+    const qSql = "SELECT medication_name FROM pharmacy_prescriptions_queue WHERE patient_id=$1 AND tenant_id=$2 AND COALESCE(status,'') NOT IN ('Dispensed','Cancelled','Rejected')";
+    const qParams = [patientId, tenantId];
     for (const r of (await pool.query(qSql, qParams)).rows) {
         if (r.medication_name) meds.push(String(r.medication_name));
     }
     // 2) Active/pending med-type orders (E-X orders/order_items). Best-effort: a missing orders table
     //    must not break the gate — but a real query error propagates so the caller fails SAFE (warns).
     try {
-        const oSql = tenantId
-            ? "SELECT oi.catalog_ref FROM order_items oi JOIN orders o ON oi.order_id=o.id WHERE o.patient_id=$1 AND o.tenant_id=$2 AND o.type='med' AND o.status IN ('pending','active')"
-            : "SELECT oi.catalog_ref FROM order_items oi JOIN orders o ON oi.order_id=o.id WHERE o.patient_id=$1 AND o.type='med' AND o.status IN ('pending','active')";
-        const oParams = tenantId ? [patientId, tenantId] : [patientId];
+        const oSql = "SELECT oi.catalog_ref FROM order_items oi JOIN orders o ON oi.order_id=o.id WHERE o.patient_id=$1 AND o.tenant_id=$2 AND o.type='med' AND o.status IN ('pending','active')";
+        const oParams = [patientId, tenantId];
         for (const r of (await pool.query(oSql, oParams)).rows) {
             if (r.catalog_ref) meds.push(String(r.catalog_ref));
         }

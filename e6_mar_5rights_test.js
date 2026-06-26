@@ -51,8 +51,12 @@ ok(server.includes('isHighAlertMed(src.medication)') && server.includes("'MAR_WI
   'high-alert witness gate present (MAR_WITNESS_REQUIRED)');
 ok(server.includes('JOIN user_tenants ut ON ut.user_id = su.id') && server.includes('ut.tenant_id=$2'),
   'witness verified as a DISTINCT real user in the SAME tenant (system_users JOIN user_tenants)');
-ok(server.includes("String(witness_user_id) === String(uid)"),
-  'witness must differ from the administering nurse');
+ok(server.includes("parseInt(witness_user_id, 10)") && server.includes("witnessId === parseInt(uid, 10)"),
+  'C1: witness/self comparison uses parseInt (whitespace-padded id cannot bypass self-witness)');
+ok(server.includes("Number.isNaN(witnessId)"),
+  'C1: NaN/non-numeric witness id is rejected fail-closed');
+ok(/\[witnessId, tenantId\]\)\)\.rows\[0\]/.test(server),
+  'C1: witness DB lookup uses the parsed integer (padded value cannot slip through)');
 ok(server.includes('INSERT INTO mar_administrations') && server.includes("VALUES ($1,$2,$3,$4,$5,$6,$7,$8,CURRENT_TIMESTAMP"),
   'writes mar_administrations with server-clock administered_at + tenant_id stamped');
 ok(server.includes("status,'given'") || /VALUES[^;]*'given'/.test(server),
@@ -82,6 +86,8 @@ const norm = (s) => String(s == null ? '' : s).trim().toLowerCase().replace(/\s+
 const DB = {
   patients: { 10: { id: 10, tenant_id: 1, allergies: '' } },
   orders:   { 100: { id: 100, tenant_id: 1, patient_id: 10, medication: 'Amoxicillin', dose: '500 mg', route: 'Oral' } },
+  // prescription queue rows have NO route column (I1) — route is unknown server-side.
+  prescriptions: { 200: { id: 200, tenant_id: 1, patient_id: 10, medication: 'Amoxicillin', dose: '500 mg' } },
   tenantUsers: { 1: [7, 8] }, // user_ids that are members of tenant 1
   rows: [], // mar_administrations rows actually written
 };
@@ -90,10 +96,17 @@ const DB = {
 function administer(req, sessionUserId = 7, tenantId = 1) {
   const reason = (req.override_reason == null) ? '' : String(req.override_reason).trim();
   if (!tenantId) return { status: 403 }; // null-tenant fail-closed
-  // resolve source server-side (tenant-scoped)
-  const order = DB.orders[req.emar_order_id];
-  if (!order || order.tenant_id !== tenantId) return { status: 404, body: { error: 'Order not found' } };
-  const src = { patient_id: order.patient_id, medication: order.medication, dose: order.dose, route: order.route };
+  // resolve source server-side (tenant-scoped). I1: prescription path has NO route column => src.route=null.
+  let src;
+  if (req.prescription_ref != null) {
+    const rx = DB.prescriptions[req.prescription_ref];
+    if (!rx || rx.tenant_id !== tenantId) return { status: 404, body: { error: 'Prescription not found' } };
+    src = { patient_id: rx.patient_id, medication: rx.medication, dose: rx.dose, route: null };
+  } else {
+    const order = DB.orders[req.emar_order_id];
+    if (!order || order.tenant_id !== tenantId) return { status: 404, body: { error: 'Order not found' } };
+    src = { patient_id: order.patient_id, medication: order.medication, dose: order.dose, route: order.route };
+  }
   // right patient
   const pat = DB.patients[src.patient_id];
   if (!pat || pat.tenant_id !== tenantId) return { status: 404, body: { error: 'Patient not found' } };
@@ -105,9 +118,13 @@ function administer(req, sessionUserId = 7, tenantId = 1) {
   if (req.scanned_dose != null && norm(req.scanned_dose) && norm(req.scanned_dose) !== norm(src.dose)) {
     if (!reason) return { status: 422, right: 'dose', requires_override_reason: true };
   }
-  // right route
-  if (req.scanned_route != null && norm(req.scanned_route) && norm(req.scanned_route) !== norm(src.route)) {
+  // right route. I1: only enforce when src.route is a KNOWN non-null value; for the prescription path
+  // (src.route===null) accept the scanned route as authoritative and record it (no spurious override).
+  if (src.route != null && req.scanned_route != null && norm(req.scanned_route) && norm(req.scanned_route) !== norm(src.route)) {
     if (!reason) return { status: 422, right: 'route', requires_override_reason: true };
+  }
+  if (src.route == null && req.scanned_route != null && norm(req.scanned_route)) {
+    src.route = String(req.scanned_route).trim();
   }
   // right time
   if (req.scheduled_at) {
@@ -117,18 +134,22 @@ function administer(req, sessionUserId = 7, tenantId = 1) {
       if (driftMin > MAR_TIME_WINDOW_MIN && !reason) return { status: 422, right: 'time', requires_override_reason: true };
     }
   }
-  // CDS (fail-safe)
+  // CDS (fail-safe). I3: an allergy-engine THROW is a CRITICAL hard-stop (not a soft warning), so it
+  // blocks unless override_reason is supplied — mirroring the server's severity:'critical' fail-safe.
   let alerts = [];
-  try { alerts = alerts.concat(cds.checkDrugAllergy(src.medication, pat.allergies)); } catch (e) { alerts.push({ severity: 'warning', fail_safe: true }); }
+  try { alerts = alerts.concat(cds.checkDrugAllergy(src.medication, pat.allergies)); } catch (e) { alerts.push({ rule: 'allergy', severity: 'critical', overridable: true, fail_safe: true }); }
   const decision = cds.decide(alerts, reason);
   if (!decision.allow) return { status: 422, body: { error: 'CDS hard-stop', alerts } };
-  // witness gate
+  // witness gate. C1: compare as integers; reject NaN; padded ' 7' === 7 cannot self-witness.
+  let witnessId = null;
   if (isHighAlert(src.medication)) {
-    if (req.witness_user_id == null || String(req.witness_user_id) === '') return { status: 422, requires_witness: true };
-    if (String(req.witness_user_id) === String(sessionUserId)) return { status: 422, requires_witness: true };
-    if (!(DB.tenantUsers[tenantId] || []).includes(Number(req.witness_user_id))) return { status: 422, requires_witness: true };
+    if (req.witness_user_id == null || String(req.witness_user_id).trim() === '') return { status: 422, requires_witness: true };
+    witnessId = parseInt(req.witness_user_id, 10);
+    if (Number.isNaN(witnessId)) return { status: 422, requires_witness: true };
+    if (witnessId === parseInt(sessionUserId, 10)) return { status: 422, requires_witness: true };
+    if (!(DB.tenantUsers[tenantId] || []).includes(witnessId)) return { status: 422, requires_witness: true };
   }
-  const row = { tenant_id: tenantId, patient_id: src.patient_id, medication: src.medication, dose: src.dose, route: src.route, status: 'given', administered_by: sessionUserId, witness_by: isHighAlert(src.medication) ? req.witness_user_id : null };
+  const row = { tenant_id: tenantId, patient_id: src.patient_id, medication: src.medication, dose: src.dose, route: src.route, status: 'given', administered_by: sessionUserId, witness_by: isHighAlert(src.medication) ? witnessId : null };
   DB.rows.push(row);
   return { status: 200, body: { success: true, administration: row } };
 }
@@ -177,6 +198,40 @@ const baseGood = { emar_order_id: 100, patient_id: 10, scanned_patient_id: 10, s
 
 // 2.8 null-tenant fail-closed
 { DB.rows = []; const r = administer({ ...baseGood }, 7, null); ok(r.status === 403 && DB.rows.length === 0, 'null tenant => 403 fail-closed, no row'); }
+
+// 2.9 C1 — whitespace-padded self-witness is REJECTED (cannot bypass via ' 7')
+{
+  DB.orders[101] = DB.orders[101] || { id: 101, tenant_id: 1, patient_id: 10, medication: 'Insulin glargine', dose: '10 units', route: 'SC' };
+  const ha = { emar_order_id: 101, patient_id: 10, scanned_patient_id: 10, scanned_drug: 'Insulin glargine', scanned_dose: '10 units', scanned_route: 'SC', scheduled_at: new Date().toISOString() };
+  DB.rows = []; let r = administer({ ...ha, witness_user_id: ' 7' }, 7); ok(r.status === 422 && r.requires_witness && DB.rows.length === 0, 'C1: padded witness_user_id " 7" == administering nurse 7 => 422 (self-witness bypass blocked)');
+  DB.rows = []; r = administer({ ...ha, witness_user_id: 'abc' }, 7); ok(r.status === 422 && r.requires_witness && DB.rows.length === 0, 'C1: non-numeric witness_user_id "abc" => 422 (NaN rejected)');
+  DB.rows = []; r = administer({ ...ha, witness_user_id: ' 8' }, 7); ok(r.status === 200 && DB.rows.length === 1 && DB.rows[0].witness_by === 8, 'C1: padded DISTINCT witness " 8" => normalized to 8, proceeds + recorded as int');
+}
+
+// 2.10 I1 — prescription path (no route column): scanned route accepted as authoritative, NO override needed
+{
+  const rx = { prescription_ref: 200, patient_id: 10, scanned_patient_id: 10, scanned_drug: 'Amoxicillin', scanned_dose: '500 mg', scanned_route: 'IV', scheduled_at: new Date().toISOString() };
+  DB.rows = []; const r = administer({ ...rx });
+  ok(r.status === 200 && DB.rows.length === 1 && DB.rows[0].route === 'IV', 'I1: prescription path accepts scanned route "IV" as authoritative WITHOUT override_reason (no spurious right-route block)');
+}
+// I1 emar_orders path still HARD-STOPS on route mismatch (route known)
+{
+  DB.rows = []; const r = administer({ ...baseGood, scanned_route: 'IV' });
+  ok(r.status === 422 && r.right === 'route' && DB.rows.length === 0, 'I1: emar_orders path (route known) STILL blocks IV != Oral without reason');
+}
+
+// 2.11 I3 — allergy-engine THROW is a CRITICAL hard-stop (blocked), overridable with reason
+{
+  // Force checkDrugAllergy to throw by monkeypatching, mirroring an engine failure.
+  const orig = cds.checkDrugAllergy;
+  cds.checkDrugAllergy = () => { throw new Error('engine down'); };
+  try {
+    DB.rows = []; let r = administer({ ...baseGood });
+    ok(r.status === 422 && r.body && r.body.error === 'CDS hard-stop' && DB.rows.length === 0, 'I3: allergy-engine throw => CRITICAL fail-safe block (422, no row)');
+    DB.rows = []; r = administer({ ...baseGood, override_reason: 'allergy verified manually from chart' });
+    ok(r.status === 200 && DB.rows.length === 1, 'I3: allergy-engine throw overridable WITH reason => proceeds (audited)');
+  } finally { cds.checkDrugAllergy = orig; }
+}
 
 console.log(`\n\x1b[1m\x1b[34m============================================================\x1b[0m`);
 console.log(`  \x1b[32mPASS\x1b[0m: ${pass}   \x1b[31mFAIL\x1b[0m: ${fail}`);

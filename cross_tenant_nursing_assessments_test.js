@@ -46,12 +46,12 @@ const serverContent = fs.readFileSync(serverPath, 'utf8');
 
 const staticChecks = [
     {
-        pattern: "app.get('/api/nursing/assessments', requireAuth, requireTenantScope",
-        label: "Nursing Assessments GET: محمي بـ requireAuth و requireTenantScope"
+        pattern: "app.get('/api/nursing/assessments', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope",
+        label: "Nursing Assessments GET: محمي بـ requireAuth و requireRole و requireTenantScope"
     },
     {
-        pattern: "app.post('/api/nursing/assessments', requireAuth, requireTenantScope",
-        label: "Nursing Assessments POST: محمي بـ requireAuth و requireTenantScope"
+        pattern: "app.post('/api/nursing/assessments', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope",
+        label: "Nursing Assessments POST: محمي بـ requireAuth و requireRole و requireTenantScope"
     },
     {
         pattern: "SELECT * FROM nursing_assessments WHERE tenant_id = $1",
