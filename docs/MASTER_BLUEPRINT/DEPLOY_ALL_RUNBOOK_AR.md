@@ -148,5 +148,62 @@ curl -s -o /dev/null -w "%{http_code}" https://alfaisal-erp.com/health      # ت
 | E7 | feat/e7-emergency-ed | `14a6167` |
 | E8 | feat/e8-inpatient-adt | `4b5c410` |
 | E9 | feat/e9-icu | `9d08964` |
+| E10 | feat/e10-finance-zatca | `d6a2da0` |
+| E11 | feat/e11-insurance-nphies | `4ba4225` |
+| E12 | feat/e12-surgery-or | `2c50451` |
+| E13 | feat/e13-blood-bank | `960b641` |
+| E14 | feat/e14-ob-maternity | `c2f3822` |
+| E15 | feat/e15-pathology | `3891a25` |
+| E16 | feat/e16-inventory-cssd | `6e92226` |
+| E17 | feat/e17-quality-infection | `3c4026e` |
+| E18 | feat/e18-hr-workforce | `963c08e` |
+
+---
+
+## 8) الموجة الثانية — migrations + ترتيب الدمج (E10→E18)
+
+كلها مستقلّة عن السلسلة السريرية (تتفرّع من main `171b7c2`) إلا التكامل المنطقي (E11 تأمين يربط فواتير/مطالبات E10). **نفس قواعد §0 (دمج تسلسلي، تعارضات server.js/app.js متوقّعة) و§2 (DDL يُنفّذه المالك، كلٌّ متبوع بـ`_validate.sql`).**
+
+```bash
+# E10 Finance/GL/ZATCA
+psql -f migrations/e10_01_gl_structure_up.sql      && psql -f migrations/e10_01_gl_structure_validate.sql
+psql -f migrations/e10_02_cost_centers_up.sql      && psql -f migrations/e10_02_cost_centers_validate.sql
+psql -f migrations/e10_03_zatca_invoices_up.sql    && psql -f migrations/e10_03_zatca_invoices_validate.sql
+psql -f migrations/e10_04_invoice_gl_link_up.sql   && psql -f migrations/e10_04_invoice_gl_link_validate.sql
+psql -f migrations/e10_05_daily_close_rls_up.sql   && psql -f migrations/e10_05_daily_close_rls_validate.sql
+# E11 Insurance/NPHIES
+psql -f migrations/e11_01_claims_lifecycle_up.sql         && psql -f migrations/e11_01_claims_lifecycle_validate.sql
+psql -f migrations/e11_02_companies_policies_up.sql       && psql -f migrations/e11_02_companies_policies_validate.sql
+psql -f migrations/e11_03_nphies_lifecycle_tables_up.sql  && psql -f migrations/e11_03_nphies_lifecycle_tables_validate.sql
+# E12 Surgery/OR
+psql -f migrations/e12_001_surgery_or_up.sql       && psql -f migrations/e12_001_surgery_or_validate.sql
+psql -f docs/sql/surgery_or_rls_up.sql             # FORCE RLS on pre-existing surgery tables
+# E13 Blood Bank
+psql -f docs/migrations/blood_bank/01_blood_bank_e13_up.sql && psql -f docs/migrations/blood_bank/01_blood_bank_e13_validate.sql
+# E14 OB/Maternity
+psql -f migrations/e14_ob_maternity_up.sql         && psql -f migrations/e14_ob_maternity_validate.sql
+# E15 Pathology
+psql -f migrations/e15_pathology_01_specimens_blocks_slides_reports_up.sql && psql -f migrations/e15_pathology_01_specimens_blocks_slides_reports_validate.sql
+# E16 Inventory/CSSD
+psql -f migrations/e16_01_inventory_cssd_rls_up.sql && psql -f migrations/e16_01_inventory_cssd_rls_validate.sql
+psql -f migrations/e16_02_supply_chain_up.sql       && psql -f migrations/e16_02_supply_chain_validate.sql
+psql -f migrations/e16_03_cssd_trays_up.sql         && psql -f migrations/e16_03_cssd_trays_validate.sql
+# E17 Quality/Infection
+psql -f migrations/e17_001_quality_capa_up.sql      && psql -f migrations/e17_001_quality_capa_validate.sql
+psql -f migrations/e17_002_infection_up.sql         && psql -f migrations/e17_002_infection_validate.sql
+# E18 HR/Workforce
+psql -f migrations/e18_01_hr_workforce_up.sql       && psql -f migrations/e18_01_hr_workforce_validate.sql
+```
+
+**ترتيب الدمج الكامل الموصى (الموجتان):** E-X → E1 → E2 → E3 → E4 → E5 → E6 → E7 → E8 → E9 → E10 → E11 → E12 → E13 → E14 → E15 → E16 → E17 → E18 → E0.
+
+**بوّابات gated في الموجة الثانية (تبقى مغلقة حتى اعتماد مفاتيح/أعلام حقيقية):**
+- المحاسبة (E10 posting) = `ACCOUNTING_POSTING_ENABLED` **OFF**؛ القيود draft فقط، لا كتابة GL.
+- ZATCA clearance (E10) = `ZATCA_ENABLED` OFF → 503 intent-only.
+- NPHIES (E11 eligibility/pre-auth/claims submit) = `NPHIES_ENABLED` OFF → 503 intent-only.
+- HR payroll posting (E18) = `HR_PAYROLL_POSTING_ENABLED` OFF؛ slips draft/محسوبة فقط.
+- بوّابات سريرية gated محفوظة: HL7 (E3)، MWL (E4)، Wasfaty (E5).
+
+**ثوابت أمان حرجة مُختبَرة (لا تُضعِفها عند الدمج):** توافق ABO/Rh fail-closed (E13)، بوابة BI قبل التعقيم (E16)، WHO checklist مرتّب (E12)، MAR 5-حقوق (E6)، CDS عند الوصف/الصرف/الإعطاء (E1/E5/E6)، عزل المستأجر + بوابة سرّية الحوادث (E17)، PII محصورة بـHR (E18).
 
 **live main = `171b7c2` — غير منشور بعد. ينتظر اعتماد المالك لتنفيذ هذا الدليل.**
