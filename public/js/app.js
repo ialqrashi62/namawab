@@ -4876,9 +4876,12 @@ async function renderPharmacy(el) {
     return rawHtml(`<span class="badge badge-success">✅ ${q}</span>`);
   };
   // Helper to find drug price from catalog
+  const findDrug = (medName) => {
+    if (!medName) return null;
+    return drugs.find(x => x.drug_name && medName.toLowerCase().includes(x.drug_name.toLowerCase())) || null;
+  };
   const findDrugPrice = (medName) => {
-    if (!medName) return 0;
-    const d = drugs.find(x => x.drug_name && medName.toLowerCase().includes(x.drug_name.toLowerCase()));
+    const d = findDrug(medName);
     return d ? (d.selling_price || 0) : 0;
   };
   el.innerHTML = `<div class="page-title">💊 ${tr('Pharmacy', 'الصيدلية')}</div>
@@ -4900,7 +4903,10 @@ async function renderPharmacy(el) {
     const qty = (q.quantity_per_day && q.quantity_per_day !== '1' && q.quantity_per_day.trim()) || '1';
     const freq = (q.frequency && q.frequency.trim()) || parts[2] || '';
     const dur = (q.duration && q.duration.trim()) || parts[3] || '';
-    const autoPrice = q.price > 0 ? q.price : findDrugPrice(med);
+    const matchedDrug = findDrug(med);
+    const autoPrice = q.price > 0 ? q.price : (matchedDrug ? (matchedDrug.selling_price || 0) : 0);
+    const drugId = matchedDrug ? matchedDrug.id : 0;
+    const isControlled = matchedDrug && Number(matchedDrug.is_controlled) > 0 ? 1 : 0;
     return `<tr>
         <td><svg id="rxBC${safeId(q.id)}" class="barcode-svg"></svg><br>
           <button class="btn btn-sm btn-info" onclick="printRxLabel(${safeId(q.id)}, '${jsStr(q.patient_name || '')}', '${jsStr((q.age || '').toString())}', '${jsStr(q.department || '')}', '${jsStr(med)}', '${jsStr(dose)}', '${jsStr(qty.toString())}', '${jsStr(freq)}', '${jsStr(dur)}')" style="margin-top:4px;font-size:11px">🖨️ ${tr('Print Label', 'طباعة')}</button>
@@ -4911,11 +4917,37 @@ async function renderPharmacy(el) {
         <td style="font-weight:bold;color:var(--accent)">${autoPrice > 0 ? escapeHTML(autoPrice) + ' ' + tr('SAR', 'ر.س') : '-'}</td>
         <td>${statusBadge(q.status)}</td>
         <td>${escapeHTML(q.created_at?.split('T')[0] || '')}</td>
-        <td>${q.status === 'Pending' ? `<button class="btn btn-sm btn-success" onclick="showDispensePanel(${safeId(q.id)}, '${jsStr(q.patient_name || '')}', '${jsStr(med)}', '${jsStr(dose)}', '${jsStr(qty.toString())}', '${jsStr(freq)}', '${jsStr(dur)}', ${safeId(q.patient_id) || 0}, ${safeId(autoPrice) || 0}, '${jsStr((q.age || '').toString())}', '${jsStr(q.department || '')}')">💵 ${tr('Dispense & Sell', 'صرف وبيع')}</button>` : `<button class="btn btn-sm btn-info" onclick="printPharmacyInvoice(${safeId(q.id)}, '${jsStr(q.patient_name || '')}', '${jsStr(med)}', '${jsStr(dose)}', '${jsStr(freq)}', '${jsStr(dur)}', ${safeId(q.price) || 0}, '${jsStr(q.payment_method || '')}')">🧾 ${tr('Print Invoice', 'طباعة فاتورة')}</button>`}</td>
+        <td>${q.status === 'Pending'
+          ? `<button class="btn btn-sm btn-warning" onclick="pharmacyVerify(${safeId(q.id)}, '${jsStr(med)}')">🔎 ${tr('Verify (CDS)', 'تحقق (CDS)')}</button>`
+          : q.status === 'Verified'
+            ? `<span class="badge badge-success" style="display:inline-block;margin-bottom:4px">✅ ${tr('Verified', 'تم التحقق')}</span><br><button class="btn btn-sm btn-success" onclick="showDispensePanel(${safeId(q.id)}, '${jsStr(q.patient_name || '')}', '${jsStr(med)}', '${jsStr(dose)}', '${jsStr(qty.toString())}', '${jsStr(freq)}', '${jsStr(dur)}', ${safeId(q.patient_id) || 0}, ${safeId(autoPrice) || 0}, '${jsStr((q.age || '').toString())}', '${jsStr(q.department || '')}', ${safeId(drugId) || 0}, ${isControlled})">💵 ${tr('Dispense (FEFO)', 'صرف (FEFO)')}</button>`
+            : `<button class="btn btn-sm btn-info" onclick="printPharmacyInvoice(${safeId(q.id)}, '${jsStr(q.patient_name || '')}', '${jsStr(med)}', '${jsStr(dose)}', '${jsStr(freq)}', '${jsStr(dur)}', ${safeId(q.price) || 0}, '${jsStr(q.payment_method || '')}')">🧾 ${tr('Print Invoice', 'طباعة فاتورة')}</button>`}</td>
       </tr>`;
   }).join('')}
     </tbody></table></div></div>
     <div id="dispensePanel" style="display:none"></div>
+    </div>
+    <div class="card glass-card-premium mb-16"><div class="card-title">📦 ${tr('Batches & Expiry (FEFO)', 'الدفعات والصلاحية (FEFO)')}</div>
+      <div class="flex gap-8 mb-12" style="flex-wrap:wrap;align-items:flex-end">
+        <div class="form-group" style="flex:0.6;min-width:90px"><label>${tr('Drug ID', 'رقم الدواء')}</label><input class="form-input" id="batDrugId" type="number" placeholder="#"></div>
+        <div class="form-group" style="flex:1;min-width:120px"><label>${tr('Drug name', 'اسم الدواء')}</label><input class="form-input" id="batDrugName" placeholder="${tr('Drug name', 'اسم الدواء')}"></div>
+        <div class="form-group" style="flex:0.8;min-width:110px"><label>${tr('Lot', 'رقم التشغيلة')}</label><input class="form-input" id="batLot" placeholder="LOT"></div>
+        <div class="form-group" style="flex:0.8;min-width:140px"><label>${tr('Expiry', 'الصلاحية')}</label><input class="form-input" id="batExpiry" type="date"></div>
+        <div class="form-group" style="flex:0.6;min-width:90px"><label>${tr('Qty', 'الكمية')}</label><input class="form-input" id="batQty" type="number" min="1"></div>
+        <button class="btn btn-primary" onclick="addBatch()">➕ ${tr('Receive Batch', 'استلام دفعة')}</button>
+      </div>
+      <div id="batchesTable"><div class="empty-state-card"><div>${tr('Loading batches...', 'جارٍ تحميل الدفعات...')}</div></div></div>
+    </div>
+    <div class="card glass-card-premium mb-16"><div class="card-title">📷 ${tr('Scan-to-Dispense (FEFO)', 'صرف بالباركود (FEFO)')}</div>
+      <div class="flex gap-8 mb-8" style="flex-wrap:wrap;align-items:flex-end">
+        <div class="form-group" style="flex:0.8;min-width:110px"><label>RX #</label><input class="form-input" id="scanRxId" type="number" placeholder="${tr('Verified queue #', 'رقم وصفة مُتحقَّقة')}"></div>
+        <div class="form-group" style="flex:1.4;min-width:160px"><label>${tr('Drug Barcode', 'باركود الدواء')}</label><input class="form-input" id="scanBarcode" placeholder="${tr('Scan / type barcode', 'امسح/اكتب الباركود')}"></div>
+        <div class="form-group" style="flex:0.6;min-width:80px"><label>${tr('Qty', 'الكمية')}</label><input class="form-input" id="scanQty" type="number" min="1" value="1"></div>
+        <div class="form-group" style="flex:0.9;min-width:130px"><label>${tr('Witness (controlled)', 'شاهد (مراقب)')}</label><input class="form-input" id="scanWitness" type="number" placeholder="${tr('User ID', 'رقم المستخدم')}"></div>
+        <div class="form-group" style="flex:0.6;min-width:90px"><label>${tr('Price', 'السعر')}</label><input class="form-input" id="scanPrice" type="number" min="0" value="0"></div>
+        <button class="btn btn-success" onclick="dispenseByScan()">✅ ${tr('Dispense', 'صرف')}</button>
+      </div>
+      <small style="color:var(--muted,#888)">${tr('FEFO: earliest non-expired batch is used first. Expired batches are never dispensed. Controlled drugs require a witness.', 'FEFO: تُصرف أقرب دفعة غير منتهية أولاً. لا تُصرف الدفعات المنتهية أبداً. الأدوية المراقبة تتطلب شاهداً.')}</small>
     </div>
     <div class="card glass-card-premium mb-16"><div class="card-title">💊 ${tr('Drug Catalog', 'قائمة الأدوية')}</div>
     <div class="flex gap-8 mb-12"><input class="form-input" id="phName" placeholder="${tr('Drug name', 'اسم الدواء')}" style="flex:2"><input class="form-input" id="phPrice" placeholder="${tr('Price', 'السعر')}" type="number" style="flex:1"><input class="form-input" id="phStock" placeholder="${tr('Stock', 'المخزون')}" type="number" style="flex:1"><button class="btn btn-primary" onclick="addDrug()">➕</button></div>
@@ -4923,7 +4955,84 @@ async function renderPharmacy(el) {
     <div id="phTable">${makeTable([tr('Name', 'الاسم'), tr('Category', 'التصنيف'), tr('Price', 'السعر'), tr('Stock', 'المخزون')], drugs.map(d => ({ cells: [d.drug_name, d.category, d.selling_price, stockBadge(d.stock_qty)] })))}</div></div>`;
   // Generate barcodes for prescriptions
   setTimeout(() => { queue.forEach(q => { try { JsBarcode('#rxBC' + q.id, 'RX-' + q.id, { format: 'CODE128', width: 1.2, height: 35, fontSize: 9, displayValue: true, margin: 2, textMargin: 1 }); } catch (e) { } }); }, 100);
+  loadBatches();
 }
+
+// ===== E5: load + render drug batches (FEFO view) =====
+async function loadBatches() {
+  const elB = document.getElementById('batchesTable');
+  if (!elB) return;
+  try {
+    const batches = await API.get('/api/pharmacy/batches');
+    if (!Array.isArray(batches) || batches.length === 0) {
+      elB.innerHTML = `<div class="empty-state-card"><div>${tr('No batches recorded', 'لا توجد دفعات مسجلة')}</div></div>`;
+      return;
+    }
+    const rows = batches.map(b => {
+      const expBadge = b.is_expired
+        ? rawHtml(`<span class="badge badge-danger">⛔ ${tr('Expired', 'منتهية')}</span>`)
+        : b.is_near_expiry
+          ? rawHtml(`<span class="badge badge-warning">⚠️ ${tr('Near expiry', 'قرب الانتهاء')}</span>`)
+          : rawHtml(`<span class="badge badge-success">✅ ${tr('OK', 'سليمة')}</span>`);
+      return { cells: [b.drug_name || ('#' + b.drug_id), b.lot || '—', (b.expiry_date || '').toString().split('T')[0], b.qty_on_hand, expBadge] };
+    });
+    elB.innerHTML = makeTable([tr('Drug', 'الدواء'), tr('Lot', 'التشغيلة'), tr('Expiry', 'الصلاحية'), tr('On Hand', 'المتاح'), tr('Status', 'الحالة')], rows);
+  } catch (e) {
+    elB.innerHTML = `<div class="empty-state-card"><div>${tr('Failed to load batches', 'فشل تحميل الدفعات')}: ${escapeHTML(e.message || e)}</div></div>`;
+  }
+}
+
+window.addBatch = async () => {
+  const drug_id = parseInt(document.getElementById('batDrugId').value, 10) || null;
+  const drug_name = document.getElementById('batDrugName').value.trim();
+  const lot = document.getElementById('batLot').value.trim();
+  const expiry_date = document.getElementById('batExpiry').value;
+  const qty_received = parseInt(document.getElementById('batQty').value, 10) || 0;
+  if (!expiry_date) { showToast(tr('Expiry date required', 'تاريخ الصلاحية مطلوب'), 'error'); return; }
+  if (qty_received <= 0) { showToast(tr('Quantity must be > 0', 'الكمية يجب أن تكون أكبر من صفر'), 'error'); return; }
+  try {
+    const r = await API.post('/api/pharmacy/batches', { drug_id, drug_name, lot, expiry_date, qty_received });
+    if (r && r.error) { showToast(escapeHTML(r.error), 'error'); return; }
+    showToast(tr('Batch received', 'تم استلام الدفعة'), 'success');
+    loadBatches();
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+// E5: pharmacist VERIFY — re-runs server-side CDS; CRITICAL hard-stop captures an override reason (audited).
+window.pharmacyVerify = async (rxId, med, overrideReason) => {
+  try {
+    const r = await API.put(`/api/pharmacy/queue/${rxId}/verify`, { override_reason: overrideReason || undefined });
+    // API.request resolves the JSON body even for non-2xx (no throw); a 422 hard-stop arrives as {blocked:true, alerts}.
+    if (r && (r.blocked || r.requires_override_reason)) {
+      const txt = (r.alerts || []).map(a => '• ' + (a.message_ar || a.message_en || a.message)).join('\n');
+      const reason = window.prompt('🚨 ' + tr('CRITICAL CDS alert — hard stop. To override you MUST enter a clinical reason (audited):',
+        'تنبيه CDS حرج — إيقاف إلزامي. للتجاوز يجب إدخال سبب سريري (يُسجّل):') + '\n\n' + txt, '');
+      if (reason && reason.trim()) return window.pharmacyVerify(rxId, med, reason.trim());
+      showToast(tr('Verify blocked by CDS (no override reason)', 'تم حظر التحقق بواسطة CDS (بدون سبب تجاوز)'), 'error');
+      return;
+    }
+    if (r && r.error) { showToast(escapeHTML(r.error), 'error'); return; }
+    showToast(tr('Verified — ready to dispense', 'تم التحقق — جاهز للصرف') + (overrideReason ? ' (override)' : ''), 'success');
+    if (typeof navigateTo === 'function') navigateTo(currentPage);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+// E5: scan-to-dispense — FEFO server-side; controlled drugs require a witness id (server fail-closed).
+window.dispenseByScan = async () => {
+  const prescription_id = parseInt(document.getElementById('scanRxId').value, 10) || 0;
+  const barcode = document.getElementById('scanBarcode').value.trim();
+  const quantity = parseInt(document.getElementById('scanQty').value, 10) || 0;
+  const witness_user_id = parseInt(document.getElementById('scanWitness').value, 10) || undefined;
+  const price = parseFloat(document.getElementById('scanPrice').value) || 0;
+  if (!prescription_id || !barcode || quantity <= 0) { showToast(tr('RX #, barcode and quantity required', 'رقم الوصفة والباركود والكمية مطلوبة'), 'error'); return; }
+  try {
+    const r = await API.post('/api/pharmacy/dispense', { prescription_id, barcode, quantity, witness_user_id, price, payment_method: 'Cash' });
+    if (r && r.requires_witness) { showToast(tr('Controlled drug — a second witness (User ID) is required', 'دواء مراقب — يلزم شاهد ثانٍ (رقم المستخدم)'), 'error'); return; }
+    if (r && r.error) { showToast(escapeHTML(r.error) + (r.available !== undefined ? ' (' + tr('available', 'المتاح') + ': ' + r.available + ')' : ''), 'error'); return; }
+    showToast(tr('Dispensed (FEFO)', 'تم الصرف (FEFO)') + ' — ' + (r.dispensed || quantity), 'success');
+    if (typeof navigateTo === 'function') navigateTo(currentPage);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
 window.printRxLabel = (rxId, patientName, age, dept, med, dose, qty, freq, dur) => {
   const svgEl = document.getElementById('rxBC' + rxId);
   const svgData = svgEl ? new XMLSerializer().serializeToString(svgEl) : '';
@@ -4982,17 +5091,27 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:10px;direction:rtl;f
 </body></html>`);
   w.document.close();
 };
-window.showDispensePanel = (id, patientName, med, dose, qty, freq, dur, patientId, autoPrice, age, dept) => {
+window.showDispensePanel = (id, patientName, med, dose, qty, freq, dur, patientId, autoPrice, age, dept, drugId, isControlled) => {
   const panel = document.getElementById('dispensePanel');
   panel.style.display = 'block';
+  const defaultQty = parseInt(qty, 10) > 0 ? parseInt(qty, 10) : 1;
+  const controlled = Number(isControlled) > 0;
   panel.innerHTML = `<div class="card mt-16" style="border:2px solid var(--accent);background:var(--hover)">
-    <div class="card-title">💵 ${tr('Confirm Dispense & Sale', 'تأكيد الصرف والبيع')} — RX-${escapeHTML(id)}</div>
+    <div class="card-title">💵 ${tr('Confirm Dispense & Sale (FEFO)', 'تأكيد الصرف والبيع (FEFO)')} — RX-${escapeHTML(id)}</div>
     <div class="flex gap-16" style="flex-wrap:wrap;align-items:flex-end">
       <div style="flex:1;min-width:150px">
         <div style="font-size:13px;margin-bottom:4px"><strong>👤 ${tr('Patient', 'المريض')}:</strong> ${escapeHTML(patientName)}</div>
-        <div style="font-size:13px"><strong>💊 ${tr('Drug', 'الدواء')}:</strong> ${escapeHTML(med)} ${dose ? '— ' + escapeHTML(dose) : ''}</div>
+        <div style="font-size:13px"><strong>💊 ${tr('Drug', 'الدواء')}:</strong> ${escapeHTML(med)} ${dose ? '— ' + escapeHTML(dose) : ''} ${controlled ? '<span class="badge badge-danger">🔒 ' + tr('Controlled', 'مراقب') + '</span>' : ''}</div>
         <div style="font-size:13px"><strong>📦 ${tr('Qty/Day', 'الكمية/يوم')}:</strong> ${escapeHTML(qty)} | <strong>🔄</strong> ${escapeHTML(freq)} | <strong>📅</strong> ${escapeHTML(dur)}</div>
       </div>
+      <div class="form-group" style="flex:0.4;min-width:90px">
+        <label>${tr('Qty to dispense', 'الكمية للصرف')}</label>
+        <input class="form-input" id="dispQty" type="number" value="${defaultQty}" min="1" step="1" style="font-size:16px;font-weight:bold;text-align:center">
+      </div>
+      ${controlled ? `<div class="form-group" style="flex:0.5;min-width:120px">
+        <label>${tr('Witness (User ID)', 'شاهد (رقم المستخدم)')}</label>
+        <input class="form-input" id="dispWitness" type="number" placeholder="${tr('Required', 'إلزامي')}" min="1" style="font-size:15px;text-align:center">
+      </div>` : ''}
       <div class="form-group" style="flex:0.5;min-width:120px">
         <label>${tr('Price', 'السعر')} (${tr('SAR', 'ر.س')})</label>
         <input class="form-input" id="dispPrice" type="number" value="${escapeHTML(autoPrice)}" min="0" step="0.5" style="font-size:16px;font-weight:bold;text-align:center">
@@ -5006,23 +5125,37 @@ window.showDispensePanel = (id, patientName, med, dose, qty, freq, dur, patientI
         </div>
       </div>
       <div class="flex gap-8">
-        <button class="btn btn-success" onclick="confirmDispense(${safeId(id)}, '${jsStr(patientName)}', '${jsStr(med)}', '${jsStr(dose)}', '${jsStr(qty.toString())}', '${jsStr(freq)}', '${jsStr(dur)}', ${safeId(patientId)}, '${jsStr((age || '').toString())}', '${jsStr(dept || '')}')">✅ ${tr('Confirm & Print', 'تأكيد وطباعة')}</button>
+        <button class="btn btn-success" onclick="confirmDispense(${safeId(id)}, '${jsStr(patientName)}', '${jsStr(med)}', '${jsStr(dose)}', '${jsStr(qty.toString())}', '${jsStr(freq)}', '${jsStr(dur)}', ${safeId(patientId)}, '${jsStr((age || '').toString())}', '${jsStr(dept || '')}', ${safeId(drugId) || 0}, ${controlled ? 1 : 0})">✅ ${tr('Confirm & Print', 'تأكيد وطباعة')}</button>
         <button class="btn btn-danger" onclick="document.getElementById('dispensePanel').style.display='none'">✕ ${tr('Cancel', 'إلغاء')}</button>
       </div>
     </div>
   </div>`;
   panel.scrollIntoView({ behavior: 'smooth' });
 };
-window.confirmDispense = async (id, patientName, med, dose, qty, freq, dur, patientId, age, dept) => {
+// E5: primary confirm now routes through the full FEFO/CDS/controlled safety stack
+// (POST /api/pharmacy/dispense) — NOT the legacy PUT /queue/:id which bypassed FEFO,
+// the witness gate, pharmacy_dispense and controlled_drug_log.
+window.confirmDispense = async (id, patientName, med, dose, qty, freq, dur, patientId, age, dept, drugId, isControlled) => {
   const priceNum = parseFloat(document.getElementById('dispPrice').value) || 0;
   const payMethod = document.querySelector('input[name="dispPay"]:checked')?.value || 'Cash';
+  const quantity = parseInt(document.getElementById('dispQty')?.value, 10) || 0;
+  if (quantity <= 0) { showToast(tr('Quantity must be > 0', 'الكمية يجب أن تكون أكبر من صفر'), 'error'); return; }
+  if (!drugId) { showToast(tr('Drug not matched in catalog — dispense by barcode below', 'لم يُطابق الدواء في الكتالوج — اصرف بالباركود أدناه'), 'error'); return; }
+  const witness_user_id = (Number(isControlled) > 0)
+    ? (parseInt(document.getElementById('dispWitness')?.value, 10) || undefined)
+    : undefined;
+  if (Number(isControlled) > 0 && !witness_user_id) {
+    showToast(tr('Controlled drug — a second witness (User ID) is required', 'دواء مراقب — يلزم شاهد ثانٍ (رقم المستخدم)'), 'error');
+    return;
+  }
   try {
-    await API.put(`/api/pharmacy/queue/${id}`, { status: 'Dispensed', price: priceNum, payment_method: payMethod, patient_id: patientId });
-    // Auto-create invoice for pharmacy sale
-    if (priceNum > 0) {
-      try { await API.post('/api/invoices', { patient_id: patientId, patient_name: patientName, total: priceNum, description: med + (dose ? ' ' + dose : '') + ' - ' + freq + ' - ' + dur, service_type: 'Pharmacy', payment_method: payMethod }); } catch (ie) { console.log('Invoice error:', ie); }
-    }
+    const r = await API.post('/api/pharmacy/dispense', { prescription_id: id, drug_id: drugId, quantity, witness_user_id, price: priceNum, payment_method: payMethod });
+    // API.request resolves the JSON body even for non-2xx; surface FEFO shortfall (409) /
+    // CDS hard-stop or missing-witness (422) errors to the pharmacist.
+    if (r && r.requires_witness) { showToast(tr('Controlled drug — a valid second witness (User ID) is required', 'دواء مراقب — يلزم شاهد ثانٍ صالح (رقم المستخدم)'), 'error'); return; }
+    if (r && r.error) { showToast(escapeHTML(r.error) + (r.available !== undefined ? ' (' + tr('available', 'المتاح') + ': ' + r.available + ')' : ''), 'error'); return; }
     showToast(`✅ ${tr('Dispensed & sold!', 'تم الصرف والبيع!')} ${priceNum > 0 ? priceNum + ' ' + tr('SAR', 'ر.س') : tr('Free', 'مجاني')}`, 'success');
+    document.getElementById('dispensePanel').style.display = 'none';
     // Auto-print barcode label with all doctor data
     printRxLabel(id, patientName, age, dept, med, dose, qty, freq, dur);
     // Auto-print invoice

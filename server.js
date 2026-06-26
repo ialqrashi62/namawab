@@ -2169,42 +2169,10 @@ app.post('/api/pharmacy/drugs', requireAuth, requireTenantScope, async (req, res
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/pharmacy/queue', requireAuth, requireTenantScope, async (req, res) => {
-    try {
-        const { tenantId } = getRequestTenantContext(req);
-        const query = tenantId ?
-            'SELECT pq.*, p.name_en as patient_name FROM pharmacy_prescriptions_queue pq LEFT JOIN patients p ON pq.patient_id=p.id WHERE pq.tenant_id=$1 ORDER BY pq.id DESC' :
-            'SELECT pq.*, p.name_en as patient_name FROM pharmacy_prescriptions_queue pq LEFT JOIN patients p ON pq.patient_id=p.id ORDER BY pq.id DESC';
-        const params = tenantId ? [tenantId] : [];
-        res.json((await pool.query(query, params)).rows);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-
-app.put('/api/pharmacy/queue/:id', requireAuth, requireTenantScope, async (req, res) => {
-    try {
-        const { status } = req.body;
-        const { tenantId } = getRequestTenantContext(req);
-        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
-        const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        const rxCheck = (await pool.query(`SELECT id FROM pharmacy_prescriptions_queue WHERE id=$1${tenantCheck}`, checkParams)).rows[0];
-        if (!rxCheck) return res.status(404).json({ error: 'Queue item not found' });
-
-        if (status) {
-            const updateQuery = tenantId ?
-                'UPDATE pharmacy_prescriptions_queue SET status=$1, dispensed_at=CURRENT_TIMESTAMP WHERE id=$2 AND tenant_id=$3' :
-                'UPDATE pharmacy_prescriptions_queue SET status=$1, dispensed_at=CURRENT_TIMESTAMP WHERE id=$2';
-            const updateParams = tenantId ? [status, req.params.id, tenantId] : [status, req.params.id];
-            await pool.query(updateQuery, updateParams);
-        }
-        logAudit(req.session.user?.id, req.session.user?.display_name, 'DISPENSE_MEDICATION', 'Pharmacy',
-            `Dispensed queue item #${req.params.id} status:${status}`, req.ip);
-        const finalQuery = tenantId ?
-            'SELECT * FROM pharmacy_prescriptions_queue WHERE id=$1 AND tenant_id=$2' :
-            'SELECT * FROM pharmacy_prescriptions_queue WHERE id=$1';
-        const finalParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        res.json((await pool.query(finalQuery, finalParams)).rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
+// NOTE: GET /api/pharmacy/queue and PUT /api/pharmacy/queue/:id are registered below
+// (E5 enriched versions, ~line 5165) with file_number/phone/age/department + VAT +
+// patient verification. The legacy duplicates that used to live here were removed
+// (I1) because Express only honours the FIRST registration, leaving the E5 routes dead.
 
 // ===== INVENTORY =====
 app.get('/api/inventory/items', requireAuth, requireTenantScope, async (req, res) => {
@@ -5670,40 +5638,51 @@ app.post('/api/him/break-glass', requireAuth, requireRole('him', 'medical-record
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-// ===== CLINICAL PHARMACY =====
-app.get('/api/clinical-pharmacy/reviews', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM clinical_pharmacy_reviews ORDER BY created_at DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+// ===== CLINICAL PHARMACY (E5: tenant-scoped for consistency with the rest of pharmacy) =====
+app.get('/api/clinical-pharmacy/reviews', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        res.json((await pool.query('SELECT * FROM clinical_pharmacy_reviews WHERE tenant_id=$1 ORDER BY created_at DESC', [tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/clinical-pharmacy/reviews', requireAuth, async (req, res) => {
+app.post('/api/clinical-pharmacy/reviews', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, prescription_id, review_type, findings, recommendations, interventions, severity } = req.body;
-        const result = await pool.query('INSERT INTO clinical_pharmacy_reviews (patient_id, patient_name, prescription_id, review_type, pharmacist, findings, recommendations, interventions, severity) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
-            [patient_id, patient_name || '', prescription_id || 0, review_type || 'Medication Review', req.session.user.name, findings || '', recommendations || '', interventions || '', severity || 'Low']);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        const result = await pool.query('INSERT INTO clinical_pharmacy_reviews (patient_id, patient_name, prescription_id, review_type, pharmacist, findings, recommendations, interventions, severity, tenant_id, branch_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
+            [patient_id, patient_name || '', prescription_id || 0, review_type || 'Medication Review', req.session.user.name, findings || '', recommendations || '', interventions || '', severity || 'Low', tenantId || null, facilityId || null]);
         logAudit(req.session.user.id, req.session.user.name, 'CLINICAL_REVIEW', 'Clinical Pharmacy', `Review for patient ${patient_name}`, req.ip);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/clinical-pharmacy/reviews/:id', requireAuth, async (req, res) => {
+app.put('/api/clinical-pharmacy/reviews/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { outcome, status } = req.body;
-        await pool.query('UPDATE clinical_pharmacy_reviews SET outcome=$1, status=$2 WHERE id=$3', [outcome || 'Resolved', status || 'Closed', req.params.id]);
+        const { tenantId } = getRequestTenantContext(req);
+        // IDOR: only update a review owned by this tenant.
+        const r = await pool.query('UPDATE clinical_pharmacy_reviews SET outcome=$1, status=$2 WHERE id=$3 AND tenant_id=$4', [outcome || 'Resolved', status || 'Closed', req.params.id, tenantId]);
+        if (!r.rowCount) return res.status(404).json({ error: 'Review not found' });
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/clinical-pharmacy/interactions', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM drug_interactions ORDER BY severity DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/clinical-pharmacy/interactions', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        res.json((await pool.query('SELECT * FROM drug_interactions WHERE tenant_id=$1 ORDER BY severity DESC', [tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/clinical-pharmacy/education', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM patient_drug_education ORDER BY created_at DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/clinical-pharmacy/education', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        res.json((await pool.query('SELECT * FROM patient_drug_education WHERE tenant_id=$1 ORDER BY created_at DESC', [tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/clinical-pharmacy/education', requireAuth, async (req, res) => {
+app.post('/api/clinical-pharmacy/education', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, medication, instructions, side_effects, precautions } = req.body;
-        const result = await pool.query('INSERT INTO patient_drug_education (patient_id, patient_name, medication, instructions, side_effects, precautions, educated_by) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
-            [patient_id, patient_name || '', medication || '', instructions || '', side_effects || '', precautions || '', req.session.user.name]);
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        const result = await pool.query('INSERT INTO patient_drug_education (patient_id, patient_name, medication, instructions, side_effects, precautions, educated_by, tenant_id, branch_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+            [patient_id, patient_name || '', medication || '', instructions || '', side_effects || '', precautions || '', req.session.user.name, tenantId || null, facilityId || null]);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -6087,6 +6066,294 @@ app.post('/api/pharmacy/drugs', requireAuth, requireTenantScope, async (req, res
         logAudit(req.session.user?.id, req.session.user?.display_name, 'ADD_DRUG', 'Pharmacy',
             `Added drug ${drug_name} to catalog`, req.ip);
         res.json(r.rows[0]);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ============================================================================
+// ===== E5 PHARMACY: FEFO BATCHES + PHARMACIST VERIFICATION + DISPENSE + CONTROLLED DRUGS =====
+// Builds on E1 cds.js (REUSED — no duplicated matrix). CLINICAL-SAFETY: FAIL-CLOSED.
+// Rules enforced here:
+//   - FEFO: dispense from the earliest NON-EXPIRED batch first; NEVER from an expired batch;
+//     insufficient on-hand across valid batches => 409 (no partial silent dispense).
+//   - VERIFY: pharmacist re-runs the E1 CDS engine (allergy + dose + drug-drug) against the
+//     patient's active meds queried SERVER-SIDE (getPatientActiveMeds — never trust client).
+//     A CRITICAL alert HARD-STOPS (422) unless override_reason is supplied (then AUDITED).
+//   - CONTROLLED: dispensing a controlled/high-alert drug REQUIRES a second witness id; missing
+//     witness => 422 (fail-closed). A double-entry controlled_drug_log row records balance before/after.
+//   - Every query carries an explicit tenant_id predicate (defense-in-depth on top of FORCE RLS);
+//     null tenant in production is already blocked by requireTenantScope (fail-closed).
+// ============================================================================
+
+// Transaction helper: a SINGLE dedicated client with app.tenant_id bound for the WHOLE transaction.
+// The patched pool.query binds tenant per-call only, so multi-statement RLS transactions must set
+// app.tenant_id themselves on the client. Fail-closed: a null tenantId here means NO binding => RLS
+// (FORCE) yields zero rows, so the transaction cannot touch any tenant's data.
+async function withPharmacyTx(tenantId, fn) {
+    const client = await pool.connect();
+    try {
+        await client.query("SELECT set_config('app.tenant_id', $1, false)", [tenantId ? String(tenantId) : '']);
+        await client.query('BEGIN');
+        const out = await fn(client);
+        await client.query('COMMIT');
+        return out;
+    } catch (e) {
+        try { await client.query('ROLLBACK'); } catch (_) { /* best-effort */ }
+        throw e;
+    } finally {
+        try { await client.query("SELECT set_config('app.tenant_id', '', false)"); } catch (_) { /* reset best-effort */ }
+        client.release();
+    }
+}
+
+// --- GET pharmacy stock view: per-drug on-hand (sum of batches) + low-stock / near-expiry flags ---
+app.get('/api/pharmacy/batches', requireAuth, requireRole('pharmacy'), requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        const days = Math.max(1, parseInt(req.query.days, 10) || 90);
+        // Explicit tenant_id predicate (defense-in-depth) + FORCE RLS. Null tenant blocked upstream.
+        const rows = (await pool.query(
+            `SELECT b.*, (b.expiry_date < CURRENT_DATE) AS is_expired,
+                    (b.expiry_date < CURRENT_DATE + ($2::int * INTERVAL '1 day')) AS is_near_expiry
+             FROM drug_batches b
+             WHERE b.tenant_id=$1
+             ORDER BY b.drug_id, b.expiry_date ASC`,
+            [tenantId, days])).rows;
+        res.json(rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// --- POST receive a drug batch (FEFO lot) ---
+app.post('/api/pharmacy/batches', requireAuth, requireRole('pharmacy'), requireTenantScope, async (req, res) => {
+    try {
+        const { drug_id, drug_name, lot, expiry_date, qty_received, cost_price, supplier_id } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        if (!expiry_date || !/^\d{4}-\d{2}-\d{2}$/.test(String(expiry_date))) {
+            return res.status(400).json({ error: 'expiry_date (YYYY-MM-DD) required' });
+        }
+        const qty = parseInt(qty_received, 10) || 0;
+        if (qty <= 0) return res.status(400).json({ error: 'qty_received must be > 0' });
+        // IDOR: if a drug_id is given, it must belong to this tenant.
+        if (drug_id) {
+            const d = (await pool.query('SELECT id FROM pharmacy_drug_catalog WHERE id=$1 AND tenant_id=$2', [drug_id, tenantId])).rows[0];
+            if (!d) return res.status(404).json({ error: 'Drug not found' });
+        }
+        const r = await pool.query(
+            `INSERT INTO drug_batches (tenant_id, branch_id, drug_id, drug_name, lot, expiry_date, qty_received, qty_on_hand, cost_price, supplier_id)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$7,$8,$9) RETURNING *`,
+            [tenantId, facilityId || null, drug_id || null, drug_name || '', lot || '', expiry_date, qty, cost_price || 0, supplier_id || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'RECEIVE_BATCH', 'Pharmacy',
+            `Received batch ${lot || ''} of ${drug_name || ('#' + drug_id)} qty:${qty} exp:${expiry_date}`, req.ip);
+        res.json(r.rows[0]);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// --- PUT pharmacist VERIFY: re-run E1 CDS engine (allergy + dose + drug-drug) at the pharmacist checkpoint ---
+// Active meds are derived SERVER-SIDE (getPatientActiveMeds) — never trusted from the client (E1 CRITICAL-2 lesson).
+app.put('/api/pharmacy/queue/:id/verify', requireAuth, requireRole('pharmacy'), requireTenantScope, async (req, res) => {
+    try {
+        const { override_reason } = req.body;
+        const { tenantId } = getRequestTenantContext(req);
+        // IDOR + tenant: the queue item must belong to this tenant.
+        const rx = (await pool.query(
+            'SELECT * FROM pharmacy_prescriptions_queue WHERE id=$1 AND tenant_id=$2', [req.params.id, tenantId])).rows[0];
+        if (!rx) return res.status(404).json({ error: 'Queue item not found' });
+        if (String(rx.status) === 'Dispensed') return res.status(409).json({ error: 'Already dispensed' });
+
+        // patient allergies (tenant-scoped)
+        let allergies = null;
+        if (rx.patient_id) {
+            const p = (await pool.query('SELECT allergies FROM patients WHERE id=$1 AND tenant_id=$2', [rx.patient_id, tenantId])).rows[0];
+            allergies = p ? p.allergies : null;
+        }
+        // E1 CDS re-check (REUSED engine). FAIL-SAFE on engine/data errors -> warning, never silent pass.
+        let alerts = [];
+        try {
+            alerts = alerts
+                .concat(cds.checkDrugAllergy(rx.medication_name, allergies))
+                .concat(cds.checkDoseRange(rx.medication_name, rx.dosage, null));
+        } catch (e) {
+            alerts.push({ rule: 'dose', severity: 'warning', message: 'CDS unavailable — verify manually',
+                message_en: 'CDS unavailable — verify manually', message_ar: 'تعذّر تشغيل CDS — تأكد يدوياً', overridable: true, fail_safe: true });
+        }
+        if (rx.patient_id && rx.medication_name) {
+            try {
+                const activeMeds = await getPatientActiveMeds(rx.patient_id, tenantId);
+                // exclude THIS queue item's own drug from the active list so it is not compared to itself
+                const others = activeMeds.filter(m => String(m).trim().toLowerCase() !== String(rx.medication_name).trim().toLowerCase());
+                alerts = alerts.concat(cds.checkDrugDrugInteraction([rx.medication_name].concat(others)));
+            } catch (e) {
+                alerts.push({ rule: 'drug-drug', severity: 'warning',
+                    message: 'Active medications unavailable — interaction check inconclusive',
+                    message_en: 'Active medications unavailable — interaction check inconclusive',
+                    message_ar: 'تعذّر جلب الأدوية الفعالة — فحص التداخل غير حاسم', overridable: true, subjects: [], fail_safe: true });
+            }
+        }
+        const decision = cds.decide(alerts, override_reason);
+        if (!decision.allow) {
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'CDS_BLOCK', 'Pharmacy',
+                `Pharmacist verify blocked queue #${req.params.id} (${rx.medication_name}): ${alerts.filter(a => a.severity === 'critical').map(a => a.message_en || a.message).join('; ').slice(0, 200)}`, req.ip);
+            return res.status(422).json({ error: 'CDS hard-stop', blocked: true, requires_override_reason: true, alerts });
+        }
+        const criticals = alerts.filter(a => a.severity === 'critical');
+        if (criticals.length > 0 && decision.reason) {
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'CDS_OVERRIDE', 'Pharmacy',
+                `Pharmacist override (CRITICAL) verify queue #${req.params.id} (${rx.medication_name}). Reason: ${String(decision.reason).slice(0, 160)}. Alerts: ${criticals.map(a => a.message_en || a.message).join('; ').slice(0, 200)}`, req.ip);
+        }
+        await pool.query(
+            "UPDATE pharmacy_prescriptions_queue SET status='Verified', verified_by=$1, verified_at=CURRENT_TIMESTAMP WHERE id=$2 AND tenant_id=$3",
+            [req.session.user?.id || 0, req.params.id, tenantId]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'PHARMACY_VERIFY', 'Pharmacy',
+            `Verified queue #${req.params.id} (${rx.medication_name})`, req.ip);
+        res.json({ success: true, status: 'Verified', alerts });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// --- POST FEFO DISPENSE (by barcode or drug_id): single transaction, decrements earliest non-expired batch first ---
+// Requires the queue item to be 'Verified'. Controlled drugs require a witness (fail-closed).
+app.post('/api/pharmacy/dispense', requireAuth, requireRole('pharmacy'), requireTenantScope, async (req, res) => {
+    try {
+        const { prescription_id, barcode, drug_id: bodyDrugId, quantity, witness_user_id, price, payment_method } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        const qty = parseInt(quantity, 10) || 0;
+        if (qty <= 0) return res.status(400).json({ error: 'quantity must be > 0' });
+
+        // 1) Resolve + tenant-check the queue item; it MUST be Verified before any stock moves.
+        const rx = (await pool.query(
+            'SELECT * FROM pharmacy_prescriptions_queue WHERE id=$1 AND tenant_id=$2', [prescription_id, tenantId])).rows[0];
+        if (!rx) return res.status(404).json({ error: 'Queue item not found' });
+        if (String(rx.status) === 'Dispensed') return res.status(409).json({ error: 'Already dispensed' });
+        if (String(rx.status) !== 'Verified') return res.status(409).json({ error: 'Prescription must be Verified before dispensing' });
+
+        // 2) Resolve the drug (by barcode or drug_id), tenant-scoped (IDOR + RLS).
+        let drug;
+        if (barcode) {
+            drug = (await pool.query('SELECT * FROM pharmacy_drug_catalog WHERE barcode=$1 AND tenant_id=$2', [barcode, tenantId])).rows[0];
+        } else if (bodyDrugId) {
+            drug = (await pool.query('SELECT * FROM pharmacy_drug_catalog WHERE id=$1 AND tenant_id=$2', [bodyDrugId, tenantId])).rows[0];
+        }
+        if (!drug) return res.status(404).json({ error: 'Drug not found' });
+
+        // 3) Controlled fail-closed: a controlled/high-alert drug CANNOT be dispensed without a witness.
+        const isControlled = !!(drug.is_controlled && Number(drug.is_controlled) > 0);
+        if (isControlled && !witness_user_id) {
+            return res.status(422).json({ error: 'Controlled drug requires a second witness', requires_witness: true });
+        }
+        if (isControlled && witness_user_id && String(witness_user_id) === String(req.session.user?.id)) {
+            return res.status(422).json({ error: 'Witness must be a different user', requires_witness: true });
+        }
+
+        // 4) Transactional FEFO decrement + dispense ledger (+ controlled double-log) + invoice.
+        const result = await withPharmacyTx(tenantId, async (client) => {
+            // FEFO: earliest NON-EXPIRED batch first; lock rows to avoid concurrent over-dispense.
+            const batches = (await client.query(
+                `SELECT * FROM drug_batches
+                 WHERE tenant_id=$1 AND drug_id=$2 AND qty_on_hand > 0 AND expiry_date >= CURRENT_DATE
+                 ORDER BY expiry_date ASC, id ASC
+                 FOR UPDATE`,
+                [tenantId, drug.id])).rows;
+            const totalAvailable = batches.reduce((s, b) => s + (parseInt(b.qty_on_hand, 10) || 0), 0);
+            if (totalAvailable < qty) {
+                return { conflict: true, available: totalAvailable };
+            }
+            // I2: controlled-register balance must come from the AUTHORITATIVE batch sum
+            // (SUM(drug_batches.qty_on_hand)), not the denormalized catalog stock_qty. Computed
+            // here under the FOR UPDATE lock, tenant-scoped, so it is consistent within the tx.
+            const balanceBefore = parseInt((await client.query(
+                'SELECT COALESCE(SUM(qty_on_hand),0) AS bal FROM drug_batches WHERE tenant_id=$1 AND drug_id=$2',
+                [tenantId, drug.id])).rows[0].bal, 10) || 0;
+            const balanceAfter = balanceBefore - qty;
+            let remaining = qty;
+            const consumed = [];
+            for (const b of batches) {
+                if (remaining <= 0) break;
+                const take = Math.min(remaining, parseInt(b.qty_on_hand, 10) || 0);
+                const newQty = (parseInt(b.qty_on_hand, 10) || 0) - take;
+                await client.query('UPDATE drug_batches SET qty_on_hand=$1 WHERE id=$2 AND tenant_id=$3', [newQty, b.id, tenantId]);
+                consumed.push({ batch_id: b.id, lot: b.lot, expiry_date: b.expiry_date, qty: take });
+                remaining -= take;
+            }
+            // keep the catalog cached stock_qty in sync (derived sum) + write the raw stock movement log.
+            const prevCatalog = parseInt(drug.stock_qty, 10) || 0;
+            const newCatalog = Math.max(0, prevCatalog - qty);
+            await client.query('UPDATE pharmacy_drug_catalog SET stock_qty=$1 WHERE id=$2 AND tenant_id=$3', [newCatalog, drug.id, tenantId]);
+            await client.query(
+                'INSERT INTO pharmacy_stock_log (drug_id, drug_name, movement_type, quantity, previous_qty, new_qty, reason, patient_id, prescription_id, performed_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',
+                [drug.id, drug.drug_name, 'OUT', qty, prevCatalog, newCatalog, 'Dispensed (FEFO)', rx.patient_id, prescription_id, req.session.user?.display_name || '']);
+
+            // dispense ledger line (one per FEFO batch consumed)
+            const dispenseIds = [];
+            for (const c of consumed) {
+                const d = await client.query(
+                    `INSERT INTO pharmacy_dispense (tenant_id, branch_id, prescription_id, patient_id, drug_id, drug_batch_id, drug_name, qty, verified_by, verified_at, dispensed_by, status)
+                     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'Dispensed') RETURNING id`,
+                    [tenantId, facilityId || null, prescription_id, rx.patient_id, drug.id, c.batch_id, drug.drug_name, c.qty, rx.verified_by || null, rx.verified_at || null, req.session.user?.id || 0]);
+                dispenseIds.push(d.rows[0].id);
+            }
+
+            // controlled double-entry register (fail-closed witness already enforced above)
+            if (isControlled) {
+                await client.query(
+                    `INSERT INTO controlled_drug_log (tenant_id, branch_id, drug_id, drug_name, drug_batch_id, dispense_id, prescription_id, patient_id, qty, balance_before, balance_after, schedule_class, dispensed_by, witnessed_by)
+                     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+                    [tenantId, facilityId || null, drug.id, drug.drug_name, consumed[0] ? consumed[0].batch_id : null, dispenseIds[0] || null,
+                     prescription_id, rx.patient_id, qty, balanceBefore, balanceAfter, drug.schedule_class || 'controlled', req.session.user?.id || 0, witness_user_id]);
+            }
+
+            // mark the queue item Dispensed
+            await client.query(
+                "UPDATE pharmacy_prescriptions_queue SET status='Dispensed', dispensed_by=$1, dispensed_at=CURRENT_TIMESTAMP, price=$2, payment_method=$3 WHERE id=$4 AND tenant_id=$5",
+                [req.session.user?.display_name || '', price || 0, payment_method || 'Cash', prescription_id, tenantId]);
+
+            // invoice (VAT) when priced — mirror the legacy dispense path
+            if (price && price > 0 && rx.patient_id) {
+                const patient = (await client.query('SELECT name_ar, name_en FROM patients WHERE id=$1 AND tenant_id=$2', [rx.patient_id, tenantId])).rows[0];
+                const vat = await calcVAT(rx.patient_id);
+                const { total: finalTotal, vatAmount } = addVAT(price, vat.rate);
+                await client.query(
+                    `INSERT INTO invoices (patient_id, patient_name, total, amount, vat_amount, description, service_type, paid, payment_method, tenant_id, facility_id)
+                     VALUES ($1,$2,$3,$4,$5,$6,'Pharmacy',1,$7,$8,$9)`,
+                    [rx.patient_id, patient?.name_ar || patient?.name_en || '', finalTotal, price, vatAmount,
+                     `Pharmacy: ${rx.prescription_text || drug.drug_name}`, payment_method || 'Cash', tenantId, facilityId || null]);
+            }
+
+            // near-expiry / low-stock notifications (best-effort, inside tx)
+            if (newCatalog <= (drug.min_qty || drug.min_stock_level || 10)) {
+                await client.query('INSERT INTO notifications (target_role, title, message, type, module) VALUES ($1,$2,$3,$4,$5)',
+                    ['Pharmacist', 'Low Stock Alert', `${drug.drug_name} stock: ${newCatalog}`, 'warning', 'Pharmacy']);
+            }
+            return { consumed, dispenseIds, new_stock: newCatalog, isControlled };
+        });
+
+        if (result && result.conflict) {
+            return res.status(409).json({ error: 'Insufficient stock', available: result.available });
+        }
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'DISPENSE_FEFO', 'Pharmacy',
+            `FEFO dispense queue #${prescription_id} ${drug.drug_name} qty:${qty} batches:${result.consumed.map(c => c.lot || c.batch_id).join(',')}`, req.ip);
+        if (result.isControlled) {
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'CONTROLLED_DISPENSE', 'Pharmacy',
+                `Controlled dispense ${drug.drug_name} qty:${qty} witness:#${witness_user_id} (double-logged)`, req.ip);
+            logAudit(witness_user_id, '(witness)', 'CONTROLLED_WITNESS', 'Pharmacy',
+                `Witnessed controlled dispense ${drug.drug_name} qty:${qty} dispenser:#${req.session.user?.id}`, req.ip);
+        }
+        res.json({ success: true, dispensed: qty, batches: result.consumed, new_stock: result.new_stock });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// --- Wasfaty / NPHIES coverage stub (gated; NO external call) ---
+// Behind WASFATY_ENABLED. Records coverage INTENT only — never opens a real connection.
+app.post('/api/pharmacy/wasfaty/dispense-intent', requireAuth, requireRole('pharmacy'), requireTenantScope, async (req, res) => {
+    if (String(process.env.WASFATY_ENABLED || '').toLowerCase() !== 'true') {
+        return res.status(503).json({ error: 'Wasfaty/NPHIES integration disabled', enabled: false });
+    }
+    try {
+        const { prescription_id } = req.body;
+        const { tenantId } = getRequestTenantContext(req);
+        // stub: verify the rx belongs to this tenant, then record intent. No external network I/O.
+        const rx = (await pool.query('SELECT id FROM pharmacy_prescriptions_queue WHERE id=$1 AND tenant_id=$2', [prescription_id, tenantId])).rows[0];
+        if (!rx) return res.status(404).json({ error: 'Queue item not found' });
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'WASFATY_INTENT', 'Pharmacy',
+            `Recorded Wasfaty coverage intent for queue #${prescription_id} (stub, no external call)`, req.ip);
+        res.json({ success: true, recorded: true, external_call: false, note: 'stub — coverage intent recorded only' });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -6498,16 +6765,20 @@ app.post('/api/pharmacy/deduct-stock', requireAuth, requireTenantScope, async (r
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-// ===== DRUG EXPIRY ALERTS =====
-app.get('/api/pharmacy/expiring', requireAuth, requireTenantScope, async (req, res) => {
+// ===== DRUG EXPIRY ALERTS (E5: FEFO-accurate, repointed to drug_batches DATE per lot) =====
+app.get('/api/pharmacy/expiring', requireAuth, requireRole('pharmacy'), requireTenantScope, async (req, res) => {
     try {
-        const days = parseInt(req.query.days) || 90;
+        const days = Math.max(1, parseInt(req.query.days, 10) || 90);
         const { tenantId } = getRequestTenantContext(req);
-        const query = tenantId ?
-            "SELECT * FROM pharmacy_drug_catalog WHERE is_active=1 AND tenant_id=$2 AND expiry_date IS NOT NULL AND expiry_date != '' AND expiry_date <= (CURRENT_DATE + INTERVAL '1 day' * $1)::text ORDER BY expiry_date ASC" :
-            "SELECT * FROM pharmacy_drug_catalog WHERE is_active=1 AND expiry_date IS NOT NULL AND expiry_date != '' AND expiry_date <= (CURRENT_DATE + INTERVAL '1 day' * $1)::text ORDER BY expiry_date ASC";
-        const params = tenantId ? [days, tenantId] : [days];
-        const expiring = (await pool.query(query, params)).rows;
+        // Explicit tenant_id predicate (defense-in-depth) + FORCE RLS. Per-lot DATE expiry; only
+        // batches with stock on hand. Flags already-expired vs near-expiry windows.
+        const query =
+            `SELECT b.*, (b.expiry_date < CURRENT_DATE) AS is_expired
+             FROM drug_batches b
+             WHERE b.tenant_id=$1 AND b.qty_on_hand > 0
+               AND b.expiry_date <= (CURRENT_DATE + ($2::int * INTERVAL '1 day'))
+             ORDER BY b.expiry_date ASC`;
+        const expiring = (await pool.query(query, [tenantId, days])).rows;
         res.json(expiring);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });

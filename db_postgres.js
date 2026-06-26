@@ -1275,13 +1275,15 @@ CREATE TABLE IF NOT EXISTS clinical_pharmacy_reviews (
     outcome TEXT DEFAULT 'Pending',
     severity TEXT DEFAULT 'Low',
     status TEXT DEFAULT 'Open',
+    tenant_id INTEGER, branch_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS drug_interactions (
     id SERIAL PRIMARY KEY,
     drug_a TEXT DEFAULT '', drug_b TEXT DEFAULT '',
     interaction_type TEXT DEFAULT '', severity TEXT DEFAULT 'Moderate',
-    description TEXT DEFAULT '', clinical_action TEXT DEFAULT ''
+    description TEXT DEFAULT '', clinical_action TEXT DEFAULT '',
+    tenant_id INTEGER, branch_id INTEGER
 );
 CREATE TABLE IF NOT EXISTS patient_drug_education (
     id SERIAL PRIMARY KEY,
@@ -1289,6 +1291,7 @@ CREATE TABLE IF NOT EXISTS patient_drug_education (
     medication TEXT DEFAULT '', instructions TEXT DEFAULT '',
     side_effects TEXT DEFAULT '', precautions TEXT DEFAULT '',
     educated_by TEXT DEFAULT '',
+    tenant_id INTEGER, branch_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
         `);
