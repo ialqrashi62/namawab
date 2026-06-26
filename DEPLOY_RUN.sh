@@ -25,22 +25,93 @@ run() { echo ">>> $1"; $PSQL -f "$1"; }
 val() { echo "--- validate: $1"; $PSQL -f "$1"; }
 
 # ---- PREFLIGHT SAFETY GATE (tenant-aware backfill protection) ----
-# Several _up scripts backfill tenant_id=1 for legacy NULL rows. That is only safe
-# on a SINGLE-tenant database. Abort if the live DB has >1 tenant unless the
-# operator explicitly confirms they have reviewed/edited the backfills.
+# Several _up scripts backfill `UPDATE <t> SET tenant_id=1 WHERE tenant_id IS NULL`.
+# That dev backfill is only safe when it mis-assigns NOTHING. On a MULTI-tenant DB it
+# would wrongly stamp legacy NULL rows to tenant 1. Old behaviour aborted on tenants>1
+# unless CONFIRM_MULTITENANT=1 (a blanket bypass). New behaviour: on multi-tenant we
+# PROVE the backfill is a NO-OP (zero null/unmapped rows in every backfill target) and
+# only then proceed. The audit runs as the (privileged) deploy role which bypasses RLS,
+# so the counts are TRUE. If ANY unsafe rows exist we abort and require a manual mapping.
+# CONFIRM_MULTITENANT=1 is kept ONLY as an explicit owner override for the post-mapping
+# case (it is NOT needed, and NOT the default path, when the backfill is a proven no-op).
 echo "=== PREFLIGHT ==="
 TENANTS=$($PSQL -tA -c "select count(*) from tenants" 2>/dev/null || echo "ERR")
 echo "tenant rows: ${TENANTS}"
 if [ "${TENANTS}" = "ERR" ]; then
   echo "!! Could not read tenants table — check connection/role privileges. Aborting."; exit 1
 fi
-if [ "${TENANTS}" -gt 1 ] && [ "${CONFIRM_MULTITENANT:-0}" != "1" ]; then
-  echo "!! MULTI-TENANT DB DETECTED (${TENANTS} tenants). The tenant_id=1 backfills in the _up"
-  echo "!! scripts would mis-assign legacy NULL rows. Review/edit those backfills FIRST, then"
-  echo "!! re-run with:  CONFIRM_MULTITENANT=1 bash DEPLOY_RUN.sh"
-  exit 1
+
+# The 30 backfill-target tables (every table that has a `tenant_id=1 WHERE tenant_id IS NULL`
+# backfill across the E-X/E0..E18 _up scripts). Keep in sync with those migrations.
+BACKFILL_TABLES_SQL="VALUES
+   ('admission_daily_rounds'),('admissions'),('bed_transfers'),('beds'),
+   ('blood_bank_crossmatch'),('blood_bank_donors'),('blood_bank_transfusions'),('blood_bank_units'),
+   ('cssd_instrument_sets'),('cssd_load_items'),('cssd_sterilization_cycles'),('daily_close'),
+   ('emergency_beds'),('emergency_trauma_assessments'),('emergency_visits'),('finance_chart_of_accounts'),
+   ('finance_cost_centers'),('finance_journal_entries'),('finance_journal_lines'),('icu_fluid_balance'),
+   ('icu_monitoring'),('icu_scores'),('icu_ventilator'),('insurance_claims'),
+   ('insurance_companies'),('insurance_contracts'),('insurance_policies'),('inventory_items'),
+   ('wards'),('zatca_invoices')"
+
+# Builds a CTE that, per target table, computes total_rows, null_tenant_rows, and whether
+# the tenant_id column is missing while rows exist (also unsafe — ADD COLUMN would create
+# NULLs that the backfill then stamps). $1 = trailing projection/filter.
+mk_audit_sql() {
+  cat <<AUDIT
+WITH x(t) AS ( ${BACKFILL_TABLES_SQL} ),
+meta AS (
+  SELECT x.t,
+    to_regclass('public.'||x.t) IS NOT NULL AS tbl_exists,
+    EXISTS(SELECT 1 FROM information_schema.columns c
+           WHERE c.table_schema='public' AND c.table_name=x.t AND c.column_name='tenant_id') AS has_tid
+  FROM x),
+cnt AS (
+  SELECT m.t, m.tbl_exists, m.has_tid,
+    CASE WHEN m.tbl_exists
+      THEN (xpath('/row/c/text()', query_to_xml(format('SELECT count(*) c FROM %I', m.t), false, true, '')))[1]::text::bigint
+      ELSE 0 END AS total_rows,
+    CASE WHEN m.tbl_exists AND m.has_tid
+      THEN (xpath('/row/c/text()', query_to_xml(format('SELECT count(*) c FROM %I WHERE tenant_id IS NULL', m.t), false, true, '')))[1]::text::bigint
+      ELSE 0 END AS null_tid
+  FROM meta m)
+$1
+AUDIT
+}
+
+if [ "${TENANTS}" -gt 1 ]; then
+  echo "-- multi-tenant DB (${TENANTS} tenants): proving tenant_id backfills are a NO-OP before proceeding."
+  echo "-- unsafe backfill targets (table|total_rows|null_tenant_rows|reason); empty list = all no-op:"
+  $PSQL -tA -c "$(mk_audit_sql "SELECT t||'|'||total_rows||'|'||null_tid||'|'||
+        (CASE WHEN tbl_exists AND NOT has_tid AND total_rows>0 THEN 'MISSING_TENANT_ID_COL_WITH_ROWS'
+              WHEN null_tid>0 THEN 'NULL_TENANT_ROWS' ELSE 'noop' END)
+   FROM cnt
+   WHERE (null_tid>0) OR (tbl_exists AND NOT has_tid AND total_rows>0)
+   ORDER BY t;")"
+  UNSAFE=$($PSQL -tA -c "$(mk_audit_sql "SELECT COALESCE(SUM(null_tid),0)
+        + COALESCE(SUM(CASE WHEN tbl_exists AND NOT has_tid AND total_rows>0 THEN total_rows ELSE 0 END),0)
+   FROM cnt;")" 2>/dev/null || echo "ERR")
+  echo "unsafe (null-tenant or missing-column-with-rows) backfill rows: ${UNSAFE}"
+  if [ "${UNSAFE}" = "ERR" ] || [ -z "${UNSAFE}" ]; then
+    echo "!! Could not compute the null-tenant audit — aborting for safety."; exit 1
+  fi
+  if [ "${UNSAFE}" != "0" ]; then
+    if [ "${CONFIRM_MULTITENANT:-0}" = "1" ]; then
+      echo "!! ${UNSAFE} unsafe backfill rows present, but CONFIRM_MULTITENANT=1 — owner asserts a"
+      echo "!! manual tenant mapping has been applied to the _up backfills. Proceeding on override."
+    else
+      echo "!! MULTI-TENANT DB with ${UNSAFE} legacy NULL/unmapped tenant rows in backfill targets."
+      echo "!! The tenant_id=1 backfills would MIS-ASSIGN these rows across tenants. Provide a manual"
+      echo "!! tenant mapping and edit the _up backfills FIRST. Aborting (no blanket bypass)."
+      exit 1
+    fi
+  else
+    echo "decision: multi-tenant BUT all backfill targets have 0 null/unmapped rows => backfills are a"
+    echo "decision: proven NO-OP => SAFE to proceed (no CONFIRM_MULTITENANT bypass required)."
+  fi
+else
+  echo "single-tenant DB => tenant_id backfills are safe."
 fi
-echo "preflight OK (single-tenant or explicitly confirmed). proceeding."
+echo "preflight OK. proceeding."
 echo ""
 
 echo "=== E-X foundational ==="
