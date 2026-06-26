@@ -15,6 +15,9 @@ const { populateMedicalServices, populateBaseDrugs } = require('./seed_services_
 const { addExtraLabTests, addExtraRadiology } = require('./seed_extra_catalog');
 const { mountOrderRoutes } = require('./orders');           // E-X1 unified orders (additive)
 const { makeRequirePermission } = require('./rbac');        // E-X3 RBAC matrix middleware (additive)
+// E1 Doctor Station (additive): pure CDS engine + clinical routes (problems/SOAP/CPOE).
+const cds = require('./cds');
+const { mountClinicalRoutes } = require('./clinical_cpoe');
 
 // Multer setup for radiology image uploads — A3A: PHI vault OUTSIDE public webroot (no static/direct access)
 const uploadsDir = path.join(__dirname, 'phi_vault', 'radiology');
@@ -5043,14 +5046,98 @@ async function startServer() {
 }
 
 // ===== PHARMACY & PRESCRIPTIONS =====
+// CRITICAL-1 helper: derive the patient's CURRENT active medications from AUTHORITATIVE server-side
+// sources (never the client body), scoped to patient + tenant. Sources:
+//   1) pharmacy_prescriptions_queue rows not yet dispensed/cancelled (medication_name).
+//   2) active/pending med-type orders (orders.type='med' -> order_items.catalog_ref) via the E-X tables.
+// Returns a de-duplicated array of drug-name strings. RLS also enforces tenant isolation; the explicit
+// tenant_id predicate is defense-in-depth. Caller treats a thrown error as FAIL-SAFE (warns, never skips).
+async function getPatientActiveMeds(patientId, tenantId) {
+    const meds = [];
+    // 1) Pharmacy queue (not dispensed / cancelled)
+    const qSql = tenantId
+        ? "SELECT medication_name FROM pharmacy_prescriptions_queue WHERE patient_id=$1 AND tenant_id=$2 AND COALESCE(status,'') NOT IN ('Dispensed','Cancelled','Rejected')"
+        : "SELECT medication_name FROM pharmacy_prescriptions_queue WHERE patient_id=$1 AND COALESCE(status,'') NOT IN ('Dispensed','Cancelled','Rejected')";
+    const qParams = tenantId ? [patientId, tenantId] : [patientId];
+    for (const r of (await pool.query(qSql, qParams)).rows) {
+        if (r.medication_name) meds.push(String(r.medication_name));
+    }
+    // 2) Active/pending med-type orders (E-X orders/order_items). Best-effort: a missing orders table
+    //    must not break the gate — but a real query error propagates so the caller fails SAFE (warns).
+    try {
+        const oSql = tenantId
+            ? "SELECT oi.catalog_ref FROM order_items oi JOIN orders o ON oi.order_id=o.id WHERE o.patient_id=$1 AND o.tenant_id=$2 AND o.type='med' AND o.status IN ('pending','active')"
+            : "SELECT oi.catalog_ref FROM order_items oi JOIN orders o ON oi.order_id=o.id WHERE o.patient_id=$1 AND o.type='med' AND o.status IN ('pending','active')";
+        const oParams = tenantId ? [patientId, tenantId] : [patientId];
+        for (const r of (await pool.query(oSql, oParams)).rows) {
+            if (r.catalog_ref) meds.push(String(r.catalog_ref));
+        }
+    } catch (e) {
+        // orders table may be absent in some deployments; the queue source above still applies.
+        // Do NOT swallow into a silent pass at the caller — but a missing-relation here is tolerated.
+        if (!/relation .* does not exist/i.test(e.message || '')) throw e;
+    }
+    // de-duplicate (case-insensitive)
+    const seen = new Set();
+    return meds.filter(m => { const k = m.trim().toLowerCase(); if (!k || seen.has(k)) return false; seen.add(k); return true; });
+}
+
 // Doctor sends prescription → Pharmacy queue
 app.post('/api/prescriptions', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        const { patient_id, medication_name, dosage, quantity_per_day, frequency, duration } = req.body;
+        const { patient_id, medication_name, dosage, quantity_per_day, frequency, duration, override_reason } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
+        let prescribedPatient = null;
         if (tenantId && patient_id) {
-            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            const patientCheck = (await pool.query('SELECT id, allergies FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
             if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
+            prescribedPatient = patientCheck;
+        } else if (patient_id) {
+            prescribedPatient = (await pool.query('SELECT id, allergies FROM patients WHERE id=$1', [patient_id])).rows[0] || null;
+        }
+
+        // E1 CDS GATE (clinical safety, FAIL-SAFE): allergy + dose + DRUG-DRUG INTERACTION checks
+        // BEFORE writing. A CRITICAL alert HARD-STOPS with 422 unless override_reason is provided
+        // (then the override is AUDITED). This ENHANCES (does not replace) the client
+        // checkAllergyBeforePrescribe/checkDrugInteractions.
+        let rxCdsAlerts = [];
+        try {
+            rxCdsAlerts = rxCdsAlerts
+                .concat(cds.checkDrugAllergy(medication_name, prescribedPatient ? prescribedPatient.allergies : null))
+                .concat(cds.checkDoseRange(medication_name, dosage, null));
+        } catch (e) {
+            // FAIL-SAFE: if the engine itself errors, surface a warning rather than silently passing.
+            rxCdsAlerts.push({ rule: 'dose', severity: 'warning', message: 'CDS unavailable — verify manually',
+                message_en: 'CDS unavailable — verify manually', message_ar: 'تعذّر تشغيل CDS — تأكد يدوياً', overridable: true, fail_safe: true });
+        }
+        // CRITICAL-1: server-side DRUG-DRUG interaction. The patient's CURRENT active medications are
+        // queried SERVER-SIDE (never trusted from the client) from the pharmacy prescriptions queue
+        // (not yet dispensed/cancelled) + active med-type orders, scoped to this patient + tenant.
+        // The new drug is checked against that authoritative list. FAIL-SAFE: if the active-med
+        // lookup fails we surface a warning (never silently skip the interaction check).
+        if (patient_id && medication_name) {
+            try {
+                const activeMeds = await getPatientActiveMeds(patient_id, tenantId);
+                const ddAlerts = cds.checkDrugDrugInteraction([medication_name].concat(activeMeds));
+                rxCdsAlerts = rxCdsAlerts.concat(ddAlerts);
+            } catch (e) {
+                // FAIL-SAFE: cannot enumerate current meds => interaction check inconclusive => warn.
+                rxCdsAlerts.push({ rule: 'drug-drug', severity: 'warning',
+                    message: 'Active medications unavailable — interaction check inconclusive',
+                    message_en: 'Active medications unavailable — interaction check inconclusive',
+                    message_ar: 'تعذّر جلب الأدوية الفعالة — فحص التداخل غير حاسم', overridable: true, subjects: [], fail_safe: true });
+            }
+        }
+        const rxDecision = cds.decide(rxCdsAlerts, override_reason);
+        if (!rxDecision.allow) {
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'CDS_BLOCK', 'Pharmacy',
+                `Blocked prescription for patient #${patient_id} (${medication_name}): ${rxCdsAlerts.filter(a => a.severity === 'critical').map(a => a.message_en || a.message).join('; ').slice(0, 200)}`, req.ip);
+            return res.status(422).json({ error: 'CDS hard-stop', blocked: true, requires_override_reason: true, alerts: rxCdsAlerts });
+        }
+        const rxCriticals = rxCdsAlerts.filter(a => a.severity === 'critical');
+        if (rxCriticals.length > 0 && rxDecision.reason) {
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'CDS_OVERRIDE', 'Pharmacy',
+                `Override (CRITICAL) prescription patient #${patient_id} (${medication_name}). Reason: ${String(rxDecision.reason).slice(0, 160)}. Alerts: ${rxCriticals.map(a => a.message_en || a.message).join('; ').slice(0, 200)}`, req.ip);
         }
         const rxText = `${medication_name || ''} | ${dosage || ''}${quantity_per_day && quantity_per_day !== '1' ? ' (×' + quantity_per_day + ')' : ''} | ${frequency || ''} | ${duration || ''}`;
         // pharmacy_prescriptions_queue columns provisioned out-of-band (route_level_ddl_batch_c); no DDL in handler
@@ -6325,6 +6412,40 @@ app.post('/api/drug-interactions/check', requireAuth, async (req, res) => {
             }
         }
 
+        // E1 ENHANCE (additive, tenant-aware): also consult the DB-driven drug_interactions table so
+        // tenant-curated pairs are honored alongside the built-in matrix. Failure here NEVER drops the
+        // built-in results (FAIL-SAFE: a DB error must not silently weaken the interaction check).
+        try {
+            const { tenantId } = getRequestTenantContext(req);
+            const dbRows = (await pool.query(
+                tenantId
+                    ? 'SELECT drug_a, drug_b, severity, description, clinical_action FROM drug_interactions WHERE tenant_id=$1'
+                    : 'SELECT drug_a, drug_b, severity, description, clinical_action FROM drug_interactions',
+                tenantId ? [tenantId] : []
+            )).rows;
+            for (const row of dbRows) {
+                const a = (row.drug_a || '').toLowerCase(), b = (row.drug_b || '').toLowerCase();
+                if (!a || !b) continue;
+                const hasA = drugNamesLower.some(dn => dn.includes(a) || a.includes(dn));
+                const hasB = drugNamesLower.some(dn => dn.includes(b) || b.includes(dn));
+                if (hasA && hasB) {
+                    const already = found.some(f => {
+                        const [f1, f2] = f.drugs.map(d => d.toLowerCase());
+                        return (f1.includes(a) || a.includes(f1)) && (f2.includes(b) || b.includes(f2));
+                    });
+                    if (!already) {
+                        found.push({
+                            drugs: [row.drug_a, row.drug_b],
+                            // map via the shared cds engine so DB severities follow the same info|warning|critical contract
+                            severity: cds.mapSeverity(row.severity),
+                            message_ar: row.description || 'تعارض دوائي مسجل', message_en: row.description || 'Recorded interaction',
+                            clinical_action: row.clinical_action || '', source: 'db',
+                        });
+                    }
+                }
+            }
+        } catch (e) { /* FAIL-SAFE: DB augmentation optional; built-in matrix results stand */ }
+
         res.json({ interactions: found, total_checked: INTERACTIONS.length });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -6335,7 +6456,12 @@ app.post('/api/allergy-check', requireAuth, async (req, res) => {
         const { patient_id, drugs } = req.body;
         if (!patient_id || !drugs) return res.json({ alerts: [] });
 
-        const patient = (await pool.query('SELECT allergies FROM patients WHERE id=$1', [patient_id])).rows[0];
+        // E1 ENHANCE: scope the patient lookup by tenant when context is present (defense-in-depth;
+        // RLS also enforces isolation). Behavior unchanged when no tenant context (dev/test).
+        const { tenantId } = getRequestTenantContext(req);
+        const patient = (await pool.query(
+            tenantId ? 'SELECT allergies FROM patients WHERE id=$1 AND tenant_id=$2' : 'SELECT allergies FROM patients WHERE id=$1',
+            tenantId ? [patient_id, tenantId] : [patient_id])).rows[0];
         if (!patient || !patient.allergies) return res.json({ alerts: [] });
 
         const allergyGroups = {
@@ -7292,6 +7418,21 @@ if (process.env.NODE_ENV !== 'production') {
     })();
 }
 
+
+// ===== E1 DOCTOR STATION ROUTES (additive; mounted BEFORE the SPA catch-all) =====
+// Problem List + SOAP clinical notes + CDS-gated CPOE (orders via the E-X unified `orders` table).
+// requirePermission (rbac.js / E-X2) is optional and not present on main yet -> guards fall back to
+// requireAuth + requireTenantScope + requireRole('doctor'). cds is the pure FAIL-SAFE engine.
+mountClinicalRoutes(app, {
+    pool,
+    requireAuth,
+    requireTenantScope,
+    getRequestTenantContext,
+    logAudit,
+    requireRole,
+    requirePermission: (typeof requirePermission === 'function' ? requirePermission : undefined),
+    cds,
+});
 
 // ===== SPA CATCH-ALL (must be LAST route) =====
 app.get('*', (req, res) => {
