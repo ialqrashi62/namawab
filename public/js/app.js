@@ -622,7 +622,7 @@ async function renderOBGYN(el) {
       let html = '<table class="data-table"><thead><tr><th>' + tr('Patient', 'المريضة') + '</th><th>GPAL</th><th>' + tr('EDD', 'تاريخ الولادة المتوقع') + '</th><th>' + tr('Risk', 'الخطورة') + '</th><th>' + tr('Doctor', 'الطبيب') + '</th><th>' + tr('Actions', 'إجراءات') + '</th></tr></thead><tbody>';
       preg.forEach(p => {
         const riskColor = p.risk_level === 'High' ? '#ef4444' : p.risk_level === 'Medium' ? '#f59e0b' : '#22c55e';
-        html += '<tr><td>' + escapeHTML(p.patient_name) + '</td><td>G' + p.gravida + 'P' + p.para + 'A' + p.abortions + 'L' + p.living_children + '</td><td>' + escapeHTML(p.edd || '-') + '</td><td><span style="color:' + riskColor + ';font-weight:700">' + escapeHTML(p.risk_level) + '</span></td><td>' + escapeHTML(p.attending_doctor || '-') + '</td><td><button class="btn btn-sm" onclick="showAntenatalForm(' + safeId(p.id) + ',' + safeId(p.patient_id) + ')">📋 ' + tr('Antenatal', 'متابعة') + '</button></td></tr>';
+        html += '<tr><td>' + escapeHTML(p.patient_name) + '</td><td>G' + p.gravida + 'P' + p.para + 'A' + p.abortions + 'L' + p.living_children + '</td><td>' + escapeHTML(p.edd || '-') + '</td><td><span style="color:' + riskColor + ';font-weight:700">' + escapeHTML(p.risk_level) + '</span></td><td>' + escapeHTML(p.attending_doctor || '-') + '</td><td><button class="btn btn-sm" onclick="showAntenatalForm(' + safeId(p.id) + ',' + safeId(p.patient_id) + ')">📋 ' + tr('Antenatal', 'متابعة') + '</button> <button class="btn btn-sm" onclick="showPartogramForm(' + safeId(p.id) + ')">📈 ' + tr('Partogram', 'مخطط المخاض') + '</button> <button class="btn btn-sm btn-primary" onclick="showDeliveryForm(' + safeId(p.id) + ')">👶 ' + tr('Delivery', 'الولادة') + '</button></td></tr>';
       });
       html += '</tbody></table>';
       list.innerHTML = html;
@@ -714,6 +714,143 @@ window.saveAntenatal = async (pregId, patientId) => {
     document.querySelector('.modal-overlay')?.remove();
     navigateTo(currentPage);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+// ===== E14: APGAR component selector (server computes the total; client only picks enums) =====
+function apgarComponentSelect(prefix) {
+  // Each component maps to a 0/1/2 enum; the SERVER recomputes the total (anti-spoof).
+  const comp = (id, label, opts) => '<div class="form-group"><label>' + label + '</label><select id="' + id + '" class="form-control">' +
+    '<option value="">--</option>' + opts.map(o => '<option value="' + o[0] + '">' + o[1] + '</option>').join('') + '</select></div>';
+  return comp(prefix + 'Appearance', 'Appearance', [['blue', 'Blue/Pale (0)'], ['acrocyanotic', 'Body pink, extremities blue (1)'], ['pink', 'Completely pink (2)']]) +
+    comp(prefix + 'Pulse', 'Pulse', [['absent', 'Absent (0)'], ['below_100', '<100 (1)'], ['above_100', '>100 (2)']]) +
+    comp(prefix + 'Grimace', 'Grimace', [['no_response', 'No response (0)'], ['grimace', 'Grimace (1)'], ['cry', 'Cry/Cough (2)']]) +
+    comp(prefix + 'Activity', 'Activity', [['limp', 'Limp (0)'], ['some_flexion', 'Some flexion (1)'], ['active', 'Active motion (2)']]) +
+    comp(prefix + 'Respiration', 'Respiration', [['absent', 'Absent (0)'], ['slow', 'Slow/Irregular (1)'], ['good', 'Good/Strong cry (2)']]);
+}
+function readApgarComponents(prefix) {
+  return {
+    appearance: document.getElementById(prefix + 'Appearance').value,
+    pulse: document.getElementById(prefix + 'Pulse').value,
+    grimace: document.getElementById(prefix + 'Grimace').value,
+    activity: document.getElementById(prefix + 'Activity').value,
+    respiration: document.getElementById(prefix + 'Respiration').value
+  };
+}
+
+window.showPartogramForm = async (pregId) => {
+  let rows = '';
+  try {
+    const entries = await API.get('/api/obgyn/partogram/' + pregId);
+    rows = entries.map(e => '<tr><td>' + escapeHTML(String(e.recorded_at || '').replace('T', ' ').slice(0, 16)) + '</td><td>' + e.cervical_dilation + 'cm</td><td>' + e.descent_station + '</td><td>' + e.contractions_per_10min + '/10</td><td>' + e.fetal_heart_rate_baseline + '</td><td>' + escapeHTML(e.alert_flags || '-') + '</td></tr>').join('');
+  } catch (e) { }
+  const html = (rows ? '<table class="data-table" style="margin-bottom:16px"><thead><tr><th>' + tr('Time', 'الوقت') + '</th><th>Dilation</th><th>Station</th><th>Contractions</th><th>FHR</th><th>Flags</th></tr></thead><tbody>' + rows + '</tbody></table>' : '<p style="color:var(--text-muted);margin-bottom:16px">' + tr('No partogram entries', 'لا توجد قياسات') + '</p>') +
+    '<h4 style="margin-bottom:8px">' + tr('New Timepoint', 'قياس جديد') + '</h4><div class="form-grid" style="gap:8px">' +
+    '<div class="form-group"><label>Cervical Dilation (0-10cm)</label><input type="number" id="pgDil" class="form-control" min="0" max="10"></div>' +
+    '<div class="form-group"><label>Effacement %</label><input type="number" id="pgEff" class="form-control"></div>' +
+    '<div class="form-group"><label>Descent Station (-3..+5)</label><input type="number" id="pgStation" class="form-control"></div>' +
+    '<div class="form-group"><label>Contractions /10min</label><input type="number" id="pgContr" class="form-control"></div>' +
+    '<div class="form-group"><label>Contraction Duration (s)</label><input type="number" id="pgDur" class="form-control"></div>' +
+    '<div class="form-group"><label>FHR Baseline</label><input type="number" id="pgFHR" class="form-control" placeholder="110-160"></div>' +
+    '<div class="form-group"><label>Decelerations</label><select id="pgDecel" class="form-control"><option>None</option><option>Early</option><option>Variable</option><option>Late</option></select></div>' +
+    '<div class="form-group"><label>Maternal BP</label><input id="pgBP" class="form-control" placeholder="120/80"></div>' +
+    '</div><div class="form-group" style="margin-top:8px"><label>Notes</label><textarea id="pgNotes" class="form-control" rows="2"></textarea></div>' +
+    '<button class="btn btn-primary" onclick="savePartogram(' + safeId(pregId) + ')" style="margin-top:8px">💾 ' + tr('Record', 'تسجيل') + '</button>';
+  showModal(tr('Partogram', 'مخطط المخاض') + ' #' + safeId(pregId), html);
+};
+window.savePartogram = async (pregId) => {
+  try {
+    await API.post('/api/obgyn/partogram', {
+      pregnancy_id: pregId,
+      cervical_dilation: parseInt(document.getElementById('pgDil').value) || 0,
+      cervical_effacement: parseInt(document.getElementById('pgEff').value) || 0,
+      descent_station: parseInt(document.getElementById('pgStation').value) || 0,
+      contractions_per_10min: parseInt(document.getElementById('pgContr').value) || 0,
+      contraction_duration: parseInt(document.getElementById('pgDur').value) || 0,
+      fetal_heart_rate_baseline: parseInt(document.getElementById('pgFHR').value) || 0,
+      decelerations: document.getElementById('pgDecel').value,
+      maternal_bp: document.getElementById('pgBP').value,
+      notes: document.getElementById('pgNotes').value
+    });
+    showToast(tr('Partogram recorded!', 'تم التسجيل!'));
+    document.querySelector('.modal-overlay')?.remove();
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+window.showDeliveryForm = async (pregId) => {
+  const html = '<div class="form-grid" style="gap:8px">' +
+    '<div class="form-group"><label>' + tr('Delivery Type', 'نوع الولادة') + '</label><select id="delType" class="form-control"><option value="NVD">Vaginal (NVD)</option><option value="Vaginal+Episiotomy">Vaginal + Episiotomy</option><option value="Cesarean">Cesarean</option><option value="VBAC">VBAC</option><option value="Vacuum">Vacuum</option><option value="Forceps">Forceps</option></select></div>' +
+    '<div class="form-group"><label>' + tr('Blood Loss (ml)', 'فقدان الدم') + '</label><input type="number" id="delBlood" class="form-control"></div>' +
+    '<div class="form-group"><label>' + tr('Anesthesia', 'التخدير') + '</label><select id="delAnes" class="form-control"><option>None</option><option>Spinal</option><option>Epidural</option><option>General</option><option>Local</option></select></div>' +
+    '<div class="form-group"><label>' + tr('Perineal Tear', 'تمزق') + '</label><select id="delTear" class="form-control"><option>None</option><option>1st degree</option><option>2nd degree</option><option>3rd degree</option><option>4th degree</option></select></div>' +
+    '<div class="form-group"><label>' + tr('Baby Sex', 'جنس المولود') + '</label><select id="delSex" class="form-control"><option>Male</option><option>Female</option></select></div>' +
+    '<div class="form-group"><label>' + tr('Baby Weight (g)', 'وزن المولود') + '</label><input type="number" id="delWt" class="form-control"></div>' +
+    '</div>' +
+    '<h4 style="margin:12px 0 8px">APGAR @ 1 min <small style="color:var(--text-muted)">(' + tr('total computed server-side', 'الدرجة تُحسب في الخادم') + ')</small></h4>' +
+    '<div class="form-grid" style="gap:8px">' + apgarComponentSelect('d1') + '</div>' +
+    '<h4 style="margin:12px 0 8px">APGAR @ 5 min</h4>' +
+    '<div class="form-grid" style="gap:8px">' + apgarComponentSelect('d5') + '</div>' +
+    '<div class="form-group" style="margin-top:8px"><label>' + tr('Complications', 'مضاعفات') + '</label><textarea id="delComp" class="form-control" rows="2"></textarea></div>' +
+    '<button class="btn btn-primary" onclick="saveDelivery(' + safeId(pregId) + ')" style="margin-top:8px">💾 ' + tr('Record Delivery', 'تسجيل الولادة') + '</button>';
+  showModal(tr('Delivery Record', 'سجل الولادة') + ' #' + safeId(pregId), html);
+};
+window.saveDelivery = async (pregId) => {
+  try {
+    const r = await API.post('/api/obgyn/deliveries', {
+      pregnancy_id: pregId,
+      delivery_type: document.getElementById('delType').value,
+      blood_loss_ml: parseInt(document.getElementById('delBlood').value) || 0,
+      anesthesia_type: document.getElementById('delAnes').value,
+      perineal_tear: document.getElementById('delTear').value,
+      baby_gender: document.getElementById('delSex').value,
+      baby_weight: parseInt(document.getElementById('delWt').value) || 0,
+      apgar_1min_components: readApgarComponents('d1'),
+      apgar_5min_components: readApgarComponents('d5'),
+      complications: document.getElementById('delComp').value
+    });
+    showToast(tr('Delivery recorded! APGAR ', 'تم التسجيل! أبغار ') + (r.apgar_1min) + '/' + (r.apgar_5min));
+    document.querySelector('.modal-overlay')?.remove();
+    if (r && r.id) showNeonatalForm(r.id);
+    else navigateTo(currentPage);
+  } catch (e) { showToast(tr('Error: ', 'خطأ: ') + (e.message || ''), 'error'); }
+};
+
+window.showNeonatalForm = async (deliveryId) => {
+  const html = '<div class="form-grid" style="gap:8px">' +
+    '<div class="form-group"><label>' + tr('Birth Weight (g)', 'وزن الولادة') + '</label><input type="number" id="neoWt" class="form-control"></div>' +
+    '<div class="form-group"><label>' + tr('Length (cm)', 'الطول') + '</label><input type="number" id="neoLen" class="form-control" step="0.1"></div>' +
+    '<div class="form-group"><label>' + tr('Head Circ (cm)', 'محيط الرأس') + '</label><input type="number" id="neoHC" class="form-control" step="0.1"></div>' +
+    '<div class="form-group"><label>' + tr('Blood Group', 'فصيلة الدم') + '</label><input id="neoBG" class="form-control"></div>' +
+    '<div class="form-group"><label>' + tr('Feeding', 'الرضاعة') + '</label><select id="neoFeed" class="form-control"><option>Breast</option><option>Bottle</option><option>Mixed</option></select></div>' +
+    '<div class="form-group"><label>' + tr('Resuscitation', 'إنعاش') + '</label><select id="neoResus" class="form-control"><option value="0">No</option><option value="1">Yes</option></select></div>' +
+    '<div class="form-group"><label>' + tr('Discharge Destination', 'وجهة الخروج') + '</label><select id="neoDest" class="form-control"><option>Home</option><option>NICU</option><option>Transfer</option></select></div>' +
+    '<div class="form-group"><label>' + tr('Status', 'الحالة') + '</label><select id="neoStatus" class="form-control"><option>Healthy</option><option>Requiring Follow-up</option><option>Critical</option></select></div>' +
+    '</div>' +
+    '<h4 style="margin:12px 0 8px">APGAR @ 1 min</h4><div class="form-grid" style="gap:8px">' + apgarComponentSelect('n1') + '</div>' +
+    '<h4 style="margin:12px 0 8px">APGAR @ 5 min</h4><div class="form-grid" style="gap:8px">' + apgarComponentSelect('n5') + '</div>' +
+    '<div class="form-group" style="margin-top:8px"><label>' + tr('Congenital Abnormalities', 'تشوهات خلقية') + '</label><textarea id="neoAbn" class="form-control" rows="2"></textarea></div>' +
+    '<button class="btn btn-primary" onclick="saveNeonatal(' + safeId(deliveryId) + ')" style="margin-top:8px">💾 ' + tr('Save Neonatal Record', 'حفظ سجل المولود') + '</button>';
+  showModal(tr('Neonatal Record', 'سجل المولود') + ' (Delivery #' + safeId(deliveryId) + ')', html);
+};
+window.saveNeonatal = async (deliveryId) => {
+  try {
+    const r = await API.post('/api/obgyn/neonatal', {
+      delivery_id: deliveryId,
+      birth_weight_grams: parseInt(document.getElementById('neoWt').value) || 0,
+      length_cm: parseFloat(document.getElementById('neoLen').value) || 0,
+      head_circumference_cm: parseFloat(document.getElementById('neoHC').value) || 0,
+      blood_group: document.getElementById('neoBG').value,
+      feeding_type: document.getElementById('neoFeed').value,
+      resuscitation_needed: document.getElementById('neoResus').value === '1' ? 1 : 0,
+      discharge_destination: document.getElementById('neoDest').value,
+      discharge_status: document.getElementById('neoStatus').value,
+      congenital_abnormalities: document.getElementById('neoAbn').value,
+      apgar_1min_components: readApgarComponents('n1'),
+      apgar_5min_components: readApgarComponents('n5')
+    });
+    showToast(tr('Neonatal record saved! APGAR ', 'تم الحفظ! أبغار ') + (r.apgar_1min) + '/' + (r.apgar_5min));
+    document.querySelector('.modal-overlay')?.remove();
+    navigateTo(currentPage);
+  } catch (e) { showToast(tr('Error: ', 'خطأ: ') + (e.message || ''), 'error'); }
 };
 
 

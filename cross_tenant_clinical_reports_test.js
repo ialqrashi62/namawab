@@ -57,7 +57,7 @@ const routesToCheck = [
     { pattern: "app.get('/api/reports/lab', requireAuth, requireRole('reports'), requireTenantScope", label: "Lab Report: /api/reports/lab محمي بـ requireTenantScope" },
     { pattern: "app.get('/api/patients/:id/timeline', requireAuth, requireRole('patients'), requireTenantScope", label: "Timeline: /api/patients/:id/timeline محمي بـ requireTenantScope" },
     { pattern: "app.get('/api/patients/:id/summary', requireAuth, requireRole('patients'), requireTenantScope", label: "Summary: /api/patients/:id/summary محمي بـ requireTenantScope" },
-    { pattern: "app.get('/api/obgyn/stats', requireAuth, requireTenantScope", label: "OB/GYN Stats: /api/obgyn/stats محمي بـ requireTenantScope" },
+    { pattern: "app.get('/api/obgyn/stats', requireAuth, requireRole(...OB_RBAC), requireTenantScope", label: "OB/GYN Stats: /api/obgyn/stats محمي بـ requireRole + requireTenantScope (E14 hardened)" },
     { pattern: "app.post('/api/medical-reports', requireAuth, requireTenantScope", label: "Create Med Report: POST /api/medical-reports محمي بـ requireTenantScope" },
     { pattern: "app.get('/api/medical-reports', requireAuth, requireTenantScope", label: "List Med Reports: GET /api/medical-reports محمي بـ requireTenantScope" },
     { pattern: "app.get('/api/medical-reports/:id', requireAuth, requireTenantScope", label: "Get Med Report ID: GET /api/medical-reports/:id محمي بـ requireTenantScope" },
@@ -82,8 +82,8 @@ const sqlPatternsToCheck = [
     { pattern: "patients${tenantFilter}", label: "Patients Report: الاستعلام المفلتر بالـ tenant_id" },
     { pattern: "lab_radiology_orders WHERE is_radiology=0${tenantFilter}", label: "Lab Report: عزل طلبات المختبر بـ tenant_id" },
     { pattern: "patients WHERE id=$1${tenantCheck}", label: "Timeline & Summary: التحقق من المريض في المستأجر" },
-    { pattern: "obgyn_pregnancies WHERE status='Active'${tenantFilter}", label: "OB/GYN Stats: عزل إحصائيات الحمل بـ tenant_id" },
-    { pattern: "obgyn_deliveries WHERE delivery_date >= date_trunc('month', CURRENT_DATE)${tenantFilter}", label: "OB/GYN Stats: عزل إحصائيات الولادات بـ tenant_id" },
+    { pattern: "obgyn_pregnancies WHERE status='Active' AND tenant_id=$1", label: "OB/GYN Stats: عزل إحصائيات الحمل بـ tenant_id (E14 fail-closed)" },
+    { pattern: "obgyn_deliveries WHERE delivery_date >= date_trunc('month', CURRENT_DATE) AND tenant_id=$1", label: "OB/GYN Stats: عزل إحصائيات الولادات بـ tenant_id (E14 fail-closed)" },
     
     // فحص التقارير الطبية
     { pattern: "patients WHERE id=$1 AND tenant_id=$2", label: "Medical Reports: التحقق من سياق المريض التابع للمستأجر" },
