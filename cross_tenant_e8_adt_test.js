@@ -62,6 +62,26 @@ for (const r of ['/api/adt/beds', '/api/adt/census', '/api/adt/admit', '/api/adt
 assert(clean.includes("app.post('/api/admissions',requireAuth,requireTenantScope"), 'legacy POST /api/admissions still tenant-scoped');
 assert(clean.includes("app.put('/api/admissions/:id/discharge',requireAuth,requireTenantScope"), 'legacy discharge still tenant-scoped');
 
+// I2 fix: admission GET + rounds POST/GET must be FAIL-CLOSED (e8RequireTenant, no unscoped
+// ternary). Audit each handler body for e8RequireTenant and the absence of the old unscoped
+// "WHERE id = $1" (no tenant) admission lookup.
+function handlerBody(src, routeSig) {
+    const i = src.indexOf(routeSig);
+    if (i < 0) return '';
+    return src.slice(i, i + 900);
+}
+const admGet = handlerBody(serverContent, "app.get('/api/admissions/:id', requireAuth");
+const roundsPost = handlerBody(serverContent, "app.post('/api/admissions/:id/rounds', requireAuth");
+const roundsGet = handlerBody(serverContent, "app.get('/api/admissions/:id/rounds', requireAuth");
+assert(/e8RequireTenant\(req\)/.test(admGet) && !/WHERE id = \$1'\s*;?\s*$/m.test(admGet) && !/:\s*'SELECT \* FROM admissions WHERE id = \$1'/.test(admGet), 'I2: GET /api/admissions/:id fail-closed (e8RequireTenant, no unscoped lookup)');
+assert(/e8RequireTenant\(req\)/.test(roundsPost) && !/:\s*'SELECT id FROM admissions WHERE id = \$1'/.test(roundsPost), 'I2: POST /api/admissions/:id/rounds fail-closed (e8RequireTenant, no unscoped admission check)');
+assert(/e8RequireTenant\(req\)/.test(roundsGet) && !/:\s*'SELECT \* FROM admission_daily_rounds WHERE admission_id=\$1 ORDER/.test(roundsGet), 'I2: GET /api/admissions/:id/rounds fail-closed (e8RequireTenant, no unscoped rounds query)');
+
+// L2 fix: GET /api/admissions list must be fail-closed (no "tenant_id=$1 with params=[]" bug,
+// no unscoped fallback). Audit the handler body.
+const admList = handlerBody(serverContent, "app.get('/api/admissions', requireAuth");
+assert(/e8RequireTenant\(req\)/.test(admList) && !/params\s*=\s*tenantId\s*\?\s*\[tenantId\]\s*:\s*\[\]/.test(admList), 'L2: GET /api/admissions list fail-closed (e8RequireTenant, no params=[] $1-unbound branch)');
+
 // ===== 2. Simulation: tenant/IDOR isolation across admit / transfer / discharge / census =====
 console.log(`\n${BOLD}[2] Tenant isolation simulation${RESET}`);
 const mockDb = {
@@ -146,6 +166,26 @@ assert(simTransfer(NONE, { admission_id: 1000, to_bed: 100 }).status === 403, 'n
 assert(simDischarge(T1, { admission_id: 1000 }).status === 200, 'tenant 1 discharges its own admission (1000)');
 assert(simDischarge(T1, { admission_id: 2000 }).status === 404, 'tenant 1 CANNOT discharge tenant 2 admission (2000) => 404');
 assert(simDischarge(NONE, { admission_id: 1000 }).status === 403, 'null tenant discharge => 403');
+
+// -- I2: admission GET + daily-rounds POST/GET fail-closed + tenant-isolated --
+function simAdmissionGet(req, id) {
+    let t; try { t = resolveTenant(req); } catch (e) { return { status: e.e8Status }; }
+    const adm = findAdm(id, t);
+    if (!adm) return { status: 404 };
+    return { status: 200 };
+}
+function simRounds(req, admissionId) { // models both POST and GET ownership check
+    let t; try { t = resolveTenant(req); } catch (e) { return { status: e.e8Status }; }
+    const adm = findAdm(admissionId, t);
+    if (!adm) return { status: 404 };  // cross-tenant admission => not found (no unscoped read)
+    return { status: 200 };
+}
+assert(simAdmissionGet(T1, 1000).status === 200, 'I2: tenant 1 reads its own admission (1000)');
+assert(simAdmissionGet(T1, 2000).status === 404, 'I2: tenant 1 CANNOT read tenant 2 admission (2000) => 404');
+assert(simAdmissionGet(NONE, 1000).status === 403, 'I2: null tenant admission GET => 403 (fail-closed)');
+assert(simRounds(T1, 1000).status === 200, 'I2: tenant 1 reads/writes rounds for its own admission (1000)');
+assert(simRounds(T1, 2000).status === 404, 'I2: tenant 1 CANNOT read/write rounds for tenant 2 admission (2000) => 404');
+assert(simRounds(NONE, 1000).status === 403, 'I2: null tenant rounds POST/GET => 403 (fail-closed, no cross-tenant IDOR)');
 
 // -- raw cross-tenant id resolution returns zero rows --
 assert(findBed(200, 1) === null, 'tenant 1 cannot resolve tenant 2 bed #200 (cross-tenant id => 0 rows)');

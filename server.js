@@ -3935,37 +3935,41 @@ app.get('/api/beds/census', requireAuth, requireTenantScope, async (req, res) =>
 app.get('/api/admissions', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { status } = req.query;
-        const { tenantId } = getRequestTenantContext(req);
-        let qText = '';
-        let params = [];
+        // L2 fix: fail-closed. The prior null-tenant else-branch used `WHERE tenant_id=$1`
+        // with params=[] ("$1 not bound" runtime error) — and any unscoped fallback would be a
+        // cross-tenant leak anyway. Require a tenant; every query carries AND tenant_id.
+        const { tenantId } = e8RequireTenant(req);
+        let qText, params;
         if (status) {
-            qText = tenantId
-                ? 'SELECT * FROM admissions WHERE status=$1 AND tenant_id=$2 ORDER BY admission_date DESC'
-                : 'SELECT * FROM admissions WHERE status=$1 ORDER BY admission_date DESC';
-            params = tenantId ? [status, tenantId] : [status];
+            qText = 'SELECT * FROM admissions WHERE status=$1 AND tenant_id=$2 ORDER BY admission_date DESC';
+            params = [status, tenantId];
         } else {
-            qText = tenantId
-                ? 'SELECT * FROM admissions WHERE tenant_id=$1 ORDER BY admission_date DESC'
-                : 'SELECT * FROM admissions WHERE tenant_id=$1 ORDER BY admission_date DESC';
-            params = tenantId ? [tenantId] : [];
+            qText = 'SELECT * FROM admissions WHERE tenant_id=$1 ORDER BY admission_date DESC';
+            params = [tenantId];
         }
         const q = await pool.query(qText, params);
         res.json(q.rows);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) {
+        if (e.e8Status) return res.status(e.e8Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 // Added to allow secure fetch of single admission record and prevent IDOR
 app.get('/api/admissions/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        const { tenantId } = getRequestTenantContext(req);
-        const q = tenantId
-            ? 'SELECT * FROM admissions WHERE id = $1 AND tenant_id = $2'
-            : 'SELECT * FROM admissions WHERE id = $1';
-        const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        const row = (await pool.query(q, params)).rows[0];
+        // I2 fix: fail-closed (no unscoped fallback) so a null tenant context can never read
+        // another tenant's admission (cross-tenant IDOR).
+        const { tenantId } = e8RequireTenant(req);
+        const row = (await pool.query(
+            'SELECT * FROM admissions WHERE id = $1 AND tenant_id = $2',
+            [req.params.id, tenantId])).rows[0];
         if (!row) return res.status(404).json({ error: 'Admission not found' });
         res.json(row);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) {
+        if (e.e8Status) return res.status(e.e8Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 app.post('/api/admissions', requireAuth, requireTenantScope, async (req, res) => {
@@ -4120,20 +4124,17 @@ app.put('/api/admissions/:id/discharge_legacy_disabled', requireAuth, requireTen
 
 app.post('/api/admissions/:id/rounds', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        const { tenantId, facilityId } = getRequestTenantContext(req);
+        // I2 fix: fail-closed — no unscoped fallback (cross-tenant IDOR otherwise).
+        const { tenantId, facilityId } = e8RequireTenant(req);
 
         // Verify admission ownership first
-        const checkQ = tenantId
-            ? 'SELECT id FROM admissions WHERE id = $1 AND tenant_id = $2'
-            : 'SELECT id FROM admissions WHERE id = $1';
-        const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        const adm = (await pool.query(checkQ, checkParams)).rows[0];
+        const adm = (await pool.query('SELECT id FROM admissions WHERE id = $1 AND tenant_id = $2', [req.params.id, tenantId])).rows[0];
         if (!adm) return res.status(404).json({ error: 'Admission not found' });
 
         const { patient_id, doctor_name, subjective, objective, assessment, plan, vitals_summary, orders, diet_changes } = req.body;
 
         // Verify patient ownership
-        if (patient_id && tenantId) {
+        if (patient_id) {
             const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
             if (!patientCheck) {
                 return res.status(403).json({ error: 'Invalid patient context or access denied' });
@@ -4147,27 +4148,28 @@ app.post('/api/admissions/:id/rounds', requireAuth, requireTenantScope, async (r
 
         logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_DAILY_ROUND', 'Inpatient', `Added daily round for admission #${req.params.id}`, req.ip);
         res.json(r.rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) {
+        if (e.e8Status) return res.status(e.e8Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 app.get('/api/admissions/:id/rounds', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        const { tenantId } = getRequestTenantContext(req);
+        // I2 fix: fail-closed — no unscoped fallback (cross-tenant IDOR otherwise).
+        const { tenantId } = e8RequireTenant(req);
 
         // Verify admission ownership first
-        const checkQ = tenantId
-            ? 'SELECT id FROM admissions WHERE id = $1 AND tenant_id = $2'
-            : 'SELECT id FROM admissions WHERE id = $1';
-        const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        const adm = (await pool.query(checkQ, checkParams)).rows[0];
+        const adm = (await pool.query('SELECT id FROM admissions WHERE id = $1 AND tenant_id = $2', [req.params.id, tenantId])).rows[0];
         if (!adm) return res.status(404).json({ error: 'Admission not found' });
 
-        const roundsQ = tenantId
-            ? 'SELECT * FROM admission_daily_rounds WHERE admission_id=$1 AND tenant_id=$2 ORDER BY id DESC'
-            : 'SELECT * FROM admission_daily_rounds WHERE admission_id=$1 ORDER BY id DESC';
-        const roundsParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        res.json((await pool.query(roundsQ, roundsParams)).rows);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+        res.json((await pool.query(
+            'SELECT * FROM admission_daily_rounds WHERE admission_id=$1 AND tenant_id=$2 ORDER BY id DESC',
+            [req.params.id, tenantId])).rows);
+    } catch (e) {
+        if (e.e8Status) return res.status(e.e8Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 app.post('/api/bed-transfers', requireAuth, requireTenantScope, async (req, res) => {
@@ -4471,22 +4473,28 @@ app.post('/api/adt/transfer', requireAuth, requireRole('inpatient', 'nursing', '
             return res.status(409).json({ error: 'Source and destination beds are the same' });
         }
 
-        // Lock destination first by id ordering not required (single dest), but lock dest then source.
-        const dest = (await client.query(
-            'SELECT id, ward_id, status FROM beds WHERE id=$1 AND tenant_id=$2 FOR UPDATE',
-            [toBed, tenantId])).rows[0];
+        // C2 fix — deadlock avoidance: lock BOTH beds in a CONSISTENT ascending-id order,
+        // regardless of which is source vs destination. Two reverse-direction concurrent
+        // transfers (A->B and B->A) previously deadlocked because each locked its own
+        // destination first. Acquiring row locks in a global order (ascending id) guarantees
+        // no AB/BA cycle. We collect the locked rows into a map, then resolve src/dest below.
+        const lockIds = [toBed, fromBed].filter(Boolean).sort((a, b) => a - b);
+        const locked = {};
+        for (const lid of lockIds) {
+            const row = (await client.query(
+                'SELECT id, ward_id, status FROM beds WHERE id=$1 AND tenant_id=$2 FOR UPDATE',
+                [lid, tenantId])).rows[0];
+            if (row) locked[lid] = row;
+        }
+
+        const dest = locked[toBed] || null;
         if (!dest) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Destination bed not found' }); }
         if (!E8_BED_FREE_STATES.includes(dest.status)) {
             await client.query('ROLLBACK'); client.release();
             return res.status(409).json({ error: `Destination bed not available (status ${dest.status})` });
         }
 
-        let src = null;
-        if (fromBed) {
-            src = (await client.query(
-                'SELECT id, ward_id, status FROM beds WHERE id=$1 AND tenant_id=$2 FOR UPDATE',
-                [fromBed, tenantId])).rows[0];
-        }
+        const src = fromBed ? (locked[fromBed] || null) : null;
 
         // Free the source bed -> Cleaning (housekeeping), then occupy the destination.
         if (src) {

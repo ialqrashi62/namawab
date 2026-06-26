@@ -9044,9 +9044,12 @@ async function renderInpatient(el) {
 }
 window.loadWardBeds = async function (wardId) {
   if (!wardId) return;
-  const beds = await API.get('/api/beds?ward_id=' + wardId);
+  // E8 fix I1: use the fail-closed, tenant-scoped ADT bed board (returns { beds: [...] }),
+  // not the legacy /api/beds route which has an unscoped fallback when tenantId is null.
+  const r = await API.get('/api/adt/beds?ward_id=' + wardId);
+  const beds = (r && r.beds) ? r.beds : [];
   const s = document.getElementById('admBed');
-  s.innerHTML = `<option value="">${tr('Select', 'اختر')}</option>${(beds || []).filter(b => b.status === 'Available').map(b => `<option value="${safeId(b.id)}">${tr('Bed', 'سرير')} ${escapeHTML(b.bed_number)} - ${tr('Room', 'غرفة')} ${escapeHTML(b.room_number)}</option>`).join('')}`;
+  s.innerHTML = `<option value="">${tr('Select', 'اختر')}</option>${beds.filter(b => b.status === 'Available').map(b => `<option value="${safeId(b.id)}">${tr('Bed', 'سرير')} ${escapeHTML(b.bed_number)} - ${tr('Room', 'غرفة')} ${escapeHTML(b.room_number)}</option>`).join('')}`;
 };
 window.admitPatient = async function () {
   const ps = document.getElementById('admPatient'); if (!ps.value) return showToast(tr('Select patient', 'اختر المريض'), 'error');
@@ -9085,9 +9088,11 @@ window.confirmInpatientDischarge = async function () {
     adtTab = 'discharged'; await navigateTo(22);
   } catch (e) { showToast((e && e.message) ? e.message : tr('Error', 'خطأ'), 'error'); }
 };
-window.dischargePatient = async function (id) {
-  showInpatientDischargeModal(id);
-};
+// NOTE: Do NOT redefine window.dischargePatient here. The doctor-station "Patient Done"
+// button (defined ~app.js:3490) passes a PATIENT id and marks the patient Done. The ADT
+// patients table calls showInpatientDischargeModal(admission_id) DIRECTLY (see above), so no
+// ADT alias is needed. A prior collision here overwrote the doctor-station handler, mis-routing
+// patient ids to ADT discharge as admission ids (-> 404). (E8 adversarial fix C1.)
 window.showAdtTransferModal = function (admissionId, patientName) {
   document.getElementById('adtTransferAdmId').value = admissionId;
   document.getElementById('adtTransferName').textContent = patientName || '';

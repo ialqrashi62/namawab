@@ -57,6 +57,12 @@ assert(clean.includes("SETstatus='Occupied',current_patient_id"), 'admit/transfe
 assert(clean.includes("SETstatus='Cleaning',current_patient_id=0,current_admission_id=0"), 'discharge/transfer free the source bed -> Cleaning');
 assert(clean.includes("functione8IntId(v)") && clean.includes("Number.isInteger(n)"), 'integer id coercion guard present (no padded-id bypass)');
 
+// C2 deadlock fix: the transfer route must lock BOTH beds in a CONSISTENT ascending-id order
+// (no AB/BA cycle for reverse-direction concurrent transfers). Assert the ascending-sort lock
+// pattern is present and that the FOR UPDATE lock is issued inside the sorted-id loop.
+assert(clean.includes("[toBed,fromBed].filter(Boolean).sort((a,b)=>a-b)"), 'C2: transfer locks beds in ascending-id order ([toBed,fromBed].sort) — deadlock-safe');
+assert(/const\s+lockIds\s*=\s*\[toBed,\s*fromBed\][\s\S]{0,400}?for\s*\(const\s+lid\s+of\s+lockIds\)[\s\S]{0,200}?FROM beds WHERE id=\$1 AND tenant_id=\$2 FOR UPDATE/.test(serverContent), 'C2: FOR UPDATE bed lock issued inside the ascending lockIds loop (both beds locked before any status flip)');
+
 // Doctor role now carries the 'inpatient' permission (RBAC gap resolved).
 assert(/'Doctor':\s*\[[^\]]*'inpatient'/.test(serverContent), "Doctor role granted 'inpatient' permission (RBAC gap resolved)");
 
@@ -113,16 +119,18 @@ function doTransfer(db, body) {
     if (!adm) return { status: 404 };
     if (adm.status !== 'Active') return { status: 409, error: 'not active' };
     if (adm.bed_id === toBed) return { status: 409, error: 'same bed' };
-    const dest = findBed(db, toBed);
-    if (!dest) return { status: 404 };
-    if (!BED_FREE.includes(dest.status)) return { status: 409, error: 'dest occupied' };
-    const src = adm.bed_id ? findBed(db, adm.bed_id) : null;
     const fromBed = adm.bed_id;
+    // C2: mirror the server — lock BOTH beds in ascending-id order before any status flip.
+    const lockOrder = [toBed, fromBed].filter(Boolean).sort((a, b) => a - b);
+    const dest = findBed(db, toBed);
+    if (!dest) return { status: 404, lockOrder };
+    if (!BED_FREE.includes(dest.status)) return { status: 409, error: 'dest occupied', lockOrder };
+    const src = adm.bed_id ? findBed(db, adm.bed_id) : null;
     if (src) { src.status = 'Cleaning'; src.current_patient_id = 0; src.current_admission_id = 0; }
     dest.status = 'Occupied'; dest.current_patient_id = adm.patient_id; dest.current_admission_id = admId;
     adm.ward_id = dest.ward_id; adm.bed_id = toBed;
     db.transfers.push({ admission_id: admId, from_bed: fromBed, to_bed: toBed });
-    return { status: 200, from_bed: fromBed, to_bed: toBed };
+    return { status: 200, from_bed: fromBed, to_bed: toBed, lockOrder };
 }
 function doDischarge(db, body) {
     const admId = body.admission_id;
@@ -201,6 +209,21 @@ function doDischarge(db, body) {
 {
     const db = freshDb();
     assert(doDischarge(db, { admission_id: 7777 }).status === 404, 'discharge of a non-existent admission => 404');
+}
+// -- C2: reverse-direction transfers lock beds in the SAME ascending-id order (no AB/BA deadlock) --
+{
+    // Transfer A->B (src 102 -> dest 100) and the reverse B->A (src 100 -> dest 102) must each
+    // lock the bed rows in ascending id order, so concurrent reverse transfers can't deadlock.
+    const dbAB = freshDb(); // adm 9000 is in bed 102; transfer to 100
+    const rAB = doTransfer(dbAB, { admission_id: 9000, to_bed: 100 });
+    const dbBA = freshDb();
+    // Put an Active admission in bed 100 first, then transfer it to 102.
+    doAdmit(dbBA, { admission_id: 5000, bed_id: 100 }); // 5000 now in bed 100
+    const rBA = doTransfer(dbBA, { admission_id: 5000, to_bed: 102 }); // would be blocked (102 occupied), but lockOrder is computed first
+    const asc = a => a.every((v, i) => i === 0 || a[i - 1] <= v);
+    assert(rAB.lockOrder && asc(rAB.lockOrder), 'C2: A->B transfer locks beds in ascending id order ' + JSON.stringify(rAB.lockOrder));
+    assert(rBA.lockOrder && asc(rBA.lockOrder), 'C2: reverse B->A transfer locks beds in the SAME ascending id order ' + JSON.stringify(rBA.lockOrder));
+    assert(JSON.stringify(rAB.lockOrder) === JSON.stringify(rBA.lockOrder), 'C2: both directions acquire the identical lock order [100,102] (deadlock impossible)');
 }
 
 console.log(`\n${BOLD}${BLUE}=== E8 ADT Workflow Test Results ===${RESET}`);
