@@ -9640,7 +9640,7 @@ window.confirmInpatientTransfer = async function () {
 };
 // ===== ICU =====
 // ===== ICU =====
-let icuTab = 'patients';
+let icuTab = 'board';
 async function renderICU(el) {
   const [icuPatients, allAdmissions] = await Promise.all([
     API.get('/api/icu/patients'),
@@ -9656,15 +9656,32 @@ async function renderICU(el) {
       <div class="stat-card"><div class="stat-icon" style="background:#2ecc7122;color:#2ecc71">✅</div><div class="stat-value" style="color:#2ecc71">${discharged.length}</div><div class="stat-label">${tr('Discharged', 'خارجين')}</div></div>
       <div class="stat-card"><div class="stat-icon" style="background:#9b59b622;color:#9b59b6">📊</div><div class="stat-value" style="color:#9b59b6">${totalICU > 0 ? Math.round((totalICU / (totalICU + discharged.length || 1)) * 100) : 0}%</div><div class="stat-label">${tr('Occupancy', 'الإشغال')}</div></div>
     </div>
-    <div class="tab-bar"><button class="tab-btn ${icuTab === 'patients' ? 'active' : ''}" onclick="icuTab='patients';navigateTo(23)">👥 ${tr('Patients', 'المرضى')}</button>
-      <button class="tab-btn ${icuTab === 'monitor' ? 'active' : ''}" onclick="icuTab='monitor';navigateTo(23)">📊 ${tr('Monitoring', 'المراقبة')}</button>
+    <div class="tab-bar"><button class="tab-btn ${icuTab === 'board' ? 'active' : ''}" onclick="icuTab='board';navigateTo(23)">🩺 ${tr('Board', 'لوحة العناية')}</button>
+      <button class="tab-btn ${icuTab === 'patients' ? 'active' : ''}" onclick="icuTab='patients';navigateTo(23)">👥 ${tr('Patients', 'المرضى')}</button>
+      <button class="tab-btn ${icuTab === 'monitor' ? 'active' : ''}" onclick="icuTab='monitor';navigateTo(23)">📊 ${tr('Flowsheet', 'الرصد')}</button>
       <button class="tab-btn ${icuTab === 'ventilator' ? 'active' : ''}" onclick="icuTab='ventilator';navigateTo(23)">🫁 ${tr('Ventilator', 'التنفس')}</button>
+      <button class="tab-btn ${icuTab === 'infusions' ? 'active' : ''}" onclick="icuTab='infusions';navigateTo(23)">💉 ${tr('Infusions', 'التسريبات')}</button>
       <button class="tab-btn ${icuTab === 'scores' ? 'active' : ''}" onclick="icuTab='scores';navigateTo(23)">📋 ${tr('Scores', 'المقاييس')}</button>
       <button class="tab-btn ${icuTab === 'fluid' ? 'active' : ''}" onclick="icuTab='fluid';navigateTo(23)">💧 ${tr('Fluid Balance', 'توازن السوائل')}</button>
       <button class="tab-btn ${icuTab === 'discharged' ? 'active' : ''}" onclick="icuTab='discharged';navigateTo(23)">🚪 ${tr('Discharged', 'الخارجين')}</button></div>
     <div class="card" id="icuContent"></div>`;
   const c = document.getElementById('icuContent');
-  if (icuTab === 'patients') {
+  if (icuTab === 'board') {
+    let board = [];
+    try { const r = await API.get('/api/icu/board'); board = (r && r.board) || []; } catch (e) { board = []; }
+    const bandColor = b => b === 'Critical' || b === 'Very High' ? '#e74c3c' : b === 'High' ? '#e67e22' : b === 'Moderate' ? '#f1c40f' : b === 'Low' ? '#2ecc71' : '#95a5a6';
+    c.innerHTML = `<h3>🩺 ${tr('ICU Acuity Board', 'لوحة شدّة العناية المركزة')} (${board.length})</h3>
+      <p style="color:#7f8c8d;font-size:13px">${tr('Sorted by acuity (sickest first). SOFA/GCS/APACHE are server-computed.', 'مرتبة حسب الشدّة (الأخطر أولاً). تُحسب SOFA/GCS/APACHE في الخادم.')}</p>
+      ${board.length ? `<table class="data-table"><thead><tr><th>${tr('Patient', 'المريض')}</th><th>${tr('Ward/Bed', 'الجناح/السرير')}</th><th>SOFA</th><th>GCS</th><th>APACHE</th><th>${tr('Vent', 'تنفس')}</th><th>${tr('Doctor', 'الطبيب')}</th></tr></thead><tbody>${board.map(p => `<tr>
+        <td><strong>${escapeHTML(p.patient_name || '-')}</strong></td>
+        <td>${escapeHTML(p.ward_name_ar || p.ward_name || '-')} / ${tr('Bed', 'سرير')} ${escapeHTML(p.bed_number || '-')}</td>
+        <td><span style="font-weight:700;color:${bandColor(p.sofa_band)}">${p.latest_sofa === null || p.latest_sofa === undefined ? '—' : escapeHTML(p.latest_sofa)}</span>${p.sofa_band ? ` <small>(${escapeHTML(p.sofa_band)})</small>` : ''}</td>
+        <td>${p.latest_gcs === null || p.latest_gcs === undefined ? '—' : escapeHTML(p.latest_gcs)}</td>
+        <td>${p.latest_apache === null || p.latest_apache === undefined ? '—' : escapeHTML(p.latest_apache)}</td>
+        <td>${p.on_ventilator ? '🫁 ' + escapeHTML(p.vent_mode || tr('Yes', 'نعم')) : '—'}</td>
+        <td>${escapeHTML(p.attending_doctor || '-')}</td></tr>`).join('')}</tbody></table>`
+        : `<div class="empty-state"><div class="empty-icon">🩺</div><p>${tr('No ICU patients', 'لا يوجد مرضى بالعناية')}</p></div>`}`;
+  } else if (icuTab === 'patients') {
     c.innerHTML = `<h3>👥 ${tr('ICU Patients', 'مرضى العناية المركزة')} (${totalICU})</h3>
       <input class="form-control" placeholder="${tr('Search...', 'بحث...')}" oninput="filterTable(this,'icuPTable')" style="margin-bottom:12px">
       ${totalICU ? `<table class="data-table" id="icuPTable"><thead><tr><th>#</th><th>${tr('Patient', 'المريض')}</th><th>${tr('Ward', 'الجناح')}</th><th>${tr('Bed', 'السرير')}</th><th>${tr('Doctor', 'الطبيب')}</th><th>${tr('Diagnosis', 'التشخيص')}</th><th>${tr('Days', 'أيام')}</th><th>${tr('Actions', 'إجراءات')}</th></tr></thead><tbody>${(icuPatients || []).map(p => {
@@ -9698,18 +9715,46 @@ async function renderICU(el) {
         <div><label>PS</label><input id="ventPS" type="number" class="form-control"></div>
         <div><label>ETT Size</label><input id="ventETT" class="form-control"></div>
       </div><button class="btn btn-primary" onclick="saveVentilator()" style="margin-top:12px">💾 ${tr('Save', 'حفظ')}</button>`;
+  } else if (icuTab === 'infusions') {
+    c.innerHTML = `<h3>💉 ${tr('Continuous Infusions / Drips', 'التسريبات الوريدية المستمرة')}</h3>
+      <div class="form-grid">
+        <div><label>${tr('Patient', 'المريض')}</label><select id="icuPatientInfusion" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(icuPatients || []).map(p => `<option value="${safeId(p.id)}" data-pid="${safeId(p.patient_id)}">${escapeHTML(p.patient_name)}</option>`).join('')}</select></div>
+        <div><label>${tr('Drug', 'الدواء')}</label><input id="infDrug" class="form-control" placeholder="${tr('e.g. Noradrenaline', 'مثال: نورأدرينالين')}"></div>
+        <div><label>${tr('Concentration', 'التركيز')}</label><input id="infConc" class="form-control" placeholder="mg/mL"></div>
+        <div><label>${tr('Rate', 'المعدّل')}</label><input id="infRate" type="number" step="0.1" class="form-control"></div>
+        <div><label>${tr('Rate Unit', 'وحدة المعدّل')}</label><select id="infRateUnit" class="form-control"><option>mL/hr</option><option>mcg/kg/min</option><option>mcg/min</option><option>units/hr</option></select></div>
+        <div><label>${tr('Status', 'الحالة')}</label><select id="infStatus" class="form-control"><option value="Running">${tr('Running', 'يعمل')}</option><option value="Paused">${tr('Paused', 'موقوف مؤقتاً')}</option><option value="Stopped">${tr('Stopped', 'موقوف')}</option></select></div>
+      </div><button class="btn btn-primary" onclick="saveICUInfusion()" style="margin-top:12px">💾 ${tr('Save', 'حفظ')}</button>
+      <div id="infusionResult" style="margin-top:12px"></div>`;
   } else if (icuTab === 'scores') {
-    c.innerHTML = `<h3>📋 ${tr('Clinical Scores', 'المقاييس السريرية')}</h3>
+    c.innerHTML = `<h3>📋 ${tr('Clinical Scores (server-computed)', 'المقاييس السريرية (تُحسب في الخادم)')}</h3>
+      <p style="color:#7f8c8d;font-size:13px">${tr('Enter RAW observations — SOFA / GCS / APACHE-II are computed server-side (anti-spoof).', 'أدخل القياسات الخام — تُحسب SOFA / GCS / APACHE-II في الخادم (مانع تزوير).')}</p>
       <div class="form-grid">
         <div><label>${tr('Patient', 'المريض')}</label><select id="icuPatientScore" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(icuPatients || []).map(p => `<option value="${safeId(p.id)}" data-pid="${safeId(p.patient_id)}">${escapeHTML(p.patient_name)}</option>`).join('')}</select></div>
-        <div><label>APACHE II</label><input id="scoreAPACHE" type="number" class="form-control"></div>
-        <div><label>SOFA</label><input id="scoreSOFA" type="number" class="form-control"></div>
-        <div><label>GCS</label><input id="scoreGCS" type="number" value="15" class="form-control"></div>
-        <div><label>RASS</label><input id="scoreRASS" type="number" value="0" class="form-control"></div>
+        <div><label>${tr('Age', 'العمر')}</label><input id="scoreAge" type="number" class="form-control"></div>
+        <div style="grid-column:span 2"><h4 style="color:#3498db">${tr('GCS components', 'مكونات GCS')}</h4></div>
+        <div><label>${tr('Eye (1-4)', 'العين 1-4')}</label><input id="gcsEye" type="number" min="1" max="4" class="form-control"></div>
+        <div><label>${tr('Verbal (1-5)', 'اللفظي 1-5')}</label><input id="gcsVerbal" type="number" min="1" max="5" class="form-control"></div>
+        <div><label>${tr('Motor (1-6)', 'الحركي 1-6')}</label><input id="gcsMotor" type="number" min="1" max="6" class="form-control"></div>
+        <div style="grid-column:span 2"><h4 style="color:#3498db">${tr('Physiology / labs', 'الفسيولوجيا/المختبر')}</h4></div>
+        <div><label>MAP</label><input id="scoreMAP" type="number" class="form-control"></div>
+        <div><label>HR</label><input id="scoreHR" type="number" class="form-control"></div>
+        <div><label>RR</label><input id="scoreRR" type="number" class="form-control"></div>
+        <div><label>SpO2</label><input id="scoreSpO2" type="number" class="form-control"></div>
+        <div><label>Temp</label><input id="scoreTemp" type="number" step="0.1" class="form-control"></div>
+        <div><label>PaO2/FiO2</label><input id="scorePF" type="number" class="form-control"></div>
+        <div><label>${tr('Ventilated', 'على التنفس')}</label><select id="scoreVent" class="form-control"><option value="">${tr('No', 'لا')}</option><option value="1">${tr('Yes', 'نعم')}</option></select></div>
+        <div><label>${tr('Platelets', 'الصفائح')} (x10³)</label><input id="scorePlt" type="number" class="form-control"></div>
+        <div><label>${tr('Bilirubin', 'البيليروبين')}</label><input id="scoreBili" type="number" step="0.1" class="form-control"></div>
+        <div><label>${tr('Creatinine', 'الكرياتينين')}</label><input id="scoreCreat" type="number" step="0.1" class="form-control"></div>
+        <div><label>${tr('Urine 24h (mL)', 'البول 24س')}</label><input id="scoreUrine24" type="number" class="form-control"></div>
+        <div style="grid-column:span 2"><h4 style="color:#3498db">${tr('Nursing assessments', 'تقييمات التمريض')}</h4></div>
+        <div><label>RASS (-5..4)</label><input id="scoreRASS" type="number" value="0" class="form-control"></div>
         <div><label>Braden</label><input id="scoreBraden" type="number" value="23" class="form-control"></div>
         <div><label>Morse Fall</label><input id="scoreMorse" type="number" class="form-control"></div>
         <div><label>Pain (0-10)</label><input id="scorePain" type="number" class="form-control"></div>
-      </div><button class="btn btn-primary" onclick="saveICUScores()" style="margin-top:12px">💾 ${tr('Save', 'حفظ')}</button>`;
+      </div><button class="btn btn-primary" onclick="saveICUScores()" style="margin-top:12px">💾 ${tr('Compute & Save', 'احسب واحفظ')}</button>
+      <div id="scoreResult" style="margin-top:12px"></div>`;
   } else if (icuTab === 'fluid') {
     c.innerHTML = `<h3>💧 ${tr('Fluid Balance', 'توازن السوائل')}</h3>
       <div class="form-grid">
@@ -9740,30 +9785,65 @@ async function renderICU(el) {
   }
 }
 window.saveICUMonitor = async function () {
+  // Flowsheet entry — posts to the hardened canonical route /api/icu/flowsheet (patient_id is
+  // derived server-side from the admission; admission_id is authoritative).
   const s = document.getElementById('icuPatientMon'); if (!s.value) return showToast(tr('Select patient', 'اختر المريض'), 'error');
   try {
-    await API.post('/api/icu/monitoring', { admission_id: s.value, patient_id: s.options[s.selectedIndex].dataset.pid, hr: document.getElementById('icuHR').value, sbp: document.getElementById('icuSBP').value, dbp: document.getElementById('icuDBP').value, spo2: document.getElementById('icuSpO2').value, rr: document.getElementById('icuRR').value, temp: document.getElementById('icuTemp').value, fio2: document.getElementById('icuFiO2').value, urine_output: document.getElementById('icuUrine').value, recorded_by: currentUser?.display_name });
+    await API.post('/api/icu/flowsheet', { admission_id: s.value, hr: document.getElementById('icuHR').value, sbp: document.getElementById('icuSBP').value, dbp: document.getElementById('icuDBP').value, spo2: document.getElementById('icuSpO2').value, rr: document.getElementById('icuRR').value, temp: document.getElementById('icuTemp').value, fio2: document.getElementById('icuFiO2').value, urine_output: document.getElementById('icuUrine').value, recorded_by: currentUser?.display_name });
     showToast(tr('Saved!', 'تم الحفظ!'));
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 window.saveVentilator = async function () {
   const s = document.getElementById('icuPatientVent'); if (!s.value) return showToast(tr('Select patient', 'اختر المريض'), 'error');
   try {
-    await API.post('/api/icu/ventilator', { admission_id: s.value, patient_id: s.options[s.selectedIndex].dataset.pid, vent_mode: document.getElementById('ventMode').value, fio2: document.getElementById('ventFiO2').value, tidal_volume: document.getElementById('ventTV').value, respiratory_rate: document.getElementById('ventRR').value, peep: document.getElementById('ventPEEP').value, pip: document.getElementById('ventPIP').value, ps: document.getElementById('ventPS').value, ett_size: document.getElementById('ventETT').value, recorded_by: currentUser?.display_name });
+    await API.post('/api/icu/ventilator', { admission_id: s.value, vent_mode: document.getElementById('ventMode').value, fio2: document.getElementById('ventFiO2').value, tidal_volume: document.getElementById('ventTV').value, respiratory_rate: document.getElementById('ventRR').value, peep: document.getElementById('ventPEEP').value, pip: document.getElementById('ventPIP').value, ps: document.getElementById('ventPS').value, ett_size: document.getElementById('ventETT').value, recorded_by: currentUser?.display_name });
+    showToast(tr('Saved!', 'تم الحفظ!'));
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+window.saveICUInfusion = async function () {
+  const s = document.getElementById('icuPatientInfusion'); if (!s.value) return showToast(tr('Select patient', 'اختر المريض'), 'error');
+  const drug = document.getElementById('infDrug').value; if (!drug || !drug.trim()) return showToast(tr('Drug required', 'الدواء مطلوب'), 'error');
+  try {
+    const r = await API.post('/api/icu/infusion', { admission_id: s.value, drug: drug, concentration: document.getElementById('infConc').value, rate: document.getElementById('infRate').value, rate_unit: document.getElementById('infRateUnit').value, status: document.getElementById('infStatus').value, recorded_by: currentUser?.display_name });
+    const box = document.getElementById('infusionResult');
+    if (box) {
+      if (r && r.allergy_warning) {
+        box.innerHTML = `<div class="card" style="border-left:4px solid #e74c3c;padding:10px"><strong style="color:#e74c3c">⚠️ ${tr('Allergy warning', 'تنبيه حساسية')}:</strong> ${escapeHTML(r.allergy_warning)}</div>`;
+      } else { box.innerHTML = ''; }
+    }
     showToast(tr('Saved!', 'تم الحفظ!'));
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 window.saveICUScores = async function () {
+  // Server-computed scoring: send RAW observations only. Server runs icu_scoring.js (anti-spoof)
+  // and returns {sofa, sofa_band, gcs, apache, ...}.
   const s = document.getElementById('icuPatientScore'); if (!s.value) return showToast(tr('Select patient', 'اختر المريض'), 'error');
+  const val = id => { const el = document.getElementById(id); return el ? el.value : ''; };
   try {
-    await API.post('/api/icu/scores', { admission_id: s.value, patient_id: s.options[s.selectedIndex].dataset.pid, apache_ii: document.getElementById('scoreAPACHE').value, sofa: document.getElementById('scoreSOFA').value, gcs: document.getElementById('scoreGCS').value, rass: document.getElementById('scoreRASS').value, braden: document.getElementById('scoreBraden').value, morse_fall: document.getElementById('scoreMorse').value, pain_score: document.getElementById('scorePain').value, calculated_by: currentUser?.display_name });
-    showToast(tr('Saved!', 'تم الحفظ!'));
+    const r = await API.post('/api/icu/score', {
+      admission_id: s.value,
+      age: val('scoreAge'),
+      gcs_eye: val('gcsEye'), gcs_verbal: val('gcsVerbal'), gcs_motor: val('gcsMotor'),
+      map: val('scoreMAP'), hr: val('scoreHR'), rr: val('scoreRR'), spo2: val('scoreSpO2'), temp: val('scoreTemp'),
+      pao2_fio2: val('scorePF'), ventilated: val('scoreVent') === '1',
+      platelets: val('scorePlt'), bilirubin: val('scoreBili'), creatinine: val('scoreCreat'), urine_output_24h: val('scoreUrine24'),
+      rass: val('scoreRASS'), braden: val('scoreBraden'), morse_fall: val('scoreMorse'), pain_score: val('scorePain'),
+      calculated_by: currentUser?.display_name
+    });
+    const box = document.getElementById('scoreResult');
+    if (box && r) {
+      box.innerHTML = `<div class="card" style="padding:12px">
+        <strong>SOFA:</strong> ${escapeHTML(r.sofa)} <small>(${escapeHTML(r.sofa_band || '-')}, ${escapeHTML(r.sofa_mortality_risk || '-')})</small> &nbsp;|&nbsp;
+        <strong>GCS:</strong> ${r.gcs === null || r.gcs === undefined ? '—' : escapeHTML(r.gcs)} <small>(${escapeHTML(r.gcs_band || '-')})</small> &nbsp;|&nbsp;
+        <strong>APACHE-II:</strong> ${escapeHTML(r.apache)} <small>(${escapeHTML(r.apache_band || '-')}, ${escapeHTML(r.apache_mortality_risk || '-')})</small></div>`;
+    }
+    showToast(tr('Computed & saved!', 'تم الحساب والحفظ!'));
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 window.saveFluidBalance = async function () {
   const s = document.getElementById('icuPatientFluid'); if (!s.value) return showToast(tr('Select patient', 'اختر المريض'), 'error');
   try {
-    await API.post('/api/icu/fluid-balance', { admission_id: s.value, patient_id: s.options[s.selectedIndex].dataset.pid, shift: document.getElementById('fluidShift').value, iv_fluids: document.getElementById('fluidIV').value, oral_intake: document.getElementById('fluidOral').value, blood_products: document.getElementById('fluidBlood').value, medications_iv: document.getElementById('fluidMeds').value, urine: document.getElementById('fluidUrine').value, drains: document.getElementById('fluidDrains').value, ngt_output: document.getElementById('fluidNGT').value, vomit: document.getElementById('fluidVomit').value, recorded_by: currentUser?.display_name });
+    await API.post('/api/icu/fluid-balance', { admission_id: s.value, shift: document.getElementById('fluidShift').value, iv_fluids: document.getElementById('fluidIV').value, oral_intake: document.getElementById('fluidOral').value, blood_products: document.getElementById('fluidBlood').value, medications_iv: document.getElementById('fluidMeds').value, urine: document.getElementById('fluidUrine').value, drains: document.getElementById('fluidDrains').value, ngt_output: document.getElementById('fluidNGT').value, vomit: document.getElementById('fluidVomit').value, recorded_by: currentUser?.display_name });
     showToast(tr('Saved!', 'تم الحفظ!'));
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };

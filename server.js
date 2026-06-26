@@ -23,6 +23,8 @@ const { mountClinicalRoutes } = require('./clinical_cpoe');
 const nursingScores = require('./nursing_scores');
 // E7 Emergency Department (additive): server-side ESI (Emergency Severity Index) triage engine.
 const esiEngine = require('./esi_engine');
+// E9 ICU / Critical Care (additive): server-side, anti-spoof SOFA / GCS / APACHE-II acuity engine.
+const icuScoring = require('./icu_scoring');
 
 // Multer setup for radiology image uploads — A3A: PHI vault OUTSIDE public webroot (no static/direct access)
 const uploadsDir = path.join(__dirname, 'phi_vault', 'radiology');
@@ -5187,149 +5189,362 @@ app.post('/api/adt/bed-status', requireAuth, requireRole('inpatient', 'nursing',
     }
 });
 
-// ===== ICU =====
-app.get('/api/icu/patients', requireAuth, requireTenantScope, async (req, res) => {
+// ============================================================
+// ===== E9 ICU / CRITICAL CARE (hardened) =====
+// All routes: requireAuth + requireRole('icu','nursing','doctor') + requireTenantScope.
+// Fail-closed tenant resolver (e9RequireTenant) — null tenant => 403 (NO unscoped fallback).
+// Integer id coercion (e9IntId) — no string/padded-id bypass (E6 lesson).
+// Writes only attach to an Active, tenant-owned admission whose bed is in an ICU/NICU/CCU ward.
+// Acuity scores (SOFA/GCS/APACHE-II) are computed SERVER-SIDE via icu_scoring.js — any
+// client-supplied score/band is ADVISORY ONLY and is IGNORED (anti-spoof, E6/E7 lesson).
+// ICU wards classified by ward_type IN ('ICU','NICU','CCU').
+// ============================================================
+const E9_ICU_WARD_TYPES = ['ICU', 'NICU', 'CCU'];
+
+// Fail-closed tenant resolver (mirrors e8RequireTenant — no unscoped fallback).
+function e9RequireTenant(req) {
+    const { tenantId, facilityId } = getRequestTenantContext(req);
+    if (!tenantId) { const err = new Error('Tenant scope required'); err.e9Status = 403; throw err; }
+    return { tenantId, facilityId };
+}
+
+// Coerce an id to a positive integer (no string/padded-id coercion bypass — E6 lesson).
+function e9IntId(v) {
+    if (v === null || v === undefined || v === '') return null;
+    const n = Number(v);
+    if (!Number.isInteger(n) || n <= 0) return null;
+    return n;
+}
+
+// Validate that admissionId belongs to this tenant, is Active, and sits in an ICU-typed ward.
+// Returns the admission row (with patient_id) or throws an e9Status error.
+//   - non-positive id  => 422
+//   - not found / cross-tenant => 404 (no leak)
+//   - not Active (e.g. Discharged) => 409
+//   - not in an ICU/NICU/CCU ward => 409
+async function e9LoadActiveIcuAdmission(admissionId, tenantId) {
+    const aid = e9IntId(admissionId);
+    if (!aid) { const e = new Error('Valid admission_id is required'); e.e9Status = 422; throw e; }
+    const row = (await pool.query(
+        `SELECT a.id, a.patient_id, a.status, w.ward_type
+         FROM admissions a
+         LEFT JOIN beds b ON a.bed_id = b.id AND b.tenant_id = $2
+         LEFT JOIN wards w ON COALESCE(b.ward_id, a.ward_id) = w.id AND w.tenant_id = $2
+         WHERE a.id = $1 AND a.tenant_id = $2`,
+        [aid, tenantId])).rows[0];
+    if (!row) { const e = new Error('Admission not found'); e.e9Status = 404; throw e; }
+    if (row.status !== 'Active') { const e = new Error(`Cannot record ICU data on a ${row.status} admission`); e.e9Status = 409; throw e; }
+    if (!E9_ICU_WARD_TYPES.includes(row.ward_type)) {
+        const e = new Error('Admission is not in an ICU/NICU/CCU ward'); e.e9Status = 409; throw e;
+    }
+    return row;
+}
+
+// GET /api/icu/patients — Active admissions in ICU-typed wards (tenant-scoped, fail-closed).
+app.get('/api/icu/patients', requireAuth, requireRole('icu', 'nursing', 'doctor'), requireTenantScope, async (req, res) => {
     try {
-        const { tenantId } = getRequestTenantContext(req);
-        let q = "SELECT a.*, b.bed_number, w.ward_name, w.ward_name_ar FROM admissions a JOIN beds b ON a.bed_id=b.id JOIN wards w ON a.ward_id=w.id WHERE a.status='Active' AND w.ward_type IN ('ICU','NICU','CCU')";
-        let params = [];
-        if (tenantId) {
-            q += " AND a.tenant_id=$1";
-            params.push(tenantId);
-        }
-        q += " ORDER BY a.admission_date DESC";
-        res.json((await pool.query(q, params)).rows);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+        const { tenantId } = e9RequireTenant(req);
+        const rows = (await pool.query(
+            `SELECT a.*, b.bed_number, w.ward_name, w.ward_name_ar, w.ward_type
+             FROM admissions a
+             LEFT JOIN beds b ON a.bed_id = b.id AND b.tenant_id = $1
+             JOIN wards w ON COALESCE(b.ward_id, a.ward_id) = w.id AND w.tenant_id = $1
+             WHERE a.status='Active' AND a.tenant_id = $1 AND w.ward_type IN ('ICU','NICU','CCU')
+             ORDER BY a.admission_date DESC`, [tenantId])).rows;
+        res.json(rows);
+    } catch (e) {
+        if (e.e9Status) return res.status(e.e9Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
 });
-app.post('/api/icu/monitoring', requireAuth, requireTenantScope, async (req, res) => {
+
+// ----- ICU flowsheet (time-stamped vitals/hemodynamics/I-O) — backed by icu_monitoring -----
+// POST /api/icu/flowsheet  (canonical blueprint name). Legacy alias: POST /api/icu/monitoring.
+async function e9PostFlowsheet(req, res) {
     try {
-        const { admission_id, patient_id, hr, sbp, dbp, map, rr, spo2, temp, etco2, cvp, fio2, peep, urine_output, notes, recorded_by } = req.body;
-        const { tenantId, facilityId } = getRequestTenantContext(req);
-        if (tenantId) {
-            const admCheck = await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [admission_id, tenantId]);
-            if (admCheck.rows.length === 0) return res.status(404).json({ error: 'Admission not found' });
-            const ptCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
-            if (ptCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
-        }
-        const r = await pool.query('INSERT INTO icu_monitoring (admission_id,patient_id,hr,sbp,dbp,map,rr,spo2,temp,etco2,cvp,fio2,peep,urine_output,notes,recorded_by,tenant_id,facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING *',
-            [admission_id, patient_id, hr, sbp, dbp, map, rr, spo2, temp, etco2, cvp, fio2, peep, urine_output, notes, recorded_by, tenantId || null, facilityId || null]);
+        const { tenantId, facilityId } = e9RequireTenant(req);
+        const adm = await e9LoadActiveIcuAdmission(req.body.admission_id, tenantId);
+        const b = req.body;
+        const num = v => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
+        const r = await pool.query(
+            `INSERT INTO icu_monitoring (admission_id,patient_id,hr,sbp,dbp,map,rr,spo2,temp,etco2,cvp,fio2,peep,urine_output,notes,recorded_by,tenant_id,facility_id)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING *`,
+            [adm.id, adm.patient_id, num(b.hr), num(b.sbp), num(b.dbp), num(b.map), num(b.rr), num(b.spo2), num(b.temp), num(b.etco2), num(b.cvp), num(b.fio2), num(b.peep), num(b.urine_output), String(b.notes || ''), String(b.recorded_by || req.session.user?.display_name || ''), tenantId, facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'ICU_FLOWSHEET', 'ICU',
+            `Flowsheet row for admission #${adm.id} (patient #${adm.patient_id})`, req.ip);
         res.json(r.rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-app.get('/api/icu/monitoring/:admissionId', requireAuth, requireTenantScope, async (req, res) => {
+    } catch (e) {
+        if (e.e9Status) return res.status(e.e9Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+app.post('/api/icu/flowsheet', requireAuth, requireRole('icu', 'nursing', 'doctor'), requireTenantScope, e9PostFlowsheet);
+app.post('/api/icu/monitoring', requireAuth, requireRole('icu', 'nursing', 'doctor'), requireTenantScope, e9PostFlowsheet);
+
+async function e9GetFlowsheet(req, res) {
     try {
-        const { tenantId } = getRequestTenantContext(req);
-        if (tenantId) {
-            const admCheck = await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [req.params.admissionId, tenantId]);
-            if (admCheck.rows.length === 0) return res.status(404).json({ error: 'Admission not found' });
-        }
-        let q = 'SELECT * FROM icu_monitoring WHERE admission_id=$1';
-        let params = [req.params.admissionId];
-        if (tenantId) {
-            q += ' AND tenant_id=$2';
-            params.push(tenantId);
-        }
-        q += ' ORDER BY monitor_time DESC LIMIT 50';
-        res.json((await pool.query(q, params)).rows);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-app.post('/api/icu/ventilator', requireAuth, requireTenantScope, async (req, res) => {
+        const { tenantId } = e9RequireTenant(req);
+        const admissionId = e9IntId(req.query.admission_id != null ? req.query.admission_id : req.params.admissionId);
+        if (!admissionId) return res.status(422).json({ error: 'Valid admission_id is required' });
+        const own = (await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [admissionId, tenantId])).rows[0];
+        if (!own) return res.status(404).json({ error: 'Admission not found' });
+        const rows = (await pool.query(
+            'SELECT * FROM icu_monitoring WHERE admission_id=$1 AND tenant_id=$2 ORDER BY monitor_time DESC LIMIT 50',
+            [admissionId, tenantId])).rows;
+        res.json(rows);
+    } catch (e) {
+        if (e.e9Status) return res.status(e.e9Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+app.get('/api/icu/flowsheet', requireAuth, requireRole('icu', 'nursing', 'doctor'), requireTenantScope, e9GetFlowsheet);
+app.get('/api/icu/monitoring/:admissionId', requireAuth, requireRole('icu', 'nursing', 'doctor'), requireTenantScope, e9GetFlowsheet);
+
+// ----- Ventilator records (settings + measured) — icu_ventilator -----
+app.post('/api/icu/ventilator', requireAuth, requireRole('icu', 'nursing', 'doctor'), requireTenantScope, async (req, res) => {
     try {
-        const { admission_id, patient_id, vent_mode, fio2, tidal_volume, respiratory_rate, peep, pip, ie_ratio, ps, ett_size, ett_position, cuff_pressure, notes, recorded_by } = req.body;
-        const { tenantId, facilityId } = getRequestTenantContext(req);
-        if (tenantId) {
-            const admCheck = await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [admission_id, tenantId]);
-            if (admCheck.rows.length === 0) return res.status(404).json({ error: 'Admission not found' });
-            const ptCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
-            if (ptCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
-        }
-        const r = await pool.query('INSERT INTO icu_ventilator (admission_id,patient_id,vent_mode,fio2,tidal_volume,respiratory_rate,peep,pip,ie_ratio,ps,ett_size,ett_position,cuff_pressure,notes,recorded_by,tenant_id,facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *',
-            [admission_id, patient_id, vent_mode, fio2 || 21, tidal_volume, respiratory_rate, peep, pip, ie_ratio || '1:2', ps, ett_size, ett_position, cuff_pressure, notes, recorded_by, tenantId || null, facilityId || null]);
+        const { tenantId, facilityId } = e9RequireTenant(req);
+        const adm = await e9LoadActiveIcuAdmission(req.body.admission_id, tenantId);
+        const b = req.body;
+        const num = v => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
+        const r = await pool.query(
+            `INSERT INTO icu_ventilator (admission_id,patient_id,vent_mode,fio2,tidal_volume,respiratory_rate,peep,pip,ie_ratio,ps,ett_size,ett_position,cuff_pressure,notes,recorded_by,tenant_id,facility_id)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *`,
+            [adm.id, adm.patient_id, String(b.vent_mode || ''), num(b.fio2) || 21, num(b.tidal_volume), num(b.respiratory_rate), num(b.peep), num(b.pip), String(b.ie_ratio || '1:2'), num(b.ps), String(b.ett_size || ''), String(b.ett_position || ''), num(b.cuff_pressure), String(b.notes || ''), String(b.recorded_by || req.session.user?.display_name || ''), tenantId, facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'ICU_VENTILATOR', 'ICU',
+            `Ventilator record for admission #${adm.id} (mode ${b.vent_mode || '-'})`, req.ip);
         res.json(r.rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) {
+        if (e.e9Status) return res.status(e.e9Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
 });
-app.get('/api/icu/ventilator/:admissionId', requireAuth, requireTenantScope, async (req, res) => {
+app.get('/api/icu/ventilator/:admissionId', requireAuth, requireRole('icu', 'nursing', 'doctor'), requireTenantScope, async (req, res) => {
     try {
-        const { tenantId } = getRequestTenantContext(req);
-        if (tenantId) {
-            const admCheck = await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [req.params.admissionId, tenantId]);
-            if (admCheck.rows.length === 0) return res.status(404).json({ error: 'Admission not found' });
-        }
-        let q = 'SELECT * FROM icu_ventilator WHERE admission_id=$1';
-        let params = [req.params.admissionId];
-        if (tenantId) {
-            q += ' AND tenant_id=$2';
-            params.push(tenantId);
-        }
-        q += ' ORDER BY created_at DESC LIMIT 20';
-        res.json((await pool.query(q, params)).rows);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+        const { tenantId } = e9RequireTenant(req);
+        const admissionId = e9IntId(req.params.admissionId);
+        if (!admissionId) return res.status(422).json({ error: 'Valid admission_id is required' });
+        const own = (await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [admissionId, tenantId])).rows[0];
+        if (!own) return res.status(404).json({ error: 'Admission not found' });
+        const rows = (await pool.query(
+            'SELECT * FROM icu_ventilator WHERE admission_id=$1 AND tenant_id=$2 ORDER BY created_at DESC LIMIT 20',
+            [admissionId, tenantId])).rows;
+        res.json(rows);
+    } catch (e) {
+        if (e.e9Status) return res.status(e.e9Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
 });
-app.post('/api/icu/scores', requireAuth, requireTenantScope, async (req, res) => {
+
+// ----- Infusions / drips (continuous IV meds) — NEW table icu_infusions -----
+// Bonus safety: if a drug name is supplied, run a server-derived allergy check (cds.checkDrugAllergy)
+// against the patient's active allergy list — fail-safe (records a warning, does NOT silently block).
+app.post('/api/icu/infusion', requireAuth, requireRole('icu', 'nursing', 'doctor'), requireTenantScope, async (req, res) => {
     try {
-        const { admission_id, patient_id, apache_ii, sofa, gcs, rass, cam_icu, braden, morse_fall, pain_score, calculated_by } = req.body;
-        const { tenantId, facilityId } = getRequestTenantContext(req);
-        if (tenantId) {
-            const admCheck = await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [admission_id, tenantId]);
-            if (admCheck.rows.length === 0) return res.status(404).json({ error: 'Admission not found' });
-            const ptCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
-            if (ptCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
-        }
-        const r = await pool.query('INSERT INTO icu_scores (admission_id,patient_id,score_date,apache_ii,sofa,gcs,rass,cam_icu,braden,morse_fall,pain_score,calculated_by,tenant_id,facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *',
-            [admission_id, patient_id, new Date().toISOString().split('T')[0], apache_ii || 0, sofa || 0, gcs || 15, rass || 0, cam_icu || 0, braden || 23, morse_fall || 0, pain_score || 0, calculated_by, tenantId || null, facilityId || null]);
+        const { tenantId, facilityId } = e9RequireTenant(req);
+        const adm = await e9LoadActiveIcuAdmission(req.body.admission_id, tenantId);
+        const b = req.body;
+        const drug = String(b.drug || b.medication || '').trim();
+        if (!drug) return res.status(422).json({ error: 'drug is required' });
+        const num = v => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
+
+        // Bonus: server-derived allergy safety check (advisory; never client-trusted).
+        let allergyWarning = null;
+        try {
+            const allergyRows = (await pool.query(
+                'SELECT allergies FROM patients WHERE id=$1 AND tenant_id=$2', [adm.patient_id, tenantId])).rows[0];
+            if (allergyRows && allergyRows.allergies) {
+                const alerts = cds.checkDrugAllergy({ name: drug }, allergyRows.allergies);
+                if (Array.isArray(alerts) && alerts.length) {
+                    allergyWarning = alerts.map(a => a.message || a.reason || String(a)).join('; ');
+                }
+            }
+        } catch (_) { /* fail-safe: allergy lookup failure must not block infusion record */ }
+
+        const r = await pool.query(
+            `INSERT INTO icu_infusions (admission_id,patient_id,drug,concentration,rate,rate_unit,dose,dose_unit,route,status,allergy_warning,notes,recorded_by,tenant_id,facility_id)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,
+            [adm.id, adm.patient_id, drug, String(b.concentration || ''), num(b.rate), String(b.rate_unit || 'mL/hr'), num(b.dose), String(b.dose_unit || ''), String(b.route || 'IV'), String(b.status || 'Running'), allergyWarning, String(b.notes || ''), String(b.recorded_by || req.session.user?.display_name || ''), tenantId, facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'ICU_INFUSION', 'ICU',
+            `Infusion ${drug} for admission #${adm.id}${allergyWarning ? ' [ALLERGY WARNING: ' + allergyWarning + ']' : ''}`, req.ip);
+        res.json({ ...r.rows[0], allergy_warning: allergyWarning });
+    } catch (e) {
+        if (e.e9Status) return res.status(e.e9Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+app.get('/api/icu/infusion/:admissionId', requireAuth, requireRole('icu', 'nursing', 'doctor'), requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = e9RequireTenant(req);
+        const admissionId = e9IntId(req.params.admissionId);
+        if (!admissionId) return res.status(422).json({ error: 'Valid admission_id is required' });
+        const own = (await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [admissionId, tenantId])).rows[0];
+        if (!own) return res.status(404).json({ error: 'Admission not found' });
+        const rows = (await pool.query(
+            'SELECT * FROM icu_infusions WHERE admission_id=$1 AND tenant_id=$2 ORDER BY created_at DESC LIMIT 50',
+            [admissionId, tenantId])).rows;
+        res.json(rows);
+    } catch (e) {
+        if (e.e9Status) return res.status(e.e9Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// ----- ICU acuity scores (SERVER-SIDE SOFA / GCS / APACHE-II) — icu_scores -----
+// POST /api/icu/score (canonical) + legacy alias POST /api/icu/scores. Accepts RAW observations;
+// the score/band are computed by icu_scoring.js — any client apache_ii/sofa/gcs is IGNORED.
+async function e9PostScore(req, res) {
+    try {
+        const { tenantId, facilityId } = e9RequireTenant(req);
+        const adm = await e9LoadActiveIcuAdmission(req.body.admission_id, tenantId);
+        const b = req.body;
+
+        // Server-authoritative scoring from raw observations (anti-spoof).
+        const result = icuScoring.computeICUScores({
+            vitals: b.vitals || {},
+            gcs_eye: b.gcs_eye, gcs_verbal: b.gcs_verbal, gcs_motor: b.gcs_motor, gcs_total: b.gcs_total,
+            pao2_fio2: b.pao2_fio2, pao2: b.pao2, fio2: b.fio2, ventilated: b.ventilated,
+            platelets: b.platelets, bilirubin: b.bilirubin, creatinine: b.creatinine,
+            urine_output_24h: b.urine_output_24h, urine_24h: b.urine_24h,
+            map: b.map != null ? b.map : (b.vitals && b.vitals.map),
+            dopamine: b.dopamine, dobutamine: b.dobutamine, epinephrine: b.epinephrine, norepinephrine: b.norepinephrine,
+            temp: b.temp != null ? b.temp : (b.vitals && b.vitals.temp),
+            hr: b.hr != null ? b.hr : (b.vitals && b.vitals.hr),
+            rr: b.rr != null ? b.rr : (b.vitals && b.vitals.rr),
+            spo2: b.spo2 != null ? b.spo2 : (b.vitals && b.vitals.spo2),
+            age: b.age, chronic_health: b.chronic_health, immunocompromised: b.immunocompromised
+        });
+
+        // RASS / CAM-ICU / pain are observed nursing assessments (not derangement-derived) — accept
+        // but clamp to safe ranges; Braden/Morse retained for backward compat (nursing scores).
+        const clampInt = (v, lo, hi, dflt) => { const n = parseInt(v); return Number.isInteger(n) ? Math.max(lo, Math.min(hi, n)) : dflt; };
+        const rass = clampInt(b.rass, -5, 4, 0);
+        const cam = clampInt(b.cam_icu, 0, 1, 0);
+        const braden = clampInt(b.braden, 6, 23, 23);
+        const morse = clampInt(b.morse_fall, 0, 125, 0);
+        const pain = clampInt(b.pain_score, 0, 10, 0);
+
+        const r = await pool.query(
+            `INSERT INTO icu_scores (admission_id,patient_id,score_date,apache_ii,sofa,gcs,rass,cam_icu,braden,morse_fall,pain_score,calculated_by,tenant_id,facility_id)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
+            [adm.id, adm.patient_id, new Date().toISOString().split('T')[0],
+             result.apache, result.sofa, (result.gcs ?? null), rass, cam, braden, morse, pain,
+             String(b.calculated_by || req.session.user?.display_name || ''), tenantId, facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'ICU_SCORE', 'ICU',
+            `Acuity scored admission #${adm.id}: SOFA ${result.sofa} (${result.sofa_band}), GCS ${result.gcs}, APACHE ${result.apache} (${result.apache_band})`, req.ip);
+        res.json({
+            ...r.rows[0],
+            sofa: result.sofa, sofa_band: result.sofa_band, sofa_mortality_risk: result.sofa_mortality_risk,
+            gcs: result.gcs, gcs_band: result.gcs_band,
+            apache: result.apache, apache_band: result.apache_band, apache_mortality_risk: result.apache_mortality_risk,
+            complete: result.complete, components: result.components, missing: result.missing
+        });
+    } catch (e) {
+        if (e.e9Status) return res.status(e.e9Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+app.post('/api/icu/score', requireAuth, requireRole('icu', 'nursing', 'doctor'), requireTenantScope, e9PostScore);
+app.post('/api/icu/scores', requireAuth, requireRole('icu', 'nursing', 'doctor'), requireTenantScope, e9PostScore);
+
+app.get('/api/icu/scores/:admissionId', requireAuth, requireRole('icu', 'nursing', 'doctor'), requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = e9RequireTenant(req);
+        const admissionId = e9IntId(req.params.admissionId);
+        if (!admissionId) return res.status(422).json({ error: 'Valid admission_id is required' });
+        const own = (await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [admissionId, tenantId])).rows[0];
+        if (!own) return res.status(404).json({ error: 'Admission not found' });
+        const rows = (await pool.query(
+            'SELECT * FROM icu_scores WHERE admission_id=$1 AND tenant_id=$2 ORDER BY created_at DESC',
+            [admissionId, tenantId])).rows;
+        res.json(rows);
+    } catch (e) {
+        if (e.e9Status) return res.status(e.e9Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// ----- Fluid balance (intake/output) — icu_fluid_balance (server computes totals) -----
+app.post('/api/icu/fluid-balance', requireAuth, requireRole('icu', 'nursing', 'doctor'), requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId, facilityId } = e9RequireTenant(req);
+        const adm = await e9LoadActiveIcuAdmission(req.body.admission_id, tenantId);
+        const b = req.body;
+        const ti = (parseInt(b.iv_fluids) || 0) + (parseInt(b.oral_intake) || 0) + (parseInt(b.blood_products) || 0) + (parseInt(b.medications_iv) || 0);
+        const to = (parseInt(b.urine) || 0) + (parseInt(b.drains) || 0) + (parseInt(b.ngt_output) || 0) + (parseInt(b.stool) || 0) + (parseInt(b.vomit) || 0) + (parseInt(b.insensible) || 0);
+        const r = await pool.query(
+            `INSERT INTO icu_fluid_balance (admission_id,patient_id,balance_date,shift,iv_fluids,oral_intake,blood_products,medications_iv,total_intake,urine,drains,ngt_output,stool,vomit,insensible,total_output,net_balance,recorded_by,tenant_id,facility_id)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) RETURNING *`,
+            [adm.id, adm.patient_id, new Date().toISOString().split('T')[0], String(b.shift || 'Day'), parseInt(b.iv_fluids) || 0, parseInt(b.oral_intake) || 0, parseInt(b.blood_products) || 0, parseInt(b.medications_iv) || 0, ti, parseInt(b.urine) || 0, parseInt(b.drains) || 0, parseInt(b.ngt_output) || 0, parseInt(b.stool) || 0, parseInt(b.vomit) || 0, parseInt(b.insensible) || 0, to, ti - to, String(b.recorded_by || req.session.user?.display_name || ''), tenantId, facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'ICU_FLUID_BALANCE', 'ICU',
+            `Fluid balance admission #${adm.id}: in ${ti} out ${to} net ${ti - to}`, req.ip);
         res.json(r.rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) {
+        if (e.e9Status) return res.status(e.e9Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
 });
-app.get('/api/icu/scores/:admissionId', requireAuth, requireTenantScope, async (req, res) => {
+app.get('/api/icu/fluid-balance/:admissionId', requireAuth, requireRole('icu', 'nursing', 'doctor'), requireTenantScope, async (req, res) => {
     try {
-        const { tenantId } = getRequestTenantContext(req);
-        if (tenantId) {
-            const admCheck = await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [req.params.admissionId, tenantId]);
-            if (admCheck.rows.length === 0) return res.status(404).json({ error: 'Admission not found' });
-        }
-        let q = 'SELECT * FROM icu_scores WHERE admission_id=$1';
-        let params = [req.params.admissionId];
-        if (tenantId) {
-            q += ' AND tenant_id=$2';
-            params.push(tenantId);
-        }
-        q += ' ORDER BY created_at DESC';
-        res.json((await pool.query(q, params)).rows);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+        const { tenantId } = e9RequireTenant(req);
+        const admissionId = e9IntId(req.params.admissionId);
+        if (!admissionId) return res.status(422).json({ error: 'Valid admission_id is required' });
+        const own = (await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [admissionId, tenantId])).rows[0];
+        if (!own) return res.status(404).json({ error: 'Admission not found' });
+        const rows = (await pool.query(
+            'SELECT * FROM icu_fluid_balance WHERE admission_id=$1 AND tenant_id=$2 ORDER BY created_at DESC',
+            [admissionId, tenantId])).rows;
+        res.json(rows);
+    } catch (e) {
+        if (e.e9Status) return res.status(e.e9Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
 });
-app.post('/api/icu/fluid-balance', requireAuth, requireTenantScope, async (req, res) => {
+
+// ----- ICU board — ICU-bed patients + latest SOFA/GCS + vent status, sorted by acuity -----
+app.get('/api/icu/board', requireAuth, requireRole('icu', 'nursing', 'doctor'), requireTenantScope, async (req, res) => {
     try {
-        const { admission_id, patient_id, shift, iv_fluids, oral_intake, blood_products, medications_iv, urine, drains, ngt_output, stool, vomit, insensible, recorded_by } = req.body;
-        const { tenantId, facilityId } = getRequestTenantContext(req);
-        if (tenantId) {
-            const admCheck = await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [admission_id, tenantId]);
-            if (admCheck.rows.length === 0) return res.status(404).json({ error: 'Admission not found' });
-            const ptCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
-            if (ptCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
+        const { tenantId } = e9RequireTenant(req);
+        const patients = (await pool.query(
+            `SELECT a.id AS admission_id, a.patient_id, a.patient_name, a.diagnosis, a.attending_doctor, a.admission_date,
+                    b.bed_number, w.ward_name, w.ward_name_ar, w.ward_type
+             FROM admissions a
+             LEFT JOIN beds b ON a.bed_id = b.id AND b.tenant_id = $1
+             JOIN wards w ON COALESCE(b.ward_id, a.ward_id) = w.id AND w.tenant_id = $1
+             WHERE a.status='Active' AND a.tenant_id = $1 AND w.ward_type IN ('ICU','NICU','CCU')`,
+            [tenantId])).rows;
+
+        const board = [];
+        for (const p of patients) {
+            const score = (await pool.query(
+                'SELECT sofa, gcs, apache_ii, score_date FROM icu_scores WHERE admission_id=$1 AND tenant_id=$2 ORDER BY created_at DESC LIMIT 1',
+                [p.admission_id, tenantId])).rows[0] || null;
+            const vent = (await pool.query(
+                'SELECT vent_mode, fio2, peep FROM icu_ventilator WHERE admission_id=$1 AND tenant_id=$2 ORDER BY created_at DESC LIMIT 1',
+                [p.admission_id, tenantId])).rows[0] || null;
+            const sofa = score ? Number(score.sofa) || 0 : null;
+            const apache = score ? Number(score.apache_ii) || 0 : null;
+            const gcs = (score && score.gcs != null) ? Number(score.gcs) : null; // NULL gcs (unmeasured) stays null — Number(null)=0 would wrongly add (15-0)=15
+            // Acuity sort key: highest SOFA first, then APACHE, then lowest GCS. No score => treat as
+            // unknown (sorted after scored patients, NOT as low acuity).
+            const acuity = (sofa !== null ? sofa : -1) * 1000 + (apache !== null ? apache : 0) + (gcs !== null ? (15 - gcs) : 0);
+            board.push({
+                admission_id: p.admission_id, patient_id: p.patient_id, patient_name: p.patient_name,
+                diagnosis: p.diagnosis, attending_doctor: p.attending_doctor, admission_date: p.admission_date,
+                bed_number: p.bed_number, ward_name: p.ward_name, ward_name_ar: p.ward_name_ar, ward_type: p.ward_type,
+                latest_sofa: sofa, latest_apache: apache, latest_gcs: gcs,
+                sofa_band: sofa === null ? null : icuScoring.sofaBand(sofa).band,
+                on_ventilator: !!vent, vent_mode: vent ? vent.vent_mode : null,
+                acuity
+            });
         }
-        const ti = (parseInt(iv_fluids) || 0) + (parseInt(oral_intake) || 0) + (parseInt(blood_products) || 0) + (parseInt(medications_iv) || 0);
-        const to = (parseInt(urine) || 0) + (parseInt(drains) || 0) + (parseInt(ngt_output) || 0) + (parseInt(stool) || 0) + (parseInt(vomit) || 0) + (parseInt(insensible) || 0);
-        const r = await pool.query('INSERT INTO icu_fluid_balance (admission_id,patient_id,balance_date,shift,iv_fluids,oral_intake,blood_products,medications_iv,total_intake,urine,drains,ngt_output,stool,vomit,insensible,total_output,net_balance,recorded_by,tenant_id,facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) RETURNING *',
-            [admission_id, patient_id, new Date().toISOString().split('T')[0], shift || 'Day', iv_fluids || 0, oral_intake || 0, blood_products || 0, medications_iv || 0, ti, urine || 0, drains || 0, ngt_output || 0, stool || 0, vomit || 0, insensible || 0, to, ti - to, recorded_by, tenantId || null, facilityId || null]);
-        res.json(r.rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-app.get('/api/icu/fluid-balance/:admissionId', requireAuth, requireTenantScope, async (req, res) => {
-    try {
-        const { tenantId } = getRequestTenantContext(req);
-        if (tenantId) {
-            const admCheck = await pool.query('SELECT id FROM admissions WHERE id=$1 AND tenant_id=$2', [req.params.admissionId, tenantId]);
-            if (admCheck.rows.length === 0) return res.status(404).json({ error: 'Admission not found' });
-        }
-        let q = 'SELECT * FROM icu_fluid_balance WHERE admission_id=$1';
-        let params = [req.params.admissionId];
-        if (tenantId) {
-            q += ' AND tenant_id=$2';
-            params.push(tenantId);
-        }
-        q += ' ORDER BY created_at DESC';
-        res.json((await pool.query(q, params)).rows);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+        // Sort descending by acuity (sickest first).
+        board.sort((x, y) => y.acuity - x.acuity);
+        res.json({ board, count: board.length });
+    } catch (e) {
+        if (e.e9Status) return res.status(e.e9Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 // ===== CSSD =====
