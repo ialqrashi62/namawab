@@ -105,6 +105,27 @@ let threw = false; try { e10RequireTenant(null); } catch (e) { threw = (e.e10Sta
 assert(threw, 'null tenant throws 403 (no unscoped query path)');
 assert(e10RequireTenant(1) === 1, 'valid tenant passes through');
 
+// ===== 4. I-2: finance/summary is fail-closed (unconditional AND tenant_id) =====
+console.log(`\n${BOLD}[4] I-2: finance/summary fail-closed (e10RequireTenant + unconditional tenant_id predicate)${RESET}`);
+// Isolate the finance/summary handler text for scoped checks.
+const summaryStart = serverContent.indexOf('===== FINANCE SUMMARY =====');
+const summaryEnd = serverContent.indexOf('\n});', summaryStart) + 4;
+assert(summaryStart > 0, 'finance/summary handler block located in server.js');
+const summaryBlock = summaryEnd > summaryStart ? serverContent.slice(summaryStart, summaryEnd) : '';
+const summaryClean = summaryBlock.replace(/\s+/g, '');
+assert(summaryClean.includes('e10RequireTenant(req)'), 'finance/summary uses e10RequireTenant (fail-closed, not soft getRequestTenantContext)');
+assert(summaryClean.includes("WHEREtotal>0ANDtenant_id=$1"), 'finance/summary WHERE clause has unconditional tenant_id=$1 (not conditional on if-tenantId)');
+assert(!summaryClean.includes('if(tenantId)'), 'finance/summary does not have soft if(tenantId) guard (no unscoped fallback path)');
+
+// ===== 5. I-1: ZATCA INSERT does not clobber qr_code with TLV bytes =====
+console.log(`\n${BOLD}[5] I-1: ZATCA INSERT qr_code/qr_tlv — no TLV duplication into qr_code${RESET}`);
+const zatcaInsertClean = clean;
+// After fix: VALUES uses '' for qr_code and $9 for qr_tlv (not $9,$9 or $9 twice for qr_code).
+// ON CONFLICT UPDATE must NOT set qr_code=$9.
+assert(!zatcaInsertClean.includes("qr_code=$9,qr_tlv=$9"), 'ZATCA ON CONFLICT UPDATE does not write TLV ($9) into both qr_code and qr_tlv');
+assert(!zatcaInsertClean.includes("qr_code=$9"), 'ZATCA ON CONFLICT UPDATE does not overwrite qr_code with TLV ($9)');
+assert(zatcaInsertClean.includes("qr_tlv=$9"), 'ZATCA ON CONFLICT UPDATE updates qr_tlv=$9 (canonical TLV column)');
+
 console.log(`\n${BOLD}${BLUE}=== Cross-Tenant Finance Test Results ===${RESET}`);
 console.log(`  ${GREEN}PASS${RESET}: ${passed}   ${RED}FAIL${RESET}: ${failed}`);
 if (failed > 0) { failures.forEach(f => console.log(`  - ${f.name}: ${f.details}`)); process.exit(1); }

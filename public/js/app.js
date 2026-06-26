@@ -10512,6 +10512,7 @@ window.rejectPortalAppt = async function (id) { await API.put('/api/portal/appoi
 
 // ===== ZATCA E-INVOICING =====
 async function renderZATCA(el) {
+  const content = el; // C-1 fix: bind content so downstream uses are consistent (el is the container)
 
   const invoices = await API.get('/api/zatca/invoices').catch(() => []);
   content.innerHTML = `

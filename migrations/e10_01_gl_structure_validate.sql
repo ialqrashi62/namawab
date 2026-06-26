@@ -36,4 +36,7 @@ SELECT
        WHERE conrelid='finance_journal_lines'::regclass
        AND confrelid='finance_chart_of_accounts'::regclass AND contype='f')                                  AS jl_account_fk,        -- expect 1
   (SELECT count(*)::int FROM pg_constraint
-       WHERE conrelid='finance_journal_lines'::regclass AND conname='chk_jl_sides')                          AS jl_sides_check;       -- expect 1
+       WHERE conrelid='finance_journal_lines'::regclass AND conname='chk_jl_sides')                          AS jl_sides_check,       -- expect 1
+  -- L-1: reversal_of self-referential FK
+  (SELECT count(*)::int FROM pg_constraint
+       WHERE conrelid='finance_journal_entries'::regclass AND conname='fk_je_reversal_of')                   AS je_reversal_of_fk;    -- expect 1

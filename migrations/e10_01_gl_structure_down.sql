@@ -18,6 +18,7 @@ ALTER TABLE finance_chart_of_accounts DROP CONSTRAINT IF EXISTS fk_coa_tenant;
 ALTER TABLE finance_journal_entries  DROP CONSTRAINT IF EXISTS chk_je_posting_status;
 ALTER TABLE finance_journal_entries  DROP CONSTRAINT IF EXISTS chk_je_source_type;
 ALTER TABLE finance_journal_entries  DROP CONSTRAINT IF EXISTS fk_je_tenant;
+ALTER TABLE finance_journal_entries  DROP CONSTRAINT IF EXISTS fk_je_reversal_of; -- L-1
 ALTER TABLE finance_journal_lines    DROP CONSTRAINT IF EXISTS chk_jl_sides;
 ALTER TABLE finance_journal_lines    DROP CONSTRAINT IF EXISTS fk_jl_entry;
 ALTER TABLE finance_journal_lines    DROP CONSTRAINT IF EXISTS fk_jl_account;

@@ -4761,9 +4761,9 @@ app.post('/api/zatca/generate', requireAuth, requireRole('finance', 'accounts'),
             `INSERT INTO zatca_invoices
                (invoice_id, invoice_number, seller_name, seller_vat, buyer_name, total_before_vat, vat_amount, total_with_vat,
                 qr_code, qr_tlv, ubl_xml, xml_hash, digital_stamp, submission_status, clearance_status, tenant_id)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$9,$10,$11,$12,'Generated','NOT_SUBMITTED',$13)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'',$9,$10,$11,$12,'Generated','NOT_SUBMITTED',$13)
              ON CONFLICT (tenant_id, invoice_id) DO UPDATE SET
-               qr_code=$9, qr_tlv=$9, ubl_xml=$10, xml_hash=$11, digital_stamp=$12,
+               qr_tlv=$9, ubl_xml=$10, xml_hash=$11, digital_stamp=$12,
                total_before_vat=$6, vat_amount=$7, total_with_vat=$8, submission_status='Generated'
              RETURNING *`,
             [invoiceId, invNumber, sellerName, sellerVat, inv.name_ar || inv.name_en || inv.patient_name || '',
@@ -7256,13 +7256,13 @@ app.get('/api/admin/backups', requireAuth, async (req, res) => {
 // ===== FINANCE SUMMARY =====
 app.get('/api/finance/summary', requireAuth, requireRole('finance', 'accounts', 'invoices'), requireTenantScope, async (req, res) => {
     try {
-        const { tenantId } = getRequestTenantContext(req);
+        // I-2 fix: fail-closed — no unscoped fallback. e10RequireTenant throws 403 if tenant missing.
+        const tenantId = e10RequireTenant(req);
         const { from, to } = req.query;
-        let where = "WHERE total > 0";
-        let p = [];
+        let where = "WHERE total > 0 AND tenant_id = $1";
+        let p = [tenantId];
         if (from) { where += " AND created_at >= $" + (p.length + 1); p.push(from); }
         if (to) { where += " AND created_at <= $" + (p.length + 1); p.push(to + ' 23:59:59'); }
-        if (tenantId) { where += " AND tenant_id = $" + (p.length + 1); p.push(tenantId); }
 
         const total = (await pool.query("SELECT COALESCE(SUM(total),0) as revenue, COUNT(*) as count FROM invoices " + where, p)).rows[0];
         const paid = (await pool.query("SELECT COALESCE(SUM(total),0) as paid FROM invoices " + where + " AND paid=1", p)).rows[0];
@@ -7272,7 +7272,7 @@ app.get('/api/finance/summary', requireAuth, requireRole('finance', 'accounts', 
         const daily = (await pool.query("SELECT DATE(created_at) as day, SUM(total) as amount FROM invoices " + where + " GROUP BY DATE(created_at) ORDER BY day", p)).rows;
 
         res.json({ revenue: total.revenue, count: total.count, paid: paid.paid, unpaid: unpaid.unpaid, byMethod, byService, daily });
-    } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { e10Err(res, e); }
 });
 
 // ===== INVENTORY LOW STOCK =====

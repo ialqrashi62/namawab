@@ -77,6 +77,10 @@ ALTER TABLE finance_journal_entries ADD COLUMN IF NOT EXISTS posted_by INTEGER;
 ALTER TABLE finance_journal_entries ADD COLUMN IF NOT EXISTS posted_at TIMESTAMP;
 ALTER TABLE finance_journal_entries ADD COLUMN IF NOT EXISTS balanced_at TIMESTAMP;
 ALTER TABLE finance_journal_entries ADD COLUMN IF NOT EXISTS reversal_of INTEGER;
+-- L-1 fix: FK so reversal_of references a real journal entry (self-referential; SET NULL on delete)
+ALTER TABLE finance_journal_entries DROP CONSTRAINT IF EXISTS fk_je_reversal_of;
+ALTER TABLE finance_journal_entries ADD CONSTRAINT fk_je_reversal_of
+    FOREIGN KEY (reversal_of) REFERENCES finance_journal_entries(id) ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS idx_je_tenant_id ON finance_journal_entries (tenant_id);
 CREATE INDEX IF NOT EXISTS idx_je_tenant_status ON finance_journal_entries (tenant_id, posting_status);
 ALTER TABLE finance_journal_entries ENABLE ROW LEVEL SECURITY;
