@@ -10,6 +10,7 @@ const rateLimit = require('express-rate-limit');
 const { pool, initDatabase, tenantStore } = require('./db_postgres');
 const bcrypt = require('bcryptjs');
 const ce = require('./crypto_envelope'); // A3 at-rest envelope encryption (DPAPI KEK); graceful when not configured
+const lis = require('./lis'); // E3 LIS clinical-safety core (autoVerify / isCritical / HL7 parse / QC) — pure functions
 const { insertSampleData, populateLabCatalog, populateRadiologyCatalog } = require('./seed_data_pg');
 const { populateMedicalServices, populateBaseDrugs } = require('./seed_services_pg');
 const { addExtraLabTests, addExtraRadiology } = require('./seed_extra_catalog');
@@ -1378,6 +1379,288 @@ app.put('/api/lab/orders/:id', requireAuth, async (req, res) => {
         logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_LAB_ORDER', 'Lab',
             `Updated lab order #${req.params.id} status:${status || '-'} result:${testResult ? 'yes' : 'no'}`, req.ip);
         res.json((await pool.query('SELECT * FROM lab_radiology_orders WHERE id=$1', [req.params.id])).rows[0]);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ============================================================================
+// ===== E3 LABORATORY / LIS — sample lifecycle, structured results, =====
+// =====    auto-verification, critical call-back, HL7 ingest, QC      =====
+// ----------------------------------------------------------------------------
+// CLINICAL SAFETY + TENANT SECURITY rules enforced on EVERY endpoint below:
+//   * requireAuth + requireTenantScope (lab routes historically only had requireAuth).
+//   * Explicit `tenant_id = $N` predicate on EVERY query (defense-in-depth) ON TOP of FORCE RLS.
+//   * FAIL-CLOSED: a null tenant in production is rejected by requireTenantScope (403); the
+//     handlers additionally refuse to run unscoped writes (no tenantId -> 400).
+//   * FAIL-SAFE auto-verify (lis.autoVerify): any uncertainty -> HOLD, never silent verify.
+//   * A CRITICAL result CANNOT transition to 'Reported' until a documented call-back exists.
+// ----------------------------------------------------------------------------
+
+// Helper: hard tenant gate for LIS writes (fail-closed). Returns tenantId or sends 400 and returns null.
+function lisRequireTenant(req, res) {
+    const { tenantId, facilityId } = getRequestTenantContext(req);
+    if (!tenantId) { res.status(400).json({ error: 'Missing tenant context' }); return null; }
+    return { tenantId, facilityId };
+}
+
+// ---- SAMPLES: list ----
+app.get('/api/lab/samples', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const ctx = lisRequireTenant(req, res); if (!ctx) return;
+        const rows = (await pool.query(
+            `SELECT s.*, p.name_en AS patient_name
+             FROM lab_samples s LEFT JOIN patients p ON s.patient_id = p.id
+             WHERE s.tenant_id = $1 ORDER BY s.id DESC`, [ctx.tenantId])).rows;
+        res.json(rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- SAMPLES: collect (create specimen, server-generated barcode) ----
+app.post('/api/lab/samples', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const ctx = lisRequireTenant(req, res); if (!ctx) return;
+        const { lab_order_id, patient_id, notes } = req.body;
+        // IDOR: if a lab order is referenced, it must belong to this tenant.
+        if (lab_order_id) {
+            const ord = (await pool.query('SELECT id, patient_id FROM lab_radiology_orders WHERE id=$1 AND tenant_id=$2', [lab_order_id, ctx.tenantId])).rows[0];
+            if (!ord) return res.status(404).json({ error: 'Lab order not found' });
+        }
+        // IDOR: if a patient is referenced, it must belong to this tenant.
+        if (patient_id) {
+            const pt = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, ctx.tenantId])).rows[0];
+            if (!pt) return res.status(404).json({ error: 'Patient not found' });
+        }
+        // Server-generated barcode: LAB-{order||0}-{epoch}{rand} — unique per tenant.
+        const barcode = `LAB-${lab_order_id || 0}-${Date.now().toString(36)}${Math.floor(Math.random() * 1000)}`;
+        const ins = await pool.query(
+            `INSERT INTO lab_samples (tenant_id, facility_id, lab_order_id, patient_id, barcode, state, collected_by, notes)
+             VALUES ($1,$2,$3,$4,$5,'Collected',$6,$7) RETURNING *`,
+            [ctx.tenantId, ctx.facilityId || null, lab_order_id || null, patient_id || null, barcode, req.session.user?.id || null, notes || '']);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'LAB_SAMPLE_COLLECT', 'Lab',
+            `Sample ${barcode} collected for order #${lab_order_id || '-'}`, req.ip);
+        res.json(ins.rows[0]);
+    } catch (e) {
+        if (e && e.code === '23505') return res.status(409).json({ error: 'Duplicate barcode' });
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// ---- SAMPLES: state transition (receive / in-process / reject) ----
+app.put('/api/lab/samples/:id', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const ctx = lisRequireTenant(req, res); if (!ctx) return;
+        const { action, rejected_reason } = req.body;
+        // explicit tenant predicate (defense-in-depth) before any mutation.
+        const sample = (await pool.query('SELECT * FROM lab_samples WHERE id=$1 AND tenant_id=$2', [req.params.id, ctx.tenantId])).rows[0];
+        if (!sample) return res.status(404).json({ error: 'Sample not found' });
+
+        // Allowed forward transitions (Verified/Reported are driven by result verification, not here).
+        const transitions = {
+            receive: { from: ['Collected'], to: 'Received' },
+            process: { from: ['Received'], to: 'InProcess' },
+            reject: { from: ['Collected', 'Received', 'InProcess'], to: 'Rejected' },
+        };
+        const t = transitions[action];
+        if (!t) return res.status(400).json({ error: 'Invalid action' });
+        if (!t.from.includes(sample.state)) return res.status(409).json({ error: `Cannot ${action} a sample in state ${sample.state}` });
+        if (action === 'reject' && !rejected_reason) return res.status(400).json({ error: 'rejected_reason required' });
+
+        if (action === 'receive') {
+            await pool.query('UPDATE lab_samples SET state=$1, received_by=$2, received_at=CURRENT_TIMESTAMP WHERE id=$3 AND tenant_id=$4',
+                [t.to, req.session.user?.id || null, req.params.id, ctx.tenantId]);
+        } else if (action === 'reject') {
+            await pool.query('UPDATE lab_samples SET state=$1, rejected_reason=$2, rejected_by=$3, rejected_at=CURRENT_TIMESTAMP WHERE id=$4 AND tenant_id=$5',
+                [t.to, rejected_reason, req.session.user?.id || null, req.params.id, ctx.tenantId]);
+        } else {
+            await pool.query('UPDATE lab_samples SET state=$1 WHERE id=$2 AND tenant_id=$3', [t.to, req.params.id, ctx.tenantId]);
+        }
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'LAB_SAMPLE_' + action.toUpperCase(), 'Lab',
+            `Sample #${req.params.id} -> ${t.to}${rejected_reason ? ' (' + rejected_reason + ')' : ''}`, req.ip);
+        res.json((await pool.query('SELECT * FROM lab_samples WHERE id=$1 AND tenant_id=$2', [req.params.id, ctx.tenantId])).rows[0]);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- RESULTS: list (optionally by sample) ----
+app.get('/api/lab/results', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const ctx = lisRequireTenant(req, res); if (!ctx) return;
+        let rows;
+        if (req.query.sample_id) {
+            rows = (await pool.query('SELECT * FROM lab_results WHERE tenant_id=$1 AND lab_sample_id=$2 ORDER BY id DESC', [ctx.tenantId, req.query.sample_id])).rows;
+        } else {
+            rows = (await pool.query('SELECT * FROM lab_results WHERE tenant_id=$1 ORDER BY id DESC LIMIT 500', [ctx.tenantId])).rows;
+        }
+        res.json(rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- RESULTS: enter a result (runs auto-verification; FAIL-SAFE HOLD) ----
+app.post('/api/lab/results', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const ctx = lisRequireTenant(req, res); if (!ctx) return;
+        const { lab_sample_id, loinc, test_name, value, unit, normal_range, ref_low, ref_high, order_id } = req.body;
+        if (!test_name || value === undefined || value === null || String(value).trim() === '') {
+            return res.status(400).json({ error: 'test_name and value are required' });
+        }
+        // IDOR: sample (if referenced) must belong to this tenant.
+        let sample = null;
+        if (lab_sample_id) {
+            sample = (await pool.query('SELECT * FROM lab_samples WHERE id=$1 AND tenant_id=$2', [lab_sample_id, ctx.tenantId])).rows[0];
+            if (!sample) return res.status(404).json({ error: 'Sample not found' });
+        }
+        // Prior result for the same analyte (delta-check) within tenant — most recent VERIFIED.
+        // CLINICAL SAFETY: only a VERIFIED prior may serve as the delta baseline. A held/pending
+        // (unverified/erroneous) prior must NOT suppress a true significant delta. ('reported' is
+        // tracked by the separate `reported` column, not status, so status='verified' covers it.)
+        let prior = null;
+        if (sample && sample.patient_id) {
+            prior = (await pool.query(
+                `SELECT lr.* FROM lab_results lr
+                 JOIN lab_samples s ON lr.lab_sample_id = s.id AND s.tenant_id = lr.tenant_id
+                 WHERE lr.tenant_id=$1 AND s.patient_id=$2 AND lower(lr.test_name)=lower($3) AND lr.status = 'verified'
+                 ORDER BY lr.id DESC LIMIT 1`, [ctx.tenantId, sample.patient_id, test_name])).rows[0] || null;
+        }
+        // CLINICAL SAFETY: pure-function auto-verify (any uncertainty -> HOLD).
+        const verdict = lis.autoVerify({ test_name, value, unit, ref_low, ref_high }, prior);
+        const ins = await pool.query(
+            `INSERT INTO lab_results
+               (tenant_id, facility_id, lab_sample_id, order_id, loinc, test_name, value, unit, normal_range,
+                ref_low, ref_high, abnormal_flag, delta_pct, is_critical, is_abnormal, status, hold_reasons)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *`,
+            [ctx.tenantId, ctx.facilityId || null, lab_sample_id || null, order_id || null, loinc || null, test_name,
+             String(value), unit || '', normal_range || '',
+             (ref_low === undefined || ref_low === '' ? null : ref_low),
+             (ref_high === undefined || ref_high === '' ? null : ref_high),
+             verdict.abnormal_flag, verdict.delta_pct, verdict.is_critical ? 1 : 0, verdict.is_abnormal,
+             verdict.status, verdict.reasons.join(',')]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'LAB_RESULT_ENTER', 'Lab',
+            `Result ${test_name}=${value} -> ${verdict.status}${verdict.is_critical ? ' [CRITICAL]' : ''} reasons:${verdict.reasons.join('|') || '-'}`, req.ip);
+        res.json({ result: ins.rows[0], verdict });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- RESULTS: manual verify (for HELD results) ----
+app.put('/api/lab/results/:id/verify', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const ctx = lisRequireTenant(req, res); if (!ctx) return;
+        const r = (await pool.query('SELECT * FROM lab_results WHERE id=$1 AND tenant_id=$2', [req.params.id, ctx.tenantId])).rows[0];
+        if (!r) return res.status(404).json({ error: 'Result not found' });
+        await pool.query('UPDATE lab_results SET status=$1, verified_by=$2, verified_at=CURRENT_TIMESTAMP WHERE id=$3 AND tenant_id=$4',
+            ['verified', req.session.user?.id || null, req.params.id, ctx.tenantId]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'LAB_RESULT_VERIFY', 'Lab',
+            `Manually verified result #${req.params.id}`, req.ip);
+        res.json((await pool.query('SELECT * FROM lab_results WHERE id=$1 AND tenant_id=$2', [req.params.id, ctx.tenantId])).rows[0]);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- CRITICAL CALL-BACK: document a call-back for a critical result ----
+app.post('/api/lab/results/:id/callback', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const ctx = lisRequireTenant(req, res); if (!ctx) return;
+        const { notified_to, ack, notes } = req.body;
+        if (!notified_to || String(notified_to).trim() === '') return res.status(400).json({ error: 'notified_to required' });
+        const r = (await pool.query('SELECT * FROM lab_results WHERE id=$1 AND tenant_id=$2', [req.params.id, ctx.tenantId])).rows[0];
+        if (!r) return res.status(404).json({ error: 'Result not found' });
+        const ins = await pool.query(
+            `INSERT INTO lab_critical_callbacks (tenant_id, facility_id, result_id, notified_to, notified_by, notified_by_name, ack, notes)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+            [ctx.tenantId, ctx.facilityId || null, req.params.id, String(notified_to), req.session.user?.id || null,
+             req.session.user?.display_name || '', ack ? 1 : 0, notes || '']);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'LAB_CRITICAL_CALLBACK', 'Lab',
+            `Critical call-back for result #${req.params.id} -> ${notified_to}`, req.ip);
+        res.json(ins.rows[0]);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- RESULTS: report/release (FAIL-CLOSED: critical needs a documented call-back) ----
+app.put('/api/lab/results/:id/report', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const ctx = lisRequireTenant(req, res); if (!ctx) return;
+        const r = (await pool.query('SELECT * FROM lab_results WHERE id=$1 AND tenant_id=$2', [req.params.id, ctx.tenantId])).rows[0];
+        if (!r) return res.status(404).json({ error: 'Result not found' });
+        // AUDIT/INTEGRITY: re-reporting an already-reported result is rejected (not silently idempotent).
+        if (r.reported) return res.status(409).json({ error: 'Result already reported' });
+        // must be verified first.
+        if (r.status !== 'verified') return res.status(409).json({ error: 'Result must be verified before reporting' });
+        // CLINICAL SAFETY (FAIL-CLOSED): a critical result cannot be reported without a documented call-back.
+        if (r.is_critical) {
+            const cb = (await pool.query('SELECT count(*)::int AS n FROM lab_critical_callbacks WHERE result_id=$1 AND tenant_id=$2', [req.params.id, ctx.tenantId])).rows[0];
+            if (!cb || cb.n === 0) {
+                return res.status(409).json({ error: 'Critical result requires a documented call-back before reporting', code: 'CRITICAL_CALLBACK_REQUIRED' });
+            }
+        }
+        // belt-and-suspenders: only flip an as-yet-unreported row (concurrency-safe with the 409 above).
+        await pool.query('UPDATE lab_results SET reported=1, reported_at=CURRENT_TIMESTAMP WHERE id=$1 AND tenant_id=$2 AND reported = 0', [req.params.id, ctx.tenantId]);
+        // advance the sample to Reported when present.
+        if (r.lab_sample_id) {
+            await pool.query("UPDATE lab_samples SET state='Reported' WHERE id=$1 AND tenant_id=$2", [r.lab_sample_id, ctx.tenantId]);
+        }
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'LAB_RESULT_REPORT', 'Lab',
+            `Reported result #${req.params.id}${r.is_critical ? ' [CRITICAL, call-back on file]' : ''}`, req.ip);
+        res.json((await pool.query('SELECT * FROM lab_results WHERE id=$1 AND tenant_id=$2', [req.params.id, ctx.tenantId])).rows[0]);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- HL7 INBOUND (gated; sandbox parse+store only, NO external connection) ----
+// Accepts a raw HL7 v2 ORU-style payload, parses it (lis.parseHL7ORU), matches the specimen
+// by barcode WITHIN THIS TENANT (cross-tenant barcode -> no match -> 404), and stores results
+// with auto-verification. Malformed payloads are rejected safely (400). FEATURE-GATED.
+app.post('/api/lab/hl7', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const ctx = lisRequireTenant(req, res); if (!ctx) return;
+        // GATE: disabled unless explicitly enabled (no real analyzer/device wiring here).
+        if (process.env.LAB_HL7_ENABLED !== 'true') {
+            return res.status(403).json({ error: 'HL7 ingest disabled', code: 'HL7_GATED' });
+        }
+        const raw = typeof req.body === 'string' ? req.body : (req.body && req.body.message);
+        const parsed = lis.parseHL7ORU(raw);
+        if (!parsed.ok) return res.status(400).json({ error: 'Malformed HL7', detail: parsed.error });
+        // Match specimen by barcode within tenant (explicit tenant predicate + RLS).
+        const sample = (await pool.query('SELECT * FROM lab_samples WHERE barcode=$1 AND tenant_id=$2', [parsed.barcode, ctx.tenantId])).rows[0];
+        if (!sample) return res.status(404).json({ error: 'No matching specimen for barcode in this tenant' });
+        const stored = [];
+        for (const obx of parsed.results) {
+            const verdict = lis.autoVerify(obx, null);
+            const ins = await pool.query(
+                `INSERT INTO lab_results
+                   (tenant_id, facility_id, lab_sample_id, loinc, test_name, value, unit, normal_range,
+                    ref_low, ref_high, abnormal_flag, delta_pct, is_critical, is_abnormal, status, hold_reasons)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id, status, is_critical`,
+                [ctx.tenantId, ctx.facilityId || null, sample.id, obx.loinc || null, obx.test_name, String(obx.value),
+                 obx.unit || '', '', obx.ref_low, obx.ref_high, verdict.abnormal_flag, verdict.delta_pct,
+                 verdict.is_critical ? 1 : 0, verdict.is_abnormal, verdict.status, verdict.reasons.join(',')]);
+            stored.push(ins.rows[0]);
+        }
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'LAB_HL7_INGEST', 'Lab',
+            `HL7 ORU ingested for barcode ${parsed.barcode}: ${stored.length} result(s)`, req.ip);
+        res.json({ ok: true, barcode: parsed.barcode, stored });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- QC: list ----
+app.get('/api/lab/qc', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const ctx = lisRequireTenant(req, res); if (!ctx) return;
+        res.json((await pool.query('SELECT * FROM lab_qc WHERE tenant_id=$1 ORDER BY id DESC LIMIT 500', [ctx.tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ---- QC: enter a point (Levey-Jennings / Westgard 1-3s) ----
+app.post('/api/lab/qc', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const ctx = lisRequireTenant(req, res); if (!ctx) return;
+        const { analyzer, analyte, level, value, target, sd, reagent_lot } = req.body;
+        const flag = lis.qcFlag(value, target, sd);
+        const ins = await pool.query(
+            `INSERT INTO lab_qc (tenant_id, facility_id, analyzer, analyte, level, value, target, sd, z, westgard_flag, breach, reagent_lot, entered_by)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
+            [ctx.tenantId, ctx.facilityId || null, analyzer || '', analyte || '', level || '',
+             (value === undefined || value === '' ? null : value),
+             (target === undefined || target === '' ? null : target),
+             (sd === undefined || sd === '' ? null : sd),
+             flag.z, flag.rule, flag.breach ? 1 : 0, reagent_lot || '', req.session.user?.id || null]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'LAB_QC_ENTER', 'Lab',
+            `QC ${analyzer}/${analyte}/${level} value=${value} -> ${flag.rule}${flag.breach ? ' [BREACH]' : ''}`, req.ip);
+        res.json({ qc: ins.rows[0], flag });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
