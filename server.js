@@ -13,6 +13,7 @@ const ce = require('./crypto_envelope'); // A3 at-rest envelope encryption (DPAP
 const lis = require('./lis'); // E3 LIS clinical-safety core (autoVerify / isCritical / HL7 parse / QC) — pure functions
 const fe = require('./finance_engine'); // E10 GL/ZATCA pure engine (balanced-entry, VAT, aging, UBL/QR)
 const bbCompat = require('./bloodbank_compat'); // E13 blood-bank ABO/Rh compatibility engine (pure, fail-closed)
+const obEngine = require('./ob_engine'); // E14 OB/Maternity server-side authority engine (EDD/GA/GPAL/APGAR/biometry/risk)
 const { insertSampleData, populateLabCatalog, populateRadiologyCatalog } = require('./seed_data_pg');
 const { populateMedicalServices, populateBaseDrugs } = require('./seed_services_pg');
 const { addExtraLabTests, addExtraRadiology } = require('./seed_extra_catalog');
@@ -215,9 +216,13 @@ const MAX_DISCOUNT_BY_ROLE = { admin: 100, manager: 50, cashier: 10, receptionis
 // RBAC middleware - role-based access control
 const ROLE_PERMISSIONS = {
     'Admin': '*',
-    'Doctor': ['dashboard', 'patients', 'appointments', 'doctor', 'lab', 'radiology', 'pharmacy', 'nursing', 'waiting', 'reports', 'messaging', 'surgery', 'consent', 'icu', 'him', 'medical-records', 'emergency', 'inpatient', 'bloodbank'],
-    'Nurse': ['dashboard', 'patients', 'nursing', 'waiting', 'vitals', 'icu', 'emergency', 'inpatient', 'transport', 'dietary', 'bloodbank'],
+    'Doctor': ['dashboard', 'patients', 'appointments', 'doctor', 'lab', 'radiology', 'pharmacy', 'nursing', 'waiting', 'reports', 'messaging', 'surgery', 'consent', 'icu', 'him', 'medical-records', 'emergency', 'inpatient', 'bloodbank', 'obgyn', 'antenatal'],
+    'Nurse': ['dashboard', 'patients', 'nursing', 'waiting', 'vitals', 'icu', 'emergency', 'inpatient', 'transport', 'dietary', 'bloodbank', 'obgyn', 'antenatal'],
     'HIM': ['dashboard', 'patients', 'him', 'medical-records', 'reports', 'messaging'],
+    // E14 OB/Maternity dedicated roles
+    'OB/GYN': ['dashboard', 'patients', 'doctor', 'lab', 'radiology', 'surgery', 'nursing', 'inpatient', 'obgyn', 'antenatal', 'messaging', 'reports'],
+    'Midwife': ['dashboard', 'patients', 'nursing', 'obgyn', 'antenatal', 'messaging'],
+    'Neonatologist': ['dashboard', 'patients', 'icu', 'nursing', 'obgyn', 'antenatal', 'messaging'],
     'Pharmacist': ['dashboard', 'pharmacy', 'inventory', 'messaging'],
     'Lab Technician': ['dashboard', 'lab', 'messaging', 'bloodbank'],
     'Blood Bank': ['dashboard', 'bloodbank', 'messaging'],
@@ -9822,206 +9827,447 @@ app.get('/api/admin/backup-info', requireAuth, async (req, res) => {
 });
 
 
-// ===== OB/GYN DEPARTMENT =====
-// Pregnancy Records
-app.get('/api/obgyn/pregnancies', requireAuth, async (req, res) => {
+// ============================================================================
+// ===== OB/GYN / MATERNITY DEPARTMENT (Epic E14) =====
+// HARDENED: every route requires auth + RBAC(obgyn/antenatal) + requireTenantScope.
+// Every query carries an explicit `AND tenant_id=$N` on top of FORCE RLS. Patient /
+// pregnancy / delivery ownership is verified against the caller's tenant; cross-tenant
+// access returns 404 (never leak existence). Authority fields (EDD, GA, GPAL living,
+// APGAR total, biometry GA/percentile, risk flags) are computed SERVER-SIDE via
+// ob_engine (anti-spoof — client-submitted values are ignored). Delivery is gated by a
+// server-side state machine (Active -> Delivered only) with SELECT ... FOR UPDATE.
+// IDs are compared as integers (parseInt + Number.isInteger), never string-coerced.
+// ============================================================================
+
+// e14RequireTenant — fail-closed tenant resolver for OB routes. Returns an integer
+// tenantId or null; callers MUST treat null as "block" (no unscoped fallback in prod).
+function e14RequireTenant(req) {
+    const { tenantId } = getRequestTenantContext(req);
+    if (tenantId === null || tenantId === undefined || tenantId === '') return null;
+    const t = parseInt(tenantId, 10);
+    return Number.isInteger(t) ? t : null;
+}
+function e14IntId(v) { const n = parseInt(v, 10); return Number.isInteger(n) ? n : null; }
+
+// Verify a patient belongs to the caller's tenant. Returns the integer id or null.
+async function e14PatientInTenant(patientId, tenantId) {
+    const pid = e14IntId(patientId);
+    if (pid === null) return null;
+    const row = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [pid, tenantId])).rows[0];
+    return row ? pid : null;
+}
+// Load a tenant-owned pregnancy row (or null). Used for ownership + state checks.
+async function e14PregnancyInTenant(pregnancyId, tenantId) {
+    const id = e14IntId(pregnancyId);
+    if (id === null) return null;
+    const row = (await pool.query('SELECT * FROM obgyn_pregnancies WHERE id=$1 AND tenant_id=$2', [id, tenantId])).rows[0];
+    return row || null;
+}
+
+const OB_RBAC = ['obgyn', 'antenatal', 'doctor', 'nursing'];
+
+// Pregnancy Records — list (tenant-scoped; integer-validated filters)
+app.get('/api/obgyn/pregnancies', requireAuth, requireRole(...OB_RBAC), requireTenantScope, async (req, res) => {
     try {
+        const tenantId = e14RequireTenant(req);
+        if (tenantId === null) return res.status(403).json({ error: 'Tenant scope required' });
         const { patient_id, status } = req.query;
-        let q = 'SELECT * FROM obgyn_pregnancies';
-        const conds = [], params = [];
-        if (patient_id) { conds.push('patient_id=$' + (params.length + 1)); params.push(patient_id); }
-        if (status) { conds.push('status=$' + (params.length + 1)); params.push(status); }
-        if (conds.length) q += ' WHERE ' + conds.join(' AND ');
+        let q = 'SELECT * FROM obgyn_pregnancies WHERE tenant_id=$1';
+        const params = [tenantId];
+        if (patient_id) { const pid = e14IntId(patient_id); if (pid === null) return res.status(400).json({ error: 'Invalid patient_id' }); params.push(pid); q += ' AND patient_id=$' + params.length; }
+        if (status) { params.push(String(status)); q += ' AND status=$' + params.length; }
         q += ' ORDER BY created_at DESC';
         res.json((await pool.query(q, params)).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/obgyn/pregnancies', requireAuth, async (req, res) => {
+app.post('/api/obgyn/pregnancies', requireAuth, requireRole(...OB_RBAC), requireTenantScope, async (req, res) => {
     try {
-        const { patient_id, patient_name, lmp, gravida, para, abortions, living_children,
+        const tenantId = e14RequireTenant(req);
+        if (tenantId === null) return res.status(403).json({ error: 'Tenant scope required' });
+        const { patient_id, lmp, gravida, para, abortions, living_children,
             blood_group, rh_factor, risk_level, pre_pregnancy_weight, height,
             allergies, chronic_conditions, previous_cs, previous_complications,
             husband_name, husband_blood_group, attending_doctor } = req.body;
-        // Calculate EDD (Naegele's rule: LMP + 280 days)
-        let edd = null;
-        if (lmp) {
-            const d = new Date(lmp);
-            d.setDate(d.getDate() + 280);
-            edd = d.toISOString().split('T')[0];
-        }
+
+        // Cross-tenant guard: patient MUST belong to caller's tenant -> else 404
+        const pid = await e14PatientInTenant(patient_id, tenantId);
+        if (pid === null) return res.status(404).json({ error: 'Patient not found' });
+        // resolve canonical patient name server-side (don't trust client display name)
+        const patientRow = (await pool.query('SELECT COALESCE(name_ar, name_en, full_name, name, \'\') AS nm FROM patients WHERE id=$1 AND tenant_id=$2', [pid, tenantId])).rows[0];
+        const patientName = patientRow ? patientRow.nm : '';
+
+        // Anti-spoof: EDD via Naegele + GPAL validated/derived server-side.
+        const edd = obEngine.computeEDD(lmp); // null if LMP invalid (stored as NULL — never guessed)
+        const gpal = obEngine.computeGPAL({ gravida, para, abortion: abortions, living: living_children });
+        if (!gpal.ok) return res.status(422).json({ error: 'Invalid obstetric history (GPAL): ' + gpal.error });
+
         const result = await pool.query(
-            `INSERT INTO obgyn_pregnancies (patient_id, patient_name, lmp, edd, gravida, para, abortions, living_children,
+            `INSERT INTO obgyn_pregnancies (tenant_id, patient_id, patient_name, lmp, edd, gravida, para, abortions, living_children,
              blood_group, rh_factor, risk_level, pre_pregnancy_weight, height, allergies, chronic_conditions,
-             previous_cs, previous_complications, husband_name, husband_blood_group, attending_doctor, created_by)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21) RETURNING *`,
-            [patient_id, patient_name || '', lmp, edd, gravida || 1, para || 0, abortions || 0, living_children || 0,
+             previous_cs, previous_complications, husband_name, husband_blood_group, attending_doctor, status, created_by)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23) RETURNING *`,
+            [tenantId, pid, patientName, lmp || null, edd, gpal.gravida, gpal.para, gpal.abortion, gpal.living,
                 blood_group || '', rh_factor || '', risk_level || 'Low', pre_pregnancy_weight || 0, height || 0,
-                allergies || '', chronic_conditions || '', previous_cs || 0, previous_complications || '',
-                husband_name || '', husband_blood_group || '', attending_doctor || '', req.session.user?.display_name || '']);
-        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_PREGNANCY', 'OB/GYN', 'Pregnancy record for ' + patient_name, req.ip);
+                allergies || '', chronic_conditions || '', e14IntId(previous_cs) || 0, previous_complications || '',
+                husband_name || '', husband_blood_group || '', attending_doctor || '', 'Active', req.session.user?.display_name || '']);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_PREGNANCY', 'OB/GYN',
+            `Pregnancy for patient #${pid} (G${gpal.gravida}P${gpal.para}A${gpal.abortion}L${gpal.living}) LMP ${lmp || 'n/a'} EDD ${edd || 'n/a'}`, req.ip);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.put('/api/obgyn/pregnancies/:id', requireAuth, async (req, res) => {
+app.put('/api/obgyn/pregnancies/:id', requireAuth, requireRole(...OB_RBAC), requireTenantScope, async (req, res) => {
     try {
-        const fields = req.body;
+        const tenantId = e14RequireTenant(req);
+        if (tenantId === null) return res.status(403).json({ error: 'Tenant scope required' });
+        const preg = await e14PregnancyInTenant(req.params.id, tenantId);
+        if (!preg) return res.status(404).json({ error: 'Pregnancy not found' });
+
+        // Whitelist updatable columns only — never accept id/tenant_id/patient_id/created_* /
+        // authority fields (edd, living_children, status) from the client.
+        const ALLOWED = new Set(['blood_group', 'rh_factor', 'risk_level', 'pre_pregnancy_weight', 'height',
+            'allergies', 'chronic_conditions', 'previous_cs', 'previous_complications',
+            'husband_name', 'husband_blood_group', 'attending_doctor']);
         const sets = [], params = [];
-        for (const [k, v] of Object.entries(fields)) {
-            if (['id', 'created_at'].includes(k)) continue;
-            params.push(v);
-            sets.push(k + '=$' + params.length);
+        for (const [k, v] of Object.entries(req.body || {})) {
+            if (!ALLOWED.has(k)) continue;
+            params.push(v); sets.push(k + '=$' + params.length);
         }
-        if (!sets.length) return res.json({ success: false });
-        params.push(req.params.id);
-        await pool.query('UPDATE obgyn_pregnancies SET ' + sets.join(',') + ',updated_at=NOW() WHERE id=$' + params.length, params);
-        res.json((await pool.query('SELECT * FROM obgyn_pregnancies WHERE id=$1', [req.params.id])).rows[0]);
+        // Recompute EDD only if a new LMP is supplied (authority field, server-derived).
+        if (req.body && req.body.lmp) {
+            const newEdd = obEngine.computeEDD(req.body.lmp);
+            params.push(req.body.lmp); sets.push('lmp=$' + params.length);
+            params.push(newEdd); sets.push('edd=$' + params.length);
+        }
+        // GPAL re-derivation when any component supplied.
+        if (req.body && (req.body.gravida !== undefined || req.body.para !== undefined || req.body.abortions !== undefined || req.body.living_children !== undefined)) {
+            const g = obEngine.computeGPAL({
+                gravida: req.body.gravida ?? preg.gravida, para: req.body.para ?? preg.para,
+                abortion: req.body.abortions ?? preg.abortions, living: req.body.living_children ?? preg.living_children
+            });
+            if (!g.ok) return res.status(422).json({ error: 'Invalid GPAL: ' + g.error });
+            params.push(g.gravida); sets.push('gravida=$' + params.length);
+            params.push(g.para); sets.push('para=$' + params.length);
+            params.push(g.abortion); sets.push('abortions=$' + params.length);
+            params.push(g.living); sets.push('living_children=$' + params.length);
+        }
+        if (!sets.length) return res.json(preg);
+        params.push(preg.id); params.push(tenantId);
+        await pool.query('UPDATE obgyn_pregnancies SET ' + sets.join(',') + ',updated_at=NOW() WHERE id=$' + (params.length - 1) + ' AND tenant_id=$' + params.length, params);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_PREGNANCY', 'OB/GYN', `Pregnancy #${preg.id} updated`, req.ip);
+        res.json((await pool.query('SELECT * FROM obgyn_pregnancies WHERE id=$1 AND tenant_id=$2', [preg.id, tenantId])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-// Antenatal Visits
-app.get('/api/obgyn/antenatal/:pregnancy_id', requireAuth, async (req, res) => {
+// Antenatal Visits — read (verify pregnancy ownership first)
+app.get('/api/obgyn/antenatal/:pregnancy_id', requireAuth, requireRole(...OB_RBAC), requireTenantScope, async (req, res) => {
     try {
-        res.json((await pool.query('SELECT * FROM obgyn_antenatal_visits WHERE pregnancy_id=$1 ORDER BY visit_number DESC', [req.params.pregnancy_id])).rows);
+        const tenantId = e14RequireTenant(req);
+        if (tenantId === null) return res.status(403).json({ error: 'Tenant scope required' });
+        const preg = await e14PregnancyInTenant(req.params.pregnancy_id, tenantId);
+        if (!preg) return res.status(404).json({ error: 'Pregnancy not found' });
+        res.json((await pool.query('SELECT * FROM obgyn_antenatal_visits WHERE pregnancy_id=$1 AND tenant_id=$2 ORDER BY visit_number DESC', [preg.id, tenantId])).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/obgyn/antenatal', requireAuth, async (req, res) => {
+app.post('/api/obgyn/antenatal', requireAuth, requireRole(...OB_RBAC), requireTenantScope, async (req, res) => {
     try {
-        const { pregnancy_id, patient_id, gestational_age, weight, blood_pressure,
+        const tenantId = e14RequireTenant(req);
+        if (tenantId === null) return res.status(403).json({ error: 'Tenant scope required' });
+        const { pregnancy_id, gestational_age, weight, blood_pressure,
             systolic, diastolic, fundal_height, fetal_heart_rate, fetal_presentation,
             fetal_movement, edema, proteinuria, glucose_urine, hemoglobin,
-            complaints, examination_notes, plan, next_visit, risk_flags } = req.body;
-        const count = (await pool.query('SELECT COUNT(*) as cnt FROM obgyn_antenatal_visits WHERE pregnancy_id=$1', [pregnancy_id])).rows[0].cnt;
-        // Calculate weight gain from first visit
-        const firstVisit = (await pool.query('SELECT weight FROM obgyn_antenatal_visits WHERE pregnancy_id=$1 ORDER BY visit_number LIMIT 1', [pregnancy_id])).rows[0];
-        const wGain = firstVisit ? (weight - firstVisit.weight) : 0;
+            complaints, examination_notes, plan, next_visit } = req.body;
+        // Ownership: pregnancy must belong to caller's tenant -> else 404
+        const preg = await e14PregnancyInTenant(pregnancy_id, tenantId);
+        if (!preg) return res.status(404).json({ error: 'Pregnancy not found' });
+        const pid = preg.patient_id;
+
+        const count = (await pool.query('SELECT COUNT(*) as cnt FROM obgyn_antenatal_visits WHERE pregnancy_id=$1 AND tenant_id=$2', [preg.id, tenantId])).rows[0].cnt;
+        const firstVisit = (await pool.query('SELECT weight FROM obgyn_antenatal_visits WHERE pregnancy_id=$1 AND tenant_id=$2 ORDER BY visit_number LIMIT 1', [preg.id, tenantId])).rows[0];
+        const wGain = firstVisit ? ((Number(weight) || 0) - (Number(firstVisit.weight) || 0)) : 0;
+        // Server-derived GA label from stored LMP (anti-spoof; client value advisory only).
+        const gaCalc = obEngine.gestationalAgeFromLMP(preg.lmp, next_visit || undefined);
+        const gaLabel = gaCalc ? gaCalc.label : (gestational_age || '');
+        // Server-side risk classification (client risk_flags ignored).
+        const flags = obEngine.antenatalRiskFlags({ systolic, diastolic, proteinuria, hemoglobin, fetal_heart_rate, fetal_movement });
+
         const result = await pool.query(
-            `INSERT INTO obgyn_antenatal_visits (pregnancy_id, patient_id, visit_number, gestational_age, weight, weight_gain,
+            `INSERT INTO obgyn_antenatal_visits (tenant_id, pregnancy_id, patient_id, visit_number, gestational_age, weight, weight_gain,
              blood_pressure, systolic, diastolic, fundal_height, fetal_heart_rate, fetal_presentation,
              fetal_movement, edema, proteinuria, glucose_urine, hemoglobin, complaints, examination_notes,
-             plan, next_visit, doctor, risk_flags) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23) RETURNING *`,
-            [pregnancy_id, patient_id, parseInt(count) + 1, gestational_age || '', weight || 0, wGain,
-                blood_pressure || '', systolic || 0, diastolic || 0, fundal_height || 0, fetal_heart_rate || 0,
+             plan, next_visit, doctor, risk_flags) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24) RETURNING *`,
+            [tenantId, preg.id, pid, parseInt(count) + 1, gaLabel, weight || 0, wGain,
+                blood_pressure || '', e14IntId(systolic) || 0, e14IntId(diastolic) || 0, fundal_height || 0, e14IntId(fetal_heart_rate) || 0,
                 fetal_presentation || '', fetal_movement || 'Active', edema || 'None', proteinuria || 'Negative',
                 glucose_urine || 'Negative', hemoglobin || 0, complaints || '', examination_notes || '',
-                plan || '', next_visit || null, req.session.user?.display_name || '', risk_flags || '']);
-        // Check for risk flags
-        let flags = [];
-        if (systolic >= 140 || diastolic >= 90) flags.push('Hypertension');
-        if (proteinuria !== 'Negative' && (systolic >= 140 || diastolic >= 90)) flags.push('Pre-eclampsia risk');
-        if (hemoglobin > 0 && hemoglobin < 10) flags.push('Anemia');
-        if (fetal_heart_rate > 0 && (fetal_heart_rate < 110 || fetal_heart_rate > 160)) flags.push('Abnormal FHR');
+                plan || '', next_visit || null, req.session.user?.display_name || '', flags.join(', ')]);
         if (flags.length) {
-            await pool.query('UPDATE obgyn_antenatal_visits SET risk_flags=$1 WHERE id=$2', [flags.join(', '), result.rows[0].id]);
             await pool.query('INSERT INTO notifications (target_role, title, message, type, module) VALUES ($1,$2,$3,$4,$5)',
-                ['Doctor', 'OB/GYN Risk Alert', 'Patient #' + patient_id + ': ' + flags.join(', '), 'warning', 'OB/GYN']);
+                ['Doctor', 'OB/GYN Risk Alert', 'Patient #' + pid + ': ' + flags.join(', '), 'warning', 'OB/GYN']);
         }
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'ANTENATAL_VISIT', 'OB/GYN',
+            `Antenatal visit pregnancy #${preg.id} GA ${gaLabel}${flags.length ? ' flags:' + flags.join('/') : ''}`, req.ip);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-// Ultrasound Records
-app.get('/api/obgyn/ultrasounds/:pregnancy_id', requireAuth, async (req, res) => {
+// ===== PARTOGRAM (labor progression trend; tenant-scoped) =====
+app.get('/api/obgyn/partogram/:pregnancy_id', requireAuth, requireRole(...OB_RBAC), requireTenantScope, async (req, res) => {
     try {
-        res.json((await pool.query('SELECT * FROM obgyn_ultrasounds WHERE pregnancy_id=$1 ORDER BY scan_date DESC', [req.params.pregnancy_id])).rows);
+        const tenantId = e14RequireTenant(req);
+        if (tenantId === null) return res.status(403).json({ error: 'Tenant scope required' });
+        const preg = await e14PregnancyInTenant(req.params.pregnancy_id, tenantId);
+        if (!preg) return res.status(404).json({ error: 'Pregnancy not found' });
+        res.json((await pool.query('SELECT * FROM obgyn_partogram WHERE pregnancy_id=$1 AND tenant_id=$2 ORDER BY recorded_at ASC, id ASC', [preg.id, tenantId])).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/obgyn/ultrasounds', requireAuth, async (req, res) => {
+app.post('/api/obgyn/partogram', requireAuth, requireRole(...OB_RBAC), requireTenantScope, async (req, res) => {
     try {
-        const b = req.body;
+        const tenantId = e14RequireTenant(req);
+        if (tenantId === null) return res.status(403).json({ error: 'Tenant scope required' });
+        const b = req.body || {};
+        const preg = await e14PregnancyInTenant(b.pregnancy_id, tenantId);
+        if (!preg) return res.status(404).json({ error: 'Pregnancy not found' });
+        // Server-side alert flags from this timepoint (anti-spoof).
+        const flags = obEngine.antenatalRiskFlags({ fetal_heart_rate: b.fetal_heart_rate_baseline });
+        const dil = e14IntId(b.cervical_dilation);
+        if (dil !== null && (dil < 0 || dil > 10)) return res.status(422).json({ error: 'cervical_dilation must be 0-10' });
         const result = await pool.query(
-            `INSERT INTO obgyn_ultrasounds (pregnancy_id, patient_id, scan_type, gestational_age,
-             bpd, hc, ac, fl, efw, amniotic_fluid_index, placenta_location, placenta_grade,
+            `INSERT INTO obgyn_partogram (tenant_id, pregnancy_id, patient_id, cervical_dilation, cervical_effacement,
+             descent_station, contractions_per_10min, contraction_duration, contraction_intensity,
+             fetal_heart_rate_baseline, fetal_heart_rate_variability, decelerations, molding, caput_succedaneum,
+             meconium, amniotic_fluid, maternal_bp, maternal_hr, maternal_temp, oxytocin_units, notes, alert_flags, recorded_by, recorded_at)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23, NOW()) RETURNING *`,
+            [tenantId, preg.id, preg.patient_id, dil || 0, e14IntId(b.cervical_effacement) || 0,
+                e14IntId(b.descent_station) || 0, e14IntId(b.contractions_per_10min) || 0, e14IntId(b.contraction_duration) || 0, b.contraction_intensity || '',
+                e14IntId(b.fetal_heart_rate_baseline) || 0, b.fetal_heart_rate_variability || '', b.decelerations || 'None', b.molding || 'None', b.caput_succedaneum || 'None',
+                b.meconium ? 1 : 0, b.amniotic_fluid || '', b.maternal_bp || '', e14IntId(b.maternal_hr) || 0, b.maternal_temp || 0, b.oxytocin_units || 0, b.notes || '', flags.join(', '), req.session.user?.display_name || '']);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'PARTOGRAM_ENTRY', 'OB/GYN',
+            `Partogram pregnancy #${preg.id} dil ${dil || 0}cm FHR ${e14IntId(b.fetal_heart_rate_baseline) || 0}`, req.ip);
+        res.json(result.rows[0]);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// Ultrasound Records — biometry -> GA/percentile computed server-side
+app.get('/api/obgyn/ultrasounds/:pregnancy_id', requireAuth, requireRole(...OB_RBAC), requireTenantScope, async (req, res) => {
+    try {
+        const tenantId = e14RequireTenant(req);
+        if (tenantId === null) return res.status(403).json({ error: 'Tenant scope required' });
+        const preg = await e14PregnancyInTenant(req.params.pregnancy_id, tenantId);
+        if (!preg) return res.status(404).json({ error: 'Pregnancy not found' });
+        res.json((await pool.query('SELECT * FROM obgyn_ultrasounds WHERE pregnancy_id=$1 AND tenant_id=$2 ORDER BY scan_date DESC, id DESC', [preg.id, tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/obgyn/ultrasounds', requireAuth, requireRole(...OB_RBAC), requireTenantScope, async (req, res) => {
+    try {
+        const tenantId = e14RequireTenant(req);
+        if (tenantId === null) return res.status(403).json({ error: 'Tenant scope required' });
+        const b = req.body || {};
+        const preg = await e14PregnancyInTenant(b.pregnancy_id, tenantId);
+        if (!preg) return res.status(404).json({ error: 'Pregnancy not found' });
+        // Server-derived GA from biometry + EFW percentile band (anti-spoof).
+        const biometryGa = obEngine.gaFromBiometry({ bpd: b.bpd, hc: b.hc, ac: b.ac, fl: b.fl });
+        const gaLabel = biometryGa.ok ? `${biometryGa.gaWeeks}+${biometryGa.gaDays} weeks` : (b.gestational_age || '');
+        const pctl = obEngine.efwPercentileBand(biometryGa.ok ? biometryGa.gaWeeks : null, b.efw);
+        const anomalies = [b.anomalies || '', pctl && pctl.flag ? pctl.flag : ''].filter(Boolean).join('; ');
+        const result = await pool.query(
+            `INSERT INTO obgyn_ultrasounds (tenant_id, pregnancy_id, patient_id, scan_type, gestational_age,
+             bpd, hc, ac, fl, efw, efw_percentile, amniotic_fluid_index, placenta_location, placenta_grade,
              fetal_heart_rate, fetal_presentation, fetal_gender, number_of_fetuses, cervical_length,
-             anomalies, findings, impression, performed_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21) RETURNING *`,
-            [b.pregnancy_id, b.patient_id, b.scan_type || 'Routine', b.gestational_age || '',
-            b.bpd || 0, b.hc || 0, b.ac || 0, b.fl || 0, b.efw || 0, b.amniotic_fluid_index || 0,
-            b.placenta_location || '', b.placenta_grade || '', b.fetal_heart_rate || 0,
-            b.fetal_presentation || '', b.fetal_gender || 'Not determined', b.number_of_fetuses || 1,
-            b.cervical_length || 0, b.anomalies || '', b.findings || '', b.impression || '',
+             anomalies, findings, impression, performed_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23) RETURNING *`,
+            [tenantId, preg.id, preg.patient_id, b.scan_type || 'Routine', gaLabel,
+            b.bpd || 0, b.hc || 0, b.ac || 0, b.fl || 0, b.efw || 0, pctl ? pctl.band : '',
+            b.amniotic_fluid_index || 0, b.placenta_location || '', b.placenta_grade || '', e14IntId(b.fetal_heart_rate) || 0,
+            b.fetal_presentation || '', b.fetal_gender || 'Not determined', e14IntId(b.number_of_fetuses) || 1,
+            b.cervical_length || 0, anomalies, b.findings || '', b.impression || '',
             req.session.user?.display_name || '']);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'ULTRASOUND', 'OB/GYN',
+            `US pregnancy #${preg.id} GA ${gaLabel}${pctl ? ' EFW ' + pctl.band : ''}`, req.ip);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-// Delivery Records
-app.post('/api/obgyn/deliveries', requireAuth, async (req, res) => {
+// Delivery Records — state machine (Active -> Delivered) + SELECT...FOR UPDATE; server APGAR
+app.post('/api/obgyn/deliveries', requireAuth, requireRole(...OB_RBAC), requireTenantScope, async (req, res) => {
+    const client = await pool.connect();
     try {
-        const b = req.body;
-        const result = await pool.query(
-            `INSERT INTO obgyn_deliveries (pregnancy_id, patient_id, delivery_date, gestational_age_at_delivery,
+        const tenantId = e14RequireTenant(req);
+        if (tenantId === null) { return res.status(403).json({ error: 'Tenant scope required' }); }
+        const b = req.body || {};
+        const pregId = e14IntId(b.pregnancy_id);
+        if (pregId === null) { return res.status(400).json({ error: 'Invalid pregnancy_id' }); }
+
+        // Bind tenant on this dedicated connection so RLS applies to the locking SELECT.
+        await client.query("SELECT set_config('app.tenant_id', $1, true)", [String(tenantId)]);
+        await client.query('BEGIN');
+        // Lock the pregnancy row before flipping status (race-safe single-row lock).
+        const pregRow = (await client.query('SELECT * FROM obgyn_pregnancies WHERE id=$1 AND tenant_id=$2 FOR UPDATE', [pregId, tenantId])).rows[0];
+        if (!pregRow) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'Pregnancy not found' }); }
+        // Server-side state machine: reject delivery on a non-Active pregnancy (409).
+        const transition = obEngine.deliveryTransitionAllowed(pregRow.status);
+        if (!transition.ok) { await client.query('ROLLBACK'); return res.status(409).json({ error: transition.error }); }
+
+        // Anti-spoof APGAR: computed from components; fail-closed if incomplete provided.
+        let apgar1 = 0, apgar5 = 0;
+        if (b.apgar_1min_components) {
+            const a1 = obEngine.computeAPGAR(b.apgar_1min_components);
+            if (!a1.ok) { await client.query('ROLLBACK'); return res.status(422).json({ error: 'Incomplete APGAR (1 min): ' + (a1.missing || []).join(',') }); }
+            apgar1 = a1.total;
+        }
+        if (b.apgar_5min_components) {
+            const a5 = obEngine.computeAPGAR(b.apgar_5min_components);
+            if (!a5.ok) { await client.query('ROLLBACK'); return res.status(422).json({ error: 'Incomplete APGAR (5 min): ' + (a5.missing || []).join(',') }); }
+            apgar5 = a5.total;
+        }
+
+        const result = await client.query(
+            `INSERT INTO obgyn_deliveries (tenant_id, pregnancy_id, patient_id, admission_id, delivery_date, gestational_age_at_delivery,
              delivery_type, delivery_method, indication_for_cs, anesthesia_type, labor_duration_hours,
              episiotomy, perineal_tear, blood_loss_ml, placenta_delivery, complications,
              attending_doctor, assisting_nurse, anesthetist, pediatrician, notes,
              apgar_1min, apgar_5min, baby_weight, baby_length, baby_head_circumference,
              baby_gender, baby_status, baby_anomalies, nicu_admission, nicu_reason, breastfeeding_initiated)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30) RETURNING *`,
-            [b.pregnancy_id, b.patient_id, b.delivery_date || new Date(), b.gestational_age_at_delivery || '',
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32) RETURNING *`,
+            [tenantId, pregId, pregRow.patient_id, e14IntId(b.admission_id), b.delivery_date || new Date(), b.gestational_age_at_delivery || '',
             b.delivery_type || 'NVD', b.delivery_method || '', b.indication_for_cs || '', b.anesthesia_type || '',
-            b.labor_duration_hours || 0, b.episiotomy || 0, b.perineal_tear || 'None', b.blood_loss_ml || 0,
+            b.labor_duration_hours || 0, b.episiotomy ? 1 : 0, b.perineal_tear || 'None', e14IntId(b.blood_loss_ml) || 0,
             b.placenta_delivery || 'Complete', b.complications || '', b.attending_doctor || '',
             b.assisting_nurse || '', b.anesthetist || '', b.pediatrician || '', b.notes || '',
-            b.apgar_1min || 0, b.apgar_5min || 0, b.baby_weight || 0, b.baby_length || 0,
+            apgar1, apgar5, e14IntId(b.baby_weight) || 0, b.baby_length || 0,
             b.baby_head_circumference || 0, b.baby_gender || '', b.baby_status || 'Alive',
-            b.baby_anomalies || '', b.nicu_admission || 0, b.nicu_reason || '', b.breastfeeding_initiated || 0]);
-        // Update pregnancy status
-        await pool.query('UPDATE obgyn_pregnancies SET status=$1, delivery_date=$2, delivery_type=$3, outcome=$4 WHERE id=$5',
-            ['Delivered', b.delivery_date || new Date(), b.delivery_type || 'NVD', b.baby_status || 'Alive', b.pregnancy_id]);
-        logAudit(req.session.user?.id, req.session.user?.display_name, 'DELIVERY', 'OB/GYN', 'Delivery recorded for pregnancy #' + b.pregnancy_id, req.ip);
+            b.baby_anomalies || '', b.nicu_admission ? 1 : 0, b.nicu_reason || '', b.breastfeeding_initiated ? 1 : 0]);
+        // Flip pregnancy status under the lock (state-machine commit).
+        await client.query('UPDATE obgyn_pregnancies SET status=$1, delivery_date=$2, delivery_type=$3, outcome=$4, updated_at=NOW() WHERE id=$5 AND tenant_id=$6',
+            ['Delivered', b.delivery_date || new Date(), b.delivery_type || 'NVD', b.baby_status || 'Alive', pregId, tenantId]);
+        await client.query('COMMIT');
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'RECORD_DELIVERY', 'OB/GYN',
+            `Delivery pregnancy #${pregId}: mode=${b.delivery_type || 'NVD'}, baby_wt=${e14IntId(b.baby_weight) || 0}g, APGAR 1'=${apgar1} 5'=${apgar5}`, req.ip);
         res.json(result.rows[0]);
+    } catch (e) {
+        try { await client.query('ROLLBACK'); } catch (_) { }
+        res.status(500).json({ error: 'Server error' });
+    } finally { client.release(); }
+});
+
+app.get('/api/obgyn/deliveries/:pregnancy_id', requireAuth, requireRole(...OB_RBAC), requireTenantScope, async (req, res) => {
+    try {
+        const tenantId = e14RequireTenant(req);
+        if (tenantId === null) return res.status(403).json({ error: 'Tenant scope required' });
+        const preg = await e14PregnancyInTenant(req.params.pregnancy_id, tenantId);
+        if (!preg) return res.status(404).json({ error: 'Pregnancy not found' });
+        res.json((await pool.query('SELECT * FROM obgyn_deliveries WHERE pregnancy_id=$1 AND tenant_id=$2', [preg.id, tenantId])).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/obgyn/deliveries/:pregnancy_id', requireAuth, async (req, res) => {
+// ===== NEONATAL RECORD (attached 1:1 to a delivery; APGAR computed server-side) =====
+app.get('/api/obgyn/neonatal/:delivery_id', requireAuth, requireRole(...OB_RBAC), requireTenantScope, async (req, res) => {
     try {
-        res.json((await pool.query('SELECT * FROM obgyn_deliveries WHERE pregnancy_id=$1', [req.params.pregnancy_id])).rows);
+        const tenantId = e14RequireTenant(req);
+        if (tenantId === null) return res.status(403).json({ error: 'Tenant scope required' });
+        const did = e14IntId(req.params.delivery_id);
+        if (did === null) return res.status(400).json({ error: 'Invalid delivery_id' });
+        const del = (await pool.query('SELECT id FROM obgyn_deliveries WHERE id=$1 AND tenant_id=$2', [did, tenantId])).rows[0];
+        if (!del) return res.status(404).json({ error: 'Delivery not found' });
+        res.json((await pool.query('SELECT * FROM obgyn_neonatal WHERE delivery_id=$1 AND tenant_id=$2 ORDER BY id', [did, tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/obgyn/neonatal', requireAuth, requireRole(...OB_RBAC), requireTenantScope, async (req, res) => {
+    try {
+        const tenantId = e14RequireTenant(req);
+        if (tenantId === null) return res.status(403).json({ error: 'Tenant scope required' });
+        const b = req.body || {};
+        const did = e14IntId(b.delivery_id);
+        if (did === null) return res.status(400).json({ error: 'Invalid delivery_id' });
+        // Ownership: delivery must belong to caller's tenant -> else 404
+        const del = (await pool.query('SELECT id, patient_id FROM obgyn_deliveries WHERE id=$1 AND tenant_id=$2', [did, tenantId])).rows[0];
+        if (!del) return res.status(404).json({ error: 'Delivery not found' });
+        // Optional newborn patient must also be tenant-owned if provided.
+        let babyPatientId = null;
+        if (b.baby_patient_id !== undefined && b.baby_patient_id !== null && b.baby_patient_id !== '') {
+            babyPatientId = await e14PatientInTenant(b.baby_patient_id, tenantId);
+            if (babyPatientId === null) return res.status(404).json({ error: 'Newborn patient not found' });
+        }
+        // Anti-spoof APGAR: computed from components; fail-closed if incomplete.
+        const a1 = obEngine.computeAPGAR(b.apgar_1min_components || {});
+        const a5 = obEngine.computeAPGAR(b.apgar_5min_components || {});
+        if (!a1.ok) return res.status(422).json({ error: 'Incomplete APGAR (1 min): ' + (a1.missing || []).join(',') });
+        if (!a5.ok) return res.status(422).json({ error: 'Incomplete APGAR (5 min): ' + (a5.missing || []).join(',') });
+        let apgar10 = 0;
+        if (b.apgar_10min_components) {
+            const a10 = obEngine.computeAPGAR(b.apgar_10min_components);
+            if (!a10.ok) return res.status(422).json({ error: 'Incomplete APGAR (10 min): ' + (a10.missing || []).join(',') });
+            apgar10 = a10.total;
+        }
+        const result = await pool.query(
+            `INSERT INTO obgyn_neonatal (tenant_id, delivery_id, baby_patient_id, apgar_1min, apgar_5min, apgar_10min,
+             birth_weight_grams, length_cm, head_circumference_cm, blood_group, coombs_test,
+             resuscitation_needed, resuscitation_type, birth_injury, jaundice_onset, phototherapy_needed,
+             hypoglycemia, hypothermia, congenital_abnormalities, feeding_type, feeding_established,
+             discharge_destination, discharge_status, follow_up_plan, recorded_by)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25) RETURNING *`,
+            [tenantId, did, babyPatientId, a1.total, a5.total, apgar10,
+                e14IntId(b.birth_weight_grams) || 0, b.length_cm || 0, b.head_circumference_cm || 0, b.blood_group || '', b.coombs_test || 'Not Done',
+                b.resuscitation_needed ? 1 : 0, b.resuscitation_type || '', b.birth_injury || '', b.jaundice_onset || '', b.phototherapy_needed ? 1 : 0,
+                b.hypoglycemia ? 1 : 0, b.hypothermia ? 1 : 0, b.congenital_abnormalities || '', b.feeding_type || 'Breast', b.feeding_established ? 1 : 0,
+                b.discharge_destination || 'Home', b.discharge_status || 'Healthy', b.follow_up_plan || '', req.session.user?.display_name || '']);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'RECORD_NEONATAL', 'OB/GYN',
+            `Neonatal delivery #${did}: APGAR 1'=${a1.total} 5'=${a5.total} wt=${e14IntId(b.birth_weight_grams) || 0}g resus=${b.resuscitation_needed ? 'Y' : 'N'}`, req.ip);
+        res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // NST Records
-app.post('/api/obgyn/nst', requireAuth, async (req, res) => {
+app.post('/api/obgyn/nst', requireAuth, requireRole(...OB_RBAC), requireTenantScope, async (req, res) => {
     try {
-        const b = req.body;
+        const tenantId = e14RequireTenant(req);
+        if (tenantId === null) return res.status(403).json({ error: 'Tenant scope required' });
+        const b = req.body || {};
+        const preg = await e14PregnancyInTenant(b.pregnancy_id, tenantId);
+        if (!preg) return res.status(404).json({ error: 'Pregnancy not found' });
         const result = await pool.query(
-            `INSERT INTO obgyn_nst (pregnancy_id, patient_id, duration_minutes, baseline_fhr, variability,
+            `INSERT INTO obgyn_nst (tenant_id, pregnancy_id, patient_id, duration_minutes, baseline_fhr, variability,
              accelerations, decelerations, contractions, result, interpretation, action_taken, performed_by)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
-            [b.pregnancy_id, b.patient_id, b.duration_minutes || 20, b.baseline_fhr || 0, b.variability || '',
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
+            [tenantId, preg.id, preg.patient_id, b.duration_minutes || 20, e14IntId(b.baseline_fhr) || 0, b.variability || '',
             b.accelerations || 0, b.decelerations || 'None', b.contractions || 0, b.result || 'Reactive',
             b.interpretation || '', b.action_taken || '', req.session.user?.display_name || '']);
-        // Alert if non-reactive
         if (b.result === 'Non-Reactive') {
             await pool.query('INSERT INTO notifications (target_role, title, message, type, module) VALUES ($1,$2,$3,$4,$5)',
-                ['Doctor', 'Non-Reactive NST', 'Patient #' + b.patient_id + ' - Non-reactive NST: ' + (b.interpretation || ''), 'danger', 'OB/GYN']);
+                ['Doctor', 'Non-Reactive NST', 'Patient #' + preg.patient_id + ' - Non-reactive NST: ' + (b.interpretation || ''), 'danger', 'OB/GYN']);
         }
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'NST_ENTRY', 'OB/GYN',
+            `NST pregnancy #${preg.id}: result=${b.result || 'Reactive'} fhr=${e14IntId(b.baseline_fhr) || 0} dur=${b.duration_minutes || 20}min`, req.ip);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-// OB/GYN Lab Panels
-app.get('/api/obgyn/lab-panels', requireAuth, async (req, res) => {
+// OB/GYN Lab Panels (tenant-scoped catalog)
+app.get('/api/obgyn/lab-panels', requireAuth, requireRole(...OB_RBAC), requireTenantScope, async (req, res) => {
     try {
-        res.json((await pool.query('SELECT * FROM obgyn_lab_panels WHERE is_active=1 ORDER BY id')).rows);
+        const tenantId = e14RequireTenant(req);
+        if (tenantId === null) return res.status(403).json({ error: 'Tenant scope required' });
+        res.json((await pool.query('SELECT * FROM obgyn_lab_panels WHERE is_active=1 AND tenant_id=$1 ORDER BY id', [tenantId])).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-// OB/GYN Dashboard Stats
-app.get('/api/obgyn/stats', requireAuth, requireTenantScope, async (req, res) => {
+// OB/GYN Dashboard Stats — fail-closed tenant scoping (HR#1: null tenant -> 403, no unscoped fallback)
+app.get('/api/obgyn/stats', requireAuth, requireRole(...OB_RBAC), requireTenantScope, async (req, res) => {
     try {
-        const { tenantId } = getRequestTenantContext(req);
+        const tenantId = e14RequireTenant(req);
+        if (tenantId === null) return res.status(403).json({ error: 'Tenant scope required' });
 
         // Schema for obgyn_pregnancies/obgyn_deliveries is provisioned out-of-band
-        // (docs/sql/route_level_ddl_cleanup_candidate_*); no DDL in handler under restricted role.
-        const params = tenantId ? [tenantId] : [];
-        const tenantFilter = tenantId ? ' AND tenant_id=$1' : '';
-
-        const active = (await pool.query(`SELECT COUNT(*) as cnt FROM obgyn_pregnancies WHERE status='Active'${tenantFilter}`, params)).rows[0].cnt;
-        const highRisk = (await pool.query(`SELECT COUNT(*) as cnt FROM obgyn_pregnancies WHERE status='Active' AND risk_level='High'${tenantFilter}`, params)).rows[0].cnt;
-        const dueThisWeek = (await pool.query(`SELECT COUNT(*) as cnt FROM obgyn_pregnancies WHERE status='Active' AND edd BETWEEN CURRENT_DATE AND CURRENT_DATE + 7${tenantFilter}`, params)).rows[0].cnt;
-        const deliveredThisMonth = (await pool.query(`SELECT COUNT(*) as cnt FROM obgyn_deliveries WHERE delivery_date >= date_trunc('month', CURRENT_DATE)${tenantFilter}`, params)).rows[0].cnt;
+        // (migrations/e14_ob_maternity_*.sql); no DDL in handler under restricted role.
+        const params = [tenantId];
+        const active = (await pool.query(`SELECT COUNT(*) as cnt FROM obgyn_pregnancies WHERE status='Active' AND tenant_id=$1`, params)).rows[0].cnt;
+        const highRisk = (await pool.query(`SELECT COUNT(*) as cnt FROM obgyn_pregnancies WHERE status='Active' AND risk_level='High' AND tenant_id=$1`, params)).rows[0].cnt;
+        const dueThisWeek = (await pool.query(`SELECT COUNT(*) as cnt FROM obgyn_pregnancies WHERE status='Active' AND edd BETWEEN CURRENT_DATE AND CURRENT_DATE + 7 AND tenant_id=$1`, params)).rows[0].cnt;
+        const deliveredThisMonth = (await pool.query(`SELECT COUNT(*) as cnt FROM obgyn_deliveries WHERE delivery_date >= date_trunc('month', CURRENT_DATE) AND tenant_id=$1`, params)).rows[0].cnt;
         res.json({ activePregnancies: active, highRisk, dueThisWeek, deliveredThisMonth });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
