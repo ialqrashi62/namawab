@@ -9495,6 +9495,22 @@ async function renderInpatient(el) {
           <button class="btn" onclick="document.getElementById('adtDischargeModal').style.display='none'" style="flex:1">❌ ${tr('Cancel', 'إلغاء')}</button>
         </div>
       </div>
+    </div>
+    <div id="adtTransferModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
+      <div style="background:#fff;padding:30px;border-radius:16px;width:480px;max-width:90%;direction:rtl">
+        <h3 style="margin-bottom:16px">🔁 ${tr('Transfer Patient', 'نقل المريض')}</h3>
+        <input type="hidden" id="adtTransferAdmId">
+        <div id="adtTransferName" style="margin-bottom:12px;font-weight:600"></div>
+        <div class="form-grid" style="gap:12px">
+          <div><label>${tr('Ward', 'الجناح')}</label><select id="adtTransferWard" class="form-control" onchange="loadTransferBeds(this.value)"><option value="">${tr('Select', 'اختر')}</option>${(wards || []).map(w => `<option value="${safeId(w.id)}">${escapeHTML(w.ward_name_ar)}</option>`).join('')}</select></div>
+          <div><label>${tr('Bed', 'السرير')}</label><select id="adtTransferBed" class="form-control"><option value="">${tr('Select ward first', 'اختر الجناح أولاً')}</option></select></div>
+          <div style="grid-column:span 2"><label>${tr('Reason', 'سبب النقل')}</label><textarea id="adtTransferReason" class="form-control" rows="2"></textarea></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button class="btn btn-primary" onclick="confirmInpatientTransfer()" style="flex:1">✅ ${tr('Confirm Transfer', 'تأكيد النقل')}</button>
+          <button class="btn" onclick="document.getElementById('adtTransferModal').style.display='none'" style="flex:1">❌ ${tr('Cancel', 'إلغاء')}</button>
+        </div>
+      </div>
     </div>`;
   const c = document.getElementById('adtContent');
   if (adtTab === 'census') {
@@ -9524,7 +9540,7 @@ async function renderInpatient(el) {
       const days = Math.floor((new Date() - new Date(a.admission_date)) / 86400000);
       const typeBadge = a.admission_type === 'Emergency' ? badge(tr('ER', 'طوارئ'), 'danger') : a.admission_type === 'Transfer' ? badge(tr('Transfer', 'تحويل'), 'warning') : badge(tr('Regular', 'عادي'), 'info');
       return `<tr><td>${escapeHTML(a.id)}</td><td><strong>${escapeHTML(a.patient_name)}</strong></td><td>${typeBadge}</td><td>${escapeHTML(a.attending_doctor || '-')}</td><td>${escapeHTML(a.diagnosis || '-')}</td><td>${new Date(a.admission_date).toLocaleDateString('ar-SA')}</td><td><span style="font-weight:700;color:${days > 7 ? '#e74c3c' : '#2ecc71'}">${days}</span></td>
-        <td><button class="btn btn-sm" onclick="showInpatientDischargeModal(${safeId(a.id)})">🚪 ${tr('Discharge', 'خروج')}</button></td></tr>`;
+        <td><button class="btn btn-sm" onclick="showAdtTransferModal(${safeId(a.id)},'${jsStr(a.patient_name)}')">🔁 ${tr('Transfer', 'نقل')}</button> <button class="btn btn-sm" onclick="showInpatientDischargeModal(${safeId(a.id)})">🚪 ${tr('Discharge', 'خروج')}</button></td></tr>`;
     }).join('')}</tbody></table>` : `<div class="empty-state"><div class="empty-icon">🛏️</div><p>${tr('No inpatients', 'لا يوجد منومين')}</p></div>`}`;
   } else if (adtTab === 'discharged') {
     c.innerHTML = `<h3>🚪 ${tr('Discharged Patients', 'الخارجين من التنويم')} (${(dischargedAdm || []).length})</h3>
@@ -9541,16 +9557,22 @@ async function renderInpatient(el) {
 }
 window.loadWardBeds = async function (wardId) {
   if (!wardId) return;
-  const beds = await API.get('/api/beds?ward_id=' + wardId);
+  // E8 fix I1: use the fail-closed, tenant-scoped ADT bed board (returns { beds: [...] }),
+  // not the legacy /api/beds route which has an unscoped fallback when tenantId is null.
+  const r = await API.get('/api/adt/beds?ward_id=' + wardId);
+  const beds = (r && r.beds) ? r.beds : [];
   const s = document.getElementById('admBed');
-  s.innerHTML = `<option value="">${tr('Select', 'اختر')}</option>${(beds || []).filter(b => b.status === 'Available').map(b => `<option value="${safeId(b.id)}">${tr('Bed', 'سرير')} ${escapeHTML(b.bed_number)} - ${tr('Room', 'غرفة')} ${escapeHTML(b.room_number)}</option>`).join('')}`;
+  s.innerHTML = `<option value="">${tr('Select', 'اختر')}</option>${beds.filter(b => b.status === 'Available').map(b => `<option value="${safeId(b.id)}">${tr('Bed', 'سرير')} ${escapeHTML(b.bed_number)} - ${tr('Room', 'غرفة')} ${escapeHTML(b.room_number)}</option>`).join('')}`;
 };
 window.admitPatient = async function () {
   const ps = document.getElementById('admPatient'); if (!ps.value) return showToast(tr('Select patient', 'اختر المريض'), 'error');
+  const bedSel = document.getElementById('admBed');
+  if (!bedSel.value) return showToast(tr('Select a bed', 'اختر السرير'), 'error');
   try {
-    await API.post('/api/admissions', { patient_id: ps.value, patient_name: ps.options[ps.selectedIndex].dataset.name, admission_type: document.getElementById('admType').value, attending_doctor: document.getElementById('admDoctor').value, admitting_doctor: document.getElementById('admDoctor').value, department: document.getElementById('admDept').value, ward_id: document.getElementById('admWard').value, bed_id: document.getElementById('admBed').value, diagnosis: document.getElementById('admDiagnosis').value, diet_order: document.getElementById('admDiet').value, expected_los: document.getElementById('admLOS').value });
+    // E8: admit via the state-machine route which atomically occupies the (locked) bed.
+    await API.post('/api/adt/admit', { patient_id: ps.value, patient_name: ps.options[ps.selectedIndex].dataset.name, admission_type: document.getElementById('admType').value, attending_doctor: document.getElementById('admDoctor').value, admitting_doctor: document.getElementById('admDoctor').value, department: document.getElementById('admDept').value, ward_id: document.getElementById('admWard').value, bed_id: bedSel.value, diagnosis: document.getElementById('admDiagnosis').value, diet_order: document.getElementById('admDiet').value, expected_los: document.getElementById('admLOS').value });
     showToast(tr('Patient admitted!', 'تم التنويم!')); adtTab = 'patients'; await navigateTo(22);
-  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  } catch (e) { showToast((e && e.message) ? e.message : tr('Error', 'خطأ'), 'error'); }
 };
 window.showInpatientDischargeModal = function (id) {
   document.getElementById('adtDischargeId').value = id;
@@ -9563,7 +9585,10 @@ window.showInpatientDischargeModal = function (id) {
 window.confirmInpatientDischarge = async function () {
   const id = document.getElementById('adtDischargeId').value;
   try {
-    await API.put('/api/admissions/' + id + '/discharge', {
+    // E8: discharge via the state-machine route (frees the bed -> Cleaning atomically,
+    // rejects discharge of an already-discharged admission server-side).
+    await API.post('/api/adt/discharge', {
+      admission_id: id,
       discharge_type: document.getElementById('adtDischargeType').value,
       discharge_summary: document.getElementById('adtDischargeSummary').value,
       discharge_instructions: document.getElementById('adtDischargeInst').value,
@@ -9574,10 +9599,44 @@ window.confirmInpatientDischarge = async function () {
     document.getElementById('adtDischargeModal').style.display = 'none';
     showToast(tr('Patient discharged!', 'تم خروج المريض!'));
     adtTab = 'discharged'; await navigateTo(22);
-  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+  } catch (e) { showToast((e && e.message) ? e.message : tr('Error', 'خطأ'), 'error'); }
 };
-window.dischargePatient = async function (id) {
-  showInpatientDischargeModal(id);
+// NOTE: Do NOT redefine window.dischargePatient here. The doctor-station "Patient Done"
+// button (defined ~app.js:3490) passes a PATIENT id and marks the patient Done. The ADT
+// patients table calls showInpatientDischargeModal(admission_id) DIRECTLY (see above), so no
+// ADT alias is needed. A prior collision here overwrote the doctor-station handler, mis-routing
+// patient ids to ADT discharge as admission ids (-> 404). (E8 adversarial fix C1.)
+window.showAdtTransferModal = function (admissionId, patientName) {
+  document.getElementById('adtTransferAdmId').value = admissionId;
+  document.getElementById('adtTransferName').textContent = patientName || '';
+  document.getElementById('adtTransferReason').value = '';
+  document.getElementById('adtTransferBed').innerHTML = `<option value="">${tr('Select ward first', 'اختر الجناح أولاً')}</option>`;
+  const ws = document.getElementById('adtTransferWard'); if (ws) ws.value = '';
+  document.getElementById('adtTransferModal').style.display = 'flex';
+};
+window.loadTransferBeds = async function (wardId) {
+  if (!wardId) return;
+  // Use the E8 bed board so only genuinely-free beds (Available) are offered as destinations.
+  const r = await API.get('/api/adt/beds?ward_id=' + wardId);
+  const beds = (r && r.beds) ? r.beds : [];
+  const s = document.getElementById('adtTransferBed');
+  s.innerHTML = `<option value="">${tr('Select', 'اختر')}</option>${beds.filter(b => b.status === 'Available').map(b => `<option value="${safeId(b.id)}">${tr('Bed', 'سرير')} ${escapeHTML(b.bed_number)} - ${tr('Room', 'غرفة')} ${escapeHTML(b.room_number)}</option>`).join('')}`;
+};
+window.confirmInpatientTransfer = async function () {
+  const admissionId = document.getElementById('adtTransferAdmId').value;
+  const toBed = document.getElementById('adtTransferBed').value;
+  if (!toBed) return showToast(tr('Select destination bed', 'اختر سرير الوجهة'), 'error');
+  try {
+    // E8: transfer via the state-machine route (atomic free-source + occupy-dest, rejects occupied dest).
+    await API.post('/api/adt/transfer', {
+      admission_id: admissionId,
+      to_bed: toBed,
+      transfer_reason: document.getElementById('adtTransferReason').value
+    });
+    document.getElementById('adtTransferModal').style.display = 'none';
+    showToast(tr('Patient transferred!', 'تم نقل المريض!'));
+    adtTab = 'patients'; await navigateTo(22);
+  } catch (e) { showToast((e && e.message) ? e.message : tr('Error', 'خطأ'), 'error'); }
 };
 // ===== ICU =====
 // ===== ICU =====

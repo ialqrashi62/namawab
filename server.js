@@ -210,7 +210,7 @@ const MAX_DISCOUNT_BY_ROLE = { admin: 100, manager: 50, cashier: 10, receptionis
 // RBAC middleware - role-based access control
 const ROLE_PERMISSIONS = {
     'Admin': '*',
-    'Doctor': ['dashboard', 'patients', 'appointments', 'doctor', 'lab', 'radiology', 'pharmacy', 'nursing', 'waiting', 'reports', 'messaging', 'surgery', 'consent', 'icu', 'him', 'medical-records', 'emergency'],
+    'Doctor': ['dashboard', 'patients', 'appointments', 'doctor', 'lab', 'radiology', 'pharmacy', 'nursing', 'waiting', 'reports', 'messaging', 'surgery', 'consent', 'icu', 'him', 'medical-records', 'emergency', 'inpatient'],
     'Nurse': ['dashboard', 'patients', 'nursing', 'waiting', 'vitals', 'icu', 'emergency', 'inpatient', 'transport', 'dietary'],
     'HIM': ['dashboard', 'patients', 'him', 'medical-records', 'reports', 'messaging'],
     'Pharmacist': ['dashboard', 'pharmacy', 'inventory', 'messaging'],
@@ -4497,40 +4497,54 @@ app.get('/api/beds/census', requireAuth, requireTenantScope, async (req, res) =>
 app.get('/api/admissions', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { status } = req.query;
-        const { tenantId } = getRequestTenantContext(req);
-        let qText = '';
-        let params = [];
+        // L2 fix: fail-closed. The prior null-tenant else-branch used `WHERE tenant_id=$1`
+        // with params=[] ("$1 not bound" runtime error) — and any unscoped fallback would be a
+        // cross-tenant leak anyway. Require a tenant; every query carries AND tenant_id.
+        const { tenantId } = e8RequireTenant(req);
+        let qText, params;
         if (status) {
-            qText = tenantId
-                ? 'SELECT * FROM admissions WHERE status=$1 AND tenant_id=$2 ORDER BY admission_date DESC'
-                : 'SELECT * FROM admissions WHERE status=$1 ORDER BY admission_date DESC';
-            params = tenantId ? [status, tenantId] : [status];
+            qText = 'SELECT * FROM admissions WHERE status=$1 AND tenant_id=$2 ORDER BY admission_date DESC';
+            params = [status, tenantId];
         } else {
-            qText = tenantId
-                ? 'SELECT * FROM admissions WHERE tenant_id=$1 ORDER BY admission_date DESC'
-                : 'SELECT * FROM admissions WHERE tenant_id=$1 ORDER BY admission_date DESC';
-            params = tenantId ? [tenantId] : [];
+            qText = 'SELECT * FROM admissions WHERE tenant_id=$1 ORDER BY admission_date DESC';
+            params = [tenantId];
         }
         const q = await pool.query(qText, params);
         res.json(q.rows);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) {
+        if (e.e8Status) return res.status(e.e8Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 // Added to allow secure fetch of single admission record and prevent IDOR
 app.get('/api/admissions/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        const { tenantId } = getRequestTenantContext(req);
-        const q = tenantId
-            ? 'SELECT * FROM admissions WHERE id = $1 AND tenant_id = $2'
-            : 'SELECT * FROM admissions WHERE id = $1';
-        const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        const row = (await pool.query(q, params)).rows[0];
+        // I2 fix: fail-closed (no unscoped fallback) so a null tenant context can never read
+        // another tenant's admission (cross-tenant IDOR).
+        const { tenantId } = e8RequireTenant(req);
+        const row = (await pool.query(
+            'SELECT * FROM admissions WHERE id = $1 AND tenant_id = $2',
+            [req.params.id, tenantId])).rows[0];
         if (!row) return res.status(404).json({ error: 'Admission not found' });
         res.json(row);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) {
+        if (e.e8Status) return res.status(e.e8Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 app.post('/api/admissions', requireAuth, requireTenantScope, async (req, res) => {
+    // E8 SHADOW-PATH CLOSURE: the legacy admit path occupied a bed WITHOUT a FOR UPDATE lock
+    // (double-occupy race) and did not enforce the bed/admission state machine. Admissions must
+    // now go through POST /api/adt/admit (race-safe, state-validated). This route is retired for
+    // writes; it fails closed and directs callers to the safe route. (The ER->ADT handoff uses a
+    // direct INSERT, not this route, so it is unaffected.)
+    const { tenantId } = getRequestTenantContext(req);
+    if (!tenantId && process.env.NODE_ENV === 'production') return res.status(403).json({ error: 'Tenant scope required' });
+    return res.status(409).json({ error: 'Use POST /api/adt/admit', use: '/api/adt/admit' });
+});
+app.post('/api/admissions/_legacy_disabled', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, admission_type, admitting_doctor, attending_doctor, department, ward_id, bed_id, diagnosis, icd10_code, admission_orders, diet_order, activity_level, dvt_prophylaxis, expected_los, insurance_auth } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
@@ -4595,6 +4609,14 @@ app.post('/api/admissions', requireAuth, requireTenantScope, async (req, res) =>
 });
 
 app.put('/api/admissions/:id/discharge', requireAuth, requireTenantScope, async (req, res) => {
+    // E8 SHADOW-PATH CLOSURE: legacy discharge freed the bed to 'Available' (not 'Cleaning') and
+    // did NOT reject an already-discharged admission. Discharge must now go through
+    // POST /api/adt/discharge (state-validated, frees bed -> Cleaning). Fails closed.
+    const { tenantId } = getRequestTenantContext(req);
+    if (!tenantId && process.env.NODE_ENV === 'production') return res.status(403).json({ error: 'Tenant scope required' });
+    return res.status(409).json({ error: 'Use POST /api/adt/discharge', use: '/api/adt/discharge' });
+});
+app.put('/api/admissions/:id/discharge_legacy_disabled', requireAuth, requireTenantScope, async (req, res) => {
     const client = await pool.connect();
     try {
         const { tenantId } = getRequestTenantContext(req);
@@ -4664,20 +4686,17 @@ app.put('/api/admissions/:id/discharge', requireAuth, requireTenantScope, async 
 
 app.post('/api/admissions/:id/rounds', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        const { tenantId, facilityId } = getRequestTenantContext(req);
+        // I2 fix: fail-closed — no unscoped fallback (cross-tenant IDOR otherwise).
+        const { tenantId, facilityId } = e8RequireTenant(req);
 
         // Verify admission ownership first
-        const checkQ = tenantId
-            ? 'SELECT id FROM admissions WHERE id = $1 AND tenant_id = $2'
-            : 'SELECT id FROM admissions WHERE id = $1';
-        const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        const adm = (await pool.query(checkQ, checkParams)).rows[0];
+        const adm = (await pool.query('SELECT id FROM admissions WHERE id = $1 AND tenant_id = $2', [req.params.id, tenantId])).rows[0];
         if (!adm) return res.status(404).json({ error: 'Admission not found' });
 
         const { patient_id, doctor_name, subjective, objective, assessment, plan, vitals_summary, orders, diet_changes } = req.body;
 
         // Verify patient ownership
-        if (patient_id && tenantId) {
+        if (patient_id) {
             const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
             if (!patientCheck) {
                 return res.status(403).json({ error: 'Invalid patient context or access denied' });
@@ -4691,30 +4710,39 @@ app.post('/api/admissions/:id/rounds', requireAuth, requireTenantScope, async (r
 
         logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_DAILY_ROUND', 'Inpatient', `Added daily round for admission #${req.params.id}`, req.ip);
         res.json(r.rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) {
+        if (e.e8Status) return res.status(e.e8Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 app.get('/api/admissions/:id/rounds', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        const { tenantId } = getRequestTenantContext(req);
+        // I2 fix: fail-closed — no unscoped fallback (cross-tenant IDOR otherwise).
+        const { tenantId } = e8RequireTenant(req);
 
         // Verify admission ownership first
-        const checkQ = tenantId
-            ? 'SELECT id FROM admissions WHERE id = $1 AND tenant_id = $2'
-            : 'SELECT id FROM admissions WHERE id = $1';
-        const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        const adm = (await pool.query(checkQ, checkParams)).rows[0];
+        const adm = (await pool.query('SELECT id FROM admissions WHERE id = $1 AND tenant_id = $2', [req.params.id, tenantId])).rows[0];
         if (!adm) return res.status(404).json({ error: 'Admission not found' });
 
-        const roundsQ = tenantId
-            ? 'SELECT * FROM admission_daily_rounds WHERE admission_id=$1 AND tenant_id=$2 ORDER BY id DESC'
-            : 'SELECT * FROM admission_daily_rounds WHERE admission_id=$1 ORDER BY id DESC';
-        const roundsParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        res.json((await pool.query(roundsQ, roundsParams)).rows);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+        res.json((await pool.query(
+            'SELECT * FROM admission_daily_rounds WHERE admission_id=$1 AND tenant_id=$2 ORDER BY id DESC',
+            [req.params.id, tenantId])).rows);
+    } catch (e) {
+        if (e.e8Status) return res.status(e.e8Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 app.post('/api/bed-transfers', requireAuth, requireTenantScope, async (req, res) => {
+    // E8 SHADOW-PATH CLOSURE: legacy transfer occupied/freed beds WITHOUT FOR UPDATE locks and did
+    // not reject an occupied destination (double-occupy race). Transfers must now go through
+    // POST /api/adt/transfer (atomic, locked, rejects occupied dest). Fails closed.
+    const { tenantId } = getRequestTenantContext(req);
+    if (!tenantId && process.env.NODE_ENV === 'production') return res.status(403).json({ error: 'Tenant scope required' });
+    return res.status(409).json({ error: 'Use POST /api/adt/transfer', use: '/api/adt/transfer' });
+});
+app.post('/api/bed-transfers_legacy_disabled', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { admission_id, patient_id, from_ward, from_bed, to_ward, to_bed, transfer_reason, transferred_by } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
@@ -4771,6 +4799,392 @@ app.post('/api/bed-transfers', requireAuth, requireTenantScope, async (req, res)
         logAudit(req.session.user?.id, req.session.user?.display_name, 'BED_TRANSFER', 'Inpatient', `Transferred patient #${patient_id} to bed #${to_bed}`, req.ip);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ============================================================
+// ===== E8 INPATIENT / ADT — state-machine, race-safe bed mgmt =====
+// World-class ADT: admit / transfer / discharge + census + bed board, with a
+// server-authoritative bed-status lifecycle and admission state machine. Every
+// bed occupy/free is done inside a transaction with SELECT ... FOR UPDATE on the
+// bed row so two concurrent admits can never double-occupy one bed.
+// ============================================================
+
+// Fail-closed tenant resolver (mirrors e7RequireTenant — generic, no unscoped fallback).
+function e8RequireTenant(req) {
+    const { tenantId, facilityId } = getRequestTenantContext(req);
+    if (!tenantId) { const err = new Error('Tenant scope required'); err.e8Status = 403; throw err; }
+    return { tenantId, facilityId };
+}
+
+// Server-authoritative bed status lifecycle. 'Available' is the legacy vacant terminal
+// (kept for backward compat with the existing schema/seeds). Allowed transitions:
+//   Available -> Reserved | Occupied      (reserve or direct admit)
+//   Reserved  -> Occupied | Available     (admit the held bed, or release the hold)
+//   Occupied  -> Cleaning | Available     (discharge/transfer-out -> needs cleaning, or freed directly)
+//   Cleaning  -> Available | Blocked      (housekeeping done, or take offline)
+//   Blocked   -> Available                 (return to service)
+const E8_BED_STATUSES = ['Available', 'Reserved', 'Occupied', 'Cleaning', 'Blocked'];
+const E8_BED_TRANSITIONS = {
+    Available: ['Reserved', 'Occupied', 'Blocked', 'Cleaning'],
+    Reserved: ['Occupied', 'Available'],
+    Occupied: ['Cleaning', 'Available'],
+    Cleaning: ['Available', 'Blocked'],
+    Blocked: ['Available']
+};
+// A bed is "occupiable" by an admission only if currently free.
+const E8_BED_FREE_STATES = ['Available', 'Reserved'];
+function e8CanTransitionBed(from, to) {
+    if (!E8_BED_STATUSES.includes(to)) return false;
+    const f = from || 'Available';
+    if (f === to) return true; // idempotent no-op allowed
+    return (E8_BED_TRANSITIONS[f] || []).includes(to);
+}
+
+// Admission lifecycle: Active -> (Transferred-in-place stays Active) -> Discharged.
+// Discharge is only valid from an Active admission; transfer is only valid for Active.
+const E8_ADMISSION_TERMINAL = ['Discharged'];
+
+// Coerce an id to a positive integer (no string/padded-id coercion bypass — E6 lesson).
+function e8IntId(v) {
+    if (v === null || v === undefined || v === '') return null;
+    const n = Number(v);
+    if (!Number.isInteger(n) || n <= 0) return null;
+    return n;
+}
+
+// GET /api/adt/beds — bed board (status + current patient) for the tenant.
+app.get('/api/adt/beds', requireAuth, requireRole('inpatient', 'nursing', 'doctor'), requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = e8RequireTenant(req);
+        const wardId = e8IntId(req.query.ward_id);
+        const params = [tenantId];
+        let where = 'b.tenant_id = $1';
+        if (wardId) { params.push(wardId); where += ` AND b.ward_id = $${params.length}`; }
+        const rows = (await pool.query(
+            `SELECT b.id, b.bed_number, b.bed_type, b.room_number, b.status, b.ward_id,
+                    b.current_patient_id, b.current_admission_id, b.isolation_type,
+                    w.ward_name, w.ward_name_ar, w.ward_type,
+                    a.patient_name, a.diagnosis, a.attending_doctor, a.admission_date
+             FROM beds b
+             JOIN wards w ON b.ward_id = w.id AND w.tenant_id = $1
+             LEFT JOIN admissions a ON b.current_admission_id = a.id AND a.status='Active' AND a.tenant_id = $1
+             WHERE ${where}
+             ORDER BY w.id, b.bed_number`, params)).rows;
+        res.json({ beds: rows, statuses: E8_BED_STATUSES });
+    } catch (e) {
+        if (e.e8Status) return res.status(e.e8Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// GET /api/adt/census — occupancy by ward. Only 'Occupied' counts as occupied;
+// only 'Available' counts as available (Reserved/Cleaning/Blocked are neither —
+// fixes the legacy binary census math which counted any non-Occupied as available).
+app.get('/api/adt/census', requireAuth, requireRole('inpatient', 'nursing', 'doctor'), requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = e8RequireTenant(req);
+        const wards = (await pool.query('SELECT * FROM wards WHERE tenant_id=$1 ORDER BY id', [tenantId])).rows;
+        const beds = (await pool.query(
+            `SELECT b.id, b.bed_number, b.room_number, b.status, b.ward_id,
+                    w.ward_name, w.ward_name_ar, w.ward_type,
+                    a.patient_name, a.diagnosis, a.admission_date, a.attending_doctor
+             FROM beds b
+             JOIN wards w ON b.ward_id = w.id AND w.tenant_id = $1
+             LEFT JOIN admissions a ON b.current_admission_id = a.id AND a.status='Active' AND a.tenant_id = $1
+             WHERE b.tenant_id = $1
+             ORDER BY w.id, b.bed_number`, [tenantId])).rows;
+
+        const total = beds.length;
+        const occupied = beds.filter(b => b.status === 'Occupied').length;
+        const available = beds.filter(b => b.status === 'Available').length;
+        const cleaning = beds.filter(b => b.status === 'Cleaning').length;
+        const reserved = beds.filter(b => b.status === 'Reserved').length;
+        const blocked = beds.filter(b => b.status === 'Blocked').length;
+        const byWard = wards.map(w => {
+            const wb = beds.filter(b => b.ward_id === w.id);
+            return {
+                ward_id: w.id, ward_name: w.ward_name, ward_name_ar: w.ward_name_ar, ward_type: w.ward_type,
+                total: wb.length,
+                occupied: wb.filter(b => b.status === 'Occupied').length,
+                available: wb.filter(b => b.status === 'Available').length,
+                cleaning: wb.filter(b => b.status === 'Cleaning').length,
+                reserved: wb.filter(b => b.status === 'Reserved').length,
+                blocked: wb.filter(b => b.status === 'Blocked').length
+            };
+        });
+        res.json({
+            wards, beds, byWard, total, occupied, available, cleaning, reserved, blocked,
+            occupancyRate: total > 0 ? Math.round(occupied / total * 100) : 0
+        });
+    } catch (e) {
+        if (e.e8Status) return res.status(e.e8Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// POST /api/adt/admit — admit a patient into a bed.
+// Two modes (both tenant-scoped, race-safe):
+//   (a) place an existing admission (e.g. an ER->ADT handoff row with no bed) into a bed:
+//       body { admission_id, bed_id }
+//   (b) create a new direct/elective admission and place it in a bed:
+//       body { patient_id, patient_name, admission_type, attending_doctor, admitting_doctor,
+//              department, ward_id, bed_id, diagnosis, icd10_code, diet_order, expected_los }
+// The destination bed is locked FOR UPDATE; if it is not free (Available/Reserved) => 409.
+app.post('/api/adt/admit', requireAuth, requireRole('inpatient', 'nursing', 'doctor'), requireTenantScope, async (req, res) => {
+    const client = await pool.connect();
+    let began = false;
+    try {
+        const { tenantId, facilityId } = e8RequireTenant(req);
+        const bedId = e8IntId(req.body.bed_id);
+        if (!bedId) { client.release(); return res.status(422).json({ error: 'bed_id is required' }); }
+        const admissionId = e8IntId(req.body.admission_id);
+        const patientId = e8IntId(req.body.patient_id);
+
+        await client.query('BEGIN'); began = true;
+
+        // Lock the destination bed row inside the txn — prevents two concurrent admits
+        // from both seeing it free and double-occupying it.
+        const bed = (await client.query(
+            'SELECT id, ward_id, status, current_admission_id FROM beds WHERE id=$1 AND tenant_id=$2 FOR UPDATE',
+            [bedId, tenantId])).rows[0];
+        if (!bed) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Bed not found' }); }
+        if (!E8_BED_FREE_STATES.includes(bed.status)) {
+            await client.query('ROLLBACK'); client.release();
+            return res.status(409).json({ error: `Bed not available (status ${bed.status})` });
+        }
+
+        let admission;
+        if (admissionId) {
+            // Mode (a): place an existing Active admission (no bed yet) into this bed.
+            admission = (await client.query(
+                'SELECT id, patient_id, status, bed_id FROM admissions WHERE id=$1 AND tenant_id=$2 FOR UPDATE',
+                [admissionId, tenantId])).rows[0];
+            if (!admission) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Admission not found' }); }
+            if (admission.status !== 'Active') {
+                await client.query('ROLLBACK'); client.release();
+                return res.status(409).json({ error: `Cannot place a ${admission.status} admission into a bed` });
+            }
+            if (admission.bed_id) {
+                await client.query('ROLLBACK'); client.release();
+                return res.status(409).json({ error: 'Admission already occupies a bed; use transfer' });
+            }
+            await client.query(
+                'UPDATE admissions SET ward_id=$1, bed_id=$2 WHERE id=$3 AND tenant_id=$4',
+                [bed.ward_id, bedId, admissionId, tenantId]);
+        } else {
+            // Mode (b): create a new admission. Verify patient ownership (IDOR guard).
+            if (!patientId) { await client.query('ROLLBACK'); client.release(); return res.status(422).json({ error: 'patient_id or admission_id is required' }); }
+            const patient = (await client.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patientId, tenantId])).rows[0];
+            if (!patient) { await client.query('ROLLBACK'); client.release(); return res.status(403).json({ error: 'Invalid patient context or access denied' }); }
+            const b = req.body;
+            admission = (await client.query(
+                `INSERT INTO admissions (patient_id, patient_name, admission_type, admitting_doctor, attending_doctor, department, ward_id, bed_id, diagnosis, icd10_code, diet_order, expected_los, status, tenant_id, facility_id)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'Active',$13,$14) RETURNING id, patient_id`,
+                [patientId, b.patient_name || '', b.admission_type || 'Regular', b.admitting_doctor || '', b.attending_doctor || '',
+                 b.department || '', bed.ward_id, bedId, b.diagnosis || '', b.icd10_code || '', b.diet_order || 'Regular',
+                 e8IntId(b.expected_los) || 3, tenantId, facilityId])).rows[0];
+        }
+
+        // Occupy the (locked) bed — server-side authority; status not trusted from client.
+        await client.query(
+            "UPDATE beds SET status='Occupied', current_patient_id=$1, current_admission_id=$2 WHERE id=$3 AND tenant_id=$4",
+            [admission.patient_id, admission.id, bedId, tenantId]);
+        // Reflect on the patient record.
+        if (admission.patient_id) {
+            await client.query("UPDATE patients SET status='Admitted' WHERE id=$1 AND tenant_id=$2", [admission.patient_id, tenantId]);
+        }
+
+        await client.query('COMMIT'); client.release();
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'ADT_ADMIT', 'Inpatient',
+            `Admitted patient #${admission.patient_id} -> admission #${admission.id} into bed #${bedId}`, req.ip);
+        res.json({ success: true, admission_id: admission.id, bed_id: bedId, bed_status: 'Occupied' });
+    } catch (e) {
+        if (began) { try { await client.query('ROLLBACK'); } catch (_) {} }
+        client.release();
+        if (e.e8Status) return res.status(e.e8Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// POST /api/adt/transfer — move an Active admission between beds/wards, atomically.
+// body { admission_id, to_bed, transfer_reason }
+// Locks BOTH beds FOR UPDATE; frees the source (-> Cleaning) and occupies the dest;
+// rejects a dest that is not free (409); records the transfer in bed_transfers.
+app.post('/api/adt/transfer', requireAuth, requireRole('inpatient', 'nursing', 'doctor'), requireTenantScope, async (req, res) => {
+    const client = await pool.connect();
+    let began = false;
+    try {
+        const { tenantId, facilityId } = e8RequireTenant(req);
+        const admissionId = e8IntId(req.body.admission_id);
+        const toBed = e8IntId(req.body.to_bed);
+        if (!admissionId || !toBed) { client.release(); return res.status(422).json({ error: 'admission_id and to_bed are required' }); }
+
+        await client.query('BEGIN'); began = true;
+
+        const admission = (await client.query(
+            'SELECT id, patient_id, status, ward_id, bed_id FROM admissions WHERE id=$1 AND tenant_id=$2 FOR UPDATE',
+            [admissionId, tenantId])).rows[0];
+        if (!admission) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Admission not found' }); }
+        if (admission.status !== 'Active') {
+            await client.query('ROLLBACK'); client.release();
+            return res.status(409).json({ error: `Cannot transfer a ${admission.status} admission` });
+        }
+        const fromBed = admission.bed_id;
+        if (fromBed && fromBed === toBed) {
+            await client.query('ROLLBACK'); client.release();
+            return res.status(409).json({ error: 'Source and destination beds are the same' });
+        }
+
+        // C2 fix — deadlock avoidance: lock BOTH beds in a CONSISTENT ascending-id order,
+        // regardless of which is source vs destination. Two reverse-direction concurrent
+        // transfers (A->B and B->A) previously deadlocked because each locked its own
+        // destination first. Acquiring row locks in a global order (ascending id) guarantees
+        // no AB/BA cycle. We collect the locked rows into a map, then resolve src/dest below.
+        const lockIds = [toBed, fromBed].filter(Boolean).sort((a, b) => a - b);
+        const locked = {};
+        for (const lid of lockIds) {
+            const row = (await client.query(
+                'SELECT id, ward_id, status FROM beds WHERE id=$1 AND tenant_id=$2 FOR UPDATE',
+                [lid, tenantId])).rows[0];
+            if (row) locked[lid] = row;
+        }
+
+        const dest = locked[toBed] || null;
+        if (!dest) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Destination bed not found' }); }
+        if (!E8_BED_FREE_STATES.includes(dest.status)) {
+            await client.query('ROLLBACK'); client.release();
+            return res.status(409).json({ error: `Destination bed not available (status ${dest.status})` });
+        }
+
+        const src = fromBed ? (locked[fromBed] || null) : null;
+
+        // Free the source bed -> Cleaning (housekeeping), then occupy the destination.
+        if (src) {
+            await client.query(
+                "UPDATE beds SET status='Cleaning', current_patient_id=0, current_admission_id=0 WHERE id=$1 AND tenant_id=$2",
+                [fromBed, tenantId]);
+        }
+        await client.query(
+            "UPDATE beds SET status='Occupied', current_patient_id=$1, current_admission_id=$2 WHERE id=$3 AND tenant_id=$4",
+            [admission.patient_id, admissionId, toBed, tenantId]);
+        await client.query(
+            'UPDATE admissions SET ward_id=$1, bed_id=$2 WHERE id=$3 AND tenant_id=$4',
+            [dest.ward_id, toBed, admissionId, tenantId]);
+        // History (bed_transfers uses branch_id = facilityId, per legacy schema).
+        await client.query(
+            `INSERT INTO bed_transfers (admission_id, patient_id, from_ward, from_bed, to_ward, to_bed, transfer_reason, transferred_by, transfer_date, tenant_id, branch_id)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+            [admissionId, admission.patient_id, admission.ward_id, fromBed, dest.ward_id, toBed,
+             req.body.transfer_reason || '', req.session.user?.display_name || '', new Date().toISOString(), tenantId, facilityId]);
+
+        await client.query('COMMIT'); client.release();
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'ADT_TRANSFER', 'Inpatient',
+            `Transferred admission #${admissionId} (patient #${admission.patient_id}) from bed #${fromBed || '-'} to bed #${toBed}`, req.ip);
+        res.json({ success: true, admission_id: admissionId, from_bed: fromBed, to_bed: toBed });
+    } catch (e) {
+        if (began) { try { await client.query('ROLLBACK'); } catch (_) {} }
+        client.release();
+        if (e.e8Status) return res.status(e.e8Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// POST /api/adt/discharge — end an Active admission, free its bed (-> Cleaning), record disposition.
+// body { admission_id, discharge_type, discharge_summary, discharge_instructions,
+//        discharge_medications, followup_date, followup_doctor }
+app.post('/api/adt/discharge', requireAuth, requireRole('inpatient', 'nursing', 'doctor'), requireTenantScope, async (req, res) => {
+    const client = await pool.connect();
+    let began = false;
+    try {
+        const { tenantId } = e8RequireTenant(req);
+        const admissionId = e8IntId(req.body.admission_id);
+        if (!admissionId) { client.release(); return res.status(422).json({ error: 'admission_id is required' }); }
+
+        await client.query('BEGIN'); began = true;
+
+        const adm = (await client.query(
+            'SELECT id, patient_id, bed_id, status FROM admissions WHERE id=$1 AND tenant_id=$2 FOR UPDATE',
+            [admissionId, tenantId])).rows[0];
+        if (!adm) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Admission not found' }); }
+        if (E8_ADMISSION_TERMINAL.includes(adm.status)) {
+            await client.query('ROLLBACK'); client.release();
+            return res.status(409).json({ error: `Admission already ${adm.status}` });
+        }
+
+        const b = req.body;
+        await client.query(
+            `UPDATE admissions SET status='Discharged', discharge_date=$1, discharge_type=$2, discharge_summary=$3,
+                    discharge_instructions=$4, discharge_medications=$5, followup_date=$6, followup_doctor=$7
+             WHERE id=$8 AND tenant_id=$9`,
+            [new Date().toISOString(), b.discharge_type || 'Regular', b.discharge_summary || '',
+             b.discharge_instructions || '', b.discharge_medications || '', b.followup_date || null,
+             b.followup_doctor || '', admissionId, tenantId]);
+
+        // Free the bed -> Cleaning (housekeeping turnover) per the bed lifecycle.
+        if (adm.bed_id) {
+            const bed = (await client.query(
+                'SELECT id, status FROM beds WHERE id=$1 AND tenant_id=$2 FOR UPDATE',
+                [adm.bed_id, tenantId])).rows[0];
+            if (bed) {
+                await client.query(
+                    "UPDATE beds SET status='Cleaning', current_patient_id=0, current_admission_id=0 WHERE id=$1 AND tenant_id=$2",
+                    [adm.bed_id, tenantId]);
+            }
+        }
+        if (adm.patient_id) {
+            await client.query("UPDATE patients SET status='Discharged' WHERE id=$1 AND tenant_id=$2", [adm.patient_id, tenantId]);
+        }
+
+        await client.query('COMMIT'); client.release();
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'ADT_DISCHARGE', 'Inpatient',
+            `Discharged admission #${admissionId} (patient #${adm.patient_id}); freed bed #${adm.bed_id || '-'} -> Cleaning`, req.ip);
+        res.json({ success: true, admission_id: admissionId, bed_id: adm.bed_id || null, bed_status: adm.bed_id ? 'Cleaning' : null });
+    } catch (e) {
+        if (began) { try { await client.query('ROLLBACK'); } catch (_) {} }
+        client.release();
+        if (e.e8Status) return res.status(e.e8Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// POST /api/adt/bed-status — explicit bed-status transition (housekeeping / blocking / reserve).
+// body { bed_id, status }. Validated server-side against E8_BED_TRANSITIONS; an Occupied bed
+// cannot be flipped to Available via this route (must go through discharge/transfer).
+app.post('/api/adt/bed-status', requireAuth, requireRole('inpatient', 'nursing', 'doctor'), requireTenantScope, async (req, res) => {
+    const client = await pool.connect();
+    let began = false;
+    try {
+        const { tenantId } = e8RequireTenant(req);
+        const bedId = e8IntId(req.body.bed_id);
+        const status = req.body.status;
+        if (!bedId) { client.release(); return res.status(422).json({ error: 'bed_id is required' }); }
+        if (!E8_BED_STATUSES.includes(status)) { client.release(); return res.status(422).json({ error: 'Invalid bed status', allowed: E8_BED_STATUSES }); }
+
+        await client.query('BEGIN'); began = true;
+        const bed = (await client.query(
+            'SELECT id, status, current_admission_id FROM beds WHERE id=$1 AND tenant_id=$2 FOR UPDATE',
+            [bedId, tenantId])).rows[0];
+        if (!bed) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Bed not found' }); }
+        // An Occupied bed can only be freed by discharge/transfer, never by a raw status flip.
+        if (bed.status === 'Occupied') {
+            await client.query('ROLLBACK'); client.release();
+            return res.status(409).json({ error: 'Occupied bed must be freed via discharge or transfer' });
+        }
+        if (!e8CanTransitionBed(bed.status, status)) {
+            await client.query('ROLLBACK'); client.release();
+            return res.status(409).json({ error: `Invalid bed transition ${bed.status} -> ${status}` });
+        }
+        await client.query('UPDATE beds SET status=$1 WHERE id=$2 AND tenant_id=$3', [status, bedId, tenantId]);
+        await client.query('COMMIT'); client.release();
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'ADT_BED_STATUS', 'Inpatient',
+            `Bed #${bedId} status ${bed.status} -> ${status}`, req.ip);
+        res.json({ success: true, bed_id: bedId, status });
+    } catch (e) {
+        if (began) { try { await client.query('ROLLBACK'); } catch (_) {} }
+        client.release();
+        if (e.e8Status) return res.status(e.e8Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 // ===== ICU =====
