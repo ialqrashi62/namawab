@@ -8944,9 +8944,16 @@ async function renderInfectionControl(el) {
         <div class="form-group"><label>${tr('Ward', 'الجناح')}</label><input class="form-input" id="icWard"></div>
         <div class="form-group"><label>${tr('Isolation Type', 'نوع العزل')}</label>
           <select class="form-input" id="icIsolation"><option value="none">${tr('None', 'بدون')}</option><option value="contact">${tr('Contact', 'تلامسي')}</option><option value="droplet">${tr('Droplet', 'رذاذي')}</option><option value="airborne">${tr('Airborne', 'هوائي')}</option><option value="protective">${tr('Protective', 'وقائي')}</option></select></div>
+        <div class="form-group"><label>${tr('Organism', 'الكائن الدقيق')}</label><input class="form-input" id="icOrganism" placeholder="e.g. MRSA, E.coli"></div>
+        <div class="form-group"><label>${tr('HAI Category', 'فئة العدوى المرتبطة بالرعاية')}</label>
+          <select class="form-input" id="icHAI">
+            <option value="">${tr('None', 'لا يوجد')}</option>
+            <option value="CLABSI">CLABSI</option><option value="CAUTI">CAUTI</option>
+            <option value="SSI">SSI</option><option value="VAP">VAP</option><option value="CDIFF">C.diff</option>
+          </select></div>
         <div class="form-group"><label>${tr('Culture Results', 'نتائج الزراعة')}</label><textarea class="form-input" id="icCulture" rows="2"></textarea></div>
         <div class="form-group"><label>${tr('Action Taken', 'الإجراء المتخذ')}</label><textarea class="form-input" id="icAction" rows="2"></textarea></div>
-        <button class="btn btn-primary w-full" onclick="saveIcReport()">🦠 ${tr('Submit Report', 'تقديم البلاغ')}</button>
+        <button class="btn btn-primary w-full" onclick="window.reportInfection()">🦠 ${tr('Submit Report', 'تقديم البلاغ')}</button>
       </div>
       <div class="card" style="padding:20px">
         <div style="display:flex;justify-content:space-between;margin-bottom:12px">
@@ -8964,7 +8971,7 @@ async function renderInfectionControl(el) {
       reports.map(r => ({ cells: [r.patient_name, r.infection_type, r.ward || '', r.isolation_type || '', statusBadge(r.status), r.created_at ? new Date(r.created_at).toLocaleDateString('ar-SA') : '', r.status === 'active' ? rawHtml('<button class="btn btn-sm" onclick="resolveIc(' + parseInt(r.id, 10) + ')">✅</button>') : '✅'], id: r.id }))
     );
   }
-  window.saveIcReport = async () => { try { await API.post('/api/infection-control/reports', { patient_name: document.getElementById('icPatient').value, infection_type: document.getElementById('icType').value, ward: document.getElementById('icWard').value, isolation_type: document.getElementById('icIsolation').value, culture_results: document.getElementById('icCulture').value, action_taken: document.getElementById('icAction').value }); showToast(tr('Report submitted!', 'تم تقديم البلاغ!')); navigateTo(currentPage); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); } };
+  // saveIcReport removed (C1 fix): "Submit Report" now calls window.reportInfection() → hardened /api/infection/surveillance route.
   window.resolveIc = async (id) => { try { await API.put('/api/infection-control/reports/' + id, { status: 'resolved' }); showToast('✅'); navigateTo(currentPage); } catch (e) { } };
 
 }

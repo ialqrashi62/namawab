@@ -4247,54 +4247,74 @@ app.post('/api/infection/surveillance', requireAuth, requireRole('infection'), r
         res.json(r.rows[0]);
     } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
 });
-app.get('/api/infection/outbreaks', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM infection_outbreaks ORDER BY id DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-app.post('/api/infection/outbreaks', requireAuth, async (req, res) => {
+// C2 FIX: outbreaks/exposures/hand-hygiene hardened — requireRole('infection') + requireTenantScope + fail-closed e17RequireTenant + tenant_id in every query + reported_by from session (L1).
+app.get('/api/infection/outbreaks', requireAuth, requireRole('infection'), requireTenantScope, async (req, res) => {
     try {
-        const { outbreak_name, organism, affected_ward, investigation_notes, control_measures, reported_by } = req.body;
-        const r = await pool.query('INSERT INTO infection_outbreaks (outbreak_name,organism,start_date,affected_ward,investigation_notes,control_measures,reported_by) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
-            [outbreak_name, organism, new Date().toISOString().split('T')[0], affected_ward, investigation_notes, control_measures, reported_by]);
+        const tenantId = e17RequireTenant(req);
+        res.json((await pool.query('SELECT * FROM infection_outbreaks WHERE tenant_id=$1 ORDER BY id DESC', [tenantId])).rows);
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
+});
+app.post('/api/infection/outbreaks', requireAuth, requireRole('infection'), requireTenantScope, async (req, res) => {
+    try {
+        const tenantId = e17RequireTenant(req);
+        // L1 FIX: reported_by stamped from session, not trusted from request body.
+        const reportedBy = req.session.user?.display_name || req.session.user?.name || '';
+        const { outbreak_name, organism, affected_ward, investigation_notes, control_measures } = req.body;
+        const r = await pool.query('INSERT INTO infection_outbreaks (outbreak_name,organism,start_date,affected_ward,investigation_notes,control_measures,reported_by,tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
+            [outbreak_name || '', organism || '', new Date().toISOString().split('T')[0], affected_ward || '', investigation_notes || '', control_measures || '', reportedBy, tenantId]);
         res.json(r.rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
 });
-app.put('/api/infection/outbreaks/:id', requireAuth, async (req, res) => {
+app.put('/api/infection/outbreaks/:id', requireAuth, requireRole('infection'), requireTenantScope, async (req, res) => {
     try {
+        const tenantId = e17RequireTenant(req);
         const { status, total_cases, control_measures } = req.body;
         const sets = []; const vals = []; let i = 1;
         if (status) { sets.push(`status=$${i++}`); vals.push(status); if (status === 'Resolved') { sets.push(`end_date=$${i++}`); vals.push(new Date().toISOString().split('T')[0]); } }
         if (total_cases !== undefined) { sets.push(`total_cases=$${i++}`); vals.push(total_cases); }
         if (control_measures) { sets.push(`control_measures=$${i++}`); vals.push(control_measures); }
-        vals.push(req.params.id);
-        await pool.query(`UPDATE infection_outbreaks SET ${sets.join(',')} WHERE id=$${i}`, vals);
+        if (!sets.length) return res.json({ success: true });
+        vals.push(req.params.id); vals.push(tenantId);
+        await pool.query(`UPDATE infection_outbreaks SET ${sets.join(',')} WHERE id=$${i++} AND tenant_id=$${i}`, vals);
         res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
 });
-app.post('/api/infection/exposures', requireAuth, async (req, res) => {
+app.post('/api/infection/exposures', requireAuth, requireRole('infection'), requireTenantScope, async (req, res) => {
     try {
-        const { employee_id, employee_name, exposure_type, source_patient, body_fluid, ppe_worn, action_taken, followup_date, reported_by } = req.body;
-        const r = await pool.query('INSERT INTO employee_exposures (employee_id,employee_name,exposure_type,exposure_date,source_patient,body_fluid,ppe_worn,action_taken,followup_date,reported_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
-            [employee_id, employee_name, exposure_type, new Date().toISOString().split('T')[0], source_patient, body_fluid, ppe_worn, action_taken, followup_date, reported_by]);
+        const tenantId = e17RequireTenant(req);
+        // L1 FIX: reported_by stamped from session, not trusted from request body.
+        const reportedBy = req.session.user?.display_name || req.session.user?.name || '';
+        const { employee_id, employee_name, exposure_type, source_patient, body_fluid, ppe_worn, action_taken, followup_date } = req.body;
+        const r = await pool.query('INSERT INTO employee_exposures (employee_id,employee_name,exposure_type,exposure_date,source_patient,body_fluid,ppe_worn,action_taken,followup_date,reported_by,tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
+            [employee_id || '', employee_name || '', exposure_type || '', new Date().toISOString().split('T')[0], source_patient || '', body_fluid || '', ppe_worn || '', action_taken || '', followup_date || null, reportedBy, tenantId]);
         res.json(r.rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
 });
-app.get('/api/infection/exposures', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM employee_exposures ORDER BY id DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-app.post('/api/infection/hand-hygiene', requireAuth, async (req, res) => {
+app.get('/api/infection/exposures', requireAuth, requireRole('infection'), requireTenantScope, async (req, res) => {
     try {
-        const { auditor, department, moments_observed, moments_compliant, notes } = req.body;
-        const rate = moments_observed > 0 ? parseFloat((moments_compliant / moments_observed * 100).toFixed(1)) : 0;
-        const r = await pool.query('INSERT INTO hand_hygiene_audits (audit_date,auditor,department,moments_observed,moments_compliant,compliance_rate,notes) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
-            [new Date().toISOString().split('T')[0], auditor, department, moments_observed, moments_compliant, rate, notes]);
-        res.json(r.rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+        const tenantId = e17RequireTenant(req);
+        res.json((await pool.query('SELECT * FROM employee_exposures WHERE tenant_id=$1 ORDER BY id DESC', [tenantId])).rows);
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
 });
-app.get('/api/infection/hand-hygiene', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM hand_hygiene_audits ORDER BY id DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.post('/api/infection/hand-hygiene', requireAuth, requireRole('infection'), requireTenantScope, async (req, res) => {
+    try {
+        const tenantId = e17RequireTenant(req);
+        // auditor stamped from session (L1 fix for consistency).
+        const auditor = req.session.user?.display_name || req.session.user?.name || req.body.auditor || '';
+        const { department, moments_observed, moments_compliant, notes } = req.body;
+        const obs = parseInt(moments_observed, 10) || 0;
+        const comp = parseInt(moments_compliant, 10) || 0;
+        const rate = obs > 0 ? parseFloat((comp / obs * 100).toFixed(1)) : 0;
+        const r = await pool.query('INSERT INTO hand_hygiene_audits (audit_date,auditor,department,moments_observed,moments_compliant,compliance_rate,notes,tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
+            [new Date().toISOString().split('T')[0], auditor, department || '', obs, comp, rate, notes || '', tenantId]);
+        res.json(r.rows[0]);
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
+});
+app.get('/api/infection/hand-hygiene', requireAuth, requireRole('infection'), requireTenantScope, async (req, res) => {
+    try {
+        const tenantId = e17RequireTenant(req);
+        res.json((await pool.query('SELECT * FROM hand_hygiene_audits WHERE tenant_id=$1 ORDER BY id DESC', [tenantId])).rows);
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
 });
 app.get('/api/infection/stats', requireAuth, requireRole('infection'), requireTenantScope, async (req, res) => {
     try {
@@ -4459,6 +4479,8 @@ app.put('/api/quality/incidents/:id', requireAuth, requireRole('quality'), requi
         // Load current row (tenant-scoped) to enforce the state machine server-side.
         const cur = (await pool.query('SELECT * FROM quality_incidents WHERE id=$1 AND tenant_id=$2', [id, tenantId])).rows[0];
         if (!cur) return res.status(404).json({ error: 'Not found or unauthorized' });
+        // SECURITY-HOOK FIX: confidential incident gate — non-privileged roles cannot mutate confidential incidents.
+        if (cur.confidential && !e17CanSeeConfidential(req)) return res.status(404).json({ error: 'Not found or unauthorized' });
 
         const { status, assigned_to, root_cause, corrective_action, preventive_action } = req.body;
         const sets = []; const vals = []; let i = 1;
@@ -4492,9 +4514,15 @@ app.post('/api/quality/satisfaction', requireAuth, requireRole('quality'), requi
     try {
         const tenantId = e17RequireTenant(req);
         const { patient_id, patient_name, department, overall_rating, cleanliness, staff_courtesy, wait_time, communication, pain_management, food_quality, comments, would_recommend } = req.body;
+        const pid = parseInt(patient_id, 10);
+        // I2 FIX: IDOR guard — non-null patient_id must belong to this tenant; anonymous surveys (null/0) are allowed.
+        if (pid && pid > 0) {
+            const chk = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [pid, tenantId])).rows[0];
+            if (!chk) return res.status(403).json({ error: 'Invalid patient context or access denied' });
+        }
         const r = await pool.query(
             'INSERT INTO quality_patient_satisfaction (patient_id,patient_name,department,survey_date,overall_rating,cleanliness,staff_courtesy,wait_time,communication,pain_management,food_quality,comments,would_recommend,tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *',
-            [parseInt(patient_id, 10) || 0, patient_name || '', department || '', new Date().toISOString().split('T')[0], overall_rating, cleanliness, staff_courtesy, wait_time, communication, pain_management, food_quality, comments, would_recommend ? 1 : 0, tenantId]);
+            [pid > 0 ? pid : 0, patient_name || '', department || '', new Date().toISOString().split('T')[0], overall_rating, cleanliness, staff_courtesy, wait_time, communication, pain_management, food_quality, comments, would_recommend ? 1 : 0, tenantId]);
         res.json(r.rows[0]);
     } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
 });
@@ -4538,9 +4566,10 @@ app.get('/api/quality/incidents/:id/capa', requireAuth, requireRole('quality'), 
         const tenantId = e17RequireTenant(req);
         const incidentId = parseInt(req.params.id, 10);
         if (!Number.isInteger(incidentId) || incidentId <= 0) return res.status(404).json({ error: 'Not found' });
-        // Confirm incident ownership before exposing CAPA.
-        const inc = (await pool.query('SELECT id FROM quality_incidents WHERE id=$1 AND tenant_id=$2', [incidentId, tenantId])).rows[0];
+        // SECURITY-HOOK FIX: load incident with confidential flag; gate non-privileged roles.
+        const inc = (await pool.query('SELECT id, confidential FROM quality_incidents WHERE id=$1 AND tenant_id=$2', [incidentId, tenantId])).rows[0];
         if (!inc) return res.status(404).json({ error: 'Not found or unauthorized' });
+        if (inc.confidential && !e17CanSeeConfidential(req)) return res.status(404).json({ error: 'Not found or unauthorized' });
         res.json((await pool.query('SELECT * FROM quality_capa WHERE incident_id=$1 AND tenant_id=$2 ORDER BY id DESC', [incidentId, tenantId])).rows);
     } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
 });
@@ -4550,9 +4579,10 @@ app.post('/api/quality/incidents/:id/capa', requireAuth, requireRole('quality'),
         const { facilityId } = getRequestTenantContext(req);
         const incidentId = parseInt(req.params.id, 10);
         if (!Number.isInteger(incidentId) || incidentId <= 0) return res.status(404).json({ error: 'Not found' });
-        // IDOR guard: incident must belong to caller's tenant.
-        const inc = (await pool.query('SELECT id FROM quality_incidents WHERE id=$1 AND tenant_id=$2', [incidentId, tenantId])).rows[0];
+        // SECURITY-HOOK FIX: load incident with confidential flag; gate non-privileged roles from writing CAPA to confidential incidents.
+        const inc = (await pool.query('SELECT id, confidential FROM quality_incidents WHERE id=$1 AND tenant_id=$2', [incidentId, tenantId])).rows[0];
         if (!inc) return res.status(404).json({ error: 'Not found or unauthorized' });
+        if (inc.confidential && !e17CanSeeConfidential(req)) return res.status(404).json({ error: 'Not found or unauthorized' });
 
         const { capa_type, title, description, root_cause, owner_user_id, owner_name, due_date } = req.body;
         const ctype = E17_CAPA_TYPES.includes(capa_type) ? capa_type : 'Corrective';
@@ -4572,6 +4602,11 @@ app.put('/api/quality/capa/:id', requireAuth, requireRole('quality'), requireTen
         if (!Number.isInteger(id) || id <= 0) return res.status(404).json({ error: 'Not found' });
         const cur = (await pool.query('SELECT * FROM quality_capa WHERE id=$1 AND tenant_id=$2', [id, tenantId])).rows[0];
         if (!cur) return res.status(404).json({ error: 'Not found or unauthorized' });
+        // SECURITY-HOOK FIX: if CAPA is linked to a confidential incident, gate non-privileged roles.
+        if (cur.incident_id) {
+            const parentInc = (await pool.query('SELECT confidential FROM quality_incidents WHERE id=$1 AND tenant_id=$2', [cur.incident_id, tenantId])).rows[0];
+            if (parentInc && parentInc.confidential && !e17CanSeeConfidential(req)) return res.status(404).json({ error: 'Not found or unauthorized' });
+        }
 
         const { status, completion_notes, due_date, owner_name } = req.body;
         const sets = []; const vals = []; let i = 1;
@@ -7411,52 +7446,38 @@ app.post('/api/cme/events', requireAuth, async (req, res) => {
 });
 
 // ===== INFECTION CONTROL REPORTS =====
-app.get('/api/infection-control/reports', requireAuth, requireTenantScope, async (req, res) => {
+// C1 FIX: /api/infection-control/reports hardened — requireRole('infection') + requireTenantScope + fail-closed e17RequireTenant + tenant_id in every query.
+// The primary UI path now calls /api/infection/surveillance (window.reportInfection); this legacy route is retained read-only for resolveIc and is fully guarded.
+app.get('/api/infection-control/reports', requireAuth, requireRole('infection'), requireTenantScope, async (req, res) => {
     try {
-        const { tenantId } = getRequestTenantContext(req);
-
-        // infection_control_reports schema provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
-
-        // infection_control_reports.tenant_id provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
-
-        const q = tenantId ?
-            'SELECT * FROM infection_control_reports WHERE tenant_id=$1 ORDER BY created_at DESC' :
-            'SELECT * FROM infection_control_reports ORDER BY created_at DESC';
-        const params = tenantId ? [tenantId] : [];
-
-        res.json((await pool.query(q, params)).rows);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+        const tenantId = e17RequireTenant(req);
+        res.json((await pool.query('SELECT * FROM infection_control_reports WHERE tenant_id=$1 ORDER BY created_at DESC', [tenantId])).rows);
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
 });
-app.post('/api/infection-control/reports', requireAuth, requireTenantScope, async (req, res) => {
+app.post('/api/infection-control/reports', requireAuth, requireRole('infection'), requireTenantScope, async (req, res) => {
     try {
+        // C1 FIX: fail-closed tenant required; unscoped fallback removed.
+        const tenantId = e17RequireTenant(req);
         const { patient_name, infection_type, ward, isolation_type, culture_results, action_taken, status } = req.body;
-        const { tenantId } = getRequestTenantContext(req);
-
-        // infection_control_reports.tenant_id provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
-
+        const reportedBy = req.session.user?.display_name || req.session.user?.name || '';
         const r = await pool.query(
-            'INSERT INTO infection_control_reports (patient_name,infection_type,ward,isolation_type,culture_results,action_taken,status,tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
-            [patient_name, infection_type, ward, isolation_type, culture_results, action_taken, status || 'active', tenantId]
+            'INSERT INTO infection_control_reports (patient_name,infection_type,ward,isolation_type,culture_results,action_taken,status,reported_by,tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+            [patient_name || '', infection_type || '', ward || '', isolation_type || '', culture_results || '', action_taken || '', status || 'active', reportedBy, tenantId]
         );
         res.json(r.rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
 });
-app.put('/api/infection-control/reports/:id', requireAuth, requireTenantScope, async (req, res) => {
+app.put('/api/infection-control/reports/:id', requireAuth, requireRole('infection'), requireTenantScope, async (req, res) => {
     try {
+        // C1 FIX: fail-closed tenant required; unscoped fallback removed.
+        const tenantId = e17RequireTenant(req);
         const { status } = req.body;
-        const { tenantId } = getRequestTenantContext(req);
-
-        // infection_control_reports.tenant_id provisioned out-of-band (route_level_ddl_batch_b); no DDL in handler
-
-        const q = tenantId ?
-            'UPDATE infection_control_reports SET status=$1 WHERE id=$2 AND tenant_id=$3 RETURNING *' :
-            'UPDATE infection_control_reports SET status=$1 WHERE id=$2 RETURNING *';
-        const params = tenantId ? [status, req.params.id, tenantId] : [status, req.params.id];
-
-        const r = await pool.query(q, params);
+        const r = await pool.query(
+            'UPDATE infection_control_reports SET status=$1 WHERE id=$2 AND tenant_id=$3 RETURNING *',
+            [status, req.params.id, tenantId]);
         if (r.rows.length === 0) return res.status(404).json({ error: 'Not found or unauthorized' });
         res.json(r.rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
 });
 
 // ===== MAINTENANCE ORDERS =====

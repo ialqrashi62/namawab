@@ -29,6 +29,10 @@ const scopedQueries = [
     "FROM ams_flags WHERE tenant_id=$1",
     "FROM ams_flags WHERE id=$1 AND tenant_id=$2",
     "FROM infection_surveillance WHERE tenant_id=$1",
+    // C2 FIX: outbreaks/exposures/hand-hygiene now also scoped
+    "FROM infection_outbreaks WHERE tenant_id=$1",
+    "FROM employee_exposures WHERE tenant_id=$1",
+    "FROM hand_hygiene_audits WHERE tenant_id=$1",
     // patient ownership checks (IDOR guards)
     "FROM patients WHERE id=$1 AND tenant_id=$2"
 ];
@@ -37,6 +41,10 @@ for (const q of scopedQueries) assert(server.includes(q), 'scoped query present:
 // No unscoped legacy SELECT * remaining on the hardened quality/infection tables
 assert(!server.includes("SELECT * FROM quality_incidents ORDER BY id DESC'"), 'no unscoped quality_incidents SELECT remains');
 assert(!server.includes("SELECT * FROM infection_surveillance ORDER BY id DESC'"), 'no unscoped infection_surveillance SELECT remains');
+// C2 FIX: verify unscoped outbreaks/exposures/hand-hygiene also gone
+assert(!server.includes("SELECT * FROM infection_outbreaks ORDER BY id DESC'"), 'no unscoped infection_outbreaks SELECT remains');
+assert(!server.includes("SELECT * FROM employee_exposures ORDER BY id DESC'"), 'no unscoped employee_exposures SELECT remains');
+assert(!server.includes("SELECT * FROM hand_hygiene_audits ORDER BY id DESC'"), 'no unscoped hand_hygiene_audits SELECT remains');
 
 console.log('\n[ 2 ] Static RLS / migration audit');
 const upCapa = fs.readFileSync(path.join(__dirname, 'migrations', 'e17_001_quality_capa_up.sql'), 'utf8');
@@ -87,6 +95,38 @@ assert(listIncidents(1, false).some(r => r.id === 503) === false, 'confidential 
 assert(listIncidents(1, true).some(r => r.id === 503) === true, 'confidential incident visible to Admin/Quality Manager');
 // H) Same-tenant access works
 assert(scopedFetch('quality_incidents', 1, 501).length === 1, 'same-tenant incident access allowed');
+
+// SECURITY-HOOK: confidential incident CAPA blocked for non-privileged role
+function capaBelongsToConfidential(capaId, tid, canSeeConfidential) {
+    const capa = db.quality_capa.find(c => c.id === capaId && c.tenant_id === tid);
+    if (!capa) return false; // 404
+    const inc = db.quality_incidents.find(i => i.id === capa.incident_id && i.tenant_id === tid);
+    if (!inc) return false;
+    if (inc.confidential && !canSeeConfidential) return false; // 404 (confidential gate)
+    return true;
+}
+// Non-privileged role cannot see CAPA of confidential incident 503
+const capaOfConfidential = { id: 9003, incident_id: 503, tenant_id: 1 };
+db.quality_capa.push(capaOfConfidential);
+assert(capaBelongsToConfidential(9003, 1, false) === false, 'SECURITY-HOOK: non-privileged role cannot read CAPA of confidential incident');
+assert(capaBelongsToConfidential(9003, 1, true) === true, 'SECURITY-HOOK: privileged role can read CAPA of confidential incident');
+assert(capaBelongsToConfidential(9001, 1, false) === true, 'SECURITY-HOOK: non-privileged role can read CAPA of non-confidential incident');
+db.quality_capa.pop(); // cleanup
+
+// I2: satisfaction POST IDOR guard simulation
+function checkSatisfactionIDAR(patientId, sessionTid, dbPatients) {
+    const pid = parseInt(patientId, 10);
+    if (pid && pid > 0) {
+        const chk = dbPatients.find(p => p.id === pid && p.tenant_id === sessionTid);
+        if (!chk) return 403;
+    }
+    return 201; // would INSERT
+}
+const dbPatients = [{ id: 1, tenant_id: 1 }, { id: 2, tenant_id: 2 }];
+assert(checkSatisfactionIDAR(1, 1, dbPatients) === 201, 'I2: same-tenant patient allowed in satisfaction survey');
+assert(checkSatisfactionIDAR(2, 1, dbPatients) === 403, 'I2: cross-tenant patient_id rejected (403)');
+assert(checkSatisfactionIDAR(null, 1, dbPatients) === 201, 'I2: anonymous survey (null patient_id) allowed');
+assert(checkSatisfactionIDAR(0, 1, dbPatients) === 201, 'I2: patient_id=0 anonymous survey allowed');
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

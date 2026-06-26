@@ -34,7 +34,19 @@ const routes = [
     "app.put('/api/infection/isolation/:id',requireAuth,requireRole('infection'),requireTenantScope",
     "app.get('/api/infection/ams',requireAuth,requireRole('infection'),requireTenantScope",
     "app.post('/api/infection/ams',requireAuth,requireRole('infection'),requireTenantScope",
-    "app.put('/api/infection/ams/:id',requireAuth,requireRole('infection'),requireTenantScope"
+    "app.put('/api/infection/ams/:id',requireAuth,requireRole('infection'),requireTenantScope",
+    // C2 FIX: outbreaks/exposures/hand-hygiene now carry requireRole('infection')+requireTenantScope
+    "app.get('/api/infection/outbreaks',requireAuth,requireRole('infection'),requireTenantScope",
+    "app.post('/api/infection/outbreaks',requireAuth,requireRole('infection'),requireTenantScope",
+    "app.put('/api/infection/outbreaks/:id',requireAuth,requireRole('infection'),requireTenantScope",
+    "app.post('/api/infection/exposures',requireAuth,requireRole('infection'),requireTenantScope",
+    "app.get('/api/infection/exposures',requireAuth,requireRole('infection'),requireTenantScope",
+    "app.post('/api/infection/hand-hygiene',requireAuth,requireRole('infection'),requireTenantScope",
+    "app.get('/api/infection/hand-hygiene',requireAuth,requireRole('infection'),requireTenantScope",
+    // C1 FIX: legacy infection-control/reports route also hardened
+    "app.get('/api/infection-control/reports',requireAuth,requireRole('infection'),requireTenantScope",
+    "app.post('/api/infection-control/reports',requireAuth,requireRole('infection'),requireTenantScope",
+    "app.put('/api/infection-control/reports/:id',requireAuth,requireRole('infection'),requireTenantScope"
 ];
 for (const r of routes) assert(flat.includes(r.replace(/\s+/g, '')), 'guarded route ' + r.slice(0, 52) + '...');
 
@@ -53,6 +65,29 @@ assert(!/reported_by\s*[:=]\s*req\.body/.test(incPost) && !/const\s*{[^}]*report
 // tenant_id never read from body across the E17 block
 const e17Block = server.slice(server.indexOf('QUALITY & PATIENT SAFETY (E17 HARDENED'), server.indexOf('===== MAINTENANCE ====='));
 assert(!/tenant_id\s*[:=]\s*req\.body/.test(e17Block) && !e17Block.includes('body.tenant_id'), 'tenant_id never taken from client body in E17');
+
+// SECURITY-HOOK assertions: confidential gate applied to CAPA sub-resources
+assert(server.includes('inc.confidential && !e17CanSeeConfidential(req)'), 'confidential gate wired into CAPA sub-routes');
+// C1 assertion: saveIcReport no longer calls /api/infection-control/reports as primary UI path
+const appJs = fs.readFileSync(path.join(__dirname, 'public', 'js', 'app.js'), 'utf8');
+assert(!appJs.includes("onclick=\"saveIcReport()\""), 'C1: Submit Report button no longer calls saveIcReport()');
+assert(appJs.includes("window.reportInfection()"), 'C1: Submit Report button wired to window.reportInfection()');
+assert(appJs.includes('id="icOrganism"'), 'C1: icOrganism field present in infection-control form');
+assert(appJs.includes('id="icHAI"'), 'C1: icHAI field present in infection-control form');
+// I2 assertion: satisfaction route has patient IDOR guard
+const satPost = server.slice(server.indexOf("app.post('/api/quality/satisfaction'"), server.indexOf("app.get('/api/quality/kpis'"));
+assert(satPost.includes("FROM patients WHERE id=$1 AND tenant_id=$2"), 'I2: satisfaction POST has patient IDOR guard');
+// I1 assertion: NOT NULL present in db_postgres.js bootstrap ALTERs
+const dbJs = fs.readFileSync(path.join(__dirname, 'db_postgres.js'), 'utf8');
+assert(dbJs.includes("harm_level TEXT NOT NULL DEFAULT 'None'"), 'I1: harm_level bootstrap ALTER has NOT NULL');
+assert(dbJs.includes('near_miss INTEGER NOT NULL DEFAULT 0'), 'I1: near_miss bootstrap ALTER has NOT NULL');
+assert(dbJs.includes('confidential INTEGER NOT NULL DEFAULT 0'), 'I1: confidential bootstrap ALTER has NOT NULL');
+assert(dbJs.includes("workflow_state TEXT NOT NULL DEFAULT 'Open'"), 'I1: workflow_state bootstrap ALTER has NOT NULL');
+// C2: reported_by in outbreaks/exposures stamped from session
+const outbreakPost = server.slice(server.indexOf("app.post('/api/infection/outbreaks'"), server.indexOf("app.put('/api/infection/outbreaks/:id'"));
+assert(!outbreakPost.includes('reported_by } = req.body') && !outbreakPost.includes('reported_by} = req.body'), 'L1: outbreaks reported_by not taken from body');
+const exposurePost = server.slice(server.indexOf("app.post('/api/infection/exposures'"), server.indexOf("app.get('/api/infection/exposures'"));
+assert(!exposurePost.includes('reported_by } = req.body') && !exposurePost.includes('reported_by} = req.body'), 'L1: exposures reported_by not taken from body');
 
 console.log('\n[ 3 ] Workflow simulation — incident + CAPA state machines');
 // Mirror server transitions
