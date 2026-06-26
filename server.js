@@ -2479,12 +2479,34 @@ app.put('/api/surgeries/:id', requireAuth, requireTenantScope, async (req, res) 
             ? 'SELECT id FROM surgeries WHERE id = $1 AND tenant_id = $2'
             : 'SELECT id FROM surgeries WHERE id = $1';
         const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        const surgeryCheck = (await pool.query(checkQ, checkParams)).rows[0];
+        const surgeryCheck = (await pool.query('SELECT * FROM surgeries WHERE id=$1' + (tenantId ? ' AND tenant_id=$2' : ''), checkParams)).rows[0];
         if (!surgeryCheck) return res.status(404).json({ error: 'Surgery not found' });
 
         const { status, operating_room, scheduled_date, scheduled_time, actual_start, actual_end, post_op_notes, preop_status } = req.body;
+        // E12 HARDENING: status changes must obey the surgery state machine + WHO checklist gating.
+        // This closes the legacy bypass where the UI flipped status directly to InProgress/Completed.
+        if (status !== undefined) {
+            const current = e12NormalizeStatus(surgeryCheck.status || 'Scheduled');
+            const target = e12NormalizeStatus(status);
+            if (target !== current) {
+                if (!e12IsValidSurgeryTransition(current, target)) {
+                    return res.status(409).json({ error: `Invalid surgery status transition from "${current}" to "${target}"` });
+                }
+                if (target === 'InProgress') {
+                    const clQ = tenantId ? 'SELECT state FROM who_surgical_checklist WHERE surgery_id=$1 AND tenant_id=$2' : 'SELECT state FROM who_surgical_checklist WHERE surgery_id=$1';
+                    const cl = (await pool.query(clQ, tenantId ? [req.params.id, tenantId] : [req.params.id])).rows[0];
+                    const reachedTimeOut = cl && (E12_WHO_ORDER.indexOf(cl.state) >= E12_WHO_ORDER.indexOf('Time-Out'));
+                    if (!reachedTimeOut) return res.status(409).json({ error: 'WHO Time-Out must be completed before incision (InProgress)' });
+                }
+                if (target === 'Completed') {
+                    const clQ = tenantId ? 'SELECT state FROM who_surgical_checklist WHERE surgery_id=$1 AND tenant_id=$2' : 'SELECT state FROM who_surgical_checklist WHERE surgery_id=$1';
+                    const cl = (await pool.query(clQ, tenantId ? [req.params.id, tenantId] : [req.params.id])).rows[0];
+                    if (!cl || cl.state !== 'Completed') return res.status(409).json({ error: 'WHO Sign-Out must be completed before the surgery can be Completed' });
+                }
+            }
+        }
         const fields = []; const params = []; let idx = 1;
-        if (status !== undefined) { fields.push(`status=$${idx++}`); params.push(status); }
+        if (status !== undefined) { fields.push(`status=$${idx++}`); params.push(e12NormalizeStatus(status)); }
         if (operating_room !== undefined) { fields.push(`operating_room=$${idx++}`); params.push(operating_room); }
         if (scheduled_date !== undefined) { fields.push(`scheduled_date=$${idx++}`); params.push(scheduled_date); }
         if (scheduled_time !== undefined) { fields.push(`scheduled_time=$${idx++}`); params.push(scheduled_time); }
@@ -2831,6 +2853,508 @@ app.post('/api/operating-rooms', requireAuth, requireTenantScope, async (req, re
         logAudit(req.session.user?.id, req.session.user?.display_name || '', 'CREATE_OPERATING_ROOM', 'Surgery', `Created operating room ${room_name}`, req.ip);
         res.json((await pool.query(returnQ, returnParams)).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ============================================================================
+// ===== EPIC E12 — SURGERY / OPERATING ROOM (OR scheduling, WHO checklist, PACU, operative note + consumption)
+// ============================================================================
+// Fail-closed tenant resolver for E12: throws in production when no tenant is bound.
+// Mirrors the e7/e8/e9 requireTenant pattern (NO unscoped fallback in production).
+function e12RequireTenant(req) {
+    const { tenantId, facilityId, isProduction } = getRequestTenantContext(req);
+    if (!tenantId) {
+        if (isProduction) {
+            const err = new Error('Tenant scope required');
+            err.statusCode = 403;
+            throw err;
+        }
+    }
+    return { tenantId: tenantId || null, facilityId: facilityId || null };
+}
+
+// Integer-only id coercion (no string/padded-id coercion bypass — E6 lesson).
+function e12IntId(v) {
+    const n = Number(v);
+    return Number.isInteger(n) && n > 0 ? n : null;
+}
+
+// ---- Surgery status state machine (server-enforced; reject invalid transitions 409) ----
+// Scheduled -> InProgress -> PACU -> Completed (+ Cancelled from any non-terminal).
+const E12_SURGERY_STATUS = ['Scheduled', 'InProgress', 'PACU', 'Completed', 'Cancelled'];
+const E12_SURGERY_TRANSITIONS = {
+    'Scheduled': ['InProgress', 'Cancelled'],
+    'In Progress': ['InProgress', 'PACU', 'Cancelled'], // tolerate legacy label
+    'InProgress': ['PACU', 'Cancelled'],
+    'PACU': ['Completed', 'Cancelled'],
+    'Completed': [],
+    'Cancelled': []
+};
+function e12NormalizeStatus(s) {
+    if (s === 'In Progress') return 'InProgress';
+    return s;
+}
+function e12IsValidSurgeryTransition(fromRaw, toRaw) {
+    const from = fromRaw || 'Scheduled';
+    const to = e12NormalizeStatus(toRaw);
+    if (!E12_SURGERY_STATUS.includes(to)) return false;
+    const allowed = E12_SURGERY_TRANSITIONS[from] || E12_SURGERY_TRANSITIONS[e12NormalizeStatus(from)] || [];
+    return allowed.includes(to);
+}
+
+// ---- WHO Safe Surgery Checklist phase state machine ----
+// Not Started -> Sign-In -> Time-Out -> Sign-Out -> Completed (sequential; skipping -> 409).
+const E12_WHO_ORDER = ['Not Started', 'Sign-In', 'Time-Out', 'Sign-Out', 'Completed'];
+const E12_WHO_PHASE_TO_STATE = { 'sign-in': 'Sign-In', 'time-out': 'Time-Out', 'sign-out': 'Sign-Out' };
+function e12WhoNextState(currentState, phase) {
+    // Returns { ok, newState, error }. Enforces strict sequential ordering.
+    const target = E12_WHO_PHASE_TO_STATE[phase];
+    if (!target) return { ok: false, error: 'Unknown checklist phase' };
+    const curIdx = E12_WHO_ORDER.indexOf(currentState || 'Not Started');
+    const tgtIdx = E12_WHO_ORDER.indexOf(target);
+    if (tgtIdx !== curIdx + 1) {
+        return { ok: false, error: `Invalid checklist phase order: cannot move from "${currentState || 'Not Started'}" to "${target}"` };
+    }
+    // Completing Sign-Out advances the state to Completed.
+    const newState = (target === 'Sign-Out') ? 'Completed' : target;
+    return { ok: true, newState };
+}
+
+// Helper: verify surgery ownership (tenant-scoped). Returns row or null.
+async function e12LoadSurgery(surgeryId, tenantId) {
+    const q = tenantId
+        ? 'SELECT * FROM surgeries WHERE id=$1 AND tenant_id=$2'
+        : 'SELECT * FROM surgeries WHERE id=$1';
+    const params = tenantId ? [surgeryId, tenantId] : [surgeryId];
+    return (await pool.query(q, params)).rows[0] || null;
+}
+
+// ===== E12: OR SCHEDULING — slots + conflict detection + transactional reservation =====
+// List slots for a room/date (tenant scoped).
+app.get('/api/or/slots', requireAuth, requireRole('surgery', 'doctor', 'nursing'), requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = e12RequireTenant(req);
+        const conds = [];
+        const params = [];
+        if (tenantId) { params.push(tenantId); conds.push(`tenant_id=$${params.length}`); }
+        const roomId = e12IntId(req.query.room_id);
+        if (req.query.room_id !== undefined && roomId === null) return res.status(400).json({ error: 'Invalid room_id' });
+        if (roomId) { params.push(roomId); conds.push(`room_id=$${params.length}`); }
+        if (req.query.date) { params.push(req.query.date); conds.push(`slot_date=$${params.length}`); }
+        let q = 'SELECT * FROM or_slots';
+        if (conds.length) q += ' WHERE ' + conds.join(' AND ');
+        q += ' ORDER BY slot_date, slot_start_time';
+        res.json((await pool.query(q, params)).rows);
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
+});
+
+// Reserve a slot for a surgery: conflict detection (no double-booked room/surgeon/time -> 409),
+// transactional with SELECT ... FOR UPDATE. tenant_id stamped from session (anti mass-assignment).
+app.post('/api/or/slots/reserve', requireAuth, requireRole('surgery', 'doctor'), requireTenantScope, async (req, res) => {
+    let tenantCtx;
+    try { tenantCtx = e12RequireTenant(req); }
+    catch (e) { return res.status(e.statusCode || 500).json({ error: e.message }); }
+    const { tenantId, facilityId } = tenantCtx;
+
+    const surgeryId = e12IntId(req.body.surgery_id);
+    const roomId = e12IntId(req.body.room_id);
+    const surgeonId = e12IntId(req.body.surgeon_id);
+    const slot_date = req.body.slot_date;
+    const slot_start_time = req.body.slot_start_time;
+    const slot_end_time = req.body.slot_end_time;
+    const duration = Number.isInteger(Number(req.body.duration_minutes)) ? Number(req.body.duration_minutes) : 60;
+    if (!surgeryId || !roomId || !surgeonId || !slot_date || !slot_start_time || !slot_end_time) {
+        return res.status(400).json({ error: 'surgery_id, room_id, surgeon_id, slot_date, slot_start_time, slot_end_time required' });
+    }
+    if (String(slot_end_time) <= String(slot_start_time)) {
+        return res.status(422).json({ error: 'slot_end_time must be after slot_start_time' });
+    }
+
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        // Bind tenant on this dedicated client for RLS defense-in-depth.
+        if (tenantId) await client.query("SELECT set_config('app.tenant_id', $1, false)", [String(tenantId)]);
+
+        // Verify surgery, room & surgeon all belong to this tenant.
+        const surgeryQ = tenantId ? 'SELECT id, patient_id FROM surgeries WHERE id=$1 AND tenant_id=$2 FOR UPDATE'
+                                  : 'SELECT id, patient_id FROM surgeries WHERE id=$1 FOR UPDATE';
+        const surgery = (await client.query(surgeryQ, tenantId ? [surgeryId, tenantId] : [surgeryId])).rows[0];
+        if (!surgery) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Surgery not found' }); }
+
+        const roomQ = tenantId ? 'SELECT id FROM operating_rooms WHERE id=$1 AND tenant_id=$2'
+                               : 'SELECT id FROM operating_rooms WHERE id=$1';
+        const room = (await client.query(roomQ, tenantId ? [roomId, tenantId] : [roomId])).rows[0];
+        if (!room) { await client.query('ROLLBACK'); client.release(); return res.status(403).json({ error: 'Invalid operating room context or access denied' }); }
+
+        const surgeonQ = tenantId ? 'SELECT id FROM system_users WHERE id=$1 AND tenant_id=$2'
+                                  : 'SELECT id FROM system_users WHERE id=$1';
+        const surgeon = (await client.query(surgeonQ, tenantId ? [surgeonId, tenantId] : [surgeonId])).rows[0];
+        if (!surgeon) { await client.query('ROLLBACK'); client.release(); return res.status(403).json({ error: 'Invalid surgeon context or access denied' }); }
+
+        // Conflict detection: lock candidate conflicting rows (room OR surgeon overlap on same date),
+        // ordered by id ascending to avoid deadlocks. Overlap = start < existing_end AND end > existing_start.
+        const conflictQ = tenantId
+            ? `SELECT id, room_id, surgeon_id FROM or_slots
+               WHERE tenant_id=$1 AND slot_date=$2 AND status <> 'Cancelled'
+                 AND (room_id=$3 OR surgeon_id=$4)
+                 AND (slot_start_time < $6 AND slot_end_time > $5)
+               ORDER BY id ASC FOR UPDATE`
+            : `SELECT id, room_id, surgeon_id FROM or_slots
+               WHERE slot_date=$2 AND status <> 'Cancelled'
+                 AND (room_id=$3 OR surgeon_id=$4)
+                 AND (slot_start_time < $6 AND slot_end_time > $5)
+               ORDER BY id ASC FOR UPDATE`;
+        const conflictParams = tenantId
+            ? [tenantId, slot_date, roomId, surgeonId, slot_start_time, slot_end_time]
+            : [null, slot_date, roomId, surgeonId, slot_start_time, slot_end_time];
+        const conflicts = (await client.query(conflictQ, conflictParams)).rows;
+        if (conflicts.length > 0) {
+            await client.query('ROLLBACK'); client.release();
+            const roomClash = conflicts.some(c => c.room_id === roomId);
+            const surgeonClash = conflicts.some(c => c.surgeon_id === surgeonId);
+            return res.status(409).json({
+                error: 'Slot conflict: ' + (roomClash ? 'operating room already booked' : '') +
+                       (roomClash && surgeonClash ? ' and ' : '') +
+                       (surgeonClash ? 'surgeon already booked' : '') + ' for this time window'
+            });
+        }
+
+        const ins = await client.query(
+            `INSERT INTO or_slots (tenant_id, facility_id, surgery_id, room_id, surgeon_id, slot_date, slot_start_time, slot_end_time, duration_minutes, status, created_at)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'Booked',CURRENT_TIMESTAMP) RETURNING id`,
+            [tenantId, facilityId, surgeryId, roomId, surgeonId, slot_date, slot_start_time, slot_end_time, duration]);
+
+        // Reflect schedule on the surgery row (tenant scoped).
+        const updQ = tenantId
+            ? 'UPDATE surgeries SET scheduled_date=$1, scheduled_time=$2, surgeon_id=$3 WHERE id=$4 AND tenant_id=$5'
+            : 'UPDATE surgeries SET scheduled_date=$1, scheduled_time=$2, surgeon_id=$3 WHERE id=$4';
+        await client.query(updQ, tenantId ? [slot_date, slot_start_time, surgeonId, surgeryId, tenantId] : [slot_date, slot_start_time, surgeonId, surgeryId]);
+
+        await client.query('COMMIT');
+        client.release();
+        logAudit(req.session.user?.id, req.session.user?.display_name || '', 'RESERVE_OR_SLOT', 'Surgery', `Reserved OR slot ${ins.rows[0].id} room ${roomId} surgeon ${surgeonId} for surgery ${surgeryId}`, req.ip);
+        res.json({ success: true, id: ins.rows[0].id });
+    } catch (e) {
+        try { await client.query('ROLLBACK'); } catch (_) {}
+        client.release();
+        console.error('OR reserve error:', e.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Cancel a slot (frees the room/surgeon window). Tenant scoped.
+app.put('/api/or/slots/:id/cancel', requireAuth, requireRole('surgery', 'doctor'), requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = e12RequireTenant(req);
+        const slotId = e12IntId(req.params.id);
+        if (!slotId) return res.status(400).json({ error: 'Invalid slot id' });
+        const q = tenantId
+            ? "UPDATE or_slots SET status='Cancelled' WHERE id=$1 AND tenant_id=$2 RETURNING id"
+            : "UPDATE or_slots SET status='Cancelled' WHERE id=$1 RETURNING id";
+        const r = await pool.query(q, tenantId ? [slotId, tenantId] : [slotId]);
+        if (!r.rows[0]) return res.status(404).json({ error: 'Slot not found' });
+        logAudit(req.session.user?.id, req.session.user?.display_name || '', 'CANCEL_OR_SLOT', 'Surgery', `Cancelled OR slot ${slotId}`, req.ip);
+        res.json({ success: true });
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
+});
+
+// ===== E12: SURGERY STATE MACHINE (replaces unguarded status flips) =====
+// Server-enforced transitions. Moving to InProgress requires WHO Time-Out completed (no incision without Time-Out).
+// Moving to PACU requires a PACU record (handled by /pacu). Completed requires sign-out.
+app.put('/api/or/surgeries/:id/status', requireAuth, requireRole('surgery', 'doctor', 'nursing'), requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = e12RequireTenant(req);
+        const surgeryId = e12IntId(req.params.id);
+        if (!surgeryId) return res.status(400).json({ error: 'Invalid surgery id' });
+        const target = e12NormalizeStatus(req.body.status);
+
+        const surgery = await e12LoadSurgery(surgeryId, tenantId);
+        if (!surgery) return res.status(404).json({ error: 'Surgery not found' });
+
+        const current = e12NormalizeStatus(surgery.status || 'Scheduled');
+        if (!e12IsValidSurgeryTransition(current, target)) {
+            return res.status(409).json({ error: `Invalid surgery status transition from "${current}" to "${target}"` });
+        }
+
+        // Phase-gating: cannot start the operation (InProgress) without WHO Time-Out completed.
+        if (target === 'InProgress') {
+            const clQ = tenantId
+                ? 'SELECT state FROM who_surgical_checklist WHERE surgery_id=$1 AND tenant_id=$2'
+                : 'SELECT state FROM who_surgical_checklist WHERE surgery_id=$1';
+            const cl = (await pool.query(clQ, tenantId ? [surgeryId, tenantId] : [surgeryId])).rows[0];
+            const reachedTimeOut = cl && (E12_WHO_ORDER.indexOf(cl.state) >= E12_WHO_ORDER.indexOf('Time-Out'));
+            if (!reachedTimeOut) {
+                return res.status(409).json({ error: 'WHO Time-Out must be completed before incision (InProgress)' });
+            }
+        }
+        // Cannot complete the surgery without WHO Sign-Out (checklist Completed).
+        if (target === 'Completed') {
+            const clQ = tenantId
+                ? 'SELECT state FROM who_surgical_checklist WHERE surgery_id=$1 AND tenant_id=$2'
+                : 'SELECT state FROM who_surgical_checklist WHERE surgery_id=$1';
+            const cl = (await pool.query(clQ, tenantId ? [surgeryId, tenantId] : [surgeryId])).rows[0];
+            if (!cl || cl.state !== 'Completed') {
+                return res.status(409).json({ error: 'WHO Sign-Out must be completed before the surgery can be Completed' });
+            }
+        }
+
+        const updQ = tenantId
+            ? 'UPDATE surgeries SET status=$1 WHERE id=$2 AND tenant_id=$3'
+            : 'UPDATE surgeries SET status=$1 WHERE id=$2';
+        await pool.query(updQ, tenantId ? [target, surgeryId, tenantId] : [target, surgeryId]);
+        logAudit(req.session.user?.id, req.session.user?.display_name || '', 'UPDATE_SURGERY_STATUS', 'Surgery', `Surgery ${surgeryId} status ${current} -> ${target}`, req.ip);
+        res.json({ success: true, status: target });
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
+});
+
+// ===== E12: WHO SAFE SURGERY CHECKLIST =====
+app.get('/api/or/surgeries/:id/who-checklist', requireAuth, requireRole('surgery', 'doctor', 'nursing'), requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = e12RequireTenant(req);
+        const surgeryId = e12IntId(req.params.id);
+        if (!surgeryId) return res.status(400).json({ error: 'Invalid surgery id' });
+        const surgery = await e12LoadSurgery(surgeryId, tenantId);
+        if (!surgery) return res.status(404).json({ error: 'Surgery not found' });
+        const q = tenantId
+            ? 'SELECT * FROM who_surgical_checklist WHERE surgery_id=$1 AND tenant_id=$2'
+            : 'SELECT * FROM who_surgical_checklist WHERE surgery_id=$1';
+        const row = (await pool.query(q, tenantId ? [surgeryId, tenantId] : [surgeryId])).rows[0];
+        res.json(row || { surgery_id: surgeryId, state: 'Not Started', sign_in_completed: 0, time_out_completed: 0, sign_out_completed: 0 });
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
+});
+
+// Advance one WHO phase. :phase in {sign-in, time-out, sign-out}. Strict ordering enforced server-side (409 on skip).
+app.post('/api/or/surgeries/:id/who-checklist/:phase', requireAuth, requireRole('surgery', 'doctor', 'nursing'), requireTenantScope, async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const { tenantId, facilityId } = e12RequireTenant(req);
+        const surgeryId = e12IntId(req.params.id);
+        const phase = String(req.params.phase || '').toLowerCase();
+        if (!surgeryId) { client.release(); return res.status(400).json({ error: 'Invalid surgery id' }); }
+        if (!E12_WHO_PHASE_TO_STATE[phase]) { client.release(); return res.status(400).json({ error: 'Unknown checklist phase' }); }
+
+        await client.query('BEGIN');
+        if (tenantId) await client.query("SELECT set_config('app.tenant_id', $1, false)", [String(tenantId)]);
+
+        const sQ = tenantId ? 'SELECT id, patient_id FROM surgeries WHERE id=$1 AND tenant_id=$2'
+                            : 'SELECT id, patient_id FROM surgeries WHERE id=$1';
+        const surgery = (await client.query(sQ, tenantId ? [surgeryId, tenantId] : [surgeryId])).rows[0];
+        if (!surgery) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Surgery not found' }); }
+
+        // Lock the checklist row (or create at Not Started).
+        const exQ = tenantId ? 'SELECT * FROM who_surgical_checklist WHERE surgery_id=$1 AND tenant_id=$2 FOR UPDATE'
+                             : 'SELECT * FROM who_surgical_checklist WHERE surgery_id=$1 FOR UPDATE';
+        let cl = (await client.query(exQ, tenantId ? [surgeryId, tenantId] : [surgeryId])).rows[0];
+        if (!cl) {
+            const insTxt = `INSERT INTO who_surgical_checklist (surgery_id, patient_id, state, tenant_id, facility_id, created_at)
+                            VALUES ($1,$2,'Not Started',$3,$4,CURRENT_TIMESTAMP) RETURNING *`;
+            cl = (await client.query(insTxt, [surgeryId, surgery.patient_id || 0, tenantId, facilityId])).rows[0];
+        }
+
+        const decision = e12WhoNextState(cl.state, phase);
+        if (!decision.ok) {
+            await client.query('ROLLBACK'); client.release();
+            return res.status(409).json({ error: decision.error });
+        }
+
+        // Authority fields (who/when) computed server-side — never trusted from client.
+        const actor = req.session.user?.display_name || req.session.user?.name || '';
+        const phaseCol = phase === 'sign-in' ? 'sign_in' : phase === 'time-out' ? 'time_out' : 'sign_out';
+        const updTxt = tenantId
+            ? `UPDATE who_surgical_checklist SET ${phaseCol}_completed=1, ${phaseCol}_completed_by=$1, ${phaseCol}_at=CURRENT_TIMESTAMP, state=$2 WHERE surgery_id=$3 AND tenant_id=$4`
+            : `UPDATE who_surgical_checklist SET ${phaseCol}_completed=1, ${phaseCol}_completed_by=$1, ${phaseCol}_at=CURRENT_TIMESTAMP, state=$2 WHERE surgery_id=$3`;
+        await client.query(updTxt, tenantId ? [actor, decision.newState, surgeryId, tenantId] : [actor, decision.newState, surgeryId]);
+
+        await client.query('COMMIT');
+        client.release();
+        logAudit(req.session.user?.id, actor, 'WHO_CHECKLIST_' + phaseCol.toUpperCase(), 'Surgery', `WHO ${phase} completed for surgery ${surgeryId}; state=${decision.newState}`, req.ip);
+        res.json({ success: true, state: decision.newState });
+    } catch (e) {
+        try { await client.query('ROLLBACK'); } catch (_) {}
+        client.release();
+        res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' });
+    }
+});
+
+// ===== E12: PACU (recovery) record =====
+app.get('/api/or/surgeries/:id/pacu', requireAuth, requireRole('surgery', 'doctor', 'nursing'), requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = e12RequireTenant(req);
+        const surgeryId = e12IntId(req.params.id);
+        if (!surgeryId) return res.status(400).json({ error: 'Invalid surgery id' });
+        const surgery = await e12LoadSurgery(surgeryId, tenantId);
+        if (!surgery) return res.status(404).json({ error: 'Surgery not found' });
+        const q = tenantId ? 'SELECT * FROM pacu_records WHERE surgery_id=$1 AND tenant_id=$2'
+                           : 'SELECT * FROM pacu_records WHERE surgery_id=$1';
+        res.json((await pool.query(q, tenantId ? [surgeryId, tenantId] : [surgeryId])).rows[0] || null);
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
+});
+
+// Create/update PACU record. Requires WHO Sign-Out completed first (cannot recover before leaving OR safely).
+app.post('/api/or/surgeries/:id/pacu', requireAuth, requireRole('surgery', 'doctor', 'nursing'), requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId, facilityId } = e12RequireTenant(req);
+        const surgeryId = e12IntId(req.params.id);
+        if (!surgeryId) return res.status(400).json({ error: 'Invalid surgery id' });
+        const surgery = await e12LoadSurgery(surgeryId, tenantId);
+        if (!surgery) return res.status(404).json({ error: 'Surgery not found' });
+
+        const clQ = tenantId ? 'SELECT state FROM who_surgical_checklist WHERE surgery_id=$1 AND tenant_id=$2'
+                             : 'SELECT state FROM who_surgical_checklist WHERE surgery_id=$1';
+        const cl = (await pool.query(clQ, tenantId ? [surgeryId, tenantId] : [surgeryId])).rows[0];
+        if (!cl || cl.state !== 'Completed') {
+            return res.status(409).json({ error: 'WHO Sign-Out must be completed before opening a PACU record' });
+        }
+
+        const b = req.body;
+        // Aldrete score is an authority field: compute & clamp server-side (0..10) from its 5 components (0..2 each).
+        const comp = ['activity', 'respiration', 'circulation', 'consciousness', 'oxygen'];
+        let aldrete = null;
+        const provided = comp.filter(c => b[c] !== undefined && b[c] !== null && b[c] !== '');
+        if (provided.length === comp.length) {
+            aldrete = comp.reduce((sum, c) => {
+                let v = parseInt(b[c], 10); if (!Number.isInteger(v)) v = 0; if (v < 0) v = 0; if (v > 2) v = 2;
+                return sum + v;
+            }, 0);
+        }
+        const dischargeStatus = b.discharge_status === 'Discharged' ? (aldrete !== null && aldrete >= 9 ? 'Discharged' : 'In Recovery') : 'In Recovery';
+
+        const exQ = tenantId ? 'SELECT id FROM pacu_records WHERE surgery_id=$1 AND tenant_id=$2'
+                             : 'SELECT id FROM pacu_records WHERE surgery_id=$1';
+        const existing = (await pool.query(exQ, tenantId ? [surgeryId, tenantId] : [surgeryId])).rows[0];
+
+        if (existing) {
+            const updQ = tenantId
+                ? `UPDATE pacu_records SET start_time=$1, end_time=$2, pain_score=$3, bp=$4, hr=$5, spo2=$6, temp=$7, aldrete_score=$8, discharge_status=$9, recovery_nurse=$10, notes=$11 WHERE surgery_id=$12 AND tenant_id=$13`
+                : `UPDATE pacu_records SET start_time=$1, end_time=$2, pain_score=$3, bp=$4, hr=$5, spo2=$6, temp=$7, aldrete_score=$8, discharge_status=$9, recovery_nurse=$10, notes=$11 WHERE surgery_id=$12`;
+            const p = [b.start_time || '', b.end_time || '', parseInt(b.pain_score, 10) || 0, b.bp || '', b.hr || '', b.spo2 || '', b.temp || '', aldrete, dischargeStatus, req.session.user?.display_name || '', b.notes || '', surgeryId];
+            if (tenantId) p.push(tenantId);
+            await pool.query(updQ, p);
+        } else {
+            await pool.query(
+                `INSERT INTO pacu_records (surgery_id, patient_id, start_time, end_time, pain_score, bp, hr, spo2, temp, aldrete_score, discharge_status, recovery_nurse, notes, tenant_id, facility_id, created_at)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,CURRENT_TIMESTAMP)`,
+                [surgeryId, surgery.patient_id || 0, b.start_time || '', b.end_time || '', parseInt(b.pain_score, 10) || 0, b.bp || '', b.hr || '', b.spo2 || '', b.temp || '', aldrete, dischargeStatus, req.session.user?.display_name || '', b.notes || '', tenantId, facilityId]);
+        }
+        logAudit(req.session.user?.id, req.session.user?.display_name || '', 'PACU_RECORD', 'Surgery', `PACU record saved for surgery ${surgeryId}; aldrete=${aldrete}`, req.ip);
+        const rq = tenantId ? 'SELECT * FROM pacu_records WHERE surgery_id=$1 AND tenant_id=$2' : 'SELECT * FROM pacu_records WHERE surgery_id=$1';
+        res.json((await pool.query(rq, tenantId ? [surgeryId, tenantId] : [surgeryId])).rows[0]);
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
+});
+
+// ===== E12: OPERATIVE NOTE + CONSUMPTION (decrement inventory if present) =====
+app.get('/api/or/surgeries/:id/operative-note', requireAuth, requireRole('surgery', 'doctor'), requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = e12RequireTenant(req);
+        const surgeryId = e12IntId(req.params.id);
+        if (!surgeryId) return res.status(400).json({ error: 'Invalid surgery id' });
+        const surgery = await e12LoadSurgery(surgeryId, tenantId);
+        if (!surgery) return res.status(404).json({ error: 'Surgery not found' });
+        const noteQ = tenantId ? 'SELECT * FROM operative_notes WHERE surgery_id=$1 AND tenant_id=$2'
+                               : 'SELECT * FROM operative_notes WHERE surgery_id=$1';
+        const note = (await pool.query(noteQ, tenantId ? [surgeryId, tenantId] : [surgeryId])).rows[0] || null;
+        const consQ = tenantId ? 'SELECT * FROM or_consumption WHERE surgery_id=$1 AND tenant_id=$2 ORDER BY id'
+                               : 'SELECT * FROM or_consumption WHERE surgery_id=$1 ORDER BY id';
+        const consumption = (await pool.query(consQ, tenantId ? [surgeryId, tenantId] : [surgeryId])).rows;
+        res.json({ note, consumption });
+    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
+});
+
+// Save operative note + record consumption lines, decrementing inventory_items.stock_qty transactionally.
+// Locks inventory rows in ascending id order (deadlock avoidance). Counts-not-verified -> 'Incomplete' (never falsely reassuring).
+app.post('/api/or/surgeries/:id/operative-note', requireAuth, requireRole('surgery', 'doctor'), requireTenantScope, async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const { tenantId, facilityId } = e12RequireTenant(req);
+        const surgeryId = e12IntId(req.params.id);
+        if (!surgeryId) { client.release(); return res.status(400).json({ error: 'Invalid surgery id' }); }
+
+        await client.query('BEGIN');
+        if (tenantId) await client.query("SELECT set_config('app.tenant_id', $1, false)", [String(tenantId)]);
+
+        const sQ = tenantId ? 'SELECT id, patient_id FROM surgeries WHERE id=$1 AND tenant_id=$2'
+                            : 'SELECT id, patient_id FROM surgeries WHERE id=$1';
+        const surgery = (await client.query(sQ, tenantId ? [surgeryId, tenantId] : [surgeryId])).rows[0];
+        if (!surgery) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: 'Surgery not found' }); }
+
+        const b = req.body;
+        // Counts verification is an authority field: only TRUE if explicitly confirmed; otherwise 'Incomplete'.
+        const countsVerified = (b.counts_verified === true || b.counts_verified === 1 || b.counts_verified === '1') ? 'Verified' : 'Incomplete';
+        const surgeon = req.session.user?.display_name || req.session.user?.name || '';
+
+        // Validate + lock consumption items (ascending id order) before any stock flip.
+        const rawLines = Array.isArray(b.consumption) ? b.consumption : [];
+        const lines = [];
+        for (const l of rawLines) {
+            const itemId = e12IntId(l.item_id);
+            let qty = parseInt(l.qty_used, 10);
+            if (itemId === null || !Number.isInteger(qty) || qty <= 0) {
+                await client.query('ROLLBACK'); client.release();
+                return res.status(422).json({ error: 'Each consumption line requires a valid integer item_id and qty_used > 0' });
+            }
+            lines.push({ itemId, qty });
+        }
+        // Detect whether the inventory table exists/has tenant scoping; decrement only if present.
+        let inventoryPresent = false;
+        try {
+            const chk = await client.query("SELECT to_regclass('public.inventory_items') AS t");
+            inventoryPresent = !!(chk.rows[0] && chk.rows[0].t);
+        } catch (_) { inventoryPresent = false; }
+
+        lines.sort((a, b2) => a.itemId - b2.itemId); // ascending id order — deadlock-safe locking
+        if (inventoryPresent) {
+            for (const ln of lines) {
+                const lockQ = tenantId
+                    ? 'SELECT id, stock_qty FROM inventory_items WHERE id=$1 AND tenant_id=$2 FOR UPDATE'
+                    : 'SELECT id, stock_qty FROM inventory_items WHERE id=$1 FOR UPDATE';
+                const item = (await client.query(lockQ, tenantId ? [ln.itemId, tenantId] : [ln.itemId])).rows[0];
+                if (!item) { await client.query('ROLLBACK'); client.release(); return res.status(404).json({ error: `Inventory item ${ln.itemId} not found in tenant scope` }); }
+                if ((item.stock_qty || 0) < ln.qty) { await client.query('ROLLBACK'); client.release(); return res.status(409).json({ error: `Insufficient stock for item ${ln.itemId} (have ${item.stock_qty || 0}, need ${ln.qty})` }); }
+            }
+            for (const ln of lines) {
+                const decQ = tenantId
+                    ? 'UPDATE inventory_items SET stock_qty = stock_qty - $1 WHERE id=$2 AND tenant_id=$3'
+                    : 'UPDATE inventory_items SET stock_qty = stock_qty - $1 WHERE id=$2';
+                await client.query(decQ, tenantId ? [ln.qty, ln.itemId, tenantId] : [ln.qty, ln.itemId]);
+            }
+        }
+        // Persist consumption lines (idempotent replace for this surgery).
+        const delQ = tenantId ? 'DELETE FROM or_consumption WHERE surgery_id=$1 AND tenant_id=$2' : 'DELETE FROM or_consumption WHERE surgery_id=$1';
+        await client.query(delQ, tenantId ? [surgeryId, tenantId] : [surgeryId]);
+        for (const ln of lines) {
+            await client.query(
+                `INSERT INTO or_consumption (surgery_id, item_id, qty_used, tenant_id, facility_id, created_at) VALUES ($1,$2,$3,$4,$5,CURRENT_TIMESTAMP)`,
+                [surgeryId, ln.itemId, ln.qty, tenantId, facilityId]);
+        }
+
+        // Upsert operative note.
+        const exQ = tenantId ? 'SELECT id FROM operative_notes WHERE surgery_id=$1 AND tenant_id=$2' : 'SELECT id FROM operative_notes WHERE surgery_id=$1';
+        const existing = (await client.query(exQ, tenantId ? [surgeryId, tenantId] : [surgeryId])).rows[0];
+        const bloodLoss = parseInt(b.blood_loss_final, 10) || 0;
+        if (existing) {
+            const upd = tenantId
+                ? `UPDATE operative_notes SET procedure_description=$1, findings=$2, complications=$3, blood_loss_final=$4, counts_verified=$5, specimen=$6, surgeon_signature=$7 WHERE surgery_id=$8 AND tenant_id=$9`
+                : `UPDATE operative_notes SET procedure_description=$1, findings=$2, complications=$3, blood_loss_final=$4, counts_verified=$5, specimen=$6, surgeon_signature=$7 WHERE surgery_id=$8`;
+            const p = [b.procedure_description || '', b.findings || '', b.complications || '', bloodLoss, countsVerified, b.specimen || '', surgeon, surgeryId];
+            if (tenantId) p.push(tenantId);
+            await client.query(upd, p);
+        } else {
+            await client.query(
+                `INSERT INTO operative_notes (surgery_id, patient_id, procedure_description, findings, complications, blood_loss_final, counts_verified, specimen, surgeon_signature, tenant_id, facility_id, created_at)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,CURRENT_TIMESTAMP)`,
+                [surgeryId, surgery.patient_id || 0, b.procedure_description || '', b.findings || '', b.complications || '', bloodLoss, countsVerified, b.specimen || '', surgeon, tenantId, facilityId]);
+        }
+
+        await client.query('COMMIT');
+        client.release();
+        logAudit(req.session.user?.id, surgeon, 'OPERATIVE_NOTE_SIGNED', 'Surgery', `Operative note saved for surgery ${surgeryId}; counts=${countsVerified}; lines=${lines.length}; inventoryDecremented=${inventoryPresent}`, req.ip);
+        res.json({ success: true, counts_verified: countsVerified, inventory_decremented: inventoryPresent, lines: lines.length });
+    } catch (e) {
+        try { await client.query('ROLLBACK'); } catch (_) {}
+        client.release();
+        console.error('Operative note error:', e.message);
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 // ===== BLOOD BANK =====
