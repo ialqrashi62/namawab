@@ -87,6 +87,13 @@ assert(e.computePayrollSlip({ basic_salary: -100 }).ok === false, 'negative basi
 // negative client-supplied advances cannot inflate net (clamped >=0)
 const slipNeg = e.computePayrollSlip({ basic_salary: 5000, advances_deducted: -9999, is_saudi: false });
 assert(slipNeg.advances_deducted === 0, 'negative advances clamped to 0 (anti-spoof)');
+// L2: saudi_status flag — explicit when is_saudi is provided, inferred when national_id blank
+assert(slip.saudi_status === 'explicit', 'L2: saudi_status=explicit when is_saudi provided');
+const slipInferred = e.computePayrollSlip({ basic_salary: 5000 }); // no is_saudi, no national_id
+assert(slipInferred.saudi_status === 'inferred', 'L2: saudi_status=inferred when is_saudi omitted (auditor flag)');
+assert(slipInferred.is_saudi === true, 'L2: conservative default is_saudi=true when omitted (GOSI applied)');
+const slipBlankId = e.computePayrollSlip({ basic_salary: 5000, national_id: '' }); // blank national_id
+assert(slipBlankId.saudi_status === 'inferred', 'L2: saudi_status=inferred with blank national_id');
 
 // ---- payroll posting gate (default OFF) ----
 console.log('\n[7] payroll posting gate');

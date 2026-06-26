@@ -4682,16 +4682,10 @@ async function renderHR(el) {
     }, 50);
 
   } else if (window.hrTab === 'payroll') {
-    const displaySalaries = salaries.length ? salaries : employees.map(e => ({
-      id: e.id,
-      employee_name: isArabic ? e.name_ar : e.name_en,
-      basic: e.salary || 4000,
-      allowances: (e.salary || 4000) * 0.25,
-      deductions: 0,
-      net_salary: (e.salary || 4000) * 1.25,
-      status: 'Paid',
-      payment_date: new Date().toISOString().split('T')[0]
-    }));
+    // I2: removed employees.map fallback — fabricated net_salary*1.25 with hardcoded status:'Paid'
+    // is a falsely-reassuring figure. Real net pay comes only from POST /api/hr/payroll-slips.
+    // Render empty state when no payroll slips exist.
+    const displaySalaries = salaries.length ? salaries : [];
 
     htmlContent += `
       <div class="glass-card p-lg rounded-2xl border border-outline-variant/30">
@@ -4719,7 +4713,7 @@ async function renderHR(el) {
               parseFloat(s.net_salary || 0).toLocaleString() + ' ' + tr('SAR', 'ر.س'),
               statusBadge(s.status || 'Paid'),
             ],
-            id: s.id
+            id: s.employee_id || s.id  // C1: pass employee id, not salary-record PK
           })),
           r => `<button class="btn btn-sm" style="background:rgba(0,105,112,0.1);color:#006970" onclick="showPayslip(${safeId(r.id)})">📄 ${tr('Payslip', 'قسيمة الراتب')}</button>`
         );

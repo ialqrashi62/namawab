@@ -20,6 +20,8 @@ SELECT
   (SELECT count(*)::int FROM information_schema.columns WHERE table_name='hr_shifts'
        AND column_name='tenant_id' AND is_nullable='NO')                                          AS shift_tenant_nn,   -- 1
   (SELECT count(*)::int FROM pg_constraint WHERE conname='chk_hr_shift_status')                   AS shift_status_chk,  -- 1
+  (SELECT count(*)::int FROM pg_constraint WHERE conrelid='hr_shifts'::regclass
+       AND confrelid='hr_employees'::regclass AND contype='f')                                    AS shift_emp_fk,      -- 1  (L3)
   -- hr_leave_requests
   (SELECT relforcerowsecurity FROM pg_class WHERE relname='hr_leave_requests')                    AS leave_force_rls,   -- t
   (SELECT count(*) FROM pg_policies WHERE tablename='hr_leave_requests'
@@ -42,4 +44,6 @@ SELECT
   (SELECT count(*) FROM pg_policies WHERE tablename='hr_competencies'
        AND policyname='rls_hr_comp_tenant_isolation')                                             AS comp_policy,       -- 1
   (SELECT count(*)::int FROM information_schema.columns WHERE table_name='hr_competencies'
-       AND column_name='tenant_id' AND is_nullable='NO')                                          AS comp_tenant_nn;    -- 1
+       AND column_name='tenant_id' AND is_nullable='NO')                                          AS comp_tenant_nn,    -- 1
+  (SELECT count(*)::int FROM pg_constraint WHERE conrelid='hr_competencies'::regclass
+       AND confrelid='hr_employees'::regclass AND contype='f')                                    AS comp_emp_fk;       -- 1  (L3)

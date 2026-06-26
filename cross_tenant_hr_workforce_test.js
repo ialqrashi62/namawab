@@ -36,8 +36,12 @@ hrRoutes.forEach(r => {
 assert((server.match(/requireRole\('hr'\), requireTenantScope/g) || []).length >= 14, 'all E18 routes pair requireRole(hr)+requireTenantScope');
 assert(has('function e18RequireTenant(req)') && has("if (!tenantId) return { ok: false }"), 'fail-closed tenant resolver');
 
+// I1: GET /api/hr/attendance must carry requireTenantScope + explicit tenant filter
+assert(has("app.get('/api/hr/attendance', requireAuth, requireRole('hr'), requireTenantScope"), 'I1: GET /api/hr/attendance has requireTenantScope');
+assert(has('ha.tenant_id=$1'), 'I1: GET /api/hr/attendance query carries explicit ha.tenant_id=$1 filter');
+
 // explicit tenant_id in every list query (no unscoped SELECT)
-['l.tenant_id=$1', 's.tenant_id=$1', 'r.tenant_id=$1', 'c.tenant_id=$1'].forEach(f =>
+['l.tenant_id=$1', 's.tenant_id=$1', 'r.tenant_id=$1', 'c.tenant_id=$1', 'ha.tenant_id=$1'].forEach(f =>
     assert(has(f), 'explicit tenant filter: ' + f));
 // writes stamp tenant_id (the session tenant t.tenantId), never a client-supplied tenant
 assert(has('t.tenantId, t.facilityId || null') || has('t.tenantId, t.facilityId'), 'inserts stamp session tenant_id/facility_id');

@@ -1666,8 +1666,17 @@ app.get('/api/hr/leaves', requireAuth, requireRole('hr'), async (req, res) => {
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/hr/attendance', requireAuth, requireRole('hr'), async (req, res) => {
-    try { res.json((await pool.query('SELECT ha.*, he.name_en as employee_name FROM hr_attendance ha LEFT JOIN hr_employees he ON ha.employee_id=he.id ORDER BY ha.id DESC')).rows); }
+app.get('/api/hr/attendance', requireAuth, requireRole('hr'), requireTenantScope, async (req, res) => {
+    // I1: tenant-scoped read — hr_attendance rows are stamped with tenant_id on write;
+    // fail-closed if tenant cannot be resolved (mirrors all other E18 GET routes).
+    try {
+        const t = e18RequireTenant(req);
+        if (!t.ok) return res.status(403).json({ error: 'Tenant scope required' });
+        res.json((await pool.query(
+            'SELECT ha.*, he.name_en as employee_name FROM hr_attendance ha LEFT JOIN hr_employees he ON ha.employee_id=he.id WHERE ha.tenant_id=$1 ORDER BY ha.id DESC',
+            [t.tenantId]
+        )).rows);
+    }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 

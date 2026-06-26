@@ -192,7 +192,12 @@ function computePayrollSlip(input) {
 
     // Saudi nationals contribute GOSI; non-Saudi typically do not (occupational hazard only).
     // Caller passes is_saudi explicitly; default to applying GOSI (conservative for deduction).
-    const isSaudi = input.is_saudi === undefined ? true : !!input.is_saudi;
+    // L2: if is_saudi was not explicitly provided AND national_id is blank, the Saudi/GOSI
+    // determination is ambiguous — flag it so auditors know a heuristic was used.
+    const nationalIdBlank = !input.national_id || String(input.national_id).trim() === '';
+    const isSaudiExplicit = input.is_saudi !== undefined;
+    const isSaudi = isSaudiExplicit ? !!input.is_saudi : true; // conservative: assume Saudi when unknown
+    const saudiStatus = isSaudiExplicit ? 'explicit' : (nationalIdBlank ? 'inferred' : 'inferred');
     const gosiBase = basic + housing; // contributory base (annuities)
     const gosi = isSaudi ? Math.round(gosiBase * GOSI_EMPLOYEE_RATE * 100) / 100 : 0;
 
@@ -213,7 +218,8 @@ function computePayrollSlip(input) {
         total_deductions: round2(totalDeductions),
         net_salary: round2(net),
         gosi_rate: GOSI_EMPLOYEE_RATE,
-        is_saudi: isSaudi
+        is_saudi: isSaudi,
+        saudi_status: saudiStatus  // L2: 'explicit' (caller set is_saudi) | 'inferred' (heuristic used — auditor flag)
     };
 }
 function round2(n) { return Math.round((Number(n) || 0) * 100) / 100; }

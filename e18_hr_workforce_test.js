@@ -102,6 +102,14 @@ assert(app.includes("API.post('/api/hr/payroll-slips'"), 'showPayslip() POSTs to
 assert(!/const net = basic \+ housing \+ transport - deductions;/.test(app), 'client-side net-pay computation removed (anti-spoof)');
 assert(app.includes("API.get('/api/hr/leave-requests')"), 'leaves tab reads the new state-machine endpoint');
 
+// C1: payslip button must pass employee_id (not the salary-record serial PK)
+assert(app.includes('id: s.employee_id || s.id'), 'C1: payroll row id uses s.employee_id || s.id (not salary PK)');
+
+// I2: fabricated payroll fallback (employees.map with hardcoded net_salary*1.25+status Paid) must be gone
+assert(!app.includes("net_salary: (e.salary || 4000) * 1.25"), 'I2: no hardcoded net_salary*1.25 fabrication in payroll fallback');
+assert(!app.includes("const displaySalaries = salaries.length ? salaries : employees.map"), 'I2: payroll tab no longer falls back to employees.map (fabricated pay removed)');
+assert(!app.includes("net_salary: (e.salary"), 'I2: no client-computed net_salary from employee.salary in payroll fallback');
+
 // ---------- (C) mock-pool simulation ----------
 console.log('\n[C] state-machine + posting-gate simulation (mock pool + real engine)');
 
