@@ -46,6 +46,9 @@ assert(esi.computeESI({ chief_complaint: 'crushing chest pain' }).esi_level === 
 assert(esi.computeESI({ chief_complaint: 'possible stroke, facial droop' }).esi_level === 2, 'stroke complaint => ESI-2');
 assert(esi.computeESI({ loc: 'confused' }).esi_level === 2, 'altered LOC (confused) => ESI-2');
 assert(esi.computeESI({ pain_score: 9 }).esi_level === 2, 'severe pain 9/10 => ESI-2');
+// Pain-score boundary: >=7 is the ESI-2 trigger; 6 is NOT.
+assert(esi.computeESI({ pain_score: 7 }).esi_level === 2, 'pain 7/10 (boundary) => ESI-2');
+assert(esi.computeESI({ vitals: { hr: 80, rr: 16, spo2: 99 }, pain_score: 6, resource_count: 0, age: 40 }).esi_level !== 2, 'pain 6/10 with 0 resources + normal vitals => NOT ESI-2');
 {
     const r = esi.computeESI({ high_risk: true });
     assert(r.decision_point === 'B' && r.high_risk === true, 'ESI-2 high-risk carries decision point B');

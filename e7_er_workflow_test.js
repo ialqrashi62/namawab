@@ -46,6 +46,51 @@ assert(clean.includes("Cannotassignproviderbeforetriage"), 'assign-provider guar
 assert(clean.includes("Cannotsetdispositionbeforetriage"), 'disposition guards "before triage" (409)');
 assert(clean.includes("require('./esi_engine')") || clean.includes('require("./esi_engine")'), 'server requires ./esi_engine');
 
+// C1-D / I1: the LEGACY PUT /api/emergency/visits/:id must NOT be a bypass for terminal dispositions
+// or acuity writes — terminal status transitions route through POST /api/er/disposition; triage
+// fields route through POST /api/er/triage.
+assert(clean.includes("TERMINAL_STATUSES=['Discharged','Admitted','Transferred','LWBS']") ||
+       clean.includes('TERMINAL_STATUSES=["Discharged","Admitted","Transferred","LWBS"]'),
+    'C1-D: legacy PUT defines terminal-status guard set');
+assert(clean.includes("TERMINAL_STATUSES.includes(status)"), 'C1-D: legacy PUT blocks terminal status transitions');
+assert(clean.includes("TerminaldispositionmustusePOST/api/er/disposition"), 'C1-D: legacy PUT 409s terminal status -> directs to /api/er/disposition');
+// I3: re-triage blocked when already in treatment.
+assert(clean.includes("Cannotre-triageapatientalreadyintreatment"), 'I3: triage route blocks re-triage of InTreatment (409)');
+// I2: unconfirmed escalation audit marker + distinct audit event.
+assert(clean.includes("unconfirmed_lifesaving_flag"), 'I2: triage persists unconfirmed_lifesaving_flag marker');
+assert(clean.includes("ER_TRIAGE_UNCONFIRMED_ESCALATION"), 'I2: triage emits ER_TRIAGE_UNCONFIRMED_ESCALATION audit event');
+{
+    // C1-D fail-closed: legacy PUT resolves tenant via e7RequireTenant and has NO unscoped fallback.
+    const putBody = serverContent.slice(serverContent.indexOf("app.put('/api/emergency/visits/:id'"));
+    // Handler text up to the next route declaration, with line comments stripped (prose ignored).
+    const putHandler = putBody.slice(0, putBody.indexOf('app.', 5)).replace(/\/\/[^\n]*/g, '');
+    assert(putHandler.includes('e7RequireTenant(req)'), 'C1-D: legacy PUT uses fail-closed e7RequireTenant');
+    assert(!/WHERE id = \$1'/.test(putHandler) && !putHandler.includes('? [req.params.id, tenantId] : [req.params.id]'),
+        'C1-D: legacy PUT has no unscoped (no-tenant) query fallback');
+    // I1: triage_level / triage_color no longer destructured/accepted in legacy PUT.
+    assert(!putHandler.includes('triage_level') && !putHandler.includes('triage_color'),
+        'I1: legacy PUT no longer accepts triage_level / triage_color');
+}
+
+// C1-A / C1-B: client discharge + transfer handlers route through /api/er/disposition and no longer
+// hit the legacy PUT.
+const appContent = fs.readFileSync(path.join(__dirname, 'public', 'js', 'app.js'), 'utf8');
+{
+    const grab = (name) => {
+        const start = appContent.indexOf('window.' + name + ' =');
+        return start < 0 ? '' : appContent.slice(start, appContent.indexOf('window.', start + 10));
+    };
+    // Strip line comments so prose mentioning a path (e.g. "do NOT call /api/admissions") doesn't
+    // false-trigger the negative assertions — we only care about actual API call expressions.
+    const code = (s) => s.replace(/\/\/[^\n]*/g, '');
+    const discharge = code(grab('confirmERDischarge'));
+    const transfer = code(grab('transferERToInpatient'));
+    assert(discharge.includes("API.post('/api/er/disposition'") && !discharge.includes("/api/emergency/visits"),
+        'C1-A: confirmERDischarge calls /api/er/disposition and NOT legacy PUT /api/emergency/visits');
+    assert(transfer.includes("API.post('/api/er/disposition'") && !transfer.includes("/api/emergency/visits") && !transfer.includes("API.post('/api/admissions'"),
+        'C1-B: transferERToInpatient calls /api/er/disposition (no legacy PUT, no standalone /api/admissions)');
+}
+
 // ===== 2. Simulation of the server state machine =====
 console.log(`\n${BOLD}[2] State-machine simulation${RESET}`);
 

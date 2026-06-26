@@ -3428,63 +3428,63 @@ app.post('/api/emergency/visits', requireAuth, requireTenantScope, async (req, r
 
 app.put('/api/emergency/visits/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        const { tenantId } = getRequestTenantContext(req);
+        // Fail-closed tenant scope (E7 hardening): null tenant => 403, never an unscoped fallback.
+        const { tenantId } = e7RequireTenant(req);
 
-        // Verify visit ownership first
-        const checkQ = tenantId
-            ? 'SELECT id, assigned_bed, patient_id FROM emergency_visits WHERE id = $1 AND tenant_id = $2'
-            : 'SELECT id, assigned_bed, patient_id FROM emergency_visits WHERE id = $1';
-        const checkParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        const visit = (await pool.query(checkQ, checkParams)).rows[0];
-        if (!visit) return res.status(404).json({ error: 'Emergency visit not found' });
-
-        const { status, disposition, assigned_doctor, assigned_bed, triage_level, triage_color,
+        const { status, disposition, assigned_doctor, assigned_bed,
             discharge_diagnosis, discharge_instructions, discharge_medications, followup_date } = req.body;
 
+        // State guard: terminal disposition transitions MUST go through POST /api/er/disposition
+        // (server-authoritative state machine + triage/provider gating + ADT handoff + bed release).
+        // The legacy route is for non-terminal field updates only.
+        const TERMINAL_STATUSES = ['Discharged', 'Admitted', 'Transferred', 'LWBS'];
+        if (status && TERMINAL_STATUSES.includes(status)) {
+            return res.status(409).json({ error: 'Terminal disposition must use POST /api/er/disposition', use: '/api/er/disposition' });
+        }
+
+        // Verify visit ownership first (always tenant-scoped).
+        const visit = (await pool.query(
+            'SELECT id, assigned_bed, patient_id FROM emergency_visits WHERE id = $1 AND tenant_id = $2',
+            [req.params.id, tenantId])).rows[0];
+        if (!visit) return res.status(404).json({ error: 'Emergency visit not found' });
+
         // If assigned_bed is changed, verify it belongs to tenant
-        if (assigned_bed && tenantId) {
+        if (assigned_bed) {
             const bedCheck = (await pool.query('SELECT id FROM emergency_beds WHERE bed_name = $1 AND tenant_id = $2', [assigned_bed, tenantId])).rows[0];
             if (!bedCheck) {
                 return res.status(403).json({ error: 'Invalid bed context or access denied' });
             }
         }
 
+        // NOTE: acuity/sort fields are intentionally NOT accepted here — they are written only via
+        // POST /api/er/triage (server-side ESI engine). Any client-sent acuity values are ignored
+        // to prevent bypassing the ESI computation.
         const sets = []; const vals = []; let i = 1;
         if (status) { sets.push(`status=$${i++}`); vals.push(status); }
         if (disposition) { sets.push(`disposition=$${i++}`); vals.push(disposition); sets.push(`disposition_time=$${i++}`); vals.push(new Date().toISOString()); }
         if (assigned_doctor) { sets.push(`assigned_doctor=$${i++}`); vals.push(assigned_doctor); }
         if (assigned_bed) { sets.push(`assigned_bed=$${i++}`); vals.push(assigned_bed); }
-        if (triage_level) { sets.push(`triage_level=$${i++}`); vals.push(triage_level); }
-        if (triage_color) { sets.push(`triage_color=$${i++}`); vals.push(triage_color); }
         if (discharge_diagnosis) { sets.push(`discharge_diagnosis=$${i++}`); vals.push(discharge_diagnosis); }
         if (discharge_instructions) { sets.push(`discharge_instructions=$${i++}`); vals.push(discharge_instructions); }
         if (discharge_medications) { sets.push(`discharge_medications=$${i++}`); vals.push(discharge_medications); }
         if (followup_date) { sets.push(`followup_date=$${i++}`); vals.push(followup_date); }
-        if (status === 'Discharged') { sets.push(`discharge_time=$${i++}`); vals.push(new Date().toISOString()); }
+
+        if (!sets.length) return res.status(422).json({ error: 'No updatable fields provided' });
 
         vals.push(req.params.id);
+        const idIdx = i++;
+        vals.push(tenantId);
+        const tIdx = i;
 
-        const updateQ = tenantId
-            ? `UPDATE emergency_visits SET ${sets.join(',')} WHERE id=$${i} AND tenant_id=$${i+1}`
-            : `UPDATE emergency_visits SET ${sets.join(',')} WHERE id=$${i}`;
-        if (tenantId) vals.push(tenantId);
-
-        await pool.query(updateQ, vals);
-
-        if (status === 'Discharged' || status === 'Admitted') {
-            const v = visit;
-            if (v?.assigned_bed) {
-                const updateBedQ = tenantId
-                    ? "UPDATE emergency_beds SET status='Available', current_patient_id=0 WHERE bed_name=$1 AND tenant_id=$2"
-                    : "UPDATE emergency_beds SET status='Available', current_patient_id=0 WHERE bed_name=$1";
-                const updateBedParams = tenantId ? [v.assigned_bed, tenantId] : [v.assigned_bed];
-                await pool.query(updateBedQ, updateBedParams);
-            }
-        }
+        await pool.query(
+            `UPDATE emergency_visits SET ${sets.join(',')} WHERE id=$${idIdx} AND tenant_id=$${tIdx}`, vals);
 
         logAudit(req.session.user?.id, req.session.user?.display_name, 'UPDATE_EMERGENCY_VISIT', 'Emergency', `Updated emergency visit #${req.params.id} (Status: ${status || 'N/A'})`, req.ip);
         res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) {
+        if (e.e7Status) return res.status(e.e7Status).json({ error: e.message });
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 app.get('/api/emergency/beds', requireAuth, requireTenantScope, async (req, res) => {
@@ -3651,6 +3651,10 @@ app.post('/api/er/triage', requireAuth, requireRole('emergency', 'nursing', 'doc
         if (visit.er_phase === 'Disposition') {
             return res.status(409).json({ error: 'Cannot triage after disposition' });
         }
+        // A patient already picked up by a provider must not be silently re-triaged to a different ESI.
+        if (visit.er_phase === 'InTreatment') {
+            return res.status(409).json({ error: 'Cannot re-triage a patient already in treatment' });
+        }
 
         // SERVER-SIDE ESI — never trust req.body.esi_level.
         const esi = esiEngine.computeESI({
@@ -3669,7 +3673,25 @@ app.post('/api/er/triage', requireAuth, requireRole('emergency', 'nursing', 'doc
             active_seizure: req.body.active_seizure
         });
 
-        const rationaleStr = JSON.stringify({ decision_point: esi.decision_point, rationale: esi.rationale, danger_zone: esi.danger_zone, fail_safe: esi.fail_safe });
+        // I2: corroboration audit. The engine TRUSTS client escalation flags (requires_lifesaving /
+        // cardiac_arrest / active_seizure) and may land ESI-1/2 on them alone. We do NOT block (a
+        // clinician may know things vitals don't show), but when such a flag is set AND every
+        // measurable vital present (spo2,sbp,hr,rr) is within normal range AND LOC is alert, we mark
+        // the result `unconfirmed_lifesaving_flag` and emit a distinct audit event for retro review.
+        const _v = req.body.vitals || {};
+        const _num = (x) => { if (x === null || x === undefined || x === '') return null; const n = Number(x); return Number.isFinite(n) ? n : null; };
+        const _loc = String((req.body.loc != null ? req.body.loc : _v.loc) || '').trim().toLowerCase();
+        const escalationFlag = req.body.requires_lifesaving === true || req.body.cardiac_arrest === true || req.body.active_seizure === true;
+        const _spo2 = _num(_v.spo2), _sbp = _num(_v.sbp != null ? _v.sbp : _v.bp_systolic), _hr = _num(_v.hr), _rr = _num(_v.rr);
+        const _present = [_spo2, _sbp, _hr, _rr].filter(x => x !== null);
+        const vitalsNormal = _present.length === 4 &&
+            _spo2 >= 95 && _sbp >= 100 && _hr >= 50 && _hr <= 100 && _rr >= 10 && _rr <= 20;
+        const locAlert = _loc === 'a' || _loc === 'alert' || _loc === '';
+        const unconfirmedLifesavingFlag = escalationFlag && vitalsNormal && locAlert;
+
+        const rationaleObj = { decision_point: esi.decision_point, rationale: esi.rationale, danger_zone: esi.danger_zone, fail_safe: esi.fail_safe };
+        if (unconfirmedLifesavingFlag) rationaleObj.unconfirmed_lifesaving_flag = true;
+        const rationaleStr = JSON.stringify(rationaleObj);
         const nowIso = new Date().toISOString();
 
         await pool.query(
@@ -3684,6 +3706,13 @@ app.post('/api/er/triage', requireAuth, requireRole('emergency', 'nursing', 'doc
 
         logAudit(req.session.user?.id, req.session.user?.display_name, 'ER_TRIAGE', 'Emergency',
             `ESI ${esi.esi_level} (DP ${esi.decision_point}) for visit #${visit_id}; danger_zone=${esi.danger_zone}`, req.ip);
+
+        // I2: distinct audit event when an ESI-1/2 escalation rests only on a client flag while all
+        // measurable vitals are normal and LOC is alert — flagged for retrospective clinical review.
+        if (unconfirmedLifesavingFlag) {
+            logAudit(req.session.user?.id, req.session.user?.display_name, 'ER_TRIAGE_UNCONFIRMED_ESCALATION', 'Emergency',
+                `Visit #${visit_id}: ESI ${esi.esi_level} driven by client escalation flag with all measurable vitals normal (spo2=${_spo2},sbp=${_sbp},hr=${_hr},rr=${_rr}) and LOC alert — review`, req.ip);
+        }
 
         res.json({ success: true, visit_id, esi_level: esi.esi_level, triage_color: esi.triage_color,
             decision_point: esi.decision_point, rationale: esi.rationale, danger_zone: esi.danger_zone,

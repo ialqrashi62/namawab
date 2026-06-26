@@ -8823,13 +8823,17 @@ window.showERDischargeModal = function (id) {
 window.confirmERDischarge = async function () {
   const id = document.getElementById('erDischargeId').value;
   try {
-    await API.put('/api/emergency/visits/' + id, {
-      status: 'Discharged',
-      discharge_diagnosis: document.getElementById('erDischargeDiag').value,
-      discharge_instructions: document.getElementById('erDischargeInst').value,
-      discharge_medications: document.getElementById('erDischargeMeds').value,
+    // Terminal disposition MUST go through the guarded /api/er/disposition route (server-authoritative
+    // state machine + ESI/triage gating). The legacy PUT no longer accepts terminal statuses.
+    const r = await API.post('/api/er/disposition', {
+      visit_id: Number(id),
+      disposition_type: 'Discharged',
+      diagnosis: document.getElementById('erDischargeDiag').value,
+      instructions: document.getElementById('erDischargeInst').value,
+      medications: document.getElementById('erDischargeMeds').value,
       followup_date: document.getElementById('erDischargeFollowup').value
     });
+    if (r && r.error) { showToast(escapeHTML(r.error), 'error'); return; }
     document.getElementById('erDischargeModal').style.display = 'none';
     showToast(tr('Patient discharged from ER!', 'تم خروج المريض من الطوارئ!'));
     erTab = 'discharged'; await navigateTo(21);
@@ -8838,18 +8842,19 @@ window.confirmERDischarge = async function () {
 window.transferERToInpatient = async function (visitId, patientName, patientId, doctor, complaint) {
   if (!confirm(tr('Transfer this patient to inpatient?', 'هل تريد تحويل هذا المريض للتنويم؟'))) return;
   try {
-    await API.put('/api/emergency/visits/' + visitId, { status: 'Admitted' });
-    await API.post('/api/admissions', {
-      patient_id: patientId, patient_name: patientName,
-      admission_type: 'Emergency', admitting_doctor: doctor, attending_doctor: doctor,
-      department: 'Emergency', diagnosis: complaint
+    // The disposition route performs the ER->ADT admission handoff internally; do NOT also POST
+    // /api/admissions here (would double-admit) nor use the legacy PUT.
+    const r = await API.post('/api/er/disposition', {
+      visit_id: Number(visitId),
+      disposition_type: 'Admitted',
+      admission_department: 'Emergency',
+      admitting_doctor: doctor,
+      diagnosis: complaint
     });
+    if (r && r.error) { showToast(escapeHTML(r.error), 'error'); return; }
     showToast(tr('Patient transferred to inpatient!', 'تم تحويل المريض للتنويم!'));
     erTab = 'transferred'; await navigateTo(21);
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
-};
-window.updateERVisit = async function (id, status) {
-  try { await API.put('/api/emergency/visits/' + id, { status }); showToast(tr('Updated', 'تم التحديث')); await navigateTo(21); } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
 // ===== E7: ESI triage / assign-provider / disposition (call the GUARDED /api/er/* routes) =====
