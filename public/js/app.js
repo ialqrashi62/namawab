@@ -9208,6 +9208,22 @@ async function renderQuality(el) {
           </div>
 
           <div class="form-group mb-sm">
+            <label class="text-label-md text-on-surface-variant block mb-xs">${tr('Harm Level', 'مستوى الأذى')}</label>
+            <select class="form-input w-full" id="qiHarm">
+              <option value="None">${tr('No Harm', 'بدون أذى')}</option>
+              <option value="Mild">${tr('Mild', 'طفيف')}</option>
+              <option value="Moderate">${tr('Moderate', 'متوسط')}</option>
+              <option value="Severe">${tr('Severe', 'شديد')}</option>
+              <option value="Death">${tr('Death', 'وفاة')}</option>
+            </select>
+          </div>
+
+          <div class="form-group mb-sm flex items-center gap-md flex-wrap">
+            <label class="text-label-md text-on-surface flex items-center gap-xs"><input type="checkbox" id="qiNearMiss"> ${tr('Near Miss', 'حادث وشيك')}</label>
+            <label class="text-label-md text-on-surface flex items-center gap-xs"><input type="checkbox" id="qiConfidential"> 🔒 ${tr('Confidential', 'سري')}</label>
+          </div>
+
+          <div class="form-group mb-sm">
             <label class="text-label-md text-on-surface-variant block mb-xs">${tr('Department', 'القسم')}</label>
             <input type="text" class="form-input w-full" id="qiDept" placeholder="e.g. ICU / الطوارئ">
           </div>
@@ -9268,12 +9284,18 @@ async function renderQuality(el) {
                         </span>
                       </td>
                       <td class="py-sm px-md">
-                        ${i.status !== 'Closed' ? `
+                        <div class="flex gap-xs flex-wrap">
+                          <button class="px-sm py-xs bg-primary/10 text-primary rounded hover:opacity-90 font-label-md inline-flex items-center gap-xs" onclick="window.manageCAPA(${safeId(i.id)})">
+                            <span class="material-symbols-outlined text-body-sm">task_alt</span>
+                            <span>${tr('CAPA', 'إجراءات')}</span>
+                          </button>
+                          ${(i.workflow_state || i.status) !== 'Closed' ? `
                           <button class="px-sm py-xs bg-secondary text-white rounded hover:opacity-90 font-label-md inline-flex items-center gap-xs" onclick="window.closeIncident(${safeId(i.id)})">
                             <span class="material-symbols-outlined text-body-sm">check</span>
                             <span>${tr('Close', 'إغلاق')}</span>
                           </button>
-                        ` : '<span class="text-on-surface-variant text-xs">✓ Done</span>'}
+                          ` : '<span class="text-on-surface-variant text-xs">✓ Done</span>'}
+                        </div>
                       </td>
                     </tr>
                   `;
@@ -9401,14 +9423,18 @@ async function renderQuality(el) {
 
 window.reportIncident = async function () {
   try {
-    await API.post('/api/quality/incidents', {
+    const r = await API.post('/api/quality/incidents', {
       incident_type: document.getElementById('qiType').value,
       severity: document.getElementById('qiSeverity').value,
+      harm_level: document.getElementById('qiHarm') ? document.getElementById('qiHarm').value : 'None',
+      near_miss: document.getElementById('qiNearMiss') ? document.getElementById('qiNearMiss').checked : false,
+      confidential: document.getElementById('qiConfidential') ? document.getElementById('qiConfidential').checked : false,
       department: document.getElementById('qiDept').value,
       description: document.getElementById('qiDesc').value,
-      immediate_action: document.getElementById('qiAction').value,
-      reported_by: currentUser?.display_name
+      immediate_action: document.getElementById('qiAction').value
+      // reported_by is stamped server-side from the session (anti-spoof)
     });
+    if (r && r.error) { showToast(r.error, 'error'); return; }
     showToast(tr('Reported!', 'تم التسجيل!'));
     await navigateTo(27);
   } catch (e) {
@@ -9418,12 +9444,88 @@ window.reportIncident = async function () {
 
 window.closeIncident = async function (id) {
   try {
-    await API.put('/api/quality/incidents/' + id, { status: 'Closed' });
+    // Server enforces the incident state machine; surface 409/validation errors to the user.
+    const r = await API.put('/api/quality/incidents/' + parseInt(id, 10), { status: 'Closed' });
+    if (r && r.error) { showToast(r.error, 'error'); return; }
     showToast(tr('Closed!', 'تم الإغلاق!'));
     await navigateTo(27);
   } catch (e) {
     showToast(tr('Error', 'خطأ'), 'error');
   }
+};
+
+// E17: per-incident CAPA management (corrective/preventive actions + state machine).
+if (!window.manageCAPA) window.manageCAPA = async function (id) {
+  const incidentId = parseInt(id, 10);
+  if (!Number.isInteger(incidentId)) return;
+  let list = [];
+  try {
+    list = await API.get('/api/quality/incidents/' + incidentId + '/capa');
+    if (list && list.error) { showToast(list.error, 'error'); return; }
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); return; }
+  if (!Array.isArray(list)) list = [];
+
+  const CAPA_NEXT = { 'Pending': ['InProgress', 'Cancelled'], 'InProgress': ['Completed', 'Cancelled'], 'Completed': ['Verified'], 'Verified': [], 'Cancelled': [] };
+  const rows = list.map(c => {
+    const nexts = (CAPA_NEXT[c.status] || []).map(s =>
+      `<button class="px-xs py-xxs bg-secondary/10 text-secondary rounded text-xs" onclick="window.capaTransition(${safeId(c.id)}, '${jsStr(s)}', ${safeId(incidentId)})">${escapeHTML(s)}</button>`
+    ).join(' ');
+    return `<tr class="border-b border-outline-variant/10">
+      <td class="py-xs px-sm">${escapeHTML(c.capa_type || '')}</td>
+      <td class="py-xs px-sm">${escapeHTML(c.title || '')}</td>
+      <td class="py-xs px-sm">${escapeHTML(c.owner_name || '')}</td>
+      <td class="py-xs px-sm">${escapeHTML(c.due_date || '')}</td>
+      <td class="py-xs px-sm"><span class="px-xs py-xxs rounded-full text-xs bg-surface-variant/40">${escapeHTML(c.status || '')}</span></td>
+      <td class="py-xs px-sm">${nexts}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `
+    <div class="glass-card p-md rounded-2xl" style="max-width:760px">
+      <h4 class="text-title-lg font-bold text-primary mb-md">${tr('CAPA — Incident', 'الإجراءات التصحيحية والوقائية')} #${escapeHTML(incidentId)}</h4>
+      <div class="grid grid-cols-2 gap-sm mb-sm">
+        <select class="form-input" id="capaType"><option value="Corrective">${tr('Corrective', 'تصحيحي')}</option><option value="Preventive">${tr('Preventive', 'وقائي')}</option></select>
+        <input class="form-input" id="capaTitle" placeholder="${tr('Title', 'العنوان')}">
+        <input class="form-input" id="capaOwner" placeholder="${tr('Owner', 'المسؤول')}">
+        <input class="form-input" type="date" id="capaDue">
+      </div>
+      <textarea class="form-input w-full mb-sm" id="capaDesc" rows="2" placeholder="${tr('Action description', 'وصف الإجراء')}"></textarea>
+      <button class="btn btn-primary mb-md" onclick="window.saveCAPA(${safeId(incidentId)})">${tr('Add CAPA', 'إضافة إجراء')}</button>
+      <div class="overflow-x-auto">
+        <table class="w-full text-right text-body-md">
+          <thead><tr class="text-on-surface-variant font-label-md border-b border-outline-variant/30">
+            <th class="py-xs px-sm">${tr('Type', 'النوع')}</th><th class="py-xs px-sm">${tr('Title', 'العنوان')}</th><th class="py-xs px-sm">${tr('Owner', 'المسؤول')}</th><th class="py-xs px-sm">${tr('Due', 'الاستحقاق')}</th><th class="py-xs px-sm">${tr('Status', 'الحالة')}</th><th class="py-xs px-sm">${tr('Actions', 'إجراءات')}</th>
+          </tr></thead>
+          <tbody>${rows || `<tr><td colspan="6" class="py-md text-center text-on-surface-variant">${tr('No CAPA yet.', 'لا توجد إجراءات.')}</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>`;
+  showModal(tr('CAPA Management', 'إدارة الإجراءات التصحيحية والوقائية'), html);
+};
+
+if (!window.saveCAPA) window.saveCAPA = async function (incidentId) {
+  try {
+    const r = await API.post('/api/quality/incidents/' + parseInt(incidentId, 10) + '/capa', {
+      capa_type: document.getElementById('capaType').value,
+      title: document.getElementById('capaTitle').value,
+      description: document.getElementById('capaDesc').value,
+      owner_name: document.getElementById('capaOwner').value,
+      due_date: document.getElementById('capaDue').value || null
+    });
+    if (r && r.error) { showToast(r.error, 'error'); return; }
+    showToast(tr('Added!', 'تمت الإضافة!'));
+    window.manageCAPA(incidentId);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+
+if (!window.capaTransition) window.capaTransition = async function (capaId, status, incidentId) {
+  try {
+    // Server rejects invalid CAPA transitions with 409.
+    const r = await API.put('/api/quality/capa/' + parseInt(capaId, 10), { status: status });
+    if (r && r.error) { showToast(r.error, 'error'); return; }
+    showToast(tr('Updated!', 'تم التحديث!'));
+    window.manageCAPA(incidentId);
+  } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
 
 window.addKPI = async function () {
