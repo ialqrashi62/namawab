@@ -1,5 +1,9 @@
 #!/bin/bash
-set -e
+# Secrets are read from the environment — never hardcode them in tracked files.
+# Required: DATABASE_URL, SESSION_SECRET  (export from a secret store / untracked .env)
+set -euo pipefail
+: "${DATABASE_URL:?Set DATABASE_URL env var before running}"
+: "${SESSION_SECRET:?Set SESSION_SECRET env var before running}"
 
 echo "============================================"
 echo "  FULL CLEAN REDEPLOY from namaweb3"
@@ -23,10 +27,12 @@ echo "=== [4/5] Setting up environment ==="
 if [ -f .env.example ]; then
     cp .env.example .env
 elif [ ! -f .env ]; then
-    cat > .env << 'ENVEOF'
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/nama_medical_web
-SESSION_SECRET=nama_medical_secret_2024
+    umask 077
+    cat > .env << ENVEOF
+DATABASE_URL=${DATABASE_URL}
+SESSION_SECRET=${SESSION_SECRET}
 PORT=3000
+NODE_ENV=production
 ENVEOF
 fi
 npm install

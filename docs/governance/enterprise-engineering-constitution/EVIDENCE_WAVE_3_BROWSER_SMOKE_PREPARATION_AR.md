@@ -6,7 +6,7 @@
 | تاريخ التحديث | 2026-06-27 |
 | المشروع | NamaMedical / الطبيب |
 | المُنفّذ | مراجع جودة الحوكمة والأمن السيبراني (Senior Governance Auditor) |
-| الحالة النهائية | **WAVE_3_PREPARED (تم التحضير للموجة الثالثة بنجاح)** |
+| الحالة النهائية | **WAVE_3_BLOCKED_BY_OWNER_DECISION (تم حظر الموجة الثالثة بقرار المالك)** |
 
 ---
 
@@ -14,9 +14,9 @@
 تصف هذه الوثيقة خطة التحضير والتهيئة لتنفيذ **الموجة الثالثة (Wave 3 - Browser Smoke Tests)** لمشروع **NamaMedical / الطبيب**.
 
 > [!CAUTION]
-> **حالة تنفيذ الموجة (WAVE_3_EXECUTION_STATUS)**: **PREPARED_NOT_EXECUTED (تم التحضير فقط ولم يتم التنفيذ)**.
+> **حالة تنفيذ الموجة (WAVE_3_EXECUTION_STATUS)**: **BLOCKED_BY_OWNER_DECISION (تم الحظر بقرار المالك)**.
 > 
-> يمنع تشغيل أي فحص متصفح آلي (Playwright) أو تفاعلي على بيئة الإنتاج الفعلي في هذه المرحلة دون استلام موافقة صريحة ومكتوبة من مالك النظام.
+> تم حظر تشغيل أي فحص متصفح آلي (Playwright) أو تفاعلي على بيئة الإنتاج الفعلي بقرار صريح من مالك النظام حتى تدوير الأسرار.
 
 ---
 
@@ -87,7 +87,17 @@
 ---
 
 ## 6. سجل الحقول النهائي لخطة التحضير (Final Closeout Fields)
-* **FINAL_STATUS**: `WAVE_3_OWNER_APPROVAL_PRECHECK_READY_NOT_EXECUTED`
+* **FINAL_STATUS**: `WAVE_3_BLOCKED_BY_OWNER_DECISION`
+* **CURRENT_BRANCH**: `audit/phase-1-critical-remediation`
+* **PUSH_BRANCH**: `audit/phase-1-critical-remediation`
+* **MASTER_UPDATED**: `NO`
+* **MERGE_TO_MASTER**: `NO`
+* **OWNER_DECISION_RECEIVED**: `YES`
+* **OWNER_DECISION**: `OPTION_B_ROTATION_REQUIRED`
+* **ROTATION_REQUIRED**: `YES`
+* **ROTATION_EXECUTED**: `NO`
+* **WAVE_3_ALLOWED**: `NO`
+* **BROWSER_SMOKE_EXECUTED**: `NO`
 * **WAVE_2_REPORT_CORRECTED**: `YES`
 * **WAVE_3_PREPARED**: `YES`
 * **WAVE_3_EXECUTED**: `NO`
@@ -116,4 +126,4 @@
 * **REPORT_FILE**: `docs/governance/enterprise-engineering-constitution/EVIDENCE_WAVE_3_BROWSER_SMOKE_PREPARATION_AR.md`
 * **GIT_COMMIT**: `e78c698c3ad2d662786d33782f10339d4d0779a0` (سيتم تحديثه)
 * **PUSH_STATUS**: `SUCCESS`
-* **NEXT_RECOMMENDED_ACTION**: `WAIT_FOR_EXPLICIT_OWNER_APPROVAL_BEFORE_WAVE_3_BROWSER_SMOKE`
+* **NEXT_RECOMMENDED_ACTION**: `EXECUTE_SECURE_CREDENTIAL_ROTATION_OR_DISABLE_OLD_CREDENTIALS_THEN_KEEP_WAVE_3_BLOCKED`

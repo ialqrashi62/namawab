@@ -185,7 +185,7 @@ graph TD
 
 1. **تحديث كلمة مرور مستخدم PostgreSQL المخصص للتطبيق**:
    ```sql
-   ALTER USER nama_app_user WITH PASSWORD 'new_random_ultra_secure_password';
+   ALTER USER nama_app_user WITH PASSWORD '[REDACTED_SECRET_VALUE]';
    ```
 2. **تحديث الجلسات ومفاتيح التوقيع في ملف البيئة (خارج المستودع)**:
    تعديل قيمة `SESSION_SECRET` في ملف `.env` على السيرفر بقيمة عشوائية جديدة بطول 64 حرفاً.

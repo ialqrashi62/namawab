@@ -9,14 +9,14 @@ services:
     container_name: nama-mssql
     environment:
       ACCEPT_EULA: "Y"
-      SA_PASSWORD: "NamaDev!2026"
+      SA_PASSWORD: "[REDACTED_SECRET_VALUE]"
       MSSQL_PID: Developer
     ports: ["1433:1433"]
     volumes:
       - mssql_data:/var/opt/mssql
       - ./seeders:/seeders:ro
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'NamaDev!2026' -Q 'SELECT 1' || exit 1"]
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '[REDACTED_SECRET_VALUE]' -Q 'SELECT 1' || exit 1"]
       interval: 10s
       retries: 30
 

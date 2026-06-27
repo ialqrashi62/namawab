@@ -40,7 +40,7 @@ seed:
 	@for f in seeders/*_seed.sql; do \
 	  echo "→ $$f"; \
 	  $(COMPOSE) exec -T mssql /opt/mssql-tools/bin/sqlcmd \
-	    -S localhost -U sa -P 'NamaDev!2026' -d master -i /seeders/$$(basename $$f); \
+	    -S localhost -U sa -P '[REDACTED_SECRET_VALUE]' -d master -i /seeders/$$(basename $$f); \
 	done
 
 migrate:
@@ -48,7 +48,7 @@ migrate:
 	  for f in $$d/*.sql; do \
 	    echo "→ $$f"; \
 	    $(COMPOSE) exec -T mssql /opt/mssql-tools/bin/sqlcmd \
-	      -S localhost -U sa -P 'NamaDev!2026' -d master -i /seeders/../$$f; \
+	      -S localhost -U sa -P '[REDACTED_SECRET_VALUE]' -d master -i /seeders/../$$f; \
 	  done; \
 	done
 

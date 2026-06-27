@@ -6,17 +6,17 @@
 | تاريخ التحديث | 2026-06-27 |
 | المشروع | NamaMedical / الطبيب |
 | المُنفّذ | مراجع جودة الحوكمة والأمن السيبراني (Senior Governance Auditor) |
-| الحالة النهائية | **WAVE_3_PREPARED (تم تجهيز شروط الفحص وبوابة الموافقة)** |
+| الحالة النهائية | **WAVE_3_BLOCKED_BY_OWNER_DECISION (تم حظر الموجة الثالثة بقرار المالك)** |
 
 ---
 
 ## 1. الملخص التنفيذي (Executive Summary)
-يوثق هذا التقرير استكمال شروط التجهيز الفني وبوابة الموافقة قبل تنفيذ أي اختبار متصفح حي (Browser Smoke) على بيئة مشروع **NamaMedical / الطبيب**. 
+يوثق هذا التقرير قرار مالك النظام بشأن Wave 3 وحالة حظر تشغيل اختبارات المتصفح على بيئة مشروع **NamaMedical / الطبيب**.
 
 > [!CAUTION]
-> **قرار تشغيل الفحص (BROWSER_SMOKE_ALLOWED_NOW)**: **لا (معلق بانتظار توقيع المالك)**.
+> **قرار تشغيل الفحص (BROWSER_SMOKE_ALLOWED_NOW)**: **لا (تم الحظر بقرار المالك)**.
 >
-> لم يتم تنفيذ أي اختبار متصفح (Browser Smoke) في هذه الجلسة، وكل الخطوات الحالية تجهيزية وتوثيقية فقط.
+> تم حظر تشغيل اختبارات المتصفح (Browser Smoke) بالكامل بقرار صريح من المالك حتى إتمام تدوير الأسرار المكتشفة بالكامل.
 
 ---
 
@@ -65,12 +65,22 @@
 ---
 
 ## 6. سجل حقول بوابة الموافقة والتجهيز (Final Closeout Fields)
-* **FINAL_STATUS**: `WAVE_3_OWNER_APPROVAL_PRECHECK_READY_NOT_EXECUTED`
+* **FINAL_STATUS**: `WAVE_3_BLOCKED_BY_OWNER_DECISION`
+* **CURRENT_BRANCH**: `audit/phase-1-critical-remediation`
+* **PUSH_BRANCH**: `audit/phase-1-critical-remediation`
+* **MASTER_UPDATED**: `NO`
+* **MERGE_TO_MASTER**: `NO`
+* **OWNER_DECISION_RECEIVED**: `YES`
+* **OWNER_DECISION**: `OPTION_B_ROTATION_REQUIRED`
+* **ROTATION_REQUIRED**: `YES`
+* **ROTATION_EXECUTED**: `NO`
+* **WAVE_3_ALLOWED**: `NO`
+* **BROWSER_SMOKE_EXECUTED**: `NO`
 * **WAVE_3_PREPARED**: `YES`
 * **WAVE_3_EXECUTED**: `NO`
 * **OWNER_APPROVAL_PRECHECK_CREATED**: `YES`
-* **OWNER_APPROVAL_RECEIVED**: `NO`
-* **BROWSER_SMOKE_ALLOWED_NOW**: `NO`
+* **OWNER_APPROVAL_RECEIVED**: `NO_BLOCKED`
+* **SCRIPT_ALLOWED_NOW**: `NO`
 * **LOCAL_TEST_DB_TOUCHED**: `NOT_EVIDENCED`
 * **TEST_CREDENTIALS_REVIEW**: `REQUIRED_BEFORE_EXECUTION`
 * **CODE_CHANGED**: `NO`
@@ -92,4 +102,4 @@
 * **REPORT_FILE**: `docs/governance/enterprise-engineering-constitution/EVIDENCE_WAVE_3_BROWSER_SMOKE_PREPARATION_AR.md`
 * **GIT_COMMIT**: `e78c698c3ad2d662786d33782f10339d4d0779a0` (سيتم تحديثه)
 * **PUSH_STATUS**: `SUCCESS`
-* **NEXT_RECOMMENDED_ACTION**: `WAIT_FOR_EXPLICIT_OWNER_APPROVAL_BEFORE_WAVE_3_BROWSER_SMOKE`
+* **NEXT_RECOMMENDED_ACTION**: `EXECUTE_SECURE_CREDENTIAL_ROTATION_OR_DISABLE_OLD_CREDENTIALS_THEN_KEEP_WAVE_3_BLOCKED`

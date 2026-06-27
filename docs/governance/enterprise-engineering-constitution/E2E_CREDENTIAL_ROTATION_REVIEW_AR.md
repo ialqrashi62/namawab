@@ -6,7 +6,7 @@
 | تاريخ التحديث | 2026-06-27 |
 | المشروع | NamaMedical / الطبيب |
 | المُنفّذ | مراجع جودة الحوكمة والأمن السيبراني (Senior Governance Auditor) |
-| الحالة النهائية | **ROTATION_REVIEW_COMPLETED (تمت مراجعة حوكمة التدوير وتحديد الضوابط)** |
+| الحالة النهائية | **ROTATION_ORDERED_WAVE_3_BLOCKED (أمر المالك بتدوير البيانات الفوري وحظر الموجة الثالثة)** |
 
 ---
 
@@ -26,8 +26,8 @@
    - **التصنيف**: `HARDCODED_TEST_CREDENTIALS` (بيانات دخول اختبارية نصية).
    - كانت كلمة المرور المذكورة في الكود تستخدم لإجراء عملية تحديث برمجية مؤقتة على قاعدة البيانات المحلية أثناء الفحص ولم تكن كلمة مرور فعلية حية مستخدمة في الإنتاج.
 3. **قرار وتوصية التدوير (Rotation Decision)**:
-   - **قرار التدوير**: `ROTATION_REQUIRED: REVIEW_REQUIRED`
-   - التوصية بمراجعة مالك النظام للتأكد من عدم استخدام كلمة المرور الاختبارية المذكورة سابقاً في الكود على أي من الأنظمة أو قواعد البيانات الحية للإنتاج.
+   - **قرار التدوير**: `ROTATION_REQUIRED: YES`
+   - تم تأكيد المالك بأن كلمة المرور الاختبارية قد تكون مستخدمة في الإنتاج، وأصدر أمراً فورياً بتعطيلها أو تدويرها، مع حظر تشغيل الموجة الثالثة (Wave 3) حتى إتمام ذلك بالكامل.
 
 ---
 
@@ -40,16 +40,20 @@
 ---
 
 ## 4. سجل حقول مراجعة حوكمة تدوير البيانات (Final Closeout Fields)
-* **FINAL_STATUS**: `WAVE_3_OWNER_APPROVAL_PRECHECK_READY_NOT_EXECUTED`
+* **FINAL_STATUS**: `WAVE_3_BLOCKED_CREDENTIAL_ROTATION_ORDERED`
 * **CURRENT_BRANCH**: `audit/phase-1-critical-remediation`
 * **PUSH_BRANCH**: `audit/phase-1-critical-remediation`
 * **MASTER_UPDATED**: `NO`
 * **MERGE_TO_MASTER**: `NO`
+* **OWNER_DECISION_RECEIVED**: `YES`
+* **OWNER_DECISION**: `OPTION_B_ROTATION_REQUIRED`
 * **CREDENTIAL_RISK_CLASSIFICATION**: `HARDCODED_TEST_CREDENTIALS`
 * **CREDENTIAL_VALUES_PRINTED**: `NO`
-* **ROTATION_REQUIRED**: `REVIEW_REQUIRED`
-* **OWNER_CONFIRMATION_REQUIRED**: `YES`
+* **ROTATION_REQUIRED**: `YES`
+* **ROTATION_EXECUTED**: `NO`
+* **OWNER_CONFIRMATION_REQUIRED**: `NO`
 * **SCRIPT_ALLOWED_NOW**: `NO`
+* **WAVE_3_ALLOWED**: `NO`
 * **BROWSER_SMOKE_EXECUTED**: `NO`
 * **PRODUCTION_TOUCHED**: `NO`
 * **DB_TOUCHED**: `NO`
@@ -58,4 +62,4 @@
 * **REPORT_FILE**: `docs/governance/enterprise-engineering-constitution/E2E_CREDENTIAL_ROTATION_REVIEW_AR.md`
 * **GIT_COMMIT**: `9055a7018108dce8e8deed929c608baa445d5bef` (سيتم تحديثه بعد الالتزام الحالي)
 * **PUSH_STATUS**: `SUCCESS`
-* **NEXT_RECOMMENDED_ACTION**: `OWNER_CONFIRM_CREDENTIAL_ROTATION_STATUS_THEN_APPROVE_OR_BLOCK_WAVE_3`
+* **NEXT_RECOMMENDED_ACTION**: `EXECUTE_SECURE_CREDENTIAL_ROTATION_OR_DISABLE_OLD_CREDENTIALS_THEN_KEEP_WAVE_3_BLOCKED`

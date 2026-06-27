@@ -1,5 +1,7 @@
 #!/bin/bash
-set -e
+# DB_PASSWORD must be provided via the environment — never hardcoded in a tracked file.
+set -euo pipefail
+: "${DB_PASSWORD:?Set DB_PASSWORD env var before running}"
 
 echo "=== [1/5] Installing Node.js 20 LTS ==="
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
@@ -12,7 +14,7 @@ systemctl enable postgresql
 systemctl start postgresql
 
 # Create database and user
-sudo -u postgres psql -c "CREATE USER namasoft WITH PASSWORD 'NamaMedical@2026!';" 2>/dev/null || true
+sudo -u postgres psql -c "CREATE USER namasoft WITH PASSWORD '${DB_PASSWORD}';" 2>/dev/null || true
 sudo -u postgres psql -c "CREATE DATABASE namasoft OWNER namasoft;" 2>/dev/null || true
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE namasoft TO namasoft;" 2>/dev/null || true
 

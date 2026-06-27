@@ -6,7 +6,7 @@
 | تاريخ التحديث | 2026-06-27 |
 | المشروع | NamaMedical / الطبيب |
 | المُنفّذ | مراجع جودة الحوكمة والأمن السيبراني (Senior Governance Auditor) |
-| الحالة النهائية | **AUTOPILOT_GOVERNANCE_CONSOLIDATED_OWNER_DECISION_REQUIRED (تم توحيد الحوكمة وبانتظار قرار المالك)** |
+| الحالة النهائية | **AUTOPILOT_GOVERNANCE_WAVE_3_BLOCKED_ROTATION_ORDERED (تم حظر الموجة الثالثة وتأكيد تدوير البيانات)** |
 
 ---
 
@@ -29,16 +29,13 @@
 
 ---
 
-## 3. قرارات المالك المطلوبة لبيانات الدخول (Credential Rotation Decision Block)
-بسبب رصد بيانات الدخول الاختبارية في تاريخ الملفات، تم تجميد تنفيذ الفحوصات الآلية وتحديد ثلاثة خيارات لمالك النظام:
-
-* **الخيار الأول (Option A)**: تأكيد المالك أن البيانات الاختبارية السابقة (`AdminTestPassword123!`) هي قيم وهمية/تجريبية فقط ولا تستخدم على أي حسابات إنتاجية ولا تتطلب تدوير.
-* **الخيار الثاني (Option B)**: تأكيد المالك أن البيانات قد تكون مستخدمة في الإنتاج، وإصدار أمر فوري بتعطيلها أو تدويرها.
-* **الخيار الثالث (Option C)**: إبقاء الموجة الثالثة (Wave 3) وفحوصات المتصفح محظورة بالكامل والاعتماد على الفحص اليدوي فقط.
+## 3. قرار المالك المتخذ لبيانات الدخول (Credential Rotation Decision Taken)
+اختار مالك النظام **الخيار الثاني (Option B)**:
+* تأكيد المالك أن البيانات الاختبارية السابقة (`AdminTestPassword123!`) قد تكون مستخدمة في الإنتاج، وأصدر أمراً فورياً بتعطيلها أو تدويرها، مع حظر تشغيل الموجة الثالثة (Wave 3) حتى إتمام ذلك بالكامل.
 
 > [!CAUTION]
 > **الحالة الحالية لبيانات الدخول**:
-> `CREDENTIAL_ROTATION_STATUS: OWNER_DECISION_REQUIRED`
+> `CREDENTIAL_ROTATION_STATUS: ROTATION_ORDERED`
 > `SCRIPT_ALLOWED_NOW: NO`
 > `BROWSER_SMOKE_ALLOWED_NOW: NO`
 
@@ -59,11 +56,13 @@
 ---
 
 ## 5. سجل الحقول المركزي النهائي (Final Closeout Fields)
-* **FINAL_STATUS**: `AUTOPILOT_GOVERNANCE_CONSOLIDATED_OWNER_DECISION_REQUIRED`
+* **FINAL_STATUS**: `AUTOPILOT_GOVERNANCE_WAVE_3_BLOCKED_ROTATION_ORDERED`
 * **CURRENT_BRANCH**: `audit/phase-1-critical-remediation`
 * **PUSH_BRANCH**: `audit/phase-1-critical-remediation`
 * **MASTER_UPDATED**: `NO`
 * **MERGE_TO_MASTER**: `NO`
+* **OWNER_DECISION_RECEIVED**: `YES`
+* **OWNER_DECISION**: `OPTION_B_ROTATION_REQUIRED`
 * **SKILL_CREATED_OR_UPDATED**: `YES`
 * **SKILL_FILE**: `.ai-brain/skills/nama-medical/NM_FINAL_GOVERNANCE_REVIEWER_AR.md`
 * **CODE_CHANGED**: `YES`
@@ -80,10 +79,13 @@
 * **JOURNAL_ENTRIES_CREATED**: `0`
 * **SECRETS_PRINTED**: `NO`
 * **PHI_PRINTED**: `NO`
-* **CREDENTIAL_ROTATION_STATUS**: `OWNER_DECISION_REQUIRED`
-* **OWNER_CONFIRMATION_REQUIRED**: `YES`
+* **CREDENTIAL_ROTATION_STATUS**: `ROTATION_ORDERED`
+* **ROTATION_REQUIRED**: `YES`
+* **ROTATION_EXECUTED**: `NO`
+* **OWNER_CONFIRMATION_REQUIRED**: `NO`
 * **SCRIPT_ALLOWED_NOW**: `NO`
-* **BROWSER_SMOKE_ALLOWED_NOW**: `NO`
+* **WAVE_3_ALLOWED**: `NO`
+* **BROWSER_SMOKE_EXECUTED**: `NO`
 * **WAVE_3_EXECUTED**: `NO`
 * **MOJIBAKE_AUDIT**: `CLEAN_FOR_SCANNED_SCOPE_ONLY`
 * **UTF8_STATUS**: `CLEAN`
@@ -92,4 +94,4 @@
 * **PUSH_STATUS**: `SUCCESS`
 * **BLOCKED_ITEMS**: `Wave 3 Browser Smoke, master branch merge, DB writes`
 * **SAFE_NEXT_ACTION**: `Manual checklist preparation, static code review`
-* **NEXT_RECOMMENDED_ACTION**: `OWNER_CONFIRM_CREDENTIAL_ROTATION_STATUS_THEN_APPROVE_OR_BLOCK_WAVE_3`
+* **NEXT_RECOMMENDED_ACTION**: `EXECUTE_SECURE_CREDENTIAL_ROTATION_OR_DISABLE_OLD_CREDENTIALS_THEN_KEEP_WAVE_3_BLOCKED`

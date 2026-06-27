@@ -1,5 +1,15 @@
 #!/bin/bash
-set -e
+# Secrets are read from the environment — never hardcode them in tracked files.
+# Required before running (export from a secret store / untracked .env):
+#   DB_PASSWORD       PostgreSQL password for the namasoft user
+#   DATABASE_URL      Full Postgres connection string used by the app
+#   JWT_SECRET        App JWT signing secret
+#   SESSION_SECRET    App session secret
+set -euo pipefail
+: "${DB_PASSWORD:?Set DB_PASSWORD env var before running}"
+: "${DATABASE_URL:?Set DATABASE_URL env var before running}"
+: "${JWT_SECRET:?Set JWT_SECRET env var before running}"
+: "${SESSION_SECRET:?Set SESSION_SECRET env var before running}"
 
 echo "============================================"
 echo "  Nama Medical Web - Full Server Setup"
@@ -26,7 +36,7 @@ else
 fi
 
 # Create database and user
-sudo -u postgres psql -c "CREATE USER namasoft WITH PASSWORD 'NamaMedical@2026!';" 2>/dev/null || echo "User already exists"
+sudo -u postgres psql -c "CREATE USER namasoft WITH PASSWORD '${DB_PASSWORD}';" 2>/dev/null || echo "User already exists"
 sudo -u postgres psql -c "CREATE DATABASE namasoft OWNER namasoft;" 2>/dev/null || echo "Database already exists"
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE namasoft TO namasoft;" 2>/dev/null || true
 sudo -u postgres psql -c "ALTER USER namasoft CREATEDB;" 2>/dev/null || true
@@ -51,11 +61,15 @@ rm -rf namaweb
 git clone https://github.com/ialqrashi62/namawab.git namaweb
 cd namaweb
 
-# Create .env
-cat > .env << 'ENVEOF'
+# Create .env from environment-provided secrets (never commit real values).
+# Unquoted heredoc so the exported vars expand; .env itself is git-ignored.
+umask 077
+cat > .env << ENVEOF
 PORT=3000
-DATABASE_URL=postgresql://namasoft:NamaMedical@2026!@localhost:5432/namasoft
-JWT_SECRET=namasoft-production-secret-2026
+DATABASE_URL=${DATABASE_URL}
+JWT_SECRET=${JWT_SECRET}
+SESSION_SECRET=${SESSION_SECRET}
+NODE_ENV=production
 ENVEOF
 
 # Check if .env.example exists and merge missing values

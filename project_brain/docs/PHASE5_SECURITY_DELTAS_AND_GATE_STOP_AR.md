@@ -15,7 +15,7 @@ MEDICAL_REPORTS_HYGIENE_AND_CLOSEOUT_SKILL_AR · MEDICAL_ARABIC_UTF8_REPORTING_S
 الفرع: **`feature/security-deltas`** (namaweb) head `a537dbd` — commit واحد، server.js فقط (لا دمج df893ab).
 
 ### 1) إلزام SESSION_SECRET في الإنتاج
-- اكتشاف: prod `.env` كان يحوي **السر الافتراضي المكشوف** `nama-medical-erp-secret-...` (ثغرة حقيقية — السر في الكود المصدري).
+- اكتشاف: prod `.env` كان يحوي **السر الافتراضي المكشوف** `[REDACTED_SECRET_VALUE]` (ثغرة حقيقية — السر في الكود المصدري).
 - الحل: حارس يرفض الإقلاع في الإنتاج إذا غاب SESSION_SECRET **أو** ساوى الافتراضي المكشوف ⇒ `process.exit(1)`.
 - تدوير السر: وُلِّد سر عشوائي قوي (64 حرفاً) — **لم يُطبَّق على الإنتاج الحيّ** (أُعيد `.env` لحالته المنشورة احتراماً لبوابة النشر؛ التدوير جزء من runbook النشر أدناه).
 

@@ -2,9 +2,10 @@
 set -e
 
 # Configure MSSQL Server silently
+# MSSQL_SA_PASSWORD must be provided via the environment — never hardcoded in a tracked file.
+: "${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD env var before running}"
 export MSSQL_PID=Developer
 export ACCEPT_EULA=Y
-export MSSQL_SA_PASSWORD='NamaMedical@2026!'
 
 /opt/mssql/bin/mssql-conf setup
 
@@ -20,4 +21,4 @@ ACCEPT_EULA=Y apt-get install -y mssql-tools unixodbc-dev
 
 # Create the NAMA_MEDICAL database
 sleep 5
-/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'NamaMedical@2026!' -Q "CREATE DATABASE NAMA_MEDICAL;"
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -Q "CREATE DATABASE NAMA_MEDICAL;"
