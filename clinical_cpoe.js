@@ -357,19 +357,41 @@ function mountClinicalRoutes(app, deps) {
             });
         }
 
-        const evald = cds.evaluateOrder({
-            type,
-            // allergy/dose/interaction only apply to medication orders; lab/rad/consult run duplicate only.
-            med: (type === 'med') ? primaryMed : null,
-            dose: (type === 'med') ? dose : undefined,
-            patient: { allergies: patientForCds ? patientForCds.allergies : null },
-            // CRITICAL-2: authoritative server-derived active meds (client `active_meds` is NOT trusted).
-            activeMeds: serverActiveMeds,
-            activeOrders,
-            catalog_ref: primaryMed,
-        });
-        // merge engine alerts with any fail-safe alerts gathered above
-        cdsResult.alerts = cdsResult.alerts.concat(evald.alerts);
+        // SAFETY: evaluate CDS for EVERY medication line, not just lineItems[0]. A multi-drug order
+        // must not be able to smuggle an allergen/interacting/overdosed drug onto line 2+ to bypass
+        // the gate. Each med line is checked for allergy/dose/drug-drug against the SAME server-derived
+        // active meds + active orders; all alerts are merged before the single decide() hard-stop.
+        const allergiesForCds = { allergies: patientForCds ? patientForCds.allergies : null };
+        if (type === 'med' && lineItems.length > 0) {
+            for (const li of lineItems) {
+                const liMed = li && (li.catalog_ref || li.name) ? (li.catalog_ref || li.name) : (req.body.medication_name || null);
+                const liDose = (li && li.dose != null) ? li.dose : dose;
+                const evald = cds.evaluateOrder({
+                    type,
+                    med: liMed,
+                    dose: liDose,
+                    patient: allergiesForCds,
+                    // CRITICAL-2: authoritative server-derived active meds (client `active_meds` is NOT trusted).
+                    activeMeds: serverActiveMeds,
+                    activeOrders,
+                    catalog_ref: liMed,
+                });
+                cdsResult.alerts = cdsResult.alerts.concat(evald.alerts);
+            }
+        } else {
+            // Non-med (lab/rad/consult) OR a med order with no explicit line items: single evaluation
+            // (duplicate check for non-med; primaryMed fallback for a bare med order). Preserves prior behavior.
+            const evald = cds.evaluateOrder({
+                type,
+                med: (type === 'med') ? primaryMed : null,
+                dose: (type === 'med') ? dose : undefined,
+                patient: allergiesForCds,
+                activeMeds: serverActiveMeds,
+                activeOrders,
+                catalog_ref: primaryMed,
+            });
+            cdsResult.alerts = cdsResult.alerts.concat(evald.alerts);
+        }
         const decision = cds.decide(cdsResult.alerts, override_reason);
 
         if (!decision.allow) {
