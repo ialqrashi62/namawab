@@ -8487,26 +8487,37 @@ app.get('/api/emar/administrations', requireAuth, requireRole('nursing', 'doctor
         }
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-// LEGACY eMAR administration record. The PRIMARY nurse "Give" UI now posts to the safe
-// /api/mar/administer (5-rights + CDS + witness). This route is kept for compatibility but is
-// hardened: role-gated, status is FORCED 'Given' server-side (never trusted from the body), and
-// every insert is audited (item 5 + item 6).
+// LEGACY eMAR documentation route. The PRIMARY nurse "Give" UI posts to the safe
+// /api/mar/administer (server-enforced 5-rights + CDS + witness). To CLOSE the 5-rights bypass,
+// this legacy route may ONLY document a NOT-given / held / refused dose — it can NEVER record an
+// actual administration. Any attempt to record a "Given" event is rejected (410 MAR_USE_SAFE_PATH)
+// and must go through /api/mar/administer. Role-gated, tenant-scoped, status FORCED 'Not Given',
+// every write audited.
 app.post('/api/emar/administrations', requireAuth, requireRole('nursing', 'doctor'), requireTenantScope, async (req, res) => {
     try {
         const { emar_order_id, patient_id, medication, dose, scheduled_time, reason_not_given, notes } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
+        // SECURITY (5-rights): a documented reason is REQUIRED — this route only records a dose that
+        // was NOT given. An actual administration has no reason_not_given and must use the safe path.
+        const documentedReason = (reason_not_given == null ? '' : String(reason_not_given).trim());
+        if (!documentedReason) {
+            return res.status(410).json({
+                error: 'This endpoint only documents a not-given/held dose. Record administrations via POST /api/mar/administer (5-rights enforced).',
+                code: 'MAR_USE_SAFE_PATH',
+            });
+        }
         if (tenantId) {
             const orderCheck = await pool.query('SELECT id FROM emar_orders WHERE id=$1 AND tenant_id=$2', [emar_order_id, tenantId]);
             if (orderCheck.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
             const patientCheck = await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId]);
             if (patientCheck.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
         }
-        // status is FORCED server-side (do not accept an arbitrary status from the body).
-        const status = 'Given';
+        // status is FORCED server-side to 'Not Given' (this route never records an administration).
+        const status = 'Not Given';
         const result = await pool.query('INSERT INTO emar_administrations (emar_order_id, patient_id, medication, dose, scheduled_time, actual_time, administered_by, status, reason_not_given, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
-            [emar_order_id, patient_id || 0, medication || '', dose || '', scheduled_time || '', new Date().toISOString(), req.session.user.name, status, reason_not_given || '', notes || '', tenantId || null, facilityId || null]);
-        logAudit(req.session.user?.id, req.session.user?.name, 'MAR_ADMINISTRATION', 'Nursing',
-            `eMAR (legacy) administration: patient #${patient_id} order #${emar_order_id} (${medication || ''} ${dose || ''}) status=${status}`, req.ip);
+            [emar_order_id, patient_id || 0, medication || '', dose || '', scheduled_time || '', new Date().toISOString(), req.session.user.name, status, documentedReason, notes || '', tenantId || null, facilityId || null]);
+        logAudit(req.session.user?.id, req.session.user?.name, 'MAR_NOT_GIVEN', 'Nursing',
+            `eMAR (legacy) NOT-given documented: patient #${patient_id} order #${emar_order_id} (${medication || ''} ${dose || ''}) reason=${documentedReason}`, req.ip);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
