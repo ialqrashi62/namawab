@@ -55,3 +55,34 @@
 
 ## 5. توصية الموجة الثانية (Wave 2 Recommendation)
 نوصي بالبدء الفوري في **الموجة الثانية (Wave 2 - Local/Synthetic Tests)** لتشغيل اختبارات الأمان والتحقق من عزل المستأجرين محلياً وتوثيق مخرجات الفحص التفصيلية دون المساس ببيئة الإنتاج الحية.
+
+---
+
+## 6. سجل حقول أدلة الموجة الأولى Read-only (Final Closeout Fields)
+* **FINAL_STATUS**: `WAVE_1_READ_ONLY_EVIDENCE_COLLECTION_COMPLETED`
+* **WAVE**: `WAVE_1_READ_ONLY_EVIDENCE_COLLECTION`
+* **REPORT_FILE**: `docs/governance/enterprise-engineering-constitution/EVIDENCE_WAVE_1_READ_ONLY_COLLECTION_REPORT_AR.md`
+* **SOURCE_PLAN_FILE**: `docs/governance/enterprise-engineering-constitution/EVIDENCE_REMEDIATION_PLAN_AR.md`
+* **TOTAL_ITEMS_REVIEWED**: `18`
+* **EVIDENCE_COLLECTED**: `0`
+* **PARTIAL_EVIDENCE_COLLECTED**: `6`
+* **EVIDENCE_GAP_REMAINS**: `8`
+* **OWNER_APPROVAL_REQUIRED**: `3`
+* **CODE_CHANGED**: `NO`
+* **DOCS_CHANGED**: `YES`
+* **PRODUCTION_TOUCHED**: `NO`
+* **DB_TOUCHED**: `NO`
+* **DDL_RUN**: `NO`
+* **DEPLOY_RUN**: `NO`
+* **PM2_RESTARTED**: `NO`
+* **ZATCA_CALLS**: `NO`
+* **NPHIES_CALLS**: `NO`
+* **ACCOUNTING_POSTING**: `NO`
+* **JOURNAL_ENTRIES_CREATED**: `0`
+* **SECRETS_PRINTED**: `NO`
+* **PHI_PRINTED**: `NO`
+* **MOJIBAKE_AUDIT**: `CLEAN_FOR_SCANNED_SCOPE_ONLY`
+* **UTF8_STATUS**: `CLEAN`
+* **GIT_COMMIT**: `d7c3e4e34bc64e005b79e5523ffa7856f3bce47b` (سيتم تحديثه)
+* **PUSH_STATUS**: `SUCCESS`
+* **NEXT_RECOMMENDED_ACTION**: `RUN_WAVE_2_LOCAL_SYNTHETIC_EVIDENCE_COLLECTION`
