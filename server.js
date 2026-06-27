@@ -684,8 +684,15 @@ app.post('/api/mfa/admin-reset', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'UP' });
+app.get('/api/health', async (req, res) => {
+    // Liveness + DB readiness: a lightweight SELECT 1 so the check reflects DB connectivity,
+    // not just process liveness. No detail leaked on failure. (No tenant context -> unscoped pool.)
+    try {
+        await pool.query('SELECT 1');
+        return res.status(200).json({ status: 'UP', db: 'up' });
+    } catch (e) {
+        return res.status(503).json({ status: 'DEGRADED', db: 'down' });
+    }
 });
 
 app.get('/api/auth/me', (req, res) => {

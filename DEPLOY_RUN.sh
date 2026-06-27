@@ -203,5 +203,5 @@ run migrations/e0_04_integration_settings_rls_up.sql; val migrations/e0_04_integ
 echo ""
 echo "=== ALL MIGRATIONS APPLIED + VALIDATED ==="
 echo "Next (operator): deploy the integration code + restart, then smoke:"
-echo "  pm2 restart nama-app && sleep 3 && curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3000/health"
+echo "  pm2 restart nama-app && sleep 3 && curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3000/api/health   # 200=UP(db up), 503=DEGRADED(db down)"
 echo "Gated flags stay OFF unless real keys exist: ACCOUNTING_POSTING_ENABLED, ZATCA_ENABLED, NPHIES_ENABLED, HR_PAYROLL_POSTING_ENABLED."
