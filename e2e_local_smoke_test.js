@@ -15,6 +15,21 @@ const dotenv = require('dotenv');
 
 dotenv.config({ path: path.join(__dirname, '.env') });
 
+// Enforce Safety Guard
+if (process.env.E2E_ALLOW_BROWSER_SMOKE !== 'true') {
+    console.error('⛔ [SAFETY GUARD] E2E_ALLOW_BROWSER_SMOKE is not set to true. Execution blocked.');
+    process.exit(1);
+}
+
+const E2E_READ_ONLY_MODE = process.env.E2E_READ_ONLY_MODE !== 'false';
+const E2E_TEST_USERNAME = process.env.E2E_TEST_USERNAME || 'admin';
+const E2E_TEST_PASSWORD = process.env.E2E_TEST_PASSWORD;
+
+if (!E2E_TEST_PASSWORD) {
+    console.error('⛔ [SAFETY GUARD] E2E_TEST_PASSWORD is not provided in environment variables.');
+    process.exit(1);
+}
+
 const DB_HOST = process.env.DB_HOST || 'localhost';
 const DB_PORT = process.env.DB_PORT || 5432;
 const DB_NAME = process.env.DB_NAME || 'nama_medical_web';
@@ -22,7 +37,7 @@ const DB_USER = process.env.DB_USER || 'postgres';
 const DB_PASSWORD = process.env.DB_PASSWORD || 'postgres';
 
 const TEST_PORT = 3000;
-const BASE_URL = `http://localhost:${TEST_PORT}`;
+const BASE_URL = process.env.E2E_BASE_URL || `http://localhost:${TEST_PORT}`;
 
 const RED = '\x1b[31m';
 const GREEN = '\x1b[32m';
@@ -32,7 +47,7 @@ const RESET = '\x1b[0m';
 const BOLD = '\x1b[1m';
 
 console.log(`\n${BOLD}${BLUE}============================================================${RESET}`);
-console.log(`${BOLD}${BLUE}  بدء اختبارات E2E Local Smoke Test لنظام نما الطبي${RESET}`);
+console.log(`${BOLD}${BLUE}  بدء اختبارات E2E Local Smoke Test لنظام نما الطبي (محصن)${RESET}`);
 console.log(`${BOLD}${BLUE}============================================================${RESET}\n`);
 
 const pool = new Pool({
@@ -42,8 +57,6 @@ const pool = new Pool({
     user: DB_USER,
     password: DB_PASSWORD
 });
-
-const TEST_PASSWORD = 'AdminTestPassword123!';
 
 // helper for HTTP requests
 function request(method, urlPath, headers = {}, body = null) {
@@ -113,19 +126,27 @@ async function runSmokeTests() {
     let originalHash = '';
 
     try {
-        // 1. Reset Admin password locally
-        console.log(`[1] تحديث كلمة مرور المشرف محلياً للتحضير للاختبار...`);
-        const salt = bcrypt.genSaltSync(12);
-        const hash = bcrypt.hashSync(TEST_PASSWORD, salt);
+        // [WRITE_ACTION] DB Password Reset
+        if (E2E_READ_ONLY_MODE) {
+            console.log(`[1] [READ-ONLY MODE] تخطي تعديل كلمة مرور المسؤول في قاعدة البيانات.`);
+        } else {
+            if (process.env.E2E_CONFIRM_DB_WRITE !== 'true') {
+                console.error('⛔ [SAFETY GUARD] DB Write Actions require E2E_CONFIRM_DB_WRITE=true. Blocked.');
+                process.exit(1);
+            }
+            console.log(`[1] تحديث كلمة مرور المشرف محلياً للتحضير للاختبار...`);
+            const salt = bcrypt.genSaltSync(12);
+            const hash = bcrypt.hashSync(E2E_TEST_PASSWORD, salt);
 
-        // Fetch original hash first
-        const origResult = await pool.query("SELECT password_hash FROM system_users WHERE username='admin'");
-        if (origResult.rows.length > 0) {
-            originalHash = origResult.rows[0].password_hash;
+            // Fetch original hash first
+            const origResult = await pool.query("SELECT password_hash FROM system_users WHERE username=$1", [E2E_TEST_USERNAME]);
+            if (origResult.rows.length > 0) {
+                originalHash = origResult.rows[0].password_hash;
+            }
+
+            await pool.query("UPDATE system_users SET password_hash = $1 WHERE username = $2", [hash, E2E_TEST_USERNAME]);
+            console.log(`  ${GREEN}✅ تم تحديث كلمة مرور ${E2E_TEST_USERNAME} بنجاح.${RESET}`);
         }
-
-        await pool.query("UPDATE system_users SET password_hash = $1 WHERE username = 'admin'", [hash]);
-        console.log(`  ${GREEN}✅ تم تحديث كلمة مرور admin بنجاح.${RESET}`);
 
         // 2. Spawn express server
         console.log(`\n[2] تشغيل خادم Express الطبي محلياً على المنفذ ${TEST_PORT}...`);
@@ -152,7 +173,7 @@ async function runSmokeTests() {
         // 3. E2E tests
         // Test 3.1: Invalid login fails
         console.log(`\n[3.1] اختبار تسجيل دخول خاطئ (Invalid Login)...`);
-        const invalidLoginRes = await request('POST', '/api/auth/login', {}, { username: 'admin', password: 'wrongpassword' });
+        const invalidLoginRes = await request('POST', '/api/auth/login', {}, { username: E2E_TEST_USERNAME, password: 'wrongpassword' });
         if (invalidLoginRes.statusCode === 401) {
             console.log(`  ${GREEN}✅ نجح: تم رفض الدخول بكلمة مرور خاطئة (Status: 401).${RESET}`);
         } else {
@@ -162,7 +183,7 @@ async function runSmokeTests() {
 
         // Test 3.2: Valid login succeeds and returns cookie
         console.log(`\n[3.2] اختبار تسجيل دخول صحيح (Valid Login)...`);
-        const validLoginRes = await request('POST', '/api/auth/login', {}, { username: 'admin', password: TEST_PASSWORD });
+        const validLoginRes = await request('POST', '/api/auth/login', {}, { username: E2E_TEST_USERNAME, password: E2E_TEST_PASSWORD });
         
         let sessionCookie = '';
         if (validLoginRes.statusCode === 200) {
@@ -196,7 +217,8 @@ async function runSmokeTests() {
             console.log(`\n[3.4] اختبار الوصول لقائمة المرضى (Patients List)...`);
             const patientsRes = await request('GET', '/api/patients', authHeaders);
             if (patientsRes.statusCode === 200) {
-                console.log(`  ${GREEN}✅ نجح: تم جلب قائمة المرضى بنجاح (الحالة: 200 OK).${RESET}`);
+                // PHI Logging Guard
+                console.log(`  ${GREEN}✅ نجح: تم جلب قائمة المرضى بنجاح (الحالة: 200 OK). [تنبيه أمان: تم حظر طباعة تفاصيل المرضى لمنع تسريب PHI]${RESET}`);
             } else {
                 console.log(`  ${RED}❌ فشل: رمز استجابة غير متوقع للمرضى (الحالة: ${patientsRes.statusCode})${RESET}`);
                 failed = true;
@@ -206,7 +228,7 @@ async function runSmokeTests() {
             console.log(`\n[3.5] اختبار الوصول لقائمة المواعيد (Appointments List)...`);
             const apptsRes = await request('GET', '/api/appointments', authHeaders);
             if (apptsRes.statusCode === 200) {
-                console.log(`  ${GREEN}✅ نجح: تم جلب قائمة المواعيد بنجاح (الحالة: 200 OK).${RESET}`);
+                console.log(`  ${GREEN}✅ نجح: تم جلب قائمة المواعيد بنجاح (الحالة: 200 OK). [تنبيه أمان: تم حظر طباعة تفاصيل المواعيد لمنع تسريب PHI]${RESET}`);
             } else {
                 console.log(`  ${RED}❌ فشل: رمز استجابة غير متوقع للمواعيد (الحالة: ${apptsRes.statusCode})${RESET}`);
                 failed = true;
@@ -238,7 +260,7 @@ async function runSmokeTests() {
         console.log("  إرسال 25 طلباً متتالياً لتجاوز حد المحاولات المسموح بها (20 محاولة)...");
         let rateLimited = false;
         for (let i = 1; i <= 25; i++) {
-            const r = await request('POST', '/api/auth/login', {}, { username: 'admin', password: 'bad' });
+            const r = await request('POST', '/api/auth/login', {}, { username: E2E_TEST_USERNAME, password: 'bad' });
             if (r.statusCode === 429) {
                 console.log(`  ${GREEN}✅ نجح: تم تفعيل محدد الطلبات والحظر برمز 429 Too Many Requests (عند الطلب رقم ${i}).${RESET}`);
                 rateLimited = true;
@@ -261,9 +283,9 @@ async function runSmokeTests() {
         }
 
         // Restore original password hash
-        if (originalHash) {
+        if (!E2E_READ_ONLY_MODE && originalHash) {
             console.log(`[5] إعادة تعيين هاش كلمة مرور admin الأصلي في قاعدة البيانات...`);
-            await pool.query("UPDATE system_users SET password_hash = $1 WHERE username = 'admin'", [originalHash]);
+            await pool.query("UPDATE system_users SET password_hash = $1 WHERE username = $2", [originalHash, E2E_TEST_USERNAME]);
             console.log(`  ${GREEN}✅ تم تنظيف وإرجاع قاعدة البيانات لوضعها الأصلي.${RESET}`);
         }
 
