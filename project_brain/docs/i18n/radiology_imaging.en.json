@@ -1,0 +1,15 @@
+{
+  "radiology_imaging": {
+    "dashboard": {
+      "title": "Radiology & Imaging Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

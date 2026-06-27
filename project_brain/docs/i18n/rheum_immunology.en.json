@@ -1,0 +1,15 @@
+{
+  "rheum_immunology": {
+    "dashboard": {
+      "title": "Rheumatology & Immunology Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

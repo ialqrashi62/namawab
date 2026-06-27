@@ -1,0 +1,9 @@
+Table anesthesia_pain_orders {
+  id uuid [pk]
+  patient_id varchar [ref: > patients.mrn]
+  type varchar
+  priority varchar [note: 'routine, urgent, stat, emergent']
+  status varchar
+  notes text
+  ordered_at datetime
+}

@@ -1,0 +1,15 @@
+{
+  "centers_of_excellence": {
+    "dashboard": {
+      "title": "لوحة مراكز التميز",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "orthopedics": {
+    "dashboard": {
+      "title": "لوحة جراحة العظام",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

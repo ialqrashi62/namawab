@@ -1,0 +1,15 @@
+{
+  "integrative_medicine": {
+    "dashboard": {
+      "title": "لوحة الطب التكاملي",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "ed": {
+    "board": {
+      "title": "ED Live Board",
+      "capacity": "Capacity",
+      "waiting": "Waiting",
+      "averageDoorToDoctor": "Avg Door-to-Doctor",
+      "ctas": {
+        "1": "CTAS 1 — Resus",
+        "2": "CTAS 2 — Emergent",
+        "3": "CTAS 3 — Urgent",
+        "4": "CTAS 4 — Less Urgent",
+        "5": "CTAS 5 — Non-Urgent"
+      }
+    },
+    "triage": {
+      "title": "Triage",
+      "submit": "Submit",
+      "aiSuggested": "AI Suggested",
+      "confirmCtas": "Confirm CTAS",
+      "vitals": {
+        "bp": "BP",
+        "hr": "HR",
+        "rr": "RR",
+        "spo2": "SpO2",
+        "temp": "Temp",
+        "gcs": "GCS",
+        "weight": "Weight"
+      },
+      "painScore": "Pain score"
+    },
+    "codes": {
+      "stemi": {
+        "label": "Code STEMI",
+        "activate": "Activate STEMI Protocol",
+        "active": "Code STEMI Active",
+        "doorToBalloon": "Door-to-Balloon"
+      },
+      "stroke": {
+        "label": "Code Stroke",
+        "activate": "Activate Stroke Protocol",
+        "doorToNeedle": "Door-to-Needle"
+      },
+      "sepsis": {
+        "label": "Code Sepsis",
+        "activate": "Start 1-Hour Bundle",
+        "bundleCountdown": "Time remaining"
+      },
+      "trauma": {
+        "label": "Trauma L1",
+        "activate": "Activate Trauma Alert"
+      },
+      "blue": {
+        "label": "Code Blue",
+        "activate": "Activate CPR Team"
+      }
+    },
+    "bundle": {
+      "labs": "Labs",
+      "imaging": "Imaging",
+      "meds": "Medications",
+      "procedures": "Procedures",
+      "applied": "Bundle Applied"
+    },
+    "disposition": {
+      "discharge": "Discharge",
+      "admit": "Admit",
+      "icu": "ICU",
+      "or": "OR",
+      "transfer": "Transfer",
+      "dama": "DAMA",
+      "death": "Deceased"
+    },
+    "ai": {
+      "askEd": "Ask ED Assistant",
+      "advisoryBanner": "Advisory only — clinician decides"
+    }
+  }
+}

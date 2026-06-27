@@ -1,0 +1,94 @@
+openapi: 3.0.3
+info:
+  title: NamaMedical API (candidate spec — NOT executed)
+  version: 0.1.0-candidate
+  description: >
+    Candidate OpenAPI for NamaMedical HIS/ERP. Documents existing patterns and proposed
+    missing endpoints. Source of truth = server.js (377 routes). Multi-tenant; session auth;
+    RLS-enforced (app.tenant_id). This file is documentation only — no code generated/deployed.
+servers:
+  - url: https://alfaisal-erp.com
+  - url: http://127.0.0.1:3000
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: connect.sid
+  responses:
+    Unauthorized: { description: 401 no session }
+    Forbidden: { description: 403 insufficient role / RBAC }
+    NotFound: { description: 404 }
+    RateLimited: { description: 429 }
+  schemas:
+    Patient:
+      type: object
+      properties:
+        id: { type: integer }
+        name_ar: { type: string }
+        name_en: { type: string }
+        national_id: { type: string }
+        tenant_id: { type: integer, readOnly: true, description: stamped from session, never client-supplied }
+    Error:
+      type: object
+      properties: { error: { type: string } }
+security:
+  - sessionCookie: []
+paths:
+  /api/health:
+    get:
+      summary: Health check (public)
+      security: []
+      responses: { '200': { description: OK } }
+  /api/auth/login:
+    post:
+      summary: Login (public)
+      security: []
+      responses: { '200': { description: OK }, '401': { $ref: '#/components/responses/Unauthorized' }, '429': { $ref: '#/components/responses/RateLimited' } }
+  /api/patients:
+    get:
+      summary: List patients (tenant-scoped via RLS)
+      responses: { '200': { description: OK }, '401': { $ref: '#/components/responses/Unauthorized' } }
+    post:
+      summary: Create patient (tenant_id stamped from session)
+      responses: { '201': { description: Created }, '401': { $ref: '#/components/responses/Unauthorized' } }
+  /api/settings/users:
+    post:
+      summary: Create system user (Admin only — deployed guard)
+      responses: { '201': { description: Created }, '403': { $ref: '#/components/responses/Forbidden' } }
+  /api/employees:
+    get:
+      summary: List employees (open for doctor/staff lists)
+      responses: { '200': { description: OK } }
+    post:
+      summary: Create employee (requireRole hr — deployed)
+      responses: { '201': { description: Created }, '403': { $ref: '#/components/responses/Forbidden' } }
+  # ---- CANDIDATE (missing) endpoints ----
+  /api/medical-records/{id}/sign:
+    post:
+      summary: "[CANDIDATE] Sign & lock medical record (Doctor)"
+      parameters: [ { name: id, in: path, required: true, schema: { type: integer } } ]
+      responses: { '200': { description: Signed }, '409': { description: Already locked }, '403': { $ref: '#/components/responses/Forbidden' } }
+  /api/auth/mfa/verify:
+    post:
+      summary: "[CANDIDATE] MFA verify"
+      security: []
+      responses: { '200': { description: OK }, '401': { $ref: '#/components/responses/Unauthorized' } }
+  /api/insurance/eligibility/{policy}:
+    get:
+      summary: "[CANDIDATE] NPHIES eligibility"
+      parameters: [ { name: policy, in: path, required: true, schema: { type: string } } ]
+      responses: { '200': { description: OK }, '502': { description: Upstream NPHIES error } }
+  /api/integration/fhir/{resource}:
+    post:
+      summary: "[CANDIDATE] FHIR R4 upsert"
+      parameters: [ { name: resource, in: path, required: true, schema: { type: string } } ]
+      responses: { '200': { description: OK }, '400': { description: Invalid resource } }
+  /api/finance/post:
+    post:
+      summary: "[CANDIDATE/GATED] Accounting posting (requires separate approval)"
+      responses: { '200': { description: Posted }, '409': { description: Posting disabled } }
+  /api/audit/search:
+    get:
+      summary: "[CANDIDATE/GATED] Cross-tenant audit reader (super-admin, audit-reader role)"
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Forbidden' } }

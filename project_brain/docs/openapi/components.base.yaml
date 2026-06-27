@@ -1,0 +1,224 @@
+openapi: 3.1.0
+info:
+  title: NamaMedical — Shared OpenAPI Components
+  version: 1.0.0
+  description: |
+    Reusable schemas / parameters / responses / security for all NamaMedical APIs.
+    Per-department OpenAPI specs `$ref` into this file.
+  contact:
+    name: NamaMedical Platform Team
+    email: platform@nama.local
+
+servers:
+  - url: https://api.nama.local
+    description: production
+  - url: https://staging-api.nama.local
+    description: staging
+  - url: http://localhost:8000
+    description: local
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    oauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://idp.nama.local/oauth2/authorize
+          tokenUrl:         https://idp.nama.local/oauth2/token
+          refreshUrl:       https://idp.nama.local/oauth2/token
+          scopes:
+            patient.read:   "Read patient demographics + clinical summary"
+            patient.write:  "Write demographics"
+            order.write:    "Place clinical orders"
+            result.read:    "Read clinical results"
+            ai.use:         "Invoke AI co-pilot"
+            admin:          "Admin functions"
+            audit.read:     "Read audit trails"
+
+  parameters:
+    XRequestId:
+      in: header
+      name: X-Request-Id
+      required: false
+      schema: { type: string, format: uuid }
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: false
+      schema: { type: string, maxLength: 64 }
+    AcceptLanguage:
+      in: header
+      name: Accept-Language
+      schema: { type: string, enum: [ar, en], default: ar }
+    PageSize:
+      in: query
+      name: page_size
+      schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+    PageToken:
+      in: query
+      name: page_token
+      schema: { type: string }
+    PatientIdPath:
+      in: path
+      name: patient_id
+      required: true
+      schema: { type: string, pattern: '^P-\d{4,}$' }
+
+  schemas:
+
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:    { type: string, example: PATIENT_NOT_FOUND }
+        message: { type: string }
+        details: { type: object, additionalProperties: true }
+        request_id: { type: string, format: uuid }
+
+    PageMeta:
+      type: object
+      properties:
+        next_page_token: { type: string, nullable: true }
+        total_estimated: { type: integer, nullable: true }
+
+    Money:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount:   { type: number, multipleOf: 0.01 }
+        currency: { type: string, default: SAR, enum: [SAR, USD, EUR] }
+
+    Patient:
+      type: object
+      required: [mrn, name_en, sex, dob]
+      properties:
+        mrn:         { type: string, pattern: '^P-\d{4,}$' }
+        name_ar:     { type: string }
+        name_en:     { type: string }
+        sex:         { type: string, enum: [male, female] }
+        dob:         { type: string, format: date }
+        nationality: { type: string }
+        national_id_last4: { type: string, pattern: '^\d{4}$' }
+        phone:       { type: string }
+        allergies:   { type: array, items: { type: string } }
+        active_problems:
+          type: array
+          items:
+            type: object
+            properties:
+              code:   { type: string }
+              system: { type: string, enum: [icd10, snomed] }
+              desc:   { type: string }
+
+    Visit:
+      type: object
+      required: [id, patient_id, type, started_at]
+      properties:
+        id:         { type: string, format: uuid }
+        patient_id: { type: string }
+        type:       { type: string, enum: [opd, er, ipd, telemed, daycare] }
+        doctor_id:  { type: string }
+        ward_id:    { type: string, nullable: true }
+        started_at: { type: string, format: date-time }
+        ended_at:   { type: string, format: date-time, nullable: true }
+
+    Order:
+      type: object
+      required: [type, items, priority]
+      properties:
+        type:     { type: string, enum: [lab, radiology, medication, procedure, referral, diet, nursing] }
+        items:    { type: array, items: { $ref: '#/components/schemas/OrderItem' } }
+        priority: { type: string, enum: [routine, urgent, stat, emergent] }
+        indication: { type: string }
+
+    OrderItem:
+      type: object
+      required: [code]
+      properties:
+        code:   { type: string }
+        system: { type: string, enum: [loinc, cpt, rxnorm, snomed, custom] }
+        qty:    { type: number, minimum: 0 }
+        unit:   { type: string }
+
+    Result:
+      type: object
+      required: [order_id, observed_at, value]
+      properties:
+        order_id:    { type: string, format: uuid }
+        observed_at: { type: string, format: date-time }
+        value:       { oneOf: [{ type: string }, { type: number }] }
+        unit:        { type: string }
+        ref_range:   { type: string }
+        flag:        { type: string, enum: [N, L, H, LL, HH, A, C], default: N }
+
+    AIRequest:
+      type: object
+      required: [question]
+      properties:
+        question:   { type: string, maxLength: 4000 }
+        patient_id: { type: string, nullable: true }
+        visit_id:   { type: string, nullable: true }
+        context:    { type: object, additionalProperties: true }
+        lang:       { type: string, enum: [ar, en], default: ar }
+
+    AIResponse:
+      type: object
+      required: [answer, confidence]
+      properties:
+        answer:                  { type: string }
+        confidence:              { type: number, minimum: 0, maximum: 1 }
+        requires_human_confirm:  { type: boolean }
+        safety_critical:         { type: boolean }
+        citations:               { type: array, items: { type: string } }
+        audit_hash:              { type: string }
+
+    AuditEntry:
+      type: object
+      required: [actor, action, entity, ts]
+      properties:
+        actor:    { type: string }
+        action:   { type: string }
+        entity:   { type: string }
+        entity_id:{ type: string }
+        ts:       { type: string, format: date-time }
+        prev_hash:{ type: string }
+        this_hash:{ type: string }
+
+  responses:
+
+    UnauthorizedError:
+      description: Bearer token missing or invalid
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    ForbiddenError:
+      description: Insufficient scope or RBAC denial
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    ValidationError:
+      description: Invalid request payload
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    RateLimitedError:
+      description: Too many requests
+      headers:
+        Retry-After:
+          schema: { type: integer }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+security:
+  - bearerAuth: []

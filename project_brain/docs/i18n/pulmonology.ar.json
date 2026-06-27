@@ -1,0 +1,15 @@
+{
+  "pulmonology": {
+    "dashboard": {
+      "title": "لوحة الأمراض الصدرية",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

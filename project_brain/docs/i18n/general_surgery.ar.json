@@ -1,0 +1,15 @@
+{
+  "general_surgery": {
+    "dashboard": {
+      "title": "لوحة الجراحة العامة",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

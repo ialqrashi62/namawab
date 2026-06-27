@@ -1,0 +1,15 @@
+{
+  "logistics_it": {
+    "dashboard": {
+      "title": "Logistics & IT Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "rare_advanced": {
+    "dashboard": {
+      "title": "لوحة الأمراض النادرة والمتقدمة",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

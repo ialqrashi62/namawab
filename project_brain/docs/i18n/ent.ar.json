@@ -1,0 +1,15 @@
+{
+  "ent": {
+    "dashboard": {
+      "title": "لوحة الأنف والأذن والحنجرة",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

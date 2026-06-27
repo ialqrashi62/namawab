@@ -1,0 +1,47 @@
+// {{Department}} ERD — DBML template
+// Replace {{dept_key}} and tailor tables to the department's data needs.
+
+Project NamaMedical_{{Department}} {
+  database_type: 'SQL Server'
+  Note: '{{Department}} bounded context.'
+}
+
+Table patients {
+  id int [pk]
+  mrn varchar [unique]
+}
+
+Table visits {
+  id int [pk]
+  patient_id int [ref: > patients.id]
+}
+
+Table {{dept_key}}_orders {
+  id uuid [pk]
+  patient_id int [ref: > patients.id]
+  visit_id int [ref: > visits.id]
+  type varchar
+  priority varchar
+  status varchar
+  ordered_by int
+  ordered_at datetimeoffset
+}
+
+Table {{dept_key}}_results {
+  id uuid [pk]
+  order_id uuid [ref: > {{dept_key}}_orders.id]
+  observed_at datetimeoffset
+  value nvarchar
+  unit varchar
+  ref_range varchar
+  flag varchar
+}
+
+Table {{dept_key}}_notes {
+  id uuid [pk]
+  patient_id int [ref: > patients.id]
+  visit_id int [ref: > visits.id]
+  author_id int
+  written_at datetimeoffset
+  soap_json nvarchar
+}

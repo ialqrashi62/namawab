@@ -1,0 +1,15 @@
+{
+  "security_safety": {
+    "dashboard": {
+      "title": "لوحة الأمن والسلامة",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

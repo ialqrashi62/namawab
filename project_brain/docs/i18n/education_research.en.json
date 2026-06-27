@@ -1,0 +1,15 @@
+{
+  "education_research": {
+    "dashboard": {
+      "title": "Education & Research Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

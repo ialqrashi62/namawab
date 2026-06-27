@@ -1,0 +1,15 @@
+{
+  "rehab_pt": {
+    "dashboard": {
+      "title": "لوحة التأهيل والعلاج الطبيعي",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

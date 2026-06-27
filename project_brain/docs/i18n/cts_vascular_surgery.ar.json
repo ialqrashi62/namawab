@@ -1,0 +1,15 @@
+{
+  "cts_vascular_surgery": {
+    "dashboard": {
+      "title": "لوحة جراحة القلب والأوعية الدموية",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

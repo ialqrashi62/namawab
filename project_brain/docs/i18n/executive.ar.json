@@ -1,0 +1,15 @@
+{
+  "executive": {
+    "dashboard": {
+      "title": "لوحة الإدارة التنفيذية",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

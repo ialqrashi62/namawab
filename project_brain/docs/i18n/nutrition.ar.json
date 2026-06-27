@@ -1,0 +1,15 @@
+{
+  "nutrition": {
+    "dashboard": {
+      "title": "لوحة التغذية",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

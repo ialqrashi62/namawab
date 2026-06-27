@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Defs_obgyn_labor" targetNamespace="http://nama.local/bpmn">
+  <bpmn:process id="Proc_Labor" isExecutable="true">
+    <bpmn:startEvent id="S" name="Patient in labor"/>
+    <bpmn:task id="T_Admit" name="Admit to L&amp;D; baseline assessment"/>
+    <bpmn:task id="T_Partograph" name="Begin partograph (cervical, FHR, contractions)"/>
+    <bpmn:exclusiveGateway id="GW_Phase" name="Active phase reached?"/>
+    <bpmn:task id="T_Monitor" name="Continue monitoring (1h)"/>
+    <bpmn:task id="T_Active" name="Active labor management"/>
+    <bpmn:exclusiveGateway id="GW_Path" name="Vaginal path possible?"/>
+    <bpmn:task id="T_Vaginal" name="Vaginal delivery"/>
+    <bpmn:task id="T_CS" name="Emergency / planned C-section"/>
+    <bpmn:task id="T_Apgar" name="Apgar 1' &amp; 5'; baby to neonatal team"/>
+    <bpmn:task id="T_PostPartum" name="Post-partum care + bonding"/>
+    <bpmn:endEvent id="E" name="Delivery complete"/>
+
+    <bpmn:sequenceFlow sourceRef="S" targetRef="T_Admit"/>
+    <bpmn:sequenceFlow sourceRef="T_Admit" targetRef="T_Partograph"/>
+    <bpmn:sequenceFlow sourceRef="T_Partograph" targetRef="GW_Phase"/>
+    <bpmn:sequenceFlow name="No" sourceRef="GW_Phase" targetRef="T_Monitor"/>
+    <bpmn:sequenceFlow sourceRef="T_Monitor" targetRef="GW_Phase"/>
+    <bpmn:sequenceFlow name="Yes" sourceRef="GW_Phase" targetRef="T_Active"/>
+    <bpmn:sequenceFlow sourceRef="T_Active" targetRef="GW_Path"/>
+    <bpmn:sequenceFlow name="Yes" sourceRef="GW_Path" targetRef="T_Vaginal"/>
+    <bpmn:sequenceFlow name="No"  sourceRef="GW_Path" targetRef="T_CS"/>
+    <bpmn:sequenceFlow sourceRef="T_Vaginal" targetRef="T_Apgar"/>
+    <bpmn:sequenceFlow sourceRef="T_CS" targetRef="T_Apgar"/>
+    <bpmn:sequenceFlow sourceRef="T_Apgar" targetRef="T_PostPartum"/>
+    <bpmn:sequenceFlow sourceRef="T_PostPartum" targetRef="E"/>
+  </bpmn:process>
+</bpmn:definitions>

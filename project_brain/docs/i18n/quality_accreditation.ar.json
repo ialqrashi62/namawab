@@ -1,0 +1,15 @@
+{
+  "quality_accreditation": {
+    "dashboard": {
+      "title": "لوحة الجودة والاعتماد",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

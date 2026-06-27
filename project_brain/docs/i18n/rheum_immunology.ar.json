@@ -1,0 +1,15 @@
+{
+  "rheum_immunology": {
+    "dashboard": {
+      "title": "لوحة الروماتيزم والمناعة",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

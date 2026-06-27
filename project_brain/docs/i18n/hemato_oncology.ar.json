@@ -1,0 +1,15 @@
+{
+  "hemato_oncology": {
+    "dashboard": {
+      "title": "لوحة أمراض الدم والأورام",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

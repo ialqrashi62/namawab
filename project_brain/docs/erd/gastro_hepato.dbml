@@ -1,0 +1,18 @@
+Table gastro_orders {
+  id uuid [pk]
+  patient_id varchar [ref: > patients.mrn]
+  type varchar [note: 'upper_endoscopy, colonoscopy, ercp, eus, capsule, liver_biopsy, fibroscan']
+  priority varchar [note: 'routine, urgent, stat, emergent']
+  status varchar
+  notes text
+  ordered_at datetime
+}
+
+Table gastro_endoscopy_reports {
+  id uuid [pk]
+  order_id uuid [ref: > gastro_orders.id]
+  findings text
+  biopsy_taken boolean
+  complications text
+  reported_at datetime
+}

@@ -1,0 +1,15 @@
+{
+  "logistics_it": {
+    "dashboard": {
+      "title": "لوحة اللوجستيات وتقنية المعلومات",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

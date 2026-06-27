@@ -1,0 +1,130 @@
+openapi: 3.1.0
+info:
+  title: NamaMedical — Gastroenterology & Hepatology API
+  version: 0.1.0
+  description: |
+    Gastroenterology & Hepatology service (G03).
+    Inherits common schemas from `components.base.yaml`.
+
+servers:
+  - url: https://api.nama.local
+  - url: https://staging-api.nama.local
+
+tags:
+  - { name: orders }
+  - { name: results }
+  - { name: procedures }
+  - { name: ai }
+
+paths:
+
+  /api/v1/gastro/orders:
+    get:
+      tags: [orders]
+      parameters:
+        - { $ref: 'components.base.yaml#/components/parameters/PageSize' }
+        - { $ref: 'components.base.yaml#/components/parameters/PageToken' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: '#/components/schemas/DeptOrder' } }
+                  meta: { $ref: 'components.base.yaml#/components/schemas/PageMeta' }
+    post:
+      tags: [orders]
+      security: [{ bearerAuth: [order.write] }]
+      parameters:
+        - { $ref: 'components.base.yaml#/components/parameters/IdempotencyKey' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DeptOrderInput' }
+      responses:
+        '201':
+          content: { application/json: { schema: { $ref: '#/components/schemas/DeptOrder' } } }
+
+  /api/v1/gastro/procedures/endoscopy:
+    post:
+      tags: [procedures]
+      security: [{ bearerAuth: [order.write] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EndoscopyReportInput' }
+      responses:
+        '201':
+          content: { application/json: { schema: { $ref: '#/components/schemas/EndoscopyReport' } } }
+
+  /api/v1/gastro/results:
+    get:
+      tags: [results]
+      parameters:
+        - in: query
+          name: patient_id
+          schema: { type: string }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: 'components.base.yaml#/components/schemas/Result' }
+
+  /api/v1/gastro/ai/ask:
+    post:
+      tags: [ai]
+      security: [{ bearerAuth: [ai.use] }]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: 'components.base.yaml#/components/schemas/AIRequest' }
+      responses:
+        '200':
+          content: { application/json: { schema: { $ref: 'components.base.yaml#/components/schemas/AIResponse' } } }
+
+components:
+  schemas:
+    DeptOrderInput:
+      type: object
+      required: [patient_id, type]
+      properties:
+        patient_id: { type: string }
+        type:       { type: string, enum: [upper_endoscopy, colonoscopy, ercp, eus, capsule, liver_biopsy, fibroscan] }
+        priority:   { type: string, enum: [routine, urgent, stat, emergent] }
+        notes:      { type: string }
+
+    DeptOrder:
+      allOf:
+        - { $ref: '#/components/schemas/DeptOrderInput' }
+        - type: object
+          properties:
+            id:         { type: string, format: uuid }
+            status:     { type: string }
+            ordered_at: { type: string, format: date-time }
+
+    EndoscopyReportInput:
+      type: object
+      required: [order_id, findings]
+      properties:
+        order_id: { type: string, format: uuid }
+        findings: { type: string }
+        biopsy_taken: { type: boolean }
+        complications: { type: string }
+
+    EndoscopyReport:
+      allOf:
+        - { $ref: '#/components/schemas/EndoscopyReportInput' }
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            reported_at: { type: string, format: date-time }
+
+  securitySchemes:
+    bearerAuth: { $ref: 'components.base.yaml#/components/securitySchemes/bearerAuth' }
+
+security: [{ bearerAuth: [] }]

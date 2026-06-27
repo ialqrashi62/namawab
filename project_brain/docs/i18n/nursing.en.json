@@ -1,0 +1,15 @@
+{
+  "nursing": {
+    "dashboard": {
+      "title": "Nursing Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

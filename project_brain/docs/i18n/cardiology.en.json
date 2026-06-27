@@ -1,0 +1,116 @@
+{
+  "cardiology": {
+    "dashboard": {
+      "title": "Cardiology Dashboard",
+      "todayCases": "Today's Cases",
+      "stemiAlerts": "STEMI Alerts",
+      "hfCohort": "Heart Failure Cohort"
+    },
+    "order": {
+      "type": {
+        "cath": "Cardiac Catheterization",
+        "ep_study": "EP Study",
+        "echo": "Echocardiogram",
+        "holter": "Holter Monitor",
+        "ecg": "ECG",
+        "tte": "TTE",
+        "tee": "TEE"
+      },
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT",
+        "emergent": "Emergent"
+      },
+      "actions": {
+        "place": "Place Order",
+        "schedule": "Schedule",
+        "fulfill": "Fulfill",
+        "cancel": "Cancel"
+      }
+    },
+    "ecg": {
+      "uploadTitle": "Upload ECG",
+      "aiInterpretation": "AI Interpretation",
+      "physicianOverread": "Physician Overread",
+      "confidence": "Confidence",
+      "labels": {
+        "normal": "Normal",
+        "afib_controlled": "AFib (controlled)",
+        "stemi_anterior": "STEMI Anterior",
+        "stemi_inferior": "STEMI Inferior",
+        "stemi_lateral": "STEMI Lateral",
+        "stemi_posterior": "STEMI Posterior",
+        "nstemi_suspected": "NSTEMI suspected",
+        "lbbb": "LBBB",
+        "rbbb": "RBBB",
+        "av_block": "AV Block"
+      }
+    },
+    "echo": {
+      "title": "Echocardiogram Report",
+      "ef": "Ejection Fraction",
+      "lvids": "LV Internal Diameter (Systole)",
+      "valves": {
+        "mv": "Mitral Valve",
+        "av": "Aortic Valve",
+        "tv": "Tricuspid Valve",
+        "pv": "Pulmonary Valve"
+      },
+      "rwma": "Regional Wall Motion Abnormality"
+    },
+    "cath": {
+      "title": "Cardiac Catheterization",
+      "access": {
+        "radial-r": "Right Radial",
+        "radial-l": "Left Radial",
+        "femoral-r": "Right Femoral",
+        "femoral-l": "Left Femoral"
+      },
+      "fluoroMin": "Fluoroscopy time (min)",
+      "contrastMl": "Contrast volume (mL)",
+      "syntax": "SYNTAX score",
+      "pciDone": "PCI performed"
+    },
+    "device": {
+      "title": "Implanted Device Registry",
+      "type": {
+        "pacemaker": "Pacemaker",
+        "icd": "Implantable Cardioverter-Defibrillator",
+        "crt-p": "CRT-P",
+        "crt-d": "CRT-D",
+        "loop_recorder": "Loop Recorder"
+      },
+      "battery": "Battery Status",
+      "lastInterrogation": "Last Interrogation"
+    },
+    "hf": {
+      "title": "Heart Failure Program",
+      "nyha": "NYHA Class",
+      "ahaStage": "AHA Stage",
+      "gdmt": "Guideline-Directed Medical Therapy",
+      "arni": "ARNI",
+      "bb": "Beta-Blocker",
+      "mra": "MRA",
+      "sglt2i": "SGLT2 inhibitor"
+    },
+    "risk": {
+      "heart": "HEART score",
+      "grace": "GRACE score",
+      "cha2ds2_vasc": "CHA2DS2-VASc",
+      "has_bled": "HAS-BLED",
+      "syntax": "SYNTAX"
+    },
+    "stemi": {
+      "alertBanner": "STEMI detected — activate Cath Lab protocol",
+      "doorToBalloon": "Door-to-Balloon",
+      "activate": "Activate STEMI protocol",
+      "deactivate": "Deactivate",
+      "team": "Assigned Team"
+    },
+    "ai": {
+      "askCardio": "Ask Cardiology Assistant",
+      "advisoryBanner": "Advisory only — clinician decides"
+    }
+  }
+}

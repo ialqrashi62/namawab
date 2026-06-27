@@ -1,0 +1,214 @@
+openapi: 3.1.0
+info:
+  title: NamaMedical — Emergency Department API
+  version: 1.0.0
+  description: |
+    ED service: triage, visits, codes (STEMI/Stroke/Sepsis/Trauma), order bundles, live board (SSE).
+
+servers: [{ url: https://api.nama.local }]
+
+tags:
+  - { name: visits, description: ED visits & disposition }
+  - { name: triage, description: AI-assisted triage }
+  - { name: codes,  description: Code activations }
+  - { name: bundles, description: Order set bundles }
+  - { name: board,  description: Live board SSE }
+  - { name: ai,     description: ED AI co-pilot }
+
+paths:
+
+  /api/v1/ed/visits:
+    get:
+      tags: [visits]
+      parameters:
+        - { in: query, name: status, schema: { type: string } }
+        - { in: query, name: ctas,   schema: { type: integer, minimum: 1, maximum: 5 } }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/EdVisit' }
+    post:
+      tags: [visits]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EdVisitInput' }
+      responses:
+        '201':
+          content: { application/json: { schema: { $ref: '#/components/schemas/EdVisit' } } }
+
+  /api/v1/ed/visits/{id}/disposition:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+    patch:
+      tags: [visits]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [disposition]
+              properties:
+                disposition: { type: string, enum: [discharge, admit, icu, or, transfer, dama, death] }
+                doctor_id:   { type: string }
+                bed_id:      { type: string }
+      responses:
+        '200':
+          content: { application/json: { schema: { $ref: '#/components/schemas/EdVisit' } } }
+
+  /api/v1/ed/triage:
+    post:
+      tags: [triage]
+      summary: Submit triage assessment (AI suggests CTAS)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EdTriageInput' }
+      responses:
+        '200':
+          content: { application/json: { schema: { $ref: '#/components/schemas/EdTriage' } } }
+
+  /api/v1/ed/codes/{code}/activate:
+    parameters:
+      - { in: path, name: code, required: true, schema: { type: string, enum: [STEMI, STROKE, SEPSIS, TRAUMA_L1, BLUE] } }
+    post:
+      tags: [codes]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ed_visit_id]
+              properties:
+                ed_visit_id: { type: string, format: uuid }
+                triggered_by: { type: string }
+      responses:
+        '202':
+          content: { application/json: { schema: { $ref: '#/components/schemas/EdCode' } } }
+
+  /api/v1/ed/orders/bundle/{protocol}:
+    parameters:
+      - { in: path, name: protocol, required: true, schema: { type: string, enum: [stemi, stroke, sepsis_1h, trauma_l1, asthma, dka] } }
+    post:
+      tags: [bundles]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ed_visit_id]
+              properties:
+                ed_visit_id: { type: string, format: uuid }
+      responses:
+        '201':
+          content: { application/json: { schema: { $ref: '#/components/schemas/EdOrderBundle' } } }
+
+  /api/v1/ed/board:
+    get:
+      tags: [board]
+      summary: Server-Sent Events stream of ED board state
+      responses:
+        '200':
+          description: text/event-stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: |
+                  event: snapshot
+                  data: {"capacity_pct":78,"waiting":12,"ctas1":1,"ctas2":3,"ctas3":7,...}
+
+  /api/v1/ed/ai/ask:
+    post:
+      tags: [ai]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: 'components.base.yaml#/components/schemas/AIRequest' }
+      responses:
+        '200':
+          content: { application/json: { schema: { $ref: 'components.base.yaml#/components/schemas/AIResponse' } } }
+
+components:
+  schemas:
+
+    EdVisitInput:
+      type: object
+      required: [patient_id, arrival_mode]
+      properties:
+        patient_id:   { type: string }
+        arrival_mode: { type: string, enum: [walk-in, ambulance, police, self] }
+        chief_complaint: { type: string }
+
+    EdVisit:
+      allOf:
+        - { $ref: '#/components/schemas/EdVisitInput' }
+        - type: object
+          properties:
+            id:           { type: string, format: uuid }
+            visit_number: { type: string }
+            arrived_at:   { type: string, format: date-time }
+            ctas_level:   { type: integer, minimum: 1, maximum: 5, nullable: true }
+            disposition:  { type: string, nullable: true }
+            los_minutes:  { type: integer, nullable: true }
+
+    EdTriageInput:
+      type: object
+      required: [ed_visit_id]
+      properties:
+        ed_visit_id:    { type: string, format: uuid }
+        pain_score:     { type: integer, minimum: 0, maximum: 10 }
+        bp_sys: { type: integer }
+        bp_dia: { type: integer }
+        hr:     { type: integer }
+        rr:     { type: integer }
+        spo2:   { type: integer }
+        temp_c: { type: number }
+        gcs:    { type: integer, minimum: 3, maximum: 15 }
+        weight_kg: { type: number }
+        allergies_text: { type: string }
+
+    EdTriage:
+      allOf:
+        - { $ref: '#/components/schemas/EdTriageInput' }
+        - type: object
+          properties:
+            id:                 { type: string, format: uuid }
+            ai_suggested_ctas:  { type: integer }
+            ai_confidence:      { type: number }
+            final_ctas:         { type: integer }
+
+    EdCode:
+      type: object
+      properties:
+        id:           { type: string, format: uuid }
+        ed_visit_id:  { type: string, format: uuid }
+        code_name:    { type: string }
+        activated_at: { type: string, format: date-time }
+        outcome:      { type: string, nullable: true }
+
+    EdOrderBundle:
+      type: object
+      properties:
+        id:           { type: string, format: uuid }
+        ed_visit_id:  { type: string, format: uuid }
+        protocol_name:{ type: string }
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              type: { type: string, enum: [lab, rad, med, procedure] }
+              dose: { type: string, nullable: true }
+
+  securitySchemes:
+    bearerAuth:
+      $ref: 'components.base.yaml#/components/securitySchemes/bearerAuth'
+
+security:
+  - bearerAuth: []

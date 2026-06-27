@@ -1,0 +1,118 @@
+# NamaMedical — Local development stack
+# Bring up with:  docker compose -f docker-compose.dev.yml up -d
+# Tear down:      docker compose -f docker-compose.dev.yml down -v
+
+services:
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: nama-mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "NamaDev!2026"
+      MSSQL_PID: Developer
+    ports: ["1433:1433"]
+    volumes:
+      - mssql_data:/var/opt/mssql
+      - ./seeders:/seeders:ro
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'NamaDev!2026' -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      retries: 30
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: nama-qdrant
+    ports: ["6333:6333", "6334:6334"]
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  redis:
+    image: redis:7-alpine
+    container_name: nama-redis
+    command: redis-server --requirepass NamaDev!2026 --save 60 1
+    ports: ["6379:6379"]
+    volumes:
+      - redis_data:/data
+
+  minio:
+    image: minio/minio:latest
+    container_name: nama-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: nama
+      MINIO_ROOT_PASSWORD: NamaDev!2026
+    ports: ["9000:9000", "9001:9001"]
+    volumes: [minio_data:/data]
+
+  kafka:
+    image: bitnami/kafka:3.7
+    container_name: nama-kafka
+    environment:
+      KAFKA_CFG_NODE_ID: "1"
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+    ports: ["9092:9092"]
+    volumes: [kafka_data:/bitnami/kafka]
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: nama-prometheus
+    ports: ["9090:9090"]
+    volumes:
+      - ./dev-tooling/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prom_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: nama-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: NamaDev!2026
+    ports: ["3000:3000"]
+    volumes: [grafana_data:/var/lib/grafana]
+    depends_on: [prometheus]
+
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: nama-loki
+    ports: ["3100:3100"]
+    command: -config.file=/etc/loki/local-config.yaml
+
+  ai-orchestrator:
+    image: ghcr.io/nama/ai-orchestrator:dev
+    container_name: nama-ai
+    build:
+      context: ./services/ai-orchestrator
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: "mssql+pyodbc://sa:NamaDev!2026@mssql/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
+      QDRANT_URL: "http://qdrant:6333"
+      REDIS_URL: "redis://:NamaDev!2026@redis:6379"
+      KAFKA_BROKERS: "kafka:9092"
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
+      LOG_LEVEL: "DEBUG"
+    ports: ["8000:8000"]
+    depends_on:
+      mssql: { condition: service_healthy }
+      qdrant: { condition: service_started }
+      redis:  { condition: service_started }
+
+  portal-web:
+    image: ghcr.io/nama/portal-web:dev
+    container_name: nama-portal
+    build:
+      context: ./AppServerPortal
+    ports: ["8080:80"]
+
+volumes:
+  mssql_data:
+  qdrant_data:
+  redis_data:
+  minio_data:
+  kafka_data:
+  prom_data:
+  grafana_data:

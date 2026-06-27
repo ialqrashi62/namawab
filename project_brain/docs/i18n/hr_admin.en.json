@@ -1,0 +1,15 @@
+{
+  "hr_admin": {
+    "dashboard": {
+      "title": "HR & Admin Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

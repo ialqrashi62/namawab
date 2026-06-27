@@ -1,0 +1,82 @@
+// ED ERD — DBML
+
+Project NamaMedical_ED {
+  database_type: 'SQL Server'
+  Note: 'Emergency Department: visits, triage, codes, bundles, board snapshots.'
+}
+
+Table patients {
+  id int [pk]
+  mrn varchar [unique]
+  name_ar nvarchar
+  name_en varchar
+}
+
+Table ed_visits {
+  id uuid [pk]
+  visit_number varchar [unique, not null]
+  patient_id int [ref: > patients.id]
+  arrival_mode varchar
+  arrived_at datetimeoffset
+  triage_started_at datetimeoffset
+  triage_completed_at datetimeoffset
+  ctas_level tinyint
+  chief_complaint nvarchar
+  seen_by_doctor_at datetimeoffset
+  doctor_id int
+  bed_id varchar
+  disposition varchar
+  disposition_at datetimeoffset
+  los_minutes int
+}
+
+Table ed_triage {
+  id uuid [pk]
+  ed_visit_id uuid [ref: > ed_visits.id]
+  nurse_id int
+  pain_score tinyint
+  bp_sys int
+  bp_dia int
+  hr int
+  rr int
+  spo2 int
+  temp_c decimal
+  gcs tinyint
+  weight_kg decimal
+  allergies_text nvarchar
+  ai_suggested_ctas tinyint
+  ai_confidence decimal
+  final_ctas tinyint
+}
+
+Table ed_codes {
+  id uuid [pk]
+  ed_visit_id uuid [ref: > ed_visits.id]
+  code_name varchar
+  activated_at datetimeoffset
+  activated_by int
+  deactivated_at datetimeoffset
+  outcome varchar
+}
+
+Table ed_order_bundles {
+  id uuid [pk]
+  ed_visit_id uuid [ref: > ed_visits.id]
+  protocol_name varchar
+  applied_by int
+  applied_at datetimeoffset
+  items_json nvarchar
+}
+
+Table ed_board_snapshots {
+  id uuid [pk]
+  snapshot_at datetimeoffset
+  capacity_pct decimal
+  waiting_count int
+  ctas1_count int
+  ctas2_count int
+  ctas3_count int
+  ctas4_count int
+  ctas5_count int
+  avg_door_to_doctor_min int
+}

@@ -1,0 +1,55 @@
+openapi: 3.1.0
+info:
+  title: NamaMedical — Social & Psychology API
+  version: 0.1.0
+  description: |
+    Social & Psychology service. Inherits common schemas from `components.base.yaml`.
+
+servers:
+  - url: https://api.nama.local
+
+tags:
+  - { name: orders }
+  - { name: results }
+
+paths:
+  /api/v1/social_psych/orders:
+    get:
+      tags: [orders]
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: '#/components/schemas/DeptOrder' } }
+    post:
+      tags: [orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DeptOrderInput' }
+      responses:
+        '201':
+          content: { application/json: { schema: { $ref: '#/components/schemas/DeptOrder' } } }
+
+components:
+  schemas:
+    DeptOrderInput:
+      type: object
+      required: [patient_id, type]
+      properties:
+        patient_id: { type: string }
+        type:       { type: string }
+        priority:   { type: string, enum: [routine, urgent, stat, emergent] }
+        notes:      { type: string }
+    DeptOrder:
+      allOf:
+        - { $ref: '#/components/schemas/DeptOrderInput' }
+        - type: object
+          properties:
+            id:         { type: string, format: uuid }
+            status:     { type: string }
+            ordered_at: { type: string, format: date-time }

@@ -1,0 +1,15 @@
+{
+  "nursing": {
+    "dashboard": {
+      "title": "لوحة التمريض",
+      "todayOrders": "طلبات اليوم"
+    },
+    "order": {
+      "priority": {
+        "routine": "روتيني",
+        "urgent": "عاجل",
+        "stat": "طارئ"
+      }
+    }
+  }
+}

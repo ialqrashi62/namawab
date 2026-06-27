@@ -1,0 +1,48 @@
+{
+  "uid": "nama-ed-live",
+  "title": "NamaMedical — ED Live Board",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-12h", "to": "now" },
+  "tags": ["nama","ed","clinical"],
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Patients in ED (now)",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "targets": [{ "expr": "ed_patients_in_dept" }]
+    },
+    {
+      "id": 2, "type": "stat", "title": "Capacity (%)",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "targets": [{ "expr": "100 * ed_patients_in_dept / ed_capacity_total" }],
+      "fieldConfig": { "defaults": { "unit": "percent",
+        "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 75 }, { "color": "red", "value": 90 }] } } }
+    },
+    {
+      "id": 3, "type": "stat", "title": "Active codes",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "targets": [
+        { "expr": "sum(ed_active_codes{code=\"STEMI\"})", "legendFormat": "STEMI" },
+        { "expr": "sum(ed_active_codes{code=\"STROKE\"})", "legendFormat": "STROKE" },
+        { "expr": "sum(ed_active_codes{code=\"SEPSIS\"})", "legendFormat": "SEPSIS" },
+        { "expr": "sum(ed_active_codes{code=\"TRAUMA_L1\"})", "legendFormat": "TRAUMA_L1" }
+      ]
+    },
+    {
+      "id": 4, "type": "stat", "title": "Door-to-Doctor median (min)",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+      "targets": [{ "expr": "ed_door_to_doctor_median_minutes" }]
+    },
+    {
+      "id": 5, "type": "barchart", "title": "Patients by CTAS",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "targets": [{ "expr": "sum by (ctas) (ed_patients_in_dept_by_ctas)" }]
+    },
+    {
+      "id": 6, "type": "timeseries", "title": "Arrivals per hour",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "targets": [{ "expr": "increase(ed_arrivals_total[1h])" }]
+    }
+  ]
+}

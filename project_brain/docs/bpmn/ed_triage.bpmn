@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Defs_ed_triage" targetNamespace="http://nama.local/bpmn">
+  <bpmn:process id="Proc_ED_Triage" isExecutable="true">
+    <bpmn:startEvent id="S" name="Patient arrives"/>
+    <bpmn:task id="T_Reg" name="Quick registration / MRN issuance"/>
+    <bpmn:task id="T_Vitals" name="Capture vitals"/>
+    <bpmn:task id="T_AI" name="AI suggests CTAS"/>
+    <bpmn:task id="T_NurseConfirm" name="Triage nurse confirms / overrides CTAS"/>
+    <bpmn:exclusiveGateway id="GW_Bed" name="Bed available?"/>
+    <bpmn:task id="T_Assign" name="Assign bed + page physician"/>
+    <bpmn:task id="T_Wait" name="Patient waits in waiting area"/>
+    <bpmn:task id="T_Reassess" name="Re-assess every (CTAS-driven) interval"/>
+    <bpmn:endEvent id="E" name="Triage completed; physician engaged"/>
+
+    <bpmn:sequenceFlow sourceRef="S" targetRef="T_Reg"/>
+    <bpmn:sequenceFlow sourceRef="T_Reg" targetRef="T_Vitals"/>
+    <bpmn:sequenceFlow sourceRef="T_Vitals" targetRef="T_AI"/>
+    <bpmn:sequenceFlow sourceRef="T_AI" targetRef="T_NurseConfirm"/>
+    <bpmn:sequenceFlow sourceRef="T_NurseConfirm" targetRef="GW_Bed"/>
+    <bpmn:sequenceFlow name="Yes" sourceRef="GW_Bed" targetRef="T_Assign"/>
+    <bpmn:sequenceFlow name="No" sourceRef="GW_Bed" targetRef="T_Wait"/>
+    <bpmn:sequenceFlow sourceRef="T_Wait" targetRef="T_Reassess"/>
+    <bpmn:sequenceFlow sourceRef="T_Reassess" targetRef="GW_Bed"/>
+    <bpmn:sequenceFlow sourceRef="T_Assign" targetRef="E"/>
+  </bpmn:process>
+</bpmn:definitions>

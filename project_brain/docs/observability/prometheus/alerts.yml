@@ -1,0 +1,151 @@
+# NamaMedical Prometheus alert rules
+# Apply: kubectl apply -f alerts.yml (via prometheus-operator PrometheusRule CRD)
+
+groups:
+
+  - name: nama-availability
+    interval: 30s
+    rules:
+      - alert: ServiceDown
+        expr: up{job=~".+-api"} == 0
+        for: 2m
+        labels: { severity: sev1, team: platform }
+        annotations:
+          summary: "{{ $labels.job }} is DOWN"
+          runbook: "https://docs.nama.local/runbooks/oncall.md"
+
+      - alert: TierOneUptimeBudget
+        expr: (1 - avg_over_time(probe_success{tier="1"}[30d])) > 0.001
+        for: 0m
+        labels: { severity: sev2, team: platform }
+        annotations:
+          summary: "Tier-1 uptime SLO 99.9% breached"
+
+  - name: nama-latency
+    interval: 30s
+    rules:
+      - alert: ApiLatencyHigh
+        expr: |
+          histogram_quantile(0.95, sum by (job, le) (
+            rate(http_request_duration_seconds_bucket{job=~".+-api"}[5m])
+          )) > 0.4
+        for: 10m
+        labels: { severity: sev3, team: platform }
+        annotations:
+          summary: "{{ $labels.job }} p95 latency > 400ms"
+
+      - alert: AILatencyHigh
+        expr: |
+          histogram_quantile(0.95, sum by (le) (
+            rate(ai_orchestrator_latency_seconds_bucket[5m])
+          )) > 5
+        for: 10m
+        labels: { severity: sev3, team: ai }
+        annotations:
+          summary: "AI orchestrator p95 > 5s"
+
+      - alert: EdBoardSseLag
+        expr: histogram_quantile(0.95, rate(ed_board_sse_push_seconds_bucket[5m])) > 1
+        for: 5m
+        labels: { severity: sev2, team: ed }
+        annotations:
+          summary: "ED live board updates lagging > 1s p95"
+
+  - name: nama-errors
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{job=~".+-api",status=~"5.."}[5m]))
+            /
+          sum(rate(http_requests_total{job=~".+-api"}[5m])) > 0.02
+        for: 5m
+        labels: { severity: sev2, team: platform }
+        annotations:
+          summary: "5xx error rate > 2% across APIs"
+
+      - alert: AuditChainBroken
+        expr: increase(audit_hash_chain_break_total[15m]) > 0
+        for: 0m
+        labels: { severity: sev1, team: security }
+        annotations:
+          summary: "Audit hash chain integrity check failed"
+          runbook: "https://docs.nama.local/runbooks/incident_response.md"
+
+  - name: nama-clinical-safety
+    rules:
+      - alert: STEMIDoorToBalloonAtRisk
+        expr: nama_d2b_active_seconds > 4500   # 75 min, alert before 90 min
+        for: 0m
+        labels: { severity: sev1, team: cardiology }
+        annotations:
+          summary: "Active STEMI door-to-balloon timer > 75 min"
+
+      - alert: SepsisBundleSlow
+        expr: nama_sepsis_bundle_active_seconds > 2700 # 45 min, alert before 60 min
+        for: 0m
+        labels: { severity: sev2, team: ed }
+        annotations:
+          summary: "Active sepsis 1h bundle approaching SLA breach"
+
+      - alert: LabCriticalCallNotAcknowledged
+        expr: increase(lab_critical_unacknowledged_total[10m]) > 0
+        for: 10m
+        labels: { severity: sev1, team: lab }
+        annotations:
+          summary: "Critical lab value notification not acknowledged within SLA"
+
+      - alert: AILowConfidenceSpike
+        expr: |
+          sum(rate(ai_confidence_below_threshold_total[15m]))
+            /
+          sum(rate(ai_calls_total[15m])) > 0.30
+        for: 10m
+        labels: { severity: sev3, team: ai }
+        annotations:
+          summary: "AI low-confidence rate > 30% — possible drift"
+
+  - name: nama-infra
+    rules:
+      - alert: KafkaLagHigh
+        expr: kafka_consumergroup_lag > 5000
+        for: 10m
+        labels: { severity: sev2, team: platform }
+        annotations:
+          summary: "Kafka consumer lag > 5000 ({{ $labels.consumergroup }})"
+
+      - alert: MssqlConnectionsHigh
+        expr: mssql_connections_count / mssql_connections_max > 0.9
+        for: 5m
+        labels: { severity: sev2, team: dba }
+        annotations:
+          summary: "MSSQL connection pool > 90%"
+
+      - alert: QdrantSlow
+        expr: histogram_quantile(0.95, rate(qdrant_search_duration_seconds_bucket[5m])) > 0.5
+        for: 10m
+        labels: { severity: sev3, team: ai }
+        annotations:
+          summary: "Qdrant search p95 > 500ms"
+
+      - alert: DiskAlmostFull
+        expr: node_filesystem_avail_bytes / node_filesystem_size_bytes < 0.10
+        for: 10m
+        labels: { severity: sev2, team: platform }
+        annotations:
+          summary: "{{ $labels.device }} on {{ $labels.instance }} < 10% free"
+
+  - name: nama-security
+    rules:
+      - alert: BruteForceLoginAttempts
+        expr: increase(auth_failed_total[5m]) > 50
+        for: 5m
+        labels: { severity: sev2, team: security }
+        annotations:
+          summary: "Login failure spike: {{ $value }} in 5 min"
+
+      - alert: PHIRedactionFailure
+        expr: increase(phi_redaction_fail_total[10m]) > 0
+        for: 0m
+        labels: { severity: sev1, team: security }
+        annotations:
+          summary: "PHI redaction layer reported failure (potential leak)"

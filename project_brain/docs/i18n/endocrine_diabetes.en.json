@@ -1,0 +1,15 @@
+{
+  "endocrine_diabetes": {
+    "dashboard": {
+      "title": "Endocrinology & Diabetes Dashboard",
+      "todayOrders": "Today's Orders"
+    },
+    "order": {
+      "priority": {
+        "routine": "Routine",
+        "urgent": "Urgent",
+        "stat": "STAT"
+      }
+    }
+  }
+}

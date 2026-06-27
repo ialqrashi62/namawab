@@ -1,0 +1,122 @@
+// Cardiology ERD — DBML format (https://dbml.dbdiagram.io/home/)
+
+Project NamaMedical_Cardiology {
+  database_type: 'SQL Server'
+  Note: 'Cardiology bounded context: orders, ECG, echo, cath, devices, HF program.'
+}
+
+Table patients {
+  id int [pk]
+  mrn varchar [unique, not null]
+  name_ar nvarchar
+  name_en varchar
+  dob date
+  sex varchar
+  national_id varchar
+  phone varchar
+}
+
+Table visits {
+  id int [pk]
+  patient_id int [ref: > patients.id]
+  type varchar
+  doctor_id int
+  started_at datetimeoffset
+  ended_at datetimeoffset
+}
+
+Table cardio_orders {
+  id uuid [pk]
+  patient_id int [ref: > patients.id]
+  visit_id int [ref: > visits.id]
+  order_type varchar
+  sub_type varchar
+  priority varchar
+  indication nvarchar
+  status varchar
+  ordered_by int
+  ordered_at datetimeoffset
+  scheduled_for datetimeoffset
+  fulfilled_at datetimeoffset
+  notes nvarchar
+
+  Indexes {
+    (patient_id, ordered_at) [name: 'idx_patient_time']
+    (status) [name: 'idx_status']
+  }
+}
+
+Table cardio_ecg_studies {
+  id uuid [pk]
+  patient_id int [ref: > patients.id]
+  visit_id int [ref: > visits.id]
+  captured_at datetimeoffset
+  waveform_blob_url varchar
+  machine_interpretation nvarchar
+  ai_interpretation nvarchar
+  ai_confidence decimal
+  physician_overread nvarchar
+  overread_by int
+  overread_at datetimeoffset
+}
+
+Table cardio_echo_studies {
+  id uuid [pk]
+  patient_id int [ref: > patients.id]
+  visit_id int [ref: > visits.id]
+  study_date date
+  ef_percent int
+  lvids_mm int
+  e_e_prime decimal
+  rwma_segments nvarchar
+  valves_json nvarchar
+  findings nvarchar
+  impression nvarchar
+  reported_by int
+  reported_at datetimeoffset
+}
+
+Table cardio_cath_cases {
+  id uuid [pk]
+  patient_id int [ref: > patients.id]
+  visit_id int [ref: > visits.id]
+  case_date date
+  operator_id int
+  access varchar
+  contrast_ml int
+  fluoro_min decimal
+  syntax_score int
+  pci_done bit
+  stents_used int
+  stent_types nvarchar
+  complications nvarchar
+  outcome varchar
+}
+
+Table cardio_devices {
+  id uuid [pk]
+  patient_id int [ref: > patients.id]
+  device_type varchar
+  manufacturer varchar
+  model varchar
+  serial_no varchar [unique]
+  implanted_at date
+  implanted_by int
+  battery_eri_at date
+  last_interrogation date
+}
+
+Table cardio_hf_program {
+  id uuid [pk]
+  patient_id int [ref: > patients.id]
+  enrolled_at date
+  nyha_class varchar
+  aha_stage varchar
+  ef_percent int
+  on_arni bit
+  on_bb bit
+  on_mra bit
+  on_sglt2i bit
+  last_admission date
+  next_visit date
+}
