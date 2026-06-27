@@ -48,7 +48,7 @@ for (const { p, l } of sqlChecks) assert(clean.includes(p.replace(/\s+/g, '')), 
 // Negative: the NEW /api/adt/* block (between its banner and the ICU marker) must NOT contain
 // an unscoped "tenantId ? [...] : []" fallback — every adt query is hard-scoped.
 const adtStart = serverContent.indexOf("E8 INPATIENT / ADT");
-const adtEnd = serverContent.indexOf("===== ICU =====", adtStart);
+const adtEnd = serverContent.indexOf("E9 ICU / CRITICAL CARE", adtStart);
 const adtBlock = (adtStart >= 0 && adtEnd > adtStart) ? serverContent.slice(adtStart, adtEnd) : '';
 assert(adtBlock.length > 0, 'E8 /api/adt block located for negative audit');
 assert(!/tenantId\s*\?\s*\[/.test(adtBlock), 'no unscoped "tenantId ? [...] : []" fallback inside the /api/adt/* block');

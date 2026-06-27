@@ -61,9 +61,9 @@ const routesToCheck = [
     { pattern: "app.post('/api/medical-reports', requireAuth, requireTenantScope", label: "Create Med Report: POST /api/medical-reports محمي بـ requireTenantScope" },
     { pattern: "app.get('/api/medical-reports', requireAuth, requireTenantScope", label: "List Med Reports: GET /api/medical-reports محمي بـ requireTenantScope" },
     { pattern: "app.get('/api/medical-reports/:id', requireAuth, requireTenantScope", label: "Get Med Report ID: GET /api/medical-reports/:id محمي بـ requireTenantScope" },
-    { pattern: "app.get('/api/infection-control/reports', requireAuth, requireTenantScope", label: "List Infection: GET /api/infection-control/reports محمي بـ requireTenantScope" },
-    { pattern: "app.post('/api/infection-control/reports', requireAuth, requireTenantScope", label: "Create Infection: POST /api/infection-control/reports محمي بـ requireTenantScope" },
-    { pattern: "app.put('/api/infection-control/reports/:id', requireAuth, requireTenantScope", label: "Update Infection: PUT /api/infection-control/reports/:id محمي بـ requireTenantScope" },
+    { pattern: "app.get('/api/infection-control/reports', requireAuth, requireRole('infection'), requireTenantScope", label: "List Infection: GET /api/infection-control/reports محمي بـ requireTenantScope" },
+    { pattern: "app.post('/api/infection-control/reports', requireAuth, requireRole('infection'), requireTenantScope", label: "Create Infection: POST /api/infection-control/reports محمي بـ requireTenantScope" },
+    { pattern: "app.put('/api/infection-control/reports/:id', requireAuth, requireRole('infection'), requireTenantScope", label: "Update Infection: PUT /api/infection-control/reports/:id محمي بـ requireTenantScope" },
     { pattern: "app.get('/api/referrals', requireAuth, requireTenantScope", label: "List Referrals: GET /api/referrals محمي بـ requireTenantScope" },
     { pattern: "app.post('/api/referrals', requireAuth, requireTenantScope", label: "Create Referral: POST /api/referrals محمي بـ requireTenantScope" },
     { pattern: "app.put('/api/referrals/:id', requireAuth, requireTenantScope", label: "Update Referral: PUT /api/referrals/:id محمي بـ requireTenantScope" }

@@ -122,6 +122,72 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+class FallbackSessionStore extends session.Store {
+    constructor(redisStore) {
+        super();
+        this.redisStore = redisStore;
+        this.memoryStore = new session.MemoryStore();
+        
+        if (typeof redisStore.on === 'function') {
+            redisStore.on('disconnect', (...args) => this.emit('disconnect', ...args));
+            redisStore.on('connect', (...args) => this.emit('connect', ...args));
+        }
+    }
+    get(sid, cb) {
+        if (this.redisStore.client.isReady) {
+            this.redisStore.get(sid, (err, val) => {
+                if (err) {
+                    console.warn('[SESSION WARNING] Redis get failed, falling back to MemoryStore:', err.message);
+                    return this.memoryStore.get(sid, cb);
+                }
+                cb(null, val);
+            });
+        } else {
+            this.memoryStore.get(sid, cb);
+        }
+    }
+    set(sid, val, cb) {
+        if (this.redisStore.client.isReady) {
+            this.redisStore.set(sid, val, (err) => {
+                if (err) {
+                    console.warn('[SESSION WARNING] Redis set failed, falling back to MemoryStore:', err.message);
+                    return this.memoryStore.set(sid, val, cb);
+                }
+                cb(null);
+            });
+        } else {
+            this.memoryStore.set(sid, val, cb);
+        }
+    }
+    destroy(sid, cb) {
+        if (this.redisStore.client.isReady) {
+            this.redisStore.destroy(sid, (err) => {
+                if (err) {
+                    console.warn('[SESSION WARNING] Redis destroy failed, falling back to MemoryStore:', err.message);
+                    return this.memoryStore.destroy(sid, cb);
+                }
+                cb(null);
+            });
+        } else {
+            this.memoryStore.destroy(sid, cb);
+        }
+    }
+    touch(sid, val, cb) {
+        if (this.redisStore.client.isReady) {
+            if (typeof this.redisStore.touch === 'function') {
+                this.redisStore.touch(sid, val, (err) => {
+                    if (err) return this.memoryStore.touch(sid, val, cb);
+                    cb(null);
+                });
+            } else {
+                cb(null);
+            }
+        } else {
+            this.memoryStore.touch(sid, val, cb);
+        }
+    }
+}
+
 // Redis Session Store Setup with graceful Fallback
 let sessionStore;
 if (process.env.REDIS_URL || process.env.REDIS_HOST) {
@@ -139,7 +205,8 @@ if (process.env.REDIS_URL || process.env.REDIS_HOST) {
         }).catch(err => {
             console.warn('[REDIS WARNING] Failed to connect to Redis server, falling back to MemoryStore:', err.message);
         });
-        sessionStore = new RedisStore({ client: redisClient, prefix: "nama_session:" });
+        const store = new RedisStore({ client: redisClient, prefix: "nama_session:" });
+        sessionStore = new FallbackSessionStore(store);
     } catch (e) {
         console.warn('[SESSION WARNING] Redis dependencies or connection failed, falling back to MemoryStore:', e.message);
     }
@@ -465,7 +532,7 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
 
         await establishSession(req, user, clientIp);
         res.json({ success: true, user: req.session.user });
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { console.error('LOGIN ERROR:', e); res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/api/auth/logout', (req, res) => {
@@ -4323,7 +4390,7 @@ app.post('/api/or/slots/reserve', requireAuth, requireRole('surgery', 'doctor'),
         const room = (await client.query(roomQ, tenantId ? [roomId, tenantId] : [roomId])).rows[0];
         if (!room) { await client.query('ROLLBACK'); client.release(); return res.status(403).json({ error: 'Invalid operating room context or access denied' }); }
 
-        const surgeonQ = tenantId ? 'SELECT id FROM system_users WHERE id=$1 AND tenant_id=$2'
+        const surgeonQ = tenantId ? 'SELECT su.id FROM system_users su JOIN user_tenants ut ON ut.user_id = su.id WHERE su.id = $1 AND ut.tenant_id = $2'
                                   : 'SELECT id FROM system_users WHERE id=$1';
         const surgeon = (await client.query(surgeonQ, tenantId ? [surgeonId, tenantId] : [surgeonId])).rows[0];
         if (!surgeon) { await client.query('ROLLBACK'); client.release(); return res.status(403).json({ error: 'Invalid surgeon context or access denied' }); }

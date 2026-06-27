@@ -143,7 +143,7 @@ async function runSmokeTests() {
         });
 
         serverProcess.stderr.on('data', (data) => {
-            // console.error(`  [SERVER ERROR] ${data.toString().trim()}`);
+            console.error(`  [SERVER ERROR] ${data.toString().trim()}`);
         });
 
         await waitPort(TEST_PORT);

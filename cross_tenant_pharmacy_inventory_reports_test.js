@@ -57,7 +57,7 @@ const targetedRoutes = [
     { route: "app.post('/api/prescriptions', requireAuth, requireTenantScope", label: "POST /api/prescriptions (requireTenantScope)" },
     { route: "app.get('/api/print/prescription/:id', requireAuth, requireTenantScope", label: "GET /api/print/prescription/:id (requireTenantScope)" },
     { route: "app.post('/api/pharmacy/deduct-stock', requireAuth, requireTenantScope", label: "POST /api/pharmacy/deduct-stock (requireTenantScope)" },
-    { route: "app.get('/api/pharmacy/expiring', requireAuth, requireTenantScope", label: "GET /api/pharmacy/expiring (requireTenantScope)" },
+    { route: "app.get('/api/pharmacy/expiring', requireAuth, requireRole('pharmacy'), requireTenantScope", label: "GET /api/pharmacy/expiring (requireTenantScope)" },
     { route: "app.get('/api/pharmacy/stock-log', requireAuth, requireTenantScope", label: "GET /api/pharmacy/stock-log (requireTenantScope)" },
     { route: "app.get('/api/inventory/low-stock', requireAuth, requireTenantScope", label: "GET /api/inventory/low-stock (requireTenantScope)" },
     { route: "app.get('/api/inventory', requireAuth, requireTenantScope", label: "GET /api/inventory (requireTenantScope)" },
