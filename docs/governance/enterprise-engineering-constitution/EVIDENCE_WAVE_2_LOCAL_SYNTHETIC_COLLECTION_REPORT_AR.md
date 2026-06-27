@@ -65,7 +65,7 @@
 ---
 
 ## 6. ملخص أدلة الفجوات وعمليات التعليق
-- تم نقل جميع المبادرات من حالة الفجوة المطلقة إلى حالة **أدلة جزئية مجمعة (PARTIAL_EVIDENCE_COLLECTED)** نظراً لنجاح اختباراتها المحلية 100%.
+- اجتياز الاختبارات المحلية يوفر دليلاً جزئياً عاماً، ولا يرقّي أي عنصر إلى Direct Evidence إلا إذا كان الاختبار مربوطاً صراحةً بذلك العنصر في مصفوفة التغطية.
 - لم يتم إغلاق أي عنصر بشكل كامل ونهائي لمتطلبات بوابات الفحص الحية (Smoke Tests) أو تفاعلات التكاملات الخارجية.
 
 ---
@@ -83,14 +83,15 @@
 * **TOTAL_ITEMS_REVIEWED**: `18`
 * **DIRECT_EVIDENCE_COLLECTED**: `0`
 * **PARTIAL_EVIDENCE_COLLECTED**: `18`
-* **EVIDENCE_GAP_REMAINS**: `0`
+* **EVIDENCE_GAP_REMAINS**: `18`
 * **SKIPPED_REQUIRES_SAFETY_PROOF**: `0`
 * **OWNER_APPROVAL_REQUIRED**: `3`
 * **CODE_CHANGED**: `NO`
 * **TESTS_CHANGED**: `NO`
 * **DOCS_CHANGED**: `YES`
 * **PRODUCTION_TOUCHED**: `NO`
-* **DB_TOUCHED**: `NO`
+* **PRODUCTION_DB_TOUCHED**: `NO`
+* **LOCAL_TEST_DB_TOUCHED**: `NO`
 * **DDL_RUN**: `NO`
 * **DEPLOY_RUN**: `NO`
 * **PM2_RESTARTED**: `NO`
@@ -102,6 +103,6 @@
 * **PHI_PRINTED**: `NO`
 * **MOJIBAKE_AUDIT**: `CLEAN_FOR_SCANNED_SCOPE_ONLY`
 * **UTF8_STATUS**: `CLEAN`
-* **GIT_COMMIT**: `d7c3e4e34bc64e005b79e5523ffa7856f3bce47b` (سيتم تحديثه)
+* **GIT_COMMIT**: `e78c698c3ad2d662786d33782f10339d4d0779a0` (سيتم تحديثه)
 * **PUSH_STATUS**: `SUCCESS`
-* **NEXT_RECOMMENDED_ACTION**: `RUN_WAVE_3_BROWSER_SMOKE_EVIDENCE_COLLECTION`
+* **NEXT_RECOMMENDED_ACTION**: `RUN_WAVE_3_BROWSER_SMOKE_PREPARATION`
