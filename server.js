@@ -281,8 +281,16 @@ const requireCatalogAccess = (req, res, next) => {
     return res.status(403).json({ error: 'Access denied. Only Admin/Manager can edit catalog items.' });
 };
 
-// ===== DISCOUNT LIMIT BY ROLE =====
-const MAX_DISCOUNT_BY_ROLE = { admin: 100, manager: 50, cashier: 10, receptionist: 10, doctor: 20 };
+// ===== DISCOUNT LIMIT BY ROLE + server-side billing integrity (PHASE 1 C-2/C-3) =====
+// Pure, unit-tested helpers live in ./billing_integrity.js (parseMoney / enforceDiscountCap fail closed).
+const { MAX_DISCOUNT_BY_ROLE, parseMoney, enforceDiscountCap } = require('./billing_integrity');
+
+// sendBillingError: translate a thrown integrity error into its HTTP status (defaults to 500 for unexpected errors).
+function sendBillingError(res, e) {
+    if (e && e.statusCode) return res.status(e.statusCode).json({ error: e.message });
+    console.error('Billing error:', e && e.message);
+    return res.status(500).json({ error: 'Server error' });
+}
 
 // RBAC middleware - role-based access control
 const ROLE_PERMISSIONS = {
@@ -983,7 +991,16 @@ app.get('/api/invoices', requireAuth, requireRole('invoices', 'accounts'), async
 
 app.post('/api/invoices', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
     try {
-        const { patient_id, patient_name, total, description, service_type, payment_method, discount, discount_reason } = req.body;
+        const { patient_id, patient_name, description, service_type, payment_method, discount_reason } = req.body;
+        // --- C-2: money is validated & recomputed server-side; client total/discount are NOT trusted as opaque values ---
+        const netTotal = parseMoney(req.body.total, { field: 'total' });          // net (post-discount) amount
+        const discountAmt = parseMoney(req.body.discount, { field: 'discount' });  // absolute SAR discount
+        const grossAmount = Math.round((netTotal + discountAmt) * 100) / 100;      // server-derived original amount
+        // --- C-3: enforce per-role discount cap (throws 403 when exceeded) ---
+        enforceDiscountCap(req.session.user?.role, discountAmt, grossAmount);
+        // --- C-2: server-authoritative VAT (net treated as VAT-inclusive per KSA retail); client vat never trusted ---
+        const vatInfo = fe.vatFromInclusive(netTotal);
+        const vatAmount = vatInfo ? parseFloat(vatInfo.vat_amount) : 0;
         // Generate sequential invoice number
         const maxInv = (await pool.query("SELECT invoice_number FROM invoices WHERE invoice_number LIKE 'INV-%' ORDER BY id DESC LIMIT 1")).rows[0];
         let nextNum = 1;
@@ -993,11 +1010,15 @@ app.post('/api/invoices', requireAuth, requireRole('invoices', 'accounts'), asyn
         // --- TENANT SCOPE: stamp tenant_id & facility_id from session (never from body) ---
         const { tenantId, facilityId } = getRequestTenantContext(req);
         const result = await pool.query(
-            'INSERT INTO invoices (patient_id, patient_name, total, description, service_type, payment_method, discount, discount_reason, invoice_number, created_by, original_amount, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id',
-            [patient_id || null, patient_name, total || 0, description || '', service_type || '', payment_method || '', discount || 0, discount_reason || '', invNumber, createdBy, (total || 0) + (discount || 0), tenantId || null, facilityId || null]);
-        logAudit(req.session.user?.id, createdBy, 'CREATE_INVOICE', 'Finance', invNumber + ' - ' + (total || 0) + ' SAR for ' + patient_name, req.ip);
+            'INSERT INTO invoices (patient_id, patient_name, total, description, service_type, payment_method, discount, discount_reason, invoice_number, created_by, original_amount, vat_amount, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id',
+            [patient_id || null, patient_name, netTotal, description || '', service_type || '', payment_method || '', discountAmt, discount_reason || '', invNumber, createdBy, grossAmount, vatAmount, tenantId || null, facilityId || null]);
+        logAudit(req.session.user?.id, createdBy, 'CREATE_INVOICE', 'Finance', invNumber + ' - ' + netTotal + ' SAR (VAT ' + vatAmount + ') for ' + patient_name, req.ip);
+        if (discountAmt > 0) {
+            logAudit(req.session.user?.id, createdBy, 'INVOICE_DISCOUNT', 'Finance',
+                `${invNumber}: discount ${discountAmt} SAR (${((discountAmt / grossAmount) * 100).toFixed(1)}%) reason: ${String(discount_reason || '').slice(0, 120)}`, req.ip);
+        }
         res.json((await pool.query('SELECT * FROM invoices WHERE id=$1', [result.rows[0].id])).rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { sendBillingError(res, e); }
 });
 
 // ===== E11 INSURANCE / NPHIES (eligibility, pre-auth, claims lifecycle, denials, payer pricing) =====
@@ -3363,15 +3384,30 @@ app.post('/api/invoices/generate', requireAuth, requireRole('invoices', 'account
         const patientParams = tenantId ? [patient_id, tenantId] : [patient_id];
         const p = (await pool.query(`SELECT * FROM patients ${patientCheck}`, patientParams)).rows[0];
         if (!p) return res.status(404).json({ error: 'Patient not found' });
-        const total = items.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
-        const description = items.map(i => i.description).join(' | ');
+        // --- C-2: validate each line item & recompute the total SERVER-SIDE (never trust a client-supplied total) ---
+        if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ error: 'At least one line item is required' });
+        let total = 0;
+        for (let i = 0; i < items.length; i++) {
+            const it = items[i] || {};
+            const lineAmount = parseMoney(it.amount, { field: `items[${i}].amount`, allowZero: false });
+            if (it.quantity !== undefined) {
+                const qty = Number(it.quantity);
+                if (!Number.isInteger(qty) || qty <= 0) { const e = new Error(`Invalid items[${i}].quantity: must be a positive integer`); e.statusCode = 400; throw e; }
+            }
+            total += lineAmount;
+        }
+        total = Math.round(total * 100) / 100;
+        // --- C-2: server-authoritative VAT (line totals treated as VAT-inclusive) ---
+        const vatInfo = fe.vatFromInclusive(total);
+        const vatAmount = vatInfo ? parseFloat(vatInfo.vat_amount) : 0;
+        const description = items.map(i => String(i.description || '')).join(' | ');
         const invNumber = 'INV-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-5);
-        const result = await pool.query('INSERT INTO invoices (patient_id, patient_name, total, description, service_type, invoice_number, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
-            [patient_id, p.name_en || p.name_ar, total, description, 'Medical Services', invNumber, tenantId || null, facilityId || null]);
+        const result = await pool.query('INSERT INTO invoices (patient_id, patient_name, total, description, service_type, invoice_number, vat_amount, original_amount, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id',
+            [patient_id, p.name_en || p.name_ar, total, description, 'Medical Services', invNumber, vatAmount, total, tenantId || null, facilityId || null]);
         logAudit(req.session.user?.id, req.session.user?.display_name, 'GENERATE_INVOICE', 'Finance',
-            `Generated ${invNumber} for patient ${p.name_en || p.name_ar} total: ${total}`, req.ip);
+            `Generated ${invNumber} for patient ${p.name_en || p.name_ar} total: ${total} (VAT ${vatAmount})`, req.ip);
         res.json((await pool.query('SELECT * FROM invoices WHERE id=$1', [result.rows[0].id])).rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { sendBillingError(res, e); }
 });
 
 app.put('/api/invoices/:id/pay', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
