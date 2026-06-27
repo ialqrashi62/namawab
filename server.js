@@ -1546,7 +1546,9 @@ app.post('/api/medical/records', requireAuth, requireRole('doctor', 'nursing'), 
 });
 
 // ===== EMR LOCK / SIGNATURE (Phase A1) — sign+lock, amend (no silent edit after lock); tenant-scoped via RLS =====
-app.post('/api/medical-records/:id/sign', requireAuth, requireRole('doctor', 'nursing'), requireTenantScope, async (req, res) => {
+// SIGNATURE ATTRIBUTION: signing+locking a physician medical record is a PHYSICIAN act only.
+// Nurses document via nursing_vitals / assessments / MAR — they must not sign medical_records.
+app.post('/api/medical-records/:id/sign', requireAuth, requireRole('doctor'), requireTenantScope, async (req, res) => {
     try {
         const crypto = require('crypto');
         const id = parseInt(req.params.id, 10);
@@ -1564,7 +1566,8 @@ app.post('/api/medical-records/:id/sign', requireAuth, requireRole('doctor', 'nu
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/medical-records/:id/amend', requireAuth, requireRole('doctor', 'nursing'), requireTenantScope, async (req, res) => {
+// Amending a locked physician record is a PHYSICIAN act (signature attribution).
+app.post('/api/medical-records/:id/amend', requireAuth, requireRole('doctor'), requireTenantScope, async (req, res) => {
     try {
         const id = parseInt(req.params.id, 10);
         const { tenantId } = getRequestTenantContext(req);
