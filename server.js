@@ -9354,9 +9354,13 @@ app.get('/api/audit-trail', requireAuth, requireRole('settings'), requireTenantS
 });
 
 // ===== PRINT API =====
-app.get('/api/print/invoice/:id', requireAuth, async (req, res) => {
+app.get('/api/print/invoice/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        const inv = (await pool.query('SELECT * FROM invoices WHERE id=$1', [req.params.id])).rows[0];
+        const { tenantId } = getRequestTenantContext(req);
+        // IDOR: tenant-scope the invoice lookup (mirrors the prescription / lab-report print routes).
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const invParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const inv = (await pool.query(`SELECT * FROM invoices WHERE id=$1${tenantCheck}`, invParams)).rows[0];
         if (!inv) return res.status(404).json({ error: 'Not found' });
         const settings = {};
         const settingsRows = (await pool.query('SELECT * FROM company_settings')).rows;

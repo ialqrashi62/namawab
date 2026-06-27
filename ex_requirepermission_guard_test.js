@@ -103,12 +103,12 @@ function run(mw, req) {
         ok(!r.nexted && r.code === 403, 'empty matrix -> fallback deny -> 403');
     }
 
-    // 7) matrix EMPTY + NO fallback -> open (preserves pre-matrix behavior)
+    // 7) matrix EMPTY + NO fallback -> fail-closed 403 (secure by default)
     {
         const pool = mkPool([]);
         const rp = makeRequirePermission({ pool, getRequestTenantContext: getCtx })('orders:create');
         const r = await run(rp, { session: { user: { role: 'LegacyRole' } } });
-        ok(r.nexted, 'empty matrix + no fallback -> open (non-breaking)');
+        ok(!r.nexted && r.code === 403, 'empty matrix + no fallback -> fail-closed 403 (secure by default)');
     }
 
     // 8) DB error -> fail-closed to fallback (deny here)

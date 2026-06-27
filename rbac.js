@@ -12,8 +12,9 @@
  *   3) DB matrix HIT: a role_permissions row for (tenant_id, role, permission_key) exists -> next().
  *      DB matrix explicit-miss (role HAS rows but not this key) -> 403 {error:'Access denied'}.
  *   4) FALLBACK (non-breaking): role has NO matrix rows at all for this tenant -> defer to the supplied
- *      roleFallback(req) (wrapping the legacy requireRole logic). If no fallback provided -> allow (open),
- *      preserving pre-RBAC-matrix behavior so deploying the table without seeding never locks anyone out.
+ *      roleFallback(req) (wrapping the legacy requireRole logic). If no fallback provided -> fail-closed
+ *      403 (secure by default). The production caller always supplies a roleFallback, so seeded
+ *      deployments behave identically; only callers that forget a fallback are denied rather than opened.
  *   5) Any DB error -> fail-closed to the fallback (never throw into the route).
  *
  * deps: { pool, getRequestTenantContext, roleFallback }
@@ -64,7 +65,9 @@ function makeRequirePermission(deps) {
                     if (typeof roleFallback === 'function') {
                         return roleFallback(req) ? next() : res.status(403).json({ error: 'Access denied' });
                     }
-                    return next(); // open fallback: preserves pre-matrix behavior
+                    // Secure-by-default: with no legacy fallback AND no matrix rows, DENY (fail-closed).
+                    // The production caller always supplies a roleFallback, so this only hardens future callers.
+                    return res.status(403).json({ error: 'Access denied' });
                 }
 
                 // (3) Matrix present for this role: enforce strictly.
