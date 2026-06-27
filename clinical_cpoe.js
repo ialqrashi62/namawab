@@ -246,6 +246,71 @@ function mountClinicalRoutes(app, deps) {
         }
     });
 
+    app.patch('/api/clinical-notes/:id', ...chain('doctor', 'notes:update'), async (req, res) => {
+        try {
+            const id = parseInt(req.params.id, 10);
+            const { tenantId } = getRequestTenantContext(req);
+            const { subjective, objective, assessment, plan } = req.body || {};
+
+            const cur = (await pool.query(
+                tenantId ? 'SELECT emr_status FROM clinical_notes WHERE id=$1 AND tenant_id=$2'
+                         : 'SELECT emr_status FROM clinical_notes WHERE id=$1',
+                tenantId ? [id, tenantId] : [id])).rows[0];
+
+            if (!cur) return res.status(404).json({ error: 'Note not found' });
+            if (cur.emr_status === 'locked') {
+                return res.status(409).json({ error: 'Note is locked and cannot be edited directly', error_ar: 'الملاحظة مقفلة ولا يمكن تعديلها مباشرة' });
+            }
+
+            await pool.query(
+                tenantId ? 'UPDATE clinical_notes SET subjective=$1, objective=$2, assessment=$3, plan=$4 WHERE id=$5 AND tenant_id=$6'
+                         : 'UPDATE clinical_notes SET subjective=$1, objective=$2, assessment=$3, plan=$4 WHERE id=$5',
+                tenantId ? [subjective || null, objective || null, assessment || null, plan || null, id, tenantId]
+                         : [subjective || null, objective || null, assessment || null, plan || null, id]);
+
+            audit(req.session?.user?.id, req.session?.user?.display_name, 'UPDATE_SOAP_NOTE', 'Doctor', `Updated draft SOAP note #${id}`, req.ip);
+            return res.json({ success: true });
+        } catch (e) {
+            console.error('PATCH /api/clinical-notes/:id error:', e.message);
+            return res.status(500).json({ error: 'Server error' });
+        }
+    });
+
+    app.post('/api/clinical-notes/:id/amend', ...chain('doctor', 'notes:amend'), async (req, res) => {
+        try {
+            const id = parseInt(req.params.id, 10);
+            const { tenantId } = getRequestTenantContext(req);
+            const actor = req.session?.user || {};
+            const { reason, subjective, objective, assessment, plan } = req.body || {};
+
+            if (!reason || !String(reason).trim()) {
+                return res.status(400).json({ error: 'Amendment reason required', error_ar: 'سبب التعديل مطلوب' });
+            }
+
+            const cur = (await pool.query(
+                tenantId ? 'SELECT integrity_hash, emr_status FROM clinical_notes WHERE id=$1 AND tenant_id=$2'
+                         : 'SELECT integrity_hash, emr_status FROM clinical_notes WHERE id=$1',
+                tenantId ? [id, tenantId] : [id])).rows[0];
+
+            if (!cur) return res.status(404).json({ error: 'Note not found' });
+            if (cur.emr_status !== 'locked') {
+                return res.status(409).json({ error: 'Amendment applies only to locked records', error_ar: 'التعديل يطبق فقط على السجلات المقفلة' });
+            }
+
+            const newVals = JSON.stringify({ subjective, objective, assessment, plan });
+            await pool.query(
+                'INSERT INTO emr_amendments (record_type, record_id, amended_by_user_id, reason, previous_integrity_hash, new_values_summary) VALUES ($1,$2,$3,$4,$5,$6)',
+                ['clinical_notes', id, actor.id, String(reason), cur.integrity_hash, newVals]
+            );
+
+            audit(actor.id, actor.display_name, 'AMEND_SOAP_NOTE', 'EMR', `Amended locked clinical_note #${id}: ${String(reason).slice(0, 120)}`, req.ip);
+            return res.json({ success: true });
+        } catch (e) {
+            console.error('POST /api/clinical-notes/:id/amend error:', e.message);
+            return res.status(500).json({ error: 'Server error' });
+        }
+    });
+
     // ============================================================
     // CPOE — CDS-gated order creation through the E-X unified `orders` table
     // ============================================================

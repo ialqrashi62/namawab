@@ -19,6 +19,7 @@ const { populateMedicalServices, populateBaseDrugs } = require('./seed_services_
 const { addExtraLabTests, addExtraRadiology } = require('./seed_extra_catalog');
 const { mountOrderRoutes } = require('./orders');           // E-X1 unified orders (additive)
 const { makeRequirePermission } = require('./rbac');        // E-X3 RBAC matrix middleware (additive)
+const { validatePasswordPolicy } = require('./password_policy');
 // E1 Doctor Station (additive): pure CDS engine + clinical routes (problems/SOAP/CPOE).
 const cds = require('./cds');
 const { mountClinicalRoutes } = require('./clinical_cpoe');
@@ -3194,11 +3195,15 @@ app.post('/api/settings/users', requireAuth, requireRole('settings'), async (req
             return res.status(403).json({ error: 'Access denied: only an administrator can create system users' });
         }
         const { username, password, display_name, role, speciality, permissions, commission_type, commission_value } = req.body;
+        const passCheck = validatePasswordPolicy(password, { username });
+        if (!passCheck.valid) {
+            return res.status(400).json({ error: passCheck.error, error_ar: passCheck.error_ar });
+        }
         const hash = await bcrypt.hash(password, 10);
         const result = await pool.query('INSERT INTO system_users (username, password_hash, display_name, role, speciality, permissions, commission_type, commission_value) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
             [username, hash, display_name || '', role || 'Reception', speciality || '', permissions || '', commission_type || 'percentage', parseFloat(commission_value) || 0]);
         res.json((await pool.query('SELECT id, username, display_name, role, speciality, permissions, commission_type, commission_value, is_active, created_at FROM system_users WHERE id=$1', [result.rows[0].id])).rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { console.error('POST /api/settings/users error:', e); res.status(500).json({ error: 'Server error' }); }
 });
 
 app.put('/api/settings/users/:id', requireAuth, async (req, res) => {
@@ -3209,6 +3214,14 @@ app.put('/api/settings/users/:id', requireAuth, async (req, res) => {
         const isSelf = actor.id === targetId;
         const { username, password, display_name, role, speciality, permissions, is_active, commission_type, commission_value } = req.body;
         const norm = v => (v === true || v === 1 || v === '1') ? 1 : (v === false || v === 0 || v === '0') ? 0 : v;
+
+        if (password && password.trim() !== '') {
+            const targetUsername = username || (await pool.query('SELECT username FROM system_users WHERE id=$1', [targetId])).rows[0]?.username;
+            const passCheck = validatePasswordPolicy(password, { username: targetUsername });
+            if (!passCheck.valid) {
+                return res.status(400).json({ error: passCheck.error, error_ar: passCheck.error_ar });
+            }
+        }
 
         // ===== P0 GUARD: only Admin may change privileged/account-control fields; no self-escalation =====
         if (!isAdmin) {
@@ -3268,19 +3281,29 @@ app.put('/api/settings/users/:id', requireAuth, async (req, res) => {
 
 app.delete('/api/settings/users/:id', requireAuth, async (req, res) => {
     try {
+        console.error('DELETE USER REQUEST:', { paramId: req.params.id, actor: req.session.user });
         if (req.session.user.role !== 'Admin') {
             return res.status(403).json({ error: 'Access denied. Only Admin can delete system users.' });
         }
         const userId = parseInt(req.params.id);
-        if (userId === req.session.user.id) return res.status(400).json({ error: 'Cannot delete your own account' });
+        if (userId === req.session.user.id) {
+            console.error('DELETE USER FAILED: Cannot delete own account', { userId, actorId: req.session.user.id });
+            return res.status(400).json({ error: 'Cannot delete your own account' });
+        }
         const userRole = (await pool.query('SELECT role FROM system_users WHERE id=$1', [userId])).rows[0];
         if (userRole && userRole.role === 'Admin') {
             const adminCount = (await pool.query("SELECT COUNT(*) as count FROM system_users WHERE role='Admin'")).rows[0].count;
-            if (parseInt(adminCount) <= 1) return res.status(400).json({ error: 'Cannot delete the last admin' });
+            if (parseInt(adminCount) <= 1) {
+                console.error('DELETE USER FAILED: Cannot delete last admin', { adminCount });
+                return res.status(400).json({ error: 'Cannot delete the last admin' });
+            }
         }
         await pool.query('DELETE FROM system_users WHERE id=$1', [userId]);
         res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) {
+        console.error('DELETE USER ERROR:', e);
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 // ===== E0 FACILITY ONBOARDING WIZARD (super-admin facility provisioning) =====
@@ -8221,6 +8244,12 @@ app.post('/api/portal/users', requireAuth, requireTenantScope, async (req, res) 
             const pOwn = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
             if (!pOwn) return res.status(404).json({ error: 'Patient not found' });
         }
+        if (password) {
+            const passCheck = validatePasswordPolicy(password, { username, email, phone });
+            if (!passCheck.valid) {
+                return res.status(400).json({ error: passCheck.error, error_ar: passCheck.error_ar });
+            }
+        }
         const bcrypt = require('bcryptjs');
         // Never default to a guessable password; generate a strong random one if none supplied (portal onboarding sets a real one).
         const initPw = password || require('crypto').randomBytes(18).toString('base64');
@@ -12282,19 +12311,23 @@ app.put('/api/auth/change-password', requireAuth, async (req, res) => {
     try {
         const { current_password, new_password } = req.body;
         if (!current_password || !new_password) return res.status(400).json({ error: 'Missing fields' });
-        if (new_password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
 
-        const user = (await pool.query('SELECT * FROM users WHERE id=$1', [req.session.user.id])).rows[0];
+        const user = (await pool.query('SELECT * FROM system_users WHERE id=$1', [req.session.user.id])).rows[0];
         if (!user) return res.status(404).json({ error: 'User not found' });
+
+        const passCheck = validatePasswordPolicy(new_password, { username: user.username });
+        if (!passCheck.valid) {
+            return res.status(400).json({ error: passCheck.error, error_ar: passCheck.error_ar });
+        }
 
         // Verify current password
         const bcrypt = require('bcryptjs');
-        const valid = await bcrypt.compare(current_password, user.password);
+        const valid = await bcrypt.compare(current_password, user.password_hash);
         if (!valid) return res.status(401).json({ error: 'Current password is incorrect', error_ar: 'كلمة المرور الحالية غير صحيحة' });
 
         // Hash and update
         const hashed = await bcrypt.hash(new_password, 10);
-        await pool.query('UPDATE users SET password=$1 WHERE id=$2', [hashed, req.session.user.id]);
+        await pool.query('UPDATE system_users SET password_hash=$1 WHERE id=$2', [hashed, req.session.user.id]);
 
         logAudit(req.session.user.id, req.session.user.display_name, 'CHANGE_PASSWORD', 'Auth', 'Password changed', req.ip);
         res.json({ success: true });
