@@ -101,3 +101,31 @@
 ## 7. قرار ومقترحات المرحلة التالية (Next Steps)
 - **قرار الإغلاق الشامل (ALL_EPICS_CLOSED)**: **مرفوض حالياً لتوفر الفجوات والحدود فنية**.
 - **المرحلة التالية الموصى بها**: `RUN_EVIDENCE_REMEDIATION_PLAN`.
+
+---
+
+## 8. سجل حقول تدقيق مصفوفة التغطية المطبّعة والنهائية (Final Closeout Fields)
+* **FINAL_STATUS**: `EPIC_INDEX_AUDIT_COMPLETED_WITH_EVIDENCE_GAPS_AND_COUNTER_NORMALIZATION`
+* **AUDIT_SCOPE**: `EXPANDED`
+* **TOTAL_ITEMS_FOUND**: `18`
+* **FINAL_CLASSIFICATION_COUNTS_SUM**: `18`
+* **COUNTERS_NORMALIZED**: `YES`
+* **EVIDENCE_GAP_FLAGS_SEPARATED**: `YES`
+* **ALL_EPICS_CLOSED_CLAIM**: `NO`
+* **CODE_CHANGED**: `NO`
+* **DOCS_CHANGED**: `YES`
+* **PRODUCTION_TOUCHED**: `NO`
+* **DB_TOUCHED**: `NO`
+* **DDL_RUN**: `NO`
+* **DEPLOY_RUN**: `NO`
+* **PM2_RESTARTED**: `NO`
+* **ZATCA_CALLS**: `NO`
+* **NPHIES_CALLS**: `NO`
+* **ACCOUNTING_POSTING**: `NO`
+* **JOURNAL_ENTRIES_CREATED**: `0`
+* **SECRETS_PRINTED**: `NO`
+* **PHI_PRINTED**: `NO`
+* **MOJIBAKE_AUDIT**: `CLEAN_FOR_SCANNED_SCOPE_ONLY`
+* **UTF8_STATUS**: `CLEAN`
+* **REPORT_FILE**: `docs/governance/enterprise-engineering-constitution/EPIC_INDEX_COVERAGE_AUDIT_REPORT_AR.md`
+* **NEXT_RECOMMENDED_ACTION**: `RUN_EVIDENCE_REMEDIATION_PLAN`
