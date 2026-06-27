@@ -40,12 +40,20 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 const upload = multer({
     storage: multer.diskStorage({
         destination: (req, file, cb) => cb(null, uploadsDir),
-        filename: (req, file, cb) => cb(null, `rad_${req.params.id}_${Date.now()}${path.extname(file.originalname)}`)
+        filename: (req, file, cb) => {
+            // L-2: build the stored name from a sanitized (digits-only) id, never the raw param, and
+            // store a lowercased extension. The route re-validates :id against the DB afterwards.
+            const safeId = String(req.params.id || '').replace(/[^0-9]/g, '').slice(0, 12) || 'x';
+            cb(null, `rad_${safeId}_${Date.now()}${path.extname(file.originalname).toLowerCase()}`);
+        }
     }),
     limits: { fileSize: 10 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
-        const allowed = /jpeg|jpg|png|gif|bmp|webp|dicom|dcm/;
-        cb(null, allowed.test(path.extname(file.originalname).toLowerCase()));
+        // M-1: ANCHORED extension allowlist (so '.webpage' cannot match 'webp') AND a mimetype allowlist.
+        // (Stored files are outside the webroot and served with a pinned MIME + nosniff + sandbox CSP.)
+        const extOk = /^\.(jpe?g|png|gif|bmp|webp|dicom|dcm)$/.test(path.extname(file.originalname).toLowerCase());
+        const mimeOk = /^(image\/(jpeg|png|gif|bmp|webp)|application\/dicom|application\/octet-stream)$/.test(String(file.mimetype || '').toLowerCase());
+        cb(null, extOk && mimeOk);
     }
 });
 
