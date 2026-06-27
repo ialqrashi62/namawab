@@ -215,6 +215,63 @@ function ublHash(xml) {
     return require('crypto').createHash('sha256').update(String(xml), 'utf8').digest('hex');
 }
 
+// ---- H-5 GL POSTING POLICY GUARDS (pure, DB-free) ----------------------------------------
+// These helpers enforce the accounting posting policy BEFORE any journal creation.
+// They are called by routes/hooks to reject invalid posting attempts at the application layer.
+// CRITICAL: no journal entry is ever created unless ALL preconditions pass.
+
+const VALID_SOURCE_TYPES = ['INVOICE', 'PAYMENT', 'REFUND', 'MANUAL', 'SYSTEM', 'REVERSAL'];
+const VALID_EVENT_TYPES = ['ISSUED', 'CANCELLED', 'FULL_PAYMENT', 'PARTIAL_PAYMENT', 'REFUND', 'REVERSAL', 'ADJUSTMENT'];
+
+// validateSourceDocument: ensures a posting request carries a valid source document reference.
+// Returns { ok, reason? }. Rejects missing/invalid source_type, source_id, or event_type.
+function validateSourceDocument(doc) {
+    if (!doc || typeof doc !== 'object') return { ok: false, reason: 'missing_document' };
+    if (!VALID_SOURCE_TYPES.includes(doc.source_type)) return { ok: false, reason: 'invalid_source_type' };
+    if (doc.source_type !== 'MANUAL' && doc.source_type !== 'SYSTEM') {
+        // non-manual postings MUST reference a concrete source row
+        const sid = Number(doc.source_id);
+        if (!Number.isInteger(sid) || sid <= 0) return { ok: false, reason: 'invalid_source_id' };
+    }
+    if (!VALID_EVENT_TYPES.includes(doc.event_type)) return { ok: false, reason: 'invalid_event_type' };
+    return { ok: true };
+}
+
+// idempotencyKey: derives a deterministic key from source_type + source_id + event_type.
+// The caller uses this to prevent duplicate journal entries for the same financial event.
+// Returns null if any component is missing (fail-closed — no key = no posting).
+function idempotencyKey(source_type, source_id, event_type) {
+    if (!source_type || source_id == null || !event_type) return null;
+    return `${String(source_type).toUpperCase()}:${source_id}:${String(event_type).toUpperCase()}`;
+}
+
+// checkPostingPreconditions: master guard that validates ALL preconditions before creating
+// a journal entry. Returns { ok, reasons[] }. ANY failure => the entire posting is blocked.
+// DOES NOT create entries — pure validation only.
+//   accountingEnabled: boolean (from e10PostingEnabled())
+//   tenantId:          number|null (from getRequestTenantContext)
+//   sourceDoc:         { source_type, source_id, event_type }
+//   lines:             [{ account_id, debit, credit }]
+function checkPostingPreconditions(accountingEnabled, tenantId, sourceDoc, lines) {
+    const reasons = [];
+    // 1. Accounting flag must be ON
+    if (!accountingEnabled) reasons.push('accounting_disabled');
+    // 2. Tenant scope required (server-derived, never client-supplied)
+    if (!tenantId) reasons.push('missing_tenant');
+    // 3. Source document must be valid
+    const docCheck = validateSourceDocument(sourceDoc);
+    if (!docCheck.ok) reasons.push('source_doc_' + (docCheck.reason || 'invalid'));
+    // 4. Journal lines must be balanced
+    const balanceCheck = validateBalancedEntry(lines);
+    if (!balanceCheck.ok) reasons.push('lines_' + (balanceCheck.reason || 'invalid'));
+    // 5. Idempotency key must be derivable
+    if (sourceDoc) {
+        const key = idempotencyKey(sourceDoc.source_type, sourceDoc.source_id, sourceDoc.event_type);
+        if (!key) reasons.push('no_idempotency_key');
+    }
+    return { ok: reasons.length === 0, reasons, ...(reasons.length === 0 ? { balanceCheck } : {}) };
+}
+
 module.exports = {
     VAT_RATE,
     toHalalas, halalasToStr, money2,
@@ -222,5 +279,8 @@ module.exports = {
     validateBalancedEntry, buildReversalLines,
     bucketLabel, ageInvoices,
     tlv, buildZatcaQR,
-    xmlEscape, buildUBLInvoice, ublHash
+    xmlEscape, buildUBLInvoice, ublHash,
+    // H-5 GL posting policy guards
+    VALID_SOURCE_TYPES, VALID_EVENT_TYPES,
+    validateSourceDocument, idempotencyKey, checkPostingPreconditions
 };
