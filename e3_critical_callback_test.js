@@ -22,8 +22,9 @@ function tryReport(result, callbacksForResult) {
     if (result.reported) return { status: 409, error: 'Result already reported' };
     if (result.status !== 'verified') return { status: 409, error: 'must be verified' };
     if (result.is_critical) {
-        const n = callbacksForResult.filter(c => c.result_id === result.id).length;
-        if (n === 0) return { status: 409, code: 'CRITICAL_CALLBACK_REQUIRED' };
+        // FAIL-CLOSED read-back: only an ACKNOWLEDGED call-back (ack===1) unlocks reporting.
+        const n = callbacksForResult.filter(c => c.result_id === result.id && c.ack === 1).length;
+        if (n === 0) return { status: 409, code: 'CRITICAL_CALLBACK_ACK_REQUIRED' };
     }
     return { status: 200, reported: 1 };
 }
@@ -44,21 +45,28 @@ console.log('[3] CRITICAL verified result WITHOUT call-back is BLOCKED (fail-clo
 {
     const r = tryReport({ id: 3, status: 'verified', is_critical: 1 }, []);
     chk('critical no-callback blocked (409)', r.status === 409);
-    chk('critical no-callback code', r.code === 'CRITICAL_CALLBACK_REQUIRED');
+    chk('critical no-callback code', r.code === 'CRITICAL_CALLBACK_ACK_REQUIRED');
 }
 
-console.log('[4] CRITICAL verified result WITH documented call-back reports');
+console.log('[3b] CRITICAL with an UNACKNOWLEDGED call-back (ack=0) is BLOCKED (read-back required)');
 {
-    const callbacks = [{ id: 99, result_id: 3, notified_to: 'Dr. A', notified_at: 'now' }];
+    const callbacks = [{ id: 98, result_id: 3, notified_to: 'Dr. A', ack: 0 }];
     const r = tryReport({ id: 3, status: 'verified', is_critical: 1 }, callbacks);
-    chk('critical with callback reports (200)', r.status === 200 && r.reported === 1);
+    chk('critical unacknowledged callback blocked (409)', r.status === 409 && r.code === 'CRITICAL_CALLBACK_ACK_REQUIRED');
+}
+
+console.log('[4] CRITICAL verified result WITH an ACKNOWLEDGED call-back reports');
+{
+    const callbacks = [{ id: 99, result_id: 3, notified_to: 'Dr. A', notified_at: 'now', ack: 1 }];
+    const r = tryReport({ id: 3, status: 'verified', is_critical: 1 }, callbacks);
+    chk('critical with acknowledged callback reports (200)', r.status === 200 && r.reported === 1);
 }
 
 console.log('[5] call-back for a DIFFERENT result does not unlock this one');
 {
-    const callbacks = [{ id: 100, result_id: 7, notified_to: 'Dr. B' }];
+    const callbacks = [{ id: 100, result_id: 7, notified_to: 'Dr. B', ack: 1 }];
     const r = tryReport({ id: 3, status: 'verified', is_critical: 1 }, callbacks);
-    chk('mismatched callback still blocked', r.status === 409 && r.code === 'CRITICAL_CALLBACK_REQUIRED');
+    chk('mismatched callback still blocked', r.status === 409 && r.code === 'CRITICAL_CALLBACK_ACK_REQUIRED');
 }
 
 console.log('[6] already-reported result cannot be re-reported (audit/integrity, not silently idempotent)');

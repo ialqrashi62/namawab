@@ -2227,9 +2227,12 @@ app.put('/api/lab/results/:id/report', requireAuth, requireTenantScope, async (r
         if (r.status !== 'verified') return res.status(409).json({ error: 'Result must be verified before reporting' });
         // CLINICAL SAFETY (FAIL-CLOSED): a critical result cannot be reported without a documented call-back.
         if (r.is_critical) {
-            const cb = (await pool.query('SELECT count(*)::int AS n FROM lab_critical_callbacks WHERE result_id=$1 AND tenant_id=$2', [req.params.id, ctx.tenantId])).rows[0];
+            // FAIL-CLOSED read-back: require an ACKNOWLEDGED call-back (ack=1) — the receiver confirmed
+            // read-back per CAP/Joint Commission. A logged-but-unacknowledged call-back does NOT unlock
+            // reporting (previously any call-back row, acknowledged or not, was accepted).
+            const cb = (await pool.query('SELECT count(*)::int AS n FROM lab_critical_callbacks WHERE result_id=$1 AND tenant_id=$2 AND ack=1', [req.params.id, ctx.tenantId])).rows[0];
             if (!cb || cb.n === 0) {
-                return res.status(409).json({ error: 'Critical result requires a documented call-back before reporting', code: 'CRITICAL_CALLBACK_REQUIRED' });
+                return res.status(409).json({ error: 'Critical result requires an ACKNOWLEDGED (read-back) call-back before reporting', code: 'CRITICAL_CALLBACK_ACK_REQUIRED' });
             }
         }
         // belt-and-suspenders: only flip an as-yet-unreported row (concurrency-safe with the 409 above).
