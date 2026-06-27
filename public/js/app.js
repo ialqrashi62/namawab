@@ -101,6 +101,31 @@ const NAV_ITEMS = [
   document.getElementById('userRole').textContent = currentUser.role;
   document.getElementById('userAvatar').textContent = currentUser.name.charAt(0);
 
+  // Tenant Context Indicator
+  const tenantText = `M-${currentUser.tenantId || '1'}`;
+  const userRoleEl = document.getElementById('userRole');
+  if (userRoleEl) {
+    const oldTenant = document.getElementById('userTenant');
+    if (oldTenant) oldTenant.remove();
+    userRoleEl.insertAdjacentHTML('afterend', `
+      <div class="user-tenant" id="userTenant" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:2px">
+        🏢 ${tr('Tenant', 'المستأجر')}: ${tenantText}
+      </div>
+    `);
+  }
+
+  // Top header tenant context
+  const headerLeft = document.querySelector('.header-left');
+  if (headerLeft) {
+    const oldHeaderTenant = document.getElementById('headerTenantContext');
+    if (oldHeaderTenant) oldHeaderTenant.remove();
+    headerLeft.insertAdjacentHTML('beforeend', `
+      <span id="headerTenantContext" class="badge badge-tenant-context" style="margin-left: 16px; margin-right: 16px; background: var(--accent-glow); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid var(--accent)">
+        🏢 ${tr('Facility Context', 'سياق المنشأة')}: ${tenantText}
+      </span>
+    `);
+  }
+
   // Load saved theme + facility type
   try {
     const s = await API.get('/api/settings');
@@ -2593,6 +2618,7 @@ async function renderReception(el) {
         <button class="btn btn-primary w-full" id="rSaveBtn" style="height:44px;font-size:15px">💾 ${tr('Save & Generate File', 'حفظ وإنشاء ملف')}</button>
       </div>
     </div>
+    <div id="rPatientBannerContainer"></div>
     <div class="card glass-card-premium mt-16">
       <div class="card-title">📋 ${tr('Patient Queue', 'قائمة المرضى')}</div>
       <input class="search-filter" id="rSearch" placeholder="${tr('Search by name, ID, phone, file#...', 'بحث بالاسم، الهوية، الجوال، رقم الملف...')}">
@@ -2804,10 +2830,51 @@ async function renderReception(el) {
   document.getElementById('rHijriMonth').addEventListener('change', hijriChange);
   document.getElementById('rHijriDay').addEventListener('change', hijriChange);
 
+  const userPerms = currentUser?.permissions ? currentUser.permissions.split(',') : [];
+  const isAdmin = currentUser?.role === 'Admin';
+  const canRegister = isAdmin || userPerms.includes('patients') || userPerms.includes('1');
+
+  const saveBtn = document.getElementById('rSaveBtn');
+  if (saveBtn && !canRegister) {
+    saveBtn.disabled = true;
+    saveBtn.title = tr('You do not have permission to register patients', 'ليس لديك صلاحية لتسجيل المرضى');
+    saveBtn.classList.add('btn-disabled');
+    saveBtn.style.opacity = '0.5';
+    saveBtn.style.cursor = 'not-allowed';
+  }
+
   document.getElementById('rSaveBtn').addEventListener('click', async () => {
+    if (!canRegister) {
+      showToast(tr('Access Denied: You do not have permission to register patients', 'تم رفض الوصول: ليس لديك صلاحية لتسجيل المرضى'), 'error');
+      return;
+    }
     const nameAr = document.getElementById('rNameAr').value.trim();
     const nameEn = document.getElementById('rNameEn').value.trim();
     if (!nameAr && !nameEn) { showToast(tr('Enter patient name', 'ادخل اسم المريض'), 'error'); return; }
+
+    // Saudi Compliance Validations (SDAIA / PDPL & NDMO Data Integrity)
+    const natId = document.getElementById('rNatId').value.trim();
+    if (natId) {
+      if (!/^[12]\d{9}$/.test(natId)) {
+        showToast(tr('National ID must be exactly 10 digits starting with 1 or 2', 'يجب أن يتكون رقم الهوية من 10 أرقام ويبدأ بـ 1 أو 2'), 'error');
+        return;
+      }
+    } else {
+      showToast(tr('National ID is required', 'رقم الهوية الوطنية مطلوب'), 'error');
+      return;
+    }
+
+    const phone = document.getElementById('rPhone').value.trim();
+    if (phone) {
+      if (!/^(05|9665)\d{8}$/.test(phone)) {
+        showToast(tr('Phone number must start with 05 or 9665 followed by 8 digits', 'رقم الجوال يجب أن يبدأ بـ 05 أو 9665 متبوعاً بـ 8 أرقام'), 'error');
+        return;
+      }
+    } else {
+      showToast(tr('Phone number is required', 'رقم الجوال مطلوب'), 'error');
+      return;
+    }
+
     try {
       await API.post('/api/patients', {
         name_ar: nameAr, name_en: nameEn,
@@ -2885,9 +2952,62 @@ function renderPatientTable(patients) {
     id: p.id, raw: p
   }));
   document.getElementById('rTable').innerHTML = makeTable(headers, rows, (row) =>
-    `<button class="btn btn-sm" onclick="editPatient(${safeId(row.id)})" title="${tr('Edit', 'تعديل')}">✏️</button> <button class="btn btn-sm btn-success" onclick="showNewInvoiceModal(${safeId(row.id)},'${jsStr(row.raw.name_ar || row.raw.name_en || '')}')" title="${tr('Invoice', 'فاتورة')}">🧾</button> <button class="btn btn-danger btn-sm" onclick="deletePatient(${safeId(row.id)})" title="${tr('Delete', 'حذف')}">🗑</button>`
+    `<button class="btn btn-sm btn-info" onclick="selectPatient(${safeId(row.id)})" title="${tr('View Banner', 'عرض البانر')}">👁️</button> <button class="btn btn-sm" onclick="editPatient(${safeId(row.id)})" title="${tr('Edit', 'تعديل')}">✏️</button> <button class="btn btn-sm btn-success" onclick="showNewInvoiceModal(${safeId(row.id)},'${jsStr(row.raw.name_ar || row.raw.name_en || '')}')" title="${tr('Invoice', 'فاتورة')}">🧾</button> <button class="btn btn-danger btn-sm" onclick="deletePatient(${safeId(row.id)})" title="${tr('Delete', 'حذف')}">🗑</button>`
   );
 }
+
+window.selectPatient = async (id) => {
+  try {
+    const patients = await API.get('/api/patients');
+    const p = patients.find(x => x.id === id);
+    if (!p) return showToast(tr('Patient not found', 'المريض غير موجود'), 'error');
+    
+    // Audit Event log feedback to user
+    showToast(tr('Selected patient: ', 'تم اختيار المريض: ') + (isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)));
+    
+    // Render Patient Banner with minimized PHI (Masking National ID)
+    const bannerEl = document.getElementById('rPatientBannerContainer');
+    if (bannerEl) {
+      const maskedNatId = p.national_id ? p.national_id.substring(0, 3) + '*****' + p.national_id.substring(8) : '-';
+      const ageText = (p.dob) ? Math.abs(new Date(Date.now() - new Date(p.dob).getTime()).getUTCFullYear() - 1970) : '-';
+      bannerEl.innerHTML = `
+        <div class="patient-banner glass-card-premium mb-16 p-16" style="border: 2px solid var(--accent); border-radius: 12px; background: var(--card-bg); display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 8px">
+            <h4 style="margin: 0; color: var(--accent); display: flex; align-items: center; gap: 8px">
+              <span>${p.gender === 'ذكر' ? '👨' : '👩'}</span>
+              <span>${escapeHTML(isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar))}</span>
+            </h4>
+            <span class="badge" style="background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent)">
+              MRN/File: ${escapeHTML(p.mrn || p.file_number)}
+            </span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; font-size: 13px">
+            <div><strong>${tr('Age', 'العمر')}:</strong> ${escapeHTML(ageText)}</div>
+            <div><strong>${tr('Gender', 'الجنس')}:</strong> ${escapeHTML(p.gender)}</div>
+            <div><strong>${tr('Blood Type', 'فصيلة الدم')}:</strong> ${p.blood_type ? `<span class="badge" style="background:#dc2626;color:#fff">${escapeHTML(p.blood_type)}</span>` : '-'}</div>
+            <div><strong>${tr('National ID (Min PHI)', 'رقم الهوية (محمي)' )}:</strong> <span style="font-family: monospace">${escapeHTML(maskedNatId)}</span></div>
+          </div>
+          <div style="display: flex; gap: 16px; font-size: 13px; flex-wrap: wrap">
+            <div style="flex: 1; min-width: 200px; background: rgba(220,38,38,0.05); padding: 8px; border-radius: 6px; border-right: 4px solid #ef4444">
+              <strong style="color: #ef4444">⚠️ ${tr('Allergies', 'الحساسية')}:</strong>
+              <span>${p.allergies ? escapeHTML(p.allergies) : tr('No known allergies', 'لا توجد حساسية معروفة')}</span>
+            </div>
+            <div style="flex: 1; min-width: 200px; background: rgba(13,148,136,0.05); padding: 8px; border-radius: 6px; border-right: 4px solid var(--accent)">
+              <strong style="color: var(--accent)">🩺 ${tr('Chronic Diseases', 'الأمراض المزمنة')}:</strong>
+              <span>${p.chronic_diseases ? escapeHTML(p.chronic_diseases) : tr('None', 'لا يوجد')}</span>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim)">
+            <span>🏢 ${tr('Facility Context', 'سياق المنشأة')}: M-${escapeHTML(p.tenant_id || currentUser.tenantId)}</span>
+            <button class="btn btn-sm btn-secondary" onclick="document.getElementById('rPatientBannerContainer').innerHTML=''" style="padding: 2px 8px">${tr('Clear Banner', 'إغلاق البانر')}</button>
+          </div>
+        </div>
+      `;
+    }
+  } catch (e) {
+    showToast(tr('Error loading patient banner', 'خطأ في تحميل تفاصيل المريض'), 'error');
+  }
+};
 
 window.deletePatient = async (id) => {
   if (!confirm(tr('Delete this patient and all records?', 'حذف هذا المريض وجميع سجلاته؟'))) return;
@@ -2975,6 +3095,10 @@ window.confirmNewInvoice = async function () {
 
 // ===== APPOINTMENTS =====
 async function renderAppointments(el) {
+  const userPerms = currentUser?.permissions ? currentUser.permissions.split(',') : [];
+  const isAdmin = currentUser?.role === 'Admin';
+  const canBook = isAdmin || userPerms.includes('appointments') || userPerms.includes('2');
+
   // Show premium skeletons instantly
   el.innerHTML = `
     <div class="page-title">📅 ${tr('Appointments', 'المواعيد')}</div>
@@ -3036,7 +3160,7 @@ async function renderAppointments(el) {
         <div class="form-group mb-12"><label>${tr('Time', 'الوقت')}</label><input class="form-input" type="time" id="aTime" value="${new Date().toTimeString().slice(0, 5)}"></div>
         <div class="form-group mb-12"><label>${tr('Notes', 'ملاحظات')}</label><input class="form-input" id="aNotes"></div>
         <div class="form-group mb-16"><label>${tr('Appointment Fee', 'رسوم الموعد')}</label><input class="form-input" id="aFee" type="number" value="0" placeholder="0.00"></div>
-        <button class="btn btn-primary w-full" onclick="bookAppt()" style="height:44px">📅 ${tr('Book', 'حجز')}</button>
+        <button id="aBookBtn" class="btn btn-primary w-full" onclick="bookAppt()" style="height:44px">📅 ${tr('Book', 'حجز')}</button>
       </div>
       <div class="card glass-card-premium">
         <div class="card-title">📋 ${tr('Appointments List', 'قائمة المواعيد')}</div>
@@ -3044,12 +3168,38 @@ async function renderAppointments(el) {
         <div id="aTable">${appointmentsTableHtml}</div>
       </div>
     </div>`;
+
+  const bookBtn = el.querySelector('#aBookBtn');
+  if (bookBtn && !canBook) {
+    bookBtn.disabled = true;
+    bookBtn.title = tr('You do not have permission to book appointments', 'ليس لديك صلاحية لحجز المواعيد');
+    bookBtn.classList.add('btn-disabled');
+    bookBtn.style.opacity = '0.5';
+    bookBtn.style.cursor = 'not-allowed';
+  }
 }
 window.bookAppt = async () => {
+  const userPerms = currentUser?.permissions ? currentUser.permissions.split(',') : [];
+  const isAdmin = currentUser?.role === 'Admin';
+  const canBook = isAdmin || userPerms.includes('appointments') || userPerms.includes('2');
+  if (!canBook) {
+    showToast(tr('Access Denied: You do not have permission to book appointments', 'تم رفض الوصول: ليس لديك صلاحية لحجز المواعيد'), 'error');
+    return;
+  }
   const pSelect = document.getElementById('aPatient');
   const pName = pSelect.value;
   const pId = pSelect.options[pSelect.selectedIndex]?.dataset?.pid || '';
   if (!pName) { showToast(tr('Select patient', 'اختر مريض'), 'error'); return; }
+
+  // Date validation (Scheduling blueprint compliance)
+  const apptDateStr = document.getElementById('aDate').value;
+  if (!apptDateStr) { showToast(tr('Select appointment date', 'اختر تاريخ الموعد'), 'error'); return; }
+  const todayStr = new Date().toISOString().split('T')[0];
+  if (apptDateStr < todayStr) {
+    showToast(tr('Appointment date cannot be in the past', 'تاريخ الموعد لا يمكن أن يكون في الماضي'), 'error');
+    return;
+  }
+
   try {
     await API.post('/api/appointments', { patient_name: pName, patient_id: pId, doctor_name: document.getElementById('aDoctor').value, department: '', appt_date: document.getElementById('aDate').value, appt_time: document.getElementById('aTime').value, notes: document.getElementById('aNotes').value, fee: parseFloat(document.getElementById('aFee').value) || 0 });
     showToast(tr('Appointment booked!', 'تم حجز الموعد!'));
