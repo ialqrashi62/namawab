@@ -15,6 +15,22 @@
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
+        /* Accessibility: keyboard skip-to-content link, visible only on focus. */
+        .skip-link {
+            position: absolute;
+            right: 8px;
+            top: -48px;
+            z-index: 1000;
+            padding: 8px 14px;
+            background: #1d4ed8;
+            color: #fff;
+            border-radius: 6px;
+            transition: top 0.15s ease;
+        }
+        .skip-link:focus {
+            top: 8px;
+            outline: 2px solid #fff;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
@@ -24,22 +40,23 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
 </head>
 <body class="text-on-surface antialiased bg-background">
+    <a href="#pageContent" class="skip-link">تخطّي إلى المحتوى</a>
     <div id="app">
         <!-- Sidebar Overlay (Mobile) -->
-        <div class="sidebar-overlay" id="sidebarOverlay"></div>
-        
+        <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
         <!-- Sidebar -->
-        <aside id="sidebar">
+        <aside id="sidebar" aria-label="الشريط الجانبي">
             <div class="sidebar-header flex flex-col items-center gap-2">
                 <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-secondary-fixed mb-1 border border-white/10">
-                    <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">health_and_safety</span>
+                    <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;" aria-hidden="true">health_and_safety</span>
                 </div>
                 <h2 class="sidebar-title">جمانا الطبي</h2>
                 <p class="sidebar-subtitle">jumanaMedical ERP</p>
             </div>
             
             <!-- Navigation List -->
-            <nav id="navList" class="flex-1 overflow-y-auto px-3 py-4 space-y-1"></nav>
+            <nav id="navList" class="flex-1 overflow-y-auto px-3 py-4 space-y-1" aria-label="التنقل الرئيسي"></nav>
             
             <!-- Sidebar Footer -->
             <div class="sidebar-footer">
@@ -50,7 +67,7 @@
                         <div class="user-role" id="userRole">مدير</div>
                     </div>
                 </div>
-                <button class="logout-btn" id="logoutBtn" title="تسجيل الخروج">⏻</button>
+                <button class="logout-btn" id="logoutBtn" title="تسجيل الخروج" aria-label="تسجيل الخروج">⏻</button>
             </div>
         </aside>
 
@@ -59,16 +76,16 @@
             <!-- Topbar Header -->
             <header id="topHeader">
                 <div class="header-left">
-                    <button class="menu-toggle" id="menuToggle">☰</button>
+                    <button class="menu-toggle" id="menuToggle" aria-label="فتح أو إغلاق القائمة الجانبية" aria-controls="sidebar" aria-expanded="false">☰</button>
                     <h1 class="header-title" id="headerTitle">لوحة التحكم</h1>
                 </div>
                 <div class="header-right">
-                    <input type="text" class="search-box" id="globalSearch"
+                    <input type="text" class="search-box" id="globalSearch" aria-label="بحث بالاسم أو الهوية أو الجوال أو رقم الملف"
                         placeholder="بحث بالاسم، الهوية، الجوال، رقم الملف...">
-                    
-                    <button class="lang-toggle-btn" id="langToggleBtn" title="تغيير اللغة">🌐 EN</button>
-                    
-                    <select class="theme-select" id="themeSelect" title="اختر السمة">
+
+                    <button class="lang-toggle-btn" id="langToggleBtn" title="تغيير اللغة" aria-label="تغيير اللغة">🌐 EN</button>
+
+                    <select class="theme-select" id="themeSelect" title="اختر السمة" aria-label="اختر السمة">
                         <option value="0">🔵 أزرق داكن</option>
                         <option value="1">🟢 أخضر داكن</option>
                         <option value="2">🟣 بنفسجي</option>

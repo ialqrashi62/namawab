@@ -211,8 +211,10 @@ function setupEvents() {
     navigateTo(currentPage);
   });
   document.getElementById('menuToggle').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('open');
+    const open = document.getElementById('sidebar').classList.toggle('open');
     document.getElementById('sidebarOverlay').classList.toggle('show');
+    // a11y: announce the sidebar open/closed state on the toggle button.
+    document.getElementById('menuToggle').setAttribute('aria-expanded', open ? 'true' : 'false');
   });
   document.getElementById('sidebarOverlay').addEventListener('click', () => {
     document.getElementById('sidebar').classList.remove('open');
