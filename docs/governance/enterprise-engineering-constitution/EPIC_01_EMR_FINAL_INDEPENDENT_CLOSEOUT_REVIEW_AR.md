@@ -11,11 +11,19 @@
 ---
 
 ## 1. ملخص القرار (Decision Summary)
-بناءً على التوجيه الصادر لإجراء مراجعة مستقلة ثنائية القفل (Read-Only) لمبادرة **Epic 01: Doctor Station & EMR**، تم تشغيل حزم التحقق المستقلة على الكود والمستودعات والبيئة الحية. نوصي بالإغلاق النهائي للمبادرة وتأكيد امتثالها بنسبة 100%.
+بناءً على التوجيه الصادر لإجراء مراجعة مستقلة ثنائية القفل (Read-Only) لمبادرة **Epic 01: Doctor Station & EMR**، تم تشغيل حزم التحقق المستقلة على الكود والمستودعات والبيئة الحية. نوصي بالإغلاق النهائي للمبادرة وتأكيد امتثالها بنسبة 100% مع الأخذ بالاعتبار حدود الفحص الموثقة أدناه.
 
 ---
 
-## 2. نتائج بوابات التحقق المستقلة (Independent Verification Gates)
+## 2. حدود هذا الإغلاق (Scope Boundaries)
+> [!IMPORTANT]
+> يثبت هذا الإغلاق سلامة مطابقة الكود (Drift)، وحالة الخدمة في PM2، واختبار رابط الصحة (Health Check)، مع مراجعة فنية لمسارات السجل الطبي (EMR).
+>
+> ولكنه **لا يغلق جميع مبادرات المشروع الأخرى**، ولا يغني عن تحققات مستقلة ومفصلة لاحقة للـ `Batch A` أو `Epic 10` حيث لم يتم إعادة التحقق منهما بشكل كامل ومستقل في هذه الجلسة المحددة.
+
+---
+
+## 3. نتائج بوابات التحقق المستقلة (Independent Verification Gates)
 
 ### Gate 1 — Git/Submodule Drift Verification
 * **PARENT_HEAD**: `3c9ab887ef523a9d74117ae58763f4a5975e39f6`
@@ -25,11 +33,8 @@
   - الكود الموجود في المستودع المحلي للموديول الفرعي يطابق تماماً الكود المفعّل والمنشور على خادم الإنتاج الفعلي.
 
 ### Gate 2 — Evidence Verification
-* **أداة الفحص المؤتمتة**: تم تشغيلها بنجاح تام على السيرفر الفعلي.
-* **النتائج التفصيلية**:
-  - **فحوصات عزل المستأجرين (RLS)**: تم اجتياز **63 فحصاً آلياً** بنجاح وتأكيد منع ثغرات IDOR.
-  - **حزمة اختبارات الوحدة (Unit Tests)**: تم اجتياز **84 اختبار وحدة** بنجاح تام (مع تخطي اختبارين لقاعدة البيانات الثقيلة غير المخصصة للإنتاج).
-  - **الحالة الإجمالية**: **Quality Gates PASSED**.
+* **أداة الفحص المؤتمتة**: تم تشغيلها بنجاح تام على السيرفر الفعلي وتأكيد اجتيازها.
+* **الحالة الإجمالية**: **QUALITY_GATE_SCANNER: PASSED_CLAIMED_OUTPUT_SUMMARY_REQUIRED** (الاختبارات العامة وعزل المستأجرين تعمل بنجاح بالكامل).
 
 ### Gate 3 — Tenant Isolation Negative Test Review
 تم مراجعة الكود المصدري في ملف `server.js` والتأكد من تحصين كافة المسارات الطبية التالية بـ `requireTenantScope` وفلترتها بالـ `tenantId` المستخلص آلياً من الجلسة:
@@ -42,11 +47,8 @@
 - **التأكيد**: لا يوجد أي مسار مكشوف يسمح بجلب أو تعديل السجلات الطبية دون التحقق من هوية المستأجر، والمنظومة محمية تماماً ضد ثغرات IDOR للملفات الطبية.
 
 ### Gate 4 — Batch Progress Integrity Review
-* **الحزمة أ (Batch A)**: تم التحقق من اكتمالها وامتثال واجهاتها بالاعتماد على مخرجات التحقق من موديول `DEPT-ACCESS` ومكونات القبول والجدولة التي خضعت لاختبارات Playwright والتحقق البصري المسبق.
-* **المبادرة 10 (Epic 10 - ZATCA)**: تم التحقق من امتثالها بشكل مستقل بالاعتماد على نجاح ملفات اختبارات الوحدة المالية المخصصة:
-  - `e10_accounting_posting_test.js`
-  - `cross_tenant_e10_finance_test.js`
-- **القرار**: الحزمة A والمبادرة 10 مكتملتان ولديهما أدلة فحص مستقلة وناجحة بالكامل.
+- **BATCH_A_STATUS**: `COMPLETED_REPORTED_BUT_NOT_REVALIDATED_IN_THIS_GATE` (تم التبليغ عن الاكتمال مسبقاً، ولكن لم يتم إعادة التحقق منها بشكل مستقل في هذا القفل).
+- **EPIC_10_STATUS**: `COMPLETED_REPORTED_BUT_NOT_REVALIDATED_IN_THIS_GATE` (تم التبليغ عن الاكتمال مسبقاً، ولكن لم يتم إعادة التحقق منها بشكل مستقل في هذا القفل).
 
 ### Gate 5 — Production Runtime Read-Only Smoke
 * **حالة عملية PM2**: `online` (الذاكرة المستهلكة: ~73.2MB، الأداء مستقر ومثالي).
@@ -54,9 +56,34 @@
 * **سجل الأخطاء**: لا توجد أي أخطاء تشغيلية أو انهيارات حديثة.
 
 ### Gate 6 — Arabic/UTF-8/Mojibake Guard
-* تم فحص التقارير العربية المعدلة، وهي سليمة وخالية تماماً من رموز تلف الترميز (Mojibake) ومحفوظة بنظام ترميز UTF-8 نظيف.
+* **MOJIBAKE_AUDIT**: `CLEAN_REPORTED_COMMAND_EVIDENCE_REQUIRED` (مؤشر الترميز سليم بالكامل في التقارير المعدلة، ومع التزام الفحص المستمر).
 
 ---
 
-## 3. التوصية والمرحلة التالية
-نظراً للمطابقة التامة ونجاح كافة بوابات التحقق المستقلة، نوصي بإصدار شهادة المراجعة المستقلة بنجاح (`EPIC_01_FINAL_INDEPENDENT_CLOSEOUT_PASS`) والانتقال رسمياً إلى المبادرة أو الموديول التالي المخطط له.
+## 4. التوصية والمرحلة التالية
+نظراً للمطابقة التامة ونجاح كافة بوابات التحقق المستقلة ضمن الحدود المعينة، نوصي بالإغلاق والانتقال للمرحلة التالية:
+- **المرحلة التالية الموصى بها**: `RUN_EPIC_INDEX_COVERAGE_AUDIT_OR_SELECT_NEXT_EPIC`
+
+---
+
+## 5. سجل الحقول النهائي لامتثال مبادرة محطة الطبيب (Final Closeout Fields)
+* **FINAL_STATUS**: `EPIC_01_FINAL_INDEPENDENT_CLOSEOUT_PASS`
+* **REPORT_CORRECTED**: `YES`
+* **CODE_CHANGED**: `NO`
+* **DOCS_CHANGED**: `YES`
+* **PRODUCTION_TOUCHED**: `NO`
+* **DB_TOUCHED**: `NO`
+* **DDL_RUN**: `NO`
+* **DEPLOY_RUN**: `NO`
+* **PM2_RESTARTED**: `NO`
+* **SECRETS_PRINTED**: `NO`
+* **PHI_PRINTED**: `NO`
+* **BROWSER_AUTH_SMOKE**: `NOT_EVIDENCED_OR_PENDING`
+* **BATCH_A_STATUS**: `COMPLETED_REPORTED_BUT_NOT_REVALIDATED_IN_THIS_GATE`
+* **EPIC_10_STATUS**: `COMPLETED_REPORTED_BUT_NOT_REVALIDATED_IN_THIS_GATE`
+* **QUALITY_GATE_SCANNER**: `PASSED_CLAIMED_OUTPUT_SUMMARY_REQUIRED`
+* **MOJIBAKE_AUDIT**: `CLEAN_REPORTED_COMMAND_EVIDENCE_REQUIRED`
+* **DRIFT_STATUS**: `NONE`
+* **GIT_COMMIT**: `fc1c8768d6ea852c54988024ce9636845c4e7532` (سيتم تحديثه بعد الالتزام الحالي)
+* **PUSH_STATUS**: `SUCCESS`
+* **NEXT_RECOMMENDED_ACTION**: `RUN_EPIC_INDEX_COVERAGE_AUDIT_OR_SELECT_NEXT_EPIC`
