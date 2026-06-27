@@ -56,7 +56,9 @@
 
 ## 5. صيغة موافقة المالك المطلوبة قبل التنفيذ (Owner Approval Form)
 > **نص الموافقة المعتمد**:
-> "أوافق صراحة على تنفيذ Wave 3 Browser Smoke بنطاق Read-only فقط، باستخدام حساب اختبار غير حقيقي، بدون PHI، بدون طباعة أسرار، بدون تعديل بيانات، وبدون ZATCA/NPHIES/Accounting calls. أوافق على الإيقاف الفوري عند أي فشل أو ظهور بيانات حساسة."
+> "أوافق صراحة على تنفيذ Wave 3 Browser Smoke بنطاق Read-only فقط، باستخدام حساب اختبار مؤقت غير حقيقي، بدون PHI، بدون طباعة أسرار أو كلمات مرور أو session أو token، بدون تعديل بيانات، وبدون ZATCA/NPHIES/Accounting calls. أوافق على الإيقاف الفوري عند أي فشل أو ظهور بيانات حساسة."
+>
+> لا يجوز تنفيذ Wave 3 Browser Smoke قبل موافقة المالك الصريحة، ولا يجوز طلب أو تخزين أو طباعة كلمة مرور أو session أو token. أي تسجيل دخول يجب أن يتم بحساب اختبار مؤقت وبطريقة لا تكشف الأسرار في السجلات.
 
 ---
 
@@ -87,4 +89,4 @@
 * **REPORT_FILE**: `docs/governance/enterprise-engineering-constitution/EVIDENCE_WAVE_3_OWNER_APPROVAL_PRECHECK_AR.md`
 * **GIT_COMMIT**: `e78c698c3ad2d662786d33782f10339d4d0779a0` (سيتم تحديثه)
 * **PUSH_STATUS**: `SUCCESS`
-* **NEXT_RECOMMENDED_ACTION**: `RUN_WAVE_3_OWNER_APPROVAL_AND_TEST_ACCOUNT_PRECHECK`
+* **NEXT_RECOMMENDED_ACTION**: `WAIT_FOR_EXPLICIT_OWNER_APPROVAL_BEFORE_WAVE_3_BROWSER_SMOKE`
