@@ -68,6 +68,38 @@ noThrow(() => bi.enforceDiscountCap('admin', 100, 100), 'admin 100% allowed');
 noThrow(() => bi.enforceDiscountCap('cashier', 0, 100), 'zero discount is a no-op');
 noThrow(() => bi.enforceDiscountCap('doctor', 20, 100), 'doctor exactly 20% allowed');
 
+// ===== 5. PHASE 2 (H-1/H-2): payment/refund amount guards =====
+console.log(`${BOLD}[5] parsePositiveMoneyToMinorUnits fails closed${RESET}`);
+throwsWith(() => bi.parsePositiveMoneyToMinorUnits('abc', { field: 'amount_paid' }), 400, 'non-numeric rejected');
+throwsWith(() => bi.parsePositiveMoneyToMinorUnits(NaN, { field: 'amount_paid' }), 400, 'NaN rejected');
+throwsWith(() => bi.parsePositiveMoneyToMinorUnits(Infinity, { field: 'amount_paid' }), 400, 'Infinity rejected');
+throwsWith(() => bi.parsePositiveMoneyToMinorUnits(-10, { field: 'amount_paid' }), 400, 'negative rejected');
+throwsWith(() => bi.parsePositiveMoneyToMinorUnits(0, { field: 'amount_paid' }), 400, 'zero rejected (positive required)');
+throwsWith(() => bi.parsePositiveMoneyToMinorUnits('', { field: 'amount_paid' }), 400, 'empty string rejected');
+throwsWith(() => bi.parsePositiveMoneyToMinorUnits(null, { field: 'amount_paid' }), 400, 'null rejected');
+throwsWith(() => bi.parsePositiveMoneyToMinorUnits(undefined, { field: 'amount_paid' }), 400, 'undefined rejected');
+throwsWith(() => bi.parsePositiveMoneyToMinorUnits(10.005, { field: 'amount_paid' }), 400, 'sub-halala precision rejected');
+throwsWith(() => bi.parsePositiveMoneyToMinorUnits(2e9, { field: 'amount_paid' }), 400, 'absurd amount rejected');
+
+console.log(`${BOLD}[6] parsePositiveMoneyToMinorUnits accepts valid amounts (as halalas)${RESET}`);
+assert(bi.parsePositiveMoneyToMinorUnits('100.00') === 10000, '"100.00" -> 10000 halalas');
+assert(bi.parsePositiveMoneyToMinorUnits(19.99) === 1999, '19.99 -> 1999 halalas');
+assert(bi.parsePositiveMoneyToMinorUnits(0.01) === 1, '0.01 -> 1 halala');
+assert(bi.toMinorUnits(50.1 + 0.2) === 5030, 'toMinorUnits normalizes float drift -> 5030');
+
+console.log(`${BOLD}[7] assertAmountWithinCap (outstanding / refundable)${RESET}`);
+// payment: outstanding cap
+throwsWith(() => bi.assertAmountWithinCap(15000, 10000, 'payment'), 400, 'payment > outstanding rejected');
+throwsWith(() => bi.assertAmountWithinCap(1, 0, 'payment'), 400, 'payment when nothing outstanding rejected');
+throwsWith(() => bi.assertAmountWithinCap(1, -500, 'payment'), 400, 'payment on negative outstanding rejected');
+noThrow(() => bi.assertAmountWithinCap(10000, 10000, 'payment'), 'payment == outstanding allowed');
+noThrow(() => bi.assertAmountWithinCap(4000, 10000, 'payment'), 'partial payment < outstanding allowed');
+// refund: refundable cap (refundable = paid - already_refunded)
+throwsWith(() => bi.assertAmountWithinCap(8000, 5000, 'refund'), 400, 'refund > refundable rejected');
+throwsWith(() => bi.assertAmountWithinCap(1, 0, 'refund'), 400, 'refund when already fully refunded rejected');
+noThrow(() => bi.assertAmountWithinCap(5000, 5000, 'refund'), 'refund == refundable allowed');
+noThrow(() => bi.assertAmountWithinCap(2000, 5000, 'refund'), 'partial refund < refundable allowed');
+
 // ===== summary =====
 console.log(`\n${BOLD}Result: ${passed} passed, ${failed} failed${RESET}`);
 if (failed > 0) { console.log(`${RED}Failures:${RESET}`); failures.forEach(f => console.log(`  - ${f.name}: ${f.details}`)); process.exit(1); }

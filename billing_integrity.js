@@ -37,4 +37,34 @@ function enforceDiscountCap(role, discountAmount, grossAmount) {
     }
 }
 
-module.exports = { MAX_DISCOUNT_BY_ROLE, parseMoney, enforceDiscountCap };
+// ---- PHASE 2 (H-1/H-2): payment & refund money guards (integer halalas / minor units) ----
+// parsePositiveMoneyToMinorUnits: coerce a CLIENT amount to integer halalas, FAIL CLOSED on
+// NaN/Infinity/non-numeric/negative/zero(when disallowed)/over-precision/absurd. Never trusts a
+// client-supplied total or outstanding — only the amount being paid/refunded passes through here.
+function parsePositiveMoneyToMinorUnits(v, { field = 'amount', allowZero = false } = {}) {
+    const n = (typeof v === 'number') ? v : (v === '' || v === null || v === undefined ? NaN : Number(v));
+    if (!Number.isFinite(n)) throw badRequest(`Invalid ${field}: must be a finite number`);
+    if (n < 0) throw badRequest(`Invalid ${field}: must not be negative`);
+    if (!allowZero && n === 0) throw badRequest(`Invalid ${field}: must be greater than zero`);
+    if (n > 1e9) throw badRequest(`Invalid ${field}: exceeds maximum allowed`);
+    const minor = Math.round(n * 100);
+    if (Math.abs(n * 100 - minor) > 1e-6) throw badRequest(`Invalid ${field}: at most 2 decimal places allowed`);
+    return minor;
+}
+
+// toMinorUnits: convert a TRUSTED server-side numeric (a DB value) to integer halalas. No throw.
+function toMinorUnits(v) { return Math.round((Number(v) || 0) * 100); }
+
+// assertAmountWithinCap: an amount (minor units) must not exceed a SERVER-computed cap
+// (outstanding balance for payments, refundable amount for refunds). Rejects when the cap is
+// <=0 (nothing due / already fully refunded) or the amount exceeds it. 400 on violation.
+function assertAmountWithinCap(amountMinor, capMinor, label = 'amount') {
+    if (!Number.isInteger(amountMinor) || !Number.isInteger(capMinor)) throw badRequest(`Invalid ${label} computation`);
+    if (capMinor <= 0) throw badRequest(`No ${label} available for this invoice`);
+    if (amountMinor > capMinor) throw badRequest(`The ${label} ${(amountMinor / 100).toFixed(2)} exceeds the allowed ${(capMinor / 100).toFixed(2)}`);
+}
+
+module.exports = {
+    MAX_DISCOUNT_BY_ROLE, parseMoney, enforceDiscountCap,
+    parsePositiveMoneyToMinorUnits, toMinorUnits, assertAmountWithinCap
+};

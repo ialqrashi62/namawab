@@ -283,7 +283,7 @@ const requireCatalogAccess = (req, res, next) => {
 
 // ===== DISCOUNT LIMIT BY ROLE + server-side billing integrity (PHASE 1 C-2/C-3) =====
 // Pure, unit-tested helpers live in ./billing_integrity.js (parseMoney / enforceDiscountCap fail closed).
-const { MAX_DISCOUNT_BY_ROLE, parseMoney, enforceDiscountCap } = require('./billing_integrity');
+const { MAX_DISCOUNT_BY_ROLE, parseMoney, enforceDiscountCap, parsePositiveMoneyToMinorUnits, toMinorUnits, assertAmountWithinCap } = require('./billing_integrity');
 
 // sendBillingError: translate a thrown integrity error into its HTTP status (defaults to 500 for unexpected errors).
 function sendBillingError(res, e) {
@@ -11699,49 +11699,77 @@ app.post('/api/allergy-check', requireAuth, async (req, res) => {
 });
 
 // ===== PARTIAL PAYMENT & REFUND =====
-app.put('/api/invoices/:id/partial-pay', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
+// H-1: partial payment — amount validated server-side (fail-closed), outstanding computed from DB,
+// no overpayment, row-locked transaction (race-safe), tenant-scoped + RLS-bound under the manual client.
+app.put('/api/invoices/:id/partial-pay', requireAuth, requireRole('invoices', 'accounts'), requireTenantScope, async (req, res) => {
+    const client = await pool.connect();
     try {
         const { amount_paid, payment_method } = req.body;
-        // --- TENANT SCOPE: verify invoice belongs to current tenant ---
         const { tenantId } = getRequestTenantContext(req);
+        await client.query('BEGIN');
+        if (tenantId) await client.query("SELECT set_config('app.tenant_id', $1, true)", [String(tenantId)]);
+        // tenant-scoped lock on the invoice row (prevents TOCTOU double-pay races)
         const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
-        const tenantParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
-        const invoice = (await pool.query(`SELECT * FROM invoices WHERE id=$1${tenantCheck}`, tenantParams)).rows[0];
-        if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
-
-        const prevPaid = parseFloat(invoice.amount_paid || 0);
-        const newPaid = prevPaid + parseFloat(amount_paid);
-        const total = parseFloat(invoice.total);
-        const balance = total - newPaid;
-        const isPaid = balance <= 0 ? 1 : 0;
-
-        await pool.query(
-            'UPDATE invoices SET amount_paid=$1, balance_due=$2, paid=$3, payment_method=$4 WHERE id=$5',
-            [newPaid, Math.max(0, balance), isPaid, payment_method || invoice.payment_method, req.params.id]
-        );
-
+        const lockParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const invoice = (await client.query(`SELECT * FROM invoices WHERE id=$1${tenantCheck} FOR UPDATE`, lockParams)).rows[0];
+        if (!invoice) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'Invoice not found' }); }
+        // outstanding is SERVER-COMPUTED (never trusts a client total/outstanding); amount is validated + capped
+        const totalMinor = toMinorUnits(invoice.total);
+        const prevPaidMinor = toMinorUnits(invoice.amount_paid || 0);
+        const outstandingMinor = totalMinor - prevPaidMinor;
+        const payMinor = parsePositiveMoneyToMinorUnits(amount_paid, { field: 'amount_paid' });
+        assertAmountWithinCap(payMinor, outstandingMinor, 'payment');   // rejects NaN/neg/zero/over-outstanding
+        const newPaidMinor = prevPaidMinor + payMinor;
+        const balanceMinor = Math.max(0, totalMinor - newPaidMinor);
+        const isPaid = (totalMinor - newPaidMinor) <= 0 ? 1 : 0;
+        const updParams = tenantId
+            ? [newPaidMinor / 100, balanceMinor / 100, isPaid, payment_method || invoice.payment_method, req.params.id, tenantId]
+            : [newPaidMinor / 100, balanceMinor / 100, isPaid, payment_method || invoice.payment_method, req.params.id];
+        await client.query(
+            `UPDATE invoices SET amount_paid=$1, balance_due=$2, paid=$3, payment_method=$4 WHERE id=$5${tenantId ? ' AND tenant_id=$6' : ''}`,
+            updParams);
+        await client.query('COMMIT');
         logAudit(req.session.user?.id, req.session.user?.display_name, 'PARTIAL_PAYMENT', 'Invoice',
-            invoice.invoice_number + ' paid ' + amount_paid + ' (total paid: ' + newPaid + '/' + total + ')', req.ip);
-
-        res.json({ success: true, amount_paid: newPaid, balance_due: Math.max(0, balance), fully_paid: isPaid });
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+            invoice.invoice_number + ' paid ' + (payMinor / 100) + ' (total paid: ' + (newPaidMinor / 100) + '/' + (totalMinor / 100) + ')', req.ip);
+        res.json({ success: true, amount_paid: newPaidMinor / 100, balance_due: balanceMinor / 100, fully_paid: isPaid });
+    } catch (e) { try { await client.query('ROLLBACK'); } catch (_) {} sendBillingError(res, e); }
+    finally { client.release(); }
 });
 
-app.post('/api/invoices/:id/refund', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
+// H-2: refund — original invoice MUST belong to current tenant (IDOR fix), amount validated server-side,
+// refundable = amount_paid - already-refunded (server-computed, tenant-scoped), refund row stamped with
+// tenant_id/facility_id, row-locked transaction. No GL/journal/ZATCA/NPHIES (out of scope).
+app.post('/api/invoices/:id/refund', requireAuth, requireRole('invoices', 'accounts'), requireTenantScope, async (req, res) => {
+    const client = await pool.connect();
     try {
         const { amount, reason } = req.body;
-        const invoice = (await pool.query('SELECT * FROM invoices WHERE id=$1', [req.params.id])).rows[0];
-        if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
-
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        await client.query('BEGIN');
+        if (tenantId) await client.query("SELECT set_config('app.tenant_id', $1, true)", [String(tenantId)]);
+        // IDOR fix: load+lock the ORIGINAL invoice scoped to the current tenant (never by bare id)
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const lockParams = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        const invoice = (await client.query(`SELECT * FROM invoices WHERE id=$1${tenantCheck} FOR UPDATE`, lockParams)).rows[0];
+        if (!invoice) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'Invoice not found' }); }
+        // refundable computed SERVER-SIDE: amount actually paid minus prior refunds for this invoice (tenant-scoped)
+        const paidMinor = toMinorUnits(invoice.amount_paid || 0);
+        const refRow = await client.query(
+            `SELECT COALESCE(SUM(-total),0) AS refunded FROM invoices WHERE service_type='Refund' AND description LIKE $1${tenantId ? ' AND tenant_id=$2' : ''}`,
+            tenantId ? ['Refund for ' + invoice.invoice_number + ':%', tenantId] : ['Refund for ' + invoice.invoice_number + ':%']);
+        const alreadyRefundedMinor = toMinorUnits(refRow.rows[0].refunded || 0);
+        const refundableMinor = paidMinor - alreadyRefundedMinor;
+        const refundMinor = parsePositiveMoneyToMinorUnits(amount, { field: 'refund amount' });
+        assertAmountWithinCap(refundMinor, refundableMinor, 'refund'); // rejects NaN/neg/zero/over-refundable/already-fully-refunded
         const refundNum = 'REF-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-6);
-        await pool.query(
-            "INSERT INTO invoices (patient_id, patient_name, total, description, service_type, payment_method, invoice_number, created_by, discount_reason) VALUES ($1,$2,$3,$4,'Refund',$5,$6,$7,$8)",
-            [invoice.patient_id, invoice.patient_name, -(parseFloat(amount)), 'Refund for ' + invoice.invoice_number + ': ' + reason, invoice.payment_method, refundNum, req.session.user?.display_name, reason]
-        );
-
-        logAudit(req.session.user?.id, req.session.user?.display_name, 'REFUND', 'Invoice', refundNum + ' amount: ' + amount + ' reason: ' + reason, req.ip);
-        res.json({ success: true, refund_number: refundNum });
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+        // stamp tenant_id & facility_id on the refund row (was previously unscoped)
+        await client.query(
+            "INSERT INTO invoices (patient_id, patient_name, total, description, service_type, payment_method, invoice_number, created_by, discount_reason, tenant_id, facility_id) VALUES ($1,$2,$3,$4,'Refund',$5,$6,$7,$8,$9,$10)",
+            [invoice.patient_id, invoice.patient_name, -(refundMinor / 100), 'Refund for ' + invoice.invoice_number + ': ' + String(reason || ''), invoice.payment_method, refundNum, req.session.user?.display_name || '', String(reason || ''), tenantId || null, facilityId || null]);
+        await client.query('COMMIT');
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'REFUND', 'Invoice', refundNum + ' amount: ' + (refundMinor / 100) + ' reason: ' + String(reason || '').slice(0, 120), req.ip);
+        res.json({ success: true, refund_number: refundNum, refunded: refundMinor / 100, refundable_remaining: (refundableMinor - refundMinor) / 100 });
+    } catch (e) { try { await client.query('ROLLBACK'); } catch (_) {} sendBillingError(res, e); }
+    finally { client.release(); }
 });
 
 // ===== CASH DRAWER =====
