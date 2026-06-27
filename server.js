@@ -8149,7 +8149,7 @@ app.post('/api/zatca/generate', requireAuth, requireRole('finance', 'accounts'),
         if (!vatBreak) return res.status(422).json({ error: 'Invoice total is not a valid amount' });
         const issueDate = new Date().toISOString().slice(0, 10);
         const issueTime = new Date().toISOString().slice(11, 19);
-        const sellerName = company?.setting_value || 'Nama Medical';
+        const sellerName = company?.setting_value || 'jumanaMedical';
         const sellerVat = vatNo?.setting_value || '';
         const invNumber = inv.invoice_number || ('INV-' + String(invoiceId).padStart(8, '0'));
 
@@ -9643,7 +9643,7 @@ async function startServer() {
             console.log('[DB INFO] Production: skipping demo seed + catalog population (managed out-of-band).');
         }
         app.listen(PORT, () => {
-            console.log(`\n  ✅ Nama Medical Web is running!`);
+            console.log(`\n  ✅ jumanaMedical Web is running!`);
             console.log(`  🌐 Open: http://localhost:${PORT}`);
             console.log(`  📦 Database: PostgreSQL (nama_medical_web)\n`);
         });

@@ -141,7 +141,7 @@
 
   function stepIdentity() {
     var html = '<h3 style="margin:0 0 12px">' + esc(T('Identity & License', 'الهوية والترخيص')) + '</h3>';
-    html += field(T('Tenant / Organization name', 'اسم المستأجر / الجهة'), 'tenant_name', 'text', 'Nama Medical City');
+    html += field(T('Tenant / Organization name', 'اسم المستأجر / الجهة'), 'tenant_name', 'text', 'jumanaMedical City');
     html += field(T('Subdomain (a-z, 0-9, hyphen)', 'النطاق الفرعي (a-z و0-9 وشرطة)'), 'subdomain', 'text', 'nama-city');
     html += field(T('MOH License (optional)', 'ترخيص وزارة الصحة (اختياري)'), 'moh_license', 'text', '');
     html += field(T('Commercial Registration (optional)', 'السجل التجاري (اختياري)'), 'cr_no', 'text', '');

@@ -1,4 +1,4 @@
-# 🏥 Nama Medical ERP — نما الطبي
+# 🏥 jumanaMedical ERP — جمانا الطبي
 
 نظام إدارة المستشفيات الشامل | Comprehensive Hospital Management System
 
