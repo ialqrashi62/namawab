@@ -4552,6 +4552,30 @@ app.put('/api/or/surgeries/:id/status', requireAuth, requireRole('surgery', 'doc
             if (!reachedTimeOut) {
                 return res.status(409).json({ error: 'WHO Time-Out must be completed before incision (InProgress)' });
             }
+            // CONSENT GATE: a signed surgical consent for THIS patient (same tenant) must be on file
+            // before incision. Emergency override allowed with a documented reason (audited). FAIL-SAFE:
+            // if the consent table cannot be queried, ALLOW but audit an inconclusive warning — never
+            // hard-block an operation on an infrastructure error.
+            if (surgery.patient_id) {
+                let consentN = null;
+                try {
+                    const cQ = tenantId
+                        ? "SELECT COUNT(*)::int AS n FROM patient_consents pc JOIN patients p ON pc.patient_id=p.id WHERE pc.patient_id=$1 AND p.tenant_id=$2 AND COALESCE(pc.signature_data,'')<>''"
+                        : "SELECT COUNT(*)::int AS n FROM patient_consents pc WHERE pc.patient_id=$1 AND COALESCE(pc.signature_data,'')<>''";
+                    consentN = (await pool.query(cQ, tenantId ? [surgery.patient_id, tenantId] : [surgery.patient_id])).rows[0].n;
+                } catch (consentErr) {
+                    logAudit(req.session.user?.id, req.session.user?.display_name || '', 'CONSENT_CHECK_INCONCLUSIVE', 'Surgery',
+                        `Consent check failed for surgery ${surgeryId} patient #${surgery.patient_id} (allowed, verify manually): ${String(consentErr.message).slice(0, 120)}`, req.ip);
+                }
+                if (consentN === 0) {
+                    const ovr = String(req.body.consent_override_reason || '').trim();
+                    if (!ovr) {
+                        return res.status(409).json({ error: 'Signed surgical consent required before incision', code: 'CONSENT_REQUIRED' });
+                    }
+                    logAudit(req.session.user?.id, req.session.user?.display_name || '', 'CONSENT_OVERRIDE', 'Surgery',
+                        `Incision without consent on file for surgery ${surgeryId} patient #${surgery.patient_id}: ${ovr.slice(0, 160)}`, req.ip);
+                }
+            }
         }
         // Cannot complete the surgery without WHO Sign-Out (checklist Completed).
         if (target === 'Completed') {
@@ -8166,13 +8190,22 @@ app.post('/api/cosmetic/followups', requireAuth, requireRole('doctor', 'surgery'
 });
 
 // ===== PATIENT PORTAL =====
-app.get('/api/portal/users', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT pu.*, p.name_ar, p.name_en, p.file_number FROM portal_users pu LEFT JOIN patients p ON pu.patient_id=p.id ORDER BY pu.id DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-app.post('/api/portal/users', requireAuth, async (req, res) => {
+app.get('/api/portal/users', requireAuth, requireTenantScope, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
+        // IDOR fix: only portal users whose patient belongs to the caller's tenant (JOIN, not LEFT JOIN).
+        res.json((await pool.query('SELECT pu.*, p.name_ar, p.name_en, p.file_number FROM portal_users pu JOIN patients p ON pu.patient_id=p.id WHERE p.tenant_id=$1 ORDER BY pu.id DESC', [tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.post('/api/portal/users', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
         const { patient_id, username, password, email, phone } = req.body;
+        // IDOR: the patient must belong to the caller's tenant.
+        if (patient_id) {
+            const pOwn = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!pOwn) return res.status(404).json({ error: 'Patient not found' });
+        }
         const bcrypt = require('bcryptjs');
         // Never default to a guessable password; generate a strong random one if none supplied (portal onboarding sets a real one).
         const initPw = password || require('crypto').randomBytes(18).toString('base64');
@@ -8182,14 +8215,20 @@ app.post('/api/portal/users', requireAuth, async (req, res) => {
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/portal/appointments', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM portal_appointments ORDER BY created_at DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-app.put('/api/portal/appointments/:id', requireAuth, async (req, res) => {
+app.get('/api/portal/appointments', requireAuth, requireTenantScope, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
+        // IDOR fix: only appointments whose patient belongs to the caller's tenant.
+        res.json((await pool.query('SELECT pa.* FROM portal_appointments pa JOIN patients p ON pa.patient_id=p.id WHERE p.tenant_id=$1 ORDER BY pa.created_at DESC', [tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.put('/api/portal/appointments/:id', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
         const { status } = req.body;
-        await pool.query('UPDATE portal_appointments SET status=$1 WHERE id=$2', [status, req.params.id]);
+        // IDOR write fix: only update an appointment whose patient belongs to the caller's tenant.
+        const upd = await pool.query('UPDATE portal_appointments SET status=$1 WHERE id=$2 AND patient_id IN (SELECT id FROM patients WHERE tenant_id=$3)', [status, req.params.id, tenantId]);
+        if (upd.rowCount === 0) return res.status(404).json({ error: 'Appointment not found' });
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -11273,12 +11312,19 @@ app.get('/api/consent/templates/:id', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/consent/sign', requireAuth, async (req, res) => {
+app.post('/api/consent/sign', requireAuth, requireTenantScope, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
         const { template_id, patient_id, patient_name, signature_data, witness_name, witness_signature, doctor_name, procedure_details, notes } = req.body;
         if (!signature_data) return res.status(400).json({ error: 'Signature required' });
         const tmpl = (await pool.query('SELECT * FROM consent_form_templates WHERE id=$1', [template_id])).rows[0];
         if (!tmpl) return res.status(404).json({ error: 'Template not found' });
+        // IDOR: the patient must belong to the caller's tenant (patient_consents is legacy/no tenant_id,
+        // so ownership is enforced against the tenant-scoped patients table).
+        if (patient_id) {
+            const pOwn = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+            if (!pOwn) return res.status(404).json({ error: 'Patient not found' });
+        }
         const result = await pool.query(
             'INSERT INTO patient_consents (template_id, patient_id, patient_name, form_type, title, signature_data, witness_name, witness_signature, doctor_name, procedure_details, notes, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
             [template_id, patient_id, patient_name || '', tmpl.form_type, tmpl.title_ar, signature_data, witness_name || '', witness_signature || '', doctor_name || '', procedure_details || '', notes || '', req.session.user?.display_name || '']);
@@ -11287,15 +11333,19 @@ app.post('/api/consent/sign', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/consent/patient/:patient_id', requireAuth, async (req, res) => {
+app.get('/api/consent/patient/:patient_id', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        res.json((await pool.query('SELECT pc.*, cft.title_ar as template_title, cft.category FROM patient_consents pc LEFT JOIN consent_form_templates cft ON pc.template_id=cft.id WHERE pc.patient_id=$1 ORDER BY pc.created_at DESC', [req.params.patient_id])).rows);
+        const { tenantId } = getRequestTenantContext(req);
+        // IDOR: JOIN patients with the caller's tenant so consents of another tenant's patient never leak.
+        res.json((await pool.query('SELECT pc.*, cft.title_ar as template_title, cft.category FROM patient_consents pc JOIN patients p ON pc.patient_id=p.id LEFT JOIN consent_form_templates cft ON pc.template_id=cft.id WHERE pc.patient_id=$1 AND p.tenant_id=$2 ORDER BY pc.created_at DESC', [req.params.patient_id, tenantId])).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/consent/recent', requireAuth, async (req, res) => {
+app.get('/api/consent/recent', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        res.json((await pool.query('SELECT pc.*, cft.title_ar as template_title, cft.category FROM patient_consents pc LEFT JOIN consent_form_templates cft ON pc.template_id=cft.id ORDER BY pc.created_at DESC LIMIT 50')).rows);
+        const { tenantId } = getRequestTenantContext(req);
+        // Cross-tenant leak fix: only consents whose patient belongs to the caller's tenant.
+        res.json((await pool.query('SELECT pc.*, cft.title_ar as template_title, cft.category FROM patient_consents pc JOIN patients p ON pc.patient_id=p.id LEFT JOIN consent_form_templates cft ON pc.template_id=cft.id WHERE p.tenant_id=$1 ORDER BY pc.created_at DESC LIMIT 50', [tenantId])).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
