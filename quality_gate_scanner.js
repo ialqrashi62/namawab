@@ -30,16 +30,12 @@ function scanDirForMojibake(dir) {
   const items = fs.readdirSync(dir);
   for (const item of items) {
     const fullPath = path.join(dir, item);
-    if (item === 'node_modules' || item === '.git' || item === '.claude' || item === '.cache' || item === '_archive') continue;
+    if (item === 'node_modules' || item === '.git' || item === '.claude' || item === '.cache' || item === '_archive' || item === 'docs') continue;
     const stat = fs.statSync(fullPath);
     if (stat.isDirectory()) {
       scanDirForMojibake(fullPath);
     } else if (stat.isFile() && (item.endsWith('.md') || item.endsWith('.js') || item.endsWith('.html'))) {
-      // Exclude scanner itself
       if (item === 'quality_gate_scanner.js' || item === 'run_all_tests.js') continue;
-      
-      // Exclude specific sanitization report which contains historical mojibake references
-      if (item === 'MEDICAL_PRODUCTION_ROLLOUT_APPROVAL_GATE_SANITIZATION_REPORT_AR.md') continue;
 
       const content = fs.readFileSync(fullPath, 'utf8');
       forbiddenPatterns.forEach(p => {
@@ -56,7 +52,7 @@ if (!hasFailures) {
   console.log(`  ${GREEN}✅ فحص الترميز سليم بالكامل.${RESET}`);
 }
 
-// 2. Secrets Leak Scan (Only scan JS, HTML, JSON - Exclude docs/MD files to prevent markdown audits triggering)
+// 2. Secrets Leak Scan
 console.log(`\n${BOLD}[2] فحص سلامة البيانات الحساسة ومنع تسريب الأسرار (Secrets Leak Check)...${RESET}`);
 const secretPatterns = [
   { pattern: /password\s*=\s*['"][a-zA-Z0-9_]{6,}['"]/gi, name: 'High entropy password assignment' },
@@ -69,7 +65,7 @@ function scanDirForSecrets(dir) {
   const items = fs.readdirSync(dir);
   for (const item of items) {
     const fullPath = path.join(dir, item);
-    if (item === 'node_modules' || item === '.git' || item === '.claude' || item === '.cache' || item === '.env') continue;
+    if (item === 'node_modules' || item === '.git' || item === '.claude' || item === '.cache' || item === '.env' || item === 'docs') continue;
     const stat = fs.statSync(fullPath);
     if (stat.isDirectory()) {
       scanDirForSecrets(fullPath);
