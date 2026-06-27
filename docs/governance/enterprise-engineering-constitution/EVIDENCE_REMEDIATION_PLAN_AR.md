@@ -78,3 +78,35 @@
 ## 6. التوصية للمرحلة التالية (Next Recommendation)
 نوصي بالبدء الفوري في **أول بوابة تنفيذ آمنة**:
 - **البوابة المستهدفة**: `Gate_EMR_Smoke` و `Gate_Clinical_Tests` لتشغيل اختبارات التحقق من عزل مسارات محطة الطبيب السريرية وتوثيق أدلتها محلياً وعلى بيئة Staging كخطوة تمهيدية آمنة.
+
+---
+
+## 7. سجل حقول خطة معالجة فجوات الأدلة النهائية (Final Closeout Fields)
+* **FINAL_STATUS**: `PLAN_CREATED`
+* **PLAN_CREATED**: `YES`
+* **REPORT_FILE**: `docs/governance/enterprise-engineering-constitution/EVIDENCE_REMEDIATION_PLAN_AR.md`
+* **SOURCE_AUDIT_FILE**: `docs/governance/enterprise-engineering-constitution/EPIC_INDEX_COVERAGE_AUDIT_REPORT_AR.md`
+* **TOTAL_GAPS_FOUND**: `8`
+* **HIGH_RISK_GAPS**: `4`
+* **MEDIUM_RISK_GAPS**: `3`
+* **LOW_RISK_GAPS**: `1`
+* **READ_ONLY_ACTIONS_AVAILABLE**: `YES`
+* **OWNER_APPROVAL_REQUIRED**: `YES`
+* **CODE_CHANGED**: `NO`
+* **DOCS_CHANGED**: `YES`
+* **PRODUCTION_TOUCHED**: `NO`
+* **DB_TOUCHED**: `NO`
+* **DDL_RUN**: `NO`
+* **DEPLOY_RUN**: `NO`
+* **PM2_RESTARTED**: `NO`
+* **ZATCA_CALLS**: `NO`
+* **NPHIES_CALLS**: `NO`
+* **ACCOUNTING_POSTING**: `NO`
+* **JOURNAL_ENTRIES_CREATED**: `0`
+* **SECRETS_PRINTED**: `NO`
+* **PHI_PRINTED**: `NO`
+* **MOJIBAKE_AUDIT**: `CLEAN_FOR_SCANNED_SCOPE_ONLY`
+* **UTF8_STATUS**: `CLEAN`
+* **GIT_COMMIT**: `33d78e44a5b11001b22ad84f2f84150c6d7800b2`
+* **PUSH_STATUS**: `SUCCESS`
+* **NEXT_RECOMMENDED_ACTION**: `RUN_EVIDENCE_REMEDIATION_PLAN`
