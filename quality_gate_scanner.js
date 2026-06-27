@@ -30,8 +30,11 @@ function scanDirForMojibake(dir) {
   const items = fs.readdirSync(dir);
   for (const item of items) {
     const fullPath = path.join(dir, item);
+    const relativePath = path.relative(path.join(__dirname, '..'), fullPath);
+    const pathSegments = relativePath.split(/[\\/]/);
+    
     // Ignore version control, node_modules, temp caches, and any documentation folders/files
-    if (item === 'node_modules' || item === '.git' || item === '.claude' || item === '.cache' || item === '_archive' || item.startsWith('docs') || item.includes('docs\\') || item.includes('docs/')) continue;
+    if (pathSegments.includes('node_modules') || pathSegments.includes('.git') || pathSegments.includes('.claude') || pathSegments.includes('.cache') || pathSegments.includes('_archive') || pathSegments.includes('docs')) continue;
     
     const stat = fs.statSync(fullPath);
     if (stat.isDirectory()) {
@@ -67,7 +70,10 @@ function scanDirForSecrets(dir) {
   const items = fs.readdirSync(dir);
   for (const item of items) {
     const fullPath = path.join(dir, item);
-    if (item === 'node_modules' || item === '.git' || item === '.claude' || item === '.cache' || item === '.env' || item.startsWith('docs') || item.includes('docs\\') || item.includes('docs/')) continue;
+    const relativePath = path.relative(path.join(__dirname, '..'), fullPath);
+    const pathSegments = relativePath.split(/[\\/]/);
+    
+    if (pathSegments.includes('node_modules') || pathSegments.includes('.git') || pathSegments.includes('.claude') || pathSegments.includes('.cache') || pathSegments.includes('.env') || pathSegments.includes('docs')) continue;
     const stat = fs.statSync(fullPath);
     if (stat.isDirectory()) {
       scanDirForSecrets(fullPath);

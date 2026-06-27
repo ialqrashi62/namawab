@@ -1485,51 +1485,59 @@ app.post('/api/nphies/submit-claim/:id', requireAuth, requireRole(...E11_INS_ROL
 });
 // ===== end E11 INSURANCE / NPHIES =====
 
-app.get('/api/medical/records', requireAuth, requireRole('doctor', 'nursing'), async (req, res) => {
+app.get('/api/medical/records', requireAuth, requireRole('doctor', 'nursing'), requireTenantScope, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
         const { patient_id } = req.query;
         if (patient_id) {
-            res.json((await pool.query('SELECT mr.*, p.name_en as patient_name FROM medical_records mr LEFT JOIN patients p ON mr.patient_id=p.id WHERE mr.patient_id=$1 ORDER BY mr.id DESC', [patient_id])).rows);
+            res.json((await pool.query('SELECT mr.*, p.name_en as patient_name FROM medical_records mr LEFT JOIN patients p ON mr.patient_id=p.id AND p.tenant_id=$2 WHERE mr.patient_id=$1 AND mr.tenant_id=$2 ORDER BY mr.id DESC', [patient_id, tenantId])).rows);
         } else {
-            res.json((await pool.query('SELECT mr.*, p.name_en as patient_name FROM medical_records mr LEFT JOIN patients p ON mr.patient_id=p.id ORDER BY mr.id DESC')).rows);
+            res.json((await pool.query('SELECT mr.*, p.name_en as patient_name FROM medical_records mr LEFT JOIN patients p ON mr.patient_id=p.id AND p.tenant_id=$1 WHERE mr.tenant_id=$1 ORDER BY mr.id DESC', [tenantId])).rows);
         }
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/medical/records', requireAuth, requireRole('doctor', 'nursing'), async (req, res) => {
+app.post('/api/medical/records', requireAuth, requireRole('doctor', 'nursing'), requireTenantScope, async (req, res) => {
     try {
+        const { tenantId } = getRequestTenantContext(req);
         const { patient_id, doctor_id, diagnosis, symptoms, icd10_codes, notes } = req.body;
-        const result = await pool.query('INSERT INTO medical_records (patient_id, doctor_id, diagnosis, symptoms, icd10_codes, notes) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id',
-            [patient_id, doctor_id || 0, diagnosis || '', symptoms || '', icd10_codes || '', notes || '']);
-        res.json((await pool.query('SELECT * FROM medical_records WHERE id=$1', [result.rows[0].id])).rows[0]);
+        // Verify patient belongs to tenant
+        const p = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+        if (!p) return res.status(404).json({ error: 'Patient not found' });
+
+        const result = await pool.query('INSERT INTO medical_records (patient_id, doctor_id, diagnosis, symptoms, icd10_codes, notes, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id',
+            [patient_id, doctor_id || 0, diagnosis || '', symptoms || '', icd10_codes || '', notes || '', tenantId]);
+        res.json((await pool.query('SELECT * FROM medical_records WHERE id=$1 AND tenant_id=$2', [result.rows[0].id, tenantId])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== EMR LOCK / SIGNATURE (Phase A1) — sign+lock, amend (no silent edit after lock); tenant-scoped via RLS =====
-app.post('/api/medical-records/:id/sign', requireAuth, requireRole('doctor', 'nursing'), async (req, res) => {
+app.post('/api/medical-records/:id/sign', requireAuth, requireRole('doctor', 'nursing'), requireTenantScope, async (req, res) => {
     try {
         const crypto = require('crypto');
         const id = parseInt(req.params.id, 10);
+        const { tenantId } = getRequestTenantContext(req);
         const actor = req.session.user;
-        const cur = (await pool.query('SELECT diagnosis, symptoms, notes, emr_status FROM medical_records WHERE id=$1', [id])).rows[0];
+        const cur = (await pool.query('SELECT diagnosis, symptoms, notes, emr_status FROM medical_records WHERE id=$1 AND tenant_id=$2', [id, tenantId])).rows[0];
         if (!cur) return res.status(404).json({ error: 'Record not found' });
         if (cur.emr_status === 'locked') return res.status(409).json({ error: 'Record already locked' });
         const hash = crypto.createHash('sha256').update(`${cur.diagnosis || ''}|${cur.symptoms || ''}|${cur.notes || ''}`).digest('hex');
-        const r = await pool.query("UPDATE medical_records SET emr_status='locked', signed_by_user_id=$1, signed_at=now(), locked_at=now(), integrity_hash=$2 WHERE id=$3 AND emr_status<>'locked'",
-            [actor.id, hash, id]);
+        const r = await pool.query("UPDATE medical_records SET emr_status='locked', signed_by_user_id=$1, signed_at=now(), locked_at=now(), integrity_hash=$2 WHERE id=$3 AND tenant_id=$4 AND emr_status<>'locked'",
+            [actor.id, hash, id, tenantId]);
         if (r.rowCount === 0) return res.status(409).json({ error: 'Record already locked or not found' });
         logAudit(actor.id, actor.display_name, 'SIGN_LOCK_RECORD', 'EMR', `Signed+locked medical_record #${id}`, req.ip);
         res.json({ success: true, id, emr_status: 'locked' });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/medical-records/:id/amend', requireAuth, requireRole('doctor', 'nursing'), async (req, res) => {
+app.post('/api/medical-records/:id/amend', requireAuth, requireRole('doctor', 'nursing'), requireTenantScope, async (req, res) => {
     try {
         const id = parseInt(req.params.id, 10);
+        const { tenantId } = getRequestTenantContext(req);
         const actor = req.session.user;
         const { reason, new_values_summary } = req.body;
         if (!reason || !String(reason).trim()) return res.status(400).json({ error: 'Amendment reason required' });
-        const cur = (await pool.query('SELECT integrity_hash, emr_status FROM medical_records WHERE id=$1', [id])).rows[0];
+        const cur = (await pool.query('SELECT integrity_hash, emr_status FROM medical_records WHERE id=$1 AND tenant_id=$2', [id, tenantId])).rows[0];
         if (!cur) return res.status(404).json({ error: 'Record not found' });
         if (cur.emr_status !== 'locked') return res.status(409).json({ error: 'Amendment applies only to locked records' });
         await pool.query('INSERT INTO emr_amendments (record_type, record_id, amended_by_user_id, reason, previous_integrity_hash, new_values_summary) VALUES ($1,$2,$3,$4,$5,$6)',
@@ -1539,10 +1547,15 @@ app.post('/api/medical-records/:id/amend', requireAuth, requireRole('doctor', 'n
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/medical-records/:id/amendments', requireAuth, requireRole('doctor', 'nursing'), async (req, res) => {
+app.get('/api/medical-records/:id/amendments', requireAuth, requireRole('doctor', 'nursing'), requireTenantScope, async (req, res) => {
     try {
+        const id = parseInt(req.params.id, 10);
+        const { tenantId } = getRequestTenantContext(req);
+        // Verify parent record belongs to tenant
+        const cur = (await pool.query('SELECT id FROM medical_records WHERE id=$1 AND tenant_id=$2', [id, tenantId])).rows[0];
+        if (!cur) return res.status(404).json({ error: 'Record not found' });
         res.json((await pool.query('SELECT * FROM emr_amendments WHERE record_type=$1 AND record_id=$2 ORDER BY id DESC',
-            ['medical_records', parseInt(req.params.id, 10)])).rows);
+            ['medical_records', id])).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -12275,9 +12288,14 @@ app.get('/api/inventory/low-stock', requireAuth, requireTenantScope, async (req,
 });
 
 // ===== MEDICAL RECORDS BY PATIENT =====
-app.get('/api/medical-records/patient/:patientId', requireAuth, async (req, res) => {
+app.get('/api/medical-records/patient/:patientId', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        const records = (await pool.query("SELECT * FROM medical_records WHERE patient_id=$1 ORDER BY created_at DESC", [req.params.patientId])).rows;
+        const { tenantId } = getRequestTenantContext(req);
+        // Verify patient belongs to tenant
+        const p = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [req.params.patientId, tenantId])).rows[0];
+        if (!p) return res.status(404).json({ error: 'Patient not found' });
+
+        const records = (await pool.query("SELECT * FROM medical_records WHERE patient_id=$1 AND tenant_id=$2 ORDER BY created_at DESC", [req.params.patientId, tenantId])).rows;
         res.json(records);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
