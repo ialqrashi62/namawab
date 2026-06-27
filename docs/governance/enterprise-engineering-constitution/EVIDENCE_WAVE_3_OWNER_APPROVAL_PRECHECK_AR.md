@@ -59,17 +59,20 @@
 > "أوافق صراحة على تنفيذ Wave 3 Browser Smoke بنطاق Read-only فقط، باستخدام حساب اختبار مؤقت غير حقيقي، بدون PHI، بدون طباعة أسرار أو كلمات مرور أو session أو token، بدون تعديل بيانات، وبدون ZATCA/NPHIES/Accounting calls. أوافق على الإيقاف الفوري عند أي فشل أو ظهور بيانات حساسة."
 >
 > لا يجوز تنفيذ Wave 3 Browser Smoke قبل موافقة المالك الصريحة، ولا يجوز طلب أو تخزين أو طباعة كلمة مرور أو session أو token. أي تسجيل دخول يجب أن يتم بحساب اختبار مؤقت وبطريقة لا تكشف الأسرار في السجلات.
+>
+> تم مراجعة `e2e_local_smoke_test.js` للقراءة فقط ولم يتم تشغيله. لا يجوز نسخ أو طباعة أي كلمة مرور أو token أو session. إذا احتوى السكربت على بيانات دخول صريحة، يجب تصنيفها كفجوة قبل أي تنفيذ.
 
 ---
 
 ## 6. سجل حقول بوابة الموافقة والتجهيز (Final Closeout Fields)
-* **FINAL_STATUS**: `WAVE_3_PREPARED`
+* **FINAL_STATUS**: `WAVE_3_OWNER_APPROVAL_PRECHECK_READY_NOT_EXECUTED`
 * **WAVE_3_PREPARED**: `YES`
 * **WAVE_3_EXECUTED**: `NO`
 * **OWNER_APPROVAL_PRECHECK_CREATED**: `YES`
 * **OWNER_APPROVAL_RECEIVED**: `NO`
 * **BROWSER_SMOKE_ALLOWED_NOW**: `NO`
 * **LOCAL_TEST_DB_TOUCHED**: `NOT_EVIDENCED`
+* **TEST_CREDENTIALS_REVIEW**: `REQUIRED_BEFORE_EXECUTION`
 * **CODE_CHANGED**: `NO`
 * **TESTS_CHANGED**: `NO`
 * **DOCS_CHANGED**: `YES`
@@ -86,7 +89,7 @@
 * **PHI_PRINTED**: `NO`
 * **MOJIBAKE_AUDIT**: `CLEAN_FOR_SCANNED_SCOPE_ONLY`
 * **UTF8_STATUS**: `CLEAN`
-* **REPORT_FILE**: `docs/governance/enterprise-engineering-constitution/EVIDENCE_WAVE_3_OWNER_APPROVAL_PRECHECK_AR.md`
+* **REPORT_FILE**: `docs/governance/enterprise-engineering-constitution/EVIDENCE_WAVE_3_BROWSER_SMOKE_PREPARATION_AR.md`
 * **GIT_COMMIT**: `e78c698c3ad2d662786d33782f10339d4d0779a0` (سيتم تحديثه)
 * **PUSH_STATUS**: `SUCCESS`
 * **NEXT_RECOMMENDED_ACTION**: `WAIT_FOR_EXPLICIT_OWNER_APPROVAL_BEFORE_WAVE_3_BROWSER_SMOKE`

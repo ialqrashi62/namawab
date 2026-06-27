@@ -81,11 +81,13 @@
 > "أوافق صراحة على تنفيذ Wave 3 Browser Smoke بنطاق Read-only فقط، باستخدام حساب اختبار مؤقت غير حقيقي، بدون PHI، بدون طباعة أسرار أو كلمات مرور أو session أو token، بدون تعديل بيانات، وبدون ZATCA/NPHIES/Accounting calls. أوافق على الإيقاف الفوري عند أي فشل أو ظهور بيانات حساسة."
 >
 > لا يجوز تنفيذ Wave 3 Browser Smoke قبل موافقة المالك الصريحة، ولا يجوز طلب أو تخزين أو طباعة كلمة مرور أو session أو token. أي تسجيل دخول يجب أن يتم بحساب اختبار مؤقت وبطريقة لا تكشف الأسرار في السجلات.
+>
+> تم مراجعة `e2e_local_smoke_test.js` للقراءة فقط ولم يتم تشغيله. لا يجوز نسخ أو طباعة أي كلمة مرور أو token أو session. إذا احتوى السكربت على بيانات دخول صريحة، يجب تصنيفها كفجوة قبل أي تنفيذ.
 
 ---
 
 ## 6. سجل الحقول النهائي لخطة التحضير (Final Closeout Fields)
-* **FINAL_STATUS**: `WAVE_3_PREPARED`
+* **FINAL_STATUS**: `WAVE_3_OWNER_APPROVAL_PRECHECK_READY_NOT_EXECUTED`
 * **WAVE_2_REPORT_CORRECTED**: `YES`
 * **WAVE_3_PREPARED**: `YES`
 * **WAVE_3_EXECUTED**: `NO`
@@ -95,6 +97,7 @@
 * **OWNER_APPROVAL_REQUIRED**: `3`
 * **PRODUCTION_DB_TOUCHED**: `NO`
 * **LOCAL_TEST_DB_TOUCHED**: `NOT_EVIDENCED`
+* **TEST_CREDENTIALS_REVIEW**: `REQUIRED_BEFORE_EXECUTION`
 * **CODE_CHANGED**: `NO`
 * **TESTS_CHANGED**: `NO`
 * **DOCS_CHANGED**: `YES`
