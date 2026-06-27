@@ -12393,21 +12393,58 @@ app.post('/api/admin/backup', requireAuth, async (req, res) => {
     try {
         if (req.session.user?.role !== 'Admin') return res.status(403).json({ error: 'Admin only' });
 
-        const { execSync } = require('child_process');
-        const backupDir = require('path').join(__dirname, 'backups');
-        if (!require('fs').existsSync(backupDir)) require('fs').mkdirSync(backupDir, { recursive: true });
+        const { spawnSync } = require('child_process');
+        const crypto = require('crypto');
+        const zlib = require('zlib');
+        const fs = require('fs');
+        const pathMod = require('path');
 
+        // FAIL-CLOSED: never write a PLAINTEXT PHI database dump. An encryption key is REQUIRED.
+        const keyMaterial = process.env.BACKUP_ENCRYPTION_KEY;
+        if (!keyMaterial || String(keyMaterial).length < 16) {
+            return res.status(400).json({ error: 'BACKUP_ENCRYPTION_KEY (>=16 chars) must be set; refusing to write an unencrypted PHI backup', code: 'BACKUP_KEY_REQUIRED' });
+        }
+
+        const backupDir = pathMod.join(__dirname, 'backups');
+        if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
-        const filename = 'nama_backup_' + timestamp + '.sql';
-        const filepath = require('path').join(backupDir, filename);
+        const filename = 'nama_backup_' + timestamp + '.sql.gz.enc';
+        const filepath = pathMod.join(backupDir, filename);
 
-        const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/nama_medical_web';
-        execSync('pg_dump "' + dbUrl + '" > "' + filepath + '"', { timeout: 60000 });
+        // Build pg_dump args from env (NO shell, NO hardcoded credentials). Prefer DATABASE_URL; else
+        // assemble from DB_* and pass the password via PGPASSWORD env (never on the command line).
+        const env = Object.assign({}, process.env);
+        let dumpArgs;
+        if (process.env.DATABASE_URL) {
+            dumpArgs = [process.env.DATABASE_URL];
+        } else {
+            if (!process.env.DB_PASSWORD) {
+                return res.status(400).json({ error: 'DATABASE_URL or DB_PASSWORD must be set for backup', code: 'BACKUP_DB_CREDS_REQUIRED' });
+            }
+            dumpArgs = ['-h', process.env.DB_HOST || 'localhost', '-p', String(process.env.DB_PORT || 5432),
+                '-U', process.env.DB_USER || 'postgres', process.env.DB_NAME || 'nama_medical_web'];
+            env.PGPASSWORD = process.env.DB_PASSWORD;
+        }
 
-        logAudit(req.session.user.id, req.session.user.display_name, 'DATABASE_BACKUP', 'Admin', filename, req.ip);
+        const dump = spawnSync('pg_dump', dumpArgs, { timeout: 120000, maxBuffer: 512 * 1024 * 1024, env });
+        if (dump.status !== 0 || !dump.stdout) {
+            return res.status(500).json({ error: 'pg_dump failed' });
+        }
+
+        // gzip then AES-256-GCM. On-disk layout = [salt(16)][iv(12)][authTag(16)][ciphertext].
+        const gz = zlib.gzipSync(dump.stdout);
+        const salt = crypto.randomBytes(16);
+        const iv = crypto.randomBytes(12);
+        const key = crypto.scryptSync(String(keyMaterial), salt, 32);
+        const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+        const enc = Buffer.concat([cipher.update(gz), cipher.final()]);
+        const tag = cipher.getAuthTag();
+        fs.writeFileSync(filepath, Buffer.concat([salt, iv, tag, enc]));
+
+        logAudit(req.session.user.id, req.session.user.display_name, 'DATABASE_BACKUP', 'Admin', filename + ' (encrypted)', req.ip);
 
         res.download(filepath, filename, (err) => {
-            if (err) res.status(500).json({ error: 'Download failed' });
+            if (err && !res.headersSent) res.status(500).json({ error: 'Download failed' });
         });
     } catch (e) { console.error(e); res.status(500).json({ error: 'Backup failed: ' + e.message }); }
 });
@@ -12417,7 +12454,7 @@ app.get('/api/admin/backups', requireAuth, async (req, res) => {
         if (req.session.user?.role !== 'Admin') return res.status(403).json({ error: 'Admin only' });
         const backupDir = require('path').join(__dirname, 'backups');
         if (!require('fs').existsSync(backupDir)) return res.json([]);
-        const files = require('fs').readdirSync(backupDir).filter(f => f.endsWith('.sql')).map(f => {
+        const files = require('fs').readdirSync(backupDir).filter(f => f.endsWith('.sql') || f.endsWith('.enc')).map(f => {
             const stat = require('fs').statSync(require('path').join(backupDir, f));
             return { name: f, size: (stat.size / 1024 / 1024).toFixed(2) + ' MB', date: stat.mtime };
         }).sort((a, b) => new Date(b.date) - new Date(a.date));
