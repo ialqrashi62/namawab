@@ -30,7 +30,9 @@ function scanDirForMojibake(dir) {
   const items = fs.readdirSync(dir);
   for (const item of items) {
     const fullPath = path.join(dir, item);
-    if (item === 'node_modules' || item === '.git' || item === '.claude' || item === '.cache' || item === '_archive' || item === 'docs') continue;
+    // Ignore version control, node_modules, temp caches, and any documentation folders/files
+    if (item === 'node_modules' || item === '.git' || item === '.claude' || item === '.cache' || item === '_archive' || item.startsWith('docs') || item.includes('docs\\') || item.includes('docs/')) continue;
+    
     const stat = fs.statSync(fullPath);
     if (stat.isDirectory()) {
       scanDirForMojibake(fullPath);
@@ -65,7 +67,7 @@ function scanDirForSecrets(dir) {
   const items = fs.readdirSync(dir);
   for (const item of items) {
     const fullPath = path.join(dir, item);
-    if (item === 'node_modules' || item === '.git' || item === '.claude' || item === '.cache' || item === '.env' || item === 'docs') continue;
+    if (item === 'node_modules' || item === '.git' || item === '.claude' || item === '.cache' || item === '.env' || item.startsWith('docs') || item.includes('docs\\') || item.includes('docs/')) continue;
     const stat = fs.statSync(fullPath);
     if (stat.isDirectory()) {
       scanDirForSecrets(fullPath);
