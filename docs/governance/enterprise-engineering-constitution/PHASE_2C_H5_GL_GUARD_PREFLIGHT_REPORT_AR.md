@@ -1,9 +1,9 @@
 # تقرير المرحلة 2C — H-5: التدقيق المسبق لحراسات القيد المحاسبي (GL Guard Preflight)
 
-**المشروع:** NamaMedical / الطبيب  
-**الفرع:** `audit/phase-1-critical-remediation`  
-**التاريخ:** 2026-06-27  
-**النوع:** تحليل قراءة فقط — لا تنفيذ كود — لا DB — لا DDL — لا deploy  
+**المشروع:** NamaMedical / الطبيب
+**الفرع:** `audit/phase-1-critical-remediation`
+**التاريخ:** 2026-06-27
+**النوع:** تحليل قراءة فقط — لا تنفيذ كود — لا DB — لا DDL — لا deploy
 
 ---
 
