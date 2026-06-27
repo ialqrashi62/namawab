@@ -5527,19 +5527,25 @@ app.get('/api/consent-forms/render/:type', requireAuth, requireTenantScope, asyn
                 age = Math.floor((now - dob) / (365.25 * 24 * 60 * 60 * 1000));
             }
             // Inject auto-fill script at end of body
+            // SECURITY (XSS): inject patient data as a JSON-encoded literal, never as raw
+            // interpolated JS strings. JSON.stringify escapes quotes/backslashes/newlines and
+            // the `<` -> < replacement prevents a </script> breakout from any DB free-text
+            // field (name/fileNo/idNo/phone/gender/doctor originate from registration input).
+            const consentData = {
+                name: patient.name_ar || patient.name_en || '',
+                fileNo: patient.file_number || '',
+                idNo: patient.national_id || '',
+                age: age,
+                phone: patient.phone || '',
+                date: dateStr,
+                time: timeStr,
+                gender: patient.gender || '',
+                doctor: doctor_name || ''
+            };
+            const consentDataJson = JSON.stringify(consentData).replace(/</g, '\\u003c');
             const fillScript = `<script>
                 document.addEventListener('DOMContentLoaded', function() {
-                    const data = {
-                        name: '${(patient.name_ar || patient.name_en || '').replace(/'/g, "\\'")}',
-                        fileNo: '${patient.file_number || ''}',
-                        idNo: '${patient.national_id || ''}',
-                        age: '${age}',
-                        phone: '${patient.phone || ''}',
-                        date: '${dateStr}',
-                        time: '${timeStr}',
-                        gender: '${patient.gender || ''}',
-                        doctor: '${(doctor_name || '').replace(/'/g, "\\'")}'
-                    };
+                    const data = ${consentDataJson};
                     // Fill all .line spans after label fields
                     const fields = document.querySelectorAll('.field');
                     fields.forEach(f => {
