@@ -328,6 +328,16 @@ function requireRole(...modules) {
     };
 }
 
+// H-7: HR or Admin may see compensation fields; everyone else gets a safe staff-directory projection.
+function isHrOrAdmin(user) {
+    const r = user && user.role;
+    if (r === 'Admin') return true;
+    const perms = ROLE_PERMISSIONS[r];
+    return Array.isArray(perms) && perms.includes('hr');
+}
+// directory-safe employee columns (excludes salary / commission_type / commission_value)
+const EMPLOYEE_DIRECTORY_COLS = 'id, name, name_ar, name_en, role, department_ar, department_en, status, created_at';
+
 // Audit trail helper
 async function logAudit(userId, userName, action, module, details, ip) {
     try {
@@ -948,11 +958,14 @@ app.delete('/api/appointments/:id', requireAuth, requireRole('appointments'), as
 });
 
 // ===== EMPLOYEES =====
+// H-7 Option C: GET stays open for staff/doctor lists, but compensation fields (salary/commission)
+// are projected out for non-HR/non-Admin callers. `cols` is a server-controlled constant (never client input).
 app.get('/api/employees', requireAuth, async (req, res) => {
     try {
+        const cols = isHrOrAdmin(req.session.user) ? '*' : EMPLOYEE_DIRECTORY_COLS;
         const { role } = req.query;
-        if (role) { res.json((await pool.query('SELECT * FROM employees WHERE role LIKE $1 ORDER BY name', [`%${role}%`])).rows); }
-        else { res.json((await pool.query('SELECT * FROM employees ORDER BY id DESC')).rows); }
+        if (role) { res.json((await pool.query(`SELECT ${cols} FROM employees WHERE role LIKE $1 ORDER BY name`, [`%${role}%`])).rows); }
+        else { res.json((await pool.query(`SELECT ${cols} FROM employees ORDER BY id DESC`)).rows); }
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -8080,15 +8093,15 @@ app.put('/api/transport/requests/:id', requireAuth, async (req, res) => {
 });
 
 // ===== COSMETIC / PLASTIC SURGERY =====
-app.get('/api/cosmetic/procedures', requireAuth, async (req, res) => {
+app.get('/api/cosmetic/procedures', requireAuth, requireRole('doctor', 'surgery'), requireTenantScope, async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM cosmetic_procedures WHERE is_active=1 ORDER BY category, name_en')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/cosmetic/cases', requireAuth, async (req, res) => {
+app.get('/api/cosmetic/cases', requireAuth, requireRole('doctor', 'surgery'), requireTenantScope, async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM cosmetic_cases ORDER BY created_at DESC')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/cosmetic/cases', requireAuth, async (req, res) => {
+app.post('/api/cosmetic/cases', requireAuth, requireRole('doctor', 'surgery'), requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, procedure_id, procedure_name, surgery_date, surgery_time, anesthesia_type, operating_room, total_cost, pre_op_notes } = req.body;
         const result = await pool.query('INSERT INTO cosmetic_cases (patient_id, patient_name, procedure_id, procedure_name, surgeon, surgery_date, surgery_time, anesthesia_type, operating_room, total_cost, pre_op_notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
@@ -8097,7 +8110,7 @@ app.post('/api/cosmetic/cases', requireAuth, async (req, res) => {
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/cosmetic/cases/:id', requireAuth, async (req, res) => {
+app.put('/api/cosmetic/cases/:id', requireAuth, requireRole('doctor', 'surgery'), requireTenantScope, async (req, res) => {
     try {
         const { status, operative_notes, post_op_notes, complications, duration_minutes } = req.body;
         await pool.query('UPDATE cosmetic_cases SET status=$1, operative_notes=$2, post_op_notes=$3, complications=$4, duration_minutes=$5 WHERE id=$6',
@@ -8106,14 +8119,14 @@ app.put('/api/cosmetic/cases/:id', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 // Consent Forms
-app.get('/api/cosmetic/consents', requireAuth, async (req, res) => {
+app.get('/api/cosmetic/consents', requireAuth, requireRole('doctor', 'surgery'), requireTenantScope, async (req, res) => {
     try {
         const { case_id } = req.query;
         if (case_id) res.json((await pool.query('SELECT * FROM cosmetic_consents WHERE case_id=$1 ORDER BY created_at DESC', [case_id])).rows);
         else res.json((await pool.query('SELECT * FROM cosmetic_consents ORDER BY created_at DESC')).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/cosmetic/consents', requireAuth, async (req, res) => {
+app.post('/api/cosmetic/consents', requireAuth, requireRole('doctor', 'surgery'), requireTenantScope, async (req, res) => {
     try {
         const { case_id, patient_id, patient_name, procedure_name, consent_type, risks_explained, alternatives_explained, expected_results, limitations, patient_questions, is_photography_consent, is_anesthesia_consent, is_blood_transfusion_consent, witness_name } = req.body;
         const now = new Date();
@@ -8124,14 +8137,14 @@ app.post('/api/cosmetic/consents', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 // Follow-ups
-app.get('/api/cosmetic/followups', requireAuth, async (req, res) => {
+app.get('/api/cosmetic/followups', requireAuth, requireRole('doctor', 'surgery'), requireTenantScope, async (req, res) => {
     try {
         const { case_id } = req.query;
         if (case_id) res.json((await pool.query('SELECT * FROM cosmetic_followups WHERE case_id=$1 ORDER BY followup_date DESC', [case_id])).rows);
         else res.json((await pool.query('SELECT * FROM cosmetic_followups ORDER BY followup_date DESC')).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/cosmetic/followups', requireAuth, async (req, res) => {
+app.post('/api/cosmetic/followups', requireAuth, requireRole('doctor', 'surgery'), requireTenantScope, async (req, res) => {
     try {
         const { case_id, patient_id, patient_name, followup_date, days_post_op, healing_status, pain_level, swelling, complications, patient_satisfaction, surgeon_notes, next_followup } = req.body;
         const result = await pool.query('INSERT INTO cosmetic_followups (case_id, patient_id, patient_name, followup_date, days_post_op, healing_status, pain_level, swelling, complications, patient_satisfaction, surgeon_notes, next_followup, surgeon) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *',
@@ -8320,11 +8333,11 @@ app.put('/api/pathology/cases/:id', requireAuth, requireRole('pathology'), requi
 });
 
 // ===== SOCIAL WORK =====
-app.get('/api/social-work/cases', requireAuth, async (req, res) => {
+app.get('/api/social-work/cases', requireAuth, requireRole('him', 'nursing'), requireTenantScope, async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM social_work_cases ORDER BY created_at DESC')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/social-work/cases', requireAuth, async (req, res) => {
+app.post('/api/social-work/cases', requireAuth, requireRole('him', 'nursing'), requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, case_type, assessment, plan, priority } = req.body;
         const result = await pool.query('INSERT INTO social_work_cases (patient_id, patient_name, case_type, social_worker, assessment, plan, priority) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
@@ -8332,7 +8345,7 @@ app.post('/api/social-work/cases', requireAuth, async (req, res) => {
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/social-work/cases/:id', requireAuth, async (req, res) => {
+app.put('/api/social-work/cases/:id', requireAuth, requireRole('him', 'nursing'), requireTenantScope, async (req, res) => {
     try {
         const { status, interventions, referrals, follow_up_date } = req.body;
         await pool.query('UPDATE social_work_cases SET status=$1, interventions=$2, referrals=$3, follow_up_date=$4 WHERE id=$5',
@@ -8342,11 +8355,11 @@ app.put('/api/social-work/cases/:id', requireAuth, async (req, res) => {
 });
 
 // ===== MORTUARY =====
-app.get('/api/mortuary/cases', requireAuth, async (req, res) => {
+app.get('/api/mortuary/cases', requireAuth, requireRole('him', 'nursing'), requireTenantScope, async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM mortuary_cases ORDER BY created_at DESC')).rows); }
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/mortuary/cases', requireAuth, async (req, res) => {
+app.post('/api/mortuary/cases', requireAuth, requireRole('him', 'nursing'), requireTenantScope, async (req, res) => {
     try {
         const { patient_id, deceased_name, date_of_death, time_of_death, cause_of_death, attending_physician, next_of_kin, next_of_kin_phone, notes } = req.body;
         const result = await pool.query('INSERT INTO mortuary_cases (patient_id, deceased_name, date_of_death, time_of_death, cause_of_death, attending_physician, next_of_kin, next_of_kin_phone, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
@@ -8355,7 +8368,7 @@ app.post('/api/mortuary/cases', requireAuth, async (req, res) => {
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/mortuary/cases/:id', requireAuth, async (req, res) => {
+app.put('/api/mortuary/cases/:id', requireAuth, requireRole('him', 'nursing'), requireTenantScope, async (req, res) => {
     try {
         const { release_status, released_to, death_certificate_number } = req.body;
         await pool.query('UPDATE mortuary_cases SET release_status=$1, released_to=$2, released_date=$3, death_certificate_number=$4 WHERE id=$5',
@@ -9264,10 +9277,17 @@ app.delete('/api/messages/:id', requireAuth, async (req, res) => {
 });
 
 // ===== AUDIT TRAIL =====
-app.get('/api/audit-trail', requireAuth, async (req, res) => {
+// H-6: audit trail is a security log — restricted to system/security operators (settings module = IT/Admin),
+// tenant-scoped with an explicit predicate (defense-in-depth atop FORCE RLS). No client tenant_id trusted.
+app.get('/api/audit-trail', requireAuth, requireRole('settings'), requireTenantScope, async (req, res) => {
     try {
-        const { limit = 100 } = req.query;
-        res.json((await pool.query('SELECT * FROM audit_trail ORDER BY created_at DESC LIMIT $1', [parseInt(limit)])).rows);
+        const { tenantId } = getRequestTenantContext(req);
+        const lim = Math.min(Math.max(parseInt(req.query.limit, 10) || 100, 1), 1000);
+        const q = tenantId
+            ? 'SELECT * FROM audit_trail WHERE tenant_id=$1 ORDER BY created_at DESC LIMIT $2'
+            : 'SELECT * FROM audit_trail ORDER BY created_at DESC LIMIT $1';
+        const params = tenantId ? [tenantId, lim] : [lim];
+        res.json((await pool.query(q, params)).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
