@@ -6,7 +6,7 @@
 | تاريخ التحديث | 2026-06-27 |
 | المشروع | جمانا الطبي (jumanaMedical) |
 | المُنفّذ | مراجع مستقل وجودة الحوكمة الهندسية (Independent QA Auditor) |
-| الحالة النهائية | **EPIC_01_FINAL_INDEPENDENT_CLOSEOUT_PASS (تم اجتياز الفحص والتدقيق بنجاح)** |
+| الحالة النهائية | **EPIC_01_FINAL_INDEPENDENT_CLOSEOUT_PASS_CONDITIONAL_WITH_EVIDENCE_BOUNDARIES (تم اجتياز الفحص المشروط بحدود الأدلة)** |
 
 ---
 
@@ -20,6 +20,8 @@
 > يثبت هذا الإغلاق سلامة مطابقة الكود (Drift)، وحالة الخدمة في PM2، واختبار رابط الصحة (Health Check)، مع مراجعة فنية لمسارات السجل الطبي (EMR).
 >
 > ولكنه **لا يغلق جميع مبادرات المشروع الأخرى**، ولا يغني عن تحققات مستقلة ومفصلة لاحقة للـ `Batch A` أو `Epic 10` حيث لم يتم إعادة التحقق منهما بشكل كامل ومستقل في هذه الجلسة المحددة.
+>
+> هذا الإغلاق لا يعني إغلاق جميع الـ Epics، ولا يغلق Batch A أو Epic 10 إلا كتقارير مكتملة سابقاً وغير معاد التحقق منها داخل هذا الـ Gate.
 
 ---
 
@@ -67,7 +69,7 @@
 ---
 
 ## 5. سجل الحقول النهائي لامتثال مبادرة محطة الطبيب (Final Closeout Fields)
-* **FINAL_STATUS**: `EPIC_01_FINAL_INDEPENDENT_CLOSEOUT_PASS`
+* **FINAL_STATUS**: `EPIC_01_FINAL_INDEPENDENT_CLOSEOUT_PASS_CONDITIONAL_WITH_EVIDENCE_BOUNDARIES`
 * **REPORT_CORRECTED**: `YES`
 * **CODE_CHANGED**: `NO`
 * **DOCS_CHANGED**: `YES`
