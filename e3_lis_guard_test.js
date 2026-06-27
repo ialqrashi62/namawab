@@ -56,7 +56,7 @@ chk('helper rejects missing tenant 400', has("res.status(400).json({ error: 'Mis
 console.log('[6] CLINICAL SAFETY — auto-verify + critical call-back');
 chk('result entry calls lis.autoVerify', has('lis.autoVerify({ test_name, value, unit, ref_low, ref_high }, prior)'));
 chk('report blocks unverified', has("Result must be verified before reporting"));
-chk('critical report fail-closed', has('CRITICAL_CALLBACK_REQUIRED'));
+chk('critical report fail-closed (read-back ack required)', has('CRITICAL_CALLBACK_ACK_REQUIRED'));
 chk('critical needs callback count check', has('FROM lab_critical_callbacks WHERE result_id=$1 AND tenant_id=$2'));
 chk('callback insert', has('INSERT INTO lab_critical_callbacks'));
 

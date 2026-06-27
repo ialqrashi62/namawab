@@ -34,7 +34,8 @@
 3. استعد إلى قاعدة **اختبار** أولاً:
    ```bash
    createdb nama_restore_test
-   psql "postgresql://USER:***@HOST:5432/nama_restore_test" -f /tmp/restore.sql
+   # كلمة المرور تُمرَّر عبر PGPASSWORD أو ملف ~/.pgpass — لا تكتبها داخل الرابط
+   PGPASSWORD="$DB_PASSWORD" psql -h HOST -p 5432 -U USER -d nama_restore_test -f /tmp/restore.sql
    ```
 4. تحقّق: عدّ صفوف جداول حسّاسة، تأكد من سلامة `tenants/facilities/patients`، وشغّل اختبارات العزل.
 5. للإنتاج (بموافقة صريحة فقط): أوقف التطبيق، خذ نسخة طازجة قبل الاستعادة، ثم `psql "$DATABASE_URL" -f /tmp/restore.sql`.
