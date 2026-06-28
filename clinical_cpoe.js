@@ -259,6 +259,7 @@ function mountClinicalRoutes(app, deps) {
 
             if (!cur) return res.status(404).json({ error: 'Note not found' });
             if (cur.emr_status === 'locked') {
+                audit(req.session?.user?.id, req.session?.user?.display_name, 'BLOCKED_SOAP_EDIT', 'Doctor', `Attempted to edit locked SOAP note #${id}`, req.ip);
                 return res.status(409).json({ error: 'Note is locked and cannot be edited directly', error_ar: 'الملاحظة مقفلة ولا يمكن تعديلها مباشرة' });
             }
 

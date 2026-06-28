@@ -328,11 +328,17 @@ const ROLE_PERMISSIONS = {
 };
 function requireRole(...modules) {
     return (req, res, next) => {
-        if (!req.session || !req.session.user) return res.status(401).json({ error: 'Unauthorized' });
+        if (!req.session || !req.session.user) {
+            const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+            logAudit(null, 'Anonymous', 'BLOCKED_AUTHORIZATION', 'Auth', `Unauthenticated access to route requiring modules [${modules.join(', ')}]`, clientIp);
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
         const role = req.session.user.role;
         const perms = ROLE_PERMISSIONS[role];
         if (perms === '*') return next(); // Admin
         if (perms && modules.some(m => perms.includes(m))) return next();
+        const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+        logAudit(req.session.user.id, req.session.user.display_name, 'BLOCKED_AUTHORIZATION', 'Auth', `Blocked role ${role} from route requiring modules [${modules.join(', ')}]`, clientIp);
         res.status(403).json({ error: 'Access denied' });
     };
 }
@@ -3202,6 +3208,7 @@ app.post('/api/settings/users', requireAuth, requireRole('settings'), async (req
         const hash = await bcrypt.hash(password, 10);
         const result = await pool.query('INSERT INTO system_users (username, password_hash, display_name, role, speciality, permissions, commission_type, commission_value) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
             [username, hash, display_name || '', role || 'Reception', speciality || '', permissions || '', commission_type || 'percentage', parseFloat(commission_value) || 0]);
+        logAudit(req.session.user.id, req.session.user.display_name, 'CREATE_USER', 'Settings', `Admin created user ${username} (role=${role})`, req.ip);
         res.json((await pool.query('SELECT id, username, display_name, role, speciality, permissions, commission_type, commission_value, is_active, created_at FROM system_users WHERE id=$1', [result.rows[0].id])).rows[0]);
     } catch (e) { console.error('POST /api/settings/users error:', e); res.status(500).json({ error: 'Server error' }); }
 });
@@ -3299,6 +3306,7 @@ app.delete('/api/settings/users/:id', requireAuth, async (req, res) => {
             }
         }
         await pool.query('DELETE FROM system_users WHERE id=$1', [userId]);
+        logAudit(req.session.user.id, req.session.user.display_name, 'DELETE_USER', 'Settings', `Admin deleted user #${userId}`, req.ip);
         res.json({ success: true });
     } catch (e) {
         console.error('DELETE USER ERROR:', e);
@@ -9393,6 +9401,7 @@ app.get('/api/audit-trail', requireAuth, requireRole('settings'), requireTenantS
             ? 'SELECT * FROM audit_trail WHERE tenant_id=$1 ORDER BY created_at DESC LIMIT $2'
             : 'SELECT * FROM audit_trail ORDER BY created_at DESC LIMIT $1';
         const params = tenantId ? [tenantId, lim] : [lim];
+        logAudit(req.session.user.id, req.session.user.display_name, 'READ_AUDIT_LOGS', 'Settings', `Admin read audit logs (limit=${lim})`, req.ip);
         res.json((await pool.query(q, params)).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
