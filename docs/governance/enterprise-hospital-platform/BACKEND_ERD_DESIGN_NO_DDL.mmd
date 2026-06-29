@@ -1,0 +1,12 @@
+erDiagram
+    health_networks ||--o{ facilities : contains
+    facilities ||--o{ facility_departments : contains
+    facility_departments ||--o{ facility_services : offers
+    facility_departments ||--o{ appointments : schedules
+    appointments ||--o{ queue_items : queues
+    encounters ||--o{ clinical_orders : contains
+    encounters ||--o{ clinical_results : contains
+    encounters ||--o{ clinical_notes : contains
+    encounters ||--o{ billing_charge_previews : bills
+    billing_charge_previews ||--o{ claim_drafts : claims
+    claim_drafts ||--o{ audit_events : audits
