@@ -887,6 +887,72 @@ function renderEncounterWorkspace(el, page, patientId, encounterTypeId) {
         <button class="btn btn-primary text-xs" disabled>${tr('Sign & Lock Document (Disabled)', 'التوقيع والإغلاق (غير مفعّل)')}</button>
       </div>
     </div>
+
+    <!-- Clinical Pharmacy & FEFO Inventory Preview (Simulated Workspace) -->
+    <div class="glass-card-premium p-6 rounded-2xl mb-lg border border-primary/20">
+      <h4 class="font-bold text-md text-primary mb-4">💊 ${tr('Clinical Pharmacy & FEFO Inventory (Simulated)', 'الصيدلية السريرية ومخزون FEFO (محاكاة)')}</h4>
+      <p class="text-xs text-on-surface-variant mb-4">
+        ${tr('Review medication safety, allergy warnings, and FEFO (First Expired, First Out) batch sorting. Dispensing and stock decrement are disabled.', 'مراجعة سلامة الدواء، تنبيهات الحساسية، وترتيب الدفعات حسب الصلاحية الأقرب (FEFO). عمليات الصرف الفعلي وإنقاص المخزون غير مفعلة.')}
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-md items-end mb-lg">
+        <div class="form-group">
+          <label class="text-xs font-bold text-on-surface-variant">${tr('Select Medication', 'اختر الدواء')}</label>
+          <select id="pharmacyMedSelect" class="form-input text-xs">
+            <option value="PARA500">Paracetamol 500mg</option>
+            <option value="AMO500">Amoxicillin 500mg (Penicillin)</option>
+            <option value="MORPHINE">Morphine (Controlled Substance)</option>
+          </select>
+        </div>
+        <button id="viewFefoBtn" class="btn btn-secondary text-xs py-2">
+          🔍 ${tr('View FEFO Batches', 'عرض دفعات FEFO')}
+        </button>
+        <button id="previewDispenseBtn" class="btn btn-primary text-xs py-2">
+          📦 ${tr('Preview Dispense', 'معاينة الصرف')}
+        </button>
+      </div>
+
+      <!-- Safety & Controlled Alerts -->
+      <div id="pharmacySafetyAlerts" class="p-3 bg-error/10 border-l-4 border-error text-xs text-on-error-container rounded-xl mb-md hidden">
+        <!-- Warnings populated dynamically -->
+      </div>
+
+      <!-- FEFO Batches Table -->
+      <div id="fefoBatchesContainer" class="mb-md hidden">
+        <h5 class="font-bold text-xs text-primary mb-2">${tr('FEFO Batch Expiry Queue', 'طابور صلاحية الدفعات (FEFO)')}</h5>
+        <div class="overflow-x-auto">
+          <table class="data-table text-xs">
+            <thead>
+              <tr>
+                <th>${tr('Batch Code', 'كود الدفعة')}</th>
+                <th>${tr('Expiry Date', 'تاريخ الانتهاء')}</th>
+                <th>${tr('Stock Available', 'المخزون المتاح')}</th>
+                <th>${tr('FEFO Rank', 'ترتيب الصلاحية')}</th>
+                <th>${tr('Status', 'الحالة')}</th>
+              </tr>
+            </thead>
+            <tbody id="fefoBatchesBody">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Dispense Preview Card -->
+      <div id="dispensePreviewCard" class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/10 hidden mb-md">
+        <h5 class="font-bold text-xs text-primary mb-2">📦 ${tr('Dispense Preview', 'معاينة إذن الصرف')}</h5>
+        <div class="grid grid-cols-2 gap-md text-xs text-on-surface-variant">
+          <div><strong>${tr('Medication', 'الدواء')}:</strong> <span id="dispenseMedName">-</span></div>
+          <div><strong>${tr('Selected Batch', 'الدفعة المختارة')}:</strong> <span id="dispenseBatchCode">-</span></div>
+          <div><strong>${tr('Status', 'الحالة')}:</strong> <span class="badge badge-warning">${tr('Ready for Preview', 'جاهز للمعاينة')}</span></div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-md pt-4 border-t border-outline-variant/30">
+        <button class="btn btn-secondary text-xs" disabled>${tr('Approve Review', 'اعتماد المراجعة')}</button>
+        <button class="btn btn-primary text-xs" disabled>${tr('Finalize Dispense (Disabled)', 'صرف نهائي (غير مفعّل)')}</button>
+      </div>
+    </div>
   `;
 
   // Bind Close Event
@@ -1047,6 +1113,72 @@ function renderEncounterWorkspace(el, page, patientId, encounterTypeId) {
 
   // Initial tab render
   renderResultsTab('lab');
+
+  // Clinical Pharmacy & FEFO Logic
+  const medSelect = document.getElementById('pharmacyMedSelect');
+  const viewFefoBtn = document.getElementById('viewFefoBtn');
+  const previewDispenseBtn = document.getElementById('previewDispenseBtn');
+  const pharmacyAlerts = document.getElementById('pharmacySafetyAlerts');
+  const fefoContainer = document.getElementById('fefoBatchesContainer');
+  const fefoBody = document.getElementById('fefoBatchesBody');
+  const dispenseCard = document.getElementById('dispensePreviewCard');
+  const dispenseMedName = document.getElementById('dispenseMedName');
+  const dispenseBatchCode = document.getElementById('dispenseBatchCode');
+
+  const updatePharmacyAlerts = () => {
+    const medCode = medSelect.value;
+    const safetyWarnings = window.getMedicationSafetyWarnings(medCode);
+    const controlledWarnings = window.getControlledMedicationWarnings(medCode);
+    const allWarnings = [...safetyWarnings, ...controlledWarnings];
+
+    if (allWarnings.length > 0) {
+      pharmacyAlerts.innerHTML = allWarnings.map(w => `<p>⚠️ ${tr(w.text_en, w.text_ar)}</p>`).join('');
+      pharmacyAlerts.classList.remove('hidden');
+    } else {
+      pharmacyAlerts.classList.add('hidden');
+    }
+  };
+
+  medSelect.onchange = () => {
+    updatePharmacyAlerts();
+    fefoContainer.classList.add('hidden');
+    dispenseCard.classList.add('hidden');
+  };
+
+  viewFefoBtn.onclick = () => {
+    const medCode = medSelect.value;
+    const batches = window.getFefoBatchPreview(medCode);
+    
+    if (batches.length === 0) {
+      fefoBody.innerHTML = `<tr><td colspan="5" class="text-center p-4">${tr('No batches available', 'لا توجد دفعات متوفرة')}</td></tr>`;
+    } else {
+      fefoBody.innerHTML = batches.map(b => `
+        <tr>
+          <td><strong>${b.batchCode}</strong></td>
+          <td>${b.expiryDate}</td>
+          <td>${b.quantity}</td>
+          <td><span class="badge badge-info">Rank ${b.fefoRank}</span></td>
+          <td><span class="badge badge-success">${tr('Available', 'متوفر')}</span></td>
+        </tr>
+      `).join('');
+    }
+    fefoContainer.classList.remove('hidden');
+  };
+
+  previewDispenseBtn.onclick = () => {
+    const medCode = medSelect.value;
+    const batches = window.getFefoBatchPreview(medCode);
+    if (batches.length > 0) {
+      dispenseMedName.textContent = medSelect.options[medSelect.selectedIndex].text;
+      dispenseBatchCode.textContent = batches[0].batchCode; // Select earliest expiry batch (FEFO)
+      dispenseCard.classList.remove('hidden');
+    } else {
+      showToast(tr('No batches available for dispense preview', 'لا توجد دفعات متاحة لمعاينة الصرف'), 'error');
+    }
+  };
+
+  // Initial alerts update
+  updatePharmacyAlerts();
 }
 
 async function navigateTo(page) {
