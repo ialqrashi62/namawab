@@ -1,0 +1,3 @@
+[submodule "namaweb"]
+	path = namaweb
+	url = git@github.com:ialqrashi62/NamaMedical-namaweb-private-clean.git
