@@ -1029,6 +1029,74 @@ function renderEncounterWorkspace(el, page, patientId, encounterTypeId) {
         <button class="btn btn-primary text-xs" disabled>${tr('Finalize Dispense (Disabled)', 'صرف نهائي (غير مفعّل)')}</button>
       </div>
     </div>
+
+    <!-- Clinical Billing & Claims Preview (Simulated Workspace) -->
+    <div class="glass-card-premium p-6 rounded-2xl mb-lg border border-primary/20">
+      <h4 class="font-bold text-md text-primary mb-4">💳 ${tr('Clinical Billing & Claims Preview (Simulated)', 'الفوترة السريرية ومعاينة المطالبات (محاكاة)')}</h4>
+      <p class="text-xs text-on-surface-variant mb-4">
+        ${tr('Review charge capture, insurance eligibility, and claim drafts. Invoicing, financial posting, and NPHIES submissions are disabled.', 'مراجعة تسجيل الرسوم، أهلية التأمين، ومسودات المطالبات. الفوترة النهائية، الترحيل المالي، وإرسال مطالبات نفيس معطلة.')}
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-md items-end mb-lg">
+        <div class="form-group">
+          <label class="text-xs font-bold text-on-surface-variant">${tr('Select Insurance Payer', 'اختر جهة التأمين')}</label>
+          <select id="billingPayerSelect" class="form-input text-xs">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+        <button id="viewEligibilityBtn" class="btn btn-secondary text-xs py-2">
+          🔍 ${tr('Check Eligibility', 'التحقق من الأهلية')}
+        </button>
+        <button id="previewClaimBtn" class="btn btn-primary text-xs py-2">
+          📄 ${tr('Preview Claim Draft', 'معاينة مسودة المطالبة')}
+        </button>
+      </div>
+
+      <!-- Eligibility Details -->
+      <div id="eligibilityResultBox" class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/10 hidden mb-md">
+        <h5 class="font-bold text-xs text-primary mb-2">📋 ${tr('Eligibility Status', 'حالة الأهلية')}</h5>
+        <div class="grid grid-cols-2 gap-md text-xs text-on-surface-variant">
+          <div><strong>${tr('Payer', 'جهة التأمين')}:</strong> <span id="eligPayerName">-</span></div>
+          <div><strong>${tr('Status', 'الحالة')}:</strong> <span class="badge badge-success">${tr('Active Coverage', 'التغطية نشطة')}</span></div>
+          <div><strong>${tr('Copayment', 'نسبة التحمل')}:</strong> <span id="eligCopay">-</span></div>
+          <div><strong>${tr('Max Limit', 'الحد الأقصى')}:</strong> <span id="eligMaxLimit">-</span></div>
+        </div>
+      </div>
+
+      <!-- Charge Capture Preview -->
+      <h5 class="font-bold text-xs text-primary mb-2">${tr('Charge Capture Preview', 'معاينة الرسوم المجمعة')}</h5>
+      <div id="chargeCaptureList" class="space-y-2 mb-md">
+        <!-- Populated dynamically -->
+      </div>
+
+      <!-- Claim Draft Preview -->
+      <div id="claimPreviewCard" class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/10 hidden mb-md">
+        <h5 class="font-bold text-xs text-primary mb-2">📄 ${tr('Claim Draft Preview', 'معاينة مسودة المطالبة')}</h5>
+        <div class="grid grid-cols-2 gap-md text-xs text-on-surface-variant mb-3">
+          <div><strong>${tr('Total Amount', 'المبلغ الإجمالي')}:</strong> <span id="claimTotalAmount">-</span></div>
+          <div><strong>${tr('NPHIES Status', 'حالة نفيس')}:</strong> <span class="badge badge-warning">${tr('Draft (Submission Disabled)', 'مسودة (الإرسال معطل)')}</span></div>
+        </div>
+        <div id="claimValidationBox" class="p-2 bg-warning/10 text-[11px] text-warning rounded border-l-2 border-warning">
+          <!-- Validation warnings -->
+        </div>
+      </div>
+
+      <!-- NPHIES Readiness Checklist -->
+      <div class="mb-md p-4 bg-surface-container-low rounded-xl border border-outline-variant/10">
+        <h5 class="font-bold text-xs text-primary mb-2">✅ ${tr('NPHIES Readiness Checklist', 'قائمة جاهزية نفيس')}</h5>
+        <ul class="space-y-1 text-xs text-on-surface-variant">
+          <li>✔️ ${tr('Facility NPHIES ID Configured', 'معرف نفيس للمنشأة مهيأ')}</li>
+          <li>✔️ ${tr('Valid Payer ID Selected', 'معرف جهة التأمين المختار صالح')}</li>
+          <li>❌ ${tr('Encounter Final Signature (Missing)', 'التوقيع النهائي للزيارة (مفقود)')}</li>
+          <li>❌ ${tr('Final Invoice Authorization (Blocked)', 'اعتماد الفاتورة النهائية (محظور)')}</li>
+        </ul>
+      </div>
+
+      <div class="flex justify-end gap-md pt-4 border-t border-outline-variant/30">
+        <button class="btn btn-secondary text-xs" disabled>${tr('Post to Ledger', 'ترحيل محاسبي')}</button>
+        <button class="btn btn-primary text-xs" disabled>${tr('Finalize Invoice & Submit Claim (Disabled)', 'اعتماد الفاتورة وإرسال المطالبة (غير مفعّل)')}</button>
+      </div>
+    </div>
   `;
 
   // Bind Close Event
@@ -1255,6 +1323,63 @@ function renderEncounterWorkspace(el, page, patientId, encounterTypeId) {
 
   // Initial alerts update
   updatePharmacyAlerts();
+
+  // Clinical Billing & Claims Logic
+  const billingPayerSelect = document.getElementById('billingPayerSelect');
+  const viewEligibilityBtn = document.getElementById('viewEligibilityBtn');
+  const previewClaimBtn = document.getElementById('previewClaimBtn');
+  const eligibilityBox = document.getElementById('eligibilityResultBox');
+  const eligPayerName = document.getElementById('eligPayerName');
+  const eligCopay = document.getElementById('eligCopay');
+  const eligMaxLimit = document.getElementById('eligMaxLimit');
+
+  const chargeCaptureList = document.getElementById('chargeCaptureList');
+  const claimPreviewCard = document.getElementById('claimPreviewCard');
+  const claimTotalAmount = document.getElementById('claimTotalAmount');
+  const claimValidationBox = document.getElementById('claimValidationBox');
+
+  // Populate Payer Select
+  billingPayerSelect.innerHTML = window.MOCK_PAYERS.map(p => `<option value="${p.id}">${tr(p.name_en, p.name_ar)}</option>`).join('');
+
+  // Render Charge Capture Preview (initially empty or showing consultation)
+  const renderChargeCapture = () => {
+    const charges = window.getChargeCapturePreview(encounterTypeId, []);
+    if (charges.length === 0) {
+      chargeCaptureList.innerHTML = `<div class="empty-state-card text-center p-4"><p class="text-xs text-on-surface-variant">${tr('No charges captured', 'لا توجد رسوم مجمعة')}</p></div>`;
+      return;
+    }
+
+    chargeCaptureList.innerHTML = charges.map(c => `
+      <div class="flex justify-between items-center p-3 bg-surface-container-low rounded-xl border border-outline-variant/10">
+        <div>
+          <p class="font-bold text-xs text-primary">${tr(c.name_en, c.name_ar)}</p>
+          <span class="text-[10px] text-on-surface-variant font-medium uppercase">${c.code}</span>
+        </div>
+        <span class="text-xs font-bold text-primary">${c.price} SAR</span>
+      </div>
+    `).join('');
+  };
+
+  renderChargeCapture();
+
+  viewEligibilityBtn.onclick = () => {
+    const payerId = billingPayerSelect.value;
+    const elig = window.getEligibilityPreview(payerId);
+    eligPayerName.textContent = billingPayerSelect.options[billingPayerSelect.selectedIndex].text;
+    eligCopay.textContent = `${elig.copayPercent}%`;
+    eligMaxLimit.textContent = `${elig.maxLimit} SAR`;
+    eligibilityBox.classList.remove('hidden');
+    showToast(tr('Eligibility checked successfully (Simulated)', 'تم التحقق من الأهلية بنجاح (محاكاة)'), 'success');
+  };
+
+  previewClaimBtn.onclick = () => {
+    const charges = window.getChargeCapturePreview(encounterTypeId, []);
+    const claim = window.getClaimDraftPreview(encounterTypeId, charges);
+    claimTotalAmount.textContent = `${claim.totalAmount} SAR`;
+    claimValidationBox.innerHTML = claim.warnings.map(w => `<p>⚠️ ${w}</p>`).join('');
+    claimPreviewCard.classList.remove('hidden');
+    showToast(tr('Claim draft generated (Simulated)', 'تم إنشاء مسودة المطالبة (محاكاة)'), 'success');
+  };
 }
 
 async function navigateTo(page) {
