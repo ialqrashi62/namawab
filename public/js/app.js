@@ -764,7 +764,7 @@ function renderEncounterWorkspace(el, page, patientId, encounterTypeId) {
     </div>
 
     <!-- Bento Grid of Clinical Worksheets -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-md mb-lg">
       <!-- Nurse Assessment (Triage) -->
       <div class="glass-card-premium p-6 rounded-2xl">
         <h4 class="font-bold text-md text-primary mb-4">🩺 ${tr('Nursing Vitals & Assessment', 'التقييم التمريضي والعلامات الحيوية')}</h4>
@@ -787,9 +787,53 @@ function renderEncounterWorkspace(el, page, patientId, encounterTypeId) {
           </div>
           <div class="form-group">
             <label class="font-bold">Objective</label>
-            <textarea class="form-input" rows="2" disabled>${tr('Lungs clear, heart sounds normal.', 'الرئتان سليمتان، أصوات القلب طبيعية.')}</textarea>
+            <textarea class="form-input" rows="2" disabled>${tr('Lungs clear, heart sounds normal.', 'الرئتان سليمتان، أصوات القلوب طبيعية.')}</textarea>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Clinical Orders Creator (Draft Workspace) -->
+    <div class="glass-card-premium p-6 rounded-2xl mb-lg border border-primary/20">
+      <h4 class="font-bold text-md text-primary mb-4">🔬 ${tr('Clinical Orders Creator (Simulated Draft)', 'منشئ الطلبات الطبية (مسودة محاكاة)')}</h4>
+      <p class="text-xs text-on-surface-variant mb-4">
+        ${tr('Create draft clinical orders. In accordance with safety rules, high-risk orders show validation requirements.', 'إنشاء مسودة طلبات طبية. تماشياً مع معايير الأمان، تظهر متطلبات إضافية للطلبات عالية الخطورة.')}
+      </p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-md items-end mb-lg">
+        <div class="form-group">
+          <label class="text-xs font-bold text-on-surface-variant">${tr('Order Type', 'نوع الطلب')}</label>
+          <select id="orderTypeSelect" class="form-input text-xs">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="text-xs font-bold text-on-surface-variant">${tr('Select Item', 'اختر البند')}</label>
+          <select id="orderItemSelect" class="form-input text-xs">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+        <button id="addOrderDraftBtn" class="btn btn-primary text-xs py-2">
+          ➕ ${tr('Add to Drafts', 'إضافة للمسودة')}
+        </button>
+      </div>
+
+      <!-- Safety Warnings Box -->
+      <div id="orderSafetyWarnings" class="p-3 bg-error/10 border-l-4 border-error text-xs text-on-error-container rounded-xl mb-md hidden">
+        <!-- Warnings populated dynamically -->
+      </div>
+
+      <!-- Draft Orders List -->
+      <h5 class="font-bold text-xs text-primary mb-2">${tr('Draft Orders List', 'قائمة الطلبات المضافة')}</h5>
+      <div id="draftOrdersList" class="space-y-2 mb-md">
+        <div class="empty-state-card text-center p-4">
+          <p class="text-xs text-on-surface-variant">${tr('No draft orders added yet', 'لا توجد طلبات في المسودة حالياً')}</p>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-md pt-4 border-t border-outline-variant/30">
+        <button class="btn btn-secondary text-xs" disabled>${tr('Save as Draft', 'حفظ كمسودة')}</button>
+        <button class="btn btn-primary text-xs" disabled>${tr('Finalize & Submit (Disabled)', 'اعتماد وإرسال (غير مفعّل)')}</button>
       </div>
     </div>
   `;
@@ -797,6 +841,96 @@ function renderEncounterWorkspace(el, page, patientId, encounterTypeId) {
   // Bind Close Event
   document.getElementById('closeEncounterBtn').onclick = () => {
     renderDepartmentWorkspace(el, page);
+  };
+
+  // Populate Order Types
+  const allowedOrderTypes = window.getOrderTypesForEncounter(facilityType, encounterTypeId);
+  const typeSelect = document.getElementById('orderTypeSelect');
+  typeSelect.innerHTML = allowedOrderTypes.map(t => `<option value="${t.id}">${tr(t.name_en, t.ar || t.name_ar)}</option>`).join('');
+
+  const itemSelect = document.getElementById('orderItemSelect');
+  const warningsBox = document.getElementById('orderSafetyWarnings');
+  const draftList = document.getElementById('draftOrdersList');
+  const draftOrders = [];
+
+  const updateItemsAndWarnings = () => {
+    const selectedType = typeSelect.value;
+    const items = window.MOCK_ORDER_CATALOG[selectedType] || [];
+    itemSelect.innerHTML = items.map(item => `<option value="${item.code}">${tr(item.name_en, item.name_ar)}</option>`).join('');
+    
+    updateWarnings();
+  };
+
+  const updateWarnings = () => {
+    const selectedType = typeSelect.value;
+    const selectedItemCode = itemSelect.value;
+    if (!selectedItemCode) {
+      warningsBox.classList.add('hidden');
+      return;
+    }
+
+    const warnings = window.getOrderSafetyWarnings(selectedType, selectedItemCode);
+    if (warnings.length > 0) {
+      warningsBox.innerHTML = warnings.map(w => `<p>⚠️ ${tr(w.text_en, w.text_ar)}</p>`).join('');
+      warningsBox.classList.remove('hidden');
+    } else {
+      warningsBox.classList.add('hidden');
+    }
+  };
+
+  typeSelect.onchange = updateItemsAndWarnings;
+  itemSelect.onchange = updateWarnings;
+
+  // Initial population
+  updateItemsAndWarnings();
+
+  // Add to Drafts Event
+  document.getElementById('addOrderDraftBtn').onclick = () => {
+    const selectedType = typeSelect.value;
+    const selectedItemCode = itemSelect.value;
+    const catalog = window.MOCK_ORDER_CATALOG[selectedType] || [];
+    const itemObj = catalog.find(x => x.code === selectedItemCode);
+    
+    if (!itemObj) return;
+
+    // Check Guarding rules
+    const hasPermission = window.canCreateOrderDraft(facilityType, page, selectedType);
+    if (!hasPermission) {
+      showToast(tr('Order type not allowed at this facility type', 'نوع الطلب غير مسموح به في هذه المنشأة'), 'error');
+      return;
+    }
+
+    draftOrders.push({ type: selectedType, code: itemObj.code, name_en: itemObj.name_en, name_ar: itemObj.name_ar, risk: itemObj.risk });
+    renderDraftList();
+  };
+
+  const renderDraftList = () => {
+    if (draftOrders.length === 0) {
+      draftList.innerHTML = `<div class="empty-state-card text-center p-4"><p class="text-xs text-on-surface-variant">${tr('No draft orders added yet', 'لا توجد طلبات في المسودة حالياً')}</p></div>`;
+      return;
+    }
+
+    draftList.innerHTML = draftOrders.map((o, idx) => {
+      const riskBadge = o.risk === 'high' ? `<span class="badge badge-danger">${tr('Consent Required', 'توقيع موافقة مطلوب')}</span>` : '';
+      return `
+        <div class="flex justify-between items-center p-3 bg-surface-container-low rounded-xl border border-outline-variant/10">
+          <div>
+            <p class="font-bold text-xs text-primary">${tr(o.name_en, o.name_ar)} (${o.code})</p>
+            <span class="text-[10px] text-on-surface-variant font-medium uppercase">${o.type}</span>
+          </div>
+          <div class="flex gap-2">
+            ${riskBadge}
+            <span class="badge badge-warning">${tr('Draft Only', 'مسودة')}</span>
+            <button class="text-error text-xs font-bold px-2 hover:bg-error/10 rounded" onclick="window._removeOrderDraft(${idx})">❌</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  };
+
+  window._removeOrderDraft = (idx) => {
+    draftOrders.splice(idx, 1);
+    renderDraftList();
   };
 }
 
