@@ -559,13 +559,16 @@ function renderDepartmentWorkspace(el, page) {
     return;
   }
 
+  // Filter allowed encounter types for the current facility
+  const allowedEncounters = window.getEncounterTypesForFacility(facilityType);
+
   el.innerHTML = `
     <!-- Facility Context Header -->
     <div class="flex justify-between items-center mb-md p-4 bg-surface-container-low rounded-xl border border-outline-variant/30">
       <div>
         <h3 class="text-sm font-bold text-primary">${tr('Facility Context', 'سياق المنشأة')}</h3>
         <p class="text-xs text-on-surface-variant">
-          🏢 ${tr('Network: King Fahad Medical City', 'الشبكة: مدينة الملك فهد الطبية')} | 
+          🏢 ${tr('Network: King Fahad Medical City', 'الشبكة: -')} | 
           🏥 ${tr('Type: ', 'النوع: ')} ${escapeHTML(facilityType.replace('_', ' ').toUpperCase())}
         </p>
       </div>
@@ -592,6 +595,33 @@ function renderDepartmentWorkspace(el, page) {
         <h4 class="font-bold text-md text-primary mb-2">🛡️ ${tr('Compliance & Risk', 'الامتثال ومستوى الخطورة')}</h4>
         <span class="badge badge-${isHighRisk}">${riskLabel}</span>
         <p class="text-[11px] text-on-surface-variant mt-2">🔒 ${tr('PDPL Protected & CBAHI Audited', 'خاضع لرقابة سباهي وحماية البيانات الشخصية')}</p>
+      </div>
+    </div>
+
+    <!-- Encounters & Clinical Visits Initiation -->
+    <div class="glass-card-premium p-6 rounded-2xl mb-lg border border-primary/20">
+      <h4 class="font-bold text-md text-primary mb-4">🏥 ${tr('Encounters & Clinical Visits', 'الزيارات السريرية والملفات')}</h4>
+      <p class="text-xs text-on-surface-variant mb-4">
+        ${tr('Initiate a simulated clinical encounter for triage, assessment, and care planning.', 'بدء زيارة سريرية محاكاة لإجراء الفرز والتقييم الطبي وخطة الرعاية.')}
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-md items-end">
+        <div class="form-group">
+          <label class="text-xs font-bold text-on-surface-variant">${tr('Select Patient', 'اختر المريض')}</label>
+          <select id="encounterPatientSelect" class="form-input text-xs">
+            <option value="1">Faisal Al-Otaibi (MRN-882713)</option>
+            <option value="2">Sarah Al-Ghamdi (MRN-449128)</option>
+            <option value="3">Abdulrahman Al-Shahri (MRN-773129)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="text-xs font-bold text-on-surface-variant">${tr('Encounter Type', 'نوع الزيارة')}</label>
+          <select id="encounterTypeSelect" class="form-input text-xs">
+            ${allowedEncounters.map(enc => `<option value="${enc.id}">${tr(enc.name_en, enc.name_ar)}</option>`).join('')}
+          </select>
+        </div>
+        <button id="initiateEncounterBtn" class="btn btn-primary text-xs py-2">
+          🚀 ${tr('Initiate Clinical Encounter', 'بدء الزيارة السريرية')}
+        </button>
       </div>
     </div>
 
@@ -657,6 +687,117 @@ function renderDepartmentWorkspace(el, page) {
       </div>
     </div>
   `;
+
+  // Bind Encounter Initiation Event
+  document.getElementById('initiateEncounterBtn').onclick = () => {
+    const patientId = document.getElementById('encounterPatientSelect').value;
+    const encounterTypeId = document.getElementById('encounterTypeSelect').value;
+    renderEncounterWorkspace(el, page, patientId, encounterTypeId);
+  };
+}
+
+// ===== ENCOUNTER WORKSPACE CORE UI =====
+function renderEncounterWorkspace(el, page, patientId, encounterTypeId) {
+  const item = NAV_ITEMS[page];
+  const journeySteps = window.getEncounterJourneySteps(encounterTypeId);
+  
+  // Mock patients list
+  const patients = {
+    '1': { name: 'Faisal Al-Otaibi', mrn: 'MRN-882713', gender: tr('Male', 'ذكر'), age: 45, blood: 'O+' },
+    '2': { name: 'Sarah Al-Ghamdi', mrn: 'MRN-449128', gender: tr('Female', 'أنثى'), age: 32, blood: 'A+' },
+    '3': { name: 'Abdulrahman Al-Shahri', mrn: 'MRN-773129', gender: tr('Male', 'ذكر'), age: 58, blood: 'B-' }
+  };
+  const patient = patients[patientId] || patients['1'];
+
+  el.innerHTML = `
+    <!-- Encounter Header -->
+    <div class="flex justify-between items-center mb-md p-4 bg-surface-container-low rounded-xl border border-outline-variant/30">
+      <div>
+        <h3 class="text-sm font-bold text-primary">🏥 ${tr('Active Clinical Encounter', 'الزيارة الطبية النشطة')}</h3>
+        <p class="text-xs text-on-surface-variant">
+          🏢 ${tr('Facility: ', 'المنشأة: ')} ${escapeHTML(facilityType.toUpperCase())} | 
+          🩺 ${tr('Department: ', 'القسم: ')} ${tr(item.en, item.ar)}
+        </p>
+      </div>
+      <button id="closeEncounterBtn" class="btn btn-secondary text-xs py-1.5 px-4">
+        ↩️ ${tr('Close Encounter', 'إنهاء وإغلاق الزيارة')}
+      </button>
+    </div>
+
+    <!-- Security & Compliance Warning Notice -->
+    <div class="p-4 bg-warning/10 border-l-4 border-warning text-warning-container rounded-xl mb-lg flex gap-3 items-start">
+      <span class="material-symbols-outlined text-warning text-2xl">shield</span>
+      <div>
+        <h4 class="font-bold text-sm text-warning">${tr('Clinical Simulation & Privacy Notice', 'محاكاة سريرية وتنبيه الخصوصية')}</h4>
+        <p class="text-xs text-on-surface-variant">
+          ${tr('This is a read-only simulated clinical environment. In accordance with Saudi PDPL & CBAHI regulations, no real patient health information (PHI) is stored or transmitted.', 'هذه بيئة سريرية محاكاة مخصصة للعرض فقط. تماشياً مع لوائح نظام حماية البيانات الشخصية (PDPL) ومعايير سباهي، لا يتم حفظ أو نقل أي بيانات صحية حقيقية للمرضى.')}
+        </p>
+      </div>
+    </div>
+
+    <!-- Patient Card -->
+    <div class="glass-card-premium p-6 rounded-2xl mb-lg">
+      <h4 class="font-bold text-md text-primary mb-4">👤 ${tr('Patient Demographics', 'معلومات المريض')}</h4>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-md text-xs font-medium text-on-surface-variant">
+        <div><strong>${tr('Name', 'الاسم')}:</strong> ${escapeHTML(patient.name)}</div>
+        <div><strong>MRN:</strong> ${escapeHTML(patient.mrn)}</div>
+        <div><strong>${tr('Gender', 'الجنس')}:</strong> ${escapeHTML(patient.gender)}</div>
+        <div><strong>${tr('Age', 'العمر')}:</strong> ${patient.age}</div>
+        <div><strong>${tr('Blood Group', 'فصيلة الدم')}:</strong> ${patient.blood}</div>
+      </div>
+    </div>
+
+    <!-- Journey Timeline -->
+    <div class="glass-card-premium p-6 rounded-2xl mb-lg">
+      <h4 class="font-bold text-md text-primary mb-6">🏁 ${tr('Clinical Journey Timeline', 'مسار الزيارة السريرية')}</h4>
+      <div class="flex flex-col md:flex-row gap-lg justify-between relative">
+        ${journeySteps.map(step => `
+          <div class="flex-1 flex flex-col items-center text-center relative z-10">
+            <div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold mb-2 shadow-md">
+              ${step.step}
+            </div>
+            <h5 class="text-xs font-bold text-primary">${tr(step.name_en, step.name_ar)}</h5>
+            <span class="text-[10px] text-on-surface-variant mt-1">${tr('Completed', 'مكتمل')}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Bento Grid of Clinical Worksheets -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+      <!-- Nurse Assessment (Triage) -->
+      <div class="glass-card-premium p-6 rounded-2xl">
+        <h4 class="font-bold text-md text-primary mb-4">🩺 ${tr('Nursing Vitals & Assessment', 'التقييم التمريضي والعلامات الحيوية')}</h4>
+        <div class="grid grid-cols-2 gap-md text-xs">
+          <div class="form-group"><label>BP (Blood Pressure)</label><input class="form-input" value="120/80" disabled></div>
+          <div class="form-group"><label>Heart Rate (bpm)</label><input class="form-input" value="72" disabled></div>
+          <div class="form-group"><label>Temp (°C)</label><input class="form-input" value="37.0" disabled></div>
+          <div class="form-group"><label>Respiratory Rate</label><input class="form-input" value="16" disabled></div>
+        </div>
+        <button class="btn btn-secondary text-xs mt-4 w-full" disabled>${tr('Save Draft (Simulated)', 'حفظ كمسودة (محاكاة)')}</button>
+      </div>
+
+      <!-- Physician Consultation (SOAP) -->
+      <div class="glass-card-premium p-6 rounded-2xl">
+        <h4 class="font-bold text-md text-primary mb-4">📝 ${tr('Physician Notes (SOAP)', 'ملاحظات الطبيب والمعاينة')}</h4>
+        <div class="space-y-3 text-xs">
+          <div class="form-group">
+            <label class="font-bold">Subjective</label>
+            <textarea class="form-input" rows="2" disabled>${tr('Patient complains of mild chest tightness.', 'يشتكي المريض من ضيق خفيف في الصدر.')}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="font-bold">Objective</label>
+            <textarea class="form-input" rows="2" disabled>${tr('Lungs clear, heart sounds normal.', 'الرئتان سليمتان، أصوات القلب طبيعية.')}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Bind Close Event
+  document.getElementById('closeEncounterBtn').onclick = () => {
+    renderDepartmentWorkspace(el, page);
+  };
 }
 
 async function navigateTo(page) {
