@@ -9,6 +9,8 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { pool, initDatabase, tenantStore } = require('./db_postgres');
 const bcrypt = require('bcryptjs');
+const smsService = require('./sms_service');
+const emailService = require('./email_service');
 const ce = require('./crypto_envelope'); // A3 at-rest envelope encryption (DPAPI KEK); graceful when not configured
 const lis = require('./lis'); // E3 LIS clinical-safety core (autoVerify / isCritical / HL7 parse / QC) — pure functions
 const fe = require('./finance_engine'); // E10 GL/ZATCA pure engine (balanced-entry, VAT, aging, UBL/QR)
@@ -419,6 +421,137 @@ function withTenantFilter(queryText, params, tenantId) {
     const modifiedQuery = queryText + separator + `tenant_id = $${paramIndex}`;
     const modifiedParams = [...params, tenantId];
     return { queryText: modifiedQuery, params: modifiedParams };
+}
+
+// ===== SMS NOTIFICATION HELPERS =====
+async function sendLabResultNotification(orderId, sampleId, tenantId) {
+    try {
+        let patientId = null;
+        let phone = null;
+        let orderRef = orderId;
+
+        if (sampleId) {
+            const sampleRow = (await pool.query('SELECT patient_id FROM lab_samples WHERE id = $1', [sampleId])).rows[0];
+            if (sampleRow) patientId = sampleRow.patient_id;
+        }
+        if (!patientId && orderId) {
+            const orderRow = (await pool.query('SELECT patient_id FROM lab_radiology_orders WHERE id = $1', [orderId])).rows[0];
+            if (orderRow) patientId = orderRow.patient_id;
+        }
+
+        if (patientId) {
+            const patientRow = (await pool.query('SELECT phone FROM patients WHERE id = $1', [patientId])).rows[0];
+            if (patientRow && patientRow.phone) {
+                phone = patientRow.phone;
+            }
+        }
+
+        if (phone) {
+            const smsText = `عزيزي المريض، نتائج تحاليلك الطبية جاهزة الآن. يمكنك الاطلاع عليها عبر بوابة المرضى. مجمع نما الطبي.\nDear Patient, your lab results are now ready. You can view them on the Patient Portal. Nama Medical.`;
+            const sent = await smsService.sendSMS(phone, smsText, 'LAB_RESULT_READY');
+            if (sent && orderRef) {
+                await pool.query('UPDATE lab_radiology_orders SET sms_sent = 1 WHERE id = $1', [orderRef]);
+            }
+        }
+
+        // Send email to patient
+        if (patientId && tenantId) {
+            const emailSubject = `نتائج التحاليل الطبية جاهزة - مجمع نما الطبي | Lab Results Ready`;
+            const emailHtml = `
+                <div style="direction: rtl; text-align: right; font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                    <h2 style="color: #006970;">عزيزي المريض، نتائج تحاليلك الطبية جاهزة الآن.</h2>
+                    <p>يمكنك الاطلاع عليها وتحميلها في أي وقت عبر تسجيل الدخول إلى بوابة المرضى الخاصة بك.</p>
+                    <p>شكراً لاختياركم مجمع نما الطبي.</p>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                    <div style="direction: ltr; text-align: left;">
+                        <h2 style="color: #006970;">Dear Patient, your lab results are now ready.</h2>
+                        <p>You can view and download them at any time by logging into your Patient Portal.</p>
+                        <p>Thank you for choosing Nama Medical.</p>
+                    </div>
+                </div>
+            `;
+            sendPatientEmail(patientId, emailSubject, emailHtml, tenantId);
+        }
+    } catch (err) {
+        console.error('[SMS ERROR] Failed to send lab result notification:', err.message);
+    }
+}
+
+async function sendDoctorSMS(doctorId, text, eventType) {
+    try {
+        if (!doctorId) return;
+        const userRow = (await pool.query('SELECT display_name FROM system_users WHERE id = $1', [doctorId])).rows[0];
+        if (!userRow) return;
+        const name = userRow.display_name;
+        const empRow = (await pool.query('SELECT phone FROM hr_employees WHERE phone IS NOT NULL AND (name_en = $1 OR name_ar = $1 OR name_en LIKE $2 OR name_ar LIKE $2) LIMIT 1', [name, `%${name}%`])).rows[0];
+        if (empRow && empRow.phone) {
+            await smsService.sendSMS(empRow.phone, text, eventType);
+        }
+    } catch (e) {
+        console.error('[SMS ERROR] Failed to send SMS to doctor:', e.message);
+    }
+}
+
+async function sendRadiologyResultNotification(orderId, patientId, tenantId) {
+    try {
+        if (!patientId) return;
+        const patientRow = (await pool.query('SELECT phone FROM patients WHERE id = $1', [patientId])).rows[0];
+        if (patientRow && patientRow.phone) {
+            const smsText = `عزيزي المريض، نتائج أشعتك الطبية جاهزة الآن. يمكنك الاطلاع عليها عبر بوابة المرضى. مجمع نما الطبي.\nDear Patient, your radiology results are now ready. You can view them on the Patient Portal. Nama Medical.`;
+            const sent = await smsService.sendSMS(patientRow.phone, smsText, 'RAD_REPORT_READY');
+            if (sent && orderId) {
+                await pool.query('UPDATE lab_radiology_orders SET sms_sent = 1 WHERE id = $1', [orderId]);
+            }
+        }
+
+        // Send email to patient
+        if (patientId && tenantId) {
+            const emailSubject = `نتائج تقرير الأشعة جاهزة - مجمع نما الطبي | Radiology Report Ready`;
+            const emailHtml = `
+                <div style="direction: rtl; text-align: right; font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                    <h2 style="color: #006970;">عزيزي المريض، تقرير أشعتك الطبية جاهز الآن.</h2>
+                    <p>يمكنك الاطلاع على التقرير والصور وتحميلها في أي وقت عبر تسجيل الدخول إلى بوابة المرضى الخاصة بك.</p>
+                    <p>شكراً لاختياركم مجمع نما الطبي.</p>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                    <div style="direction: ltr; text-align: left;">
+                        <h2 style="color: #006970;">Dear Patient, your radiology report is now ready.</h2>
+                        <p>You can view and download the report and images at any time by logging into your Patient Portal.</p>
+                        <p>Thank you for choosing Nama Medical.</p>
+                    </div>
+                </div>
+            `;
+            sendPatientEmail(patientId, emailSubject, emailHtml, tenantId);
+        }
+    } catch (err) {
+        console.error('[SMS ERROR] Failed to send radiology result notification:', err.message);
+    }
+}
+
+async function sendPatientEmail(patientId, subject, html, tenantId) {
+    try {
+        if (!patientId || !tenantId) return;
+        const pUser = (await pool.query('SELECT email FROM portal_users WHERE patient_id=$1 AND tenant_id=$2 AND is_active=1', [patientId, tenantId])).rows[0];
+        if (pUser && pUser.email) {
+            await emailService.sendEmail(pUser.email, subject, html);
+        }
+    } catch (err) {
+        console.error('[EMAIL ERROR] Failed to send patient email:', err.message);
+    }
+}
+
+async function sendDoctorEmail(doctorId, subject, html) {
+    try {
+        if (!doctorId) return;
+        const userRow = (await pool.query('SELECT display_name FROM system_users WHERE id = $1', [doctorId])).rows[0];
+        if (!userRow) return;
+        const name = userRow.display_name;
+        const empRow = (await pool.query('SELECT email FROM hr_employees WHERE email IS NOT NULL AND (name_en = $1 OR name_ar = $1 OR name_en LIKE $2 OR name_ar LIKE $2) LIMIT 1', [name, `%${name}%`])).rows[0];
+        if (empRow && empRow.email) {
+            await emailService.sendEmail(empRow.email, subject, html);
+        }
+    } catch (err) {
+        console.error('[EMAIL ERROR] Failed to send doctor email:', err.message);
+    }
 }
 
 // ===== EPIC E17 — Quality / Incidents / CAPA + Infection Control =====
@@ -962,7 +1095,7 @@ app.post('/api/appointments', requireAuth, requireRole('appointments'), async (r
         const apptFee = parseFloat(fee) || 0;
         // --- TENANT SCOPE: stamp tenant_id & facility_id from session (never from body) ---
         const { tenantId, facilityId } = getRequestTenantContext(req);
-        const result = await pool.query('INSERT INTO appointments (patient_id, patient_name, doctor_name, department, appt_date, appt_time, notes, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id',
+        const result = await pool.query('INSERT INTO appointments (patient_id, patient_name, doctor_name, department, appt_date, appt_time, notes, tenant_id, branch_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id',
             [patient_id || null, patient_name, doctor_name, department, appt_date, appt_time, notes || '', tenantId || null, facilityId || null]);
         // Auto-create invoice for appointment fee
         if (apptFee > 0 && patient_id) {
@@ -984,8 +1117,43 @@ app.post('/api/appointments', requireAuth, requireRole('appointments'), async (r
         } catch (qe) { console.error('Queue auto-insert:', qe.message); }
         logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_APPOINTMENT', 'Appointments',
             `Appointment for ${patient_name} with Dr. ${doctor_name} on ${appt_date}`, req.ip);
+
+        // Send SMS confirmation to patient
+        if (patient_id) {
+            try {
+                const pRow = (await pool.query('SELECT phone FROM patients WHERE id=$1', [patient_id])).rows[0];
+                if (pRow && pRow.phone) {
+                    const smsText = `عزيزي المريض، تم تأكيد موعدك يوم ${appt_date} الساعة ${appt_time} مع الدكتور ${doctor_name}. شكراً لاختياركم مجمع نما الطبي.\nDear Patient, your appointment on ${appt_date} at ${appt_time} with Dr. ${doctor_name} has been confirmed.`;
+                    await smsService.sendSMS(pRow.phone, smsText, 'APPOINTMENT_CONFIRM');
+                }
+            } catch (smsErr) { console.error('[SMS ERROR] Appointment confirmation SMS failed:', smsErr.message); }
+        }
+
+        // Send Email confirmation to patient
+        if (patient_id && tenantId) {
+            const emailSubject = `تأكيد موعد - مجمع نما الطبي | Appointment Confirmation`;
+            const emailHtml = `
+                <div style="direction: rtl; text-align: right; font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                    <h2 style="color: #006970;">عزيزي المريض، تم تأكيد موعدك بنجاح.</h2>
+                    <p><strong>الطبيب:</strong> ${doctor_name}</p>
+                    <p><strong>التاريخ:</strong> ${appt_date}</p>
+                    <p><strong>الوقت:</strong> ${appt_time}</p>
+                    <p>شكراً لاختياركم مجمع نما الطبي.</p>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                    <div style="direction: ltr; text-align: left;">
+                        <h2 style="color: #006970;">Dear Patient, your appointment has been confirmed.</h2>
+                        <p><strong>Doctor:</strong> ${doctor_name}</p>
+                        <p><strong>Date:</strong> ${appt_date}</p>
+                        <p><strong>Time:</strong> ${appt_time}</p>
+                        <p>Thank you for choosing Nama Medical.</p>
+                    </div>
+                </div>
+            `;
+            sendPatientEmail(patient_id, emailSubject, emailHtml, tenantId);
+        }
+
         res.json(appt);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { console.error('APPOINTMENTS POST ERROR:', e); res.status(500).json({ error: 'Server error' }); }
 });
 
 app.delete('/api/appointments/:id', requireAuth, requireRole('appointments'), async (req, res) => {
@@ -2227,8 +2395,52 @@ app.post('/api/lab/results', requireAuth, requireTenantScope, async (req, res) =
              verdict.status, verdict.reasons.join(',')]);
         logAudit(req.session.user?.id, req.session.user?.display_name, 'LAB_RESULT_ENTER', 'Lab',
             `Result ${test_name}=${value} -> ${verdict.status}${verdict.is_critical ? ' [CRITICAL]' : ''} reasons:${verdict.reasons.join('|') || '-'}`, req.ip);
+
+        // Trigger SMS notification
+        if (ins.rows[0].status === 'verified') {
+            await sendLabResultNotification(order_id, lab_sample_id, ctx.tenantId);
+        }
+        // If critical, send urgent SMS to ordering doctor
+        if (verdict.is_critical && order_id) {
+            try {
+                const orderRow = (await pool.query(
+                    `SELECT o.doctor_id, p.name_ar, p.name_en 
+                     FROM lab_radiology_orders o 
+                     JOIN patients p ON o.patient_id = p.id 
+                     WHERE o.id = $1`, [order_id])).rows[0];
+                if (orderRow && orderRow.doctor_id) {
+                    const pName = orderRow.name_ar || orderRow.name_en || 'المريض';
+                    const smsText = `تنبيه طبي عاجل: نتيجة حرجة للمريض ${pName} في تحليل ${test_name} (القيمة: ${value}). يرجى المراجعة الفورية.\nUrgent Medical Alert: Critical result for patient ${pName} in test ${test_name} (Value: ${value}).`;
+                    await sendDoctorSMS(orderRow.doctor_id, smsText, 'LAB_CRITICAL_ALERT');
+
+                    // Send Email to Doctor
+                    const emailSubject = `تنبيه طبي عاجل: نتيجة حرجة للمريض | Urgent Medical Alert: Critical Result`;
+                    const emailHtml = `
+                        <div style="direction: rtl; text-align: right; font-family: sans-serif; padding: 20px; border: 2px solid #e74c3c; border-radius: 8px; background: #fff8f8;">
+                            <h2 style="color: #c0392b;">تنبيه طبي عاجل: نتيجة مخبرية حرجة</h2>
+                            <p><strong>المريض:</strong> ${pName}</p>
+                            <p><strong>التحليل:</strong> ${test_name}</p>
+                            <p><strong>القيمة المقاسة:</strong> <span style="color: #e74c3c; font-size: 18px; font-weight: bold;">${value} ${unit || ''}</span></p>
+                            <p><strong>النطاق الطبيعي:</strong> ${normal_range || '-'}</p>
+                            <p style="font-weight: bold; color: #c0392b;">يرجى المراجعة الطبية الفورية واتخاذ الإجراءات اللازمة لسلامة المريض.</p>
+                            <hr style="border: 0; border-top: 1px solid #e74c3c; margin: 20px 0;">
+                            <div style="direction: ltr; text-align: left;">
+                                <h2 style="color: #c0392b;">Urgent Medical Alert: Critical Lab Result</h2>
+                                <p><strong>Patient:</strong> ${pName}</p>
+                                <p><strong>Test:</strong> ${test_name}</p>
+                                <p><strong>Measured Value:</strong> <span style="color: #e74c3c; font-size: 18px; font-weight: bold;">${value} ${unit || ''}</span></p>
+                                <p><strong>Normal Range:</strong> ${normal_range || '-'}</p>
+                                <p style="font-weight: bold; color: #c0392b;">Please review immediately and take the necessary clinical actions.</p>
+                            </div>
+                        </div>
+                    `;
+                    sendDoctorEmail(orderRow.doctor_id, emailSubject, emailHtml);
+                }
+            } catch (smsErr) { console.error('[SMS ERROR] Critical lab alert SMS failed:', smsErr.message); }
+        }
+
         res.json({ result: ins.rows[0], verdict });
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { console.error('LAB RESULTS POST ERROR:', e); res.status(500).json({ error: 'Server error' }); }
 });
 
 // ---- RESULTS: manual verify (for HELD results) ----
@@ -2241,6 +2453,12 @@ app.put('/api/lab/results/:id/verify', requireAuth, requireTenantScope, async (r
             ['verified', req.session.user?.id || null, req.params.id, ctx.tenantId]);
         logAudit(req.session.user?.id, req.session.user?.display_name, 'LAB_RESULT_VERIFY', 'Lab',
             `Manually verified result #${req.params.id}`, req.ip);
+
+        // Trigger SMS notification on manual verification
+        if (r) {
+            await sendLabResultNotification(r.order_id, r.lab_sample_id, ctx.tenantId);
+        }
+
         res.json((await pool.query('SELECT * FROM lab_results WHERE id=$1 AND tenant_id=$2', [req.params.id, ctx.tenantId])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -2756,6 +2974,15 @@ app.post('/api/radiology/reports/:id/critical-notify', requireAuth, requireRole(
             [notifId, reportId, tenantId]);
         logAudit(req.session.user?.id, req.session.user?.display_name, 'RAD_CRITICAL_NOTIFY', 'Radiology',
             `Documented critical notification for report #${reportId} (notification #${notifId})`, req.ip);
+
+        // Send SMS to the notified doctor
+        if (target) {
+            try {
+                const smsText = `تنبيه طبي عاجل: نتيجة أشعة حرجة للمريض #${rep.patient_id} (تقرير #${reportId}). يرجى المراجعة الفورية.\nUrgent Medical Alert: Critical radiology finding for patient #${rep.patient_id} (Report #${reportId}).`;
+                await sendDoctorSMS(target, smsText, 'RAD_CRITICAL_ALERT');
+            } catch (smsErr) { console.error('[SMS ERROR] Critical radiology notify SMS failed:', smsErr.message); }
+        }
+
         res.json((await pool.query('SELECT * FROM rad_reports WHERE id=$1 AND tenant_id=$2', [reportId, tenantId])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -2783,6 +3010,12 @@ app.put('/api/radiology/reports/:id/sign', requireAuth, requireRole('radiology',
         }
         logAudit(req.session.user?.id, req.session.user?.display_name, 'SIGN_RAD_REPORT', 'Radiology',
             `Signed rad report #${reportId}${rep.is_critical ? ' [CRITICAL, notified]' : ''}`, req.ip);
+
+        // Trigger SMS notification to patient
+        if (rep) {
+            await sendRadiologyResultNotification(rep.rad_order_id, rep.patient_id, tenantId);
+        }
+
         res.json((await pool.query('SELECT * FROM rad_reports WHERE id=$1 AND tenant_id=$2', [reportId, tenantId])).rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -3459,7 +3692,85 @@ app.get('/api/patients/:id/results', requireAuth, requireRole('patients', 'lab',
         const labOrders = (await pool.query("SELECT * FROM lab_radiology_orders WHERE patient_id=$1 AND is_radiology=0 ORDER BY created_at DESC", [req.params.id])).rows;
         const radOrders = (await pool.query("SELECT * FROM lab_radiology_orders WHERE patient_id=$1 AND is_radiology=1 ORDER BY created_at DESC", [req.params.id])).rows;
         const records = (await pool.query('SELECT * FROM medical_records WHERE patient_id=$1 ORDER BY visit_date DESC', [req.params.id])).rows;
-        res.json({ patient, labOrders, radOrders, records });
+        const labResults = (await pool.query(
+            `SELECT lr.*, o.created_at as order_date 
+             FROM lab_results lr 
+             JOIN lab_radiology_orders o ON lr.order_id = o.id 
+             WHERE o.patient_id=$1 AND lr.status = 'verified'
+             ORDER BY o.created_at ASC, lr.id ASC`, [req.params.id])).rows;
+        res.json({ patient, labOrders, radOrders, records, labResults });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/patients/:id/consent', requireAuth, requireRole('patients'), async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const params = tenantId ? [req.params.id, tenantId] : [req.params.id];
+        
+        const p = (await pool.query(`SELECT * FROM patients WHERE id=$1${tenantCheck}`, params)).rows[0];
+        if (!p) return res.status(404).json({ error: 'Patient not found' });
+        
+        await pool.query('UPDATE patients SET privacy_consent_signed = true, privacy_consent_date = CURRENT_TIMESTAMP WHERE id = $1', [req.params.id]);
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'SIGN_PRIVACY_CONSENT', 'Patients',
+            `Patient ${p.name_en || p.name_ar} signed privacy consent (PDPL)`, req.ip);
+        res.json({ success: true, message: 'Consent signed successfully' });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// ===== METADATA-DRIVEN CLINICAL EMR & SPECIALTIES =====
+app.get('/api/clinical/departments', requireAuth, async (req, res) => {
+    try {
+        const rows = (await pool.query('SELECT * FROM clinical_departments WHERE is_active=true ORDER BY category, name_en')).rows;
+        res.json(rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.get('/api/clinical/templates/:dept_id', requireAuth, async (req, res) => {
+    try {
+        const deptId = parseInt(req.params.dept_id, 10);
+        if (!Number.isInteger(deptId)) return res.status(400).json({ error: 'Invalid department ID' });
+        const rows = (await pool.query('SELECT * FROM clinical_templates WHERE department_id=$1 AND is_active=true', [deptId])).rows;
+        res.json(rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/clinical/records', requireAuth, requireRole('patients'), async (req, res) => {
+    try {
+        const { patient_id, encounter_id, template_id, recorded_values } = req.body;
+        if (!patient_id || !template_id || !recorded_values) {
+            return res.status(400).json({ error: 'patient_id, template_id, and recorded_values are required' });
+        }
+        const { tenantId } = getRequestTenantContext(req);
+        
+        // Verify patient belongs to tenant
+        const p = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
+        if (!p) return res.status(403).json({ error: 'Access denied' });
+
+        const result = await pool.query(
+            `INSERT INTO patient_clinical_records (patient_id, encounter_id, template_id, recorded_values, doctor_id, tenant_id)
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+            [patient_id, encounter_id || null, template_id, JSON.stringify(recorded_values), req.session.user.id, tenantId]
+        );
+        res.status(201).json({ id: result.rows[0].id, success: true });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/clinical/records/:id/lock', requireAuth, requireRole('patients'), async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        const { tenantId } = getRequestTenantContext(req);
+        const rec = (await pool.query('SELECT * FROM patient_clinical_records WHERE id=$1 AND tenant_id=$2', [id, tenantId])).rows[0];
+        if (!rec) return res.status(404).json({ error: 'Record not found' });
+        if (rec.is_locked) return res.status(400).json({ error: 'Record already locked' });
+
+        // Compute a digital signature hash using crypto
+        const crypto = require('crypto');
+        const signaturePayload = `${rec.id}|${JSON.stringify(rec.recorded_values)}|${req.session.user.id}`;
+        const signature = crypto.createHash('sha256').update(signaturePayload).digest('hex');
+
+        await pool.query('UPDATE patient_clinical_records SET is_locked=true, signature=$1 WHERE id=$2', [signature, id]);
+        res.json({ success: true, signature });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -3491,8 +3802,19 @@ app.post('/api/invoices/generate', requireAuth, requireRole('invoices', 'account
         const vatAmount = vatInfo ? parseFloat(vatInfo.vat_amount) : 0;
         const description = items.map(i => String(i.description || '')).join(' | ');
         const invNumber = 'INV-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-5);
-        const result = await pool.query('INSERT INTO invoices (patient_id, patient_name, total, description, service_type, invoice_number, vat_amount, original_amount, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id',
-            [patient_id, p.name_en || p.name_ar, total, description, 'Medical Services', invNumber, vatAmount, total, tenantId || null, facilityId || null]);
+
+        // ZATCA Phase 2 Hashing & Chaining
+        const crypto = require('crypto');
+        const prevInv = (await pool.query(
+            'SELECT invoice_hash FROM invoices WHERE tenant_id = $1 ORDER BY id DESC LIMIT 1',
+            [tenantId || null]
+        )).rows[0];
+        const prevHash = prevInv && prevInv.invoice_hash ? prevInv.invoice_hash : '0000000000000000000000000000000000000000000000000000000000000000';
+        const invoiceString = `${invNumber}|${total}|${vatAmount}|${prevHash}`;
+        const currentHash = crypto.createHash('sha256').update(invoiceString).digest('hex');
+
+        const result = await pool.query('INSERT INTO invoices (patient_id, patient_name, total, description, service_type, invoice_number, vat_amount, original_amount, tenant_id, facility_id, invoice_hash, previous_invoice_hash) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id',
+            [patient_id, p.name_en || p.name_ar, total, description, 'Medical Services', invNumber, vatAmount, total, tenantId || null, facilityId || null, currentHash, prevHash]);
         logAudit(req.session.user?.id, req.session.user?.display_name, 'GENERATE_INVOICE', 'Finance',
             `Generated ${invNumber} for patient ${p.name_en || p.name_ar} total: ${total} (VAT ${vatAmount})`, req.ip);
         res.json((await pool.query('SELECT * FROM invoices WHERE id=$1', [result.rows[0].id])).rows[0]);
@@ -7901,7 +8223,7 @@ app.post('/api/quality/incidents', requireAuth, requireRole('quality'), requireT
         );
         logAudit(req.session.user?.id, req.session.user?.display_name || '', 'CREATE_INCIDENT', 'Quality', `Reported ${itype} severity=${sev} harm=${harm}${isConfidential ? ' [confidential]' : ''}`, req.ip);
         res.json(r.rows[0]);
-    } catch (e) { res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
+    } catch (e) { console.error('[POST QUALITY INCIDENT ERROR]', e); res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' }); }
 });
 app.put('/api/quality/incidents/:id', requireAuth, requireRole('quality'), requireTenantScope, async (req, res) => {
     try {

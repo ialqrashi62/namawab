@@ -3776,7 +3776,11 @@ window.loadPatientInfo = async () => {
         `;
       }
     }
-    document.getElementById('drPatientInfo').innerHTML = `<div class="flex gap-8 mt-16" style="flex-wrap:wrap;align-items:center"><span class="badge badge-info">📁 ${escapeHTML(p.mrn || p.file_number)}</span><span class="badge badge-warning">🎂 ${tr('Age', 'العمر')}: ${escapeHTML(p.age || '?')}</span>${p.blood_type ? `<span class="badge" style="background:#dc2626;color:#fff;font-weight:700">🩸 ${escapeHTML(p.blood_type)}</span>` : ''}<span class="badge badge-success">📞 ${escapeHTML(p.phone)}</span><span class="badge badge-purple">🆔 ${escapeHTML(p.national_id)}</span>${p.gender ? `<span class="badge" style="background:${p.gender === 'ذكر' ? '#3b82f6' : '#ec4899'};color:#fff">${p.gender === 'ذكر' ? '👨' : '👩'} ${escapeHTML(p.gender)}</span>` : ''}${p.insurance_company ? `<span class="badge" style="background:#0d9488;color:#fff">🏢 ${escapeHTML(p.insurance_company)}${p.insurance_class ? ' (' + escapeHTML(p.insurance_class) + ')' : ''}</span>` : ''}<span class="badge" style="background:#0ea5e9;color:#fff">📅 ${tr('Visit', 'الزيارة')}: ${new Date().toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</span><button class="btn btn-sm btn-primary" onclick="viewPatientResults(${safeId(p.id)})">📋 ${tr('View Lab & Radiology Results', 'استعراض نتائج الفحوصات والأشعة')}</button><button class="btn btn-sm" onclick="dischargePatient(${safeId(p.id)})" style="margin-right:auto;background:#dc3545;color:#fff;font-weight:600">🚪 ${tr('Patient Done', 'المريض طلع')}</button></div>${p.allergies ? `<div style="margin-top:8px;padding:10px;background:#fef2f2;border:2px solid #ef4444;border-radius:8px;font-size:13px;font-weight:600;color:#dc2626">⚠️ <strong>${tr('ALLERGIES', 'حساسية')}:</strong> ${escapeHTML(p.allergies)}</div>` : ''}${p.chronic_diseases ? `<div style="margin-top:6px;padding:8px;background:#fefce8;border:1px solid #facc15;border-radius:8px;font-size:12px;color:#854d0e">🩺 <strong>${tr('Chronic Diseases', 'أمراض مزمنة')}:</strong> ${escapeHTML(p.chronic_diseases)}</div>` : ''}${vitalsHtml}${historyHtml}<div id="drE1Panel"></div><div id="drResultsPanel"></div>`;
+    const consentBadge = p.privacy_consent_signed
+      ? `<span class="badge badge-success" style="background:#10b981;color:#fff">🟢 ${tr('PDPL Consent Signed', 'موافقة حماية البيانات')}</span>`
+      : `<button class="badge" style="background:#ef4444;color:#fff;cursor:pointer;border:none;border-radius:4px;padding:4px 8px;" onclick="signPrivacyConsent(${p.id})">⚠️ ${tr('PDPL Consent Required', 'توقيع موافقة البيانات')}</button>`;
+
+    document.getElementById('drPatientInfo').innerHTML = `<div class="flex gap-8 mt-16" style="flex-wrap:wrap;align-items:center"><span class="badge badge-info">📁 ${escapeHTML(p.mrn || p.file_number)}</span><span class="badge badge-warning">🎂 ${tr('Age', 'العمر')}: ${escapeHTML(p.age || '?')}</span>${p.blood_type ? `<span class="badge" style="background:#dc2626;color:#fff;font-weight:700">🩸 ${escapeHTML(p.blood_type)}</span>` : ''}<span class="badge badge-success">📞 ${escapeHTML(p.phone)}</span><span class="badge badge-purple">🆔 ${escapeHTML(p.national_id)}</span>${p.gender ? `<span class="badge" style="background:${p.gender === 'ذكر' ? '#3b82f6' : '#ec4899'};color:#fff">${p.gender === 'ذكر' ? '👨' : '👩'} ${escapeHTML(p.gender)}</span>` : ''}${p.insurance_company ? `<span class="badge" style="background:#0d9488;color:#fff">🏢 ${escapeHTML(p.insurance_company)}${p.insurance_class ? ' (' + escapeHTML(p.insurance_class) + ')' : ''}</span>` : ''}${consentBadge}<span class="badge" style="background:#0ea5e9;color:#fff">📅 ${tr('Visit', 'الزيارة')}: ${new Date().toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</span><button class="btn btn-sm btn-primary" onclick="viewPatientResults(${safeId(p.id)})">📋 ${tr('View Lab & Radiology Results', 'استعراض نتائج الفحوصات والأشعة')}</button><button class="btn btn-sm" onclick="dischargePatient(${safeId(p.id)})" style="margin-right:auto;background:#dc3545;color:#fff;font-weight:600">🚪 ${tr('Patient Done', 'المريض طلع')}</button></div>${p.allergies ? `<div style="margin-top:8px;padding:10px;background:#fef2f2;border:2px solid #ef4444;border-radius:8px;font-size:13px;font-weight:600;color:#dc2626">⚠️ <strong>${tr('ALLERGIES', 'حساسية')}:</strong> ${escapeHTML(p.allergies)}</div>` : ''}${p.chronic_diseases ? `<div style="margin-top:6px;padding:8px;background:#fefce8;border:1px solid #facc15;border-radius:8px;font-size:12px;color:#854d0e">🩺 <strong>${tr('Chronic Diseases', 'أمراض مزمنة')}:</strong> ${escapeHTML(p.chronic_diseases)}</div>` : ''}${vitalsHtml}${historyHtml}<div id="drE1Panel"></div><div id="drResultsPanel"></div>`;
     // E1: render Problem List / CPOE / SOAP tabs for the selected patient.
     if (typeof window.renderE1Panel === 'function') { window.renderE1Panel(p.id); }
   } catch (e) { }
@@ -3789,12 +3793,166 @@ window.dischargePatient = async (pid) => {
     document.getElementById('drPatient').value = '';
   } catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
 };
+window.signPrivacyConsent = async (pid) => {
+  if (!confirm(tr('Are you sure you want to sign the Privacy Consent (PDPL) for this patient?', 'هل أنت متأكد من رغبتك في توقيع موافقة حماية البيانات الشخصية (PDPL) لهذا المريض؟'))) return;
+  try {
+    await API.post(`/api/patients/${pid}/consent`);
+    showToast(tr('Privacy consent signed successfully!', 'تم توقيع موافقة البيانات بنجاح! ✅'), 'success');
+    if (typeof window.selectDrPatient === 'function') { window.selectDrPatient(); }
+  } catch (e) { showToast(tr('Failed to sign consent', 'فشل في توقيع الموافقة'), 'error'); }
+};
+window.drawLabTrend = function(canvasId, points) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  // Clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Sort points by date ascending
+  points.sort((a, b) => a.date - b.date);
+
+  const width = canvas.width;
+  const height = canvas.height;
+  const paddingLeft = 50;
+  const paddingRight = 20;
+  const paddingTop = 25;
+  const paddingBottom = 30;
+
+  const chartWidth = width - paddingLeft - paddingRight;
+  const chartHeight = height - paddingTop - paddingBottom;
+
+  // Find min/max values
+  let minVal = Math.min(...points.map(p => p.value));
+  let maxVal = Math.max(...points.map(p => p.value));
+
+  // Include reference range in min/max calculation if present
+  const refLows = points.filter(p => p.ref_low !== null).map(p => p.ref_low);
+  const refHighs = points.filter(p => p.ref_high !== null).map(p => p.ref_high);
+  if (refLows.length) minVal = Math.min(minVal, ...refLows);
+  if (refHighs.length) maxVal = Math.max(maxVal, ...refHighs);
+
+  // Add margin to min/max
+  const valRange = maxVal - minVal;
+  const margin = valRange === 0 ? 1 : valRange * 0.2;
+  minVal -= margin;
+  maxVal += margin;
+
+  // Helper to map value to Y coordinate
+  const getY = (val) => {
+    return paddingTop + chartHeight - ((val - minVal) / (maxVal - minVal)) * chartHeight;
+  };
+
+  // Helper to map index to X coordinate
+  const getX = (idx) => {
+    if (points.length <= 1) return paddingLeft + chartWidth / 2;
+    return paddingLeft + (idx / (points.length - 1)) * chartWidth;
+  };
+
+  // Draw Grid & Reference Bands (if reference range exists)
+  const firstRefLow = refLows[0] !== undefined ? refLows[0] : null;
+  const firstRefHigh = refHighs[0] !== undefined ? refHighs[0] : null;
+  if (firstRefLow !== null && firstRefHigh !== null) {
+    const yLow = getY(firstRefLow);
+    const yHigh = getY(firstRefHigh);
+    ctx.fillStyle = 'rgba(74, 222, 128, 0.08)'; // Light green band for normal range
+    ctx.fillRect(paddingLeft, Math.min(yLow, yHigh), chartWidth, Math.abs(yLow - yHigh));
+
+    // Draw reference lines
+    ctx.strokeStyle = 'rgba(74, 222, 128, 0.25)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(paddingLeft, yLow);
+    ctx.lineTo(paddingLeft + chartWidth, yLow);
+    ctx.moveTo(paddingLeft, yHigh);
+    ctx.lineTo(paddingLeft + chartWidth, yHigh);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Draw Grid Lines (Y-axis grid)
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
+  ctx.lineWidth = 1;
+  const gridSteps = 4;
+  for (let i = 0; i <= gridSteps; i++) {
+    const val = minVal + (i / gridSteps) * (maxVal - minVal);
+    const y = getY(val);
+    ctx.beginPath();
+    ctx.moveTo(paddingLeft, y);
+    ctx.lineTo(paddingLeft + chartWidth, y);
+    ctx.stroke();
+
+    // Draw Y axis label
+    ctx.fillStyle = '#888';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(val.toFixed(1), paddingLeft - 8, y);
+  }
+
+  // Draw X axis labels (Dates)
+  points.forEach((p, idx) => {
+    const x = getX(idx);
+    const dateStr = p.date.toLocaleDateString('ar-SA', { month: 'short', day: 'numeric' });
+    ctx.fillStyle = '#888';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(dateStr, x, paddingTop + chartHeight + 8);
+  });
+
+  // Draw Trend Line
+  if (points.length > 1) {
+    ctx.strokeStyle = '#006970';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(getX(0), getY(points[0].value));
+    for (let i = 1; i < points.length; i++) {
+      ctx.lineTo(getX(i), getY(points[i].value));
+    }
+    ctx.stroke();
+  }
+
+  // Draw Points
+  points.forEach((p, idx) => {
+    const x = getX(idx);
+    const y = getY(p.value);
+
+    // Color point based on reference range
+    let pointColor = '#006970';
+    if (p.ref_low !== null && p.value < p.ref_low) pointColor = '#ef4444'; // Low (red)
+    if (p.ref_high !== null && p.value > p.ref_high) pointColor = '#ef4444'; // High (red)
+
+    // Outer circle
+    ctx.fillStyle = pointColor;
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, 2 * Math.PI);
+    ctx.fill();
+
+    // Inner white circle
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(x, y, 2.5, 0, 2 * Math.PI);
+    ctx.fill();
+
+    // Draw Value text near point
+    ctx.fillStyle = '#333';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(`${p.value}`, x, y - 6);
+  });
+};
+
 window.viewPatientResults = async (pid) => {
   try {
     const data = await API.get(`/api/patients/${pid}/results`);
     const p = data.patient;
     let html = `<div class="card mt-16" style="border:2px solid var(--accent)">
           <div class="card-title">📋 ${tr('Results for', 'نتائج')} ${escapeHTML(isArabic ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar))}</div>`;
+    
     // Lab Results
     if (data.labOrders.length > 0) {
       html += `<div class="mb-16"><h4 style="color:var(--accent);margin:0 0 8px">🔬 ${tr('Lab Results', 'نتائج المختبر')} (${data.labOrders.length})</h4>`;
@@ -3808,9 +3966,48 @@ window.viewPatientResults = async (pid) => {
     } else {
       html += `<div class="mb-16" style="color:var(--text-dim)">🔬 ${tr('No lab orders', 'لا توجد فحوصات مختبر')}</div>`;
     }
+
+    // Lab Trends Section
+    const trends = {};
+    if (data.labResults && data.labResults.length > 0) {
+      data.labResults.forEach(r => {
+        const name = r.test_name;
+        if (!trends[name]) trends[name] = [];
+        trends[name].push({
+          value: parseFloat(r.value),
+          date: r.order_date ? new Date(r.order_date) : new Date(r.created_at),
+          unit: r.unit,
+          ref_low: r.ref_low !== null ? parseFloat(r.ref_low) : null,
+          ref_high: r.ref_high !== null ? parseFloat(r.ref_high) : null
+        });
+      });
+    }
+
+    const trendTests = Object.keys(trends);
+    if (trendTests.length > 0) {
+      html += `<div class="mb-16" style="border-top:1px dashed var(--border);padding-top:16px;">
+                <h4 style="color:var(--accent);margin:0 0 12px">📈 ${tr('Lab Results Trend Charts', 'منحنيات تطور نتائج التحاليل')}</h4>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:16px;">`;
+      
+      trendTests.forEach((testName, idx) => {
+        const pts = trends[testName];
+        const canvasId = `trend_canvas_${pid}_${idx}`;
+        const refStr = pts[0].ref_low !== null && pts[0].ref_high !== null ? ` (Ref: ${pts[0].ref_low}-${pts[0].ref_high} ${pts[0].unit})` : '';
+        html += `<div class="card glass-card-premium" style="padding:12px;margin:0;box-shadow:none;border:1px solid var(--border);">
+                  <div style="font-weight:bold;margin-bottom:8px;color:var(--text);display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+                    <span>🔬 ${escapeHTML(testName)}</span>
+                    <span style="font-size:11px;color:var(--text-dim);">${escapeHTML(refStr)}</span>
+                  </div>
+                  <canvas id="${canvasId}" width="360" height="180" style="width:100%;height:180px;background:var(--bg);border-radius:6px;"></canvas>
+                </div>`;
+      });
+      
+      html += `</div></div>`;
+    }
+
     // Radiology Results
     if (data.radOrders.length > 0) {
-      html += `<div class="mb-16"><h4 style="color:var(--accent);margin:0 0 8px">📡 ${tr('Radiology Results', 'نتائج الأشعة')} (${data.radOrders.length})</h4>`;
+      html += `<div class="mb-16" style="border-top:1px dashed var(--border);padding-top:16px;"><h4 style="color:var(--accent);margin:0 0 8px">📡 ${tr('Radiology Results', 'نتائج الأشعة')} (${data.radOrders.length})</h4>`;
       data.radOrders.forEach(o => {
         html += `<div style="padding:10px;margin:6px 0;background:var(--hover);border-radius:8px;border-right:4px solid ${o.status === 'Done' ? '#4ade80' : '#f59e0b'}">
                   <div class="flex gap-8" style="flex-wrap:wrap;align-items:center"><strong>${escapeHTML(o.order_type)}</strong> ${statusBadge(o.status)} <span style="color:var(--text-dim);font-size:12px">${o.created_at ? new Date(o.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span></div>
@@ -3822,7 +4019,17 @@ window.viewPatientResults = async (pid) => {
       html += `<div class="mb-16" style="color:var(--text-dim)">📡 ${tr('No radiology orders', 'لا توجد أشعة')}</div>`;
     }
     html += `</div>`;
+    
     document.getElementById('drResultsPanel').innerHTML = html;
+
+    // Draw all trends
+    if (trendTests.length > 0) {
+      trendTests.forEach((testName, idx) => {
+        const pts = trends[testName];
+        const canvasId = `trend_canvas_${pid}_${idx}`;
+        window.drawLabTrend(canvasId, pts);
+      });
+    }
   } catch (e) { showToast(tr('Error loading results', 'خطأ في تحميل النتائج'), 'error'); }
 };
 window.saveMedRecord = async () => {
@@ -10194,13 +10401,60 @@ async function renderInpatient(el) {
     </div>`;
   const c = document.getElementById('adtContent');
   if (adtTab === 'census') {
-    c.innerHTML = (census.wards || []).map(w => {
+    const legendHtml = `
+      <div class="bed-legend">
+        <div class="legend-item"><div class="legend-color available"></div><span>${tr('Available Bed', 'سرير متاح')}</span></div>
+        <div class="legend-item"><div class="legend-color occupied"></div><span>${tr('Occupied Bed', 'سرير مشغول')}</span></div>
+      </div>
+    `;
+
+    const wardsMapHtml = (census.wards || []).map(w => {
       const wBeds = (census.beds || []).filter(b => b.ward_id === w.id);
-      const occ = wBeds.filter(b => b.status === 'Occupied').length;
-      return `<div style="margin-bottom:20px"><h4>${escapeHTML(w.ward_name_ar)} (${escapeHTML(w.ward_name)}) — <span style="color:${occ / wBeds.length > 0.8 ? '#e74c3c' : '#2ecc71'}">${occ}/${wBeds.length}</span></h4>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px">${wBeds.map(b => `<div style="padding:10px;border-radius:10px;text-align:center;font-size:.85em;background:${b.status === 'Available' ? '#d4edda' : '#f8d7da'};border:1px solid ${b.status === 'Available' ? '#28a745' : '#dc3545'};cursor:pointer" title="${escapeHTML(b.patient_name || '')} ${escapeHTML(b.diagnosis || '')}">
-          <strong>${tr('Bed', 'سرير')} ${escapeHTML(b.bed_number)}</strong><br><small>${tr('Room', 'غرفة')} ${escapeHTML(b.room_number)}</small><br>${b.patient_name ? `<small>${escapeHTML(b.patient_name)}</small>` : statusBadge(b.status)}</div>`).join('')}</div></div>`;
+      const occupiedCount = wBeds.filter(b => b.status === 'Occupied').length;
+      const totalCount = wBeds.length;
+      const isHighOccupancy = totalCount > 0 && (occupiedCount / totalCount) > 0.8;
+      
+      const badgeClass = isHighOccupancy ? 'ward-occupancy-high' : 'ward-occupancy-normal';
+      const badgeText = `${occupiedCount} / ${totalCount}`;
+
+      return `
+        <div class="ward-card-premium">
+          <div class="ward-header">
+            <div class="ward-title-ar">🏢 ${escapeHTML(isArabic ? w.ward_name_ar : w.ward_name)}</div>
+            <div class="ward-occupancy-badge ${badgeClass}">
+              📊 ${tr('Occupancy:', 'نسبة الإشغال:')} ${badgeText}
+            </div>
+          </div>
+          <div class="beds-grid">
+            ${wBeds.map(b => {
+              const isOccupied = b.status === 'Occupied';
+              const cardClass = isOccupied ? 'occupied' : 'available';
+              const bedIcon = isOccupied ? '🛌' : '🛏️';
+              const tooltipTitle = isOccupied 
+                ? `${tr('Patient:', 'المريض:')} ${escapeHTML(b.patient_name || '')}\n${tr('Diagnosis:', 'التشخيص:')} ${escapeHTML(b.diagnosis || '')}` 
+                : tr('Available Bed', 'سرير متاح');
+
+              const clickAction = isOccupied 
+                ? `showBedActionsModal(${safeId(b.id)}, '${jsStr(b.patient_name || '')}')`
+                : `quickAdmitToBed(${safeId(w.id)}, ${safeId(b.id)})`;
+
+              return `
+                <div class="bed-card-interactive ${cardClass}" 
+                     onclick="${clickAction}" 
+                     title="${tooltipTitle}">
+                  <div class="bed-icon-label">${bedIcon}</div>
+                  <div class="bed-number">${tr('Bed', 'سرير')} ${escapeHTML(b.bed_number)}</div>
+                  <div class="bed-room">${tr('Room', 'غرفة')} ${escapeHTML(b.room_number)}</div>
+                  ${isOccupied ? `<div class="bed-patient-name" title="${escapeHTML(b.patient_name)}">👤 ${escapeHTML(b.patient_name)}</div>` : `<div class="bed-patient-name" style="color:#2ecc71; font-size:10px;">${tr('Free', 'شاغر')}</div>`}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
     }).join('');
+
+    c.innerHTML = legendHtml + `<div class="ward-map-container">${wardsMapHtml}</div>`;
   } else if (adtTab === 'admit') {
     c.innerHTML = `<h3>➕ ${tr('New Admission', 'تنويم جديد')}</h3><div class="form-grid">
       <div><label>${tr('Patient', 'المريض')}</label><select id="admPatient" class="form-control"><option value="">${tr('Select', 'اختر')}</option>${(patients || []).map(p => `<option value="${safeId(p.id)}" data-name="${escapeHTML(p.name_ar || p.name_en)}">${escapeHTML(p.name_ar || p.name_en)} (${escapeHTML(p.file_number)})</option>`).join('')}</select></div>
@@ -10243,6 +10497,41 @@ window.loadWardBeds = async function (wardId) {
   const beds = (r && r.beds) ? r.beds : [];
   const s = document.getElementById('admBed');
   s.innerHTML = `<option value="">${tr('Select', 'اختر')}</option>${beds.filter(b => b.status === 'Available').map(b => `<option value="${safeId(b.id)}">${tr('Bed', 'سرير')} ${escapeHTML(b.bed_number)} - ${tr('Room', 'غرفة')} ${escapeHTML(b.room_number)}</option>`).join('')}`;
+};
+window.showBedActionsModal = function(bedId, patientName) {
+  API.get('/api/admissions?status=Active').then(admissions => {
+    const adm = admissions.find(a => a.bed_id === bedId);
+    if (!adm) return;
+    const confirmAction = confirm(
+      isArabic 
+        ? `سرير المريض: ${patientName}\n\nاضغط "موافق" لنقل المريض إلى سرير آخر.\nاضغط "إلغاء" لتسجيل خروج المريض.`
+        : `Patient Bed: ${patientName}\n\nClick "OK" to TRANSFER the patient.\nClick "Cancel" to DISCHARGE the patient.`
+    );
+    if (confirmAction) {
+      document.getElementById('adtTransferAdmId').value = adm.id;
+      document.getElementById('adtTransferName').innerText = `${tr('Patient:', 'المريض:')} ${patientName}`;
+      document.getElementById('adtTransferModal').style.display = 'flex';
+    } else {
+      document.getElementById('adtDischargeId').value = adm.id;
+      document.getElementById('adtDischargeModal').style.display = 'flex';
+    }
+  });
+};
+window.quickAdmitToBed = function(wardId, bedId) {
+  adtTab = 'admit';
+  navigateTo(22);
+  setTimeout(() => {
+    const wardSelect = document.getElementById('admWard');
+    if (wardSelect) {
+      wardSelect.value = wardId;
+      window.loadWardBeds(wardId).then(() => {
+        const bedSelect = document.getElementById('admBed');
+        if (bedSelect) {
+          bedSelect.value = bedId;
+        }
+      });
+    }
+  }, 100);
 };
 window.admitPatient = async function () {
   const ps = document.getElementById('admPatient'); if (!ps.value) return showToast(tr('Select patient', 'اختر المريض'), 'error');

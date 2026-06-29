@@ -1682,5 +1682,195 @@ body {
   color: #ba1a1a !important;
 }
 
+/* ---------- Interactive Ward Bed Map ---------- */
+.ward-map-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.ward-card-premium {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: 0 8px 32px var(--shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ward-card-premium:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+.ward-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+
+.ward-title-ar {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.ward-occupancy-badge {
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ward-occupancy-high {
+  background-color: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.2);
+}
+
+.ward-occupancy-normal {
+  background-color: rgba(46, 204, 113, 0.1);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.2);
+}
+
+.beds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.bed-card-interactive {
+  position: relative;
+  padding: 12px;
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100px;
+}
+
+.bed-card-interactive.available {
+  background: linear-gradient(135deg, rgba(46, 204, 113, 0.08) 0%, rgba(39, 174, 96, 0.03) 100%);
+  border: 1px solid rgba(46, 204, 113, 0.25);
+  color: #27ae60;
+}
+
+.bed-card-interactive.available:hover {
+  background: linear-gradient(135deg, rgba(46, 204, 113, 0.15) 0%, rgba(39, 174, 96, 0.08) 100%);
+  border-color: #2ecc71;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(46, 204, 113, 0.15);
+}
+
+.bed-card-interactive.occupied {
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.08) 0%, rgba(192, 41, 43, 0.03) 100%);
+  border: 1px solid rgba(231, 76, 60, 0.25);
+  color: #c0392b;
+}
+
+.bed-card-interactive.occupied:hover {
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.15) 0%, rgba(192, 41, 43, 0.08) 100%);
+  border-color: #e74c3c;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(231, 76, 60, 0.15);
+}
+
+.bed-card-interactive.occupied::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #e74c3c;
+  box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+  animation: bed-pulse 2s infinite;
+}
+
+@keyframes bed-pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(231, 76, 60, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+  }
+}
+
+.bed-icon-label {
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.bed-number {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.bed-room {
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.bed-patient-name {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.bed-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--input);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  justify-content: center;
+  align-items: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+
+.legend-color.available {
+  background: linear-gradient(135deg, rgba(46, 204, 113, 0.2) 0%, rgba(39, 174, 96, 0.1) 100%);
+  border: 1px solid rgba(46, 204, 113, 0.4);
+}
+
+.legend-color.occupied {
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.2) 0%, rgba(192, 41, 43, 0.1) 100%);
+  border: 1px solid rgba(231, 76, 60, 0.4);
+}
+
 
 

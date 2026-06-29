@@ -19,7 +19,7 @@ const DB_PASSWORD = process.env.DB_PASSWORD || 'postgres';
 
 const TEST_PORT = 3005;
 const TEST_USERNAME = 'lockout_test_user_99';
-const TEST_PASSWORD = 'SecurePassword123!';
+const TEST_PASSWORD = 'EXAMPLE_PASSWORD';
 
 const pool = new Pool({
     host: DB_HOST,
