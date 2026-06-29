@@ -7565,21 +7565,25 @@ app.get('/api/cssd/load-items/:cycleId', requireAuth, requireRole('cssd', 'nursi
 });
 
 // ===== DIETARY =====
-app.get('/api/dietary/orders', requireAuth, async (req, res) => {
-    try { res.json((await pool.query("SELECT * FROM diet_orders WHERE status='Active' ORDER BY id DESC")).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/dietary/orders', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        res.json((await pool.query("SELECT * FROM diet_orders WHERE status='Active' AND tenant_id=$1 ORDER BY id DESC", [tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/dietary/orders', requireAuth, async (req, res) => {
+app.post('/api/dietary/orders', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { admission_id, patient_id, patient_name, diet_type, diet_type_ar, texture, fluid, allergies, restrictions, supplements, ordered_by, meal_preferences, notes } = req.body;
-        const r = await pool.query('INSERT INTO diet_orders (admission_id,patient_id,patient_name,diet_type,diet_type_ar,texture,fluid,allergies,restrictions,supplements,ordered_by,meal_preferences,start_date,notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *',
-            [admission_id, patient_id, patient_name, diet_type || 'Regular', diet_type_ar || 'عادي', texture || 'Normal', fluid || 'Normal', allergies, restrictions, supplements, ordered_by, meal_preferences, new Date().toISOString().split('T')[0], notes]);
+        const { tenantId } = getRequestTenantContext(req);
+        const r = await pool.query('INSERT INTO diet_orders (admission_id,patient_id,patient_name,diet_type,diet_type_ar,texture,fluid,allergies,restrictions,supplements,ordered_by,meal_preferences,start_date,notes,tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *',
+            [admission_id, patient_id, patient_name, diet_type || 'Regular', diet_type_ar || 'عادي', texture || 'Normal', fluid || 'Normal', allergies, restrictions, supplements, ordered_by, meal_preferences, new Date().toISOString().split('T')[0], notes, tenantId]);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/dietary/orders/:id', requireAuth, async (req, res) => {
+app.put('/api/dietary/orders/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { diet_type, diet_type_ar, texture, fluid, restrictions, status } = req.body;
+        const { tenantId } = getRequestTenantContext(req);
         const sets = []; const vals = []; let i = 1;
         if (diet_type) { sets.push(`diet_type=$${i++}`); vals.push(diet_type); }
         if (diet_type_ar) { sets.push(`diet_type_ar=$${i++}`); vals.push(diet_type_ar); }
@@ -7588,35 +7592,43 @@ app.put('/api/dietary/orders/:id', requireAuth, async (req, res) => {
         if (restrictions) { sets.push(`restrictions=$${i++}`); vals.push(restrictions); }
         if (status) { sets.push(`status=$${i++}`); vals.push(status); }
         vals.push(req.params.id);
-        await pool.query(`UPDATE diet_orders SET ${sets.join(',')} WHERE id=$${i}`, vals);
+        vals.push(tenantId);
+        const r = await pool.query(`UPDATE diet_orders SET ${sets.join(',')} WHERE id=$${i++} AND tenant_id=$${i}`, vals);
+        if (!r.rowCount) return res.status(404).json({ error: 'Order not found' });
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/dietary/meals', requireAuth, async (req, res) => {
+app.post('/api/dietary/meals', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { order_id, patient_id, meal_type, meal_date, items, calories } = req.body;
-        const r = await pool.query('INSERT INTO diet_meals (order_id,patient_id,meal_type,meal_date,items,calories) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *',
-            [order_id, patient_id, meal_type, meal_date || new Date().toISOString().split('T')[0], items, calories || 0]);
+        const { tenantId } = getRequestTenantContext(req);
+        const r = await pool.query('INSERT INTO diet_meals (order_id,patient_id,meal_type,meal_date,items,calories,tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
+            [order_id, patient_id, meal_type, meal_date || new Date().toISOString().split('T')[0], items, calories || 0, tenantId]);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/dietary/meals/:id/deliver', requireAuth, async (req, res) => {
+app.put('/api/dietary/meals/:id/deliver', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        await pool.query('UPDATE diet_meals SET delivered=1, delivered_by=$1 WHERE id=$2', [req.body.delivered_by || '', req.params.id]);
+        const { tenantId } = getRequestTenantContext(req);
+        const r = await pool.query('UPDATE diet_meals SET delivered=1, delivered_by=$1 WHERE id=$2 AND tenant_id=$3', [req.body.delivered_by || '', req.params.id, tenantId]);
+        if (!r.rowCount) return res.status(404).json({ error: 'Meal not found' });
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/nutrition/assessments', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM nutrition_assessments ORDER BY id DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/nutrition/assessments', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        res.json((await pool.query('SELECT * FROM nutrition_assessments WHERE tenant_id=$1 ORDER BY id DESC', [tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/nutrition/assessments', requireAuth, async (req, res) => {
+app.post('/api/nutrition/assessments', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, height_cm, weight_kg, caloric_needs, protein_needs, screening_score, malnutrition_risk, plan, assessed_by } = req.body;
+        const { tenantId } = getRequestTenantContext(req);
         const bmi = height_cm && weight_kg ? parseFloat((weight_kg / ((height_cm / 100) ** 2)).toFixed(1)) : 0;
         const cat = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Overweight' : 'Obese';
-        const r = await pool.query('INSERT INTO nutrition_assessments (patient_id,patient_name,assessment_date,height_cm,weight_kg,bmi,bmi_category,caloric_needs,protein_needs,screening_score,malnutrition_risk,plan,assessed_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *',
-            [patient_id, patient_name, new Date().toISOString().split('T')[0], height_cm || 0, weight_kg || 0, bmi, cat, caloric_needs || 0, protein_needs || 0, screening_score || 0, malnutrition_risk || 'Low', plan, assessed_by]);
+        const r = await pool.query('INSERT INTO nutrition_assessments (patient_id,patient_name,assessment_date,height_cm,weight_kg,bmi,bmi_category,caloric_needs,protein_needs,screening_score,malnutrition_risk,plan,assessed_by,tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *',
+            [patient_id, patient_name, new Date().toISOString().split('T')[0], height_cm || 0, weight_kg || 0, bmi, cat, caloric_needs || 0, protein_needs || 0, screening_score || 0, malnutrition_risk || 'Low', plan, assessed_by, tenantId]);
         res.json(r.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -8969,42 +8981,57 @@ app.post('/api/finance/daily-close', requireAuth, requireRole('finance', 'accoun
 });
 
 // ===== MEDICAL RECORDS / HIM =====
-app.get('/api/medical-records/files', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM medical_records_files ORDER BY id DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/medical-records/files', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        res.json((await pool.query('SELECT * FROM medical_records_files WHERE tenant_id=$1 ORDER BY id DESC', [tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/medical-records/requests', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM medical_records_requests ORDER BY requested_at DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/medical-records/requests', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        res.json((await pool.query('SELECT * FROM medical_records_requests WHERE tenant_id=$1 ORDER BY requested_at DESC', [tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/medical-records/requests', requireAuth, async (req, res) => {
+app.post('/api/medical-records/requests', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, file_number, department, purpose, notes } = req.body;
-        const result = await pool.query('INSERT INTO medical_records_requests (patient_id, file_number, requested_by, department, purpose, notes) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *',
-            [patient_id, file_number, req.session.user.name, department || '', purpose || 'Clinic Visit', notes || '']);
+        const { tenantId } = getRequestTenantContext(req);
+        const result = await pool.query('INSERT INTO medical_records_requests (patient_id, file_number, requested_by, department, purpose, notes, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
+            [patient_id, file_number, req.session.user.name, department || '', purpose || 'Clinic Visit', notes || '', tenantId]);
         logAudit(req.session.user.id, req.session.user.name, 'REQUEST_FILE', 'Medical Records', `File ${file_number} requested`, req.ip);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/medical-records/requests/:id', requireAuth, async (req, res) => {
+app.put('/api/medical-records/requests/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { status } = req.body;
+        const { tenantId } = getRequestTenantContext(req);
         const now = new Date().toISOString();
-        if (status === 'Delivered') await pool.query('UPDATE medical_records_requests SET status=$1, delivered_at=$2 WHERE id=$3', [status, now, req.params.id]);
-        else if (status === 'Returned') await pool.query('UPDATE medical_records_requests SET status=$1, returned_at=$2 WHERE id=$3', [status, now, req.params.id]);
-        else await pool.query('UPDATE medical_records_requests SET status=$1 WHERE id=$2', [status, req.params.id]);
+        let r;
+        if (status === 'Delivered') {
+            r = await pool.query('UPDATE medical_records_requests SET status=$1, delivered_at=$2 WHERE id=$3 AND tenant_id=$4', [status, now, req.params.id, tenantId]);
+        } else if (status === 'Returned') {
+            r = await pool.query('UPDATE medical_records_requests SET status=$1, returned_at=$2 WHERE id=$3 AND tenant_id=$4', [status, now, req.params.id, tenantId]);
+        } else {
+            r = await pool.query('UPDATE medical_records_requests SET status=$1 WHERE id=$2 AND tenant_id=$3', [status, req.params.id, tenantId]);
+        }
+        if (!r.rowCount) return res.status(404).json({ error: 'Request not found' });
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/medical-records/coding', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM medical_records_coding ORDER BY id DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/medical-records/coding', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        res.json((await pool.query('SELECT * FROM medical_records_coding WHERE tenant_id=$1 ORDER BY id DESC', [tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/medical-records/coding', requireAuth, async (req, res) => {
+app.post('/api/medical-records/coding', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, visit_id, primary_diagnosis, primary_icd10, secondary_diagnoses, drg_code, notes } = req.body;
-        const result = await pool.query('INSERT INTO medical_records_coding (patient_id, visit_id, primary_diagnosis, primary_icd10, secondary_diagnoses, drg_code, coder, coding_date, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
-            [patient_id, visit_id || 0, primary_diagnosis || '', primary_icd10 || '', secondary_diagnoses || '', drg_code || '', req.session.user.name, new Date().toISOString().split('T')[0], 'Coded']);
+        const { tenantId } = getRequestTenantContext(req);
+        const result = await pool.query('INSERT INTO medical_records_coding (patient_id, visit_id, primary_diagnosis, primary_icd10, secondary_diagnoses, drg_code, coder, coding_date, status, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
+            [patient_id, visit_id || 0, primary_diagnosis || '', primary_icd10 || '', secondary_diagnoses || '', drg_code || '', req.session.user.name, new Date().toISOString().split('T')[0], 'Coded', tenantId]);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -9304,88 +9331,106 @@ app.post('/api/clinical-pharmacy/education', requireAuth, requireTenantScope, as
 });
 
 // ===== REHABILITATION / PT =====
-app.get('/api/rehab/patients', requireAuth, async (req, res) => {
-    try { res.json((await pool.query('SELECT * FROM rehab_patients ORDER BY created_at DESC')).rows); }
-    catch (e) { res.status(500).json({ error: 'Server error' }); }
+app.get('/api/rehab/patients', requireAuth, requireTenantScope, async (req, res) => {
+    try {
+        const { tenantId } = getRequestTenantContext(req);
+        res.json((await pool.query('SELECT * FROM rehab_patients WHERE tenant_id=$1 ORDER BY created_at DESC', [tenantId])).rows);
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/rehab/patients', requireAuth, async (req, res) => {
+app.post('/api/rehab/patients', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id, patient_name, diagnosis, referral_source, therapist, therapy_type, start_date, target_end_date, notes } = req.body;
-        const result = await pool.query('INSERT INTO rehab_patients (patient_id, patient_name, diagnosis, referral_source, therapist, therapy_type, start_date, target_end_date, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
-            [patient_id, patient_name || '', diagnosis || '', referral_source || '', therapist || '', therapy_type || 'Physical Therapy', start_date || new Date().toISOString().split('T')[0], target_end_date || '', notes || '']);
+        const { tenantId } = getRequestTenantContext(req);
+        const result = await pool.query('INSERT INTO rehab_patients (patient_id, patient_name, diagnosis, referral_source, therapist, therapy_type, start_date, target_end_date, notes, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
+            [patient_id, patient_name || '', diagnosis || '', referral_source || '', therapist || '', therapy_type || 'Physical Therapy', start_date || new Date().toISOString().split('T')[0], target_end_date || '', notes || '', tenantId]);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/rehab/sessions', requireAuth, async (req, res) => {
+app.get('/api/rehab/sessions', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id } = req.query;
-        if (patient_id) res.json((await pool.query('SELECT * FROM rehab_sessions WHERE rehab_patient_id=$1 ORDER BY session_number DESC', [patient_id])).rows);
-        else res.json((await pool.query('SELECT * FROM rehab_sessions ORDER BY created_at DESC LIMIT 100')).rows);
+        const { tenantId } = getRequestTenantContext(req);
+        if (patient_id) res.json((await pool.query('SELECT * FROM rehab_sessions WHERE rehab_patient_id=$1 AND tenant_id=$2 ORDER BY session_number DESC', [patient_id, tenantId])).rows);
+        else res.json((await pool.query('SELECT * FROM rehab_sessions WHERE tenant_id=$1 ORDER BY created_at DESC LIMIT 100', [tenantId])).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/rehab/sessions', requireAuth, async (req, res) => {
+app.post('/api/rehab/sessions', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { rehab_patient_id, patient_id, session_number, therapist, session_type, exercises, duration_minutes, pain_before, pain_after, progress_notes } = req.body;
-        const result = await pool.query('INSERT INTO rehab_sessions (rehab_patient_id, patient_id, session_date, session_number, therapist, session_type, exercises, duration_minutes, pain_before, pain_after, progress_notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
-            [rehab_patient_id, patient_id || 0, new Date().toISOString().split('T')[0], session_number || 1, therapist || req.session.user.name, session_type || 'Individual', exercises || '', duration_minutes || 30, pain_before || 0, pain_after || 0, progress_notes || '']);
+        const { tenantId } = getRequestTenantContext(req);
+        const result = await pool.query('INSERT INTO rehab_sessions (rehab_patient_id, patient_id, session_date, session_number, therapist, session_type, exercises, duration_minutes, pain_before, pain_after, progress_notes, tenant_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
+            [rehab_patient_id, patient_id || 0, new Date().toISOString().split('T')[0], session_number || 1, therapist || req.session.user.name, session_type || 'Individual', exercises || '', duration_minutes || 30, pain_before || 0, pain_after || 0, progress_notes || '', tenantId]);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/rehab/goals', requireAuth, async (req, res) => {
+app.get('/api/rehab/goals', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { patient_id } = req.query;
-        if (patient_id) res.json((await pool.query('SELECT * FROM rehab_goals WHERE rehab_patient_id=$1 ORDER BY id', [patient_id])).rows);
-        else res.json((await pool.query('SELECT * FROM rehab_goals ORDER BY id DESC')).rows);
+        const { tenantId } = getRequestTenantContext(req);
+        if (patient_id) res.json((await pool.query('SELECT * FROM rehab_goals WHERE rehab_patient_id=$1 AND tenant_id=$2 ORDER BY id', [patient_id, tenantId])).rows);
+        else res.json((await pool.query('SELECT * FROM rehab_goals WHERE tenant_id=$1 ORDER BY id DESC', [tenantId])).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/rehab/goals', requireAuth, async (req, res) => {
+app.post('/api/rehab/goals', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { rehab_patient_id, goal_description, target_date } = req.body;
-        const result = await pool.query('INSERT INTO rehab_goals (rehab_patient_id, goal_description, target_date) VALUES ($1,$2,$3) RETURNING *',
-            [rehab_patient_id, goal_description || '', target_date || '']);
+        const { tenantId } = getRequestTenantContext(req);
+        const result = await pool.query('INSERT INTO rehab_goals (rehab_patient_id, goal_description, target_date, tenant_id) VALUES ($1,$2,$3,$4) RETURNING *',
+            [rehab_patient_id, goal_description || '', target_date || '', tenantId]);
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/rehab/goals/:id', requireAuth, async (req, res) => {
+app.put('/api/rehab/goals/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { progress, status } = req.body;
-        await pool.query('UPDATE rehab_goals SET progress=$1, status=$2 WHERE id=$3', [progress || 0, status || 'In Progress', req.params.id]);
+        const { tenantId } = getRequestTenantContext(req);
+        const r = await pool.query('UPDATE rehab_goals SET progress=$1, status=$2 WHERE id=$3 AND tenant_id=$4', [progress || 0, status || 'In Progress', req.params.id, tenantId]);
+        if (!r.rowCount) return res.status(404).json({ error: 'Goal not found' });
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // ===== MESSAGING =====
-app.get('/api/messages', requireAuth, async (req, res) => {
+app.get('/api/messages', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const userId = req.session.user.id;
-        res.json((await pool.query(`SELECT m.*, su.display_name as sender_name FROM internal_messages m LEFT JOIN system_users su ON m.sender_id=su.id WHERE m.receiver_id=$1 ORDER BY m.created_at DESC`, [userId])).rows);
+        const { tenantId } = getRequestTenantContext(req);
+        res.json((await pool.query(`SELECT m.*, su.display_name as sender_name FROM internal_messages m LEFT JOIN system_users su ON m.sender_id=su.id WHERE m.receiver_id=$1 AND m.tenant_id=$2 ORDER BY m.created_at DESC`, [userId, tenantId])).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.get('/api/messages/sent', requireAuth, async (req, res) => {
+app.get('/api/messages/sent', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const userId = req.session.user.id;
-        res.json((await pool.query(`SELECT m.*, su.display_name as receiver_name FROM internal_messages m LEFT JOIN system_users su ON m.receiver_id=su.id WHERE m.sender_id=$1 ORDER BY m.created_at DESC`, [userId])).rows);
+        const { tenantId } = getRequestTenantContext(req);
+        res.json((await pool.query(`SELECT m.*, su.display_name as receiver_name FROM internal_messages m LEFT JOIN system_users su ON m.receiver_id=su.id WHERE m.sender_id=$1 AND m.tenant_id=$2 ORDER BY m.created_at DESC`, [userId, tenantId])).rows);
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.post('/api/messages', requireAuth, async (req, res) => {
+app.post('/api/messages', requireAuth, requireTenantScope, async (req, res) => {
     try {
         const { receiver_id, subject, body, priority } = req.body;
         const senderId = req.session.user.id;
-        const result = await pool.query('INSERT INTO internal_messages (sender_id, receiver_id, subject, body, priority) VALUES ($1,$2,$3,$4,$5) RETURNING id',
-            [senderId, receiver_id, subject || '', body || '', priority || 'Normal']);
+        const { tenantId } = getRequestTenantContext(req);
+        const result = await pool.query('INSERT INTO internal_messages (sender_id, receiver_id, subject, body, priority, tenant_id) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id',
+            [senderId, receiver_id, subject || '', body || '', priority || 'Normal', tenantId]);
         logAudit(senderId, req.session.user.name, 'SEND_MESSAGE', 'Messaging', `Message to user ${receiver_id}: ${subject}`, req.ip);
         res.json({ success: true, id: result.rows[0].id });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.put('/api/messages/:id/read', requireAuth, async (req, res) => {
+app.put('/api/messages/:id/read', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        await pool.query('UPDATE internal_messages SET is_read=1 WHERE id=$1', [req.params.id]);
+        const userId = req.session.user.id;
+        const { tenantId } = getRequestTenantContext(req);
+        const r = await pool.query('UPDATE internal_messages SET is_read=1 WHERE id=$1 AND receiver_id=$2 AND tenant_id=$3', [req.params.id, userId, tenantId]);
+        if (!r.rowCount) return res.status(404).json({ error: 'Message not found' });
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-app.delete('/api/messages/:id', requireAuth, async (req, res) => {
+app.delete('/api/messages/:id', requireAuth, requireTenantScope, async (req, res) => {
     try {
-        await pool.query('DELETE FROM internal_messages WHERE id=$1', [req.params.id]);
+        const userId = req.session.user.id;
+        const { tenantId } = getRequestTenantContext(req);
+        const r = await pool.query('DELETE FROM internal_messages WHERE id=$1 AND (sender_id=$2 OR receiver_id=$2) AND tenant_id=$3', [req.params.id, userId, tenantId]);
+        if (!r.rowCount) return res.status(404).json({ error: 'Message not found' });
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });

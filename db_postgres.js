@@ -436,6 +436,7 @@ CREATE TABLE IF NOT EXISTS form_templates (
 );
 CREATE TABLE IF NOT EXISTS internal_messages (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     sender_id INTEGER, receiver_id INTEGER,
     subject TEXT DEFAULT '', body TEXT DEFAULT '',
     is_read INTEGER DEFAULT 0, priority TEXT DEFAULT 'Normal',
@@ -450,6 +451,7 @@ CREATE TABLE IF NOT EXISTS packages (
 );
 CREATE TABLE IF NOT EXISTS package_sessions (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     package_id INTEGER, patient_id INTEGER,
     session_number INTEGER DEFAULT 0, session_date TEXT DEFAULT '',
     status TEXT DEFAULT 'Pending', notes TEXT DEFAULT '',
@@ -911,6 +913,7 @@ CREATE TABLE IF NOT EXISTS cssd_load_items (
         await client.query(`
 CREATE TABLE IF NOT EXISTS diet_orders (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     admission_id INTEGER, patient_id INTEGER, patient_name TEXT DEFAULT '',
     diet_type TEXT DEFAULT 'Regular',
     diet_type_ar TEXT DEFAULT 'عادي',
@@ -926,6 +929,7 @@ CREATE TABLE IF NOT EXISTS diet_orders (
 );
 CREATE TABLE IF NOT EXISTS diet_meals (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     order_id INTEGER, patient_id INTEGER,
     meal_type TEXT DEFAULT 'Lunch',
     meal_date TEXT DEFAULT '',
@@ -938,6 +942,7 @@ CREATE TABLE IF NOT EXISTS diet_meals (
 );
 CREATE TABLE IF NOT EXISTS nutrition_assessments (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER, patient_name TEXT DEFAULT '',
     assessment_date TEXT DEFAULT '',
     height_cm REAL DEFAULT 0, weight_kg REAL DEFAULT 0,
@@ -1234,6 +1239,7 @@ CREATE TABLE IF NOT EXISTS audit_trail (
         await client.query(`
 CREATE TABLE IF NOT EXISTS medical_records_files (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER, file_number TEXT DEFAULT '',
     location TEXT DEFAULT 'Archive', shelf_number TEXT DEFAULT '',
     status TEXT DEFAULT 'In Archive',
@@ -1243,6 +1249,7 @@ CREATE TABLE IF NOT EXISTS medical_records_files (
 );
 CREATE TABLE IF NOT EXISTS medical_records_requests (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER, file_number TEXT DEFAULT '',
     requested_by TEXT DEFAULT '', department TEXT DEFAULT '',
     purpose TEXT DEFAULT 'Clinic Visit',
@@ -1253,6 +1260,7 @@ CREATE TABLE IF NOT EXISTS medical_records_requests (
 );
 CREATE TABLE IF NOT EXISTS medical_records_coding (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER, visit_id INTEGER,
     primary_diagnosis TEXT DEFAULT '', primary_icd10 TEXT DEFAULT '',
     secondary_diagnoses TEXT DEFAULT '',
@@ -1266,6 +1274,7 @@ CREATE TABLE IF NOT EXISTS medical_records_coding (
         await client.query(`
 CREATE TABLE IF NOT EXISTS clinical_pharmacy_reviews (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER, patient_name TEXT DEFAULT '',
     prescription_id INTEGER,
     review_type TEXT DEFAULT 'Medication Review',
@@ -1275,7 +1284,7 @@ CREATE TABLE IF NOT EXISTS clinical_pharmacy_reviews (
     outcome TEXT DEFAULT 'Pending',
     severity TEXT DEFAULT 'Low',
     status TEXT DEFAULT 'Open',
-    tenant_id INTEGER, branch_id INTEGER,
+    branch_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS drug_interactions (
@@ -1287,11 +1296,12 @@ CREATE TABLE IF NOT EXISTS drug_interactions (
 );
 CREATE TABLE IF NOT EXISTS patient_drug_education (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER, patient_name TEXT DEFAULT '',
     medication TEXT DEFAULT '', instructions TEXT DEFAULT '',
     side_effects TEXT DEFAULT '', precautions TEXT DEFAULT '',
     educated_by TEXT DEFAULT '',
-    tenant_id INTEGER, branch_id INTEGER,
+    branch_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
         `);
@@ -1300,6 +1310,7 @@ CREATE TABLE IF NOT EXISTS patient_drug_education (
         await client.query(`
 CREATE TABLE IF NOT EXISTS rehab_patients (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER, patient_name TEXT DEFAULT '',
     diagnosis TEXT DEFAULT '', referral_source TEXT DEFAULT '',
     therapist TEXT DEFAULT '', therapy_type TEXT DEFAULT 'Physical Therapy',
@@ -1310,6 +1321,7 @@ CREATE TABLE IF NOT EXISTS rehab_patients (
 );
 CREATE TABLE IF NOT EXISTS rehab_sessions (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     rehab_patient_id INTEGER, patient_id INTEGER,
     session_date TEXT DEFAULT '', session_number INTEGER DEFAULT 1,
     therapist TEXT DEFAULT '',
@@ -1321,6 +1333,7 @@ CREATE TABLE IF NOT EXISTS rehab_sessions (
 );
 CREATE TABLE IF NOT EXISTS rehab_goals (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     rehab_patient_id INTEGER,
     goal_description TEXT DEFAULT '',
     target_date TEXT DEFAULT '',
@@ -1330,6 +1343,7 @@ CREATE TABLE IF NOT EXISTS rehab_goals (
 );
 CREATE TABLE IF NOT EXISTS rehab_assessments (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     rehab_patient_id INTEGER, patient_id INTEGER,
     assessment_type TEXT DEFAULT '',
     rom_scores TEXT DEFAULT '', strength_scores TEXT DEFAULT '',
@@ -1417,6 +1431,7 @@ CREATE TABLE IF NOT EXISTS daily_close (
         await client.query(`
 CREATE TABLE IF NOT EXISTS portal_users (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER UNIQUE, username TEXT DEFAULT '',
     password_hash TEXT DEFAULT '', email TEXT DEFAULT '',
     phone TEXT DEFAULT '', is_active INTEGER DEFAULT 1,
@@ -1425,6 +1440,7 @@ CREATE TABLE IF NOT EXISTS portal_users (
 );
 CREATE TABLE IF NOT EXISTS portal_appointments (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER, portal_user_id INTEGER,
     department TEXT DEFAULT '', preferred_date TEXT DEFAULT '',
     preferred_time TEXT DEFAULT '', reason TEXT DEFAULT '',
