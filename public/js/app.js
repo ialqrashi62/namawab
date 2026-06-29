@@ -1097,6 +1097,35 @@ function renderEncounterWorkspace(el, page, patientId, encounterTypeId) {
         <button class="btn btn-primary text-xs" disabled>${tr('Finalize Invoice & Submit Claim (Disabled)', 'اعتماد الفاتورة وإرسال المطالبة (غير مفعّل)')}</button>
       </div>
     </div>
+
+    <!-- Security & Audit Log Preview (Simulated Workspace) -->
+    <div class="glass-card-premium p-6 rounded-2xl mb-lg border border-primary/20">
+      <h4 class="font-bold text-md text-primary mb-4">🛡️ ${tr('Security & Audit Log Preview (Simulated)', 'الأمن ومعاينة سجل التدقيق (محاكاة)')}</h4>
+      <p class="text-xs text-on-surface-variant mb-4">
+        ${tr('Select an enterprise role to preview RBAC (Role-Based Access Control) permissions and simulated audit events for this encounter.', 'اختر دوراً وظيفياً لمعاينة صلاحيات الوصول القائمة على الأدوار (RBAC) وسجلات التدقيق المحاكاة للزيارة.')}
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-md items-end mb-lg">
+        <div class="form-group">
+          <label class="text-xs font-bold text-on-surface-variant">${tr('Select Active Role', 'اختر الدور النشط')}</label>
+          <select id="securityRoleSelect" class="form-input text-xs">
+            <option value="PHYSICIAN">Physician (طبيب معالج)</option>
+            <option value="PHARMACIST">Pharmacist (صيدلي سريري)</option>
+            <option value="BILLING_OFFICER">Billing Officer (موظف فوترة)</option>
+            <option value="READ_ONLY_AUDITOR">Auditor (مدقق خارجي)</option>
+          </select>
+        </div>
+        <button id="triggerAuditLogBtn" class="btn btn-secondary text-xs py-2">
+          📝 ${tr('Generate Audit Log Entry', 'توليد سجل التدقيق')}
+        </button>
+      </div>
+
+      <!-- Audit Log Preview Output -->
+      <div id="auditLogOutputBox" class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/10 hidden mb-md">
+        <h5 class="font-bold text-xs text-primary mb-2">📄 ${tr('Simulated Audit Event (JSON)', 'حدث التدقيق المحاكى (JSON)')}</h5>
+        <pre id="auditJsonOutput" class="text-[10px] font-mono text-on-surface-variant whitespace-pre-wrap bg-surface-container/50 p-3 rounded-lg border border-outline-variant/20"></pre>
+      </div>
+    </div>
   `;
 
   // Bind Close Event
@@ -1379,6 +1408,24 @@ function renderEncounterWorkspace(el, page, patientId, encounterTypeId) {
     claimValidationBox.innerHTML = claim.warnings.map(w => `<p>⚠️ ${w}</p>`).join('');
     claimPreviewCard.classList.remove('hidden');
     showToast(tr('Claim draft generated (Simulated)', 'تم إنشاء مسودة المطالبة (محاكاة)'), 'success');
+  };
+
+  // Security & Audit Logic
+  const securityRoleSelect = document.getElementById('securityRoleSelect');
+  const triggerAuditLogBtn = document.getElementById('triggerAuditLogBtn');
+  const auditOutputBox = document.getElementById('auditLogOutputBox');
+  const auditJsonOutput = document.getElementById('auditJsonOutput');
+
+  triggerAuditLogBtn.onclick = () => {
+    const role = securityRoleSelect.value;
+    const auditEvent = window.buildAuditPreviewEvent(role, 'FINAL_SIGNATURE', {
+      facility: facilityType,
+      department: page,
+      encounter: encounterTypeId
+    });
+    auditJsonOutput.textContent = JSON.stringify(auditEvent, null, 2);
+    auditOutputBox.classList.remove('hidden');
+    showToast(tr('Simulated audit event logged (JSON)', 'تم توليد حدث التدقيق المحاكى (JSON)'), 'success');
   };
 }
 
