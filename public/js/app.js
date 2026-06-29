@@ -29,20 +29,7 @@ let isArabic = localStorage.getItem('namaLang') === 'ar' ? true : (localStorage.
 let currentPage = 0;
 let facilityType = 'general_hospital';
 
-// Static Facility Catalog for Multi-Facility Platform
-const FACILITY_CATALOG = {
-  medical_cities: [
-    { id: 1, name_en: 'King Fahad Medical City', name_ar: 'مدينة الملك فهد الطبية', region: 'Riyadh' },
-    { id: 2, name_en: 'King Abdullah Medical City', name_ar: 'مدينة الملك عبدالله الطبية', region: 'Makkah' }
-  ],
-  facilities: [
-    { id: 101, city_id: 1, type: 'medical_city', name_en: 'KFMC Main Campus', name_ar: 'حرم مدينة الملك فهد الطبية الرئيسي', status: 'Active', deptsCount: 45, desc: 'Central medical city with advanced tertiary care.' },
-    { id: 102, city_id: 1, type: 'general_hospital', name_en: 'KFMC General Hospital', name_ar: 'مستشفى مدينة الملك فهد العام', status: 'Active', deptsCount: 28, desc: 'General hospital serving emergency and surgery.' },
-    { id: 103, city_id: 1, type: 'polyclinic', name_en: 'Sulaimaniyah Complex', name_ar: 'مجمع السليمانية الطبي', status: 'Active', deptsCount: 15, desc: 'Outpatient polyclinic with primary care.' },
-    { id: 104, city_id: 1, type: 'health_unit', name_en: 'Olaya Primary Care Unit', name_ar: 'وحدة الرعاية الصحية بالعليا', status: 'Active', deptsCount: 6, desc: 'Basic primary care and vaccinations.' },
-    { id: 201, city_id: 2, type: 'specialized_hospital', name_en: 'KAMC Oncology Center', name_ar: 'مركز الأورام بمدينة الملك عبدالله', status: 'Active', deptsCount: 20, desc: 'Cancer treatment and research center.' }
-  ]
-};
+// FACILITY_CATALOG is loaded globally from facility-catalog.js
 
 const FACILITY_ALLOWED = {
   medical_city: null, // all allowed
@@ -544,6 +531,132 @@ function renderPublicHomepage() {
   // Bind filter events
   document.getElementById('searchBtn').onclick = filterAndRender;
   filterAndRender();
+}
+
+// ===== DEPARTMENT WORKSPACE CORE UI =====
+function renderDepartmentWorkspace(el, page) {
+  const item = NAV_ITEMS[page];
+  if (!item) return;
+
+  const isIcuOrSurgery = [18, 23].includes(page);
+  const isHighRisk = isIcuOrSurgery ? 'danger' : 'warning';
+  const riskLabel = isIcuOrSurgery ? tr('High Risk', 'مستوى خطورة عالٍ') : tr('Medium Risk', 'مستوى خطورة متوسط');
+
+  // Check facility-specific restrictions
+  const isPolyclinic = facilityType === 'polyclinic';
+  const isHealthUnit = facilityType === 'health_unit';
+  
+  if (isIcuOrSurgery && (isPolyclinic || isHealthUnit)) {
+    el.innerHTML = `
+      <div class="flex flex-col items-center justify-center p-xl">
+        <div class="error-card-premium max-w-md w-full text-center">
+          <span class="material-symbols-outlined error-card-icon text-4xl">block</span>
+          <h3 class="text-lg font-bold mt-4">${tr('Access Denied', 'غير متاح في هذه المنشأة')}</h3>
+          <p class="text-sm mt-2">${tr('ICU and Surgical services are not available at this facility type.', 'خدمات العناية المركزة والجراحة غير متوفرة في هذا النوع من المنشآت الصحية.')}</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  el.innerHTML = `
+    <!-- Facility Context Header -->
+    <div class="flex justify-between items-center mb-md p-4 bg-surface-container-low rounded-xl border border-outline-variant/30">
+      <div>
+        <h3 class="text-sm font-bold text-primary">${tr('Facility Context', 'سياق المنشأة')}</h3>
+        <p class="text-xs text-on-surface-variant">
+          🏢 ${tr('Network: King Fahad Medical City', 'الشبكة: مدينة الملك فهد الطبية')} | 
+          🏥 ${tr('Type: ', 'النوع: ')} ${escapeHTML(facilityType.replace('_', ' ').toUpperCase())}
+        </p>
+      </div>
+      <span class="badge badge-tenant-context font-bold">
+        ${item.icon} ${tr(item.en, item.ar)}
+      </span>
+    </div>
+
+    <!-- Department Overview Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-md mb-lg">
+      <div class="glass-card-premium p-6 rounded-2xl">
+        <h4 class="font-bold text-md text-primary mb-2">📋 ${tr('Overview', 'نظرة عامة')}</h4>
+        <p class="text-xs text-on-surface-variant">
+          ${tr('Clinical services, diagnostics, and patient care management for the ', 'الخدمات السريرية والتشخيصية ورعاية المرضى لقسم ')} 
+          <strong>${tr(item.en, item.ar)}</strong>.
+        </p>
+      </div>
+      <div class="glass-card-premium p-6 rounded-2xl">
+        <h4 class="font-bold text-md text-primary mb-2">⚡ ${tr('Requirements', 'المتطلبات السريرية')}</h4>
+        <p class="text-xs text-on-surface-variant">📅 ${tr('Appointments Required: Yes', 'حجز الموعد مطلوب: نعم')}</p>
+        <p class="text-xs text-on-surface-variant">✍️ ${tr('Consent Forms Required: Yes', 'توقيع الإقرار مطلوب: نعم')}</p>
+      </div>
+      <div class="glass-card-premium p-6 rounded-2xl">
+        <h4 class="font-bold text-md text-primary mb-2">🛡️ ${tr('Compliance & Risk', 'الامتثال ومستوى الخطورة')}</h4>
+        <span class="badge badge-${isHighRisk}">${riskLabel}</span>
+        <p class="text-[11px] text-on-surface-variant mt-2">🔒 ${tr('PDPL Protected & CBAHI Audited', 'خاضع لرقابة سباهي وحماية البيانات الشخصية')}</p>
+      </div>
+    </div>
+
+    <!-- Bento Grid of Workspace Placeholders -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+      <!-- Services Panel -->
+      <div class="glass-card-premium p-6 rounded-2xl col-span-1 md:col-span-2">
+        <h4 class="font-bold text-md text-primary mb-4">🩺 ${tr('Available Services', 'الخدمات المتاحة بالقسم')}</h4>
+        <div class="flex flex-wrap gap-2">
+          <span class="badge badge-info">${tr('General Consultation', 'استشارة عامة')}</span>
+          <span class="badge badge-info">${tr('Follow-up Visit', 'زيارة متابعة')}</span>
+          <span class="badge badge-info">${tr('Diagnostic Assessment', 'تقييم تشخيصي')}</span>
+          <span class="badge badge-info">${tr('Clinical Procedure', 'إجراء سريري مخصص')}</span>
+        </div>
+      </div>
+
+      <!-- Staff Panel -->
+      <div class="glass-card-premium p-6 rounded-2xl">
+        <h4 class="font-bold text-md text-primary mb-4">👨‍⚕️ ${tr('On-Duty Staff', 'الكادر الطبي المتاح')}</h4>
+        <div class="space-y-3">
+          <div class="flex justify-between text-xs font-medium text-on-surface-variant">
+            <span>Dr. Sarah Ahmed</span>
+            <span class="badge badge-success">${tr('Available', 'متاح')}</span>
+          </div>
+          <div class="flex justify-between text-xs font-medium text-on-surface-variant">
+            <span>Nurse Khalid Ali</span>
+            <span class="badge badge-success">${tr('On Duty', 'مناوب')}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Orders Placeholder -->
+      <div class="glass-card-premium p-6 rounded-2xl">
+        <h4 class="font-bold text-md text-primary mb-4">🔬 ${tr('Active Orders', 'الطلبات النشطة')}</h4>
+        <div class="empty-state-card text-center p-4">
+          <span class="material-symbols-outlined text-2xl text-on-surface-variant">receipt_long</span>
+          <p class="text-xs text-on-surface-variant mt-2">${tr('No active orders for this department', 'لا توجد طلبات نشطة حالياً بالقسم')}</p>
+        </div>
+      </div>
+
+      <!-- Recent Results Placeholder -->
+      <div class="glass-card-premium p-6 rounded-2xl">
+        <h4 class="font-bold text-md text-primary mb-4">📡 ${tr('Recent Results', 'آخر النتائج')}</h4>
+        <div class="empty-state-card text-center p-4">
+          <span class="material-symbols-outlined text-2xl text-on-surface-variant">analytics</span>
+          <p class="text-xs text-on-surface-variant mt-2">${tr('No recent diagnostic results', 'لا توجد نتائج تشخيصية حديثة')}</p>
+        </div>
+      </div>
+
+      <!-- Quality Indicators -->
+      <div class="glass-card-premium p-6 rounded-2xl">
+        <h4 class="font-bold text-md text-primary mb-4">📊 ${tr('Quality Metrics', 'مؤشرات الجودة')}</h4>
+        <div class="space-y-2">
+          <div class="flex justify-between text-xs font-medium text-on-surface-variant">
+            <span>${tr('Hand Hygiene Compliance', 'الالتزام بنظافة اليدين')}</span>
+            <span class="font-bold text-success">98%</span>
+          </div>
+          <div class="flex justify-between text-xs font-medium text-on-surface-variant">
+            <span>${tr('CBAHI Standards Met', 'معايير سباهي المطبقة')}</span>
+            <span class="font-bold text-success">100%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 async function navigateTo(page) {
@@ -1145,6 +1258,7 @@ async function loadPage(page) {
   el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
   const pages = [renderDashboard, renderReception, renderAppointments, renderDoctor, renderLab, renderRadiology, renderPharmacy, renderHR, renderFinance, renderInsurance, renderInventory, renderNursing, renderWaitingQueue, renderPatientAccounts, renderReports, renderMessaging, renderCatalog, renderDeptRequests, renderSurgery, renderBloodBank, renderConsentForms, renderEmergency, renderInpatient, renderICU, renderCSSD, renderDietary, renderInfectionControl, renderQuality, renderMaintenance, renderTransport, renderMedicalRecords, renderClinicalPharmacy, renderRehabilitation, renderPatientPortal, renderZATCA, renderTelemedicine, renderPathology, renderSocialWork, renderMortuary, renderCME, renderCosmeticSurgery, renderOBGYN, renderSettings];
   if (pages[page]) await pages[page](el);
+  else if (NAV_ITEMS[page]) renderDepartmentWorkspace(el, page);
   else el.innerHTML = `<div class="page-title">${NAV_ITEMS[page]?.icon} ${tr(NAV_ITEMS[page]?.en, NAV_ITEMS[page]?.ar)}</div><div class="card"><p>${tr('Coming soon...', 'قريباً...')}</p></div>`;
 }
 
