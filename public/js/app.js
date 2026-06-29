@@ -836,6 +836,57 @@ function renderEncounterWorkspace(el, page, patientId, encounterTypeId) {
         <button class="btn btn-primary text-xs" disabled>${tr('Finalize & Submit (Disabled)', 'اعتماد وإرسال (غير مفعّل)')}</button>
       </div>
     </div>
+
+    <!-- Results Inbox (Simulated Workspace) -->
+    <div class="glass-card-premium p-6 rounded-2xl mb-lg border border-primary/20">
+      <h4 class="font-bold text-md text-primary mb-4">📥 ${tr('Results Inbox (Simulated)', 'صندوق النتائج (محاكاة)')}</h4>
+      <p class="text-xs text-on-surface-variant mb-4">
+        ${tr('Review diagnostic and clinical results for this encounter. Abnormal findings require clinical review.', 'مراجعة النتائج التشخيصية والسريرية لهذه الزيارة. النتائج غير الطبيعية تتطلب تدقيقاً سريرياً.')}
+      </p>
+
+      <div class="flex gap-2 border-b border-outline-variant/30 pb-2 mb-4" id="resultsInboxTabs">
+        <button class="px-4 py-1.5 text-xs font-bold text-primary border-b-2 border-primary" data-tab="lab">${tr('Laboratory', 'المختبر')}</button>
+        <button class="px-4 py-1.5 text-xs font-bold text-on-surface-variant" data-tab="radiology">${tr('Radiology', 'الأشعة')}</button>
+        <button class="px-4 py-1.5 text-xs font-bold text-on-surface-variant" data-tab="procedure">${tr('Procedures', 'الإجراءات')}</button>
+        <button class="px-4 py-1.5 text-xs font-bold text-on-surface-variant" data-tab="consultation">${tr('Consultations', 'الاستشارات')}</button>
+      </div>
+
+      <div id="resultsInboxContent" class="space-y-3">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+
+    <!-- Clinical Documentation Workspace (Simulated Draft) -->
+    <div class="glass-card-premium p-6 rounded-2xl mb-lg border border-primary/20">
+      <h4 class="font-bold text-md text-primary mb-4">✍️ ${tr('Clinical Documentation (Draft Note)', 'التوثيق السريري (مسودة الملاحظة)')}</h4>
+      <p class="text-xs text-on-surface-variant mb-4">
+        ${tr('Complete the clinical documentation. No final signature is enabled in this phase.', 'إكمال التوثيق السريري للزيارة. التوقيع النهائي غير مفعّل في هذه المرحلة.')}
+      </p>
+
+      <div class="space-y-4 text-xs">
+        <div class="form-group">
+          <label class="font-bold text-primary">Subjective (S)</label>
+          <textarea class="form-input" rows="2" placeholder="${tr('Chief complaint, history of present illness...', 'الشكوى الرئيسية، التاريخ المرضي الحالي...')}" disabled></textarea>
+        </div>
+        <div class="form-group">
+          <label class="font-bold text-primary">Objective (O)</label>
+          <textarea class="form-input" rows="2" placeholder="${tr('Physical exam findings, vitals review...', 'نتائج الفحص السريري، مراجعة العلامات الحيوية...')}" disabled></textarea>
+        </div>
+        <div class="form-group">
+          <label class="font-bold text-primary">Assessment (A)</label>
+          <textarea class="form-input" rows="2" placeholder="${tr('Clinical impression, differential diagnosis...', 'الانطباع السريري، التشخيص التفريقي...')}" disabled></textarea>
+        </div>
+        <div class="form-group">
+          <label class="font-bold text-primary">Plan (P)</label>
+          <textarea class="form-input" rows="2" placeholder="${tr('Treatment plan, referrals, follow-up scheduling...', 'خطة العلاج، الإحالات، مواعيد المتابعة...')}" disabled></textarea>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-md pt-6 border-t border-outline-variant/30 mt-4">
+        <button class="btn btn-secondary text-xs" disabled>${tr('Save Progress', 'حفظ التقدم')}</button>
+        <button class="btn btn-primary text-xs" disabled>${tr('Sign & Lock Document (Disabled)', 'التوقيع والإغلاق (غير مفعّل)')}</button>
+      </div>
+    </div>
   `;
 
   // Bind Close Event
@@ -932,6 +983,70 @@ function renderEncounterWorkspace(el, page, patientId, encounterTypeId) {
     draftOrders.splice(idx, 1);
     renderDraftList();
   };
+
+  // Results Inbox Logic
+  const resultsContent = document.getElementById('resultsInboxContent');
+  const resultsTabs = document.getElementById('resultsInboxTabs');
+
+  const renderResultsTab = (tabId) => {
+    // Update tab active styling
+    resultsTabs.querySelectorAll('button').forEach(btn => {
+      if (btn.dataset.tab === tabId) {
+        btn.className = 'px-4 py-1.5 text-xs font-bold text-primary border-b-2 border-primary';
+      } else {
+        btn.className = 'px-4 py-1.5 text-xs font-bold text-on-surface-variant';
+      }
+    });
+
+    const results = window.MOCK_RESULTS[tabId] || [];
+    if (results.length === 0) {
+      resultsContent.innerHTML = `
+        <div class="empty-state-card text-center p-4">
+          <p class="text-xs text-on-surface-variant">${tr('No results available for this category', 'لا توجد نتائج لهذه الفئة حالياً')}</p>
+        </div>
+      `;
+      return;
+    }
+
+    resultsContent.innerHTML = results.map(r => {
+      const isAbnormal = r.abnormal;
+      const abnormalBadge = isAbnormal ? `<span class="badge badge-danger">${tr('Abnormal Finding', 'نتيجة غير طبيعية')}</span>` : '';
+      const warnings = window.getAbnormalResultWarnings(tabId, r.code);
+      const warningHtml = warnings.map(w => `
+        <div class="p-2 bg-error/5 text-[11px] text-error rounded border-l-2 border-error mt-2">
+          ⚠️ ${tr(w.text_en, w.text_ar)}
+        </div>
+      `).join('');
+
+      return `
+        <div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/10">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h5 class="font-bold text-xs text-primary">${tr(r.name_en, r.name_ar)}</h5>
+              <span class="text-[10px] text-on-surface-variant">${r.code}</span>
+            </div>
+            <div class="flex gap-2">
+              ${abnormalBadge}
+              <span class="badge badge-warning">${tr(r.status, r.status === 'Needs Review' ? 'بحاجة لمراجعة' : 'تمت المراجعة')}</span>
+            </div>
+          </div>
+          <p class="text-xs text-on-surface font-medium">${escapeHTML(r.value)}</p>
+          ${warningHtml}
+          <div class="flex justify-end mt-2">
+            <button class="btn btn-secondary text-[10px] py-1 px-3" disabled>${tr('Acknowledge Result', 'اعتماد النتيجة')}</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  };
+
+  // Bind Tab Click Events
+  resultsTabs.querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => renderResultsTab(btn.dataset.tab);
+  });
+
+  // Initial tab render
+  renderResultsTab('lab');
 }
 
 async function navigateTo(page) {
