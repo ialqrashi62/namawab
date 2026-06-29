@@ -598,6 +598,54 @@ function renderDepartmentWorkspace(el, page) {
       </div>
     </div>
 
+    <!-- Appointments & Patient Queue Board -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-md mb-lg">
+      <!-- Appointment Booking Preview -->
+      <div class="glass-card-premium p-6 rounded-2xl border border-primary/10">
+        <h4 class="font-bold text-md text-primary mb-4">📅 ${tr('Book Appointment (Simulation)', 'حجز موعد (محاكاة)')}</h4>
+        <p class="text-xs text-on-surface-variant mb-4">
+          ${tr('Simulate booking a new clinical appointment. Final booking is disabled in this phase.', 'محاكاة حجز موعد طبي جديد. الحجز النهائي معطل في هذه المرحلة.')}
+        </p>
+        <div class="space-y-3 text-xs">
+          <div class="form-group">
+            <label class="font-bold">${tr('Appointment Type', 'نوع الموعد')}</label>
+            <select id="apptTypeSelect" class="form-input text-xs">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="font-bold">${tr('Preferred Date', 'التاريخ المفضّل')}</label>
+            <input type="date" class="form-input text-xs" value="2026-06-30" disabled>
+          </div>
+          <button class="btn btn-secondary text-xs w-full" disabled>${tr('Request Booking (Disabled)', 'طلب الحجز (غير مفعّل)')}</button>
+        </div>
+      </div>
+
+      <!-- Patient Queue Board -->
+      <div class="glass-card-premium p-6 rounded-2xl border border-primary/10">
+        <h4 class="font-bold text-md text-primary mb-4">🏁 ${tr('Patient Queue Board', 'لوحة طابور المرضى')}</h4>
+        <p class="text-xs text-on-surface-variant mb-4">
+          ${tr('Active waiting queue for the current department. Launch encounter to start consultation.', 'طابور الانتظار النشط للقسم الحالي. ابدأ الزيارة لبدء المعاينة.')}
+        </p>
+        <div class="overflow-x-auto">
+          <table class="data-table text-[11px]">
+            <thead>
+              <tr>
+                <th>${tr('Queue No', 'رقم الانتظار')}</th>
+                <th>${tr('Type', 'النوع')}</th>
+                <th>${tr('Status', 'الحالة')}</th>
+                <th>${tr('Priority', 'الأولوية')}</th>
+                <th>${tr('Wait Time', 'الانتظار')}</th>
+              </tr>
+            </thead>
+            <tbody id="deptQueueBody">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- Encounters & Clinical Visits Initiation -->
     <div class="glass-card-premium p-6 rounded-2xl mb-lg border border-primary/20">
       <h4 class="font-bold text-md text-primary mb-4">🏥 ${tr('Encounters & Clinical Visits', 'الزيارات السريرية والملفات')}</h4>
@@ -687,6 +735,34 @@ function renderDepartmentWorkspace(el, page) {
       </div>
     </div>
   `;
+
+  // Appointments & Patient Queue Logic
+  const apptTypeSelect = document.getElementById('apptTypeSelect');
+  const allowedApptTypes = window.getAppointmentTypesForFacility(facilityType);
+  apptTypeSelect.innerHTML = allowedApptTypes.map(t => `<option value="${t.id}">${tr(t.name_en, t.name_ar)}</option>`).join('');
+
+  const queueBody = document.getElementById('deptQueueBody');
+  // Filter queue for current department page (or show all if empty for demo purposes, but let's filter correctly)
+  const filteredQueue = window.MOCK_QUEUE_DATA.filter(q => q.deptPage === page);
+  
+  if (filteredQueue.length === 0) {
+    queueBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-on-surface-variant">${tr('No patients waiting', 'لا يوجد مرضى في الانتظار حالياً')}</td></tr>`;
+  } else {
+    queueBody.innerHTML = filteredQueue.map(q => {
+      const priorityInfo = window.getTriagePriorityBadges(q.priority);
+      const apptTypeObj = window.APPOINTMENT_TYPES[q.type.toUpperCase()] || { name_en: q.type, name_ar: q.type };
+      const statusObj = window.QUEUE_STATUSES[q.status.toUpperCase()] || { name_en: q.status, name_ar: q.status };
+      return `
+        <tr>
+          <td><strong>${q.queueNo}</strong></td>
+          <td>${tr(apptTypeObj.name_en, apptTypeObj.name_ar)}</td>
+          <td><span class="badge badge-warning">${tr(statusObj.name_en, statusObj.name_ar)}</span></td>
+          <td><span class="badge badge-${priorityInfo.class}">${tr(priorityInfo.label_en, priorityInfo.label_ar)}</span></td>
+          <td>${q.waitTimeMin} mins</td>
+        </tr>
+      `;
+    }).join('');
+  }
 
   // Bind Encounter Initiation Event
   document.getElementById('initiateEncounterBtn').onclick = () => {
