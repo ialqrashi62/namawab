@@ -1872,5 +1872,29 @@ body {
   border: 1px solid rgba(231, 76, 60, 0.4);
 }
 
+/* Public Mode Overrides */
+#app.public-mode #sidebar {
+  display: none !important;
+}
+
+#app.public-mode #topHeader {
+  display: none !important;
+}
+
+#app.public-mode #mainContent {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+}
+
+.public-header {
+  height: 70px;
+}
+
+.hero-section {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+}
+
 
 

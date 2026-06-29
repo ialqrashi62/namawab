@@ -18,7 +18,7 @@ const DB_PASSWORD = process.env.DB_PASSWORD || 'postgres';
 
 const TEST_PORT = 3009;
 const TEST_USERNAME = 'compliance_admin';
-const TEST_PASSWORD = 'COMPLIANCE_PASSWORD';
+const TEST_PASSWORD = 'COMPLIANCE_PASSWORD_PLACEHOLDER';
 
 const pool = new Pool({
     host: DB_HOST,

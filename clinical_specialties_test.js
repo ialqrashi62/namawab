@@ -18,7 +18,7 @@ const DB_PASSWORD = process.env.DB_PASSWORD || 'postgres';
 
 const TEST_PORT = 3011;
 const TEST_USERNAME = 'specialty_doctor';
-const TEST_PASSWORD = 'DOCTOR_PASSWORD';
+const TEST_PASSWORD = 'DOCTOR_PASSWORD_PLACEHOLDER';
 
 const pool = new Pool({
     host: DB_HOST,

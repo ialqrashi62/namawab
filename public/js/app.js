@@ -27,16 +27,29 @@ window.jsStr = function (s) { if (s === null || s === undefined) return ''; retu
 let currentUser = null;
 let isArabic = localStorage.getItem('namaLang') === 'ar' ? true : (localStorage.getItem('namaLang') === 'en' ? false : false);
 let currentPage = 0;
-let facilityType = 'hospital';
+let facilityType = 'general_hospital';
+
+// Static Facility Catalog for Multi-Facility Platform
+const FACILITY_CATALOG = {
+  medical_cities: [
+    { id: 1, name_en: 'King Fahad Medical City', name_ar: 'مدينة الملك فهد الطبية', region: 'Riyadh' },
+    { id: 2, name_en: 'King Abdullah Medical City', name_ar: 'مدينة الملك عبدالله الطبية', region: 'Makkah' }
+  ],
+  facilities: [
+    { id: 101, city_id: 1, type: 'medical_city', name_en: 'KFMC Main Campus', name_ar: 'حرم مدينة الملك فهد الطبية الرئيسي', status: 'Active', deptsCount: 45, desc: 'Central medical city with advanced tertiary care.' },
+    { id: 102, city_id: 1, type: 'general_hospital', name_en: 'KFMC General Hospital', name_ar: 'مستشفى مدينة الملك فهد العام', status: 'Active', deptsCount: 28, desc: 'General hospital serving emergency and surgery.' },
+    { id: 103, city_id: 1, type: 'polyclinic', name_en: 'Sulaimaniyah Complex', name_ar: 'مجمع السليمانية الطبي', status: 'Active', deptsCount: 15, desc: 'Outpatient polyclinic with primary care.' },
+    { id: 104, city_id: 1, type: 'health_unit', name_en: 'Olaya Primary Care Unit', name_ar: 'وحدة الرعاية الصحية بالعليا', status: 'Active', deptsCount: 6, desc: 'Basic primary care and vaccinations.' },
+    { id: 201, city_id: 2, type: 'specialized_hospital', name_en: 'KAMC Oncology Center', name_ar: 'مركز الأورام بمدينة الملك عبدالله', status: 'Active', deptsCount: 20, desc: 'Cancer treatment and research center.' }
+  ]
+};
+
 const FACILITY_ALLOWED = {
-  hospital: null, // null = all allowed (legacy)
-  health_center: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 20, 21, 30, 33, 34, 35, 41, 42],
-  clinic: [0, 1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 15, 20, 30, 34, 42],
-  // E0 archetypes (mirror of server-side onboarding.js ARCHETYPE_MODULES). null = all 43 allowed.
-  medical_city: null,
-  large_hospital: null,
+  medical_city: null, // all allowed
   general_hospital: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 30, 33, 34, 42],
-  polyclinic: [0, 1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 15, 20, 30, 34, 42]
+  polyclinic: [0, 1, 2, 3, 4, 6, 8, 9, 13, 14, 15, 20, 34, 42],
+  phc: [0, 1, 2, 3, 4, 6, 14, 15, 33, 34],
+  health_unit: [0, 1, 2, 3, 14, 15, 33]
 };
 
 const tr = (en, ar) => isArabic ? ar : en;
@@ -89,14 +102,44 @@ const NAV_ITEMS = [
 ];
 
 // ===== INIT =====
+// ===== INIT =====
 (async function init() {
   try {
     const data = await API.get('/api/auth/me');
     currentUser = data.user;
   } catch {
-    window.location.href = '/login.html';
+    currentUser = null;
+  }
+
+  // Language: set direction
+  document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+  document.documentElement.lang = isArabic ? 'ar' : 'en';
+  const langBtn = document.getElementById('langToggleBtn');
+  if (langBtn) langBtn.textContent = isArabic ? '🌐 EN' : '🌐 عربي';
+  updateShellLanguage();
+
+  if (!currentUser) {
+    // Render Public Homepage Mode
+    document.getElementById('app').classList.add('public-mode');
+    renderPublicHomepage();
+    
+    // Bind public language toggle
+    if (langBtn) {
+      langBtn.onclick = () => {
+        isArabic = !isArabic;
+        localStorage.setItem('namaLang', isArabic ? 'ar' : 'en');
+        document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+        document.documentElement.lang = isArabic ? 'ar' : 'en';
+        langBtn.textContent = isArabic ? '🌐 EN' : '🌐 عربي';
+        updateShellLanguage();
+        renderPublicHomepage();
+      };
+    }
     return;
   }
+
+  // Authenticated Mode
+  document.getElementById('app').classList.remove('public-mode');
   document.getElementById('userName').textContent = currentUser.name;
   document.getElementById('userRole').textContent = currentUser.role;
   document.getElementById('userAvatar').textContent = currentUser.name.charAt(0);
@@ -114,37 +157,54 @@ const NAV_ITEMS = [
     `);
   }
 
-  // Top header tenant context
+  // Top header tenant context & Facility Switcher
   const headerLeft = document.querySelector('.header-left');
   if (headerLeft) {
     const oldHeaderTenant = document.getElementById('headerTenantContext');
     if (oldHeaderTenant) oldHeaderTenant.remove();
     headerLeft.insertAdjacentHTML('beforeend', `
       <span id="headerTenantContext" class="badge badge-tenant-context" style="margin-left: 16px; margin-right: 16px; background: var(--accent-glow); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid var(--accent)">
-        🏢 ${tr('Facility Context', 'سياق المنشأة')}: ${tenantText}
+        🏢 ${tr('Tenant Context', 'سياق المستأجر')}: ${tenantText}
       </span>
     `);
+  }
+
+  // Add Facility Switcher in Header
+  const headerRight = document.querySelector('.header-right');
+  if (headerRight) {
+    const oldSwitcher = document.getElementById('facilitySwitcher');
+    if (oldSwitcher) oldSwitcher.remove();
+    headerRight.insertAdjacentHTML('afterbegin', `
+      <select id="facilitySwitcher" class="theme-select" style="background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent); margin-left: 12px; margin-right: 12px; padding: 4px 8px; border-radius: 8px; font-size: 13px; font-weight: 600;">
+        <option value="medical_city" ${facilityType === 'medical_city' ? 'selected' : ''}>🏥 ${tr('Medical City', 'المدينة الطبية')}</option>
+        <option value="general_hospital" ${facilityType === 'general_hospital' ? 'selected' : ''}>🏥 ${tr('General Hospital', 'المستشفى العام')}</option>
+        <option value="polyclinic" ${facilityType === 'polyclinic' ? 'selected' : ''}>⚕️ ${tr('Polyclinic', 'مجمع العيادات')}</option>
+        <option value="phc" ${facilityType === 'phc' ? 'selected' : ''}>🩺 ${tr('Primary Care (PHC)', 'الرعاية الأولية')}</option>
+        <option value="health_unit" ${facilityType === 'health_unit' ? 'selected' : ''}>🏠 ${tr('Health Unit', 'الوحدة الصحية')}</option>
+      </select>
+    `);
+    
+    document.getElementById('facilitySwitcher').addEventListener('change', (e) => {
+      facilityType = e.target.value;
+      buildNav();
+      navigateTo(0);
+    });
   }
 
   // Load saved theme + facility type
   try {
     const s = await API.get('/api/settings');
     if (s.theme) { document.documentElement.setAttribute('data-theme', s.theme); document.getElementById('themeSelect').value = s.theme; }
-    if (s.facility_type) facilityType = s.facility_type;
+    if (s.facility_type) {
+      facilityType = s.facility_type;
+      const switcher = document.getElementById('facilitySwitcher');
+      if (switcher) switcher.value = facilityType;
+    }
   } catch { }
 
   buildNav();
   setupEvents();
   navigateTo(0);
-
-  // Language: set direction
-  document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
-  document.documentElement.lang = isArabic ? 'ar' : 'en';
-  // Set initial toggle button text
-  const langBtn = document.getElementById('langToggleBtn');
-  if (langBtn) langBtn.textContent = isArabic ? '🌐 EN' : '🌐 عربي';
-  // Update all shell elements to match language
-  updateShellLanguage();
 })();
 
 function buildNav() {
@@ -294,7 +354,200 @@ function updateShellLanguage() {
   if (pageTitle) pageTitle.textContent = isArabic ? 'جمانا الطبي - jumanaMedical ERP' : 'jumanaMedical ERP';
 }
 
+// ===== PUBLIC HOMEPAGE =====
+function renderPublicHomepage() {
+  const el = document.getElementById('pageContent');
+  if (!el) return;
+  
+  // Static lists for filters
+  const regions = [
+    { id: 'all', en: 'All Regions', ar: 'جميع المناطق' },
+    { id: 'Riyadh', en: 'Riyadh Region', ar: 'منطقة الرياض' },
+    { id: 'Makkah', en: 'Makkah Region', ar: 'منطقة مكة المكرمة' }
+  ];
+  
+  const types = [
+    { id: 'all', en: 'All Facility Types', ar: 'جميع أنواع المنشآت' },
+    { id: 'medical_city', en: 'Medical City', ar: 'مدينة طبية' },
+    { id: 'general_hospital', en: 'General Hospital', ar: 'مستشفى عام' },
+    { id: 'polyclinic', en: 'Polyclinic / Complex', ar: 'مجمع عيادات / مستوصف' },
+    { id: 'health_unit', en: 'Primary Care Unit', ar: 'وحدة صحية / رعاية أولية' }
+  ];
+
+  // Render HTML structure
+  el.innerHTML = `
+    <!-- Public Header -->
+    <header class="public-header flex justify-between items-center px-8 py-4 bg-surface-container-lowest border-b border-outline-variant/30 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center border border-primary/10">
+          <span class="material-symbols-outlined text-2xl">health_and_safety</span>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-primary">${tr('NamaMedical Platform', 'منصة نما الطبية')}</h1>
+          <p class="text-xs text-on-surface-variant">${tr('National Health Cluster Network', 'الشبكة الوطنية للتجمعات الصحية')}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="/login.html" class="px-5 py-2 bg-primary text-on-primary rounded-xl font-label-md shadow-md hover:opacity-90 transition-all">
+          🚪 ${tr('Login to EMR', 'تسجيل الدخول للموظفين')}
+        </a>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section text-center py-16 px-6 bg-gradient-to-br from-primary to-primary-container text-on-primary relative overflow-hidden">
+      <div class="max-w-3xl mx-auto relative z-10">
+        <span class="px-3 py-1 bg-white/10 rounded-full text-xs font-medium tracking-wider uppercase mb-4 inline-block">
+          🇸🇦 ${tr('Saudi Vision 2030 Healthcare Transformation', 'برنامج تحول القطاع الصحي - رؤية المملكة 2030')}
+        </span>
+        <h2 class="text-4xl font-bold mb-4 tracking-tight">${tr('Your Portal to Integrated Healthcare', 'بوابتك الذكية للرعاية الصحية المتكاملة')}</h2>
+        <p class="text-lg text-white/80 mb-8">${tr('Connecting Medical Cities, General Hospitals, and Primary Care Centers across the Kingdom.', 'ربط إلكتروني موحد للمدن الطبية، المستشفيات العامة، ومراكز الرعاية الأولية بالمملكة.')}</p>
+        
+        <!-- Search & Filter Bar -->
+        <div class="glass-card p-4 rounded-2xl max-w-2xl mx-auto flex flex-col md:flex-row gap-3 shadow-lg border border-white/10">
+          <select id="regionFilter" class="form-input text-on-surface flex-1" style="color:var(--primary)">
+            ${regions.map(r => `<option value="${r.id}">${tr(r.en, r.ar)}</option>`).join('')}
+          </select>
+          <select id="typeFilter" class="form-input text-on-surface flex-1" style="color:var(--primary)">
+            ${types.map(t => `<option value="${t.id}">${tr(t.en, t.ar)}</option>`).join('')}
+          </select>
+          <button id="searchBtn" class="px-6 py-2.5 bg-secondary text-on-secondary rounded-xl font-label-md hover:opacity-90 transition-all flex items-center justify-center gap-2">
+            🔍 ${tr('Search', 'بحث')}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Facilities Grid -->
+    <section class="py-12 px-8 max-w-7xl mx-auto">
+      <h3 class="text-2xl font-bold text-primary mb-6 flex items-center gap-2">
+        🏢 ${tr('Healthcare Facilities & Branches', 'المنشآت والمراكز الصحية المتاحة')}
+      </h3>
+      <div id="facilitiesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Dynamically filled -->
+      </div>
+    </section>
+
+    <!-- Specialties Showcase -->
+    <section class="py-12 bg-surface-container-low px-8 border-t border-b border-outline-variant/20">
+      <div class="max-w-7xl mx-auto">
+        <h3 class="text-2xl font-bold text-primary mb-8 text-center">
+          🩺 ${tr('Specialized Centers of Excellence', 'مراكز التميز والتخصصات الطبية')}
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+          <div class="card p-4 text-center hover:shadow-md transition-shadow">
+            <div class="text-3xl mb-2">🫀</div>
+            <h5 class="font-bold text-sm">${tr('Cardiology', 'مركز أمراض القلب')}</h5>
+          </div>
+          <div class="card p-4 text-center hover:shadow-md transition-shadow">
+            <div class="text-3xl mb-2">🧠</div>
+            <h5 class="font-bold text-sm">${tr('Neurology', 'جراحة الأعصاب')}</h5>
+          </div>
+          <div class="card p-4 text-center hover:shadow-md transition-shadow">
+            <div class="text-3xl mb-2">👶</div>
+            <h5 class="font-bold text-sm">${tr('Pediatrics', 'طب الأطفال والخدج')}</h5>
+          </div>
+          <div class="card p-4 text-center hover:shadow-md transition-shadow">
+            <div class="text-3xl mb-2">🤰</div>
+            <h5 class="font-bold text-sm">${tr('OB/GYN', 'النساء والتوليد')}</h5>
+          </div>
+          <div class="card p-4 text-center hover:shadow-md transition-shadow">
+            <div class="text-3xl mb-2">🔬</div>
+            <h5 class="font-bold text-sm">${tr('Pathology', 'المختبرات والوراثة')}</h5>
+          </div>
+          <div class="card p-4 text-center hover:shadow-md transition-shadow">
+            <div class="text-3xl mb-2">🚑</div>
+            <h5 class="font-bold text-sm">${tr('Emergency', 'طوارئ وإصابات')}</h5>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Emergency Quick Banner -->
+    <section class="py-8 bg-error/10 border-l-4 border-error px-8 text-error-container flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto my-12 rounded-xl">
+      <div class="flex items-center gap-4 mb-4 md:mb-0">
+        <span class="material-symbols-outlined text-4xl animate-pulse">emergency</span>
+        <div>
+          <h4 class="font-bold text-lg text-error">${tr('Urgent Emergency Care 24/7', 'رعاية الطوارئ العاجلة 24/7')}</h4>
+          <p class="text-sm text-on-error-container">${tr('If you are facing a life-threatening emergency, call 997 immediately or proceed to the nearest ER.', 'إذا كنت تواجه حالة طارئة تهدد الحياة، اتصل بالرقم 997 فوراً أو توجه لأقرب قسم طوارئ.')}</p>
+        </div>
+      </div>
+      <a href="tel:997" class="px-6 py-2.5 bg-error text-on-error rounded-xl font-label-md shadow-md hover:opacity-90 transition-all font-bold">
+        📞 ${tr('Call 997 Now', 'اتصل بالرقم 997 الآن')}
+      </a>
+    </section>
+
+    <!-- Compliance Footer -->
+    <footer class="py-8 bg-surface-container-highest border-t border-outline-variant/30 text-center px-6">
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-on-surface-variant">
+        <p>© ${new Date().getFullYear()} ${tr('NamaMedical Hospital Platform. All Rights Reserved.', 'منصة نما الطبية. جميع الحقوق محفوظة.')}</p>
+        <div class="flex gap-4">
+          <span class="badge badge-success">🛡️ CBAHI Accredited</span>
+          <span class="badge badge-info">🇸🇦 ZATCA Compliant</span>
+          <span class="badge badge-secondary">🔒 PDPL Secure</span>
+        </div>
+      </div>
+    </footer>
+  `;
+
+  // Filter and render facilities
+  const filterAndRender = () => {
+    const region = document.getElementById('regionFilter').value;
+    const type = document.getElementById('typeFilter').value;
+    const container = document.getElementById('facilitiesContainer');
+    if (!container) return;
+
+    let filtered = FACILITY_CATALOG.facilities;
+    if (region !== 'all') {
+      const cityIds = FACILITY_CATALOG.medical_cities.filter(c => c.region === region).map(c => c.id);
+      filtered = filtered.filter(f => cityIds.includes(f.city_id));
+    }
+    if (type !== 'all') {
+      filtered = filtered.filter(f => f.type === type);
+    }
+
+    const typeIcons = { medical_city: '🏥', general_hospital: '🏥', specialized_hospital: '🏥', polyclinic: '⚕️', health_unit: '🏠' };
+    const typeLabels = {
+      medical_city: { en: 'Medical City', ar: 'مدينة طبية' },
+      general_hospital: { en: 'General Hospital', ar: 'مستشفى عام' },
+      specialized_hospital: { en: 'Specialized Hospital', ar: 'مستشفى تخصصي' },
+      polyclinic: { en: 'Polyclinic', ar: 'مجمع عيادات' },
+      health_unit: { en: 'Primary Care Unit', ar: 'وحدة صحية' }
+    };
+
+    container.innerHTML = filtered.map(f => {
+      const label = typeLabels[f.type] || typeLabels.general_hospital;
+      return `
+        <div class="glass-card-premium p-6 rounded-2xl flex flex-col gap-4 hover:-translate-y-1 transition-all duration-300">
+          <div class="flex justify-between items-start">
+            <span class="text-3xl">${typeIcons[f.type] || '🏥'}</span>
+            <span class="badge badge-success">${tr(f.status, f.status === 'Active' ? 'نشط' : 'غير نشط')}</span>
+          </div>
+          <div>
+            <h4 class="font-bold text-lg text-primary">${tr(f.name_en, f.name_ar)}</h4>
+            <span class="inline-block mt-1 text-xs px-2 py-0.5 bg-secondary/10 text-secondary rounded-full font-medium">
+              ${tr(label.en, label.ar)}
+            </span>
+            <p class="text-xs text-on-surface-variant mt-2 line-clamp-2">${tr(f.desc, f.desc)}</p>
+          </div>
+          <div class="flex justify-between items-center mt-auto pt-4 border-t border-outline-variant/30 text-xs text-on-surface-variant font-medium">
+            <span>🗂️ ${f.deptsCount} ${tr('Active Specialties', 'تخصص فعال')}</span>
+            <button onclick="window.location.href='/login.html'" class="px-4 py-2 bg-primary/10 text-primary rounded-xl font-label-sm hover:bg-primary hover:text-on-primary transition-all">
+              ${tr('Enter Portal', 'دخول البوابة')}
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  };
+
+  // Bind filter events
+  document.getElementById('searchBtn').onclick = filterAndRender;
+  filterAndRender();
+}
+
 async function navigateTo(page) {
+
   currentPage = page;
   document.querySelectorAll('.nav-item').forEach((el) => el.classList.toggle('active', parseInt(el.dataset.page) === page));
   const item = NAV_ITEMS[page];
