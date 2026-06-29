@@ -60,7 +60,8 @@ CREATE POLICY rls_medical_records_coding_tenant_isolation ON medical_records_cod
     USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::integer)
     WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::integer);
 
--- 4. clinical_pharmacy_reviews (already has tenant_id)
+-- 4. clinical_pharmacy_reviews
+ALTER TABLE clinical_pharmacy_reviews ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 UPDATE clinical_pharmacy_reviews SET tenant_id = 1 WHERE tenant_id IS NULL;
 ALTER TABLE clinical_pharmacy_reviews ALTER COLUMN tenant_id SET NOT NULL;
 ALTER TABLE clinical_pharmacy_reviews DROP CONSTRAINT IF EXISTS fk_clinical_pharmacy_reviews_tenant;
@@ -75,7 +76,8 @@ CREATE POLICY rls_clinical_pharmacy_reviews_tenant_isolation ON clinical_pharmac
     USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::integer)
     WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::integer);
 
--- 5. patient_drug_education (already has tenant_id)
+-- 5. patient_drug_education
+ALTER TABLE patient_drug_education ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 UPDATE patient_drug_education SET tenant_id = 1 WHERE tenant_id IS NULL;
 ALTER TABLE patient_drug_education ALTER COLUMN tenant_id SET NOT NULL;
 ALTER TABLE patient_drug_education DROP CONSTRAINT IF EXISTS fk_patient_drug_education_tenant;

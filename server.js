@@ -537,20 +537,44 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
         const { username, password } = req.body;
         if (!username || !password) return res.status(400).json({ error: 'Missing credentials' });
         const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
-        const { rows } = await pool.query('SELECT id, display_name, role, speciality, permissions, password_hash FROM system_users WHERE username=$1 AND is_active=1', [username]);
+        const { rows } = await pool.query('SELECT id, display_name, role, speciality, permissions, password_hash, failed_login_attempts, lockout_until FROM system_users WHERE username=$1 AND is_active=1', [username]);
         if (!rows.length) {
             logAudit(null, String(username).slice(0, 64), 'FAILED_LOGIN', 'Auth', 'Failed login: unknown or inactive user', clientIp);
             return res.status(401).json({ error: 'Invalid credentials' });
         }
         const user = rows[0];
+
+        // Check if account is currently locked
+        if (user.lockout_until && new Date(user.lockout_until) > new Date()) {
+            const minutesLeft = Math.ceil((new Date(user.lockout_until) - new Date()) / 1000 / 60);
+            logAudit(user.id, user.display_name, 'BLOCKED_LOGIN_LOCKOUT', 'Auth', `Blocked login: account is locked out for another ${minutesLeft} minutes`, clientIp);
+            return res.status(403).json({ error: `تم قفل الحساب مؤقتاً بسبب محاولات دخول فاشلة متكررة. يرجى المحاولة بعد ${minutesLeft} دقيقة.` });
+        }
+
         // Check bcrypt hash (Plaintext password fallback is disabled for security)
         let valid = false;
         if (user.password_hash && user.password_hash.startsWith('$2')) {
             valid = await bcrypt.compare(password, user.password_hash);
         }
         if (!valid) {
-            logAudit(user.id, user.display_name, 'FAILED_LOGIN', 'Auth', 'Failed login: incorrect password', clientIp);
-            return res.status(401).json({ error: 'Invalid credentials' });
+            const newAttempts = (user.failed_login_attempts || 0) + 1;
+            let lockoutUntil = null;
+            if (newAttempts >= 5) {
+                lockoutUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+                await pool.query('UPDATE system_users SET failed_login_attempts = $1, lockout_until = $2 WHERE id = $3', [newAttempts, lockoutUntil, user.id]);
+                logAudit(user.id, user.display_name, 'FAILED_LOGIN_LOCKOUT', 'Auth', 'Failed login: account locked out (5 attempts)', clientIp);
+                return res.status(403).json({ error: 'تم قفل الحساب مؤقتاً لمدة 15 دقيقة بسبب محاولات دخول فاشلة متكررة.' });
+            } else {
+                await pool.query('UPDATE system_users SET failed_login_attempts = $1 WHERE id = $2', [newAttempts, user.id]);
+                logAudit(user.id, user.display_name, 'FAILED_LOGIN', 'Auth', `Failed login: incorrect password (attempt ${newAttempts})`, clientIp);
+                const remaining = 5 - newAttempts;
+                return res.status(401).json({ error: `اسم المستخدم أو كلمة المرور غير صحيحة. المتبقي ${remaining} محاولات قبل قفل الحساب.` });
+            }
+        }
+
+        // On successful authentication, reset failed attempts
+        if (user.failed_login_attempts > 0 || user.lockout_until) {
+            await pool.query('UPDATE system_users SET failed_login_attempts = 0, lockout_until = NULL WHERE id = $1', [user.id]);
         }
 
         // A2 MFA gate: if user opted into MFA, require a second factor before establishing the session.
@@ -9864,7 +9888,7 @@ async function startServer() {
         // lacks CREATE/seed rights, so running these here crashed the app ("permission denied for
         // schema public" / patients RLS violation). Production seed/schema is managed out-of-band
         // (see docs/sql/boot_time_schema_cleanup_candidate_*). Tenant binding is unaffected.
-        if (process.env.NODE_ENV !== 'production') {
+        if (process.env.NODE_ENV !== 'production' && process.env.SKIP_DB_INIT !== 'true') {
             await insertSampleData();
             await populateLabCatalog();
             await populateRadiologyCatalog();
@@ -9873,7 +9897,7 @@ async function startServer() {
             await populateMedicalServices();
             await populateBaseDrugs();
         } else {
-            console.log('[DB INFO] Production: skipping demo seed + catalog population (managed out-of-band).');
+            console.log('[DB INFO] Skipping demo seed + catalog population.');
         }
         app.listen(PORT, () => {
             console.log(`\n  ✅ jumanaMedical Web is running!`);
@@ -13115,6 +13139,13 @@ mountOrderRoutes(app, { pool, requireAuth, requireTenantScope, getRequestTenantC
 if (process.env.NODE_ENV !== 'production') {
     // MIGRATION: Add last_ip column to system_users
     (async () => { try { await pool.query(`DO $$ BEGIN ALTER TABLE system_users ADD COLUMN last_ip TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`); } catch (e) { } })();
+    // MIGRATION: Add failed_login_attempts and lockout_until columns to system_users
+    (async () => {
+        try {
+            await pool.query(`DO $$ BEGIN ALTER TABLE system_users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`);
+            await pool.query(`DO $$ BEGIN ALTER TABLE system_users ADD COLUMN lockout_until TIMESTAMP WITH TIME ZONE DEFAULT NULL; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`);
+        } catch (e) { }
+    })();
     // MIGRATION: Add doctor column to pharmacy_prescriptions_queue
     (async () => { try { await pool.query(`DO $$ BEGIN ALTER TABLE pharmacy_prescriptions_queue ADD COLUMN doctor TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`); } catch (e) { } })();
     // MIGRATION: Fix audit_trail schema (add user_name and details columns)

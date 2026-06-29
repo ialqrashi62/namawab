@@ -48,8 +48,8 @@ async function initDatabase() {
     // runs as a non-superuser (nama_medical_app) without CREATE on schema public, so running
     // CREATE TABLE/migrations here fails with "permission denied for schema public" and crashes
     // the app. Skip init/seed in production (tables/migrations are managed out-of-band).
-    if (process.env.NODE_ENV === 'production') {
-        console.log('[DB INFO] Production environment detected. Skipping table initialization and seeding.');
+    if (process.env.NODE_ENV === 'production' || process.env.SKIP_DB_INIT === 'true') {
+        console.log('[DB INFO] Production environment detected or SKIP_DB_INIT set. Skipping table initialization and seeding.');
         return;
     }
     const client = await pool.connect();
