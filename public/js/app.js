@@ -2240,6 +2240,8 @@ window.renderE1Panel = async (pid) => {
         <button class="btn btn-sm e1-tab" data-tab="plastic_burns" onclick="e1SwitchTab('plastic_burns',${safeId(pid)})">🔥 ${tr('Plastic & Burns', 'التجميل والحروق')}</button>
         <button class="btn btn-sm e1-tab" data-tab="intensive_care" onclick="e1SwitchTab('intensive_care',${safeId(pid)})">🏥 ${tr('Intensive Care', 'العناية المركزة')}</button>
         <button class="btn btn-sm e1-tab" data-tab="orthopedics" onclick="e1SwitchTab('orthopedics',${safeId(pid)})">🦴 ${tr('Orthopedics', 'جراحة العظام')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="general_surgery" onclick="e1SwitchTab('general_surgery',${safeId(pid)})">🔪 ${tr('General Surgery', 'الجراحة العامة')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="urology" onclick="e1SwitchTab('urology',${safeId(pid)})">💧 ${tr('Urology', 'المسالك البولية')}</button>
       </div>
       <div id="e1TabBody"></div>
     </div>`;
@@ -2269,6 +2271,8 @@ window.e1SwitchTab = async (tab, pid) => {
   if (tab === 'plastic_burns') return window.e1RenderPlasticBurns(pid);
   if (tab === 'intensive_care') return window.e1RenderIntensiveCare(pid);
   if (tab === 'orthopedics') return window.e1RenderOrthopedics(pid);
+  if (tab === 'general_surgery') return window.e1RenderGeneralSurgery(pid);
+  if (tab === 'urology') return window.e1RenderUrology(pid);
 };
 
 // ---------- Problem List ----------
@@ -18001,5 +18005,403 @@ window.e1AddEyeExam = async (pid) => {
     window.e1OphCheckIop();
   } catch (err) {
     showToast(tr('Error saving eye exam', 'خطأ في حفظ فحص العين'), 'error');
+  }
+};
+};
+
+// =====================================================================
+// ===== GENERAL SURGERY MODULE (G09) =====
+// =====================================================================
+
+window.e1RenderGeneralSurgery = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <!-- Left Column: Forms -->
+      <div style="flex:1.5;min-width:320px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">🔪 ${tr('Surgical Management', 'إدارة العمليات الجراحية')}</h4>
+        
+        <!-- WHO Surgical Safety Checklist -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">📋 ${tr('WHO Surgical Safety Checklist', 'قائمة التحقق من سلامة العمليات الجراحية')}</legend>
+          
+          <div class="form-group mb-8">
+            <label>${tr('Procedure Name', 'اسم الإجراء الجراحي')}</label>
+            <input type="text" class="form-input" id="e1SurgProcName" placeholder="e.g. Laparoscopic Cholecystectomy">
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:8px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px">
+              <input type="checkbox" id="e1SurgSignIn">
+              <span><strong>${tr('Sign In (Before Anesthesia)', 'تسجيل الدخول (قبل التخدير)')}</strong>: ${tr('Patient identity, site, consent, and safety checks confirmed.', 'تم تأكيد هوية المريض والموقع والموافقة وفحوصات الأمان.')}</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px">
+              <input type="checkbox" id="e1SurgTimeOut">
+              <span><strong>${tr('Time Out (Before Incision)', 'فترة التوقف (قبل الشق الجراحي)')}</strong>: ${tr('All team members introduced; procedure and site re-confirmed.', 'تم تعريف جميع أعضاء الفريق وتأكيد الإجراء والموقع.')}</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px">
+              <input type="checkbox" id="e1SurgSignOut">
+              <span><strong>${tr('Sign Out (Before Patient Leaves OR)', 'تسجيل الخروج (قبل مغادرة المريض للعمليات)')}</strong>: ${tr('Instrument count, specimen labeling, and equipment checks done.', 'تم عد الأدوات الطبية، وتمييز العينات، وفحص المعدات.')}</span>
+            </label>
+          </div>
+
+          <div class="form-group mb-8">
+            <label>${tr('Surgical Notes', 'ملاحظات جراحية')}</label>
+            <textarea class="form-input form-textarea" id="e1SurgNotes" rows="2" style="min-height:45px"></textarea>
+          </div>
+
+          <button class="btn btn-primary btn-sm w-full" onclick="e1AddSurgicalChecklist(${safeId(pid)})">💾 ${tr('Save Checklist', 'حفظ قائمة التحقق')}</button>
+        </fieldset>
+
+        <!-- Intraoperative Time Logger -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">⏱️ ${tr('Intraoperative Time Logger', 'مسجل أوقات العمليات الجراحية')}</legend>
+          
+          <div class="form-group mb-8">
+            <label>${tr('Active Procedure', 'الإجراء النشط')}</label>
+            <input type="text" class="form-input" id="e1TimeLogProcName" placeholder="e.g. Appendectomy">
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="form-group">
+              <label>${tr('Anesthesia Start', 'بدء التخدير')}</label>
+              <div style="display:flex;gap:4px">
+                <input type="text" class="form-input" id="e1AnesStart" readonly placeholder="Not Set" style="font-size:11px">
+                <button class="btn btn-secondary btn-sm" onclick="e1SetTime('e1AnesStart')">⏱️</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>${tr('Surgical Incision', 'الشق الجراحي')}</label>
+              <div style="display:flex;gap:4px">
+                <input type="text" class="form-input" id="e1IncisionTime" readonly placeholder="Not Set" style="font-size:11px">
+                <button class="btn btn-secondary btn-sm" onclick="e1SetTime('e1IncisionTime')">⏱️</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>${tr('Wound Closure', 'إغلاق الجرح')}</label>
+              <div style="display:flex;gap:4px">
+                <input type="text" class="form-input" id="e1ClosureTime" readonly placeholder="Not Set" style="font-size:11px">
+                <button class="btn btn-secondary btn-sm" onclick="e1SetTime('e1ClosureTime')">⏱️</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>${tr('Anesthesia End', 'نهاية التخدير')}</label>
+              <div style="display:flex;gap:4px">
+                <input type="text" class="form-input" id="e1AnesEnd" readonly placeholder="Not Set" style="font-size:11px">
+                <button class="btn btn-secondary btn-sm" onclick="e1SetTime('e1AnesEnd')">⏱️</button>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-sm w-full" onclick="e1AddSurgicalTimeLog(${safeId(pid)})">💾 ${tr('Save Time Log', 'حفظ سجل الأوقات')}</button>
+        </fieldset>
+      </div>
+
+      <!-- Right Column: History Logs -->
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">📋 ${tr('Surgical History', 'سجل العمليات الجراحية')}</h4>
+        <div id="e1SurgHistoryList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  window.e1LoadSurgHistory(pid);
+};
+
+window.e1SetTime = (id) => {
+  const el = document.getElementById(id);
+  if (el) {
+    el.value = new Date().toISOString();
+  }
+};
+
+window.e1LoadSurgHistory = async (pid) => {
+  const container = document.getElementById('e1SurgHistoryList');
+  if (!container) return;
+  
+  try {
+    const [checklists, timelogs] = await Promise.all([
+      API.get('/api/surgery/checklists/patient/' + pid),
+      API.get('/api/surgery/timelogs/patient/' + pid)
+    ]);
+    
+    let html = '';
+    
+    if (checklists.length || timelogs.length) {
+      if (checklists.length) {
+        html += `<h5 style="margin:8px 0 4px;color:var(--primary)">📋 ${tr('Safety Checklists', 'قوائم التحقق لسلامة العمليات')}</h5>`;
+        html += checklists.map(c => `
+          <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid var(--primary);font-size:12px">
+            <div style="font-weight:700;color:var(--primary)">${escapeHTML(c.procedure_name)}</div>
+            <div style="margin:4px 0">
+              <span class="badge ${c.sign_in_confirmed ? 'badge-success' : 'badge-danger'}">Sign In</span>
+              <span class="badge ${c.time_out_confirmed ? 'badge-success' : 'badge-danger'}">Time Out</span>
+              <span class="badge ${c.sign_out_confirmed ? 'badge-success' : 'badge-danger'}">Sign Out</span>
+            </div>
+            ${c.notes ? `<div style="color:var(--text-dim);font-style:italic">"${escapeHTML(c.notes)}"</div>` : ''}
+            <div style="font-size:10px;color:var(--text-dim);margin-top:4px">📅 ${new Date(c.surgery_date).toLocaleDateString('ar-SA')} | 👨‍⚕️ ${escapeHTML(c.doctor_name || '')}</div>
+          </div>
+        `).join('');
+      }
+      
+      if (timelogs.length) {
+        html += `<h5 style="margin:12px 0 4px;color:var(--primary)">⏱️ ${tr('Intraoperative Time Logs', 'سجلات أوقات العمليات')}</h5>`;
+        html += timelogs.map(t => {
+          const formatTime = (isoStr) => isoStr ? new Date(isoStr).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-';
+          return `
+            <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid #10b981;font-size:12px">
+              <div style="font-weight:700;color:#10b981">${escapeHTML(t.procedure_name)}</div>
+              <div style="margin-top:4px;display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px">
+                <div>🏁 Anes Start: ${formatTime(t.anesthesia_start_time)}</div>
+                <div>🔪 Incision: ${formatTime(t.incision_time)}</div>
+                <div>🧵 Closure: ${formatTime(t.closure_time)}</div>
+                <div>🛑 Anes End: ${formatTime(t.anesthesia_end_time)}</div>
+              </div>
+              <div style="font-size:10px;color:var(--text-dim);margin-top:4px">📅 ${new Date(t.created_at).toLocaleDateString('ar-SA')} | 👨‍⚕️ ${escapeHTML(t.doctor_name || '')}</div>
+            </div>
+          `;
+        }).join('');
+      }
+    } else {
+      html = `<div style="color:var(--text-dim);font-size:13px">${tr('No surgical records found', 'لا توجد سجلات عمليات جراحية')}</div>`;
+    }
+    
+    container.innerHTML = html;
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading history', 'خطأ في تحميل السجل')}</div>`;
+  }
+};
+
+window.e1AddSurgicalChecklist = async (pid) => {
+  const procName = document.getElementById('e1SurgProcName').value;
+  if (!procName) {
+    showToast(tr('Procedure name is required', 'اسم الإجراء الجراحي مطلوب'), 'error');
+    return;
+  }
+  
+  try {
+    await API.post('/api/surgery/checklists', {
+      patient_id: pid,
+      procedure_name: procName,
+      sign_in_confirmed: document.getElementById('e1SurgSignIn').checked,
+      time_out_confirmed: document.getElementById('e1SurgTimeOut').checked,
+      sign_out_confirmed: document.getElementById('e1SurgSignOut').checked,
+      notes: document.getElementById('e1SurgNotes').value
+    });
+    
+    showToast(tr('Surgical checklist saved successfully!', 'تم حفظ قائمة تحقق العملية بنجاح!'));
+    window.e1LoadSurgHistory(pid);
+    
+    document.getElementById('e1SurgProcName').value = '';
+    document.getElementById('e1SurgSignIn').checked = false;
+    document.getElementById('e1SurgTimeOut').checked = false;
+    document.getElementById('e1SurgSignOut').checked = false;
+    document.getElementById('e1SurgNotes').value = '';
+  } catch (err) {
+    showToast(tr('Error saving checklist', 'خطأ في حفظ قائمة تحقق العملية'), 'error');
+  }
+};
+
+window.e1AddSurgicalTimeLog = async (pid) => {
+  const procName = document.getElementById('e1TimeLogProcName').value;
+  if (!procName) {
+    showToast(tr('Procedure name is required', 'اسم الإجراء الجراحي مطلوب'), 'error');
+    return;
+  }
+  
+  try {
+    await API.post('/api/surgery/timelogs', {
+      patient_id: pid,
+      procedure_name: procName,
+      anesthesia_start_time: document.getElementById('e1AnesStart').value || null,
+      incision_time: document.getElementById('e1IncisionTime').value || null,
+      closure_time: document.getElementById('e1ClosureTime').value || null,
+      anesthesia_end_time: document.getElementById('e1AnesEnd').value || null
+    });
+    
+    showToast(tr('Surgical time log saved successfully!', 'تم حفظ سجل أوقات العملية بنجاح!'));
+    window.e1LoadSurgHistory(pid);
+    
+    document.getElementById('e1TimeLogProcName').value = '';
+    document.getElementById('e1AnesStart').value = '';
+    document.getElementById('e1IncisionTime').value = '';
+    document.getElementById('e1ClosureTime').value = '';
+    document.getElementById('e1AnesEnd').value = '';
+  } catch (err) {
+    showToast(tr('Error saving time log', 'خطأ في حفظ سجل أوقات العملية'), 'error');
+  }
+};
+
+
+// =====================================================================
+// ===== UROLOGY MODULE (G15) =====
+// =====================================================================
+
+window.e1RenderUrology = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <!-- Left Column: Forms -->
+      <div style="flex:1.5;min-width:320px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">💧 ${tr('Urodynamic Studies & Diagnostics', 'دراسات ديناميكية التبول والتشخيص')}</h4>
+        
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">⚙️ ${tr('Urodynamic Parameters', 'المعايير الفسيولوجية لديناميكية التبول')}</legend>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="form-group">
+              <label>${tr('Max Flow Rate (Qmax - mL/s)', 'أقصى معدل تدفق للبول')}</label>
+              <input type="number" step="0.1" class="form-input" id="e1UroFlowRate" value="18" oninput="e1UroCheckParams()">
+            </div>
+            <div class="form-group">
+              <label>${tr('Voided Volume (mL)', 'الحجم المتبول')}</label>
+              <input type="number" class="form-input" id="e1UroVolume" value="250">
+            </div>
+            <div class="form-group">
+              <label>${tr('Post-Void Residual (PVR - mL)', 'حجم البول المتبقي بعد التبول')}</label>
+              <input type="number" class="form-input" id="e1UroPvr" value="20" oninput="e1UroCheckParams()">
+            </div>
+            <div class="form-group">
+              <label>${tr('Detrusor Pressure (pdet - cmH2O)', 'ضغط العضلة العاصرة للمثانة')}</label>
+              <input type="number" class="form-input" id="e1UroPressure" value="30">
+            </div>
+          </div>
+
+          <!-- Dynamic Alerts & Indicators -->
+          <div id="e1UroFlowAlert" style="background:var(--hover,#f8f9fa);padding:10px;border-radius:8px;font-size:13px;border-left:4px solid #10b981;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+            <span><strong>Qmax Status:</strong> <span id="e1UroFlowStatusText">${tr('Normal (>15 mL/s)', 'طبيعي')}</span></span>
+            <span id="e1UroFlowBadge" class="badge badge-success">${tr('Normal', 'طبيعي')}</span>
+          </div>
+
+          <div id="e1UroPvrAlert" style="background:var(--hover,#f8f9fa);padding:10px;border-radius:8px;font-size:13px;border-left:4px solid #10b981;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+            <span><strong>PVR Status:</strong> <span id="e1UroPvrStatusText">${tr('Normal (<50 mL)', 'طبيعي')}</span></span>
+            <span id="e1UroPvrBadge" class="badge badge-success">${tr('Normal', 'طبيعي')}</span>
+          </div>
+        </fieldset>
+
+        <div class="form-group mb-8">
+          <label>${tr('Clinical Interpretation', 'التفسير السريري والتشخيص')}</label>
+          <textarea class="form-input form-textarea" id="e1UroInterpretation" rows="2" placeholder="${tr('Any diagnostic findings, e.g., Bladder Outlet Obstruction (BOO)...', 'أي نتائج تشخيصية، مثل انسداد مخرج المثانة...')}" style="min-height:45px"></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-sm w-full mb-12" onclick="e1AddUroStudy(${safeId(pid)})">💾 ${tr('Save Urodynamic Study', 'حفظ دراسة ديناميكية التبول')}</button>
+      </div>
+
+      <!-- Right Column: History Logs -->
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">📋 ${tr('Urodynamic History', 'سجل دراسات ديناميكية التبول')}</h4>
+        <div id="e1UroHistoryList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  window.e1LoadUroHistory(pid);
+  window.e1UroCheckParams();
+};
+
+window.e1UroCheckParams = () => {
+  const flowRate = parseFloat(document.getElementById('e1UroFlowRate')?.value || 0);
+  const pvr = parseFloat(document.getElementById('e1UroPvr')?.value || 0);
+  
+  const flowAlert = document.getElementById('e1UroFlowAlert');
+  const flowText = document.getElementById('e1UroFlowStatusText');
+  const flowBadge = document.getElementById('e1UroFlowBadge');
+
+  const pvrAlert = document.getElementById('e1UroPvrAlert');
+  const pvrText = document.getElementById('e1UroPvrStatusText');
+  const pvrBadge = document.getElementById('e1UroPvrBadge');
+
+  if (flowAlert && flowText && flowBadge) {
+    if (flowRate < 15) {
+      flowAlert.style.borderLeftColor = 'red';
+      flowText.innerText = tr('Low Flow Rate (<15 mL/s) - Suspicion of Obstruction / Weak Bladder', 'معدل تدفق منخفض - اشتباه في انسداد أو ضعف المثانة');
+      flowBadge.className = 'badge badge-danger';
+      flowBadge.innerText = tr('Abnormal', 'غير طبيعي');
+    } else {
+      flowAlert.style.borderLeftColor = '#10b981';
+      flowText.innerText = tr('Normal (>15 mL/s)', 'طبيعي');
+      flowBadge.className = 'badge badge-success';
+      flowBadge.innerText = tr('Normal', 'طبيعي');
+    }
+  }
+
+  if (pvrAlert && pvrText && pvrBadge) {
+    if (pvr > 50) {
+      pvrAlert.style.borderLeftColor = 'red';
+      pvrText.innerText = tr('High Post-Void Residual (>50 mL) - Urinary Retention Risk', 'بول متبقي مرتفع - خطر احتباس البول');
+      pvrBadge.className = 'badge badge-danger';
+      pvrBadge.innerText = tr('Retention Warning', 'تحذير احتباس');
+    } else {
+      pvrAlert.style.borderLeftColor = '#10b981';
+      pvrText.innerText = tr('Normal (<50 mL)', 'طبيعي');
+      pvrBadge.className = 'badge badge-success';
+      pvrBadge.innerText = tr('Normal', 'طبيعي');
+    }
+  }
+};
+
+window.e1LoadUroHistory = async (pid) => {
+  const container = document.getElementById('e1UroHistoryList');
+  if (!container) return;
+  
+  try {
+    const records = await API.get('/api/urology/urodynamics/patient/' + pid);
+    if (!records.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No urodynamic studies found', 'لا توجد دراسات ديناميكية تبول مسجلة')}</div>`;
+    } else {
+      container.innerHTML = records.map(r => `
+        <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid var(--primary);font-size:12px">
+          <div style="font-weight:700;color:var(--primary);display:flex;justify-content:space-between">
+            <span>📅 ${new Date(r.study_date).toLocaleDateString('ar-SA')}</span>
+          </div>
+          <div style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
+            <div>
+              <strong>Qmax:</strong> <span class="badge ${parseFloat(r.max_flow_rate) < 15 ? 'badge-danger' : 'badge-success'}">${r.max_flow_rate} mL/s</span><br>
+              <strong>Volume:</strong> ${r.voided_volume} mL
+            </div>
+            <div>
+              <strong>PVR:</strong> <span class="badge ${parseFloat(r.post_void_residual) > 50 ? 'badge-danger' : 'badge-success'}">${r.post_void_residual} mL</span><br>
+              <strong>pdet:</strong> ${r.detrusor_pressure} cmH2O
+            </div>
+          </div>
+          ${r.interpretation ? `<div style="margin-top:4px;color:var(--text-dim);font-style:italic">"${escapeHTML(r.interpretation)}"</div>` : ''}
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">👨‍⚕️ ${escapeHTML(r.doctor_name || '')}</div>
+        </div>
+      `).join('');
+    }
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading history', 'خطأ في تحميل السجل')}</div>`;
+  }
+};
+
+window.e1AddUroStudy = async (pid) => {
+  const getVal = (id) => parseFloat(document.getElementById(id)?.value || 0);
+  const getStr = (id) => document.getElementById(id)?.value || '';
+  
+  try {
+    await API.post('/api/urology/urodynamics', {
+      patient_id: pid,
+      max_flow_rate: getVal('e1UroFlowRate'),
+      voided_volume: getVal('e1UroVolume'),
+      post_void_residual: getVal('e1UroPvr'),
+      detrusor_pressure: getVal('e1UroPressure'),
+      interpretation: getStr('e1UroInterpretation')
+    });
+    
+    showToast(tr('Urodynamic study saved successfully!', 'تم حفظ دراسة ديناميكية التبول بنجاح!'));
+    window.e1LoadUroHistory(pid);
+    
+    document.getElementById('e1UroFlowRate').value = '18';
+    document.getElementById('e1UroVolume').value = '250';
+    document.getElementById('e1UroPvr').value = '20';
+    document.getElementById('e1UroPressure').value = '30';
+    document.getElementById('e1UroInterpretation').value = '';
+    window.e1UroCheckParams();
+  } catch (err) {
+    showToast(tr('Error saving study', 'خطأ في حفظ دراسة ديناميكية التبول'), 'error');
   }
 };

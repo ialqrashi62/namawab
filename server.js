@@ -4453,6 +4453,195 @@ app.get('/api/ophthalmology/exams/patient/:patient_id', requireAuth, requireRole
     }
 });
 
+// ===== GENERAL SURGERY DEPARTMENT (G09) =====
+app.post('/api/surgery/checklists', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { 
+            patient_id, surgery_date, procedure_name, 
+            sign_in_confirmed, time_out_confirmed, sign_out_confirmed, notes 
+        } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        
+        if (!patient_id || !procedure_name) {
+            return res.status(400).json({ error: 'Patient ID and Procedure Name are required' });
+        }
+        
+        const result = await pool.query(
+            `INSERT INTO surgical_checklists 
+             (patient_id, doctor_id, surgery_date, procedure_name, sign_in_confirmed, time_out_confirmed, sign_out_confirmed, notes, tenant_id, facility_id) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+            [
+                patient_id,
+                req.session.user?.id || null,
+                surgery_date || new Date().toISOString().slice(0, 10),
+                procedure_name,
+                !!sign_in_confirmed,
+                !!time_out_confirmed,
+                !!sign_out_confirmed,
+                notes || '',
+                tenantId || 1,
+                facilityId || null
+            ]
+        );
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_SURGICAL_CHECKLIST', 'General Surgery',
+            `Recorded surgical safety checklist for patient #${patient_id}`, req.ip);
+            
+        res.json({ id: result.rows[0].id, success: true });
+    } catch (e) {
+        console.error('[Surgical Checklist Create Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/surgery/checklists/patient/:patient_id', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { patient_id } = req.params;
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [patient_id, tenantId] : [patient_id];
+        
+        const result = await pool.query(
+            `SELECT sc.*, su.display_name as doctor_name 
+             FROM surgical_checklists sc 
+             LEFT JOIN system_users su ON sc.doctor_id = su.id 
+             WHERE sc.patient_id=$1${tenantCheck} 
+             ORDER BY sc.id DESC`,
+            tenantParams
+        );
+        
+        res.json(result.rows);
+    } catch (e) {
+        console.error('[Surgical Checklist Get Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.post('/api/surgery/timelogs', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { 
+            patient_id, procedure_name, 
+            anesthesia_start_time, incision_time, closure_time, anesthesia_end_time 
+        } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        
+        if (!patient_id || !procedure_name) {
+            return res.status(400).json({ error: 'Patient ID and Procedure Name are required' });
+        }
+        
+        const result = await pool.query(
+            `INSERT INTO surgical_time_logs 
+             (patient_id, doctor_id, procedure_name, anesthesia_start_time, incision_time, closure_time, anesthesia_end_time, tenant_id, facility_id) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+            [
+                patient_id,
+                req.session.user?.id || null,
+                procedure_name,
+                anesthesia_start_time || null,
+                incision_time || null,
+                closure_time || null,
+                anesthesia_end_time || null,
+                tenantId || 1,
+                facilityId || null
+            ]
+        );
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_SURGICAL_TIMELOG', 'General Surgery',
+            `Recorded surgical time log for patient #${patient_id}`, req.ip);
+            
+        res.json({ id: result.rows[0].id, success: true });
+    } catch (e) {
+        console.error('[Surgical Time Log Create Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/surgery/timelogs/patient/:patient_id', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { patient_id } = req.params;
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [patient_id, tenantId] : [patient_id];
+        
+        const result = await pool.query(
+            `SELECT stl.*, su.display_name as doctor_name 
+             FROM surgical_time_logs stl 
+             LEFT JOIN system_users su ON stl.doctor_id = su.id 
+             WHERE stl.patient_id=$1${tenantCheck} 
+             ORDER BY stl.id DESC`,
+            tenantParams
+        );
+        
+        res.json(result.rows);
+    } catch (e) {
+        console.error('[Surgical Time Log Get Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// ===== UROLOGY DEPARTMENT (G15) =====
+app.post('/api/urology/urodynamics', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { 
+            patient_id, study_date, max_flow_rate, voided_volume, post_void_residual, detrusor_pressure, interpretation 
+        } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        
+        if (!patient_id) {
+            return res.status(400).json({ error: 'Patient ID is required' });
+        }
+        
+        const result = await pool.query(
+            `INSERT INTO urodynamic_studies 
+             (patient_id, doctor_id, study_date, max_flow_rate, voided_volume, post_void_residual, detrusor_pressure, interpretation, tenant_id, facility_id) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+            [
+                patient_id,
+                req.session.user?.id || null,
+                study_date || new Date().toISOString().slice(0, 10),
+                max_flow_rate === undefined ? 0.00 : parseFloat(max_flow_rate),
+                voided_volume === undefined ? 0.00 : parseFloat(voided_volume),
+                post_void_residual === undefined ? 0.00 : parseFloat(post_void_residual),
+                detrusor_pressure === undefined ? 0.00 : parseFloat(detrusor_pressure),
+                interpretation || '',
+                tenantId || 1,
+                facilityId || null
+            ]
+        );
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_URODYNAMIC_STUDY', 'Urology',
+            `Recorded urodynamic study for patient #${patient_id}`, req.ip);
+            
+        res.json({ id: result.rows[0].id, success: true });
+    } catch (e) {
+        console.error('[Urodynamic Study Create Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/urology/urodynamics/patient/:patient_id', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { patient_id } = req.params;
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [patient_id, tenantId] : [patient_id];
+        
+        const result = await pool.query(
+            `SELECT us.*, su.display_name as doctor_name 
+             FROM urodynamic_studies us 
+             LEFT JOIN system_users su ON us.doctor_id = su.id 
+             WHERE us.patient_id=$1${tenantCheck} 
+             ORDER BY us.id DESC`,
+            tenantParams
+        );
+        
+        res.json(result.rows);
+    } catch (e) {
+        console.error('[Urodynamic Study Get Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // ===== ENT (OTOLARYNGOLOGY) DEPARTMENT =====
 app.post('/api/ent/audiograms', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
     try {
