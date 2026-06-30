@@ -2236,6 +2236,7 @@ window.renderE1Panel = async (pid) => {
         <button class="btn btn-sm e1-tab" data-tab="rheumatology" onclick="e1SwitchTab('rheumatology',${safeId(pid)})">🦴 ${tr('Rheumatology', 'الروماتيزم والمفاصل')}</button>
         <button class="btn btn-sm e1-tab" data-tab="neurology" onclick="e1SwitchTab('neurology',${safeId(pid)})">🧠 ${tr('Neurology', 'الأعصاب والدماغ')}</button>
         <button class="btn btn-sm e1-tab" data-tab="ophthalmology" onclick="e1SwitchTab('ophthalmology',${safeId(pid)})">👁️ ${tr('Ophthalmology', 'طب وجراحة العيون')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="ent" onclick="e1SwitchTab('ent',${safeId(pid)})">👂 ${tr('ENT', 'الأذن والأنف والحنجرة')}</button>
       </div>
       <div id="e1TabBody"></div>
     </div>`;
@@ -2261,6 +2262,7 @@ window.e1SwitchTab = async (tab, pid) => {
   if (tab === 'rheumatology') return window.e1RenderRheumatology(pid);
   if (tab === 'neurology') return window.e1RenderNeurology(pid);
   if (tab === 'ophthalmology') return window.e1RenderOphthalmology(pid);
+  if (tab === 'ent') return window.e1RenderEnt(pid);
 };
 
 // ---------- Problem List ----------
@@ -16234,5 +16236,346 @@ window.e1AddEyeExam = async (pid) => {
     document.getElementById('e1EyeNotes').value = '';
   } catch (err) {
     showToast(tr('Error saving eye examination', 'خطأ في حفظ فحص العين'), 'error');
+  }
+};
+
+// =====================================================================
+// ===== ENT (OTOLARYNGOLOGY) MODULE (G13) =====
+// =====================================================================
+
+window.e1RenderEnt = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1.4;min-width:320px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">👂 ${tr('Otolaryngology (ENT) Examination', 'فحص الأذن والأنف والحنجرة')}</h4>
+        
+        <!-- Audiogram Section -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">📊 ${tr('Pure Tone Audiometry (AC Thresholds in dB)', 'تخطيط السمع (التوصيل الهوائي بالديسيبل)')}</legend>
+          
+          <div style="margin-bottom:8px;font-weight:700;color:var(--primary);font-size:12px">🔴 ${tr('Right Ear (OD / AD) - Air Conduction', 'الأذن اليمنى - التوصيل الهوائي')}</div>
+          <div class="flex gap-4 mb-8" style="flex-wrap:wrap">
+            <div class="form-group" style="flex:1;min-width:60px">
+              <label>250Hz</label>
+              <input class="form-input" type="number" id="e1EntAcR250" min="0" max="120" step="5" placeholder="e.g. 15" oninput="e1EntCalcPta()">
+            </div>
+            <div class="form-group" style="flex:1;min-width:60px">
+              <label>500Hz</label>
+              <input class="form-input" type="number" id="e1EntAcR500" min="0" max="120" step="5" placeholder="15" oninput="e1EntCalcPta()">
+            </div>
+            <div class="form-group" style="flex:1;min-width:60px">
+              <label>1kHz</label>
+              <input class="form-input" type="number" id="e1EntAcR1000" min="0" max="120" step="5" placeholder="20" oninput="e1EntCalcPta()">
+            </div>
+            <div class="form-group" style="flex:1;min-width:60px">
+              <label>2kHz</label>
+              <input class="form-input" type="number" id="e1EntAcR2000" min="0" max="120" step="5" placeholder="20" oninput="e1EntCalcPta()">
+            </div>
+            <div class="form-group" style="flex:1;min-width:60px">
+              <label>4kHz</label>
+              <input class="form-input" type="number" id="e1EntAcR4000" min="0" max="120" step="5" placeholder="25" oninput="e1EntCalcPta()">
+            </div>
+            <div class="form-group" style="flex:1;min-width:60px">
+              <label>8kHz</label>
+              <input class="form-input" type="number" id="e1EntAcR8000" min="0" max="120" step="5" placeholder="25">
+            </div>
+          </div>
+
+          <div style="margin-bottom:8px;font-weight:700;color:var(--primary);font-size:12px">🔵 ${tr('Left Ear (OS / AS) - Air Conduction', 'الأذن اليسرى - التوصيل الهوائي')}</div>
+          <div class="flex gap-4 mb-8" style="flex-wrap:wrap">
+            <div class="form-group" style="flex:1;min-width:60px">
+              <label>250Hz</label>
+              <input class="form-input" type="number" id="e1EntAcL250" min="0" max="120" step="5" placeholder="e.g. 10" oninput="e1EntCalcPta()">
+            </div>
+            <div class="form-group" style="flex:1;min-width:60px">
+              <label>500Hz</label>
+              <input class="form-input" type="number" id="e1EntAcL500" min="0" max="120" step="5" placeholder="10" oninput="e1EntCalcPta()">
+            </div>
+            <div class="form-group" style="flex:1;min-width:60px">
+              <label>1kHz</label>
+              <input class="form-input" type="number" id="e1EntAcL1000" min="0" max="120" step="5" placeholder="15" oninput="e1EntCalcPta()">
+            </div>
+            <div class="form-group" style="flex:1;min-width:60px">
+              <label>2kHz</label>
+              <input class="form-input" type="number" id="e1EntAcL2000" min="0" max="120" step="5" placeholder="15" oninput="e1EntCalcPta()">
+            </div>
+            <div class="form-group" style="flex:1;min-width:60px">
+              <label>4kHz</label>
+              <input class="form-input" type="number" id="e1EntAcL4000" min="0" max="120" step="5" placeholder="20" oninput="e1EntCalcPta()">
+            </div>
+            <div class="form-group" style="flex:1;min-width:60px">
+              <label>8kHz</label>
+              <input class="form-input" type="number" id="e1EntAcL8000" min="0" max="120" step="5" placeholder="20">
+            </div>
+          </div>
+          
+          <!-- PTA Average Indicators -->
+          <div style="background:var(--hover,#f8f9fa);padding:10px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:12px">
+            <div>
+              <strong>${tr('Right PTA (0.5-4kHz):', 'معدل اليمنى:')}</strong> <span id="e1EntPtaR">-</span> dB 
+              <span id="e1EntGradeR" class="badge" style="margin-left:6px;display:none"></span>
+            </div>
+            <div>
+              <strong>${tr('Left PTA (0.5-4kHz):', 'معدل اليسرى:')}</strong> <span id="e1EntPtaL">-</span> dB 
+              <span id="e1EntGradeL" class="badge" style="margin-left:6px;display:none"></span>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Tympanometry & Otoscopy Section -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">🩺 ${tr('Otoscopy & Tympanometry', 'تنظير الأذن وقياس ضغط الطبلة')}</legend>
+          <div class="flex gap-8 mb-8">
+            <div class="form-group" style="flex:1">
+              <label>${tr('Tympanometry Right', 'تخطيط الطبلة اليمنى')}</label>
+              <select class="form-input" id="e1EntTympR">
+                <option value="Type A">${tr('Type A (Normal)', 'نوع أ (طبيعي)')}</option>
+                <option value="Type B">${tr('Type B (Fluid/Perf)', 'نوع ب (سوائل/ثقب)')}</option>
+                <option value="Type C">${tr('Type C (Negative Press)', 'نوع ج (ضغط سلبي)')}</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex:1">
+              <label>${tr('Tympanometry Left', 'تخطيط الطبلة اليسرى')}</label>
+              <select class="form-input" id="e1EntTympL">
+                <option value="Type A">${tr('Type A (Normal)', 'نوع أ (طبيعي)')}</option>
+                <option value="Type B">${tr('Type B (Fluid/Perf)', 'نوع ب (سوائل/ثقب)')}</option>
+                <option value="Type C">${tr('Type C (Negative Press)', 'نوع ج (ضغط سلبي)')}</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex gap-8">
+            <div class="form-group" style="flex:1">
+              <label>${tr('Otoscopy Right', 'منظار الأذن اليمنى')}</label>
+              <textarea class="form-input form-textarea" id="e1EntOtoscopyR" rows="2" placeholder="${tr('Tympanic membrane intact, translucent...', 'غشاء الطبلة سليم وشفاف...')}" style="min-height:45px"></textarea>
+            </div>
+            <div class="form-group" style="flex:1">
+              <label>${tr('Otoscopy Left', 'منظار الأذن اليسرى')}</label>
+              <textarea class="form-input form-textarea" id="e1EntOtoscopyL" rows="2" placeholder="${tr('Tympanic membrane intact, translucent...', 'غشاء الطبلة سليم وشفاف...')}" style="min-height:45px"></textarea>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Speech Audiometry & Interpretation -->
+        <div class="flex gap-8 mb-8">
+          <div class="form-group" style="flex:1">
+            <label>${tr('Speech Reception Threshold (SRT) - R/L (dB)', 'عتبة فهم الكلام - يمين/يسار (ديسيبل)')}</label>
+            <div class="flex gap-4">
+              <input class="form-input" type="number" id="e1EntSrtR" placeholder="R">
+              <input class="form-input" type="number" id="e1EntSrtL" placeholder="L">
+            </div>
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>${tr('Speech Discrimination (SD) - R/L (%)', 'تمييز الكلام - يمين/يسار (%)')}</label>
+            <div class="flex gap-4">
+              <input class="form-input" type="number" id="e1EntSdR" min="0" max="100" placeholder="R%">
+              <input class="form-input" type="number" id="e1EntSdL" min="0" max="100" placeholder="L%">
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group mb-8">
+          <label>${tr('Clinical Interpretation', 'التقرير والتشخيص السريري')}</label>
+          <textarea class="form-input form-textarea" id="e1EntInterpretation" rows="2" placeholder="${tr('Normal hearing bilaterally...', 'سمع طبيعي في كلا الأذنين...')}" style="min-height:45px"></textarea>
+        </div>
+
+        <div class="form-group mb-8">
+          <label>${tr('Clinical Notes', 'ملاحظات إضافية')}</label>
+          <input class="form-input" id="e1EntNotes" placeholder="${tr('e.g. Advised ear drops for cerumen', 'مثلاً: وصف قطرات أذن لإزالة الشمع')}">
+        </div>
+        
+        <button class="btn btn-primary btn-sm mb-12 w-full" onclick="e1AddEntExam(${safeId(pid)})">💾 ${tr('Save ENT Examination', 'حفظ فحص الأنف والأذن والحنجرة')}</button>
+      </div>
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">📋 ${tr('ENT History Log', 'سجل الفحوصات السابقة')}</h4>
+        <div id="e1EntHistoryList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  window.e1LoadEntHistoryList(pid);
+};
+
+window.e1EntGetImpairmentGrade = (pta) => {
+  if (pta < 20) return { label: tr('Normal', 'طبيعي'), color: 'badge-success' };
+  if (pta >= 20 && pta < 35) return { label: tr('Mild', 'بسيط'), color: 'badge-info' };
+  if (pta >= 35 && pta < 50) return { label: tr('Moderate', 'متوسط'), color: 'badge-warning' };
+  if (pta >= 50 && pta < 65) return { label: tr('Mod. Severe', 'فوق المتوسط'), color: 'badge-warning' };
+  if (pta >= 65 && pta < 80) return { label: tr('Severe', 'شديد'), color: 'badge-danger' };
+  return { label: tr('Profound', 'شديد جداً'), color: 'badge-danger' };
+};
+
+window.e1EntCalcPta = () => {
+  const getVal = (id) => parseFloat(document.getElementById(id)?.value || NaN);
+  
+  const r500 = getVal('e1EntAcR500');
+  const r1000 = getVal('e1EntAcR1000');
+  const r2000 = getVal('e1EntAcR2000');
+  const r4000 = getVal('e1EntAcR4000');
+  
+  const l500 = getVal('e1EntAcL500');
+  const l1000 = getVal('e1EntAcL1000');
+  const l2000 = getVal('e1EntAcL2000');
+  const l4000 = getVal('e1EntAcL4000');
+  
+  const calc = (vals) => {
+    const valid = vals.filter(v => !isNaN(v));
+    if (!valid.length) return null;
+    return (valid.reduce((sum, v) => sum + v, 0) / valid.length).toFixed(1);
+  };
+  
+  const ptaR = calc([r500, r1000, r2000, r4000]);
+  const ptaL = calc([l500, l1000, l2000, l4000]);
+  
+  const ptaRText = document.getElementById('e1EntPtaR');
+  const ptaLText = document.getElementById('e1EntPtaL');
+  const badgeR = document.getElementById('e1EntGradeR');
+  const badgeL = document.getElementById('e1EntGradeL');
+  
+  if (ptaRText && ptaR !== null) {
+    ptaRText.innerText = ptaR;
+    const grade = window.e1EntGetImpairmentGrade(parseFloat(ptaR));
+    if (badgeR) {
+      badgeR.style.display = 'inline-block';
+      badgeR.innerText = grade.label;
+      badgeR.className = 'badge ' + grade.color;
+    }
+  } else if (ptaRText) {
+    ptaRText.innerText = '-';
+    if (badgeR) badgeR.style.display = 'none';
+  }
+  
+  if (ptaLText && ptaL !== null) {
+    ptaLText.innerText = ptaL;
+    const grade = window.e1EntGetImpairmentGrade(parseFloat(ptaL));
+    if (badgeL) {
+      badgeL.style.display = 'inline-block';
+      badgeL.innerText = grade.label;
+      badgeL.className = 'badge ' + grade.color;
+    }
+  } else if (ptaLText) {
+    ptaLText.innerText = '-';
+    if (badgeL) badgeL.style.display = 'none';
+  }
+};
+
+window.e1LoadEntHistoryList = async (pid) => {
+  const container = document.getElementById('e1EntHistoryList');
+  if (!container) return;
+  try {
+    const records = await API.get('/api/ent/audiograms/patient/' + pid);
+    if (!records.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No ENT records found', 'لا توجد فحوصات مسجلة')}</div>`;
+      return;
+    }
+    container.innerHTML = records.map(r => {
+      // Calc PTAs
+      const getAvg = (vals) => {
+        const valid = vals.filter(v => v !== null && v !== undefined);
+        if (!valid.length) return '-';
+        return (valid.reduce((s, v) => s + parseFloat(v), 0) / valid.length).toFixed(1);
+      };
+      
+      const ptaR = getAvg([r.right_ac_500, r.right_ac_1000, r.right_ac_2000, r.right_ac_4000]);
+      const ptaL = getAvg([r.left_ac_500, r.left_ac_1000, r.left_ac_2000, r.left_ac_4000]);
+      
+      const gradeR = ptaR !== '-' ? window.e1EntGetImpairmentGrade(parseFloat(ptaR)) : null;
+      const gradeL = ptaL !== '-' ? window.e1EntGetImpairmentGrade(parseFloat(ptaL)) : null;
+      
+      return `
+        <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid var(--primary);font-size:12px">
+          <div style="font-weight:700;color:var(--primary);display:flex;justify-content:space-between">
+            <span>📅 ${new Date(r.test_date).toLocaleDateString('ar-SA')}</span>
+            <span>👂 ${tr('Audiometry Record', 'سجل تخطيط السمع')}</span>
+          </div>
+          <div style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:4px">
+            <div>
+              <strong>${tr('Right PTA:', 'معدل اليمنى:')}</strong> ${ptaR} dB
+              ${gradeR ? `<span class="badge ${gradeR.color}" style="margin:0 2px;font-size:9px">${gradeR.label}</span>` : ''}
+            </div>
+            <div>
+              <strong>${tr('Left PTA:', 'معدل اليسرى:')}</strong> ${ptaL} dB
+              ${gradeL ? `<span class="badge ${gradeL.color}" style="margin:0 2px;font-size:9px">${gradeL.label}</span>` : ''}
+            </div>
+            <div><strong>${tr('Tymp. Right:', 'طبلة اليمنى:')}</strong> ${escapeHTML(r.tympanometry_right || '-')}</div>
+            <div><strong>${tr('Tymp. Left:', 'طبلة اليسرى:')}</strong> ${escapeHTML(r.tympanometry_left || '-')}</div>
+            <div><strong>${tr('SRT (R/L):', 'عتبة الكلام:')}</strong> ${r.right_srt || '-'} / ${r.left_srt || '-'} dB</div>
+            <div><strong>${tr('SD (R/L):', 'تمييز الكلام:')}</strong> ${r.right_sd_score || '-'}% / ${r.left_sd_score || '-'}%</div>
+          </div>
+          ${r.otoscopy_right ? `<div style="margin-top:4px;color:var(--text-dim)"><strong>${tr('Otoscopy R:', 'منظار اليمنى:')}</strong> ${escapeHTML(r.otoscopy_right)}</div>` : ''}
+          ${r.otoscopy_left ? `<div style="margin-top:4px;color:var(--text-dim)"><strong>${tr('Otoscopy L:', 'منظار اليسرى:')}</strong> ${escapeHTML(r.otoscopy_left)}</div>` : ''}
+          ${r.interpretation ? `<div style="margin-top:4px;color:var(--text-dim)"><strong>${tr('Interpretation:', 'التشخيص:')}</strong> ${escapeHTML(r.interpretation)}</div>` : ''}
+          ${r.notes ? `<div style="margin-top:4px;color:var(--text-dim)"><strong>${tr('Notes:', 'ملاحظات:')}</strong> ${escapeHTML(r.notes)}</div>` : ''}
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">👨‍⚕️ ${escapeHTML(r.doctor_name || '')}</div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading', 'خطأ في التحميل')}</div>`;
+  }
+};
+
+window.e1AddEntExam = async (pid) => {
+  const getVal = (id) => document.getElementById(id)?.value;
+  
+  try {
+    await API.post('/api/ent/audiograms', {
+      patient_id: pid,
+      right_ac_250: getVal('e1EntAcR250'),
+      right_ac_500: getVal('e1EntAcR500'),
+      right_ac_1000: getVal('e1EntAcR1000'),
+      right_ac_2000: getVal('e1EntAcR2000'),
+      right_ac_4000: getVal('e1EntAcR4000'),
+      right_ac_8000: getVal('e1EntAcR8000'),
+      
+      left_ac_250: getVal('e1EntAcL250'),
+      left_ac_500: getVal('e1EntAcL500'),
+      left_ac_1000: getVal('e1EntAcL1000'),
+      left_ac_2000: getVal('e1EntAcL2000'),
+      left_ac_4000: getVal('e1EntAcL4000'),
+      left_ac_8000: getVal('e1EntAcL8000'),
+      
+      tympanometry_right: getVal('e1EntTympR'),
+      tympanometry_left: getVal('e1EntTympL'),
+      otoscopy_right: getVal('e1EntOtoscopyR'),
+      otoscopy_left: getVal('e1EntOtoscopyL'),
+      
+      right_srt: getVal('e1EntSrtR'),
+      left_srt: getVal('e1EntSrtL'),
+      right_sd_score: getVal('e1EntSdR'),
+      left_sd_score: getVal('e1EntSdL'),
+      
+      interpretation: getVal('e1EntInterpretation'),
+      notes: getVal('e1EntNotes')
+    });
+    
+    showToast(tr('ENT examination saved successfully!', 'تم حفظ فحص الأذن والأنف والحنجرة بنجاح!'));
+    window.e1LoadEntHistoryList(pid);
+    
+    // Reset fields
+    const fields = [
+      'e1EntAcR250', 'e1EntAcR500', 'e1EntAcR1000', 'e1EntAcR2000', 'e1EntAcR4000', 'e1EntAcR8000',
+      'e1EntAcL250', 'e1EntAcL500', 'e1EntAcL1000', 'e1EntAcL2000', 'e1EntAcL4000', 'e1EntAcL8000',
+      'e1EntOtoscopyR', 'e1EntOtoscopyL', 'e1EntSrtR', 'e1EntSrtL', 'e1EntSdR', 'e1EntSdL',
+      'e1EntInterpretation', 'e1EntNotes'
+    ];
+    fields.forEach(f => {
+      const el = document.getElementById(f);
+      if (el) el.value = '';
+    });
+    
+    const ptaRText = document.getElementById('e1EntPtaR');
+    const ptaLText = document.getElementById('e1EntPtaL');
+    if (ptaRText) ptaRText.innerText = '-';
+    if (ptaLText) ptaLText.innerText = '-';
+    const badgeR = document.getElementById('e1EntGradeR');
+    const badgeL = document.getElementById('e1EntGradeL');
+    if (badgeR) badgeR.style.display = 'none';
+    if (badgeL) badgeL.style.display = 'none';
+    
+  } catch (err) {
+    showToast(tr('Error saving ENT examination', 'خطأ في حفظ فحص الأذن والأنف والحنجرة'), 'error');
   }
 };
