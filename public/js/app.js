@@ -2234,6 +2234,7 @@ window.renderE1Panel = async (pid) => {
         <button class="btn btn-sm e1-tab" data-tab="nephrology" onclick="e1SwitchTab('nephrology',${safeId(pid)})">💧 ${tr('Nephrology', 'الكلى والغسيل')}</button>
         <button class="btn btn-sm e1-tab" data-tab="pulmonology" onclick="e1SwitchTab('pulmonology',${safeId(pid)})">🫁 ${tr('Pulmonology', 'الأمراض الصدرية')}</button>
         <button class="btn btn-sm e1-tab" data-tab="rheumatology" onclick="e1SwitchTab('rheumatology',${safeId(pid)})">🦴 ${tr('Rheumatology', 'الروماتيزم والمفاصل')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="neurology" onclick="e1SwitchTab('neurology',${safeId(pid)})">🧠 ${tr('Neurology', 'الأعصاب والدماغ')}</button>
       </div>
       <div id="e1TabBody"></div>
     </div>`;
@@ -2257,6 +2258,7 @@ window.e1SwitchTab = async (tab, pid) => {
   if (tab === 'nephrology') return window.e1RenderNephrology(pid);
   if (tab === 'pulmonology') return window.e1RenderPulmonology(pid);
   if (tab === 'rheumatology') return window.e1RenderRheumatology(pid);
+  if (tab === 'neurology') return window.e1RenderNeurology(pid);
 };
 
 // ---------- Problem List ----------
@@ -15586,5 +15588,188 @@ window.e1AddJointAssessment = async (pid) => {
     document.getElementById('e1RheumNotes').value = '';
   } catch (err) {
     showToast(tr('Error saving assessment', 'خطأ في حفظ التقييم'), 'error');
+  }
+};
+
+// =====================================================================
+// ===== NEUROLOGY MODULE (G07) =====
+// =====================================================================
+
+window.e1RenderNeurology = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1.2;min-width:300px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">🧠 ${tr('Neurological Assessment & GCS Calculator', 'التقييم العصبي وحاسبة مقياس غلاسكو للغيبوبة')}</h4>
+        
+        <!-- GCS Section -->
+        <h5 style="margin:0 0 8px;color:var(--accent,#0ea5e9)">📊 ${tr('Glasgow Coma Scale (GCS)', 'مقياس غلاسكو للغيبوبة (GCS)')}</h5>
+        <div class="flex gap-8 mb-8">
+          <div class="form-group" style="flex:1">
+            <label>${tr('Eye Opening (E: 1-4)', 'استجابة العين (E: 1-4)')}</label>
+            <select class="form-input" id="e1NeuroGCSEye" onchange="e1NeuroCalcGCS()">
+              <option value="">-- E --</option>
+              <option value="4">4 - ${tr('Spontaneous', 'تلقائي')}</option>
+              <option value="3">3 - ${tr('To sound / speech', 'للصوت / الكلام')}</option>
+              <option value="2">2 - ${tr('To pressure / pain', 'للألم / الضغط')}</option>
+              <option value="1">1 - ${tr('None', 'لا يوجد استجابة')}</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>${tr('Verbal Response (V: 1-5)', 'الاستجابة اللفظية (V: 1-5)')}</label>
+            <select class="form-input" id="e1NeuroGCSVerbal" onchange="e1NeuroCalcGCS()">
+              <option value="">-- V --</option>
+              <option value="5">5 - ${tr('Oriented', 'متجاوب ومتزن')}</option>
+              <option value="4">4 - ${tr('Confused', 'مشوش')}</option>
+              <option value="3">3 - ${tr('Inappropriate words', 'كلمات غير مفهومة')}</option>
+              <option value="2">2 - ${tr('Incomprehensible sounds', 'أصوات مبهمة')}</option>
+              <option value="1">1 - ${tr('None', 'لا يوجد استجابة')}</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="flex gap-8 mb-8">
+          <div class="form-group" style="flex:1">
+            <label>${tr('Motor Response (M: 1-6)', 'الاستجابة الحركية (M: 1-6)')}</label>
+            <select class="form-input" id="e1NeuroGCSMotor" onchange="e1NeuroCalcGCS()">
+              <option value="">-- M --</option>
+              <option value="6">6 - ${tr('Obeys commands', 'يطيع الأوامر')}</option>
+              <option value="5">5 - ${tr('Localises pain', 'يحدد مكان الألم')}</option>
+              <option value="4">4 - ${tr('Normal flexion / Withdraws', 'سحب العضو عند الألم')}</option>
+              <option value="3">3 - ${tr('Abnormal flexion / Decorticate', 'انثناء غير طبيعي')}</option>
+              <option value="2">2 - ${tr('Extension / Decerebrate', 'بسط غير طبيعي للمفاصل')}</option>
+              <option value="1">1 - ${tr('None', 'لا يوجد استجابة')}</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>${tr('Total GCS Score (3-15)', 'إجمالي نقاط GCS (3-15)')}</label>
+            <input class="form-input" type="text" id="e1NeuroGCSTotal" placeholder="Auto-calculated" readonly style="background:var(--hover,#f8f9fa);font-weight:700">
+          </div>
+        </div>
+
+        <!-- NIHSS & Reflexes -->
+        <h5 style="margin:12px 0 8px;color:var(--accent,#0ea5e9)">⚡️ ${tr('Stroke & Reflexes', 'تقييم السكتة الدماغية والمنعكسات')}</h5>
+        <div class="flex gap-8 mb-8">
+          <div class="form-group" style="flex:1">
+            <label>${tr('NIH Stroke Scale (0-42)', 'مقياس السكتة الدماغية NIHSS (0-42)')}</label>
+            <input class="form-input" type="number" id="e1NeuroNIHSS" min="0" max="42" placeholder="0-42">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>${tr('Deep Tendon Reflexes', 'منعكسات الأوتار العميقة')}</label>
+            <select class="form-input" id="e1NeuroReflexes">
+              <option value="Normal">${tr('Normal (2+)', 'طبيعي (2+)')}</option>
+              <option value="Hyperreflexia">${tr('Hyperreflexia (3+ / 4+)', 'نشاط مفرط (3+ / 4+)')}</option>
+              <option value="Hyporeflexia">${tr('Hyporeflexia (1+)', 'نشاط منخفض (1+)')}</option>
+              <option value="Absent">${tr('Absent (0)', 'غائب بالكامل (0)')}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group mb-8">
+          <label>${tr('Clinical Notes / Findings', 'ملاحظات سريرية / نتائج الفحص')}</label>
+          <textarea class="form-input form-textarea" id="e1NeuroNotes" rows="2" placeholder="${tr('Describe cranial nerves, motor/sensory deficits...', 'اكتب تفاصيل الأعصاب القحفية، العجز الحركي أو الحسي...')}" style="min-height:50px"></textarea>
+        </div>
+        <button class="btn btn-primary btn-sm mb-12 w-full" onclick="e1AddNeurologyAssessment(${safeId(pid)})">💾 ${tr('Save Neurology Assessment', 'حفظ التقييم العصبي')}</button>
+      </div>
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">📋 ${tr('Assessment History', 'سجل التقييمات السابقة')}</h4>
+        <div id="e1NeuroList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  window.e1LoadNeuroList(pid);
+};
+
+window.e1NeuroCalcGCS = () => {
+  const eye = parseInt(document.getElementById('e1NeuroGCSEye')?.value);
+  const verbal = parseInt(document.getElementById('e1NeuroGCSVerbal')?.value);
+  const motor = parseInt(document.getElementById('e1NeuroGCSMotor')?.value);
+  const scoreField = document.getElementById('e1NeuroGCSTotal');
+  
+  if (scoreField) {
+    if (!isNaN(eye) && !isNaN(verbal) && !isNaN(motor)) {
+      const score = eye + verbal + motor;
+      let status = '';
+      if (score <= 8) status = ` (${tr('Severe / Coma', 'غيبوبة / إصابة شديدة')})`;
+      else if (score <= 12) status = ` (${tr('Moderate', 'إصابة متوسطة')})`;
+      else status = ` (${tr('Mild', 'إصابة طفيفة')})`;
+      
+      scoreField.value = `${score} / 15${status}`;
+    } else {
+      scoreField.value = '';
+    }
+  }
+};
+
+window.e1LoadNeuroList = async (pid) => {
+  const container = document.getElementById('e1NeuroList');
+  if (!container) return;
+  try {
+    const records = await API.get('/api/neurology/assessments/patient/' + pid);
+    if (!records.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No neurological assessments found', 'لا توجد تقييمات عصبية مسجلة')}</div>`;
+      return;
+    }
+    container.innerHTML = records.map(r => {
+      const gcs = r.gcs_total_score || 0;
+      let border = '4px solid #10b981';
+      if (gcs <= 8) border = '4px solid #ef4444';
+      else if (gcs <= 12) border = '4px solid #f59e0b';
+      
+      return `
+        <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right: ${border};font-size:12px">
+          <div style="font-weight:700;color:var(--primary);display:flex;justify-content:space-between">
+            <span>📅 ${new Date(r.assessment_date).toLocaleDateString('ar-SA')}</span>
+            <span style="font-weight:700;color:var(--accent,#0ea5e9)">GCS: ${gcs}/15</span>
+          </div>
+          <div style="margin-top:4px;display:grid;grid-template-columns:1fr 1fr;gap:4px">
+            <div><strong>${tr('GCS (E,V,M):', 'عناصر مقياس غلاسكو:')}</strong> ${r.gcs_eye || 1},${r.gcs_verbal || 1},${r.gcs_motor || 1}</div>
+            <div><strong>${tr('NIHSS Score:', 'مقياس السكتة الدماغية:')}</strong> ${r.nihss_score !== null ? r.nihss_score : '-'}</div>
+            <div style="grid-column: span 2"><strong>${tr('Reflexes:', 'المنعكسات العميقة:')}</strong> ${r.reflexes_status || 'Normal'}</div>
+          </div>
+          ${r.notes ? `<div style="margin-top:4px;color:var(--text-dim)"><strong>${tr('Notes:', 'ملاحظات سريرية:')}</strong> ${escapeHTML(r.notes)}</div>` : ''}
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">👨‍⚕️ ${escapeHTML(r.doctor_name || '')}</div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading', 'خطأ في التحميل')}</div>`;
+  }
+};
+
+window.e1AddNeurologyAssessment = async (pid) => {
+  const eye = document.getElementById('e1NeuroGCSEye')?.value;
+  const verbal = document.getElementById('e1NeuroGCSVerbal')?.value;
+  const motor = document.getElementById('e1NeuroGCSMotor')?.value;
+  const nihss = document.getElementById('e1NeuroNIHSS')?.value;
+  const reflexes = document.getElementById('e1NeuroReflexes')?.value;
+  const notes = document.getElementById('e1NeuroNotes')?.value;
+  if (!eye || !verbal || !motor) {
+    showToast(tr('Please select all GCS components', 'يرجى اختيار جميع عناصر مقياس غلاسكو للغيبوبة'), 'error');
+    return;
+  }
+  try {
+    await API.post('/api/neurology/assessments', {
+      patient_id: pid,
+      gcs_eye: parseInt(eye),
+      gcs_verbal: parseInt(verbal),
+      gcs_motor: parseInt(motor),
+      nihss_score: nihss ? parseInt(nihss) : null,
+      reflexes_status: reflexes,
+      notes: notes
+    });
+    showToast(tr('Neurological assessment saved successfully!', 'تم حفظ التقييم العصبي بنجاح!'));
+    window.e1LoadNeuroList(pid);
+    document.getElementById('e1NeuroGCSEye').value = '';
+    document.getElementById('e1NeuroGCSVerbal').value = '';
+    document.getElementById('e1NeuroGCSMotor').value = '';
+    document.getElementById('e1NeuroGCSTotal').value = '';
+    document.getElementById('e1NeuroNIHSS').value = '';
+    document.getElementById('e1NeuroNotes').value = '';
+  } catch (err) {
+    showToast(tr('Error saving assessment', 'خطأ في حفظ التقييم العصبي'), 'error');
   }
 };
