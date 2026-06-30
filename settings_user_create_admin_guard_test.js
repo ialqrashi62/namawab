@@ -20,10 +20,15 @@ const body = rest.slice(0, next > -1 ? next : 4000);
 // (runs before the handler; identity from session). Same Admin-only invariant, centralized + tested.
 ok(/requireTenantAdmin\(\{[^}]*action:\s*'BLOCKED_USER_CREATE'/.test(body), "guard: requireTenantAdmin (Admin-only) bound to the route");
 ok(/BLOCKED_USER_CREATE/.test(body), "audit action on blocked create is preserved");
-// the Admin gate is middleware -> it executes (and 403s) BEFORE the INSERT INTO system_users
+// the Admin gate is middleware -> it executes (and 403s) BEFORE user creation runs.
+// Batch 4D: the actual INSERT moved into user_provisioning.createSystemUserWithTenantLink; the route
+// invokes it only after the guard chain. Assert the guard precedes the creation CALL.
 const guardIdx = body.indexOf('requireTenantAdmin');
-const insertIdx = body.indexOf('INSERT INTO system_users');
-ok(guardIdx > -1 && insertIdx > -1 && guardIdx < insertIdx, "admin guard precedes INSERT INTO system_users");
+const createIdx = body.indexOf('createSystemUserWithTenantLink');
+ok(guardIdx > -1 && createIdx > -1 && guardIdx < createIdx, "admin guard precedes the user-creation call");
+// the real INSERT lives in the helper (invoked only after the guard)
+const upSrc = fs.readFileSync(require('path').join(__dirname, 'user_provisioning.js'), 'utf8');
+ok(/INSERT INTO system_users/.test(upSrc), "user creation INSERT is in user_provisioning helper");
 // identity must come from session, never req.body (no req.body.role decides authz)
 ok(/requireRole\('settings'\)/.test(body), "still layered behind requireRole('settings')");
 // the shared guard module is what returns 403 for non-admins (behavioral proof in rbac_guards_test.js)

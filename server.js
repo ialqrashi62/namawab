@@ -397,6 +397,8 @@ const { requireTenantAdmin, requireSuperAdmin } = makeGuards({ logAudit });
 // enforce blocks user creation at the plan limit. Fail-open on any resolver/count error. NOT activated live.
 const { makeUserLimitGuard } = require('./entitlements');
 const userLimitGuard = makeUserLimitGuard({ pool, logAudit, getActor: (req) => req.session && req.session.user });
+// Batch 4D: atomic user creation + tenant linkage (closes the max_users count gap).
+const { createSystemUserWithTenantLink } = require('./user_provisioning');
 
 // ===== GATE3-M1: automatic audit logging for /api mutations (INERT unless AUDIT_ALL_MUTATIONS=true) =====
 // Complements the explicit logAudit() calls. Default OFF -> zero behavior change until enabled on staging.
@@ -3494,18 +3496,31 @@ app.get('/api/settings/users', requireAuth, requireRole('settings'), async (req,
 // ===== P0 GUARD: creating system users is Admin-only (unified requireTenantAdmin; mirrors PUT/DELETE) =====
 // 'settings' perm is held by non-admin roles (e.g. IT); without the Admin gate they could create an Admin account.
 app.post('/api/settings/users', requireAuth, requireRole('settings'), requireTenantAdmin({ action: 'BLOCKED_USER_CREATE', module: 'Settings' }), userLimitGuard, async (req, res) => {
+    const { username, password, display_name, role, speciality, permissions, commission_type, commission_value } = req.body;
+    const passCheck = validatePasswordPolicy(password, { username });
+    if (!passCheck.valid) {
+        return res.status(400).json({ error: passCheck.error, error_ar: passCheck.error_ar });
+    }
+    // ===== Batch 4D: create the user AND link it to the actor's tenant atomically (closes max_users gap). =====
+    // tenantId is from the SESSION only (never the body). Linkage + insert share one transaction so the
+    // entitlements count (user_tenants) reflects the new user, and a link failure rolls back (no orphan).
+    const tenantId = req.session.user && req.session.user.tenantId;
+    const hash = await bcrypt.hash(password, 10);
+    let client;
     try {
-        const { username, password, display_name, role, speciality, permissions, commission_type, commission_value } = req.body;
-        const passCheck = validatePasswordPolicy(password, { username });
-        if (!passCheck.valid) {
-            return res.status(400).json({ error: passCheck.error, error_ar: passCheck.error_ar });
-        }
-        const hash = await bcrypt.hash(password, 10);
-        const result = await pool.query('INSERT INTO system_users (username, password_hash, display_name, role, speciality, permissions, commission_type, commission_value) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
-            [username, hash, display_name || '', role || 'Reception', speciality || '', permissions || '', commission_type || 'percentage', parseFloat(commission_value) || 0]);
-        logAudit(req.session.user.id, req.session.user.display_name, 'CREATE_USER', 'Settings', `Admin created user ${username} (role=${role})`, req.ip);
-        res.json((await pool.query('SELECT id, username, display_name, role, speciality, permissions, commission_type, commission_value, is_active, created_at FROM system_users WHERE id=$1', [result.rows[0].id])).rows[0]);
-    } catch (e) { console.error('POST /api/settings/users error:', e); res.status(500).json({ error: 'Server error' }); }
+        client = await pool.connect();
+        const row = await createSystemUserWithTenantLink(client, {
+            user: { username, password_hash: hash, display_name, role, speciality, permissions, commission_type, commission_value },
+            tenantId
+        });
+        logAudit(req.session.user.id, req.session.user.display_name, 'CREATE_USER', 'Settings', `Admin created user ${username} (role=${role})` + (tenantId ? ` linked tenant#${tenantId}` : ' (no tenant context)'), req.ip);
+        res.json(row);
+    } catch (e) {
+        console.error('POST /api/settings/users error:', e);
+        res.status(500).json({ error: 'Server error' });
+    } finally {
+        if (client) client.release();
+    }
 });
 
 app.put('/api/settings/users/:id', requireAuth, async (req, res) => {
