@@ -2229,6 +2229,7 @@ window.renderE1Panel = async (pid) => {
         <button class="btn btn-sm e1-tab" data-tab="cpoe" onclick="e1SwitchTab('cpoe',${safeId(pid)})">🧾 ${tr('CPOE Orders', 'أوامر CPOE')}</button>
         <button class="btn btn-sm e1-tab" data-tab="soap" onclick="e1SwitchTab('soap',${safeId(pid)})">📝 ${tr('SOAP Note', 'ملاحظة SOAP')}</button>
         <button class="btn btn-sm e1-tab" data-tab="cardiology" onclick="e1SwitchTab('cardiology',${safeId(pid)})">❤️ ${tr('Cardiology', 'طب القلب')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="gastro" onclick="e1SwitchTab('gastro',${safeId(pid)})">🤢 ${tr('Gastroenterology', 'الجهاز الهضمي')}</button>
       </div>
       <div id="e1TabBody"></div>
     </div>`;
@@ -2247,6 +2248,7 @@ window.e1SwitchTab = async (tab, pid) => {
   if (tab === 'cpoe') return window.e1RenderCpoe(pid);
   if (tab === 'soap') return window.e1RenderSoap(pid);
   if (tab === 'cardiology') return window.e1RenderCardiology(pid);
+  if (tab === 'gastro') return window.e1RenderGastro(pid);
 };
 
 // ---------- Problem List ----------
@@ -14823,5 +14825,196 @@ window.draw12LeadECG = (canvasId, leadsData) => {
       }
       ctx.stroke();
     }
+  }
+};
+
+// =====================================================================
+// ===== GASTROENTEROLOGY DEPARTMENT MODULE (G02) =====
+// =====================================================================
+
+window.e1RenderGastro = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1.2;min-width:300px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">🤢 ${tr('Endoscopy Reports', 'تقارير المناظير')}</h4>
+        <div class="form-group mb-8">
+          <label>${tr('Endoscopy Type', 'نوع المنظار')}</label>
+          <select class="form-input" id="e1GastroEndoType">
+            <option value="Gastroscopy">${tr('Gastroscopy', 'منظار معدة - Gastroscopy')}</option>
+            <option value="Colonoscopy">${tr('Colonoscopy', 'منظار قولون - Colonoscopy')}</option>
+            <option value="ERCP">${tr('ERCP', 'منظار القنوات المرارية - ERCP')}</option>
+          </select>
+        </div>
+        <div class="form-group mb-8">
+          <label>${tr('Indications', 'دواعي الفحص')}</label>
+          <input class="form-input" id="e1GastroEndoIndications" placeholder="${tr('e.g. Dyspepsia, bleeding...', 'مثلاً: عسر هضم، نزيف...')}">
+        </div>
+        <div class="form-group mb-8">
+          <label>${tr('Findings', 'النتائج')}</label>
+          <textarea class="form-input form-textarea" id="e1GastroEndoFindings" rows="3" placeholder="${tr('Describe endoscopy findings...', 'اكتب نتائج فحص المنظار...')}" style="min-height:70px"></textarea>
+        </div>
+        <div class="form-group mb-8">
+          <label>${tr('Complications', 'المضاعفات')}</label>
+          <input class="form-input" id="e1GastroEndoComplications" placeholder="${tr('None, or specify...', 'لا يوجد، أو حدد...')}">
+        </div>
+        <div class="form-group mb-8">
+          <label>${tr('Recommendations', 'التوصيات')}</label>
+          <textarea class="form-input form-textarea" id="e1GastroEndoRecs" rows="2" placeholder="${tr('Clinical recommendations...', 'التوصيات الطبية...')}" style="min-height:50px"></textarea>
+        </div>
+        <button class="btn btn-primary btn-sm mb-12 w-full" onclick="e1AddEndoscopyReport(${safeId(pid)})">💾 ${tr('Save Endoscopy Report', 'حفظ تقرير المنظار')}</button>
+        <div id="e1GastroEndoList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">🔬 ${tr('Biopsy Tracking', 'تتبع عينات الخزعة')}</h4>
+        <div class="form-group mb-8">
+          <label>${tr('Specimen Source', 'مصدر العينة')}</label>
+          <input class="form-input" id="e1GastroBiopsySource" placeholder="${tr('e.g. Gastric Antrum, Duodenum...', 'مثلاً: جدار المعدة، الاثني عشر...')}">
+        </div>
+        <div class="form-group mb-8">
+          <label>${tr('Clinical Notes', 'ملاحظات سريرية')}</label>
+          <textarea class="form-input form-textarea" id="e1GastroBiopsyNotes" rows="2" placeholder="${tr('Clinical context...', 'السياق السريري للعينة...')}" style="min-height:50px"></textarea>
+        </div>
+        <button class="btn btn-warning btn-sm mb-12 w-full" onclick="e1AddBiopsyRequest(${safeId(pid)})">🔬 ${tr('Request Biopsy', 'طلب تحليل خزعة')}</button>
+        <div id="e1GastroBiopsiesList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  window.e1LoadEndoscopiesList(pid);
+  window.e1LoadBiopsiesList(pid);
+};
+
+window.e1LoadEndoscopiesList = async (pid) => {
+  const container = document.getElementById('e1GastroEndoList');
+  if (!container) return;
+  try {
+    const reports = await API.get('/api/gastro/endoscopy/patient/' + pid);
+    if (!reports.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No endoscopy reports found', 'لا توجد تقارير مناظير مسجلة')}</div>`;
+      return;
+    }
+    container.innerHTML = reports.map(r => `
+      <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid #8b5cf6;font-size:12px">
+        <div style="font-weight:700;color:var(--primary);display:flex;justify-content:space-between">
+          <span>🤢 ${escapeHTML(r.endoscopy_type)}</span>
+          <span style="font-weight:400;color:var(--text-dim)">${new Date(r.created_at).toLocaleDateString('ar-SA')}</span>
+        </div>
+        <div style="margin-top:4px"><strong>${tr('Indications:', 'الدواعي:')}</strong> ${escapeHTML(r.indications || '-')}</div>
+        <div style="margin-top:2px"><strong>${tr('Findings:', 'النتائج:')}</strong> ${escapeHTML(r.findings)}</div>
+        ${r.complications ? `<div style="margin-top:2px;color:#dc2626"><strong>${tr('Complications:', 'المضاعفات:')}</strong> ${escapeHTML(r.complications)}</div>` : ''}
+        ${r.recommendations ? `<div style="margin-top:2px"><strong>${tr('Recs:', 'التوصيات:')}</strong> ${escapeHTML(r.recommendations)}</div>` : ''}
+        <div style="font-size:10px;color:var(--text-dim);margin-top:4px">👨‍⚕️ ${escapeHTML(r.doctor_name || '')}</div>
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading', 'خطأ في التحميل')}</div>`;
+  }
+};
+
+window.e1LoadBiopsiesList = async (pid) => {
+  const container = document.getElementById('e1GastroBiopsiesList');
+  if (!container) return;
+  try {
+    const biopsies = await API.get('/api/gastro/biopsy/patient/' + pid);
+    if (!biopsies.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No biopsy samples found', 'لا توجد طلبات عينات مسجلة')}</div>`;
+      return;
+    }
+    container.innerHTML = biopsies.map(b => {
+      const isPending = b.status === 'Pending';
+      const statusBadge = isPending
+        ? `<span class="badge badge-warning">⏳ ${tr('Pending', 'بالانتظار')}</span>`
+        : `<span class="badge badge-success">✅ ${tr('Resulted', 'مكتمل')}</span>`;
+      
+      const simulateBtn = isPending
+        ? `<button class="btn btn-sm btn-secondary mt-8" onclick="e1SimulateBiopsyResult(${safeId(b.id)}, ${safeId(pid)})">🧪 ${tr('Simulate Result', 'توليد نتيجة مخبرية')}</button>`
+        : '';
+        
+      return `
+        <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid ${isPending ? '#f59e0b' : '#10b981'};font-size:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <strong>🔬 ${escapeHTML(b.specimen_source)}</strong>
+            ${statusBadge}
+          </div>
+          ${b.clinical_notes ? `<div style="margin-top:4px;color:var(--text-dim)"><strong>${tr('Notes:', 'ملاحظات:')}</strong> ${escapeHTML(b.clinical_notes)}</div>` : ''}
+          ${b.result_findings ? `<div style="margin-top:6px;padding:6px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;color:#16a34a"><strong>${tr('Pathology Result:', 'نتيجة الباثولوجي:')}</strong> ${escapeHTML(b.result_findings)}</div>` : ''}
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">⏱️ ${new Date(b.created_at).toLocaleString('ar-SA')}</div>
+          ${simulateBtn}
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading', 'خطأ في التحميل')}</div>`;
+  }
+};
+
+window.e1AddEndoscopyReport = async (pid) => {
+  const type = document.getElementById('e1GastroEndoType')?.value;
+  const indications = document.getElementById('e1GastroEndoIndications')?.value;
+  const findings = document.getElementById('e1GastroEndoFindings')?.value;
+  const complications = document.getElementById('e1GastroEndoComplications')?.value;
+  const recs = document.getElementById('e1GastroEndoRecs')?.value;
+  
+  if (!findings || !findings.trim()) {
+    showToast(tr('Enter findings', 'يرجى إدخال النتائج'), 'error');
+    return;
+  }
+  try {
+    await API.post('/api/gastro/endoscopy', {
+      patient_id: pid,
+      endoscopy_type: type,
+      indications: indications,
+      findings: findings,
+      complications: complications,
+      recommendations: recs
+    });
+    showToast(tr('Endoscopy report saved!', 'تم حفظ تقرير المنظار بنجاح!'));
+    window.e1LoadEndoscopiesList(pid);
+    document.getElementById('e1GastroEndoIndications').value = '';
+    document.getElementById('e1GastroEndoFindings').value = '';
+    document.getElementById('e1GastroEndoComplications').value = '';
+    document.getElementById('e1GastroEndoRecs').value = '';
+  } catch (err) {
+    showToast(tr('Error saving report', 'خطأ في حفظ تقرير المنظار'), 'error');
+  }
+};
+
+window.e1AddBiopsyRequest = async (pid) => {
+  const source = document.getElementById('e1GastroBiopsySource')?.value;
+  const notes = document.getElementById('e1GastroBiopsyNotes')?.value;
+  
+  if (!source || !source.trim()) {
+    showToast(tr('Enter specimen source', 'يرجى إدخال مصدر العينة'), 'error');
+    return;
+  }
+  try {
+    await API.post('/api/gastro/biopsy', {
+      patient_id: pid,
+      specimen_source: source,
+      clinical_notes: notes
+    });
+    showToast(tr('Biopsy requested successfully!', 'تم طلب الخزعة بنجاح!'));
+    window.e1LoadBiopsiesList(pid);
+    document.getElementById('e1GastroBiopsySource').value = '';
+    document.getElementById('e1GastroBiopsyNotes').value = '';
+  } catch (err) {
+    showToast(tr('Error requesting biopsy', 'خطأ في طلب الخزعة'), 'error');
+  }
+};
+
+window.e1SimulateBiopsyResult = async (id, pid) => {
+  try {
+    const result_findings = tr(
+      'Chronic superficial gastritis. No dysplasia or malignancy detected. Helicobacter pylori: Positive (+).',
+      'التهاب مزمن سطحي في المعدة. لا توجد خلايا سرطانية أو غير طبيعية. جرثومة المعدة: إيجابي (+).'
+    );
+    await API.put(`/api/gastro/biopsy/${id}/result`, { result_findings });
+    showToast(tr('Biopsy result recorded!', 'تم تسجيل نتيجة الخزعة بنجاح! ✅'));
+    window.e1LoadBiopsiesList(pid);
+  } catch (err) {
+    showToast(tr('Error recording result', 'خطأ في تسجيل النتيجة'), 'error');
   }
 };
