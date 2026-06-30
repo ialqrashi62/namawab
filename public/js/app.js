@@ -9328,7 +9328,10 @@ window.loadPatientAccount = async () => {
         <div class="card mb-16"><div class="card-title">🧾 ${tr('All Invoices', 'جميع الفواتير')} (${data.invoices.length})</div>
         ${makeTable([tr('Type', 'النوع'), tr('Description', 'الوصف'), tr('Amount', 'المبلغ'), tr('Status', 'الحالة'), tr('Date', 'التاريخ'), tr('Actions', 'إجراءات')],
       data.invoices.map(i => ({ cells: [i.service_type || '', i.description || '', `${i.total} SAR`, i.paid ? badge(tr('Paid', 'مدفوع'), 'success') : badge(tr('Unpaid', 'غير مدفوع'), 'danger'), i.created_at?.split('T')[0] || ''], id: i.id, paid: i.paid })),
-      (row) => !row.paid ? `<button class="btn btn-sm btn-success" onclick="payInvoicePA(${safeId(row.id)})">💵 ${tr('Pay', 'تسديد')}</button>` : `<span class="badge badge-success">✅</span>`
+      (row) => !row.paid ? `
+        <button class="btn btn-sm btn-success" onclick="payInvoicePA(${safeId(row.id)})">💵 ${tr('Cash', 'كاش')}</button>
+        <button class="btn btn-sm btn-info" onclick="payInvoiceMoyasar(${safeId(row.id)})">💳 ${tr('Moyasar', 'ميسر')}</button>
+      ` : `<span class="badge badge-success">✅</span>`
     )}</div>
         <div style="display:flex;gap:8px;margin-top:12px">
           <button class="btn btn-primary" onclick="printPatientStatement(${safeId(pid)})">🖨️ ${tr('Print Statement', 'طباعة كشف الحساب')}</button>
@@ -9339,6 +9342,29 @@ window.loadPatientAccount = async () => {
 window.payInvoicePA = async (id) => {
   try { await API.put(`/api/invoices/${id}/pay`, { payment_method: 'Cash' }); showToast(tr('Paid!', 'تم الدفع!')); loadPatientAccount(); }
   catch (e) { showToast(tr('Error', 'خطأ'), 'error'); }
+};
+window.payInvoiceMoyasar = async (id) => {
+  try {
+    showToast(tr('Initiating payment...', 'جاري تحضير عملية الدفع...'));
+    const res = await API.post('/api/payments/moyasar/initiate', { invoiceId: id });
+    if (res && res.id) {
+      const width = 500, height = 600;
+      const left = (screen.width - width) / 2;
+      const top = (screen.height - height) / 2;
+      const win = window.open('/api/payments/moyasar/callback?payment_id=' + res.id, 'MoyasarPayment', `width=${width},height=${height},top=${top},left=${left}`);
+      const timer = setInterval(() => {
+        if (!win || win.closed) {
+          clearInterval(timer);
+          showToast(tr('Payment completed or window closed', 'تم الدفع أو تم إغلاق نافذة السداد'));
+          loadPatientAccount();
+        }
+      }, 1000);
+    } else {
+      showToast(tr('Failed to initiate payment', 'فشل في بدء عملية الدفع'), 'error');
+    }
+  } catch (e) {
+    showToast(tr('Error', 'خطأ'), 'error');
+  }
 };
 
 async function renderReports(el) {
