@@ -2238,6 +2238,7 @@ window.renderE1Panel = async (pid) => {
         <button class="btn btn-sm e1-tab" data-tab="ophthalmology" onclick="e1SwitchTab('ophthalmology',${safeId(pid)})">👁️ ${tr('Ophthalmology', 'طب وجراحة العيون')}</button>
         <button class="btn btn-sm e1-tab" data-tab="ent" onclick="e1SwitchTab('ent',${safeId(pid)})">👂 ${tr('ENT', 'الأذن والأنف والحنجرة')}</button>
         <button class="btn btn-sm e1-tab" data-tab="plastic_burns" onclick="e1SwitchTab('plastic_burns',${safeId(pid)})">🔥 ${tr('Plastic & Burns', 'التجميل والحروق')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="intensive_care" onclick="e1SwitchTab('intensive_care',${safeId(pid)})">🏥 ${tr('Intensive Care', 'العناية المركزة')}</button>
       </div>
       <div id="e1TabBody"></div>
     </div>`;
@@ -2265,6 +2266,7 @@ window.e1SwitchTab = async (tab, pid) => {
   if (tab === 'ophthalmology') return window.e1RenderOphthalmology(pid);
   if (tab === 'ent') return window.e1RenderEnt(pid);
   if (tab === 'plastic_burns') return window.e1RenderPlasticBurns(pid);
+  if (tab === 'intensive_care') return window.e1RenderIntensiveCare(pid);
 };
 
 // ---------- Problem List ----------
@@ -16903,5 +16905,458 @@ window.e1AddClinicalPhoto = async (pid) => {
     
   } catch (err) {
     showToast(tr('Error registering clinical photo', 'خطأ في تسجيل بيانات الصورة السريرية'), 'error');
+  }
+};
+};
+
+// =====================================================================
+// ===== INTENSIVE CARE MODULE (G17) =====
+// =====================================================================
+
+window.e1RenderIntensiveCare = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1.5;min-width:320px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">🏥 ${tr('ICU Clinical Severity Scores', 'مؤشرات خطورة العناية المركزة')}</h4>
+        
+        <!-- APACHE II Score Section -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">🩺 ${tr('APACHE II Score Calculator', 'حساب مؤشر APACHE II')}</legend>
+          
+          <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:8px;margin-bottom:12px">
+            <div class="form-group">
+              <label>${tr('Temperature (°C)', 'درجة الحرارة (°م)')}</label>
+              <select class="form-input" id="e1IcuTemp" onchange="e1IcuCalcApache()">
+                <option value="0">36°C - 38.4°C (0)</option>
+                <option value="1">38.5°C - 38.9°C (+1)</option>
+                <option value="3">39.0°C - 40.9°C (+3)</option>
+                <option value="4">≥41°C (+4)</option>
+                <option value="1">34°C - 35.9°C (+1)</option>
+                <option value="2">32°C - 33.9°C (+2)</option>
+                <option value="3">30°C - 31.9°C (+3)</option>
+                <option value="4">≤29.9°C (+4)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Mean Arterial Pressure (MAP)', 'متوسط ضغط الدم الشرياني (MAP)')}</label>
+              <select class="form-input" id="e1IcuMap" onchange="e1IcuCalcApache()">
+                <option value="0">70 - 109 mmHg (0)</option>
+                <option value="2">110 - 129 mmHg (+2)</option>
+                <option value="3">130 - 159 mmHg (+3)</option>
+                <option value="4">≥160 mmHg (+4)</option>
+                <option value="2">50 - 69 mmHg (+2)</option>
+                <option value="4">≤49 mmHg (+4)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Heart Rate (bpm)', 'نبضات القلب (نبضة/دقيقة)')}</label>
+              <select class="form-input" id="e1IcuHr" onchange="e1IcuCalcApache()">
+                <option value="0">70 - 109 bpm (0)</option>
+                <option value="2">110 - 139 bpm (+2)</option>
+                <option value="3">140 - 179 bpm (+3)</option>
+                <option value="4">≥180 bpm (+4)</option>
+                <option value="2">55 - 69 bpm (+2)</option>
+                <option value="3">40 - 54 bpm (+3)</option>
+                <option value="4">≤39 bpm (+4)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Respiratory Rate (bpm)', 'معدل التنفس (نفس/دقيقة)')}</label>
+              <select class="form-input" id="e1IcuRr" onchange="e1IcuCalcApache()">
+                <option value="0">12 - 24 bpm (0)</option>
+                <option value="1">25 - 34 bpm (+1)</option>
+                <option value="3">35 - 49 bpm (+3)</option>
+                <option value="4">≥50 bpm (+4)</option>
+                <option value="1">10 - 11 bpm (+1)</option>
+                <option value="2">6 - 9 bpm (+2)</option>
+                <option value="4">≤5 bpm (+4)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Oxygenation (PaO2 mmHg)', 'أكسجة الدم (PaO2)')}</label>
+              <select class="form-input" id="e1IcuPao2" onchange="e1IcuCalcApache()">
+                <option value="0">≥70 mmHg (0)</option>
+                <option value="1">61 - 69 mmHg (+1)</option>
+                <option value="3">55 - 60 mmHg (+3)</option>
+                <option value="4">&lt;55 mmHg (+4)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Arterial pH', 'حموضة الدم (pH)')}</label>
+              <select class="form-input" id="e1IcuPh" onchange="e1IcuCalcApache()">
+                <option value="0">7.33 - 7.49 (0)</option>
+                <option value="1">7.50 - 7.59 (+1)</option>
+                <option value="3">7.60 - 7.69 (+3)</option>
+                <option value="4">≥7.70 (+4)</option>
+                <option value="2">7.25 - 7.32 (+2)</option>
+                <option value="3">7.15 - 7.24 (+3)</option>
+                <option value="4">&lt;7.15 (+4)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Serum Sodium (Na+ mEq/L)', 'صوديوم الدم (Sodium)')}</label>
+              <select class="form-input" id="e1IcuNa" onchange="e1IcuCalcApache()">
+                <option value="0">130 - 149 mEq/L (0)</option>
+                <option value="1">150 - 154 mEq/L (+1)</option>
+                <option value="2">155 - 159 mEq/L (+2)</option>
+                <option value="4">≥160 mEq/L (+4)</option>
+                <option value="2">120 - 129 mEq/L (+2)</option>
+                <option value="3">111 - 119 mEq/L (+3)</option>
+                <option value="4">≤110 mEq/L (+4)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Serum Potassium (K+ mEq/L)', 'بوتاسيوم الدم (Potassium)')}</label>
+              <select class="form-input" id="e1IcuK" onchange="e1IcuCalcApache()">
+                <option value="0">3.5 - 5.4 mEq/L (0)</option>
+                <option value="1">5.5 - 5.9 mEq/L (+1)</option>
+                <option value="3">6.0 - 6.9 mEq/L (+3)</option>
+                <option value="4">≥7.0 mEq/L (+4)</option>
+                <option value="1">3.0 - 3.4 mEq/L (+1)</option>
+                <option value="2">2.5 - 2.9 mEq/L (+2)</option>
+                <option value="4">&lt;2.5 mEq/L (+4)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Serum Creatinine (mg/dL)', 'كرياتينين الدم (Creatinine)')}</label>
+              <select class="form-input" id="e1IcuCreatinine" onchange="e1IcuCalcApache()">
+                <option value="0">0.6 - 1.4 mg/dL (0)</option>
+                <option value="2">1.5 - 1.9 mg/dL (+2)</option>
+                <option value="3">2.0 - 3.4 mg/dL (+3)</option>
+                <option value="4">≥3.5 mg/dL (+4)</option>
+                <option value="2">&lt;0.6 mg/dL (+2)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Hematocrit (Hct %)', 'حجم الخلايا المكدسة (Hct)')}</label>
+              <select class="form-input" id="e1IcuHct" onchange="e1IcuCalcApache()">
+                <option value="0">30% - 45.9% (0)</option>
+                <option value="1">46% - 49.9% (+1)</option>
+                <option value="2">50% - 59.9% (+2)</option>
+                <option value="4">≥60% (+4)</option>
+                <option value="2">20% - 29.9% (+2)</option>
+                <option value="4">&lt;20% (+4)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('White Blood Cells (WBC x10³)', 'خلايا الدم البيضاء (WBC)')}</label>
+              <select class="form-input" id="e1IcuWbc" onchange="e1IcuCalcApache()">
+                <option value="0">3.0 - 14.9 x10³/mcL (0)</option>
+                <option value="1">15.0 - 19.9 x10³/mcL (+1)</option>
+                <option value="2">20.0 - 39.9 x10³/mcL (+2)</option>
+                <option value="4">≥40.0 x10³/mcL (+4)</option>
+                <option value="2">1.0 - 2.9 x10³/mcL (+2)</option>
+                <option value="4">&lt;1.0 x10³/mcL (+4)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Glasgow Coma Scale (GCS)', 'مقياس غلاسكو للوعي (GCS)')}</label>
+              <select class="form-input" id="e1IcuGcs" onchange="e1IcuCalcApache()">
+                <option value="0">GCS 15 (0)</option>
+                <option value="1">GCS 14 (+1)</option>
+                <option value="2">GCS 13 (+2)</option>
+                <option value="3">GCS 12 (+3)</option>
+                <option value="4">GCS 11 (+4)</option>
+                <option value="5">GCS 10 (+5)</option>
+                <option value="6">GCS 9 (+6)</option>
+                <option value="7">GCS 8 (+7)</option>
+                <option value="8">GCS 7 (+8)</option>
+                <option value="9">GCS 6 (+9)</option>
+                <option value="10">GCS 5 (+10)</option>
+                <option value="11">GCS 4 (+11)</option>
+                <option value="12">GCS 3 (+12)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Age Points', 'نقاط العمر')}</label>
+              <select class="form-input" id="e1IcuAge" onchange="e1IcuCalcApache()">
+                <option value="0">≤44 years (0)</option>
+                <option value="2">45 - 54 years (+2)</option>
+                <option value="3">55 - 64 years (+3)</option>
+                <option value="5">65 - 74 years (+5)</option>
+                <option value="6">≥75 years (+6)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Chronic Health History', 'التاريخ المرضي المزمن')}</label>
+              <select class="form-input" id="e1IcuChronic" onchange="e1IcuCalcApache()">
+                <option value="0">None / No severe organ insufficiency (0)</option>
+                <option value="5">Non-operative or Emergency post-op (+5)</option>
+                <option value="2">Elective post-operative (+2)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="background:var(--hover,#f8f9fa);padding:12px;border-radius:8px;font-size:13px;border-left:4px solid var(--primary);margin-top:8px">
+            <strong>${tr('APACHE II Score:', 'مؤشر APACHE II الإجمالي:')}</strong> <span id="e1ApacheScoreText" style="font-weight:700;font-size:15px">0</span>
+            <span id="e1ApacheMortalityText" class="badge badge-warning" style="margin-left:12px;font-size:11px">Mortality: ~4%</span>
+          </div>
+        </fieldset>
+
+        <!-- SOFA Score Section -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">📊 ${tr('SOFA Score Calculator', 'حساب مؤشر SOFA')}</legend>
+          
+          <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:8px;margin-bottom:12px">
+            <div class="form-group">
+              <label>${tr('Respiration (PaO2/FiO2 ratio)', 'التنفس (نسبة PaO2/FiO2)')}</label>
+              <select class="form-input" id="e1SofaResp" onchange="e1SofaCalc()">
+                <option value="0">≥400 (0)</option>
+                <option value="1">&lt;400 (1)</option>
+                <option value="2">&lt;300 (2)</option>
+                <option value="3">&lt;200 with mechanical ventilation (3)</option>
+                <option value="4">&lt;100 with mechanical ventilation (4)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Coagulation (Platelets x10³/mcL)', 'التخثر (الصفائح الدموية)')}</label>
+              <select class="form-input" id="e1SofaCoag" onchange="e1SofaCalc()">
+                <option value="0">≥150 (0)</option>
+                <option value="1">&lt;150 (1)</option>
+                <option value="2">&lt;100 (2)</option>
+                <option value="3">&lt;50 (3)</option>
+                <option value="4">&lt;20 (4)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Liver (Bilirubin mg/dL)', 'الكبد (البيليروبين)')}</label>
+              <select class="form-input" id="e1SofaLiver" onchange="e1SofaCalc()">
+                <option value="0">&lt;1.2 (0)</option>
+                <option value="1">1.2 - 1.9 (1)</option>
+                <option value="2">2.0 - 5.9 (2)</option>
+                <option value="3">6.0 - 11.9 (3)</option>
+                <option value="4">≥12.0 (4)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Cardiovascular (Hypotension)', 'القلب والأوعية (ضغط الدم/الداعمات)')}</label>
+              <select class="form-input" id="e1SofaCardio" onchange="e1SofaCalc()">
+                <option value="0">No hypotension (0)</option>
+                <option value="1">MAP &lt;70 mmHg (1)</option>
+                <option value="2">Dopamine ≤5 or Dobutamine any dose (2)</option>
+                <option value="3">Dopamine >5 OR Epinephrine ≤0.1 OR Norepinephrine ≤0.1 (3)</option>
+                <option value="4">Dopamine >15 OR Epinephrine >0.1 OR Norepinephrine >0.1 (4)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('CNS (Glasgow Coma Scale)', 'الجهاز العصبي (مؤشر GCS)')}</label>
+              <select class="form-input" id="e1SofaCns" onchange="e1SofaCalc()">
+                <option value="0">GCS 15 (0)</option>
+                <option value="1">GCS 13 - 14 (1)</option>
+                <option value="2">GCS 10 - 12 (2)</option>
+                <option value="3">GCS 6 - 9 (3)</option>
+                <option value="4">GCS &lt;6 (4)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Renal (Creatinine mg/dL)', 'الكلى (الكرياتينين/البول)')}</label>
+              <select class="form-input" id="e1SofaRenal" onchange="e1SofaCalc()">
+                <option value="0">&lt;1.2 (0)</option>
+                <option value="1">1.2 - 1.9 (1)</option>
+                <option value="2">2.0 - 3.4 (2)</option>
+                <option value="3">3.5 - 4.9 or Urine &lt;500 mL/day (3)</option>
+                <option value="4">≥5.0 or Urine &lt;200 mL/day (4)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="background:var(--hover,#f8f9fa);padding:12px;border-radius:8px;font-size:13px;border-left:4px solid #10b981;margin-top:8px">
+            <strong>${tr('SOFA Score:', 'مؤشر SOFA الإجمالي:')}</strong> <span id="e1SofaScoreText" style="font-weight:700;font-size:15px">0</span>
+          </div>
+        </fieldset>
+
+        <!-- Clinical Notes & Save -->
+        <div class="form-group mb-8">
+          <label>${tr('Clinical Notes / Critical Care Plan', 'ملاحظات وتفاصيل خطة الرعاية الحرجة')}</label>
+          <textarea class="form-input form-textarea" id="e1IcuNotes" rows="2" placeholder="${tr('Describe patient status, ventilation settings, vasopressor titration...', 'صف حالة المريض، إعدادات جهاز التنفس، جرعات الداعمات الشريانية...')}" style="min-height:45px"></textarea>
+        </div>
+        
+        <button class="btn btn-primary btn-sm mb-12 w-full" onclick="e1AddIcuAssessment(${safeId(pid)})">💾 ${tr('Save ICU Assessment', 'حفظ تقييم العناية المركزة')}</button>
+      </div>
+
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">📋 ${tr('ICU Assessment History', 'سجل تقييمات العناية المركزة')}</h4>
+        <div id="e1IcuHistoryList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  window.e1LoadIcuHistory(pid);
+};
+
+window.e1IcuCalcApache = () => {
+  const getVal = (id) => parseInt(document.getElementById(id)?.value || 0);
+  
+  const score = getVal('e1IcuTemp') +
+                getVal('e1IcuMap') +
+                getVal('e1IcuHr') +
+                getVal('e1IcuRr') +
+                getVal('e1IcuPao2') +
+                getVal('e1IcuPh') +
+                getVal('e1IcuNa') +
+                getVal('e1IcuK') +
+                getVal('e1IcuCreatinine') +
+                getVal('e1IcuHct') +
+                getVal('e1IcuWbc') +
+                getVal('e1IcuGcs') +
+                getVal('e1IcuAge') +
+                getVal('e1IcuChronic');
+                
+  const scoreEl = document.getElementById('e1ApacheScoreText');
+  if (scoreEl) scoreEl.innerText = score;
+  
+  let mortality = '~4%';
+  if (score >= 5 && score <= 9) mortality = '~8%';
+  else if (score >= 10 && score <= 14) mortality = '~15%';
+  else if (score >= 15 && score <= 19) mortality = '~25%';
+  else if (score >= 20 && score <= 24) mortality = '~40%';
+  else if (score >= 25 && score <= 29) mortality = '~55%';
+  else if (score >= 30 && score <= 34) mortality = '~73%';
+  else if (score >= 35) mortality = '~85%';
+  
+  const mortalityEl = document.getElementById('e1ApacheMortalityText');
+  if (mortalityEl) {
+    mortalityEl.innerText = `${tr('Predicted Mortality:', 'معدل الوفيات المتوقع:')} ${mortality}`;
+    if (score >= 25) {
+      mortalityEl.className = 'badge badge-danger';
+    } else if (score >= 15) {
+      mortalityEl.className = 'badge badge-warning';
+    } else {
+      mortalityEl.className = 'badge badge-success';
+    }
+  }
+};
+
+window.e1SofaCalc = () => {
+  const getVal = (id) => parseInt(document.getElementById(id)?.value || 0);
+  
+  const score = getVal('e1SofaResp') +
+                getVal('e1SofaCoag') +
+                getVal('e1SofaLiver') +
+                getVal('e1SofaCardio') +
+                getVal('e1SofaCns') +
+                getVal('e1SofaRenal');
+                
+  const scoreEl = document.getElementById('e1SofaScoreText');
+  if (scoreEl) scoreEl.innerText = score;
+};
+
+window.e1LoadIcuHistory = async (pid) => {
+  const container = document.getElementById('e1IcuHistoryList');
+  if (!container) return;
+  
+  try {
+    const records = await API.get('/api/icu/assessments/patient/' + pid);
+    if (!records.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No ICU assessments found', 'لا توجد تقييمات عناية مركزة مسجلة')}</div>`;
+    } else {
+      container.innerHTML = records.map(r => `
+        <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid var(--primary);font-size:12px">
+          <div style="font-weight:700;color:var(--primary);display:flex;justify-content:space-between">
+            <span>📅 ${new Date(r.assessment_date).toLocaleDateString('ar-SA')}</span>
+          </div>
+          <div style="margin-top:6px;display:flex;gap:12px">
+            <div><strong>APACHE II:</strong> <span class="badge ${r.apache_ii_score >= 25 ? 'badge-danger' : r.apache_ii_score >= 15 ? 'badge-warning' : 'badge-success'}" style="font-size:11px">${r.apache_ii_score}</span></div>
+            <div><strong>SOFA:</strong> <span class="badge badge-success" style="font-size:11px;background:#10b981">${r.sofa_score}</span></div>
+          </div>
+          ${r.clinical_notes ? `<div style="margin-top:6px;color:var(--text-dim);line-height:1.3"><strong>${tr('Notes:', 'ملاحظات:')}</strong> ${escapeHTML(r.clinical_notes)}</div>` : ''}
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">👨‍⚕️ ${escapeHTML(r.doctor_name || '')}</div>
+        </div>
+      `).join('');
+    }
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading history', 'خطأ في تحميل السجل')}</div>`;
+  }
+};
+
+window.e1AddIcuAssessment = async (pid) => {
+  const getVal = (id) => parseInt(document.getElementById(id)?.value || 0);
+  
+  const apache_ii_score = getVal('e1IcuTemp') +
+                          getVal('e1IcuMap') +
+                          getVal('e1IcuHr') +
+                          getVal('e1IcuRr') +
+                          getVal('e1IcuPao2') +
+                          getVal('e1IcuPh') +
+                          getVal('e1IcuNa') +
+                          getVal('e1IcuK') +
+                          getVal('e1IcuCreatinine') +
+                          getVal('e1IcuHct') +
+                          getVal('e1IcuWbc') +
+                          getVal('e1IcuGcs') +
+                          getVal('e1IcuAge') +
+                          getVal('e1IcuChronic');
+                          
+  const sofa_score = getVal('e1SofaResp') +
+                     getVal('e1SofaCoag') +
+                     getVal('e1SofaLiver') +
+                     getVal('e1SofaCardio') +
+                     getVal('e1SofaCns') +
+                     getVal('e1SofaRenal');
+                     
+  try {
+    await API.post('/api/icu/assessments', {
+      patient_id: pid,
+      apache_temp: getVal('e1IcuTemp'),
+      apache_map: getVal('e1IcuMap'),
+      apache_hr: getVal('e1IcuHr'),
+      apache_rr: getVal('e1IcuRr'),
+      apache_pao2: getVal('e1IcuPao2'),
+      apache_ph: getVal('e1IcuPh'),
+      apache_na: getVal('e1IcuNa'),
+      apache_k: getVal('e1IcuK'),
+      apache_creatinine: getVal('e1IcuCreatinine'),
+      apache_hct: getVal('e1IcuHct'),
+      apache_wbc: getVal('e1IcuWbc'),
+      apache_gcs: getVal('e1IcuGcs'),
+      apache_age_points: getVal('e1IcuAge'),
+      apache_chronic_points: getVal('e1IcuChronic'),
+      apache_ii_score,
+      sofa_pao2_fio2: getVal('e1SofaResp'),
+      sofa_platelets: getVal('e1SofaCoag'),
+      sofa_bilirubin: getVal('e1SofaLiver'),
+      sofa_map_vasopressor: getVal('e1SofaCardio'),
+      sofa_gcs: getVal('e1SofaCns'),
+      sofa_creatinine: getVal('e1SofaRenal'),
+      sofa_score,
+      clinical_notes: document.getElementById('e1IcuNotes')?.value || ''
+    });
+    
+    showToast(tr('ICU assessment saved successfully!', 'تم حفظ تقييم العناية المركزة بنجاح!'));
+    window.e1LoadIcuHistory(pid);
+    
+    // Reset inputs
+    document.getElementById('e1IcuNotes').value = '';
+    const selects = ['e1IcuTemp', 'e1IcuMap', 'e1IcuHr', 'e1IcuRr', 'e1IcuPao2', 'e1IcuPh', 'e1IcuNa', 'e1IcuK', 'e1IcuCreatinine', 'e1IcuHct', 'e1IcuWbc', 'e1IcuGcs', 'e1IcuAge', 'e1IcuChronic', 'e1SofaResp', 'e1SofaCoag', 'e1SofaLiver', 'e1SofaCardio', 'e1SofaCns', 'e1SofaRenal'];
+    selects.forEach(s => {
+      const el = document.getElementById(s);
+      if (el) el.selectedIndex = 0;
+    });
+    window.e1IcuCalcApache();
+    window.e1SofaCalc();
+    
+  } catch (err) {
+    showToast(tr('Error saving ICU assessment', 'خطأ في حفظ تقييم العناية المركزة'), 'error');
   }
 };

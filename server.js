@@ -4692,6 +4692,95 @@ app.get('/api/plastic-burns/photos/patient/:patient_id', requireAuth, requireRol
     }
 });
 
+// ===== INTENSIVE CARE DEPARTMENT (G17) =====
+app.post('/api/icu/assessments', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { 
+            patient_id, assessment_date,
+            apache_temp, apache_map, apache_hr, apache_rr, apache_pao2, apache_ph, apache_na, apache_k, apache_creatinine, apache_hct, apache_wbc, apache_gcs,
+            apache_age_points, apache_chronic_points, apache_ii_score,
+            sofa_pao2_fio2, sofa_platelets, sofa_bilirubin, sofa_map_vasopressor, sofa_gcs, sofa_creatinine, sofa_score,
+            clinical_notes
+        } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        
+        if (!patient_id) {
+            return res.status(400).json({ error: 'Patient ID is required' });
+        }
+        
+        const result = await pool.query(
+            `INSERT INTO icu_assessments 
+             (patient_id, doctor_id, assessment_date,
+              apache_temp, apache_map, apache_hr, apache_rr, apache_pao2, apache_ph, apache_na, apache_k, apache_creatinine, apache_hct, apache_wbc, apache_gcs,
+              apache_age_points, apache_chronic_points, apache_ii_score,
+              sofa_pao2_fio2, sofa_platelets, sofa_bilirubin, sofa_map_vasopressor, sofa_gcs, sofa_creatinine, sofa_score,
+              clinical_notes, tenant_id, facility_id) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28) RETURNING id`,
+            [
+                patient_id,
+                req.session.user?.id || null,
+                assessment_date || new Date().toISOString().slice(0, 10),
+                parseInt(apache_temp || 0),
+                parseInt(apache_map || 0),
+                parseInt(apache_hr || 0),
+                parseInt(apache_rr || 0),
+                parseInt(apache_pao2 || 0),
+                parseInt(apache_ph || 0),
+                parseInt(apache_na || 0),
+                parseInt(apache_k || 0),
+                parseInt(apache_creatinine || 0),
+                parseInt(apache_hct || 0),
+                parseInt(apache_wbc || 0),
+                parseInt(apache_gcs || 0),
+                parseInt(apache_age_points || 0),
+                parseInt(apache_chronic_points || 0),
+                parseInt(apache_ii_score || 0),
+                parseInt(sofa_pao2_fio2 || 0),
+                parseInt(sofa_platelets || 0),
+                parseInt(sofa_bilirubin || 0),
+                parseInt(sofa_map_vasopressor || 0),
+                parseInt(sofa_gcs || 0),
+                parseInt(sofa_creatinine || 0),
+                parseInt(sofa_score || 0),
+                clinical_notes || '',
+                tenantId || 1,
+                facilityId || null
+            ]
+        );
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_ICU_ASSESSMENT', 'IntensiveCare',
+            `Recorded ICU assessment for patient #${patient_id} with APACHE II ${apache_ii_score} and SOFA ${sofa_score}`, req.ip);
+            
+        res.json({ id: result.rows[0].id, success: true });
+    } catch (e) {
+        console.error('[ICU Assessment Create Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/icu/assessments/patient/:patient_id', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { patient_id } = req.params;
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [patient_id, tenantId] : [patient_id];
+        
+        const result = await pool.query(
+            `SELECT ia.*, su.display_name as doctor_name 
+             FROM icu_assessments ia 
+             LEFT JOIN system_users su ON ia.doctor_id = su.id 
+             WHERE ia.patient_id=$1${tenantCheck} 
+             ORDER BY ia.id DESC`,
+            tenantParams
+        );
+        
+        res.json(result.rows);
+    } catch (e) {
+        console.error('[ICU Assessment Get Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // ===== PULMONOLOGY DEPARTMENT =====
 app.post('/api/pulmonology/pft', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
     try {
