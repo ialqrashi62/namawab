@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /$
+Allow: /index.html$
+Allow: /css/
+Allow: /js/
+Allow: /img/
+Disallow: /login.html
+Disallow: /admin.html
+Disallow: /super-admin/
+Disallow: /api/
+Disallow: /uploads/
+Disallow: /consent-forms/
+
+Sitemap: https://www.jumanasoft.com/sitemap.xml
