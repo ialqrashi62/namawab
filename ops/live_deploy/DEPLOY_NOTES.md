@@ -63,5 +63,22 @@ Full pre-deploy snapshots: `/root/nama_backups/20260630_072310/` (tree tar + wor
   pm2 restart, health UP, stable. See `e22_live_runbook.md` (now marked APPLIED) for full procedure +
   rollback (`down.sql` or `pg_restore --clean` the PRE_e22 dump).
 
+## Follow-up deploy 2026-06-30 — financial idempotency (APPLIED)
+- New module `idempotency.js` (36/36 unit tests) + e23 DDL `idempotency_keys` (RLS tenant-isolated,
+  grants to nama_medical_app) — both verified on an isolated restore of the live DB (all_ok=t) first.
+- server.js edits 7-11: `const { makeIdempotencyGuard } = require('./idempotency')` + guard built with
+  the tenant-bound pool, then `idemGuard` added as middleware on 4 money routes: POST /api/invoices,
+  PUT /api/invoices/:id/pay, POST /api/finance/journal, POST /api/invoices/:id/refund.
+- Deploy: e23 DDL applied to live DB (backup `/root/nama_backups/PRE_e23_20260630_080721.dump`,
+  validate=true) → staged code → backup server.js (`/root/nama_backups/preidem_20260630_080744/`) →
+  swap server.js + idempotency.js → node --check → pm2 restart → health UP → stable (restarts 112,
+  uptime grows), idempotency_keys table healthy. 
+- Behavior: OPT-IN (a request with no `Idempotency-Key` header is unaffected) + FAIL-OPEN (store error
+  never blocks billing). Replay returns the stored response with header `Idempotent-Replay: true`.
+- Rollback: restore server.js from preidem backup + `rm idempotency.js` + restart; the e23 table can
+  stay (unused) or be dropped via `migrations/e23_01_idempotency_keys_down.sql`.
+
 ## NOT deployed (deliberately)
 - audit_middleware + global rate-limiter: inert-by-default, low value → deferred.
+- ZATCA/NPHIES live submission: code is built + fail-closed-gated; needs the org's ZATCA CSID / NPHIES
+  credentials to actually transmit (cannot be completed without them).
