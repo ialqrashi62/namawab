@@ -4,6 +4,9 @@ nama_medical_web.db-shm
 nama_medical_web.db-wal
 *.db-journal
 .env
+.env.staging
+.env.e2e
+.env.*
 backups/
 find_lines.js
 
