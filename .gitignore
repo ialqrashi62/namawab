@@ -60,3 +60,8 @@ nama_kek_escrow*.enc
 *.escrow.enc
 *dpapi*.backup
 nama_kek*.dpapi
+
+# external reference clones (not part of Jumanasoft IP)
+.vendor/
+.ai-brain/external-skills/
+.agents/skills/
