@@ -4642,6 +4642,195 @@ app.get('/api/urology/urodynamics/patient/:patient_id', requireAuth, requireRole
     }
 });
 
+// ===== CARDIOTHORACIC & VASCULAR DEPARTMENT (G16) =====
+app.post('/api/surgery/cpb', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { 
+            patient_id, bypass_date, pump_time, cross_clamp_time, flow_rate, min_temp, notes 
+        } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        
+        if (!patient_id) {
+            return res.status(400).json({ error: 'Patient ID is required' });
+        }
+        
+        const result = await pool.query(
+            `INSERT INTO cpb_logs 
+             (patient_id, doctor_id, bypass_date, pump_time, cross_clamp_time, flow_rate, min_temp, notes, tenant_id, facility_id) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+            [
+                patient_id,
+                req.session.user?.id || null,
+                bypass_date || new Date().toISOString().slice(0, 10),
+                pump_time === undefined ? 0 : parseInt(pump_time),
+                cross_clamp_time === undefined ? 0 : parseInt(cross_clamp_time),
+                flow_rate === undefined ? 0.00 : parseFloat(flow_rate),
+                min_temp === undefined ? 37.0 : parseFloat(min_temp),
+                notes || '',
+                tenantId || 1,
+                facilityId || null
+            ]
+        );
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_CPB_LOG', 'Cardiothoracic',
+            `Recorded cardiopulmonary bypass log for patient #${patient_id}`, req.ip);
+            
+        res.json({ id: result.rows[0].id, success: true });
+    } catch (e) {
+        console.error('[CPB Log Create Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/surgery/cpb/patient/:patient_id', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { patient_id } = req.params;
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [patient_id, tenantId] : [patient_id];
+        
+        const result = await pool.query(
+            `SELECT c.*, su.display_name as doctor_name 
+             FROM cpb_logs c 
+             LEFT JOIN system_users su ON c.doctor_id = su.id 
+             WHERE c.patient_id=$1${tenantCheck} 
+             ORDER BY c.id DESC`,
+            tenantParams
+        );
+        
+        res.json(result.rows);
+    } catch (e) {
+        console.error('[CPB Log Get Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// ===== ANESTHESIA & PAIN DEPARTMENT (G19) =====
+app.post('/api/anesthesia/pain', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { 
+            patient_id, assessment_time, pain_score_vas, pca_pump_used, pca_demands, pca_deliveries, notes 
+        } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        
+        if (!patient_id) {
+            return res.status(400).json({ error: 'Patient ID is required' });
+        }
+        
+        const result = await pool.query(
+            `INSERT INTO pain_assessments 
+             (patient_id, doctor_id, assessment_time, pain_score_vas, pca_pump_used, pca_demands, pca_deliveries, notes, tenant_id, facility_id) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+            [
+                patient_id,
+                req.session.user?.id || null,
+                assessment_time || new Date().toISOString(),
+                pain_score_vas === undefined ? 0 : parseInt(pain_score_vas),
+                !!pca_pump_used,
+                pca_demands === undefined ? 0 : parseInt(pca_demands),
+                pca_deliveries === undefined ? 0 : parseInt(pca_deliveries),
+                notes || '',
+                tenantId || 1,
+                facilityId || null
+            ]
+        );
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_PAIN_ASSESSMENT', 'Anesthesia',
+            `Recorded pain assessment for patient #${patient_id}`, req.ip);
+            
+        res.json({ id: result.rows[0].id, success: true });
+    } catch (e) {
+        console.error('[Pain Assessment Create Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/anesthesia/pain/patient/:patient_id', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { patient_id } = req.params;
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [patient_id, tenantId] : [patient_id];
+        
+        const result = await pool.query(
+            `SELECT p.*, su.display_name as doctor_name 
+             FROM pain_assessments p 
+             LEFT JOIN system_users su ON p.doctor_id = su.id 
+             WHERE p.patient_id=$1${tenantCheck} 
+             ORDER BY p.id DESC`,
+            tenantParams
+        );
+        
+        res.json(result.rows);
+    } catch (e) {
+        console.error('[Pain Assessment Get Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// ===== NEONATAL & PEDIATRICS DEPARTMENT (G20) =====
+app.post('/api/pediatrics/growth', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { 
+            patient_id, record_date, apgar_1min, apgar_5min, weight_kg, height_cm, head_circ_cm 
+        } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        
+        if (!patient_id) {
+            return res.status(400).json({ error: 'Patient ID is required' });
+        }
+        
+        const result = await pool.query(
+            `INSERT INTO pediatric_growth_records 
+             (patient_id, doctor_id, record_date, apgar_1min, apgar_5min, weight_kg, height_cm, head_circ_cm, tenant_id, facility_id) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+            [
+                patient_id,
+                req.session.user?.id || null,
+                record_date || new Date().toISOString().slice(0, 10),
+                apgar_1min === undefined || apgar_1min === '' ? null : parseInt(apgar_1min),
+                apgar_5min === undefined || apgar_5min === '' ? null : parseInt(apgar_5min),
+                weight_kg === undefined || weight_kg === '' ? null : parseFloat(weight_kg),
+                height_cm === undefined || height_cm === '' ? null : parseFloat(height_cm),
+                head_circ_cm === undefined || head_circ_cm === '' ? null : parseFloat(head_circ_cm),
+                tenantId || 1,
+                facilityId || null
+            ]
+        );
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_PEDIATRIC_GROWTH_RECORD', 'Pediatrics',
+            `Recorded pediatric growth details for patient #${patient_id}`, req.ip);
+            
+        res.json({ id: result.rows[0].id, success: true });
+    } catch (e) {
+        console.error('[Pediatric Growth Record Create Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/pediatrics/growth/patient/:patient_id', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { patient_id } = req.params;
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [patient_id, tenantId] : [patient_id];
+        
+        const result = await pool.query(
+            `SELECT pg.*, su.display_name as doctor_name 
+             FROM pediatric_growth_records pg 
+             LEFT JOIN system_users su ON pg.doctor_id = su.id 
+             WHERE pg.patient_id=$1${tenantCheck} 
+             ORDER BY pg.id DESC`,
+            tenantParams
+        );
+        
+        res.json(result.rows);
+    } catch (e) {
+        console.error('[Pediatric Growth Record Get Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // ===== ENT (OTOLARYNGOLOGY) DEPARTMENT =====
 app.post('/api/ent/audiograms', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
     try {

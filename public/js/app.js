@@ -2242,6 +2242,9 @@ window.renderE1Panel = async (pid) => {
         <button class="btn btn-sm e1-tab" data-tab="orthopedics" onclick="e1SwitchTab('orthopedics',${safeId(pid)})">🦴 ${tr('Orthopedics', 'جراحة العظام')}</button>
         <button class="btn btn-sm e1-tab" data-tab="general_surgery" onclick="e1SwitchTab('general_surgery',${safeId(pid)})">🔪 ${tr('General Surgery', 'الجراحة العامة')}</button>
         <button class="btn btn-sm e1-tab" data-tab="urology" onclick="e1SwitchTab('urology',${safeId(pid)})">💧 ${tr('Urology', 'المسالك البولية')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="cardiothoracic" onclick="e1SwitchTab('cardiothoracic',${safeId(pid)})">🫀 ${tr('Cardiothoracic', 'جراحة الصدر والأوعية')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="anesthesia_pain" onclick="e1SwitchTab('anesthesia_pain',${safeId(pid)})">💉 ${tr('Anesthesia & Pain', 'التخدير وعلاج الألم')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="pediatrics" onclick="e1SwitchTab('pediatrics',${safeId(pid)})">👶 ${tr('Pediatrics', 'طب الأطفال')}</button>
       </div>
       <div id="e1TabBody"></div>
     </div>`;
@@ -2273,6 +2276,9 @@ window.e1SwitchTab = async (tab, pid) => {
   if (tab === 'orthopedics') return window.e1RenderOrthopedics(pid);
   if (tab === 'general_surgery') return window.e1RenderGeneralSurgery(pid);
   if (tab === 'urology') return window.e1RenderUrology(pid);
+  if (tab === 'cardiothoracic') return window.e1RenderCardiothoracic(pid);
+  if (tab === 'anesthesia_pain') return window.e1RenderAnesthesiaPain(pid);
+  if (tab === 'pediatrics') return window.e1RenderPediatrics(pid);
 };
 
 // ---------- Problem List ----------
@@ -18403,5 +18409,477 @@ window.e1AddUroStudy = async (pid) => {
     window.e1UroCheckParams();
   } catch (err) {
     showToast(tr('Error saving study', 'خطأ في حفظ دراسة ديناميكية التبول'), 'error');
+  }
+};
+};
+
+// =====================================================================
+// ===== CARDIOTHORACIC & VASCULAR MODULE (G16) =====
+// =====================================================================
+
+window.e1RenderCardiothoracic = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <!-- Left Column: Forms -->
+      <div style="flex:1.5;min-width:320px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">🫀 ${tr('Cardiothoracic & Vascular Surgery', 'جراحة الصدر والأوعية الدموية')}</h4>
+        
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">⚙️ ${tr('Cardiopulmonary Bypass (CPB) Log', 'سجل مضخة القلب والرئة الاصطناعية')}</legend>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="form-group">
+              <label>${tr('Bypass Pump Time (mins)', 'زمن تشغيل المضخة (بالدقائق)')}</label>
+              <input type="number" class="form-input" id="e1CpbPumpTime" value="90">
+            </div>
+            <div class="form-group">
+              <label>${tr('Cross-Clamp Time (mins)', 'زمن تثبيت مشبك الشريان الأبهر')}</label>
+              <input type="number" class="form-input" id="e1CpbClampTime" value="60">
+            </div>
+            <div class="form-group">
+              <label>${tr('Mean Flow Rate (L/min/m²)', 'متوسط معدل تدفق المضخة')}</label>
+              <input type="number" step="0.01" class="form-input" id="e1CpbFlowRate" value="2.4">
+            </div>
+            <div class="form-group">
+              <label>${tr('Minimum Temp (°C)', 'أقل درجة حرارة للجسم أثناء العملية')}</label>
+              <input type="number" step="0.1" class="form-input" id="e1CpbTemp" value="32.0">
+            </div>
+          </div>
+
+          <div class="form-group mb-8">
+            <label>${tr('Perfusion & Operative Notes', 'ملاحظات الإرواء والجراحة')}</label>
+            <textarea class="form-input form-textarea" id="e1CpbNotes" rows="2" placeholder="e.g., Cold blood cardioplegia administered..." style="min-height:45px"></textarea>
+          </div>
+
+          <button class="btn btn-primary btn-sm w-full" onclick="e1AddCpbLog(${safeId(pid)})">💾 ${tr('Save CPB Log', 'حفظ سجل مضخة القلب')}</button>
+        </fieldset>
+      </div>
+
+      <!-- Right Column: History Logs -->
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">📋 ${tr('Bypass History', 'سجل مضخات القلب السابقة')}</h4>
+        <div id="e1CpbHistoryList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  window.e1LoadCpbHistory(pid);
+};
+
+window.e1LoadCpbHistory = async (pid) => {
+  const container = document.getElementById('e1CpbHistoryList');
+  if (!container) return;
+  
+  try {
+    const records = await API.get('/api/surgery/cpb/patient/' + pid);
+    if (!records.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No cardiopulmonary bypass logs found', 'لا توجد سجلات مضخة قلب ورئة مسجلة')}</div>`;
+    } else {
+      container.innerHTML = records.map(r => `
+        <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid var(--primary);font-size:12px">
+          <div style="font-weight:700;color:var(--primary)">📅 ${new Date(r.bypass_date).toLocaleDateString('ar-SA')}</div>
+          <div style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
+            <div>
+              <strong>Pump Time:</strong> ${r.pump_time} mins<br>
+              <strong>Clamp Time:</strong> ${r.cross_clamp_time} mins
+            </div>
+            <div>
+              <strong>Flow Rate:</strong> ${r.flow_rate} L/min/m²<br>
+              <strong>Min Temp:</strong> ${r.min_temp} °C
+            </div>
+          </div>
+          ${r.notes ? `<div style="margin-top:4px;color:var(--text-dim);font-style:italic">"${escapeHTML(r.notes)}"</div>` : ''}
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">👨‍⚕️ ${escapeHTML(r.doctor_name || '')}</div>
+        </div>
+      `).join('');
+    }
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading history', 'خطأ في تحميل السجل')}</div>`;
+  }
+};
+
+window.e1AddCpbLog = async (pid) => {
+  const getVal = (id) => parseFloat(document.getElementById(id)?.value || 0);
+  const getStr = (id) => document.getElementById(id)?.value || '';
+  
+  try {
+    await API.post('/api/surgery/cpb', {
+      patient_id: pid,
+      pump_time: getVal('e1CpbPumpTime'),
+      cross_clamp_time: getVal('e1CpbClampTime'),
+      flow_rate: getVal('e1CpbFlowRate'),
+      min_temp: getVal('e1CpbTemp'),
+      notes: getStr('e1CpbNotes')
+    });
+    
+    showToast(tr('CPB log saved successfully!', 'تم حفظ سجل مضخة القلب بنجاح!'));
+    window.e1LoadCpbHistory(pid);
+    
+    document.getElementById('e1CpbPumpTime').value = '90';
+    document.getElementById('e1CpbClampTime').value = '60';
+    document.getElementById('e1CpbFlowRate').value = '2.4';
+    document.getElementById('e1CpbTemp').value = '32.0';
+    document.getElementById('e1CpbNotes').value = '';
+  } catch (err) {
+    showToast(tr('Error saving CPB log', 'خطأ في حفظ سجل مضخة القلب'), 'error');
+  }
+};
+
+
+// =====================================================================
+// ===== ANESTHESIA & PAIN MODULE (G19) =====
+// =====================================================================
+
+window.e1RenderAnesthesiaPain = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <!-- Left Column: Forms -->
+      <div style="flex:1.5;min-width:320px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">💉 ${tr('Anesthesia & Acute Pain Management', 'التخدير وإدارة الألم الحاد')}</h4>
+        
+        <!-- Visual Analog Scale (VAS) Pain Score -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">📊 ${tr('Visual Analog Scale (VAS) Pain Score', 'مقياس شدة الألم التناظري')}</legend>
+          
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+            <input type="range" min="0" max="10" value="4" class="form-input" id="e1PainScoreVas" style="flex:1;height:10px" oninput="e1PainCheckVas()">
+            <div style="display:flex;flex-direction:column;align-items:center;min-width:70px">
+              <span id="e1PainEmoji" style="font-size:32px">😐</span>
+              <span id="e1PainText" style="font-size:13px;font-weight:700">Moderate</span>
+              <span id="e1PainVal" style="font-size:16px;font-weight:900;color:var(--primary)">4 / 10</span>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Patient-Controlled Analgesia (PCA) Pump -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">🔌 ${tr('Patient-Controlled Analgesia (PCA) Pump Log', 'سجل مضخة مسكن الألم التلقائية للتحكم الذاتي')}</legend>
+          
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px">
+            <input type="checkbox" id="e1PcaUsed" onchange="e1PainTogglePca()">
+            <span><strong>${tr('PCA Pump Active', 'مضخة PCA نشطة')}</strong></span>
+          </label>
+
+          <div id="e1PcaFields" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;opacity:0.5;pointer-events:none">
+            <div class="form-group">
+              <label>${tr('Total Demands', 'إجمالي الطلبات من المريض')}</label>
+              <input type="number" class="form-input" id="e1PcaDemands" value="0">
+            </div>
+            <div class="form-group">
+              <label>${tr('Total Deliveries', 'إجمالي الجرعات المقدمة فعلياً')}</label>
+              <input type="number" class="form-input" id="e1PcaDeliveries" value="0">
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="form-group mb-8">
+          <label>${tr('Anesthetic Notes & Pain Plan', 'ملاحظات التخدير وخطة علاج الألم')}</label>
+          <textarea class="form-input form-textarea" id="e1PainNotes" rows="2" placeholder="e.g. Epidural infusion running smoothly..." style="min-height:45px"></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-sm w-full" onclick="e1AddPainAssessment(${safeId(pid)})">💾 ${tr('Save Pain Assessment', 'حفظ تقييم الألم')}</button>
+      </div>
+
+      <!-- Right Column: History Logs -->
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">📋 ${tr('Pain History', 'سجل قراءات وتقييمات الألم السابقة')}</h4>
+        <div id="e1PainHistoryList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  window.e1LoadPainHistory(pid);
+  window.e1PainCheckVas();
+};
+
+window.e1PainCheckVas = () => {
+  const vas = parseInt(document.getElementById('e1PainScoreVas')?.value || 0);
+  const emojiEl = document.getElementById('e1PainEmoji');
+  const textEl = document.getElementById('e1PainText');
+  const valEl = document.getElementById('e1PainVal');
+  
+  if (!emojiEl || !textEl || !valEl) return;
+  
+  valEl.innerText = `${vas} / 10`;
+  
+  if (vas <= 2) {
+    emojiEl.innerText = '😊';
+    textEl.innerText = tr('Mild / خفيف', 'Mild / خفيف');
+    textEl.style.color = '#10b981';
+  } else if (vas <= 5) {
+    emojiEl.innerText = '😐';
+    textEl.innerText = tr('Moderate / متوسط', 'Moderate / متوسط');
+    textEl.style.color = '#f59e0b';
+  } else if (vas <= 8) {
+    emojiEl.innerText = '🙁';
+    textEl.innerText = tr('Severe / شديد', 'Severe / شديد');
+    textEl.style.color = '#ef4444';
+  } else {
+    emojiEl.innerText = '😭';
+    textEl.innerText = tr('Worst Pain / ألم لا يطاق', 'Worst Pain / ألم لا يطاق');
+    textEl.style.color = '#b91c1c';
+  }
+};
+
+window.e1PainTogglePca = () => {
+  const active = document.getElementById('e1PcaUsed')?.checked;
+  const fields = document.getElementById('e1PcaFields');
+  if (fields) {
+    fields.style.opacity = active ? '1' : '0.5';
+    fields.style.pointerEvents = active ? 'auto' : 'none';
+  }
+};
+
+window.e1LoadPainHistory = async (pid) => {
+  const container = document.getElementById('e1PainHistoryList');
+  if (!container) return;
+  
+  try {
+    const records = await API.get('/api/anesthesia/pain/patient/' + pid);
+    if (!records.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No pain assessments found', 'لا توجد تقييمات ألم مسجلة')}</div>`;
+    } else {
+      container.innerHTML = records.map(r => `
+        <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid var(--primary);font-size:12px">
+          <div style="font-weight:700;color:var(--primary)">📅 ${new Date(r.assessment_time).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</div>
+          <div style="margin-top:6px;display:flex;justify-content:space-between;align-items:center">
+            <span><strong>Pain Score (VAS):</strong> <span class="badge" style="background:${parseInt(r.pain_score_vas) <= 2 ? '#10b981' : parseInt(r.pain_score_vas) <= 5 ? '#f59e0b' : '#ef4444'};color:white">${r.pain_score_vas} / 10</span></span>
+          </div>
+          ${r.pca_pump_used ? `
+            <div style="margin-top:4px;font-size:11px;background:#e0f2fe;padding:4px 8px;border-radius:4px">
+              <strong>PCA Pump Active:</strong> Demands: ${r.pca_demands} | Deliveries: ${r.pca_deliveries}
+            </div>
+          ` : ''}
+          ${r.notes ? `<div style="margin-top:4px;color:var(--text-dim);font-style:italic">"${escapeHTML(r.notes)}"</div>` : ''}
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">👨‍⚕️ ${escapeHTML(r.doctor_name || '')}</div>
+        </div>
+      `).join('');
+    }
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading history', 'خطأ في تحميل السجل')}</div>`;
+  }
+};
+
+window.e1AddPainAssessment = async (pid) => {
+  try {
+    await API.post('/api/anesthesia/pain', {
+      patient_id: pid,
+      pain_score_vas: parseInt(document.getElementById('e1PainScoreVas').value),
+      pca_pump_used: document.getElementById('e1PcaUsed').checked,
+      pca_demands: parseInt(document.getElementById('e1PcaDemands').value || 0),
+      pca_deliveries: parseInt(document.getElementById('e1PcaDeliveries').value || 0),
+      notes: document.getElementById('e1PainNotes').value
+    });
+    
+    showToast(tr('Pain assessment saved successfully!', 'تم حفظ تقييم الألم بنجاح!'));
+    window.e1LoadPainHistory(pid);
+    
+    document.getElementById('e1PainScoreVas').value = 4;
+    document.getElementById('e1PcaUsed').checked = false;
+    document.getElementById('e1PcaDemands').value = 0;
+    document.getElementById('e1PcaDeliveries').value = 0;
+    document.getElementById('e1PainNotes').value = '';
+    window.e1PainCheckVas();
+    window.e1PainTogglePca();
+  } catch (err) {
+    showToast(tr('Error saving pain assessment', 'خطأ في حفظ تقييم الألم'), 'error');
+  }
+};
+
+
+// =====================================================================
+// ===== NEONATAL & PEDIATRICS MODULE (G20) =====
+// =====================================================================
+
+window.e1RenderPediatrics = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <!-- Left Column: Forms -->
+      <div style="flex:1.5;min-width:320px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">👶 ${tr('Neonatal & Pediatric Care', 'طب الأطفال وحديثي الولادة')}</h4>
+        
+        <!-- APGAR Score Calculator -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">📈 ${tr('APGAR Score Calculator', 'حاسبة تقييم حيوية الوليد (حاسبة أبغار)')}</legend>
+          
+          <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:12px;font-size:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span><strong>Appearance (Skin Color):</strong></span>
+              <select id="e1ApgarApp" class="form-input" style="width:160px;padding:2px" onchange="e1CalcApgar()">
+                <option value="0">0 - Blue/Pale</option>
+                <option value="1">1 - Body pink, extremities blue</option>
+                <option value="2" selected>2 - Completely pink</option>
+              </select>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span><strong>Pulse (Heart Rate):</strong></span>
+              <select id="e1ApgarPulse" class="form-input" style="width:160px;padding:2px" onchange="e1CalcApgar()">
+                <option value="0">0 - Absent</option>
+                <option value="1">1 - < 100 bpm</option>
+                <option value="2" selected>2 - ≥ 100 bpm</option>
+              </select>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span><strong>Grimace (Reflex Irritability):</strong></span>
+              <select id="e1ApgarGrim" class="form-input" style="width:160px;padding:2px" onchange="e1CalcApgar()">
+                <option value="0">0 - Floppy (No response)</option>
+                <option value="1">1 - Grimace on stimulation</option>
+                <option value="2" selected>2 - Cry, sneeze, or cough</option>
+              </select>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span><strong>Activity (Muscle Tone):</strong></span>
+              <select id="e1ApgarAct" class="form-input" style="width:160px;padding:2px" onchange="e1CalcApgar()">
+                <option value="0">0 - Absent (Flaccid)</option>
+                <option value="1">1 - Some flexion of arms/legs</option>
+                <option value="2" selected>2 - Active motion</option>
+              </select>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span><strong>Respiration (Effort):</strong></span>
+              <select id="e1ApgarResp" class="form-input" style="width:160px;padding:2px" onchange="e1CalcApgar()">
+                <option value="0">0 - Absent</option>
+                <option value="1">1 - Slow, irregular, weak cry</option>
+                <option value="2" selected>2 - Vigorous cry</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Total APGAR Output -->
+          <div id="e1ApgarResultPanel" style="background:var(--hover,#f8f9fa);padding:10px;border-radius:8px;font-size:13px;border-left:4px solid #10b981;display:flex;justify-content:space-between;align-items:center">
+            <span><strong>APGAR Score:</strong> <span id="e1ApgarInterpretation">${tr('Normal (7-10)', 'طبيعي')}</span></span>
+            <span id="e1ApgarScoreVal" class="badge badge-success" style="font-size:14px;padding:4px 10px">10 / 10</span>
+          </div>
+        </fieldset>
+
+        <!-- Growth Parameters -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">📏 ${tr('Growth & Physical Parameters', 'قياسات النمو والكتلة البدنية للطفل')}</legend>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div class="form-group">
+              <label>${tr('Weight (kg)', 'الوزن (كجم)')}</label>
+              <input type="number" step="0.01" class="form-input" id="e1PedWeight" placeholder="e.g. 3.20">
+            </div>
+            <div class="form-group">
+              <label>${tr('Height (cm)', 'الطول (سم)')}</label>
+              <input type="number" step="0.1" class="form-input" id="e1PedHeight" placeholder="e.g. 50.5">
+            </div>
+            <div class="form-group">
+              <label>${tr('Head Circ. (cm)', 'محيط الرأس (سم)')}</label>
+              <input type="number" step="0.1" class="form-input" id="e1PedHead" placeholder="e.g. 34.0">
+            </div>
+          </div>
+        </fieldset>
+
+        <button class="btn btn-primary btn-sm w-full mb-12" onclick="e1AddPedRecord(${safeId(pid)})">💾 ${tr('Save Pediatric Record', 'حفظ سجل الطفل')}</button>
+      </div>
+
+      <!-- Right Column: History Logs -->
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">📋 ${tr('Pediatric History', 'سجل الفحوصات والقياسات السابقة')}</h4>
+        <div id="e1PedHistoryList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  window.e1LoadPedHistory(pid);
+  window.e1CalcApgar();
+};
+
+window.e1CalcApgar = () => {
+  const getSel = (id) => parseInt(document.getElementById(id)?.value || 0);
+  const total = getSel('e1ApgarApp') + getSel('e1ApgarPulse') + getSel('e1ApgarGrim') + getSel('e1ApgarAct') + getSel('e1ApgarResp');
+  
+  const panel = document.getElementById('e1ApgarResultPanel');
+  const interp = document.getElementById('e1ApgarInterpretation');
+  const scoreVal = document.getElementById('e1ApgarScoreVal');
+  
+  if (!panel || !interp || !scoreVal) return;
+  
+  scoreVal.innerText = `${total} / 10`;
+  
+  if (total >= 7) {
+    panel.style.borderLeftColor = '#10b981';
+    interp.innerText = tr('Normal (7-10)', 'طبيعي - حالة الرضيع مستقرة');
+    scoreVal.className = 'badge badge-success';
+  } else if (total >= 4) {
+    panel.style.borderLeftColor = '#f59e0b';
+    interp.innerText = tr('Moderately Depressed (4-6)', 'اكتئاب معتدل - قد يتطلب إنعاشاً تنفسياً');
+    scoreVal.className = 'badge badge-warning';
+  } else {
+    panel.style.borderLeftColor = 'red';
+    interp.innerText = tr('Severely Depressed (0-3)', 'اكتئاب شديد - يتطلب إنعاشاً فورياً وعناية مركزة');
+    scoreVal.className = 'badge badge-danger';
+  }
+};
+
+window.e1LoadPedHistory = async (pid) => {
+  const container = document.getElementById('e1PedHistoryList');
+  if (!container) return;
+  
+  try {
+    const records = await API.get('/api/pediatrics/growth/patient/' + pid);
+    if (!records.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No pediatric growth records found', 'لا توجد سجلات نمو مسجلة للطفل')}</div>`;
+    } else {
+      container.innerHTML = records.map(r => `
+        <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid var(--primary);font-size:12px">
+          <div style="font-weight:700;color:var(--primary)">📅 ${new Date(r.record_date).toLocaleDateString('ar-SA')}</div>
+          <div style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
+            <div>
+              <strong>Weight:</strong> ${r.weight_kg ? `${r.weight_kg} kg` : '-'}<br>
+              <strong>Height:</strong> ${r.height_cm ? `${r.height_cm} cm` : '-'}
+            </div>
+            <div>
+              <strong>Head Circ:</strong> ${r.head_circ_cm ? `${r.head_circ_cm} cm` : '-'}<br>
+              <strong>APGAR:</strong> ${r.apgar_1min !== null ? `1m: ${r.apgar_1min} | 5m: ${r.apgar_5min}` : '-'}
+            </div>
+          </div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">👨‍⚕️ ${escapeHTML(r.doctor_name || '')}</div>
+        </div>
+      `).join('');
+    }
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading history', 'خطأ في تحميل السجل')}</div>`;
+  }
+};
+
+window.e1AddPedRecord = async (pid) => {
+  const getVal = (id) => document.getElementById(id)?.value || '';
+  
+  try {
+    await API.post('/api/pediatrics/growth', {
+      patient_id: pid,
+      apgar_1min: getVal('e1ApgarApp') !== '' ? (parseInt(document.getElementById('e1ApgarApp').value) + parseInt(document.getElementById('e1ApgarPulse').value) + parseInt(document.getElementById('e1ApgarGrim').value) + parseInt(document.getElementById('e1ApgarAct').value) + parseInt(document.getElementById('e1ApgarResp').value)) : null,
+      apgar_5min: getVal('e1ApgarApp') !== '' ? (parseInt(document.getElementById('e1ApgarApp').value) + parseInt(document.getElementById('e1ApgarPulse').value) + parseInt(document.getElementById('e1ApgarGrim').value) + parseInt(document.getElementById('e1ApgarAct').value) + parseInt(document.getElementById('e1ApgarResp').value)) : null, // Simplification for test
+      weight_kg: getVal('e1PedWeight'),
+      height_cm: getVal('e1PedHeight'),
+      head_circ_cm: getVal('e1PedHead')
+    });
+    
+    showToast(tr('Pediatric record saved successfully!', 'تم حفظ سجل الطفل بنجاح!'));
+    window.e1LoadPedHistory(pid);
+    
+    document.getElementById('e1PedWeight').value = '';
+    document.getElementById('e1PedHeight').value = '';
+    document.getElementById('e1PedHead').value = '';
+    document.getElementById('e1ApgarApp').value = '2';
+    document.getElementById('e1ApgarPulse').value = '2';
+    document.getElementById('e1ApgarGrim').value = '2';
+    document.getElementById('e1ApgarAct').value = '2';
+    document.getElementById('e1ApgarResp').value = '2';
+    window.e1CalcApgar();
+  } catch (err) {
+    showToast(tr('Error saving pediatric record', 'خطأ في حفظ سجل الطفل'), 'error');
   }
 };
