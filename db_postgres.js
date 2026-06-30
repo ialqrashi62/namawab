@@ -48,7 +48,12 @@ async function initDatabase() {
     // runs as a non-superuser (nama_medical_app) without CREATE on schema public, so running
     // CREATE TABLE/migrations here fails with "permission denied for schema public" and crashes
     // the app. Skip init/seed in production (tables/migrations are managed out-of-band).
-    if (process.env.NODE_ENV === 'production' || process.env.SKIP_DB_INIT === 'true') {
+    // SKIP_DB_INIT accepts '1'/'true'/'yes'. Tests spawn the server with SKIP_DB_INIT:'1'; the old strict
+    // === 'true' check silently ignored '1', so initDatabase ran and CREATE TABLE failed with
+    // "permission denied for schema public" under the non-superuser app role (crashing the spawned
+    // server -> integration tests got ECONNREFUSED). Production always skips regardless.
+    const _skipInit = ['1', 'true', 'yes'].includes(String(process.env.SKIP_DB_INIT || '').toLowerCase());
+    if (process.env.NODE_ENV === 'production' || _skipInit) {
         console.log('[DB INFO] Production environment detected or SKIP_DB_INIT set. Skipping table initialization and seeding.');
         return;
     }

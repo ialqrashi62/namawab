@@ -10235,7 +10235,11 @@ async function startServer() {
         // lacks CREATE/seed rights, so running these here crashed the app ("permission denied for
         // schema public" / patients RLS violation). Production seed/schema is managed out-of-band
         // (see docs/sql/boot_time_schema_cleanup_candidate_*). Tenant binding is unaffected.
-        if (process.env.NODE_ENV !== 'production' && process.env.SKIP_DB_INIT !== 'true') {
+        // SKIP_DB_INIT accepts '1'/'true'/'yes' (matches db_postgres). Tests spawn with SKIP_DB_INIT:'1';
+        // the old !== 'true' check let '1' through and ran insertSampleData() -> patients RLS violation
+        // (no app.tenant_id on a restored/production-like DB). Skip seed whenever init is skipped.
+        const _skipSeed = ['1', 'true', 'yes'].includes(String(process.env.SKIP_DB_INIT || '').toLowerCase());
+        if (process.env.NODE_ENV !== 'production' && !_skipSeed) {
             await insertSampleData();
             await populateLabCatalog();
             await populateRadiologyCatalog();
