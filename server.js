@@ -21,6 +21,7 @@ const { populateMedicalServices, populateBaseDrugs } = require('./seed_services_
 const { addExtraLabTests, addExtraRadiology } = require('./seed_extra_catalog');
 const { mountOrderRoutes } = require('./orders');           // E-X1 unified orders (additive)
 const { makeRequirePermission } = require('./rbac');        // E-X3 RBAC matrix middleware (additive)
+const { makeAuditMiddleware } = require('./audit_middleware'); // GATE3-M1 auto audit (inert unless AUDIT_ALL_MUTATIONS=true)
 const { validatePasswordPolicy } = require('./password_policy');
 // E1 Doctor Station (additive): pure CDS engine + clinical routes (problems/SOAP/CPOE).
 const cds = require('./cds');
@@ -382,6 +383,12 @@ async function logAudit(userId, userName, action, module, details, ip) {
         );
     } catch (e) { console.error('Audit log error:', e.message); }
 }
+
+// ===== GATE3-M1: automatic audit logging for /api mutations (INERT unless AUDIT_ALL_MUTATIONS=true) =====
+// Complements the explicit logAudit() calls. Default OFF -> zero behavior change until enabled on staging.
+// Logs AFTER the response (never blocks), records only method/path/status/user/ip (no body, no PHI).
+app.use(makeAuditMiddleware({ logAudit }));
+if (process.env.AUDIT_ALL_MUTATIONS === 'true') console.log('[AUDIT] Auto-audit of /api mutations ENABLED');
 
 // ===== TENANT ISOLATION MIDDLEWARES =====
 function getRequestTenantContext(req) {
