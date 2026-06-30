@@ -2,7 +2,22 @@
 const { Pool } = require('pg');
 const path = require('path');
 if (process.env.NODE_ENV === 'staging') {
-    require('dotenv').config({ path: path.join(__dirname, '.env.staging') });
+    const fs = require('fs');
+    const envPath = path.join(__dirname, '.env.staging');
+    if (!fs.existsSync(envPath)) {
+        throw new Error('CRITICAL: .env.staging file is missing in staging mode! Staging must fail closed.');
+    }
+    // Delete existing DB env vars to prevent inheritance from parent process overriding staging config
+    delete process.env.DB_HOST;
+    delete process.env.DB_PORT;
+    delete process.env.DB_NAME;
+    delete process.env.DB_USER;
+    delete process.env.DB_PASSWORD;
+    
+    require('dotenv').config({ path: envPath, override: true });
+    if (!process.env.DB_NAME || process.env.DB_NAME === 'nama_medical_web') {
+        throw new Error('CRITICAL: Invalid DB_NAME in staging mode! Must not connect to production database.');
+    }
 } else {
     require('dotenv').config();
 }

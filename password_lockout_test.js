@@ -5,29 +5,14 @@
 
 const { spawn } = require('child_process');
 const http = require('http');
-const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const assert = require('assert');
-require('dotenv').config();
-
-const DB_HOST = process.env.DB_HOST || 'localhost';
-const DB_PORT = process.env.DB_PORT || 5432;
-const DB_NAME = process.env.DB_NAME || 'nama_medical_web';
-const DB_USER = process.env.DB_USER || 'postgres';
-const DB_PASSWORD = process.env.DB_PASSWORD || 'postgres';
+const { pool } = require('./db_postgres');
 
 const TEST_PORT = 3005;
 const TEST_USERNAME = 'lockout_test_user_99';
 const TEST_PASSWORD = 'EXAMPLE_PASSWORD';
-
-const pool = new Pool({
-    host: DB_HOST,
-    port: parseInt(DB_PORT),
-    database: DB_NAME,
-    user: DB_USER,
-    password: DB_PASSWORD
-});
 
 function makeRequest(method, path, body = null) {
     return new Promise((resolve, reject) => {

@@ -59,5 +59,75 @@ if (!isOwnerSigned && !isDevOpsSigned) {
   console.log('✓ Verified: Completed sign-off has complete evidence.');
 }
 
+// 4. Staging Env Loading Safety Tests
+console.log('Running Staging Environment Loading Safety Tests...');
+const { execSync } = require('child_process');
+
+try {
+  // Test A: NODE_ENV=staging and missing .env.staging should throw error (fail closed)
+  const originalEnvPath = path.join(__dirname, '.env.staging');
+  const tempEnvPath = path.join(__dirname, '.env.staging.bak');
+  
+  let envStaged = false;
+  if (fs.existsSync(originalEnvPath)) {
+    fs.renameSync(originalEnvPath, tempEnvPath);
+    envStaged = true;
+  }
+  
+  try {
+    execSync('node -e "require(\'./db_postgres\')"', {
+      env: { ...process.env, NODE_ENV: 'staging' },
+      stdio: 'pipe'
+    });
+    assert.fail('Should have failed when .env.staging is missing');
+  } catch (err) {
+    assert.ok(err.message.includes('CRITICAL: .env.staging file is missing'), 'Expected missing file error');
+    console.log('  ✓ Test A passed: Missing .env.staging fails closed.');
+  } finally {
+    if (envStaged) {
+      fs.renameSync(tempEnvPath, originalEnvPath);
+    }
+  }
+} catch (e) {
+  console.error('Failed Staging Env Safety Test A:', e);
+  process.exit(1);
+}
+
+try {
+  // Test B: NODE_ENV=staging and DB_NAME=nama_medical_web should throw error
+  const tempEnvPath = path.join(__dirname, '.env.staging.temp');
+  fs.writeFileSync(tempEnvPath, 'DB_NAME=nama_medical_web\nNODE_ENV=staging\n');
+  
+  const originalEnvPath = path.join(__dirname, '.env.staging');
+  const backupEnvPath = path.join(__dirname, '.env.staging.real.bak');
+  let hasReal = false;
+  if (fs.existsSync(originalEnvPath)) {
+    fs.renameSync(originalEnvPath, backupEnvPath);
+    hasReal = true;
+  }
+  fs.renameSync(tempEnvPath, originalEnvPath);
+  
+  try {
+    execSync('node -e "require(\'./db_postgres\')"', {
+      env: { ...process.env, NODE_ENV: 'staging' },
+      stdio: 'pipe'
+    });
+    assert.fail('Should have failed when DB_NAME is nama_medical_web');
+  } catch (err) {
+    assert.ok(err.message.includes('Must not connect to production database'), 'Expected invalid DB_NAME error');
+    console.log('  ✓ Test B passed: DB_NAME=nama_medical_web is rejected.');
+  } finally {
+    if (fs.existsSync(originalEnvPath)) {
+      fs.unlinkSync(originalEnvPath);
+    }
+    if (hasReal) {
+      fs.renameSync(backupEnvPath, originalEnvPath);
+    }
+  }
+} catch (e) {
+  console.error('Failed Staging Env Safety Test B:', e);
+  process.exit(1);
+}
+
 console.log('All Staging Provisioning Evidence Safety Tests Passed!');
 process.exit(0);
