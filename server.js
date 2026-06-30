@@ -13489,6 +13489,22 @@ const requirePermission = makeRequirePermission({
 });
 mountOrderRoutes(app, { pool, requireAuth, requireTenantScope, getRequestTenantContext, logAudit, requirePermission });
 
+// ===== SaaS Batch 1: Tenant Control Center / Super Admin (additive, flag-gated) =====
+// Inert unless SUPER_ADMIN_ENABLED=true. Identity = ENV allowlist SUPER_ADMIN_USERS (platform grant,
+// NOT a tenant role) -> no privilege escalation. Per-tenant stats read inside that tenant's RLS context.
+if (process.env.SUPER_ADMIN_ENABLED === 'true') {
+    const { makeSuperAdminRouter } = require('./super_admin');
+    app.use('/api/super-admin', makeSuperAdminRouter({
+        pool,
+        requireAuth,
+        getActor: (req) => req.session && req.session.user,
+        runWithTenant: (tenantId, fn) => tenantStore.run({ tenantId }, fn),
+        logAudit,
+        allowlist: process.env.SUPER_ADMIN_USERS,
+        enabled: true
+    }));
+}
+
 // ===== BOOT-TIME COLUMN MIGRATIONS (non-production only) =====
 // These additive ALTERs ran on every boot and silently swallowed errors. They require
 // table-owner/DDL rights the production app role (nama_medical_app) lacks. Disabled in

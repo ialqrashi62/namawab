@@ -1,0 +1,33 @@
+/* Jumanasoft Super Admin — Tenant Control Center (RTL) */
+:root{--bg:#0f1f2e;--card:#fff;--ink:#1a2b3c;--muted:#6b7c8d;--line:#e3e9ef;--teal:#1f9e8f;--teal-d:#157a6e;
+  --green:#1f9e5a;--amber:#c8861a;--red:#c0392b;--gray:#7b8a99;--shadow:0 1px 3px rgba(0,0,0,.08)}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Tahoma,system-ui,sans-serif;background:#f4f7fa;color:var(--ink)}
+.sa-header{background:var(--bg);color:#fff;padding:16px 24px}
+.sa-brand{font-size:20px;font-weight:700}.sa-logo{margin-inline-end:6px}
+.sa-sub{color:#9fb3c4;font-size:13px;margin-top:2px}
+.sa-main{max-width:1100px;margin:0 auto;padding:20px}
+.sa-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.sa-input{padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:#fff;min-width:160px}
+.sa-btn{padding:9px 16px;border:0;border-radius:8px;background:var(--teal);color:#fff;font-weight:600;cursor:pointer}
+.sa-btn:hover{background:var(--teal-d)}
+.sa-btn.sa-danger{background:var(--red)}.sa-btn.sa-ghost{background:#eef2f6;color:var(--ink)}
+.sa-state{padding:18px;border-radius:10px;background:#fff;box-shadow:var(--shadow);text-align:center;color:var(--muted)}
+.sa-state.sa-error{color:var(--red);background:#fdecea}
+.sa-table-wrap{background:#fff;border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.sa-table{width:100%;border-collapse:collapse;font-size:14px}
+.sa-table th,.sa-table td{padding:12px 14px;text-align:right;border-bottom:1px solid var(--line)}
+.sa-table th{background:#f7fafc;color:var(--muted);font-weight:600;font-size:13px}
+.sa-table tbody tr:hover{background:#f9fbfd}
+.sa-badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.sa-badge.active{background:#e4f6ec;color:var(--green)}
+.sa-badge.trial{background:#fff3e0;color:var(--amber)}
+.sa-badge.suspended{background:#fdecea;color:var(--red)}
+.sa-badge.cancelled{background:#eceff1;color:var(--gray)}
+.sa-row-actions{display:flex;gap:6px}
+.sa-row-actions button{padding:5px 10px;font-size:12px;border-radius:6px;border:0;cursor:pointer}
+.sa-detail{margin-top:18px;background:#fff;border-radius:12px;box-shadow:var(--shadow);padding:18px}
+.sa-detail h3{margin:0 0 10px}
+.sa-kv{display:grid;grid-template-columns:140px 1fr;gap:6px 12px;font-size:14px}
+.sa-kv .k{color:var(--muted)}
+.sa-link{color:var(--teal);cursor:pointer;text-decoration:underline;background:none;border:0;font:inherit;padding:0}
