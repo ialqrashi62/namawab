@@ -2235,6 +2235,7 @@ window.renderE1Panel = async (pid) => {
         <button class="btn btn-sm e1-tab" data-tab="pulmonology" onclick="e1SwitchTab('pulmonology',${safeId(pid)})">🫁 ${tr('Pulmonology', 'الأمراض الصدرية')}</button>
         <button class="btn btn-sm e1-tab" data-tab="rheumatology" onclick="e1SwitchTab('rheumatology',${safeId(pid)})">🦴 ${tr('Rheumatology', 'الروماتيزم والمفاصل')}</button>
         <button class="btn btn-sm e1-tab" data-tab="neurology" onclick="e1SwitchTab('neurology',${safeId(pid)})">🧠 ${tr('Neurology', 'الأعصاب والدماغ')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="ophthalmology" onclick="e1SwitchTab('ophthalmology',${safeId(pid)})">👁️ ${tr('Ophthalmology', 'طب وجراحة العيون')}</button>
       </div>
       <div id="e1TabBody"></div>
     </div>`;
@@ -2259,6 +2260,7 @@ window.e1SwitchTab = async (tab, pid) => {
   if (tab === 'pulmonology') return window.e1RenderPulmonology(pid);
   if (tab === 'rheumatology') return window.e1RenderRheumatology(pid);
   if (tab === 'neurology') return window.e1RenderNeurology(pid);
+  if (tab === 'ophthalmology') return window.e1RenderOphthalmology(pid);
 };
 
 // ---------- Problem List ----------
@@ -15940,5 +15942,297 @@ window.e1AddNephrologySession = async (pid) => {
     document.getElementById('e1NephroNotes').value = '';
   } catch (err) {
     showToast(tr('Error saving dialysis session', 'خطأ في حفظ الجلسة'), 'error');
+  }
+};
+
+// =====================================================================
+// ===== OPHTHALMOLOGY MODULE (G14) =====
+// =====================================================================
+
+window.e1RenderOphthalmology = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1.4;min-width:320px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">👁️ ${tr('Ophthalmology Examination', 'فحص طب وجراحة العيون')}</h4>
+        
+        <!-- Visual Acuity Section -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">👓 ${tr('Visual Acuity (Snellen)', 'حدة الإبصار (سنيبلين)')}</legend>
+          <div class="flex gap-8 mb-8">
+            <div class="form-group" style="flex:1">
+              <label>👁️ OD (${tr('Right Eye Uncorrected', 'العين اليمنى بدون تصحيح')})</label>
+              <select class="form-input" id="e1EyeVaOdUncorrected">
+                <option value="20/20">20/20</option>
+                <option value="20/25">20/25</option>
+                <option value="20/30">20/30</option>
+                <option value="20/40">20/40</option>
+                <option value="20/50">20/50</option>
+                <option value="20/70">20/70</option>
+                <option value="20/100">20/100</option>
+                <option value="20/200">20/200</option>
+                <option value="CF">${tr('CF (Counting Fingers)', 'عد الأصابع')}</option>
+                <option value="HM">${tr('HM (Hand Motion)', 'حركة اليد')}</option>
+                <option value="LP">${tr('LP (Light Perception)', 'إحساس بالضوء')}</option>
+                <option value="NLP">${tr('NLP (No Light)', 'لا يوجد إحساس بالضوء')}</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex:1">
+              <label>👁️ OS (${tr('Left Eye Uncorrected', 'العين اليسرى بدون تصحيح')})</label>
+              <select class="form-input" id="e1EyeVaOsUncorrected">
+                <option value="20/20">20/20</option>
+                <option value="20/25">20/25</option>
+                <option value="20/30">20/30</option>
+                <option value="20/40">20/40</option>
+                <option value="20/50">20/50</option>
+                <option value="20/70">20/70</option>
+                <option value="20/100">20/100</option>
+                <option value="20/200">20/200</option>
+                <option value="CF">CF</option>
+                <option value="HM">HM</option>
+                <option value="LP">LP</option>
+                <option value="NLP">NLP</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex gap-8">
+            <div class="form-group" style="flex:1">
+              <label>👓 OD (${tr('Right Eye Corrected', 'العين اليمنى بالنظارة')})</label>
+              <select class="form-input" id="e1EyeVaOdCorrected">
+                <option value="20/20">20/20</option>
+                <option value="20/25">20/25</option>
+                <option value="20/30">20/30</option>
+                <option value="20/40">20/40</option>
+                <option value="20/50">20/50</option>
+                <option value="20/70">20/70</option>
+                <option value="20/100">20/100</option>
+                <option value="20/200">20/200</option>
+                <option value="CF">CF</option>
+                <option value="HM">HM</option>
+                <option value="LP">LP</option>
+                <option value="NLP">NLP</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex:1">
+              <label>👓 OS (${tr('Left Eye Corrected', 'العين اليسرى بالنظارة')})</label>
+              <select class="form-input" id="e1EyeVaOsCorrected">
+                <option value="20/20">20/20</option>
+                <option value="20/25">20/25</option>
+                <option value="20/30">20/30</option>
+                <option value="20/40">20/40</option>
+                <option value="20/50">20/50</option>
+                <option value="20/70">20/70</option>
+                <option value="20/100">20/100</option>
+                <option value="20/200">20/200</option>
+                <option value="CF">CF</option>
+                <option value="HM">HM</option>
+                <option value="LP">LP</option>
+                <option value="NLP">NLP</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Intraocular Pressure (IOP) Section -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">💥 ${tr('Intraocular Pressure (IOP)', 'ضغط العين')}</legend>
+          <div class="flex gap-8 mb-8">
+            <div class="form-group" style="flex:1">
+              <label>OD (${tr('Right Eye - mmHg', 'العين اليمنى - مم زئبق')})</label>
+              <input class="form-input" type="number" id="e1EyeIopOd" step="0.5" placeholder="e.g. 15.0" oninput="e1EyeCheckIopAlert()">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label>OS (${tr('Left Eye - mmHg', 'العين اليسرى - مم زئبق')})</label>
+              <input class="form-input" type="number" id="e1EyeIopOs" step="0.5" placeholder="e.g. 16.0" oninput="e1EyeCheckIopAlert()">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>${tr('Measurement Method', 'طريقة القياس')}</label>
+            <select class="form-input" id="e1EyeIopMethod">
+              <option value="Goldmann">${tr('Goldmann Applanation', 'تخطيط غولدمان المفلطح')}</option>
+              <option value="Tonopen">${tr('Tonopen', 'تونوبين')}</option>
+              <option value="Airpuff">${tr('Non-Contact (Airpuff)', 'غير ملامس (نفخة هواء)')}</option>
+            </select>
+          </div>
+          <div id="e1EyeIopWarning" style="margin-top:6px;font-size:12px;color:red;display:none;font-weight:700">
+            ⚠️ ${tr('Warning: High Intraocular Pressure detected (> 21 mmHg)!', 'تنبيه: تم رصد ضغط عين مرتفع (> 21 مم زئبق)!')}
+          </div>
+        </fieldset>
+
+        <!-- Refraction Section -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">📐 ${tr('Refraction', 'فحص الانكسار (النظر)')}</legend>
+          <div class="flex gap-8 mb-8">
+            <div class="form-group" style="flex:1">
+              <label>OD - ${tr('Sphere', 'الكرة')}</label>
+              <input class="form-input" type="number" id="e1EyeSphereOd" step="0.25" placeholder="-1.50">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label>OD - ${tr('Cylinder', 'الأسطوانة')}</label>
+              <input class="form-input" type="number" id="e1EyeCylinderOd" step="0.25" placeholder="-0.50">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label>OD - ${tr('Axis', 'المحور')}</label>
+              <input class="form-input" type="number" id="e1EyeAxisOd" min="0" max="180" placeholder="90">
+            </div>
+          </div>
+          <div class="flex gap-8">
+            <div class="form-group" style="flex:1">
+              <label>OS - ${tr('Sphere', 'الكرة')}</label>
+              <input class="form-input" type="number" id="e1EyeSphereOs" step="0.25" placeholder="-1.25">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label>OS - ${tr('Cylinder', 'الأسطوانة')}</label>
+              <input class="form-input" type="number" id="e1EyeCylinderOs" step="0.25" placeholder="-0.75">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label>OS - ${tr('Axis', 'المحور')}</label>
+              <input class="form-input" type="number" id="e1EyeAxisOs" min="0" max="180" placeholder="85">
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Findings & Notes -->
+        <div class="form-group mb-8">
+          <label>${tr('Slit Lamp Examination', 'فحص المصباح الشقي (القرنية، العدسة)')}</label>
+          <textarea class="form-input form-textarea" id="e1EyeSlitLamp" rows="2" placeholder="${tr('Cornea clear, anterior chamber deep and quiet...', 'القرنية صافية، الغرفة الأمامية عميقة وهادئة...')}" style="min-height:45px"></textarea>
+        </div>
+        
+        <div class="form-group mb-8">
+          <label>${tr('Fundoscopy / Retina Exam', 'فحص قاع العين والشبكية')}</label>
+          <textarea class="form-input form-textarea" id="e1EyeFundoscopy" rows="2" placeholder="${tr('Optic disc pink with sharp margins, cup-to-disc ratio 0.3...', 'العصب البصري وردي وحدوده واضحة، نسبة التقعر 0.3...')}" style="min-height:45px"></textarea>
+        </div>
+
+        <div class="form-group mb-8">
+          <label>${tr('Clinical Notes', 'ملاحظات إضافية')}</label>
+          <input class="form-input" id="e1EyeNotes" placeholder="${tr('e.g. Advised patient to follow up in 6 months', 'مثلاً: نصح المريض بالمراجعة بعد 6 أشهر')}">
+        </div>
+        
+        <button class="btn btn-primary btn-sm mb-12 w-full" onclick="e1AddEyeExam(${safeId(pid)})">💾 ${tr('Save Eye Examination', 'حفظ فحص العين')}</button>
+      </div>
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">📋 ${tr('Eye Examination History', 'سجل فحوصات العين السابقة')}</h4>
+        <div id="e1EyeExamsList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  window.e1LoadEyeExamsList(pid);
+};
+
+window.e1EyeCheckIopAlert = () => {
+  const od = parseFloat(document.getElementById('e1EyeIopOd')?.value || 0);
+  const os = parseFloat(document.getElementById('e1EyeIopOs')?.value || 0);
+  const warning = document.getElementById('e1EyeIopWarning');
+  
+  if (warning) {
+    if (od > 21 || os > 21) {
+      warning.style.display = 'block';
+    } else {
+      warning.style.display = 'none';
+    }
+  }
+};
+
+window.e1LoadEyeExamsList = async (pid) => {
+  const container = document.getElementById('e1EyeExamsList');
+  if (!container) return;
+  try {
+    const exams = await API.get('/api/ophthalmology/exams/patient/' + pid);
+    if (!exams.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No eye exams found', 'لا توجد فحوصات عيون مسجلة')}</div>`;
+      return;
+    }
+    container.innerHTML = exams.map(e => {
+      const iopOd = parseFloat(e.od_iop || 0);
+      const iopOs = parseFloat(e.os_iop || 0);
+      const isIopHigh = iopOd > 21 || iopOs > 21;
+      const iopStyle = isIopHigh ? 'color:red;font-weight:700' : 'color:var(--text-color)';
+      
+      return `
+        <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid var(--primary);font-size:12px">
+          <div style="font-weight:700;color:var(--primary);display:flex;justify-content:space-between">
+            <span>📅 ${new Date(e.exam_date).toLocaleDateString('ar-SA')}</span>
+            <span>👁️ VA: OD ${escapeHTML(e.od_va_uncorrected || '-')} | OS ${escapeHTML(e.os_va_uncorrected || '-')}</span>
+          </div>
+          <div style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:4px">
+            <div style="${iopStyle}"><strong>${tr('IOP (OD/OS):', 'ضغط العين:')}</strong> ${e.od_iop || '-'} / ${e.os_iop || '-'} mmHg</div>
+            <div><strong>${tr('Method:', 'الطريقة:')}</strong> ${escapeHTML(e.iop_method || '-')}</div>
+            <div style="grid-column:span 2"><strong>${tr('Refraction (OD):', 'انكسار اليمنى:')}</strong> S:${e.od_sphere || '0'} C:${e.od_cylinder || '0'} A:${e.od_axis || '0'}°</div>
+            <div style="grid-column:span 2"><strong>${tr('Refraction (OS):', 'انكسار اليسرى:')}</strong> S:${e.os_sphere || '0'} C:${e.os_cylinder || '0'} A:${e.os_axis || '0'}°</div>
+          </div>
+          ${e.slit_lamp_exam ? `<div style="margin-top:4px;color:var(--text-dim)"><strong>${tr('Slit Lamp:', 'المصباح الشقي:')}</strong> ${escapeHTML(e.slit_lamp_exam)}</div>` : ''}
+          ${e.fundoscopy_exam ? `<div style="margin-top:4px;color:var(--text-dim)"><strong>${tr('Fundoscopy:', 'فحص الشبكية:')}</strong> ${escapeHTML(e.fundoscopy_exam)}</div>` : ''}
+          ${e.notes ? `<div style="margin-top:4px;color:var(--text-dim)"><strong>${tr('Notes:', 'ملاحظات:')}</strong> ${escapeHTML(e.notes)}</div>` : ''}
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">👨‍⚕️ ${escapeHTML(e.doctor_name || '')}</div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading', 'خطأ في التحميل')}</div>`;
+  }
+};
+
+window.e1AddEyeExam = async (pid) => {
+  const odVaUn = document.getElementById('e1EyeVaOdUncorrected')?.value;
+  const osVaUn = document.getElementById('e1EyeVaOsUncorrected')?.value;
+  const odVaCor = document.getElementById('e1EyeVaOdCorrected')?.value;
+  const osVaCor = document.getElementById('e1EyeVaOsCorrected')?.value;
+  
+  const odIop = document.getElementById('e1EyeIopOd')?.value;
+  const osIop = document.getElementById('e1EyeIopOs')?.value;
+  const iopMethod = document.getElementById('e1EyeIopMethod')?.value;
+  
+  const odSph = document.getElementById('e1EyeSphereOd')?.value;
+  const osSph = document.getElementById('e1EyeSphereOs')?.value;
+  const odCyl = document.getElementById('e1EyeCylinderOd')?.value;
+  const osCyl = document.getElementById('e1EyeCylinderOs')?.value;
+  const odAx = document.getElementById('e1EyeAxisOd')?.value;
+  const osAx = document.getElementById('e1EyeAxisOs')?.value;
+  
+  const slit = document.getElementById('e1EyeSlitLamp')?.value;
+  const fundus = document.getElementById('e1EyeFundoscopy')?.value;
+  const notes = document.getElementById('e1EyeNotes')?.value;
+  
+  try {
+    await API.post('/api/ophthalmology/exams', {
+      patient_id: pid,
+      od_va_uncorrected: odVaUn,
+      os_va_uncorrected: osVaUn,
+      od_va_corrected: odVaCor,
+      os_va_corrected: osVaCor,
+      od_iop: odIop,
+      os_iop: osIop,
+      iop_method: iopMethod,
+      od_sphere: odSph,
+      os_sphere: osSph,
+      od_cylinder: odCyl,
+      os_cylinder: osCyl,
+      od_axis: odAx,
+      os_axis: osAx,
+      slit_lamp_exam: slit,
+      fundoscopy_exam: fundus,
+      notes: notes
+    });
+    
+    showToast(tr('Eye examination saved successfully!', 'تم حفظ فحص العين بنجاح!'));
+    window.e1LoadEyeExamsList(pid);
+    
+    // Reset fields
+    document.getElementById('e1EyeIopOd').value = '';
+    document.getElementById('e1EyeIopOs').value = '';
+    document.getElementById('e1EyeSphereOd').value = '';
+    document.getElementById('e1EyeSphereOs').value = '';
+    document.getElementById('e1EyeCylinderOd').value = '';
+    document.getElementById('e1EyeCylinderOs').value = '';
+    document.getElementById('e1EyeAxisOd').value = '';
+    document.getElementById('e1EyeAxisOs').value = '';
+    document.getElementById('e1EyeSlitLamp').value = '';
+    document.getElementById('e1EyeFundoscopy').value = '';
+    document.getElementById('e1EyeNotes').value = '';
+  } catch (err) {
+    showToast(tr('Error saving eye examination', 'خطأ في حفظ فحص العين'), 'error');
   }
 };

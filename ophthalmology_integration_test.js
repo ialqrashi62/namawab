@@ -1,0 +1,180 @@
+/**
+ * ophthalmology_integration_test.js — Integration test for the Ophthalmology module HTTP endpoints.
+ */
+'use strict';
+
+process.env.NODE_ENV = 'staging';
+
+const { spawn } = require('child_process');
+const http = require('http');
+const assert = require('assert');
+const bcrypt = require('bcryptjs');
+const { pool } = require('./db_postgres');
+
+const TEST_PORT = 3015;
+const TEST_USERNAME = 'eye_doctor';
+const TEST_PASSWORD = 'EYE_PASSWORD_PLACEHOLDER';
+
+let serverProcess;
+
+function makeRequest(method, path, body, headers = {}) {
+    return new Promise((resolve, reject) => {
+        const payload = body ? JSON.stringify(body) : '';
+        const req = http.request({
+            hostname: 'localhost',
+            port: TEST_PORT,
+            path,
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(payload),
+                ...headers
+            }
+        }, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                try {
+                    const parsed = data ? JSON.parse(data) : {};
+                    resolve({ statusCode: res.statusCode, headers: res.headers, body: parsed });
+                } catch (e) {
+                    resolve({ statusCode: res.statusCode, headers: res.headers, rawBody: data });
+                }
+            });
+        });
+        req.on('error', reject);
+        if (payload) req.write(payload);
+        req.end();
+    });
+}
+
+async function runTests() {
+    console.log('--- STARTING OPHTHALMOLOGY MODULE INTEGRATION TESTS ---');
+
+    const patientId = 9983;
+    const doctorUserId = 9984;
+    const client = await pool.connect();
+
+    try {
+        console.log('Setting up test data...');
+        await client.query("SET app.tenant_id = '1'");
+
+        // Clean up old test data
+        await client.query('DELETE FROM eye_exams WHERE patient_id = $1', [patientId]);
+        await client.query('DELETE FROM patients WHERE id = $1', [patientId]);
+        await client.query('DELETE FROM user_tenants WHERE user_id = $1', [doctorUserId]);
+        await client.query('DELETE FROM system_users WHERE id = $1', [doctorUserId]);
+
+        // Insert patient
+        await client.query(
+            'INSERT INTO patients (id, name_en, name_ar, tenant_id) VALUES ($1, $2, $3, 1)',
+            [patientId, 'Eye Test Patient', 'مريض فحص العيون']
+        );
+
+        // Insert doctor user
+        const hashedPassword = await bcrypt.hash(TEST_PASSWORD, 10);
+        await client.query(
+            'INSERT INTO system_users (id, username, password_hash, display_name, role, speciality, permissions, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7, 1)',
+            [doctorUserId, TEST_USERNAME, hashedPassword, 'Dr. Eye Specialist', 'Doctor', 'Ophthalmology', '["patients", "prescriptions"]']
+        );
+
+        // Associate doctor with tenant 1
+        await client.query(
+            'INSERT INTO user_tenants (user_id, tenant_id, is_active) VALUES ($1, 1, true)',
+            [doctorUserId]
+        );
+
+        console.log('Spawning test server...');
+        serverProcess = spawn('node', ['server.js'], {
+            env: { ...process.env, PORT: TEST_PORT, NODE_ENV: 'staging', SKIP_DB_INIT: 'true' },
+            stdio: 'inherit'
+        });
+
+        // Wait 3 seconds for server to boot
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+        console.log('Logging in...');
+        const loginRes = await makeRequest('POST', '/api/auth/login', {
+            username: TEST_USERNAME,
+            password: TEST_PASSWORD
+        });
+
+        assert.strictEqual(loginRes.statusCode, 200, 'Login should succeed');
+        console.log('✓ Logged in successfully.');
+
+        // Extract session cookie
+        const setCookie = loginRes.headers['set-cookie'];
+        assert.ok(setCookie, 'Should receive session cookie');
+        const cookie = setCookie[0].split(';')[0];
+
+        // 1. Test POST /api/ophthalmology/exams (Create eye exam)
+        console.log('Testing create eye exam...');
+        const createRes = await makeRequest('POST', '/api/ophthalmology/exams', {
+            patient_id: patientId,
+            od_va_uncorrected: '20/40',
+            os_va_uncorrected: '20/30',
+            od_va_corrected: '20/20',
+            os_va_corrected: '20/20',
+            od_iop: 15.5,
+            os_iop: 16.0,
+            iop_method: 'Goldmann',
+            od_sphere: -1.5,
+            os_sphere: -1.25,
+            od_cylinder: -0.5,
+            os_cylinder: -0.75,
+            od_axis: 90,
+            os_axis: 85,
+            slit_lamp_exam: 'Cornea clear',
+            fundoscopy_exam: 'Optic disc pink',
+            notes: 'Routine checkup'
+        }, { 'Cookie': cookie });
+
+        assert.strictEqual(createRes.statusCode, 200, 'Should return 200 OK');
+        assert.strictEqual(createRes.body.success, true, 'Should return success true');
+        assert.ok(createRes.body.id, 'Should return exam ID');
+        const examId = createRes.body.id;
+        console.log(`✓ Eye exam created successfully. ID: ${examId}`);
+
+        // 2. Test GET /api/ophthalmology/exams/patient/:patient_id
+        console.log('Testing get patient eye exams...');
+        const getRes = await makeRequest('GET', `/api/ophthalmology/exams/patient/${patientId}`, null, { 'Cookie': cookie });
+        assert.strictEqual(getRes.statusCode, 200, 'Should return 200 OK');
+        assert.strictEqual(getRes.body.length, 1, 'Should return exactly 1 exam');
+        assert.strictEqual(getRes.body[0].id, examId, 'Exam ID should match');
+        assert.strictEqual(getRes.body[0].od_va_uncorrected, '20/40', 'OD VA should match');
+        assert.strictEqual(getRes.body[0].os_va_uncorrected, '20/30', 'OS VA should match');
+        assert.strictEqual(parseFloat(getRes.body[0].od_iop), 15.5, 'OD IOP should match');
+        assert.strictEqual(parseFloat(getRes.body[0].os_iop), 16.0, 'OS IOP should match');
+        assert.strictEqual(parseFloat(getRes.body[0].od_sphere), -1.5, 'OD Sphere should match');
+        assert.strictEqual(parseFloat(getRes.body[0].os_sphere), -1.25, 'OS Sphere should match');
+        assert.strictEqual(parseInt(getRes.body[0].od_axis), 90, 'OD Axis should match');
+        assert.strictEqual(getRes.body[0].slit_lamp_exam, 'Cornea clear', 'Slit lamp should match');
+        console.log('✓ Patient eye exams retrieved successfully.');
+
+    } finally {
+        console.log('Cleaning up test data...');
+        await client.query("SET app.tenant_id = '1'");
+        await client.query('DELETE FROM eye_exams WHERE patient_id = $1', [patientId]);
+        await client.query('DELETE FROM patients WHERE id = $1', [patientId]);
+        await client.query('DELETE FROM user_tenants WHERE user_id = $1', [doctorUserId]);
+        await client.query('DELETE FROM system_users WHERE id = $1', [doctorUserId]);
+        client.release();
+
+        if (serverProcess) {
+            console.log('Killing test server...');
+            serverProcess.kill();
+        }
+    }
+
+    console.log('✅ Ophthalmology Module Integration Tests passed successfully!\n');
+}
+
+if (require.main === module) {
+    runTests().catch(err => {
+        console.error('❌ Test failed:', err);
+        if (serverProcess) serverProcess.kill();
+        process.exit(1);
+    });
+}
+
+module.exports = { runTests };
