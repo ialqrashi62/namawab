@@ -15,12 +15,19 @@ psql -U postgres -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE r
 psql -U postgres -d nama_medical_test -c "GRANT ALL ON SCHEMA public TO postgres; GRANT USAGE ON SCHEMA public TO nama_medical_app;"
 ```
 
-## الخطوة 2 — تطبيق مخطط الإنتاج على قاعدة الاختبار
-طبّق `namaweb/migrations/*_up.sql` **بنفس ترتيب إصدارك المعتمد** (ليس ترتيباً أبجدياً ساذجاً —
-`e10` ليست بعد `e2` أبجدياً)، ثم امنح الصلاحيات لـ`nama_medical_app` كما في الإنتاج (RLS FORCE + GRANTs).
-استخدم نفس أداة الترحيل التي تستعملها للإنتاج موجِّهاً إياها إلى `nama_medical_test`.
+## الخطوة 2 — تطبيق مخطط الإنتاج على قاعدة الاختبار (بالأداة المعتمدة)
+استخدم **`namaweb/DEPLOY_RUN.sh`** — أداة المستودع الرسمية التي تطبّق كل migrations + validators
+**بالترتيب الصحيح** مع preflight آمن متعدد المستأجرين (لا تعتمد فرزاً أبجدياً). **موجِّهاً إياها لقاعدة الاختبار:**
+```bash
+cd namaweb
+export PGHOST=localhost PGDATABASE=nama_medical_test PGUSER=postgres PGPASSWORD='<superuser>'
+bash DEPLOY_RUN.sh         # يطبّق e0..e21 + ex + validators، يتوقّف عند أول خطأ
+```
+> ملاحظة: `DEPLOY_RUN.sh` **لا يشمل `e22_01` الجديد** (مضاف هذه الجلسة) — يُطبَّق في الخطوة 4.
+> backfill داخل بعض الـ_up يستخدم `tenant_id=1`؛ على بيانات اختبار نظيفة هذا no-op آمن (الـpreflight يتحقّق).
+> بعد الانتهاء امنح `nama_medical_app` صلاحيات القراءة/الكتابة على قاعدة الاختبار كما في الإنتاج.
 
-> تحقّق من تطبيق RLS: شغّل `migrations/*_validate.sql` — يجب أن تمرّ كلها.
+> تحقّق من RLS: الـvalidators تعمل تلقائياً ضمن `DEPLOY_RUN.sh` ويجب أن تمرّ كلها (0 مشاكل).
 
 ## الخطوة 3 — تشغيل المجموعة الكاملة معزولةً
 ```bash
