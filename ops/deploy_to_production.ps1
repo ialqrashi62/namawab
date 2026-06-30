@@ -1,5 +1,5 @@
 <#
-  deploy_to_production.ps1 — apply the verified code changes to the live PM2 app, with auto-rollback.
+  deploy_to_production.ps1 - apply the verified code changes to the live PM2 app, with auto-rollback.
 
   PM2 'nama-app' runs server.js directly from namaweb/ (NODE_ENV=production), so the on-disk (committed,
   tested) code is applied by a restart. Changes being shipped: validation on 4 routes (verified
@@ -14,7 +14,7 @@
 #>
 param(
   [string]$App = "nama-app",
-  [string]$RollbackSha = "b6d48f2",   # pre-session namaweb HEAD
+  [string]$RollbackSha = "b6d48f2",
   [string]$HealthUrl = "http://localhost:3000/api/health"
 )
 $ErrorActionPreference = "Stop"
@@ -25,7 +25,7 @@ function WaitHealthy([int]$secs=24) { for ($i=0; $i -lt ($secs/2); $i++) { Start
 
 Push-Location $nama
 try {
-  if ((git status --porcelain).Length -gt 0) { Write-Error "namaweb working tree not clean — commit/stash first."; exit 2 }
+  if ((git status --porcelain).Length -gt 0) { Write-Error "namaweb working tree not clean - commit/stash first."; exit 2 }
   $deploySha = (git rev-parse --short HEAD)
   Write-Host "Baseline health: $(Health)"
   Write-Host "Deploying $deploySha (rollback target: $RollbackSha)..." -ForegroundColor Cyan
@@ -36,12 +36,12 @@ try {
     Write-Host "Health: $(Health)  | running $deploySha"
     pm2 save | Out-Null
   } else {
-    Write-Host "`n!!! UNHEALTHY after restart — AUTO-ROLLBACK to $RollbackSha !!!" -ForegroundColor Red
+    Write-Host "`n!!! UNHEALTHY after restart - AUTO-ROLLBACK to $RollbackSha !!!" -ForegroundColor Red
     git stash push -u -m "pre-rollback-$deploySha" 2>$null | Out-Null
     git checkout $RollbackSha -- .
     pm2 restart $App --update-env | Out-Null
     if (WaitHealthy) { Write-Host "Rolled back to $RollbackSha and HEALTHY. Restore new code with: git checkout $deploySha -- ." -ForegroundColor Yellow }
-    else { Write-Error "ROLLBACK ALSO UNHEALTHY — investigate pm2 logs ($App) immediately." }
+    else { Write-Error "ROLLBACK ALSO UNHEALTHY - investigate pm2 logs ($App) immediately." }
     exit 1
   }
 } finally { Pop-Location }
