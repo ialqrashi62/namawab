@@ -11,7 +11,7 @@ const assert = require('assert');
 const bcrypt = require('bcryptjs');
 const { pool } = require('./db_postgres');
 
-const TEST_PORT = 3012;
+const TEST_PORT = 3014;
 const TEST_USERNAME = 'nephro_doctor';
 const TEST_PASSWORD = 'NEPHRO_PASSWORD_PLACEHOLDER';
 
@@ -51,8 +51,8 @@ function makeRequest(method, path, body, headers = {}) {
 async function runTests() {
     console.log('--- STARTING NEPHROLOGY MODULE INTEGRATION TESTS ---');
 
-    const patientId = 9987;
-    const doctorUserId = 9988;
+    const patientId = 9993;
+    const doctorUserId = 9994;
     const client = await pool.connect();
 
     try {
@@ -75,7 +75,7 @@ async function runTests() {
         const hashedPassword = await bcrypt.hash(TEST_PASSWORD, 10);
         await client.query(
             'INSERT INTO system_users (id, username, password_hash, display_name, role, speciality, permissions, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7, 1)',
-            [doctorUserId, TEST_USERNAME, hashedPassword, 'Dr. Nephro Consultant', 'Doctor', 'Nephrology', '["patients", "prescriptions"]']
+            [doctorUserId, TEST_USERNAME, hashedPassword, 'Dr. Nephro Specialist', 'Doctor', 'Nephrology', '["patients", "prescriptions"]']
         );
 
         // Associate doctor with tenant 1
@@ -86,15 +86,8 @@ async function runTests() {
 
         console.log('Spawning test server...');
         serverProcess = spawn('node', ['server.js'], {
-            env: { ...process.env, PORT: TEST_PORT, NODE_ENV: 'staging', SKIP_DB_INIT: 'true' }
-        });
-
-        // Pipe stdout/stderr for logging
-        serverProcess.stdout.on('data', (data) => {
-            console.log(`[Server STDOUT] ${data.toString().trim()}`);
-        });
-        serverProcess.stderr.on('data', (data) => {
-            console.error(`[Server STDERR] ${data.toString().trim()}`);
+            env: { ...process.env, PORT: TEST_PORT, NODE_ENV: 'staging', SKIP_DB_INIT: 'true' },
+            stdio: 'inherit'
         });
 
         // Wait 3 seconds for server to boot
@@ -114,32 +107,39 @@ async function runTests() {
         assert.ok(setCookie, 'Should receive session cookie');
         const cookie = setCookie[0].split(';')[0];
 
-        // 1. Test POST /api/nephrology/dialysis (Create dialysis session)
+        // 1. Test POST /api/nephrology/dialysis (Create session)
         console.log('Testing create dialysis session...');
-        const dialysisCreateRes = await makeRequest('POST', '/api/nephrology/dialysis', {
+        const createRes = await makeRequest('POST', '/api/nephrology/dialysis', {
             patient_id: patientId,
-            weight_pre: 75.5,
-            weight_post: 72.3,
-            blood_flow_rate: 300,
-            ultrafiltration_volume: 3.2,
+            dialysis_type: 'Hemodialysis',
             duration_hours: 4.0,
-            notes: 'Uneventful dialysis session.'
+            ultrafiltration_target_liters: 2.5,
+            blood_flow_rate_ml_min: 300,
+            dialysate_flow_rate_ml_min: 500,
+            pre_weight_kg: 75.2,
+            post_weight_kg: 72.8,
+            notes: 'AV fistula working well.'
         }, { 'Cookie': cookie });
 
-        assert.strictEqual(dialysisCreateRes.statusCode, 200, 'Should return 200 OK');
-        assert.strictEqual(dialysisCreateRes.body.success, true, 'Should return success true');
-        assert.ok(dialysisCreateRes.body.id, 'Should return dialysis session ID');
-        const sessionId = dialysisCreateRes.body.id;
+        assert.strictEqual(createRes.statusCode, 200, 'Should return 200 OK');
+        assert.strictEqual(createRes.body.success, true, 'Should return success true');
+        assert.ok(createRes.body.id, 'Should return session ID');
+        const sessionId = createRes.body.id;
         console.log(`✓ Dialysis session created successfully. ID: ${sessionId}`);
 
         // 2. Test GET /api/nephrology/dialysis/patient/:patient_id
         console.log('Testing get patient dialysis sessions...');
-        const dialysisGetRes = await makeRequest('GET', `/api/nephrology/dialysis/patient/${patientId}`, null, { 'Cookie': cookie });
-        assert.strictEqual(dialysisGetRes.statusCode, 200, 'Should return 200 OK');
-        assert.strictEqual(dialysisGetRes.body.length, 1, 'Should return exactly 1 dialysis session');
-        assert.strictEqual(dialysisGetRes.body[0].id, sessionId, 'Dialysis session ID should match');
-        assert.strictEqual(parseFloat(dialysisGetRes.body[0].weight_pre), 75.5, 'Pre-weight should match');
-        assert.strictEqual(parseFloat(dialysisGetRes.body[0].weight_post), 72.3, 'Post-weight should match');
+        const getRes = await makeRequest('GET', `/api/nephrology/dialysis/patient/${patientId}`, null, { 'Cookie': cookie });
+        console.log('DIAGNOSTIC - GET RESPONSE BODY:', getRes.body[0]);
+        assert.strictEqual(getRes.statusCode, 200, 'Should return 200 OK');
+        assert.strictEqual(getRes.body.length, 1, 'Should return exactly 1 session');
+        assert.strictEqual(getRes.body[0].id, sessionId, 'Session ID should match');
+        assert.strictEqual(getRes.body[0].dialysis_type, 'Hemodialysis', 'Type should match');
+        assert.strictEqual(parseFloat(getRes.body[0].duration_hours), 4.0, 'Duration should match');
+        assert.strictEqual(parseFloat(getRes.body[0].ultrafiltration_target_liters), 2.5, 'UF Target should match');
+        assert.strictEqual(parseInt(getRes.body[0].blood_flow_rate_ml_min), 300, 'Blood flow should match');
+        assert.strictEqual(parseFloat(getRes.body[0].pre_weight_kg), 75.2, 'Pre weight should match');
+        assert.strictEqual(parseFloat(getRes.body[0].post_weight_kg), 72.8, 'Post weight should match');
         console.log('✓ Patient dialysis sessions retrieved successfully.');
 
     } finally {
