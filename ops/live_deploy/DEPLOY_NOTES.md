@@ -53,8 +53,15 @@ pm2 restart nama-medical-erp --update-env
 ```
 Full pre-deploy snapshots: `/root/nama_backups/20260630_072310/` (tree tar + working_tree.patch + DB dump).
 
+## Follow-up deploy 2026-06-30 — e22 money REAL→NUMERIC (APPLIED)
+- server.js edit 6: `GET /api/patients/:id/account` summed `i.total` RAW → `parseFloat(i.total)` (lines
+  ~3858-3859). Required because e22 makes the pg driver return those money columns as STRINGS; raw `+`
+  would string-concat the patient billed/paid/balance totals. Deployed (backup
+  `/root/nama_backups/prefix_20260630_075240/server.js.pre`), health UP.
+- Then e22 applied to the live DB (owner-authorized): fresh backup
+  `/root/nama_backups/PRE_e22_20260630_075439.dump`, all 13 money cols → NUMERIC(14,2), validate=0,
+  pm2 restart, health UP, stable. See `e22_live_runbook.md` (now marked APPLIED) for full procedure +
+  rollback (`down.sql` or `pg_restore --clean` the PRE_e22 dump).
+
 ## NOT deployed (deliberately)
 - audit_middleware + global rate-limiter: inert-by-default, low value → deferred.
-- **e22 money REAL→NUMERIC on the live DB**: financial DDL on a running hospital; pg returns NUMERIC as
-  STRING afterward and the live (all-epics) money display/sum paths are unverified for that. See
-  `e22_live_runbook.md` — verification-first, run in a maintenance window. NOT run autonomously.

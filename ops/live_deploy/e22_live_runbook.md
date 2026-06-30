@@ -1,7 +1,20 @@
 # e22 money REAL→NUMERIC on the LIVE hospital DB — verification-first runbook
 
-**Status: NOT YET RUN on live.** This is the safe procedure for a maintenance window. Do not run it
-ad-hoc during clinic hours.
+**Status: APPLIED to live 2026-06-30 (owner-authorized).** Fresh backup
+`/root/nama_backups/PRE_e22_20260630_075439.dump` (576K) → e22 up → validate=0 → all 13 money cols now
+NUMERIC(14,2) → pm2 restart → health UP, stable (no new errors). PREREQUISITE code fix was deployed
+first (see below). Kept here as the procedure of record + rollback.
+
+**Code-readiness audit done before applying (this was the key de-risk):** the live all-epics code was
+scanned for `+`-based money sums on the converted columns (only `+` string-concatenates; `-`/`*`/`/`
+coerce safely). Found ONE real bug — `GET /api/patients/:id/account` summed `i.total` RAW
+(`reduce((s,i)=>s+(i.total||0),0)` at server.js ~3858-3859) → would string-concat once total is NUMERIC.
+FIXED to `parseFloat(i.total)` and deployed BEFORE the migration (parseFloat is safe for REAL too).
+Client app.js: 132 parseFloat/Number/toLocaleString uses, no raw `+` sums on e22 columns. The codebase
+already had precedent (GL finance_journal_lines + insurance_claims were NUMERIC previously).
+
+---
+Original verification-first procedure (for reference / re-use on other environments):
 
 ## Why caution (honest risk assessment)
 - It is **DDL that rewrites financial tables** (`ALTER COLUMN ... TYPE NUMERIC`) → brief table locks; on a
