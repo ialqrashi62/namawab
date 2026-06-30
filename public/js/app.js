@@ -2230,6 +2230,7 @@ window.renderE1Panel = async (pid) => {
         <button class="btn btn-sm e1-tab" data-tab="soap" onclick="e1SwitchTab('soap',${safeId(pid)})">📝 ${tr('SOAP Note', 'ملاحظة SOAP')}</button>
         <button class="btn btn-sm e1-tab" data-tab="cardiology" onclick="e1SwitchTab('cardiology',${safeId(pid)})">❤️ ${tr('Cardiology', 'طب القلب')}</button>
         <button class="btn btn-sm e1-tab" data-tab="gastro" onclick="e1SwitchTab('gastro',${safeId(pid)})">🤢 ${tr('Gastroenterology', 'الجهاز الهضمي')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="endocrine" onclick="e1SwitchTab('endocrine',${safeId(pid)})">🍭 ${tr('Endocrinology', 'الغدد والسكري')}</button>
       </div>
       <div id="e1TabBody"></div>
     </div>`;
@@ -2249,6 +2250,7 @@ window.e1SwitchTab = async (tab, pid) => {
   if (tab === 'soap') return window.e1RenderSoap(pid);
   if (tab === 'cardiology') return window.e1RenderCardiology(pid);
   if (tab === 'gastro') return window.e1RenderGastro(pid);
+  if (tab === 'endocrine') return window.e1RenderEndocrine(pid);
 };
 
 // ---------- Problem List ----------
@@ -15016,5 +15018,178 @@ window.e1SimulateBiopsyResult = async (id, pid) => {
     window.e1LoadBiopsiesList(pid);
   } catch (err) {
     showToast(tr('Error recording result', 'خطأ في تسجيل النتيجة'), 'error');
+  }
+};
+
+// =====================================================================
+// ===== ENDOCRINOLOGY & DIABETES MODULE (G03) =====
+// =====================================================================
+
+window.e1RenderEndocrine = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1.2;min-width:300px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">🍭 ${tr('Blood Glucose Tracker', 'مراقبة مستوى السكر في الدم')}</h4>
+        <div class="flex gap-8 mb-8">
+          <div class="form-group" style="flex:1">
+            <label>${tr('Glucose Value (mg/dL)', 'مستوى السكر (mg/dL)')}</label>
+            <input class="form-input" type="number" id="e1EndoGlucoseVal" placeholder="e.g. 120" min="20" max="600">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>${tr('Measurement Type', 'نوع القياس')}</label>
+            <select class="form-input" id="e1EndoGlucoseType">
+              <option value="Fasting">${tr('Fasting', 'صائم - Fasting')}</option>
+              <option value="Postprandial">${tr('Postprandial', 'بعد الأكل - Postprandial')}</option>
+              <option value="Random">${tr('Random', 'عشوائي - Random')}</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group mb-8">
+          <label>${tr('Notes', 'ملاحظات')}</label>
+          <input class="form-input" id="e1EndoGlucoseNotes" placeholder="${tr('e.g. Before lunch, feeling dizzy...', 'مثلاً: قبل الغداء، شعور بالدوار...')}">
+        </div>
+        <button class="btn btn-primary btn-sm mb-12 w-full" onclick="e1AddGlucoseLog(${safeId(pid)})">💾 ${tr('Save Reading', 'حفظ القراءة')}</button>
+        <div id="e1EndoGlucoseList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">💉 ${tr('Active Insulin Regimens', 'جرعات الإنسولين النشطة')}</h4>
+        <div class="form-group mb-8">
+          <label>${tr('Insulin Type', 'نوع الإنسولين')}</label>
+          <select class="form-input" id="e1EndoInsulinType">
+            <option value="Rapid-acting (NovoRapid)">Rapid-acting (NovoRapid)</option>
+            <option value="Short-acting (Actrapid)">Short-acting (Actrapid)</option>
+            <option value="Intermediate-acting (Insulatard)">Intermediate-acting (Insulatard)</option>
+            <option value="Long-acting (Lantus)">Long-acting (Lantus)</option>
+            <option value="Premixed (Mixtard 30)">Premixed (Mixtard 30)</option>
+          </select>
+        </div>
+        <div class="form-group mb-8">
+          <label>${tr('Dosage / Instructions', 'الجرعة والتعليمات')}</label>
+          <input class="form-input" id="e1EndoInsulinDosage" placeholder="${tr('e.g. 12 units before breakfast', 'مثلاً: 12 وحدة قبل الإفطار')}">
+        </div>
+        <button class="btn btn-warning btn-sm mb-12 w-full" onclick="e1AddInsulinRegimen(${safeId(pid)})">💉 ${tr('Prescribe Insulin', 'وصف جرعة إنسولين')}</button>
+        <div id="e1EndoInsulinList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  window.e1LoadGlucoseList(pid);
+  window.e1LoadInsulinList(pid);
+};
+
+window.e1LoadGlucoseList = async (pid) => {
+  const container = document.getElementById('e1EndoGlucoseList');
+  if (!container) return;
+  try {
+    const logs = await API.get('/api/endocrine/glucose/patient/' + pid);
+    if (!logs.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No glucose logs found', 'لا توجد قراءات سكر مسجلة')}</div>`;
+      return;
+    }
+    container.innerHTML = `
+      <div style="max-height: 250px; overflow-y: auto; padding-right: 4px">
+        ${logs.map(l => {
+          let color = '#10b981';
+          const val = parseFloat(l.glucose_value);
+          if (l.log_type === 'Fasting' && (val < 70 || val > 110)) color = '#ef4444';
+          else if (l.log_type !== 'Fasting' && (val < 70 || val > 140)) color = '#ef4444';
+          return `
+            <div style="padding:8px;margin:4px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid ${color};font-size:12px;display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <strong style="color:${color};font-size:13px">${val} mg/dL</strong>
+                <span class="badge" style="margin:0 4px">${escapeHTML(l.log_type)}</span>
+                ${l.notes ? `<span style="color:var(--text-dim)">(${escapeHTML(l.notes)})</span>` : ''}
+              </div>
+              <div style="font-size:10px;color:var(--text-dim)">${new Date(l.created_at).toLocaleTimeString('ar-SA')}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading', 'خطأ في التحميل')}</div>`;
+  }
+};
+
+window.e1LoadInsulinList = async (pid) => {
+  const container = document.getElementById('e1EndoInsulinList');
+  if (!container) return;
+  try {
+    const regimens = await API.get('/api/endocrine/insulin/patient/' + pid);
+    if (!regimens.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No active insulin regimens found', 'لا توجد جرعات إنسولين نشطة')}</div>`;
+      return;
+    }
+    container.innerHTML = regimens.map(r => `
+      <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid #f59e0b;font-size:12px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:700;color:var(--primary)">💉 ${escapeHTML(r.insulin_type)}</div>
+          <div style="margin-top:2px"><strong>${tr('Dose:', 'الجرعة:')}</strong> ${escapeHTML(r.dosage)}</div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">👨‍⚕️ ${escapeHTML(r.doctor_name || '')}</div>
+        </div>
+        <button class="btn btn-sm btn-secondary" onclick="e1DeactivateInsulin(${safeId(r.id)}, ${safeId(pid)})">❌ ${tr('Stop', 'إيقاف')}</button>
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading', 'خطأ في التحميل')}</div>`;
+  }
+};
+
+window.e1AddGlucoseLog = async (pid) => {
+  const val = document.getElementById('e1EndoGlucoseVal')?.value;
+  const type = document.getElementById('e1EndoGlucoseType')?.value;
+  const notes = document.getElementById('e1EndoGlucoseNotes')?.value;
+  if (!val || !val.trim()) {
+    showToast(tr('Enter glucose value', 'يرجى إدخال مستوى السكر'), 'error');
+    return;
+  }
+  try {
+    await API.post('/api/endocrine/glucose', {
+      patient_id: pid,
+      glucose_value: parseFloat(val),
+      log_type: type,
+      notes: notes
+    });
+    showToast(tr('Glucose log saved!', 'تم حفظ قراءة السكر بنجاح!'));
+    window.e1LoadGlucoseList(pid);
+    document.getElementById('e1EndoGlucoseVal').value = '';
+    document.getElementById('e1EndoGlucoseNotes').value = '';
+  } catch (err) {
+    showToast(tr('Error saving reading', 'خطأ في حفظ القراءة'), 'error');
+  }
+};
+
+window.e1AddInsulinRegimen = async (pid) => {
+  const type = document.getElementById('e1EndoInsulinType')?.value;
+  const dosage = document.getElementById('e1EndoInsulinDosage')?.value;
+  if (!dosage || !dosage.trim()) {
+    showToast(tr('Enter dosage instructions', 'يرجى إدخال الجرعة والتعليمات'), 'error');
+    return;
+  }
+  try {
+    await API.post('/api/endocrine/insulin', {
+      patient_id: pid,
+      insulin_type: type,
+      dosage: dosage
+    });
+    showToast(tr('Insulin regimen prescribed!', 'تم وصف جرعة الإنسولين بنجاح!'));
+    window.e1LoadInsulinList(pid);
+    document.getElementById('e1EndoInsulinDosage').value = '';
+  } catch (err) {
+    showToast(tr('Error prescribing insulin', 'خطأ في وصف الجرعة'), 'error');
+  }
+};
+
+window.e1DeactivateInsulin = async (id, pid) => {
+  if (!confirm(tr('Are you sure you want to stop this insulin regimen?', 'هل أنت متأكد من إيقاف جرعة الإنسولين هذه؟'))) return;
+  try {
+    await API.put(`/api/endocrine/insulin/${id}/deactivate`, {});
+    showToast(tr('Insulin regimen stopped!', 'تم إيقاف جرعة الإنسولين!'));
+    window.e1LoadInsulinList(pid);
+  } catch (err) {
+    showToast(tr('Error stopping regimen', 'خطأ في إيقاف الجرعة'), 'error');
   }
 };
