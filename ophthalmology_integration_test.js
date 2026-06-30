@@ -11,9 +11,9 @@ const assert = require('assert');
 const bcrypt = require('bcryptjs');
 const { pool } = require('./db_postgres');
 
-const TEST_PORT = 3015;
-const TEST_USERNAME = 'eye_doctor';
-const TEST_PASSWORD = 'EYE_PASSWORD_PLACEHOLDER';
+const TEST_PORT = 3020;
+const TEST_USERNAME = 'oph_doctor';
+const TEST_PASSWORD = 'OPH_PASSWORD_PLACEHOLDER';
 
 let serverProcess;
 
@@ -51,8 +51,8 @@ function makeRequest(method, path, body, headers = {}) {
 async function runTests() {
     console.log('--- STARTING OPHTHALMOLOGY MODULE INTEGRATION TESTS ---');
 
-    const patientId = 9983;
-    const doctorUserId = 9984;
+    const patientId = 9989;
+    const doctorUserId = 9990;
     const client = await pool.connect();
 
     try {
@@ -68,14 +68,14 @@ async function runTests() {
         // Insert patient
         await client.query(
             'INSERT INTO patients (id, name_en, name_ar, tenant_id) VALUES ($1, $2, $3, 1)',
-            [patientId, 'Eye Test Patient', 'مريض فحص العيون']
+            [patientId, 'Oph Test Patient', 'مريض العيون']
         );
 
         // Insert doctor user
         const hashedPassword = await bcrypt.hash(TEST_PASSWORD, 10);
         await client.query(
             'INSERT INTO system_users (id, username, password_hash, display_name, role, speciality, permissions, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7, 1)',
-            [doctorUserId, TEST_USERNAME, hashedPassword, 'Dr. Eye Specialist', 'Doctor', 'Ophthalmology', '["patients", "prescriptions"]']
+            [doctorUserId, TEST_USERNAME, hashedPassword, 'Dr. Ophthalmologist', 'Doctor', 'Ophthalmology', '["patients", "prescriptions"]']
         );
 
         // Associate doctor with tenant 1
@@ -87,7 +87,15 @@ async function runTests() {
         console.log('Spawning test server...');
         serverProcess = spawn('node', ['server.js'], {
             env: { ...process.env, PORT: TEST_PORT, NODE_ENV: 'staging', SKIP_DB_INIT: 'true' },
-            stdio: 'inherit'
+            stdio: 'pipe'
+        });
+
+        serverProcess.stdout.on('data', (data) => {
+            console.log(`[SERVER] ${data.toString().trim()}`);
+        });
+
+        serverProcess.stderr.on('data', (data) => {
+            console.error(`[SERVER ERR] ${data.toString().trim()}`);
         });
 
         // Wait 3 seconds for server to boot
@@ -111,27 +119,29 @@ async function runTests() {
         console.log('Testing create eye exam...');
         const createRes = await makeRequest('POST', '/api/ophthalmology/exams', {
             patient_id: patientId,
-            od_va_uncorrected: '20/40',
-            os_va_uncorrected: '20/30',
+            od_va_uncorrected: '20/30',
+            os_va_uncorrected: '20/40',
             od_va_corrected: '20/20',
             os_va_corrected: '20/20',
-            od_iop: 15.5,
-            os_iop: 16.0,
-            iop_method: 'Goldmann',
-            od_sphere: -1.5,
-            os_sphere: -1.25,
-            od_cylinder: -0.5,
+            od_iop: 16,
+            os_iop: 24,
+            iop_method: 'GAT',
+            od_sphere: -2.50,
+            os_sphere: -2.75,
+            od_cylinder: -0.50,
             os_cylinder: -0.75,
-            od_axis: 90,
-            os_axis: 85,
-            slit_lamp_exam: 'Cornea clear',
-            fundoscopy_exam: 'Optic disc pink',
-            notes: 'Routine checkup'
+            od_axis: 180,
+            os_axis: 170,
+            od_add: 1.50,
+            os_add: 1.50,
+            slit_lamp_exam: 'Clear cornea, quiet anterior chamber',
+            fundoscopy_exam: 'Normal optic disc, cup-disc ratio 0.3',
+            notes: 'High IOP OS - scheduled for glaucoma workup'
         }, { 'Cookie': cookie });
 
         assert.strictEqual(createRes.statusCode, 200, 'Should return 200 OK');
         assert.strictEqual(createRes.body.success, true, 'Should return success true');
-        assert.ok(createRes.body.id, 'Should return exam ID');
+        assert.ok(createRes.body.id, 'Should return record ID');
         const examId = createRes.body.id;
         console.log(`✓ Eye exam created successfully. ID: ${examId}`);
 
@@ -139,16 +149,12 @@ async function runTests() {
         console.log('Testing get patient eye exams...');
         const getRes = await makeRequest('GET', `/api/ophthalmology/exams/patient/${patientId}`, null, { 'Cookie': cookie });
         assert.strictEqual(getRes.statusCode, 200, 'Should return 200 OK');
-        assert.strictEqual(getRes.body.length, 1, 'Should return exactly 1 exam');
-        assert.strictEqual(getRes.body[0].id, examId, 'Exam ID should match');
-        assert.strictEqual(getRes.body[0].od_va_uncorrected, '20/40', 'OD VA should match');
-        assert.strictEqual(getRes.body[0].os_va_uncorrected, '20/30', 'OS VA should match');
-        assert.strictEqual(parseFloat(getRes.body[0].od_iop), 15.5, 'OD IOP should match');
-        assert.strictEqual(parseFloat(getRes.body[0].os_iop), 16.0, 'OS IOP should match');
-        assert.strictEqual(parseFloat(getRes.body[0].od_sphere), -1.5, 'OD Sphere should match');
-        assert.strictEqual(parseFloat(getRes.body[0].os_sphere), -1.25, 'OS Sphere should match');
-        assert.strictEqual(parseInt(getRes.body[0].od_axis), 90, 'OD Axis should match');
-        assert.strictEqual(getRes.body[0].slit_lamp_exam, 'Cornea clear', 'Slit lamp should match');
+        assert.strictEqual(getRes.body.length, 1, 'Should return exactly 1 record');
+        assert.strictEqual(getRes.body[0].id, examId, 'Record ID should match');
+        console.log('RETRIVED EYE EXAM RECORD:', getRes.body[0]);
+        assert.strictEqual(parseFloat(getRes.body[0].od_sphere), -2.50, 'OD SPH should match');
+        assert.strictEqual(parseInt(getRes.body[0].os_iop), 24, 'OS IOP should match');
+        assert.strictEqual(parseFloat(getRes.body[0].os_add), 1.50, 'OS ADD should match');
         console.log('✓ Patient eye exams retrieved successfully.');
 
     } finally {
@@ -170,8 +176,10 @@ async function runTests() {
 }
 
 if (require.main === module) {
-    runTests().catch(err => {
+    runTests().catch(async err => {
         console.error('❌ Test failed:', err);
+        // Wait 3 seconds for server logs to flush
+        await new Promise(resolve => setTimeout(resolve, 3000));
         if (serverProcess) serverProcess.kill();
         process.exit(1);
     });

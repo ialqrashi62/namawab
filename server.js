@@ -4380,6 +4380,7 @@ app.post('/api/ophthalmology/exams', requireAuth, requireRole('patients', 'presc
             od_va_uncorrected, os_va_uncorrected, od_va_corrected, os_va_corrected,
             od_iop, os_iop, iop_method,
             od_sphere, os_sphere, od_cylinder, os_cylinder, od_axis, os_axis,
+            od_add, os_add,
             slit_lamp_exam, fundoscopy_exam, notes 
         } = req.body;
         const { tenantId, facilityId } = getRequestTenantContext(req);
@@ -4390,16 +4391,16 @@ app.post('/api/ophthalmology/exams', requireAuth, requireRole('patients', 'presc
         
         const result = await pool.query(
             `INSERT INTO eye_exams 
-             (patient_id, doctor_id, exam_date, od_va_uncorrected, os_va_uncorrected, od_va_corrected, os_va_corrected, od_iop, os_iop, iop_method, od_sphere, os_sphere, od_cylinder, os_cylinder, od_axis, os_axis, slit_lamp_exam, fundoscopy_exam, notes, tenant_id, facility_id) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21) RETURNING id`,
+             (patient_id, doctor_id, exam_date, od_va_uncorrected, os_va_uncorrected, od_va_corrected, os_va_corrected, od_iop, os_iop, iop_method, od_sphere, os_sphere, od_cylinder, os_cylinder, od_axis, os_axis, od_add, os_add, slit_lamp_exam, fundoscopy_exam, notes, tenant_id, facility_id) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23) RETURNING id`,
             [
                 patient_id, 
                 req.session.user?.id || null, 
                 exam_date || new Date().toISOString().slice(0, 10), 
-                od_va_uncorrected || null,
-                os_va_uncorrected || null,
-                od_va_corrected || null,
-                os_va_corrected || null,
+                od_va_uncorrected || '',
+                os_va_uncorrected || '',
+                od_va_corrected || '',
+                os_va_corrected || '',
                 od_iop !== undefined && od_iop !== '' ? parseFloat(od_iop) : null,
                 os_iop !== undefined && os_iop !== '' ? parseFloat(os_iop) : null,
                 iop_method || 'Goldmann',
@@ -4409,6 +4410,8 @@ app.post('/api/ophthalmology/exams', requireAuth, requireRole('patients', 'presc
                 os_cylinder !== undefined && os_cylinder !== '' ? parseFloat(os_cylinder) : null,
                 od_axis !== undefined && od_axis !== '' ? parseInt(od_axis) : null,
                 os_axis !== undefined && os_axis !== '' ? parseInt(os_axis) : null,
+                od_add !== undefined && od_add !== '' ? parseFloat(od_add) : null,
+                os_add !== undefined && os_add !== '' ? parseFloat(os_add) : null,
                 slit_lamp_exam || '',
                 fundoscopy_exam || '',
                 notes || '', 
@@ -4909,6 +4912,8 @@ app.get('/api/orthopedics/rom/patient/:patient_id', requireAuth, requireRole('pa
         res.status(500).json({ error: 'Server error' });
     }
 });
+
+
 
 // ===== PULMONOLOGY DEPARTMENT =====
 app.post('/api/pulmonology/pft', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {

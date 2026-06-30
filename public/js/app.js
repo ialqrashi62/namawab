@@ -17686,3 +17686,320 @@ window.e1AddImplantRegistry = async (pid) => {
     showToast(tr('Error registering implant', 'خطأ في تسجيل وتوثيق الغرسة'), 'error');
   }
 };
+};
+
+// =====================================================================
+// ===== OPHTHALMOLOGY MODULE (G14) =====
+// =====================================================================
+
+window.e1RenderOphthalmology = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <!-- Left Column: Forms -->
+      <div style="flex:1.5;min-width:320px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">👁️ ${tr('Ophthalmology Examination', 'فحص طب وجراحة العيون')}</h4>
+        
+        <!-- Visual Acuity & Refraction -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">🕶️ ${tr('Visual Acuity & Refraction', 'حدة الإبصار وفحص القياسات')}</legend>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
+            <!-- Right Eye (OD) -->
+            <div style="background:var(--hover,#f8f9fa);padding:10px;border-radius:8px;border-right:4px solid var(--primary)">
+              <h5 style="margin:0 0 8px;font-weight:700;color:var(--primary)">👁️ ${tr('Right Eye (OD)', 'العين اليمنى (OD)')}</h5>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div class="form-group">
+                  <label>${tr('Uncorrected VA', 'النظر بدون تصحيح')}</label>
+                  <select class="form-input" id="e1OphVaOdUnread">
+                    <option value="20/20">20/20</option>
+                    <option value="20/25">20/25</option>
+                    <option value="20/30">20/30</option>
+                    <option value="20/40">20/40</option>
+                    <option value="20/50">20/50</option>
+                    <option value="20/70">20/70</option>
+                    <option value="20/100">20/100</option>
+                    <option value="20/200">20/200</option>
+                    <option value="CF">${tr('CF (Count Fingers)', 'عد الأصابع')}</option>
+                    <option value="HM">${tr('HM (Hand Motion)', 'حركة اليد')}</option>
+                    <option value="LP">${tr('LP (Light Perception)', 'إدراك الضوء')}</option>
+                    <option value="NLP">${tr('NLP (No Light)', 'عدم إدراك الضوء')}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>${tr('Corrected VA', 'النظر بالتصحيح')}</label>
+                  <select class="form-input" id="e1OphVaOdCorrected">
+                    <option value="20/20">20/20</option>
+                    <option value="20/25">20/25</option>
+                    <option value="20/30">20/30</option>
+                    <option value="20/40">20/40</option>
+                    <option value="20/50">20/50</option>
+                    <option value="20/70">20/70</option>
+                    <option value="20/100">20/100</option>
+                    <option value="20/200">20/200</option>
+                    <option value="CF">CF</option>
+                    <option value="HM">HM</option>
+                    <option value="LP">LP</option>
+                    <option value="NLP">NLP</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:6px;margin-top:8px">
+                <div class="form-group">
+                  <label style="font-size:10px">SPH</label>
+                  <input type="number" step="0.25" class="form-input" id="e1OphSphOd" value="0.00" style="padding:4px">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:10px">CYL</label>
+                  <input type="number" step="0.25" class="form-input" id="e1OphCylOd" value="0.00" style="padding:4px">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:10px">AXIS</label>
+                  <input type="number" class="form-input" id="e1OphAxisOd" value="0" min="0" max="180" style="padding:4px">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:10px">ADD</label>
+                  <input type="number" step="0.25" class="form-input" id="e1OphAddOd" value="0.00" style="padding:4px">
+                </div>
+              </div>
+            </div>
+
+            <!-- Left Eye (OS) -->
+            <div style="background:var(--hover,#f8f9fa);padding:10px;border-radius:8px;border-right:4px solid #10b981">
+              <h5 style="margin:0 0 8px;font-weight:700;color:#10b981">👁️ ${tr('Left Eye (OS)', 'العين اليسرى (OS)')}</h5>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div class="form-group">
+                  <label>${tr('Uncorrected VA', 'النظر بدون تصحيح')}</label>
+                  <select class="form-input" id="e1OphVaOsUnread">
+                    <option value="20/20">20/20</option>
+                    <option value="20/25">20/25</option>
+                    <option value="20/30">20/30</option>
+                    <option value="20/40">20/40</option>
+                    <option value="20/50">20/50</option>
+                    <option value="20/70">20/70</option>
+                    <option value="20/100">20/100</option>
+                    <option value="20/200">20/200</option>
+                    <option value="CF">${tr('CF (Count Fingers)', 'عد الأصابع')}</option>
+                    <option value="HM">${tr('HM (Hand Motion)', 'حركة اليد')}</option>
+                    <option value="LP">${tr('LP (Light Perception)', 'إدراك الضوء')}</option>
+                    <option value="NLP">${tr('NLP (No Light)', 'عدم إدراك الضوء')}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>${tr('Corrected VA', 'النظر بالتصحيح')}</label>
+                  <select class="form-input" id="e1OphVaOsCorrected">
+                    <option value="20/20">20/20</option>
+                    <option value="20/25">20/25</option>
+                    <option value="20/30">20/30</option>
+                    <option value="20/40">20/40</option>
+                    <option value="20/50">20/50</option>
+                    <option value="20/70">20/70</option>
+                    <option value="20/100">20/100</option>
+                    <option value="20/200">20/200</option>
+                    <option value="CF">CF</option>
+                    <option value="HM">HM</option>
+                    <option value="LP">LP</option>
+                    <option value="NLP">NLP</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:6px;margin-top:8px">
+                <div class="form-group">
+                  <label style="font-size:10px">SPH</label>
+                  <input type="number" step="0.25" class="form-input" id="e1OphSphOs" value="0.00" style="padding:4px">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:10px">CYL</label>
+                  <input type="number" step="0.25" class="form-input" id="e1OphCylOs" value="0.00" style="padding:4px">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:10px">AXIS</label>
+                  <input type="number" class="form-input" id="e1OphAxisOs" value="0" min="0" max="180" style="padding:4px">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:10px">ADD</label>
+                  <input type="number" step="0.25" class="form-input" id="e1OphAddOs" value="0.00" style="padding:4px">
+                </div>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Intraocular Pressure (IOP) -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">🎈 ${tr('Intraocular Pressure (IOP)', 'ضغط العين (IOP)')}</legend>
+          
+          <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));gap:8px;margin-bottom:12px">
+            <div class="form-group">
+              <label>${tr('IOP OD (mmHg)', 'ضغط العين اليمنى')}</label>
+              <input type="number" class="form-input" id="e1OphIopOd" value="15" min="0" max="80" oninput="e1OphCheckIop()">
+            </div>
+            <div class="form-group">
+              <label>${tr('IOP OS (mmHg)', 'ضغط العين اليسرى')}</label>
+              <input type="number" class="form-input" id="e1OphIopOs" value="15" min="0" max="80" oninput="e1OphCheckIop()">
+            </div>
+            <div class="form-group">
+              <label>${tr('Measurement Method', 'طريقة القياس')}</label>
+              <select class="form-input" id="e1OphIopMethod">
+                <option value="GAT">Goldmann Applanation Tonometer (GAT)</option>
+                <option value="Air-puff">${tr('Air-puff Tonometer', 'قياس بضغط الهواء')}</option>
+                <option value="Tonopen">Tonopen</option>
+                <option value="iCare">iCare Tonometer</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="e1IopFeedback" style="background:var(--hover,#f8f9fa);padding:10px;border-radius:8px;font-size:13px;border-left:4px solid #10b981;margin-bottom:8px">
+            <strong>${tr('Normal Range:', 'النطاق الطبيعي:')}</strong> 10-21 mmHg
+            <span id="e1IopStatusBadge" class="badge badge-success" style="margin-left:12px;font-size:11px">${tr('Normal', 'طبيعي')}</span>
+          </div>
+        </fieldset>
+
+        <!-- Slit Lamp & Fundoscopy -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">🔬 ${tr('Clinical Examinations', 'الفحوصات السريرية للعين')}</legend>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group">
+              <label>${tr('Slit Lamp Examination', 'فحص المصباح الشقي')}</label>
+              <textarea class="form-input form-textarea" id="e1OphSlitExam" rows="2" placeholder="${tr('Cornea, anterior chamber, iris, lens...', 'القرنية، الحجرة الأمامية، القزحية، العدسة...')}" style="min-height:45px"></textarea>
+            </div>
+            <div class="form-group">
+              <label>${tr('Fundus Examination (Fundoscopy)', 'فحص قاع العين والشبكية')}</label>
+              <textarea class="form-input form-textarea" id="e1OphFundusExam" rows="2" placeholder="${tr('Optic disc, macula, vessels, retina...', 'العصب البصري، البقعة الشبكية، الأوعية، الشبكية...')}" style="min-height:45px"></textarea>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="form-group mb-8">
+          <label>${tr('Clinical Notes / Diagnosis', 'ملاحظات الطبيب والتشخيص')}</label>
+          <textarea class="form-input form-textarea" id="e1OphNotes" rows="2" placeholder="${tr('Any additional findings or diagnostic notes...', 'أي ملاحظات إضافية أو تفاصيل تشخيصية...')}" style="min-height:45px"></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-sm w-full mb-12" onclick="e1AddEyeExam(${safeId(pid)})">💾 ${tr('Save Eye Exam', 'حفظ فحص العين')}</button>
+      </div>
+
+      <!-- Right Column: History Logs -->
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">📋 ${tr('Eye Exams History', 'سجل فحوصات العين')}</h4>
+        <div id="e1OphHistoryList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  window.e1LoadOphHistory(pid);
+};
+
+window.e1OphCheckIop = () => {
+  const iopOd = parseInt(document.getElementById('e1OphIopOd').value || 0);
+  const iopOs = parseInt(document.getElementById('e1OphIopOs').value || 0);
+  
+  const feedbackEl = document.getElementById('e1IopFeedback');
+  const badgeEl = document.getElementById('e1IopStatusBadge');
+  
+  const isHigh = iopOd > 21 || iopOs > 21;
+  
+  if (badgeEl) {
+    if (isHigh) {
+      badgeEl.className = 'badge badge-danger';
+      badgeEl.innerText = tr('High IOP / Glaucoma Risk', 'ضغط عين مرتفع / خطر الجلوكوما');
+      if (feedbackEl) feedbackEl.style.borderLeftColor = 'red';
+    } else {
+      badgeEl.className = 'badge badge-success';
+      badgeEl.innerText = tr('Normal', 'طبيعي');
+      if (feedbackEl) feedbackEl.style.borderLeftColor = '#10b981';
+    }
+  }
+};
+
+window.e1LoadOphHistory = async (pid) => {
+  const container = document.getElementById('e1OphHistoryList');
+  if (!container) return;
+  
+  try {
+    const records = await API.get('/api/ophthalmology/exams/patient/' + pid);
+    if (!records.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No eye exams found', 'لا توجد فحوصات عين مسجلة')}</div>`;
+    } else {
+      container.innerHTML = records.map(r => `
+        <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid var(--primary);font-size:12px">
+          <div style="font-weight:700;color:var(--primary);display:flex;justify-content:space-between">
+            <span>📅 ${new Date(r.exam_date).toLocaleDateString('ar-SA')}</span>
+          </div>
+          <div style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
+            <div>
+              <strong>OD (Right):</strong><br>
+              VA: ${r.od_va_uncorrected || '-'} (Corr: ${r.od_va_corrected || '-'})<br>
+              SPH: ${r.od_sphere >= 0 ? '+' : ''}${r.od_sphere} | CYL: ${r.od_cylinder >= 0 ? '+' : ''}${r.od_cylinder} | AXIS: ${r.od_axis}° | ADD: ${r.od_add >= 0 ? '+' : ''}${r.od_add}<br>
+              IOP: <span class="badge ${r.od_iop > 21 ? 'badge-danger' : 'badge-success'}" style="font-size:10px">${r.od_iop} mmHg</span>
+            </div>
+            <div>
+              <strong>OS (Left):</strong><br>
+              VA: ${r.os_va_uncorrected || '-'} (Corr: ${r.os_va_corrected || '-'})<br>
+              SPH: ${r.os_sphere >= 0 ? '+' : ''}${r.os_sphere} | CYL: ${r.os_cylinder >= 0 ? '+' : ''}${r.os_cylinder} | AXIS: ${r.os_axis}° | ADD: ${r.os_add >= 0 ? '+' : ''}${r.os_add}<br>
+              IOP: <span class="badge ${r.os_iop > 21 ? 'badge-danger' : 'badge-success'}" style="font-size:10px">${r.os_iop} mmHg</span>
+            </div>
+          </div>
+          ${r.slit_lamp_exam ? `<div style="margin-top:4px;color:var(--text-dim)"><strong>${tr('Slit Lamp:', 'المصباح الشقي:')}</strong> ${escapeHTML(r.slit_lamp_exam)}</div>` : ''}
+          ${r.fundoscopy_exam ? `<div style="margin-top:2px;color:var(--text-dim)"><strong>${tr('Fundus:', 'قاع العين:')}</strong> ${escapeHTML(r.fundoscopy_exam)}</div>` : ''}
+          ${r.notes ? `<div style="margin-top:2px;color:var(--text-dim);font-style:italic">"${escapeHTML(r.notes)}"</div>` : ''}
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">👨‍⚕️ ${escapeHTML(r.doctor_name || '')}</div>
+        </div>
+      `).join('');
+    }
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading history', 'خطأ في تحميل السجل')}</div>`;
+  }
+};
+
+window.e1AddEyeExam = async (pid) => {
+  const getVal = (id) => parseFloat(document.getElementById(id)?.value || 0);
+  const getStr = (id) => document.getElementById(id)?.value || '';
+  
+  try {
+    await API.post('/api/ophthalmology/exams', {
+      patient_id: pid,
+      od_va_uncorrected: getStr('e1OphVaOdUnread'),
+      os_va_uncorrected: getStr('e1OphVaOsUnread'),
+      od_va_corrected: getStr('e1OphVaOdCorrected'),
+      os_va_corrected: getStr('e1OphVaOsCorrected'),
+      od_iop: parseInt(document.getElementById('e1OphIopOd')?.value || 15),
+      os_iop: parseInt(document.getElementById('e1OphIopOs')?.value || 15),
+      iop_method: getStr('e1OphIopMethod'),
+      od_sphere: getVal('e1OphSphOd'),
+      os_sphere: getVal('e1OphSphOs'),
+      od_cylinder: getVal('e1OphCylOd'),
+      os_cylinder: getVal('e1OphCylOs'),
+      od_axis: parseInt(document.getElementById('e1OphAxisOd')?.value || 0),
+      os_axis: parseInt(document.getElementById('e1OphAxisOs')?.value || 0),
+      od_add: getVal('e1OphAddOd'),
+      os_add: getVal('e1OphAddOs'),
+      slit_lamp_exam: getStr('e1OphSlitExam'),
+      fundoscopy_exam: getStr('e1OphFundusExam'),
+      notes: getStr('e1OphNotes')
+    });
+    
+    showToast(tr('Eye exam saved successfully!', 'تم حفظ فحص العين بنجاح!'));
+    window.e1LoadOphHistory(pid);
+    
+    // Reset fields
+    document.getElementById('e1OphSlitExam').value = '';
+    document.getElementById('e1OphFundusExam').value = '';
+    document.getElementById('e1OphNotes').value = '';
+    document.getElementById('e1OphSphOd').value = '0.00';
+    document.getElementById('e1OphSphOs').value = '0.00';
+    document.getElementById('e1OphCylOd').value = '0.00';
+    document.getElementById('e1OphCylOs').value = '0.00';
+    document.getElementById('e1OphAxisOd').value = '0';
+    document.getElementById('e1OphAxisOs').value = '0';
+    document.getElementById('e1OphAddOd').value = '0.00';
+    document.getElementById('e1OphAddOs').value = '0.00';
+    document.getElementById('e1OphIopOd').value = '15';
+    document.getElementById('e1OphIopOs').value = '15';
+    window.e1OphCheckIop();
+  } catch (err) {
+    showToast(tr('Error saving eye exam', 'خطأ في حفظ فحص العين'), 'error');
+  }
+};
