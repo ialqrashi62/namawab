@@ -30,9 +30,9 @@ GRANT CONNECT, TEMP ON DATABASE jumanasoft_staging TO jumanasoft_staging_user;
 -- 4) Defense-in-depth IF (and only if) staging shares a cluster with production:
 --    ensure the staging role can NOT reach the production database. Safe no-op on a separate cluster
 --    (the production DB simply won't exist there).
---    Uncomment and adjust if shared-cluster:
--- REVOKE ALL ON DATABASE nama_medical_web FROM jumanasoft_staging_user;
--- REVOKE CONNECT ON DATABASE nama_medical_web FROM jumanasoft_staging_user;
+--    ENABLED because this staging shares the production cluster (nama_medical_web present):
+REVOKE ALL ON DATABASE nama_medical_web FROM jumanasoft_staging_user;
+REVOKE CONNECT ON DATABASE nama_medical_web FROM jumanasoft_staging_user;
 
 -- 5) Verify isolation (read-only; safe to run). Expect: rolsuper=f, rolbypassrls=f.
 SELECT rolname, rolsuper, rolbypassrls, rolcreatedb, rolcreaterole
