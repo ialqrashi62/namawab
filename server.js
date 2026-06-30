@@ -389,7 +389,11 @@ async function logAudit(userId, userName, action, module, details, ip) {
 // ===== GATE3-M1: automatic audit logging for /api mutations (INERT unless AUDIT_ALL_MUTATIONS=true) =====
 // Complements the explicit logAudit() calls. Default OFF -> zero behavior change until enabled on staging.
 // Logs AFTER the response (never blocks), records only method/path/status/user/ip (no body, no PHI).
-app.use(makeAuditMiddleware({ logAudit }));
+app.use(makeAuditMiddleware({
+    logAudit,
+    getTenantId: (req) => getRequestTenantContext(req).tenantId,
+    runWithTenant: (tenantId, fn) => tenantStore.run({ tenantId }, fn)   // bind app.tenant_id so audit row is tenant-tagged
+}));
 if (process.env.AUDIT_ALL_MUTATIONS === 'true') console.log('[AUDIT] Auto-audit of /api mutations ENABLED');
 
 // ===== TENANT ISOLATION MIDDLEWARES =====

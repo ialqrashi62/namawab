@@ -60,6 +60,12 @@ function makeAuditMiddleware(deps = {}) {
     const {
         logAudit,
         getUser = (req) => (req.session && req.session.user) || null,
+        // tenant binding: audit_trail.tenant_id DEFAULTs to current_setting('app.tenant_id'); since the
+        // 'finish' handler runs OUTSIDE the per-request AsyncLocalStorage tenant context, we capture the
+        // tenant id during the request and re-bind it when logging, so the audit row is correctly tagged
+        // (otherwise tenant_id=NULL -> orphaned row invisible to tenant admins).
+        getTenantId = (req) => (req.session && req.session.user && req.session.user.tenantId) || null,
+        runWithTenant = (tenantId, fn) => fn(),   // default no-op; production passes tenantStore.run
         enabled = () => process.env.AUDIT_ALL_MUTATIONS === 'true'
     } = deps;
     if (typeof logAudit !== 'function') {
@@ -73,13 +79,18 @@ function makeAuditMiddleware(deps = {}) {
             const path = req.originalUrl || req.url || '';
             if (!/^\/api\b/.test(path.split('?')[0])) return next();
 
+            // capture user + tenant NOW (request context is live), use them at 'finish'.
+            const user = getUser(req) || {};
+            const tenantId = getTenantId(req);
+
             res.on('finish', () => {
                 try {
-                    const user = getUser(req) || {};
                     const ip = req.headers['x-forwarded-for'] || (req.connection && req.connection.remoteAddress) || req.ip || '';
                     const e = deriveAuditEntry(req.method, path);
-                    logAudit(user.id || null, user.display_name || 'Anonymous', e.action, e.module,
+                    const write = () => logAudit(user.id || null, user.display_name || 'Anonymous', e.action, e.module,
                         `${e.detail} -> ${res.statusCode}`, ip);
+                    // re-bind tenant so audit_trail.tenant_id default resolves to the right tenant
+                    if (tenantId != null) { runWithTenant(tenantId, write); } else { write(); }
                 } catch (_) { /* audit must never break the request */ }
             });
             return next();

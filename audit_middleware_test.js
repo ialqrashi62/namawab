@@ -94,5 +94,32 @@ ok('throws without logAudit', (() => { try { A.makeAuditMiddleware({}); return f
     ok('logAudit throw is swallowed', threw === false);
 })();
 
+// tenant binding: logAudit must run INSIDE runWithTenant(capturedTenantId) so audit_trail.tenant_id resolves
+(() => {
+    const order = [];
+    const mw = A.makeAuditMiddleware({
+        logAudit: () => order.push('log'),
+        enabled: true,
+        getTenantId: () => 42,
+        runWithTenant: (tid, fn) => { order.push('enter:' + tid); fn(); order.push('exit'); }
+    });
+    let finishCb = null;
+    mw({ method: 'POST', originalUrl: '/api/patients', session: { user: { id: 1, display_name: 'A', tenantId: 42 } }, headers: {}, connection: {} },
+       { statusCode: 201, on: (ev, cb) => { if (ev === 'finish') finishCb = cb; } }, () => {});
+    finishCb();
+    ok('logAudit runs inside tenant binding', JSON.stringify(order) === JSON.stringify(['enter:42', 'log', 'exit']));
+})();
+
+// no tenant -> logs without binding (does not crash)
+(() => {
+    let logged = 0, bound = 0;
+    const mw = A.makeAuditMiddleware({ logAudit: () => logged++, enabled: true, getTenantId: () => null, runWithTenant: () => bound++ });
+    let finishCb = null;
+    mw({ method: 'DELETE', originalUrl: '/api/x/1', session: {}, headers: {}, connection: {} },
+       { statusCode: 200, on: (ev, cb) => { if (ev === 'finish') finishCb = cb; } }, () => {});
+    finishCb();
+    ok('no tenant -> logs without runWithTenant', logged === 1 && bound === 0);
+})();
+
 console.log(`audit_middleware_test: ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
