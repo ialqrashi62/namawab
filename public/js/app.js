@@ -2232,6 +2232,7 @@ window.renderE1Panel = async (pid) => {
         <button class="btn btn-sm e1-tab" data-tab="gastro" onclick="e1SwitchTab('gastro',${safeId(pid)})">🤢 ${tr('Gastroenterology', 'الجهاز الهضمي')}</button>
         <button class="btn btn-sm e1-tab" data-tab="endocrine" onclick="e1SwitchTab('endocrine',${safeId(pid)})">🍭 ${tr('Endocrinology', 'الغدد والسكري')}</button>
         <button class="btn btn-sm e1-tab" data-tab="nephrology" onclick="e1SwitchTab('nephrology',${safeId(pid)})">💧 ${tr('Nephrology', 'الكلى والغسيل')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="pulmonology" onclick="e1SwitchTab('pulmonology',${safeId(pid)})">🫁 ${tr('Pulmonology', 'الأمراض الصدرية')}</button>
       </div>
       <div id="e1TabBody"></div>
     </div>`;
@@ -2253,6 +2254,7 @@ window.e1SwitchTab = async (tab, pid) => {
   if (tab === 'gastro') return window.e1RenderGastro(pid);
   if (tab === 'endocrine') return window.e1RenderEndocrine(pid);
   if (tab === 'nephrology') return window.e1RenderNephrology(pid);
+  if (tab === 'pulmonology') return window.e1RenderPulmonology(pid);
 };
 
 // ---------- Problem List ----------
@@ -15305,5 +15307,145 @@ window.e1AddDialysisSession = async (pid) => {
     document.getElementById('e1NephroNotes').value = '';
   } catch (err) {
     showToast(tr('Error saving dialysis record', 'خطأ في حفظ سجل الغسيل'), 'error');
+  }
+};
+
+// =====================================================================
+// ===== PULMONOLOGY MODULE (G05) =====
+// =====================================================================
+
+window.e1RenderPulmonology = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1.2;min-width:300px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">🫁 ${tr('Pulmonary Function Test (PFT) Entry', 'إدخال فحص وظائف الرئة (PFT)')}</h4>
+        <div class="flex gap-8 mb-8">
+          <div class="form-group" style="flex:1">
+            <label>${tr('FEV1 (L)', 'حجم الزفير القسري FEV1 (لتر)')}</label>
+            <input class="form-input" type="number" step="0.01" id="e1PulmoFEV1" placeholder="e.g. 3.2" oninput="e1PulmoCalcRatio()">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>${tr('FVC (L)', 'السعة الحيوية القسرية FVC (لتر)')}</label>
+            <input class="form-input" type="number" step="0.01" id="e1PulmoFVC" placeholder="e.g. 4.0" oninput="e1PulmoCalcRatio()">
+          </div>
+          <div class="form-group" style="flex:1.2">
+            <label>${tr('FEV1/FVC Ratio (%)', 'نسبة FEV1/FVC (%)')}</label>
+            <input class="form-input" type="number" step="0.1" id="e1PulmoRatio" placeholder="Auto-calculated" readonly style="background:var(--hover,#f8f9fa)">
+          </div>
+        </div>
+        <div class="flex gap-8 mb-8">
+          <div class="form-group" style="flex:1">
+            <label>${tr('PEF (L/min)', 'ذروة تدفق الزفير PEF (لتر/دقيقة)')}</label>
+            <input class="form-input" type="number" step="1" id="e1PulmoPEF" placeholder="e.g. 450">
+          </div>
+          <div class="form-group" style="flex:1.5">
+            <label>${tr('Interpretation', 'التفسير السريري')}</label>
+            <select class="form-input" id="e1PulmoInterpretation">
+              <option value="Normal">${tr('Normal', 'طبيعي - Normal')}</option>
+              <option value="Obstructive">${tr('Obstructive (e.g., Asthma, COPD)', 'انسدادي (الربو، الانسداد الرئوي)')}</option>
+              <option value="Restrictive">${tr('Restrictive (e.g., Fibrosis)', 'تقييدي (تليف رئوي)')}</option>
+              <option value="Mixed">${tr('Mixed Pattern', 'نمط مختلط - Mixed')}</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group mb-8">
+          <label>${tr('Clinical Notes', 'ملاحظات إضافية')}</label>
+          <input class="form-input" id="e1PulmoNotes" placeholder="${tr('e.g. Patient used bronchodilator before test', 'مثلاً: استخدم المريض موسع شعب هوائية قبل الفحص')}">
+        </div>
+        <button class="btn btn-primary btn-sm mb-12 w-full" onclick="e1AddPFT(${safeId(pid)})">💾 ${tr('Save PFT Record', 'حفظ سجل وظائف الرئة')}</button>
+      </div>
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">📋 ${tr('PFT History', 'سجل الفحوصات السابقة')}</h4>
+        <div id="e1PulmoPFTList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  window.e1LoadPFTList(pid);
+};
+
+window.e1PulmoCalcRatio = () => {
+  const fev1 = parseFloat(document.getElementById('e1PulmoFEV1')?.value);
+  const fvc = parseFloat(document.getElementById('e1PulmoFVC')?.value);
+  const ratioField = document.getElementById('e1PulmoRatio');
+  if (ratioField) {
+    if (fev1 && fvc && fvc > 0) {
+      ratioField.value = ((fev1 / fvc) * 100).toFixed(1);
+    } else {
+      ratioField.value = '';
+    }
+  }
+};
+
+window.e1LoadPFTList = async (pid) => {
+  const container = document.getElementById('e1PulmoPFTList');
+  if (!container) return;
+  try {
+    const records = await API.get('/api/pulmonology/pft/patient/' + pid);
+    if (!records.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No PFT records found', 'لا توجد فحوصات وظائف رئة مسجلة')}</div>`;
+      return;
+    }
+    container.innerHTML = records.map(r => {
+      let badgeColor = '#10b981';
+      if (r.interpretation === 'Obstructive') badgeColor = '#f59e0b';
+      else if (r.interpretation === 'Restrictive') badgeColor = '#3b82f6';
+      else if (r.interpretation === 'Mixed') badgeColor = '#ef4444';
+      
+      return `
+        <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid ${badgeColor};font-size:12px">
+          <div style="font-weight:700;color:var(--primary);display:flex;justify-content:space-between;align-items:center">
+            <span>📅 ${new Date(r.test_date).toLocaleDateString('ar-SA')}</span>
+            <span class="badge" style="background:${badgeColor};color:#fff">${escapeHTML(r.interpretation)}</span>
+          </div>
+          <div style="margin-top:4px;display:grid;grid-template-columns:1fr 1fr;gap:4px">
+            <div><strong>${tr('FEV1:', 'حجم الزفير FEV1:')}</strong> ${r.fev1 || '-'} L</div>
+            <div><strong>${tr('FVC:', 'السعة الحيوية FVC:')}</strong> ${r.fvc || '-'} L</div>
+            <div><strong>${tr('FEV1/FVC:', 'النسبة:')}</strong> ${r.fev1_fvc_ratio || '-'}%</div>
+            <div><strong>${tr('PEF:', 'ذروة التدفق:')}</strong> ${r.pef || '-'} L/m</div>
+          </div>
+          ${r.notes ? `<div style="margin-top:4px;color:var(--text-dim)"><strong>${tr('Notes:', 'ملاحظات:')}</strong> ${escapeHTML(r.notes)}</div>` : ''}
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">👨‍⚕️ ${escapeHTML(r.doctor_name || '')}</div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading', 'خطأ في التحميل')}</div>`;
+  }
+};
+
+window.e1AddPFT = async (pid) => {
+  const fev1 = document.getElementById('e1PulmoFEV1')?.value;
+  const fvc = document.getElementById('e1PulmoFVC')?.value;
+  const ratio = document.getElementById('e1PulmoRatio')?.value;
+  const pef = document.getElementById('e1PulmoPEF')?.value;
+  const interpretation = document.getElementById('e1PulmoInterpretation')?.value;
+  const notes = document.getElementById('e1PulmoNotes')?.value;
+  if (!fev1 || !fvc) {
+    showToast(tr('Enter FEV1 and FVC values', 'يرجى إدخال قيم FEV1 و FVC'), 'error');
+    return;
+  }
+  try {
+    await API.post('/api/pulmonology/pft', {
+      patient_id: pid,
+      fev1: parseFloat(fev1),
+      fvc: parseFloat(fvc),
+      fev1_fvc_ratio: ratio ? parseFloat(ratio) : null,
+      pef: pef ? parseFloat(pef) : null,
+      interpretation: interpretation,
+      notes: notes
+    });
+    showToast(tr('PFT record saved successfully!', 'تم حفظ سجل وظائف الرئة بنجاح!'));
+    window.e1LoadPFTList(pid);
+    document.getElementById('e1PulmoFEV1').value = '';
+    document.getElementById('e1PulmoFVC').value = '';
+    document.getElementById('e1PulmoRatio').value = '';
+    document.getElementById('e1PulmoPEF').value = '';
+    document.getElementById('e1PulmoNotes').value = '';
+  } catch (err) {
+    showToast(tr('Error saving PFT record', 'خطأ في حفظ سجل وظائف الرئة'), 'error');
   }
 };
