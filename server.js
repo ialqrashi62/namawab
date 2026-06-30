@@ -227,7 +227,10 @@ if (process.env.REDIS_URL || process.env.REDIS_HOST) {
 
 const sessionConfig = {
     secret: process.env.SESSION_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('SESSION_SECRET is required in production'); })() : 'dev-only-insecure-secret-change-me'),
-    resave: true,
+    // resave:false — the session store (Redis via connect-redis / FallbackSessionStore) implements touch(),
+    // so rolling TTL is preserved without rewriting unchanged sessions on every request (avoids write churn
+    // and a lost-update race between concurrent requests). OWASP session-management best practice.
+    resave: false,
     saveUninitialized: false,
     cookie: {
         maxAge: 8 * 60 * 60 * 1000,
@@ -259,6 +262,21 @@ app.use((req, res, next) => {
     if (corsAllowlist.includes(origin)) return next();                 // explicitly trusted cross-origin
     return res.status(403).json({ error: 'Cross-origin request blocked' });
 });
+
+// ===== Global API rate limiter (defense-in-depth; OWASP ASVS V11). =====
+// OFF by default (RATE_LIMIT_GLOBAL unset) -> ZERO behavior change. Enable on staging first, then prod.
+// When on, caps per-IP volume on /api/* ; the login + csp-report routes keep their own stricter limits.
+if (process.env.RATE_LIMIT_GLOBAL === 'true') {
+    const globalApiLimiter = rateLimit({
+        windowMs: 60 * 1000,
+        max: parseInt(process.env.RATE_LIMIT_GLOBAL_MAX) || 600,
+        standardHeaders: true,
+        legacyHeaders: false,
+        message: { error: 'Too many requests, please slow down.' }
+    });
+    app.use('/api', globalApiLimiter);
+    console.log(`[RATE-LIMIT] Global /api limiter ENABLED (${process.env.RATE_LIMIT_GLOBAL_MAX || 600}/min per IP)`);
+}
 
 // ===== TENANT CONTEXT MIDDLEWARE (RLS wiring, ported from 10ded01) =====
 // Binds the request's tenant (from trusted session via getRequestTenantContext) into
