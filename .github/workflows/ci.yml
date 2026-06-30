@@ -1,0 +1,43 @@
+name: CI
+
+# Continuous integration gate (GATE14/15 remediation: previously there was NO automated test/audit gate).
+# Runs on every push/PR: dependency audit + syntax check + the DB-free unit-test suite (95 tests).
+# The cross-tenant/RLS/e2e integration tests need a provisioned DB (run_all_tests.js) and are run
+# separately against an isolated/staging DB — see ops/STAGING_PROVISION_RUNBOOK_AR.md.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Dependency vulnerability audit (fail on high+)
+        run: npm audit --audit-level=high
+
+      - name: Syntax check (server + core modules)
+        run: |
+          node --check server.js
+          for f in validation.js audit_middleware.js route_schemas.js rbac.js billing_integrity.js finance_engine.js; do
+            node --check "$f"
+          done
+
+      - name: Run DB-free unit tests (95)
+        run: node run_safe_tests.js

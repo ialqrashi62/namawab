@@ -7,6 +7,7 @@
     "start": "node server.js",
     "dev": "node server.js",
     "test": "node run_all_tests.js",
+    "test:safe": "node run_safe_tests.js",
     "setup": "setup.bat",
     "build:css": "tailwindcss -i ./tailwind-input.css -o ./public/css/tailwind-compiled.css --minify",
     "postinstall": "node -e \"const fs=require('fs');if(!fs.existsSync('.env')&&fs.existsSync('.env.example')){fs.copyFileSync('.env.example','.env');console.log('✅ Created .env from .env.example')}\" && npm run build:css"

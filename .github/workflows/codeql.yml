@@ -1,0 +1,31 @@
+name: CodeQL Security Scan
+
+# Static application security testing (SAST) for JavaScript — addresses the "no automated security
+# scanning" gap. Scans for injection, XSS sinks, path traversal, etc. on push/PR + weekly.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  schedule:
+    - cron: "0 3 * * 1"   # weekly, Monday 03:00 UTC
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
