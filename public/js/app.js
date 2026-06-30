@@ -301,7 +301,7 @@ function setupEvents() {
 function updateShellLanguage() {
   // Sidebar title & subtitle
   const sidebarTitle = document.querySelector('.sidebar-title');
-  if (sidebarTitle) sidebarTitle.textContent = isArabic ? 'جمانا الطبي' : 'jumanaMedical';
+  if (sidebarTitle) sidebarTitle.textContent = isArabic ? 'جمانة الطبي' : 'jumanaMedical';
   const sidebarSubtitle = document.querySelector('.sidebar-subtitle');
   if (sidebarSubtitle) sidebarSubtitle.textContent = isArabic ? 'jumanaMedical' : 'Medical ERP';
 
@@ -338,7 +338,7 @@ function updateShellLanguage() {
 
   // Page title
   const pageTitle = document.querySelector('title');
-  if (pageTitle) pageTitle.textContent = isArabic ? 'جمانا الطبي - jumanaMedical ERP' : 'jumanaMedical ERP';
+  if (pageTitle) pageTitle.textContent = isArabic ? 'جمانة الطبي - jumanaMedical ERP' : 'jumanaMedical ERP';
 }
 
 // ===== PUBLIC HOMEPAGE =====
@@ -1516,9 +1516,9 @@ window.printDocument = function (title, content, options = {}) {
       .signature div{text-align:center;min-width:150px;border-top:1px solid #333;padding-top:4px;font-size:11px}
       @media print{body{padding:10px} .no-print{display:none!important}}
     </style></head><body>
-    ${showHeader ? '<div class="header"><h1>' + (options.companyName || 'جمانا الطبي — jumanaMedical') + '</h1><p>' + (options.companyInfo || 'مستشفى جمانا الطبي | jumanaMedical Hospital') + '</p></div><h2 style="text-align:center;color:#1a5276;margin-bottom:16px">' + escapeHTML(title) + '</h2>' : ''}
+    ${showHeader ? '<div class="header"><h1>' + (options.companyName || 'جمانة الطبي — jumanaMedical') + '</h1><p>' + (options.companyInfo || 'مستشفى جمانة الطبي | jumanaMedical Hospital') + '</p></div><h2 style="text-align:center;color:#1a5276;margin-bottom:16px">' + escapeHTML(title) + '</h2>' : ''}
     ${content}
-    <div class="footer">${tr('Printed on', 'طُبع بتاريخ')}: ${new Date().toLocaleString('ar-SA')} | ${tr('jumanaMedical ERP', 'جمانا الطبي')}</div>
+    <div class="footer">${tr('Printed on', 'طُبع بتاريخ')}: ${new Date().toLocaleString('ar-SA')} | ${tr('jumanaMedical ERP', 'جمانة الطبي')}</div>
     <button class="no-print" onclick="window.print()" style="position:fixed;top:10px;right:10px;padding:10px 24px;background:#1a5276;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">🖨️ ${tr('Print', 'طباعة')}</button>
   </body></html>`);
   w.document.close();
@@ -1610,7 +1610,7 @@ async function renderConsentForms(el) {
     const patientName = document.getElementById('cfPatient')?.value || '_______________';
     const mrn = document.getElementById('cfMRN')?.value || '___________';
     const now = new Date().toLocaleDateString('ar-SA');
-    const body = '<div style="text-align:center;border-bottom:3px double #1a5276;padding-bottom:16px;margin-bottom:20px"><h1 style="color:#1a5276;margin:0">جمانا الطبي — jumanaMedical</h1><p style="color:#666;margin:4px 0">' + tr('Consent Form', 'نموذج موافقة') + '</p></div>' +
+    const body = '<div style="text-align:center;border-bottom:3px double #1a5276;padding-bottom:16px;margin-bottom:20px"><h1 style="color:#1a5276;margin:0">جمانة الطبي — jumanaMedical</h1><p style="color:#666;margin:4px 0">' + tr('Consent Form', 'نموذج موافقة') + '</p></div>' +
       '<h2 style="text-align:center;color:#1a5276;margin-bottom:20px">' + tr(en, ar) + '</h2>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px"><div><strong>' + tr('Patient', 'المريض') + ':</strong> ' + patientName + '</div><div><strong>' + tr('MRN', 'رقم الملف') + ':</strong> ' + mrn + '</div><div><strong>' + tr('Date', 'التاريخ') + ':</strong> ' + now + '</div></div>' +
       '<div style="border:1px solid #ddd;padding:20px;border-radius:8px;margin-bottom:20px;min-height:200px"><p>' + tr('I, the undersigned, hereby consent to...', 'أنا الموقع أدناه أوافق على...') + '</p><br><p style="color:#999;font-size:12px">' + tr('Patient has been informed about the procedure, risks, and alternatives.', 'تم إبلاغ المريض بالإجراء والمخاطر والبدائل.') + '</p></div>' +
@@ -1727,7 +1727,7 @@ window.printSignedConsent = async function (id) {
     if (!c) return;
     const tmpl = await API.get('/api/consent/templates/' + c.template_id);
     let html = '<div style="direction:rtl;text-align:right;font-family:Arial,sans-serif">' +
-      '<div style="text-align:center;margin-bottom:20px"><h2>مركز جمانا الطبي</h2><h3 style="color:#1a56db">' + tmpl.title_ar + '</h3></div>' +
+      '<div style="text-align:center;margin-bottom:20px"><h2>مركز جمانة الطبي</h2><h3 style="color:#1a56db">' + tmpl.title_ar + '</h3></div>' +
       '<div style="white-space:pre-wrap;line-height:2.2;font-size:14px;margin-bottom:20px">' + tmpl.body_text_ar + '</div>' +
       (c.procedure_details ? '<div style="margin-bottom:16px;padding:8px;border:1px solid #ccc;border-radius:4px"><strong>تفاصيل الإجراء:</strong> ' + escapeHTML(c.procedure_details) + '</div>' : '') +
       '<div style="margin-top:30px;display:flex;justify-content:space-between">' +
@@ -2104,7 +2104,7 @@ window.printMedicalReport = (report, type) => {
 
   let html = '<div style="font-family:Arial;padding:40px;direction:rtl;text-align:right;line-height:2">';
   html += '<div style="text-align:center;border-bottom:2px solid #1a73e8;padding-bottom:16px;margin-bottom:24px">';
-  html += '<h2 style="color:#1a73e8;margin:0">جمانا الطبي - jumanaMedical</h2>';
+  html += '<h2 style="color:#1a73e8;margin:0">جمانة الطبي - jumanaMedical</h2>';
   html += '<p style="margin:4px 0;color:#666">المملكة العربية السعودية</p>';
   html += '</div>';
   html += '<h3 style="text-align:center;background:#f0f6ff;padding:12px;border-radius:8px;margin:20px 0">' + label.ar + ' / ' + label.en + '</h3>';
@@ -2604,7 +2604,7 @@ window.printReceipt = (invoice) => {
   if (!invoice) return;
   let h = '<div style="font-family:Arial;width:300px;margin:0 auto;padding:20px;direction:rtl;text-align:right">';
   h += '<div style="text-align:center;border-bottom:2px dashed #333;padding-bottom:12px;margin-bottom:12px">';
-  h += '<h3 style="margin:0">جمانا الطبي</h3><p style="margin:2px 0;font-size:12px">jumanaMedical</p>';
+  h += '<h3 style="margin:0">جمانة الطبي</h3><p style="margin:2px 0;font-size:12px">jumanaMedical</p>';
   h += '<p style="margin:2px 0;font-size:11px;color:#666">المملكة العربية السعودية</p>';
   h += '</div>';
   h += '<p style="margin:4px 0;font-size:13px"><strong>' + tr('Receipt', 'إيصال') + '</strong></p>';
@@ -2809,7 +2809,7 @@ window.toggleLanguage = () => {
   if (typeof buildNav === 'function') buildNav();
   // Update header text if exists
   const headerTitle = document.querySelector('.header h1, .app-title, .logo-text');
-  if (headerTitle) headerTitle.textContent = isArabic ? 'جمانا الطبي' : 'jumanaMedical';
+  if (headerTitle) headerTitle.textContent = isArabic ? 'جمانة الطبي' : 'jumanaMedical';
   // Re-render current page content
   if (typeof navigateTo === 'function') navigateTo(currentPage);
   // Update the lang button text
@@ -3444,7 +3444,7 @@ window.printPatientStatement = async (patientId) => {
       '</td><td>' + escapeHTML(inv.total || 0) + ' SAR</td><td>' +
       (inv.paid ? '\u2705 ' + tr('Paid', 'مدفوع') : '\u26A0\uFE0F ' + tr('Unpaid', 'غير مدفوع')) + '</td></tr>'
     ).join('');
-    const content = '<div style="text-align:center;margin-bottom:20px"><h2>\u{1F3E5} ' + tr('jumanaMedical', 'جمانا الطبي') + '</h2><div style="margin-bottom:8px"><button class="btn btn-sm" onclick="exportPatients()" style="background:#e0f7fa;color:#00838f">📥 ${tr("Export CSV","تصدير CSV")}</button></div><h3>' + tr('Patient Financial Statement', 'كشف حساب المريض') + '</h3></div>' +
+    const content = '<div style="text-align:center;margin-bottom:20px"><h2>\u{1F3E5} ' + tr('jumanaMedical', 'جمانة الطبي') + '</h2><div style="margin-bottom:8px"><button class="btn btn-sm" onclick="exportPatients()" style="background:#e0f7fa;color:#00838f">📥 ${tr("Export CSV","تصدير CSV")}</button></div><h3>' + tr('Patient Financial Statement', 'كشف حساب المريض') + '</h3></div>' +
       '<table style="width:100%;margin-bottom:15px"><tr><td><strong>' + tr('Name', 'الاسم') + ':</strong> ' + escapeHTML(p.name_ar || p.name_en) + '</td><td><strong>MRN:</strong> ' + escapeHTML(p.mrn || p.file_number) + '</td></tr>' +
       '<tr><td><strong>' + tr('ID', 'الهوية') + ':</strong> ' + escapeHTML(p.national_id || '-') + '</td><td><strong>' + tr('Phone', 'الجوال') + ':</strong> ' + escapeHTML(p.phone || '-') + '</td></tr></table>' +
       '<table border="1" cellpadding="6" cellspacing="0" style="width:100%;border-collapse:collapse"><thead><tr style="background:#f0f0f0"><th>' + tr('Date', 'التاريخ') + '</th><th>' + tr('Description', 'الوصف') + '</th><th>' + tr('Amount', 'المبلغ') + '</th><th>' + tr('Status', 'الحالة') + '</th></tr></thead><tbody>' + rows + '</tbody></table>' +
@@ -6015,7 +6015,7 @@ window.printLabBarcode = (orderId, patientName, testType) => {
     @media print{body{padding:5px}.label{border:2px solid #000}}
     </style></head><body>
     <div class="label">
-      <div class="clinic">جمانا الطبي - jumanaMedical</div>
+      <div class="clinic">جمانة الطبي - jumanaMedical</div>
       <div style="margin:10px 0">${svgData}</div>
       <div class="patient">👤 ${escapeHTML(patientName)}</div>
       <div class="test">🔬 ${escapeHTML(testType)}</div>
@@ -6699,7 +6699,7 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:10px;direction:rtl;f
   <button onclick="window.close()" style="padding:10px 20px;font-size:14px;background:#dc3545;color:#fff;border:none;border-radius:8px;cursor:pointer;margin-right:8px">✕</button>
 </div>
 <div class="label">
-  <div class="clinic">💊 جمانا الطبي — الصيدلية<br><small style="font-size:11px;color:#666">jumanaMedical — Pharmacy</small></div>
+  <div class="clinic">💊 جمانة الطبي — الصيدلية<br><small style="font-size:11px;color:#666">jumanaMedical — Pharmacy</small></div>
   <div class="barcode-area">${svgData}</div>
   <div class="info-grid">
     <span class="lk">👤 المريض / Patient:</span><span>${escapeHTML(patientName)}</span>
@@ -6723,7 +6723,7 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:10px;direction:rtl;f
       <td>${escapeHTML(dur || '-')}</td>
     </tr></tbody>
   </table>
-  <div class="footer">Rx #${escapeHTML(rxId)} | ${new Date().toLocaleDateString('en-CA')} | جمانا الطبي</div>
+  <div class="footer">Rx #${escapeHTML(rxId)} | ${new Date().toLocaleDateString('en-CA')} | جمانة الطبي</div>
 </div>
 <script>setTimeout(()=>{window.print();},400);<\\/script>
 </body></html>`);
@@ -6828,7 +6828,7 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:10px;direction:rtl;f
   <button onclick="window.close()" style="padding:10px 20px;font-size:14px;background:#dc3545;color:#fff;border:none;border-radius:8px;cursor:pointer;margin-right:8px">✕</button>
 </div>
 <div class="inv">
-  <div class="header"><h2>🏥 جمانا الطبي — فاتورة صيدلية</h2><div style="margin-bottom:12px"><button class="btn btn-sm" onclick="toggleCalendarView()" id="calToggleBtn" style="background:#e3f2fd;color:#1565c0">📅 ${tr("Calendar View", "عرض التقويم")}</button></div><div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><button class="btn btn-primary" onclick="callNextPatient()" style="padding:8px 20px;font-size:15px;animation:pulse 2s infinite">🔔 ${tr("Next Patient", "المريض التالي")}</button><button class="btn btn-sm" onclick="loadMyQueue()" style="background:#e3f2fd;color:#1565c0">📋 ${tr("My Queue", "طابوري")}</button></div><small>jumanaMedical — Pharmacy Invoice</small></div>
+  <div class="header"><h2>🏥 جمانة الطبي — فاتورة صيدلية</h2><div style="margin-bottom:12px"><button class="btn btn-sm" onclick="toggleCalendarView()" id="calToggleBtn" style="background:#e3f2fd;color:#1565c0">📅 ${tr("Calendar View", "عرض التقويم")}</button></div><div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><button class="btn btn-primary" onclick="callNextPatient()" style="padding:8px 20px;font-size:15px;animation:pulse 2s infinite">🔔 ${tr("Next Patient", "المريض التالي")}</button><button class="btn btn-sm" onclick="loadMyQueue()" style="background:#e3f2fd;color:#1565c0">📋 ${tr("My Queue", "طابوري")}</button></div><small>jumanaMedical — Pharmacy Invoice</small></div>
   <div class="row"><span class="k">📄 رقم الفاتورة:</span><span>RX-${escapeHTML(rxId)}</span></div>
   <div class="row"><span class="k">👤 المريض:</span><span>${escapeHTML(patientName)}</span></div>
   <div class="row"><span class="k">📅 التاريخ:</span><span>${new Date().toLocaleDateString('ar-SA')} — ${new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span></div>
@@ -6839,7 +6839,7 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:10px;direction:rtl;f
   <div class="total-box">💰 الإجمالي: ${escapeHTML(price || 0)} ر.س</div>
   <div class="row"><span class="k">💳 طريقة الدفع:</span><span>${payAr} (${escapeHTML(payMethod || 'Cash')})</span></div>
   <div class="row"><span class="k">✅ الحالة:</span><span style="color:green;font-weight:bold">مدفوع — Paid</span></div>
-  <div class="footer">جمانا الطبي | ${new Date().toLocaleDateString('en-CA')} | شكراً لكم</div>
+  <div class="footer">جمانة الطبي | ${new Date().toLocaleDateString('en-CA')} | شكراً لكم</div>
 </div>
 <script>setTimeout(()=>{window.print();},400);<\\/script>
 </body></html>`);
@@ -9741,7 +9741,7 @@ async function renderSettings(el) {
             <h4 class="font-title-lg text-title-lg text-primary mb-4">🏥 ${tr('Hospital Information', 'معلومات المستشفى')}</h4>
             <div class="form-group mb-4">
               <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Hospital Name (AR)', 'اسم المستشفى (عربي)')}</label>
-              <input class="form-input w-full" id="sNameAr" value="جمانا الطبي">
+              <input class="form-input w-full" id="sNameAr" value="جمانة الطبي">
             </div>
             <div class="form-group mb-4">
               <label class="block text-xs font-bold text-on-surface-variant mb-1">${tr('Hospital Name (EN)', 'اسم المستشفى (إنجليزي)')}</label>
@@ -11000,7 +11000,7 @@ window.printConsentForm = async (formId) => {
       } catch (e) { /* fall through to legacy print */ }
     }
     // Legacy text-based print (fallback)
-    const hospitalAr = settings.company_name_ar || 'جمانا الطبي';
+    const hospitalAr = settings.company_name_ar || 'جمانة الطبي';
     const hospitalEn = settings.company_name_en || 'jumanaMedical';
     const phone = settings.phone || '';
     const address = settings.address || '';
@@ -14481,7 +14481,7 @@ window.printCosConsent = async function (id) {
   <div class="header">
     <h1>نموذج إقرار وموافقة على إجراء تجميلي</h1>
     <h2>Cosmetic Procedure Consent Form</h2>
-    <p style="margin:5px 0;color:#888">jumanaMedical - جمانا الطبي</p>
+    <p style="margin:5px 0;color:#888">jumanaMedical - جمانة الطبي</p>
   </div>
   <div class="section">
     <h3>📋 بيانات المريض / Patient Information</h3>
