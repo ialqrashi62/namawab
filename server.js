@@ -13502,7 +13502,18 @@ if (process.env.SUPER_ADMIN_ENABLED === 'true') {
         allowlist: process.env.SUPER_ADMIN_USERS,
         enabled: true
     }));
+    // ===== SaaS Batch 3: Plans & Pricing admin (same /api/super-admin mount + same requireSuperAdmin guard) =====
+    const { makePlansRouter } = require('./plans');
+    app.use('/api/super-admin', requireAuth, requireSuperAdmin(process.env.SUPER_ADMIN_USERS), makePlansRouter({
+        pool,
+        getActor: (req) => req.session && req.session.user,
+        logAudit
+    }));
 }
+
+// ===== SaaS Batch 3: public read-only active plans (no auth; marketing-safe fields; [] if catalog absent) =====
+const { makePublicPlansRouter } = require('./plans');
+app.use('/api/public', makePublicPlansRouter({ pool }));
 
 // ===== BOOT-TIME COLUMN MIGRATIONS (non-production only) =====
 // These additive ALTERs ran on every boot and silently swallowed errors. They require

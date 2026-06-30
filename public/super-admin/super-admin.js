@@ -73,7 +73,11 @@
           '<span class="k">عدد المنشآت</span><span>' + (t.facilities == null ? '—' : esc(t.facilities)) + '</span>' +
           '<span class="k">آخر نشاط</span><span>' + fmtDate(t.last_activity) + '</span>' +
           '<span class="k">أُنشئ</span><span>' + fmtDate(t.created_at) + '</span>' +
-          '</div>';
+          '</div>' +
+          '<div id="sa-plan-mount" class="sa-plan-mount"></div>';
+        if (window.SAPlans && window.SAPlans.mountTenantPlan) {
+          window.SAPlans.mountTenantPlan(t.id, document.getElementById('sa-plan-mount'));
+        }
       })
       .catch(function (e) { state(e.message || 'خطأ.', true); });
   }
@@ -101,5 +105,21 @@
   $('sa-refresh').addEventListener('click', load);
   $('sa-search').addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
   $('sa-status').addEventListener('change', load);
+
+  // Tab switching (CSP-friendly delegation). Emits a 'sa-tab' CustomEvent so plans-admin can lazy-load.
+  var tabs = document.getElementById('sa-tabs');
+  if (tabs) {
+    tabs.addEventListener('click', function (ev) {
+      var b = ev.target.closest('[data-tab]'); if (!b) return;
+      var tab = b.getAttribute('data-tab');
+      Array.prototype.forEach.call(tabs.querySelectorAll('[data-tab]'), function (el) {
+        el.classList.toggle('active', el === b);
+      });
+      var pt = $('panel-tenants'), pp = $('panel-plans');
+      if (pt) pt.hidden = (tab !== 'tenants');
+      if (pp) pp.hidden = (tab !== 'plans');
+      document.dispatchEvent(new CustomEvent('sa-tab', { detail: { tab: tab } }));
+    });
+  }
   load();
 })();
