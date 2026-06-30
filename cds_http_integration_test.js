@@ -3,6 +3,8 @@
  */
 'use strict';
 
+process.env.NODE_ENV = 'staging';
+
 const { spawn } = require('child_process');
 const http = require('http');
 const assert = require('assert');

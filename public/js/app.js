@@ -2228,6 +2228,7 @@ window.renderE1Panel = async (pid) => {
         <button class="btn btn-sm e1-tab" data-tab="problems" onclick="e1SwitchTab('problems',${safeId(pid)})">📋 ${tr('Problem List', 'قائمة المشاكل')}</button>
         <button class="btn btn-sm e1-tab" data-tab="cpoe" onclick="e1SwitchTab('cpoe',${safeId(pid)})">🧾 ${tr('CPOE Orders', 'أوامر CPOE')}</button>
         <button class="btn btn-sm e1-tab" data-tab="soap" onclick="e1SwitchTab('soap',${safeId(pid)})">📝 ${tr('SOAP Note', 'ملاحظة SOAP')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="cardiology" onclick="e1SwitchTab('cardiology',${safeId(pid)})">❤️ ${tr('Cardiology', 'طب القلب')}</button>
       </div>
       <div id="e1TabBody"></div>
     </div>`;
@@ -2237,9 +2238,15 @@ window.renderE1Panel = async (pid) => {
 window.e1SwitchTab = async (tab, pid) => {
   const body = document.getElementById('e1TabBody');
   if (!body) return;
+  
+  document.querySelectorAll('.e1-tab').forEach(btn => {
+    btn.classList.toggle('btn-primary', btn.dataset.tab === tab);
+  });
+
   if (tab === 'problems') return window.e1RenderProblems(pid);
   if (tab === 'cpoe') return window.e1RenderCpoe(pid);
   if (tab === 'soap') return window.e1RenderSoap(pid);
+  if (tab === 'cardiology') return window.e1RenderCardiology(pid);
 };
 
 // ---------- Problem List ----------
@@ -14550,4 +14557,271 @@ window.printCosConsent = async function (id) {
   </div>
   </body></html>`);
   setTimeout(() => { w.print(); }, 500);
+};
+
+// =====================================================================
+// ===== CARDIOLOGY DEPARTMENT MODULE (G01) =====
+// =====================================================================
+
+window.e1RenderCardiology = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1.2;min-width:300px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">🔬 ${tr('ECG Records', 'تخطيط القلب (ECG)')}</h4>
+        <button class="btn btn-sm btn-info mb-12" onclick="e1SimulateECG(${safeId(pid)})">⚡ ${tr('Simulate New ECG', 'توليد تخطيط قلب جديد')}</button>
+        <div id="e1EcgList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">%tr%Procedure & Echo Reports%تقارير القسطرة والإيكو%%</h4>
+        <div class="form-group mb-8">
+          <label>${tr('Procedure Type', 'نوع الإجراء')}</label>
+          <select class="form-input" id="e1CardioProcType">
+            <option value="Echocardiography">${tr('Echocardiography', 'إيكو - Echocardiography')}</option>
+            <option value="Catheterization">${tr('Catheterization', 'قسطرة - Catheterization')}</option>
+            <option value="Cardiac Stress Test">${tr('Cardiac Stress Test', 'فحص جهد - Stress Test')}</option>
+          </select>
+        </div>
+        <div class="form-group mb-8">
+          <label>${tr('Findings', 'النتائج')}</label>
+          <textarea class="form-input form-textarea" id="e1CardioFindings" rows="3" placeholder="${tr('Describe clinical findings...', 'اكتب نتائج الفحص السريري...')}" style="min-height:70px"></textarea>
+        </div>
+        <div class="form-group mb-8">
+          <label>${tr('Recommendations', 'التوصيات')}</label>
+          <textarea class="form-input form-textarea" id="e1CardioRecs" rows="2" placeholder="${tr('Clinical recommendations...', 'التوصيات الطبية...')}" style="min-height:50px"></textarea>
+        </div>
+        <button class="btn btn-primary btn-sm mb-12 w-full" onclick="e1AddCardiologyProcedure(${safeId(pid)})">💾 ${tr('Save Report', 'حفظ التقرير')}</button>
+        <div id="e1CardioProcsList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  window.e1LoadEcgList(pid);
+  window.e1LoadProcsList(pid);
+};
+
+window.e1LoadEcgList = async (pid) => {
+  const container = document.getElementById('e1EcgList');
+  if (!container) return;
+  try {
+    const ecgs = await API.get('/api/cardiology/ecg/patient/' + pid);
+    if (!ecgs.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No ECG records found', 'لا توجد تخطيطات مسجلة')}</div>`;
+      return;
+    }
+    container.innerHTML = ecgs.map(e => `
+      <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid #3b82f6;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:600;font-size:13px">❤️ HR: ${e.heart_rate || '--'} bpm</div>
+          <div style="font-size:11px;color:var(--text-dim)">${e.interpretation || tr('Normal sinus rhythm', 'تخطيط طبيعي')}</div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:2px">⏱️ ${new Date(e.created_at).toLocaleString('ar-SA')}</div>
+        </div>
+        <button class="btn btn-sm" onclick="e1ViewECG(${safeId(e.id)})">👁️ ${tr('View', 'عرض')}</button>
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading', 'خطأ في التحميل')}</div>`;
+  }
+};
+
+window.e1LoadProcsList = async (pid) => {
+  const container = document.getElementById('e1CardioProcsList');
+  if (!container) return;
+  try {
+    const procs = await API.get('/api/cardiology/procedures/patient/' + pid);
+    if (!procs.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No procedure reports found', 'لا توجد تقارير مسجلة')}</div>`;
+      return;
+    }
+    container.innerHTML = procs.map(p => `
+      <div style="padding:8px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid #10b981;font-size:12px">
+        <div style="font-weight:700;color:var(--primary)">${escapeHTML(p.procedure_type)}</div>
+        <div style="margin-top:4px"><strong>${tr('Findings:', 'النتائج:')}</strong> ${escapeHTML(p.findings)}</div>
+        ${p.recommendations ? `<div style="margin-top:2px"><strong>${tr('Recs:', 'التوصيات:')}</strong> ${escapeHTML(p.recommendations)}</div>` : ''}
+        <div style="font-size:10px;color:var(--text-dim);margin-top:4px">👨‍⚕️ ${escapeHTML(p.doctor_name || '')} | ${new Date(p.created_at).toLocaleDateString('ar-SA')}</div>
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading', 'خطأ في التحميل')}</div>`;
+  }
+};
+
+window.e1AddCardiologyProcedure = async (pid) => {
+  const type = document.getElementById('e1CardioProcType')?.value;
+  const findings = document.getElementById('e1CardioFindings')?.value;
+  const recs = document.getElementById('e1CardioRecs')?.value;
+  if (!findings || !findings.trim()) {
+    showToast(tr('Enter findings', 'يرجى إدخال النتائج'), 'error');
+    return;
+  }
+  try {
+    await API.post('/api/cardiology/procedures', {
+      patient_id: pid,
+      procedure_type: type,
+      findings: findings,
+      recommendations: recs
+    });
+    showToast(tr('Report saved!', 'تم حفظ التقرير بنجاح!'));
+    window.e1LoadProcsList(pid);
+    document.getElementById('e1CardioFindings').value = '';
+    document.getElementById('e1CardioRecs').value = '';
+  } catch (err) {
+    showToast(tr('Error saving report', 'خطأ في حفظ التقرير'), 'error');
+  }
+};
+
+window.e1SimulateECG = async (pid) => {
+  try {
+    showToast(tr('Simulating ECG recording...', 'جاري تسجيل تخطيط القلب...'));
+    const leads = ['I', 'II', 'III', 'aVR', 'aVL', 'aVF', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6'];
+    const leads_data = {};
+    leads.forEach(l => {
+      leads_data[l] = Array.from({ length: 500 }, (_, i) => window.getECGValue(i / 250, l));
+    });
+    const heart_rate = Math.floor(Math.random() * (95 - 65 + 1)) + 65;
+    const interpretation = heart_rate > 85 
+      ? tr('Sinus tachycardia, otherwise normal', 'تسارع نبضات القلب الجيبي، تخطيط سليم')
+      : tr('Normal sinus rhythm', 'تخطيط قلب طبيعي (Normal Sinus Rhythm)');
+    await API.post('/api/cardiology/ecg', {
+      patient_id: pid,
+      leads_data,
+      heart_rate,
+      interpretation
+    });
+    showToast(tr('ECG recorded successfully!', 'تم حفظ تخطيط القلب بنجاح! ✅'));
+    window.e1LoadEcgList(pid);
+  } catch (err) {
+    showToast(tr('Error simulating ECG', 'خطأ في محاكاة التخطيط'), 'error');
+  }
+};
+
+window.e1ViewECG = async (id) => {
+  try {
+    const ecg = await API.get('/api/cardiology/ecg/' + id);
+    if (!ecg) return;
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center';
+    modal.innerHTML = `
+      <div style="background:#fff;border-radius:16px;padding:20px;width:1050px;max-width:95vw;max-height:95vh;overflow:auto;direction:rtl;box-shadow:0 10px 25px rgba(0,0,0,0.2)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid #eee;padding-bottom:8px">
+          <h3 style="margin:0;color:var(--primary)">📊 ${tr('12-Lead ECG Waveform Viewer', 'شاشة عرض تخطيط القلب ذو الـ 12 اتجاهاً')}</h3>
+          <button class="btn btn-secondary btn-sm" onclick="this.closest('.modal-overlay').remove()">❌</button>
+        </div>
+        <div style="display:flex;gap:12px;margin-bottom:10px;font-size:12px;background:#f3f4f6;padding:8px 12px;border-radius:8px">
+          <div><strong>${tr('Heart Rate:', 'معدل نبضات القلب:')}</strong> ${ecg.heart_rate} bpm</div>
+          <div style="margin-right:15px"><strong>${tr('Interpretation:', 'التشخيص السريري:')}</strong> ${ecg.interpretation}</div>
+          <div style="margin-right:15px"><strong>${tr('Date/Time:', 'التاريخ والوقت:')}</strong> ${new Date(ecg.created_at).toLocaleString('ar-SA')}</div>
+          <div style="margin-right:auto;color:#ef4444;font-weight:bold">📊 Calibration: 25 mm/s, 10 mm/mV</div>
+        </div>
+        <div style="display:flex;justify-content:center;background:#fff;padding:4px;border:1px solid #ddd;border-radius:8px;overflow:auto">
+          <canvas id="ecgCanvas" width="1000" height="600" style="background:#fff;display:block"></canvas>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    setTimeout(() => { window.draw12LeadECG('ecgCanvas', ecg.leads_data); }, 100);
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+  } catch (err) {
+    showToast(tr('Error loading ECG details', 'خطأ في تحميل تفاصيل التخطيط'), 'error');
+  }
+};
+
+window.getECGValue = (t, leadName) => {
+  const hr = 72;
+  const period = 60 / hr;
+  const phase = (t % period) / period;
+  let val = 0;
+  if (phase > 0.06 && phase < 0.14) {
+    val += 0.12 * Math.sin(Math.PI * (phase - 0.06) / 0.08);
+  }
+  if (phase > 0.18 && phase < 0.20) {
+    val -= 0.12 * Math.sin(Math.PI * (phase - 0.18) / 0.02);
+  }
+  if (phase > 0.20 && phase < 0.23) {
+    val += 1.1 * Math.sin(Math.PI * (phase - 0.20) / 0.03);
+  }
+  if (phase > 0.23 && phase < 0.26) {
+    val -= 0.22 * Math.sin(Math.PI * (phase - 0.23) / 0.03);
+  }
+  if (phase > 0.38 && phase < 0.53) {
+    val += 0.26 * Math.sin(Math.PI * (phase - 0.38) / 0.15);
+  }
+  let multiplier = 1.0;
+  if (leadName === 'aVR') multiplier = -0.9;
+  else if (leadName === 'V1' || leadName === 'V2') multiplier = -0.5;
+  else if (leadName === 'V5' || leadName === 'V6') multiplier = 1.1;
+  else if (leadName === 'III') multiplier = 0.4;
+  else if (leadName === 'aVL') multiplier = 0.3;
+  const noise = (Math.random() - 0.5) * 0.015;
+  return val * multiplier + noise;
+};
+
+window.draw12LeadECG = (canvasId, leadsData) => {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = '#ffe4e6';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < w; x += 10) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+  }
+  for (let y = 0; y < h; y += 10) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+  }
+  ctx.strokeStyle = '#fca5a5';
+  ctx.lineWidth = 1.0;
+  for (let x = 0; x < w; x += 50) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+  }
+  for (let y = 0; y < h; y += 50) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+  }
+  const colWidth = w / 4;
+  const rowHeight = h / 3;
+  const leadsLayout = [
+    ['I', 'aVR', 'V1', 'V4'],
+    ['II', 'aVL', 'V2', 'V5'],
+    ['III', 'aVF', 'V3', 'V6']
+  ];
+  ctx.font = 'bold 12px sans-serif';
+  ctx.fillStyle = '#1e293b';
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 1.5;
+  for (let c = 1; c < 4; c++) {
+    ctx.beginPath(); ctx.moveTo(c * colWidth, 0); ctx.lineTo(c * colWidth, h); ctx.stroke();
+  }
+  for (let r = 1; r < 3; r++) {
+    ctx.beginPath(); ctx.moveTo(0, r * rowHeight); ctx.lineTo(w, r * rowHeight); ctx.stroke();
+  }
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 4; c++) {
+      const leadName = leadsLayout[r][c];
+      const xOffset = c * colWidth;
+      const yOffset = r * rowHeight;
+      ctx.fillStyle = '#1e293b';
+      ctx.fillText(leadName, xOffset + 10, yOffset + 20);
+      ctx.strokeStyle = '#dc2626';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      const centerY = yOffset + rowHeight / 2;
+      for (let x = 0; x < colWidth; x++) {
+        const t = (xOffset + x) / 250;
+        const val = window.getECGValue(t, leadName);
+        const y = centerY - (val * 100);
+        if (x === 0) {
+          ctx.moveTo(xOffset + x, y);
+        } else {
+          ctx.lineTo(xOffset + x, y);
+        }
+      }
+      ctx.stroke();
+    }
+  }
 };
