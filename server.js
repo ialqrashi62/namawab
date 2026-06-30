@@ -4405,6 +4405,67 @@ app.get('/api/pulmonology/pft/patient/:patient_id', requireAuth, requireRole('pa
     }
 });
 
+// ===== RHEUMATOLOGY DEPARTMENT =====
+app.post('/api/rheumatology/joints', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { patient_id, assessment_date, tender_joint_count, swollen_joint_count, vas_pain, das28_score, notes } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        
+        if (!patient_id) {
+            return res.status(400).json({ error: 'Patient ID is required' });
+        }
+        
+        const result = await pool.query(
+            `INSERT INTO joint_assessments 
+             (patient_id, doctor_id, assessment_date, tender_joint_count, swollen_joint_count, vas_pain, das28_score, notes, tenant_id, facility_id) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+            [
+                patient_id, 
+                req.session.user?.id || null, 
+                assessment_date || new Date().toISOString().slice(0, 10), 
+                tender_joint_count !== undefined ? parseInt(tender_joint_count) : null, 
+                swollen_joint_count !== undefined ? parseInt(swollen_joint_count) : null, 
+                vas_pain !== undefined ? parseInt(vas_pain) : null, 
+                das28_score !== undefined ? parseFloat(das28_score) : null, 
+                notes || '', 
+                tenantId || 1, 
+                facilityId || null
+            ]
+        );
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_JOINT_ASSESSMENT', 'Rheumatology',
+            `Recorded joint assessment for patient #${patient_id}`, req.ip);
+            
+        res.json({ id: result.rows[0].id, success: true });
+    } catch (e) {
+        console.error('[Rheumatology Joint Create Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/rheumatology/joints/patient/:patient_id', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { patient_id } = req.params;
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [patient_id, tenantId] : [patient_id];
+        
+        const result = await pool.query(
+            `SELECT ja.*, su.display_name as doctor_name 
+             FROM joint_assessments ja 
+             LEFT JOIN system_users su ON ja.doctor_id = su.id 
+             WHERE ja.patient_id=$1${tenantCheck} 
+             ORDER BY ja.id DESC`,
+            tenantParams
+        );
+        
+        res.json(result.rows);
+    } catch (e) {
+        console.error('[Rheumatology Joint Get Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // ===== PATIENT ACCOUNT =====
 app.get('/api/patients/:id/account', requireAuth, requireRole('patients', 'accounts'), async (req, res) => {
     try {

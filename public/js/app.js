@@ -2233,6 +2233,7 @@ window.renderE1Panel = async (pid) => {
         <button class="btn btn-sm e1-tab" data-tab="endocrine" onclick="e1SwitchTab('endocrine',${safeId(pid)})">🍭 ${tr('Endocrinology', 'الغدد والسكري')}</button>
         <button class="btn btn-sm e1-tab" data-tab="nephrology" onclick="e1SwitchTab('nephrology',${safeId(pid)})">💧 ${tr('Nephrology', 'الكلى والغسيل')}</button>
         <button class="btn btn-sm e1-tab" data-tab="pulmonology" onclick="e1SwitchTab('pulmonology',${safeId(pid)})">🫁 ${tr('Pulmonology', 'الأمراض الصدرية')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="rheumatology" onclick="e1SwitchTab('rheumatology',${safeId(pid)})">🦴 ${tr('Rheumatology', 'الروماتيزم والمفاصل')}</button>
       </div>
       <div id="e1TabBody"></div>
     </div>`;
@@ -2255,6 +2256,7 @@ window.e1SwitchTab = async (tab, pid) => {
   if (tab === 'endocrine') return window.e1RenderEndocrine(pid);
   if (tab === 'nephrology') return window.e1RenderNephrology(pid);
   if (tab === 'pulmonology') return window.e1RenderPulmonology(pid);
+  if (tab === 'rheumatology') return window.e1RenderRheumatology(pid);
 };
 
 // ---------- Problem List ----------
@@ -15447,5 +15449,142 @@ window.e1AddPFT = async (pid) => {
     document.getElementById('e1PulmoNotes').value = '';
   } catch (err) {
     showToast(tr('Error saving PFT record', 'خطأ في حفظ سجل وظائف الرئة'), 'error');
+  }
+};
+
+// =====================================================================
+// ===== RHEUMATOLOGY MODULE (G06) =====
+// =====================================================================
+
+window.e1RenderRheumatology = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1.2;min-width:300px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">🦴 ${tr('Joint Assessment & DAS28 Calculator', 'تقييم المفاصل وحاسبة DAS28')}</h4>
+        <div class="flex gap-8 mb-8">
+          <div class="form-group" style="flex:1">
+            <label>${tr('Tender Joints (0-28)', 'عدد المفاصل المؤلمة (0-28)')}</label>
+            <input class="form-input" type="number" id="e1RheumTJC" min="0" max="28" placeholder="TJC28" oninput="e1RheumCalcDAS28()">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>${tr('Swollen Joints (0-28)', 'عدد المفاصل المتورمة (0-28)')}</label>
+            <input class="form-input" type="number" id="e1RheumSJC" min="0" max="28" placeholder="SJC28" oninput="e1RheumCalcDAS28()">
+          </div>
+        </div>
+        <div class="flex gap-8 mb-8">
+          <div class="form-group" style="flex:1">
+            <label>${tr('Patient Global Health VAS (0-100)', 'تقييم الألم VAS من المريض (0-100)')}</label>
+            <input class="form-input" type="number" id="e1RheumVAS" min="0" max="100" placeholder="Pain VAS" oninput="e1RheumCalcDAS28()">
+          </div>
+          <div class="form-group" style="flex:1.2">
+            <label>${tr('Calculated DAS28 Score', 'درجة نشاط المرض المحتسبة DAS28')}</label>
+            <input class="form-input" type="text" id="e1RheumDAS28" placeholder="Auto-calculated" readonly style="background:var(--hover,#f8f9fa);font-weight:700">
+          </div>
+        </div>
+        <div class="form-group mb-8">
+          <label>${tr('Clinical Notes', 'ملاحظات سريرية')}</label>
+          <textarea class="form-input form-textarea" id="e1RheumNotes" rows="2" placeholder="${tr('Describe joint involvement, morning stiffness...', 'اكتب تفاصيل إصابة المفاصل، التصلب الصباحي...')}" style="min-height:50px"></textarea>
+        </div>
+        <button class="btn btn-primary btn-sm mb-12 w-full" onclick="e1AddJointAssessment(${safeId(pid)})">💾 ${tr('Save Joint Assessment', 'حفظ تقييم المفاصل')}</button>
+      </div>
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">📋 ${tr('Assessment History', 'سجل التقييمات السابقة')}</h4>
+        <div id="e1RheumJointList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  window.e1LoadJointList(pid);
+};
+
+window.e1RheumCalcDAS28 = () => {
+  const tjc = parseInt(document.getElementById('e1RheumTJC')?.value);
+  const sjc = parseInt(document.getElementById('e1RheumSJC')?.value);
+  const vas = parseInt(document.getElementById('e1RheumVAS')?.value);
+  const scoreField = document.getElementById('e1RheumDAS28');
+  
+  if (scoreField) {
+    if (!isNaN(tjc) && !isNaN(sjc) && !isNaN(vas)) {
+      const score = (0.56 * Math.sqrt(tjc) + 0.28 * Math.sqrt(sjc) + 0.014 * vas);
+      let status = '';
+      if (score < 2.6) status = ` (${tr('Remission', 'خمود المرض')})`;
+      else if (score < 3.2) status = ` (${tr('Low Activity', 'نشاط منخفض')})`;
+      else if (score <= 5.1) status = ` (${tr('Moderate Activity', 'نشاط متوسط')})`;
+      else status = ` (${tr('High Activity', 'نشاط شديد')})`;
+      
+      scoreField.value = score.toFixed(2) + status;
+    } else {
+      scoreField.value = '';
+    }
+  }
+};
+
+window.e1LoadJointList = async (pid) => {
+  const container = document.getElementById('e1RheumJointList');
+  if (!container) return;
+  try {
+    const records = await API.get('/api/rheumatology/joints/patient/' + pid);
+    if (!records.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No joint assessments found', 'لا توجد تقييمات مفاصل مسجلة')}</div>`;
+      return;
+    }
+    container.innerHTML = records.map(r => {
+      const score = parseFloat(r.das28_score || 0);
+      let border = '4px solid #10b981';
+      if (score >= 5.1) border = '4px solid #ef4444';
+      else if (score > 3.2) border = '4px solid #f59e0b';
+      
+      return `
+        <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right: ${border};font-size:12px">
+          <div style="font-weight:700;color:var(--primary);display:flex;justify-content:space-between">
+            <span>📅 ${new Date(r.assessment_date).toLocaleDateString('ar-SA')}</span>
+            <span style="font-weight:700;color:var(--accent,#0ea5e9)">DAS28: ${score.toFixed(2)}</span>
+          </div>
+          <div style="margin-top:4px;display:grid;grid-template-columns:1fr 1fr;gap:4px">
+            <div><strong>${tr('Tender (TJC):', 'المؤلمة:')}</strong> ${r.tender_joint_count}</div>
+            <div><strong>${tr('Swollen (SJC):', 'المتورمة:')}</strong> ${r.swollen_joint_count}</div>
+            <div><strong>${tr('Pain VAS:', 'مقياس الألم:')}</strong> ${r.vas_pain || '-'}</div>
+          </div>
+          ${r.notes ? `<div style="margin-top:4px;color:var(--text-dim)"><strong>${tr('Notes:', 'ملاحظات:')}</strong> ${escapeHTML(r.notes)}</div>` : ''}
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">👨‍⚕️ ${escapeHTML(r.doctor_name || '')}</div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading', 'خطأ في التحميل')}</div>`;
+  }
+};
+
+window.e1AddJointAssessment = async (pid) => {
+  const tjc = document.getElementById('e1RheumTJC')?.value;
+  const sjc = document.getElementById('e1RheumSJC')?.value;
+  const vas = document.getElementById('e1RheumVAS')?.value;
+  const notes = document.getElementById('e1RheumNotes')?.value;
+  if (!tjc || !sjc || !vas) {
+    showToast(tr('Enter TJC, SJC and VAS values', 'يرجى إدخال قيم المفاصل المؤلمة والمتورمة ومقياس VAS'), 'error');
+    return;
+  }
+  const score = (0.56 * Math.sqrt(parseInt(tjc)) + 0.28 * Math.sqrt(parseInt(sjc)) + 0.014 * parseInt(vas));
+  try {
+    await API.post('/api/rheumatology/joints', {
+      patient_id: pid,
+      tender_joint_count: parseInt(tjc),
+      swollen_joint_count: parseInt(sjc),
+      vas_pain: parseInt(vas),
+      das28_score: parseFloat(score.toFixed(2)),
+      notes: notes
+    });
+    showToast(tr('Joint assessment saved successfully!', 'تم حفظ تقييم المفاصل بنجاح!'));
+    window.e1LoadJointList(pid);
+    document.getElementById('e1RheumTJC').value = '';
+    document.getElementById('e1RheumSJC').value = '';
+    document.getElementById('e1RheumVAS').value = '';
+    document.getElementById('e1RheumDAS28').value = '';
+    document.getElementById('e1RheumNotes').value = '';
+  } catch (err) {
+    showToast(tr('Error saving assessment', 'خطأ في حفظ التقييم'), 'error');
   }
 };
