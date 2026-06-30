@@ -22,6 +22,8 @@ const { addExtraLabTests, addExtraRadiology } = require('./seed_extra_catalog');
 const { mountOrderRoutes } = require('./orders');           // E-X1 unified orders (additive)
 const { makeRequirePermission } = require('./rbac');        // E-X3 RBAC matrix middleware (additive)
 const { makeAuditMiddleware } = require('./audit_middleware'); // GATE3-M1 auto audit (inert unless AUDIT_ALL_MUTATIONS=true)
+const { validateBody } = require('./validation');           // GATE3-H1 central input validation (fail-closed, 400)
+const RS = require('./route_schemas');                      // accurate non-breaking schemas for key routes
 const { validatePasswordPolicy } = require('./password_policy');
 // E1 Doctor Station (additive): pure CDS engine + clinical routes (problems/SOAP/CPOE).
 const cds = require('./cds');
@@ -964,7 +966,7 @@ app.get('/api/patients/:id', requireAuth, requireRole('patients'), async (req, r
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/patients', requireAuth, requireRole('patients'), async (req, res) => {
+app.post('/api/patients', requireAuth, requireRole('patients'), validateBody(RS.patientCreate), async (req, res) => {
     try {
         const { name_ar, name_en, national_id, nationality, gender, phone, department, amount, payment_method, dob, dob_hijri, blood_type, allergies, chronic_diseases, emergency_contact_name, emergency_contact_phone, address, insurance_company, insurance_policy_number, insurance_class } = req.body;
         const maxFile = (await pool.query('SELECT COALESCE(MAX(file_number), 1000) as mf FROM patients')).rows[0].mf;
@@ -1241,7 +1243,7 @@ app.get('/api/invoices', requireAuth, requireRole('invoices', 'accounts'), async
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/invoices', requireAuth, requireRole('invoices', 'accounts'), async (req, res) => {
+app.post('/api/invoices', requireAuth, requireRole('invoices', 'accounts'), validateBody(RS.invoiceCreate), async (req, res) => {
     try {
         const { patient_id, patient_name, description, service_type, payment_method, discount_reason } = req.body;
         // --- C-2: money is validated & recomputed server-side; client total/discount are NOT trusted as opaque values ---
@@ -3298,7 +3300,7 @@ app.get('/api/finance/journal/:id', requireAuth, requireRole('finance', 'account
 // ----- General Ledger: create a balanced journal entry (DRAFT) — SERVER-SIDE balance enforcement -----
 // Body: { entry_date, description, reference, source_type?, lines:[{account_id, debit, credit, notes?}] }
 // Unbalanced (sum debit != sum credit) => 422. Created as DRAFT regardless of the posting flag.
-app.post('/api/finance/journal', requireAuth, requireRole('finance', 'accounts'), requireTenantScope, async (req, res) => {
+app.post('/api/finance/journal', requireAuth, requireRole('finance', 'accounts'), requireTenantScope, validateBody(RS.journalCreate), async (req, res) => {
     const client = await pool.connect();
     try {
         const tenantId = e10RequireTenant(req);
@@ -12309,7 +12311,7 @@ app.put('/api/invoices/:id/partial-pay', requireAuth, requireRole('invoices', 'a
 // H-2: refund — original invoice MUST belong to current tenant (IDOR fix), amount validated server-side,
 // refundable = amount_paid - already-refunded (server-computed, tenant-scoped), refund row stamped with
 // tenant_id/facility_id, row-locked transaction. No GL/journal/ZATCA/NPHIES (out of scope).
-app.post('/api/invoices/:id/refund', requireAuth, requireRole('invoices', 'accounts'), requireTenantScope, async (req, res) => {
+app.post('/api/invoices/:id/refund', requireAuth, requireRole('invoices', 'accounts'), requireTenantScope, validateBody(RS.invoiceRefund), async (req, res) => {
     const client = await pool.connect();
     try {
         const { amount, reason } = req.body;
