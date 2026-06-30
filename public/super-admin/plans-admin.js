@@ -182,8 +182,34 @@
         (active.length
           ? '<div class="pf-assign"><select id="sa-assign-plan" class="sa-input">' + opts + '</select>' +
             '<button class="sa-btn" data-action="pl-assign" data-id="' + esc(tenantId) + '">تعيين الخطة</button></div>'
-          : '<div class="sa-muted">لا توجد خطط نشطة لتعيينها.</div>');
+          : '<div class="sa-muted">لا توجد خطط نشطة لتعيينها.</div>') +
+        '<div id="sa-ent-mount"></div>';
+      mountEntitlements(tenantId, $('sa-ent-mount'));
     }).catch(function () { el.innerHTML = '<div class="sa-state sa-error">تعذّر تحميل خطة المستأجر.</div>'; });
+  }
+
+  // OBSERVE-only: show resolved entitlements when the resolver is enabled. Silently skipped otherwise (404/disabled).
+  function mountEntitlements(tenantId, el) {
+    if (!el) return;
+    fetch(API + '/tenants/' + encodeURIComponent(tenantId) + '/entitlements', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !d.entitlements) return; // resolver disabled -> show nothing
+        var e = d.entitlements;
+        function lim(v) { return v == null ? 'غير محدود' : esc(v); }
+        el.innerHTML =
+          '<h4>الاستحقاقات المحسوبة <span class="sa-badge ' + (d.source === 'plan' ? 'active' : 'trial') + '">' + esc(d.source) + '</span> <span class="sa-muted">(' + esc(d.enforcement_mode) + ')</span></h4>' +
+          '<div class="sa-kv">' +
+          '<span class="k">حد المستخدمين</span><span>' + lim(e.max_users) + '</span>' +
+          '<span class="k">حد الفروع</span><span>' + lim(e.max_branches) + '</span>' +
+          '<span class="k">حد الفواتير/شهر</span><span>' + lim(e.max_invoices_per_month) + '</span>' +
+          '<span class="k">مستوى الدعم</span><span>' + esc(e.support_level || 'standard') + '</span>' +
+          '<span class="k">وصول API</span><span>' + (e.api_access ? 'نعم' : 'لا') + '</span>' +
+          '<span class="k">نطاق مخصّص</span><span>' + (e.custom_domain ? 'نعم' : 'لا') + '</span>' +
+          '<span class="k">الوحدات</span><span>' + ((e.modules_enabled && e.modules_enabled.length) ? e.modules_enabled.map(esc).join('، ') : '—') + '</span>' +
+          '</div>';
+      })
+      .catch(function () { /* observe-only: never disrupt the tenant view */ });
   }
 
   function assign(tenantId) {

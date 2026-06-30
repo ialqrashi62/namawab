@@ -13515,6 +13515,24 @@ if (process.env.SUPER_ADMIN_ENABLED === 'true') {
 const { makePublicPlansRouter } = require('./plans');
 app.use('/api/public', makePublicPlansRouter({ pool }));
 
+// ===== SaaS Batch 4A: Entitlements Runtime Resolver — OBSERVE-ONLY read surface, flag-gated =====
+// Inert unless ENTITLEMENTS_ENABLED=true (zero behavior change otherwise). No creation point is gated.
+// Read-only: Super Admin views the RESOLVED entitlements for a tenant. Fail-open if e25 catalog is absent.
+if (process.env.ENTITLEMENTS_ENABLED === 'true') {
+    const { makeEntitlementsResolver, pickEnforcement } = require('./entitlements');
+    const entResolver = makeEntitlementsResolver({ pool, logAudit });
+    const entCfg = pickEnforcement(process.env);
+    app.get('/api/super-admin/tenants/:id/entitlements', requireAuth, requireSuperAdmin(process.env.SUPER_ADMIN_USERS), async (req, res) => {
+        const id = parseInt(req.params.id, 10);
+        if (!Number.isInteger(id) || id < 1) return res.status(400).json({ error: 'Invalid tenant id' });
+        try {
+            const r = await entResolver.resolveTenantEntitlements(id);
+            res.json({ tenant_id: id, enforcement_mode: entCfg.mode, source: r.source, plan_key: r.plan_key, entitlements: r.entitlements, reason: r.reason });
+        } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    });
+    console.log('[ENTITLEMENTS] resolver mounted (observe read; mode=' + entCfg.mode + ')');
+}
+
 // ===== BOOT-TIME COLUMN MIGRATIONS (non-production only) =====
 // These additive ALTERs ran on every boot and silently swallowed errors. They require
 // table-owner/DDL rights the production app role (nama_medical_app) lacks. Disabled in
