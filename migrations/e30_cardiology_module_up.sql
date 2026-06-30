@@ -52,14 +52,22 @@ CREATE INDEX IF NOT EXISTS idx_cardiology_procedures_patient ON cardiology_proce
 CREATE INDEX IF NOT EXISTS idx_ecg_records_patient ON ecg_records (tenant_id, patient_id);
 
 -- Grant privileges to the application roles (Staging & Production)
-GRANT ALL PRIVILEGES ON TABLE cardiology_procedures TO jumanasoft_staging_user;
-GRANT ALL PRIVILEGES ON TABLE cardiology_procedures TO nama_medical_app;
-GRANT ALL PRIVILEGES ON TABLE ecg_records TO jumanasoft_staging_user;
-GRANT ALL PRIVILEGES ON TABLE ecg_records TO nama_medical_app;
-
-GRANT USAGE, SELECT ON SEQUENCE cardiology_procedures_id_seq TO jumanasoft_staging_user;
-GRANT USAGE, SELECT ON SEQUENCE cardiology_procedures_id_seq TO nama_medical_app;
-GRANT USAGE, SELECT ON SEQUENCE ecg_records_id_seq TO jumanasoft_staging_user;
-GRANT USAGE, SELECT ON SEQUENCE ecg_records_id_seq TO nama_medical_app;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'jumanasoft_staging_user') THEN
+        EXECUTE 'GRANT ALL PRIVILEGES ON TABLE cardiology_procedures TO jumanasoft_staging_user';
+        EXECUTE 'GRANT ALL PRIVILEGES ON TABLE ecg_records TO jumanasoft_staging_user';
+        EXECUTE 'GRANT USAGE, SELECT ON SEQUENCE cardiology_procedures_id_seq TO jumanasoft_staging_user';
+        EXECUTE 'GRANT USAGE, SELECT ON SEQUENCE ecg_records_id_seq TO jumanasoft_staging_user';
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'nama_medical_app') THEN
+        EXECUTE 'GRANT ALL PRIVILEGES ON TABLE cardiology_procedures TO nama_medical_app';
+        EXECUTE 'GRANT ALL PRIVILEGES ON TABLE ecg_records TO nama_medical_app';
+        EXECUTE 'GRANT USAGE, SELECT ON SEQUENCE cardiology_procedures_id_seq TO nama_medical_app';
+        EXECUTE 'GRANT USAGE, SELECT ON SEQUENCE ecg_records_id_seq TO nama_medical_app';
+    END IF;
+END
+$$;
 
 COMMIT;
