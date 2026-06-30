@@ -386,6 +386,12 @@ async function logAudit(userId, userName, action, module, details, ip) {
     } catch (e) { console.error('Audit log error:', e.message); }
 }
 
+// ===== SaaS Batch 2: unified Auth/RBAC guards (one tested source of truth; behavior-preserving) =====
+// requireTenantAdmin replaces duplicated inline `role !== 'Admin'` checks (same 403 + same audit events
+// via per-route action/module). requireSuperAdmin reuses super_admin.isSuperAdmin (single identity source).
+const { makeGuards } = require('./rbac_guards');
+const { requireTenantAdmin, requireSuperAdmin } = makeGuards({ logAudit });
+
 // ===== GATE3-M1: automatic audit logging for /api mutations (INERT unless AUDIT_ALL_MUTATIONS=true) =====
 // Complements the explicit logAudit() calls. Default OFF -> zero behavior change until enabled on staging.
 // Logs AFTER the response (never blocks), records only method/path/status/user/ip (no body, no PHI).
@@ -668,7 +674,7 @@ async function establishSession(req, user, clientIp) {
     } catch (e) { console.error('Error fetching tenant/facility scope for user:', e); }
     if (!userTenantId && process.env.NODE_ENV !== 'production') { userTenantId = 1; userFacilityId = 1; }
     req.session.user = {
-        id: user.id, name: user.display_name, display_name: user.display_name,
+        id: user.id, username: user.username, name: user.display_name, display_name: user.display_name,
         role: user.role, speciality: user.speciality || '', permissions: user.permissions || '',
         tenantId: userTenantId, facilityId: userFacilityId
     };
@@ -701,7 +707,7 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
         const { username, password } = req.body;
         if (!username || !password) return res.status(400).json({ error: 'Missing credentials' });
         const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
-        const { rows } = await pool.query('SELECT id, display_name, role, speciality, permissions, password_hash, failed_login_attempts, lockout_until FROM system_users WHERE username=$1 AND is_active=1', [username]);
+        const { rows } = await pool.query('SELECT id, username, display_name, role, speciality, permissions, password_hash, failed_login_attempts, lockout_until FROM system_users WHERE username=$1 AND is_active=1', [username]);
         if (!rows.length) {
             logAudit(null, String(username).slice(0, 64), 'FAILED_LOGIN', 'Auth', 'Failed login: unknown or inactive user', clientIp);
             return res.status(401).json({ error: 'Invalid credentials' });
@@ -823,7 +829,7 @@ app.post('/api/auth/mfa', async (req, res) => {
         if (req.session.pendingMfaAt && (Date.now() - req.session.pendingMfaAt > 5 * 60 * 1000)) { delete req.session.pendingMfaUserId; return res.status(401).json({ error: 'Challenge expired' }); }
         const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
         const { token, recoveryCode } = req.body;
-        const u = (await pool.query('SELECT id, display_name, role, speciality, permissions FROM system_users WHERE id=$1 AND is_active=1', [uid])).rows[0];
+        const u = (await pool.query('SELECT id, username, display_name, role, speciality, permissions FROM system_users WHERE id=$1 AND is_active=1', [uid])).rows[0];
         if (!u) { delete req.session.pendingMfaUserId; return res.status(401).json({ error: 'Invalid' }); }
         const mfa = (await pool.query('SELECT mfa_secret FROM user_mfa WHERE user_id=$1', [uid])).rows[0];
         let ok = false, via = '';
@@ -865,9 +871,8 @@ app.post('/api/mfa/disable', requireAuth, async (req, res) => {
 });
 
 // admin reset — Admin only; the recovery path so MFA can never permanently lock out any user (incl. the last admin)
-app.post('/api/mfa/admin-reset', requireAuth, async (req, res) => {
+app.post('/api/mfa/admin-reset', requireAuth, requireTenantAdmin({ action: 'BLOCKED_MFA_ADMIN_RESET', module: 'Auth' }), async (req, res) => {
     try {
-        if (req.session.user.role !== 'Admin') return res.status(403).json({ error: 'Access denied' });
         const target = parseInt(req.body.userId, 10);
         if (!Number.isInteger(target)) return res.status(400).json({ error: 'userId required' });
         const tu = (await pool.query('SELECT id FROM system_users WHERE id=$1', [target])).rows[0];
@@ -3480,14 +3485,10 @@ app.get('/api/settings/users', requireAuth, requireRole('settings'), async (req,
     catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/settings/users', requireAuth, requireRole('settings'), async (req, res) => {
+// ===== P0 GUARD: creating system users is Admin-only (unified requireTenantAdmin; mirrors PUT/DELETE) =====
+// 'settings' perm is held by non-admin roles (e.g. IT); without the Admin gate they could create an Admin account.
+app.post('/api/settings/users', requireAuth, requireRole('settings'), requireTenantAdmin({ action: 'BLOCKED_USER_CREATE', module: 'Settings' }), async (req, res) => {
     try {
-        // ===== P0 GUARD: creating system users is Admin-only (mirrors PUT privilege guard + DELETE) =====
-        // 'settings' perm is held by non-admin roles (e.g. IT); without this, they could create an Admin account.
-        if (req.session.user.role !== 'Admin') {
-            logAudit(req.session.user?.id, req.session.user?.display_name, 'BLOCKED_USER_CREATE', 'Settings', `Non-admin attempted to create user (role=${req.body?.role || ''})`, req.ip);
-            return res.status(403).json({ error: 'Access denied: only an administrator can create system users' });
-        }
         const { username, password, display_name, role, speciality, permissions, commission_type, commission_value } = req.body;
         const passCheck = validatePasswordPolicy(password, { username });
         if (!passCheck.valid) {
@@ -3574,12 +3575,8 @@ app.put('/api/settings/users/:id', requireAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.delete('/api/settings/users/:id', requireAuth, async (req, res) => {
+app.delete('/api/settings/users/:id', requireAuth, requireTenantAdmin({ action: 'BLOCKED_USER_DELETE', module: 'Settings' }), async (req, res) => {
     try {
-        console.error('DELETE USER REQUEST:', { paramId: req.params.id, actor: req.session.user });
-        if (req.session.user.role !== 'Admin') {
-            return res.status(403).json({ error: 'Access denied. Only Admin can delete system users.' });
-        }
         const userId = parseInt(req.params.id);
         if (userId === req.session.user.id) {
             console.error('DELETE USER FAILED: Cannot delete own account', { userId, actorId: req.session.user.id });
@@ -13494,7 +13491,9 @@ mountOrderRoutes(app, { pool, requireAuth, requireTenantScope, getRequestTenantC
 // NOT a tenant role) -> no privilege escalation. Per-tenant stats read inside that tenant's RLS context.
 if (process.env.SUPER_ADMIN_ENABLED === 'true') {
     const { makeSuperAdminRouter } = require('./super_admin');
-    app.use('/api/super-admin', makeSuperAdminRouter({
+    // Unified outer guard (Batch 2): the shared requireSuperAdmin enforces the SAME env-allowlist identity
+    // as super_admin.js's internal guard (defense-in-depth, single identity source). Fail-closed.
+    app.use('/api/super-admin', requireAuth, requireSuperAdmin(process.env.SUPER_ADMIN_USERS), makeSuperAdminRouter({
         pool,
         requireAuth,
         getActor: (req) => req.session && req.session.user,

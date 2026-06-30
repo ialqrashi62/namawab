@@ -5,7 +5,7 @@ chk('verify endpoint', s.includes("app.post('/api/mfa/verify'"));
 chk('status endpoint', s.includes("app.get('/api/mfa/status'"));
 chk('login second-factor endpoint', s.includes("app.post('/api/auth/mfa'"));
 chk('self-disable endpoint', s.includes("app.post('/api/mfa/disable'"));
-chk('admin-reset endpoint Admin-only', s.includes("app.post('/api/mfa/admin-reset'") && /admin-reset'[\s\S]{0,220}role !== 'Admin'/.test(s));
+chk('admin-reset endpoint Admin-only (unified requireTenantAdmin guard)', s.includes("app.post('/api/mfa/admin-reset'") && /admin-reset'[\s\S]{0,160}requireTenantAdmin\(/.test(s));
 chk('login MFA gate (pending, no session)', s.includes('mfaRequired: true') && s.includes('pendingMfaUserId'));
 chk('non-MFA path unaffected (establishSession after gate)', /mfaRequired: true[\s\S]{0,300}await establishSession/.test(s));
 chk('NO global enforcement (no blanket enable)', !/UPDATE user_mfa SET mfa_enabled=true[^$]*WHERE\s+(1=1|true)/i.test(s));

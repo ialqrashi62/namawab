@@ -16,15 +16,19 @@ const rest = src.slice(start);
 const next = rest.indexOf("app.put('/api/settings/users/:id'");
 const body = rest.slice(0, next > -1 ? next : 4000);
 
-ok(/req\.session\.user\.role\s*!==\s*'Admin'/.test(body), "guard checks session role !== 'Admin'");
-ok(/BLOCKED_USER_CREATE/.test(body), "audit log on blocked create");
-ok(/return res\.status\(403\)/.test(body), "returns 403 for non-admin");
-// the guard must appear BEFORE the INSERT INTO system_users
-const guardIdx = body.indexOf("!== 'Admin'");
+// Batch 2: the inline `role !== 'Admin'` check was unified into the requireTenantAdmin middleware
+// (runs before the handler; identity from session). Same Admin-only invariant, centralized + tested.
+ok(/requireTenantAdmin\(\{[^}]*action:\s*'BLOCKED_USER_CREATE'/.test(body), "guard: requireTenantAdmin (Admin-only) bound to the route");
+ok(/BLOCKED_USER_CREATE/.test(body), "audit action on blocked create is preserved");
+// the Admin gate is middleware -> it executes (and 403s) BEFORE the INSERT INTO system_users
+const guardIdx = body.indexOf('requireTenantAdmin');
 const insertIdx = body.indexOf('INSERT INTO system_users');
 ok(guardIdx > -1 && insertIdx > -1 && guardIdx < insertIdx, "admin guard precedes INSERT INTO system_users");
 // identity must come from session, never req.body (no req.body.role decides authz)
 ok(/requireRole\('settings'\)/.test(body), "still layered behind requireRole('settings')");
+// the shared guard module is what returns 403 for non-admins (behavioral proof in rbac_guards_test.js)
+const guardSrc = fs.readFileSync(require('path').join(__dirname, 'rbac_guards.js'), 'utf8');
+ok(/requireTenantAdmin/.test(guardSrc) && /status\(403\)/.test(guardSrc), "rbac_guards.requireTenantAdmin returns 403");
 
 console.log(`\n${fail === 0 ? 'ALL PASS' : 'FAILURES'}: ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
