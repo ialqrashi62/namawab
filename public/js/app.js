@@ -2239,6 +2239,7 @@ window.renderE1Panel = async (pid) => {
         <button class="btn btn-sm e1-tab" data-tab="ent" onclick="e1SwitchTab('ent',${safeId(pid)})">👂 ${tr('ENT', 'الأذن والأنف والحنجرة')}</button>
         <button class="btn btn-sm e1-tab" data-tab="plastic_burns" onclick="e1SwitchTab('plastic_burns',${safeId(pid)})">🔥 ${tr('Plastic & Burns', 'التجميل والحروق')}</button>
         <button class="btn btn-sm e1-tab" data-tab="intensive_care" onclick="e1SwitchTab('intensive_care',${safeId(pid)})">🏥 ${tr('Intensive Care', 'العناية المركزة')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="orthopedics" onclick="e1SwitchTab('orthopedics',${safeId(pid)})">🦴 ${tr('Orthopedics', 'جراحة العظام')}</button>
       </div>
       <div id="e1TabBody"></div>
     </div>`;
@@ -2267,6 +2268,7 @@ window.e1SwitchTab = async (tab, pid) => {
   if (tab === 'ent') return window.e1RenderEnt(pid);
   if (tab === 'plastic_burns') return window.e1RenderPlasticBurns(pid);
   if (tab === 'intensive_care') return window.e1RenderIntensiveCare(pid);
+  if (tab === 'orthopedics') return window.e1RenderOrthopedics(pid);
 };
 
 // ---------- Problem List ----------
@@ -17358,5 +17360,329 @@ window.e1AddIcuAssessment = async (pid) => {
     
   } catch (err) {
     showToast(tr('Error saving ICU assessment', 'خطأ في حفظ تقييم العناية المركزة'), 'error');
+  }
+};
+};
+
+// =====================================================================
+// ===== ORTHOPEDICS MODULE (G10) =====
+// =====================================================================
+
+window.e1RenderOrthopedics = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <!-- Left Column: Forms -->
+      <div style="flex:1.5;min-width:320px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">🦴 ${tr('Orthopedic Clinical Tools', 'أدوات طب وجراحة العظام')}</h4>
+        
+        <!-- Joint Range of Motion (ROM) Assessment -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">📐 ${tr('Joint Range of Motion (ROM)', 'نطاق حركة المفاصل (ROM)')}</legend>
+          
+          <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:8px;margin-bottom:12px">
+            <div class="form-group">
+              <label>${tr('Joint', 'المفصل')}</label>
+              <select class="form-input" id="e1RomJoint" onchange="e1RomUpdateMovements()">
+                <option value="Knee">${tr('Knee', 'الركبة')}</option>
+                <option value="Hip">${tr('Hip', 'الفخذ')}</option>
+                <option value="Shoulder">${tr('Shoulder', 'الكتف')}</option>
+                <option value="Elbow">${tr('Elbow', 'المرفق')}</option>
+                <option value="Ankle">${tr('Ankle', 'الكاحل')}</option>
+                <option value="Wrist">${tr('Wrist', 'الرسغ')}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Side', 'الجانب')}</label>
+              <select class="form-input" id="e1RomSide">
+                <option value="Right">${tr('Right', 'الأيمن')}</option>
+                <option value="Left">${tr('Left', 'الأيسر')}</option>
+                <option value="Bilateral">${tr('Bilateral', 'الجانبين')}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Movement', 'الحركة')}</label>
+              <select class="form-input" id="e1RomMovement" onchange="e1RomCheckNormal()"></select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Angle (Degrees)', 'الزاوية (بالدرجات)')}</label>
+              <input type="number" class="form-input" id="e1RomAngle" value="120" min="0" max="360" oninput="e1RomCheckNormal()">
+            </div>
+          </div>
+
+          <div id="e1RomFeedback" style="background:var(--hover,#f8f9fa);padding:10px;border-radius:8px;font-size:13px;border-left:4px solid #10b981;margin-bottom:8px">
+            <strong>${tr('Normal Range:', 'النطاق الطبيعي:')}</strong> <span id="e1RomNormalText">0-135°</span>
+            <span id="e1RomStatusBadge" class="badge badge-success" style="margin-left:12px;font-size:11px">${tr('Normal', 'طبيعي')}</span>
+          </div>
+
+          <button class="btn btn-primary btn-sm w-full" onclick="e1AddRomAssessment(${safeId(pid)})">💾 ${tr('Save ROM Assessment', 'حفظ تقييم نطاق الحركة')}</button>
+        </fieldset>
+
+        <!-- Orthopedic Implant Registry -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">🔩 ${tr('Orthopedic Implant Tracking', 'تتبع وتوثيق الغرسات والمثبتات')}</legend>
+          
+          <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:8px;margin-bottom:12px">
+            <div class="form-group">
+              <label>${tr('Implant Type', 'نوع الغرسة/المثبت')}</label>
+              <select class="form-input" id="e1ImplantType">
+                <option value="Total Knee Joint">${tr('Total Knee Joint', 'مفصل ركبة كامل')}</option>
+                <option value="Total Hip Joint">${tr('Total Hip Joint', 'مفصل فخذ كامل')}</option>
+                <option value="Plate">${tr('Plate / Orthopedic Plate', 'شريحة تثبيت')}</option>
+                <option value="Screw">${tr('Bone Screw', 'مسمار عظام')}</option>
+                <option value="Rod">${tr('Intramedullary Rod / Nail', 'مسمار نخاعي')}</option>
+                <option value="Pin / Wire">${tr('K-Wire / Pin', 'دبوس / سلك كيرشنر')}</option>
+                <option value="Other">${tr('Other Implant', 'غرسة أخرى')}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Manufacturer', 'الشركة المصنعة')}</label>
+              <input type="text" class="form-input" id="e1ImplantMfg" placeholder="e.g. Zimmer Biomet, Stryker">
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Model Name', 'اسم الموديل')}</label>
+              <input type="text" class="form-input" id="e1ImplantModel" placeholder="e.g. Persona Knee System">
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Serial Number (S/N)', 'الرقم التسلسلي')}</label>
+              <input type="text" class="form-input" id="e1ImplantSn" placeholder="e.g. SN-98483120">
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Size / Dimensions', 'المقاس / الأبعاد')}</label>
+              <input type="text" class="form-input" id="e1ImplantSize" placeholder="e.g. Size 6, L: 120mm">
+            </div>
+
+            <div class="form-group">
+              <label>${tr('Batch / Lot Number', 'رقم التشغيلة')}</label>
+              <input type="text" class="form-input" id="e1ImplantLot" placeholder="e.g. LOT-2026-X">
+            </div>
+          </div>
+
+          <div class="form-group mb-8">
+            <label>${tr('Surgical & Placement Notes', 'ملاحظات الجراحة ومكان التركيب')}</label>
+            <textarea class="form-input form-textarea" id="e1ImplantNotes" rows="2" placeholder="${tr('Describe implant placement, stability, or any intraoperative findings...', 'صف موضع التثبيت، مدى الاستقرار، أو أي ملاحظات أثناء العملية...')}" style="min-height:45px"></textarea>
+          </div>
+
+          <button class="btn btn-primary btn-sm w-full" onclick="e1AddImplantRegistry(${safeId(pid)})">💾 ${tr('Register Implant', 'تسجيل وتوثيق الغرسة')}</button>
+        </fieldset>
+      </div>
+
+      <!-- Right Column: History Logs -->
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">📋 ${tr('Orthopedic Patient History', 'السجل التاريخي للعظام')}</h4>
+        
+        <div style="margin-bottom:16px">
+          <h5 style="margin:0 0 8px;font-weight:700;color:var(--text)">📐 ${tr('Joint ROM History', 'سجل نطاق الحركة')}</h5>
+          <div id="e1RomHistoryList" style="max-height:220px;overflow-y:auto;border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:8px">
+            ${tr('Loading...', 'جاري التحميل...')}
+          </div>
+        </div>
+
+        <div>
+          <h5 style="margin:0 0 8px;font-weight:700;color:var(--text)">🔩 ${tr('Registered Implants', 'سجل الغرسات المسجلة')}</h5>
+          <div id="e1ImplantHistoryList" style="max-height:220px;overflow-y:auto;border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:8px">
+            ${tr('Loading...', 'جاري التحميل...')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  window.e1RomUpdateMovements();
+  window.e1LoadOrthopedicHistory(pid);
+};
+
+// ROM Normals Database
+const ROM_NORMALS = {
+  Knee: {
+    Flexion: { normal: '0-135°', min: 130 },
+    Extension: { normal: '0°', min: 0 }
+  },
+  Hip: {
+    Flexion: { normal: '0-120°', min: 110 },
+    Extension: { normal: '0-20°', min: 15 },
+    Abduction: { normal: '0-45°', min: 40 },
+    Adduction: { normal: '0-30°', min: 25 }
+  },
+  Shoulder: {
+    Flexion: { normal: '0-180°', min: 160 },
+    Extension: { normal: '0-60°', min: 50 },
+    Abduction: { normal: '0-180°', min: 160 }
+  },
+  Elbow: {
+    Flexion: { normal: '0-150°', min: 140 },
+    Extension: { normal: '0°', min: 0 }
+  },
+  Ankle: {
+    Dorsiflexion: { normal: '0-20°', min: 15 },
+    Plantarflexion: { normal: '0-50°', min: 40 }
+  },
+  Wrist: {
+    Flexion: { normal: '0-80°', min: 70 },
+    Extension: { normal: '0-70°', min: 60 }
+  }
+};
+
+window.e1RomUpdateMovements = () => {
+  const joint = document.getElementById('e1RomJoint').value;
+  const movementSel = document.getElementById('e1RomMovement');
+  if (!movementSel) return;
+  
+  const movements = Object.keys(ROM_NORMALS[joint] || {});
+  movementSel.innerHTML = movements.map(m => `<option value="${m}">${tr(m, m)}</option>`).join('');
+  
+  window.e1RomCheckNormal();
+};
+
+window.e1RomCheckNormal = () => {
+  const joint = document.getElementById('e1RomJoint').value;
+  const movement = document.getElementById('e1RomMovement').value;
+  const angle = parseInt(document.getElementById('e1RomAngle').value || 0);
+  
+  const rule = ROM_NORMALS[joint]?.[movement];
+  if (!rule) return;
+  
+  const feedbackEl = document.getElementById('e1RomFeedback');
+  const normalTextEl = document.getElementById('e1RomNormalText');
+  const badgeEl = document.getElementById('e1RomStatusBadge');
+  
+  if (normalTextEl) normalTextEl.innerText = rule.normal;
+  
+  const isRestricted = angle < rule.min;
+  
+  if (badgeEl) {
+    if (isRestricted) {
+      badgeEl.className = 'badge badge-danger';
+      badgeEl.innerText = tr('Restricted ROM', 'نطاق حركة محدود');
+      if (feedbackEl) feedbackEl.style.borderLeftColor = 'red';
+    } else {
+      badgeEl.className = 'badge badge-success';
+      badgeEl.innerText = tr('Normal', 'طبيعي');
+      if (feedbackEl) feedbackEl.style.borderLeftColor = '#10b981';
+    }
+  }
+};
+
+window.e1LoadOrthopedicHistory = async (pid) => {
+  const romContainer = document.getElementById('e1RomHistoryList');
+  const implantContainer = document.getElementById('e1ImplantHistoryList');
+  
+  try {
+    // 1. Load ROM History
+    if (romContainer) {
+      const romRecords = await API.get('/api/orthopedics/rom/patient/' + pid);
+      if (!romRecords.length) {
+        romContainer.innerHTML = `<div style="color:var(--text-dim);font-size:12px">${tr('No ROM records found', 'لا توجد سجلات لنطاق الحركة')}</div>`;
+      } else {
+        romContainer.innerHTML = romRecords.map(r => `
+          <div style="padding:6px;margin:4px 0;border-radius:6px;background:var(--hover,#f8f9fa);font-size:11px;border-right:3px solid ${r.is_restricted ? 'red' : '#10b981'}">
+            <strong>${tr(r.joint_name, r.joint_name)} (${tr(r.lateral_side, r.lateral_side)})</strong> - ${tr(r.movement_type, r.movement_type)}
+            <div style="margin-top:2px;display:flex;justify-content:space-between">
+              <span>${r.angle_degrees}°</span>
+              <span class="badge ${r.is_restricted ? 'badge-danger' : 'badge-success'}" style="font-size:9px">${r.is_restricted ? tr('Restricted', 'محدود') : tr('Normal', 'طبيعي')}</span>
+            </div>
+            <div style="font-size:9px;color:var(--text-dim);margin-top:2px">📅 ${new Date(r.assessment_date).toLocaleDateString('ar-SA')} | 👨‍⚕️ ${escapeHTML(r.doctor_name || '')}</div>
+          </div>
+        `).join('');
+      }
+    }
+    
+    // 2. Load Implant History
+    if (implantContainer) {
+      const implantRecords = await API.get('/api/orthopedics/implants/patient/' + pid);
+      if (!implantRecords.length) {
+        implantContainer.innerHTML = `<div style="color:var(--text-dim);font-size:12px">${tr('No registered implants found', 'لا توجد غرسات مسجلة للمريض')}</div>`;
+      } else {
+        implantContainer.innerHTML = implantRecords.map(r => `
+          <div style="padding:6px;margin:4px 0;border-radius:6px;background:var(--hover,#f8f9fa);font-size:11px;border-right:3px solid var(--primary)">
+            <strong>${escapeHTML(r.implant_type)}</strong>
+            <div style="margin-top:2px;color:var(--text-dim)">
+              Mfg: ${escapeHTML(r.manufacturer)} | Model: ${escapeHTML(r.model_name)}<br>
+              S/N: <code>${escapeHTML(r.serial_number)}</code> | Size: ${escapeHTML(r.size_dimension)}
+            </div>
+            ${r.clinical_notes ? `<div style="margin-top:2px;color:var(--text-dim);font-style:italic">"${escapeHTML(r.clinical_notes)}"</div>` : ''}
+            <div style="font-size:9px;color:var(--text-dim);margin-top:2px">📅 ${new Date(r.implant_date).toLocaleDateString('ar-SA')} | 👨‍⚕️ ${escapeHTML(r.doctor_name || '')}</div>
+          </div>
+        `).join('');
+      }
+    }
+  } catch (err) {
+    if (romContainer) romContainer.innerHTML = `<div style="color:red;font-size:12px">Error</div>`;
+    if (implantContainer) implantContainer.innerHTML = `<div style="color:red;font-size:12px">Error</div>`;
+  }
+};
+
+window.e1AddRomAssessment = async (pid) => {
+  const joint_name = document.getElementById('e1RomJoint').value;
+  const lateral_side = document.getElementById('e1RomSide').value;
+  const movement_type = document.getElementById('e1RomMovement').value;
+  const angle_degrees = parseInt(document.getElementById('e1RomAngle').value || 0);
+  
+  const rule = ROM_NORMALS[joint_name]?.[movement_type];
+  const is_restricted = rule ? angle_degrees < rule.min : false;
+  
+  try {
+    await API.post('/api/orthopedics/rom', {
+      patient_id: pid,
+      joint_name,
+      lateral_side,
+      movement_type,
+      angle_degrees,
+      is_restricted
+    });
+    
+    showToast(tr('ROM assessment saved successfully!', 'تم حفظ تقييم نطاق الحركة بنجاح!'));
+    window.e1LoadOrthopedicHistory(pid);
+  } catch (err) {
+    showToast(tr('Error saving ROM assessment', 'خطأ في حفظ تقييم نطاق الحركة'), 'error');
+  }
+};
+
+window.e1AddImplantRegistry = async (pid) => {
+  const implant_type = document.getElementById('e1ImplantType').value;
+  const manufacturer = document.getElementById('e1ImplantMfg').value.trim();
+  const model_name = document.getElementById('e1ImplantModel').value.trim();
+  const serial_number = document.getElementById('e1ImplantSn').value.trim();
+  const size_dimension = document.getElementById('e1ImplantSize').value.trim();
+  const batch_lot_number = document.getElementById('e1ImplantLot').value.trim();
+  const clinical_notes = document.getElementById('e1ImplantNotes').value.trim();
+  
+  if (!manufacturer || !serial_number) {
+    return showToast(tr('Manufacturer and Serial Number are required', 'الشركة المصنعة والرقم التسلسلي مطلوبان'), 'error');
+  }
+  
+  try {
+    await API.post('/api/orthopedics/implants', {
+      patient_id: pid,
+      implant_type,
+      manufacturer,
+      model_name,
+      serial_number,
+      size_dimension,
+      batch_lot_number,
+      clinical_notes
+    });
+    
+    showToast(tr('Implant registered successfully!', 'تم تسجيل وتوثيق الغرسة بنجاح!'));
+    window.e1LoadOrthopedicHistory(pid);
+    
+    // Reset
+    document.getElementById('e1ImplantMfg').value = '';
+    document.getElementById('e1ImplantModel').value = '';
+    document.getElementById('e1ImplantSn').value = '';
+    document.getElementById('e1ImplantSize').value = '';
+    document.getElementById('e1ImplantLot').value = '';
+    document.getElementById('e1ImplantNotes').value = '';
+  } catch (err) {
+    showToast(tr('Error registering implant', 'خطأ في تسجيل وتوثيق الغرسة'), 'error');
   }
 };
