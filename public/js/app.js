@@ -2237,6 +2237,7 @@ window.renderE1Panel = async (pid) => {
         <button class="btn btn-sm e1-tab" data-tab="neurology" onclick="e1SwitchTab('neurology',${safeId(pid)})">🧠 ${tr('Neurology', 'الأعصاب والدماغ')}</button>
         <button class="btn btn-sm e1-tab" data-tab="ophthalmology" onclick="e1SwitchTab('ophthalmology',${safeId(pid)})">👁️ ${tr('Ophthalmology', 'طب وجراحة العيون')}</button>
         <button class="btn btn-sm e1-tab" data-tab="ent" onclick="e1SwitchTab('ent',${safeId(pid)})">👂 ${tr('ENT', 'الأذن والأنف والحنجرة')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="plastic_burns" onclick="e1SwitchTab('plastic_burns',${safeId(pid)})">🔥 ${tr('Plastic & Burns', 'التجميل والحروق')}</button>
       </div>
       <div id="e1TabBody"></div>
     </div>`;
@@ -2263,6 +2264,7 @@ window.e1SwitchTab = async (tab, pid) => {
   if (tab === 'neurology') return window.e1RenderNeurology(pid);
   if (tab === 'ophthalmology') return window.e1RenderOphthalmology(pid);
   if (tab === 'ent') return window.e1RenderEnt(pid);
+  if (tab === 'plastic_burns') return window.e1RenderPlasticBurns(pid);
 };
 
 // ---------- Problem List ----------
@@ -16577,5 +16579,329 @@ window.e1AddEntExam = async (pid) => {
     
   } catch (err) {
     showToast(tr('Error saving ENT examination', 'خطأ في حفظ فحص الأذن والأنف والحنجرة'), 'error');
+  }
+};
+};
+
+// =====================================================================
+// ===== PLASTIC & BURNS MODULE (G12) =====
+// =====================================================================
+
+window.e1RenderPlasticBurns = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1.4;min-width:320px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">🔥 ${tr('Plastic & Burns Assessment', 'تقييم الحروق والتجميل')}</h4>
+        
+        <!-- Weight & Rule of Nines Section -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-bottom:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">📏 ${tr('Rule of Nines & Fluid Calculator', 'حساب مساحة الحرق والتعويض بالسوائل')}</legend>
+          
+          <div class="form-group mb-8">
+            <label><strong>${tr('Patient Weight (kg) *', 'وزن المريض (كجم) *')}</strong></label>
+            <input class="form-input" type="number" id="e1BurnWeight" step="0.1" placeholder="e.g. 70" oninput="e1BurnCalcFluid()">
+          </div>
+
+          <div style="margin-bottom:8px;font-weight:700;color:var(--primary);font-size:12px">${tr('Burn Area Percentages (%)', 'نسب المساحة المحروقة حسب الأعضاء (%)')}</div>
+          
+          <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));gap:8px;margin-bottom:12px">
+            <div class="form-group">
+              <label>${tr('Head & Neck (9%)', 'الرأس والرقبة (9%)')}</label>
+              <input class="form-input" type="number" id="e1BurnHead" min="0" max="9" step="0.5" placeholder="0" oninput="e1BurnCalcFluid()">
+            </div>
+            <div class="form-group">
+              <label>${tr('Torso Front (18%)', 'الصدر والبطن (18%)')}</label>
+              <input class="form-input" type="number" id="e1BurnTorsoFront" min="0" max="18" step="0.5" placeholder="0" oninput="e1BurnCalcFluid()">
+            </div>
+            <div class="form-group">
+              <label>${tr('Torso Back (18%)', 'الظهر والردفين (18%)')}</label>
+              <input class="form-input" type="number" id="e1BurnTorsoBack" min="0" max="18" step="0.5" placeholder="0" oninput="e1BurnCalcFluid()">
+            </div>
+            <div class="form-group">
+              <label>${tr('Left Arm (9%)', 'الذراع اليسرى (9%)')}</label>
+              <input class="form-input" type="number" id="e1BurnLeftArm" min="0" max="9" step="0.5" placeholder="0" oninput="e1BurnCalcFluid()">
+            </div>
+            <div class="form-group">
+              <label>${tr('Right Arm (9%)', 'الذراع اليمنى (9%)')}</label>
+              <input class="form-input" type="number" id="e1BurnRightArm" min="0" max="9" step="0.5" placeholder="0" oninput="e1BurnCalcFluid()">
+            </div>
+            <div class="form-group">
+              <label>${tr('Left Leg (18%)', 'الساق اليسرى (18%)')}</label>
+              <input class="form-input" type="number" id="e1BurnLeftLeg" min="0" max="18" step="0.5" placeholder="0" oninput="e1BurnCalcFluid()">
+            </div>
+            <div class="form-group">
+              <label>${tr('Right Leg (18%)', 'الساق اليمنى (18%)')}</label>
+              <input class="form-input" type="number" id="e1BurnRightLeg" min="0" max="18" step="0.5" placeholder="0" oninput="e1BurnCalcFluid()">
+            </div>
+            <div class="form-group">
+              <label>${tr('Perineum (1%)', 'العجان والأعضاء (1%)')}</label>
+              <input class="form-input" type="number" id="e1BurnPerineum" min="0" max="1" step="0.1" placeholder="0" oninput="e1BurnCalcFluid()">
+            </div>
+          </div>
+
+          <!-- Calculated Output -->
+          <div style="background:var(--hover,#f8f9fa);padding:12px;border-radius:8px;font-size:13px;border-left:4px solid var(--primary)">
+            <div class="mb-4">
+              <strong>${tr('Total Burned Surface Area (TBSA):', 'إجمالي مساحة الحروق (TBSA):')}</strong> <span id="e1BurnTbsa">0</span>%
+            </div>
+            <div class="mb-4">
+              <strong>${tr('Parkland Fluid Required (24 Hours):', 'كمية السوائل المطلوبة (خلال 24 ساعة):')}</strong> <span id="e1BurnFluidTotal">-</span> mL
+            </div>
+            <div style="display:flex;gap:12px;font-size:12px;color:var(--text-dim)">
+              <div>⚡ <strong>${tr('First 8 Hours:', 'أول 8 ساعات:')}</strong> <span id="e1BurnFluid8h">-</span> mL</div>
+              <div>⚡ <strong>${tr('Next 16 Hours:', 'الـ 16 ساعة التالية:')}</strong> <span id="e1BurnFluid16h">-</span> mL</div>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Clinical Notes & Save -->
+        <div class="form-group mb-8">
+          <label>${tr('Clinical Notes & Assessment Details', 'ملاحظات وتفاصيل التقييم السريري')}</label>
+          <textarea class="form-input form-textarea" id="e1BurnNotes" rows="2" placeholder="${tr('Describe burn depth (2nd degree, 3rd degree), locations, dressing applied...', 'صف عمق الحرق، الدرجة الثانية أو الثالثة، المواقع، نوع الغيار المستخدم...')}" style="min-height:45px"></textarea>
+        </div>
+        
+        <button class="btn btn-primary btn-sm mb-12 w-full" onclick="e1AddBurnAssessment(${safeId(pid)})">💾 ${tr('Save Burn Assessment', 'حفظ تقييم الحروق')}</button>
+        
+        <!-- Clinical Photos Section -->
+        <fieldset style="border:1px solid var(--border-color,#e5e7eb);border-radius:8px;padding:12px;margin-top:12px">
+          <legend style="padding:0 8px;font-weight:700;color:var(--primary)">📸 ${tr('Clinical Photo Registry (Metadata Only)', 'سجل الصور السريرية (البيانات الوصفية)')}</legend>
+          <div class="flex gap-4 mb-4">
+            <div class="form-group" style="flex:1">
+              <label>${tr('Body Region', 'منطقة الجسم')}</label>
+              <input class="form-input" id="e1PhotoRegion" placeholder="e.g. Left forearm">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label>${tr('Photo Date', 'تاريخ الصورة')}</label>
+              <input class="form-input" type="date" id="e1PhotoDate">
+            </div>
+          </div>
+          <div class="form-group mb-8">
+            <label>${tr('Description / Reference', 'الوصف أو المرجع للملف المشفر')}</label>
+            <input class="form-input" id="e1PhotoDesc" placeholder="e.g. Pre-debridement photo ref #PB-984">
+          </div>
+          <div class="form-group mb-8" style="display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="e1PhotoConfidential" checked>
+            <label for="e1PhotoConfidential">🔒 ${tr('Mark as Highly Confidential', 'تصنيف كصورة سرية للغاية')}</label>
+          </div>
+          <button class="btn btn-secondary btn-sm w-full" onclick="e1AddClinicalPhoto(${safeId(pid)})">📷 ${tr('Register Photo Metadata', 'تسجيل بيانات الصورة')}</button>
+        </fieldset>
+      </div>
+
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">📋 ${tr('Burn & Photo History', 'سجل الحروق والصور السريرية')}</h4>
+        <div id="e1BurnHistoryList" class="mb-12">${tr('Loading...', 'جاري التحميل...')}</div>
+        
+        <h4 style="margin:12px 0 12px;color:var(--primary)">📷 ${tr('Registered Clinical Photos', 'الصور السريرية المسجلة')}</h4>
+        <div id="e1PhotoHistoryList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  // Set default date for photo
+  const photoDateEl = document.getElementById('e1PhotoDate');
+  if (photoDateEl) photoDateEl.value = new Date().toISOString().slice(0, 10);
+  
+  window.e1LoadBurnHistory(pid);
+};
+
+window.e1BurnCalcFluid = () => {
+  const getVal = (id) => parseFloat(document.getElementById(id)?.value || 0);
+  
+  const weight = parseFloat(document.getElementById('e1BurnWeight')?.value || 0);
+  
+  const head = getVal('e1BurnHead');
+  const front = getVal('e1BurnTorsoFront');
+  const back = getVal('e1BurnTorsoBack');
+  const lArm = getVal('e1BurnLeftArm');
+  const rArm = getVal('e1BurnRightArm');
+  const lLeg = getVal('e1BurnLeftLeg');
+  const rLeg = getVal('e1BurnRightLeg');
+  const peri = getVal('e1BurnPerineum');
+  
+  const tbsa = head + front + back + lArm + rArm + lLeg + rLeg + peri;
+  
+  const tbsaEl = document.getElementById('e1BurnTbsa');
+  if (tbsaEl) tbsaEl.innerText = tbsa.toFixed(1);
+  
+  const fluidTotalEl = document.getElementById('e1BurnFluidTotal');
+  const fluid8hEl = document.getElementById('e1BurnFluid8h');
+  const fluid16hEl = document.getElementById('e1BurnFluid16h');
+  
+  if (weight > 0 && tbsa > 0) {
+    // Parkland Formula: 4mL * weight_kg * TBSA%
+    const totalFluid = 4 * weight * tbsa;
+    const first8h = totalFluid / 2;
+    const next16h = totalFluid / 2;
+    
+    if (fluidTotalEl) fluidTotalEl.innerText = Math.round(totalFluid).toLocaleString();
+    if (fluid8hEl) fluid8hEl.innerText = Math.round(first8h).toLocaleString();
+    if (fluid16hEl) fluid16hEl.innerText = Math.round(next16h).toLocaleString();
+  } else {
+    if (fluidTotalEl) fluidTotalEl.innerText = '-';
+    if (fluid8hEl) fluid8hEl.innerText = '-';
+    if (fluid16hEl) fluid16hEl.innerText = '-';
+  }
+};
+
+window.e1LoadBurnHistory = async (pid) => {
+  const burnContainer = document.getElementById('e1BurnHistoryList');
+  const photoContainer = document.getElementById('e1PhotoHistoryList');
+  
+  if (burnContainer) {
+    try {
+      const records = await API.get('/api/plastic-burns/assessments/patient/' + pid);
+      if (!records.length) {
+        burnContainer.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No burn assessments found', 'لا توجد تقييمات حروق مسجلة')}</div>`;
+      } else {
+        burnContainer.innerHTML = records.map(r => `
+          <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid var(--primary);font-size:12px">
+            <div style="font-weight:700;color:var(--primary);display:flex;justify-content:space-between">
+              <span>📅 ${new Date(r.assessment_date).toLocaleDateString('ar-SA')}</span>
+              <span>🔥 TBSA: ${parseFloat(r.tbsa_percent)}%</span>
+            </div>
+            <div style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:4px">
+              <div><strong>${tr('Weight:', 'الوزن:')}</strong> ${parseFloat(r.weight_kg)} kg</div>
+              <div><strong>${tr('Total Fluid:', 'السوائل:')}</strong> ${Math.round(r.parkland_fluid_ml).toLocaleString()} mL</div>
+              <div><strong>${tr('1st 8h:', 'أول 8س:')}</strong> ${Math.round(r.fluid_first_8h_ml).toLocaleString()} mL</div>
+              <div><strong>${tr('Next 16h:', 'التالي 16س:')}</strong> ${Math.round(r.fluid_next_16h_ml).toLocaleString()} mL</div>
+            </div>
+            <div style="margin-top:4px;color:var(--text-dim);font-size:11px;line-height:1.3">
+              <strong>${tr('Areas:', 'المساحات:')}</strong>
+              H:${parseFloat(r.head_percent)}%, TF:${parseFloat(r.torso_front_percent)}%, TB:${parseFloat(r.torso_back_percent)}%, 
+              LA:${parseFloat(r.left_arm_percent)}%, RA:${parseFloat(r.right_arm_percent)}%, LL:${parseFloat(r.left_leg_percent)}%, 
+              RL:${parseFloat(r.right_leg_percent)}%, P:${parseFloat(r.perineum_percent)}%
+            </div>
+            ${r.clinical_notes ? `<div style="margin-top:4px;color:var(--text-dim)"><strong>${tr('Notes:', 'ملاحظات:')}</strong> ${escapeHTML(r.clinical_notes)}</div>` : ''}
+            <div style="font-size:10px;color:var(--text-dim);margin-top:4px">👨‍⚕️ ${escapeHTML(r.doctor_name || '')}</div>
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      burnContainer.innerHTML = `<div style="color:red">${tr('Error loading', 'خطأ في التحميل')}</div>`;
+    }
+  }
+
+  if (photoContainer) {
+    try {
+      const photos = await API.get('/api/plastic-burns/photos/patient/' + pid);
+      if (!photos.length) {
+        photoContainer.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No clinical photos registered', 'لا توجد صور سرية مسجلة')}</div>`;
+      } else {
+        photoContainer.innerHTML = photos.map(p => `
+          <div style="padding:8px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid #10b981;font-size:12px">
+            <div style="font-weight:700;display:flex;justify-content:space-between">
+              <span>📷 ${escapeHTML(p.body_region)}</span>
+              <span>📅 ${new Date(p.photo_date).toLocaleDateString('ar-SA')}</span>
+            </div>
+            <div style="margin-top:4px;color:var(--text-dim)">${escapeHTML(p.description || '')}</div>
+            <div style="margin-top:4px;display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:10px;color:var(--text-dim)">👨‍⚕️ ${escapeHTML(p.doctor_name || '')}</span>
+              ${p.is_confidential ? `<span class="badge badge-danger" style="font-size:9px;padding:2px 6px">🔒 ${tr('Confidential', 'سرية للغاية')}</span>` : ''}
+            </div>
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      photoContainer.innerHTML = `<div style="color:red">${tr('Error loading', 'خطأ في التحميل')}</div>`;
+    }
+  }
+};
+
+window.e1AddBurnAssessment = async (pid) => {
+  const getVal = (id) => document.getElementById(id)?.value || '0';
+  const weight = document.getElementById('e1BurnWeight')?.value;
+  
+  if (!weight || parseFloat(weight) <= 0) {
+    showToast(tr('Please enter a valid patient weight', 'يرجى إدخال وزن صحيح للمريض'), 'error');
+    return;
+  }
+  
+  // Calculate total TBSA and fluids
+  const head = parseFloat(getVal('e1BurnHead'));
+  const front = parseFloat(getVal('e1BurnTorsoFront'));
+  const back = parseFloat(getVal('e1BurnTorsoBack'));
+  const lArm = parseFloat(getVal('e1BurnLeftArm'));
+  const rArm = parseFloat(getVal('e1BurnRightArm'));
+  const lLeg = parseFloat(getVal('e1BurnLeftLeg'));
+  const rLeg = parseFloat(getVal('e1BurnRightLeg'));
+  const peri = parseFloat(getVal('e1BurnPerineum'));
+  
+  const tbsa = head + front + back + lArm + rArm + lLeg + rLeg + peri;
+  if (tbsa <= 0) {
+    showToast(tr('TBSA must be greater than 0%', 'يجب أن تكون مساحة الحروق أكبر من 0%'), 'error');
+    return;
+  }
+  
+  const totalFluid = 4 * parseFloat(weight) * tbsa;
+  const first8h = totalFluid / 2;
+  const next16h = totalFluid / 2;
+  
+  try {
+    await API.post('/api/plastic-burns/assessments', {
+      patient_id: pid,
+      weight_kg: weight,
+      head_percent: head,
+      torso_front_percent: front,
+      torso_back_percent: back,
+      left_arm_percent: lArm,
+      right_arm_percent: rArm,
+      left_leg_percent: lLeg,
+      right_leg_percent: rLeg,
+      perineum_percent: peri,
+      tbsa_percent: tbsa,
+      parkland_fluid_ml: totalFluid,
+      fluid_first_8h_ml: first8h,
+      fluid_next_16h_ml: next16h,
+      clinical_notes: document.getElementById('e1BurnNotes')?.value || ''
+    });
+    
+    showToast(tr('Burn assessment saved successfully!', 'تم حفظ تقييم الحروق بنجاح!'));
+    window.e1LoadBurnHistory(pid);
+    
+    // Reset inputs
+    document.getElementById('e1BurnWeight').value = '';
+    document.getElementById('e1BurnNotes').value = '';
+    const areas = ['e1BurnHead', 'e1BurnTorsoFront', 'e1BurnTorsoBack', 'e1BurnLeftArm', 'e1BurnRightArm', 'e1BurnLeftLeg', 'e1BurnRightLeg', 'e1BurnPerineum'];
+    areas.forEach(a => {
+      const el = document.getElementById(a);
+      if (el) el.value = '';
+    });
+    window.e1BurnCalcFluid();
+    
+  } catch (err) {
+    showToast(tr('Error saving burn assessment', 'خطأ في حفظ تقييم الحروق'), 'error');
+  }
+};
+
+window.e1AddClinicalPhoto = async (pid) => {
+  const bodyRegion = document.getElementById('e1PhotoRegion')?.value;
+  if (!bodyRegion) {
+    showToast(tr('Please specify the body region', 'يرجى تحديد منطقة الجسم للصور'), 'error');
+    return;
+  }
+  
+  try {
+    await API.post('/api/plastic-burns/photos', {
+      patient_id: pid,
+      body_region: bodyRegion,
+      photo_date: document.getElementById('e1PhotoDate')?.value,
+      description: document.getElementById('e1PhotoDesc')?.value || '',
+      is_confidential: document.getElementById('e1PhotoConfidential')?.checked
+    });
+    
+    showToast(tr('Clinical photo registered successfully!', 'تم تسجيل بيانات الصورة السريرية بنجاح!'));
+    window.e1LoadBurnHistory(pid);
+    
+    // Reset
+    document.getElementById('e1PhotoRegion').value = '';
+    document.getElementById('e1PhotoDesc').value = '';
+    document.getElementById('e1PhotoConfidential').checked = true;
+    document.getElementById('e1PhotoDate').value = new Date().toISOString().slice(0, 10);
+    
+  } catch (err) {
+    showToast(tr('Error registering clinical photo', 'خطأ في تسجيل بيانات الصورة السريرية'), 'error');
   }
 };
