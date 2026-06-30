@@ -392,6 +392,12 @@ async function logAudit(userId, userName, action, module, details, ip) {
 const { makeGuards } = require('./rbac_guards');
 const { requireTenantAdmin, requireSuperAdmin } = makeGuards({ logAudit });
 
+// ===== SaaS Batch 4C: max_users enforcement candidate (single point, flag-gated) =====
+// No-op unless ENTITLEMENTS_ENABLED=true (zero queries / zero behavior change otherwise). observe logs only;
+// enforce blocks user creation at the plan limit. Fail-open on any resolver/count error. NOT activated live.
+const { makeUserLimitGuard } = require('./entitlements');
+const userLimitGuard = makeUserLimitGuard({ pool, logAudit, getActor: (req) => req.session && req.session.user });
+
 // ===== GATE3-M1: automatic audit logging for /api mutations (INERT unless AUDIT_ALL_MUTATIONS=true) =====
 // Complements the explicit logAudit() calls. Default OFF -> zero behavior change until enabled on staging.
 // Logs AFTER the response (never blocks), records only method/path/status/user/ip (no body, no PHI).
@@ -3487,7 +3493,7 @@ app.get('/api/settings/users', requireAuth, requireRole('settings'), async (req,
 
 // ===== P0 GUARD: creating system users is Admin-only (unified requireTenantAdmin; mirrors PUT/DELETE) =====
 // 'settings' perm is held by non-admin roles (e.g. IT); without the Admin gate they could create an Admin account.
-app.post('/api/settings/users', requireAuth, requireRole('settings'), requireTenantAdmin({ action: 'BLOCKED_USER_CREATE', module: 'Settings' }), async (req, res) => {
+app.post('/api/settings/users', requireAuth, requireRole('settings'), requireTenantAdmin({ action: 'BLOCKED_USER_CREATE', module: 'Settings' }), userLimitGuard, async (req, res) => {
     try {
         const { username, password, display_name, role, speciality, permissions, commission_type, commission_value } = req.body;
         const passCheck = validatePasswordPolicy(password, { username });

@@ -156,8 +156,62 @@ function makeEntitlementsResolver(deps = {}) {
     return { resolveTenantEntitlements, getTenantPlan, observeLimit, invalidate };
 }
 
+// ---- Batch 4C: max_users enforcement candidate (single low-risk point) ----
+// Active tenant members count. tenant-scoped via user_tenants (active only). Matches super_admin's count.
+async function countTenantUsers(pool, tenantId) {
+    const r = await pool.query('SELECT COUNT(*)::int AS c FROM user_tenants WHERE tenant_id=$1 AND is_active=true', [tenantId]);
+    return (r.rows[0] && r.rows[0].c) || 0;
+}
+
+/**
+ * makeUserLimitGuard(deps) -> express middleware enforcing max_users on user creation.
+ * deps: { pool, logAudit, getActor(req)->user, env (defaults to process.env), countUsers? (override for tests) }
+ * Behavior (flag-controlled, fail-open):
+ *   - ENTITLEMENTS_ENABLED != 'true' -> no-op next() (zero queries, zero behavior change).
+ *   - observe -> compute + log over-limit, never blocks.
+ *   - enforce -> block (409) when current_users >= max_users; else next().
+ *   - any resolve/count error, or no tenant context -> next() (fail-open) + audit.
+ */
+function makeUserLimitGuard(deps = {}) {
+    const { pool, logAudit, getActor } = deps;
+    const env = deps.env || process.env;
+    const countUsers = typeof deps.countUsers === 'function' ? deps.countUsers : countTenantUsers;
+    const actorOf = (req) => (getActor ? getActor(req) : (req.session && req.session.user)) || null;
+    const safeAudit = (actor, action, details, ip) => { try { logAudit && logAudit(actor && actor.id, actor && actor.display_name, action, 'Entitlements', details, ip || ''); } catch (_) {} };
+    let resolver = null;
+
+    return async function userLimitGuard(req, res, next) {
+        try {
+            if (String(env.ENTITLEMENTS_ENABLED) !== 'true') return next(); // disabled: no-op
+            const cfg = pickEnforcement(env);
+            const actor = actorOf(req);
+            const tenantId = actor && actor.tenantId;
+            if (!tenantId) return next(); // no tenant context -> fail-open
+            if (!resolver) resolver = makeEntitlementsResolver({ pool, logAudit });
+            const r = await resolver.resolveTenantEntitlements(tenantId);
+            const usage = await countUsers(pool, tenantId);
+            const chk = checkLimit(r.entitlements, 'max_users', usage, cfg.mode);
+            if (chk.would_block) {
+                if (cfg.mode === 'enforce') {
+                    safeAudit(actor, 'USER_CREATE_LIMIT_BLOCKED', `tenant#${tenantId} users=${chk.usage} max=${chk.limit} (plan=${r.plan_key || '-'})`, req.ip);
+                    return res.status(409).json({
+                        error: 'User limit reached for current plan',
+                        error_ar: 'تم بلوغ الحد الأقصى لعدد المستخدمين في خطة المستأجر',
+                        code: 'USER_LIMIT_REACHED'
+                    });
+                }
+                safeAudit(actor, 'USER_CREATE_LIMIT_OBSERVED', `tenant#${tenantId} users=${chk.usage} max=${chk.limit} (observe; not blocked)`, req.ip);
+            }
+            return next();
+        } catch (e) {
+            safeAudit(actorOf(req), 'USER_CREATE_LIMIT_FAILOPEN', 'resolve/count error -> allowed (fail-open)', req && req.ip);
+            return next(); // fail-open: never block creation on internal error
+        }
+    };
+}
+
 module.exports = {
     DEFAULT_ENTITLEMENTS, KNOWN_LIMITS, KNOWN_FEATURES, KNOWN_MODULES, ENFORCEMENT_MODES, FAIL_MODES,
     defaults, mergeDefaults, hasFeature, checkLimit, pickEnforcement,
-    makeEntitlementsResolver
+    makeEntitlementsResolver, countTenantUsers, makeUserLimitGuard
 };
