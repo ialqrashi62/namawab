@@ -2231,6 +2231,7 @@ window.renderE1Panel = async (pid) => {
         <button class="btn btn-sm e1-tab" data-tab="cardiology" onclick="e1SwitchTab('cardiology',${safeId(pid)})">❤️ ${tr('Cardiology', 'طب القلب')}</button>
         <button class="btn btn-sm e1-tab" data-tab="gastro" onclick="e1SwitchTab('gastro',${safeId(pid)})">🤢 ${tr('Gastroenterology', 'الجهاز الهضمي')}</button>
         <button class="btn btn-sm e1-tab" data-tab="endocrine" onclick="e1SwitchTab('endocrine',${safeId(pid)})">🍭 ${tr('Endocrinology', 'الغدد والسكري')}</button>
+        <button class="btn btn-sm e1-tab" data-tab="nephrology" onclick="e1SwitchTab('nephrology',${safeId(pid)})">💧 ${tr('Nephrology', 'الكلى والغسيل')}</button>
       </div>
       <div id="e1TabBody"></div>
     </div>`;
@@ -2251,6 +2252,7 @@ window.e1SwitchTab = async (tab, pid) => {
   if (tab === 'cardiology') return window.e1RenderCardiology(pid);
   if (tab === 'gastro') return window.e1RenderGastro(pid);
   if (tab === 'endocrine') return window.e1RenderEndocrine(pid);
+  if (tab === 'nephrology') return window.e1RenderNephrology(pid);
 };
 
 // ---------- Problem List ----------
@@ -15191,5 +15193,117 @@ window.e1DeactivateInsulin = async (id, pid) => {
     window.e1LoadInsulinList(pid);
   } catch (err) {
     showToast(tr('Error stopping regimen', 'خطأ في إيقاف الجرعة'), 'error');
+  }
+};
+
+// =====================================================================
+// ===== NEPHROLOGY & DIALYSIS MODULE (G04) =====
+// =====================================================================
+
+window.e1RenderNephrology = async (pid) => {
+  const body = document.getElementById('e1TabBody');
+  if (!body) return;
+  
+  body.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1.2;min-width:300px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">💧 ${tr('Dialysis Session Recorder', 'تسجيل جلسات غسيل الكلى')}</h4>
+        <div class="flex gap-8 mb-8">
+          <div class="form-group" style="flex:1">
+            <label>${tr('Pre-Weight (kg)', 'الوزن قبل الغسيل (كجم)')}</label>
+            <input class="form-input" type="number" step="0.1" id="e1NephroWeightPre" placeholder="e.g. 74.5">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>${tr('Post-Weight (kg)', 'الوزن بعد الغسيل (كجم)')}</label>
+            <input class="form-input" type="number" step="0.1" id="e1NephroWeightPost" placeholder="e.g. 71.2">
+          </div>
+        </div>
+        <div class="flex gap-8 mb-8">
+          <div class="form-group" style="flex:1">
+            <label>${tr('Blood Flow Rate (mL/min)', 'معدل تدفق الدم (مل/دقيقة)')}</label>
+            <input class="form-input" type="number" id="e1NephroBloodFlow" placeholder="e.g. 300" min="50" max="500">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>${tr('UF Volume (Liters)', 'حجم السوائل المسحوبة (لتر)')}</label>
+            <input class="form-input" type="number" step="0.1" id="e1NephroUFVolume" placeholder="e.g. 3.2">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>${tr('Duration (Hours)', 'مدة الجلسة (ساعات)')}</label>
+            <input class="form-input" type="number" step="0.5" id="e1NephroDuration" placeholder="e.g. 4.0" min="1" max="8">
+          </div>
+        </div>
+        <div class="form-group mb-8">
+          <label>${tr('Clinical Notes', 'ملاحظات سريرية')}</label>
+          <textarea class="form-input form-textarea" id="e1NephroNotes" rows="2" placeholder="${tr('Describe session details...', 'اكتب تفاصيل الجلسة...')}" style="min-height:50px"></textarea>
+        </div>
+        <button class="btn btn-primary btn-sm mb-12 w-full" onclick="e1AddDialysisSession(${safeId(pid)})">💾 ${tr('Save Dialysis Record', 'حفظ سجل الغسيل')}</button>
+      </div>
+      <div style="flex:1;min-width:280px;border-right:1px solid var(--border-color,#e5e7eb);padding-right:16px">
+        <h4 style="margin:0 0 12px;color:var(--primary)">📋 ${tr('Session History', 'سجل الجلسات السابقة')}</h4>
+        <div id="e1NephroDialysisList">${tr('Loading...', 'جاري التحميل...')}</div>
+      </div>
+    </div>
+  `;
+  
+  window.e1LoadDialysisList(pid);
+};
+
+window.e1LoadDialysisList = async (pid) => {
+  const container = document.getElementById('e1NephroDialysisList');
+  if (!container) return;
+  try {
+    const sessions = await API.get('/api/nephrology/dialysis/patient/' + pid);
+    if (!sessions.length) {
+      container.innerHTML = `<div style="color:var(--text-dim);font-size:13px">${tr('No dialysis sessions recorded', 'لا توجد جلسات غسيل مسجلة')}</div>`;
+      return;
+    }
+    container.innerHTML = sessions.map(s => `
+      <div style="padding:10px;margin:6px 0;border-radius:8px;background:var(--hover,#f8f9fa);border-right:4px solid #06b6d4;font-size:12px">
+        <div style="font-weight:700;color:var(--primary);display:flex;justify-content:space-between">
+          <span>📅 ${new Date(s.session_date).toLocaleDateString('ar-SA')}</span>
+          <span style="font-weight:400;color:var(--text-dim)">⏱️ ${s.duration_hours || '-'} ${tr('hrs', 'ساعة')}</span>
+        </div>
+        <div style="margin-top:4px;display:grid;grid-template-columns:1fr 1fr;gap:4px">
+          <div><strong>${tr('Pre-Wt:', 'الوزن قبل:')}</strong> ${s.weight_pre || '-'} kg</div>
+          <div><strong>${tr('Post-Wt:', 'الوزن بعد:')}</strong> ${s.weight_post || '-'} kg</div>
+          <div><strong>${tr('Blood Flow:', 'تدفق الدم:')}</strong> ${s.blood_flow_rate || '-'} mL/m</div>
+          <div><strong>${tr('UF Vol:', 'السوائل المسحوبة:')}</strong> ${s.ultrafiltration_volume || '-'} L</div>
+        </div>
+        ${s.notes ? `<div style="margin-top:4px;color:var(--text-dim)"><strong>${tr('Notes:', 'ملاحظات:')}</strong> ${escapeHTML(s.notes)}</div>` : ''}
+        <div style="font-size:10px;color:var(--text-dim);margin-top:4px">👨‍⚕️ ${escapeHTML(s.doctor_name || '')}</div>
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="color:red">${tr('Error loading', 'خطأ في التحميل')}</div>`;
+  }
+};
+
+window.e1AddDialysisSession = async (pid) => {
+  const weight_pre = document.getElementById('e1NephroWeightPre')?.value;
+  const weight_post = document.getElementById('e1NephroWeightPost')?.value;
+  const blood_flow = document.getElementById('e1NephroBloodFlow')?.value;
+  const uf_volume = document.getElementById('e1NephroUFVolume')?.value;
+  const duration = document.getElementById('e1NephroDuration')?.value;
+  const notes = document.getElementById('e1NephroNotes')?.value;
+  try {
+    await API.post('/api/nephrology/dialysis', {
+      patient_id: pid,
+      weight_pre: weight_pre ? parseFloat(weight_pre) : null,
+      weight_post: weight_post ? parseFloat(weight_post) : null,
+      blood_flow_rate: blood_flow ? parseInt(blood_flow) : null,
+      ultrafiltration_volume: uf_volume ? parseFloat(uf_volume) : null,
+      duration_hours: duration ? parseFloat(duration) : null,
+      notes: notes
+    });
+    showToast(tr('Dialysis session record saved!', 'تم حفظ سجل جلسة الغسيل بنجاح!'));
+    window.e1LoadDialysisList(pid);
+    document.getElementById('e1NephroWeightPre').value = '';
+    document.getElementById('e1NephroWeightPost').value = '';
+    document.getElementById('e1NephroBloodFlow').value = '';
+    document.getElementById('e1NephroUFVolume').value = '';
+    document.getElementById('e1NephroDuration').value = '';
+    document.getElementById('e1NephroNotes').value = '';
+  } catch (err) {
+    showToast(tr('Error saving dialysis record', 'خطأ في حفظ سجل الغسيل'), 'error');
   }
 };

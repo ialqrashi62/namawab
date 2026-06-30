@@ -4281,6 +4281,68 @@ app.put('/api/endocrine/insulin/:id/deactivate', requireAuth, requireRole('patie
     }
 });
 
+// ===== NEPHROLOGY & DIALYSIS DEPARTMENT =====
+app.post('/api/nephrology/dialysis', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { patient_id, session_date, weight_pre, weight_post, blood_flow_rate, ultrafiltration_volume, duration_hours, notes } = req.body;
+        const { tenantId, facilityId } = getRequestTenantContext(req);
+        
+        if (!patient_id) {
+            return res.status(400).json({ error: 'Patient ID is required' });
+        }
+        
+        const result = await pool.query(
+            `INSERT INTO dialysis_sessions 
+             (patient_id, doctor_id, session_date, weight_pre, weight_post, blood_flow_rate, ultrafiltration_volume, duration_hours, notes, tenant_id, facility_id) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`,
+            [
+                patient_id, 
+                req.session.user?.id || null, 
+                session_date || new Date().toISOString().slice(0, 10), 
+                weight_pre || null, 
+                weight_post || null, 
+                blood_flow_rate || null, 
+                ultrafiltration_volume || null, 
+                duration_hours || null, 
+                notes || '', 
+                tenantId || 1, 
+                facilityId || null
+            ]
+        );
+        
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_DIALYSIS_SESSION', 'Nephrology',
+            `Recorded dialysis session for patient #${patient_id}`, req.ip);
+            
+        res.json({ id: result.rows[0].id, success: true });
+    } catch (e) {
+        console.error('[Nephrology Dialysis Create Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/nephrology/dialysis/patient/:patient_id', requireAuth, requireRole('patients', 'prescriptions'), async (req, res) => {
+    try {
+        const { patient_id } = req.params;
+        const { tenantId } = getRequestTenantContext(req);
+        const tenantCheck = tenantId ? ' AND tenant_id=$2' : '';
+        const tenantParams = tenantId ? [patient_id, tenantId] : [patient_id];
+        
+        const result = await pool.query(
+            `SELECT ds.*, su.display_name as doctor_name 
+             FROM dialysis_sessions ds 
+             LEFT JOIN system_users su ON ds.doctor_id = su.id 
+             WHERE ds.patient_id=$1${tenantCheck} 
+             ORDER BY ds.id DESC`,
+            tenantParams
+        );
+        
+        res.json(result.rows);
+    } catch (e) {
+        console.error('[Nephrology Dialysis Get Error]', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // ===== PATIENT ACCOUNT =====
 app.get('/api/patients/:id/account', requireAuth, requireRole('patients', 'accounts'), async (req, res) => {
     try {
