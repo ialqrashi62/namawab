@@ -5,9 +5,10 @@
 
 ## 0) المتطلّبات المسبقة (Prerequisites)
 - [ ] `BATCH4B_STAGING_E25_PROVISIONING_PASS` (e25 موفّر على staging — حالياً BLOCKED، انتظار devops).
+- [ ] **`BATCH4D_USER_TENANT_LINKAGE_INTEGRITY_PASS`** (أُنجِزت 2026-06-30): إنشاء المستخدم يربط `user_tenants` ذرّياً ⇒ `countTenantUsers` ينمو. فجوة العدّ **مُغلَقة**.
 - [ ] خطط seeded على staging (starter/growth/enterprise) باستحقاقات `max_users` حقيقية.
 - [ ] مستأجر staging مربوط بخطة، و`GET /api/super-admin/tenants/:id/entitlements` يقرأ `max_users` الحقيقي (source=plan).
-- [ ] **تأكيد ربط العضوية:** التحقّق أن إنشاء المستخدم (أو مسار العضوية) يحدّث `user_tenants` بحيث ينمو العدّ — وإلا الإنفاذ بلا أثر (فجوة §6 من الجرد/المراجعة). إصلاح هذا الربط شرط إلزامي قبل enforce.
+- [ ] **تأكيد العدّ حيّاً:** إنشاء مستخدم staging يزيد `countTenantUsers` بواحد (smoke في §2) — أصبح مضموناً بـ 4D، يُتحقَّق على staging قبل enforce.
 
 ## 1) التفعيل التدريجي (staging فقط)
 - [ ] المرحلة 1 — observe:
@@ -19,6 +20,7 @@
   - `ENTITLEMENTS_ENFORCEMENT_MODE=enforce` (staging فقط).
 
 ## 2) اختبارات التفعيل (staging)
+- [ ] **عدّ موثوق (4D):** سجّل `countTenantUsers` للمستأجر، أنشئ مستخدماً عبر `POST /api/settings/users`، تحقّق أن العدّ زاد بواحد (صفّ `user_tenants` جديد). إن لم يزِد، **أوقف** قبل enforce.
 - [ ] إنشاء مستخدم و`current_users < max_users` → ينجح (200).
 - [ ] إنشاء مستخدم عند `current_users >= max_users` → يُرفَض **409** `USER_LIMIT_REACHED` + audit `USER_CREATE_LIMIT_BLOCKED`.
 - [ ] خطة `max_users=null` → لا منع (غير محدود).
