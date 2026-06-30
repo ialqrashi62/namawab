@@ -22,9 +22,21 @@ param(
   [string]$ProdDb    = "nama_medical_web",
   [string]$TestDb    = "nama_medical_test",
   [int]   $Port      = 5432,
-  [string]$DbHost    = "localhost"
+  [string]$DbHost    = "localhost",
+  [string]$PgBin     = ""
 )
 $ErrorActionPreference = "Stop"
+
+# ---- Auto-locate PostgreSQL client tools (psql/pg_dump/pg_restore) if not already on PATH ----
+if (-not (Get-Command psql -ErrorAction SilentlyContinue)) {
+  $candidates = @()
+  if ($PgBin) { $candidates += $PgBin }
+  $candidates += (Get-ChildItem "C:\Program Files\PostgreSQL\*\bin","C:\Program Files (x86)\PostgreSQL\*\bin" -ErrorAction SilentlyContinue |
+                  Sort-Object FullName -Descending | Select-Object -ExpandProperty FullName)
+  foreach ($c in $candidates) {
+    if (Test-Path (Join-Path $c "psql.exe")) { $env:Path = "$c;$env:Path"; Write-Host "Using PostgreSQL client at: $c" -ForegroundColor DarkGray; break }
+  }
+}
 
 # ---- PRODUCTION GUARD ----
 if ($TestDb -eq $ProdDb -or $TestDb -match "web|prod") {
