@@ -3675,59 +3675,7 @@ app.get('/api/prescriptions', requireAuth, requireTenantScope, async (req, res) 
         }
     } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
-
-app.post('/api/prescriptions', requireAuth, requireTenantScope, async (req, res) => {
-    try {
-        const { patient_id, medication_name, dosage, frequency, duration, notes, items, patient_name } = req.body;
-        const { tenantId, facilityId } = getRequestTenantContext(req);
-        if (tenantId && patient_id) {
-            const patientCheck = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patient_id, tenantId])).rows[0];
-            if (!patientCheck) return res.status(404).json({ error: 'Patient not found' });
-        }
-        // Lookup drug price from catalog
-        let drugPrice = 0;
-        if (medication_name) {
-            const drugQuery = tenantId ?
-                'SELECT selling_price FROM pharmacy_drug_catalog WHERE drug_name ILIKE $1 AND tenant_id=$2 LIMIT 1' :
-                'SELECT selling_price FROM pharmacy_drug_catalog WHERE drug_name ILIKE $1 LIMIT 1';
-            const drugParams = tenantId ? [`%${medication_name}%`, tenantId] : [`%${medication_name}%`];
-            const drug = (await pool.query(drugQuery, drugParams)).rows[0];
-            if (drug) drugPrice = drug.selling_price;
-        }
-        const result = await pool.query('INSERT INTO prescriptions (patient_id, medication_id, dosage, duration, status, tenant_id, facility_id) VALUES ($1,0,$2,$3,$4,$5,$6) RETURNING id',
-            [patient_id, `${medication_name} ${dosage} ${frequency}`, duration || '', 'Pending', tenantId || null, facilityId || null]);
-        await pool.query('INSERT INTO pharmacy_prescriptions_queue (patient_id, prescription_text, status, tenant_id, branch_id) VALUES ($1,$2,$3,$4,$5)',
-            [patient_id, `${medication_name} - ${dosage} - ${frequency} - ${duration}`, 'Pending', tenantId || null, facilityId || null]);
-        // Auto-create invoice for prescription drug (with VAT for non-Saudis)
-        if (drugPrice > 0 && patient_id) {
-            const p = (await pool.query('SELECT name_en, name_ar FROM patients WHERE id=$1', [patient_id])).rows[0];
-            const vat = await calcVAT(patient_id);
-            const { total: finalTotal, vatAmount } = addVAT(drugPrice, vat.rate);
-            const desc = `دواء: ${medication_name}` + (vat.applyVAT ? ` (+ ضريبة ${vatAmount} SAR)` : '');
-            await pool.query('INSERT INTO invoices (patient_id, patient_name, total, vat_amount, description, service_type, paid, tenant_id, facility_id) VALUES ($1,$2,$3,$4,$5,$6,0,$7,$8)',
-                [patient_id, p?.name_en || p?.name_ar || '', finalTotal, vatAmount, desc, 'Pharmacy', tenantId || null, facilityId || null]);
-        }
-
-        // AUTO: Send prescription to pharmacy queue
-        try {
-            if (Array.isArray(items)) {
-                for (const item of items) {
-                    await pool.query(
-                        "INSERT INTO pharmacy_queue (patient_id, patient_name, drug_name, dosage, quantity, doctor, status, prescription_id, tenant_id, facility_id) VALUES ($1, $2, $3, $4, $5, $6, 'Pending', $7, $8, $9)",
-                        [patient_id, patient_name || '', item.drug || item.name, item.dosage || '', item.quantity || 1, req.session.user?.display_name || '', result.rows[0]?.id || null, tenantId || null, facilityId || null]
-                    );
-                }
-            }
-        } catch (pe) { console.error('Pharmacy queue auto-insert:', pe.message); }
-        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_PRESCRIPTION', 'Pharmacy',
-            `Created prescription for patient #${patient_id}: ${medication_name}`, req.ip);
-        const finalQuery = tenantId ?
-            'SELECT * FROM prescriptions WHERE id=$1 AND tenant_id=$2' :
-            'SELECT * FROM prescriptions WHERE id=$1';
-        const finalParams = tenantId ? [result.rows[0].id, tenantId] : [result.rows[0].id];
-        res.json((await pool.query(finalQuery, finalParams)).rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
+// Duplicate legacy POST /api/prescriptions route removed to prevent shadowing the CDS-protected route below.
 
 // ===== PATIENT RESULTS (for Doctor to browse) =====
 app.get('/api/patients/:id/results', requireAuth, requireRole('patients', 'lab', 'radiology'), async (req, res) => {
@@ -10386,10 +10334,23 @@ app.post('/api/prescriptions', requireAuth, requireTenantScope, async (req, res)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Pending', $9, $10) RETURNING *`,
             [patient_id, req.session.user?.id || 0, rxText, medication_name || '', dosage || '', quantity_per_day || '1', frequency || '', duration || '', tenantId || null, facilityId || null]
         );
+        
+        // Also insert into legacy prescriptions table for backward compatibility
+        try {
+            await pool.query(
+                'INSERT INTO prescriptions (patient_id, medication_id, dosage, duration, status, tenant_id, facility_id) VALUES ($1,0,$2,$3,$4,$5,$6)',
+                [patient_id, `${medication_name || ''} ${dosage || ''} ${frequency || ''}`, duration || '', 'Pending', tenantId || null, facilityId || null]
+            );
+        } catch (dbErr) {
+            console.error('[CDS] Failed to insert into legacy prescriptions table:', dbErr.message);
+        }
+
+        logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_PRESCRIPTION', 'Pharmacy',
+            `Created prescription for patient #${patient_id}: ${medication_name}`, req.ip);
         logAudit(req.session.user?.id, req.session.user?.display_name, 'CREATE_PRESCRIPTION_QUEUE', 'Pharmacy',
             `Sent prescription to queue for patient #${patient_id}: ${medication_name}`, req.ip);
         res.json(r.rows[0]);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
+    } catch (e) { console.error('[CDS POST Error]', e); res.status(500).json({ error: 'Server error' }); }
 });
 
 // Get pharmacy prescriptions queue
