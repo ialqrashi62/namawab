@@ -2545,18 +2545,22 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **Gate 4 enforcement (read-only, ROLLBACK txn، بلا تبديل دور التطبيق)**: عبر `SET ROLE nama_medical_app` (super=false, bypass=false) على بيانات حقيقية: audit_trail tenant1=44، tenant999=0، no-context=0 ⇒ **PASS**. الجداول الفارغة=0.
 * **Gate 5 regression**: pm2 online (restarts=1، **بلا restart**)، /=200، health=200، protected=401. **postgres يكتب audit_trail تحت FORCE RLS = OK** (bypass ⇒ التطبيق لم يتأثر). invoice_cols=25، journal=0، DB_USER=postgres، guards=177.
 * **backup**: ~/nama_deploy_backups/phi_class_a_20260621/{pg_dump 5 tables، snapshot.json} خارج المستودع. rollback=down.sql (آمن، الجداول فارغة).
-* **الثوابت**: لا تبديل دور، لا .env، لا runtime deploy، لا accounting، لا journal، لا أسرار، لا force push، لا .gitmodules.
+* **validate**: 7/7 checks = 0 bad_rows (FORCE+policy， tenant_id موجود， لا null-tenant). بعد DDL: الخمسة rls_enabled=true FORCE=true policies=1 tenant_id=true.
+* **Gate 4 enforcement (read-only， ROLLBACK txn， بلا تبديل دور التطبيق)**: عبر `SET ROLE nama_medical_app` (super=false， bypass=false) على بيانات حقيقية: audit_trail tenant1=44， tenant999=0， no-context=0 ⇒ **PASS**. الجداول الفارغة=0.
+* **Gate 5 regression**: pm2 online (restarts=1， **بلا restart**)， /=200， health=200， protected=401. **postgres يكتب audit_trail تحت FORCE RLS = OK** (bypass ⇒ التطبيق لم يتأثر). invoice_cols=25， journal=0， DB_USER=postgres， guards=177.
+* **backup**: ~/nama_deploy_backups/phi_class_a_20260621/{pg_dump 5 tables， snapshot.json} خارج المستودع. rollback=down.sql (آمن， الجداول فارغة).
+* **الثوابت**: لا تبديل دور， لا .env， لا runtime deploy， لا accounting， لا journal， لا أسرار， لا force push， لا .gitmodules.
 * **النتيجة على RLS**: prod الآن **120 FORCE policy** (115 + 5). لكن الإنفاذ الحيّ ما زال NOT_YET (app=postgres يتجاوز).
 * **NEXT**: `P1_PHI_TENANT_STAMPING_RUNTIME_COMPATIBILITY` (ختم tenant_id لمسارات packages/donors/units — code-only) أو `SECRET_READY_EXECUTE_SWITCH` (الجذر). تنبيه: راجع قراءة audit_trail العابرة للمستأجر من super-admin قبل التبديل.
 
 ### Phase 145: P1_PHI_TENANT_STAMPING_RUNTIME_COMPATIBILITY_AFTER_CLASS_A_DDL (CODE_ONLY_PUSHED_NOT_DEPLOYED)
-* **تاريخ المرحلة**: 2026-06-21 | الحالة: `CODE_ONLY_PUSHED_NOT_DEPLOYED` | code-only، لا DDL/data/deploy/role-switch/.env.
-* **السياق**: بعد تطبيق PHI Class A DDL (Phase 144)، الجداول الخمسة صارت FORCE-RLS WITH CHECK. مراجعة توافق Runtime لمسارات الإنشاء للجداول tenant-owned حديثاً قبل أي تبديل دور.
-* **الجرد**: packages = **ROUTES_ABSENT** (لا مسار runtime؛ CREATE TABLE فقط في db_postgres.js/database.js). blood_bank_units/blood_bank_donors INSERT كانا بلا tenant_id. audit_trail يُكتب عبر helper logAudit من ~70 موقعاً.
+* **تاريخ المرحلة**: 2026-06-21 | الحالة: `CODE_ONLY_PUSHED_NOT_DEPLOYED` | code-only， لا DDL/data/deploy/role-switch/.env.
+* **السياق**: بعد تطبيق PHI Class A DDL (Phase 144)， الجداول الخمسة صارت FORCE-RLS WITH CHECK. مراجعة توافق Runtime لمسارات الإنشاء للجداول tenant-owned حديثاً قبل أي تبديل دور.
+* **الجرد**: packages = **ROUTES_ABSENT** (لا مسار runtime； CREATE TABLE فقط في db_postgres.js/database.js). blood_bank_units/blood_bank_donors INSERT كانا بلا tenant_id. audit_trail يُكتب عبر helper logAudit من ~70 موقعاً.
 * **الإصلاحات (نمط RLS-READY القائم crossmatch/transfusions)**: POST /api/blood-bank/units و POST /api/blood-bank/donors → أُضيف `requireTenantScope` + `getRequestTenantContext` + ختم `tenant_id`+`facility_id` من session موثوق (لا من body) + SELECT بعد الإدراج مقيّد `AND tenant_id`. requireTenantScope 177→179.
-* **قرار audit_trail**: سجل تدقيق نظامي عابر للوحدات؛ logAudit fire-and-forget مع catch يبتلع الخطأ. فرض سياسة tenant صارمة بعد التبديل ⇒ (1) فقدان تدقيق صامت (INSERT مرفوض 42501 يُبتلع)، (2) حجب قراءة super-admin العابرة. ⇒ **لا يُختم runtime**؛ يحتاج سياسة سماحية/نظامية أو دور كاتب-تدقيق كـ**شرط مسبق DDL لتبديل الدور**. (راجع أيضاً precheck ضبط app.tenant_id لكل طلب.)
-* **اختبار**: `phi_class_a_runtime_stamping_test.js` 18/18 PASS؛ regression (idor sweep، refund، insert stamping، update sweep) exit 0؛ node --check OK.
-* **git**: namaweb commit (server.js + test) مدفوع بلا force (غير منشور؛ الحيّ يبقى 082c07b)؛ parent gitlink + closeout + memory.
+* **قرار audit_trail**: سجل تدقيق نظامي عابر للوحدات؛ logAudit fire-and-forget مع catch يبتلع الخطأ. فرض سياسة tenant صارمة بعد التبديل ⇒ (1) فقدان تدقيق صامت (INSERT مرفوض 42501 يُبتلع)， (2) حجب قراءة super-admin العابرة. ⇒ **لا يُختم runtime**؛ يحتاج سياسة سماحية/نظامية أو دور كاتب-تدقيق كـ**شرط مسبق DDL لتبديل الدور**. (راجع أيضاً precheck ضبط app.tenant_id لكل طلب.)
+* **اختبار**: `phi_class_a_runtime_stamping_test.js` 18/18 PASS； regression (idor sweep， refund， insert stamping， update sweep) exit 0； node --check OK.
+* **git**: namaweb commit (server.js + test) مدفوع بلا force (غير منشور； الحيّ يبقى 082c07b)； parent gitlink + closeout + memory.
 * **NEXT**: `APPROVE_DEPLOY_PHI_RUNTIME_COMPATIBILITY` ثم `SECRET_READY_EXECUTE_SWITCH`. ملاحظة: قرار سياسة audit_trail يجب حلّه قبل/مع التبديل.
 
 ### Phase 146: P1_PHI_RUNTIME_COMPATIBILITY_CONTROLLED_DEPLOY (PRODUCTION_DEPLOYED_PASS)
@@ -2955,4 +2959,16 @@ NamaMedical/ (المستودع الرئيسي الأب)
   3. **تحديث قاعدة البيانات (DDL Migration e26):** تم إنشاء وتطبيق الهجرة `e26` لإضافة عمود `payment_gateway_ref` على جدول `invoices` لتتبع المرجعية الرقمية للعمليات المالية وتثبيت نجاحها في بيئتي الاختبار والإنتاج.
   4. **تحسين محركات البحث والتحقق (SEO & Verification):** تم إنشاء ونشر ملفات الأرشفة والتحكم بالزواحف `robots.txt` وخريطة الموقع `sitemap.xml` مع حظر أرشفة الملفات الطبية الحساسة، بالإضافة إلى إدراج ملف إثبات ملكية النطاق الخاص بجوجل `googlebe8c17f02d7742b4.html` بنجاح على النطاق الجديد `https://www.jumanasoft.com/`.
   5. **النشر والتشغيل الفعلي:** تم رفع ودفع كامل التعديلات إلى GitHub وسحبها على خادم الإنتاج الفعلي `204.168.144.74` وإعادة تشغيل الخدمة تحت PM2 وعمل فحص الصحة بنجاح كامل 100%.
+
+### Phase 194: Wave 2 — Clinical Decision Support (CDS) & CPOE Integration (PRODUCTION_DEPLOYED_PASS)
+* **تاريخ**: 2026-06-30 | الحالة: `PRODUCTION_DEPLOYED_PASS` | إزالة تداخل مسار الوصفات وتفعيل محرك الأمان السريري ومعالجة انحرافات الجداول.
+* **التفاصيل**:
+  1. **حل تداخل المسارات (Duplicate Route Resolution):** تم الكشف عن وجود مسار مكرر لـ `POST /api/prescriptions` في `server.js` كان يقوم بتجاوز وحجب مسار محرك الأمان السريري (CDS) بالكامل. تم حذف المسار القديم وغير المحمي بنجاح لتفعيل مسار محرك الأمان السريري الذكي.
+  2. **ربط وتطوير محرك الأمان السريري (CDS & Legacy Sync):** تم تحديث مسار الوصفات النشط ليقوم بمزامنة البيانات تلقائياً مع جدول الوصفات القديم `prescriptions` وجدول طابور الصيدلية الحديث لضمان التوافق التام 100% مع التقارير الطبية القديمة والجديدة.
+  3. **حل انحرافات قاعدة البيانات للأقسام (Schema Drift Reconciliation - e27, e28, e29):**
+     - **الهجرة `e27`:** إضافة الأعمدة المفقودة لـ `pharmacy_prescriptions_queue` (مثل `medication_name`, `dosage`, `quantity_per_day`, `frequency`, `duration`, `price`, `payment_method`, `tenant_id`, `branch_id`).
+     - **الهجرة `e28`:** إضافة كافة الأعمدة الطبية والإدارية المفقودة لجدول المرضى `patients` (مثل `mrn`, `allergies`, `chronic_diseases`, `emergency_contact_name`, `emergency_contact_phone`, `address`, `insurance_company`, `insurance_policy_number`, `insurance_class`).
+     - **الهجرة `e29`:** إضافة أعمدة وتفعيل سياسات حماية المستأجرين (RLS) لجدول `prescriptions` على بيئة الاختبار لتطابق بيئة الإنتاج.
+  4. **اختبارات الدمج السريرية (Clinical HTTP Testing):** تم كتابة وتطبيق اختبار الدمج المتكامل `cds_http_integration_test.js` لمحاكاة وصف الأدوية المتعارضة والتأكد من إرجاع الخادم لرمز الحظر `422 Unprocessable Entity` وطلب سبب التجاوز السريري وتخزينه بنجاح. اجتاز النظام كامل الفحوصات الـ 128 بنجاح 100%.
+  5. **النشر الفعلي على السيرفر:** تم رفع كامل التحديثات على السيرفر الإنتاجي، وتطبيق الهجرات الثلاث والتحقق من صحتها بنجاح كامل 100% وإعادة تشغيل الخدمة تحت PM2 بشكل مستقر.
 
