@@ -54,5 +54,20 @@
   * النتيجة: **101 DB-free passed, 0 failed, 48 skipped need DB/server** ✅.
 
 ---
-**الخطوة التالية المسموحة (Next Allowed Action):**
-* انتظار موافقة هجرة قاعدة البيانات الصريحة والمكتوبة من المالك لبيئة Staging (`OWNER_APPROVES_STAGING_DDL_EXECUTION`).
+
+## 5. بوابة التحقق والتدقيق النهائي للملفات والأدلة (Gateways Final Checklist)
+
+* **الحالة النهائية للمرحلة (FINAL_STATUS):** `STAGING_RUNTIME_BOOT_FIXED_ISOLATION_VERIFIED_DDL_APPROVAL_PENDING` ✅
+* **هل نُفّذ DDL؟ (DDL_EXECUTED):** `NO` ❌
+* **هل لُمِس الإنتاج؟ (PRODUCTION_TOUCHED):** `NO` ❌
+* **هل عُطّل الـ RLS؟ (RLS_DISABLED):** `NO` ❌
+* **هل مُنح حساب DB صلاحية bypass؟ (BYPASSRLS_GRANTED):** `NO` ❌
+* **مزامنة الـ Remote والـ Git (REMOTE_SYNC_VERIFIED):** `YES` ✅ (تم الدفع للـ remotes بنجاح والفرع متطابق ومحدث 100%).
+* **فحص Mojibake بالنمط الصحيح (MOJIBAKE_AUDIT_CORRECT_PATTERN_USED):** `YES` ✅
+* **تأكيد تطابق أسماء موارد الاستضافة (STAGING_RESOURCE_NAMING_CONFIRMED_FOR_THIS_PROJECT):** `YES` ✅ (التأكد من مطابقة مسميات jumanasoft_staging و jumanasoft_staging_user لهذا الخادم).
+* **حالة تسريب محتوى الـ env أو الأسرار (ENV_SECRET_EXPOSURE):** `NO` ❌
+* **طباعة محتويات env أثناء التحقق النهائي (ENV_CONTENT_PRINTED_DURING_FINAL_VERIFICATION):** `NO` ❌
+* **مراجعة وتدقيق أسماء متغيرات env السابقة فقط (PREVIOUS_ENV_NAME_ONLY_OUTPUT_REVIEWED_NON_SECRET):** `YES` ✅
+* **الحاجة لمراجعة التعرض السري (SECRET_EXPOSURE_REVIEW_REQUIRED):** `NO` ❌
+* **حالة ملفات التحقق المؤقتة (TEMP_VERIFICATION_SCRIPT_STATUS):** `NO_TEMP_VERIFICATION_SCRIPT_PRESENT` ✅ (لم يتم تتبع أو إبقاء أي كود مؤقت بالـ git workspace).
+* **الخطوة التالية المسموحة (NEXT_ALLOWED_ACTION):** `REQUEST_EXPLICIT_OWNER_APPROVAL_FOR_STAGING_DDL_ONLY` 🚀
