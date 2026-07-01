@@ -2,7 +2,7 @@
 
 * **المشروع:** منصة نما الطبية (NamaMedical ERP)
 * **المستند:** تقرير استلام وفحص أدلة الجاهزية للإنتاج
-* **الوضعية:** معلق بانتظار استلاف الأدلة الميدانية الكاملة (`PRODUCTION_READINESS_PREFLIGHT_BLOCKED_OWNER_DEVOPS_ACTION_REQUIRED`) ⚠️
+* **الوضعية:** معلق بانتظار استلام الأدلة الميدانية الكاملة (`PRODUCTION_READINESS_PREFLIGHT_BLOCKED_OWNER_DEVOPS_ACTION_REQUIRED`) ⚠️
 
 ---
 
@@ -12,22 +12,23 @@
 * **Owner/DevOps attestation summary:** تم استلام إقرار محافظ يثبت بقاء الحالة محجوبة لعدم كفاية الأدلة الفنية للإنتاج.
 * **Code changed after UAT:** YES
 * **Staging targeted revalidation after app.js fix:** PASS
-* **هل تم فحص الإنتاج بوضعية القراءة فقط؟ (Read-only Production preflight):** `NO` ❌ (غير مكتمل).
+* **Staging UAT status:** `PREVIOUSLY_PASSED_TARGETED_REVALIDATED_AFTER_APP_JS_FIX`
+* **هل تم فحص الإنتاج بوضعية القراءة فقط؟ (Read-only Production preflight):** `NOT_COMPLETED` ❌.
 * **هل تم تنفيذ أي كتابة/نشر/تعديل مخطط على الإنتاج؟ (Production touched?):** `NO` ❌ (لم يُمَس).
 * **هل تم تنفيذ DDL على الإنتاج؟ (DDL executed?):** `NO` ❌.
 * **هل تم تنفيذ migration؟ (Migration executed?):** `NO` ❌.
 * **هل تم تنفيذ DML على الإنتاج؟ (DML executed?):** `NO` ❌.
 * **هل تم كشف أو طباعة أسرار؟ (Secrets printed?):** `NO` ❌.
-* **حالة الجداول الـ 17 في الإنتاج:** `UNKNOWN` ⚠️ (قيد فحص الوصول للقراءة فقط).
-* **حالة جدول المنشآت `facilities`:** `UNKNOWN` ⚠️ (غير مؤكد).
+* **حالة الجداول الـ 17 في الإنتاج:** `UNKNOWN` ⚠️.
+* **حالة جدول المنشآت `facilities`:** `UNKNOWN` ⚠️.
 * **حالة تعارض المخطط (Schema conflicts):** `UNKNOWN` ⚠️.
 * **وضع سياسة RLS/FORCE RLS:** `UNKNOWN` ⚠️.
 * **وضع صلاحيات الحساب (DB Role SUPERUSER):** `UNKNOWN` ⚠️.
 * **وضع صلاحيات الحساب (DB Role BYPASSRLS):** `UNKNOWN` ⚠️.
-* **حالة النسخ الاحتياطي (Backup status):** `JSON_SNAPSHOT_ONLY_RESTORE_NOT_VERIFIED` ⚠️.
-* **حالة التحقق من الاستعادة (Restore status):** `RESTORE_NOT_VERIFIED` ❌.
+* **حالة النسخ الاحتياطي (Backup status):** `BLOCKED_RESTORABLE_PRODUCTION_BACKUP_REQUIRED` ⚠️.
+* **حالة التحقق من الاستعادة (Restore status):** `BLOCKED_RESTORE_VERIFICATION_REQUIRED` ❌.
 * **قرار فجوة الاختبارات الـ 48 skipped:** `NO_DECISION` ⏳.
-* **سلامة خطة التراجع (Rollback status):** `DOCUMENTED_NOT_PRODUCTION_REHEARSED` ⚠️ (مكتوبة وموثقة لكنها لم تُجرب عملياً).
+* **سلامة خطة التراجع (Rollback status):** `DOCUMENTED_NOT_PRODUCTION_REHEARSED` ⚠️.
 * **أهم العوائق (Blockers):**
   1. `BLOCKED_PRODUCTION_READONLY_PREFLIGHT_ACCESS_REQUIRED` (مطلوب فحص الإنتاج read-only).
   2. `BLOCKED_RESTORABLE_PRODUCTION_BACKUP_REQUIRED` (مطلوب نسخ احتياطي pg_dump).
