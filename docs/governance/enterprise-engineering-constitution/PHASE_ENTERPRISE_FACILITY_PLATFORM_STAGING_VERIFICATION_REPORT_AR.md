@@ -3,14 +3,14 @@
 * **المشروع:** منصة نما الطبية (NamaMedical ERP)
 * **المرحلة:** منصة المنشآت الصحية المتعددة (PHASE_ENTERPRISE_FACILITY_PLATFORM_WITH_MEDICAL_CITY_SELECTOR)
 * **المستند:** تقرير التحقق الميداني والجاهزية لـ Staging
-* **الحالة الفنية:** تم التحقق محلياً وتأجيل Staging لعدم جاهزية البيئة (`LOCAL_ONLY_PASS_STAGING_PENDING`) ⚠️
+* **الحالة الفنية:** تم التحقق محلياً وتأجيل Staging لعدم جاهزية البيئة (`LOCAL_GATES_PASS_FIELD_GATES_BLOCKED_STAGING_NOT_AVAILABLE`) ⚠️
 
 ---
 
 ## 1. ملخص المراجعة والتحقق النهائي (Verification Summary)
 
 * **القرار والقرار النهائي المعتمد للمرحلة (FINAL_STATUS):**
-  * **`LOCAL_ONLY_PASS_STAGING_PENDING`** (نجاح كافة الفحوصات والاختبارات الساكنة والمحلية، مع تعليق التحقق الحي لعدم توفر خادم Staging نشط).
+  * **`LOCAL_GATES_PASS_FIELD_GATES_BLOCKED_STAGING_NOT_AVAILABLE`** (نجاح كافة الفحوصات والاختبارات الساكنة والمحلية، مع تعليق التحقق الحي لعدم توفر خادم Staging نشط).
 * **معرف الالتزام للمستودع الأب (Root Branch & SHA):**
   * الفرع: `feature/jumanasoft-enterprise-facility-platform`
   * معرف الالتزام (Commit SHA): `bd728f9efe25b39152935a27fd7f31742859d8c9`
