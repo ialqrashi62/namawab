@@ -8,17 +8,28 @@
 
 ## 1. ملخص استلام الأدلة والإقرار (Evidence Summary)
 
+* **FINAL_STATUS:** `PRODUCTION_READINESS_PREFLIGHT_BLOCKED_OWNER_DEVOPS_ACTION_REQUIRED`
+* **Owner/DevOps attestation summary:** تم استلام إقرار محافظ يثبت بقاء الحالة محجوبة لعدم كفاية الأدلة الفنية للإنتاج.
 * **هل تم فحص الإنتاج بوضعية القراءة فقط؟ (Read-only Production preflight):** `NO` ❌ (غير مكتمل).
-* **هل تم تنفيذ أي كتابة/نشر/تعديل مخطط على الإنتاج؟:** `NO` ❌.
-* **حالة الجداول الـ 17 في الإنتاج:** `UNKNOWN` ⚠️ (قيد الوصول للقراءة فقط).
-* **حالة جدول المنشآت `facilities`:** `UNKNOWN` ⚠️.
-* **حالة تعارض المخطط (Schema Conflicts):** `UNKNOWN` ⚠️.
+* **هل تم تنفيذ أي كتابة/نشر/تعديل مخطط على الإنتاج؟ (Production touched?):** `NO` ❌ (لم يُمَس).
+* **هل تم تنفيذ DDL على الإنتاج؟ (DDL executed?):** `NO` ❌.
+* **هل تم تنفيذ migration؟ (Migration executed?):** `NO` ❌.
+* **هل تم تنفيذ DML على الإنتاج؟ (DML executed?):** `NO` ❌.
+* **هل تم كشف أو طباعة أسرار؟ (Secrets printed?):** `NO` ❌.
+* **حالة الجداول الـ 17 في الإنتاج:** `UNKNOWN` ⚠️ (قيد فحص الوصول للقراءة فقط).
+* **حالة جدول المنشآت `facilities`:** `UNKNOWN` ⚠️ (غير مؤكد).
+* **حالة تعارض المخطط (Schema conflicts):** `UNKNOWN` ⚠️.
 * **وضع سياسة RLS/FORCE RLS:** `UNKNOWN` ⚠️.
-* **وضع صلاحيات الحساب (DB Role):** `UNKNOWN` ⚠️ (لم يتم إثبات خلوه من SUPERUSER / BYPASSRLS).
-* **حالة النسخ الاحتياطي (Backup status):** `JSON_SNAPSHOT_ONLY_RESTORE_NOT_VERIFIED` ⚠️ (لقطة سريعة وغير كافية للنشر).
-* **حالة التحقق من الاستعادة (Restore Verification):** `NO` ❌ (غير موثق وغير مجرب).
+* **وضع صلاحيات الحساب (DB Role SUPERUSER):** `UNKNOWN` ⚠️.
+* **وضع صلاحيات الحساب (DB Role BYPASSRLS):** `UNKNOWN` ⚠️.
+* **حالة النسخ الاحتياطي (Backup status):** `JSON_SNAPSHOT_ONLY_RESTORE_NOT_VERIFIED` ⚠️.
+* **حالة التحقق من الاستعادة (Restore status):** `NOT_VERIFIED` ❌.
 * **قرار فجوة الاختبارات الـ 48 skipped:** `NO_DECISION` ⏳.
-* **سلامة خطة التراجع (Rollback plan status):** `SAFE` ✅ (تم توثيق سكربت إسقاط الجداول بكفاءة).
+* **سلامة خطة التراجع (Rollback status):** `DOCUMENTED_NOT_PRODUCTION_REHEARSED` ⚠️ (مكتوبة وموثقة لكنها لم تُجرب عملياً).
+* **أهم العوائق (Blockers):**
+  1. `BLOCKED_PRODUCTION_READONLY_PREFLIGHT_ACCESS_REQUIRED` (مطلوب فحص الإنتاج read-only).
+  2. `BLOCKED_RESTORABLE_PRODUCTION_BACKUP_REQUIRED` (مطلوب نسخ احتياطي pg_dump).
+  3. `BLOCKED_DB_SERVER_TEST_GAP_DECISION_REQUIRED` (قرار فجوة الاختبارات).
 
 ---
 
