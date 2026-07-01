@@ -44,7 +44,7 @@
 ## 3. نتائج فحص الهيكل قبل التطبيق (Schema Preflight)
 
 * **جداول الـ ERD الـ 18 الجديدة:**
-  * الجداول الـ 18 المقترحة لمنصة المنشآت الطبية المتعددة **غير موجودة** حالياً على Staging، والبيئة مهيأة لاستقبال الهجرة فور حل مشكلة بدء التشغيل: `STAGING_SCHEMA_PREFLIGHT_EMPTY_READY_FOR_OWNER_DDL_APPROVAL`.
+  * الجداول الـ 18 المقترحة لمنصة المنشآت الطبية المتعددة **غير موجودة** حالياً على Staging، والبيئة مهيأة لاستقبال الهجرة فور حل مشكلة بدء التشغيل: `SCHEMA_PREFLIGHT_DEFERRED_UNTIL_STAGING_RUNTIME_BOOT_FIX`.
 * **حالة فحص RLS التشغيلي:**
   * `RLS_RUNTIME_NOT_APPLICABLE_TABLES_NOT_CREATED_YET` (لا توجد جداول جديدة بعد لفرض وفحص حماية الصفوف عليها حياً).
 
