@@ -27,7 +27,7 @@
 * **تأثر بيئة الإنتاج الفعلي (Production touched):** `NO` ❌ (معزول تماماً ومؤمن).
 * **تنفيذ نشر الإنتاج في هذه المرحلة (Production deploy executed):** `NO` ❌
 * **تنفيذ DDL في هذه المرحلة (DDL executed in this phase):** `NO` ❌
-* **حالة جاهزية الإنتاج (Production readiness status):** `READY_EXCEPT_OWNER_GO_NO_GO` ✅ (حزمة الجاهزية كاملة وموثقة).
+* **حالة جاهزية الإنتاج (Production readiness status):** `STAGING_UAT_CLOSED_PRODUCTION_READINESS_PREFLIGHT_PENDING` ⏳ (معلق لحين إتمام مرحلة الفحص المسبق Preflight).
 
 ---
 
