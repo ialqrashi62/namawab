@@ -62,9 +62,13 @@
 * **هل لُمِس الإنتاج؟ (PRODUCTION_TOUCHED):** `NO` ❌
 * **هل عُطّل الـ RLS؟ (RLS_DISABLED):** `NO` ❌
 * **هل مُنح حساب DB صلاحية bypass؟ (BYPASSRLS_GRANTED):** `NO` ❌
+* **عدد الجداول الكلية المخططة للـ Facility (FACILITY_DDL_TOTAL_TABLES_PLANNED):** `18` (حسب المخطط الهيكلي [FACILITY_ERD_EXTENSION_AR.md](file:///c:/Users/ice/Desktop/NamaMedical/docs/governance/enterprise-engineering-constitution/FACILITY_ERD_EXTENSION_AR.md)).
+* **عدد الجداول التي سيتم إنشاؤها على Staging (FACILITY_DDL_TABLES_TO_CREATE_ON_STAGING):** `17` table.
+* **الجداول الموجودة مسبقاً في قاعدة الاستضافة (FACILITY_DDL_PREEXISTING_TABLES):** `facilities` (تم إنشاؤه مسبقاً كجزء من بنية عزل المستأجرين الأساسية، ولهذا تم استبعاده من DDL الإضافة القادم).
+* **تأكيد نطاق هجرة الجداول (FACILITY_DDL_SCOPE_CONFIRMED):** `YES` ✅
 * **مزامنة الـ Remote والـ Git (REMOTE_SYNC_VERIFIED):** `YES` ✅ (تم الدفع للـ remotes بنجاح والفرع متطابق ومحدث 100%).
-* **فحص Mojibake بالنمط الصحيح (MOJIBAKE_AUDIT_CORRECT_PATTERN_USED):** `YES` ✅
-* **تأكيد تطابق أسماء موارد الاستضافة (STAGING_RESOURCE_NAMING_CONFIRMED_FOR_THIS_PROJECT):** `YES` ✅ (التأكد من مطابقة مسميات jumanasoft_staging و jumanasoft_staging_user لهذا الخادم).
+* **فحص Mojibake بالنمط الصحيح (MOJIBAKE_AUDIT_CORRECT_PATTERN_USED):** `YES` (تم استخدام النمط الصحيح: `Ø|Ù|ï»¿|`) ✅
+* **تأكيد تطابق أسماء موارد الاستضافة (STAGING_RESOURCE_NAMING_CONFIRMED_FOR_THIS_PROJECT):** `YES` ✅ (مسميات jumanasoft_staging و jumanasoft_staging_user مقصودة لهذا الخادم).
 * **حالة تسريب محتوى الـ env أو الأسرار (ENV_SECRET_EXPOSURE):** `NO` ❌
 * **طباعة محتويات env أثناء التحقق النهائي (ENV_CONTENT_PRINTED_DURING_FINAL_VERIFICATION):** `NO` ❌
 * **مراجعة وتدقيق أسماء متغيرات env السابقة فقط (PREVIOUS_ENV_NAME_ONLY_OUTPUT_REVIEWED_NON_SECRET):** `YES` ✅
