@@ -33,7 +33,19 @@
 
 ---
 
-## 2. الحالة النهائية والخطوات التالية
+## 2. ملخص فحص الانحدار والتغيير بعد الـ UAT
+
+* **هل تغيّر كود بعد UAT؟ (CODE_CHANGED_AFTER_STAGING_UAT):** `YES` ✅ (إصلاح خطأ بناءSwitcher بـ app.js).
+* **حالة إعادة التحقق لبيئة Staging لـ app.js (STAGING_TARGETED_REVALIDATION_AFTER_APP_JS_FIX):** `PASS` ✅
+* **حالة الـ UAT للاستضافة (STAGING_UAT_STATUS):** `PREVIOUSLY_PASSED_TARGETED_REVALIDATED_AFTER_APP_JS_FIX` ✅
+* **هل لُمِس الإنتاج في هذه المرحلة؟ (PRODUCTION_NOT_TOUCHED_THIS_PHASE):** `YES` ✅ (معزول وآمن).
+* **حالة الفحص الأمني للإنتاج (PRODUCTION_READONLY_SECURITY_VERIFICATION):** `NOT_COMPLETED` ⚠️
+* **حالة خطة التراجع للإنتاج (ROLLBACK_PLAN_STATUS):** `DOCUMENTED_NOT_PRODUCTION_REHEARSED` ⚠️
+* **حالة مراجعة الـ DDL الفنية (DDL_STATIC_REVIEW_STATUS):** `SAFE_STATIC_ONLY_NOT_PRODUCTION_EXECUTED` ✅
+
+---
+
+## 3. الحالة النهائية والخطوات التالية
 
 * **الحالة النهائية المعتمدة للمرحلة (FINAL_STATUS):**
   * **`PRODUCTION_READINESS_PREFLIGHT_BLOCKED_OWNER_DEVOPS_ACTION_REQUIRED`**
