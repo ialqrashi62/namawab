@@ -24,4 +24,4 @@
 
 * **العوائق الحالية (Blockers):**
   1. عدم استلام إقرار ومطابقة الـ DevOps لقاعدة بيانات الإنتاج الفعلي.
-* **الخطوة التالية المسموحة (NEXT_ALLOWED_ACTION):** `OWNER_DEVOPS_VERIFY_PRODUCTION_UNCHANGED_AFTER_UAT_ACCOUNT_REVIEW` (بانتظار قيام المالك/DevOps بتوقيع نموذج مطابقة الإنتاج read-only المرفق).
+* **الخطوة التالية المسموحة (NEXT_ALLOWED_ACTION):** `OWNER_DEVOPS_COMPLETE_PRODUCTION_READONLY_ATTESTATION` (بانتظار قيام المالك/DevOps بتوقيع نموذج مطابقة الإنتاج read-only المرفق).

@@ -18,7 +18,7 @@
 * **هدف عملية الكتابة الفعلي (DB_WRITE_TARGET):** `LIKELY_STAGING_BASED_ON_LOCAL_EVIDENCE` ⚠️
 * **تأثر قاعدة الإنتاج الفعلي (PRODUCTION_IMPACT):** `NOT_INDEPENDENTLY_VERIFIED` ⚠️
 * **مراجعة وتأكيد الإنتاج مطلوبة من المالك (OWNER_PRODUCTION_VERIFICATION_REQUIRED):** `YES` ⚠️
-* **حالة حساب اختبار Staging (STAGING_ACCOUNT_STATUS):** الحساب `e2e_admin` نشط حالياً على Staging (بانتظار إقرار المالك لتعطيله أو تركه للاختبار UAT).
+* **حالة حساب اختبار Staging (STAGING_ACCOUNT_STATUS):** `DISABLED` ✅ (تم تعطيله بالكامل حياً وتأكيد خروج سياقه من النشاط).
 * **حالة التعرض للقطات البيانات (SNAPSHOT_EXPOSURE_STATUS):** **NO_PHI_EXPOSED** (تم فقط استعراض مسميات ومعرفات مستخدمين تجريبيين دون بيانات مرضى PHI).
 * **هل نُفّذ DDL؟** `NO` ❌
 * **هل نُفّذ migration؟** `NO` ❌
@@ -35,4 +35,4 @@
 
 ## 3. الخطوات التالية المسموحة والعمل الموصى به
 
-* **الخطوة التالية المسموحة (NEXT_ALLOWED_ACTION):** `OWNER_VERIFY_PRODUCTION_UNCHANGED_AND_DECIDE_UAT_ACCOUNT_STATE` (بانتظار قيام المالك/DevOps بمطابقة جدول المستخدمين بالإنتاج والتأكيد المكتوب لسلامة البيئة).
+* **الخطوة التالية المسموحة (NEXT_ALLOWED_ACTION):** `OWNER_DEVOPS_COMPLETE_PRODUCTION_READONLY_ATTESTATION` (بانتظار قيام المالك/DevOps بمطابقة جدول المستخدمين بالإنتاج والتأكيد المكتوب لسلامة البيئة).
