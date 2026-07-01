@@ -67,7 +67,7 @@
 * **الجداول الموجودة مسبقاً في قاعدة الاستضافة (FACILITY_DDL_PREEXISTING_TABLES):** `facilities` (تم إنشاؤه مسبقاً كجزء من بنية عزل المستأجرين الأساسية، ولهذا تم استبعاده من DDL الإضافة القادم).
 * **تأكيد نطاق هجرة الجداول (FACILITY_DDL_SCOPE_CONFIRMED):** `YES` ✅
 * **مزامنة الـ Remote والـ Git (REMOTE_SYNC_VERIFIED):** `YES` ✅ (تم الدفع للـ remotes بنجاح والفرع متطابق ومحدث 100%).
-* **فحص Mojibake بالنمط الصحيح (MOJIBAKE_AUDIT_CORRECT_PATTERN_USED):** `YES` (تم استخدام النمط الصحيح: `Ø|Ù|ï»¿|`) ✅
+* **فحص Mojibake بالنمط الصحيح (MOJIBAKE_AUDIT_CORRECT_PATTERN_USED):** `YES` (تم استخدام النمط الصحيح: `Ø|Ù|ï»¿|�`) ✅
 * **تأكيد تطابق أسماء موارد الاستضافة (STAGING_RESOURCE_NAMING_CONFIRMED_FOR_THIS_PROJECT):** `YES` ✅ (مسميات jumanasoft_staging و jumanasoft_staging_user مقصودة لهذا الخادم).
 * **حالة تسريب محتوى الـ env أو الأسرار (ENV_SECRET_EXPOSURE):** `NO` ❌
 * **طباعة محتويات env أثناء التحقق النهائي (ENV_CONTENT_PRINTED_DURING_FINAL_VERIFICATION):** `NO` ❌
