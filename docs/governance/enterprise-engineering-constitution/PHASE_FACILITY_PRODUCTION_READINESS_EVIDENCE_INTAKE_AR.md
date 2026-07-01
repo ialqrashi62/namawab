@@ -2,7 +2,7 @@
 
 * **المشروع:** منصة نما الطبية (NamaMedical ERP)
 * **المستند:** تقرير استلام وفحص أدلة الجاهزية للإنتاج
-* **الوضعية:** معلق بانتظار استلام الأدلة الميدانية الكاملة (`PRODUCTION_READINESS_PREFLIGHT_BLOCKED_OWNER_DEVOPS_ACTION_REQUIRED`) ⚠️
+* **الوضعية:** معلق بانتظار استلاف الأدلة الميدانية الكاملة (`PRODUCTION_READINESS_PREFLIGHT_BLOCKED_OWNER_DEVOPS_ACTION_REQUIRED`) ⚠️
 
 ---
 
@@ -10,6 +10,8 @@
 
 * **FINAL_STATUS:** `PRODUCTION_READINESS_PREFLIGHT_BLOCKED_OWNER_DEVOPS_ACTION_REQUIRED`
 * **Owner/DevOps attestation summary:** تم استلام إقرار محافظ يثبت بقاء الحالة محجوبة لعدم كفاية الأدلة الفنية للإنتاج.
+* **Code changed after UAT:** YES
+* **Staging targeted revalidation after app.js fix:** PASS
 * **هل تم فحص الإنتاج بوضعية القراءة فقط؟ (Read-only Production preflight):** `NO` ❌ (غير مكتمل).
 * **هل تم تنفيذ أي كتابة/نشر/تعديل مخطط على الإنتاج؟ (Production touched?):** `NO` ❌ (لم يُمَس).
 * **هل تم تنفيذ DDL على الإنتاج؟ (DDL executed?):** `NO` ❌.
@@ -23,7 +25,7 @@
 * **وضع صلاحيات الحساب (DB Role SUPERUSER):** `UNKNOWN` ⚠️.
 * **وضع صلاحيات الحساب (DB Role BYPASSRLS):** `UNKNOWN` ⚠️.
 * **حالة النسخ الاحتياطي (Backup status):** `JSON_SNAPSHOT_ONLY_RESTORE_NOT_VERIFIED` ⚠️.
-* **حالة التحقق من الاستعادة (Restore status):** `NOT_VERIFIED` ❌.
+* **حالة التحقق من الاستعادة (Restore status):** `RESTORE_NOT_VERIFIED` ❌.
 * **قرار فجوة الاختبارات الـ 48 skipped:** `NO_DECISION` ⏳.
 * **سلامة خطة التراجع (Rollback status):** `DOCUMENTED_NOT_PRODUCTION_REHEARSED` ⚠️ (مكتوبة وموثقة لكنها لم تُجرب عملياً).
 * **أهم العوائق (Blockers):**
