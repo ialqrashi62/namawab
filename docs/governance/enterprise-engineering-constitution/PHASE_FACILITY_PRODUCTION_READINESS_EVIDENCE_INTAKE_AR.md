@@ -12,7 +12,6 @@
 * **Owner/DevOps attestation summary:** تم استلام إقرار محافظ يثبت بقاء الحالة محجوبة لعدم كفاية الأدلة الفنية للإنتاج.
 * **Code changed after UAT:** YES
 * **Staging targeted revalidation after app.js fix:** PASS
-* **Staging UAT status:** `PREVIOUSLY_PASSED_TARGETED_REVALIDATED_AFTER_APP_JS_FIX`
 * **هل تم فحص الإنتاج بوضعية القراءة فقط؟ (Read-only Production preflight):** `NOT_COMPLETED` ❌.
 * **هل تم تنفيذ أي كتابة/نشر/تعديل مخطط على الإنتاج؟ (Production touched?):** `NO` ❌ (لم يُمَس).
 * **هل تم تنفيذ DDL على الإنتاج؟ (DDL executed?):** `NO` ❌.
