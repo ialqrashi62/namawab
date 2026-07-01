@@ -2,15 +2,15 @@
 
 * **المشروع:** منصة نما الطبية (NamaMedical ERP)
 * **المرحلة:** إغلاق مرحلة Staging UAT وجاهزية النشر للإنتاج
-* **المستند:** تقرير إغلاق اختبارات القبول وجاهزية بوابة قرار الإنتاج
-* **الحالة الفنية:** تم إغلاق الـ UAT بنجاح ومعلق بانتظار قرار المالك النهائي لحساب الاختبار وجاهزية النشر (`STAGING_UAT_CLOSED_UAT_ACCOUNT_LIFECYCLE_DECISION_PENDING`) ⚠️
+* **المستند:** تقرير إغلاق اختبارات القبول وجاهزية بوابة قرار الإنتاج المعتمد
+* **الحالة الفنية:** تم إغلاق الـ UAT بنجاح وحساب الاختبار معطل وحزمة الجاهزية كاملة (`STAGING_UAT_CLOSED_PRODUCTION_READINESS_PACKET_READY`) ✅
 
 ---
 
 ## 1. ملخص حالة إغلاق المرحلة (FINAL_STATUS)
 
 * **القرار والقرار النهائي المعتمد للمرحلة (FINAL_STATUS):**
-  * **`STAGING_UAT_CLOSED_UAT_ACCOUNT_LIFECYCLE_DECISION_PENDING`** (تم إغلاق مرحلة اختبارات القبول Staging UAT بنجاح وتجهيز كامل حزمة جاهزية الإنتاج، وتتوقف البوابة على قرار المالك بخصوص الإبقاء المؤقت على حساب الاختبار `facility_uat_user` أو تعطيله).
+  * **`STAGING_UAT_CLOSED_PRODUCTION_READINESS_PACKET_READY`** (تم إغلاق مرحلة اختبارات القبول Staging UAT بنجاح وتجهيز كامل حزمة جاهزية الإنتاج، وتم تعطيل حساب الاختبار `facility_uat_user` على بيئة Staging لتعزيز الأمان).
 * **معرف الالتزام والفرع (Commit Metadata):**
   * **مستودع الكود الرئيسي (Root Repo):** الفرع `ops/jumanasoft-enterprise-facility-platform-staging-prep` (الالتزام الحالي HEAD)
   * **المستودع الفرعي (Submodule Repo):** الفرع `integration/all-epics` | الالتزام `b44fb1abfdff0a4c6d9cb41d23d97fad06e62f49`
@@ -23,7 +23,7 @@
 * **حالة فحص تسجيل الدخول (Auth E2E status):** `PASS` ✅
 * **حالة محدد المنشآت (Facility switcher status):** `PASS` ✅
 * **حالة عزل المستأجرين (Tenant isolation status):** `PASS` ✅
-* **دورة حياة حساب الاختبار UAT (UAT account lifecycle status):** `PENDING_DECISION` ⏳ (بانتظار قرار التعطيل أو الإبقاء المؤقت).
+* **دورة حياة حساب الاختبار UAT (UAT account lifecycle status):** `DISABLED` ✅ (تم تعطيل حساب الاستضافة بنجاح بعد الفحص: `STAGE_UAT_ACCOUNT_DISABLED_AFTER_UAT: YES`).
 * **تأثر بيئة الإنتاج الفعلي (Production touched):** `NO` ❌ (معزول تماماً ومؤمن).
 * **تنفيذ نشر الإنتاج في هذه المرحلة (Production deploy executed):** `NO` ❌
 * **تنفيذ DDL في هذه المرحلة (DDL executed in this phase):** `NO` ❌
@@ -34,6 +34,5 @@
 ## 3. الفجوات والعوائق والخطوات التالية المسموحة
 
 * **العوائق والفجوات المتبقية (Blockers/Gaps):**
-  1. قرار دورة حياة حساب الاختبار `facility_uat_user`.
-  2. موافقة المالك النهائية على بدء النشر للإنتاج (قرار Go/No-Go).
-* **الخطوة التالية المسموحة (NEXT_ALLOWED_ACTION):** `OWNER_DECISION_TO_DEPLOY_TO_PRODUCTION` (بانتظار قرار المالك النهائي للموافقة على بدء النشر والتفعيل على بيئة الإنتاج الفعلي).
+  1. موافقة المالك النهائية على بدء النشر للإنتاج (قرار Go/No-Go).
+* **الخطوة التالية المسموحة (NEXT_ALLOWED_ACTION):** `OWNER_DEVOPS_RUN_PRODUCTION_READINESS_PREFLIGHT` (الانتقال إلى مرحلة الفحص المسبق والتحضيري المستقل لبيئة الإنتاج دون لمسها).
