@@ -144,10 +144,10 @@ async function runSanitization() {
             if (field.includes('phone') || field.includes('mobile')) {
                 return `05000000${String(index).padStart(2, '0')}`;
             }
-            if (field.includes('national_id') || field.includes('iqama') || field.includes('passport')) {
+            if (field.includes('national_id') || field.includes('iqama') || field.includes('passport') || field.includes('doc_number')) {
                 return `10000000${String(index).padStart(2, '0')}`;
             }
-            if (field.includes('notes') || field.includes('clinical_notes') || field.includes('description')) {
+            if (field.includes('notes') || field.includes('clinical_notes') || field.includes('description') || field.includes('report') || field.includes('results')) {
                 return `Synthetic clinical text for index #${index}`;
             }
             if (field.includes('diagnosis')) {
@@ -155,6 +155,12 @@ async function runSanitization() {
             }
             if (field.includes('symptoms')) {
                 return `Synthetic symptom assessment #${index}`;
+            }
+            if (field.includes('email')) {
+                return `synthetic.user.${index}@example.com`;
+            }
+            if (field.includes('text')) {
+                return `Synthetic text content #${index}`;
             }
             return `Fake #${index}`;
         };
@@ -166,6 +172,14 @@ async function runSanitization() {
         await sanitizeTable('employees', 'id', ['name', 'name_ar', 'name_en'], fakeValue);
         await sanitizeTable('invoices', 'id', ['patient_name', 'description'], fakeValue);
         await sanitizeTable('medical_records', 'id', ['diagnosis', 'symptoms', 'notes'], fakeValue);
+        await sanitizeTable('hr_employees', 'id', ['name_ar', 'name_en', 'national_id', 'phone', 'email'], fakeValue);
+        await sanitizeTable('insurance_claims', 'id', ['patient_name'], fakeValue);
+        await sanitizeTable('lab_radiology_orders', 'id', ['description', 'results', 'structured_report'], fakeValue);
+        await sanitizeTable('pharmacy_prescriptions_queue', 'id', ['prescription_text'], fakeValue);
+        await sanitizeTable('pharmacy_suppliers', 'id', ['contact_person', 'phone', 'email', 'address', 'notes'], fakeValue);
+        await sanitizeTable('hr_employee_documents', 'id', ['doc_number'], fakeValue);
+        await sanitizeTable('hr_leaves', 'id', ['notes'], fakeValue);
+        await sanitizeTable('hr_advances', 'id', ['notes'], fakeValue);
 
         console.log('\n== Sanitization Results Summary ==');
         console.log(`Tables Processed: ${tables_processed}`);
