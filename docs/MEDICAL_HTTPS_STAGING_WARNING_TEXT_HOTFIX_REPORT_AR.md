@@ -5,7 +5,7 @@
 
 ### 1. ملخص التعديل والسبب (Hotfix Summary & Rationale)
 
-بعد إتمام تفعيل بروتوكول التشفير الآمن (HTTPS) بنجاح وإغلاق الدفعات الثلاث الأولى من RLS على بيئة الاستضافة الاستباقية (Staging Server) للدومين المعتمد `https://alfaisal-erp.com/`، تبيّن أن لافتة التحذير العلوية لا تزال تعرض رسالة قديمة تفيد بأن البيئة تعمل ببروتوكول HTTP-only غير المشفر.
+بعد إتمام تفعيل بروتوكول التشفير الآمن (HTTPS) بنجاح وإغلاق الدفعات الثلاث الأولى من RLS على بيئة الاستضافة الاستباقية (Staging Server) للدومين المعتمد `https://jumanasoft.com/`، تبيّن أن لافتة التحذير العلوية لا تزال تعرض رسالة قديمة تفيد بأن البيئة تعمل ببروتوكول HTTP-only غير المشفر.
 
 تم إجراء هذا الإصلاح العاجل (Hotfix) لتصحيح التوصيف النصي في واجهة المستخدم ليكون دقيقاً ومتوافقاً مع الحالة الأمنية الحالية دون تعديل أي منطق برمجي أمني، أو المساس بالبنية الهيكلية لقاعدة البيانات، أو تغيير سياسات RLS المفعلة مسبقاً.
 
@@ -62,7 +62,7 @@ STATUS:
   MEDICAL_HTTPS_STAGING_WARNING_TEXT_HOTFIX_COMPLETED
 
 PUBLIC_URL_HTTPS:
-  https://alfaisal-erp.com/
+  https://jumanasoft.com/
 
 ENVIRONMENT_CLASSIFICATION:
   PUBLIC_STAGING_HTTPS_RLS_BATCH3_ENABLED_NOT_FULL_PRODUCTION

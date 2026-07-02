@@ -3,7 +3,7 @@
 > 2026-06-22 | المعمارية الحالية (من الكود) + الهدف. لا تغيير إنتاجي.
 
 ## 1-4 الهدف/النطاق/المنهجية/الأدلة
-توصيف فعلي: Node/Express monolith (server.js 7054 سطر) + SPA (app.js 11469 سطر) + PostgreSQL 16 + Redis + PM2 على صندوق win32 واحد، خلف دومين alfaisal-erp.com (health 200).
+توصيف فعلي: Node/Express monolith (server.js 7054 سطر) + SPA (app.js 11469 سطر) + PostgreSQL 16 + Redis + PM2 على صندوق win32 واحد، خلف دومين jumanasoft.com (health 200).
 
 ## المعمارية الحالية
 - **System context**: مستخدمون (متصفّح) → Nginx/دومين → Node:3000 → PostgreSQL (nama_medical_web) + Redis (جلسات). تطبيق متعدد المستأجرين.
@@ -17,7 +17,7 @@
 - **Logging/Audit**: logAudit→audit_trail (FORCE، append-only).
 - **Caching/Redis**: جلسات؛ التطبيق يرفض MemoryStore في الإنتاج.
 - **PM2**: nama-app؛ logon resurrect (HKCU Run) + watchdog كل 5د.
-- **Nginx/domain**: alfaisal-erp.com (HTTPS).
+- **Nginx/domain**: jumanasoft.com (HTTPS).
 - **Backup/restore**: dumps خارجية + down.sql per-batch.
 - **Deployment topology**: single-box (لا HA).
 

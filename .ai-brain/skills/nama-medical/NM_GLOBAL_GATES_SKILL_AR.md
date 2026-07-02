@@ -23,7 +23,7 @@ MOJIBAKE_BLOCKERS: احجب علامات UTF-8 المكسورة الشائعة (
 git rev-list --left-right --count origin/master...HEAD     # expect 0  0
 git -C namaweb status --short                              # expect clean
 curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/health   # 200
-curl -s -o /dev/null -w "%{http_code}" https://alfaisal-erp.com/api/health # 200
+curl -s -o /dev/null -w "%{http_code}" https://jumanasoft.com/api/health # 200
 docker exec nama-redis redis-cli ping                      # PONG
 # DB: FORCE_RLS=150 ، finance_journal_entries=0
 ```

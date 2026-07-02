@@ -19,7 +19,7 @@
 ## 3. البيئة
 | البند | القيمة |
 | ----- | ------ |
-| النطاق | alfaisal-erp.com |
+| النطاق | jumanasoft.com |
 | الخادم | 204.168.144.74 |
 | خدمة PM2 | nama-medical-erp |
 | مسار التطبيق | /var/www/namaweb |

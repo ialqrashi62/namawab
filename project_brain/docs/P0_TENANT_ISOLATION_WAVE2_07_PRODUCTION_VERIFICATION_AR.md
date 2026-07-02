@@ -1,12 +1,12 @@
 # P0 الموجة 2 — 07 التحقق من الإنتاج (Production Verification)
 
-> التاريخ: 2026-06-20 | بعد نشر Class B على alfaisal-erp.com.
+> التاريخ: 2026-06-20 | بعد نشر Class B على jumanasoft.com.
 
 ## الفحوصات (جميعها بعد النشر)
 
 | الفحص | النتيجة |
 | ----- | ------- |
-| `GET https://alfaisal-erp.com/api/health` | **200** — `{"status":"UP"}` |
+| `GET https://jumanasoft.com/api/health` | **200** — `{"status":"UP"}` |
 | PM2 `nama-medical-erp` | **online** — mem ~71mb |
 | أخطاء PM2 (آخر 40 سطراً) | **لا أخطاء** (لا ECONN/throw/column-does-not-exist) |
 | Redis | **PONG** — 55 مفتاح جلسة `nama_session:*` (لا تراجع MemoryStore) |

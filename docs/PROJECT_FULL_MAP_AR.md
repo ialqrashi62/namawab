@@ -5,7 +5,7 @@
 
 ## 1. الهوية
 - **الاسم**: نما الطبي (NamaMedical) — نظام HIS/EMR + ERP + SaaS متعدد المستأجرين.
-- **الحالة**: إنتاج فعلي (`alfaisal-erp.com`، PM2 `nama-medical-erp`، Nginx، Let's Encrypt) + بيئة dev محلية (`localhost:3000`، PM2 `nama-app`).
+- **الحالة**: إنتاج فعلي (`jumanasoft.com`، PM2 `nama-medical-erp`، Nginx، Let's Encrypt) + بيئة dev محلية (`localhost:3000`، PM2 `nama-app`).
 - **المستخدمون**: استقبال، أطباء، تمريض، صيدلة، مختبر، أشعة، محاسبة/مالية، تأمين، مخازن، HR، جودة، إدارة، مالك SaaS.
 
 ## 2. التقنية

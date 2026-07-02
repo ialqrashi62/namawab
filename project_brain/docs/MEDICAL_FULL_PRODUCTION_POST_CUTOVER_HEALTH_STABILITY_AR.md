@@ -7,7 +7,7 @@
 
 ## 1. نتائج فحوصات استجابة نهاية الصحة (HTTPS Health Verification)
 
-* **الرابط المستعلم عنه**: `https://alfaisal-erp.com/api/health`
+* **الرابط المستعلم عنه**: `https://jumanasoft.com/api/health`
 * **رمز الاستجابة (HTTP Status)**: `200 OK`
 * **محتوى الاستجابة (Response Body)**:
   ```json
@@ -21,9 +21,9 @@
 
 ## 2. نتائج فحص توجيه الـ HTTP غير المشفر (HTTP to HTTPS Redirect)
 
-* **الرابط المستعلم عنه**: `http://alfaisal-erp.com/api/health`
+* **الرابط المستعلم عنه**: `http://jumanasoft.com/api/health`
 * **رمز الاستجابة الأولي**: `301 Moved Permanently`
-* **رابط التوجيه المستهدف (Location Header)**: `https://alfaisal-erp.com/api/health`
+* **رابط التوجيه المستهدف (Location Header)**: `https://jumanasoft.com/api/health`
 * **الملاحظة التشغيلية**: يتم توجيه كافة الطلبات الواردة غير المشفرة (HTTP) تلقائياً ودائماً إلى القناة الآمنة والمشفرة (HTTPS) لضمان سرية وحماية حركة البيانات.
 * **الحالة**: **`PASS`**
 

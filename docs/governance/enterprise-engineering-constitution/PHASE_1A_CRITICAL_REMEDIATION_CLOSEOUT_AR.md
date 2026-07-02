@@ -59,7 +59,7 @@
   - تراجع برمجياً: `git restore clinical_cpoe.js server.js` وحذف الملفات المضافة غير المتتبعة.
   - تراجع لقاعدة البيانات: تنفيذ ملف التراجع [e1_02_clinical_notes_down.sql](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/migrations/e1_02_clinical_notes_down.sql) و [ex_02_rbac_down.sql](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/migrations/ex_02_rbac_down.sql) لإلغاء قيود الجداول واستعادة المخطط السابق.
 - **Production write/deploy touched**: NO
-- **Production read-only touched**: YES (فحص جاهزية خادم الإنتاج ورابط الصحة العام `alfaisal-erp.com/api/health` فقط دون إرسال أو تعديل أي بيانات).
+- **Production read-only touched**: YES (فحص جاهزية خادم الإنتاج ورابط الصحة العام `jumanasoft.com/api/health` فقط دون إرسال أو تعديل أي بيانات).
 - **Secrets exposed in raw execution log**: NO (تم عزل وفحص كافة المتغيرات الحساسة).
 - **Secret redaction completed**: YES (تم استبدال أي كلمات مرور تطويرية أو متغيرات بيئية محلية بـ `[REDACTED_SECRET]` و `[REDACTED_PGPASSWORD]`).
 - **PHI used**: NO (تم استخدام بيانات تجريبية وسجلات وهمية Synthetic Data بالكامل).

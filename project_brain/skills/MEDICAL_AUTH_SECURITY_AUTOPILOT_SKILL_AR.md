@@ -55,7 +55,7 @@
 * **فحص حالة العمليات**: `pm2 status`
 * **فحص سجلات التطبيق بدون أسرار**: `pm2 logs --lines 100 --nostream`
 * **فحص حالة المنافذ**: `netstat -tulpn` أو `ss -tulpn`
-* **فحص استجابة HTTPS**: `curl -I https://alfaisal-erp.com/`
+* **فحص استجابة HTTPS**: `curl -I https://jumanasoft.com/`
 
 ---
 

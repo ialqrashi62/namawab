@@ -47,7 +47,7 @@
 ```
 docker run -d --name nama-redis --restart unless-stopped -p 6379:6379 redis:7-alpine
 ```
-> **لن أُشغّله بدون موافقتك الصريحة** (تشغيل خدمة/حاوية جديدة). البدائل: (أ) تشغيل Redis ثم إعادة `pm2 start ecosystem.config.js` + smoke؛ (ب) تأكيد أن الـ smoke المقصود هو على خادم الإنتاج البعيد (alfaisal-erp.com) وليس هذه النسخة المحلية.
+> **لن أُشغّله بدون موافقتك الصريحة** (تشغيل خدمة/حاوية جديدة). البدائل: (أ) تشغيل Redis ثم إعادة `pm2 start ecosystem.config.js` + smoke؛ (ب) تأكيد أن الـ smoke المقصود هو على خادم الإنتاج البعيد (jumanasoft.com) وليس هذه النسخة المحلية.
 
 ## حقول الإغلاق
 ```text

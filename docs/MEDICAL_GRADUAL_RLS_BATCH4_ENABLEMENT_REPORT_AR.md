@@ -9,7 +9,7 @@
 
 * **الحالة النهائية**: **نجاح التفعيل والتحقق بنسبة 100% (MEDICAL_GRADUAL_RLS_BATCH4_HIGH_RISK_ENABLEMENT_COMPLETED)**
 * **تاريخ التنفيذ**: 19 يونيو 2026
-* **الرابط المحمي عبر HTTPS**: `https://alfaisal-erp.com/`
+* **الرابط المحمي عبر HTTPS**: `https://jumanasoft.com/`
 * **تصنيف البيئة الحالية**: `PUBLIC_STAGING_HTTPS_RLS_BATCH4_ENABLED_NOT_FULL_PRODUCTION`
 
 ---

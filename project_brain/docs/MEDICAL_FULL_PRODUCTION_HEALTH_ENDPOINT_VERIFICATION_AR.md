@@ -7,7 +7,7 @@
 
 ## 1. تفاصيل فحص الطلب والاستجابة (HTTP Call Analysis)
 
-* **الرابط المستعلم عنه**: `https://alfaisal-erp.com/api/health`
+* **الرابط المستعلم عنه**: `https://jumanasoft.com/api/health`
 * **رمز الحالة المسترجع (HTTP Status)**: **`200 OK`**
 * **بنية الاستجابة (Response Body)**:
   ```json

@@ -1,7 +1,7 @@
 # 07 — المعمارية + الأمن + النشر + Design System + i18n + Seeders + Migrations
 
 ## 1) Architecture (المعمارية)
-**الحالية:** Monolith Node/Express (`server.js`) + SPA عميل (`public/js/app.js` ~11k سطر + `admin.js`) + PostgreSQL 16 (`nama_medical_web`) + Redis (جلسات) + PM2 (`nama-app`) على single-box win32، خلف nginx (دومين عام alfaisal-erp.com).
+**الحالية:** Monolith Node/Express (`server.js`) + SPA عميل (`public/js/app.js` ~11k سطر + `admin.js`) + PostgreSQL 16 (`nama_medical_web`) + Redis (جلسات) + PM2 (`nama-app`) على single-box win32، خلف nginx (دومين عام jumanasoft.com).
 ```
 [Browser SPA] —https—> [nginx] —> [Express (PM2 nama-app)] —RLS—> [PostgreSQL native]
                                           │

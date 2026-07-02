@@ -1,6 +1,6 @@
 # DEPLOY_ALL — دليل النشر النهائي (E0 → E9)
 
-> **الحالة:** كل الإبيكات التسعة (+E-X) مبنية ومُراجَعة ومُختبَرة كفروع `origin/feat/*` — **لا شيء منشور على alfaisal-erp.com** (live main = `171b7c2`).
+> **الحالة:** كل الإبيكات التسعة (+E-X) مبنية ومُراجَعة ومُختبَرة كفروع `origin/feat/*` — **لا شيء منشور على jumanasoft.com** (live main = `171b7c2`).
 > هذا الدليل يُنفَّذه **المالك** (DDL يتطلّب دور قاعدة بيانات مخوّل؛ الوكيل يملك صلاحيات دور التطبيق فقط). بعد تنفيذ المالك للـDDL ودمج الكود، يتولّى الوكيل النشر (`pm2 restart`) + smoke.
 > **آخر تحديث:** 2026-06-26 — بعد اكتمال E9 (الأخير).
 
@@ -114,7 +114,7 @@ psql -f migrations/e0_04_integration_settings_rls_up.sql && psql -f migrations/e
 ## 4) Smoke / معايير القبول بعد النشر
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}" https://alfaisal-erp.com/health      # توقّع 200
+curl -s -o /dev/null -w "%{http_code}" https://jumanasoft.com/health      # توقّع 200
 # تحقّق FORCE_RLS ≥ 150 (سياسات جديدة من الإبيكات ترفع العدد)
 ```
 - شغّل كل اختبارات الإبيكات (DB-free) قبل النشر على فرع التكامل: `e1_*`, `e5_*`, `e6_*`, `e7_*`, `e8_*`, `e9_*`, `esi_triage_unit_test`, `nursing_scores_unit_test`, `icu_scores_unit_test`, وكل `cross_tenant_*` — كلها 0 فشل (مُتحقَّق على كل فرع).

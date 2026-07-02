@@ -55,7 +55,7 @@
   `/var/www/namaweb_backup_pre_deploy.tar.gz`
 
 ### 5.2 التحقق المسبق (Pre-deploy Checks)
-- فحص استجابة رابط الصحة العام على الإنتاج: `curl -s https://alfaisal-erp.com/api/health` والتأكد من استلام رمز الحالة 200.
+- فحص استجابة رابط الصحة العام على الإنتاج: `curl -s https://jumanasoft.com/api/health` والتأكد من استلام رمز الحالة 200.
 - التحقق من عدم وجود أي عمليات ترقية مجهضة أو قيود تالفة.
 
 ### 5.3 خطوات النشر (Deployment Steps)

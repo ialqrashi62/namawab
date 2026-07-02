@@ -3,7 +3,7 @@
 > 2026-06-22 | بروتوكول نشر محكوم (مبني على النمط المثبت في هذا المشروع). لا نشر في هذا التحليل.
 
 ## 1-4 الهدف/النطاق/المنهجية/الأدلة
-نشر آمن على صندوق win32 واحد (PM2 + Postgres + Redis + Nginx/alfaisal-erp.com). النمط المثبّت: rehearse→backup→execute→validate→smoke→rollback-ready.
+نشر آمن على صندوق win32 واحد (PM2 + Postgres + Redis + Nginx/jumanasoft.com). النمط المثبّت: rehearse→backup→execute→validate→smoke→rollback-ready.
 
 ## العناصر
 | المرحلة | السياسة |
@@ -15,8 +15,8 @@
 | Migration policy | DDL كـcandidate (up/validate/down) → rehearse على قاعدة معزولة → backup → execute atomic → validate → smoke. **لا DDL بلا موافقة بوابة** |
 | Rollback plan | كود: `git -C namaweb checkout <prev> -- server.js && pm2 restart`؛ DB: down.sql لكل دفعة |
 | PM2 | `pm2 restart nama-app --update-env`؛ dump.pm2 محفوظ؛ logon resurrect (HKCU Run) |
-| Nginx | reverse proxy على alfaisal-erp.com (HTTPS)؛ TLS سليم |
-| Domain verification | curl https://alfaisal-erp.com/api/health = 200 |
+| Nginx | reverse proxy على jumanasoft.com (HTTPS)؛ TLS سليم |
+| Domain verification | curl https://jumanasoft.com/api/health = 200 |
 | Health checks | health 5/5 محلي + دومين بعد النشر |
 | Smoke tests | unauth=401، عزل 3/0/0، الدور non-superuser، FORCE count ثابت |
 | Post-deploy monitoring | watchdog كل 5د + سجل؛ مراقبة restart_time (crash-loop) |

@@ -9,7 +9,7 @@
 `namaweb/server.js` (7054 سطر، 377 مسار API)، `namaweb/public/js/app.js` (11469 سطر، 51 صفحة)، قاعدة `nama_medical_web` (162 جدول)، `ROLE_PERMISSIONS` (11 دور)، `FACILITY_ALLOWED` (3 أنواع منشآت).
 
 ## 3. منهجية الفحص
-استخراج مباشر: `grep` للمسارات/الأدوار، `pages[]` array للصفحات، `pg_class`/`information_schema` للجداول والـRLS. الدومين alfaisal-erp.com حيّ (health 200).
+استخراج مباشر: `grep` للمسارات/الأدوار، `pages[]` array للصفحات، `pg_class`/`information_schema` للجداول والـRLS. الدومين jumanasoft.com حيّ (health 200).
 
 ## 4. الأدلة (أرقام حيّة)
 | المقياس | القيمة |

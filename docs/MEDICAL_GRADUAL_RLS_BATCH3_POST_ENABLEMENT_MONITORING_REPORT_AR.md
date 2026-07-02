@@ -22,7 +22,7 @@
 2. **سجلات أخطاء Nginx (`nginx/error.log`)**:
    - لا توجد أخطاء توجيه (Gateway Errors 502/504) أو طلبات مرفوضة بشكل غير طبيعي.
 3. **أمان ترويسات HTTPS**:
-   - استجابة الموقع المستضاف `https://alfaisal-erp.com/` سليمة برمز 200 OK.
+   - استجابة الموقع المستضاف `https://jumanasoft.com/` سليمة برمز 200 OK.
    - تأكيد عمل Secure Cookies بنجاح مع ترويسات CSP و HSTS.
 
 ---

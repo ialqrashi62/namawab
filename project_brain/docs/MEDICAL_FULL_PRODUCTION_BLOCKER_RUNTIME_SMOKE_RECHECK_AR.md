@@ -35,7 +35,7 @@
 
 | فحص الدخان (Smoke Test Case) | الأمر المنفذ | النتيجة المتوقعة | النتيجة الفعلية | الحالة |
 | :--- | :--- | :--- | :--- | :---: |
-| فحص الصحة (Health Check) | `curl -k https://alfaisal-erp.com/api/health` | `{"status":"UP"}` | `{"status":"UP"}` | **PASS** |
+| فحص الصحة (Health Check) | `curl -k https://jumanasoft.com/api/health` | `{"status":"UP"}` | `{"status":"UP"}` | **PASS** |
 | كوكيز الجلسة الآمنة | فحص ترويسة `Set-Cookie` | `Secure; HttpOnly; SameSite=Lax` | `connect.sid=...; Secure; HttpOnly; SameSite=Lax` | **PASS** |
 | عزل المسارات المحمية | محاولة استدعاء `/api/patients` بدون تسجيل دخول | `401 Unauthorized` | `HTTP/1.1 401 Unauthorized` | **PASS** |
 

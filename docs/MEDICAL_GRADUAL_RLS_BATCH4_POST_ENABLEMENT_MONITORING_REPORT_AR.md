@@ -35,7 +35,7 @@
 ### 3. تدقيق الصحة ومحاكاة الزيارات (Health Checks & Smokes)
 
 1. **الوصول عبر HTTPS**:
-   - تم فحص الرابط `https://alfaisal-erp.com/` وكانت الاستجابة `200 OK`.
+   - تم فحص الرابط `https://jumanasoft.com/` وكانت الاستجابة `200 OK`.
    - شهادة الأمان (SSL) صالحة وعاملة.
 2. **فحص ترويسات الأمان (Security Headers)**:
    - تم فحص الترويسات المفعلة وظهرت ترويسة HSTS (`Strict-Transport-Security`) بنجاح بقيمة `max-age=31536000; includeSubDomains`.

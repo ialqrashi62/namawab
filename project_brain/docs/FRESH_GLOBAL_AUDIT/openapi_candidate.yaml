@@ -7,7 +7,7 @@ info:
     missing endpoints. Source of truth = server.js (377 routes). Multi-tenant; session auth;
     RLS-enforced (app.tenant_id). This file is documentation only — no code generated/deployed.
 servers:
-  - url: https://alfaisal-erp.com
+  - url: https://jumanasoft.com
   - url: http://127.0.0.1:3000
 components:
   securitySchemes:

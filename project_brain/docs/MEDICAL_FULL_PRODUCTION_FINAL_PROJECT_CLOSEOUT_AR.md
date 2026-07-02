@@ -19,7 +19,7 @@
 
 ## 2. البيانات الفنية لإصدار النشر النهائي (Deployment Details)
 
-* **النطاق المعتمد (Domain)**: `alfaisal-erp.com`
+* **النطاق المعتمد (Domain)**: `jumanasoft.com`
 * **عنوان خادم الإنتاج (IP)**: `204.168.144.74`
 * **بيئة التشغيل**: `production`
 * **الالتزام الأب المعتمد (Parent Commit HEAD)**: `2aceb0b0ae7e41e62050af281c8689f3d919f155`

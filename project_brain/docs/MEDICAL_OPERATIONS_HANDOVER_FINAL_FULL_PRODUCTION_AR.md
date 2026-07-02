@@ -8,7 +8,7 @@
 ## 1. تفاصيل بيئة الإنتاج الفعلي (Production Environment Details)
 
 تم اعتماد تشغيل بيئة الإنتاج الفعلي طبقاً للبيانات التالية:
-* **النطاق الإنتاجي (Production Domain)**: `https://alfaisal-erp.com`
+* **النطاق الإنتاجي (Production Domain)**: `https://jumanasoft.com`
 * **عنوان خادم الإنتاج (Production IP)**: `204.168.144.74`
 * **قاعدة بيانات التطبيق**: PostgreSQL 12+ باسم `nama_medical_web` (على المنفذ المحلي 5432).
 * **إعداد الجلسات الموزعة**: خادم Redis محلي (على المنفذ 6379).

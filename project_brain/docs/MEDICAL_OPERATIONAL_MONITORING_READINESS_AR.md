@@ -25,6 +25,6 @@
   * المنفذ `443` (HTTPS الآمن للتطبيق).
 * **إدارة شهادات الأمان Certbot**:
   * الإصدار المتاح: `1.21.0`.
-  * النطاق الموثق: `alfaisal-erp.com`.
+  * النطاق الموثق: `jumanasoft.com`.
   * التجديد التلقائي لشهادة SSL: نشط ويعمل بشكل دوري بواسطة Certbot systemd timer.
 * **شريط تحذير بيئة Staging**: نشط ويظهر بصيغة تأمين HTTPS: `HTTPS-secured staging environment - Not production ready`.

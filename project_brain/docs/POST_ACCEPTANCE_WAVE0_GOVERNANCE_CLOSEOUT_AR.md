@@ -5,7 +5,7 @@
 ## نتائج الموجات
 | الموجة | النتيجة |
 |---|---|
-| 0A — www SSL | ✅ **مُصلَح ومُتحقَّق** (ليس من طرفي): الشهادة (مُعاد إصدارها اليوم Jun 22، صالحة→Sep 20) تغطّي `alfaisal-erp.com`+`www`؛ www→**301**→`https://alfaisal-erp.com/`؛ www health (متابَع)=200. الحالة المعتمدة (CN invalid) قديمة. **لا أملك وصولاً لمضيف nginx/Ubuntu من هذا الصندوق win32** (certbot/nginx غائبان) — لم يلزم تدخّل. |
+| 0A — www SSL | ✅ **مُصلَح ومُتحقَّق** (ليس من طرفي): الشهادة (مُعاد إصدارها اليوم Jun 22، صالحة→Sep 20) تغطّي `jumanasoft.com`+`www`؛ www→**301**→`https://jumanasoft.com/`؛ www health (متابَع)=200. الحالة المعتمدة (CN invalid) قديمة. **لا أملك وصولاً لمضيف nginx/Ubuntu من هذا الصندوق win32** (certbot/nginx غائبان) — لم يلزم تدخّل. |
 | 0B — namaweb WIP | ⛔ شجرة متّسخة (664 سطر، R17)، **لم تُلمس**؛ قرار يحتاج تنسيق R17/مالك. `APP_CODE_DEPLOY_ALLOWED: NO` |
 | 0C — Browser E2E | ⏸ ملف الاعتماد غائب ⇒ DEFERRED_PENDING_TEST_ACCOUNT |
 | 0D — Phase A | ✅ مُخطَّط فقط (5 بنود مرتّبة)، **لم يُنفَّذ** |

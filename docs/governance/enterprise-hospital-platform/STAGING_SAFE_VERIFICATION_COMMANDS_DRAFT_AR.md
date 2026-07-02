@@ -46,12 +46,12 @@
 
 * **التحقق من استجابة واجهة الصحة العامة (Health Endpoint):**
   ```bash
-  curl -i -s https://staging.alfaisal-erp.com/api/health
+  curl -i -s https://staging.jumanasoft.com/api/health
   ```
   *(النتيجة المطلوبة: رمز الحالة 200 OK، والاستجابة: `{"status":"UP"}`)*.
 * **التحقق من توجيه النطاق الفرعي وشهادة التشفير (TLS Verification):**
   ```bash
-  curl -Iv https://staging.alfaisal-erp.com/api/health 2>&1 | grep -E "SSL connection|start date|expire date|common name"
+  curl -Iv https://staging.jumanasoft.com/api/health 2>&1 | grep -E "SSL connection|start date|expire date|common name"
   ```
 
 ---
@@ -92,11 +92,11 @@
 * **التحقق من حظر عمليات الكتابة على واجهات التطبيق المخططة:**
   ```bash
   # محاولة إرسال طلب POST تجريبي لواجهة نهائية
-  curl -i -X POST -H "Content-Type: application/json" -d '{}' https://staging.alfaisal-erp.com/api/v1/actions/finalize
+  curl -i -X POST -H "Content-Type: application/json" -d '{}' https://staging.jumanasoft.com/api/v1/actions/finalize
   ```
   *(النتيجة المطلوبة: استلام رمز حجب أو رفض مثل 403 Forbidden أو 404 Not Found تفيد بأن الواجهة غير مفعلة حياً)*.
 * **التحقق من أعلام الأمان في ملف العقود المتاح للعموم:**
   ```bash
-  curl -s https://staging.alfaisal-erp.com/js/enterprise-contracts.js | grep -E "isLiveEndpointEnabled|isWriteOperationEnabled"
+  curl -s https://staging.jumanasoft.com/js/enterprise-contracts.js | grep -E "isLiveEndpointEnabled|isWriteOperationEnabled"
   ```
   *(يجب التأكد من أن الدوال تُرجع دائماً القيمة `false`)*.

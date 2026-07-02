@@ -1,21 +1,21 @@
 # تقرير تفعيل بروتوكول HTTPS للبيئة التجريبية (Safe HTTPS Enablement Report)
-## نطاق حوكمة وأمان خادم نما الطبي - alfaisal-erp.com
+## نطاق حوكمة وأمان خادم نما الطبي - jumanasoft.com
 
 ---
 
 ### 1. ملخص تفعيل الشهادة والبروتوكول (HTTPS Activation Summary)
 
-تم بنجاح تفعيل بروتوكول **HTTPS** المشفر بالكامل على الدومين المعتمد **alfaisal-erp.com** الموجه إلى عنوان خادم الاستضافة التجريبية العامة **204.168.144.74** باستخدام شهادة مجانية معتمدة من Let's Encrypt تم إصدارها ودمجها تلقائياً مع خادم Nginx.
+تم بنجاح تفعيل بروتوكول **HTTPS** المشفر بالكامل على الدومين المعتمد **jumanasoft.com** الموجه إلى عنوان خادم الاستضافة التجريبية العامة **204.168.144.74** باستخدام شهادة مجانية معتمدة من Let's Encrypt تم إصدارها ودمجها تلقائياً مع خادم Nginx.
 
 ---
 
 ### 2. تفاصيل التجهيز والخطوات (Execution details)
 
-1. **التحقق من DNS**: تم التأكد من توجيه الدومين `alfaisal-erp.com` و `www.alfaisal-erp.com` بالكامل إلى IP السيرفر `204.168.144.74` باستخدام nslookup محلياً بنجاح.
+1. **التحقق من DNS**: تم التأكد من توجيه الدومين `jumanasoft.com` و `www.jumanasoft.com` بالكامل إلى IP السيرفر `204.168.144.74` باستخدام nslookup محلياً بنجاح.
 2. **النسخ الاحتياطي**: تم نسخ ملف إعدادات Nginx النشط `/etc/nginx/sites-available/default` إلى `/etc/nginx/sites-available/default.bak` كخطوة وقائية قبل البدء.
-3. **تحديث server_name**: تم تغيير إعدادات خادم Nginx من الاسم العام `server_name _;` إلى الاسم الحصري `server_name alfaisal-erp.com;`.
+3. **تحديث server_name**: تم تغيير إعدادات خادم Nginx من الاسم العام `server_name _;` إلى الاسم الحصري `server_name jumanasoft.com;`.
 4. **تثبيت certbot**: تم تثبيت certbot وحزمة الدمج python3-certbot-nginx تلقائياً عبر مدير الحزم apt-get.
-5. **إصدار الشهادة**: تم تشغيل certbot وتوليد شهادة معتمدة صالحة لمدة 90 يوماً للمطالبة باسم النطاق المشفر `https://alfaisal-erp.com/`.
+5. **إصدار الشهادة**: تم تشغيل certbot وتوليد شهادة معتمدة صالحة لمدة 90 يوماً للمطالبة باسم النطاق المشفر `https://jumanasoft.com/`.
 6. **التحقق من التجديد**: تم فحص وتفعيل المؤقت التلقائي للتجديد بنجاح، واجتياز اختبار التجديد الوهمي (`certbot renew --dry-run`) بنسبة **PASS**.
 
 ---
@@ -33,10 +33,10 @@ STATUS:
 MEDICAL_HTTPS_ENABLEMENT_COMPLETED
 
 DOMAIN:
-alfaisal-erp.com
+jumanasoft.com
 
 PUBLIC_URL_HTTPS:
-https://alfaisal-erp.com/
+https://jumanasoft.com/
 
 HTTPS_ENABLED:
 YES

@@ -9,7 +9,7 @@
 
 تم الاستعلام الفعلي عن رابط الصحة للموقع من خلال خادم الإنتاج وجاءت النتائج كالتالي:
 
-* **رابط الصحة عبر HTTPS**: `https://alfaisal-erp.com/api/health`
+* **رابط الصحة عبر HTTPS**: `https://jumanasoft.com/api/health`
   - **حالة الاستجابة (HTTP Status)**: `200 OK`
   - **محتوى الاستجابة (Body)**: `{"status":"UP"}`
   - **زمن الاستجابة**: مستقر وبشكل فوري.
@@ -20,9 +20,9 @@
 ## 2. فحص إعادة التوجيه التلقائي (HTTP to HTTPS Redirect)
 
 تم الاستعلام عن الرابط الأساسي عبر بروتوكول HTTP غير المشفر للتأكد من فاعلية التوجيه الآمن:
-* **الأمر المنفذ**: `curl -I http://alfaisal-erp.com/api/health`
+* **الأمر المنفذ**: `curl -I http://jumanasoft.com/api/health`
 * **رمز الحالة المستلم**: `301 Moved Permanently`
-* **وجهة التوجيه (Location)**: `https://alfaisal-erp.com/api/health`
+* **وجهة التوجيه (Location)**: `https://jumanasoft.com/api/health`
 * **النتيجة**: ناجح بالكامل ويتم توجيه حركة المرور تلقائياً إلى المسار المشفر.
 
 ---

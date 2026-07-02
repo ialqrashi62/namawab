@@ -69,7 +69,7 @@
   `pm2 restart nama-medical-erp --update-env`
 - الخدمة مستقرة ونشطة (Status: **online**).
 - فحص رابط الصحة المشفر والمباشر يرجع الاستجابة السليمة:
-  `https://alfaisal-erp.com/api/health` -> **200 OK** (`{"status":"UP","db":"up"}`).
+  `https://jumanasoft.com/api/health` -> **200 OK** (`{"status":"UP","db":"up"}`).
 
 ---
 

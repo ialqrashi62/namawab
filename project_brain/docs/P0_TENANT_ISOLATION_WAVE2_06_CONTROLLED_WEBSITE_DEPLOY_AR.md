@@ -6,7 +6,7 @@
 
 | البند | القيمة |
 | ----- | ------ |
-| النطاق | alfaisal-erp.com |
+| النطاق | jumanasoft.com |
 | الخادم | 204.168.144.74 (ubuntu-8gb-hel1-1) |
 | خدمة PM2 | nama-medical-erp |
 | مسار التطبيق | /var/www/namaweb |
