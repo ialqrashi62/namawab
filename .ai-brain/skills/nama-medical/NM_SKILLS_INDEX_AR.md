@@ -1,24 +1,112 @@
-# NM_SKILLS_INDEX — فهرس Skill Pack المراحل المتبقية (NamaMedical)
+# NM_SKILLS_INDEX — فهرس مهارات نظام الطبيب (Token Reduction Pack)
 
-> استشهد بهذه المهارات بدل تكرار القواعد في البرومنتات. **فعّل دائماً `NM_GLOBAL_GATES`** + المهارة الخاصة بالبوابة.
+> الإصدار 2.0 | محدَّث 2026-07-02
+> استشهد بهذا الفهرس في كل برومنت بدلاً من تكرار القواعد الطويلة.
 
-| Skill | الغرض | متى يُفعَّل | عمليات محظورة | حقول الإغلاق المتوقّعة |
-|---|---|---|---|---|
-| **NM_GLOBAL_GATES** | القواعد الدائمة + Gate 0 baseline + نمط النشر/Git | **كل بوابة** | force push · طباعة أسرار/مفاتيح · env/keys/PHI في git · merge R17 | FINAL_STATUS · PRODUCTION_CHANGES · ACCOUNTING(OFF) · JOURNAL(0) · GIT_PUSH(FF) · NEXT |
-| **NM_SECURITY_DR_KEY_MANAGEMENT** | KEK/escrow/Vault/KMS/تشفير/DR | بوابات المفاتيح/التشفير/النسخ | طباعة KEK/DPAPI blob · re-wrap إنتاجي بلا بنية+موافقة · ALTER عشوائي | KEY_MODEL · KEK_PROVIDER · REHEARSAL_STATUS · RESTORE_IMPLICATIONS |
-| **NM_INTEGRATION_SANDBOX** | قواعد كل sandbox تكامل | أي container/sandbox | تعريض عام · PHI · سحب صورة بلا موافقة · ربط إنتاجي | CONTAINER_STATUS · LOOPBACK_ONLY · TEARDOWN_STATUS · regression |
-| **NM_FHIR_HAPI** | تحويل/إدخال FHIR R4 على HAPI | بوابات FHIR/D2 | PHI حقيقي · NPHIES calls · كتابة بلا transaction | TRANSACTION_RESULT · READ_BACK · REFERENCE_INTEGRITY |
-| **NM_MIRTH_NEXTGEN** | قنوات Mirth/HL7/FHIR | بوابات Mirth/D1 | تجاوز admin auth · endpoints خارجية · PHI | CHANNEL_IMPORT_STATUS · END_TO_END · DLQ |
-| **NM_ORTHANC_PACS** | PACS/DICOM (Orthanc) | بوابات PACS/D5 | بايتات/صور DICOM حقيقية · تعريض المتصفّح · معرّفات حقيقية | ORTHANC_STATUS · DUMMY_DICOM · A3A_MODEL |
-| **NM_ZATCA_PHASE2** | الفوترة ZATCA Phase 2 | بوابات ZATCA | CSR/OTP/شهادة حقيقية · اتصال ZATCA بلا موافقة | ZATCA_PHASE2_STATUS · CSR_GENERATED(NO) · ZATCA_CALLS(NO) |
-| **NM_NPHIES** | تكامل NPHIES | بوابات NPHIES/تأمين خارجي | شهادة حقيقية · اتصال NPHIES · PHI حقيقي | NPHIES_STATUS · REAL_CERT(NO) · NPHIES_CALLS(NO) |
-| **NM_CLINICAL_ADVANCED** | الميزات السريرية المتقدمة | بوابات Phase C | أتمتة قرار سريري إنتاجي غير مختبَر · PHI حقيقي | PHASE_C_STATUS · REAL_PHI(NO) · NEXT_GATE |
-| **NM_OBSERVABILITY_OPS** | التشغيل/المراقبة/التعافي | بوابات Phase D ops | أسرار في السجلّات · تغيير app/DB | DOCKER_DAEMON_RECOVERY · WATCHDOG · REDIS_NATIVE |
-| **NM_FINANCE_ACCOUNTING_GUARD** | حارس المحاسبة | أي بوابة مالية | تفعيل posting · توليد journal · بلا موافقة صريحة | ACCOUNTING(OFF) · JOURNAL(0) · FINANCE_STATUS |
-| **NM_GOVERNANCE_CLOSEOUT** | نظافة الإغلاق/التقارير | نهاية كل بوابة | mojibake · ملفات خارج النطاق · non-FF | hygiene + حقول الإغلاق القياسية |
+---
 
-## التفعيل النموذجي
-`NM_GLOBAL_GATES` + `NM_GOVERNANCE_CLOSEOUT` (دائماً) + المهارة الخاصة بالبوابة (+ `NM_INTEGRATION_SANDBOX` لأي container).
+## قائمة المهارات الكاملة
 
-## الحالة المرجعية (محدّثة 2026-06-23)
-A1/A2/A3A/A3(DPAPI) منشورة · Phase B sandboxes (D2/D1/D5 + HAPI transaction + Mirth relay) مُثبتة محلياً · Vault/KMS المرحلة 2 candidate · KEK escrow + Redis-native معلّقان (مالك). FORCE_RLS=150 · accounting OFF · journal 0 · R17 سليمة.
+| الكود | الملف | الغرض | أولوية التفعيل |
+|---|---|---|---|
+| **NM_GLOBAL_GATES** | `NM_GLOBAL_GATES_AR.md` | قواعد Auto Pilot العامة — لا تنفيذ بدونها | **إلزامية دائماً** |
+| **NM_RLS_POSTGRES_SAFETY** | `NM_RLS_POSTGRES_SAFETY_AR.md` | RLS، عزل المستأجرين، دور التطبيق | أي بوابة DB |
+| **NM_HEALTHCARE_WORKFLOWS** | `NM_HEALTHCARE_WORKFLOWS_AR.md` | كل أقسام المستشفى 20+ قسم | أي ميزة سريرية/إدارية |
+| **NM_PHARMACY_MEDICATION_SAFETY** | `NM_PHARMACY_MEDICATION_SAFETY_AR.md` | الصيدلية، الوصفات، DDI/DAI، الصرف | بوابات الصيدلية |
+| **NM_HR_WORKFORCE_ACCESS** | `NM_HR_WORKFORCE_ACCESS_AR.md` | الموظفون، الأدوار، الحضور، الصلاحيات | بوابات HR/RBAC |
+| **NM_SECURITY_HARDENING** | `NM_SECURITY_HARDENING_AR.md` | XSS، SQL injection، CSP، CORS، Auth | أي بوابة أمنية |
+| **NM_DEVOPS_RELEASE** | `NM_DEVOPS_RELEASE_AR.md` | PM2، backup، health check، نشر آمن | بوابات النشر |
+| **NM_UAT_E2E** | `NM_UAT_E2E_AR.md` | Jest، smoke tests، cross-tenant tests | قبل كل نشر |
+| **NM_FHIR_NPHIES_ZATCA** | `NM_FHIR_NPHIES_ZATCA_AR.md` | FHIR R4، NPHIES، ZATCA، CBAHI، PDPL | بوابات التكاملات |
+| **NM_UI_UX_RTL** | `NM_UI_UX_RTL_AR.md` | Arabic RTL، ثنائية اللغة، دور-specific UI | بوابات الواجهة |
+| **NM_ARABIC_DOCS_UTF8** | `NM_ARABIC_DOCS_UTF8_AR.md` | UTF-8 نظيف، لا mojibake، تقارير مختصرة | كل تقرير عربي |
+| **NM_GOVERNANCE_CLOSEOUT** | `NM_GOVERNANCE_CLOSEOUT_AR.md` | إغلاق البوابة، final_status، أدلة | نهاية كل بوابة |
+
+---
+
+## المجموعات الجاهزة (Preset Bundles)
+
+### 🔰 مجموعة أساسية (أي مهمة)
+```
+فعّل NM_GLOBAL_GATES + NM_GOVERNANCE_CLOSEOUT.
+نفّذ المهمة بأقل تعديل آمن، توقف عند الفشل، لا تلمس Production، ولا تطبع أسراراً.
+```
+
+### 🔐 مجموعة RLS وقاعدة البيانات
+```
+فعّل NM_GLOBAL_GATES + NM_RLS_POSTGRES_SAFETY + NM_UAT_E2E + NM_GOVERNANCE_CLOSEOUT.
+افحص tenant isolation وFORCE RLS بدون لمس Production إلا بتصريح صريح.
+```
+
+### 🏥 مجموعة ميزة طبية
+```
+فعّل NM_GLOBAL_GATES + NM_HEALTHCARE_WORKFLOWS + NM_SECURITY_HARDENING + NM_UAT_E2E + NM_GOVERNANCE_CLOSEOUT.
+نفّذ الميزة عبر Auto Pilot gate-by-gate مع مراعاة الأطباء والتمريض والصيدلية والصلاحيات.
+```
+
+### 💊 مجموعة الصيدلية
+```
+فعّل NM_GLOBAL_GATES + NM_PHARMACY_MEDICATION_SAFETY + NM_HEALTHCARE_WORKFLOWS + NM_SECURITY_HARDENING + NM_UAT_E2E + NM_GOVERNANCE_CLOSEOUT.
+نفّذ سير عمل الصيدلية والوصفات والصرف والتنبيهات كمتطلبات نظامية لا كنصيحة علاجية نهائية.
+```
+
+### 👥 مجموعة الموارد البشرية
+```
+فعّل NM_GLOBAL_GATES + NM_HR_WORKFORCE_ACCESS + NM_SECURITY_HARDENING + NM_UAT_E2E + NM_GOVERNANCE_CLOSEOUT.
+نفّذ الموارد البشرية والصلاحيات والحضور والأدوار بأقل صلاحية ممكنة مع Audit Logs.
+```
+
+### 🛡️ مجموعة الأمن
+```
+فعّل NM_GLOBAL_GATES + NM_SECURITY_HARDENING + NM_UAT_E2E + NM_GOVERNANCE_CLOSEOUT.
+افحص XSS، SQL injection، CSP، CORS، rate limiting، secrets hygiene.
+```
+
+### 🎨 مجموعة الواجهات
+```
+فعّل NM_GLOBAL_GATES + NM_UI_UX_RTL + NM_HEALTHCARE_WORKFLOWS + NM_UAT_E2E + NM_GOVERNANCE_CLOSEOUT.
+حسّن الواجهة العربية RTL لكل دور سريري وإداري مع اختبارات smoke.
+```
+
+### 🚀 مجموعة الإنتاج
+```
+فعّل NM_GLOBAL_GATES + NM_DEVOPS_RELEASE + NM_RLS_POSTGRES_SAFETY + NM_UAT_E2E + NM_GOVERNANCE_CLOSEOUT.
+جهّز خطة نشر أو تحقق إنتاجي بدون تنفيذ deploy إلا بتصريح صريح.
+```
+
+### 🔗 مجموعة التكاملات
+```
+فعّل NM_GLOBAL_GATES + NM_FHIR_NPHIES_ZATCA + NM_SECURITY_HARDENING + NM_UAT_E2E + NM_GOVERNANCE_CLOSEOUT.
+اختبر NPHIES/ZATCA/FHIR على sandbox فقط. لا اتصالات حقيقية بدون موافقة.
+```
+
+### 🌍 مجموعة كل النظام
+```
+فعّل NM_GLOBAL_GATES + NM_HEALTHCARE_WORKFLOWS + NM_RLS_POSTGRES_SAFETY + NM_SECURITY_HARDENING + NM_DEVOPS_RELEASE + NM_UAT_E2E + NM_FHIR_NPHIES_ZATCA + NM_UI_UX_RTL + NM_ARABIC_DOCS_UTF8 + NM_GOVERNANCE_CLOSEOUT.
+نفّذ Auto Pilot gate-by-gate على النظام كاملاً، توقف عند أول فشل.
+```
+
+---
+
+## أمثلة برومنتات قصيرة
+
+```
+# إضافة ميزة في الطوارئ
+فعّل NM_GLOBAL_GATES + NM_HEALTHCARE_WORKFLOWS + NM_UAT_E2E.
+أضف [الميزة] للطوارئ. توقف عند الفشل.
+
+# مراجعة أمنية للـ API
+فعّل NM_GLOBAL_GATES + NM_SECURITY_HARDENING.
+افحص [endpoint] للثغرات. لا تُعدِّل إنتاجياً.
+
+# تحقق من RLS جديد
+فعّل NM_GLOBAL_GATES + NM_RLS_POSTGRES_SAFETY + NM_UAT_E2E.
+تحقق أن [جدول] معزول صحيحاً بين المستأجرين.
+```
+
+---
+
+## المهارات الموجودة مسبقاً في `.ai-brain/skills/`
+
+تحتوي المجلدات الأم على 59 مهارة MEDICAL_* تُغطي تفاصيل دقيقة لكل مرحلة.
+استشهد بمجموعة NM_ للبرومنتات اليومية، وبـ MEDICAL_* للتفاصيل التقنية العميقة.
