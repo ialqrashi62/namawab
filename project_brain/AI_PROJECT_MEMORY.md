@@ -590,7 +590,7 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **الحالة (Status)**: `MEDICAL_HTTPS_READINESS_DNS_VALIDATION_COMPLETED`
 * **الملفات البرمجية المعدلة**: لا يوجد (فحص وتحقق DNS وسرعة الوصول)
 * **نتائج الاختبارات**:
-  - التحقق من nslookup للدومين `alfaisal-erp.com` وتوجيهه للـ IP المعتمد `204.168.144.74` بنجاح.
+  - التحقق من nslookup للدومين `jumanasoft.com` وتوجيهه للـ IP المعتمد `204.168.144.74` بنجاح.
 * **المرحلة التالية الموصى بها**: `Safe HTTPS Enablement With Nginx + Certbot`
 
 ### Phase 45: Safe HTTPS Enablement With Nginx + Certbot
@@ -601,7 +601,7 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - [docs/MEDICAL_HTTPS_ENABLEMENT_REPORT_AR.md](docs/MEDICAL_HTTPS_ENABLEMENT_REPORT_AR.md)
 * **نتائج الاختبارات**:
   - نجاح تشغيل `certbot renew --dry-run` بنسبة 100%.
-  - نجاح استجابة الاتصال على `https://alfaisal-erp.com/` برمز 200 OK.
+  - نجاح استجابة الاتصال على `https://jumanasoft.com/` برمز 200 OK.
 * **المرحلة التالية الموصى بها**: `Session & Cookie Security Hardening After HTTPS`
 
 ### Phase 46: Session & Cookie Security Hardening After HTTPS
@@ -2184,7 +2184,7 @@ NamaMedical/ (المستودع الرئيسي الأب)
   - `docs/P0_TENANT_ISOLATION_WAVE2_01..08_*_AR.md` — 8 تقارير.
   - `docs/sql/p0_tenant_isolation_wave2_{up,validate,down,noop_safety_checks}.sql` — SQL متتبع لـ Class A (blood_bank/approvals/package_sessions) — **غير مُطبَّق على الإنتاج**.
 * **التصنيف**: Class B (تحمل tenant_id على الإنتاج، code-only، نُشرت) = 5 موديولات؛ Class A (تفتقر tenant_id، تحتاج DDL) = blood_bank ×4 + approvals + package_sessions (SQL جاهز، كود + DDL مؤجّل لـ Wave 2b).
-* **النشر والتحقق على الإنتاج (alfaisal-erp.com / 204.168.144.74 / nama-medical-erp)**:
+* **النشر والتحقق على الإنتاج (jumanasoft.com / 204.168.144.74 / nama-medical-erp)**:
   - نسخة احتياطية `server.js.bak.20260620_041618` + scp + `node --check` (OK) + `pm2 restart` (online).
   - `/api/health` = 200 UP؛ PM2 online (~71mb)؛ لا أخطاء بالسجلات؛ Redis PONG (55 جلسة، لا MemoryStore)؛ FORCE RLS = 13 جدولاً سليمة؛ مسارات Class B = 401 بلا جلسة (حيّة، لا انهيار).
   - ROLLBACK_REQUIRED: NO.
@@ -2281,7 +2281,7 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **تاريخ المرحلة**: 2026-06-20
 * **الحالة (Status)**: `P1_FACILITY_ENTITLEMENT_CONTROLLED_PRODUCTION_DEPLOY_COMPLETED` — PASS، PRODUCTION_DEPLOYED: YES
 * **الملفات الجديدة**: `docs/P1_FACILITY_ENTITLEMENT_CONTROLLED_DEPLOY_{BASELINE,VERIFICATION,FINAL_CLOSEOUT}_AR.md` (3 تقارير).
-* **النشر المحكوم** (alfaisal-erp.com / 204.168.144.74 / nama-medical-erp): نسخة احتياطية `server.js.bak.20260620_060249` → scp لـ server.js + facility_entitlements.js (md5 مطابق: 97aa0437 / 89a9e81c) → `node --check` OK → `pm2 restart` (online) → health 200/UP + 301.
+* **النشر المحكوم** (jumanasoft.com / 204.168.144.74 / nama-medical-erp): نسخة احتياطية `server.js.bak.20260620_060249` → scp لـ server.js + facility_entitlements.js (md5 مطابق: 97aa0437 / 89a9e81c) → `node --check` OK → `pm2 restart` (online) → health 200/UP + 301.
 * **التحقق**: HTTP حيّ (common=200، protected بلا جلسة=401)؛ قرارات الإنفاذ عبر الكود المنشور read-only **9/9** (pharmacy/lab/radiology/health_center محجوبة، medical_city full، unknown→422، unset→permissive، تجاوز مباشر بمسار عميق→403). **نوع المنشأة على الإنتاج = unset/permissive** فلا 403 حيّ دون ضبط نوع مقيّد (تغيير بيانات لم يُنفَّذ). **RLS P0 سليم**: patients 0→3→0 عبر الكود المنشور. Redis PONG (79 مفتاح). login 401.
 * **الكوميت المنشور**: namaweb `9897a6a` / parent `b206272`. Rollback مُجهّز (نسخة + حذف الملف الجديد) ولم يُستخدم.
 * **خطر متبقٍ موثّق**: fail-open (نوع غير مضبوط→permissive، وخطأ قراءة→تمرير) — يُحوَّل لاحقاً إلى fail-closed للمسارات الحساسة بعد ضمان facility_type لكل tenant (كود+اختبارات منفصلة).
