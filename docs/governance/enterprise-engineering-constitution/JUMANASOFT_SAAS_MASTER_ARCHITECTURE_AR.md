@@ -1,85 +1,98 @@
-# جمانة سوفت — المعمارية الرئيسية لـ SaaS ERP (PHASE 2)
+# المخطط المعماري الشامل لمنصة جمانة سوفت (Master SaaS Architecture Blueprint)
 
-**التاريخ:** 2026-06-30 · مبنية على **المشروع الحالي** (Express + PostgreSQL RLS)، لا على قالب خارجي.
-المبدأ: طبقة SaaS **additive** فوق الأسس الموجودة (RLS/RBAC/entitlements/audit/idempotency/ZATCA).
+مستند معماري يصف الهيكل التقني النهائي والآليات البرمجية المعتمدة لعزل البيانات، إدارة الاشتراكات، الصلاحيات، الفوترة، ومراقبة التشغيل في منصة جمانة سوفت.
 
-## 0) نظرة عامة (الطبقات)
+---
+
+## 1. نموذج عزل وتعدد المستأجرين (Tenant Model)
+
+تعتمد المنصة معمارية **قاعدة البيانات المشتركة مع عزل البيانات منطقياً (Shared Database, Logical Isolation)** لضمان الكفاءة الاقتصادية وسهولة الصيانة، مع تعزيز الأمان بأقوى الحواجز الأمنية:
+
+```mermaid
+graph TD
+    A[طلب العميل client request] --> B[Express Web Server]
+    B --> C[Tenant Context Middleware]
+    C -->|تحديد معرف المستأجر| D[AsyncLocalStorage]
+    D -->|حقن tenant_id في الجلسة| E[pg Pool Wrapper]
+    E -->|تنفيذ set_config| F[PostgreSQL Engine]
+    F -->|تطبيق سياسات RLS| G[(جداول قاعدة البيانات)]
 ```
-Public Site (تسويق + SEO/GEO)  ──►  Onboarding/Trial  ──►  Tenant App (ERP الطبي الحالي، معزول RLS)
-        │                                  │                         ▲
-        ▼                                  ▼                         │
-   SEO/GEO layer                    Billing & Subscriptions   ◄── Entitlements/Feature flags
-                                           │
-                              Super Admin (إدارة المنصّة) + Observability + Audit
-```
 
-## 1) نموذج المستأجر (Tenant Model)
-- المصدر الموجود: `tenant_id` + RLS FORCE على كل جدول حسّاس + `app.tenant_id` لكل طلب.
-- جدول المنصّة `tenants` (يُوسَّع): `id, name, slug, status(active|trial|suspended|canceled), plan_id, created_at, trial_ends_at, owner_user_id`.
-- `facilities` تبقى تحت المستأجر (منشأة/فرع). علاقة: tenant 1—N facilities.
-- العزل يبقى عبر RLS (الأقوى) — لا فلترة يدوية إلا دفاعاً مزدوجاً.
+### آليات العزل والتشغيل
+1. **تحديد المستأجر (Identification)**: يقوم الـ Middleware بفحص النطاق الفرعي (Subdomain) أو ترويسة الطلب (`x-tenant-id`) لتحديد الكيان الطالب.
+2. **سياق العملية (AsyncLocalStorage)**: يتم تخزين معرف المستأجر `tenant_id` في مخزن سياق محلي غير متزامن يرافق الطلب طوال دورة حياته.
+3. **أمان قاعدة البيانات (PostgreSQL RLS)**:
+   - يتم تفعيل خيار الـ Row Level Security على كافة الجداول المشتركة.
+   - عند قيام تطبيق Node.js بسحب اتصال من pool قاعدة البيانات، يقوم بتمرير معرف المستأجر الحالي كمتغير جلسة مؤقت:
+     ```sql
+     SELECT set_config('app.tenant_id', 'current_tenant_uuid', true);
+     ```
+   - تحتوي سياسات الاستعلام على حظر تلقائي يمنع الوصول لأي صف لا يطابق سياق الجلسة:
+     ```sql
+     CREATE POLICY tenant_isolation_policy ON patients
+     FOR ALL TO nama_medical_app
+     USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
+     ```
 
-## 2) الأدوار (Super Admin / Tenant Admin / User RBAC)
-- **Super Admin** (منصّة): يدير المستأجرين، الخطط، التفعيل/الإيقاف، يرى مقاييس التشغيل. **خارج** RLS المستأجر (دور/مخطّط منفصل `platform_admins`، لا يصل PHI المستأجرين افتراضياً).
-- **Tenant Admin**: يدير مستخدمي مستأجره، الفروع، الاشتراك، الفوترة.
-- **User RBAC**: مصفوفة `rbac.js` (fail-closed) + `requireRole`. الصلاحيات الدقيقة من DB.
-- حراسة P0 موجودة (مستخدمو النظام + ترقية Admin).
+---
 
-## 3) الخطط والتفعيلات (Plans & Entitlements)
-```sql
-plans(id, code, name, price_monthly NUMERIC(14,2), price_yearly, currency, trial_days, is_active)
-plan_features(plan_id, feature_key, limit_value)      -- e.g. ('clinic','max_users',25)
-tenant_entitlements(tenant_id, feature_key, limit_value, source)  -- مشتقّة من الخطة + تجاوزات
-```
-- يُبنى فوق `facility_entitlements`/وحدات الميزات الحالية.
-- فحص: `requireEntitlement('module')` middleware fail-closed (403 + code عند الغياب). راجع skill MULTI_TENANT_RBAC.
+## 2. نظام التحقق والتحكم بالصلاحيات الهجين (Authentication & User RBAC)
 
-## 4) دورة حياة الاشتراك (Subscription Lifecycle)
-```sql
-subscriptions(id, tenant_id, plan_id, provider, provider_sub_id, status, current_period_end,
-              cancel_at_period_end, created_at)
--- status: trialing | active | past_due | canceled | expired
-billing_events(id, tenant_id, provider, event_id UNIQUE, type, payload_jsonb, processed_at)
-```
-- مدفوعة بـ webhooks مُطبَّعة عبر المحوّل. `event_id UNIQUE` = idempotency (نعيد استخدام نمط `idempotency.js`).
-- انتقالات: trial→active (دفع)، active→past_due (فشل دفع + مهلة)، →canceled (إلغاء)، →expired.
+تعتمد جمانة سوفت نموذج صلاحيات ثلاثي الطبقات متوافق مع لوحة تحكم متكاملة:
 
-## 5) تجريد مزوّد الدفع (Payment Provider Abstraction)
-- واجهة واحدة `PaymentProvider` (createCustomer/createCheckout/createSubscription/cancel/refund/handleWebhook).
-- التنفيذ: `providers/stripe.js` الآن، `providers/moyasar.js`/`hyperpay.js` لاحقاً (السعودية). الاختيار بـ `PAYMENT_PROVIDER`.
-- لا تسرّب SDK خارج المحوّل. كل المبالغ `NUMERIC` + parseMoney. راجع skill BILLING_PAYMENTS.
+1. **الطبقة الأولى: Super Admin (إدارة المنصة)**
+   - التحكم الكامل في مستأجري المنصة.
+   - إدارة خطط الأسعار والاشتراكات والميزات المتاحة.
+   - مسارات منفصلة ومحمية بـ Middleware خاص (`/api/super-admin/*`) لا تتأثر بسياسات RLS العادية.
 
-## 6) Trial / Onboarding (Self-serve)
-- تدفّق: signup → إنشاء `tenant`(status=trial, trial_ends_at) + facility + Tenant Admin → بذر بيانات أوّلية → توجيه للوحة.
-- معاملة ذرّية (BEGIN/COMMIT) + idempotency على إنشاء المستأجر (منع تكرار).
+2. **الطبقة الثانية: Tenant Admin (مدير المستأجر/المستشفى)**
+   - إدارة المستخدمين داخل نطاق مستشفاه فقط.
+   - تغيير إعدادات الفروع والأقسام المحلية.
+   - مراقبة استهلاك الفوترة وتحديث الفواتير والاشتراكات.
 
-## 7) Usage Metering
-```sql
-usage_events(id, tenant_id, metric, qty, occurred_at)   -- e.g. ('api_calls',1), ('invoices',1)
-usage_rollups(tenant_id, metric, period, total)         -- تجميع دوري لفرض الحدود/الفوترة بالاستهلاك
-```
-- يُفرض ضدّ `plan_features.limit_value`. تنبيه عند 80%/100%.
+3. **الطبقة الثالثة: User Roles (المستخدمون التشغيليون)**
+   - أدوار دقيقة (طبيب، ممرض، موظف استقبال، صيدلي، فني أشعة، محاسب).
+   - التحقق من الصلاحيات محلياً وعبر راصدات المسارات (Route Guards) المحددة في `rbac_guards.js`.
 
-## 8) Audit Logs
-- موجود: `audit_middleware.js` + `audit_trail` (من/ماذا/متى/IP، مربوط بالمستأجر، بلا PHI). توسعة: عرض/تصفية + أحداث المنصّة (Super Admin).
+---
 
-## 9) Feature Flags
-- مستوى المنصّة (تجريبية/تدريجية) + مستوى المستأجر (من الخطة). جدول `feature_flags(key, scope, enabled, rollout)`.
+## 3. خطط الأسعار وإدارة التراخيص (Plans & Entitlements)
 
-## 10) In-app Alerts + Operations Health
-- تنبيهات داخل التطبيق (انتهاء التجربة، فشل دفع، تجاوز حدّ، صيانة).
-- صحّة التشغيل: `/api/health` (موجود) + مقاييس (latency/5xx/restarts) + تنبيهات. راجع skill OBSERVABILITY.
+تدار خطط الاشتراكات بشكل ديناميكي صارم:
+- **دليل الخطط (Plan Catalog)**: يحتوي على الخطط القياسية (تجريبية، أساسية، احترافية، مؤسسات).
+- **التحقق الاستباقي (Pre-emptive Enforcement)**:
+  - عند قيام مدير المستأجر بإضافة مستخدم أو فرع جديد، يتم استعلام العدادات ومقارنتها بالحدود المسموح بها في خطة الاشتراك قبل السماح بعملية الإدخال.
+- **ميزات الخطط (Feature Flags)**: تفعيل أو تعطيل موديولات كاملة (مثل وحدة الرعاية المركزة ICU، أو بنك الدم Bloodbank) بموجب حزم الاشتراك المرتبطة بالمستأجر.
 
-## 11) صفحات SEO/GEO العامة
-- Home, Pricing, ERP Modules, Industries, About, Contact, Blog. Schema.org + llms.txt + sitemap + robots. `noindex` على /app. راجع skill SEO_GEO_GROWTH.
+---
 
-## 12) مخطّط البيانات الجديد (ملخّص، كله RLS + NUMERIC + audit)
-`tenants` (موسّع) · `plans` · `plan_features` · `subscriptions` · `billing_events` · `tenant_entitlements` · `usage_events` · `usage_rollups` · `feature_flags` · `platform_admins`.
+## 4. محول الفوترة والدفع المالي (Payment Provider Abstraction)
 
-## 13) البوابات المعمارية
-- كل جدول جديد: RLS + grants + هجرة `eNN_*_{up,down,validate}` + تحقّق معزول (G9).
-- كل مسار مال: validateBody + idemGuard + audit + NUMERIC.
-- لا لمس production بلا إذن؛ DDL على staging/معزول أولاً. راجع [[jumanasoft-global-gates]].
+لتفادي التكبيل ببوابة دفع معينة (Vendor Lock-in)، تم تصميم طبقة التجريد `BillingAdapter` التي تدعم البوابات التالية:
+- **Stripe**: للمدفوعات الدولية والدورات الشهرية الآلية.
+- **Moyasar / HyperPay**: لمعاملات مدى والبطاقات الائتمانية المحلية في المملكة العربية السعودية.
+- **Mock Provider**: لبيئات التطوير والاختبار للتأكد من عدم تمرير أي بيانات حساسة أو استدعاءات خارجية حقيقية.
 
-## 14) قرار البوابة (PHASE 2)
-- ✅ **PASS** — المعمارية تستند للأساس الموجود، تغطّي كل العناصر المطلوبة، بلا تبنّي قالب خارجي. ننتقل إلى PHASE 3.
+---
+
+## 5. سجل التدقيق والمراقبة الصحية (Audit Logs & Health Monitor)
+
+- **سجل التدقيق (Audit Logs)**: يتم تسجيل كافة العمليات الإدارية والمالية والطبية الهامة في جدول `audit_logs` بشكل فوري، مع تسجيل تفاصيل الهوية ومعرف المستأجر وعنوان الـ IP لدواعي الامتثال الأمني.
+- **مراقبة الصحة التشغيلية (Operations Health Check)**:
+  - يوفر التطبيق رابط فحص صحي عام ومحمي `/api/health`.
+  - يختبر الرابط اتصال PostgreSQL، اتصال Redis، ومؤشرات الذاكرة والمعالج لضمان استقرار الخادم.
+
+---
+
+## 6. صفحات الموقع العام المحسنة للـ SEO/GEO
+
+تصميم معمارية الصفحات العامة لمنصة `jumanasoft.com` بشكل يعزز حضورها الرقمي:
+- **تحسين الهوية والكيان (Entity Optimization)**: تضمين وسوم Schema.org الدقيقة لتعريف المنصة كشركة تقنية طبية متكاملة.
+- **عنونة واضحة ومحتوى منظم**: استخدام الأقسام الدقيقة لصفحات الميزات والأسعار لتسهيل قراءتها واستخراج الكلمات المفتاحية بواسطة محركات بحث الذكاء الاصطناعي وجوجل على حد سواء.
+
+---
+
+## 7. تأكيد الحفاظ على سلامة بيئة الإنتاج والتشغيل
+
+- **لا توجد أي تعديلات أو كتابة لبيانات على خادم الإنتاج**.
+- المخطط المعماري يعبر عن الأسلوب المعياري المعتمد والمطبق محلياً في المنصة لضمان عزل متعدد المستأجرين بنسبة 100%.

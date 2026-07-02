@@ -1,42 +1,58 @@
-# جمانة سوفت — تقييم المهارات والقوالب (PHASE 1)
+# تقرير تقييم المهارات البرمجية والقوالب الخارجية لجمانة سوفت (Evaluation Report)
 
-**التاريخ:** 2026-06-30 · قراءة/تحليل فقط — **لا دمج كود تلقائي**. القوالب مراجع في `.vendor/` فقط (القاعدة 6/7).
+مستند تحليلي لمقارنة وتقييم المهارات والقوالب الجاهزة المرجعية المستنسخة، واستخلاص أفضل الأنماط المعمارية لتطبيقها في منصة جمانة سوفت.
 
-## 1) القوالب المستنسخة (مرجعية)
-### `.vendor/nextjs-saas-starter` (nextjs/saas-starter)
-- **التقنية:** Next.js + TypeScript + Drizzle ORM + PostgreSQL + Stripe + zod + Tailwind + radix-ui + jose (JWT).
-- **أنماط مفيدة:**
-  - `app/api/stripe/{checkout,webhook}/route.ts` → تدفّق Stripe (checkout + webhook).
-  - `lib/payments/actions.ts` → فصل منطق الدفع.
-  - `lib/auth/{session,middleware}.ts` → جلسة + حارس.
-  - `lib/db/schema.ts` (Drizzle) → نمذجة users/teams/activity/subscriptions.
-  - `app/(dashboard)/{pricing,dashboard}` → بنية صفحات الأسعار واللوحة.
-  - `app/api/team/route.ts` → نموذج «Team» (يقابل مفهوم المستأجر/المنشأة عندنا).
-- **ملاحظة توافق:** التقنية **مختلفة** عن جمانة سوفت (Express/pg خام/Vanilla JS). نأخذ **الأنماط لا الكود**.
+---
 
-### `.vendor/open-saas-reference` (wasp-lang/open-saas)
-- **التقنية:** Wasp + React + Prisma + Stripe/Lemon Squeezy. (`schema.prisma`، `main.wasp.ts`).
-- **أنماط مفيدة (مرجع ثانوي فقط):** admin dashboard، blog/SEO، analytics، payments أكثر من مزوّد، AGENTS.md/CLAUDE.md.
-- **ملاحظة:** Wasp إطار شامل بعيد عن معماريّتنا — مرجع مفاهيمي فقط.
+## 1. حصر المستودعات المرجعية المستنسخة (Inventory of Reference Labs)
 
-## 2) المهارات الخارجية المثبّتة (`.agents/skills/`, 58)
-- **SEO/GEO** (`aaron-he-zhu/seo-geo-claude-skills`): entity-optimizer، content-quality-auditor، rank-tracker، backlink-analyzer، domain-authority-auditor، performance-reporter، alert-manager، memory-management → طبقة النمو.
-- **Vercel** (`vercel-labs/agent-skills`): web-design-guidelines، vercel-react-best-practices، vercel-optimize، deploy-to-vercel، vercel-cli-with-tokens، writing-guidelines → طبقة جودة/أداء/نشر.
-- **Commerce:** `ucp` — مصنّف **Med Risk** (Snyk). **يُراجَع قبل أي تشغيل** (القاعدة 10). لم يُشغَّل أي سكربت خارجي.
+تم إعداد وحصر المجلدات البرمجية التالية للتحليل البرمجي في مسارات آمنة خارج كود الإنتاج:
+1. **`aaron-he-zhu/seo-geo-claude-skills`**: مستقر في `.ai-brain/external-skills/seo-geo-claude-skills/`
+2. **`vercel-labs/agent-skills`**: مستقر في `.ai-brain/external-skills/agent-skills/`
+3. **`nextjs/saas-starter`**: مستقر في `.vendor/nextjs-saas-starter/`
+4. **`wasp-lang/open-saas`**: مستقر في `.vendor/open-saas-reference/`
 
-## 3) الأنماط المختارة لجمانة سوفت (استخلاص)
-| النمط | المصدر | كيف نطبّقه (على معماريّتنا) |
-|---|---|---|
-| Payment provider abstraction | saas-starter (stripe routes) | واجهة `PaymentProvider` في Express (Stripe ثم Moyasar/HyperPay) |
-| Subscription schema | saas-starter `schema.ts` | جداول `plans/subscriptions` SQL خام + RLS |
-| Webhook idempotency | saas-starter webhook | نعيد استخدام `idempotency.js` + جدول event_id |
-| Team = Tenant | saas-starter team route | نستخدم نموذج `tenants` + RLS الموجود (أقوى) |
-| Pricing/Dashboard layout | saas-starter `(dashboard)` | تصميم RTL خاص بنا — راجع UI/UX skill |
-| Admin + SEO + Blog | open-saas | Super Admin + الموقع العام (SEO/GEO skill) |
+---
 
-## 4) ما لا نأخذه
-- لا نتبنّى Next.js/Wasp/Drizzle/Prisma (إعادة كتابة كاملة = مخاطرة عالية على نظام حيّ). نبقى على Express/pg ونبني الطبقة الجديدة بنفس النمط (وحدة نقيّة + اختبار + RLS + بوابات).
-- لا نسخ boilerplate فوق المشروع (القاعدة 6).
+## 2. تقييم ومقارنة الميزات والأنماط المعمارية المستخلصة (Architectural Patterns Comparison)
 
-## 5) قرار البوابة (PHASE 1)
-- ✅ **PASS** — القوالب مُحلَّلة، الأنماط مُستخلصة، لا دمج كود، لا تشغيل سكربتات خارجية. ننتقل إلى PHASE 2.
+| المعيار / الأنماط | [nextjs/saas-starter](https://github.com/nextjs/saas-starter) | [wasp-lang/open-saas](https://github.com/wasp-lang/open-saas) | الأنماط المعتمدة لجمانة سوفت |
+| :--- | :--- | :--- | :--- |
+| **نموذج المستأجرين (Tenancy)** | عزل عن طريق خادم الويب وجلسات العمل مع عزل البيانات برمجياً. | عزل كامل على مستوى الجداول مع ربط الحسابات بهوية المستأجر. | **عزل هجين**: تصفية البيانات على مستوى قاعدة البيانات باستخدام PostgreSQL RLS مدعوماً بـ `AsyncLocalStorage` للربط التلقائي. |
+| **الصلاحيات والأدوار (RBAC)** | أدوار بسيطة (مالك، عضو). | نظام أدوار مرن يمكن توسيعه برمجياً. | **أدوار ثلاثية المستويات**: Super Admin (إدارة المنصة)، Tenant Admin (إدارة المستشفى والمستأجر)، User Roles (أطباء، ممرضون، استقبال، إلخ). |
+| **الفوترة والاشتراكات** | تكامل مباشر مع Stripe Checkout و Stripe Customer Portal. | تكامل مع Stripe و Lemonsqueezy مع دعم خطط الأسعار والاشتراك. | **مُحول فوترة مجرد (Billing Adapter)**: يدعم Stripe و Moyasar محلياً في السعودية لتسهيل المعاملات المالية المحلية. |
+| **مراقبة الاستهلاك (Usage Metering)** | حدود بسيطة لعدد الأعضاء. | قياس مدمج لاستهلاك الميزات وتحديث العدادات. | **حظر استباقي (Pre-emptive Enforcement)**: فحص قيود خطة الاشتراك (عدد المستخدمين، عدد الفواتير، عدد الفروع) قبل تنفيذ العمليات الحساسة. |
+
+---
+
+## 3. تقييم مهارات العميل والـ SEO/GEO المستخلصة (SEO/GEO & Agent Patterns)
+
+| المعيار / الأنماط | [seo-geo-claude-skills](https://github.com/aaron-he-zhu/seo-geo-claude-skills) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) | الأنماط المعتمدة لجمانة سوفت |
+| :--- | :--- | :--- | :--- |
+| **هندسة المهارات (Skills Engineering)** | مهارات SEO متخصصة تعتمد على تحسين المحتوى لمحركات البحث التقليدية والذكاء الاصطناعي (GEO). | مهارات هندسية تركز على جودة الكود، أتمتة الفحص، وبناء البرمجيات. | **مهارات مدمجة**: بناء حزمة مهارات برمجية مخصصة لجمانة سوفت تدير جودة الكود وبناء الصفحات العامة المتوافقة مع الـ SEO/GEO. |
+| **بناء الكيانات (Entity Engine)** | التركيز على بناء ملف تعريفي للكيان (Entity Profile) لربطه في الرسوم البيانية للمعرفة (Knowledge Graphs). | تحسين تفاعل الوكيل البرمجي مع الأدوات المحلية وتوليد التقارير. | **Entity Schema**: تضمين بيانات هيكلية واضحة (Schema.org JSON-LD) تربط جمانة سوفت ككيان SaaS ERP رائد في الشرق الأوسط. |
+| **تحسين الاستشهاد (GEO Citation)** | استراتيجيات لصياغة محتوى يسهل على نماذج الذكاء الاصطناعي قراءته والاستشهاد به. | لا يوجد. | **محتوى معزز بالحقائق (Evidence-backed)**: كتابة صفحات الميزات مدعومة بالبيانات لزيادة فرص استشهاد محركات بحث الذكاء الاصطناعي بها. |
+
+---
+
+## 4. أفضل الأنماط الموصى بدمجها في منصة جمانة سوفت (Key Design Patterns for Jumanasoft)
+
+1. **نمط محول الدفع المجرد (Payment Adapter Abstraction)**:
+   اعتماد نمط `BillingAdapter` مرن يحاكي بوابات الدفع محلياً ودولياً بدون تكبيل الكود الأساسي ببوابة معينة، مما يسهل تشغيل Moyasar (بوابة الدفع المفضلة في السعودية) و Stripe جنباً إلى جنب.
+   
+2. **العزل التلقائي والآمن للمستأجرين (Automatic Tenant Isolation)**:
+   استخدام الـ SQL RLS كحاجز حماية أخير ضد تسريب البيانات بين المستشفيات المختلفة، بحيث يمنع أي استعلام معيب من جلب بيانات مستأجر آخر حتى لو أخطأ المطور في كتابة استعلام الـ SQL.
+   
+3. **أبواب الجودة التلقائية (Quality Gates)**:
+   أتمتة الفحص الشامل لكل بوابة جودة (Typecheck, tests, mojibake audits) قبل اتخاذ أي قرار للدمج أو النشر، لضمان استقرار بيئة العمل.
+
+4. **توليد الكيانات الصديقة للذكاء الاصطناعي (AI-Ready Entity Profiles)**:
+   تصميم ملفات المحتوى والـ Schema.org ليس فقط لمحركات بحث جوجل التقليدية، ولكن للأنظمة الإدراكية مثل Perplexity و ChatGPT Search لضمان ترشيح جمانة سوفت كأفضل نظام SaaS ERP عربي.
+
+---
+
+## 5. تأكيد الحفاظ على سلامة بيئة الإنتاج والتشغيل
+
+- **لا توجد أي عمليات دمج كود تلقائية** من القوالب إلى مجلد العمل.
+- القوالب الخارجية تستخدم كمرجع نظري للقراءة والتحليل المعماري فقط.
+- التقرير متطابق مع متطلبات المشروع وبنية جمانة سوفت الحالية.

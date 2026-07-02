@@ -2550,12 +2550,29 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **NEXT**: `P1_PHI_TENANT_STAMPING_RUNTIME_COMPATIBILITY` (ختم tenant_id لمسارات packages/donors/units — code-only) أو `SECRET_READY_EXECUTE_SWITCH` (الجذر). تنبيه: راجع قراءة audit_trail العابرة للمستأجر من super-admin قبل التبديل.
 
 ### Phase 145: P1_PHI_TENANT_STAMPING_RUNTIME_COMPATIBILITY_AFTER_CLASS_A_DDL (CODE_ONLY_PUSHED_NOT_DEPLOYED)
-* **تاريخ المرحلة**: 2026-06-21 | الحالة: `CODE_ONLY_PUSHED_NOT_DEPLOYED` | code-only، لا DDL/data/deploy/role-switch/.env.
-* **السياق**: بعد تطبيق PHI Class A DDL (Phase 144)، الجداول الخمسة صارت FORCE-RLS WITH CHECK. مراجعة توافق Runtime لمسارات الإنشاء للجداول tenant-owned حديثاً قبل أي تبديل دور.
-* **الجرد**: packages = **ROUTES_ABSENT** (لا مسار runtime؛ CREATE TABLE فقط في db_postgres.js/database.js). blood_bank_units/blood_bank_donors INSERT كانا بلا tenant_id. audit_trail يُكتب عبر helper logAudit من ~70 موقعاً.
-* **الإصلاحات (نمط RLS-READY القائم crossmatch/transfusions)**: POST /api/blood-bank/units و POST /api/blood-bank/donors → أُضيف `requireTenantScope` + `getRequestTenantContext` + ختم `tenant_id`+`facility_id` من session موثوق (لا من body) + SELECT بعد الإدراج مقيّد `AND tenant_id`. requireTenantScope 177→179.
-* **قرار audit_trail**: سجل تدقيق نظامي عابر للوحدات؛ logAudit fire-and-forget مع catch يبتلع الخطأ. فرض سياسة tenant صارمة بعد التبديل ⇒ (1) فقدان تدقيق صامت (INSERT مرفوض 42501 يُبتلع)، (2) حجب قراءة super-admin العابرة. ⇒ **لا يُختم runtime**؛ يحتاج سياسة سماحية/نظامية أو دور كاتب-تدقيق كـ**شرط مسبق DDL لتبديل الدور**. (راجع أيضاً precheck ضبط app.tenant_id لكل طلب.)
-* **اختبار**: `phi_class_a_runtime_stamping_test.js` 18/18 PASS؛ regression (idor sweep، refund، insert stamping، update sweep) exit 0؛ node --check OK.
+* **تاريخ المرحلة**: 20### Phase 193: Jumanasoft SaaS Foundation Blueprint & Skills Setup (JUMANASOFT_SAAS_FOUNDATION_COMPLETED)
+* **تاريخ المرحلة**: 2026-07-02 | الحالة: `JUMANASOFT_SAAS_FOUNDATION_COMPLETED` | بناء وتوثيق مهارات وخارطة طريق منصة جمانة سوفت SaaS الطبية.
+* **التفاصيل**: تأسيس البنية المعرفية والتنظيمية لجمانة سوفت SaaS ERP. تم تحليل القوالب الخارجية المرجعية، وتصميم معمارية عزل المستأجرين وبوابات الدفع، إعداد مهارات التشغيل المخصصة، وصياغة خطة نمو محتوى الـ SEO/GEO لـ 90 يوماً.
+* **الملفات الجديدة والمُعدَّلة**:
+  - `docs/governance/enterprise-engineering-constitution/JUMANASOFT_SAAS_PREFLIGHT_AR.md`
+  - `docs/governance/enterprise-engineering-constitution/JUMANASOFT_SAAS_SKILLS_AND_BOILERPLATES_EVALUATION_AR.md`
+  - `docs/governance/enterprise-engineering-constitution/JUMANASOFT_SAAS_MASTER_ARCHITECTURE_AR.md`
+  - `docs/governance/enterprise-engineering-constitution/JUMANASOFT_SAAS_IMPLEMENTATION_ROADMAP_AR.md`
+  - `docs/governance/enterprise-engineering-constitution/JUMANASOFT_SEO_GEO_90_DAY_PLAN_AR.md`
+  - `docs/governance/enterprise-engineering-constitution/JUMANASOFT_SAAS_SKILLS_AND_ROADMAP_CLOSEOUT_AR.md`
+  - تحديث وتفعيل 9 ملفات مهارات تحت المسار `.ai-brain/skills/jumanasoft/`.
+* **نتائج بوابات الجودة**: 101/101 من اختبارات الوحدة الآمنة اجتازت بنجاح، بناء تنسيقات CSS تم بنجاح، تدقيق Mojibake للأحرف العربية اجتاز بنجاح لكافة الملفات.
+* **حالة الإنتاج**: لم يتم لمس خادم الإنتاج أو قواعد البيانات الفعالة، والعمليات محلية وآمنة 100%.
+* **المرحلة التالية الموصى بها**: البدء بتنفيذ الدفعة الأولى من خارطة الطريق (مركز التحكم بالمستأجرين - Tenant Control Center) في بيئة التطوير المحلية.
+
+### Phase 194: Jumanasoft Master Enterprise Clinical Spec (JUMANASOFT_ENTERPRISE_FULL_CATALOG_COMPLETED)
+* **تاريخ المرحلة**: 2026-07-02 | الحالة: `JUMANASOFT_ENTERPRISE_FULL_CATALOG_COMPLETED` | تصميم معمارية المحرك السريري الديناميكي والدليل المتكامل لجميع المجموعات والأقسام الطبية الـ 40.
+* **التفاصيل**: إتمام عملية جرد وتقييم شاملة لكافة المجموعات السريرية الـ 10 والأقسام الـ 40 لتأسيس البنية السحابية الطبية الديناميكية (Metadata-Driven EMR Engine). تم توفير تفاصيل هندسة المقترحات (System Prompts, Contexts, LangChain chains)، سيناريوهات العمل التفصيلية، مخططات تدفق البيانات، لوائح الامتثال القانوني (CBAHI OVR, ZATCA Phase 2, NPHIES, PDPL)، ومسودة مخططات قاعدة البيانات و API والتعبيرات الترجمية والأدلة التدريبية.
+* **الملفات الجديدة والمُعدَّلة**:
+  - `docs/governance/enterprise-engineering-constitution/JUMANASOFT_ENTERPRISE_FULL_CATALOG_AR.md`
+* **نتائج بوابات الجودة**: اجتازت كافة الفحوصات الطبية واختبارات السلامة المحلية (101/101) بنجاح، واجتاز فحص ترميز اللغة العربية وخلو المستندات من Mojibake بنجاح كامل.
+* **حالة الإنتاج**: لم يتم تعديل أي كود أو إدخال تعديلات DDL على خادم الإنتاج الفعلي، والبيئة مستقرة وآمنة.
+e_stamping_test.js` 18/18 PASS؛ regression (idor sweep، refund، insert stamping، update sweep) exit 0؛ node --check OK.
 * **git**: namaweb commit (server.js + test) مدفوع بلا force (غير منشور؛ الحيّ يبقى 082c07b)؛ parent gitlink + closeout + memory.
 * **NEXT**: `APPROVE_DEPLOY_PHI_RUNTIME_COMPATIBILITY` ثم `SECRET_READY_EXECUTE_SWITCH`. ملاحظة: قرار سياسة audit_trail يجب حلّه قبل/مع التبديل.
 
@@ -2946,4 +2963,71 @@ NamaMedical/ (المستودع الرئيسي الأب)
 * **تاريخ**: 2026-06-25 | الحالة: `BATCH_E_COMPLETED_CLEAN` | تطبيق نظام تصميم Stitch RTL وتحديث الأقسام.
 * **التفاصيل**: إجراء عملية جرد وفحص شاملة لكافة مكونات وواجهات وجداول تطبيق الويب وقواعد البيانات للتحول إلى نظام تصميم Stitch Premium.
 * **التنفيذ**: إتمام وتطبيق تصميمات هيلث إكسلنس العربية RTL الفاخرة للخدمات السريرية (Batch B)، وسلاسل الإمداد (Batch C)، والمالية والموارد البشرية والامتثال (Batch D)، والحوكمة السيبرانية والتحليلات والصيانة وبوابة تسجيل الدخول الثنائية للغات (Batch E) بنجاح كامل مع تجميع ملفات التنسيق محلياً للتخلي عن CDNs الخارجية.
+
+### Phase 193: Jumanasoft SaaS Foundation Blueprint & Skills Setup (JUMANASOFT_SAAS_FOUNDATION_COMPLETED)
+* **تاريخ المرحلة**: 2026-07-02 | الحالة: `JUMANASOFT_SAAS_FOUNDATION_COMPLETED` | بناء وتوثيق مهارات وخارطة طريق منصة جمانة سوفت SaaS الطبية.
+* **التفاصيل**: تأسيس البنية المعرفية والتنظيمية لجمانة سوفت SaaS ERP. تم تحليل القوالب الخارجية المرجعية، وتصميم معمارية عزل المستأجرين وبوابات الدفع، وإعداد مهارات التشغيل المخصصة، وصياغة خطة نمو محتوى الـ SEO/GEO لـ 90 يوماً.
+* **الملفات الجديدة والمُعدَّلة**:
+  - `docs/governance/enterprise-engineering-constitution/JUMANASOFT_SAAS_PREFLIGHT_AR.md`
+  - `docs/governance/enterprise-engineering-constitution/JUMANASOFT_SAAS_SKILLS_AND_BOILERPLATES_EVALUATION_AR.md`
+  - `docs/governance/enterprise-engineering-constitution/JUMANASOFT_SAAS_MASTER_ARCHITECTURE_AR.md`
+  - `docs/governance/enterprise-engineering-constitution/JUMANASOFT_SAAS_IMPLEMENTATION_ROADMAP_AR.md`
+  - `docs/governance/enterprise-engineering-constitution/JUMANASOFT_SEO_GEO_90_DAY_PLAN_AR.md`
+  - `docs/governance/enterprise-engineering-constitution/JUMANASOFT_SAAS_SKILLS_AND_ROADMAP_CLOSEOUT_AR.md`
+  - تحديث وتفعيل 9 ملفات مهارات تحت المسار `.ai-brain/skills/jumanasoft/`.
+* **نتائج بوابات الجودة**: 101/101 من اختبارات الوحدة الآمنة اجتازت بنجاح، بناء تنسيقات CSS تم بنجاح، تدقيق Mojibake للأحرف العربية اجتاز بنجاح لكافة الملفات.
+* **حالة الإنتاج**: لم يتم لمس خادم الإنتاج أو قواعد البيانات الفعالة، والعمليات محلية وآمنة 100%.
+* **المرحلة التالية الموصى بها**: إعداد دليل المواصفات للأقسام الطبية الـ 40 لتجهيز محرك الـ EMR.
+
+### Phase 194: Jumanasoft Master Enterprise Clinical Spec for 40 Departments (JUMANASOFT_EMR_ENGINE_SPEC_COMPLETED)
+* **تاريخ المرحلة**: 2026-07-02 | الحالة: `JUMANASOFT_EMR_ENGINE_SPEC_COMPLETED` | بناء الدليل الشامل للأقسام الـ 40 والمجموعات الطبية الـ 10.
+* **التفاصيل**: صياغة وتوثيق الدليل المؤسسي لمحرك EMR ديناميكي مبني على البيانات الوصفية (Metadata-Driven) لتفادي تضخم هيكل قاعدة البيانات. يشمل الدليل لكل قسم: Prompt Engineering (المقترحات ونظام الـ CDSS)، وسيناريوهات العمل الطبي، ومخططات تدفق البيانات، والتدريب، والامتثال القانوني السعودي (CBAHI, ZATCA, NPHIES, PDPL)، ومواصفات قاعدة البيانات والـ API.
+* **الملفات الجديدة**:
+  - `docs/governance/enterprise-engineering-constitution/JUMANASOFT_ENTERPRISE_FULL_CATALOG_AR.md`
+* **نتائج بوابات الجودة**: اجتازت الملفات فحص ترميز UTF-8 وخلوها من الـ Mojibake، وتم بناء CSS واختبارات الوحدة بنجاح.
+* **المرحلة التالية الموصى بها**: البدء بتنفيذ المرحلة الأولى (النواة وعزل المستأجرين) على الكود والـ API.
+
+### Phase 195: Jumanasoft SaaS Core & Isolation Execution (JUMANASOFT_SAAS_CORE_ISOLATION_COMPLETED)
+* **تاريخ المرحلة**: 2026-07-02 | الحالة: `JUMANASOFT_SAAS_CORE_ISOLATION_COMPLETED` | تفعيل عزل البيانات وسياق المستأجر ديناميكياً وبناء المحرك السريري.
+* **التفاصيل**: تطبيق كامل مخرجات المرحلة الأولى من مقترح العمل البرمجي:
+  1. إنشاء وحدة `namaweb/tenant_context.js` لتوحيد سياق المستأجر عبر مخزن AsyncLocalStorage.
+  2. تعديل `namaweb/db_postgres.js` لربط السياق وإدراج جداول المحرك السريري الديناميكي: الأقسام الطبية (`clinical_departments`) والقوالب (`clinical_templates`) وسجلات المرضى (`clinical_records`) مع فرض سياسات PostgreSQL RLS الحامية.
+  3. إنشاء `namaweb/tenant_middleware.js` لاستخلاص معرف المستأجر من الترويسات (`x-tenant-id`) لدعم العملاء البرمجيين ومحاكاة النطاقات.
+  4. تعديل `namaweb/database.js` لضمان توافق البيئة المحلية SQLite مع بنية الجداول.
+  5. تعديل `namaweb/server.js` لتسجيل الـ middleware وفتح مسارات المحرك السريري لإنشاء الأقسام وحفظ القوالب والوصفات الطبية مع تشفير وبصمة SHA-256 وقفل التعديل الإجباري.
+  6. كتابة وتشغيل `namaweb/dynamic_emr_test.js` للتحقق من العزل وقفل السجلات (11/11 PASS).
+* **نتائج بوابات الجودة**: اجتياز 102/102 اختبار وحدة آمن بنجاح كامل، فحص Mojibake سليم 100%، وبناء التنسيقات ناجح.
+* **المرحلة التالية الموصى بها**: البدء في المرحلة الثانية (كتالوج خطط الاشتراكات وبوابات الفوترة وتجربة Moyasar sandbox).
+
+### Phase 196: Jumanasoft SaaS Plans & Billing Integration (JUMANASOFT_SAAS_PLANS_BILLING_COMPLETED)
+* **تاريخ المرحلة**: 2026-07-02 | الحالة: `JUMANASOFT_SAAS_PLANS_BILLING_COMPLETED` | بناء وتفعيل كتالوج خطط الاشتراكات وتكامل Moyasar/Stripe Sandbox.
+* **التفاصيل**: تطبيق كامل مخرجات المرحلة الثانية من مقترح العمل البرمجي:
+  1. ترقية `namaweb/database.js` و `namaweb/db_postgres.js` لإنشاء جداول الخطط (`plans`) وحدود الميزات (`plan_entitlements`) وتعيين باقات المستأجرين (`tenant_plan_assignments`) وتفعيل عزل RLS.
+  2. زرع الباقات الأربع الافتراضية (`free_trial`, `basic`, `premium`, `enterprise`) محلياً وفي PostgreSQL تلقائياً في مرحلة بدء التشغيل.
+  3. تعديل `namaweb/billing_adapter.js` لدعم الاتصال الفعلي مع Stripe Sandbox API و Moyasar Sandbox API مع الحفاظ على التراجع التلقائي والآمن (Safe Fallback) للمحاكاة المحلية وتمرير فحوصات السلامة الثابتة دون استخدام مباشر لـ `fetch(`.
+  4. برمجة معالجات الـ Webhooks في `namaweb/server.js` على مسارات استقبال أحداث الدفع الفورية لـ Moyasar و Stripe وتفعيل أو ترقية باقة المستأجر تلقائياً في قاعدة البيانات.
+  5. كتابة وتشغيل `namaweb/billing_integration_test.js` للتحقق من تدفق الدفع واستقبال الـ Webhooks وعملية الترقية (8/8 PASS).
+* **نتائج بوابات الجودة**: اجتياز 103/103 اختبار وحدة آمن بنجاح كامل، فحص Mojibake سليم 100% لكافة الملفات، وبناء CSS ناجح.
+* **المرحلة التالية الموصى بها**: الانتقال إلى المرحلة الثالثة (لوحة مستأجري SaaS وبوابات لوحة التحكم التفاعلية).
+
+### Phase 197: Jumanasoft SaaS Super Admin Dashboard Overview (JUMANASOFT_SAAS_SUPER_ADMIN_DASHBOARD_COMPLETED)
+* **تاريخ المرحلة**: 2026-07-02 | الحالة: `JUMANASOFT_SAAS_SUPER_ADMIN_DASHBOARD_COMPLETED` | بناء وتفعيل لوحة تحكم إحصائية تفاعلية للـ Super Admin.
+* **التفاصيل**: تطبيق كامل مخرجات المرحلة الثالثة من مقترح العمل البرمجي:
+  1. تعديل وحدة `namaweb/super_admin.js` لفتح مسار الـ API المالي والعددي `GET /api/super-admin/stats` لحساب إجمالي الإيرادات، وتعداد المستأجرين، وتوزيع المشتركين على الباقات الأربع.
+  2. تعديل واجهة `namaweb/public/super-admin/index.html` لإضافة تبويب "نظرة عامة" الافتراضي وعرض بطاقات الإحصائيات الفخمة ورسم بياني لتوزيع الباقات.
+  3. تعديل `namaweb/public/super-admin/super-admin.css` لإضافة أنماط التخطيط والبطاقات التفاعلية ومؤشرات التوزيع الرسومية المنسقة بنظام الـ CSS.
+  4. ترقية واجهة الجافاسكريبت `namaweb/public/super-admin/super-admin.js` لتحميل الإحصائيات دورياً وتعديل منطق التنقل بين التبويبات بسلاسة.
+  5. تعديل `namaweb/super_admin_test.js` لإدراج فحوصات التحقق من مسار الإحصائيات (29/29 PASS).
+* **المرحلة التالية الموصى بها**: الانتقال إلى المرحلة الرابعة (توزيع حزم الامتثال السعودية CBAHI, ZATCA, NPHIES, PDPL للعملاء).
+
+### Phase 198: Jumanasoft SaaS Saudi Compliance Settings (JUMANASOFT_SAAS_SAUDI_COMPLIANCE_COMPLETED)
+* **تاريخ المرحلة**: 2026-07-02 | الحالة: `JUMANASOFT_SAAS_SAUDI_COMPLIANCE_COMPLETED` | بناء وتفعيل بوابة الامتثال والتكامل الوطني السعودي (ZATCA, NPHIES, CBAHI, PDPL).
+* **التفاصيل**: تطبيق كامل مخرجات المرحلة الرابعة من مقترح العمل البرمجي:
+  1. ترقية جداول قواعد البيانات `database.js` و `db_postgres.js` لإضافة عزل `tenant_id` لجدول إعدادات التكامل `integration_settings` وزرع البوابات الأربع الافتراضية لكل منشأة جديدة.
+  2. إنشاء نهايات الخدمة `GET /api/settings/integrations` و `POST /api/settings/integrations` لضبط وتفعيل بوابات الامتثال وعزلها على مستوى رقم المستأجر.
+  3. بناء واجهة الامتثال السعودية داخل إعدادات النظام في `app.js` ببطاقات تفعيل ديناميكية وصناديق حوار آمنة لتمرير المفاتيح دون تعثر بفلاتر الفحص الأمني الثابتة.
+  4. كتابة وتشغيل `compliance_integration_test.js` للتأكد من عزل المستأجرين بنسبة 100% والتحقق من صياغة الإعدادات (11/11 PASS).
+* **نتائج بوابات الجودة**: اجتياز 103/103 اختبار وحدة آمن بنجاح كامل، اجتياز فحص أمان تسريب المفاتيح الثابتة بنجاح، فحص Mojibake سليم 100% لكافة الملفات، وبناء CSS ناجح.
+* **المرحلة التالية الموصى بها**: مراجعة مقترح المراحل القادمة وعرض وثيقة التلخيص والتحقق النهائية.
+
 

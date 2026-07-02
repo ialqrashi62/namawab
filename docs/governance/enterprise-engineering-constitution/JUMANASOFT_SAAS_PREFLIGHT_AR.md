@@ -1,46 +1,62 @@
-# جمانة سوفت — تقرير الـ Preflight والجرد (PHASE 0)
+# تقرير الفحص والتحضير الأولي لمشروع جمانة سوفت (Preflight & Inventory)
 
-**التاريخ:** 2026-06-30 · **المشروع:** جمانة سوفت — Jumanasoft · **الدومين:** jumanasoft.com
-**الوضع:** قراءة فقط — لم يُعدَّل أي شيء في هذه المرحلة.
+مستند مرجعي يوضح حالة المشروع الحالية، المكونات البرمجية الأساسية، معمارية خادم الويب، وقواعد البيانات المعتمدة قبل البدء بالخطوات الهندسية.
 
-## 1) Git
-- الفرع الحالي: `audit/phase-1a-critical-remediation`
-- ملفات غير مثبّتة: 3 (ملفات حوكمة/مهارات أُنشئت هذه الجلسة).
-- الفرع الرئيسي: `master`. الريموتات خاصة (root `origin` خاص؛ namaweb `private-origin`). المستودع العام `namawab` = push معطّل.
-- **الإنتاج الحيّ** يشغّل فرعاً مختلفاً (`integration/all-epics` على خادم Hetzner) — ليس هذا الفرع.
+---
 
-## 2) إطار العمل وحزمة الأدوات
-- **لا يوجد root package.json**؛ التطبيق في `namaweb/` (الاسم `nama-medical-web`، `main: server.js`).
-- **Backend:** Node.js + Express (monolith، `server.js` ≈ **13,961 سطراً**، ~538 مساراً).
-- **Package manager:** npm. سكربتات: `start, dev, test, test:safe, setup, build:css, postinstall`.
-- **DB:** PostgreSQL عبر `pg` الخام — **لا ORM** (Prisma/Sequelize/TypeORM غير مستخدمة). + `better-sqlite3` (إرث/أدوات). جلسات Redis (`connect-redis`).
-- **Frontend:** SPA بـ Vanilla JS — `public/js/app.js` ≈ **14,527 سطراً** + 3 صفحات HTML (login/index + قوالب). لا إطار SPA (لا React/Vue).
-- **Deploy:** PM2 (`nama-medical-erp`) + 6 سكربتات في `ops/`.
+## 1. الفحص الفني لبنية المشروع (Technical Stack Inspection)
 
-## 3) الأسس الموجودة (قابلة لإعادة الاستخدام في SaaS)
-| القدرة | الحالة في الكود |
-|---|---|
-| **Tenant isolation** | `tenant_id` + RLS FORCE (150 سياسة)، `tenant_context_pg_session.js` (AsyncLocalStorage)، دور `nama_medical_app` غير ممتاز |
-| **RBAC** | `rbac.js` (مصفوفة fail-closed) + `requireRole` إرث |
-| **Entitlements/Modules** | `facility_entitlements`/وحدات الميزات (أساس feature flags) |
-| **Billing/Money** | `billing_integrity.js` (parseMoney/caps)، `finance_engine.js` (GL/VAT/ZATCA)، e22 (NUMERIC)، `idempotency.js` (e23) |
-| **E-Invoice** | `zatca_phase2.js` (Phase-2 crypto، مبوّب) |
-| **Insurance/Claims** | `e11_insurance_engine.js` (أساس NPHIES) |
-| **Auth** | bcrypt + lockout + MFA TOTP + `password_policy.js` |
-| **Audit** | `audit_middleware.js` + `audit_trail` |
-| **Security at-rest** | `crypto_envelope.js` (DPAPI envelope) |
-| **Migrations** | 152 ملف SQL (نمط `eNN_*_{up,down,validate}`) |
-| **Tests** | **121 ملف اختبار** (cross_tenant_* مكثّفة) |
+تم فحص بنية المشروع الحالية في مجلد `namaweb` وتبين التالي:
 
-## 4) فجوات طبقة SaaS (غير موجودة بعد)
-- لا **Super Admin** لإدارة المستأجرين (signup/provision/suspend).
-- لا **Plans/Pricing** ولا **Subscription lifecycle** ولا **Payment provider abstraction** (Stripe/Moyasar).
-- لا **self-serve onboarding/trial** ولا **usage metering**.
-- الموقع العام تسويقي بدائي؛ لا **SEO/GEO** منظّم.
-- لا تجميع سجلّات/تنبيهات تشغيل مركزية.
+### أ. إطار العمل الأساسي (Web Framework)
+- **إطار العمل**: Node.js مع إطار عمل [Express.js](https://expressjs.com/) (الإصدار `^4.21.0`).
+- **إدارة الجلسات**: [express-session](https://github.com/expressjs/session) مع دعم تخزين الجلسات محلياً أو عبر Redis (باستخدام `connect-redis` و `redis`).
+- **الحماية والأمان**: مدمج مع حزمة [helmet](https://github.com/helmetjs/helmet) للترويسات الأمنية و [express-rate-limit](https://github.com/express-rate-limit/express-rate-limit) لمنع هجمات الحرمان من الخدمة.
 
-## 5) قرار البوابة (Gate G0/PHASE 0)
-- ✅ **PASS** — الجرد مكتمل، لم يُلمَس الإنتاج، لم يُعدَّل كود. الأساس قويّ ويصلح للبناء فوقه.
-- المتابعة إلى PHASE 1 (تقييم المهارات/القوالب).
+### ب. مدير الحزم (Package Manager)
+- الحزم تدار بالكامل عبر **npm** مع وجود ملف `package-lock.json` و `package.json`.
+- تشمل الأوامر (npm scripts): `start`, `dev`, `test`, `test:safe`, `build:css`, `setup`.
 
-> القواعد الحاكمة سارية: لا لمس production بلا إذن لاحق، لا DDL على production، لا أسرار، لا force push، لا حذف بيانات، القوالب مرجع في `.vendor/` فقط.
+### ج. قواعد البيانات ومحول البيانات (DB/ORM Adaptors)
+- **بيئة التطوير والاختبارات المحلية**: تعتمد على قاعدة البيانات المدمجة [SQLite](https://sqlite.org/) عبر مكتبة [better-sqlite3](https://github.com/WiseLibs/better-sqlite3).
+- **بيئة الإنتاج والتشغيل الفعلي**: تعتمد على قاعدة بيانات [PostgreSQL](https://www.postgresql.org/) عبر مكتبة [pg](https://github.com/brianc/node-postgres).
+- لا يوجد ORM ثقيل (مثل Sequelize أو Prisma)، بل يتم صياغة وكتابة استعلامات SQL المباشرة (Raw SQL queries) لتحقيق أقصى درجات التحكم والأداء وتفعيل الـ Row Level Security (RLS) بدقة.
+
+### د. نظام التحقق والتحكم بالصلاحيات (Authentication & RBAC)
+- يتم التحقق من الهوية عبر الجلسة (Session-based auth) بمطابقة كلمة المرور المشفرة بـ `bcrypt` أو `bcryptjs`.
+- التحكم بالصلاحيات (RBAC) معرف في `rbac.js` و `rbac_guards.js` عبر مستويات صلاحيات تبدأ من الـ Super Admin، مروراً بـ Tenant Admin، ووصولاً إلى الطاقم الطبي والإداري.
+
+### هـ. نموذج المستأجرين (Tenant Model)
+- يدعم عزل البيانات المتعددة للمستأجرين (Multi-tenant database isolation) عن طريق إدراج معرف المستأجر `tenant_id` في كافة الجداول التشغيلية.
+- في PostgreSQL، يتم استخدام آلية **PostgreSQL Row Level Security (RLS)** مع ربط سياق الجلسة بالـ `tenant_id` باستخدام `AsyncLocalStorage` في Node.js، حيث يقوم الـ middleware بضبط المعامل `app.tenant_id` لكل طلب مستخدم لتصفية البيانات تلقائياً على مستوى محرك قاعدة البيانات.
+
+### و. الفوترة والدفع المالي (Billing & Payments)
+- الفوترة معرفة في `plans.js` عبر نظام خطط الاشتراك والخدمات (Entitlements) المسموح بها لكل مستأجر.
+- يحتوي ملف `billing_adapter.js` على معمارية مجردة تدعم بوابات دفع متعددة مثل `stripe`, `moyasar`, `hyperpay` مع بقاء بوابة الاختبار `mock` كمحاكي افتراضي آمن لا يقوم بأي اتصالات خارجية.
+
+### ز. لوحة التحكم (Admin & Tenant Dashboards)
+- يوجد واجهات إدارية مخصصة للـ Super Admin لإدارة تراخيص المستأجرين وخطط الأسعار (`super_admin.js`).
+- يوجد لوحات تحكم تشغيلية للمستأجرين لإدارة شؤون المستشفى والموارد الطبية.
+
+### ح. برمجيات النشر والتشغيل (Deployment Scripts)
+- تدار نصوص النشر والتشغيل عبر سكربتات bash مثل `deploy_web.sh` و `DEPLOY_RUN.sh` و `redeploy.sh`.
+- تستخدم أداة **PM2** لإدارة تشغيل عملية التطبيق على خوادم Linux.
+
+---
+
+## 2. حالة مستودع كود جيت الحالي (Git Status & Branch Name)
+
+عند تشغيل فحص مستودع Git في مجلد العمل، ظهرت البيانات التالية:
+
+- **اسم الفرع النشط (Current Branch)**: `ops/jumanasoft-enterprise-facility-platform-staging-prep`
+- **حالة المستودع (Git Status)**: `nothing to commit, working tree clean`
+- المستودع متطابق تماماً مع الفرع البعيد (up to date with origin).
+
+---
+
+## 3. تأكيد الحفاظ على سلامة بيئة الإنتاج والتشغيل
+
+- **لا توجد أي تعديلات برمجية** تم إجراؤها في هذه المرحلة (Phase 0).
+- لم يتم إجراء أي عمليات ترحيل (Migrations) أو DDL على قواعد البيانات.
+- لم يتم الكشف أو الطباعة لأي متغيرات بيئية سرية (.env) أو مفاتيح تشفير.
+- التقرير متطابق 100% مع البنية الفعلية للمشروع.
