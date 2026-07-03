@@ -1,0 +1,7 @@
+- [x] إنشاء دليل الاستجابة للحوادث الأمنية docs/runbooks/nama_security_incident_runbook_ar.md
+- [x] إنشاء دليل حفظ واستعادة مفتاح التشفير docs/runbooks/nama_kek_escrow_dr_plan_ar.md
+- [x] إنشاء مستند القرار المعماري لقنوات Mirth Connect docs/runbooks/nama_mirth_integration_adr_ar.md
+- [x] إنشاء مخطط ومسار الربط السريري لـ FHIR Sandbox docs/runbooks/nama_fhir_sandbox_blueprint_ar.md
+- [x] إجراء التحقق الساكن والتشغيلي (static verification + unit tests)
+- [x] مزامنة الملفات الجديدة مع خادم الإنتاج
+- [x] توثيق الإغلاق في الـ AI Brain وتحديث الذاكرة

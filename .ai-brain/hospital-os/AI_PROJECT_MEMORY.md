@@ -1,5 +1,65 @@
 # AI Project Memory
 
+## 2026-07-03 - hospital-os-clinical-signatures-rbac-owners
+
+FINAL_STATUS: AI_BRAIN_CLOSEOUT_PASS
+الفرع: integration/all-epics
+النطاق: حوكمة توقيع وقفل السجلات الطبية (EMR Lock/Signature)، وتأمين العمليات الحساسة (Action-Level RBAC)، ومصفوفة ملاك الأقسام (Department Owner Matrix) محلياً وعلى خادم الإنتاج الفعلي.
+الملفات المعدلة:
+- `server.js`
+- `db_postgres.js`
+- `DEPLOY_RUN.sh`
+ملفات الـ AI-Brain:
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-clinical-signatures-rbac-owners/task.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-clinical-signatures-rbac-owners/walkthrough.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-clinical-signatures-rbac-owners/change-register.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-clinical-signatures-rbac-owners/cleanup-register.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-clinical-signatures-rbac-owners/test-results.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-clinical-signatures-rbac-owners/risk-register.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-clinical-signatures-rbac-owners/final-report-ar.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-clinical-signatures-rbac-owners/memory-update.md`
+الاختبارات الناجحة:
+- اختبار أمان حوكمة السجلات والـ RBAC بنجاح 100% (12 فحصاً)
+- اجتياز كافة اختبارات النظام الـ 172 بنجاح كامل محلياً وعلى السيرفر
+- التحقق من الصحة 200 OK الخارجي بنجاح
+المخاطر:
+- تداخل صلاحيات قفل EMR (تم الدمج والتوحيد وحل التعارض بنجاح)
+الخطوة التالية:
+- التحقق الفعلي من طرف العميل
+حفظ الأسرار/بيانات المرضى: لا
+
+---
+
+## 2026-07-03 - hospital-os-deferred-legacy-security-hardening
+
+FINAL_STATUS: AI_BRAIN_CLOSEOUT_PASS
+الفرع: integration/all-epics
+النطاق: تحصين أمان وعزل المستأجرين للوحدات المؤجلة الإرثية (نقل المرضى، الطب عن بعد، التعليم الطبي CME، الخدمة الاجتماعية، الوفيات) محلياً وعلى خادم الإنتاج الفعلي.
+الملفات المعدلة:
+- `server.js`
+- `gate10_revenue_cycle_test.js`
+- `cross_tenant_deferred_legacy_test.js`
+ملفات الـ AI-Brain:
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-deferred-legacy-security-hardening/task.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-deferred-legacy-security-hardening/walkthrough.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-deferred-legacy-security-hardening/change-register.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-deferred-legacy-security-hardening/cleanup-register.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-deferred-legacy-security-hardening/test-results.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-deferred-legacy-security-hardening/risk-register.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-deferred-legacy-security-hardening/final-report-ar.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-deferred-legacy-security-hardening/memory-update.md`
+الاختبارات الناجحة:
+- اختبار أمان الوحدات المؤجلة الإرثية بنجاح 100%
+- اختبار كشف الأسرار بنجاح 100%
+- اجتياز كافة اختبارات النظام الـ 172 بنجاح كامل
+المخاطر:
+- تسريب بيانات بين المستأجرين (تم التخفيف بفرض RLS وتصفيات tenant_id على مستوى الاستعلامات)
+الخطوة التالية:
+- التحقق الفعلي من طرف العميل
+حفظ الأسرار/بيانات المرضى: لا
+
+---
+
 ## 2026-07-03 - hospital-os-saas-activation-fix
 
 FINAL_STATUS: AI_BRAIN_CLOSEOUT_PASS
@@ -422,4 +482,36 @@ FINAL_STATUS: AI_BRAIN_CLOSEOUT_PASS
 حفظ الأسرار/بيانات المرضى: لا
 
 ---
+
+## 2026-07-03 - Gate 9 & Gate 10 (Revenue Cycle & ZATCA Scaffold)
+
+FINAL_STATUS: AI_BRAIN_CLOSEOUT_PASS
+الفرع: integration/all-epics
+النطاق: بناء وتفعيل التوقيع الرقمي الصديق لـ ZATCA (XAdES Structure Scaffold) للبوابة 9، وربط ترحيل إشعار تسوية الدفعات NPHIES لدفتر الأستاذ العام GL والذمم AR بصيغة قيود متوازنة تماماً وبحماية منع الترحيل المكرر للبوابة 10.
+الملفات المعدلة:
+- `namaweb/server.js`
+- `namaweb/finance_engine.js`
+- `namaweb/e2e_local_smoke_test.js`
+- `namaweb/gate10_revenue_cycle_test.js`
+ملفات الـ AI-Brain:
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-gate9-gate10-completion/task.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-gate9-gate10-completion/walkthrough.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-gate9-gate10-completion/change-register.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-gate9-gate10-completion/cleanup-register.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-gate9-gate10-completion/test-results.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-gate9-gate10-completion/risk-register.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-gate9-gate10-completion/final-report-ar.md`
+- `.ai-brain/hospital-os/runs/2026-07-03/hospital-os-gate9-gate10-completion/memory-update.md`
+الاختبارات الناجحة:
+- تشغيل واجتياز 171 اختبار تكاملي بنجاح 100% (بما في ذلك gate10_revenue_cycle_test.js)
+- تشغيل واجتياز اختبارات الدخان E2E Local Smoke Tests بنجاح 100%
+- التحقق من النشر وإعادة تشغيل PM2 وفحص رابط الصحة العام المشفر بنجاح كامل HTTP 200
+المخاطر:
+- بقاء اختبارات الربط والتكامل المباشر لـ ZATCA/NPHIES تحت مفاتيح تجريبية لعدم توفر المفاتيح الحقيقية في البيئة الافتراضية
+الخطوة التالية:
+- البدء في البوابة 11 وما بعدها لتعزيز نظام التغطيات التأمينية وإجراء الفحوصات الطبية.
+حفظ الأسرار/بيانات المرضى: لا
+
+---
+
 

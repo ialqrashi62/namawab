@@ -1,0 +1,11 @@
+- [x] نقل وتأسيس حارس requirePermission في أعلى ملف server.js
+- [x] دمج وتوحيد مسار قفل وتوقيع السجل الطبي POST /api/clinical/records/:id/lock
+- [x] تطبيق سياسات الصلاحيات وحقوق التوقيع (Physician EMR vs Nursing/General Assessment)
+- [x] تطبيق حارس requirePermission('or:cancel') على مسار إلغاء العمليات الجراحية
+- [x] تطبيق حارس requirePermission('invoices:cancel') على مسار إلغاء الفواتير المالية
+- [x] تطبيق حارس requirePermission('messages:delete') على مسار حذف الرسائل الداخلية
+- [x] إنشاء ملفات هجرات قاعدة البيانات p1_03_department_owners (up, down, validate)
+- [x] كتابة واختبار اختبار الأمان الجديد cross_tenant_clinical_signatures_test.js
+- [x] تشغيل جميع اختبارات النظام الـ 172 والتأكد من الجودة 100%
+- [x] النشر التلقائي للإنتاج الفعلي والتحقق من سلامة الخدمة 200 OK
+- [x] توثيق الإغلاق وتحديث الذاكرة في الـ AI Brain
