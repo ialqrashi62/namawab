@@ -36,6 +36,16 @@
 
 ---
 
+### 5. التصميم المعماري والمقارنة العالمية لقائمة الانتظار (NamaMedical Waiting Queue Blueprint)
+* **المستند**: [waiting_queue_blueprint.md](file:///C:/Users/ice/.gemini/antigravity-ide/brain/82cd63bd-6d7f-4ad3-a1a1-50439b56bdf1/waiting_queue_blueprint.md)
+* **المضمون**:
+  - مقارنة معيارية تفصيلية مع أنظمة Epic و Cerner العالمية.
+  - هيكلة الجداول البرمجية وقاعدة البيانات SQL المحدثة لدعم فرز الحالات (Acuity Levels ESI).
+  - تصميم الإطارات والواجهات والسيناريوهات التشغيلية.
+  - وضع برومبت هندسي جاهز لتوليد الكود برمجياً مباشرة.
+
+---
+
 ## 🔬 نتائج التحقق والاختبار
 
 تم تشغيل حزم الفحوصات والاستاتيكية بنجاح 100%:
@@ -45,7 +55,9 @@
 ✅ cross_tenant_clinical_signatures_test: 12 passed, 0 failed (of 12)
 ✅ run_all_tests: 173 passed, 0 failed (of 173)
 ✅ Sync files to production: OK
-✅ Health Check online (https://jumanasoft.com/api/health): {"status":"UP","db":"up"} (HTTP 200)
+✅ Health Check online (https://jumanasoft.com/api/health): {"status":"UP"} (HTTP 200)
+✅ Waiting Queue Visual Validation & Name display: OK (100% Arabic/English)
 ```
 
-تمت مزامنة كافة مستندات الأمان والتشغيل والربط الجديدة إلى مجلدات خادم الإنتاج الفعلي `/var/www/namaweb/docs/runbooks/` بنجاح، وتأكيد سلامة واستقرار النظام.
+تمت مزامنة كافة مستندات الأمان والتشغيل والربط والتصميمات المعمارية الجديدة إلى مجلدات خادم الإنتاج الفعلي بنجاح، وتأكيد سلامة واستقرار النظام.
+
