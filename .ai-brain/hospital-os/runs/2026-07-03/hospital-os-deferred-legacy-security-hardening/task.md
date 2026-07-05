@@ -1,0 +1,10 @@
+- [x] تحديث مصفوفة الصلاحيات (ROLE_PERMISSIONS) في server.js لإدماج telemedicine, cme, transport
+- [x] تحصين مسارات نقل المرضى (Transport) في server.js وتطبيق عزل tenant_id
+- [x] تحصين مسارات الطب عن بعد (Telemedicine) في server.js وتطبيق عزل tenant_id
+- [x] تحصين مسارات التعليم الطبي (CME) في server.js وتطبيق عزل tenant_id
+- [x] تحصين مسارات الخدمة الاجتماعية (Social Work) في server.js وتطبيق عزل tenant_id
+- [x] تحصين مسارات الوفيات (Mortuary) في server.js وتطبيق عزل tenant_id
+- [x] كتابة اختبار الأمان الآلي cross_tenant_deferred_legacy_test.js
+- [x] تشغيل الاختبارات والتأكد من الجودة 100% محلياً
+- [x] النشر التلقائي للإنتاج الفعلي والتحقق من سلامة الخدمة
+- [x] توثيق الإغلاق في الـ AI Brain وتحديث الذاكرة

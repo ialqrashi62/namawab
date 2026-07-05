@@ -1,0 +1,155 @@
+openapi: 3.1.0
+info:
+  title: NamaMedical — Clinical RAG & AI Copilot API
+  version: 0.1.0
+  description: |
+    Endpoints for indexing and searching clinical guidelines, and querying the AI Copilot.
+    Inherits common schemas from `components.base.yaml`.
+
+servers:
+  - url: http://localhost:3011
+  - url: https://api.nama.local
+
+tags:
+  - { name: knowledge }
+  - { name: ai }
+
+paths:
+
+  /api/clinical/knowledge/search:
+    get:
+      tags: [knowledge]
+      summary: Search clinical knowledge base using vector similarity
+      parameters:
+        - in: query
+          name: query_embedding
+          required: true
+          description: JSON array representing the 1536-dimensional query embedding
+          schema:
+            type: string
+        - in: query
+          name: department_id
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            default: 3
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KnowledgeChunk'
+        '400':
+          $ref: 'components.base.yaml#/components/responses/ValidationError'
+        '401':
+          $ref: 'components.base.yaml#/components/responses/UnauthorizedError'
+
+  /api/clinical/knowledge:
+    post:
+      tags: [knowledge]
+      summary: Index a new clinical guideline chunk (Admin only)
+      security:
+        - bearerAuth: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KnowledgeChunkInput'
+      responses:
+        '201':
+          description: Chunk indexed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  id: { type: integer }
+        '400':
+          $ref: 'components.base.yaml#/components/responses/ValidationError'
+        '401':
+          $ref: 'components.base.yaml#/components/responses/UnauthorizedError'
+        '403':
+          $ref: 'components.base.yaml#/components/responses/ForbiddenError'
+
+  /api/clinical/ai/ask:
+    post:
+      tags: [ai]
+      summary: Ask the Clinical AI Copilot a question with a query embedding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question, query_embedding]
+              properties:
+                question: { type: string }
+                query_embedding:
+                  type: array
+                  items: { type: number }
+                department_id: { type: integer }
+      responses:
+        '200':
+          description: AI Copilot answer and citations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AICopilotResponse'
+        '400':
+          $ref: 'components.base.yaml#/components/responses/ValidationError'
+        '401':
+          $ref: 'components.base.yaml#/components/responses/UnauthorizedError'
+
+components:
+  schemas:
+    KnowledgeChunkInput:
+      type: object
+      required: [content_chunk, embedding]
+      properties:
+        department_id: { type: integer }
+        content_chunk: { type: string }
+        embedding:
+          type: array
+          items: { type: number }
+        metadata:
+          type: object
+          additionalProperties: true
+
+    KnowledgeChunk:
+      allOf:
+        - $ref: '#/components/schemas/KnowledgeChunkInput'
+        - type: object
+          properties:
+            id: { type: integer }
+            similarity: { type: number }
+
+    AICopilotResponse:
+      type: object
+      required: [question, answer, citations, confidence]
+      properties:
+        question: { type: string }
+        answer: { type: string }
+        citations:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              source: { type: string }
+              chapter: { type: string }
+        confidence: { type: number }
+
+  securitySchemes:
+    bearerAuth: { $ref: 'components.base.yaml#/components/securitySchemes/bearerAuth' }
+
+security: [{ bearerAuth: [] }]
