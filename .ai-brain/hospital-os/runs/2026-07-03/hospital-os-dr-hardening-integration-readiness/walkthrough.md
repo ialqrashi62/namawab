@@ -36,13 +36,12 @@
 
 ---
 
-### 5. التصميم المعماري والمقارنة العالمية لقائمة الانتظار (NamaMedical Waiting Queue Blueprint)
-* **المستند**: [waiting_queue_blueprint.md](file:///C:/Users/ice/.gemini/antigravity-ide/brain/82cd63bd-6d7f-4ad3-a1a1-50439b56bdf1/waiting_queue_blueprint.md)
-* **المضمون**:
-  - مقارنة معيارية تفصيلية مع أنظمة Epic و Cerner العالمية.
-  - هيكلة الجداول البرمجية وقاعدة البيانات SQL المحدثة لدعم فرز الحالات (Acuity Levels ESI).
-  - تصميم الإطارات والواجهات والسيناريوهات التشغيلية.
-  - وضع برومبت هندسي جاهز لتوليد الكود برمجياً مباشرة.
+### 5. التطوير الفعلي لقائمة الانتظار الذكية (Acuity-Based Waiting Queue Implementation)
+* **المجلدات والملفات المعدلة**:
+  - **ملفات الهجرة**: [p1_05_waiting_queue_acuity_up.sql](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/migrations/p1_05_waiting_queue_acuity_up.sql) لتوسيع الجداول وتفعيل RLS، و [down](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/migrations/p1_05_waiting_queue_acuity_down.sql) و [validate](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/migrations/p1_05_waiting_queue_acuity_validate.sql) للتحقق التلقائي.
+  - **الـ Backend**: [server.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/server.js) حيث تم تحديث مسارات الـ API (checkin, status, triage, call) لتدعم الفرز الطبي للأولويات وتصحيح ربط المستأجر وقيود تسجيل الوصول.
+  - **الـ Frontend**: [public/js/app.js](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/public/js/app.js) لتحديث واجهة لوحة تحكم قائمة الانتظار وعرض المرضى بتلوين ESI 1-5 الفخم، وإضافة النوافذ المنبثقة للفرز والنداء الصوتي الذكي.
+  - **إصدار الكاش**: [public/index.html](file:///c:/Users/ice/Desktop/NamaMedical/namaweb/public/index.html) لترقية نسخة app.js إلى `v20260705_3`.
 
 ---
 
@@ -52,12 +51,17 @@
 
 ```
 ✅ server.js — syntax check: OK
-✅ cross_tenant_clinical_signatures_test: 12 passed, 0 failed (of 12)
-✅ run_all_tests: 173 passed, 0 failed (of 173)
-✅ Sync files to production: OK
-✅ Health Check online (https://jumanasoft.com/api/health): {"status":"UP"} (HTTP 200)
-✅ Waiting Queue Visual Validation & Name display: OK (100% Arabic/English)
+✅ app.js — syntax check: OK
+✅ waiting_queue_acuity_test.js (Acuity, Triage, Call & Status API): Passed 100%
+✅ run_all_tests: 174 passed, 0 failed (of 174)
+✅ Submodule & Parent Git commit & push: OK
+✅ Deploy to Production Server 204.168.144.74: OK
+✅ DEPLOY_RUN.sh DB Migrations & Validation: OK
+✅ PM2 process restart (nama-medical-erp) & Health Check: {"status":"UP","db":"up"} (HTTP 200)
+✅ Browser verification for Sarah check-in & Triage display: OK
 ```
 
-تمت مزامنة كافة مستندات الأمان والتشغيل والربط والتصميمات المعمارية الجديدة إلى مجلدات خادم الإنتاج الفعلي بنجاح، وتأكيد سلامة واستقرار النظام.
+تم التقاط صورة شاشة للتحقق من عمل شاشة الفرز الطبي وتلوين البطاقات:
+![waiting_queue_triage_levels](file:///C:/Users/ice/.gemini/antigravity-ide/brain/82cd63bd-6d7f-4ad3-a1a1-50439b56bdf1/checkin_status_screenshot_1783276879897.png)
 
+تمت مزامنة كافة مستندات الأمان والتشغيل والربط والتصميمات المعمارية الجديدة إلى مجلدات خادم الإنتاج الفعلي بنجاح، وتأكيد سلامة واستقرار النظام.
