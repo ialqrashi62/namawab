@@ -61,7 +61,10 @@
 ✅ Browser verification for Sarah check-in & Triage display: OK
 ```
 
-تم التقاط صورة شاشة للتحقق من عمل شاشة الفرز الطبي وتلوين البطاقات:
-![waiting_queue_triage_levels](file:///C:/Users/ice/.gemini/antigravity-ide/brain/82cd63bd-6d7f-4ad3-a1a1-50439b56bdf1/checkin_status_screenshot_1783276879897.png)
+تم التقاط صورة شاشة للتحقق من عمل شاشة الفرز الطبي وتلوين البطاقات بنجاح للمريضة سارة عبدالرحمن:
+![waiting_queue_triage_levels](file:///C:/Users/ice/.gemini/antigravity-ide/brain/82cd63bd-6d7f-4ad3-a1a1-50439b56bdf1/waiting_queue_page_1783277995656.png)
+
+ويمكن مشاهدة تسجيل فيديو E2E الكامل للسيناريو الناجح لتسجيل الوصول هنا:
+![appointments_checkin_flow_video](file:///C:/Users/ice/.gemini/antigravity-ide/brain/82cd63bd-6d7f-4ad3-a1a1-50439b56bdf1/final_checkin_success_1783277919897.webp)
 
 تمت مزامنة كافة مستندات الأمان والتشغيل والربط والتصميمات المعمارية الجديدة إلى مجلدات خادم الإنتاج الفعلي بنجاح، وتأكيد سلامة واستقرار النظام.
