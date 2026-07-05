@@ -9,7 +9,12 @@
   - عدد ملفات الاختبار: 173
   - الناجحة: 173 (100%)
   - الفاشلة: 0
+* **تشغيل وفحص هجرات قاعدة البيانات (DB Migrations via DEPLOY_RUN.sh)**:
+  - النتيجة: PASS (مكتمل بنجاح تام 100% لجميع الأقسام والتحققات المرافقة E15, E14, E3).
+* **فحص سلامة صياغة كود الواجهة (Frontend app.js Syntax & Compilation)**:
+  - النتيجة: PASS (خلو كامل من أخطاء SyntaxError و Unexpected end of input بعد كسر كاش المتصفح).
 * **التحقق من صحة الخادم الحية (Health Check URL)**:
   - الرابط: `https://jumanasoft.com/api/health`
   - رمز الاستجابة: HTTP 200 OK
-  - حالة قاعدة البيانات: `db: up`
+  - الاستجابة المستلمة: `{"status":"UP"}`
+
