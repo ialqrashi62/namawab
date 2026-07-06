@@ -3128,3 +3128,16 @@ e_stamping_test.js` 18/18 PASS؛ regression (idor sweep، refund، insert stampi
   - `namaweb/public/index.html` (تحديث معلمات إصدار كسر الكاش للملفات)
 * **النتائج والنشر**: اجتياز 27 اختباراً في `e1_doctor_ui_guard_test.js` وجميع اختبارات القبول بنجاح 100%، وتفعيل التحديث تلقائياً على خادم الإنتاج `jumanasoft.com` بعد إجراء نسخ احتياطي آمن، وإعادة تشغيل خدمة PM2 والتحقق من صحة النظام.
 
+### Phase 207: Jumanasoft SaaS Nursing Station UI & Tenant Isolation Hardening (Phase E6 - COMPLETED)
+* **تاريخ المرحلة**: 2026-07-06 | الحالة: `NURSING_STATION_RLS_E6_COMPLETED` | تفعيل محطة التمريض المطورة وتصليب أمن عزل المستأجرين (RLS) وحل تعليق الاختبارات.
+* **التفاصيل**: تطبيق كامل مخرجات المرحلة السادسة (Phase E6):
+  1. تفعيل واجهة محطة التمريض ذات اللوحات الثلاث المتناسقة (Three-Panel Layout) بربط دالة `renderNursing(el)` مع المحطة العالمية المطورة `renderNursingStation(el)`.
+  2. إنشاء هجرة قاعدة البيانات الصاعدة `migrations/e6_04_nursing_rls_up.sql` وتطبيقها لتأمين وجلب RLS وجداول وعزل `nursing_io` و `nursing_handover` و `nursing_pain_assessments`.
+  3. حل مشكلة تعليق حزمة الاختبارات التراكمية بإضافة `idleTimeoutMillis: 1000` لبيئات التطوير والاختبار في `db_postgres.js`.
+* **الملفات الجديدة والمُعدَّلة**:
+  - `namaweb/db_postgres.js` (إضافة مهلة إغلاق الاتصال pool خاملة)
+  - `namaweb/public/js/app.js` (ربط وتوجيه محطة التمريض المطورة تلقائياً)
+  - `namaweb/migrations/e6_04_nursing_rls_up.sql`, `down.sql`, `validate.sql` (ملفات الهجرات والتحقق والتراجع لجداول التمريض الثلاثة)
+* **النتائج والنشر**: اجتياز كافة الـ **174** اختباراً بنجاح كامل 100%، وتطبيق الهجرات ونشر التحديثات على خادم الإنتاج الفعلي `jumanasoft.com` وإعادة تشغيل خدمة PM2 والتحقق من صحة النظام واستقرار رابط الصحة UP.
+
+

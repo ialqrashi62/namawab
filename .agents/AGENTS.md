@@ -133,3 +133,16 @@
 .ai-brain/skills/hospital-os-governance/HOS_NO_OMISSION_SCOPE_BINDING_AR.md
 .ai-brain/skills/hospital-os-governance/HOS_CHANGE_CLEANUP_REGISTER_AR.md
 .ai-brain/skills/hospital-os-governance/HOS_AI_BRAIN_PERSISTENCE_AR.md
+.ai-brain/skills/hospital-os-pro/HOS_PRO_INDEX_AR.md
+.ai-brain/skills/hospital-os-pro/HOS_PRO_00_GOVERNANCE_GATES_AR.md
+.ai-brain/skills/hospital-os-pro/HOS_PRO_01_SIDEBAR_DISCOVERY_AR.md
+.ai-brain/skills/hospital-os-pro/HOS_PRO_02_GLOBAL_BENCHMARK_GAP_AR.md
+.ai-brain/skills/hospital-os-pro/HOS_PRO_03_MASTER_DEPARTMENT_CATALOG_AR.md
+.ai-brain/skills/hospital-os-pro/HOS_PRO_04_REQUIREMENTS_BLUEPRINT_AR.md
+.ai-brain/skills/hospital-os-pro/HOS_PRO_05_RBAC_PRIVACY_AUDIT_AR.md
+.ai-brain/skills/hospital-os-pro/HOS_PRO_06_CLINICAL_NURSING_SAFETY_AR.md
+.ai-brain/skills/hospital-os-pro/HOS_PRO_07_UI_UX_ACTIONS_MENUS_AR.md
+.ai-brain/skills/hospital-os-pro/HOS_PRO_08_DATA_API_INTEGRATION_AR.md
+.ai-brain/skills/hospital-os-pro/HOS_PRO_09_WORKFLOWS_DATAFLOW_AR.md
+.ai-brain/skills/hospital-os-pro/HOS_PRO_10_QA_TESTING_ACCEPTANCE_AR.md
+.ai-brain/skills/hospital-os-pro/HOS_PRO_11_DOCUMENTATION_MEMORY_AR.md
