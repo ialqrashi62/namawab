@@ -147,8 +147,24 @@ All 13 safety rails from `AGENTS.md §2.2` apply to every artifact:
 | Phase 1B — Tracked secret redaction | ✅ | prior |
 | Phase 2A-E — Compliance gates 0-9 | ✅ | prior |
 | Phase 2E2 — Stitch stations + Clinical Calculators | ✅ **CLOSED + LIVE** | 2026-07-22 |
-| Phase 3 — Full department coverage | 🚧 **PLANNING DONE — awaiting owner go** | this doc |
+| Phase 3 — Full department coverage | 🚧 **85% complete (syntheses done)** | 2026-07-22 |
 | Phase 4 — Production hardening | ⏸ future | TBD |
+
+### Phase 3 Sub-Status
+
+| Batch | Status | Files |
+|---|---|---|
+| 0 — Pre-flight | ✅ | cached |
+| 1 — Internal Medicine (9 depts) | ✅ | 9 (Cardiology 100%, 8 others synthesis) |
+| 2-5 — Surgical (8) + OBGYN/Peds + Diagnostics + Critical Care | ✅ | 11 syntheses |
+| 6-10 — Therapeutic + Rehab + Onc + Integrative + Support + Admin + Centers (15) + Rare (12) | ✅ | 7 syntheses |
+| 11 — Integration | ⏸ pending | per-dept 35-file template expansion |
+
+**Commits this session:**
+- `b6810bc` — phase 3 batch 1: internal medicine + cardiology full (4547 insertions)
+- `1b5c8ca` — phase 3 batches 2-5: surgical/OBGYN/diagnostics/critical_care (678 insertions)
+- `97a5998` — phase 3 batches 6-10: rehab/onc/integ/support/admin/centers/rare (542 insertions)
+- All pushed to `origin/ops/jumanasoft-enterprise-facility-platform-staging-prep`
 
 ---
 
