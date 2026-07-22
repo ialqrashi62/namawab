@@ -9,17 +9,22 @@
 
 ```
 .ai-brain/MEDICAL_EXPANSION/
-├── MASTER_INDEX.md                              ← (this file)
+├── MASTER_INDEX.md                                ← (this file)
 ├── PANEL_PROMPTS/
-│   ├── MASTER_7_EXPERT_PANEL_SYSTEM_PROMPT.md  ← THE master prompt
-│   ├── PER_DEPARTMENT_QUICKSTART_TEMPLATE.md    ← template for 1 dept
-│   └── STITCH_DESIGN_SYSTEM_TOKENS.md           ← design tokens + 8 layouts
+│   ├── MASTER_7_EXPERT_PANEL_SYSTEM_PROMPT.md    ← THE master prompt
+│   ├── PER_DEPARTMENT_QUICKSTART_TEMPLATE.md      ← template for 1 dept
+│   └── STITCH_DESIGN_SYSTEM_TOKENS.md             ← design tokens + 8 layouts
 ├── WORKPLANS/
-│   ├── APP_AUDIT_AND_GAP_ANALYSIS_2026-07-22.md  ← current state vs target
-│   └── PHASE_3_FULL_COVERAGE_WORKPLAN.md        ← 11-batch rollout
-└── STITCH_SAMPLES/
-    └── cardiology_stitch.html                   ← sample Stitch HTML (Layout A)
+│   ├── APP_AUDIT_AND_GAP_ANALYSIS_2026-07-22.md   ← current state vs target
+│   ├── PHASE_3_FULL_COVERAGE_WORKPLAN.md          ← 11-batch rollout
+│   └── DEPARTMENT_COVERAGE_MAP_FULL.md            ← dept-by-dept sub-unit map
+├── STITCH_SAMPLES/
+│   └── cardiology_stitch.html                     ← sample Stitch HTML (Layout A)
+└── EXAMPLE_CARDIOLOGY/
+    └── 00_7_EXPERT_PANEL_SYNTHESIS.md             ← complete worked example for 1 dept
 ```
+
+**Committed:** `35d6f91` on `ops/jumanasoft-enterprise-facility-platform-staging-prep` (pushed).
 
 ---
 
