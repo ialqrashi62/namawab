@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<!-- filepath: .ai-brain/MEDICAL_EXPANSION/STITCH_SAMPLES/cardiology_stitch.html -->
+<!-- Stitch design sample for Cardiology workstation (Layout A: 3-col clinical workspace) -->
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cardiology Workstation — NamaMedical</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+  <style>
+    :root {
+      --primary-500: #DC2626; /* cardiac red */
+      --primary-700: #991B1B;
+      --primary-50: #FEF2F2;
+      --neutral-0: #FFFFFF;
+      --neutral-50: #F9FAFB;
+      --neutral-100: #F3F4F6;
+      --neutral-200: #E5E7EB;
+      --neutral-500: #6B7280;
+      --neutral-900: #111827;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --critical: #991B1B;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', 'IBM Plex Sans Arabic', sans-serif;
+      background: var(--neutral-50);
+      color: var(--neutral-900);
+      display: grid;
+      grid-template-columns: 320px 1fr 320px;
+      grid-template-rows: 56px 1fr;
+      height: 100vh;
+      gap: 1px;
+    }
+    .header {
+      grid-column: 1 / -1;
+      background: var(--primary-700);
+      color: white;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      box-shadow: var(--shadow-md);
+      z-index: 10;
+    }
+    .header h1 { font-size: 18px; font-weight: 600; }
+    .header .spacer { flex: 1; }
+    .header .patient-pill {
+      background: rgba(255,255,255,0.15);
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      margin-left: 12px;
+    }
+    .panel {
+      background: var(--neutral-0);
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .panel h2 {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--neutral-500);
+      margin-bottom: 12px;
+    }
+    .left { border-right: 1px solid var(--neutral-200); }
+    .right { border-left: 1px solid var(--neutral-200); }
+    .vital {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--neutral-100);
+      font-size: 14px;
+    }
+    .vital-label { color: var(--neutral-500); }
+    .vital-value { font-weight: 600; }
+    .vital-value.normal { color: var(--success); }
+    .vital-value.warning { color: var(--warning); }
+    .vital-value.critical { color: var(--danger); }
+    .card {
+      background: var(--neutral-0);
+      border: 1px solid var(--neutral-200);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+    }
+    .card h3 { font-size: 16px; margin-bottom: 8px; }
+    .card .meta { font-size: 12px; color: var(--neutral-500); margin-bottom: 8px; }
+    .btn {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s;
+    }
+    .btn-primary { background: var(--primary-500); color: white; }
+    .btn-primary:hover { background: var(--primary-700); }
+    .btn-secondary { background: var(--neutral-100); color: var(--neutral-900); }
+    .btn-secondary:hover { background: var(--neutral-200); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .badge-success { background: #D1FAE5; color: #065F46; }
+    .badge-warning { background: #FEF3C7; color: #92400E; }
+    .badge-danger { background: #FEE2E2; color: #991B1B; }
+    .ecg-strip {
+      background: var(--neutral-900);
+      color: var(--success);
+      font-family: 'IBM Plex Mono', monospace;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      font-size: 18px;
+      letter-spacing: -1px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .ai-suggestion {
+      background: var(--primary-50);
+      border-left: 4px solid var(--primary-500);
+      padding: 12px;
+      border-radius: var(--radius-md);
+      margin-bottom: 12px;
+    }
+    .ai-suggestion h4 {
+      font-size: 12px;
+      color: var(--primary-700);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .ai-suggestion p { font-size: 14px; }
+    .orders-table { width: 100%; font-size: 13px; }
+    .orders-table th, .orders-table td {
+      text-align: left;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--neutral-100);
+    }
+    .orders-table th { color: var(--neutral-500); font-weight: 500; font-size: 12px; }
+    /* RTL support */
+    [dir="rtl"] body { direction: rtl; }
+    [dir="rtl"] .header h1 { margin-right: 0; }
+  </style>
+</head>
+<body>
+  <header class="header" role="banner">
+    <h1>❤️ Cardiology Workstation</h1>
+    <div class="spacer"></div>
+    <span class="patient-pill">PT-10234 · أحمد العتيبي · 62y · M</span>
+    <span class="patient-pill">Bed 5-A</span>
+  </header>
+
+  <!-- LEFT: Context (vitals + allergies + active problems) -->
+  <aside class="panel left" aria-label="Patient context">
+    <h2>Vitals (most recent)</h2>
+    <div class="vital">
+      <span class="vital-label">HR</span>
+      <span class="vital-value critical">112 bpm</span>
+    </div>
+    <div class="vital">
+      <span class="vital-label">BP</span>
+      <span class="vital-value warning">148/92</span>
+    </div>
+    <div class="vital">
+      <span class="vital-label">SpO2</span>
+      <span class="vital-value normal">96%</span>
+    </div>
+    <div class="vital">
+      <span class="vital-label">RR</span>
+      <span class="vital-value normal">18</span>
+    </div>
+    <div class="vital">
+      <span class="vital-label">Temp</span>
+      <span class="vital-value normal">37.0°C</span>
+    </div>
+
+    <h2 style="margin-top: 24px;">Allergies</h2>
+    <p style="font-size: 14px; color: var(--danger);">⚠ Penicillin (anaphylaxis)</p>
+
+    <h2 style="margin-top: 24px;">Active Problems</h2>
+    <p style="font-size: 14px;">• I25.10 ASHD</p>
+    <p style="font-size: 14px;">• I50.22 Chronic systolic HF</p>
+    <p style="font-size: 14px;">• I10 Essential HTN</p>
+    <p style="font-size: 14px;">• E11.9 Type 2 DM</p>
+  </aside>
+
+  <!-- CENTER: Main workspace (ECG + assessment + plan) -->
+  <main class="panel" aria-label="Main workspace">
+    <div class="card">
+      <h3>12-Lead ECG — 2026-07-22 10:15</h3>
+      <div class="meta">Sinus tachycardia · 112 bpm · LVH by voltage · No acute ST changes</div>
+      <div class="ecg-strip" aria-label="ECG rhythm strip">
+        ╱╲___╱╲___╱╲___╱╲___╱╲___╱╲___╱╲___╱╲___╱╲___╱╲___╱╲___╱╲___
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>AI Decision Support</h3>
+      <div class="ai-suggestion">
+        <h4>💡 Suggestion</h4>
+        <p>CHA₂DS₂-VASc score = 4 (age ≥65 borderline, HTN, DM, vascular). Consider anticoagulation for AF risk if rhythm confirmed.</p>
+      </div>
+      <div class="ai-suggestion">
+        <h4>⚠ Alert</h4>
+        <p>Beta-blocker interaction: patient on metoprolol. Hold if HR &lt; 60.</p>
+      </div>
+      <div class="ai-suggestion">
+        <h4>📚 Citation</h4>
+        <p>2023 ESC Guidelines for the management of cardiovascular disease in patients with diabetes (chunk #cv-2023-esc-dm-014, score 0.87)</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Today's Plan</h3>
+      <p style="margin-bottom: 12px; font-size: 14px;">Patient presenting with new-onset atrial fibrillation. Rate control initiated. Awaiting TTE and TSH.</p>
+      <div class="grid-2">
+        <button class="btn btn-primary" aria-label="Order transthoracic echocardiogram">+ Order TTE</button>
+        <button class="btn btn-secondary" aria-label="Add progress note">+ Progress Note</button>
+        <button class="btn btn-secondary" aria-label="Order labs">+ Order Labs</button>
+        <button class="btn btn-secondary" aria-label="Request consult">+ Consult</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- RIGHT: Notes + Orders + Results -->
+  <aside class="panel right" aria-label="Side panel">
+    <h2>Active Orders</h2>
+    <table class="orders-table">
+      <tr><th>Order</th><th>Status</th></tr>
+      <tr>
+        <td>Metoprolol 25mg PO BID</td>
+        <td><span class="badge badge-success">Active</span></td>
+      </tr>
+      <tr>
+        <td>Apixaban 5mg PO BID</td>
+        <td><span class="badge badge-success">Active</span></td>
+      </tr>
+      <tr>
+        <td>Furosemide 40mg PO AM</td>
+        <td><span class="badge badge-success">Active</span></td>
+      </tr>
+      <tr>
+        <td>TSH, Free T4</td>
+        <td><span class="badge badge-warning">Pending</span></td>
+      </tr>
+      <tr>
+        <td>TTE (Transthoracic Echo)</td>
+        <td><span class="badge badge-warning">Pending</span></td>
+      </tr>
+    </table>
+
+    <h2 style="margin-top: 24px;">Recent Results</h2>
+    <div class="vital">
+      <span class="vital-label">BNP 2026-07-21</span>
+      <span class="vital-value warning">612 pg/mL ↑</span>
+    </div>
+    <div class="vital">
+      <span class="vital-label">Cr 2026-07-21</span>
+      <span class="vital-value normal">1.1 mg/dL</span>
+    </div>
+    <div class="vital">
+      <span class="vital-label">K+ 2026-07-21</span>
+      <span class="vital-value normal">4.2 mEq/L</span>
+    </div>
+    <div class="vital">
+      <span class="vital-label">HbA1c 2026-07-15</span>
+      <span class="vital-value warning">7.8% ↑</span>
+    </div>
+  </aside>
+</body>
+</html>
