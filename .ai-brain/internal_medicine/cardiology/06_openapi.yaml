@@ -1,0 +1,311 @@
+# OpenAPI Fragment — Cardiology
+
+> **Owner:** Architect
+> **Date:** 2026-07-22
+> **Append to:** `docs/openapi/cardiology.yaml`
+
+```yaml
+openapi: 3.0.3
+info:
+  title: Cardiology API
+  version: 1.0.0
+  description: |
+    Cardiology workstation API — echo, ECG, procedures, anticoagulation, heart failure, CDS.
+    All routes require authentication + tenant scope + appropriate role.
+servers:
+  - url: https://jumanasoft.com/api/cardiology
+    description: Production
+  - url: http://localhost:3000/api/cardiology
+    description: Development
+security:
+  - bearerAuth: []
+
+paths:
+  /patients/{patientId}/echo:
+    get:
+      summary: List patient's echo reports
+      tags: [Echo]
+      parameters:
+        - $ref: '#/components/parameters/PatientId'
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+      responses:
+        '200':
+          description: Echo list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/EchoReport' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /echo:
+    post:
+      summary: Upload new echo (sonographer or doctor)
+      tags: [Echo]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                patient_id: { type: integer }
+                study_type: { type: string, enum: [tte, tee, stress_echo, contrast_echo] }
+                lvef_percent: { type: number }
+                dicom: { type: string, format: binary }
+      responses:
+        '201':
+          description: Echo created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EchoReport' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /patients/{patientId}/ecg:
+    get:
+      summary: List patient's ECGs
+      tags: [ECG]
+      parameters:
+        - $ref: '#/components/parameters/PatientId'
+      responses:
+        '200':
+          description: ECG list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ECGRecord' }
+
+  /procedures:
+    post:
+      summary: Schedule cardiac procedure (doctor only)
+      tags: [Procedures]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProcedureCreate' }
+      responses:
+        '201':
+          description: Procedure scheduled
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Procedure' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { description: Slot conflict }
+
+  /procedures/{id}:
+    get:
+      summary: Get procedure details
+      tags: [Procedures]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Procedure
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Procedure' }
+
+  /cds/chadsvasc:
+    post:
+      summary: Calculate CHA₂DS₂-VASc stroke risk (calls /api/calculators)
+      tags: [CDS]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CHADSRequest' }
+      responses:
+        '200':
+          description: Score + recommendation
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CHADSResponse' }
+
+  /cds/hasbled:
+    post:
+      summary: Calculate HAS-BLED bleeding risk
+      tags: [CDS]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/HASBLEDRequest' }
+      responses:
+        '200':
+          description: Score + recommendation
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HASBLEDResponse' }
+
+  /anticoag/queue:
+    get:
+      summary: Today's anticoagulation clinic queue
+      tags: [Anticoag]
+      responses:
+        '200':
+          description: Queue list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AnticoagVisit' }
+
+  /anticoag/visit:
+    post:
+      summary: Document INR visit
+      tags: [Anticoag]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AnticoagVisitCreate' }
+      responses:
+        '201':
+          description: Visit documented
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    PatientId:
+      in: path
+      name: patientId
+      required: true
+      schema: { type: integer }
+
+  responses:
+    Unauthorized: { description: Not authenticated }
+    Forbidden: { description: Insufficient role }
+    BadRequest: { description: Invalid input }
+
+  schemas:
+    EchoReport:
+      type: object
+      properties:
+        id: { type: integer }
+        patient_id: { type: integer }
+        study_date: { type: string, format: date-time }
+        study_type: { type: string }
+        lvef_percent: { type: number }
+        valve_assessment: { type: string }
+        signed_by: { type: integer, nullable: true }
+        signed_at: { type: string, format: date-time, nullable: true }
+
+    ECGRecord:
+      type: object
+      properties:
+        id: { type: integer }
+        patient_id: { type: integer }
+        study_date: { type: string, format: date-time }
+        ecg_type: { type: string }
+        rhythm: { type: string }
+        rate_bpm: { type: integer }
+        interpretation: { type: string }
+        ai_interpretation: { type: string, nullable: true }
+
+    Procedure:
+      type: object
+      properties:
+        id: { type: integer }
+        patient_id: { type: integer }
+        procedure_type: { type: string }
+        indication: { type: string }
+        status: { type: string, enum: [scheduled, in_progress, completed, cancelled] }
+        scheduled_at: { type: string, format: date-time }
+        operator_id: { type: integer, nullable: true }
+        findings: { type: string, nullable: true }
+        door_to_balloon_minutes: { type: integer, nullable: true }
+
+    ProcedureCreate:
+      type: object
+      required: [patient_id, procedure_type, indication, scheduled_at]
+      properties:
+        patient_id: { type: integer }
+        procedure_type: { type: string, enum: [cath, pci, tavr, ablation, device_implant, ep_study, icd, ppm, crt] }
+        indication: { type: string }
+        scheduled_at: { type: string, format: date-time }
+        operator_id: { type: integer }
+
+    CHADSRequest:
+      type: object
+      required: [age, chf, htn, diabetes, stroke, vascular, sex]
+      properties:
+        age: { type: integer, minimum: 0, maximum: 120 }
+        chf: { type: boolean }
+        htn: { type: boolean }
+        diabetes: { type: boolean }
+        stroke: { type: boolean }
+        vascular: { type: boolean }
+        sex: { type: string, enum: [male, female] }
+
+    CHADSResponse:
+      type: object
+      properties:
+        value: { type: integer }
+        severity: { type: string }
+        notes: { type: string }
+        citations: { type: array, items: { type: string } }
+        recommendation: { type: string }
+
+    HASBLEDRequest:
+      type: object
+      properties:
+        htn: { type: boolean }
+        renal: { type: boolean }
+        liver: { type: boolean }
+        stroke: { type: boolean }
+        bleeding: { type: boolean }
+        inr: { type: boolean }
+        elderly: { type: boolean }
+        drugs: { type: boolean }
+        alcohol: { type: boolean }
+
+    HASBLEDResponse:
+      type: object
+      properties:
+        value: { type: integer }
+        severity: { type: string }
+        notes: { type: string }
+        citations: { type: array, items: { type: string } }
+
+    AnticoagVisit:
+      type: object
+      properties:
+        id: { type: integer }
+        patient_id: { type: integer }
+        visit_date: { type: string, format: date }
+        inr_value: { type: number, nullable: true }
+        warfarin_dose_mg: { type: number, nullable: true }
+        doac_name: { type: string, nullable: true }
+        trend_arrow: { type: string, enum: [up, down, stable] }
+        next_visit_date: { type: string, format: date, nullable: true }
+
+    AnticoagVisitCreate:
+      type: object
+      required: [patient_id, visit_date]
+      properties:
+        patient_id: { type: integer }
+        visit_date: { type: string, format: date }
+        inr_value: { type: number }
+        warfarin_dose_mg: { type: number }
+        doac_name: { type: string }
+        doac_dose_mg: { type: number }
+        action: { type: string }
+        next_visit_date: { type: string, format: date }
+```
+
+---
+
+End of OpenAPI spec.

@@ -1,0 +1,73 @@
+# Task List — Cardiology
+
+> **Owner:** PM
+> **Date:** 2026-07-22
+> **Format:** CSV (excerpt; full list in Jira)
+
+```csv
+id,title,type,priority,sprint,owner,estimate_hours,status,dependencies
+ST-1,Create cardiac_procedures table + RLS,db,P0,Sprint 1,backend,4,done,
+ST-2,Create echo_reports table + RLS,db,P0,Sprint 1,backend,4,done,
+ST-3,Create ecg_archive table + RLS,db,P0,Sprint 1,backend,4,done,
+ST-4,Create holter_studies + stress_tests tables,db,P0,Sprint 1,backend,6,to-do,
+ST-5,Create cardiac_rehab + anticoag_clinic_visits,db,P0,Sprint 1,backend,6,to-do,
+ST-6,Auth middleware (cardiology roles),security,P0,Sprint 1,backend,8,to-do,
+ST-7,Tenant scope tests,test,P0,Sprint 1,qa,4,to-do,ST-1..5
+ST-8,Migration scripts (up/down/validate),ops,P0,Sprint 1,backend,8,to-do,ST-1..5
+ST-9,GET /api/cardiology/patients/:id/echo,api,P0,Sprint 2,backend,4,to-do,ST-1
+ST-10,POST /api/cardiology/echo (DICOM),api,P0,Sprint 2,backend,12,to-do,ST-1,ST-6
+ST-11,GET /api/cardiology/patients/:id/ecg,api,P0,Sprint 2,backend,4,to-do,ST-3
+ST-12,POST /api/cardiology/procedures,api,P0,Sprint 2,backend,8,to-do,ST-1,ST-6
+ST-13,PATCH /api/cardiology/procedures/:id,api,P0,Sprint 2,backend,4,to-do,ST-12
+ST-14,POST /api/cardiology/cds/chadsvasc,api,P0,Sprint 2,backend,8,to-do,ST-6
+ST-15,POST /api/cardiology/cds/hasbled,api,P0,Sprint 2,backend,8,to-do,ST-6
+ST-16,GET /api/cardiology/anticoag/queue,api,P0,Sprint 2,backend,4,to-do,ST-5
+ST-17,POST /api/cardiology/anticoag/visit,api,P0,Sprint 2,backend,8,to-do,ST-5
+ST-18,API integration tests,test,P0,Sprint 2,qa,12,to-do,ST-9..17
+ST-19,Setup pgvector extension,infra,P0,Sprint 3,devops,4,to-do,
+ST-20,Create clinical_knowledge_vectors table,db,P0,Sprint 3,backend,8,to-do,ST-19
+ST-21,Embed 100 cardiology guidelines,ai,P0,Sprint 3,ai-ml,20,to-do,ST-20
+ST-22,Implement retrieval function,ai,P0,Sprint 3,ai-ml,12,to-do,ST-21
+ST-23,LLM call with system prompt,ai,P0,Sprint 3,ai-ml,12,to-do,ST-22
+ST-24,Output validation,ai,P0,Sprint 3,ai-ml,8,to-do,ST-23
+ST-25,Build CDSBundle (ACS+HF+AF+STEMI),ai,P0,Sprint 3,ai-ml,20,to-do,ST-23
+ST-26,Audit trail for CDS,security,P0,Sprint 3,backend,8,to-do,ST-23
+ST-27,LangFuse integration,observability,P0,Sprint 3,devops,12,to-do,ST-23
+ST-28,Eval set + CI gate,test,P0,Sprint 3,qa,20,to-do,ST-25
+ST-29,Cardiology station 3-col layout,frontend,P0,Sprint 4,frontend,12,to-do,
+ST-30,Echo upload widget,frontend,P0,Sprint 4,frontend,12,to-do,ST-10
+ST-31,Echo viewer,frontend,P0,Sprint 4,frontend,12,to-do,ST-29
+ST-32,ECG viewer,frontend,P0,Sprint 4,frontend,12,to-do,ST-29
+ST-33,Procedures scheduler,frontend,P0,Sprint 4,frontend,12,to-do,ST-12
+ST-34,Anticoag clinic queue,frontend,P0,Sprint 4,frontend,8,to-do,ST-16
+ST-35,HF GDMT dashboard,frontend,P0,Sprint 4,frontend,12,to-do,ST-29
+ST-36,CDS panel,frontend,P0,Sprint 4,frontend,12,to-do,ST-25
+ST-37,i18n (AR/EN),i18n,P0,Sprint 4,frontend,8,to-do,ST-29..36
+ST-38,Stitch HTML,design,P0,Sprint 4,designer,8,to-do,ST-29
+ST-39,Accessibility audit (WCAG 2.2 AA),a11y,P0,Sprint 4,qa,8,to-do,ST-29..36
+ST-40,Unit tests for cardiology endpoints,test,P0,Sprint 5,qa,12,to-do,ST-9..17
+ST-41,Integration tests,test,P0,Sprint 5,qa,12,to-do,ST-40
+ST-42,E2E tests,test,P0,Sprint 5,qa,12,to-do,ST-40,ST-41
+ST-43,Load test,test,P0,Sprint 5,qa,8,to-do,ST-42
+ST-44,Pen test,security,P0,Sprint 5,security,12,to-do,ST-40..43
+ST-45,Performance test,test,P0,Sprint 5,qa,8,to-do,ST-42
+ST-46,Staging deploy,ops,P0,Sprint 5,devops,8,to-do,ST-44
+ST-47,User manual + training videos,docs,P0,Sprint 5,pm,8,to-do,
+ST-48,Production deploy with feature flag,ops,P0,Sprint 5,devops,12,to-do,ST-46
+ST-49,1-week soak test,test,P0,Sprint 5,qa,8,to-do,ST-48
+ST-50,Full rollout,ops,P0,Sprint 5,devops,12,to-do,ST-49
+```
+
+---
+
+## Summary
+
+- **50 stories**
+- **324 story points**
+- **~10 weeks** (5 sprints × 2 weeks)
+- **Team:** 5 (1 BE, 1 FE, 1 AI/ML, 1 QA, 1 PM) + DevOps part-time
+- **Critical path:** DB → API → RAG → Frontend → Test → Deploy
+
+---
+
+End of task list.

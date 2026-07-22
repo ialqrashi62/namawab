@@ -1,0 +1,135 @@
+# i18n — Cardiology
+
+> **Owner:** PM/UX
+> **Date:** 2026-07-22
+> **Format:** JSON
+> **Languages:** Arabic (primary) + English
+
+```json
+{
+  "cardio.title": {
+    "ar": "القلب والأوعية الدموية",
+    "en": "Cardiology"
+  },
+  "cardio.subtitle": {
+    "ar": "قسم طب القلب والأوعية الدموية",
+    "en": "Cardiology Department"
+  },
+  "cardio.tab.general": {
+    "ar": "عام",
+    "en": "General"
+  },
+  "cardio.tab.echo": {
+    "ar": "إيكو القلب",
+    "en": "Echo"
+  },
+  "cardio.tab.ecg": {
+    "ar": "تخطيط القلب",
+    "en": "ECG"
+  },
+  "cardio.tab.procedures": {
+    "ar": "الإجراءات",
+    "en": "Procedures"
+  },
+  "cardio.tab.anticoag": {
+    "ar": "عيادة مضادات التجلط",
+    "en": "Anticoagulation Clinic"
+  },
+  "cardio.tab.hf": {
+    "ar": "لوحة قصور القلب",
+    "en": "HF Dashboard"
+  },
+  "cardio.cds.chadsvasc": {
+    "ar": "احتساب خطر السكتة (CHA₂DS₂-VASc)",
+    "en": "Calculate Stroke Risk (CHA₂DS₂-VASc)"
+  },
+  "cardio.cds.hasbled": {
+    "ar": "احتساب خطر النزيف (HAS-BLED)",
+    "en": "Calculate Bleeding Risk (HAS-BLED)"
+  },
+  "cardio.cds.acsbundle": {
+    "ar": "حزمة متلازمة الشريان التاجي الحادة",
+    "en": "ACS Bundle"
+  },
+  "cardio.cds.hfgdmt": {
+    "ar": "تتبع العلاج الرباعي لقصور القلب",
+    "en": "HF GDMT Tracking"
+  },
+  "cardio.proc.cath": {
+    "ar": "قسطرة قلبية",
+    "en": "Cardiac Catheterization"
+  },
+  "cardio.proc.pci": {
+    "ar": "رأب الوعاء التاجي",
+    "en": "PCI"
+  },
+  "cardio.proc.tavr": {
+    "ar": "استبدال الصمام الأبهري عبر القسطرة",
+    "en": "TAVR"
+  },
+  "cardio.proc.ablation": {
+    "ar": "استئصال بالترددات الراديوية",
+    "en": "RF Ablation"
+  },
+  "cardio.proc.icd": {
+    "ar": "جهاز إزالة الرجفان القابل للزرع",
+    "en": "ICD Implant"
+  },
+  "cardio.proc.ppm": {
+    "ar": "منظم ضربات القلب",
+    "en": "Pacemaker Implant"
+  },
+  "cardio.proc.crt": {
+    "ar": "علاج إعادة التزامن القلبي",
+    "en": "CRT"
+  },
+  "cardio.vitals.hr": {
+    "ar": "معدل ضربات القلب",
+    "en": "Heart Rate"
+  },
+  "cardio.vitals.bp": {
+    "ar": "ضغط الدم",
+    "en": "Blood Pressure"
+  },
+  "cardio.vitals.spo2": {
+    "ar": "تشبع الأكسجين",
+    "en": "SpO2"
+  },
+  "cardio.lab.bnp": {
+    "ar": "الببتيد المدر للصوديوم",
+    "en": "BNP"
+  },
+  "cardio.lab.troponin": {
+    "ar": "تروبونين",
+    "en": "Troponin"
+  },
+  "cardio.lab.inr": {
+    "ar": "نسبة التطبيع الدولية",
+    "en": "INR"
+  },
+  "cardio.lab.ldl": {
+    "ar": "الكوليسترول الضار",
+    "en": "LDL"
+  },
+  "cardio.alert.stemi": {
+    "ar": "احتشاء عضلة القلب مع ارتفاع ST — تفعيل مختبر القسطرة فوراً",
+    "en": "STEMI detected — activate cath lab immediately"
+  },
+  "cardio.alert.af.rvr": {
+    "ar": "رجفان أذيني مع استجابة بطينية سريعة",
+    "en": "AF with rapid ventricular response"
+  },
+  "cardio.alert.shock": {
+    "ar": "صدمة قلبية",
+    "en": "Cardiogenic shock"
+  },
+  "cardio.alert.lvef.low": {
+    "ar": "كسر القذف منخفض (<30٪) — يستدعي فريق قصور القلب",
+    "en": "LVEF <30% — heart failure team consult"
+  }
+}
+```
+
+---
+
+End of i18n.
