@@ -4,6 +4,41 @@ The format is based on Keep a Changelog; this project adheres to Semantic Versio
 
 ## [Unreleased]
 
+### Added — 2026-07-22 (Clinical calculators — tests + corrected signatures)
+- **`clinical_calculators_test.js` (new)**: 69 tests across 18 calculator engines (TBSA, Parkland, APGAR, GCS, Aldrete, ESI, IOL SRK/T, Child-Pugh, MELD, CHA₂DS₂-VASc, HAS-BLED, CURB-65, qSOFA, Wells DVT, Centor, ROM, EWS, CPB) — all **PASS**. Covers happy path + boundary + range-out + null/garbage input + cross-cutting shape invariants (every function returns `{ value, severity, notes, citations }` or documented alternative shape; all 15 cite-providing engines return non-empty citations). Run with `node clinical_calculators_test.js` (exit 0 = pass).
+- **`clinical_calculators_router.js` corrected**: fixed signature mismatches between router and engine. `gcsTotal(eye,verbal,motor)`, `parklandFormula(tbsa,weight)`, `romScore(degrees)` are now called positionally (not as object args). Child-Pugh uses `mild|severe` for `ascites` and `none|grade1-2|severe` for `encephalopathy` to match the engine's internal lookup. MELD `dialysis` is a string `'yes'|'no'`. CHA₂DS₂-VASc uses `sex:'male'|'female'`. CURB-65 takes `age` (with `respiratoryRate` and `bp` numerics). Centor uses `{fever, tonsillarExudate, tenderLymph, cough}`. qSOFA uses `{alteredMentation, rrGte22, sbpLte100}`. Wells uses `{activeCancer, paralysis, recentImmobilization, localizedTenderness, entireLegSwollen, calfSwelling, pittingEdema, collateralSuperficialVeins, altDxAsLikely}`. HAS-BLED uses `{htn, renal, liver, stroke, bleeding, inr, elderly, drugs, alcohol}`. CPB takes ISO date strings `{crossClampStart, cpbStart, currentTime}`.
+- **End-to-end smoke test re-run**: all 19 endpoints (1 GET + 18 POST) exercised over a live HTTP server; 19/19 PASS. Confirmed by the e2e test harness.
+- **E2 STITCH STATIONS MIGRATION PLAN**: see `docs/E2_STITCH_STATIONS_MIGRATION_PLAN.md` — forward-looking inventory of `e70`–`e84` migrations (15 candidate SQL files) for the persistence layer behind the 28 stations + 18 calculators. Status: **planning document, not yet executed**; current state is UI-only on top of mock data. Documents safety rails (FORCE RLS, server-side money/VAT, PHI encryption, audit chain) that must be preserved.
+- **Autopilot runbook**: see `ops/live_deploy/E2_STITCH_CALCULATORS_AUTOPILOT_RUNBOOK_AR.md` — full reproduction recipe (commands, AC criteria, loop order, smoke tests). Verifies the 11-step pipeline (planning → engines → router → wiring → tests → stations → routing → nav → changelog → index → verify).
+
+### Added — 2026-07-22 (Clinical calculators REST API)
+- **`clinical_calculators.js` (new module)**: 18 pure clinical scoring/calculation functions used by Stitch specialist stations. Each returns `{ value, severity, notes, citations }` and never throws. Functions: `tbsaRuleOfNines`, `parklandFormula`, `apgarTotal`, `gcsTotal`, `aldreteTotal`, `esiLevel`, `iolSrkt`, `childPugh`, `meld`, `cha2ds2vasc`, `hasBled`, `curb65`, `qsofa`, `wellsDvt`, `centor`, `romScore`, `ewsTotal`, `cpbTimer`. Server-side authority values (anti-spoof); clients never compute scores.
+- **`clinical_calculators_router.js` (new module)**: Express factory `makeCalculatorsRouter({ requireAuth, requireTenantScope })`. Mounts at `/api/calculators`. Self-contained `express.json({ limit: '16kb' })` body parser. Endpoints: `GET /` (list 18 calculators), `POST /tbsa`, `/parkland`, `/apgar`, `/gcs`, `/aldrete`, `/esi`, `/iol-srkt`, `/child-pugh`, `/meld`, `/cha2ds2-vasc`, `/has-bled`, `/curb65`, `/qsofa`, `/wells-dvt`, `/centor`, `/rom`, `/ews`, `/cpb`. All endpoints return `{ ok, value, severity, notes, citations, input }`. Strict per-field range validation (`safeNum`) returns 400 on bad input.
+- **Wired in `server.js`** (line ~21414, after the public-plans router): `app.use('/api/calculators', makeCalculatorsRouter({ requireAuth, requireTenantScope }))`.
+- **End-to-end smoke test**: all 18 endpoints exercised via `node -e` + http requests; 12/12 representative cases passed (TBSA 100 → critical, Parkland 70kg/40% → 4·70·40=11200 mL, APGAR 10 → normal, GCS 4+5+6=15 → severe, etc.).
+
+### Added — 2026-07-22 (Stitch specialist stations batch 2 — full coverage)
+- **Expanded routing registry to 28 stations** (`public/js/routing-patch.js`): now covers the full specialist catalog: surgical (8), internal medicine (9), OBGYN/peds (2), diagnostics (4), critical care (5). Bridges legacy `#app-content` to current `#pageContent` so all stations render correctly.
+- **Added 13 NAV_ITEMS to `app.js` (indices 55-75)**: General Surgery, Cardiology, Pulmonology, Gastroenterology, Nephrology, Endocrinology, Rheumatology, Dermatology, Infectious Disease, Oncology, OBGYN & Pediatrics, Critical Care, Diagnostics Hub.
+- **Extended `FACILITY_ALLOWED` for 3 hospital types** (`general_hospital`, `tertiary_hospital`, `specialized_hospital`) to include 48-75.
+- **13 new `<script>` tags in `index.html`** for: cardiology, pulmonology, gastro, nephrology, endocrine, rheuma, derm, infectious, oncology, obgyn-peds, critical, diagnostics, surgery stations.
+- **Skills leveraged** (token-saver): `nm-ai-brain-multi-agent`, `nm-ai-brain-loop-engineering`, `nm-ai-brain-autopilot`, `nm-ai-brain-department-generator`, `nm-ai-brain-frontend-bridge`, shared `snippets.md` (13 SNIPs).
+- **Smoke test**: all 29 station files + routing-patch load cleanly under Node with `window` shim. 28 routes registered.
+
+### Added — 2026-07-22 (Stitch specialist stations batch 1)
+- **Stitch specialist stations (15 new clinical workspaces)**: 3-column RTL/LTR workspaces for 15 specialist departments, all sharing the same `Station.render(patientId)` contract:
+  - Surgical: `orthopedics-station.js`, `neurosurgery-station.js`, `cardiothoracic-station.js`, `ent-station.js`, `ophthalmology-station.js`, `urology-station.js`, `plastic-surgery-station.js`
+  - Diagnostics: `lab-station.js`, `radiology-station.js`, `functional-tests-station.js`
+  - Critical care: `er-station.js`, `icu-station.js`, `anesthesia-station.js`, `pacu-station.js`, `nicu-station.js`
+- **Routing patch (`public/js/routing-patch.js`)**: non-invasive dispatcher that monkey-patches `navigateTo()` to call the appropriate `*.Station.render()` for NAV indices 48-62. Avoids editing the 1.7MB monolithic `app.js`. Falls back to a friendly "module loading" placeholder if a station script is unavailable. XSS-safe (uses `tr()` for bilingual labels, no `innerHTML` of untrusted data).
+- **Navigation entries (NAV_ITEMS 48-58)**: Orthopedics, Neurosurgery, Cardiothoracic, ENT, Ophthalmology, Urology, Plastic Surgery, Functional Tests, Anesthesia, PACU, NICU.
+- **Facility entitlement updates**: `general_hospital`, `tertiary_hospital`, and `specialized_hospital` now include 48-58 in `FACILITY_ALLOWED`.
+- **`.ai-brain/` documentation suite**: 60 files covering all 46 departments (brain.md cognitive core + 01_focus, 02_rag_knowledge, 03_backend_logic, 04_ux_ui_stitch, 05_compliance_security, 06_implementation_plan). Master coverage map at 100%.
+- **Token-saver skills**: `nm-ai-brain-diagnostics-batch`, `nm-ai-brain-phd-template`, shared `snippets.md` (13 SNIPs).
+- **index.html**: 15 new `<script>` tags load station files + `routing-patch.js` before `app.js`.
+
+
+
 ### Added — 2026-06-19
 - Implementation of Tenant Isolation and Row-Level Security (RLS) for `nursing_assessments` table on Staging:
   - Database Schema Alteration: Added `tenant_id` (NOT NULL) and `facility_id` (nullable) columns to `nursing_assessments` table.

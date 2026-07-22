@@ -16,9 +16,15 @@
 | **NM_OBSERVABILITY_OPS** | التشغيل/المراقبة/التعافي | بوابات Phase D ops | أسرار في السجلّات · تغيير app/DB | DOCKER_DAEMON_RECOVERY · WATCHDOG · REDIS_NATIVE |
 | **NM_FINANCE_ACCOUNTING_GUARD** | حارس المحاسبة | أي بوابة مالية | تفعيل posting · توليد journal · بلا موافقة صريحة | ACCOUNTING(OFF) · JOURNAL(0) · FINANCE_STATUS |
 | **NM_GOVERNANCE_CLOSEOUT** | نظافة الإغلاق/التقارير | نهاية كل بوابة | mojibake · ملفات خارج النطاق · non-FF | hygiene + حقول الإغلاق القياسية |
+| **NM_STITCH_STATIONS** | 28 محطة Stitch لـ 28 تخصص سريري (Stitch Google) + 18 حاسبة سريرية | تفعيل E2 stations + calculators | فتح مختبرات بأسماء خاطئة · تعريض PHI · طباعة نتائج calculator | STATIONS_LOADED=30/30 · CALCULATOR_TESTS=69/69 · ENDPOINTS=19/19 · RLS_OK |
+
+## E2 — Stitch Stations + Clinical Calculators (محدّثة 2026-07-22)
+- **28 محطة متخصصة**: `anesthesia`, `cardiology`, `cardiothoracic`, `critical`, `derm`, `diagnostics`, `endocrinology`, `ent`, `er`, `functional-tests`, `gastroenterology`, `general-surgery`, `icu`, `infectious`, `lab`, `nephrology`, `neurosurgery`, `nicu`, `obgyn-peds`, `oncology`, `ophthalmology`, `orthopedics`, `pacu`, `plastic-surgery`, `pulmonology`, `radiology`, `rheumatology`, `urology`. كل واحدة بصيغة `Station.render(patientId)`.
+- **18 حاسبة REST API** على `/api/calculators/` (`GET /` + 18 POST): TBSA Rule of Nines, Parkland, APGAR, GCS, Aldrete, ESI, IOL SRK/T, Child-Pugh, MELD, CHA₂DS₂-VASc, HAS-BLED, CURB-65, qSOFA, Wells DVT, Centor, ROM, EWS, CPB. كلها pure deterministic engines في `namaweb/clinical_calculators.js`.
+- **Migration plan**: `docs/E2_STITCH_STATIONS_MIGRATION_PLAN.md` — 15 candidate migration files (e70–e84) للـ persistence layer.
 
 ## التفعيل النموذجي
 `NM_GLOBAL_GATES` + `NM_GOVERNANCE_CLOSEOUT` (دائماً) + المهارة الخاصة بالبوابة (+ `NM_INTEGRATION_SANDBOX` لأي container).
 
-## الحالة المرجعية (محدّثة 2026-06-23)
-A1/A2/A3A/A3(DPAPI) منشورة · Phase B sandboxes (D2/D1/D5 + HAPI transaction + Mirth relay) مُثبتة محلياً · Vault/KMS المرحلة 2 candidate · KEK escrow + Redis-native معلّقان (مالك). FORCE_RLS=150 · accounting OFF · journal 0 · R17 سليمة.
+## الحالة المرجعية (محدّثة 2026-07-22)
+A1/A2/A3A/A3(DPAPI) منشورة · Phase B sandboxes (D2/D1/D5 + HAPI transaction + Mirth relay) مُثبتة محلياً · Vault/KMS المرحلة 2 candidate · KEK escrow + Redis-native معلّقان (مالك). FORCE_RLS=150 · accounting OFF · journal 0 · R17 سليمة. **E2 stations**: 30/30 station files محمّلة، 28/28 موصولة في routing-patch، NAV_ITEMS 48-75 مُضافة. **Clinical calculators**: 18 engine + 19 REST endpoint، 69/69 tests PASS. Migration plan (e70-e84) مُعدّ معلّق.
