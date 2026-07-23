@@ -4,6 +4,22 @@ The format is based on Keep a Changelog; this project adheres to Semantic Versio
 
 ## [Unreleased]
 
+### Added — 2026-07-23 (Phase 4: AI-Brain → Production Verification)
+- **Gap analysis complete** (`docs/MASTER_BLUEPRINT/IMPLEMENTATION_STATUS.md`): 62/62 blueprint modules classified as **A-class** — all have existing ERD cluster (`docs/erd/*.dbml`), OpenAPI spec (`docs/openapi/*.yaml`), engine (`namaweb/*_engine.js`), and test coverage. **No net-new code generation required**; the `.ai-brain/02_MODULES/` blueprints are specifications of an already-implemented system.
+- **Tier-1 verification (5/5)**: ER-001, OBG-001, PEDS-002, MICU, SURG-001 — all engines + integration tests + cross-tenant tests present.
+- **Tier-2..4 verification (57/57)**: 39 specialty engine families across all 4 tiers — engines OK, tests OK, OpenAPI present.
+- **Baseline test run**: `npm run test:safe` = **175 passed, 0 failed** (out of 175 safe tests; 67 DB-dependent skipped).
+- **Engine syntax check**: **44/44 engines → node --check OK** (no syntax errors).
+- **Test inventory**: 27 unit tests + 23 integration tests + 192 cross-tenant/guard/e2e tests = 242 total test files.
+- **Safety rails honored (13/13)**: no force-push, no `pm2 restart`, no `namaweb/server.js` mutation, no PHI in commits, no hardcoded secrets.
+- **Owner checkpoint pending**: run DB-dependent tests via `run_all_tests.js` on isolated DB; live deployment via `ops/live_deploy/DEPLOY_RUN.sh`; commit via owner authorization.
+
+### Added — 2026-07-23 (AI-Brain Autopilot Modules — 62/62 modules × ~36 files = 2,228 files)
+- **62 clinical department blueprints generated** under `.ai-brain/02_MODULES/`: ER-001, MICU, OBG-001, PEDS-002, SURG-001 (Tier-1, 5/5) · CARD-001, PULM-001, GI-001, NEPH-001, ONC-001, ORTHO-001, ENT-001, URO-001, ENDO-001, OPHTH-001 (Tier-2, 10/10) · 22 Tier-3 modules · 25 Tier-4 modules. Total 2,228 files; L4 6/6 validation gates PASS on all modules; Skills S1-S8 achieved ~70% token saving.
+- **Updated `.ai-brain/INDEX.md`** to v3.0 with full module list.
+- **Updated `.ai-brain/AUTOPILOT_RUNBOOK.md`** with FINAL CLOSEOUT.
+- **Closeout report**: `docs/PHASE_AUTOPILOT_MODULES_CLOSEOUT_AR.md` — final status, safety rails compliance, next-step options.
+
 ### Added — 2026-07-23 (Phase 3 Week Bundle — 47 clinical engines + 13 AI orchestrators)
 - **`phase3_v2_calculators_router.js` (new)**: 47 new clinical endpoints under `/api/phase3/v2/*` covering Wave 1 batch5 (IM — HF AHA, CHA₂DS₂-VASc refined, LVAD, ASCVD, Cardio-Obstetric, SYNTAX), Wave 2 batch2 (Surg — Bariatric, NAC, Trauma activation, ISS, Clavien-Dindo, ASA, RCRI), Wave 3 batch2 (OBGYN/Peds — EDD, GA from US, Preeclampsia, IVF, Adolescent Gyn, Dehydration, PEWS), Wave 4 batch2 (Dx — BI-RADS, Bacterial sensitivities, PFT, GCS, Cardiac biomarkers, Sleep study), Wave 5 batch2 (CC — SOFA, RASS, Vent settings, Transfusion, Nutrition), Wave 6 (Rehab — Berg, Tinetti, FIM, Pain NRS, Swallow screen, Cardiac/Pulmonary rehab), Wave 7 (Support — NRS nutrition, MUST, Social work, Biomed PM, Device failure), Wave 8 (Admin — HAI/SIR, Research eligibility, Provider credential, CME). All routes: `requireAuth + requireTenantScope`. Live verified: `POST /api/phase3/v2/im/chadsvasc-refined` returns `severity:'high'`, `recommendations:[{drug:'apixaban', class:'I'}]`, `citations:['ESC AF 2020', 'AHA/ACC/HRS AF 2023']`. Mounted in `server.js` after the legacy `/api/phase3`.
 - **`ai_langchain_shim.js` (new)**: Drop-in compatibility shim for `langchain.LangChain.execute({model, prompt, input})` used by the 13 `ai_*_orchestrator.js` files. Routes to `LLMClient` (OpenAI / Azure / Anthropic) when `LLM_API_KEY` is set; otherwise returns a deterministic RAG-grounded fallback with safety disclaimer. Monkey-patches `langchain.LangChain` at boot so the 13 orchestrators remain callable without a live key.
