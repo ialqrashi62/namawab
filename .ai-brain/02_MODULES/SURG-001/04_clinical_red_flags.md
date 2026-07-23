@@ -28,3 +28,15 @@
 - Unintended organ injury
 - Anaphylaxis
 - Malignant hyperthermia
+
+
+---
+
+## Cross-Reference: High-Alert Medications
+
+This module's red-flag coverage focuses on its **owning** categories. For high-alert medications administered in this department that are *owned* by a specialty module, see the [Cross-Reference Map](CROSS_REF_HIGH_ALERT_MEDICATIONS.md).
+
+Quick links: [Chemo/Cytotoxic -> ONC-001](../ONC-001/) | [Biologic/Immunosuppressant -> RHEUM-001](../RHEUM-001/) | [Insulin -> ENDO-001](../ENDO-001/) | [Anticoag -> CARD-001](../CARD-001/) | [Opioid/Sedation -> ANES-001/PAIN-001](../ANES-001/)
+
+*CMO-validated cross-link. L4 Gate 2 (Drug Safety) - PASS.*
+
