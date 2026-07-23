@@ -1,0 +1,77 @@
+# ============================================
+# DEPARTMENT TEMPLATE [TPL:DEPT]
+# One template fits all 38 departments
+# Use $ref to department-specific data
+# ============================================
+template_id: TPL:DEPT
+schema_version: 2.0
+
+# Each dept module will have these sections:
+sections:
+  meta:           # S7 surface only
+    module_id: $MODULE_ID            # e.g., CARD-001
+    parent: $PARENT_DEPT
+    code: $CODE                      # CARD, ONC, NEURO...
+    owner_clinical: CMO
+    owner_technical: AIE
+    owner_compliance: CQO
+
+  prompt:         # S4 templated
+    system: $PROMPT_SYSTEM
+    guardrails: $GUARDRAILS_LIST
+    few_shot: $FEW_SHOT_PAIRS
+
+  rag:            # S7 surface
+    sources: $SOURCES_LIST
+    vector_index: $VECTOR_IDX
+    chunking: $CHUNKING_STRATEGY
+
+  workflow:       # LangGraph
+    nodes: $NODES
+    edges: $EDGES
+    state: $STATE_SCHEMA
+    hitl: $HITL_TRIGGERS
+
+  api:            # OpenAPI 3.1
+    endpoints: $ENDPOINTS
+
+  data:           # ERD
+    tables: $TABLES
+    relationships: $RELATIONSHIPS
+
+  ui:             # PM
+    personas: $PERSONAS
+    screens: $SCREENS
+
+  ops:            # DSL
+    service_name: $SVC_NAME
+    deployment: $DEPLOY
+    monitoring: $MON
+
+  tests:          # All
+    unit: $UNIT_TESTS
+    integration: $INTEG_TESTS
+    clinical_safety: $CLINICAL_TESTS
+    load: $LOAD_TESTS
+
+  compliance:     # CQO
+    jci: $JCI_MAPPING
+    iso: $ISO_CONTROLS
+    hipaa: $HIPAA_CONTROLS
+    audit_events: $AUDIT_EVENTS
+    consent: $CONSENT_TYPES
+    retention: $RETENTION_RULES
+
+  fhir:           # SA
+    reads: $FHIR_READS
+    writes: $FHIR_WRITES
+    profiles: $FHIR_PROFILES
+
+  kpis:           # ORC
+    clinical: $CLINICAL_KPIS
+    operational: $OPS_KPIS
+    ai: $AI_KPIS
+
+  edges:          # SA + AIE
+    edge_cases: $EDGE_CASES
+    fallbacks: $FALLBACKS

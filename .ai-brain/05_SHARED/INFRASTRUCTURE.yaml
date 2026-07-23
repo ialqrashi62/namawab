@@ -1,0 +1,125 @@
+# ============================================
+# INFRASTRUCTURE - Shared K8s/Helm/Terraform
+# ============================================
+version: 2.0
+
+# Per-service template
+service_template:
+  defaults:
+    replicas: 3
+    autoscale: {min: 3, max: 20, target_cpu: 70, target_memory: 80}
+    resources:
+      requests: {cpu: 500m, memory: 1Gi}
+      limits: {cpu: 2000m, memory: 4Gi}
+    probes:
+      liveness: {path: /health, initial: 30, period: 10, failure: 3}
+      readiness: {path: /ready, initial: 5, period: 5, failure: 3}
+    security:
+      runAsNonRoot: true
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+      capabilities: {drop: [ALL]}
+      seccompProfile: RuntimeDefault
+    pdb: {minAvailable: 1}
+
+  # Per-tier resource profiles
+  profiles:
+    light:  # 12-factor web, simple CRUD
+      requests: {cpu: 100m, memory: 256Mi}
+      limits: {cpu: 500m, memory: 512Mi}
+    standard:  # most microservices
+      requests: {cpu: 500m, memory: 1Gi}
+      limits: {cpu: 2000m, memory: 4Gi}
+    heavy:  # EMR, AI, Reports
+      requests: {cpu: 2000m, memory: 8Gi}
+      limits: {cpu: 8000m, memory: 32Gi}
+    ai:  # LLM serving, image processing
+      requests: {cpu: 4000m, memory: 16Gi, nvidia.com/gpu: 1}
+      limits: {cpu: 8000m, memory: 32Gi, nvidia.com/gpu: 1}
+    realtime:  # vitals, monitoring
+      requests: {cpu: 1000m, memory: 2Gi}
+      limits: {cpu: 4000m, memory: 8Gi}
+
+# ----- Global services (cross-cutting) -----
+global_services:
+  api_gateway:
+    tech: Kong / Apigee / AWS API Gateway
+    responsibilities: [routing, auth, rate_limit, transformation, caching]
+  service_mesh:
+    tech: Istio / Linkerd
+    features: [mTLS, traffic_split, retry, circuit_breaker, observability]
+  event_bus:
+    tech: Kafka / RabbitMQ / AWS EventBridge
+    topics: 200+ (one per domain event)
+  cache:
+    tech: Redis Cluster
+    use: [sessions, rate_limit, hot_data, real_time]
+  observability:
+    metrics: Prometheus + Grafana
+    logs: Loki + Promtail (or ELK)
+    traces: Tempo / Jaeger
+    apm: Datadog / New Relic / Dynatrace
+    rum: Sentry / Datadog RUM
+    llm: LangSmith / Helicone / LangFuse
+  secrets: HashiCorp Vault
+  iam: Keycloak / Auth0 / AWS Cognito
+  cdn: CloudFront / Cloudflare
+  waf: AWS WAF / Cloudflare WAF
+  ddos: Cloudflare / AWS Shield
+  backup: Velero + S3
+  dr: Velero + cross-region S3
+
+# ----- Data tier -----
+data_tier:
+  transactional: PostgreSQL 16 (RDS / Aurora / Cloud SQL)
+  document: MongoDB 7 (Atlas)
+  cache: Redis 7 (ElastiCache)
+  search: OpenSearch / Elasticsearch
+  timeseries: TimescaleDB / InfluxDB
+  olap: ClickHouse / Snowflake / BigQuery
+  vector: Pinecone / Qdrant / Weaviate
+  object: S3 / MinIO
+  queue: SQS / RabbitMQ
+  warehouse: Snowflake / BigQuery / Databricks
+  lake: Delta Lake on S3
+
+# ----- CI/CD -----
+ci_cd:
+  source: GitHub / GitLab
+  pipelines:
+    - {name: lint, tools: [eslint, ruff, prettier, hadolint]}
+    - {name: test_unit, tools: [pytest, vitest, jest, go test]}
+    - {name: test_integration, tools: [pytest+testcontainers, postman/newman]}
+    - {name: test_e2e, tools: [playwright, cypress]}
+    - {name: test_clinical_safety, tools: [custom_golden_dataset, eval_framework]}
+    - {name: security_sast, tools: [codeql, snyk, semgrep, trufflehog]}
+    - {name: security_dast, tools: [owasp-zap, burp]}
+    - {name: security_container, tools: [trivy, grype]}
+    - {name: sbom, tools: [syft, cyclonedx]}
+    - {name: build, tools: [docker, ko, buildpacks]}
+    - {name: push, registry: ghcr/ecr/acr}
+    - {name: deploy_staging, method: argocd_gitops}
+    - {name: smoke_test, tools: [k6, postman]}
+    - {name: deploy_prod, approval: manual + automated_rollback_on_slo_burn}
+  promotion: "ArgoCD with progressive delivery (Argo Rollouts)"
+  rollback: "Auto on SLO burn, on failed canary, on error rate spike"
+
+# ----- Observability SLOs (per service) -----
+slos_template:
+  availability: "99.9% (general), 99.95% (clinical), 99.99% (critical)"
+  latency:
+    p50: "{varies, typical 100-500ms}"
+    p95: "{varies, typical 500ms-2s}"
+    p99: "{varies, typical 1-5s}"
+  error_rate: "<0.1% (clinical), <0.5% (general)"
+  burn_rate_alert: "14.4x for 1h or 6x for 6h -> page"
+  error_budget: "99.9% = 43.2min/month"
+
+# ----- Disaster Recovery -----
+dr:
+  rpo: "<1 hour"
+  rto: "<4 hours"
+  strategy: "Active-Active multi-region for critical, Active-Passive for others"
+  testing: "Quarterly game day, annual full failover"
+  backups: "Hourly incremental, daily full, cross-region replication"
+  runbooks: "All in Confluence, tested"

@@ -1,0 +1,10 @@
+-- e104_surg_general_down.sql
+BEGIN;
+DROP TABLE IF EXISTS surg_vector_index CASCADE;
+DROP TABLE IF EXISTS surg_wound_care CASCADE;
+DROP TABLE IF EXISTS surg_drains CASCADE;
+DROP TABLE IF EXISTS surg_complications CASCADE;
+DROP TABLE IF EXISTS surg_postop CASCADE;
+DROP TABLE IF EXISTS surg_intraop CASCADE;
+DROP TABLE IF EXISTS surg_procedures CASCADE;
+COMMIT;

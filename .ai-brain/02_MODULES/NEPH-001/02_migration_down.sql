@@ -1,0 +1,9 @@
+-- e108_neph_module_down.sql
+BEGIN;
+DROP TABLE IF EXISTS neph_vector_index CASCADE;
+DROP TABLE IF EXISTS neph_medications CASCADE;
+DROP TABLE IF EXISTS neph_transplant CASCADE;
+DROP TABLE IF EXISTS neph_dialysis CASCADE;
+DROP TABLE IF EXISTS neph_labs CASCADE;
+DROP TABLE IF EXISTS neph_encounters CASCADE;
+COMMIT;

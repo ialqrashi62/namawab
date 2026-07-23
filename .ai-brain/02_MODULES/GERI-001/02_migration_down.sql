@@ -1,0 +1,1 @@
+-- geri_down.sql DROP TABLE IF EXISTS geri_assessments CASCADE;

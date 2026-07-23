@@ -1,0 +1,1 @@
+-- dent_down.sql DROP TABLE IF EXISTS dent_visits CASCADE;

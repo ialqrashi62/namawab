@@ -1,0 +1,1 @@
+-- ccu_up.sql CREATE TABLE ccu_admissions (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, admitted_at TIMESTAMPTZ, grace_score INT, killip_class INT, primary_dx TEXT, status VARCHAR(20)); RLS+FORCE.

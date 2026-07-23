@@ -1,0 +1,1 @@
+-- diet_up.sql CREATE TABLE diet_assessments (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, assessed_at TIMESTAMPTZ, bmi NUMERIC(4,1), diet_plan TEXT, calories_target INT); RLS+FORCE.

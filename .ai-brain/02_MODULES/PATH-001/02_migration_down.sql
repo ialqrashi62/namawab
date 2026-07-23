@@ -1,0 +1,1 @@
+-- path_down.sql DROP TABLE IF EXISTS path_specimens CASCADE;

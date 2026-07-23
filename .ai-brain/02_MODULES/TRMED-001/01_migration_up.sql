@@ -1,0 +1,1 @@
+-- trmed_up.sql CREATE TABLE trmed_visits (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, visit_at TIMESTAMPTZ, modality VARCHAR(50), indication TEXT, outcome TEXT); RLS+FORCE.

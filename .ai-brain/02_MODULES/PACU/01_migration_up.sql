@@ -1,0 +1,1 @@
+-- pacu_up.sql CREATE TABLE pacu_records (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, arrived_at TIMESTAMPTZ, aldrete_score INT, pain_score INT, discharge_at TIMESTAMPTZ, status VARCHAR(20)); RLS+FORCE.

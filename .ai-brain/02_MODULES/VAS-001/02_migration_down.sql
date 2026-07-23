@@ -1,0 +1,1 @@
+-- vas_down.sql DROP TABLE IF EXISTS vas_procedures CASCADE;

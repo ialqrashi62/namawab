@@ -1,0 +1,1 @@
+-- gen_up.sql CREATE TABLE gen_visits (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, visit_at TIMESTAMPTZ, reason TEXT, diagnosis TEXT, referral_to VARCHAR(50)); RLS+FORCE.

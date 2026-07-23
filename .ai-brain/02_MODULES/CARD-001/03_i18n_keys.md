@@ -1,0 +1,43 @@
+# CARD-001 — i18n Keys (EN + AR)
+
+```json
+{
+  "card.title": { "en": "Cardiology", "ar": "أمراض القلب" },
+  "card.chest_pain": { "en": "Chest Pain", "ar": "ألم الصدر" },
+  "card.stemi_alert": { "en": "STEMI Alert", "ar": "تنبيه احتشاء" },
+  "card.activation": { "en": "Cath Lab Activated", "ar": "تم تفعيل المختبر" },
+  "card.door_to_balloon": { "en": "Door-to-Balloon", "ar": "الباب إلى البالون" },
+  "card.target_90": { "en": "Target <90 min", "ar": "الهدف أقل من 90 دقيقة" },
+  "card.ccu": { "en": "CCU", "ar": "العناية القلبية" },
+  "card.afib": { "en": "Atrial Fibrillation", "ar": "الرجفان الأذيني" },
+  "card.heart_failure": { "en": "Heart Failure", "ar": "قصور القلب" },
+  "card.hfref": { "en": "HFrEF", "ar": "قصور انقباضي" },
+  "card.hfpef": { "en": "HFpEF", "ar": "قصور انبساطي" },
+  "card.ef": { "en": "Ejection Fraction", "ar": "كسر القذف" },
+  "card.troponin": { "en": "Troponin", "ar": "تروبونين" },
+  "card.ecg": { "en": "ECG", "ar": "تخطيط القلب" },
+  "card.rate": { "en": "Rate", "ar": "المعدل" },
+  "card.rhythm": { "en": "Rhythm", "ar": "النظم" },
+  "card.qtc": { "en": "QTc", "ar": "كيو تي سي" },
+  "card.echo": { "en": "Echocardiogram", "ar": "صدى القلب" },
+  "card.pci": { "en": "PCI", "ar": "قسطرة" },
+  "card.stent": { "en": "Stent", "ar": "دعامة" },
+  "card.cabg": { "en": "CABG", "ar": "تحويل الشرايين" },
+  "card.anticoag": { "en": "Anticoagulation", "ar": "مضاد تخثر" },
+  "card.antiplatelet": { "en": "Antiplatelet", "ar": "مضاد صفائح" },
+  "card.dual": { "en": "Dual Antiplatelet", "ar": "مزدوج" },
+  "card.device": { "en": "Device", "ar": "جهاز" },
+  "card.pacemaker": { "en": "Pacemaker", "ar": "منظم ضربات القلب" },
+  "card.icd": { "en": "ICD", "ar": "صاعق مزروع" },
+  "card.risk_score": { "en": "Risk Score", "ar": "درجة الخطورة" },
+  "card.heart_score": { "en": "HEART Score", "ar": "مقياس هارت" },
+  "card.timi_score": { "en": "TIMI Score", "ar": "مقياس تيمي" },
+  "card.grace_score": { "en": "GRACE Score", "ar": "مقياس جريس" },
+  "card.cha2ds2vasc": { "en": "CHA2DS2-VASc", "ar": "تشادس فاسك" },
+  "card.hasbled": { "en": "HAS-BLED", "ar": "هاس بلد" },
+  "card.killip": { "en": "Killip Class", "ar": "فئة كيليب" },
+  "card.nyha": { "en": "NYHA Class", "ar": "فئة ناها" },
+  "card.action.save": { "en": "Save", "ar": "حفظ" },
+  "card.action.activate": { "en": "Activate", "ar": "تفعيل" }
+}
+```

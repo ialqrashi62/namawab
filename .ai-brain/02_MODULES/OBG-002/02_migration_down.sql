@@ -1,0 +1,1 @@
+-- obg2_down.sql DROP TABLE IF EXISTS obg2_labour CASCADE;

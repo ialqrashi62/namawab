@@ -1,0 +1,1 @@
+-- surg12_validate.sql SELECT count(*) FROM information_schema.tables WHERE table_name LIKE 'surg12_%';

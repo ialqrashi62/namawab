@@ -1,0 +1,1 @@
+-- soc_up.sql CREATE TABLE soc_assessments (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, assessed_at TIMESTAMPTZ, social_history TEXT, support_system VARCHAR(50), risk_factors JSONB); RLS+FORCE.

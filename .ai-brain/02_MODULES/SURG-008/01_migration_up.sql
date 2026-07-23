@@ -1,0 +1,1 @@
+-- surg8_up.sql CREATE TABLE surg8_ops (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, op_at TIMESTAMPTZ, procedure_name VARCHAR(100), surgeon_id BIGINT, status VARCHAR(20)); RLS+FORCE.

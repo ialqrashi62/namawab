@@ -1,0 +1,95 @@
+# ============================================
+# AUTOPILOT RUNNER - For all 38 modules
+# Run: autopilot.run(module_id | "*")
+# ============================================
+version: 2.0
+
+run:
+  input: "$MODULE_ID or '*' for all"
+
+  pre_flight:
+    - check_catalog: "exists module_id in 01_DATA/CATALOG.yaml"
+    - load_template: "00_SYSTEM/DEPT_TEMPLATE.yaml"
+    - load_commons: "load shared resources (compliance, FHIR, design)"
+
+  L1_DRAFT:  # PARALLEL - 4 experts
+    parallel:
+      - expert: CMO
+        output: "raw/{id}_L1_cmo.yaml"
+        focus: [clinical_protocols, red_flags, drug_safety, guardrails]
+      - expert: AIE
+        output: "raw/{id}_L1_aie.yaml"
+        focus: [prompts, rag, workflow, ai_features]
+      - expert: SA
+        output: "raw/{id}_L1_sa.yaml"
+        focus: [api, erd, services, fhir, events]
+      - expert: PM+CQO  # merged for token savings
+        output: "raw/{id}_L1_pm_cqo.yaml"
+        focus: [wireframes, stories, compliance, audit, consent]
+
+  L2_CRITIQUE:  # Cross-review
+    pairs:
+      - {reviewer: CMO, reviews: AIE, focus: [clinical_safety, drug_interactions, contraindications]}
+      - {reviewer: AIE, reviews: SA, focus: [technical_feasibility, latency, cost]}
+      - {reviewer: SA, reviews: PM, focus: [data_availability, auth_feasibility]}
+      - {reviewer: CQO, reviews: ALL, focus: [compliance, audit, retention]}
+    output: "critiques/{id}_L2.yaml"
+
+  L3_REFINE:
+    actor: ORC
+    actions:
+      - merge: "all L1 inputs"
+      - resolve: "all L2 conflicts"
+      - fill_gaps: "any missing required fields"
+      - normalize: "consistent terminology, codes, IDs"
+    output: "refined/{id}_L3.yaml"
+
+  L4_VALIDATE:
+    actor: ORC + LLM_GATEWAY
+    checks:
+      - "All red_flags identified"
+      - "All drugs have safety check"
+      - "All PII fields encrypted"
+      - "All endpoints auth required"
+      - "All compliance standards mapped"
+      - "Test cases for critical paths"
+      - "No clinical safety violation"
+      - "No compliance violation"
+    on_fail:
+      action: "loop_back_to: L2"
+      max_iterations: 3
+    on_pass:
+      action: "save to: final/{id}_L4.yaml"
+      notify: [user, ci_cd, doc_gen]
+
+# ---------- TOKEN SAVER CONFIG ----------
+token_optimization:
+  enabled_skills: [S1, S2, S3, S4, S5, S6, S7, S8]
+  estimated_savings: "60-80% vs naive approach"
+  strategy:
+    - "Reference prior context by section_id (S5)"
+    - "Use $ref to shared schemas (S1)"
+    - "Process in batches of 5 (S2)"
+    - "Use module_id instead of full name (S3)"
+    - "Output to template TPL:DEPT (S4)"
+    - "Compress prompt to abbreviations (S6)"
+    - "Surface for all, deep only for critical (S7)"
+    - "Parallel generation (S8)"
+
+# ---------- DELIVERY ----------
+delivery:
+  formats: [yaml, json, markdown, openapi, sql, mermaid]
+  targets:
+    - "00_PROMPTS/"
+    - "01_DATA/"
+    - "02_MODULES/"
+    - "04_VECTOR_DB/"
+    - "05_BACKEND/"
+    - "06_FRONTEND/"
+    - "07_INFRA/"
+    - "08_TESTING/"
+    - "09_DOCS/"
+    - "10_COMPLIANCE/"
+    - "12_DATA/ERD/"
+    - "13_AGILE/"
+    - "14_OBSERVABILITY/"

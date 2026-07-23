@@ -1,0 +1,1 @@
+-- prev_down.sql DROP TABLE IF EXISTS prev_screenings CASCADE;

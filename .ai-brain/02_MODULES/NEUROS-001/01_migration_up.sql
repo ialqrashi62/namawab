@@ -1,0 +1,1 @@
+-- neuros_up.sql CREATE TABLE neuros_ops (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, op_at TIMESTAMPTZ, gcs_pre INT, gcs_post INT, procedure_name VARCHAR(100), surgeon_id BIGINT); RLS+FORCE.

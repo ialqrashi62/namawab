@@ -1,0 +1,150 @@
+# ============================================
+# AI OBSERVABILITY - LLMOps
+# Per LangChain / LangGraph / LLM service
+# ============================================
+version: 2.0
+
+# ----- LLM Gateway -----
+llm_gateway:
+  purpose: "Unified API for ALL LLM calls, cost control, fallback, observability"
+  providers:
+    primary: "gpt-4o / claude-3.5-sonnet / med-llama-70b (deployable)"
+    fallback_chain:
+      - "primary"
+      - "secondary (different provider)"
+      - "tertiary (local model: llama-3.1-70b or domain-specific)"
+      - "rule-based (no LLM, validated clinical rules only)"
+  features:
+    - "Unified API regardless of provider"
+    - "Token counting & cost tracking per call"
+    - "PII detection & redaction (before sending to external LLM)"
+    - "Prompt versioning (GitOps)"
+    - "Response caching (semantic, TTL-based)"
+    - "Rate limiting per user/department"
+    - "Streaming support"
+    - "Function calling / tool use"
+    - "Structured output (JSON mode)"
+    - "Automatic fallback on error/timeout"
+    - "Audit log every call (input hash, output hash, model, tokens, cost)"
+
+# ----- RAG Pipeline -----
+rag_pipeline:
+  stages:
+    1_query_understanding:
+      - "Query rewrite (conversational -> standalone)"
+      - "Intent classification (clinical_q, operational_q, etc.)"
+      - "PII redaction (before retrieval)"
+    2_retrieval:
+      - "Hybrid: vector (semantic) + BM25 (keyword) + knowledge graph"
+      - "Multi-index search (per tier)"
+      - "Patient-context filter (role-based)"
+      - "Top-K=20 initial"
+    3_reranking:
+      - "Cross-encoder (Cohere Rerank 3, BGE-reranker)"
+      - "Top-K=5 final"
+    4_context_building:
+      - "Token budget (max 4000 tokens for context)"
+      - "Citation tracking (which chunk, which source)"
+      - "Conflict detection (multiple sources, different answers)"
+    5_generation:
+      - "LLM with system prompt + context + user query"
+      - "Structured output (JSON schema)"
+      - "Citation injection"
+      - "Streaming"
+    6_validation:
+      - "Output schema validation"
+      - "Clinical safety check (drug interaction, red flag detection)"
+      - "Citation presence (if not, flag for human review)"
+      - "Hallucination detection (via self-consistency or external verifier)"
+  metrics:
+    - "retrieval_recall@k"
+    - "retrieval_precision@k"
+    - "answer_relevance"
+    - "answer_faithfulness"
+    - "citation_accuracy"
+    - "clinical_safety_violation_rate"
+    - "human_override_rate"
+    - "p50/p95/p99 latency"
+    - "tokens per call"
+    - "cost per call"
+
+# ----- Agent (LangGraph) -----
+agent_observability:
+  framework: LangGraph
+  trace_every: "step (node entry/exit), tool call, LLM call, state change"
+  store: LangSmith (or LangFuse self-hosted)
+  features:
+    - "Full trace visualization (parent/child spans)"
+    - "State inspection (what data was at each step)"
+    - "Replay (re-run with same input)"
+    - "Eval (run golden dataset through)"
+    - "Cost attribution (per agent, per node)"
+    - "Latency breakdown (per node)"
+    - "Error capture (with full context)"
+  alerts:
+    - "Agent success rate < 95% for 1h"
+    - "Agent p99 > 10s for 30m"
+    - "Cost spike > 200% baseline"
+    - "Hallucination rate > 5%"
+
+# ----- Clinical Safety Layer -----
+clinical_safety:
+  hard_rules:  # Cannot be overridden
+    - "If red_flag detected -> escalate to human immediately"
+    - "If drug A + drug B interaction -> block recommendation"
+    - "If allergy conflict -> block order"
+    - "If pregnant + teratogen -> block"
+    - "If pediatric + adult dose -> use weight-based"
+  soft_rules:  # Recommend, can override with reason
+    - "First-line antibiotic per local antibiogram"
+    - "Cost-effective alternative available"
+    - "Guideline deviation (cite alternative guideline)"
+  monitoring:
+    - "Every override logged with reason + provider"
+    - "Override rate by provider (feedback loop)"
+    - "Override rate by rule (which rules are wrong?)"
+    - "Adverse events linked to AI recommendations"
+
+# ----- Drift & Quality Monitoring -----
+drift_monitoring:
+  data_drift:
+    - "Input distribution shift (patient population, symptoms)"
+    - "New drugs in market (RxNorm updates)"
+    - "Guideline updates (monthly check)"
+  model_drift:
+    - "Accuracy degradation on validation set"
+    - "Calibration drift (predicted vs actual outcomes)"
+    - "Embedding drift (cluster movement)"
+  concept_drift:
+    - "New disease patterns (e.g., new pandemic)"
+    - "Practice changes (telehealth surge)"
+  response:
+    - "Auto-alert on drift detection"
+    - "Trigger retraining pipeline"
+    - "Roll back to previous model version if performance drops"
+    - "A/B test new model before full rollout"
+
+# ----- Eval Framework -----
+evaluation:
+  golden_datasets:
+    per_department: "100-500 Q&A pairs with verified answers"
+    per_red_flag: "All critical scenarios, must detect 100%"
+    per_drug: "All major interactions, allergies, contraindications"
+    per_lab: "All critical values, must alert"
+  automated_evals:
+    - "BLEU/ROUGE for text similarity"
+    - "LLM-as-judge for clinical accuracy (with medical LLM)"
+    - "Citation accuracy check (does citation support claim?)"
+    - "Hallucination detection (semantic similarity to source)"
+  human_evals:
+    - "Monthly physician review of random sample"
+    - "Quarterly full audit by medical director"
+    - "Adverse event correlation"
+  pre_deployment_gates:
+    - "All unit tests pass"
+    - "All clinical safety tests pass"
+    - "Golden dataset accuracy > 95%"
+    - "Citation accuracy > 90%"
+    - "Hallucination rate < 5%"
+    - "Latency p99 < SLA"
+    - "Cost per call < budget"

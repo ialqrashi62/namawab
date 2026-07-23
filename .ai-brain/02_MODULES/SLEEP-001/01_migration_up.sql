@@ -1,0 +1,1 @@
+-- sleep_up.sql CREATE TABLE sleep_visits (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, visit_at TIMESTAMPTZ, ahi_score NUMERIC(4,1), diagnosis VARCHAR(50), cpap_pressure NUMERIC(4,1)); RLS+FORCE.

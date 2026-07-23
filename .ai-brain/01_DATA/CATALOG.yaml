@@ -1,0 +1,281 @@
+# ============================================
+# DEPARTMENT CATALOG - Source of Truth
+# All 38 departments + 200+ sub-units
+# Use $ref to avoid repetition
+# ============================================
+catalog_version: 2.0
+total_departments: 10
+total_modules: 38
+total_units: 200+
+
+# === 1. INTERNAL MEDICINE ===
+internal_medicine:
+  - {id: CARD-001, name: "Cardiology (General)", parent: "Cardiology", code: CARD}
+  - {id: CARD-002, name: "Interventional Cardiology", parent: "Cardiology", code: CARD}
+  - {id: CARD-003, name: "Electrophysiology", parent: "Cardiology", code: CARD}
+  - {id: CARD-004, name: "Preventive Cardiology", parent: "Cardiology", code: CARD}
+  - {id: CARD-005, name: "Nuclear Cardiology", parent: "Cardiology", code: CARD}
+  - {id: CARD-006, name: "Cardio-Obstetrics", parent: "Cardiology", code: CARD}
+  - {id: CARD-007, name: "Cardiac Cath Lab", parent: "Cardiology", code: CARD}
+  - {id: CARD-008, name: "Peripheral Vascular", parent: "Cardiology", code: CARD}
+  - {id: CARD-009, name: "Advanced Heart Failure", parent: "Cardiology", code: CARD}
+
+  - {id: PULM-001, name: "Pulmonology", parent: "Pulmonology", code: PULM}
+  - {id: PULM-002, name: "Allergic Pulmonology", parent: "Pulmonology", code: PULM}
+  - {id: PULM-003, name: "Sleep Medicine", parent: "Pulmonology", code: PULM}
+  - {id: PULM-004, name: "Respiratory Care", parent: "Pulmonology", code: PULM}
+  - {id: PULM-005, name: "Bronchoscopy Unit", parent: "Pulmonology", code: PULM}
+  - {id: PULM-006, name: "Home Oxygen Therapy", parent: "Pulmonology", code: PULM}
+
+  - {id: GI-001, name: "Gastroenterology", parent: "GI", code: GI}
+  - {id: GI-002, name: "Advanced Endoscopy (EUS/ERCP/Enteroscopy/Lap)", parent: "GI", code: GI}
+  - {id: GI-003, name: "Hepatology", parent: "GI", code: GI}
+  - {id: GI-004, name: "Pancreato-Biliary", parent: "GI", code: GI}
+  - {id: GI-005, name: "GI Motility", parent: "GI", code: GI}
+  - {id: GI-006, name: "Clinical Nutrition Medicine", parent: "GI", code: GI}
+
+  - {id: NEPH-001, name: "Nephrology", parent: "Nephrology", code: NEPH}
+  - {id: NEPH-002, name: "Renal Transplantation", parent: "Nephrology", code: NEPH}
+  - {id: NEPH-003, name: "Dialysis (HD/PD/Home/Plasmapheresis)", parent: "Nephrology", code: NEPH}
+  - {id: NEPH-004, name: "Pediatric Dialysis", parent: "Nephrology", code: NEPH}
+
+  - {id: ONC-001, name: "Medical Oncology", parent: "Oncology", code: ONC}
+  - {id: ONC-002, name: "Gynecologic Oncology", parent: "Oncology", code: ONC}
+  - {id: ONC-003, name: "Hematology", parent: "Oncology", code: ONC}
+  - {id: ONC-004, name: "Coagulation & Anemia", parent: "Oncology", code: ONC}
+  - {id: ONC-005, name: "BMT Unit (Auto/Allo/Cord)", parent: "Oncology", code: ONC}
+
+  - {id: ENDO-001, name: "Endocrinology", parent: "Endocrinology", code: ENDO}
+  - {id: ENDO-002, name: "Diabetology (T1DM/T2DM/GDM/Complications)", parent: "Endocrinology", code: ENDO}
+  - {id: ENDO-003, name: "Metabolic Bone Disease", parent: "Endocrinology", code: ENDO}
+  - {id: ENDO-004, name: "Obesity Medicine", parent: "Endocrinology", code: ENDO}
+
+  - {id: RHEUM-001, name: "Rheumatology", parent: "Rheumatology", code: RHEUM}
+  - {id: RHEUM-002, name: "Clinical Immunology", parent: "Rheumatology", code: RHEUM}
+  - {id: RHEUM-003, name: "Autoimmune Diseases", parent: "Rheumatology", code: RHEUM}
+  - {id: RHEUM-004, name: "Allergy & Asthma", parent: "Rheumatology", code: RHEUM}
+
+  - {id: ID-001, name: "Infectious Diseases", parent: "Infectious Diseases", code: ID}
+  - {id: ID-002, name: "Infection Control", parent: "Infectious Diseases", code: ID}
+  - {id: ID-003, name: "Tropical Medicine", parent: "Infectious Diseases", code: ID}
+  - {id: ID-004, name: "Antimicrobial Stewardship", parent: "Infectious Diseases", code: ID}
+  - {id: ID-005, name: "Travel Medicine", parent: "Infectious Diseases", code: ID}
+  - {id: ID-006, name: "Vaccination Center", parent: "Infectious Diseases", code: ID}
+
+  - {id: DERM-001, name: "Dermatology", parent: "Dermatology", code: DERM}
+  - {id: DERM-002, name: "Cosmetic Dermatology", parent: "Dermatology", code: DERM}
+  - {id: DERM-003, name: "Dermatosurgery", parent: "Dermatology", code: DERM}
+  - {id: DERM-004, name: "Dermatologic Oncology", parent: "Dermatology", code: DERM}
+  - {id: DERM-005, name: "Phototherapy", parent: "Dermatology", code: DERM}
+
+# === 2. SURGICAL ===
+surgical:
+  - {id: SURG-001, name: "General Surgery", parent: "Surgery", code: SURG}
+  - {id: SURG-002, name: "Surgical Oncology", parent: "Surgery", code: SURG}
+  - {id: SURG-003, name: "Endocrine Surgery (Thyroid/Adrenal/Parathyroid)", parent: "Surgery", code: SURG}
+  - {id: SURG-004, name: "Minimally Invasive & Robotic Surgery", parent: "Surgery", code: SURG}
+  - {id: SURG-005, name: "Bariatric Surgery", parent: "Surgery", code: SURG}
+  - {id: SURG-006, name: "Breast Surgery", parent: "Surgery", code: SURG}
+  - {id: SURG-007, name: "Trauma Surgery", parent: "Surgery", code: SURG}
+  - {id: SURG-008, name: "Colorectal Surgery", parent: "Surgery", code: SURG}
+
+  - {id: CTS-001, name: "Cardiothoracic Surgery (Open Heart/Thoracic/Airway)", parent: "CT Surgery", code: CTS}
+  - {id: VAS-001, name: "Vascular Surgery (Endovascular/Grafts/Venous)", parent: "Vascular", code: VAS}
+
+  - {id: NEUROS-001, name: "Neurosurgery (Vascular/Neuro-oncology/Functional/Peripheral/Skull Base/Endoscopic)", parent: "Neurosurgery", code: NEUROS}
+  - {id: SPINE-001, name: "Spine Surgery (Interventional/Scoliosis)", parent: "Neurosurgery", code: NEUROS}
+
+  - {id: ORTHO-001, name: "Orthopedic Surgery", parent: "Orthopedics", code: ORTHO}
+  - {id: ORTHO-002, name: "Spinal Orthopedics", parent: "Orthopedics", code: ORTHO}
+  - {id: ORTHO-003, name: "Joint Replacement (Hip/Knee/Shoulder/Elbow)", parent: "Orthopedics", code: ORTHO}
+  - {id: ORTHO-004, name: "Trauma Orthopedics", parent: "Orthopedics", code: ORTHO}
+  - {id: ORTHO-005, name: "Hand & Microsurgery", parent: "Orthopedics", code: ORTHO}
+  - {id: ORTHO-006, name: "Foot & Ankle Surgery", parent: "Orthopedics", code: ORTHO}
+  - {id: ORTHO-007, name: "Sports Medicine & Arthroscopy", parent: "Orthopedics", code: ORTHO}
+  - {id: ORTHO-008, name: "Orthopedic Oncology", parent: "Orthopedics", code: ORTHO}
+  - {id: ORTHO-009, name: "Pediatric Orthopedics", parent: "Orthopedics", code: ORTHO}
+
+  - {id: OPHTH-001, name: "Ophthalmology (General)", parent: "Ophthalmology", code: OPHTH}
+  - {id: OPHTH-002, name: "Vitreoretinal Surgery", parent: "Ophthalmology", code: OPHTH}
+  - {id: OPHTH-003, name: "Cornea & External Disease (Eye Bank, DMEK/DSAEK)", parent: "Ophthalmology", code: OPHTH}
+  - {id: OPHTH-004, name: "Cataract & Anterior Segment", parent: "Ophthalmology", code: OPHTH}
+  - {id: OPHTH-005, name: "Glaucoma", parent: "Ophthalmology", code: OPHTH}
+  - {id: OPHTH-006, name: "Oculoplastics & Orbit", parent: "Ophthalmology", code: OPHTH}
+  - {id: OPHTH-007, name: "Pediatric Ophthalmology & Strabismus", parent: "Ophthalmology", code: OPHTH}
+  - {id: OPHTH-008, name: "Neuro-ophthalmology", parent: "Ophthalmology", code: OPHTH}
+  - {id: OPHTH-009, name: "Refractive Surgery & Lens Implantation", parent: "Ophthalmology", code: OPHTH}
+
+  - {id: ENT-001, name: "Otolaryngology (General)", parent: "ENT", code: ENT}
+  - {id: ENT-002, name: "Head & Neck Surgery", parent: "ENT", code: ENT}
+  - {id: ENT-003, name: "Rhinology & Skull Base (Sinus Endoscopy)", parent: "ENT", code: ENT}
+  - {id: ENT-004, name: "Otology & Neurotology (Cochlear/Skull Base)", parent: "ENT", code: ENT}
+  - {id: ENT-005, name: "Laryngology", parent: "ENT", code: ENT}
+  - {id: ENT-006, name: "Thyroid Surgery", parent: "ENT", code: ENT}
+  - {id: ENT-007, name: "Sleep Surgery", parent: "ENT", code: ENT}
+
+  - {id: URO-001, name: "Urology (General)", parent: "Urology", code: URO}
+  - {id: URO-002, name: "Endourology & Stone Disease", parent: "Urology", code: URO}
+  - {id: URO-003, name: "Urologic Oncology (Prostate/Bladder/Kidney)", parent: "Urology", code: URO}
+  - {id: URO-004, name: "Pediatric Urology", parent: "Urology", code: URO}
+  - {id: URO-005, name: "Andrology (Male Infertility)", parent: "Urology", code: URO}
+  - {id: URO-006, name: "Female Urology & Urodynamics", parent: "Urology", code: URO}
+  - {id: URO-007, name: "Reconstructive Urology", parent: "Urology", code: URO}
+
+  - {id: PLAST-001, name: "Plastic & Reconstructive Surgery", parent: "Plastic", code: PLAST}
+  - {id: BURN-001, name: "Burns Center (ICU/Chemical/Electrical/Reconstructive)", parent: "Plastic", code: PLAST}
+  - {id: MAXF-001, name: "Maxillofacial Surgery (Orthognathic/Trauma)", parent: "Plastic", code: PLAST}
+
+# === 3. OB/GYN & PEDIATRICS ===
+obgyn_peds:
+  - {id: OBG-001, name: "Obstetrics & Gynecology (General)", parent: "OB/GYN", code: OBG}
+  - {id: OBG-002, name: "Maternal-Fetal Medicine (High-Risk/4D/Prenatal Dx)", parent: "OB/GYN", code: OBG}
+  - {id: OBG-003, name: "Gynecologic Surgery (Laparoscopic/Robotic)", parent: "OB/GYN", code: OBG}
+  - {id: OBG-004, name: "Reproductive Endocrinology & IVF (IVF/ICSI/IMSI/PGD)", parent: "OB/GYN", code: OBG}
+  - {id: OBG-005, name: "Adolescent Gynecology", parent: "OB/GYN", code: OBG}
+  - {id: OBG-006, name: "Menopause Medicine", parent: "OB/GYN", code: OBG}
+  - {id: OBG-007, name: "Urogynecology & Cosmetic Gynecology", parent: "OB/GYN", code: OBG}
+
+  - {id: PEDS-001, name: "Pediatrics (General)", parent: "Pediatrics", code: PEDS}
+  - {id: PEDS-002, name: "Neonatology (NICU L3/L4, Nursery, Follow-up)", parent: "Pediatrics", code: PEDS}
+  - {id: PEDS-003, name: "Pediatric Genetics", parent: "Pediatrics", code: PEDS}
+  - {id: PEDS-004, name: "Pediatric Nutrition", parent: "Pediatrics", code: PEDS}
+  - {id: PEDS-005, name: "Developmental Pediatrics", parent: "Pediatrics", code: PEDS}
+
+  - {id: PDCARD, name: "Pediatric Cardiology", parent: "Peds Subspecialties", code: PEDS}
+  - {id: PDNEPH, name: "Pediatric Nephrology", parent: "Peds Subspecialties", code: PEDS}
+  - {id: PDGI, name: "Pediatric Gastroenterology", parent: "Peds Subspecialties", code: PEDS}
+  - {id: PDONC, name: "Pediatric Hematology-Oncology", parent: "Peds Subspecialties", code: PEDS}
+  - {id: PDOPHTH, name: "Pediatric Ophthalmology", parent: "Peds Subspecialties", code: PEDS}
+  - {id: PDENT, name: "Pediatric ENT", parent: "Peds Subspecialties", code: PEDS}
+  - {id: PDDERM, name: "Pediatric Dermatology", parent: "Peds Subspecialties", code: PEDS}
+  - {id: PDENDO, name: "Pediatric Endocrinology", parent: "Peds Subspecialties", code: PEDS}
+  - {id: PDRHEUM, name: "Pediatric Rheumatology", parent: "Peds Subspecialties", code: PEDS}
+  - {id: PDORTHO, name: "Pediatric Orthopedics", parent: "Peds Subspecialties", code: PEDS}
+  - {id: PDSURG, name: "Pediatric General Surgery (Birth Defects/Lap/Onc)", parent: "Peds Subspecialties", code: PEDS}
+
+# === 4. DIAGNOSTICS ===
+diagnostics:
+  - {id: RAD-001, name: "Diagnostic Radiology", parent: "Radiology", code: RAD}
+  - {id: RAD-002, name: "Interventional Radiology (Angio/Embolization/Ablation/Stenting)", parent: "Radiology", code: RAD}
+  - {id: RAD-003, name: "CT (Dual Energy/Cardiac/Angio)", parent: "Radiology", code: RAD}
+  - {id: RAD-004, name: "MRI (fMRI/MRS/DTI/MRA/MRV/Breast/Pelvic)", parent: "Radiology", code: RAD}
+  - {id: RAD-005, name: "Ultrasound (TEE/TRUS/4D/Doppler)", parent: "Radiology", code: RAD}
+  - {id: RAD-006, name: "Nuclear Medicine (PET-CT/PET-MRI/Scans/I-131/Radioisotope)", parent: "Radiology", code: RAD}
+
+  - {id: PATH-001, name: "Pathology (Histo/Cyto/Frozen/EM/IHC/Molecular)", parent: "Pathology", code: PATH}
+  - {id: MIC-001, name: "Microbiology (Bact/Viro/Myco/Para/Blood Culture/Sensitivity)", parent: "Lab", code: MIC}
+  - {id: CHEM-001, name: "Clinical Chemistry (Routine/Hormones/TDM)", parent: "Lab", code: CHEM}
+  - {id: IMM-001, name: "Immunology & Serology (Autoimmune/Allergy)", parent: "Lab", code: IMM}
+  - {id: GEN-001, name: "Medical Genetics (Cyto/Molecular/PGD)", parent: "Lab", code: GEN}
+  - {id: TOX-001, name: "Toxicology (Drugs/Heavy Metals/Pesticides)", parent: "Lab", code: TOX}
+  - {id: BB-001, name: "Blood Bank (Transfusion/Apheresis/SDP)", parent: "Lab", code: BB}
+
+  - {id: ECG-001, name: "ECG & Stress (Exercise/Pharmacologic/Holter/Event)", parent: "Functional", code: FUNC}
+  - {id: EEG-001, name: "EEG (Video EEG/Sleep)", parent: "Functional", code: FUNC}
+  - {id: EMG-001, name: "EMG/NCS/Evoked Potentials", parent: "Functional", code: FUNC}
+  - {id: PFT-001, name: "Pulmonary Function Test", parent: "Functional", code: FUNC}
+  - {id: ALG-001, name: "Allergy/Sweat Test", parent: "Functional", code: FUNC}
+
+# === 5. CRITICAL CARE & EMERGENCY ===
+critical_care:
+  - {id: ER-001, name: "General ER", parent: "Emergency", code: ER}
+  - {id: ER-002, name: "Trauma Center (L1/L2)", parent: "Emergency", code: ER}
+  - {id: ER-003, name: "Chest Pain Unit", parent: "Emergency", code: ER}
+  - {id: ER-004, name: "Stroke Unit / Code Stroke", parent: "Emergency", code: ER}
+  - {id: ER-005, name: "Psychiatric Emergency", parent: "Emergency", code: ER}
+  - {id: ER-006, name: "Pediatric ER", parent: "Emergency", code: ER}
+  - {id: ER-007, name: "Toxicology Emergency", parent: "Emergency", code: ER}
+  - {id: ER-008, name: "Triage", parent: "Emergency", code: ER}
+
+  - {id: MICU, name: "Medical ICU", parent: "ICU", code: ICU}
+  - {id: SICU, name: "Surgical ICU", parent: "ICU", code: ICU}
+  - {id: TICU, name: "Trauma ICU", parent: "ICU", code: ICU}
+  - {id: CCU, name: "Coronary Care Unit", parent: "ICU", code: ICU}
+  - {id: NICU, name: "Neuro ICU", parent: "ICU", code: ICU}
+  - {id: PICU, name: "Pediatric ICU", parent: "ICU", code: ICU}
+  - {id: NNICU, name: "Neonatal ICU", parent: "ICU", code: ICU}
+  - {id: BICU, name: "Burn ICU", parent: "ICU", code: ICU}
+  - {id: OICU, name: "Oncology ICU", parent: "ICU", code: ICU}
+  - {id: RICU, name: "Renal ICU", parent: "ICU", code: ICU}
+  - {id: TRICU, name: "Transplant ICU", parent: "ICU", code: ICU}
+  - {id: OBICU, name: "Obstetric ICU", parent: "ICU", code: ICU}
+
+  - {id: ANES-001, name: "Anesthesiology (OR/OB/Peds/Cardiac)", parent: "Anesthesia", code: ANES}
+  - {id: PM-001, name: "Interventional Pain (Spinal inj/RF/Stimulator/Pumps)", parent: "Pain", code: PM}
+  - {id: PACU, name: "Post Anesthesia Care Unit", parent: "Anesthesia", code: ANES}
+  - {id: HBOT, name: "Hyperbaric Oxygen Therapy", parent: "Anesthesia", code: ANES}
+
+# === 6. THERAPEUTIC & REHAB ===
+rehab:
+  - {id: PT-001, name: "Physical Therapy (Electro/Hydro/Manual/Post-op/Spine)", parent: "Rehab", code: PT}
+  - {id: OT-001, name: "Occupational Therapy (ADL/Sensory)", parent: "Rehab", code: OT}
+  - {id: ST-001, name: "Speech & Swallowing (VFSS)", parent: "Rehab", code: ST}
+  - {id: SCI-001, name: "Spinal Cord Injury Rehab", parent: "Rehab", code: PT}
+  - {id: PR-001, name: "Pediatric Rehab", parent: "Rehab", code: PT}
+  - {id: PO-001, name: "Prosthetics & Orthotics", parent: "Rehab", code: PT}
+  - {id: CLS-001, name: "Child Life / Play Therapy", parent: "Rehab", code: PT}
+
+  - {id: RT-001, name: "Radiation Oncology (IMRT/SRS/Gamma/CyberKnife/Proton/Brachy)", parent: "Onc Therapeutics", code: RT}
+  - {id: CPH-001, name: "Clinical Pharmacy (Chemo/ICU/Peds/Hema/DIC/TDM)", parent: "Pharmacy", code: CPH}
+
+  - {id: TCM-001, name: "Traditional Chinese Medicine (Acupuncture/Cupping)", parent: "Integrative", code: TCM}
+  - {id: INT-001, name: "Herbal/Aroma/Music/Art/Massage/Yoga/Pet Therapy", parent: "Integrative", code: INT}
+
+# === 7. SUPPORT SERVICES ===
+support:
+  - {id: NURSE, name: "Nursing Admin + 14 specialties", parent: "Nursing", code: NURSE}
+  - {id: NUTRI, name: "Clinical Nutrition (TPN/Enteral/Disease-specific/Bariatric)", parent: "Nutrition", code: NUTRI}
+  - {id: KITCH, name: "Central Kitchen (Therapeutic/Preventive)", parent: "Nutrition", code: NUTRI}
+  - {id: MSW, name: "Medical Social Work + Patient Advocacy + Health Ed", parent: "Psychosocial", code: MSW}
+  - {id: BME, name: "Biomedical Engineering", parent: "Logistics", code: BME}
+  - {id: HIT, name: "Health IT (EMR/HIS/PACS/Cyber)", parent: "Logistics", code: HIT}
+  - {id: TRANS, name: "Medical Translation", parent: "Logistics", code: TRANS}
+  - {id: STAT, name: "Health Statistics & Data Analytics", parent: "Logistics", code: STAT}
+  - {id: TELE, name: "Medical Communication (Telemedicine/Teleradiology)", parent: "Logistics", code: TELE}
+  - {id: SEC, name: "Security", parent: "Safety", code: SEC}
+  - {id: OHS, name: "Occupational Health & Safety", parent: "Safety", code: OHS}
+  - {id: DM, name: "Disaster Management", parent: "Safety", code: DM}
+
+# === 8. ADMIN & ACADEMIC ===
+admin:
+  - {id: EXEC, name: "CEO/CMO/CNO/CFO/COO/Medical Council/Ethics", parent: "Executive", code: EXEC}
+  - {id: QA, name: "TQM + Credentialing + JCI/CAP/ISO + Audit + Complaints + Risk", parent: "Quality", code: QA}
+  - {id: EDU, name: "Medical Education (Internship/Residency/Fellowship/CME)", parent: "Education", code: EDU}
+  - {id: RES, name: "Research Center (Clinical Trials/IRB/Biostat/Publication)", parent: "Research", code: RES}
+  - {id: LIB, name: "Medical Library", parent: "Research", code: RES}
+  - {id: SIM, name: "Simulation Center (Surgical/ER/OB)", parent: "Education", code: EDU}
+  - {id: HR, name: "Medical HR + Training + Legal + PR + Call Center", parent: "HR", code: HR}
+
+# === 9. CENTERS OF EXCELLENCE ===
+centers:
+  - {id: CTR-HEART, name: "Heart & Vascular Center", parent: "Centers", code: CTR}
+  - {id: CTR-CANCER, name: "Comprehensive Cancer Center", parent: "Centers", code: CTR}
+  - {id: CTR-ORTHO, name: "Orthopedic & Spine Center", parent: "Centers", code: CTR}
+  - {id: CTR-FERT, name: "Advanced Fertility Center", parent: "Centers", code: CTR}
+  - {id: CTR-ENT, name: "ENT & Head-Neck Center", parent: "Centers", code: CTR}
+  - {id: CTR-TRAUMA, name: "Trauma Center", parent: "Centers", code: CTR}
+  - {id: CTR-BURN, name: "Burn Center", parent: "Centers", code: CTR}
+  - {id: CTR-TXP, name: "Transplant Center", parent: "Centers", code: CTR}
+  - {id: CTR-GER, name: "Geriatric Center", parent: "Centers", code: CTR}
+  - {id: CTR-PAIN, name: "Pain Center", parent: "Centers", code: CTR}
+  - {id: CTR-BAR, name: "Bariatric & Metabolic Center", parent: "Centers", code: CTR}
+  - {id: CTR-CHILD, name: "Children's Hospital within Hospital", parent: "Centers", code: CTR}
+  - {id: CTR-BH, name: "Behavioral Health Center", parent: "Centers", code: CTR}
+  - {id: CTR-EYE, name: "Eye Institute", parent: "Centers", code: CTR}
+  - {id: CTR-NEURO, name: "Neuroscience & Stroke Center", parent: "Centers", code: CTR}
+  - {id: CTR-MFM, name: "Women & Fetal Center", parent: "Centers", code: CTR}
+
+# === 10. RARE & SUPER-SPECIALIZED ===
+rare:
+  - {id: RARE-SPACE, name: "Space & Dive Medicine", parent: "Rare", code: RARE}
+  - {id: RARE-SLEEP, name: "Sleep Disorders + Polysomnography", parent: "Rare", code: RARE}
+  - {id: RARE-EMU, name: "Epilepsy Monitoring Unit", parent: "Rare", code: RARE}
+  - {id: RARE-SCT, name: "Advanced Stem Cell Therapy", parent: "Rare", code: RARE}
+  - {id: RARE-FS, name: "Fetal Surgery", parent: "Rare", code: RARE}
+  - {id: RARE-FM, name: "Fetal Medicine Unit", parent: "Rare", code: RARE}
+  - {id: RARE-DBS, name: "Deep Brain Stimulation", parent: "Rare", code: RARE}
+  - {id: RARE-NMT, name: "Nuclear Medicine Therapy", parent: "Rare", code: RARE}
+  - {id: RARE-CRYO, name: "Cryotherapy / Cryosurgery", parent: "Rare", code: RARE}
+  - {id: RARE-CLE, name: "Confocal Laser Endomicroscopy", parent: "Rare", code: RARE}
+  - {id: RARE-PGx, name: "Pharmacogenomics", parent: "Rare", code: RARE}
+  - {id: RARE-NANO, name: "Nanomedicine", parent: "Rare", code: RARE}

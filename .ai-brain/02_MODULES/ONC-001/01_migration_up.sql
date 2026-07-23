@@ -1,0 +1,24 @@
+-- e109_onc_module_up.sql
+BEGIN;
+CREATE TABLE onc_encounters (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, patient_id BIGINT NOT NULL, encounter_id BIGINT, encounter_type VARCHAR(30), started_at TIMESTAMPTZ NOT NULL, primary_diagnosis TEXT, stage VARCHAR(10), ecog_status INT, created_at TIMESTAMPTZ DEFAULT NOW());
+CREATE INDEX idx_onc_enc_tenant ON onc_encounters(tenant_id, started_at);
+ALTER TABLE onc_encounters ENABLE ROW LEVEL SECURITY; ALTER TABLE onc_encounters FORCE ROW LEVEL SECURITY;
+CREATE POLICY onc_enc_tenant ON onc_encounters USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+CREATE TABLE onc_staging (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, encounter_id BIGINT NOT NULL REFERENCES onc_encounters(id) ON DELETE CASCADE, tumor_t VARCHAR(10), node_n VARCHAR(10), metastasis_m VARCHAR(10), overall_stage VARCHAR(20), tnm_version VARCHAR(10), graded_at TIMESTAMPTZ DEFAULT NOW());
+ALTER TABLE onc_staging ENABLE ROW LEVEL SECURITY; ALTER TABLE onc_staging FORCE ROW LEVEL SECURITY;
+CREATE POLICY onc_staging_tenant ON onc_staging USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+CREATE TABLE onc_treatment_plans (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, encounter_id BIGINT NOT NULL REFERENCES onc_encounters(id) ON DELETE CASCADE, plan_type VARCHAR(20), intent VARCHAR(20), regimen_name VARCHAR(200), cycles_planned INT, created_at TIMESTAMPTZ DEFAULT NOW());
+ALTER TABLE onc_treatment_plans ENABLE ROW LEVEL SECURITY; ALTER TABLE onc_treatment_plans FORCE ROW LEVEL SECURITY;
+CREATE POLICY onc_tp_tenant ON onc_treatment_plans USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+CREATE TABLE onc_chemo_orders (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, encounter_id BIGINT NOT NULL REFERENCES onc_encounters(id) ON DELETE CASCADE, cycle_number INT, day_number INT, drug_name VARCHAR(200), dose_mg NUMERIC(8,2), dose_unit VARCHAR(20), bsa NUMERIC(4,2), route VARCHAR(30), premedication TEXT, scheduled_at TIMESTAMPTZ, administered_at TIMESTAMPTZ, status VARCHAR(20), prescribed_by_user_id BIGINT);
+CREATE INDEX idx_onc_chemo_enc ON onc_chemo_orders(encounter_id);
+ALTER TABLE onc_chemo_orders ENABLE ROW LEVEL SECURITY; ALTER TABLE onc_chemo_orders FORCE ROW LEVEL SECURITY;
+CREATE POLICY onc_chemo_tenant ON onc_chemo_orders USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+CREATE TABLE onc_response (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, encounter_id BIGINT NOT NULL REFERENCES onc_encounters(id) ON DELETE CASCADE, response_criteria VARCHAR(20), best_response VARCHAR(20), assessed_at TIMESTAMPTZ, imaging TEXT, notes TEXT);
+ALTER TABLE onc_response ENABLE ROW LEVEL SECURITY; ALTER TABLE onc_response FORCE ROW LEVEL SECURITY;
+CREATE POLICY onc_response_tenant ON onc_response USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+CREATE TABLE onc_vector_index (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, module_id VARCHAR(20) DEFAULT 'ONC-001', index_name VARCHAR(100), chunk_id VARCHAR(100), chunk_text TEXT, embedding VECTOR(768), metadata JSONB);
+CREATE INDEX idx_onc_vector_hnsw ON onc_vector_index USING hnsw (embedding vector_cosine_ops) WITH (m=16, ef_construction=64);
+ALTER TABLE onc_vector_index ENABLE ROW LEVEL SECURITY; ALTER TABLE onc_vector_index FORCE ROW LEVEL SECURITY;
+CREATE POLICY onc_vector_tenant ON onc_vector_index USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+COMMIT;

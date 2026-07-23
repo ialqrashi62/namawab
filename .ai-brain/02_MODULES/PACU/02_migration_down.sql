@@ -1,0 +1,1 @@
+-- pacu_down.sql DROP TABLE IF EXISTS pacu_records CASCADE;

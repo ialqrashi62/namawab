@@ -1,0 +1,1 @@
+-- sicu_down.sql DROP TABLE IF EXISTS sicu_admissions CASCADE;

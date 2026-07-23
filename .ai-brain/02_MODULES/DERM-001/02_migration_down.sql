@@ -1,0 +1,1 @@
+-- derm_down.sql DROP TABLE IF EXISTS derm_visits CASCADE;

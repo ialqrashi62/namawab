@@ -1,0 +1,1 @@
+-- pain_up.sql CREATE TABLE pain_visits (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, visit_at TIMESTAMPTZ, pain_score INT, location VARCHAR(50), intervention VARCHAR(50), opioid_dose_mg NUMERIC(5,2)); RLS+FORCE.

@@ -1,0 +1,1 @@
+-- soc_down.sql DROP TABLE IF EXISTS soc_assessments CASCADE;

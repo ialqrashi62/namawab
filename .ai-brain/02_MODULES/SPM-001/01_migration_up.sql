@@ -1,0 +1,1 @@
+-- spm_up.sql CREATE TABLE spm_visits (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, visit_at TIMESTAMPTZ, sport VARCHAR(50), injury_type VARCHAR(50), return_to_play DATE); RLS+FORCE.

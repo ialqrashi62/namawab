@@ -1,0 +1,1 @@
+-- er3_up.sql CREATE TABLE er3_visits (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, arrived_at TIMESTAMPTZ, acuity VARCHAR(20), esa_level INT, disposition VARCHAR(20)); RLS+FORCE.

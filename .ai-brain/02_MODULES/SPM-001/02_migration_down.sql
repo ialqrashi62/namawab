@@ -1,0 +1,1 @@
+-- spm_down.sql DROP TABLE IF EXISTS spm_visits CASCADE;

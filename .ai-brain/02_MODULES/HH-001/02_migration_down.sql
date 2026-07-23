@@ -1,0 +1,1 @@
+-- hh_down.sql DROP TABLE IF EXISTS hh_visits CASCADE;

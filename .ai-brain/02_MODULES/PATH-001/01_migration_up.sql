@@ -1,0 +1,1 @@
+-- path_up.sql CREATE TABLE path_specimens (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, collected_at TIMESTAMPTZ, type VARCHAR(50), diagnosis TEXT, snomed_code VARCHAR(50), pathologist_id BIGINT); RLS+FORCE.

@@ -1,0 +1,43 @@
+# SURG-001 — i18n Keys
+
+```json
+{
+  "surg.title": { "en": "Surgery", "ar": "الجراحة" },
+  "surg.or_schedule": { "en": "OR Schedule", "ar": "جدول العمليات" },
+  "surg.procedure": { "en": "Procedure", "ar": "الإجراء" },
+  "surg.cpt": { "en": "CPT Code", "ar": "رمز CPT" },
+  "surg.urgency": { "en": "Urgency", "ar": "الاستعجال" },
+  "surg.elective": { "en": "Elective", "ar": "اختياري" },
+  "surg.urgent": { "en": "Urgent", "ar": "عاجل" },
+  "surg.emergency": { "en": "Emergency", "ar": "طارئ" },
+  "surg.asa": { "en": "ASA Class", "ar": "تصنيف ASA" },
+  "surg.wound_class": { "en": "Wound Class", "ar": "تصنيف الجرح" },
+  "surg.surgeon": { "en": "Surgeon", "ar": "الجراح" },
+  "surg.anesthetist": { "en": "Anesthetist", "ar": "طبيب التخدير" },
+  "surg.preop": { "en": "Pre-Op", "ar": "ما قبل العملية" },
+  "surg.intraop": { "en": "Intra-Op", "ar": "أثناء العملية" },
+  "surg.postop": { "en": "Post-Op", "ar": "بعد العملية" },
+  "surg.checklist": { "en": "WHO Checklist", "ar": "قائمة منظمة الصحة العالمية" },
+  "surg.time_out": { "en": "Time-Out", "ar": "التوقف" },
+  "surg.sign_in": { "en": "Sign-In", "ar": "تسجيل الدخول" },
+  "surg.sign_out": { "en": "Sign-Out", "ar": "تسجيل الخروج" },
+  "surg.npo": { "en": "NPO", "ar": "صائم" },
+  "surg.site_marked": { "en": "Site Marked", "ar": "تم تحديد الموقع" },
+  "surg.antibiotic": { "en": "Antibiotic", "ar": "مضاد حيوي" },
+  "surg.consent": { "en": "Consent", "ar": "الموافقة" },
+  "surg.anesthesia": { "en": "Anesthesia", "ar": "التخدير" },
+  "surg.vte": { "en": "VTE Prophylaxis", "ar": "الوقاية من الجلطات" },
+  "surg.ebl": { "en": "Estimated Blood Loss", "ar": "النزف المقدر" },
+  "surg.complications": { "en": "Complications", "ar": "المضاعفات" },
+  "surg.clavien": { "en": "Clavien-Dindo", "ar": "كلافيان-ديندو" },
+  "surg.disposition": { "en": "Disposition", "ar": "المصير" },
+  "surg.ward": { "en": "Ward", "ar": "الجناح" },
+  "surg.icu": { "en": "ICU", "ar": "العناية المركزة" },
+  "surg.sdu": { "en": "SDU", "ar": "العناية الوسيطة" },
+  "surg.pacu": { "en": "PACU", "ar": "الإنعاش" },
+  "surg.discharge": { "en": "Discharge Home", "ar": "العودة للمنزل" },
+  "surg.eras": { "en": "ERAS Protocol", "ar": "بروتوكول التعافي المعزز" },
+  "surg.action.save": { "en": "Save", "ar": "حفظ" },
+  "surg.alert.antibiotic": { "en": "Antibiotic not given within 60 min of incision", "ar": "لم يُعطَ المضاد الحيوي خلال 60 دقيقة" }
+}
+```

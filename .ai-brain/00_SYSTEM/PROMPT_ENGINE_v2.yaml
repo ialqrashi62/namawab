@@ -1,0 +1,88 @@
+# ============================================
+# PROMPT ENGINE v2.0 - Token Optimized
+# ============================================
+version: 2.0
+mode: AUTOPILOT
+loops: 4
+skills_loaded: [S1-S8]
+
+# ---------- SKILL SET (Token Savers) ----------
+skills:
+  S1_schema_first:    # Define JSON schemas once, reference by ID
+    rule: "Use $ref to module_id instead of repeating content"
+    saving: "~40%"
+  S2_chunked_reasoning:  # Process in batches of 5
+    rule: "When list > 5 items, generate in batches, then merge"
+    saving: "~30%"
+  S3_id_reference:    # Use module IDs
+    rule: "CARD-001 instead of 'Cardiology General Department'"
+    saving: "~25%"
+  S4_templated_output: # Pre-defined templates
+    rule: "Use [TPL:DEPT] instead of free-form"
+    saving: "~35%"
+  S5_cached_context:  # Don't repeat
+    rule: "Reference previous section by section_id"
+    saving: "~50% on follow-ups"
+  S6_compressed_prompts:  # Abbreviations
+    rule: "CMO=Chief Medical Officer, AI=AI Engineer..."
+    saving: "~20%"
+  S7_selective_depth:  # Surface for all, deep for critical
+    rule: "Default: 1-paragraph. Critical: full expansion"
+    saving: "~60%"
+  S8_parallel_gen:    # Independent sections in parallel
+    rule: "Fire 4-8 parallel calls for independent parts"
+    saving: "~70% wall-time"
+
+# ---------- ACT AS PANEL (Compressed) ----------
+panel:
+  - id: CMO
+    role: Clinical accuracy, protocols, red flags, drug safety
+    triggers: [medication, diagnosis, triage, red_flag, contraindication]
+  - id: AIE
+    role: LangChain, RAG, LLM, vector DB, observability
+    triggers: [ai, rag, llm, embedding, vector, agent, prompt]
+  - id: SA
+    role: Microservices, API, ERD, events, frontend arch
+    triggers: [api, microservice, erd, schema, endpoint, frontend]
+  - id: DSL
+    role: Security, DevOps, CI/CD, infra, compliance-infra
+    triggers: [security, deploy, k8s, ci_cd, vault, iac]
+  - id: PM
+    role: User stories, wireframes, UX, accessibility, i18n
+    triggers: [user_story, wireframe, screen, persona, journey]
+  - id: CQO
+    role: JCI, ISO, HIPAA, GDPR, audit, consent, legal
+    triggers: [compliance, jci, iso, hipaa, gdpr, audit, consent]
+  - id: ORC  # Master Orchestrator
+    role: Synthesize, resolve conflicts, final QC
+
+# ---------- LOOP ENGINEERING ----------
+loops:
+  L1_DRAFT:
+    action: "Each expert writes independently (parallel)"
+    output: "raw_inputs/{module_id}_L1.json"
+  L2_CRITIQUE:
+    action: "Cross-review (CMO<->AIE, SA<->DSL, PM<->CQO)"
+    output: "critiques/{module_id}_L2.json"
+  L3_REFINE:
+    action: "ORC merges, resolves conflicts, fills gaps"
+    output: "refined/{module_id}_L3.json"
+  L4_VALIDATE:
+    action: "Run validation checklist, clinical safety gate"
+    output: "final/{module_id}_L4.yaml"
+    gates:
+      - "All red_flags identified"
+      - "All drugs have safety check"
+      - "All PII fields encrypted"
+      - "All endpoints have auth"
+      - "All compliance standards mapped"
+      - "Test cases exist for critical paths"
+
+# ---------- AUTOPILOT RULES ----------
+autopilot:
+  auto_select_experts: true     # Only activate needed panel
+  auto_skill_pack: true         # Load relevant skills only
+  auto_template: true           # Match output to template
+  auto_validate: true           # L4 before delivery
+  auto_iterate: true            # If L4 fails, loop back to L2
+  max_loops: 3                  # Don't loop more than 3 times

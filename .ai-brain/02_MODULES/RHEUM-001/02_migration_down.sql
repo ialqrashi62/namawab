@@ -1,0 +1,1 @@
+-- rheum_down.sql DROP TABLE IF EXISTS rheum_visits CASCADE;

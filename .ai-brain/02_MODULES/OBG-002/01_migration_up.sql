@@ -1,0 +1,1 @@
+-- obg2_up.sql CREATE TABLE obg2_labour (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, admitted_at TIMESTAMPTZ, dilation_cm INT, effacement_pct INT, fetal_hr INT, stage VARCHAR(20), delivery_at TIMESTAMPTZ, mode VARCHAR(20)); RLS+FORCE.

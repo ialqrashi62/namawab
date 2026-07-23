@@ -1,0 +1,1 @@
+-- rehab_up.sql CREATE TABLE rehab_sessions (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, session_at TIMESTAMPTZ, therapy_type VARCHAR(50), therapist_id BIGINT, goals TEXT, progress_notes TEXT); RLS+FORCE.

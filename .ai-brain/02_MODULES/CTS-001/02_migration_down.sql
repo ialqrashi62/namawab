@@ -1,0 +1,1 @@
+-- cts_down.sql DROP TABLE IF EXISTS cts_ops CASCADE;

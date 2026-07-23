@@ -1,0 +1,159 @@
+# ============================================
+# MODULE: Cardiology (General) - AUTOPILOT OUTPUT
+# Generated via LOOP L1->L4 with all 8 skills
+# ============================================
+module_id: CARD-001
+$ref: $TPL:DEPT
+
+meta:
+  module_id: CARD-001
+  parent: "Cardiology"
+  code: CARD
+  version: 2.0
+  loop_status: "L4 validated"
+  generated: "2026"
+  owners: {clinical: CMO, technical: AIE, compliance: CQO}
+
+# ---------- PROMPT (compressed) ----------
+prompt:
+  system: |
+    You are CardioAI, clinical decision support for adult & pediatric
+    cardiology. Follow ACC/AHA 2024, ESC 2023. NEVER replace physician
+    judgment. ALWAYS cite sources. FLAG red flags immediately. Integrate
+    FHIR for med reconciliation (anticoag, antiplatelets, BB, ACEi/ARB).
+  guardrails:
+    - "No final diagnosis, only differential + workup"
+    - "Always ask pregnancy status for women of childbearing age"
+    - "Always check renal function before contrast/metformin"
+    - "Red flags -> ED immediately: crushing CP, radiation to jaw/arm,
+       sudden SOB, syncope, palpitations + dizziness"
+    - "Refuse to interpret raw ECG without context"
+  few_shot:
+    - {q: "58M chest pain 2h, radiates to L arm, diaphoretic",
+       a: "RED FLAG -> ED. Possible ACS/STEMI. ASA 325mg PO if no allergy. Time critical for PCI (<90min)."}
+    - {q: "45F no cardiac hx, wants to start running",
+       a: "Pre-exercise screening -> ASCVD risk. If <5% low risk start gradually. Family hx of SCD -> consider stress test."}
+
+# ---------- RAG ----------
+rag:
+  sources: [ACC_AHA_2024, ESC_2023, UpToDate_Cardio, Mayo_Cardio]
+  embedding: "text-embedding-3-large (3072d) or MedEmbed (768d)"
+  chunking: {size: 512, overlap: 64, by: "section"}
+  vector_idx: "cardio-kg-v1"
+  hybrid: {bm25: 0.3, vector: 0.5, kg: 0.2}
+
+# ---------- WORKFLOW (LangGraph Supervisor) ----------
+workflow:
+  nodes:
+    - {id: intake,    tools: [fhir_patient_lookup, symptom_extractor]}
+    - {id: triage,    tools: [esi_classifier, red_flag_detector], critical: true}
+    - {id: diff,      tools: [rag_retrieval, icd10_mapper]}
+    - {id: workup,    tools: [guideline_lookup, cost_optimizer]}
+    - {id: meds,      tools: [interaction_db, renal_adj, pregnancy_check]}
+    - {id: disposition, tools: [bed_manager, scheduler]}
+  state_schema: $ref: "schemas/card_state.json"
+  hitl_triggers: ["ESI 1-2", "red_flag", "uncertainty > 30%"]
+
+# ---------- API (top endpoints, full spec in CARD-001.openapi.yaml) ----------
+api:
+  base: /api/v1/cardiology
+  endpoints:
+    - {method: POST, path: /triage,        auth: required, sla: "<2s"}
+    - {method: GET,  path: /patient/{id}/risk-score, params: [ascvd, framingham, cha2ds2vasc, hcm]}
+    - {method: POST, path: /ecg/interpret, body: {ecg_image, ctx}}
+    - {method: POST, path: /cath-lab/schedule}
+    - {method: GET,  path: /heart-failure/followup}
+
+# ---------- DATA (ERD summary, full in CARD-001.erd.sql) ----------
+data:
+  primary_db: PostgreSQL 16
+  schema: card_
+  tables:
+    - card_patients (pk: patient_id, idx: mrn, last_visit, risk_score)
+    - card_encounters (pk: encounter_id, partition: by_year)
+    - card_ecg_studies (storage: S3+DICOM)
+    - card_echo_reports (storage: S3+DICOM)
+    - card_cath_reports (storage: S3+DICOM)
+    - card_medications (audit: enabled)
+  cache: Redis
+  ts: TimescaleDB  # vitals trending
+
+# ---------- UI (compressed, full in CARD-001.wireframes.yaml) ----------
+ui:
+  personas: [cardiologist, cardio_nurse, patient]
+  screens:
+    - {id: dashboard_phys, components: [kpi_cards, patient_table, alerts_panel]}
+    - {id: ecg_viewer, features: [zoom, calipers, ai_overlay, compare, export]}
+    - {id: cath_scheduler, features: [timeline, drag_drop, conflict_detect]}
+  design_system: "medical-ds-v1 (see 06_FRONTEND/DESIGN_SYSTEM.md)"
+  stitch: "Generate via Google Stitch for production React+Tailwind"
+
+# ---------- OPS ----------
+ops:
+  service: cardiology-service
+  deploy: {type: k8s, replicas: 3, autoscale: {min: 3, max: 20, cpu: 70%}}
+  ci_cd: [lint, unit, integ, sec_scan, build, stage, smoke, prod]
+  monitoring:
+    metrics: [p99_latency, error_rate, ecg_acc, false_positive]
+    alerts:
+      - {name: ECG_drift, condition: "acc < 0.90 for 1h", action: page}
+      - {name: Triage_slow, condition: "p99 > 5s for 5m", action: page}
+
+# ---------- TESTS ----------
+tests:
+  unit: {framework: pytest+asyncio, coverage: "90%"}
+  integration: {framework: pytest+testcontainers, scope: [fhir, vector, langgraph]}
+  clinical_safety:
+    required_scenarios:
+      - "STEMI recognition <30s"
+      - "Aortic dissection red flag"
+      - "Drug interaction: warfarin+amiodarone"
+      - "Pregnancy contraindication: ACEi"
+      - "Renal dose: enoxaparin in CKD"
+      - "Anticoag in AF + fall risk"
+  load: {target: 1000_concurrent, p99: "<2s"}
+
+# ---------- COMPLIANCE ----------
+compliance:
+  jci: [ACC, COP, MOI, SQE]
+  hipaa: ["164.312(a)(1)", "164.312(b)", "164.312(e)"]
+  iso_27001: ["A.9", "A.10", "A.12.4", "A.16"]
+  audit_events:
+    - "Every drug recommendation"
+    - "Every ECG interpretation"
+    - "Every triage decision"
+    - "Every disposition change"
+  consent:
+    - "AI-assisted interpretation (model card disclosure)"
+    - "External data sharing"
+    - "Research use (de-identified)"
+  retention: "10y imaging, 7y notes"
+
+# ---------- FHIR ----------
+fhir:
+  reads: [Patient, Observation, Condition, MedicationStatement, AllergyIntolerance, Procedure, DiagnosticReport]
+  writes: [Observation, DiagnosticReport, Procedure, CarePlan]
+  profiles: ["observation-ecg", "procedure-coronary-angiography"]
+  smart_on_fhir: true
+
+# ---------- KPIs ----------
+kpis:
+  clinical:
+    - {name: Door_to_Balloon, target: "<90min"}
+    - {name: HF_readmit_30d, target: "<20%"}
+    - {name: AC_in_AF, target: ">85%"}
+  operational:
+    - {name: Cath_utilization, target: "75-85%"}
+    - {name: ECG_TAT_stat, target: "<15min"}
+  ai:
+    - {name: ECG_STEMI_sens, target: ">95%"}
+    - {name: Triage_override, target: "<10%"}
+
+# ---------- EDGES ----------
+edges:
+  - "Cardiac arrest -> bypass AI, direct ACLS"
+  - "Corrupted ECG -> request re-upload, never guess"
+  - "Conflicting FHIR meds -> escalate"
+  - "LLM down -> fallback rule-based triage"
+  - "Pregnant -> exclude teratogens"
+  - "Pediatric (auto by age) -> peds guidelines, weight-based dosing"

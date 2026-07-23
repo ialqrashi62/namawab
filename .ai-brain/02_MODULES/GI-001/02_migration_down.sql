@@ -1,0 +1,9 @@
+-- e107_gi_module_down.sql
+BEGIN;
+DROP TABLE IF EXISTS gi_vector_index CASCADE;
+DROP TABLE IF EXISTS gi_bleed_assessments CASCADE;
+DROP TABLE IF EXISTS gi_liver CASCADE;
+DROP TABLE IF EXISTS gi_medications CASCADE;
+DROP TABLE IF EXISTS gi_endoscopies CASCADE;
+DROP TABLE IF EXISTS gi_encounters CASCADE;
+COMMIT;

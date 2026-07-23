@@ -1,0 +1,213 @@
+# ============================================
+# OpenAPI 3.1 - Cardiology Service (compressed)
+# Full version: ~200 endpoints per module
+# ============================================
+openapi: 3.1.0
+info:
+  title: Cardiology Service API
+  version: 2.0.0
+  description: Microservice for cardiology department
+servers:
+  - url: https://api.hospital.com/api/v1/cardiology
+    description: Production
+security:
+  - BearerAuth: []
+  - OAuth2: [patient/*.read, cardiology/*.write]
+
+paths:
+  /triage:
+    post:
+      summary: AI-assisted triage for chest pain / cardiac symptoms
+      operationId: postTriage
+      tags: [Triage, AI]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: $ref: '#/components/schemas/TriageRequest'
+      responses:
+        '200':
+          description: Triage result with ESI level, red flags, differential
+          content:
+            application/json:
+              schema: $ref: '#/components/schemas/TriageResponse'
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+        '429': {$ref: '#/components/responses/RateLimit'}
+        '500': {$ref: '#/components/responses/ServerError'}
+      x-rate-limit: {requests: 100, period: 1m, per: user}
+      x-sla: "<2s"
+      x-ai-model: "cardio-triage-v3"
+      x-clinical-safety: "critical_path"
+
+  /patient/{patientId}/risk-score:
+    get:
+      summary: Calculate cardiovascular risk scores
+      operationId: getRiskScore
+      tags: [Risk, Calculator]
+      parameters:
+        - {name: patientId, in: path, required: true, schema: {type: string, format: uuid}}
+        - {name: type, in: query, required: true, schema: {type: string, enum: [ascvd, framingham, cha2ds2vasc, hcm_risk, duke, euroscore_ii]}}
+      responses:
+        '200':
+          description: Risk score with components and interpretation
+          content:
+            application/json:
+              schema: $ref: '#/components/schemas/RiskScore'
+
+  /ecg/interpret:
+    post:
+      summary: AI interpretation of 12-lead ECG
+      operationId: interpretECG
+      tags: [ECG, AI, Imaging]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                ecg_image: {type: string, format: binary}
+                patient_context: {$ref: '#/components/schemas/PatientContext'}
+                priority: {type: string, enum: [routine, urgent, stat], default: routine}
+      responses:
+        '200':
+          description: ECG interpretation with AI confidence
+          content:
+            application/json:
+              schema: $ref: '#/components/schemas/ECGInterpretation'
+        '202': {description: Queued for human review}
+      x-ai-model: "ecg-clip-v2 or custom-cnn"
+      x-requires: "physician_signoff_before_finalize"
+
+  /cath-lab/schedule:
+    post:
+      summary: Schedule cardiac catheterization
+      operationId: scheduleCath
+      tags: [Procedure, Scheduling]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [patient_id, procedure_type, urgency]
+              properties:
+                patient_id: {type: string, format: uuid}
+                procedure_type: {type: string, enum: [diagnostic, pci_primary, pci_elective, eps, ablate, tavr, mitraclip, watchman]}
+                urgency: {type: string, enum: [elective, urgent, emergent, salvage]}
+                preferred_date: {type: string, format: date}
+      responses:
+        '201': {description: Scheduled, returns case_id}
+        '409': {description: Conflict, returns alternatives}
+
+  /heart-failure/followup:
+    get:
+      summary: List HF patients due for follow-up post-discharge
+      operationId: getHFFollowup
+      tags: [Care Coordination]
+      parameters:
+        - {name: patient_id, in: query, schema: {type: string, format: uuid}}
+        - {name: days_since_discharge, in: query, schema: {type: integer, default: 7}}
+        - {name: risk_tier, in: query, schema: {type: string, enum: [low, medium, high]}}
+
+components:
+  securitySchemes:
+    BearerAuth: {type: http, scheme: bearer, bearerFormat: JWT}
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.hospital.com/oauth/authorize
+          tokenUrl: https://auth.hospital.com/oauth/token
+          scopes:
+            'patient/*.read': Read patient data
+            'cardiology/*.read': Read cardiology
+            'cardiology/*.write': Write cardiology
+  schemas:
+    TriageRequest:
+      type: object
+      required: [patient_id, chief_complaint]
+      properties:
+        patient_id: {type: string, format: uuid}
+        chief_complaint: {type: string, minLength: 3, maxLength: 500}
+        hpi: {type: string}
+        onset: {type: string}
+        severity: {type: integer, minimum: 0, maximum: 10}
+        associated_symptoms: {type: array, items: {type: string}}
+        pmh: {type: array, items: {type: string}}
+        medications: {type: array, items: {type: string}}
+        vitals:
+          type: object
+          properties:
+            bp_systolic: {type: integer}
+            bp_diastolic: {type: integer}
+            heart_rate: {type: integer}
+            respiratory_rate: {type: integer}
+            spo2: {type: integer, minimum: 0, maximum: 100}
+            temperature_c: {type: number}
+            pain_score: {type: integer, minimum: 0, maximum: 10}
+    TriageResponse:
+      type: object
+      properties:
+        esi_level: {type: integer, minimum: 1, maximum: 5}
+        red_flags: {type: array, items: {type: string}}
+        recommended_action: {type: string, enum: [immediate_ed, urgent_ed, fast_track, standard, defer_to_pcp]}
+        differentials:
+          type: array
+          items:
+            type: object
+            properties:
+              condition: {type: string}
+              icd10: {type: string}
+              probability: {type: number, minimum: 0, maximum: 1}
+              evidence_level: {type: string, enum: [A, B, C, D]}
+              citations: {type: array, items: {type: string}}
+        workup_suggestions:
+          type: array
+          items:
+            type: object
+            properties:
+              test: {type: string}
+              loinc: {type: string}
+              urgency: {type: string}
+        warnings: {type: array, items: {type: string}}
+        disclaimer: {type: string, default: "AI suggestion; physician must verify"}
+        processing_time_ms: {type: integer}
+    RiskScore:
+      type: object
+      properties:
+        score_type: {type: string}
+        value: {type: number}
+        category: {type: string, enum: [low, borderline, intermediate, high, very_high]}
+        ten_year_risk: {type: number}
+        components: {type: object, additionalProperties: true}
+        interpretation: {type: string}
+        recommendations: {type: array, items: {type: string}}
+    ECGInterpretation:
+      type: object
+      properties:
+        rhythm: {type: string}
+        rate: {type: integer}
+        intervals:
+          type: object
+          properties:
+            pr: {type: integer}
+            qrs: {type: integer}
+            qtc: {type: integer}
+        findings: {type: array, items: {type: string}}
+        critical_findings: {type: array, items: {type: string}}
+        ai_confidence: {type: number, minimum: 0, maximum: 1}
+        requires_physician_review: {type: boolean}
+        comparison_to_prior: {type: string}
+    PatientContext:
+      type: object
+      properties:
+        age: {type: integer}
+        sex: {type: string, enum: [M, F, Other]}
+        indication: {type: string}
+        prior_ecg_id: {type: string}
+  responses:
+    Unauthorized: {description: Missing/invalid auth}
+    ValidationError: {description: Validation failed}
+    RateLimit: {description: Rate limit exceeded}
+    ServerError: {description: Internal error}

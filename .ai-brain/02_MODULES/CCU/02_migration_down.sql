@@ -1,0 +1,1 @@
+-- ccu_down.sql DROP TABLE IF EXISTS ccu_admissions CASCADE;

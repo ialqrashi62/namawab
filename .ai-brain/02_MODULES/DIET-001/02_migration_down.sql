@@ -1,0 +1,1 @@
+-- diet_down.sql DROP TABLE IF EXISTS diet_assessments CASCADE;

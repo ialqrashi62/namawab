@@ -1,0 +1,1 @@
+-- neuros_down.sql DROP TABLE IF EXISTS neuros_ops CASCADE;

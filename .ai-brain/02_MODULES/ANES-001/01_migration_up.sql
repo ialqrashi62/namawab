@@ -1,0 +1,1 @@
+-- anes_up.sql CREATE TABLE anes_records (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, asa_class INT, anesthesia_type VARCHAR(30), induction_at TIMESTAMPTZ, emergence_at TIMESTAMPTZ, duration_min INT, complications TEXT); RLS+FORCE.

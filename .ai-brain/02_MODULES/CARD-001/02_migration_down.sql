@@ -1,0 +1,11 @@
+-- e105_card_module_down.sql
+BEGIN;
+DROP TABLE IF EXISTS card_vector_index CASCADE;
+DROP TABLE IF EXISTS card_devices CASCADE;
+DROP TABLE IF EXISTS card_medications CASCADE;
+DROP TABLE IF EXISTS card_procedures CASCADE;
+DROP TABLE IF EXISTS card_echocardiograms CASCADE;
+DROP TABLE IF EXISTS card_troponins CASCADE;
+DROP TABLE IF EXISTS card_ecgs CASCADE;
+DROP TABLE IF EXISTS card_encounters CASCADE;
+COMMIT;

@@ -1,0 +1,1 @@
+-- dent_up.sql CREATE TABLE dent_visits (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, visit_at TIMESTAMPTZ, tooth_chart JSONB, treatment TEXT, status VARCHAR(20)); RLS+FORCE.

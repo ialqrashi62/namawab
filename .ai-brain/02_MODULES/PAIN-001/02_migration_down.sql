@@ -1,0 +1,1 @@
+-- pain_down.sql DROP TABLE IF EXISTS pain_visits CASCADE;

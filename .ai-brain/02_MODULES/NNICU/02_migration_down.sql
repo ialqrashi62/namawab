@@ -1,0 +1,1 @@
+-- nnicu_down.sql DROP TABLE IF EXISTS nnicu_admissions CASCADE;

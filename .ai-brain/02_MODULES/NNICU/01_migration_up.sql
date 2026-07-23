@@ -1,0 +1,1 @@
+-- nnicu_up.sql CREATE TABLE nnicu_admissions (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, admitted_at TIMESTAMPTZ, birth_weight_g INT, gestational_age_weeks INT, apgar_1 INT, apgar_5 INT, status VARCHAR(20)); RLS+FORCE.

@@ -1,0 +1,1 @@
+-- pharm_up.sql CREATE TABLE pharm_dispensing (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, dispensed_at TIMESTAMPTZ, drug_name VARCHAR(200), dose VARCHAR(50), quantity INT, pharmacist_id BIGINT); RLS+FORCE.

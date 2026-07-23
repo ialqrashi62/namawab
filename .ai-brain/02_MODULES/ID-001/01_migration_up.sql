@@ -1,0 +1,1 @@
+-- id_up.sql CREATE TABLE id_cases (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, suspected_pathogen VARCHAR(50), culture_result TEXT, sensitivity JSONB, antibiotic_started VARCHAR(50)); RLS+FORCE.

@@ -1,0 +1,1 @@
+-- rheum_up.sql CREATE TABLE rheum_visits (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, visit_at TIMESTAMPTZ, das28 NUMERIC(4,2), basdai NUMERIC(4,2), medications JSONB); RLS+FORCE.

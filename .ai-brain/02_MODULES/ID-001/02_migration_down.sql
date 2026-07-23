@@ -1,0 +1,1 @@
+-- id_down.sql DROP TABLE IF EXISTS id_cases CASCADE;

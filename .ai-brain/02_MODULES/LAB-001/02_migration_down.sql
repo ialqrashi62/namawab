@@ -1,0 +1,1 @@
+-- lab_down.sql DROP TABLE IF EXISTS lab_results CASCADE;

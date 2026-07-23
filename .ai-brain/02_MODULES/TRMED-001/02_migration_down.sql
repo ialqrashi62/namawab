@@ -1,0 +1,1 @@
+-- trmed_down.sql DROP TABLE IF EXISTS trmed_visits CASCADE;

@@ -1,0 +1,188 @@
+# ============================================
+# DESIGN SYSTEM v2.0
+# Used by Stitch Google for UI generation
+# ============================================
+version: 2.0
+theme: medical-ds
+
+# Color tokens
+colors:
+  primary:
+    50: "#E6F0FF"
+    100: "#B3D1FF"
+    500: "#0066CC"  # Medical Blue
+    700: "#004C99"
+    900: "#003366"
+  success:
+    50: "#E8F5E9"
+    500: "#28A745"
+    700: "#1E7E34"
+  warning:
+    50: "#FFF8E1"
+    500: "#FFC107"
+    700: "#C79100"
+  danger:
+    50: "#FFEBEE"
+    500: "#DC3545"  # Critical Red
+    700: "#A71D2A"
+  info:
+    50: "#E0F7FA"
+    500: "#17A2B8"
+  neutral:
+    0: "#FFFFFF"
+    50: "#F8F9FA"
+    100: "#F1F3F5"
+    200: "#E9ECEF"
+    300: "#DEE2E6"
+    500: "#6C757D"
+    700: "#495057"
+    900: "#212529"
+  clinical:  # clinical-specific
+    critical_value: "#DC3545"
+    abnormal_high: "#FF6B6B"
+    abnormal_low: "#4D96FF"
+    normal: "#28A745"
+    pending: "#FFC107"
+    prelim: "#9C27B0"
+    final: "#28A745"
+    corrected: "#FF9800"
+
+# Typography
+fonts:
+  primary: Inter
+  arabic: "Noto Sans Arabic"
+  chinese: "Noto Sans SC"
+  mono: "JetBrains Mono"
+sizes: [12, 14, 16, 18, 20, 24, 30, 36, 48, 60]
+weights: [400, 500, 600, 700]
+lineHeights: {body: 1.5, heading: 1.2}
+
+# Spacing
+spacing: [0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80, 96, 128]
+
+# Radius
+radius: {sm: 4, md: 8, lg: 12, xl: 16, full: 9999}
+
+# Shadows
+shadows:
+  sm: "0 1px 2px rgba(0,0,0,0.05)"
+  md: "0 4px 6px rgba(0,0,0,0.07)"
+  lg: "0 10px 15px rgba(0,0,0,0.1)"
+  xl: "0 20px 25px rgba(0,0,0,0.1)"
+
+# i18n
+i18n:
+  default: en
+  supported: [en, ar, es, fr, zh, hi, ur, ru, de, pt]
+  rtl: [ar, ur, he, fa]
+  date_formats:
+    en: "MM/DD/YYYY"
+    ar: "DD/MM/YYYY"
+    iso: "YYYY-MM-DD"
+  number_formats:
+    en: "1,234.56"
+    ar: "1,234.56"
+  timezones: 50+
+  calendars: [gregorian, hijri, hebrew, persian, indian]
+
+# Accessibility
+a11y:
+  wcag_level: "2.2 AA"
+  color_contrast: "4.5:1 normal, 3:1 large"
+  keyboard_nav: "All interactive"
+  screen_reader: "ARIA labels, semantic HTML, live regions for alerts"
+  focus_indicators: "Visible 2px outline"
+  text_resize: "200% without loss"
+  motion_reduce: "Respect prefers-reduced-motion"
+  alt_text: "All images, especially medical"
+  language: "html lang attribute, RTL detection"
+
+# Component library (built in React + Tailwind + shadcn/ui)
+components:
+  # --- Basic ---
+  button: {variants: [primary, secondary, ghost, danger, outline, link], sizes: [sm, md, lg, icon]}
+  input: {types: [text, number, date, time, datetime-local, search, email, tel, url, password, file]}
+  select: {types: [single, multi, async, searchable, creatable, grouped]}
+  textarea: {autoResize: true, maxLength: 5000}
+  checkbox: {states: [checked, unchecked, indeterminate, disabled]}
+  radio: {group: true}
+  switch: {sizes: [sm, md, lg]}
+  slider: {range: true, marks: true}
+
+  # --- Layout ---
+  card: {variants: [default, outlined, elevated, interactive]}
+  modal: {sizes: [sm, md, lg, xl, fullscreen], closable: true}
+  drawer: {sides: [left, right, top, bottom]}
+  tabs: {variants: [line, pills, enclosed]}
+  accordion: {single: false, animated: true}
+  collapse: {}
+  breadcrumb: {separator: "/"}
+  pagination: {sizes: [sm, md, lg]}
+  table: {features: [sort, filter, paginate, select, virtualize, expand, sticky-header]}
+
+  # --- Data display ---
+  badge: {variants: [default, success, warning, danger, info, neutral], dot: true}
+  avatar: {sizes: [xs, sm, md, lg, xl], group: true, fallback: "initials"}
+  tooltip: {placement: [top, bottom, left, right], delay: 200}
+  popover: {}
+  progress: {types: [linear, circular, dashboard], colors: clinical}
+  skeleton: {variants: [text, circle, rectangle, card]}
+  empty_state: {withAction: true}
+
+  # --- Feedback ---
+  alert: {variants: [info, success, warning, danger], dismissible: true}
+  toast: {position: top-right, autoClose: 5000, stack: true}
+  notification: {channels: [in_app, email, sms, push]}
+
+  # --- Navigation ---
+  sidebar: {collapsible: true, variants: [default, compact, mini]}
+  topnav: {sticky: true, search: true, userMenu: true, notifications: true}
+  menubar: {}
+  contextmenu: {rightClick: true}
+
+  # --- Forms (medical-specific) ---
+  patient_header: {sticky: true, fields: [name, age, sex, mrn, allergies, alerts, code_status]}
+  vital_signs_display: {color_coded: true, trend_arrow: true, alarm_thresholds: true}
+  lab_results_table: {reference_range: true, abnormal_flag: true, critical_bold: true, trend_chart: true}
+  medication_list: {group_by: [active, completed, prn], interaction_warnings: true, five_rights: true}
+  order_entry: {search: true, autocomplete: true, favorites: true, frequency_picker: true, dose_calc: true}
+  clinical_note_editor: {templates: true, voice_to_text: true, ai_assist: true, structured_fields: true, signoff: true}
+
+  # --- Imaging ---
+  dicom_viewer: {tools: [zoom, pan, W/L, measure, annotate, compare], ai_overlay: true, cine: true}
+  ecg_viewer: {tools: [zoom, caliper, lead_select, compare, ai_overlay], export: [pdf, xml, hl7]}
+
+  # --- Scheduling ---
+  calendar: {views: [day, week, month, agenda], drag_drop: true, conflict_detect: true}
+  timeline: {horizontal: true, zoom: true, dependencies: true}
+  gantt: {}
+
+  # --- Chat / AI ---
+  chat_bubble: {variants: [user, ai, system, error], streaming: true, citations: true, copy: true, regenerate: true}
+  chat_input: {voice: true, attach: true, suggestions: true}
+
+  # --- Patient-facing ---
+  appointment_card: {actions: [reschedule, cancel, directions, telehealth]}
+  symptom_checker: {guided_questions: true, triage_output: true, escalate: true}
+  patient_education: {reading_level: 5, languages: 10, media: [text, video, infographic]}
+
+  # --- Quality / Safety ---
+  quality_dashboard: {kpi_cards: true, drill_down: true, export: true}
+  incident_form: {severity: true, root_cause: true, fmea_link: true, photos: true}
+
+  # --- Admin ---
+  user_management: {bulk_actions: true, role_assignment: true, audit_per_user: true}
+  audit_log_viewer: {filters: true, export: true, immutable: true}
+  system_config: {versioned: true, rollback: true, requires_approval: true}
+
+# Stitch integration
+stitch_google:
+  project_name: "medical-ai-ecosystem"
+  design_system_import: "./design-system.yaml"
+  auto_generate:
+    - wireframes (per screen in DEPT modules)
+    - storybook_stories
+    - react_tailwind_code
+    - test_ids
+    - aria_labels
+  export_formats: [figma, sketch, react, html]

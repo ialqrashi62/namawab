@@ -1,0 +1,1 @@
+-- vas_up.sql CREATE TABLE vas_procedures (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, op_at TIMESTAMPTZ, vessel VARCHAR(50), procedure_name VARCHAR(100), approach VARCHAR(20), cci_score INT, surgeon_id BIGINT); RLS+FORCE.

@@ -1,0 +1,1 @@
+-- gen_down.sql DROP TABLE IF EXISTS gen_visits CASCADE;

@@ -1,0 +1,1 @@
+-- algy_down.sql DROP TABLE IF EXISTS algy_visits CASCADE;

@@ -1,0 +1,1 @@
+-- algy_up.sql CREATE TABLE algy_visits (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, visit_at TIMESTAMPTZ, allergen VARCHAR(100), reaction TEXT, severity VARCHAR(20), test_result TEXT); RLS+FORCE.

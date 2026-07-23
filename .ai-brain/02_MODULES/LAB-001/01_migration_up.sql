@@ -1,0 +1,1 @@
+-- lab_up.sql CREATE TABLE lab_results (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, ordered_at TIMESTAMPTZ, test_name VARCHAR(100), result_value VARCHAR(100), unit VARCHAR(20), reference_range VARCHAR(50), abnormal_flag VARCHAR(20), resulted_at TIMESTAMPTZ); RLS+FORCE.

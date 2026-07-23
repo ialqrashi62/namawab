@@ -1,0 +1,1 @@
+-- derm_up.sql CREATE TABLE derm_visits (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, visit_at TIMESTAMPTZ, lesion_site VARCHAR(50), diagnosis TEXT, biopsy_result TEXT); RLS+FORCE.

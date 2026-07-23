@@ -1,0 +1,1 @@
+-- psych_down.sql DROP TABLE IF EXISTS psych_visits CASCADE;

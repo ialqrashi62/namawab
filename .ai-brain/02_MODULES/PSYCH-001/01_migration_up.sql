@@ -1,0 +1,1 @@
+-- psych_up.sql CREATE TABLE psych_visits (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, visit_at TIMESTAMPTZ, phq9_score INT, gad7_score INT, diagnosis TEXT, risk_level VARCHAR(20)); RLS+FORCE.

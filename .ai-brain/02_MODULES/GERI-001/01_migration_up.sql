@@ -1,0 +1,1 @@
+-- geri_up.sql CREATE TABLE geri_assessments (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, assessed_at TIMESTAMPTZ, mmse_score INT, adl_score INT, fall_risk VARCHAR(20), notes TEXT); RLS+FORCE.

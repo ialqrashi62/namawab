@@ -1,0 +1,1 @@
+-- pharm_down.sql DROP TABLE IF EXISTS pharm_dispensing CASCADE;

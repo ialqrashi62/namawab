@@ -1,0 +1,1 @@
+-- sicu_up.sql CREATE TABLE sicu_admissions (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, admitted_at TIMESTAMPTZ, sofa_score INT, primary_dx TEXT, status VARCHAR(20)); RLS+FORCE.

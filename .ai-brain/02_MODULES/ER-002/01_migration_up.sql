@@ -1,0 +1,1 @@
+-- er2_up.sql CREATE TABLE er2_visits (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, arrived_at TIMESTAMPTZ, acuity VARCHAR(20), chief_complaint TEXT, disposition VARCHAR(20), esa_level INT); RLS+FORCE.

@@ -1,0 +1,1 @@
+-- er2_down.sql DROP TABLE IF EXISTS er2_visits CASCADE;

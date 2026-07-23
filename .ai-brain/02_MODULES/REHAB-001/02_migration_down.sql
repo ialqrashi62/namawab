@@ -1,0 +1,1 @@
+-- rehab_down.sql DROP TABLE IF EXISTS rehab_sessions CASCADE;

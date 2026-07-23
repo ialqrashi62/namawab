@@ -1,0 +1,20 @@
+-- e110_ortho_module_up.sql
+BEGIN;
+CREATE TABLE ortho_encounters (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, patient_id BIGINT NOT NULL, encounter_id BIGINT, encounter_type VARCHAR(30), started_at TIMESTAMPTZ NOT NULL, primary_diagnosis TEXT, created_at TIMESTAMPTZ DEFAULT NOW());
+CREATE INDEX idx_ortho_enc_tenant ON ortho_encounters(tenant_id, started_at);
+ALTER TABLE ortho_encounters ENABLE ROW LEVEL SECURITY; ALTER TABLE ortho_encounters FORCE ROW LEVEL SECURITY;
+CREATE POLICY ortho_enc_tenant ON ortho_encounters USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+CREATE TABLE ortho_fractures (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, encounter_id BIGINT NOT NULL REFERENCES ortho_encounters(id) ON DELETE CASCADE, fracture_site VARCHAR(50), classification VARCHAR(50), open_closed VARCHAR(20), displacement VARCHAR(20), reduction_done BOOLEAN DEFAULT FALSE, fixation_type VARCHAR(50), laterality VARCHAR(10));
+ALTER TABLE ortho_fractures ENABLE ROW LEVEL SECURITY; ALTER TABLE ortho_fractures FORCE ROW LEVEL SECURITY;
+CREATE POLICY ortho_fractures_tenant ON ortho_fractures USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+CREATE TABLE ortho_procedures (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, encounter_id BIGINT NOT NULL REFERENCES ortho_encounters(id) ON DELETE CASCADE, procedure_name VARCHAR(100), cpt_code VARCHAR(20), laterality VARCHAR(10), implant_used TEXT, duration_min INT, ebl_ml INT, complications TEXT);
+ALTER TABLE ortho_procedures ENABLE ROW LEVEL SECURITY; ALTER TABLE ortho_procedures FORCE ROW LEVEL SECURITY;
+CREATE POLICY ortho_proc_tenant ON ortho_procedures USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+CREATE TABLE ortho_prostheses (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, patient_id BIGINT NOT NULL, prosthesis_type VARCHAR(50), manufacturer VARCHAR(50), model VARCHAR(50), serial_number VARCHAR(100), implanted_at TIMESTAMPTZ, laterality VARCHAR(10), lot_number VARCHAR(50));
+ALTER TABLE ortho_prostheses ENABLE ROW LEVEL SECURITY; ALTER TABLE ortho_prostheses FORCE ROW LEVEL SECURITY;
+CREATE POLICY ortho_prosth_tenant ON ortho_prostheses USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+CREATE TABLE ortho_vector_index (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, module_id VARCHAR(20) DEFAULT 'ORTHO-001', embedding VECTOR(768));
+CREATE INDEX idx_ortho_vector_hnsw ON ortho_vector_index USING hnsw (embedding vector_cosine_ops) WITH (m=16, ef_construction=64);
+ALTER TABLE ortho_vector_index ENABLE ROW LEVEL SECURITY; ALTER TABLE ortho_vector_index FORCE ROW LEVEL SECURITY;
+CREATE POLICY ortho_vector_tenant ON ortho_vector_index USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+COMMIT;

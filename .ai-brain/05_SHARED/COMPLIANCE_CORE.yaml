@@ -1,0 +1,150 @@
+# ============================================
+# COMPLIANCE CORE - Shared by all 38 modules
+# $ref this file from each module
+# ============================================
+version: 2.0
+scope: hospital_wide
+
+# ----- JCI 7th Edition -----
+jci:
+  chapters:
+    ACC: # Access to Care
+      standards: ["ACC.1", "ACC.2", "ACC.3"]
+      evidence: ["wait_times", "triage_logs", "equity_dashboard"]
+    COP: # Care of Patients
+      standards: ["COP.1-COP.9"]
+      evidence: ["care_plans", "clinical_pathways", "adverse_events"]
+    MOI: # Management of Information
+      standards: ["MOI.1-MOI.10"]
+      evidence: ["audit_logs", "data_quality", "inter_rater_reliability"]
+    SQE: # Staff Qualifications
+      standards: ["SQE.1-SQE.7"]
+      evidence: ["license_tracking", "cme_records", "competency_assessments"]
+    QPS: # Quality & Patient Safety
+      standards: ["QPS.1-QPS.7"]
+      evidence: ["kpi_dashboards", "incident_reports", "fmea", "rca"]
+    PCI: # Infection Control
+      standards: ["PCI.1-PCI.10"]
+      evidence: ["hai_rates", "hand_hygiene", "antibiogram", "stewardship"]
+    GLD: # Governance & Leadership
+      standards: ["GLD.1-GLD.12"]
+      evidence: ["committee_minutes", "strategic_plan", "perf_reviews"]
+    FMS: # Facility & Safety
+      standards: ["FMS.1-FMS.7"]
+      evidence: ["equipment_logs", "safety_rounds", "drills"]
+    MMU: # Medication Management
+      standards: ["MMU.1-MMU.7"]
+      evidence: ["med_error_rate", "near_miss", "double_check_compliance"]
+    PFR: # Patient & Family Rights
+      standards: ["PFR.1-PFR.6"]
+      evidence: ["consent_forms", "complaints", "patient_satisfaction"]
+
+# ----- ISO 27001:2022 -----
+iso_27001:
+  A.5_security_policies: {controls: 2, owner: CISO}
+  A.6_organization: {controls: 7, owner: CISO}
+  A.7_physical: {controls: 4, owner: Facilities}
+  A.8_technological: {controls: 34, owner: IT}
+  A.9_human_resources: {controls: 6, owner: HR}
+  A.10_asset_management: {controls: 4, owner: IT}
+  A.11_access_control: {controls: 9, owner: IT}
+  A.12_cryptography: {controls: 2, owner: Security}
+  A.13_physical_environmental: {controls: 7, owner: Facilities}
+  A.14_operations: {controls: 14, owner: IT}
+  A.15_communications: {controls: 7, owner: Network}
+  A.16_system_acquisition: {controls: 8, owner: Eng}
+  A.17_supplier: {controls: 5, owner: Procurement}
+  A.18_incident: {controls: 7, owner: SOC}
+  A.19_business_continuity: {controls: 4, owner: BCM}
+  A.20_compliance: {controls: 8, owner: Compliance}
+
+# ----- HIPAA (US, if applicable) -----
+hipaa:
+  privacy_rule:
+    - "Minimum necessary"
+    - "Patient consent for non-treatment use"
+    - "Right to access, amend, restrict"
+  security_rule:
+    administrative: ["Security mgmt", "Workforce security", "Training", "Incident"]
+    physical: ["Facility access", "Workstation", "Device controls"]
+    technical: ["Access ctrl", "Audit", "Integrity", "Transmission security", "Authentication"]
+  breach_notification: "<60 days to individuals, <60 days to HHS if >500"
+
+# ----- GDPR (EU, if applicable) -----
+gdpr:
+  lawful_basis: "Explicit consent (AI), vital interests (emergencies),
+                 contract (treatment), legal obligation (public health)"
+  data_subject_rights:
+    - "Access (FHIR Patient.read)"
+    - "Rectification"
+    - "Erasure (with medical retention exception)"
+    - "Restriction"
+    - "Portability (FHIR export)"
+    - "Object (AI profiling opt-out)"
+  dpia_required: true
+  dpo_required: true
+  cross_border: "EU data in EU, SCC for transfers"
+  breach_notification: "<72h to supervisory authority"
+
+# ----- Saudi MOH / UAE DHA / Others -----
+regional:
+  saudi_moh:
+    standards: ["MOH HIIS", "NPHIES", "SFDA"]
+    integrations: ["NPHIES_Insurance", "Sehhaty_App", "Mawared_HR"]
+  uae_dha:
+    standards: ["DHA_NABIDH", "ADHICS"]
+    integrations: ["NABIDH", "Malaffi", "Riayati"]
+  ksa_sfda:
+    scope: "Medical device registration, drug safety"
+  hl7_fhir_r4: "MANDATORY for all interop"
+  icd10_am: "MANDATORY for diagnosis coding"
+  cpt: "For procedures"
+  snomed_ct: "For clinical terms"
+  loinc: "For lab tests"
+  rxnorm: "For medications"
+
+# ----- Audit Events (Universal) -----
+universal_audit:
+  events:
+    - "PHI access (read/create/update/delete/export/print)"
+    - "AI model invocation + inputs/outputs hash"
+    - "Override of clinical decision support"
+    - "Medication administration (5-rights verification)"
+    - "Consent capture/modification"
+    - "Login/logout (success/failure)"
+    - "Privilege escalation"
+    - "Configuration changes"
+  storage:
+    retention: "10 years clinical, 7 years admin, 99 years research consent"
+    immutability: "Append-only, hash-chained, WORM storage"
+    encryption: "AES-256 at rest, TLS 1.3 in transit"
+  access: "Compliance team + DPO, queryable, exportable for audits"
+
+# ----- Consent Types -----
+consent:
+  types:
+    - {id: general_treatment, scope: "All treatment within facility"}
+    - {id: specific_procedure, scope: "Single named procedure"}
+    - {id: data_sharing_internal, scope: "Share with treating team"}
+    - {id: data_sharing_external, scope: "Share with other providers/researchers/payers"}
+    - {id: ai_assisted_care, scope: "AI clinical decision support"}
+    - {id: research_use, scope: "De-identified data use in research"}
+    - {id: teaching, scope: "Use in medical education"}
+    - {id: marketing, scope: "Use in marketing materials"}
+  requirements:
+    - "Plain language, patient's preferred language"
+    - "Specific (not blanket)"
+    - "Revocable"
+    - "Documented with timestamp, signer identity, witness"
+    - "Re-consent if scope changes"
+
+# ----- Retention Rules -----
+retention:
+  clinical_records: "10 years from last encounter (adult)"
+  pediatric_records: "Until age 25 OR 10 years (whichever longer)"
+  imaging: "10 years (some jurisdictions: life of implant + 10y)"
+  audit_logs: "10 years"
+  research_data: "Per protocol OR 99 years for genetic"
+  financial: "10 years"
+  hr: "Per labor law (typically 7-10 years post-termination)"
+  backups: "Daily 30d, weekly 1y, monthly 7y, yearly 99y (tiered)"

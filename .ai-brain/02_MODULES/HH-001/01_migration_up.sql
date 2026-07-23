@@ -1,0 +1,1 @@
+-- hh_up.sql CREATE TABLE hh_visits (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, visit_at TIMESTAMPTZ, nurse_id BIGINT, services JSONB, notes TEXT); RLS+FORCE.

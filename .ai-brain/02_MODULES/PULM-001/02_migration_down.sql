@@ -1,0 +1,10 @@
+-- e106_pulm_module_down.sql
+BEGIN;
+DROP TABLE IF EXISTS pulm_vector_index CASCADE;
+DROP TABLE IF EXISTS pulm_procedures CASCADE;
+DROP TABLE IF EXISTS pulm_oxygen_orders CASCADE;
+DROP TABLE IF EXISTS pulm_medications CASCADE;
+DROP TABLE IF EXISTS pulm_imaging CASCADE;
+DROP TABLE IF EXISTS pulm_pft CASCADE;
+DROP TABLE IF EXISTS pulm_encounters CASCADE;
+COMMIT;

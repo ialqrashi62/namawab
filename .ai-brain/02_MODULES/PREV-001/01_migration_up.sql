@@ -1,0 +1,1 @@
+-- prev_up.sql CREATE TABLE prev_screenings (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, screening_type VARCHAR(50), screened_at TIMESTAMPTZ, result VARCHAR(20), next_due DATE); RLS+FORCE.

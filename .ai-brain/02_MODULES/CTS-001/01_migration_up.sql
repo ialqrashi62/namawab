@@ -1,0 +1,1 @@
+-- cts_up.sql CREATE TABLE cts_ops (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, op_at TIMESTAMPTZ, procedure_name VARCHAR(100), cpb_time_min INT, cross_clamp_min INT, surgeon_id BIGINT, status VARCHAR(20)); RLS+FORCE.

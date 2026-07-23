@@ -1,0 +1,1 @@
+-- peds_up.sql CREATE TABLE peds_visits (id BIGSERIAL PK, tenant_id UUID, patient_id BIGINT, visit_at TIMESTAMPTZ, age_months INT, weight_kg NUMERIC(4,1), height_cm NUMERIC(5,1), immunizations JSONB, milestone_age VARCHAR(20)); RLS+FORCE.
