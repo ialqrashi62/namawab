@@ -4,7 +4,15 @@ The format is based on Keep a Changelog; this project adheres to Semantic Versio
 
 ## [Unreleased]
 
-### Added — 2026-07-23 (Phase 4: AI-Brain → Production Verification)
+### Added — 2026-07-23 (RAG-grounded AI Copilot + Live Deploy Package)
+- **`namaweb/clinical_knowledge_rag.js` fix (+22 / -3 lines)**: when the LLM is in simulation/no-key mode, the AI Copilot answer is now grounded in the top retrieved RAG chunk (verifiable, clinically useful) instead of a generic `[SIMULATION MODE]` placeholder. Behavior on live LLM unchanged.
+- **Staged file**: `namaweb/.deploy_staging_2026-07-23_ragfix/clinical_knowledge_rag.js` (6,005 bytes, `node --check` OK).
+- **Deploy handbook**: `ops/live_deploy/DEPLOY_HANDBOOK_2026-07-23_RAG_GROUNDED.md` — 13 sections, zero-downtime, <30 sec rollback.
+- **Deploy package**: `docs/RAG_FIX_DEPLOY_PACKAGE_2026-07-23.md` — single-file summary.
+- **Deploy closeout template**: `docs/PHASE_RAG_LIVE_DEPLOY_2026-07-23_AR.md` — fill in after execution.
+- **Status**: ⏳ READY (sandbox env cannot reach Hetzner 204.168.144.74; deploy from a machine with SSH access using the handbook).
+
+### Added — 2026-07-23 (4-Pillar Readiness Audit)
 - **Gap analysis complete** (`docs/MASTER_BLUEPRINT/IMPLEMENTATION_STATUS.md`): 62/62 blueprint modules classified as **A-class** — all have existing ERD cluster (`docs/erd/*.dbml`), OpenAPI spec (`docs/openapi/*.yaml`), engine (`namaweb/*_engine.js`), and test coverage. **No net-new code generation required**; the `.ai-brain/02_MODULES/` blueprints are specifications of an already-implemented system.
 - **Tier-1 verification (5/5)**: ER-001, OBG-001, PEDS-002, MICU, SURG-001 — all engines + integration tests + cross-tenant tests present.
 - **Tier-2..4 verification (57/57)**: 39 specialty engine families across all 4 tiers — engines OK, tests OK, OpenAPI present.
