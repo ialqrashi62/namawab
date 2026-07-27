@@ -1,0 +1,13 @@
+-- P3-DY module schema for pcc_bariatric_medicine v3.89.0
+CREATE TABLE IF NOT EXISTS p3dy_pcc_bariatric_medicine (
+    id BIGSERIAL PRIMARY KEY,
+    encounter_id TEXT,
+    tenant_id TEXT NOT NULL,
+    input JSONB,
+    result JSONB,
+    module TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    created_by TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_p3dy_pcc_bariatric_medicine_tenant ON p3dy_pcc_bariatric_medicine(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_p3dy_pcc_bariatric_medicine_encounter ON p3dy_pcc_bariatric_medicine(encounter_id);
