@@ -91,6 +91,7 @@ const militaryRouter = require('./military/military_routes');
 const veterinaryRouter = require('./veterinary/veterinary_routes');
 const audiologyRouter = require('./audiology/audiology_routes');
 const neuropsychRouter = require('./neuropsych/neuropsych_routes');
+const pccNeuropsychologyRouter = require('./pcc_neuropsychology/pcc_neuropsychology_routes');
 const speechLangRouter = require('./speech_lang/speech_lang_routes');
 const nuclearMedRouter = require('./nuclear_med/nuclear_med_routes');
 const palliativeExtRouter = require('./palliative_ext/palliative_ext_routes');
@@ -197,6 +198,7 @@ const obgynExt2Router = require('./obgyn_ext2/obgyn_ext2_routes');
 const neonatalExt3Router = require('./neonatal_ext3/neonatal_ext3_routes');
 const perinatalExt3Router = require('./perinatal_ext3/perinatal_ext3_routes');
 const hemExt2Router = require('./hem_ext2/hem_ext2_routes');
+const pccPediatricHematologyRouter = require('./pcc_pediatric_hematology/pcc_pediatric_hematology_routes');
 const giExt2Router = require('./gi_ext2/gi_ext2_routes');
 const entExt2Router = require('./ent_ext2/ent_ext2_routes');
 const dermaExt2Router = require('./derma_ext2/derma_ext2_routes');
@@ -212,6 +214,7 @@ const sleepExt2Router = require('./sleep_ext2/sleep_ext2_routes');
 const idExt2Router = require('./id_ext2/id_ext2_routes');
 const rheumExt3Router = require('./rheum_ext3/rheum_ext3_routes');
 const nephExt3Router = require('./neph_ext3/neph_ext3_routes');
+const pccPediatricNephrologyRouter = require('./pcc_pediatric_nephrology/pcc_pediatric_nephrology_routes');
 const pccUtilityRouter = require('./pcc_utility/pcc_utility_routes');
 const pccAuditRouter = require('./pcc_audit/pcc_audit_routes');
 const pccAdminRouter = require('./pcc_admin/pcc_admin_routes');
@@ -407,7 +410,7 @@ app.use(morgan('tiny'));
 555
 // --- Health ---
 app.get('/health', (_req, res) => res.json({
-  status: 'ok', service: 'pcc-sandbox', version: ('3.95.0'),
+  status: 'ok', service: 'pcc-sandbox', version: ('3.96.0'),
   modules: ['cath_lab', 'ccu', 'nnicu', 'bicu', 'copilot', 'picu', 'sicu', 'ticu', 'micu', 'honc', 'cticu', 'nicu', 'or', 'ed', 'obgyn', 'derma', 'gi', 'endo', 'rheum', 'nephro', 'heme', 'pharmacy', 'lab', 'cardiology', 'pulmonology', 'infectious_disease', 'radiology', 'oncology', 'billing_rcm', 'pedi', 'telehealth', 'transplant', 'stroke_neuro', 'anesthesia', 'wound_care', 'genetics', 'palliative', 'pedi_icu', 'ent', 'ophthalmology', 'urology', 'pmr', 'allergy', 'pain', 'sleep', 'bariatric', 'geriatrics', 'hematology', 'oncology_ext', 'hepatology', 'rheum_ext', 'pedi_sub', 'transplant_ext', 'cardio_ext', 'endo_ext', 'maternal_fetal', 'neuro_ext', 'gi_ext', 'derm_ext', 'cardio_surg', 'transplant_neph', 'bmt', 'rehab_ext', 'sports_med', 'forensic_med', 'public_health', 'dental', 'occupational', 'pain_ext', 'disaster', 'tropical', 'aviation', 'military', 'veterinary', 'audiology', 'neuropsych', 'speech_lang', 'nuclear_med', 'palliative_ext', 'hospital_admin', 'bioethics', 'chaplaincy', 'aerodigestive', 'hospice', 'pharmacy_clinical', 'clinical_pharm', 'transplant_heart', 'transplant_liver', 'transfusion_med', 'burn_center', 'ecmo_service', 'trauma_center', 'critical_care_ext', 'stroke_ext', 'cardiology_ext2', 'radiology_ext', 'pharmacy_compounding', 'lab_specialty', 'imaging_molecular', 'aerospace', 'bmt2', 'diving', 'mountain', 'tropical_ext', 'hand_therapy', 'cardiac_rehab', 'pelvic_rehab', 'vestibular_rehab', 'lymphedema', 'driving_rehab', 'music_therapy', 'art_therapy', 'recreational_therapy', 'hippotherapy', 'aquatic_therapy', 'child_life', 'low_vision', 'voice_therapy', 'prosthetics_orthotics', 'wound_ostomy', 'chronic_pain_rehab', 'telerehab', 'falls_prevention', 'frailty', 'geriatric_assessment', 'home_health', 'community_health', 'med_psych', 'comprehensive_rehab', 'sleep_medicine_ext', 'transplant_extended', 'transplant_living', 'neonatal_ext', 'perinatal_ext', 'fertility', 'transplant_pediatric', 'womens_health_ext', 'transplant_immunology', 'mens_health_ext', 'palliative_ext2', 'transplant_pharmacy', 'neuro_ext2', 'cv_ext2', 'neonatal_ext2', 'rad_ext', 'lab_ext', 'perinatal_ext2', 'pharmacy_ext', 'dental_ext', 'sports_med_ext', 'pain_ext2', 'psych_ext', 'occupational_ext', 'rehab_ext2', 'ent_ext', 'ophth_ext', 'hem_ext', 'onco_ext2', 'gastro_ext', 'rheum_ext2', 'id_ext', 'allergy_ext', 'endocrine_ext', 'derm_ext2', 'uro_ext', 'vasc_ext', 'ortho_ext', 'neph_ext2', 'plast_surg_ext', 'surg_ext', 'anesthesia2', 'radiology2', 'pathology_ext', 'geri_ext', 'gen_med_ext', 'trauma_ext', 'breast_ext', 'icu_ext2', 'obgyn_ext2', 'neonatal_ext3', 'perinatal_ext3', 'hem_ext2', 'gi_ext2', 'ent_ext2', 'derma_ext2', 'psych_ext2', 'onco_ext3', 'repro_ext', 'endo_ext2', 'ortho_ext2', 'cardio_ext3', 'allergy_ext2', 'cv_ext3', 'sleep_ext2', 'id_ext2', 'rheum_ext3', 'neph_ext3', 'pcc_utility', 'pcc_audit', 'pcc_admin'], ts: new Date().toISOString(),
 }));
 
@@ -485,6 +488,7 @@ app.use('/api/v1/military', militaryRouter);
 app.use('/api/v1/veterinary', veterinaryRouter);
 app.use('/api/v1/audiology', audiologyRouter);
 app.use('/api/v1/neuropsych', neuropsychRouter);
+app.use('/api/v1/pcc-neuropsychology', pccNeuropsychologyRouter);
 app.use('/api/v1/speech-lang', speechLangRouter);
 app.use('/api/v1/nuclear-med', nuclearMedRouter);
 app.use('/api/v1/palliative-ext', palliativeExtRouter);
@@ -585,6 +589,7 @@ app.use('/api/v1/obgyn-ext2', obgynExt2Router);
 app.use('/api/v1/neonatal-ext3', neonatalExt3Router);
 app.use('/api/v1/perinatal-ext3', perinatalExt3Router);
 app.use('/api/v1/hem-ext2', hemExt2Router);
+app.use('/api/v1/pcc-pediatric-hematology', pccPediatricHematologyRouter);
 app.use('/api/v1/psych-ext2', psychExt2Router);
 app.use('/api/v1/onco-ext3', oncoExt3Router);
 app.use('/api/v1/repro-ext', reproExtRouter);
@@ -597,6 +602,7 @@ app.use('/api/v1/sleep-ext2', sleepExt2Router);
 app.use('/api/v1/id-ext2', idExt2Router);
 app.use('/api/v1/rheum-ext3', rheumExt3Router);
 app.use('/api/v1/neph-ext3', nephExt3Router);
+app.use('/api/v1/pcc-pediatric-nephrology', pccPediatricNephrologyRouter);
 app.use('/api/v1/pcc-utility', pccUtilityRouter);
 app.use('/api/v1/pcc-audit', pccAuditRouter);
 app.use('/api/v1/pcc-admin', pccAdminRouter);
