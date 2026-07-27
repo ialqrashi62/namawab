@@ -1,0 +1,13 @@
+-- P3-DT module schema for pcc_trauma_center_l2 v3.84.0
+CREATE TABLE IF NOT EXISTS p3dt_pcc_trauma_center_l2 (
+    id BIGSERIAL PRIMARY KEY,
+    encounter_id TEXT,
+    tenant_id TEXT NOT NULL,
+    input JSONB,
+    result JSONB,
+    module TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    created_by TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_p3dt_pcc_trauma_center_l2_tenant ON p3dt_pcc_trauma_center_l2(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_p3dt_pcc_trauma_center_l2_encounter ON p3dt_pcc_trauma_center_l2(encounter_id);
