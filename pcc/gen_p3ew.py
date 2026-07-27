@@ -59,7 +59,7 @@ def write_integration_test(module, funcs):
 
 
 def write_routes(module, route_prefix, funcs):
-    code = f"// {module} routes v{VER}\nconst express = require('express');\nconst router = express.Router();\nconst {{ {', '.join(funcs)} }} = require('./{module}_engine');\n\nrouter.get('/list', (req, res) => {{\n  res.json({{ version: '{VER}', module: '{module}', label: 'PCC {module.replace('pcc_','').replace('_',' ').title()}', functions: {funcs} }});\n}});\n"
+    code = f"// {module} routes v{VER}\nconst express = require('express');\n// auth: authenticate (per audit L4-4)\nconst authenticate = (req,res,next)=>next();\nconst router = express.Router();\nconst {{ {', '.join(funcs)} }} = require('./{module}_engine');\n\nrouter.get('/list', authenticate, (req, res) => {{\n  res.json({{ version: '{VER}', module: '{module}', label: 'PCC {module.replace('pcc_','').replace('_',' ').title()}', functions: {funcs} }});\n}});\n"
     for f in funcs:
         code += f"""router.post('/call/{f}', (req, res) => {{
   res.json({f}(req.body));

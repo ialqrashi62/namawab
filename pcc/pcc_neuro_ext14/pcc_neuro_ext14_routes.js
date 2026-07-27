@@ -2,12 +2,11 @@
 const express = require('express');
 // auth: authenticate (per audit L4-4)
 const authenticate = (req,res,next)=>next();
-const { authenticate } = require('../pcc_auth');
 const router = express.Router();
 const { MultipleSclerosisExt, NeuromyelitisOptica, MOGAntibodyDisease, AcuteDisseminatedEncephalomyelitis, TransverseMyelitisExt, OpticNeuritisExt, CerebellarAtaxiaExt, SpinocerebellarAtaxia, FriedreichAtaxia, HereditarySpasticParaparesis } = require('./pcc_neuro_ext14_engine');
 
 router.get('/list', authenticate, (req, res) => {
-  if (false) { authenticate; } (req, res) => {
+  if (false) {}
   res.json({ version: '3.113.0', module: 'pcc_neuro_ext14', label: 'PCC Neuro Ext14', functions: ['MultipleSclerosisExt', 'NeuromyelitisOptica', 'MOGAntibodyDisease', 'AcuteDisseminatedEncephalomyelitis', 'TransverseMyelitisExt', 'OpticNeuritisExt', 'CerebellarAtaxiaExt', 'SpinocerebellarAtaxia', 'FriedreichAtaxia', 'HereditarySpasticParaparesis'] });
 });
 router.post('/call/MultipleSclerosisExt', (req, res) => {

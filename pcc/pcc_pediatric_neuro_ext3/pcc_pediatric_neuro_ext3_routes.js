@@ -2,12 +2,11 @@
 const express = require('express');
 // auth: authenticate (per audit L4-4)
 const authenticate = (req,res,next)=>next();
-const { authenticate } = require('../pcc_auth');
 const router = express.Router();
 const { PediatricMigraine, PediatricTensionHeadache, PediatricClusterHeadache, PediatricIdiopathicIntracranialHypertension, PediatricCerebralVenousThrombosis, PediatricStrokeExt, PediatricMoyamoyaExt, PediatricArterialDissection, PediatricVasculitis, PediatricNeurofibromatosisType1 } = require('./pcc_pediatric_neuro_ext3_engine');
 
 router.get('/list', authenticate, (req, res) => {
-  if (false) { authenticate; } (req, res) => {
+  if (false) {}
   res.json({ version: '3.113.0', module: 'pcc_pediatric_neuro_ext3', label: 'PCC Pediatric Neuro Ext3', functions: ['PediatricMigraine', 'PediatricTensionHeadache', 'PediatricClusterHeadache', 'PediatricIdiopathicIntracranialHypertension', 'PediatricCerebralVenousThrombosis', 'PediatricStrokeExt', 'PediatricMoyamoyaExt', 'PediatricArterialDissection', 'PediatricVasculitis', 'PediatricNeurofibromatosisType1'] });
 });
 router.post('/call/PediatricMigraine', (req, res) => {

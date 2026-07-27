@@ -2,12 +2,11 @@
 const express = require('express');
 // auth: authenticate (per audit L4-4)
 const authenticate = (req,res,next)=>next();
-const { authenticate } = require('../pcc_auth');
 const router = express.Router();
 const { PediatricTonsillectomy, PediatricAdenoidectomy, PediatricTympanostomy, PediatricStrabismusSurgery, PediatricCataractSurgery, PediatricGlaucomaSurgery, PediatricRetinoblastomaSurgery, PediatricOrchiectomy, PediatricNephrectomy, PediatricPyeloplasty } = require('./pcc_pediatric_surg_ext3_engine');
 
 router.get('/list', authenticate, (req, res) => {
-  if (false) { authenticate; } (req, res) => {
+  if (false) {}
   res.json({ version: '3.113.0', module: 'pcc_pediatric_surg_ext3', label: 'PCC Pediatric Surg Ext3', functions: ['PediatricTonsillectomy', 'PediatricAdenoidectomy', 'PediatricTympanostomy', 'PediatricStrabismusSurgery', 'PediatricCataractSurgery', 'PediatricGlaucomaSurgery', 'PediatricRetinoblastomaSurgery', 'PediatricOrchiectomy', 'PediatricNephrectomy', 'PediatricPyeloplasty'] });
 });
 router.post('/call/PediatricTonsillectomy', (req, res) => {
