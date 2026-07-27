@@ -239,6 +239,7 @@ const pccPsychEmergencyRouter = require('./pcc_psych_emergency/pcc_psych_emergen
 const pccLabExt2Router = require('./pcc_lab_ext2/pcc_lab_ext2_routes');
 const pccPathExtRouter = require('./pcc_path_ext/pcc_path_ext_routes');
 const pccRadExt2Router = require('./pcc_rad_ext2/pcc_rad_ext2_routes');
+const pccInterventionalRadiologyRouter = require('./pcc_interventional_radiology/pcc_interventional_radiology_routes');
 const pccIcuExt3Router = require('./pcc_icu_ext3/pcc_icu_ext3_routes');
 const pccEdExt2Router = require('./pcc_ed_ext2/pcc_ed_ext2_routes');
 const pccObExt2Router = require('./pcc_ob_ext2/pcc_ob_ext2_routes');
@@ -290,7 +291,9 @@ const pccAddictionMedRouter = require('./pcc_addiction_med/pcc_addiction_med_rou
 const pccTravelMedRouter = require('./pcc_travel_med/pcc_travel_med_routes');
 const pccTraumaCenterL2Router = require('./pcc_trauma_center_l2/pcc_trauma_center_l2_routes');
 const pccGeneticCounselingRouter = require('./pcc_genetic_counseling/pcc_genetic_counseling_routes');
+const pccGeneticCounselingExtRouter = require('./pcc_genetic_counseling_ext/pcc_genetic_counseling_ext_routes');
 const pccWoundCareExtRouter = require('./pcc_wound_care_ext/pcc_wound_care_ext_routes');
+const pccWoundCareAdvancedRouter = require('./pcc_wound_care_advanced/pcc_wound_care_advanced_routes');
 const pccRehabMedicineRouter = require('./pcc_rehab_medicine/pcc_rehab_medicine_routes');
 const pccPainRehabRouter = require('./pcc_pain_rehab/pcc_pain_rehab_routes');
 const pccGeriatricSurgeryRouter = require('./pcc_geriatric_surgery/pcc_geriatric_surgery_routes');
@@ -392,7 +395,7 @@ app.use(morgan('tiny'));
 555
 // --- Health ---
 app.get('/health', (_req, res) => res.json({
-  status: 'ok', service: 'pcc-sandbox', version: ('3.90.0'),
+  status: 'ok', service: 'pcc-sandbox', version: ('3.91.0'),
   modules: ['cath_lab', 'ccu', 'nnicu', 'bicu', 'copilot', 'picu', 'sicu', 'ticu', 'micu', 'honc', 'cticu', 'nicu', 'or', 'ed', 'obgyn', 'derma', 'gi', 'endo', 'rheum', 'nephro', 'heme', 'pharmacy', 'lab', 'cardiology', 'pulmonology', 'infectious_disease', 'radiology', 'oncology', 'billing_rcm', 'pedi', 'telehealth', 'transplant', 'stroke_neuro', 'anesthesia', 'wound_care', 'genetics', 'palliative', 'pedi_icu', 'ent', 'ophthalmology', 'urology', 'pmr', 'allergy', 'pain', 'sleep', 'bariatric', 'geriatrics', 'hematology', 'oncology_ext', 'hepatology', 'rheum_ext', 'pedi_sub', 'transplant_ext', 'cardio_ext', 'endo_ext', 'maternal_fetal', 'neuro_ext', 'gi_ext', 'derm_ext', 'cardio_surg', 'transplant_neph', 'bmt', 'rehab_ext', 'sports_med', 'forensic_med', 'public_health', 'dental', 'occupational', 'pain_ext', 'disaster', 'tropical', 'aviation', 'military', 'veterinary', 'audiology', 'neuropsych', 'speech_lang', 'nuclear_med', 'palliative_ext', 'hospital_admin', 'bioethics', 'chaplaincy', 'aerodigestive', 'hospice', 'pharmacy_clinical', 'clinical_pharm', 'transplant_heart', 'transplant_liver', 'transfusion_med', 'burn_center', 'ecmo_service', 'trauma_center', 'critical_care_ext', 'stroke_ext', 'cardiology_ext2', 'radiology_ext', 'pharmacy_compounding', 'lab_specialty', 'imaging_molecular', 'aerospace', 'bmt2', 'diving', 'mountain', 'tropical_ext', 'hand_therapy', 'cardiac_rehab', 'pelvic_rehab', 'vestibular_rehab', 'lymphedema', 'driving_rehab', 'music_therapy', 'art_therapy', 'recreational_therapy', 'hippotherapy', 'aquatic_therapy', 'child_life', 'low_vision', 'voice_therapy', 'prosthetics_orthotics', 'wound_ostomy', 'chronic_pain_rehab', 'telerehab', 'falls_prevention', 'frailty', 'geriatric_assessment', 'home_health', 'community_health', 'med_psych', 'comprehensive_rehab', 'sleep_medicine_ext', 'transplant_extended', 'transplant_living', 'neonatal_ext', 'perinatal_ext', 'fertility', 'transplant_pediatric', 'womens_health_ext', 'transplant_immunology', 'mens_health_ext', 'palliative_ext2', 'transplant_pharmacy', 'neuro_ext2', 'cv_ext2', 'neonatal_ext2', 'rad_ext', 'lab_ext', 'perinatal_ext2', 'pharmacy_ext', 'dental_ext', 'sports_med_ext', 'pain_ext2', 'psych_ext', 'occupational_ext', 'rehab_ext2', 'ent_ext', 'ophth_ext', 'hem_ext', 'onco_ext2', 'gastro_ext', 'rheum_ext2', 'id_ext', 'allergy_ext', 'endocrine_ext', 'derm_ext2', 'uro_ext', 'vasc_ext', 'ortho_ext', 'neph_ext2', 'plast_surg_ext', 'surg_ext', 'anesthesia2', 'radiology2', 'pathology_ext', 'geri_ext', 'gen_med_ext', 'trauma_ext', 'breast_ext', 'icu_ext2', 'obgyn_ext2', 'neonatal_ext3', 'perinatal_ext3', 'hem_ext2', 'gi_ext2', 'ent_ext2', 'derma_ext2', 'psych_ext2', 'onco_ext3', 'repro_ext', 'endo_ext2', 'ortho_ext2', 'cardio_ext3', 'allergy_ext2', 'cv_ext3', 'sleep_ext2', 'id_ext2', 'rheum_ext3', 'neph_ext3', 'pcc_utility', 'pcc_audit', 'pcc_admin'], ts: new Date().toISOString(),
 }));
 
@@ -609,6 +612,7 @@ app.use('/api/v1/pcc-psych-emergency', pccPsychEmergencyRouter);
 app.use('/api/v1/pcc-lab-ext2', pccLabExt2Router);
 app.use('/api/v1/pcc-path-ext', pccPathExtRouter);
 app.use('/api/v1/pcc-rad-ext2', pccRadExt2Router);
+app.use('/api/v1/pcc-interventional-radiology', pccInterventionalRadiologyRouter);
 app.use('/api/v1/pcc-icu-ext3', pccIcuExt3Router);
 app.use('/api/v1/pcc-ed-ext2', pccEdExt2Router);
 app.use('/api/v1/pcc-ob-ext2', pccObExt2Router);
@@ -660,7 +664,9 @@ app.use('/api/v1/pcc-addiction-med', pccAddictionMedRouter);
 app.use('/api/v1/pcc-travel-med', pccTravelMedRouter);
 app.use('/api/v1/pcc-trauma-center-l2', pccTraumaCenterL2Router);
 app.use('/api/v1/pcc-genetic-counseling', pccGeneticCounselingRouter);
+app.use('/api/v1/pcc-genetic-counseling-ext', pccGeneticCounselingExtRouter);
 app.use('/api/v1/pcc-wound-care-ext', pccWoundCareExtRouter);
+app.use('/api/v1/pcc-wound-care-advanced', pccWoundCareAdvancedRouter);
 app.use('/api/v1/pcc-rehab-medicine', pccRehabMedicineRouter);
 app.use('/api/v1/pcc-pain-rehab', pccPainRehabRouter);
 app.use('/api/v1/pcc-geriatric-surgery', pccGeriatricSurgeryRouter);
