@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS bioethics (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, ts TEXT DEFAULT CURRENT_TIMESTAMP, data TEXT NOT NULL, audit_hash TEXT);
+CREATE INDEX IF NOT EXISTS idx_bioethics_tenant ON bioethics(tenant_id);
+
+CREATE TABLE IF NOT EXISTS chaplaincy (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, ts TEXT DEFAULT CURRENT_TIMESTAMP, data TEXT NOT NULL, audit_hash TEXT);
+CREATE INDEX IF NOT EXISTS idx_chaplaincy_tenant ON chaplaincy(tenant_id);
+
+CREATE TABLE IF NOT EXISTS aerodigestive (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, ts TEXT DEFAULT CURRENT_TIMESTAMP, data TEXT NOT NULL, audit_hash TEXT);
+CREATE INDEX IF NOT EXISTS idx_aerodigestive_tenant ON aerodigestive(tenant_id);

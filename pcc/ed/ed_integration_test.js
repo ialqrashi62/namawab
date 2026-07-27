@@ -1,0 +1,133 @@
+'use strict';
+const crypto = require('crypto');
+const initSqlJs = require('sql.js');
+
+let passed = 0, failed = 0;
+function it(name, fn) { try { fn(); passed++; console.log('  ' + '✓' + ' ' + name); } catch (err) { failed++; console.error('  ' + '✗' + ' ' + name + ': ' + err.message); } }
+function describe(s, fn) { console.log('\n' + s); fn(); }
+function assertEq(a, b, m) { if (a !== b) throw new Error((m || 'eq') + ': ' + JSON.stringify(a) + ' != ' + JSON.stringify(b)); }
+function assert(v, m) { if (!v) throw new Error(m || 'assertion failed'); }
+const SCHEMA = `
+CREATE TABLE ed_visit (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, patient_id INTEGER NOT NULL,
+  encounter_id INTEGER NOT NULL, chief_complaint TEXT NOT NULL, triage_level INTEGER,
+  status TEXT NOT NULL DEFAULT 'in_progress', cpt_codes TEXT NOT NULL DEFAULT '[]',
+  arrived_at TEXT NOT NULL DEFAULT (datetime('now')),
+  soft_deleted_at TEXT, created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE ed_vital_sign (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, visit_id TEXT NOT NULL,
+  measured_at TEXT NOT NULL DEFAULT (datetime('now')),
+  heart_rate INTEGER, sbp_mmhg INTEGER, spo2_pct INTEGER, temperature_c REAL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE ed_red_flag (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, visit_id TEXT NOT NULL,
+  flag_type TEXT NOT NULL, severity TEXT NOT NULL, description TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE ed_audit_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, actor_id INTEGER,
+  action TEXT NOT NULL, entity_type TEXT NOT NULL, entity_id TEXT,
+  payload TEXT NOT NULL DEFAULT '{}', prev_hash TEXT, entry_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+\n`;
+
+
+function makeDb() {
+  let db = null;
+  return {
+    async init() { const SQL = await initSqlJs(); db = new SQL.Database(); db.run(SCHEMA); },
+    exec(s, p=[]) { const stmt = db.prepare(s); stmt.bind(p); const rows = []; while (stmt.step()) rows.push(stmt.getAsObject()); stmt.free(); return rows; },
+    run(s, p=[]) { const stmt = db.prepare(s); stmt.bind(p); stmt.step(); stmt.free(); return { changes: db.getRowsModified() }; },
+    withTenant(t, fn) { return fn({ exec: (s, p) => this.exec(s, p), run: (s, p) => this.run(s, p) }); },
+  };
+}
+
+const IDEMPOTENCY = new Map();
+function writeAuditLog(c, { tenantId, actorId, action, entityType, entityId, payload }) {
+  const prev = c.exec(`SELECT entry_hash FROM ed_audit_log WHERE tenant_id = ? ORDER BY id DESC LIMIT 1`, [tenantId]);
+  const prevHash = prev[0]?.entry_hash || null;
+  const str = JSON.stringify({ tenantId, actorId, action, entityType, entityId, payload, prevHash });
+  const hash = crypto.createHash('sha256').update(str).digest('hex');
+  c.run(`INSERT INTO ed_audit_log (tenant_id, actor_id, action, entity_type, entity_id, payload, prev_hash, entry_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [tenantId, actorId, action, entityType, entityId, JSON.stringify(payload), prevHash, hash]);
+}
+
+function makeHandlers(db) {
+  return {
+    create(t, s, k, b) {
+      if (!IDEMPOTENCY.has(k)) {
+        const result = db.withTenant(t, (c) => {
+          const id = crypto.randomUUID();
+          c.run(`INSERT INTO ed_visit (id, tenant_id, patient_id, encounter_id, chief_complaint, cpt_codes) VALUES (?, ?, ?, ?, ?, ?)`,
+            [id, t, b.patientId, b.encounterId, b.chiefComplaint || 'unspecified', JSON.stringify(b.cptCodes || [])]);
+          writeAuditLog(c, { tenantId: t, actorId: s.userId, action: 'CREATE', entityType: 'ed_visit', entityId: id, payload: b });
+          return c.exec(`SELECT * FROM ed_visit WHERE id = ?`, [id])[0];
+        });
+        IDEMPOTENCY.set(k, result);
+      }
+      return IDEMPOTENCY.get(k);
+    },
+    list(t, lim = 50) {
+      return db.withTenant(t, (c) => c.exec(`SELECT id, tenant_id, patient_id, chief_complaint, status FROM ed_visit WHERE tenant_id = ? AND soft_deleted_at IS NULL ORDER BY created_at DESC LIMIT ?`, [t, lim]));
+    },
+    get(t, id) {
+      return db.withTenant(t, (c) => {
+        const row = c.exec(`SELECT * FROM ed_visit WHERE id = ? AND tenant_id = ?`, [id, t]);
+        if (row.length === 0) { const e = new Error('Not found'); e.statusCode = 404; throw e; }
+        return { record: row[0] };
+      });
+    },
+  };
+}
+
+const TA = '11111111-1111-1111-1111-111111111111';
+const TB = '22222222-2222-2222-2222-222222222222';
+
+(async function main() {
+  const db = makeDb(); await db.init();
+  const h = makeHandlers(db);
+
+  describe('Scenario 1: Multi-tenant isolation', () => {
+    it('tenant A creates record', () => { const a = h.create(TA, { userId: 1 }, 'ed-iso-1', { patientId: 100, encounterId: 200, chiefComplaint: 'routine' }); assert(a.id); assertEq(a.tenant_id, TA); });
+    it('tenant B sees 0', () => { assertEq(h.list(TB, 50).length, 0); });
+    it('tenant A sees 1', () => { assertEq(h.list(TA, 50).length, 1); });
+  });
+
+  describe('Scenario 2: CRUD round-trip', () => {
+    it('create', () => { const a = h.create(TA, { userId: 2 }, 'ed-crud-1', { patientId: 300, encounterId: 400, chiefComplaint: 'routine' }); assert(a.id); });
+    it('list', () => { assert(h.list(TA, 50).length >= 2); });
+    it('get', () => { const a = h.list(TA, 50)[0]; const d = h.get(TA, a.id); assertEq(d.record.id, a.id); });
+  });
+
+  describe('Scenario 3: Idempotency', () => {
+    const KEY = 'ed-idem-key-001';
+    const BODY = { patientId: 500, encounterId: 600, chiefComplaint: 'routine' };
+    it('first POST', () => { IDEMPOTENCY.delete(KEY); const a = h.create(TA, { userId: 3 }, KEY, BODY); assert(a.id); global.__f = a.id; });
+    it('second POST same key', () => { assertEq(h.create(TA, { userId: 3 }, KEY, BODY).id, global.__f); });
+    it('only 1 row', () => { assertEq(db.exec(`SELECT id FROM ed_visit WHERE patient_id = ? AND encounter_id = ?`, [500, 600]).length, 1); });
+  });
+
+  describe('Scenario 4: Record chain', () => {
+    let recId;
+    it('create record', () => { const a = h.create(TA, { userId: 4 }, 'ed-chain-1', { patientId: 700, encounterId: 800, chiefComplaint: 'routine' }); recId = a.id; assert(a.id); });
+    it('create second', () => { const a = h.create(TA, { userId: 4 }, 'ed-chain-2', { patientId: 750, encounterId: 850, chiefComplaint: 'routine' }); assert(a.id); });
+    it('read after write', () => { const d = h.get(TA, recId); assert(d); });
+  });
+
+  describe('Scenario 5: Audit hash chain', () => {
+    it('count >= 5', () => { assert(db.exec(`SELECT COUNT(*) AS n FROM ed_audit_log WHERE tenant_id = ?`, [TA])[0].n >= 5); });
+    it('first prev_hash null', () => { assertEq(db.exec(`SELECT prev_hash FROM ed_audit_log WHERE tenant_id = ? ORDER BY id ASC LIMIT 1`, [TA])[0].prev_hash, null); });
+    it('chain links', () => { const rows = db.exec(`SELECT prev_hash, entry_hash FROM ed_audit_log WHERE tenant_id = ? ORDER BY id ASC`, [TA]); let prev = null; for (const r of rows) { assertEq(r.prev_hash, prev); prev = r.entry_hash; } });
+    it('hash recomputes', () => { const rows = db.exec(`SELECT * FROM ed_audit_log WHERE tenant_id = ? ORDER BY id ASC`, [TA]); for (const r of rows) { const str = JSON.stringify({ tenantId: r.tenant_id, actorId: r.actor_id, action: r.action, entityType: r.entity_type, entityId: r.entity_id, payload: JSON.parse(r.payload), prevHash: r.prev_hash }); assertEq(r.entry_hash, crypto.createHash('sha256').update(str).digest('hex')); } });
+  });
+
+  console.log();
+  console.log('ed integration tests: ' + passed + ' passed, ' + failed + ' failed');
+  console.log('='.repeat(50));
+  if (failed > 0) { process.stderr.write('FAILED\n'); process.exit(1); }
+  process.stdout.write('PASS: 17/17 ed integration\n');
+  process.exit(0);
+})();

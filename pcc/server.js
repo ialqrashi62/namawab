@@ -1,0 +1,780 @@
+/**
+ * pcc/server.js — PCC sandbox Express server
+ *
+ * - Mounts the cath_lab router
+ * - Sets helmet + cors + body parsers
+ * - Health check
+ * - Sandbox-only
+ */
+'use strict';
+
+const express = require('express');
+const helmet = require('helmet');
+const cors = require('cors');
+const morgan = require('morgan');
+const cathLabRouter = require('./routes/cath_lab');
+const ccuRouter = require('./ccu/ccu_routes');
+const nnicuRouter = require('./nnicu/nnicu_routes');
+const bicuRouter = require('./bicu/bicu_routes');
+const copilotRouter = require('./copilot/copilot_routes');
+const picuRouter = require('./picu/picu_routes');
+const sicuRouter = require('./sicu/sicu_routes');
+const ticuRouter = require('./ticu/ticu_routes');
+const micuRouter = require('./micu/micu_routes');
+const honcRouter = require('./honc/honc_routes');
+const cticuRouter = require('./cticu/cticu_routes');
+const nicuRouter = require('./nicu/nicu_routes');
+const orRouter = require('./or/or_routes');
+const edRouter = require('./ed/ed_routes');
+const obgynRouter = require('./obgyn/obgyn_routes');
+const dermaRouter = require('./derma/derma_routes');
+const giRouter = require('./gi/gi_routes');
+const endoRouter = require('./endo/endo_routes');
+const rheumRouter = require('./rheum/rheum_routes');
+const nephroRouter = require('./nephro/nephro_routes');
+const hemeRouter = require('./heme/heme_routes');
+const pharmacyRouter = require('./pharmacy/pharmacy_routes');
+const labRouter = require('./lab/lab_routes');
+const cardiologyRouter = require('./cardiology/cardiology_routes');
+const pulmonologyRouter = require('./pulmonology/pulmonology_routes');
+const infectiousDiseaseRouter = require('./infectious_disease/infectious_disease_routes');
+const radiologyRouter = require('./radiology/radiology_routes');
+const oncologyRouter = require('./oncology/oncology_routes');
+const billingRcmRouter = require('./billing_rcm/billing_rcm_routes');
+const pediRouter = require('./pedi/pedi_routes');
+const telehealthRouter = require('./telehealth/telehealth_routes');
+const transplantRouter = require('./transplant/transplant_routes');
+const strokeNeuroRouter = require('./stroke_neuro/stroke_neuro_routes');
+const anesthesiaRouter = require('./anesthesia/anesthesia_routes');
+const woundCareRouter = require('./wound_care/wound_care_routes');
+const geneticsRouter = require('./genetics/genetics_routes');
+const palliativeRouter = require('./palliative/palliative_routes');
+const pediIcuRouter = require('./pedi_icu/pedi_icu_routes');
+const entRouter = require('./ent/ent_routes');
+const ophthalmologyRouter = require('./ophthalmology/ophthalmology_routes');
+const urologyRouter = require('./urology/urology_routes');
+const pmrRouter = require('./pmr/pmr_routes');
+const allergyRouter = require('./allergy/allergy_routes');
+const painRouter = require('./pain/pain_routes');
+const sleepRouter = require('./sleep/sleep_routes');
+const bariatricRouter = require('./bariatric/bariatric_routes');
+const geriatricsRouter = require('./geriatrics/geriatrics_routes');
+const hematologyRouter = require('./hematology/hematology_routes');
+const oncologyExtRouter = require('./oncology_ext/oncology_ext_routes');
+const hepatologyRouter = require('./hepatology/hepatology_routes');
+const rheumExtRouter = require('./rheum_ext/rheum_ext_routes');
+const pediSubRouter = require('./pedi_sub/pedi_sub_routes');
+const transplantExtRouter = require('./transplant_ext/transplant_ext_routes');
+const cardioExtRouter = require('./cardio_ext/cardio_ext_routes');
+const endoExtRouter = require('./endo_ext/endo_ext_routes');
+const maternalFetalRouter = require('./maternal_fetal/maternal_fetal_routes');
+const neuroExtRouter = require('./neuro_ext/neuro_ext_routes');
+const giExtRouter = require('./gi_ext/gi_ext_routes');
+const dermExtRouter = require('./derm_ext/derm_ext_routes');
+const cardioSurgRouter = require('./cardio_surg/cardio_surg_routes');
+const transplantNephRouter = require('./transplant_neph/transplant_neph_routes');
+const bmtRouter = require('./bmt/bmt_routes');
+const rehabExtRouter = require('./rehab_ext/rehab_ext_routes');
+const sportsMedRouter = require('./sports_med/sports_med_routes');
+const forensicMedRouter = require('./forensic_med/forensic_med_routes');
+const publicHealthRouter = require('./public_health/public_health_routes');
+const dentalRouter = require('./dental/dental_routes');
+const occupationalRouter = require('./occupational/occupational_routes');
+const painExtRouter = require('./pain_ext/pain_ext_routes');
+const disasterRouter = require('./disaster/disaster_routes');
+const tropicalRouter = require('./tropical/tropical_routes');
+const aviationRouter = require('./aviation/aviation_routes');
+const militaryRouter = require('./military/military_routes');
+const veterinaryRouter = require('./veterinary/veterinary_routes');
+const audiologyRouter = require('./audiology/audiology_routes');
+const neuropsychRouter = require('./neuropsych/neuropsych_routes');
+const speechLangRouter = require('./speech_lang/speech_lang_routes');
+const nuclearMedRouter = require('./nuclear_med/nuclear_med_routes');
+const palliativeExtRouter = require('./palliative_ext/palliative_ext_routes');
+const hospitalAdminRouter = require('./hospital_admin/hospital_admin_routes');
+const bioethicsRouter = require('./bioethics/bioethics_routes');
+const chaplaincyRouter = require('./chaplaincy/chaplaincy_routes');
+const aerodigestiveRouter = require('./aerodigestive/aerodigestive_routes');
+const hospiceRouter = require('./hospice/hospice_routes');
+const pharmacyClinicalRouter = require('./pharmacy_clinical/pharmacy_clinical_routes');
+const clinicalPharmRouter = require('./clinical_pharm/clinical_pharm_routes');
+const transplantHeartRouter = require('./transplant_heart/transplant_heart_routes');
+const transplantLiverRouter = require('./transplant_liver/transplant_liver_routes');
+const transfusionMedRouter = require('./transfusion_med/transfusion_med_routes');
+const burnCenterRouter = require('./burn_center/burn_center_routes');
+const ecmoServiceRouter = require('./ecmo_service/ecmo_service_routes');
+const traumaCenterRouter = require('./trauma_center/trauma_center_routes');
+const criticalCareExtRouter = require('./critical_care_ext/critical_care_ext_routes');
+const strokeExtRouter = require('./stroke_ext/stroke_ext_routes');
+const cardiologyExt2Router = require('./cardiology_ext2/cardiology_ext2_routes');
+const radiologyExtRouter = require('./radiology_ext/radiology_ext_routes');
+const pharmacyCompoundingRouter = require('./pharmacy_compounding/pharmacy_compounding_routes');
+const labSpecialtyRouter = require('./lab_specialty/lab_specialty_routes');
+const imagingMolecularRouter = require('./imaging_molecular/imaging_molecular_routes');
+const aerospaceRouter = require('./aerospace/aerospace_routes');
+const bmt2Router = require('./bmt2/bmt2_routes');
+const divingRouter = require('./diving/diving_routes');
+const mountainRouter = require('./mountain/mountain_routes');
+const tropicalExtRouter = require('./tropical_ext/tropical_ext_routes');
+const handTherapyRouter = require('./hand_therapy/hand_therapy_routes');
+const cardiacRehabRouter = require('./cardiac_rehab/cardiac_rehab_routes');
+const pelvicRehabRouter = require('./pelvic_rehab/pelvic_rehab_routes');
+const vestibularRehabRouter = require('./vestibular_rehab/vestibular_rehab_routes');
+const lymphedemaRouter = require('./lymphedema/lymphedema_routes');
+const drivingRehabRouter = require('./driving_rehab/driving_rehab_routes');
+const musicTherapyRouter = require('./music_therapy/music_therapy_routes');
+const artTherapyRouter = require('./art_therapy/art_therapy_routes');
+const recreationalTherapyRouter = require('./recreational_therapy/recreational_therapy_routes');
+const hippotherapyRouter = require('./hippotherapy/hippotherapy_routes');
+const aquaticTherapyRouter = require('./aquatic_therapy/aquatic_therapy_routes');
+const childLifeRouter = require('./child_life/child_life_routes');
+const lowVisionRouter = require('./low_vision/low_vision_routes');
+const voiceTherapyRouter = require('./voice_therapy/voice_therapy_routes');
+const prostheticsOrthoticsRouter = require('./prosthetics_orthotics/prosthetics_orthotics_routes');
+const woundOstomyRouter = require('./wound_ostomy/wound_ostomy_routes');
+const chronicPainRehabRouter = require('./chronic_pain_rehab/chronic_pain_rehab_routes');
+const telerehabRouter = require('./telerehab/telerehab_routes');
+const fallsPreventionRouter = require('./falls_prevention/falls_prevention_routes');
+const frailtyRouter = require('./frailty/frailty_routes');
+const geriatricAssessmentRouter = require('./geriatric_assessment/geriatric_assessment_routes');
+const homeHealthRouter = require('./home_health/home_health_routes');
+const communityHealthRouter = require('./community_health/community_health_routes');
+const medPsychRouter = require('./med_psych/med_psych_routes');
+const comprehensiveRehabRouter = require('./comprehensive_rehab/comprehensive_rehab_routes');
+const sleepMedicineExtRouter = require('./sleep_medicine_ext/sleep_medicine_ext_routes');
+const transplantExtendedRouter = require('./transplant_extended/transplant_extended_routes');
+const transplantLivingRouter = require('./transplant_living/transplant_living_routes');
+const neonatalExtRouter = require('./neonatal_ext/neonatal_ext_routes');
+const perinatalExtRouter = require('./perinatal_ext/perinatal_ext_routes');
+const fertilityRouter = require('./fertility/fertility_routes');
+const transplantPediatricRouter = require('./transplant_pediatric/transplant_pediatric_routes');
+const womensHealthExtRouter = require('./womens_health_ext/womens_health_ext_routes');
+const transplantImmunologyRouter = require('./transplant_immunology/transplant_immunology_routes');
+const mensHealthExtRouter = require('./mens_health_ext/mens_health_ext_routes');
+const palliativeExt2Router = require('./palliative_ext2/palliative_ext2_routes');
+const transplantPharmacyRouter = require('./transplant_pharmacy/transplant_pharmacy_routes');
+const neuroExt2Router = require('./neuro_ext2/neuro_ext2_routes');
+const cvExt2Router = require('./cv_ext2/cv_ext2_routes');
+const neonatalExt2Router = require('./neonatal_ext2/neonatal_ext2_routes');
+const radExtRouter = require('./rad_ext/rad_ext_routes');
+const labExtRouter = require('./lab_ext/lab_ext_routes');
+const perinatalExt2Router = require('./perinatal_ext2/perinatal_ext2_routes');
+const pharmacyExtRouter = require('./pharmacy_ext/pharmacy_ext_routes');
+const dentalExtRouter = require('./dental_ext/dental_ext_routes');
+const sportsMedExtRouter = require('./sports_med_ext/sports_med_ext_routes');
+const painExt2Router = require('./pain_ext2/pain_ext2_routes');
+const psychExtRouter = require('./psych_ext/psych_ext_routes');
+const occupationalExtRouter = require('./occupational_ext/occupational_ext_routes');
+const rehabExt2Router = require('./rehab_ext2/rehab_ext2_routes');
+const entExtRouter = require('./ent_ext/ent_ext_routes');
+const ophthExtRouter = require('./ophth_ext/ophth_ext_routes');
+const hemExtRouter = require('./hem_ext/hem_ext_routes');
+const oncoExt2Router = require('./onco_ext2/onco_ext2_routes');
+const gastroExtRouter = require('./gastro_ext/gastro_ext_routes');
+const rheumExt2Router = require('./rheum_ext2/rheum_ext2_routes');
+const idExtRouter = require('./id_ext/id_ext_routes');
+const allergyExtRouter = require('./allergy_ext/allergy_ext_routes');
+const endocrineExtRouter = require('./endocrine_ext/endocrine_ext_routes');
+const dermExt2Router = require('./derm_ext2/derm_ext2_routes');
+const uroExtRouter = require('./uro_ext/uro_ext_routes');
+const vascExtRouter = require('./vasc_ext/vasc_ext_routes');
+const orthoExtRouter = require('./ortho_ext/ortho_ext_routes');
+const nephExt2Router = require('./neph_ext2/neph_ext2_routes');
+const plastSurgExtRouter = require('./plast_surg_ext/plast_surg_ext_routes');
+const surgExtRouter = require('./surg_ext/surg_ext_routes');
+const anesthesia2Router = require('./anesthesia2/anesthesia2_routes');
+const radiology2Router = require('./radiology2/radiology2_routes');
+const pathologyExtRouter = require('./pathology_ext/pathology_ext_routes');
+const geriExtRouter = require('./geri_ext/geri_ext_routes');
+const genMedExtRouter = require('./gen_med_ext/gen_med_ext_routes');
+const traumaExtRouter = require('./trauma_ext/trauma_ext_routes');
+const breastExtRouter = require('./breast_ext/breast_ext_routes');
+const icuExt2Router = require('./icu_ext2/icu_ext2_routes');
+const obgynExt2Router = require('./obgyn_ext2/obgyn_ext2_routes');
+const neonatalExt3Router = require('./neonatal_ext3/neonatal_ext3_routes');
+const perinatalExt3Router = require('./perinatal_ext3/perinatal_ext3_routes');
+const hemExt2Router = require('./hem_ext2/hem_ext2_routes');
+const giExt2Router = require('./gi_ext2/gi_ext2_routes');
+const entExt2Router = require('./ent_ext2/ent_ext2_routes');
+const dermaExt2Router = require('./derma_ext2/derma_ext2_routes');
+const psychExt2Router = require('./psych_ext2/psych_ext2_routes');
+const oncoExt3Router = require('./onco_ext3/onco_ext3_routes');
+const reproExtRouter = require('./repro_ext/repro_ext_routes');
+const endoExt2Router = require('./endo_ext2/endo_ext2_routes');
+const orthoExt2Router = require('./ortho_ext2/ortho_ext2_routes');
+const cardioExt3Router = require('./cardio_ext3/cardio_ext3_routes');
+const allergyExt2Router = require('./allergy_ext2/allergy_ext2_routes');
+const cvExt3Router = require('./cv_ext3/cv_ext3_routes');
+const sleepExt2Router = require('./sleep_ext2/sleep_ext2_routes');
+const idExt2Router = require('./id_ext2/id_ext2_routes');
+const rheumExt3Router = require('./rheum_ext3/rheum_ext3_routes');
+const nephExt3Router = require('./neph_ext3/neph_ext3_routes');
+const pccUtilityRouter = require('./pcc_utility/pcc_utility_routes');
+const pccAuditRouter = require('./pcc_audit/pcc_audit_routes');
+const pccAdminRouter = require('./pcc_admin/pcc_admin_routes');
+const pccWorkflowRouter = require('./pcc_workflow/pcc_workflow_routes');
+const pccAnalyticsRouter = require('./pcc_analytics/pcc_analytics_routes');
+const pccComplianceRouter = require('./pcc_compliance/pcc_compliance_routes');
+const pccDecisionRouter = require('./pcc_decision/pcc_decision_routes');
+const pccClinicalDxRouter = require('./pcc_clinical_dx/pcc_clinical_dx_routes');
+const pccDrugRouter = require('./pcc_drug/pcc_drug_routes');
+const pccImagingRouter = require('./pcc_imaging/pcc_imaging_routes');
+const pccEmergencyRouter = require('./pcc_emergency/pcc_emergency_routes');
+const pccInfectionRouter = require('./pcc_infection/pcc_infection_routes');
+const pccQualityRouter = require('./pcc_quality/pcc_quality_routes');
+const pccResearchRouter = require('./pcc_research/pcc_research_routes');
+const pccEducationRouter = require('./pcc_education/pcc_education_routes');
+const pccBillingRouter = require('./pcc_billing/pcc_billing_routes');
+const pccSchedulingRouter = require('./pcc_scheduling/pcc_scheduling_routes');
+const pccTelemedRouter = require('./pcc_telemed/pcc_telemed_routes');
+const pccPharmacyRouter = require('./pcc_pharmacy/pcc_pharmacy_routes');
+const pccDialysisRouter = require('./pcc_dialysis/pcc_dialysis_routes');
+const pccOncoExtRouter = require('./pcc_oncology_ext/pcc_oncology_ext_routes');
+const pccSurgExtRouter = require('./pcc_surgical_ext/pcc_surgical_ext_routes');
+const pccPeriOpRouter = require('./pcc_perioperative/pcc_perioperative_routes');
+const pccPostOpRouter = require('./pcc_postop/pcc_postop_routes');
+const pccLabExt2Router = require('./pcc_lab_ext2/pcc_lab_ext2_routes');
+const pccPathExtRouter = require('./pcc_path_ext/pcc_path_ext_routes');
+const pccRadExt2Router = require('./pcc_rad_ext2/pcc_rad_ext2_routes');
+const pccIcuExt3Router = require('./pcc_icu_ext3/pcc_icu_ext3_routes');
+const pccEdExt2Router = require('./pcc_ed_ext2/pcc_ed_ext2_routes');
+const pccObExt2Router = require('./pcc_ob_ext2/pcc_ob_ext2_routes');
+const pccNeuroExt2Router = require('./pcc_neuro_ext2/pcc_neuro_ext2_routes');
+const pccPsychExt3Router = require('./pcc_psych_ext3/pcc_psych_ext3_routes');
+const pccNeonExt2Router = require('./pcc_neonatal_ext2/pcc_neonatal_ext2_routes');
+const pccCardioExt4Router = require('./pcc_cardio_ext4/pcc_cardio_ext4_routes');
+const pccOrthoExt3Router = require('./pcc_ortho_ext3/pcc_ortho_ext3_routes');
+const pccDermaExt3Router = require('./pcc_derma_ext3/pcc_derma_ext3_routes');
+const pccGiExt3Router = require('./pcc_gi_ext3/pcc_gi_ext3_routes');
+const pccEndoExt3Router = require('./pcc_endo_ext3/pcc_endo_ext3_routes');
+const pccRheumExt4Router = require('./pcc_rheum_ext4/pcc_rheum_ext4_routes');
+const pccHemExt3Router = require('./pcc_hem_ext3/pcc_hem_ext3_routes');
+const pccIdExt3Router = require('./pcc_id_ext3/pcc_id_ext3_routes');
+const pccPulmExt3Router = require('./pcc_pulm_ext3/pcc_pulm_ext3_routes');
+const pccEntExt3Router = require('./pcc_ent_ext3/pcc_ent_ext3_routes');
+const pccUroExt2Router = require('./pcc_uro_ext2/pcc_uro_ext2_routes');
+const pccOphthExt2Router = require('./pcc_ophth_ext2/pcc_ophth_ext2_routes');
+const pccRehabExt3Router = require('./pcc_rehab_ext3/pcc_rehab_ext3_routes');
+const pccPallExt3Router = require('./pcc_pall_ext3/pcc_pall_ext3_routes');
+const pccHomeHealthRouter = require('./pcc_home_health/pcc_home_health_routes');
+const pccDietNutrRouter = require('./pcc_diet_nutr/pcc_diet_nutr_routes');
+const pccSocialWorkRouter = require('./pcc_social_work/pcc_social_work_routes');
+const pccCaseMgmtRouter = require('./pcc_case_mgmt/pcc_case_mgmt_routes');
+const pccSurgClRouter = require('./pcc_surgical_checklist/pcc_surgical_checklist_routes');
+const pccHandoffRouter = require('./pcc_handoff/pcc_handoff_routes');
+const pccSafetyRouter = require('./pcc_safety/pcc_safety_routes');
+const pccSepsisRouter = require('./pcc_sepsis/pcc_sepsis_routes');
+const pccCodeBlueRouter = require('./pcc_code_blue/pcc_code_blue_routes');
+const pccStrokePathRouter = require('./pcc_stroke_path/pcc_stroke_path_routes');
+const pccAmbulatoryRouter = require('./pcc_ambulatory/pcc_ambulatory_routes');
+const pccSpecClinicRouter = require('./pcc_specialty_clinic/pcc_specialty_clinic_routes');
+const pccUrgentCareRouter = require('./pcc_urgent_care/pcc_urgent_care_routes');
+const pccImmRouter = require('./pcc_immunizations/pcc_immunizations_routes');
+const pccCancerScrRouter = require('./pcc_cancer_screen/pcc_cancer_screen_routes');
+const pccWomensHealthRouter = require('./pcc_womens_health/pcc_womens_health_routes');
+const pccPalliativeRouter = require('./pcc_palliative/pcc_palliative_routes');
+const pccPainMgmtRouter = require('./pcc_pain_mgmt/pcc_pain_mgmt_routes');
+const pccSportsMedRouter = require('./pcc_sports_med/pcc_sports_med_routes');
+const pccOccupationalHealthRouter = require('./pcc_occupational_health/pcc_occupational_health_routes');
+const pccSleepMedRouter = require('./pcc_sleep_med/pcc_sleep_med_routes');
+const pccAllergyImmunologyRouter = require('./pcc_allergy_immunology/pcc_allergy_immunology_routes');
+const pccWeightMgmtRouter = require('./pcc_weight_mgmt/pcc_weight_mgmt_routes');
+const pccSmokingCessationRouter = require('./pcc_smoking_cessation/pcc_smoking_cessation_routes');
+const pccAddictionMedRouter = require('./pcc_addiction_med/pcc_addiction_med_routes');
+const pccTravelMedRouter = require('./pcc_travel_med/pcc_travel_med_routes');
+const pccGeneticCounselingRouter = require('./pcc_genetic_counseling/pcc_genetic_counseling_routes');
+const pccWoundCareExtRouter = require('./pcc_wound_care_ext/pcc_wound_care_ext_routes');
+const pccRehabMedicineRouter = require('./pcc_rehab_medicine/pcc_rehab_medicine_routes');
+const pccPainRehabRouter = require('./pcc_pain_rehab/pcc_pain_rehab_routes');
+const pccGeriatricSurgeryRouter = require('./pcc_geriatric_surgery/pcc_geriatric_surgery_routes');
+const pccIntegrativeMedicineRouter = require('./pcc_integrative_medicine/pcc_integrative_medicine_routes');
+const pccFunctionalMedicineRouter = require('./pcc_functional_medicine/pcc_functional_medicine_routes');
+const pccLongevityMedicineRouter = require('./pcc_longevity_medicine/pcc_longevity_medicine_routes');
+const { close: closeDb } = require('./db');
+
+const PORT = parseInt(process.env.PCC_PORT || '3100', 10);
+const app = express();
+
+// --- Security middleware ---
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
+      imgSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
+app.use(cors({
+  origin: process.env.PCC_CORS_ORIGIN || 'http://localhost:3100',
+  credentials: true,
+}));
+app.use(express.json({ limit: '256kb' }));
+app.use(morgan('tiny'));
+555
+// --- Health ---
+app.get('/health', (_req, res) => res.json({
+  status: 'ok', service: 'pcc-sandbox', version: ('3.65.0'),
+  modules: ['cath_lab', 'ccu', 'nnicu', 'bicu', 'copilot', 'picu', 'sicu', 'ticu', 'micu', 'honc', 'cticu', 'nicu', 'or', 'ed', 'obgyn', 'derma', 'gi', 'endo', 'rheum', 'nephro', 'heme', 'pharmacy', 'lab', 'cardiology', 'pulmonology', 'infectious_disease', 'radiology', 'oncology', 'billing_rcm', 'pedi', 'telehealth', 'transplant', 'stroke_neuro', 'anesthesia', 'wound_care', 'genetics', 'palliative', 'pedi_icu', 'ent', 'ophthalmology', 'urology', 'pmr', 'allergy', 'pain', 'sleep', 'bariatric', 'geriatrics', 'hematology', 'oncology_ext', 'hepatology', 'rheum_ext', 'pedi_sub', 'transplant_ext', 'cardio_ext', 'endo_ext', 'maternal_fetal', 'neuro_ext', 'gi_ext', 'derm_ext', 'cardio_surg', 'transplant_neph', 'bmt', 'rehab_ext', 'sports_med', 'forensic_med', 'public_health', 'dental', 'occupational', 'pain_ext', 'disaster', 'tropical', 'aviation', 'military', 'veterinary', 'audiology', 'neuropsych', 'speech_lang', 'nuclear_med', 'palliative_ext', 'hospital_admin', 'bioethics', 'chaplaincy', 'aerodigestive', 'hospice', 'pharmacy_clinical', 'clinical_pharm', 'transplant_heart', 'transplant_liver', 'transfusion_med', 'burn_center', 'ecmo_service', 'trauma_center', 'critical_care_ext', 'stroke_ext', 'cardiology_ext2', 'radiology_ext', 'pharmacy_compounding', 'lab_specialty', 'imaging_molecular', 'aerospace', 'bmt2', 'diving', 'mountain', 'tropical_ext', 'hand_therapy', 'cardiac_rehab', 'pelvic_rehab', 'vestibular_rehab', 'lymphedema', 'driving_rehab', 'music_therapy', 'art_therapy', 'recreational_therapy', 'hippotherapy', 'aquatic_therapy', 'child_life', 'low_vision', 'voice_therapy', 'prosthetics_orthotics', 'wound_ostomy', 'chronic_pain_rehab', 'telerehab', 'falls_prevention', 'frailty', 'geriatric_assessment', 'home_health', 'community_health', 'med_psych', 'comprehensive_rehab', 'sleep_medicine_ext', 'transplant_extended', 'transplant_living', 'neonatal_ext', 'perinatal_ext', 'fertility', 'transplant_pediatric', 'womens_health_ext', 'transplant_immunology', 'mens_health_ext', 'palliative_ext2', 'transplant_pharmacy', 'neuro_ext2', 'cv_ext2', 'neonatal_ext2', 'rad_ext', 'lab_ext', 'perinatal_ext2', 'pharmacy_ext', 'dental_ext', 'sports_med_ext', 'pain_ext2', 'psych_ext', 'occupational_ext', 'rehab_ext2', 'ent_ext', 'ophth_ext', 'hem_ext', 'onco_ext2', 'gastro_ext', 'rheum_ext2', 'id_ext', 'allergy_ext', 'endocrine_ext', 'derm_ext2', 'uro_ext', 'vasc_ext', 'ortho_ext', 'neph_ext2', 'plast_surg_ext', 'surg_ext', 'anesthesia2', 'radiology2', 'pathology_ext', 'geri_ext', 'gen_med_ext', 'trauma_ext', 'breast_ext', 'icu_ext2', 'obgyn_ext2', 'neonatal_ext3', 'perinatal_ext3', 'hem_ext2', 'gi_ext2', 'ent_ext2', 'derma_ext2', 'psych_ext2', 'onco_ext3', 'repro_ext', 'endo_ext2', 'ortho_ext2', 'cardio_ext3', 'allergy_ext2', 'cv_ext3', 'sleep_ext2', 'id_ext2', 'rheum_ext3', 'neph_ext3', 'pcc_utility', 'pcc_audit', 'pcc_admin'], ts: new Date().toISOString(),
+}));
+
+// --- API routes ---
+app.use('/api/v1/cath-lab', cathLabRouter);
+app.use('/api/v1/ccu', ccuRouter);
+app.use('/api/v1/nnicu', nnicuRouter);
+app.use('/api/v1/bicu', bicuRouter);
+app.use('/api/v1/copilot', copilotRouter);
+app.use('/api/v1/picu', picuRouter);
+app.use('/api/v1/sicu', sicuRouter);
+app.use('/api/v1/ticu', ticuRouter);
+app.use('/api/v1/micu', micuRouter);
+app.use('/api/v1/honc', honcRouter);
+app.use('/api/v1/cticu', cticuRouter);
+app.use('/api/v1/nicu', nicuRouter);
+app.use('/api/v1/or', orRouter);
+app.use('/api/v1/ed', edRouter);
+app.use('/api/v1/obgyn', obgynRouter);
+app.use('/api/v1/derma', dermaRouter);
+app.use('/api/v1/gi', giRouter);
+app.use('/api/v1/endo', endoRouter);
+app.use('/api/v1/rheum', rheumRouter);
+app.use('/api/v1/nephro', nephroRouter);
+app.use('/api/v1/heme', hemeRouter);
+app.use('/api/v1/pharmacy', pharmacyRouter);
+app.use('/api/v1/lab', labRouter);
+app.use('/api/v1/cardiology', cardiologyRouter);
+app.use('/api/v1/pulmonology', pulmonologyRouter);
+app.use('/api/v1/infectious-disease', infectiousDiseaseRouter);
+app.use('/api/v1/radiology', radiologyRouter);
+app.use('/api/v1/oncology', oncologyRouter);
+app.use('/api/v1/billing-rcm', billingRcmRouter);
+app.use('/api/v1/pedi', pediRouter);
+app.use('/api/v1/telehealth', telehealthRouter);
+app.use('/api/v1/transplant', transplantRouter);
+app.use('/api/v1/stroke-neuro', strokeNeuroRouter);
+app.use('/api/v1/anesthesia', anesthesiaRouter);
+app.use('/api/v1/wound-care', woundCareRouter);
+app.use('/api/v1/genetics', geneticsRouter);
+app.use('/api/v1/palliative', palliativeRouter);
+app.use('/api/v1/pedi-icu', pediIcuRouter);
+app.use('/api/v1/ent', entRouter);
+app.use('/api/v1/ophthalmology', ophthalmologyRouter);
+app.use('/api/v1/urology', urologyRouter);
+app.use('/api/v1/pmr', pmrRouter);
+app.use('/api/v1/allergy', allergyRouter);
+app.use('/api/v1/pain', painRouter);
+app.use('/api/v1/sleep', sleepRouter);
+app.use('/api/v1/bariatric', bariatricRouter);
+app.use('/api/v1/geriatrics', geriatricsRouter);
+app.use('/api/v1/hematology', hematologyRouter);
+app.use('/api/v1/oncology-ext', oncologyExtRouter);
+app.use('/api/v1/hepatology', hepatologyRouter);
+app.use('/api/v1/rheum-ext', rheumExtRouter);
+app.use('/api/v1/pedi-sub', pediSubRouter);
+app.use('/api/v1/transplant-ext', transplantExtRouter);
+app.use('/api/v1/cardio-ext', cardioExtRouter);
+app.use('/api/v1/endo-ext', endoExtRouter);
+app.use('/api/v1/maternal-fetal', maternalFetalRouter);
+app.use('/api/v1/neuro-ext', neuroExtRouter);
+app.use('/api/v1/gi-ext', giExtRouter);
+app.use('/api/v1/derm-ext', dermExtRouter);
+app.use('/api/v1/cardio-surg', cardioSurgRouter);
+app.use('/api/v1/transplant-neph', transplantNephRouter);
+app.use('/api/v1/bmt', bmtRouter);
+app.use('/api/v1/rehab-ext', rehabExtRouter);
+app.use('/api/v1/sports-med', sportsMedRouter);
+app.use('/api/v1/forensic-med', forensicMedRouter);
+app.use('/api/v1/aviation', aviationRouter);
+app.use('/api/v1/military', militaryRouter);
+app.use('/api/v1/veterinary', veterinaryRouter);
+app.use('/api/v1/audiology', audiologyRouter);
+app.use('/api/v1/neuropsych', neuropsychRouter);
+app.use('/api/v1/speech-lang', speechLangRouter);
+app.use('/api/v1/nuclear-med', nuclearMedRouter);
+app.use('/api/v1/palliative-ext', palliativeExtRouter);
+app.use('/api/v1/hospital-admin', hospitalAdminRouter);
+app.use('/api/v1/bioethics', bioethicsRouter);
+app.use('/api/v1/chaplaincy', chaplaincyRouter);
+app.use('/api/v1/aerodigestive', aerodigestiveRouter);
+app.use('/api/v1/hospice', hospiceRouter);
+app.use('/api/v1/pharmacy-clinical', pharmacyClinicalRouter);
+app.use('/api/v1/clinical-pharm', clinicalPharmRouter);
+app.use('/api/v1/transplant-heart', transplantHeartRouter);
+app.use('/api/v1/transplant-liver', transplantLiverRouter);
+app.use('/api/v1/transfusion-med', transfusionMedRouter);
+app.use('/api/v1/burn-center', burnCenterRouter);
+app.use('/api/v1/ecmo-service', ecmoServiceRouter);
+app.use('/api/v1/trauma-center', traumaCenterRouter);
+app.use('/api/v1/critical-care-ext', criticalCareExtRouter);
+app.use('/api/v1/stroke-ext', strokeExtRouter);
+app.use('/api/v1/cardiology-ext2', cardiologyExt2Router);
+app.use('/api/v1/radiology-ext', radiologyExtRouter);
+app.use('/api/v1/pharmacy-compounding', pharmacyCompoundingRouter);
+app.use('/api/v1/lab-specialty', labSpecialtyRouter);
+app.use('/api/v1/imaging-molecular', imagingMolecularRouter);
+app.use('/api/v1/aerospace', aerospaceRouter);
+app.use('/api/v1/bmt2', bmt2Router);
+app.use('/api/v1/diving', divingRouter);
+app.use('/api/v1/mountain', mountainRouter);
+app.use('/api/v1/tropical-ext', tropicalExtRouter);
+app.use('/api/v1/hand-therapy', handTherapyRouter);
+app.use('/api/v1/cardiac-rehab', cardiacRehabRouter);
+app.use('/api/v1/pelvic-rehab', pelvicRehabRouter);
+app.use('/api/v1/vestibular-rehab', vestibularRehabRouter);
+app.use('/api/v1/lymphedema', lymphedemaRouter);
+app.use('/api/v1/driving-rehab', drivingRehabRouter);
+app.use('/api/v1/music-therapy', musicTherapyRouter);
+app.use('/api/v1/art-therapy', artTherapyRouter);
+app.use('/api/v1/recreational-therapy', recreationalTherapyRouter);
+app.use('/api/v1/hippotherapy', hippotherapyRouter);
+app.use('/api/v1/aquatic-therapy', aquaticTherapyRouter);
+app.use('/api/v1/child-life', childLifeRouter);
+app.use('/api/v1/low-vision', lowVisionRouter);
+app.use('/api/v1/voice-therapy', voiceTherapyRouter);
+app.use('/api/v1/prosthetics-orthotics', prostheticsOrthoticsRouter);
+app.use('/api/v1/wound-ostomy', woundOstomyRouter);
+app.use('/api/v1/chronic-pain-rehab', chronicPainRehabRouter);
+app.use('/api/v1/telerehab', telerehabRouter);
+app.use('/api/v1/falls-prevention', fallsPreventionRouter);
+app.use('/api/v1/frailty', frailtyRouter);
+app.use('/api/v1/geriatric-assessment', geriatricAssessmentRouter);
+app.use('/api/v1/home-health', homeHealthRouter);
+app.use('/api/v1/community-health', communityHealthRouter);
+app.use('/api/v1/med-psych', medPsychRouter);
+app.use('/api/v1/comprehensive-rehab', comprehensiveRehabRouter);
+app.use('/api/v1/sleep-medicine-ext', sleepMedicineExtRouter);
+app.use('/api/v1/transplant-extended', transplantExtendedRouter);
+app.use('/api/v1/fertility', fertilityRouter);
+app.use('/api/v1/transplant-pediatric', transplantPediatricRouter);
+app.use('/api/v1/womens-health-ext', womensHealthExtRouter);
+app.use('/api/v1/transplant-immunology', transplantImmunologyRouter);
+app.use('/api/v1/mens-health-ext', mensHealthExtRouter);
+app.use('/api/v1/palliative-ext2', palliativeExt2Router);
+app.use('/api/v1/transplant-pharmacy', transplantPharmacyRouter);
+app.use('/api/v1/neuro-ext2', neuroExt2Router);
+app.use('/api/v1/cv-ext2', cvExt2Router);
+app.use('/api/v1/neonatal-ext2', neonatalExt2Router);
+app.use('/api/v1/rad-ext', radExtRouter);
+app.use('/api/v1/lab-ext', labExtRouter);
+app.use('/api/v1/perinatal-ext2', perinatalExt2Router);
+app.use('/api/v1/pharmacy-ext', pharmacyExtRouter);
+app.use('/api/v1/dental-ext', dentalExtRouter);
+app.use('/api/v1/sports-med-ext', sportsMedExtRouter);
+app.use('/api/v1/pain-ext2', painExt2Router);
+app.use('/api/v1/psych-ext', psychExtRouter);
+app.use('/api/v1/occupational-ext', occupationalExtRouter);
+app.use('/api/v1/rehab-ext2', rehabExt2Router);
+app.use('/api/v1/ent-ext', entExtRouter);
+app.use('/api/v1/ophth-ext', ophthExtRouter);
+app.use('/api/v1/hem-ext', hemExtRouter);
+app.use('/api/v1/onco-ext2', oncoExt2Router);
+app.use('/api/v1/gastro-ext', gastroExtRouter);
+app.use('/api/v1/rheum-ext2', rheumExt2Router);
+app.use('/api/v1/id-ext', idExtRouter);
+app.use('/api/v1/allergy-ext', allergyExtRouter);
+app.use('/api/v1/endocrine-ext', endocrineExtRouter);
+app.use('/api/v1/derm-ext2', dermExt2Router);
+app.use('/api/v1/uro-ext', uroExtRouter);
+app.use('/api/v1/vasc-ext', vascExtRouter);
+app.use('/api/v1/ortho-ext', orthoExtRouter);
+app.use('/api/v1/anesthesia2', anesthesia2Router);
+app.use('/api/v1/radiology2', radiology2Router);
+app.use('/api/v1/pathology-ext', pathologyExtRouter);
+app.use('/api/v1/geri-ext', geriExtRouter);
+app.use('/api/v1/gen-med-ext', genMedExtRouter);
+app.use('/api/v1/trauma-ext', traumaExtRouter);
+app.use('/api/v1/breast-ext', breastExtRouter);
+app.use('/api/v1/icu-ext2', icuExt2Router);
+app.use('/api/v1/obgyn-ext2', obgynExt2Router);
+app.use('/api/v1/neonatal-ext3', neonatalExt3Router);
+app.use('/api/v1/perinatal-ext3', perinatalExt3Router);
+app.use('/api/v1/hem-ext2', hemExt2Router);
+app.use('/api/v1/psych-ext2', psychExt2Router);
+app.use('/api/v1/onco-ext3', oncoExt3Router);
+app.use('/api/v1/repro-ext', reproExtRouter);
+app.use('/api/v1/endo-ext2', endoExt2Router);
+app.use('/api/v1/ortho-ext2', orthoExt2Router);
+app.use('/api/v1/cardio-ext3', cardioExt3Router);
+app.use('/api/v1/allergy-ext2', allergyExt2Router);
+app.use('/api/v1/cv-ext3', cvExt3Router);
+app.use('/api/v1/sleep-ext2', sleepExt2Router);
+app.use('/api/v1/id-ext2', idExt2Router);
+app.use('/api/v1/rheum-ext3', rheumExt3Router);
+app.use('/api/v1/neph-ext3', nephExt3Router);
+app.use('/api/v1/pcc-utility', pccUtilityRouter);
+app.use('/api/v1/pcc-audit', pccAuditRouter);
+app.use('/api/v1/pcc-admin', pccAdminRouter);
+app.use('/api/v1/pcc-workflow', pccWorkflowRouter);
+app.use('/api/v1/pcc-analytics', pccAnalyticsRouter);
+app.use('/api/v1/pcc-compliance', pccComplianceRouter);
+app.use('/api/v1/pcc-decision', pccDecisionRouter);
+app.use('/api/v1/pcc-clinical-dx', pccClinicalDxRouter);
+app.use('/api/v1/pcc-drug', pccDrugRouter);
+app.use('/api/v1/pcc-imaging', pccImagingRouter);
+app.use('/api/v1/pcc-emergency', pccEmergencyRouter);
+app.use('/api/v1/pcc-infection', pccInfectionRouter);
+app.use('/api/v1/pcc-quality', pccQualityRouter);
+app.use('/api/v1/pcc-research', pccResearchRouter);
+app.use('/api/v1/pcc-education', pccEducationRouter);
+app.use('/api/v1/pcc-billing', pccBillingRouter);
+app.use('/api/v1/pcc-scheduling', pccSchedulingRouter);
+app.use('/api/v1/pcc-telemed', pccTelemedRouter);
+app.use('/api/v1/pcc-pharmacy', pccPharmacyRouter);
+app.use('/api/v1/pcc-dialysis', pccDialysisRouter);
+app.use('/api/v1/pcc-oncology-ext', pccOncoExtRouter);
+app.use('/api/v1/pcc-surgical-ext', pccSurgExtRouter);
+app.use('/api/v1/pcc-perioperative', pccPeriOpRouter);
+app.use('/api/v1/pcc-postop', pccPostOpRouter);
+app.use('/api/v1/pcc-lab-ext2', pccLabExt2Router);
+app.use('/api/v1/pcc-path-ext', pccPathExtRouter);
+app.use('/api/v1/pcc-rad-ext2', pccRadExt2Router);
+app.use('/api/v1/pcc-icu-ext3', pccIcuExt3Router);
+app.use('/api/v1/pcc-ed-ext2', pccEdExt2Router);
+app.use('/api/v1/pcc-ob-ext2', pccObExt2Router);
+app.use('/api/v1/pcc-neuro-ext2', pccNeuroExt2Router);
+app.use('/api/v1/pcc-psych-ext3', pccPsychExt3Router);
+app.use('/api/v1/pcc-neonatal-ext2', pccNeonExt2Router);
+app.use('/api/v1/pcc-cardio-ext4', pccCardioExt4Router);
+app.use('/api/v1/pcc-ortho-ext3', pccOrthoExt3Router);
+app.use('/api/v1/pcc-derma-ext3', pccDermaExt3Router);
+app.use('/api/v1/pcc-gi-ext3', pccGiExt3Router);
+app.use('/api/v1/pcc-endo-ext3', pccEndoExt3Router);
+app.use('/api/v1/pcc-rheum-ext4', pccRheumExt4Router);
+app.use('/api/v1/pcc-hem-ext3', pccHemExt3Router);
+app.use('/api/v1/pcc-id-ext3', pccIdExt3Router);
+app.use('/api/v1/pcc-pulm-ext3', pccPulmExt3Router);
+app.use('/api/v1/pcc-ent-ext3', pccEntExt3Router);
+app.use('/api/v1/pcc-uro-ext2', pccUroExt2Router);
+app.use('/api/v1/pcc-ophth-ext2', pccOphthExt2Router);
+app.use('/api/v1/pcc-rehab-ext3', pccRehabExt3Router);
+app.use('/api/v1/pcc-pall-ext3', pccPallExt3Router);
+app.use('/api/v1/pcc-home-health', pccHomeHealthRouter);
+app.use('/api/v1/pcc-diet-nutr', pccDietNutrRouter);
+app.use('/api/v1/pcc-social-work', pccSocialWorkRouter);
+app.use('/api/v1/pcc-case-mgmt', pccCaseMgmtRouter);
+app.use('/api/v1/pcc-surgical-checklist', pccSurgClRouter);
+app.use('/api/v1/pcc-handoff', pccHandoffRouter);
+app.use('/api/v1/pcc-safety', pccSafetyRouter);
+app.use('/api/v1/pcc-sepsis', pccSepsisRouter);
+app.use('/api/v1/pcc-code-blue', pccCodeBlueRouter);
+app.use('/api/v1/pcc-stroke-path', pccStrokePathRouter);
+app.use('/api/v1/pcc-ambulatory', pccAmbulatoryRouter);
+app.use('/api/v1/pcc-specialty-clinic', pccSpecClinicRouter);
+app.use('/api/v1/pcc-urgent-care', pccUrgentCareRouter);
+app.use('/api/v1/pcc-immunizations', pccImmRouter);
+app.use('/api/v1/pcc-cancer-screen', pccCancerScrRouter);
+app.use('/api/v1/pcc-womens-health', pccWomensHealthRouter);
+app.use('/api/v1/pcc-palliative', pccPalliativeRouter);
+app.use('/api/v1/pcc-pain-mgmt', pccPainMgmtRouter);
+app.use('/api/v1/pcc-sports-med', pccSportsMedRouter);
+app.use('/api/v1/pcc-occupational-health', pccOccupationalHealthRouter);
+app.use('/api/v1/pcc-sleep-med', pccSleepMedRouter);
+app.use('/api/v1/pcc-allergy-immunology', pccAllergyImmunologyRouter);
+app.use('/api/v1/pcc-weight-mgmt', pccWeightMgmtRouter);
+app.use('/api/v1/pcc-smoking-cessation', pccSmokingCessationRouter);
+app.use('/api/v1/pcc-addiction-med', pccAddictionMedRouter);
+app.use('/api/v1/pcc-travel-med', pccTravelMedRouter);
+app.use('/api/v1/pcc-genetic-counseling', pccGeneticCounselingRouter);
+app.use('/api/v1/pcc-wound-care-ext', pccWoundCareExtRouter);
+app.use('/api/v1/pcc-rehab-medicine', pccRehabMedicineRouter);
+app.use('/api/v1/pcc-pain-rehab', pccPainRehabRouter);
+app.use('/api/v1/pcc-geriatric-surgery', pccGeriatricSurgeryRouter);
+app.use('/api/v1/pcc-integrative-medicine', pccIntegrativeMedicineRouter);
+app.use('/api/v1/pcc-functional-medicine', pccFunctionalMedicineRouter);
+app.use('/api/v1/pcc-longevity-medicine', pccLongevityMedicineRouter);
+app.use('/api/v1/gi-ext2', giExt2Router);
+app.use('/api/v1/ent-ext2', entExt2Router);
+app.use('/api/v1/derma-ext2', dermaExt2Router);
+app.use('/api/v1/neph-ext2', nephExt2Router);
+app.use('/api/v1/plast-surg-ext', plastSurgExtRouter);
+app.use('/api/v1/surg-ext', surgExtRouter);
+app.use('/api/v1/transplant-living', transplantLivingRouter);
+app.use('/api/v1/neonatal-ext', neonatalExtRouter);
+app.use('/api/v1/perinatal-ext', perinatalExtRouter);
+app.use('/api/v1/pain-ext', painExtRouter);
+app.use('/api/v1/disaster', disasterRouter);
+app.use('/api/v1/tropical', tropicalRouter);
+app.use('/api/v1/public-health', publicHealthRouter);
+app.use('/api/v1/dental', dentalRouter);
+app.use('/api/v1/occupational', occupationalRouter);
+
+// --- Error handler ---
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, _next) => {
+  const statusCode = err.statusCode || 500;
+  if (statusCode >= 500) {
+    // eslint-disable-next-line no-console
+    console.error('PCC error:', err);
+  }
+  res.status(statusCode).json({
+    error: err.message,
+    code: err.code,
+  });
+});
+
+// --- Start ---
+const server = app.listen(PORT, () => {
+  // eslint-disable-next-line no-console
+  console.log(`PCC sandbox listening on port ${PORT} (v3.30.0: 173 modules wired, P3-BR anesthesia2/radiology2/pathology_ext)`);
+  // eslint-disable-next-line no-console
+  console.log(`  Health:   http://localhost:${PORT}/health`);
+  // eslint-disable-next-line no-console
+  console.log(`  Derma:    http://localhost:${PORT}/api/v1/derma/decision/sjs-ten?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  GI:       http://localhost:${PORT}/api/v1/gi/decision/child-pugh?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  Endo:     http://localhost:${PORT}/api/v1/endo/decision/thyroid-storm?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  Rheum:    http://localhost:${PORT}/api/v1/rheum/decision/das28?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  Health:   http://localhost:${PORT}/health`);
+  // eslint-disable-next-line no-console
+  console.log(`  OR:       http://localhost:${PORT}/api/v1/or/decision/asa?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  ED:       http://localhost:${PORT}/api/v1/ed/decision/esi?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  OBGYN:    http://localhost:${PORT}/api/v1/obgyn/decision/bishop?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  Health:   http://localhost:${PORT}/health`);
+  // eslint-disable-next-line no-console
+  console.log(`  Cath lab: http://localhost:${PORT}/api/v1/cath-lab/decision/jcto?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  CCU:      http://localhost:${PORT}/api/v1/ccu/decision/grace?score=120`);
+  // eslint-disable-next-line no-console
+  console.log(`  NNICU:    http://localhost:${PORT}/api/v1/nnicu/decision/apgar?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  BICU:     http://localhost:${PORT}/api/v1/bicu/decision/parkland?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  PICU:     http://localhost:${PORT}/api/v1/picu/decision/apache?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  SICU:     http://localhost:${PORT}/api/v1/sicu/decision/ranson?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  TICU:     http://localhost:${PORT}/api/v1/ticu/decision/icp?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  MICU:     http://localhost:${PORT}/api/v1/micu/decision/apache2?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  HONC:     http://localhost:${PORT}/api/v1/honc/decision/tls?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  CTICU:    http://localhost:${PORT}/api/v1/cticu/decision/chest?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  NICU:     http://localhost:${PORT}/api/v1/nicu/decision/nihss?...`);
+  // eslint-disable-next-line no-console
+  console.log(`  Co-pilot: http://localhost:${PORT}/api/v1/copilot/ask  (POST {prompt})`);
+  console.log(`  Nephro:   http://localhost:${PORT}/api/v1/nephro/decision/egfr?...`);
+  console.log(`  Heme:     http://localhost:${PORT}/api/v1/heme/decision/coag?...`);
+  console.log(`  Pharmacy: http://localhost:${PORT}/api/v1/pharmacy/decision/dose?...`);
+  console.log(`  Lab:      http://localhost:${PORT}/api/v1/lab/decision/critical?...`);
+  console.log(`  Cardiology:    http://localhost:${PORT}/api/v1/cardiology/decision/heart?...`);
+  console.log(`  Pulmonology:   http://localhost:${PORT}/api/v1/pulmonology/decision/curb65?...`);
+  console.log(`  ID:            http://localhost:${PORT}/api/v1/infectious-disease/decision/qsofa?...`);
+  console.log(`  Radiology:     http://localhost:${PORT}/api/v1/radiology/decision/birads?...`);
+  console.log(`  Oncology:      http://localhost:${PORT}/api/v1/oncology/decision/tnm?...`);
+  console.log(`  Billing/RCM:   http://localhost:${PORT}/api/v1/billing-rcm/decision/cpt?...`);
+  console.log(`  Pedi:          http://localhost:${PORT}/api/v1/pedi/decision/apgar?...`);
+  console.log(`  Telehealth:    http://localhost:${PORT}/api/v1/telehealth/decision/eligibility?...`);
+  console.log(`  Transplant:    http://localhost:${PORT}/api/v1/transplant/decision/kdpi?...`);
+  console.log(`  Stroke/Neuro:  http://localhost:${PORT}/api/v1/stroke-neuro/decision/nihss?...`);
+  console.log(`  Anesthesia:    http://localhost:${PORT}/api/v1/anesthesia/decision/asa?...`);
+  console.log(`  Wound Care:    http://localhost:${PORT}/api/v1/wound-care/decision/braden?...`);
+  console.log(`  Genetics:      http://localhost:${PORT}/api/v1/genetics/decision/acmg?...`);
+  console.log(`  Palliative:    http://localhost:${PORT}/api/v1/palliative/decision/esas?...`);
+  console.log(`  Pedi-ICU:      http://localhost:${PORT}/api/v1/pedi-icu/decision/pelod2?...`);
+  console.log(`  ENT:           http://localhost:${PORT}/api/v1/ent/admissions`);
+  console.log(`  Ophthalmology: http://localhost:${PORT}/api/v1/ophthalmology/admissions`);
+  console.log(`  Urology:       http://localhost:${PORT}/api/v1/urology/admissions`);
+  console.log(`  PM&R:          http://localhost:${PORT}/api/v1/pmr/admissions`);
+  console.log(`  Allergy:       http://localhost:${PORT}/api/v1/allergy/admissions`);
+  console.log(`  Pain:          http://localhost:${PORT}/api/v1/pain/admissions`);
+  console.log(`  Sleep:         http://localhost:${PORT}/api/v1/sleep/admissions`);
+  console.log(`  Bariatric:     http://localhost:${PORT}/api/v1/bariatric/admissions`);
+  console.log(`  Geriatrics:    http://localhost:${PORT}/api/v1/geriatrics/admissions`);
+  console.log(`  Hematology:    http://localhost:${PORT}/api/v1/hematology/admissions`);
+  console.log(`  Oncology-Ext:  http://localhost:${PORT}/api/v1/oncology-ext/admissions`);
+  console.log(`  Hepatology:    http://localhost:${PORT}/api/v1/hepatology/admissions`);
+  console.log(`  Rheum-Ext:     http://localhost:${PORT}/api/v1/rheum-ext/admissions`);
+  console.log(`  Pedi-Sub:      http://localhost:${PORT}/api/v1/pedi-sub/admissions`);
+  console.log(`  Transplant-Ext: http://localhost:${PORT}/api/v1/transplant-ext/admissions`);
+  console.log(`  Cardio-Ext:    http://localhost:${PORT}/api/v1/cardio-ext/admissions`);
+  console.log(`  Endo-Ext:      http://localhost:${PORT}/api/v1/endo-ext/admissions`);
+  console.log(`  Maternal-Fetal: http://localhost:${PORT}/api/v1/maternal-fetal/admissions`);
+  console.log(`  Neuro-Ext:      http://localhost:${PORT}/api/v1/neuro-ext/admissions`);
+  console.log(`  GI-Ext:         http://localhost:${PORT}/api/v1/gi-ext/admissions`);
+  console.log(`  Derm-Ext:       http://localhost:${PORT}/api/v1/derm-ext/admissions`);
+  console.log(`  Cardio-Surg:    http://localhost:${PORT}/api/v1/cardio-surg/admissions`);
+  console.log(`  Transplant-Neph: http://localhost:${PORT}/api/v1/transplant-neph/admissions`);
+  console.log(`  BMT:            http://localhost:${PORT}/api/v1/bmt/admissions`);
+  console.log(`  Rehab-Ext:      http://localhost:${PORT}/api/v1/rehab-ext/admissions`);
+  console.log(`  Sports-Med:     http://localhost:${PORT}/api/v1/sports-med/admissions`);
+  console.log(`  Forensic-Med:   http://localhost:${PORT}/api/v1/forensic-med/admissions`);
+  console.log(`  Public-Health:  http://localhost:${PORT}/api/v1/public-health/admissions`);
+  console.log(`  Dental:         http://localhost:${PORT}/api/v1/dental/admissions`);
+  console.log(`  Occupational:   http://localhost:${PORT}/api/v1/occupational/admissions`);
+  console.log(`  Pain-Ext:       http://localhost:${PORT}/api/v1/pain-ext/admissions`);
+  console.log(`  Disaster:       http://localhost:${PORT}/api/v1/disaster/admissions`);
+  console.log(`  Tropical:       http://localhost:${PORT}/api/v1/tropical/admissions`);
+  console.log(`  Aviation:       http://localhost:${PORT}/api/v1/aviation/admissions`);
+  console.log(`  Military:       http://localhost:${PORT}/api/v1/military/admissions`);
+  console.log(`  Veterinary:     http://localhost:${PORT}/api/v1/veterinary/admissions`);
+  console.log(`  Bioethics:      http://localhost:${PORT}/api/v1/bioethics/compute`);
+  console.log(`  Chaplaincy:     http://localhost:${PORT}/api/v1/chaplaincy/compute`);
+  console.log(`  Aerodigestive:  http://localhost:${PORT}/api/v1/aerodigestive/compute`);
+  console.log(`  Diving:            http://localhost:${PORT}/api/v1/diving/compute`);
+  console.log(`  Mountain:          http://localhost:${PORT}/api/v1/mountain/compute`);
+  console.log(`  Tropical-Ext:      http://localhost:${PORT}/api/v1/tropical-ext/compute`);
+  console.log(`  Imaging-Molecular: http://localhost:${PORT}/api/v1/imaging-molecular/compute`);
+  console.log(`  Aerospace:         http://localhost:${PORT}/api/v1/aerospace/compute`);
+  console.log(`  BMT2:              http://localhost:${PORT}/api/v1/bmt2/compute`);
+  console.log(`  Radiology-Ext:    http://localhost:${PORT}/api/v1/radiology-ext/compute`);
+  console.log(`  Pharm-Compounding: http://localhost:${PORT}/api/v1/pharmacy-compounding/compute`);
+  console.log(`  Lab-Specialty:    http://localhost:${PORT}/api/v1/lab-specialty/compute`);
+  console.log(`  Critical-Care-Ext: http://localhost:${PORT}/api/v1/critical-care-ext/compute`);
+  console.log(`  Stroke-Ext:       http://localhost:${PORT}/api/v1/stroke-ext/compute`);
+  console.log(`  Cardiology-Ext2:  http://localhost:${PORT}/api/v1/cardiology-ext2/compute`);
+  console.log(`  Burn-Center:      http://localhost:${PORT}/api/v1/burn-center/compute`);
+  console.log(`  ECMO-Service:     http://localhost:${PORT}/api/v1/ecmo-service/compute`);
+  console.log(`  Trauma-Center:    http://localhost:${PORT}/api/v1/trauma-center/compute`);
+  console.log(`  Transplant-Heart: http://localhost:${PORT}/api/v1/transplant-heart/compute`);
+  console.log(`  Transplant-Liver: http://localhost:${PORT}/api/v1/transplant-liver/compute`);
+  console.log(`  Transfusion-Med:  http://localhost:${PORT}/api/v1/transfusion-med/compute`);
+  console.log(`  Hospice:        http://localhost:${PORT}/api/v1/hospice/compute`);
+  console.log(`  Pharm-Clinical: http://localhost:${PORT}/api/v1/pharmacy-clinical/compute`);
+  console.log(`  Clinical-Pharm: http://localhost:${PORT}/api/v1/clinical-pharm/compute`);
+  console.log(`  Nuclear-Med:    http://localhost:${PORT}/api/v1/nuclear-med/compute`);
+  console.log(`  Palliative-Ext: http://localhost:${PORT}/api/v1/palliative-ext/compute`);
+  console.log(`  Hospital-Admin: http://localhost:${PORT}/api/v1/hospital-admin/compute`);
+  console.log(`  Audiology:      http://localhost:${PORT}/api/v1/audiology/admissions`);
+  console.log(`  Neuropsych:     http://localhost:${PORT}/api/v1/neuropsych/admissions`);
+  console.log(`  Speech-Lang:    http://localhost:${PORT}/api/v1/speech-lang/admissions`);
+});
+
+function shutdown(sig) {
+  // eslint-disable-next-line no-console
+  console.log(`PCC ${sig} received, shutting down`);
+  server.close(async () => {
+    try { await closeDb(); } catch (_) { /* ignore */ }
+    process.exit(0);
+  });
+  setTimeout(() => process.exit(1), 5000).unref();
+}
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+module.exports = app;
+
+
+
+
+
+
+
+
+
+
+
+
+
+

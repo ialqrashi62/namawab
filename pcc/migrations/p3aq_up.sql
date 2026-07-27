@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS burn_center (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, ts TEXT DEFAULT CURRENT_TIMESTAMP, data TEXT NOT NULL, audit_hash TEXT);CREATE INDEX IF NOT EXISTS idx_burn_center_tenant ON burn_center(tenant_id);
+
+CREATE TABLE IF NOT EXISTS ecmo_service (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, ts TEXT DEFAULT CURRENT_TIMESTAMP, data TEXT NOT NULL, audit_hash TEXT);CREATE INDEX IF NOT EXISTS idx_ecmo_service_tenant ON ecmo_service(tenant_id);
+
+CREATE TABLE IF NOT EXISTS trauma_center (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, ts TEXT DEFAULT CURRENT_TIMESTAMP, data TEXT NOT NULL, audit_hash TEXT);CREATE INDEX IF NOT EXISTS idx_trauma_center_tenant ON trauma_center(tenant_id);

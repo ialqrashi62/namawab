@@ -1,0 +1,41 @@
+ENT ENGINE TESTS
+========================================
+
+CentorScore
+  Γ£ù high risk young: eq: 5 != 4
+  Γ£ù low risk older: eq: -1 != 0
+
+HearingLossGrading
+  Γ£ô normal
+  Γ£ô severe 80dB
+
+TinnitusImpact
+  Γ£ô catastrophic
+  Γ£ô pulsatile urgent
+
+VertigoDiagnosis
+  Γ£ô central stroke
+
+EpistaxisSeverity
+  Γ£ù BPPV: eq: "vestibular-neuritis" != "BPPV"
+  Γ£ô severe
+  Γ£ô mild
+
+LaryngomalaciaSeverity
+  Γ£ô severe cyanosis
+
+TracheostomyDecannulation
+  Γ£ô appropriate
+
+SinusitisComplications
+  Γ£ô orbital cellulitis
+  Γ£ô uncomplicated
+
+SuddenHearingLoss
+  Γ£ô severe SSNHL urgent
+
+HeadNeckCancerStaging
+  Γ£ô T1N0M0 stage I
+  Γ£ô T4N2M1 stage IVC
+
+ent engine tests: 14 passed, 3 failed

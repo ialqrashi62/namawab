@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS hospice (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, ts TEXT DEFAULT CURRENT_TIMESTAMP, data TEXT NOT NULL, audit_hash TEXT);CREATE INDEX IF NOT EXISTS idx_hospice_tenant ON hospice(tenant_id);
+
+CREATE TABLE IF NOT EXISTS pharmacy_clinical (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, ts TEXT DEFAULT CURRENT_TIMESTAMP, data TEXT NOT NULL, audit_hash TEXT);CREATE INDEX IF NOT EXISTS idx_pharmacy_clinical_tenant ON pharmacy_clinical(tenant_id);
+
+CREATE TABLE IF NOT EXISTS clinical_pharm (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, ts TEXT DEFAULT CURRENT_TIMESTAMP, data TEXT NOT NULL, audit_hash TEXT);CREATE INDEX IF NOT EXISTS idx_clinical_pharm_tenant ON clinical_pharm(tenant_id);

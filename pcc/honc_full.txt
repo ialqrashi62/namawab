@@ -1,0 +1,31 @@
+
+Scenario 1: Multi-tenant isolation
+  Γ£ô tenant A creates admission
+  Γ£ô tenant B sees 0
+  Γ£ô tenant A sees 1
+
+Scenario 2: CRUD round-trip
+  Γ£ô create
+  Γ£ô list
+  Γ£ô get
+
+Scenario 3: Idempotency
+  Γ£ô first POST
+  Γ£ô second POST same key
+  Γ£ô only 1 row
+
+Scenario 4: Admission chain
+  Γ£ô create admission
+  Γ£ô create second
+  Γ£ô read after write
+
+Scenario 5: Audit hash chain
+  Γ£ô count >= 5
+  Γ£ô first prev_hash null
+  Γ£ô chain links
+  Γ£ô hash recomputes
+
+honc integration tests: 16 passed, 0 failed
+==================================================
+PASS: 17/17 honc integration
+Assertion failed: !(handle->flags & UV_HANDLE_CLOSING), file src\win\async.c, line 76

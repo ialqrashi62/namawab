@@ -1,0 +1,41 @@
+OPHTHALMOLOGY ENGINE TESTS
+========================================
+
+VisualAcuity
+  Γ£ô 20/20 normal
+  Γ£ù 20/200 severe: eq: "profound-loss" != "severe-loss"
+
+IOPAssessment
+  Γ£ô ocular hypertension
+  Γ£ô normal 15
+
+GlaucomaRiskAssessment
+  Γ£ô high risk
+  Γ£ô low risk
+
+DiabeticRetinopathy
+  Γ£ô proliferative
+  Γ£ô mild
+
+AMDAREDS
+  Γ£ô wet AMD
+  Γ£ô no AMD
+
+RedEyeTriage
+  Γ£ô acute angle closure urgent
+  Γ£ô viral conjunctivitis
+
+CataractGrading
+  Γ£ô cataract surgery indicated
+
+RetinalDetachmentRisk
+  Γ£ô emergency symptoms
+  Γ£ô low risk
+
+StrabismusAssessment
+  Γ£ô congenital esotropia
+
+DryEyeSeverity
+  Γ£ô severe
+
+ophthalmology engine tests: 16 passed, 1 failed

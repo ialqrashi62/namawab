@@ -1,0 +1,21 @@
+{
+  "name": "nama-pcc-sandbox",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PCC (Proof-of-Concept to Code) sandbox for CARD-007 Cath Lab + CCU Coronary Care",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/cath_lab_test.js ; node tests/integration_test.js ; node ccu/ccu_test.js ; node ccu/ccu_integration_test.js ; node nnicu/nnicu_test.js ; node nnicu/nnicu_integration_test.js ; node bicu/bicu_test.js ; node bicu/bicu_integration_test.js ; node copilot/copilot_test.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "pg": "^8.11.5"
+  },
+  "devDependencies": {
+    "sql.js": "^1.14.1"
+  }
+}
