@@ -1,4 +1,4 @@
-// P3-CG pcc_dialysis integration test v3.45.0
+// P3-DS pcc_dialysis integration tests v3.83.0
 const Engine = require('./pcc_dialysis_engine.js');
 const assert = require('assert');
 let passed = 0, failed = 0;
@@ -16,28 +16,28 @@ function makeDb() {
 (async () => {
   console.log('pcc_dialysis integration tests:');
   const db = makeDb();
-  const t = await db.insert('p3cg_pcc_dialysis', { encounter_id: 'e1', tenant_id: 't1', input: {}, result: { plan: 'test' }, module: 'pcc_dialysis', created_by: 'u1' });
+  const t = await db.insert('p3ds_pcc_dialysis', { encounter_id: 'e1', tenant_id: 't1', input: {}, result: { plan: 'test' }, module: 'pcc_dialysis', created_by: 'u1' });
   assert(t.id === 1);
   passed++;
-  const got = await db.select('p3cg_pcc_dialysis', { tenant_id: 't1' });
+  const got = await db.select('p3ds_pcc_dialysis', { tenant_id: 't1' });
   assert(got.rows.length > 0);
   passed++;
-  const upd = await db.update('p3cg_pcc_dialysis', { id: 1 }, { result: { plan: 'updated' } });
+  const upd = await db.update('p3ds_pcc_dialysis', { id: 1 }, { result: { plan: 'updated' } });
   assert(upd.result.plan === 'updated');
   passed++;
-  const del = await db.delete('p3cg_pcc_dialysis', { id: 1 });
+  const del = await db.delete('p3ds_pcc_dialysis', { id: 1 });
   assert(del.deleted === 1);
   passed++;
-  it('access', () => { const r = Engine.Access({}); assert(r.plan); });
-  it('treatment', () => { const r = Engine.Treatment({}); assert(r.plan); });
-  it('clearance', () => { const r = Engine.Clearance({}); assert(r.plan); });
-  it('dryWeight', () => { const r = Engine.DryWeight({}); assert(r.plan); });
-  it('ultrafiltration', () => { const r = Engine.Ultrafiltration({}); assert(r.plan); });
-  it('heparin', () => { const r = Engine.Heparin({}); assert(r.plan); });
-  it('sodium', () => { const r = Engine.Sodium({}); assert(r.plan); });
-  it('bicarbonate', () => { const r = Engine.Bicarbonate({}); assert(r.plan); });
-  it('reuse', () => { const r = Engine.Reuse({}); assert(r.plan); });
-  it('ktV', () => { const r = Engine.KtV({}); assert(r.plan); });
+  it('DialysisInitiation', () => { const r = Engine.DialysisInitiation({}); assert(r.plan); });
+  it('HDAdequacyKtV', () => { const r = Engine.HDAdequacyKtV({}); assert(r.plan); });
+  it('PDAdequacyKtV', () => { const r = Engine.PDAdequacyKtV({}); assert(r.plan); });
+  it('CRRTDose', () => { const r = Engine.CRRTDose({}); assert(r.plan); });
+  it('VascularAccess', () => { const r = Engine.VascularAccess({}); assert(r.plan); });
+  it('DialysisHypotension', () => { const r = Engine.DialysisHypotension({}); assert(r.plan); });
+  it('DialysisDisequilibrium', () => { const r = Engine.DialysisDisequilibrium({}); assert(r.plan); });
+  it('HyperkalemiaDialysis', () => { const r = Engine.HyperkalemiaDialysis({}); assert(r.plan); });
+  it('ContrastNephropathyProphylaxis', () => { const r = Engine.ContrastNephropathyProphylaxis({}); assert(r.plan); });
+  it('TransplantWaitlist', () => { const r = Engine.TransplantWaitlist({}); assert(r.plan); });
   console.log(`SUMMARY: ${passed} passed, ${failed} failed`);
   process.exit(failed === 0 ? 0 : 1);
 })();

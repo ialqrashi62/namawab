@@ -1,21 +1,19 @@
-// P3-CG pcc_dialysis unit tests
+// P3-DS pcc_dialysis unit tests
 const Engine = require('./pcc_dialysis_engine.js');
 const assert = require('assert');
 let passed = 0, failed = 0;
-function it(name, fn) { try { fn(); console.log('  \u2713 ' + name); passed++; } catch (e) { console.log('  \u2717 ' + name + ': ' + e.message); failed++; } }
+function it(name, fn) { try { fn(); console.log('  ✓ ' + name); passed++; } catch (e) { console.log('  ✗ ' + name + ': ' + e.message); failed++; } }
 function assertEq(a, b) { assert.strictEqual(a, b); }
-
 console.log('pcc_dialysis engine tests:');
-it('Acc', () => assertEq(Engine.Access({ type: 'AVF' }).plan, 'AV-fistula-preferred'));
-it('Tre', () => assertEq(Engine.Treatment({ t: 'PD' }).plan, 'peritoneal-dialysis'));
-it('Clr', () => assertEq(Engine.Clearance({ ktv: 1.5 }).plan, 'adequate-clearance'));
-it('DW', () => assertEq(Engine.DryWeight({ over: 4 }).plan, 'above-dry-weight'));
-it('UF', () => assertEq(Engine.Ultrafiltration({ rate: 14 }).plan, 'excessive-uf-risk'));
-it('Hep', () => assertEq(Engine.Heparin({ t: 'bolus' }).plan, 'heparin-bolus'));
-it('Sod', () => assertEq(Engine.Sodium({ conc: 142 }).plan, 'high-sodium-dialysate'));
-it('Bic', () => assertEq(Engine.Bicarbonate({ level: 40 }).plan, 'high-bicarb'));
-it('Reu', () => assertEq(Engine.Reuse({ cnt: 16 }).plan, 'reuse-limit'));
-it('Kt', () => assertEq(Engine.KtV({ v: 1.3 }).plan, 'adequate-Kt-V'));
-
-console.log(`SUMMARY: ${passed} passed, ${failed} failed`);
-process.exit(failed === 0 ? 0 : 1);
+it('DialysisInitiation', () => assertEq(Engine.DialysisInitiation({ t: 'yes' }).plan, 'dialysisinitiation-protocol'));
+it('HDAdequacyKtV', () => assertEq(Engine.HDAdequacyKtV({ t: 'yes' }).plan, 'hdadequacyktv-protocol'));
+it('PDAdequacyKtV', () => assertEq(Engine.PDAdequacyKtV({ t: 'yes' }).plan, 'pdadequacyktv-protocol'));
+it('CRRTDose', () => assertEq(Engine.CRRTDose({ t: 'yes' }).plan, 'crrtdose-protocol'));
+it('VascularAccess', () => assertEq(Engine.VascularAccess({ t: 'yes' }).plan, 'vascularaccess-protocol'));
+it('DialysisHypotension', () => assertEq(Engine.DialysisHypotension({ t: 'yes' }).plan, 'dialysishypotension-protocol'));
+it('DialysisDisequilibrium', () => assertEq(Engine.DialysisDisequilibrium({ t: 'yes' }).plan, 'dialysisdisequilibrium-protocol'));
+it('HyperkalemiaDialysis', () => assertEq(Engine.HyperkalemiaDialysis({ t: 'yes' }).plan, 'hyperkalemiadialysis-protocol'));
+it('ContrastNephropathyProphylaxis', () => assertEq(Engine.ContrastNephropathyProphylaxis({ t: 'yes' }).plan, 'contrastnephropathyprophylaxis-protocol'));
+it('TransplantWaitlist', () => assertEq(Engine.TransplantWaitlist({ t: 'yes' }).plan, 'transplantwaitlist-protocol'));
+console.log('UNIT: ' + passed + ', FAIL: ' + failed);
+process.exit(failed ? 1 : 0);

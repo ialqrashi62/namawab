@@ -1,87 +1,75 @@
-// P3-CG pcc_dialysis_engine v3.45.0
+// P3-DS pcc_dialysis_engine v3.83.0
 'use strict';
-function Access(input) {
-  const i = input || {};
-  const type = String(i.type || '');
-  let plan = 'no-access';
-  if (type === 'AVF') plan = 'AV-fistula-preferred';
-  else if (type === 'AVG') plan = 'AV-graft';
-  else if (type === 'catheter') plan = 'tunneled-catheter';
-  return { plan, type };
-}
-function Treatment(input) {
+function DialysisInitiation(input) {
   const i = input || {};
   const t = String(i.t || '');
-  let plan = 'standard-hd';
-  if (t === 'HD') plan = 'in-center-hemodialysis';
-  else if (t === 'PD') plan = 'peritoneal-dialysis';
-  else if (t === 'HDF') plan = 'hemodiafiltration';
+  let plan = 'dialysisinitiation-none';
+  if (t === 'yes') plan = 'dialysisinitiation-protocol';
   return { plan, t };
 }
-function Clearance(input) {
-  const i = input || {};
-  const ktv = Number(i.ktv ?? 0);
-  let plan = 'suboptimal';
-  if (ktv >= 1.4) plan = 'adequate-clearance';
-  else if (ktv >= 1.2) plan = 'minimum-acceptable';
-  return { plan, ktv };
-}
-function DryWeight(input) {
-  const i = input || {};
-  const over = Number(i.over ?? 0);
-  let plan = 'at-dry-weight';
-  if (over > 3) plan = 'above-dry-weight';
-  else if (over < -1) plan = 'below-dry-weight';
-  return { plan, over };
-}
-function Ultrafiltration(input) {
-  const i = input || {};
-  const rate = Number(i.rate ?? 0);
-  let plan = 'standard-uf';
-  if (rate > 13) plan = 'excessive-uf-risk';
-  else if (rate > 10) plan = 'high-uf-caution';
-  return { plan, rate };
-}
-function Heparin(input) {
+function HDAdequacyKtV(input) {
   const i = input || {};
   const t = String(i.t || '');
-  let plan = 'no-heparin';
-  if (t === 'bolus') plan = 'heparin-bolus';
-  else if (t === 'infusion') plan = 'heparin-infusion';
-  else if (t === 'low') plan = 'low-dose-heparin';
+  let plan = 'hdadequacyktv-none';
+  if (t === 'yes') plan = 'hdadequacyktv-protocol';
   return { plan, t };
 }
-function Sodium(input) {
+function PDAdequacyKtV(input) {
   const i = input || {};
-  const conc = Number(i.conc ?? 0);
-  let plan = 'standard-sodium';
-  if (conc >= 140) plan = 'high-sodium-dialysate';
-  else if (conc <= 130) plan = 'low-sodium-dialysate';
-  return { plan, conc };
+  const t = String(i.t || '');
+  let plan = 'pdadequacyktv-none';
+  if (t === 'yes') plan = 'pdadequacyktv-protocol';
+  return { plan, t };
 }
-function Bicarbonate(input) {
+function CRRTDose(input) {
   const i = input || {};
-  const level = Number(i.level ?? 35);
-  let plan = 'standard-bicarb';
-  if (level >= 38) plan = 'high-bicarb';
-  else if (level <= 30) plan = 'low-bicarb';
-  return { plan, level };
+  const t = String(i.t || '');
+  let plan = 'crrtdose-none';
+  if (t === 'yes') plan = 'crrtdose-protocol';
+  return { plan, t };
 }
-function Reuse(input) {
+function VascularAccess(input) {
   const i = input || {};
-  const cnt = Number(i.cnt ?? 0);
-  let plan = 'no-reuse';
-  if (cnt >= 1) plan = 'dialyzer-reuse';
-  if (cnt >= 15) plan = 'reuse-limit';
-  return { plan, cnt };
+  const t = String(i.t || '');
+  let plan = 'vascularaccess-none';
+  if (t === 'yes') plan = 'vascularaccess-protocol';
+  return { plan, t };
 }
-function KtV(input) {
+function DialysisHypotension(input) {
   const i = input || {};
-  const v = Number(i.v ?? 0);
-  let plan = 'inadequate';
-  if (v >= 1.2) plan = 'adequate-Kt-V';
-  return { plan, v };
+  const t = String(i.t || '');
+  let plan = 'dialysishypotension-none';
+  if (t === 'yes') plan = 'dialysishypotension-protocol';
+  return { plan, t };
+}
+function DialysisDisequilibrium(input) {
+  const i = input || {};
+  const t = String(i.t || '');
+  let plan = 'dialysisdisequilibrium-none';
+  if (t === 'yes') plan = 'dialysisdisequilibrium-protocol';
+  return { plan, t };
+}
+function HyperkalemiaDialysis(input) {
+  const i = input || {};
+  const t = String(i.t || '');
+  let plan = 'hyperkalemiadialysis-none';
+  if (t === 'yes') plan = 'hyperkalemiadialysis-protocol';
+  return { plan, t };
+}
+function ContrastNephropathyProphylaxis(input) {
+  const i = input || {};
+  const t = String(i.t || '');
+  let plan = 'contrastnephropathyprophylaxis-none';
+  if (t === 'yes') plan = 'contrastnephropathyprophylaxis-protocol';
+  return { plan, t };
+}
+function TransplantWaitlist(input) {
+  const i = input || {};
+  const t = String(i.t || '');
+  let plan = 'transplantwaitlist-none';
+  if (t === 'yes') plan = 'transplantwaitlist-protocol';
+  return { plan, t };
 }
 module.exports = {
-  Access, Treatment, Clearance, DryWeight, Ultrafiltration, Heparin, Sodium, Bicarbonate, Reuse, KtV
+  DialysisInitiation, HDAdequacyKtV, PDAdequacyKtV, CRRTDose, VascularAccess, DialysisHypotension, DialysisDisequilibrium, HyperkalemiaDialysis, ContrastNephropathyProphylaxis, TransplantWaitlist
 };
