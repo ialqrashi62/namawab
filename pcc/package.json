@@ -16,6 +16,7 @@
     "pg": "^8.11.5"
   },
   "devDependencies": {
-    "sql.js": "^1.14.1"
+    "sql.js": "^1.14.1",
+    "supertest": "^7.2.2"
   }
 }
