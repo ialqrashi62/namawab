@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext163/pcc_neuro_ext163_engine.js
+module.exports.version='v3.262.0';
+module.exports.module='pcc_neuro_ext163';
+module.exports.functions={};
+module.exports.functions['DementiaAlzExt']=function(input){const score=Math.round((0.18 + Number(input.alz||1)*0.2 + Number(input.mmse||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.262.0',module:'pcc_neuro_ext163',function:'DementiaAlzExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DementiaVascularExt']=function(input){const score=Math.round((0.18 + Number(input.vascDem||1)*0.2 + Number(input.hachinski||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.262.0',module:'pcc_neuro_ext163',function:'DementiaVascularExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DementiaLewyExt']=function(input){const score=Math.round((0.18 + Number(input.dlb||1)*0.2 + Number(input.visualHalluc||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.262.0',module:'pcc_neuro_ext163',function:'DementiaLewyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DementiaFrontotemporalExt']=function(input){const score=Math.round((0.18 + Number(input.ftd||1)*0.2 + Number(input.behavioral||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.262.0',module:'pcc_neuro_ext163',function:'DementiaFrontotemporalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ParkinsonDementiaExt']=function(input){const score=Math.round((0.18 + Number(input.pdD||1)*0.2 + Number(input.cognition||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.262.0',module:'pcc_neuro_ext163',function:'ParkinsonDementiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NormalPressureHydroExt']=function(input){const score=Math.round((0.18 + Number(input.nph||1)*0.2 + Number(input.gait||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.262.0',module:'pcc_neuro_ext163',function:'NormalPressureHydroExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['WernickeExt']=function(input){const score=Math.round((0.18 + Number(input.wernicke||1)*0.2 + Number(input.thiamine||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.262.0',module:'pcc_neuro_ext163',function:'WernickeExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CreutzfeldtJakobExt']=function(input){const score=Math.round((0.18 + Number(input.cjd||1)*0.2 + Number(input.rapidDem||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.262.0',module:'pcc_neuro_ext163',function:'CreutzfeldtJakobExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HIVAssociatedExt']=function(input){const score=Math.round((0.18 + Number(input.had||1)*0.2 + Number(input.cd4||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.262.0',module:'pcc_neuro_ext163',function:'HIVAssociatedExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MildCognitiveExt']=function(input){const score=Math.round((0.18 + Number(input.mci||1)*0.2 + Number(input.memory||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.262.0',module:'pcc_neuro_ext163',function:'MildCognitiveExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.262.0
