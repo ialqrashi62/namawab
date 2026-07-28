@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neonatology_ext102/pcc_neonatology_ext102_engine.js
+module.exports.version='v3.68.68.0';
+module.exports.module='pcc_neonatology_ext102';
+module.exports.functions={};
+module.exports.functions['NeoGenExt']=function(input){const score=Math.round((0.18 + Number(input.nnGen||1)*0.2 + Number(input.nnGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_neonatology_ext102',function:'NeoGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NICPext']=function(input){const score=Math.round((0.18 + Number(input.nnNICP||1)*0.2 + Number(input.nnNICPScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_neonatology_ext102',function:'NICPext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeoPremieExt']=function(input){const score=Math.round((0.18 + Number(input.nnPre||1)*0.2 + Number(input.nnPreGA||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_neonatology_ext102',function:'NeoPremieExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeoRespExt']=function(input){const score=Math.round((0.18 + Number(input.nnRDS||1)*0.2 + Number(input.nnRDSScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_neonatology_ext102',function:'NeoRespExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeoSepsisExt']=function(input){const score=Math.round((0.18 + Number(input.nnSep||1)*0.2 + Number(input.nnSepScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_neonatology_ext102',function:'NeoSepsisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeoJaundExt']=function(input){const score=Math.round((0.18 + Number(input.nnJaun||1)*0.2 + Number(input.nnJaunLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_neonatology_ext102',function:'NeoJaundExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeoFeedExt']=function(input){const score=Math.round((0.18 + Number(input.nnFeed||1)*0.2 + Number(input.nnFeedType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_neonatology_ext102',function:'NeoFeedExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeoScreenExt']=function(input){const score=Math.round((0.18 + Number(input.nnScr||1)*0.2 + Number(input.nnScrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_neonatology_ext102',function:'NeoScreenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeoCircumExt']=function(input){const score=Math.round((0.18 + Number(input.nnCir||1)*0.2 + Number(input.nnCirType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_neonatology_ext102',function:'NeoCircumExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeoDischExt']=function(input){const score=Math.round((0.18 + Number(input.nnDis||1)*0.2 + Number(input.nnDisDay||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_neonatology_ext102',function:'NeoDischExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.68.68.0

@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_pediatrics_ext102/pcc_pediatrics_ext102_engine.js
+module.exports.version='v3.68.68.0';
+module.exports.module='pcc_pediatrics_ext102';
+module.exports.functions={};
+module.exports.functions['PedsGenExt']=function(input){const score=Math.round((0.18 + Number(input.pdGen||1)*0.2 + Number(input.pdGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_pediatrics_ext102',function:'PedsGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PedsGrowthExt']=function(input){const score=Math.round((0.18 + Number(input.pdGr||1)*0.2 + Number(input.pdGrZ||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_pediatrics_ext102',function:'PedsGrowthExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PedsVaccExt']=function(input){const score=Math.round((0.18 + Number(input.pdVac||1)*0.2 + Number(input.pdVacAge||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_pediatrics_ext102',function:'PedsVaccExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PedsNutritionExt']=function(input){const score=Math.round((0.18 + Number(input.pdNut||1)*0.2 + Number(input.pdNutScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_pediatrics_ext102',function:'PedsNutritionExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PedsDevExt']=function(input){const score=Math.round((0.18 + Number(input.pdDev||1)*0.2 + Number(input.pdDevScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_pediatrics_ext102',function:'PedsDevExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PedsAsthmaExt']=function(input){const score=Math.round((0.18 + Number(input.pdAst||1)*0.2 + Number(input.pdAstScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_pediatrics_ext102',function:'PedsAsthmaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PedsGIext']=function(input){const score=Math.round((0.18 + Number(input.pdGI||1)*0.2 + Number(input.pdGIType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_pediatrics_ext102',function:'PedsGIext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PedsFeverExt']=function(input){const score=Math.round((0.18 + Number(input.pdFev||1)*0.2 + Number(input.pdFevTemp||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_pediatrics_ext102',function:'PedsFeverExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PedsRashExt']=function(input){const score=Math.round((0.18 + Number(input.pdRsh||1)*0.2 + Number(input.pdRshType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_pediatrics_ext102',function:'PedsRashExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PedsBehaviorExt']=function(input){const score=Math.round((0.18 + Number(input.pdBhv||1)*0.2 + Number(input.pdBhvScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.68.68.0',module:'pcc_pediatrics_ext102',function:'PedsBehaviorExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.68.68.0
