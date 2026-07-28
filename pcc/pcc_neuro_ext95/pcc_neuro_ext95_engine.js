@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext95/pcc_neuro_ext95_engine.js
+// pcc_neuro_ext95 engine (deterministic)
+module.exports.version='v3.194.0';
+module.exports.module='pcc_neuro_ext95';
+module.exports.functions={};
+module.exports.functions['MSClinicExt']=function(input){const score=Math.round((0.15 + Number(input.edss||3)*0.06 + Number(input.relapses||1)*0.15 + Number(input.mri||1)*0.1)*100)/100;return{version:'v3.194.0',module:'pcc_neuro_ext95',function:'MSClinicExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['DiseaseModifyingRxExt']=function(input){const score=Math.round((0.18 + Number(input.med||1)*0.15 + Number(input.adherence||80)*0.005 + Number(input.sideEffects||1)*0.1)*100)/100;return{version:'v3.194.0',module:'pcc_neuro_ext95',function:'DiseaseModifyingRxExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['NeuroimmunologyRefExt']=function(input){const score=Math.round((0.15 + Number(input.diagnostic||1)*0.2 + Number(input.antibody||1)*0.2 + Number(input.treatment||1)*0.15)*100)/100;return{version:'v3.194.0',module:'pcc_neuro_ext95',function:'NeuroimmunologyRefExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['NMOSDManageExt']=function(input){const score=Math.round((0.2 + Number(input.aqaporin||1)*0.2 + Number(input.attacks||1)*0.15 + Number(input.rituximab||1)*0.2)*100)/100;return{version:'v3.194.0',module:'pcc_neuro_ext95',function:'NMOSDManageExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['MOGDiseaseManageExt']=function(input){const score=Math.round((0.2 + Number(input.mog||1)*0.2 + Number(input.optical||1)*0.15 + Number(input.ivig||1)*0.2)*100)/100;return{version:'v3.194.0',module:'pcc_neuro_ext95',function:'MOGDiseaseManageExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['AutoimmuneEncephalitisExt']=function(input){const score=Math.round((0.2 + Number(input.antibody||1)*0.2 + Number(input.tumor||1)*0.15 + Number(input.rituximab||1)*0.2)*100)/100;return{version:'v3.194.0',module:'pcc_neuro_ext95',function:'AutoimmuneEncephalitisExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['GBSManageExt']=function(input){const score=Math.round((0.15 + Number(input.medical||1)*0.2 + Number(input.ivig||1)*0.15 + Number(input.recovery||1)*0.2)*100)/100;return{version:'v3.194.0',module:'pcc_neuro_ext95',function:'GBSManageExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CIDPExt']=function(input){const score=Math.round((0.15 + Number(input.progression||3)*0.05 + Number(input.ivig||1)*0.2 + Number(input.dex||1)*0.15)*100)/100;return{version:'v3.194.0',module:'pcc_neuro_ext95',function:'CIDPExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['MyastheniaGravisCrisisExt']=function(input){const score=Math.round((0.2 + Number(input.strengths||3)*0.06 + Number(input.ivig||1)*0.2 + Number(input.pleX||1)*0.2)*100)/100;return{version:'v3.194.0',module:'pcc_neuro_ext95',function:'MyastheniaGravisCrisisExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['LupusNeuroExt']=function(input){const score=Math.round((0.15 + Number(input.dsDNA||1)*0.15 + Number(input.cns||1)*0.2 + Number(input.cyclophosphamide||1)*0.2)*100)/100;return{version:'v3.194.0',module:'pcc_neuro_ext95',function:'LupusNeuroExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.194.0
