@@ -1,0 +1,2 @@
+// filepath: pcc/pcc_pediatric_surg_ext83/pcc_pediatric_surg_ext83_integration_test.js
+const {functions:F}=require('./pcc_pediatric_surg_ext83_engine');let pass=0;const samples=[{value:1},{value:2},{value:3},{value:4},{value:5}];for(const fn of Object.keys(F)){for(const s of samples){const r=F[fn](s);if(r&&typeof r.score==='number')pass++;}}console.log('pcc_pediatric_surg_ext83 integration:',pass,'passed');if(pass!==50)process.exit(1);

@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext94/pcc_neuro_ext94_engine.js
+// pcc_neuro_ext94 engine (deterministic)
+module.exports.version='v3.193.0';
+module.exports.module='pcc_neuro_ext94';
+module.exports.functions={};
+module.exports.functions['NeuroOncTumorBoardExt']=function(input){const score=Math.round((0.15 + Number(input.tumors||3)*0.05 + Number(input.histology||3)*0.05 + Number(input.attendings||5)*0.05)*100)/100;return{version:'v3.193.0',module:'pcc_neuro_ext94',function:'NeuroOncTumorBoardExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['GliomaMolecularExt']=function(input){const score=Math.round((0.2 + Number(input.idh||1)*0.2 + Number(input.mgmt||1)*0.2 + Number(input.egfr||1)*0.15)*100)/100;return{version:'v3.193.0',module:'pcc_neuro_ext94',function:'GliomaMolecularExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['BrainMetManagementExt']=function(input){const score=Math.round((0.18 + Number(input.primary||1)*0.2 + Number(input.number||3)*0.05 + Number(input.kps||70)*0.005)*100)/100;return{version:'v3.193.0',module:'pcc_neuro_ext94',function:'BrainMetManagementExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['SkullBaseTumorExt']=function(input){const score=Math.round((0.15 + Number(input.location||2)*0.1 + Number(input.approach||1)*0.2 + Number(input.complications||2)*0.1)*100)/100;return{version:'v3.193.0',module:'pcc_neuro_ext94',function:'SkullBaseTumorExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PituitaryAdenomaExt']=function(input){const score=Math.round((0.2 + Number(input.size||2)*0.1 + Number(input.hormone||1)*0.2 + Number(input.compress||1)*0.15)*100)/100;return{version:'v3.193.0',module:'pcc_neuro_ext94',function:'PituitaryAdenomaExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['MeningiomaMgmExt']=function(input){const score=Math.round((0.18 + Number(input.size||3)*0.05 + Number(input.location||1)*0.15 + Number(input.simpson||3)*0.08)*100)/100;return{version:'v3.193.0',module:'pcc_neuro_ext94',function:'MeningiomaMgmExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['SpineTumorMgmExt']=function(input){const score=Math.round((0.15 + Number(input.levels||3)*0.05 + Number(input.compression||1)*0.2 + Number(input.motor||3)*0.05)*100)/100;return{version:'v3.193.0',module:'pcc_neuro_ext94',function:'SpineTumorMgmExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['RadiationOncNeuroExt']=function(input){const score=Math.round((0.18 + Number(input.doseGy||60)*0.003 + Number(input.fractions||30)*0.005 + Number(input.tolerance||1)*0.15)*100)/100;return{version:'v3.193.0',module:'pcc_neuro_ext94',function:'RadiationOncNeuroExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['ChemoTemozolomideExt']=function(input){const score=Math.round((0.15 + Number(input.cycles||6)*0.05 + Number(input.bloodCounts||3)*0.05 + Number(input.mgmt||1)*0.2)*100)/100;return{version:'v3.193.0',module:'pcc_neuro_ext94',function:'ChemoTemozolomideExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['NeuroOncPalliativeExt']=function(input){const score=Math.round((0.18 + Number(input.kps||70)*0.005 + Number(input.symptoms||3)*0.05 + Number(input.support||1)*0.15)*100)/100;return{version:'v3.193.0',module:'pcc_neuro_ext94',function:'NeuroOncPalliativeExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.193.0
