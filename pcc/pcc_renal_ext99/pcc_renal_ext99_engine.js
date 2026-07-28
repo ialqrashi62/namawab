@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_renal_ext99/pcc_renal_ext99_engine.js
+module.exports.version='v3.18.18.0';
+module.exports.module='pcc_renal_ext99';
+module.exports.functions={};
+module.exports.functions['RenalCKDExt']=function(input){const score=Math.round((0.18 + Number(input.renalCKD||1)*0.2 + Number(input.gfr||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_renal_ext99',function:'RenalCKDExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RenalAKIext']=function(input){const score=Math.round((0.18 + Number(input.renalAKI||1)*0.2 + Number(input.creat||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_renal_ext99',function:'RenalAKIext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RenalDialysisExt']=function(input){const score=Math.round((0.18 + Number(input.renalDial||1)*0.2 + Number(input.dialysisType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_renal_ext99',function:'RenalDialysisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RenalTransplantExt']=function(input){const score=Math.round((0.18 + Number(input.renalTx||1)*0.2 + Number(input.txaScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_renal_ext99',function:'RenalTransplantExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RenalStoneExt']=function(input){const score=Math.round((0.18 + Number(input.renalStone||1)*0.2 + Number(input.stoneSize||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_renal_ext99',function:'RenalStoneExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RenalUTIext']=function(input){const score=Math.round((0.18 + Number(input.renalUTI||1)*0.2 + Number(input.culture||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_renal_ext99',function:'RenalUTIext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RenalGNExt']=function(input){const score=Math.round((0.18 + Number(input.renalGN||1)*0.2 + Number(input.proteinuria||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_renal_ext99',function:'RenalGNExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RenalPKDExt']=function(input){const score=Math.round((0.18 + Number(input.renalPKD||1)*0.2 + Number(input.pkdSize||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_renal_ext99',function:'RenalPKDExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RenalHTNext']=function(input){const score=Math.round((0.18 + Number(input.renalHTN||1)*0.2 + Number(input.renalArtery||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_renal_ext99',function:'RenalHTNext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RenalElectrolyteExt']=function(input){const score=Math.round((0.18 + Number(input.renalElec||1)*0.2 + Number(input.kLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_renal_ext99',function:'RenalElectrolyteExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.18.18.0
