@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext93/pcc_neuro_ext93_engine.js
+// pcc_neuro_ext93 engine (deterministic)
+module.exports.version='v3.192.0';
+module.exports.module='pcc_neuro_ext93';
+module.exports.functions={};
+module.exports.functions['MovementDisorderClinicExt']=function(input){const score=Math.round((0.15 + Number(input.durationMin||30)*0.01 + Number(input.udysrs||30)*0.01 + Number(input.complex||1)*0.15)*100)/100;return{version:'v3.192.0',module:'pcc_neuro_ext93',function:'MovementDisorderClinicExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['BotulinumToxinDosingExt']=function(input){const score=Math.round((0.2 + Number(input.muscleNum||6)*0.05 + Number(input.doseUnits||400)*0.0005 + Number(input.guide||1)*0.15)*100)/100;return{version:'v3.192.0',module:'pcc_neuro_ext93',function:'BotulinumToxinDosingExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['DBSProgrammingClinicExt']=function(input){const score=Math.round((0.18 + Number(input.tuneTime||60)*0.005 + Number(input.contacts||4)*0.05 + Number(input.optimization||80)*0.005)*100)/100;return{version:'v3.192.0',module:'pcc_neuro_ext93',function:'DBSProgrammingClinicExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['ParkinsonMedicationMgmExt']=function(input){const score=Math.round((0.2 + Number(input.levoEquiv||600)*0.0003 + Number(input.onTime||70)*0.005 + Number(input.dyskinesia||1)*0.1)*100)/100;return{version:'v3.192.0',module:'pcc_neuro_ext93',function:'ParkinsonMedicationMgmExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['AtaxiaRefMgmExt']=function(input){const score=Math.round((0.15 + Number(input.falls||3)*0.05 + Number(input.ataxiaScl||15)*0.02 + Number(input.balance||70)*0.005)*100)/100;return{version:'v3.192.0',module:'pcc_neuro_ext93',function:'AtaxiaRefMgmExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['DystoniaEvalExt']=function(input){const score=Math.round((0.15 + Number(input.distribution||3)*0.1 + Number(input.duration||5)*0.05 + Number(input.score||30)*0.01)*100)/100;return{version:'v3.192.0',module:'pcc_neuro_ext93',function:'DystoniaEvalExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['TremorEvalExt']=function(input){const score=Math.round((0.15 + Number(input.frequency||5)*0.05 + Number(input.amplitude||2)*0.1 + Number(input.disability||30)*0.01)*100)/100;return{version:'v3.192.0',module:'pcc_neuro_ext93',function:'TremorEvalExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['HuntingtonClinicExt']=function(input){const score=Math.round((0.05 + Number(input.tfcScore||10)*0.02 + Number(input.uhdrs||30)*0.005 + Number(input.cag||45)*0.01)*100)/100;return{version:'v3.192.0',module:'pcc_neuro_ext93',function:'HuntingtonClinicExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['TouretteClinicExt']=function(input){const score=Math.round((0.15 + Number(input.yaleScore||20)*0.02 + Number(input.pheno||3)*0.05 + Number(input.behaviorTherapy||1)*0.2)*100)/100;return{version:'v3.192.0',module:'pcc_neuro_ext93',function:'TouretteClinicExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['NeurodegenerativeCarePlanExt']=function(input){const score=Math.round((0.18 + Number(input.moca||25)*0.02 + Number(input.adlScore||75)*0.005 + Number(input.support||1)*0.15)*100)/100;return{version:'v3.192.0',module:'pcc_neuro_ext93',function:'NeurodegenerativeCarePlanExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.192.0
