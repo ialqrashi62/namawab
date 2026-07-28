@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext130/pcc_neuro_ext130_engine.js
+module.exports.version='v3.229.0';
+module.exports.module='pcc_neuro_ext130';
+module.exports.functions={};
+module.exports.functions['NeuroSarcoidosisExt']=function(input){const score=Math.round((0.18 + Number(input.ace||1)*0.2 + Number(input.csf||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.229.0',module:'pcc_neuro_ext130',function:'NeuroSarcoidosisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroBehcetExt']=function(input){const score=Math.round((0.18 + Number(input.oral||1)*0.2 + Number(input.genital||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.229.0',module:'pcc_neuro_ext130',function:'NeuroBehcetExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroSLEExt']=function(input){const score=Math.round((0.18 + Number(input.antiDsDNA||1)*0.2 + Number(input.psych||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.229.0',module:'pcc_neuro_ext130',function:'NeuroSLEExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroBechetExtendedExt']=function(input){const score=Math.round((0.18 + Number(input.eye||1)*0.2 + Number(input.skin||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.229.0',module:'pcc_neuro_ext130',function:'NeuroBechetExtendedExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroVasculitisExt']=function(input){const score=Math.round((0.18 + Number(input.anca||1)*0.2 + Number(input.small||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.229.0',module:'pcc_neuro_ext130',function:'NeuroVasculitisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroLupusExt']=function(input){const score=Math.round((0.18 + Number(input.lupus||1)*0.2 + Number(input.antiSm||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.229.0',module:'pcc_neuro_ext130',function:'NeuroLupusExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroSjogrenExt']=function(input){const score=Math.round((0.18 + Number(input.ssa||1)*0.2 + Number(input.ssb||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.229.0',module:'pcc_neuro_ext130',function:'NeuroSjogrenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroCeliacExt']=function(input){const score=Math.round((0.18 + Number(input.celiac||1)*0.2 + Number(input.malabsorption||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.229.0',module:'pcc_neuro_ext130',function:'NeuroCeliacExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroWhippleExt']=function(input){const score=Math.round((0.18 + Number(input.arthropathy||1)*0.2 + Number(input.cns||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.229.0',module:'pcc_neuro_ext130',function:'NeuroWhippleExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['IgG4RelatedNeuroExt']=function(input){const score=Math.round((0.18 + Number(input.igg4||1)*0.2 + Number(input.multiorgan||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.229.0',module:'pcc_neuro_ext130',function:'IgG4RelatedNeuroExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.229.0
