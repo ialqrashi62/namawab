@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext144/pcc_neuro_ext144_engine.js
+module.exports.version='v3.243.0';
+module.exports.module='pcc_neuro_ext144';
+module.exports.functions={};
+module.exports.functions['SexualDysfunctionExt']=function(input){const score=Math.round((0.18 + Number(input.libido||1)*0.2 + Number(input.erectile||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'SexualDysfunctionExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AutonomicDysreflexiaSexExt']=function(input){const score=Math.round((0.18 + Number(input.ad||1)*0.2 + Number(input.stimulus||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'AutonomicDysreflexiaSexExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MSexualExt']=function(input){const score=Math.round((0.18 + Number(input.desire||1)*0.2 + Number(input.arousal||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'MSexualExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FSexualExt']=function(input){const score=Math.round((0.18 + Number(input.lubrication||1)*0.2 + Number(input.orgasm||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'FSexualExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PostPartumSexualExt']=function(input){const score=Math.round((0.18 + Number(input.pp||1)*0.2 + Number(input.hormone||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'PostPartumSexualExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CancerSexualExt']=function(input){const score=Math.round((0.18 + Number(input.cancer||1)*0.2 + Number(input.treatment||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'CancerSexualExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MedicationInducedExt']=function(input){const score=Math.round((0.18 + Number(input.ssri||1)*0.2 + Number(input.sexual||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'MedicationInducedExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GenderDysphoriaExt']=function(input){const score=Math.round((0.18 + Number(input.dysphoria||1)*0.2 + Number(input.gender||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'GenderDysphoriaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HypogonadismExt']=function(input){const score=Math.round((0.18 + Number(input.test||1)*0.2 + Number(input.lowT||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'HypogonadismExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PrematureEjacExt']=function(input){const score=Math.round((0.18 + Number(input.pe||1)*0.2 + Number(input.anxiety||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'PrematureEjacExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.243.0
