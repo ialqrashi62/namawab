@@ -1,0 +1,1 @@
+const {functions:F}=require('./pcc_rad_ext179_engine');let pass=0;for(const fn of Object.keys(F)){const r=F[fn]({});if(typeof r.score==='number'&&r.score>=0&&r.score<=1.5)pass++;}console.log('pcc_rad_ext179 unit:',pass);if(pass!==10)process.exit(1);
