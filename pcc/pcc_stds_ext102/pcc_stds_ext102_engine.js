@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_stds_ext102/pcc_stds_ext102_engine.js
+module.exports.version='v3.59.59.0';
+module.exports.module='pcc_stds_ext102';
+module.exports.functions={};
+module.exports.functions['StdGenExt']=function(input){const score=Math.round((0.18 + Number(input.stGen||1)*0.2 + Number(input.stGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_stds_ext102',function:'StdGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['StdHIVext']=function(input){const score=Math.round((0.18 + Number(input.stHIV||1)*0.2 + Number(input.stHIVCD4||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_stds_ext102',function:'StdHIVext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['StdSyphilisExt']=function(input){const score=Math.round((0.18 + Number(input.stSyp||1)*0.2 + Number(input.stSypStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_stds_ext102',function:'StdSyphilisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['StdGonorrheaExt']=function(input){const score=Math.round((0.18 + Number(input.stGon||1)*0.2 + Number(input.stGonType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_stds_ext102',function:'StdGonorrheaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['StdChlamydiaExt']=function(input){const score=Math.round((0.18 + Number(input.stChl||1)*0.2 + Number(input.stChlType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_stds_ext102',function:'StdChlamydiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['StdHepBext']=function(input){const score=Math.round((0.18 + Number(input.stHB||1)*0.2 + Number(input.stHBtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_stds_ext102',function:'StdHepBext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['StdHPVext']=function(input){const score=Math.round((0.18 + Number(input.stHPV||1)*0.2 + Number(input.stHPVType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_stds_ext102',function:'StdHPVext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['StdHSVext']=function(input){const score=Math.round((0.18 + Number(input.stHSV||1)*0.2 + Number(input.stHSVtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_stds_ext102',function:'StdHSVext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['StdPIDext']=function(input){const score=Math.round((0.18 + Number(input.stPID||1)*0.2 + Number(input.stPIDscore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_stds_ext102',function:'StdPIDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['StdPreventExt']=function(input){const score=Math.round((0.18 + Number(input.stPrev||1)*0.2 + Number(input.stPrevType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_stds_ext102',function:'StdPreventExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.59.59.0
