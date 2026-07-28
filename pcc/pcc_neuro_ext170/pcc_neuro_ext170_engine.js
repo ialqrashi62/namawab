@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext170/pcc_neuro_ext170_engine.js
+module.exports.version='v3.12.11.0';
+module.exports.module='pcc_neuro_ext170';
+module.exports.functions={};
+module.exports.functions['Neurofibromatosis2Ext']=function(input){const score=Math.round((0.18 + Number(input.nf2genetic||1)*0.2 + Number(input.merlin||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.11.0',module:'pcc_neuro_ext170',function:'Neurofibromatosis2Ext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TuberousSclerosis2Ext']=function(input){const score=Math.round((0.18 + Number(input.tsc2genetic||1)*0.2 + Number(input.hamartin||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.11.0',module:'pcc_neuro_ext170',function:'TuberousSclerosis2Ext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VHL2Ext']=function(input){const score=Math.round((0.18 + Number(input.vhl2||1)*0.2 + Number(input.hemangio||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.11.0',module:'pcc_neuro_ext170',function:'VHL2Ext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LiFraumeniExt']=function(input){const score=Math.round((0.18 + Number(input.liFraumeni||1)*0.2 + Number(input.tp53||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.11.0',module:'pcc_neuro_ext170',function:'LiFraumeniExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CowdenSynExt']=function(input){const score=Math.round((0.18 + Number(input.cowden||1)*0.2 + Number(input.pten||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.11.0',module:'pcc_neuro_ext170',function:'CowdenSynExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GorlinSynExt']=function(input){const score=Math.round((0.18 + Number(input.gorlin||1)*0.2 + Number(input.ptch1||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.11.0',module:'pcc_neuro_ext170',function:'GorlinSynExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AtaxiaTel2Ext']=function(input){const score=Math.round((0.18 + Number(input.atmGene||1)*0.2 + Number(input.atmMut||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.11.0',module:'pcc_neuro_ext170',function:'AtaxiaTel2Ext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['Huntington2Ext']=function(input){const score=Math.round((0.18 + Number(input.hdGene||1)*0.2 + Number(input.cag2||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.11.0',module:'pcc_neuro_ext170',function:'Huntington2Ext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FriedreichAtaxiaExt']=function(input){const score=Math.round((0.18 + Number(input.frda||1)*0.2 + Number(input.frataxin||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.11.0',module:'pcc_neuro_ext170',function:'FriedreichAtaxiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['KennedyDiseaseExt']=function(input){const score=Math.round((0.18 + Number(input.kennedy||1)*0.2 + Number(input.androgen||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.11.0',module:'pcc_neuro_ext170',function:'KennedyDiseaseExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.12.11.0
