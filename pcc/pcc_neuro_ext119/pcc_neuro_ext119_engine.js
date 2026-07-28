@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext119/pcc_neuro_ext119_engine.js
+module.exports.version='v3.218.0';
+module.exports.module='pcc_neuro_ext119';
+module.exports.functions={};
+module.exports.functions['OpticNeuritisExt']=function(input){const score=Math.round((0.18 + Number(input.eye||1)*0.2 + Number(input.pain||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.218.0',module:'pcc_neuro_ext119',function:'OpticNeuritisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuromyelitisOpticaExt']=function(input){const score=Math.round((0.18 + Number(input.aq4||1)*0.2 + Number(input.longitudinal||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.218.0',module:'pcc_neuro_ext119',function:'NeuromyelitisOpticaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MOGassociatedExt']=function(input){const score=Math.round((0.18 + Number(input.mog||1)*0.2 + Number(input.bilateral||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.218.0',module:'pcc_neuro_ext119',function:'MOGassociatedExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['IschemicOpticExt']=function(input){const score=Math.round((0.18 + Number(input.arteritic||1)*0.2 + Number(input.vision||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.218.0',module:'pcc_neuro_ext119',function:'IschemicOpticExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PapilledemaExt']=function(input){const score=Math.round((0.18 + Number(input.pressure||30)*0.01 + Number(input.bilateral||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.218.0',module:'pcc_neuro_ext119',function:'PapilledemaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PseudotumorCerebriExt']=function(input){const score=Math.round((0.18 + Number(input.ophth||1)*0.2 + Number(input.female||1)*0.1 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.218.0',module:'pcc_neuro_ext119',function:'PseudotumorCerebriExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LeberOpticExt']=function(input){const score=Math.round((0.18 + Number(input.maternal||1)*0.2 + Number(input.bilateral||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.218.0',module:'pcc_neuro_ext119',function:'LeberOpticExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ToxicOpticExt']=function(input){const score=Math.round((0.18 + Number(input.toxin||1)*0.2 + Number(input.bilateral||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.218.0',module:'pcc_neuro_ext119',function:'ToxicOpticExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NutritionalOpticExt']=function(input){const score=Math.round((0.18 + Number(input.b12||1)*0.2 + Number(input.bilateral||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.218.0',module:'pcc_neuro_ext119',function:'NutritionalOpticExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HereditaryOpticExt']=function(input){const score=Math.round((0.18 + Number(input.family||1)*0.2 + Number(input.bilateral||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.218.0',module:'pcc_neuro_ext119',function:'HereditaryOpticExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.218.0
