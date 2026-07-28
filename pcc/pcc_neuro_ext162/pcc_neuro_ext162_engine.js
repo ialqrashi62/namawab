@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext162/pcc_neuro_ext162_engine.js
+module.exports.version='v3.261.0';
+module.exports.module='pcc_neuro_ext162';
+module.exports.functions={};
+module.exports.functions['MultipleSclerosisExt']=function(input){const score=Math.round((0.18 + Number(input.ms||1)*0.2 + Number(input.edss||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.261.0',module:'pcc_neuro_ext162',function:'MultipleSclerosisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MSRelapseExt']=function(input){const score=Math.round((0.18 + Number(input.relapse||1)*0.2 + Number(input.gad||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.261.0',module:'pcc_neuro_ext162',function:'MSRelapseExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MSProgressiveExt']=function(input){const score=Math.round((0.18 + Number(input.progressive||1)*0.2 + Number(input.pms||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.261.0',module:'pcc_neuro_ext162',function:'MSProgressiveExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuromyelitisOpticaExt']=function(input){const score=Math.round((0.18 + Number(input.nmo||1)*0.2 + Number(input.aqp4||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.261.0',module:'pcc_neuro_ext162',function:'NeuromyelitisOpticaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MOGantibodyExt']=function(input){const score=Math.round((0.18 + Number(input.mog||1)*0.2 + Number(input.optica||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.261.0',module:'pcc_neuro_ext162',function:'MOGantibodyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ADEMext']=function(input){const score=Math.round((0.18 + Number(input.adem||1)*0.2 + Number(input.postInfectious||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.261.0',module:'pcc_neuro_ext162',function:'ADEMext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TransverseMyelitisExt']=function(input){const score=Math.round((0.18 + Number(input.tm||1)*0.2 + Number(input.longitud||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.261.0',module:'pcc_neuro_ext162',function:'TransverseMyelitisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OpticNeuritisExt']=function(input){const score=Math.round((0.18 + Number(input.optNeur||1)*0.2 + Number(input.vision||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.261.0',module:'pcc_neuro_ext162',function:'OpticNeuritisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeurosarcoidosisExt']=function(input){const score=Math.round((0.18 + Number(input.neuroSarc||1)*0.2 + Number(input.cranialNerve||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.261.0',module:'pcc_neuro_ext162',function:'NeurosarcoidosisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroLupusExt']=function(input){const score=Math.round((0.18 + Number(input.nLupus||1)*0.2 + Number(input.antiPhos||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.261.0',module:'pcc_neuro_ext162',function:'NeuroLupusExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.261.0
