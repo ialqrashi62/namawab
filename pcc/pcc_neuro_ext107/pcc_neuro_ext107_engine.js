@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext107/pcc_neuro_ext107_engine.js
+// pcc_neuro_ext107 engine (deterministic)
+module.exports.version='v3.206.0';
+module.exports.module='pcc_neuro_ext107';
+module.exports.functions={};
+module.exports.functions['CerebralAneurysmExt']=function(input){const score=Math.round((0.18 + Number(input.size||5)*0.04 + Number(input.location||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.206.0',module:'pcc_neuro_ext107',function:'CerebralAneurysmExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['SubarachnoidHemorrhageExt']=function(input){const score=Math.round((0.18 + Number(input.huntHess||2)*0.1 + Number(input.fisher||2)*0.1 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.206.0',module:'pcc_neuro_ext107',function:'SubarachnoidHemorrhageExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['AVMalformationExt']=function(input){const score=Math.round((0.18 + Number(input.spetzler||3)*0.1 + Number(input.hemorrhage||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.206.0',module:'pcc_neuro_ext107',function:'AVMalformationExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CavernomaExt']=function(input){const score=Math.round((0.18 + Number(input.location||1)*0.2 + Number(input.hemorrhage||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.206.0',module:'pcc_neuro_ext107',function:'CavernomaExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CerebralVenousMalformationExt']=function(input){const score=Math.round((0.18 + Number(input.size||2)*0.1 + Number(input.thrombosis||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.206.0',module:'pcc_neuro_ext107',function:'CerebralVenousMalformationExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['DuralAVFistulaExt']=function(input){const score=Math.round((0.18 + Number(input.cognard||2)*0.1 + Number(input.symptoms||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.206.0',module:'pcc_neuro_ext107',function:'DuralAVFistulaExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CarotidCavernousFistulaExt']=function(input){const score=Math.round((0.18 + Number(input.type||1)*0.1 + Number(input.treatment||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.206.0',module:'pcc_neuro_ext107',function:'CarotidCavernousFistulaExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PICAneurysmExt']=function(input){const score=Math.round((0.18 + Number(input.size||5)*0.04 + Number(input.family||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.206.0',module:'pcc_neuro_ext107',function:'PICAneurysmExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['BasilarAneurysmExt']=function(input){const score=Math.round((0.18 + Number(input.size||5)*0.04 + Number(input.location||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.206.0',module:'pcc_neuro_ext107',function:'BasilarAneurysmExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['GiantAneurysmExt']=function(input){const score=Math.round((0.18 + Number(input.size||25)*0.02 + Number(input.massEffect||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.206.0',module:'pcc_neuro_ext107',function:'GiantAneurysmExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.206.0
