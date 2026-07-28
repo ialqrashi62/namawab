@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_geriatrics_ext102/pcc_geriatrics_ext102_engine.js
+module.exports.version='v3.69.69.0';
+module.exports.module='pcc_geriatrics_ext102';
+module.exports.functions={};
+module.exports.functions['GerGenExt']=function(input){const score=Math.round((0.18 + Number(input.geGen||1)*0.2 + Number(input.geGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_geriatrics_ext102',function:'GerGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GerCogExt']=function(input){const score=Math.round((0.18 + Number(input.geCog||1)*0.2 + Number(input.geCogScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_geriatrics_ext102',function:'GerCogExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GerFallExt']=function(input){const score=Math.round((0.18 + Number(input.geFall||1)*0.2 + Number(input.geFallScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_geriatrics_ext102',function:'GerFallExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GerPolyExt']=function(input){const score=Math.round((0.18 + Number(input.gePoly||1)*0.2 + Number(input.gePolyNum||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_geriatrics_ext102',function:'GerPolyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GerIncontExt']=function(input){const score=Math.round((0.18 + Number(input.geIncon||1)*0.2 + Number(input.geInconType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_geriatrics_ext102',function:'GerIncontExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GerNutrExt']=function(input){const score=Math.round((0.18 + Number(input.geNut||1)*0.2 + Number(input.geNutScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_geriatrics_ext102',function:'GerNutrExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GerFrailtyExt']=function(input){const score=Math.round((0.18 + Number(input.geFr||1)*0.2 + Number(input.geFrScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_geriatrics_ext102',function:'GerFrailtyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GerDelirExt']=function(input){const score=Math.round((0.18 + Number(input.geDel||1)*0.2 + Number(input.geDelScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_geriatrics_ext102',function:'GerDelirExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GerDepresExt']=function(input){const score=Math.round((0.18 + Number(input.geDep||1)*0.2 + Number(input.geDepScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_geriatrics_ext102',function:'GerDepresExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GerAdvanceExt']=function(input){const score=Math.round((0.18 + Number(input.geAdv||1)*0.2 + Number(input.geAdvType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_geriatrics_ext102',function:'GerAdvanceExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.69.69.0

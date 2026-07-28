@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_home_care_ext102/pcc_home_care_ext102_engine.js
+module.exports.version='v3.69.69.0';
+module.exports.module='pcc_home_care_ext102';
+module.exports.functions={};
+module.exports.functions['HCGenExt']=function(input){const score=Math.round((0.18 + Number(input.hcGen||1)*0.2 + Number(input.hcGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_home_care_ext102',function:'HCGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HCAssessExt']=function(input){const score=Math.round((0.18 + Number(input.hcAss||1)*0.2 + Number(input.hcAssScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_home_care_ext102',function:'HCAssessExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HCSkilledExt']=function(input){const score=Math.round((0.18 + Number(input.hcSk||1)*0.2 + Number(input.hcSkType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_home_care_ext102',function:'HCSkilledExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HCIVext']=function(input){const score=Math.round((0.18 + Number(input.hcIV||1)*0.2 + Number(input.hcIVtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_home_care_ext102',function:'HCIVext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HCWoundExt']=function(input){const score=Math.round((0.18 + Number(input.hcWou||1)*0.2 + Number(input.hcWouType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_home_care_ext102',function:'HCWoundExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HCPT_ext']=function(input){const score=Math.round((0.18 + Number(input.hcPT||1)*0.2 + Number(input.hcPTScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_home_care_ext102',function:'HCPT_ext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HCOT_ext']=function(input){const score=Math.round((0.18 + Number(input.hcOT||1)*0.2 + Number(input.hcOTScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_home_care_ext102',function:'HCOT_ext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HCST_ext']=function(input){const score=Math.round((0.18 + Number(input.hcST||1)*0.2 + Number(input.hcSTScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_home_care_ext102',function:'HCST_ext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HCMSWext']=function(input){const score=Math.round((0.18 + Number(input.hcMSW||1)*0.2 + Number(input.hcMSWScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_home_care_ext102',function:'HCMSWext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HCAideExt']=function(input){const score=Math.round((0.18 + Number(input.hcAid||1)*0.2 + Number(input.hcAidType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.69.69.0',module:'pcc_home_care_ext102',function:'HCAideExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.69.69.0
