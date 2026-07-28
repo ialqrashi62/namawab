@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_nursing_ext102/pcc_nursing_ext102_engine.js
+module.exports.version='v3.73.73.0';
+module.exports.module='pcc_nursing_ext102';
+module.exports.functions={};
+module.exports.functions['NurGenExt']=function(input){const score=Math.round((0.18 + Number(input.nrGen||1)*0.2 + Number(input.nrGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.73.73.0',module:'pcc_nursing_ext102',function:'NurGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NurAssessExt']=function(input){const score=Math.round((0.18 + Number(input.nrAs||1)*0.2 + Number(input.nrAsScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.73.73.0',module:'pcc_nursing_ext102',function:'NurAssessExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NurPlanExt']=function(input){const score=Math.round((0.18 + Number(input.nrPl||1)*0.2 + Number(input.nrPlType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.73.73.0',module:'pcc_nursing_ext102',function:'NurPlanExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NurImplementExt']=function(input){const score=Math.round((0.18 + Number(input.nrImp||1)*0.2 + Number(input.nrImpType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.73.73.0',module:'pcc_nursing_ext102',function:'NurImplementExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NurEvalExt']=function(input){const score=Math.round((0.18 + Number(input.nrEv||1)*0.2 + Number(input.nrEvScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.73.73.0',module:'pcc_nursing_ext102',function:'NurEvalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NurMedExt']=function(input){const score=Math.round((0.18 + Number(input.nrMed||1)*0.2 + Number(input.nrMedScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.73.73.0',module:'pcc_nursing_ext102',function:'NurMedExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NurWoundExt']=function(input){const score=Math.round((0.18 + Number(input.nrWou||1)*0.2 + Number(input.nrWouType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.73.73.0',module:'pcc_nursing_ext102',function:'NurWoundExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NurIVext']=function(input){const score=Math.round((0.18 + Number(input.nrIV||1)*0.2 + Number(input.nrIVtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.73.73.0',module:'pcc_nursing_ext102',function:'NurIVext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NurHandoffExt']=function(input){const score=Math.round((0.18 + Number(input.nrHo||1)*0.2 + Number(input.nrHoScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.73.73.0',module:'pcc_nursing_ext102',function:'NurHandoffExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NurEducExt']=function(input){const score=Math.round((0.18 + Number(input.nrEd||1)*0.2 + Number(input.nrEdType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.73.73.0',module:'pcc_nursing_ext102',function:'NurEducExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.73.73.0
