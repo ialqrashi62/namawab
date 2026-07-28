@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_military_ext102/pcc_military_ext102_engine.js
+module.exports.version='v3.44.44.0';
+module.exports.module='pcc_military_ext102';
+module.exports.functions={};
+module.exports.functions['MilCombatExt']=function(input){const score=Math.round((0.18 + Number(input.mcCombat||1)*0.2 + Number(input.mcInjury||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.44.44.0',module:'pcc_military_ext102',function:'MilCombatExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MilTraumaExt']=function(input){const score=Math.round((0.18 + Number(input.mcTrauma||1)*0.2 + Number(input.mcTraumaSev||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.44.44.0',module:'pcc_military_ext102',function:'MilTraumaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MilBlastExt']=function(input){const score=Math.round((0.18 + Number(input.mcBlast||1)*0.2 + Number(input.mcBlastDist||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.44.44.0',module:'pcc_military_ext102',function:'MilBlastExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MilBurnExt']=function(input){const score=Math.round((0.18 + Number(input.mcBurn||1)*0.2 + Number(input.mcBurnTBSA||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.44.44.0',module:'pcc_military_ext102',function:'MilBurnExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MilRadiationExt']=function(input){const score=Math.round((0.18 + Number(input.mcRad||1)*0.2 + Number(input.mcRadDose||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.44.44.0',module:'pcc_military_ext102',function:'MilRadiationExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MilChemExt']=function(input){const score=Math.round((0.18 + Number(input.mcChem||1)*0.2 + Number(input.mcChemAgent||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.44.44.0',module:'pcc_military_ext102',function:'MilChemExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MilBioExt']=function(input){const score=Math.round((0.18 + Number(input.mcBio||1)*0.2 + Number(input.mcBioAgent||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.44.44.0',module:'pcc_military_ext102',function:'MilBioExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MilPTSDext']=function(input){const score=Math.round((0.18 + Number(input.mcPTSD||1)*0.2 + Number(input.mcPTSDScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.44.44.0',module:'pcc_military_ext102',function:'MilPTSDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MilTBIext']=function(input){const score=Math.round((0.18 + Number(input.mcTBI||1)*0.2 + Number(input.mcTBISev||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.44.44.0',module:'pcc_military_ext102',function:'MilTBIext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MilEvacExt']=function(input){const score=Math.round((0.18 + Number(input.mcEvac||1)*0.2 + Number(input.mcEvacTier||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.44.44.0',module:'pcc_military_ext102',function:'MilEvacExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.44.44.0
