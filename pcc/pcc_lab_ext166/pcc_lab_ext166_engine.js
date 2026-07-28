@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_lab_ext166/pcc_lab_ext166_engine.js
+module.exports.version='v3.13.13.0';
+module.exports.module='pcc_lab_ext166';
+module.exports.functions={};
+module.exports.functions['LabImmunoAdultExt']=function(input){const score=Math.round((0.18 + Number(input.labImmuno||1)*0.2 + Number(input.antibody||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_lab_ext166',function:'LabImmunoAdultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabRheumatoidAdultExt']=function(input){const score=Math.round((0.18 + Number(input.rf||1)*0.2 + Number(input.ccp||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_lab_ext166',function:'LabRheumatoidAdultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabANCAadultExt']=function(input){const score=Math.round((0.18 + Number(input.ancaAdult||1)*0.2 + Number(input.pr3||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_lab_ext166',function:'LabANCAadultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabLupusAdultExt']=function(input){const score=Math.round((0.18 + Number(input.lupusAdult||1)*0.2 + Number(input.dsDNA||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_lab_ext166',function:'LabLupusAdultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabCeliacAdultExt']=function(input){const score=Math.round((0.18 + Number(input.celiacAdult||1)*0.2 + Number(input.tTG||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_lab_ext166',function:'LabCeliacAdultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabHIVAdultExt']=function(input){const score=Math.round((0.18 + Number(input.hivAdult||1)*0.2 + Number(input.cd4||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_lab_ext166',function:'LabHIVAdultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabHepBAdultExt']=function(input){const score=Math.round((0.18 + Number(input.hepBAdult||1)*0.2 + Number(input.hbsAg||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_lab_ext166',function:'LabHepBAdultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabHepCAdultExt']=function(input){const score=Math.round((0.18 + Number(input.hepCAdult||1)*0.2 + Number(input.hcvRNA||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_lab_ext166',function:'LabHepCAdultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabSyphilisAdultExt']=function(input){const score=Math.round((0.18 + Number(input.syphilisAdult||1)*0.2 + Number(input.rpr||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_lab_ext166',function:'LabSyphilisAdultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabB12AdultExt']=function(input){const score=Math.round((0.18 + Number(input.b12Adult||1)*0.2 + Number(input.b12Level||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_lab_ext166',function:'LabB12AdultExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.13.13.0
