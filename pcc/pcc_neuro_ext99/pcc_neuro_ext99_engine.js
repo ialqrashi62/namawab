@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext99/pcc_neuro_ext99_engine.js
+// pcc_neuro_ext99 engine (deterministic)
+module.exports.version='v3.198.0';
+module.exports.module='pcc_neuro_ext99';
+module.exports.functions={};
+module.exports.functions['NeurorehabBotulinumExt']=function(input){const score=Math.round((0.15 + Number(input.muscles||5)*0.05 + Number(input.units||400)*0.0005 + Number(input.guidance||1)*0.15)*100)/100;return{version:'v3.198.0',module:'pcc_neuro_ext99',function:'NeurorehabBotulinumExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['SpasticityClinicExt']=function(input){const score=Math.round((0.15 + Number(input.mas||3)*0.1 + Number(input.tardieu||2)*0.1 + Number(input.contracture||1)*0.15)*100)/100;return{version:'v3.198.0',module:'pcc_neuro_ext99',function:'SpasticityClinicExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['StrokeRehabMgmExt']=function(input){const score=Math.round((0.2 + Number(input.mrs||3)*0.1 + Number(input.therapy||3)*0.1 + Number(input.gain||10)*0.04)*100)/100;return{version:'v3.198.0',module:'pcc_neuro_ext99',function:'StrokeRehabMgmExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['SpinalCordInjuryRehabExt']=function(input){const score=Math.round((0.15 + Number(input.ais||2)*0.15 + Number(input.complications||3)*0.05 + Number(input.recovery||1)*0.2)*100)/100;return{version:'v3.198.0',module:'pcc_neuro_ext99',function:'SpinalCordInjuryRehabExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['TBIRehabExt']=function(input){const score=Math.round((0.15 + Number(input.gcs||8)*0.04 + Number(input.duration||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.198.0',module:'pcc_neuro_ext99',function:'TBIRehabExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['ProstheticsRehabExt']=function(input){const score=Math.round((0.15 + Number(input.level||1)*0.2 + Number(input.functionalK||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.198.0',module:'pcc_neuro_ext99',function:'ProstheticsRehabExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['VestibularRehabExt']=function(input){const score=Math.round((0.15 + Number(input.dva||1)*0.2 + Number(input.balance||75)*0.005 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.198.0',module:'pcc_neuro_ext99',function:'VestibularRehabExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['DysphagiaRehabExt']=function(input){const score=Math.round((0.18 + Number(input.safety||1)*0.2 + Number(input.diet||1)*0.2 + Number(input.recovery||1)*0.2)*100)/100;return{version:'v3.198.0',module:'pcc_neuro_ext99',function:'DysphagiaRehabExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['BowelBladderRehabExt']=function(input){const score=Math.round((0.15 + Number(input.incontinence||1)*0.2 + Number(input.catheterization||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.198.0',module:'pcc_neuro_ext99',function:'BowelBladderRehabExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['TelerehabMgmExt']=function(input){const score=Math.round((0.15 + Number(input.platform||1)*0.2 + Number(input.adherence||80)*0.005 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.198.0',module:'pcc_neuro_ext99',function:'TelerehabMgmExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.198.0
