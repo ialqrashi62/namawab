@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_radiology_ext102/pcc_radiology_ext102_engine.js
+module.exports.version='v3.76.76.0';
+module.exports.module='pcc_radiology_ext102';
+module.exports.functions={};
+module.exports.functions['RadGenExt']=function(input){const score=Math.round((0.18 + Number(input.rdGen||1)*0.2 + Number(input.rdGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_radiology_ext102',function:'RadGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RadXrayExt']=function(input){const score=Math.round((0.18 + Number(input.rdXr||1)*0.2 + Number(input.rdXrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_radiology_ext102',function:'RadXrayExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RadCText']=function(input){const score=Math.round((0.18 + Number(input.rdCT||1)*0.2 + Number(input.rdCTtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_radiology_ext102',function:'RadCText',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RadMRIext']=function(input){const score=Math.round((0.18 + Number(input.rdMR||1)*0.2 + Number(input.rdMRType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_radiology_ext102',function:'RadMRIext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RadUSext']=function(input){const score=Math.round((0.18 + Number(input.rdUS||1)*0.2 + Number(input.rdUSType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_radiology_ext102',function:'RadUSext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RadFluoroExt']=function(input){const score=Math.round((0.18 + Number(input.rdFl||1)*0.2 + Number(input.rdFlType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_radiology_ext102',function:'RadFluoroExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RadMammoExt']=function(input){const score=Math.round((0.18 + Number(input.rdMa||1)*0.2 + Number(input.rdMaScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_radiology_ext102',function:'RadMammoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RadAngioExt']=function(input){const score=Math.round((0.18 + Number(input.rdAn||1)*0.2 + Number(input.rdAnType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_radiology_ext102',function:'RadAngioExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RadIntervExt']=function(input){const score=Math.round((0.18 + Number(input.rdIn||1)*0.2 + Number(input.rdInType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_radiology_ext102',function:'RadIntervExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RadReportExt']=function(input){const score=Math.round((0.18 + Number(input.rdRep||1)*0.2 + Number(input.rdRepScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_radiology_ext102',function:'RadReportExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.76.76.0

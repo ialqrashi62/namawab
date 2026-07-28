@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_imaging_ext102/pcc_imaging_ext102_engine.js
+module.exports.version='v3.76.76.0';
+module.exports.module='pcc_imaging_ext102';
+module.exports.functions={};
+module.exports.functions['ImgGenExt']=function(input){const score=Math.round((0.18 + Number(input.imGen||1)*0.2 + Number(input.imGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_imaging_ext102',function:'ImgGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImgDxExt']=function(input){const score=Math.round((0.18 + Number(input.imDx||1)*0.2 + Number(input.imDxType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_imaging_ext102',function:'ImgDxExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImgIntervExt']=function(input){const score=Math.round((0.18 + Number(input.imIn||1)*0.2 + Number(input.imInType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_imaging_ext102',function:'ImgIntervExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['Img3Dext']=function(input){const score=Math.round((0.18 + Number(input.im3D||1)*0.2 + Number(input.im3DType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_imaging_ext102',function:'Img3Dext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImgAIext']=function(input){const score=Math.round((0.18 + Number(input.imAI||1)*0.2 + Number(input.imAIType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_imaging_ext102',function:'ImgAIext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImgContrastExt']=function(input){const score=Math.round((0.18 + Number(input.imCo||1)*0.2 + Number(input.imCoType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_imaging_ext102',function:'ImgContrastExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImgDoseExt']=function(input){const score=Math.round((0.18 + Number(input.imDo||1)*0.2 + Number(input.imDoGy||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_imaging_ext102',function:'ImgDoseExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImgSafetyExt']=function(input){const score=Math.round((0.18 + Number(input.imSa||1)*0.2 + Number(input.imSaScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_imaging_ext102',function:'ImgSafetyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImgArchiveExt']=function(input){const score=Math.round((0.18 + Number(input.imAr||1)*0.2 + Number(input.imArScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_imaging_ext102',function:'ImgArchiveExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImgTeleExt']=function(input){const score=Math.round((0.18 + Number(input.imTe||1)*0.2 + Number(input.imTeType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.76.76.0',module:'pcc_imaging_ext102',function:'ImgTeleExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.76.76.0
