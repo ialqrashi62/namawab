@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_pharmacy_ext102/pcc_pharmacy_ext102_engine.js
+module.exports.version='v3.74.74.0';
+module.exports.module='pcc_pharmacy_ext102';
+module.exports.functions={};
+module.exports.functions['PharmGenExt']=function(input){const score=Math.round((0.18 + Number(input.phGen||1)*0.2 + Number(input.phGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacy_ext102',function:'PharmGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PharmDispenExt']=function(input){const score=Math.round((0.18 + Number(input.phDis||1)*0.2 + Number(input.phDisScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacy_ext102',function:'PharmDispenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PharmCompExt']=function(input){const score=Math.round((0.18 + Number(input.phCom||1)*0.2 + Number(input.phComType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacy_ext102',function:'PharmCompExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PharmInteractExt']=function(input){const score=Math.round((0.18 + Number(input.phInt||1)*0.2 + Number(input.phIntType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacy_ext102',function:'PharmInteractExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PharmAllergyExt']=function(input){const score=Math.round((0.18 + Number(input.phAlg||1)*0.2 + Number(input.phAlgScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacy_ext102',function:'PharmAllergyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PharmDoseExt']=function(input){const score=Math.round((0.18 + Number(input.phDose||1)*0.2 + Number(input.phDoseWeight||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacy_ext102',function:'PharmDoseExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PharmIVext']=function(input){const score=Math.round((0.18 + Number(input.phIV||1)*0.2 + Number(input.phIVtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacy_ext102',function:'PharmIVext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PharmTPNext']=function(input){const score=Math.round((0.18 + Number(input.phTPN||1)*0.2 + Number(input.phTPNType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacy_ext102',function:'PharmTPNext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PharmClinicalExt']=function(input){const score=Math.round((0.18 + Number(input.phCl||1)*0.2 + Number(input.phClType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacy_ext102',function:'PharmClinicalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PharmConsultExt']=function(input){const score=Math.round((0.18 + Number(input.phCo||1)*0.2 + Number(input.phCoScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacy_ext102',function:'PharmConsultExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.74.74.0
