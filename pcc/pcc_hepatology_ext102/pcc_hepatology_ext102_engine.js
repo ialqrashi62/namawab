@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_hepatology_ext102/pcc_hepatology_ext102_engine.js
+module.exports.version='v3.56.56.0';
+module.exports.module='pcc_hepatology_ext102';
+module.exports.functions={};
+module.exports.functions['HepGenExt']=function(input){const score=Math.round((0.18 + Number(input.hpGen||1)*0.2 + Number(input.hpGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_hepatology_ext102',function:'HepGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepHepAext']=function(input){const score=Math.round((0.18 + Number(input.hpA||1)*0.2 + Number(input.hpAType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_hepatology_ext102',function:'HepHepAext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepHepBext']=function(input){const score=Math.round((0.18 + Number(input.hpB||1)*0.2 + Number(input.hpBLoad||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_hepatology_ext102',function:'HepHepBext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepHepCext']=function(input){const score=Math.round((0.18 + Number(input.hpC||1)*0.2 + Number(input.hpCType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_hepatology_ext102',function:'HepHepCext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepNAFLDext']=function(input){const score=Math.round((0.18 + Number(input.hpNAFLD||1)*0.2 + Number(input.hpNAFLDscore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_hepatology_ext102',function:'HepNAFLDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepCirrhExt']=function(input){const score=Math.round((0.18 + Number(input.hpCir||1)*0.2 + Number(input.hpCirScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_hepatology_ext102',function:'HepCirrhExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepPortalExt']=function(input){const score=Math.round((0.18 + Number(input.hpPor||1)*0.2 + Number(input.hpPorScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_hepatology_ext102',function:'HepPortalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepFailExt']=function(input){const score=Math.round((0.18 + Number(input.hpFail||1)*0.2 + Number(input.hpFailScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_hepatology_ext102',function:'HepFailExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepTransExt']=function(input){const score=Math.round((0.18 + Number(input.hpTx||1)*0.2 + Number(input.hpTxType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_hepatology_ext102',function:'HepTransExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepCancerExt']=function(input){const score=Math.round((0.18 + Number(input.hpCan||1)*0.2 + Number(input.hpCanStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_hepatology_ext102',function:'HepCancerExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.56.56.0

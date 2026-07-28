@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_gi_surgery_ext102/pcc_gi_surgery_ext102_engine.js
+module.exports.version='v3.56.56.0';
+module.exports.module='pcc_gi_surgery_ext102';
+module.exports.functions={};
+module.exports.functions['GISxGenExt']=function(input){const score=Math.round((0.18 + Number(input.gxGen||1)*0.2 + Number(input.gxGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_gi_surgery_ext102',function:'GISxGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GISxAppendExt']=function(input){const score=Math.round((0.18 + Number(input.gxApp||1)*0.2 + Number(input.gxAppType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_gi_surgery_ext102',function:'GISxAppendExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GISxCholeExt']=function(input){const score=Math.round((0.18 + Number(input.gxCho||1)*0.2 + Number(input.gxChoType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_gi_surgery_ext102',function:'GISxCholeExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GISxHerniaExt']=function(input){const score=Math.round((0.18 + Number(input.gxHer||1)*0.2 + Number(input.gxHerType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_gi_surgery_ext102',function:'GISxHerniaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GISxColectExt']=function(input){const score=Math.round((0.18 + Number(input.gxCol||1)*0.2 + Number(input.gxColType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_gi_surgery_ext102',function:'GISxColectExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GISxGastrExt']=function(input){const score=Math.round((0.18 + Number(input.gxGas||1)*0.2 + Number(input.gxGasType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_gi_surgery_ext102',function:'GISxGastrExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GISxBariatExt']=function(input){const score=Math.round((0.18 + Number(input.gxBari||1)*0.2 + Number(input.gxBariType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_gi_surgery_ext102',function:'GISxBariatExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GISxWhippleExt']=function(input){const score=Math.round((0.18 + Number(input.gxWh||1)*0.2 + Number(input.gxWhType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_gi_surgery_ext102',function:'GISxWhippleExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GISxHepExt']=function(input){const score=Math.round((0.18 + Number(input.gxHep||1)*0.2 + Number(input.gxHepType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_gi_surgery_ext102',function:'GISxHepExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GISxPostExt']=function(input){const score=Math.round((0.18 + Number(input.gxPost||1)*0.2 + Number(input.gxPostDay||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.56.56.0',module:'pcc_gi_surgery_ext102',function:'GISxPostExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.56.56.0
