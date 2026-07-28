@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext104/pcc_neuro_ext104_engine.js
+// pcc_neuro_ext104 engine (deterministic)
+module.exports.version='v3.203.0';
+module.exports.module='pcc_neuro_ext104';
+module.exports.functions={};
+module.exports.functions['TelestrokeDripAndShipExt']=function(input){const score=Math.round((0.15 + Number(input.distance||50)*0.005 + Number(input.lkw||3)*0.05 + Number(input.ship||1)*0.2)*100)/100;return{version:'v3.203.0',module:'pcc_neuro_ext104',function:'TelestrokeDripAndShipExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['StrokeMimicExt']=function(input){const score=Math.round((0.15 + Number(input.headache||1)*0.15 + Number(input.seizure||1)*0.15 + Number(input.toxicology||1)*0.2)*100)/100;return{version:'v3.203.0',module:'pcc_neuro_ext104',function:'StrokeMimicExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['StrokeCenterLevelEvalExt']=function(input){const score=Math.round((0.15 + Number(input.csc||1)*0.2 + Number(input.tsc||1)*0.15 + Number(input.asc||1)*0.1)*100)/100;return{version:'v3.203.0',module:'pcc_neuro_ext104',function:'StrokeCenterLevelEvalExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['AcuteStrokeRehabExt']=function(input){const score=Math.round((0.15 + Number(input.days||7)*0.04 + Number(input.intensity||3)*0.1 + Number(input.gain||10)*0.04)*100)/100;return{version:'v3.203.0',module:'pcc_neuro_ext104',function:'AcuteStrokeRehabExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['StrokeSecondaryPreventionExt']=function(input){const score=Math.round((0.15 + Number(input.cause||1)*0.2 + Number(input.antiplatelet||1)*0.15 + Number(input.statins||1)*0.15)*100)/100;return{version:'v3.203.0',module:'pcc_neuro_ext104',function:'StrokeSecondaryPreventionExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CarotidEndarterectomyEvalExt']=function(input){const score=Math.round((0.18 + Number(input.stenosis||80)*0.005 + Number(input.symptom||1)*0.2 + Number(input.risk||2)*0.1)*100)/100;return{version:'v3.203.0',module:'pcc_neuro_ext104',function:'CarotidEndarterectomyEvalExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CryptogenicStrokeWorkupExt']=function(input){const score=Math.round((0.15 + Number(input.pfo||1)*0.2 + Number(input.hypercoag||1)*0.2 + Number(input.afibBurst||1)*0.2)*100)/100;return{version:'v3.203.0',module:'pcc_neuro_ext104',function:'CryptogenicStrokeWorkupExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CerebralVenousThrombExt']=function(input){const score=Math.round((0.18 + Number(input.location||2)*0.1 + Number(input.anticoag||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.203.0',module:'pcc_neuro_ext104',function:'CerebralVenousThrombExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['StrokeInYoungExt']=function(input){const score=Math.round((0.18 + Number(input.age||40)*0.005 + Number(input.workup||3)*0.05 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.203.0',module:'pcc_neuro_ext104',function:'StrokeInYoungExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['StrokeRecoveryLongTermExt']=function(input){const score=Math.round((0.15 + Number(input.months||24)*0.005 + Number(input.therapy||3)*0.05 + Number(input.gain||10)*0.04)*100)/100;return{version:'v3.203.0',module:'pcc_neuro_ext104',function:'StrokeRecoveryLongTermExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.203.0
