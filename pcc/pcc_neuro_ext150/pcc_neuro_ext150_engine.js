@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext150/pcc_neuro_ext150_engine.js
+module.exports.version='v3.249.0';
+module.exports.module='pcc_neuro_ext150';
+module.exports.functions={};
+module.exports.functions['CerebralAneurysmExt']=function(input){const score=Math.round((0.18 + Number(input.aneurysm||1)*0.2 + Number(input.rupture||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.249.0',module:'pcc_neuro_ext150',function:'CerebralAneurysmExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AVMExt']=function(input){const score=Math.round((0.18 + Number(input.avm||1)*0.2 + Number(input.bleed||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.249.0',module:'pcc_neuro_ext150',function:'AVMExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CavernousMalformationExt']=function(input){const score=Math.round((0.18 + Number(input.cavernoma||1)*0.2 + Number(input.seizure||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.249.0',module:'pcc_neuro_ext150',function:'CavernousMalformationExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DuralAVFExt']=function(input){const score=Math.round((0.18 + Number(input.davf||1)*0.2 + Number(input.pulsatile||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.249.0',module:'pcc_neuro_ext150',function:'DuralAVFExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MoyamoyaExt']=function(input){const score=Math.round((0.18 + Number(input.moyamoya||1)*0.2 + Number(input.strokes||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.249.0',module:'pcc_neuro_ext150',function:'MoyamoyaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CarotidDissectionExt']=function(input){const score=Math.round((0.18 + Number(input.dissect||1)*0.2 + Number(input.trauma||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.249.0',module:'pcc_neuro_ext150',function:'CarotidDissectionExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VertebralDissectionExt']=function(input){const score=Math.round((0.18 + Number(input.vertDissect||1)*0.2 + Number(input.posterior||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.249.0',module:'pcc_neuro_ext150',function:'VertebralDissectionExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CerebralVenousThrombExt']=function(input){const score=Math.round((0.18 + Number(input.cvt||1)*0.2 + Number(input.headache||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.249.0',module:'pcc_neuro_ext150',function:'CerebralVenousThrombExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RCVSext']=function(input){const score=Math.round((0.18 + Number(input.rcvs||1)*0.2 + Number(input.thunderclap||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.249.0',module:'pcc_neuro_ext150',function:'RCVSext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PRESext']=function(input){const score=Math.round((0.18 + Number(input.pres||1)*0.2 + Number(input.edema||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.249.0',module:'pcc_neuro_ext150',function:'PRESext',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.249.0
