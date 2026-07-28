@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_sports_ortho_ext102/pcc_sports_ortho_ext102_engine.js
+module.exports.version='v3.62.62.0';
+module.exports.module='pcc_sports_ortho_ext102';
+module.exports.functions={};
+module.exports.functions['SpOGenExt']=function(input){const score=Math.round((0.18 + Number(input.sgGen||1)*0.2 + Number(input.sgGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.62.62.0',module:'pcc_sports_ortho_ext102',function:'SpOGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SpOKneeExt']=function(input){const score=Math.round((0.18 + Number(input.sgKnee||1)*0.2 + Number(input.sgKneeType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.62.62.0',module:'pcc_sports_ortho_ext102',function:'SpOKneeExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SpOShoulderExt']=function(input){const score=Math.round((0.18 + Number(input.sgSh||1)*0.2 + Number(input.sgShType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.62.62.0',module:'pcc_sports_ortho_ext102',function:'SpOShoulderExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SpOHipExt']=function(input){const score=Math.round((0.18 + Number(input.sgHip||1)*0.2 + Number(input.sgHipType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.62.62.0',module:'pcc_sports_ortho_ext102',function:'SpOHipExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SpOAnkleExt']=function(input){const score=Math.round((0.18 + Number(input.sgAnk||1)*0.2 + Number(input.sgAnkType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.62.62.0',module:'pcc_sports_ortho_ext102',function:'SpOAnkleExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SpOElbowExt']=function(input){const score=Math.round((0.18 + Number(input.sgElb||1)*0.2 + Number(input.sgElbType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.62.62.0',module:'pcc_sports_ortho_ext102',function:'SpOElbowExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SpOWristExt']=function(input){const score=Math.round((0.18 + Number(input.sgWri||1)*0.2 + Number(input.sgWriType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.62.62.0',module:'pcc_sports_ortho_ext102',function:'SpOWristExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SpOACLext']=function(input){const score=Math.round((0.18 + Number(input.sgACL||1)*0.2 + Number(input.sgACLtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.62.62.0',module:'pcc_sports_ortho_ext102',function:'SpOACLext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SpOMeniscusExt']=function(input){const score=Math.round((0.18 + Number(input.sgMen||1)*0.2 + Number(input.sgMenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.62.62.0',module:'pcc_sports_ortho_ext102',function:'SpOMeniscusExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SpORotatorExt']=function(input){const score=Math.round((0.18 + Number(input.sgRot||1)*0.2 + Number(input.sgRotType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.62.62.0',module:'pcc_sports_ortho_ext102',function:'SpORotatorExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.62.62.0
