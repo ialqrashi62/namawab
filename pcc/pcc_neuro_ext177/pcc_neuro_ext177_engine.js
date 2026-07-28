@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext177/pcc_neuro_ext177_engine.js
+module.exports.version='v3.1.6.0';
+module.exports.module='pcc_neuro_ext177';
+module.exports.functions={};
+module.exports.functions['TelestrokeExt']=function(input){const score=Math.round((0.18 + Number(input.telestroke||1)*0.2 + Number(input.thrombolysis||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.6.0',module:'pcc_neuro_ext177',function:'TelestrokeExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ThrombectomyExt']=function(input){const score=Math.round((0.18 + Number(input.thrombectomy||1)*0.2 + Number(input.lvo||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.6.0',module:'pcc_neuro_ext177',function:'ThrombectomyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MobileStrokeUnitExt']=function(input){const score=Math.round((0.18 + Number(input.msu||1)*0.2 + Number(input.onsetToTreat||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.6.0',module:'pcc_neuro_ext177',function:'MobileStrokeUnitExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['StrokeUnitExt']=function(input){const score=Math.round((0.18 + Number(input.strokeUnit||1)*0.2 + Number(input.dysphagiaScreen||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.6.0',module:'pcc_neuro_ext177',function:'StrokeUnitExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['StrokeRehabExt']=function(input){const score=Math.round((0.18 + Number(input.strokeRehab||1)*0.2 + Number(input.adlScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.6.0',module:'pcc_neuro_ext177',function:'StrokeRehabExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SecondaryPrevExt']=function(input){const score=Math.round((0.18 + Number(input.secondaryPrev||1)*0.2 + Number(input.antiplatelet||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.6.0',module:'pcc_neuro_ext177',function:'SecondaryPrevExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AtrialFibAnticoagExt']=function(input){const score=Math.round((0.18 + Number(input.afibAnticoag||1)*0.2 + Number(input.cha2ds2||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.6.0',module:'pcc_neuro_ext177',function:'AtrialFibAnticoagExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DOACuseExt']=function(input){const score=Math.round((0.18 + Number(input.doac||1)*0.2 + Number(input.crCl||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.6.0',module:'pcc_neuro_ext177',function:'DOACuseExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['WarfarinUseExt']=function(input){const score=Math.round((0.18 + Number(input.warfarin||1)*0.2 + Number(input.inr||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.6.0',module:'pcc_neuro_ext177',function:'WarfarinUseExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LipidMgtExt']=function(input){const score=Math.round((0.18 + Number(input.lipid||1)*0.2 + Number(input.ldl||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.6.0',module:'pcc_neuro_ext177',function:'LipidMgtExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.1.6.0
