@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext102/pcc_neuro_ext102_engine.js
+// pcc_neuro_ext102 engine (deterministic)
+module.exports.version='v3.201.0';
+module.exports.module='pcc_neuro_ext102';
+module.exports.functions={};
+module.exports.functions['TBIConcussionClinicExt']=function(input){const score=Math.round((0.15 + Number(input.gcsInitial||14)*0.02 + Number(input.loc||1)*0.2 + Number(input.duration||2)*0.05)*100)/100;return{version:'v3.201.0',module:'pcc_neuro_ext102',function:'TBIConcussionClinicExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PCScreeningExt']=function(input){const score=Math.round((0.15 + Number(input.symptoms||4)*0.05 + Number(input.sport||1)*0.2 + Number(input.balance||75)*0.005)*100)/100;return{version:'v3.201.0',module:'pcc_neuro_ext102',function:'PCScreeningExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['ReturnToPlayProtocolExt']=function(input){const score=Math.round((0.18 + Number(input.days||7)*0.02 + Number(input.symptomsFree||1)*0.2 + Number(input.cog||80)*0.005)*100)/100;return{version:'v3.201.0',module:'pcc_neuro_ext102',function:'ReturnToPlayProtocolExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['TBIRehabMgmExt']=function(input){const score=Math.round((0.15 + Number(input.intensity||3)*0.1 + Number(input.weeks||8)*0.04 + Number(input.gain||10)*0.04)*100)/100;return{version:'v3.201.0',module:'pcc_neuro_ext102',function:'TBIRehabMgmExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PostConcussHeadacheExt']=function(input){const score=Math.round((0.18 + Number(input.days||10)*0.02 + Number(input.triptan||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.201.0',module:'pcc_neuro_ext102',function:'PostConcussHeadacheExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PostConcussMigraineExt']=function(input){const score=Math.round((0.18 + Number(input.days||7)*0.02 + Number(input.amitriptyline||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.201.0',module:'pcc_neuro_ext102',function:'PostConcussMigraineExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PostConcussVestibularExt']=function(input){const score=Math.round((0.15 + Number(input.dva||1)*0.2 + Number(input.balance||70)*0.005 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.201.0',module:'pcc_neuro_ext102',function:'PostConcussVestibularExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PostConcussCervicalExt']=function(input){const score=Math.round((0.15 + Number(input.tenderness||1)*0.2 + Number(input.physio||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.201.0',module:'pcc_neuro_ext102',function:'PostConcussCervicalExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PostConcussVisionExt']=function(input){const score=Math.round((0.15 + Number(input.accommodation||1)*0.2 + Number(input.convergence||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.201.0',module:'pcc_neuro_ext102',function:'PostConcussVisionExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CTEConcernScreeningExt']=function(input){const score=Math.round((0.18 + Number(input.exposure||10)*0.04 + Number(input.cognitive||80)*0.005 + Number(input.behavioral||1)*0.2)*100)/100;return{version:'v3.201.0',module:'pcc_neuro_ext102',function:'CTEConcernScreeningExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.201.0
