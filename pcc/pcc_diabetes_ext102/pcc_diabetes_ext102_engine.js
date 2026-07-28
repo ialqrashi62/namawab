@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_diabetes_ext102/pcc_diabetes_ext102_engine.js
+module.exports.version='v3.57.57.0';
+module.exports.module='pcc_diabetes_ext102';
+module.exports.functions={};
+module.exports.functions['DiaT1Ext']=function(input){const score=Math.round((0.18 + Number(input.dbT1||1)*0.2 + Number(input.dbT1A1c||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_diabetes_ext102',function:'DiaT1Ext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaT2Ext']=function(input){const score=Math.round((0.18 + Number(input.dbT2||1)*0.2 + Number(input.dbT2A1c||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_diabetes_ext102',function:'DiaT2Ext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaGDMext']=function(input){const score=Math.round((0.18 + Number(input.dbGDM||1)*0.2 + Number(input.dbGDMScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_diabetes_ext102',function:'DiaGDMext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaInsulinExt']=function(input){const score=Math.round((0.18 + Number(input.dbIns||1)*0.2 + Number(input.dbInsTDD||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_diabetes_ext102',function:'DiaInsulinExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaPumpExt']=function(input){const score=Math.round((0.18 + Number(input.dbPump||1)*0.2 + Number(input.dbPumpType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_diabetes_ext102',function:'DiaPumpExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaCGMext']=function(input){const score=Math.round((0.18 + Number(input.dbCGM||1)*0.2 + Number(input.dbCGMTime||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_diabetes_ext102',function:'DiaCGMext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaDKAext']=function(input){const score=Math.round((0.18 + Number(input.dbDKA||1)*0.2 + Number(input.dbDKApH||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_diabetes_ext102',function:'DiaDKAext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaHHSext']=function(input){const score=Math.round((0.18 + Number(input.dbHHS||1)*0.2 + Number(input.dbHHSOSM||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_diabetes_ext102',function:'DiaHHSext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaHypoExt']=function(input){const score=Math.round((0.18 + Number(input.dbHypo||1)*0.2 + Number(input.dbHypoScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_diabetes_ext102',function:'DiaHypoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaCompExt']=function(input){const score=Math.round((0.18 + Number(input.dbComp||1)*0.2 + Number(input.dbCompType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_diabetes_ext102',function:'DiaCompExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.57.57.0

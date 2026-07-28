@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_thyroid_ext102/pcc_thyroid_ext102_engine.js
+module.exports.version='v3.57.57.0';
+module.exports.module='pcc_thyroid_ext102';
+module.exports.functions={};
+module.exports.functions['ThyGenExt']=function(input){const score=Math.round((0.18 + Number(input.thGen||1)*0.2 + Number(input.thGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ThyHypoExt']=function(input){const score=Math.round((0.18 + Number(input.thHypo||1)*0.2 + Number(input.thHypoTSH||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyHypoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ThyHyperExt']=function(input){const score=Math.round((0.18 + Number(input.thHyper||1)*0.2 + Number(input.thHyperTSH||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyHyperExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ThyHashiExt']=function(input){const score=Math.round((0.18 + Number(input.thHash||1)*0.2 + Number(input.thHashTPO||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyHashiExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ThyGraveExt']=function(input){const score=Math.round((0.18 + Number(input.thGrav||1)*0.2 + Number(input.thGravScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyGraveExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ThyNoduleExt']=function(input){const score=Math.round((0.18 + Number(input.thNod||1)*0.2 + Number(input.thNodSize||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyNoduleExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ThyCancerExt']=function(input){const score=Math.round((0.18 + Number(input.thCan||1)*0.2 + Number(input.thCanStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyCancerExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ThyPregExt']=function(input){const score=Math.round((0.18 + Number(input.thPreg||1)*0.2 + Number(input.thPregType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyPregExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ThyPedExt']=function(input){const score=Math.round((0.18 + Number(input.thPeds||1)*0.2 + Number(input.thPedsType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyPedExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ThySurgExt']=function(input){const score=Math.round((0.18 + Number(input.thSurg||1)*0.2 + Number(input.thSurgType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThySurgExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.57.57.0
