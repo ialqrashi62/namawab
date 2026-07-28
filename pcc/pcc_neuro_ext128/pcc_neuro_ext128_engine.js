@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext128/pcc_neuro_ext128_engine.js
+module.exports.version='v3.227.0';
+module.exports.module='pcc_neuro_ext128';
+module.exports.functions={};
+module.exports.functions['AISExt']=function(input){const score=Math.round((0.18 + Number(input.lkw||3)*0.04 + Number(input.nihss||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.227.0',module:'pcc_neuro_ext128',function:'AISExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SmallVesselDiseaseExt']=function(input){const score=Math.round((0.18 + Number(input.lacunar||1)*0.2 + Number(input.fazekas||2)*0.1 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.227.0',module:'pcc_neuro_ext128',function:'SmallVesselDiseaseExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LargeArteryAtheroExt']=function(input){const score=Math.round((0.18 + Number(input.stenosis||50)*0.005 + Number(input.plaque||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.227.0',module:'pcc_neuro_ext128',function:'LargeArteryAtheroExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardioembolicExt']=function(input){const score=Math.round((0.18 + Number(input.afib||1)*0.2 + Number(input.thrombus||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.227.0',module:'pcc_neuro_ext128',function:'CardioembolicExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CryptogenicExt2']=function(input){const score=Math.round((0.18 + Number(input.unknown||1)*0.2 + Number(input.embolic||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.227.0',module:'pcc_neuro_ext128',function:'CryptogenicExt2',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ESUSext']=function(input){const score=Math.round((0.18 + Number(input.embolic||1)*0.2 + Number(input.nonLacunar||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.227.0',module:'pcc_neuro_ext128',function:'ESUSext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VertebrobasilarExt2']=function(input){const score=Math.round((0.18 + Number(input.posterior||1)*0.2 + Number(input.stenosis||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.227.0',module:'pcc_neuro_ext128',function:'VertebrobasilarExt2',input,score,ts:new Date().toISOString()}};
+module.exports.functions['WatershedExt']=function(input){const score=Math.round((0.18 + Number(input.bilateral||1)*0.2 + Number(input.hypotension||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.227.0',module:'pcc_neuro_ext128',function:'WatershedExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LacunarStrokeExt']=function(input){const score=Math.round((0.18 + Number(input.lacune||1)*0.2 + Number(input.deep||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.227.0',module:'pcc_neuro_ext128',function:'LacunarStrokeExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HemorrhagicTransformExt']=function(input){const score=Math.round((0.18 + Number(input.ht||1)*0.2 + Number(input.massEffect||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.227.0',module:'pcc_neuro_ext128',function:'HemorrhagicTransformExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.227.0
