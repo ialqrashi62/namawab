@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext132/pcc_neuro_ext132_engine.js
+module.exports.version='v3.231.0';
+module.exports.module='pcc_neuro_ext132';
+module.exports.functions={};
+module.exports.functions['ToxicEncephalopathyExt']=function(input){const score=Math.round((0.18 + Number(input.toxin||1)*0.2 + Number(input.chron||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.231.0',module:'pcc_neuro_ext132',function:'ToxicEncephalopathyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HeavyMetalExt']=function(input){const score=Math.round((0.18 + Number(input.lead||1)*0.2 + Number(input.mercury||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.231.0',module:'pcc_neuro_ext132',function:'HeavyMetalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ManganeseExt']=function(input){const score=Math.round((0.18 + Number(input.weld||1)*0.2 + Number(input.parkinson||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.231.0',module:'pcc_neuro_ext132',function:'ManganeseExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OrganicSolventExt']=function(input){const score=Math.round((0.18 + Number(input.solvent||1)*0.2 + Number(input.cognitive||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.231.0',module:'pcc_neuro_ext132',function:'OrganicSolventExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AlcoholRelatedExt']=function(input){const score=Math.round((0.18 + Number(input.chronic||1)*0.2 + Number(input.wernicke||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.231.0',module:'pcc_neuro_ext132',function:'AlcoholRelatedExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['WernickeEncephalopExt']=function(input){const score=Math.round((0.18 + Number(input.thiamine||1)*0.2 + Number(input.ophthalmoplegia||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.231.0',module:'pcc_neuro_ext132',function:'WernickeEncephalopExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['KorsakoffExt']=function(input){const score=Math.round((0.18 + Number(input.amnesia||1)*0.2 + Number(input.confabulation||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.231.0',module:'pcc_neuro_ext132',function:'KorsakoffExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AlcoholCerebellarExt']=function(input){const score=Math.round((0.18 + Number(input.cerebellar||1)*0.2 + Number(input.at||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.231.0',module:'pcc_neuro_ext132',function:'AlcoholCerebellarExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MarchiafavaExt']=function(input){const score=Math.round((0.18 + Number(input.wine||1)*0.2 + Number(input.corpus||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.231.0',module:'pcc_neuro_ext132',function:'MarchiafavaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AlcoholWithdrawalExt']=function(input){const score=Math.round((0.18 + Number(input.ciwa||10)*0.02 + Number(input.seizure||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.231.0',module:'pcc_neuro_ext132',function:'AlcoholWithdrawalExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.231.0
