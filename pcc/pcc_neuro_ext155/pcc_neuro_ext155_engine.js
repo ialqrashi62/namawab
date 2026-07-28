@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext155/pcc_neuro_ext155_engine.js
+module.exports.version='v3.254.0';
+module.exports.module='pcc_neuro_ext155';
+module.exports.functions={};
+module.exports.functions['SleepApneaNeuroExt']=function(input){const score=Math.round((0.18 + Number(input.osa||1)*0.2 + Number(input.aHI||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.254.0',module:'pcc_neuro_ext155',function:'SleepApneaNeuroExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NarcolepsyExt']=function(input){const score=Math.round((0.18 + Number(input.narcolepsy||1)*0.2 + Number(input.cataplexy||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.254.0',module:'pcc_neuro_ext155',function:'NarcolepsyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['IdiopathicHypersomniaExt']=function(input){const score=Math.round((0.18 + Number(input.ih||1)*0.2 + Number(input.daytime||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.254.0',module:'pcc_neuro_ext155',function:'IdiopathicHypersomniaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['KleineLevinExt']=function(input){const score=Math.round((0.18 + Number(input.kl||1)*0.2 + Number(input.hypersomnia||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.254.0',module:'pcc_neuro_ext155',function:'KleineLevinExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['REMBehaviorExt']=function(input){const score=Math.round((0.18 + Number(input.rbd||1)*0.2 + Number(input.actigraphy||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.254.0',module:'pcc_neuro_ext155',function:'REMBehaviorExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RestlessLegsExt']=function(input){const score=Math.round((0.18 + Number(input.rls||1)*0.2 + Number(input.ferritin||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.254.0',module:'pcc_neuro_ext155',function:'RestlessLegsExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PeriodicLimbExt']=function(input){const score=Math.round((0.18 + Number(input.plmd||1)*0.2 + Number(input.plms||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.254.0',module:'pcc_neuro_ext155',function:'PeriodicLimbExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SleepParalysisExt']=function(input){const score=Math.round((0.18 + Number(input.paralysis||1)*0.2 + Number(input.atonia||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.254.0',module:'pcc_neuro_ext155',function:'SleepParalysisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ExplodingHeadExt']=function(input){const score=Math.round((0.18 + Number(input.exploding||1)*0.2 + Number(input.head||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.254.0',module:'pcc_neuro_ext155',function:'ExplodingHeadExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FatalFamilialInsomniaExt']=function(input){const score=Math.round((0.18 + Number(input.ffi||1)*0.2 + Number(input.prion||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.254.0',module:'pcc_neuro_ext155',function:'FatalFamilialInsomniaExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.254.0
