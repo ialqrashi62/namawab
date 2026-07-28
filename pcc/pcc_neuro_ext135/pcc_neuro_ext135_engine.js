@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext135/pcc_neuro_ext135_engine.js
+module.exports.version='v3.234.0';
+module.exports.module='pcc_neuro_ext135';
+module.exports.functions={};
+module.exports.functions['CarotidStenosisExt']=function(input){const score=Math.round((0.18 + Number(input.stenosis||70)*0.005 + Number(input.symptom||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.234.0',module:'pcc_neuro_ext135',function:'CarotidStenosisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AsymptomaticCarotidStenExt']=function(input){const score=Math.round((0.18 + Number(input.stenosis||60)*0.005 + Number(input.asymptom||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.234.0',module:'pcc_neuro_ext135',function:'AsymptomaticCarotidStenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VertebralStenosisExt']=function(input){const score=Math.round((0.18 + Number(input.vertebral||1)*0.2 + Number(input.stenosis||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.234.0',module:'pcc_neuro_ext135',function:'VertebralStenosisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['IntracranialStenosisExt']=function(input){const score=Math.round((0.18 + Number(input.ica||1)*0.2 + Number(input.mca||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.234.0',module:'pcc_neuro_ext135',function:'IntracranialStenosisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SubclavianStealExt']=function(input){const score=Math.round((0.18 + Number(input.subclavian||1)*0.2 + Number(input.steal||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.234.0',module:'pcc_neuro_ext135',function:'SubclavianStealExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BowHuntersExt']=function(input){const score=Math.round((0.18 + Number(input.rotation||1)*0.2 + Number(input.vertebral||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.234.0',module:'pcc_neuro_ext135',function:'BowHuntersExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ECSText']=function(input){const score=Math.round((0.18 + Number(input.carotid||1)*0.2 + Number(input.plaque||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.234.0',module:'pcc_neuro_ext135',function:'ECSText',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICADExt']=function(input){const score=Math.round((0.18 + Number(input.intracranial||1)*0.2 + Number(input.stenosis||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.234.0',module:'pcc_neuro_ext135',function:'ICADExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MoyamoyaDiseaseExt']=function(input){const score=Math.round((0.18 + Number(input.moyamoya||1)*0.2 + Number(input.bilateral||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.234.0',module:'pcc_neuro_ext135',function:'MoyamoyaDiseaseExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FMDext']=function(input){const score=Math.round((0.18 + Number(input.beading||1)*0.2 + Number(input.female||1)*0.1 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.234.0',module:'pcc_neuro_ext135',function:'FMDext',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.234.0
