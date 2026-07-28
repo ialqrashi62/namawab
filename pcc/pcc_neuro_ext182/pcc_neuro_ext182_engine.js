@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext182/pcc_neuro_ext182_engine.js
+module.exports.version='v3.1.11.0';
+module.exports.module='pcc_neuro_ext182';
+module.exports.functions={};
+module.exports.functions['NeuroGeneticAdultExt']=function(input){const score=Math.round((0.18 + Number(input.adultGenet||1)*0.2 + Number(input.inherit||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.11.0',module:'pcc_neuro_ext182',function:'NeuroGeneticAdultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HuntingtonGeneticExt']=function(input){const score=Math.round((0.18 + Number(input.hdAdult||1)*0.2 + Number(input.cagRepeat||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.11.0',module:'pcc_neuro_ext182',function:'HuntingtonGeneticExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SCAext']=function(input){const score=Math.round((0.18 + Number(input.sca||1)*0.2 + Number(input.cerebellarAtax||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.11.0',module:'pcc_neuro_ext182',function:'SCAext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FRDAadultExt']=function(input){const score=Math.round((0.18 + Number(input.frdaAdult||1)*0.2 + Number(input.frataxin||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.11.0',module:'pcc_neuro_ext182',function:'FRDAadultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DM1adultExt']=function(input){const score=Math.round((0.18 + Number(input.dm1Adult||1)*0.2 + Number(input.ctg||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.11.0',module:'pcc_neuro_ext182',function:'DM1adultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DM2adultExt']=function(input){const score=Math.round((0.18 + Number(input.dm2Adult||1)*0.2 + Number(input.cctg||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.11.0',module:'pcc_neuro_ext182',function:'DM2adultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FXTASext']=function(input){const score=Math.round((0.18 + Number(input.fxtas||1)*0.2 + Number(input.fmr1||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.11.0',module:'pcc_neuro_ext182',function:'FXTASext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OPMDadultExt']=function(input){const score=Math.round((0.18 + Number(input.opmdAdult||1)*0.2 + Number(input.pabpn||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.11.0',module:'pcc_neuro_ext182',function:'OPMDadultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FSHDadultExt']=function(input){const score=Math.round((0.18 + Number(input.fshdAdult||1)*0.2 + Number(input.d4z4Adult||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.11.0',module:'pcc_neuro_ext182',function:'FSHDadultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['KennedyAdultExt']=function(input){const score=Math.round((0.18 + Number(input.kennedyAdult||1)*0.2 + Number(input.arRepeat||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.11.0',module:'pcc_neuro_ext182',function:'KennedyAdultExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.1.11.0
