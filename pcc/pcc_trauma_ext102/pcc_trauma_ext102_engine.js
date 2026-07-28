@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_trauma_ext102/pcc_trauma_ext102_engine.js
+module.exports.version='v3.70.70.0';
+module.exports.module='pcc_trauma_ext102';
+module.exports.functions={};
+module.exports.functions['TrGenExt']=function(input){const score=Math.round((0.18 + Number(input.trGen||1)*0.2 + Number(input.trGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_trauma_ext102',function:'TrGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TrPrimaryExt']=function(input){const score=Math.round((0.18 + Number(input.trPri||1)*0.2 + Number(input.trPriScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_trauma_ext102',function:'TrPrimaryExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TrSecondaryExt']=function(input){const score=Math.round((0.18 + Number(input.trSec||1)*0.2 + Number(input.trSecScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_trauma_ext102',function:'TrSecondaryExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TrHeadExt']=function(input){const score=Math.round((0.18 + Number(input.trH||1)*0.2 + Number(input.trHGCS||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_trauma_ext102',function:'TrHeadExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TrChestTraumaExt']=function(input){const score=Math.round((0.18 + Number(input.trCh||1)*0.2 + Number(input.trChType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_trauma_ext102',function:'TrChestTraumaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TrAbdominalTraumaExt']=function(input){const score=Math.round((0.18 + Number(input.trAb||1)*0.2 + Number(input.trAbScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_trauma_ext102',function:'TrAbdominalTraumaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TrPelvicExt']=function(input){const score=Math.round((0.18 + Number(input.trPe||1)*0.2 + Number(input.trPeType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_trauma_ext102',function:'TrPelvicExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TrSpinalExt']=function(input){const score=Math.round((0.18 + Number(input.trSp||1)*0.2 + Number(input.trSpLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_trauma_ext102',function:'TrSpinalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TrVascTraumaExt']=function(input){const score=Math.round((0.18 + Number(input.trVa||1)*0.2 + Number(input.trVaType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_trauma_ext102',function:'TrVascTraumaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TrOR_ext']=function(input){const score=Math.round((0.18 + Number(input.trOR||1)*0.2 + Number(input.trORtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_trauma_ext102',function:'TrOR_ext',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.70.70.0

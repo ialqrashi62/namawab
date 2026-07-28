@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_emergency_ext102/pcc_emergency_ext102_engine.js
+module.exports.version='v3.70.70.0';
+module.exports.module='pcc_emergency_ext102';
+module.exports.functions={};
+module.exports.functions['ERGenExt']=function(input){const score=Math.round((0.18 + Number(input.erGen||1)*0.2 + Number(input.erGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_emergency_ext102',function:'ERGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ERTriageExt']=function(input){const score=Math.round((0.18 + Number(input.erTr||1)*0.2 + Number(input.erTrLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_emergency_ext102',function:'ERTriageExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ERChestExt']=function(input){const score=Math.round((0.18 + Number(input.erCh||1)*0.2 + Number(input.erChScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_emergency_ext102',function:'ERChestExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ERAbdominalExt']=function(input){const score=Math.round((0.18 + Number(input.erAb||1)*0.2 + Number(input.erAbScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_emergency_ext102',function:'ERAbdominalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ERShortExt']=function(input){const score=Math.round((0.18 + Number(input.erSh||1)*0.2 + Number(input.erShScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_emergency_ext102',function:'ERShortExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ERIntoxExt']=function(input){const score=Math.round((0.18 + Number(input.erIn||1)*0.2 + Number(input.erInType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_emergency_ext102',function:'ERIntoxExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ERStrokeExt']=function(input){const score=Math.round((0.18 + Number(input.erSt||1)*0.2 + Number(input.erStNIHSS||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_emergency_ext102',function:'ERStrokeExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ERAllergicExt']=function(input){const score=Math.round((0.18 + Number(input.erAl||1)*0.2 + Number(input.erAlScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_emergency_ext102',function:'ERAllergicExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ERSepsisExt']=function(input){const score=Math.round((0.18 + Number(input.erSe||1)*0.2 + Number(input.erSeScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_emergency_ext102',function:'ERSepsisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ERDispoExt']=function(input){const score=Math.round((0.18 + Number(input.erDis||1)*0.2 + Number(input.erDisType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_emergency_ext102',function:'ERDispoExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.70.70.0

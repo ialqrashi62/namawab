@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_burn_care_ext102/pcc_burn_care_ext102_engine.js
+module.exports.version='v3.70.70.0';
+module.exports.module='pcc_burn_care_ext102';
+module.exports.functions={};
+module.exports.functions['BCGenExt']=function(input){const score=Math.round((0.18 + Number(input.bcGen||1)*0.2 + Number(input.bcGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_burn_care_ext102',function:'BCGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BCAssessExt']=function(input){const score=Math.round((0.18 + Number(input.bcAs||1)*0.2 + Number(input.bcAsTBSA||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_burn_care_ext102',function:'BCAssessExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BCFirstExt']=function(input){const score=Math.round((0.18 + Number(input.bcFi||1)*0.2 + Number(input.bcFiType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_burn_care_ext102',function:'BCFirstExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BCFluidExt']=function(input){const score=Math.round((0.18 + Number(input.bcFl||1)*0.2 + Number(input.bcFlRate||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_burn_care_ext102',function:'BCFluidExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BCPainExt']=function(input){const score=Math.round((0.18 + Number(input.bcPa||1)*0.2 + Number(input.bcPaScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_burn_care_ext102',function:'BCPainExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BCInfectionExt']=function(input){const score=Math.round((0.18 + Number(input.bcInf||1)*0.2 + Number(input.bcInfType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_burn_care_ext102',function:'BCInfectionExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BCGraftExt']=function(input){const score=Math.round((0.18 + Number(input.bcGr||1)*0.2 + Number(input.bcGrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_burn_care_ext102',function:'BCGraftExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BCScarExt']=function(input){const score=Math.round((0.18 + Number(input.bcSc||1)*0.2 + Number(input.bcScScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_burn_care_ext102',function:'BCScarExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BCRehabExt']=function(input){const score=Math.round((0.18 + Number(input.bcRe||1)*0.2 + Number(input.bcReScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_burn_care_ext102',function:'BCRehabExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BCPsychExt']=function(input){const score=Math.round((0.18 + Number(input.bcPs||1)*0.2 + Number(input.bcPsScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.70.70.0',module:'pcc_burn_care_ext102',function:'BCPsychExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.70.70.0
