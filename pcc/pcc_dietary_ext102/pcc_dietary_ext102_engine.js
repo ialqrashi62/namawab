@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_dietary_ext102/pcc_dietary_ext102_engine.js
+module.exports.version='v3.49.49.0';
+module.exports.module='pcc_dietary_ext102';
+module.exports.functions={};
+module.exports.functions['DietPlanningExt']=function(input){const score=Math.round((0.18 + Number(input.diPlan||1)*0.2 + Number(input.diPlanType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.49.49.0',module:'pcc_dietary_ext102',function:'DietPlanningExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DietTherapeuticExt']=function(input){const score=Math.round((0.18 + Number(input.diTher||1)*0.2 + Number(input.diTherType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.49.49.0',module:'pcc_dietary_ext102',function:'DietTherapeuticExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DietDiabeticExt']=function(input){const score=Math.round((0.18 + Number(input.diab||1)*0.2 + Number(input.diabCarbs||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.49.49.0',module:'pcc_dietary_ext102',function:'DietDiabeticExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DietRenalExt']=function(input){const score=Math.round((0.18 + Number(input.diRen||1)*0.2 + Number(input.diRenStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.49.49.0',module:'pcc_dietary_ext102',function:'DietRenalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DietCardiacExt']=function(input){const score=Math.round((0.18 + Number(input.diCar||1)*0.2 + Number(input.diCarScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.49.49.0',module:'pcc_dietary_ext102',function:'DietCardiacExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DietCancerExt']=function(input){const score=Math.round((0.18 + Number(input.diCanc||1)*0.2 + Number(input.diCancType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.49.49.0',module:'pcc_dietary_ext102',function:'DietCancerExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DietAllergyExt']=function(input){const score=Math.round((0.18 + Number(input.diAlg||1)*0.2 + Number(input.diAlgType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.49.49.0',module:'pcc_dietary_ext102',function:'DietAllergyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DietPregnancyExt']=function(input){const score=Math.round((0.18 + Number(input.diPreg||1)*0.2 + Number(input.diPregType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.49.49.0',module:'pcc_dietary_ext102',function:'DietPregnancyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DietWeightExt']=function(input){const score=Math.round((0.18 + Number(input.diWt||1)*0.2 + Number(input.diWtKg||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.49.49.0',module:'pcc_dietary_ext102',function:'DietWeightExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DietSuppExt']=function(input){const score=Math.round((0.18 + Number(input.diSup||1)*0.2 + Number(input.diSupType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.49.49.0',module:'pcc_dietary_ext102',function:'DietSuppExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.49.49.0
