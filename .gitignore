@@ -65,3 +65,7 @@ nama_kek*.dpapi
 .vendor/
 .ai-brain/external-skills/
 .agents/skills/
+
+# MCP secrets (template only — real keys in env)
+tools/mcp-server/mcp-config.template.json
+
