@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_pulm_ext100/pcc_pulm_ext100_engine.js
+module.exports.version='v3.25.25.0';
+module.exports.module='pcc_pulm_ext100';
+module.exports.functions={};
+module.exports.functions['PulmAsthmaExt']=function(input){const score=Math.round((0.18 + Number(input.plAsthma||1)*0.2 + Number(input.actScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pulm_ext100',function:'PulmAsthmaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PulmCOPDExt']=function(input){const score=Math.round((0.18 + Number(input.plCOPD||1)*0.2 + Number(input.goldStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pulm_ext100',function:'PulmCOPDExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PulmPneumoniaExt']=function(input){const score=Math.round((0.18 + Number(input.plPneumonia||1)*0.2 + Number(input.curb65PL||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pulm_ext100',function:'PulmPneumoniaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PulmTBext']=function(input){const score=Math.round((0.18 + Number(input.plTB||1)*0.2 + Number(input.tbSputumPL||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pulm_ext100',function:'PulmTBext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PulmILDext']=function(input){const score=Math.round((0.18 + Number(input.plILD||1)*0.2 + Number(input.fvcPct||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pulm_ext100',function:'PulmILDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PulmCFAsthmaExt']=function(input){const score=Math.round((0.18 + Number(input.plCF||1)*0.2 + Number(input.fev1CF||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pulm_ext100',function:'PulmCFAsthmaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PulmPEext']=function(input){const score=Math.round((0.18 + Number(input.plPE||1)*0.2 + Number(input.wellsScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pulm_ext100',function:'PulmPEext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PulmCancerExt']=function(input){const score=Math.round((0.18 + Number(input.plCancer||1)*0.2 + Number(input.lungStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pulm_ext100',function:'PulmCancerExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PulmPleuralExt']=function(input){const score=Math.round((0.18 + Number(input.plPleural||1)*0.2 + Number(input.effusionSize||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pulm_ext100',function:'PulmPleuralExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PulmBronchExt']=function(input){const score=Math.round((0.18 + Number(input.plBronch||1)*0.2 + Number(input.bronchFindingPL||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pulm_ext100',function:'PulmBronchExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.25.25.0

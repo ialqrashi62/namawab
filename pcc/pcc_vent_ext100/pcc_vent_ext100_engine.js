@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_vent_ext100/pcc_vent_ext100_engine.js
+module.exports.version='v3.25.25.0';
+module.exports.module='pcc_vent_ext100';
+module.exports.functions={};
+module.exports.functions['VentInvasiveExt']=function(input){const score=Math.round((0.18 + Number(input.vInvasive||1)*0.2 + Number(input.peepVal||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentInvasiveExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VentNIVext']=function(input){const score=Math.round((0.18 + Number(input.vNIV||1)*0.2 + Number(input.ipapVal||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentNIVext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VentHFNCext']=function(input){const score=Math.round((0.18 + Number(input.vHFNC||1)*0.2 + Number(input.flowRate||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentHFNCext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VentARDSext']=function(input){const score=Math.round((0.18 + Number(input.vARDS||1)*0.2 + Number(input.pfRatioV||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentARDSext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VentCOPDext']=function(input){const score=Math.round((0.18 + Number(input.vCOPD||1)*0.2 + Number(input.phLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentCOPDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VentAsthmaExt']=function(input){const score=Math.round((0.18 + Number(input.vAsthma||1)*0.2 + Number(input.peakPress||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentAsthmaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VentWeaningExt']=function(input){const score=Math.round((0.18 + Number(input.vWeaning||1)*0.2 + Number(input.rsbiScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentWeaningExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VentProneExt']=function(input){const score=Math.round((0.18 + Number(input.vProne||1)*0.2 + Number(input.proneHours||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentProneExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VentTraumaExt']=function(input){const score=Math.round((0.18 + Number(input.vTrauma||1)*0.2 + Number(input.lungInjury||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentTraumaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VentPediatricExt']=function(input){const score=Math.round((0.18 + Number(input.vPed||1)*0.2 + Number(input.pedAge||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentPediatricExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.25.25.0
