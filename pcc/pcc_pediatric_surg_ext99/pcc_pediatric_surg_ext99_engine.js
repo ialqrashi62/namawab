@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_pediatric_surg_ext99/pcc_pediatric_surg_ext99_engine.js
+// pcc_pediatric_surg_ext99 engine (deterministic)
+module.exports.version='v3.209.0';
+module.exports.module='pcc_pediatric_surg_ext99';
+module.exports.functions={};
+module.exports.functions['PediatricDBSsxExt']=function(input){const score=Math.round((0.18 + Number(input.age||10)*0.04 + Number(input.dbs||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.209.0',module:'pcc_pediatric_surg_ext99',function:'PediatricDBSsxExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricMovementSxExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.surgery||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.209.0',module:'pcc_pediatric_surg_ext99',function:'PediatricMovementSxExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricDystoniaSxExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.dbs||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.209.0',module:'pcc_pediatric_surg_ext99',function:'PediatricDystoniaSxExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricTicSxExt']=function(input){const score=Math.round((0.18 + Number(input.age||7)*0.04 + Number(input.dbs||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.209.0',module:'pcc_pediatric_surg_ext99',function:'PediatricTicSxExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricTremorSxExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.thalamotomy||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.209.0',module:'pcc_pediatric_surg_ext99',function:'PediatricTremorSxExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricCerebellarSxExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.surgery||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.209.0',module:'pcc_pediatric_surg_ext99',function:'PediatricCerebellarSxExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricAtaxiaSxExt']=function(input){const score=Math.round((0.18 + Number(input.age||7)*0.04 + Number(input.surgery||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.209.0',module:'pcc_pediatric_surg_ext99',function:'PediatricAtaxiaSxExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricSCASxExt']=function(input){const score=Math.round((0.18 + Number(input.age||7)*0.04 + Number(input.surgery||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.209.0',module:'pcc_pediatric_surg_ext99',function:'PediatricSCASxExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricWilsonSxExt']=function(input){const score=Math.round((0.18 + Number(input.age||6)*0.04 + Number(input.liverTx||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.209.0',module:'pcc_pediatric_surg_ext99',function:'PediatricWilsonSxExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricChoreaSxExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.dbs||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.209.0',module:'pcc_pediatric_surg_ext99',function:'PediatricChoreaSxExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.209.0
