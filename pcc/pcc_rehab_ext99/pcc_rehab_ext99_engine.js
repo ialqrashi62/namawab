@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_rehab_ext99/pcc_rehab_ext99_engine.js
+module.exports.version='v3.19.19.0';
+module.exports.module='pcc_rehab_ext99';
+module.exports.functions={};
+module.exports.functions['RehabStrokeExt']=function(input){const score=Math.round((0.18 + Number(input.rehabStroke||1)*0.2 + Number(input.barthel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_rehab_ext99',function:'RehabStrokeExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RehabOrthoExt']=function(input){const score=Math.round((0.18 + Number(input.rehabOrtho||1)*0.2 + Number(input.orthoType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_rehab_ext99',function:'RehabOrthoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RehabCardiacExt']=function(input){const score=Math.round((0.18 + Number(input.rehabCardiac||1)*0.2 + Number(input.metEquiv||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_rehab_ext99',function:'RehabCardiacExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RehabPulmonaryExt']=function(input){const score=Math.round((0.18 + Number(input.rehabPulm||1)*0.2 + Number(input.fev1||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_rehab_ext99',function:'RehabPulmonaryExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RehabNeuroExt']=function(input){const score=Math.round((0.18 + Number(input.rehabNeuro||1)*0.2 + Number(input.fuglMeyer||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_rehab_ext99',function:'RehabNeuroExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RehabSpinalExt']=function(input){const score=Math.round((0.18 + Number(input.rehabSpinal||1)*0.2 + Number(input.aisGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_rehab_ext99',function:'RehabSpinalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RehabBurnExt']=function(input){const score=Math.round((0.18 + Number(input.rehabBurn||1)*0.2 + Number(input.tbsa||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_rehab_ext99',function:'RehabBurnExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RehabAmputeeExt']=function(input){const score=Math.round((0.18 + Number(input.rehabAmp||1)*0.2 + Number(input.ampLevel||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_rehab_ext99',function:'RehabAmputeeExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RehabSportsExt']=function(input){const score=Math.round((0.18 + Number(input.rehabSports||1)*0.2 + Number(input.sportsType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_rehab_ext99',function:'RehabSportsExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RehabPediatricExt']=function(input){const score=Math.round((0.18 + Number(input.rehabPed||1)*0.2 + Number(input.pedAge||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_rehab_ext99',function:'RehabPediatricExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.19.19.0
