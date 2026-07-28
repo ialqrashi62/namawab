@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_cardio_ext101/pcc_cardio_ext101_engine.js
+module.exports.version='v3.31.31.0';
+module.exports.module='pcc_cardio_ext101';
+module.exports.functions={};
+module.exports.functions['CardioLipidExt']=function(input){const score=Math.round((0.18 + Number(input.cdLipid||1)*0.2 + Number(input.ldlLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardio_ext101',function:'CardioLipidExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardioHTNext']=function(input){const score=Math.round((0.18 + Number(input.cdHTN||1)*0.2 + Number(input.bpCD||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardio_ext101',function:'CardioHTNext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardioHFpEFext']=function(input){const score=Math.round((0.18 + Number(input.cdHFpEF||1)*0.2 + Number(input.efHFpEF||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardio_ext101',function:'CardioHFpEFext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardioHFrEFext']=function(input){const score=Math.round((0.18 + Number(input.cdHFrEF||1)*0.2 + Number(input.efHFrEF||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardio_ext101',function:'CardioHFrEFext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardioAtrialFibExt']=function(input){const score=Math.round((0.18 + Number(input.cdAFib||1)*0.2 + Number(input.chadsScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardio_ext101',function:'CardioAtrialFibExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardioVTachExt']=function(input){const score=Math.round((0.18 + Number(input.cdVT||1)*0.2 + Number(input.vtCycle||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardio_ext101',function:'CardioVTachExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardioBradyExt']=function(input){const score=Math.round((0.18 + Number(input.cdBrady||1)*0.2 + Number(input.hrLow||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardio_ext101',function:'CardioBradyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardioDeviceExt']=function(input){const score=Math.round((0.18 + Number(input.cdDev||1)*0.2 + Number(input.deviceType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardio_ext101',function:'CardioDeviceExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardioPregnancyExt']=function(input){const score=Math.round((0.18 + Number(input.cdPreg||1)*0.2 + Number(input.gestCd||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardio_ext101',function:'CardioPregnancyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardioGeneticExt']=function(input){const score=Math.round((0.18 + Number(input.cdGen||1)*0.2 + Number(input.genCardio||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardio_ext101',function:'CardioGeneticExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.31.31.0
