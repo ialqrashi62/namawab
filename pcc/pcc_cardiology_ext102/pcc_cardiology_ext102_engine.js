@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_cardiology_ext102/pcc_cardiology_ext102_engine.js
+module.exports.version='v3.54.54.0';
+module.exports.module='pcc_cardiology_ext102';
+module.exports.functions={};
+module.exports.functions['CardGenExt']=function(input){const score=Math.round((0.18 + Number(input.cdGen||1)*0.2 + Number(input.cdGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_cardiology_ext102',function:'CardGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardCHNext']=function(input){const score=Math.round((0.18 + Number(input.cdCHF||1)*0.2 + Number(input.cdCHFEF||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_cardiology_ext102',function:'CardCHNext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardMIAext']=function(input){const score=Math.round((0.18 + Number(input.cdMI||1)*0.2 + Number(input.cdMIType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_cardiology_ext102',function:'CardMIAext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardArrExt']=function(input){const score=Math.round((0.18 + Number(input.cdArr||1)*0.2 + Number(input.cdArrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_cardiology_ext102',function:'CardArrExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardHTNext']=function(input){const score=Math.round((0.18 + Number(input.cdHTN||1)*0.2 + Number(input.cdHTNscore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_cardiology_ext102',function:'CardHTNext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardValveExt']=function(input){const score=Math.round((0.18 + Number(input.cdValve||1)*0.2 + Number(input.cdValveType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_cardiology_ext102',function:'CardValveExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardIschExt']=function(input){const score=Math.round((0.18 + Number(input.cdIsch||1)*0.2 + Number(input.cdIschScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_cardiology_ext102',function:'CardIschExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardEPext']=function(input){const score=Math.round((0.18 + Number(input.cdEP||1)*0.2 + Number(input.cdEPType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_cardiology_ext102',function:'CardEPext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardICMext']=function(input){const score=Math.round((0.18 + Number(input.cdICM||1)*0.2 + Number(input.cdICMType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_cardiology_ext102',function:'CardICMext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CardPrevExt']=function(input){const score=Math.round((0.18 + Number(input.cdPrev||1)*0.2 + Number(input.cdPrevScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_cardiology_ext102',function:'CardPrevExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.54.54.0

@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_vascular_ext102/pcc_vascular_ext102_engine.js
+module.exports.version='v3.54.54.0';
+module.exports.module='pcc_vascular_ext102';
+module.exports.functions={};
+module.exports.functions['VasGenExt']=function(input){const score=Math.round((0.18 + Number(input.vaGen||1)*0.2 + Number(input.vaGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_vascular_ext102',function:'VasGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VasAorticExt']=function(input){const score=Math.round((0.18 + Number(input.vaAo||1)*0.2 + Number(input.vaAoType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_vascular_ext102',function:'VasAorticExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VasCarotidExt']=function(input){const score=Math.round((0.18 + Number(input.vaCar||1)*0.2 + Number(input.vaCarSten||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_vascular_ext102',function:'VasCarotidExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VasPADext']=function(input){const score=Math.round((0.18 + Number(input.vaPAD||1)*0.2 + Number(input.vaPADABI||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_vascular_ext102',function:'VasPADext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VasAAAext']=function(input){const score=Math.round((0.18 + Number(input.vaAAA||1)*0.2 + Number(input.vaAAAsize||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_vascular_ext102',function:'VasAAAext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VasDVText']=function(input){const score=Math.round((0.18 + Number(input.vaDVT||1)*0.2 + Number(input.vaDVTscore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_vascular_ext102',function:'VasDVText',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VasPESext']=function(input){const score=Math.round((0.18 + Number(input.vaPE||1)*0.2 + Number(input.vaPEType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_vascular_ext102',function:'VasPESext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VasVaricExt']=function(input){const score=Math.round((0.18 + Number(input.vaVar||1)*0.2 + Number(input.vaVarScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_vascular_ext102',function:'VasVaricExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VasAneurExt']=function(input){const score=Math.round((0.18 + Number(input.vaAn||1)*0.2 + Number(input.vaAnType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_vascular_ext102',function:'VasAneurExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VasDialysisExt']=function(input){const score=Math.round((0.18 + Number(input.vaDial||1)*0.2 + Number(input.vaDialType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.54.54.0',module:'pcc_vascular_ext102',function:'VasDialysisExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.54.54.0
