@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext105/pcc_neuro_ext105_engine.js
+// pcc_neuro_ext105 engine (deterministic)
+module.exports.version='v3.204.0';
+module.exports.module='pcc_neuro_ext105';
+module.exports.functions={};
+module.exports.functions['CerebralAmyloidAngioExt']=function(input){const score=Math.round((0.18 + Number(input.age||75)*0.005 + Number(input.lobar||1)*0.2 + Number(input.microbleeds||1)*0.2)*100)/100;return{version:'v3.204.0',module:'pcc_neuro_ext105',function:'CerebralAmyloidAngioExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CADASILManagementExt']=function(input){const score=Math.round((0.18 + Number(input.notch3||1)*0.2 + Number(input.migraine||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.204.0',module:'pcc_neuro_ext105',function:'CADASILManagementExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['RVCLSExt']=function(input){const score=Math.round((0.18 + Number(input.trex1||1)*0.2 + Number(input.retinal||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.204.0',module:'pcc_neuro_ext105',function:'RVCLSExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['COL4A1StrokeExt']=function(input){const score=Math.round((0.18 + Number(input.col4a1||1)*0.2 + Number(input.microbleeds||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.204.0',module:'pcc_neuro_ext105',function:'COL4A1StrokeExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['MoyamoyaAdultExt']=function(input){const score=Math.round((0.18 + Number(input.bypass||1)*0.2 + Number(input.stroke||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.204.0',module:'pcc_neuro_ext105',function:'MoyamoyaAdultExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['SickleCellStrokeExt']=function(input){const score=Math.round((0.18 + Number(input.transfusion||1)*0.2 + Number(input.tcd||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.204.0',module:'pcc_neuro_ext105',function:'SickleCellStrokeExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['AntiphospholipidStrokeExt']=function(input){const score=Math.round((0.18 + Number(input.lupus||1)*0.2 + Number(input.anticoag||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.204.0',module:'pcc_neuro_ext105',function:'AntiphospholipidStrokeExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['ThrombophiliaWorkupExt']=function(input){const score=Math.round((0.15 + Number(input.factorv||1)*0.2 + Number(input.proteinC||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.204.0',module:'pcc_neuro_ext105',function:'ThrombophiliaWorkupExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['HornerStrokeExt']=function(input){const score=Math.round((0.18 + Number(input.dissection||1)*0.2 + Number(input.horner||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.204.0',module:'pcc_neuro_ext105',function:'HornerStrokeExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PosteriorCircStenosisExt']=function(input){const score=Math.round((0.18 + Number(input.stenosis||70)*0.005 + Number(input.symptoms||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.204.0',module:'pcc_neuro_ext105',function:'PosteriorCircStenosisExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.204.0
