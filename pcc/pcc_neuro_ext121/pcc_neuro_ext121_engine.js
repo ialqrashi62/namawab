@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext121/pcc_neuro_ext121_engine.js
+module.exports.version='v3.220.0';
+module.exports.module='pcc_neuro_ext121';
+module.exports.functions={};
+module.exports.functions['GlioblastomaExt']=function(input){const score=Math.round((0.15 + Number(input.idh||1)*0.2 + Number(input.mgmt||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.220.0',module:'pcc_neuro_ext121',function:'GlioblastomaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AnaplasticAstrocytomaExt']=function(input){const score=Math.round((0.15 + Number(input.grade||3)*0.1 + Number(input.idh||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.220.0',module:'pcc_neuro_ext121',function:'AnaplasticAstrocytomaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OligodendrogliomaExt']=function(input){const score=Math.round((0.15 + Number(input["1p19q"]||1)*0.2 + Number(input.grade||2)*0.1 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.220.0',module:'pcc_neuro_ext121',function:'OligodendrogliomaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GliomatosisCerebriExt']=function(input){const score=Math.round((0.15 + Number(input.diffuse||1)*0.2 + Number(input.bilateral||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.220.0',module:'pcc_neuro_ext121',function:'GliomatosisCerebriExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DIPGext']=function(input){const score=Math.round((0.15 + Number(input.pediatric||1)*0.1 + Number(input.h3k27m||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.220.0',module:'pcc_neuro_ext121',function:'DIPGext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PilocyticAstrocytomaExt']=function(input){const score=Math.round((0.15 + Number(input.braf||1)*0.2 + Number(input.ki67||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.220.0',module:'pcc_neuro_ext121',function:'PilocyticAstrocytomaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SubependymalGiantExt']=function(input){const score=Math.round((0.15 + Number(input.tsc||1)*0.2 + Number(input.seizure||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.220.0',module:'pcc_neuro_ext121',function:'SubependymalGiantExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PleomorphicXanthoExt']=function(input){const score=Math.round((0.15 + Number(input.braf||1)*0.2 + Number(input.grade||2)*0.1 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.220.0',module:'pcc_neuro_ext121',function:'PleomorphicXanthoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PleomorphicAstroExt']=function(input){const score=Math.round((0.15 + Number(input.grade||3)*0.1 + Number(input.mitotic||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.220.0',module:'pcc_neuro_ext121',function:'PleomorphicAstroExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GliosarcomaExt']=function(input){const score=Math.round((0.15 + Number(input.gbm||1)*0.2 + Number(input.sarcomatous||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.220.0',module:'pcc_neuro_ext121',function:'GliosarcomaExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.220.0
