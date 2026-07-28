@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext101/pcc_neuro_ext101_engine.js
+// pcc_neuro_ext101 engine (deterministic)
+module.exports.version='v3.200.0';
+module.exports.module='pcc_neuro_ext101';
+module.exports.functions={};
+module.exports.functions['NeurocriticalICUExt']=function(input){const score=Math.round((0.15 + Number(input.gcs||8)*0.04 + Number(input.vent||1)*0.2 + Number(input.neuro||1)*0.2)*100)/100;return{version:'v3.200.0',module:'pcc_neuro_ext101',function:'NeurocriticalICUExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['ICPMonitorGoalExt']=function(input){const score=Math.round((0.18 + Number(input.icp||20)*0.01 + Number(input.cpp||60)*0.005 + Number(input.intervention||1)*0.2)*100)/100;return{version:'v3.200.0',module:'pcc_neuro_ext101',function:'ICPMonitorGoalExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['EEGMonitoringExt']=function(input){const score=Math.round((0.18 + Number(input.depth||3)*0.05 + Number(input.burden||50)*0.005 + Number(input.treatment||1)*0.2)*100)/100;return{version:'v3.200.0',module:'pcc_neuro_ext101',function:'EEGMonitoringExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['ComaCareExt']=function(input){const score=Math.round((0.15 + Number(input.gcs||6)*0.05 + Number(input.cause||1)*0.2 + Number(input.days||3)*0.05)*100)/100;return{version:'v3.200.0',module:'pcc_neuro_ext101',function:'ComaCareExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['BrainDeathExt']=function(input){const score=Math.round((0.2 + Number(input.exam||1)*0.2 + Number(input.apnea||1)*0.2 + Number(input.imaging||1)*0.2)*100)/100;return{version:'v3.200.0',module:'pcc_neuro_ext101',function:'BrainDeathExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['StatusEpilepticusExt']=function(input){const score=Math.round((0.18 + Number(input.duration||30)*0.01 + Number(input.med||3)*0.05 + Number(input.anesthetic||1)*0.2)*100)/100;return{version:'v3.200.0',module:'pcc_neuro_ext101',function:'StatusEpilepticusExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['RefractoryStatusExt']=function(input){const score=Math.round((0.18 + Number(input.med||4)*0.05 + Number(input.anesthetic||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.200.0',module:'pcc_neuro_ext101',function:'RefractoryStatusExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['BrainHerniationExt']=function(input){const score=Math.round((0.18 + Number(input.pupils||1)*0.2 + Number(input.ICP||30)*0.01 + Number(input.treatment||1)*0.2)*100)/100;return{version:'v3.200.0',module:'pcc_neuro_ext101',function:'BrainHerniationExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['VentilatorMgmExt']=function(input){const score=Math.round((0.15 + Number(input.tidal||500)*0.0005 + Number(input.peep||5)*0.04 + Number(input.target||1)*0.2)*100)/100;return{version:'v3.200.0',module:'pcc_neuro_ext101',function:'VentilatorMgmExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['HemodynamicSupportExt']=function(input){const score=Math.round((0.15 + Number(input.map||70)*0.005 + Number(input.pressor||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.200.0',module:'pcc_neuro_ext101',function:'HemodynamicSupportExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.200.0
