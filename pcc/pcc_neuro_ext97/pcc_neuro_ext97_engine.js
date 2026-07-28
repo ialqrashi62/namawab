@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext97/pcc_neuro_ext97_engine.js
+// pcc_neuro_ext97 engine (deterministic)
+module.exports.version='v3.196.0';
+module.exports.module='pcc_neuro_ext97';
+module.exports.functions={};
+module.exports.functions['HeadacheClinicExt']=function(input){const score=Math.round((0.15 + Number(input.freq||10)*0.02 + Number(input.duration||4)*0.05 + Number(input.disability||30)*0.01)*100)/100;return{version:'v3.196.0',module:'pcc_neuro_ext97',function:'HeadacheClinicExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['MigraineProphyExt']=function(input){const score=Math.round((0.2 + Number(input.freq||5)*0.04 + Number(input.med||1)*0.15 + Number(input.efficacy||1)*0.15)*100)/100;return{version:'v3.196.0',module:'pcc_neuro_ext97',function:'MigraineProphyExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['BotoxChronicMigraineExt']=function(input){const score=Math.round((0.18 + Number(input.headacheDays||15)*0.01 + Number(input.preBotox||20)*0.005 + Number(input.sites||31)*0.005)*100)/100;return{version:'v3.196.0',module:'pcc_neuro_ext97',function:'BotoxChronicMigraineExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CGRPAntagonistExt']=function(input){const score=Math.round((0.15 + Number(input.drug||1)*0.2 + Number(input.response||1)*0.2 + Number(input.freq||8)*0.02)*100)/100;return{version:'v3.196.0',module:'pcc_neuro_ext97',function:'CGRPAntagonistExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['ClusterHeadacheAcuteExt']=function(input){const score=Math.round((0.15 + Number(input.oxygen||1)*0.2 + Number(input.triptan||1)*0.2 + Number(input.freq||2)*0.05)*100)/100;return{version:'v3.196.0',module:'pcc_neuro_ext97',function:'ClusterHeadacheAcuteExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['TensionHeadacheMgmExt']=function(input){const score=Math.round((0.15 + Number(input.stress||5)*0.05 + Number(input.relaxation||1)*0.2 + Number(input.responder||1)*0.2)*100)/100;return{version:'v3.196.0',module:'pcc_neuro_ext97',function:'TensionHeadacheMgmExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['TrigeminalNeuralgiaExt']=function(input){const score=Math.round((0.15 + Number(input.freq||5)*0.05 + Number(input.carbamazepine||1)*0.2 + Number(input.microvascular||1)*0.2)*100)/100;return{version:'v3.196.0',module:'pcc_neuro_ext97',function:'TrigeminalNeuralgiaExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['IdiopathicIntracranialHTNExt']=function(input){const score=Math.round((0.18 + Number(input.opening||25)*0.01 + Number(input.diamox||1)*0.2 + Number(input.weightLoss||5)*0.04)*100)/100;return{version:'v3.196.0',module:'pcc_neuro_ext97',function:'IdiopathicIntracranialHTNExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['LowCSFPressureExt']=function(input){const score=Math.round((0.18 + Number(input.ebp||1)*0.2 + Number(input.bloodPatch||1)*0.2 + Number(input.imaging||1)*0.15)*100)/100;return{version:'v3.196.0',module:'pcc_neuro_ext97',function:'LowCSFPressureExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['ReversibleCerebralVasoconstExt']=function(input){const score=Math.round((0.15 + Number(input.segments||3)*0.1 + Number(input.nimodipine||1)*0.2 + Number(input.triggers||1)*0.15)*100)/100;return{version:'v3.196.0',module:'pcc_neuro_ext97',function:'ReversibleCerebralVasoconstExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.196.0
