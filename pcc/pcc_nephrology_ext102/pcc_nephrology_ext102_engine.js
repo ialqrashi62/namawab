@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_nephrology_ext102/pcc_nephrology_ext102_engine.js
+module.exports.version='v3.53.53.0';
+module.exports.module='pcc_nephrology_ext102';
+module.exports.functions={};
+module.exports.functions['NepGenExt']=function(input){const score=Math.round((0.18 + Number(input.npGen||1)*0.2 + Number(input.npGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_nephrology_ext102',function:'NepGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NepAKIext']=function(input){const score=Math.round((0.18 + Number(input.npAKI||1)*0.2 + Number(input.npAKIstage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_nephrology_ext102',function:'NepAKIext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NepCKDExt']=function(input){const score=Math.round((0.18 + Number(input.npCKD||1)*0.2 + Number(input.npCKDstage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_nephrology_ext102',function:'NepCKDExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NepGNext']=function(input){const score=Math.round((0.18 + Number(input.npGN||1)*0.2 + Number(input.npGNtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_nephrology_ext102',function:'NepGNext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NepHTnext']=function(input){const score=Math.round((0.18 + Number(input.npHTN||1)*0.2 + Number(input.npHTNscore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_nephrology_ext102',function:'NepHTnext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NepStoneExt']=function(input){const score=Math.round((0.18 + Number(input.npStone||1)*0.2 + Number(input.npStoneSize||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_nephrology_ext102',function:'NepStoneExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NepTransplantExt']=function(input){const score=Math.round((0.18 + Number(input.npTx||1)*0.2 + Number(input.npTxType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_nephrology_ext102',function:'NepTransplantExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NepPKDExt']=function(input){const score=Math.round((0.18 + Number(input.npPKD||1)*0.2 + Number(input.npPKDtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_nephrology_ext102',function:'NepPKDExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NepElectrolyteExt']=function(input){const score=Math.round((0.18 + Number(input.npElec||1)*0.2 + Number(input.npElecType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_nephrology_ext102',function:'NepElectrolyteExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NepAcidBaseExt']=function(input){const score=Math.round((0.18 + Number(input.npAB||1)*0.2 + Number(input.npABpH||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_nephrology_ext102',function:'NepAcidBaseExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.53.53.0

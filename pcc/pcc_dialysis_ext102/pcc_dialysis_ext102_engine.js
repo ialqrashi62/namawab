@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_dialysis_ext102/pcc_dialysis_ext102_engine.js
+module.exports.version='v3.53.53.0';
+module.exports.module='pcc_dialysis_ext102';
+module.exports.functions={};
+module.exports.functions['DiaGenExt']=function(input){const score=Math.round((0.18 + Number(input.diGen||1)*0.2 + Number(input.diGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaHDext']=function(input){const score=Math.round((0.18 + Number(input.diHD||1)*0.2 + Number(input.diHDhrs||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaHDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaPDext']=function(input){const score=Math.round((0.18 + Number(input.diPD||1)*0.2 + Number(input.diPDtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaPDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaAccessExt']=function(input){const score=Math.round((0.18 + Number(input.diAcc||1)*0.2 + Number(input.diAccType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaAccessExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaAdequacyExt']=function(input){const score=Math.round((0.18 + Number(input.diAdq||1)*0.2 + Number(input.diAdqKtV||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaAdequacyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaAnemiaExt']=function(input){const score=Math.round((0.18 + Number(input.diAn||1)*0.2 + Number(input.diAnHgb||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaAnemiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaMBDext']=function(input){const score=Math.round((0.18 + Number(input.diMBD||1)*0.2 + Number(input.diMBDtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaMBDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaCVext']=function(input){const score=Math.round((0.18 + Number(input.diCV||1)*0.2 + Number(input.diCVscore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaCVext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaInfectionExt']=function(input){const score=Math.round((0.18 + Number(input.diInf||1)*0.2 + Number(input.diInfType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaInfectionExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiaTransplantExt']=function(input){const score=Math.round((0.18 + Number(input.diTx||1)*0.2 + Number(input.diTxType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaTransplantExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.53.53.0
