@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext161/pcc_neuro_ext161_engine.js
+module.exports.version='v3.260.0';
+module.exports.module='pcc_neuro_ext161';
+module.exports.functions={};
+module.exports.functions['MovementDisorderTremorExt']=function(input){const score=Math.round((0.18 + Number(input.tremor||1)*0.2 + Number(input.type||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.260.0',module:'pcc_neuro_ext161',function:'MovementDisorderTremorExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DystoniaExt']=function(input){const score=Math.round((0.18 + Number(input.dystonia||1)*0.2 + Number(input.focal||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.260.0',module:'pcc_neuro_ext161',function:'DystoniaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ChoreaExt']=function(input){const score=Math.round((0.18 + Number(input.chorea||1)*0.2 + Number(input.hd||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.260.0',module:'pcc_neuro_ext161',function:'ChoreaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TicDisorderExt']=function(input){const score=Math.round((0.18 + Number(input.tic||1)*0.2 + Number(input.motor||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.260.0',module:'pcc_neuro_ext161',function:'TicDisorderExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MyoclonusExt']=function(input){const score=Math.round((0.18 + Number(input.myoclonus||1)*0.2 + Number(input.cortex||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.260.0',module:'pcc_neuro_ext161',function:'MyoclonusExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AtaxiaCerebellarExt']=function(input){const score=Math.round((0.18 + Number(input.ataxia||1)*0.2 + Number(input.cerebellar||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.260.0',module:'pcc_neuro_ext161',function:'AtaxiaCerebellarExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SensoryAtaxiaExt']=function(input){const score=Math.round((0.18 + Number(input.sensoryAtaxia||1)*0.2 + Number(input.dorsalColumn||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.260.0',module:'pcc_neuro_ext161',function:'SensoryAtaxiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VestibularAtaxiaExt']=function(input){const score=Math.round((0.18 + Number(input.vestAtaxia||1)*0.2 + Number(input.vestibular||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.260.0',module:'pcc_neuro_ext161',function:'VestibularAtaxiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ParkinsonianExt']=function(input){const score=Math.round((0.18 + Number(input.park||1)*0.2 + Number(input.brady||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.260.0',module:'pcc_neuro_ext161',function:'ParkinsonianExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PSPext']=function(input){const score=Math.round((0.18 + Number(input.psp||1)*0.2 + Number(input.supranuclear||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.260.0',module:'pcc_neuro_ext161',function:'PSPext',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.260.0
