@@ -1,0 +1,6 @@
+// filepath: pcc/pcc_neuro_ext108/pcc_neuro_ext108_routes.js
+const express=require('express');const {functions:F}=require('./pcc_neuro_ext108_engine');const {authenticate}=require('../middleware');const router=express.Router();
+router.get('/list',(_req,res)=>res.json({module:'pcc_neuro_ext108',version:'v3.207.0',functions:Object.keys(F)}));
+router.post('/call/:fn',(req,res)=>{const fn=req.params.fn;if(!F[fn])return res.status(404).json({error:'not found'});const r=F[fn](req.body||{});res.json(r);});
+router.post('/record',(req,res)=>{const {fn,payload,decisionId}=req.body||{};if(!F[fn])return res.status(404).json({error:'not found'});const r=F[fn](payload||{});res.json({decisionId,...r});});
+module.exports=router;
