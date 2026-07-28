@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext92/pcc_neuro_ext92_engine.js
+// pcc_neuro_ext92 engine (deterministic)
+module.exports.version='v3.191.0';
+module.exports.module='pcc_neuro_ext92';
+module.exports.functions={};
+module.exports.functions['TeleStrokeThrombectomyExt']=function(input){const score=Math.round((0.15 + Number(input.travel||30)*0.01 + Number(input.lkw||4)*0.05 + Number(input.thrombectomy||1)*0.2)*100)/100;return{version:'v3.191.0',module:'pcc_neuro_ext92',function:'TeleStrokeThrombectomyExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['MobileStrokeUnitExt']=function(input){const score=Math.round((0.2 + Number(input.travel||15)*0.01 + Number(input.scenesCT||1)*0.3 + Number(input.tPA||1)*0.2)*100)/100;return{version:'v3.191.0',module:'pcc_neuro_ext92',function:'MobileStrokeUnitExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['TelestrokeOutcomeExt']=function(input){const score=Math.round((0.18 + Number(input.thrombolysis||1)*0.2 + Number(input.thrombectomy||1)*0.2 + Number(input.mrs||2)*0.1)*100)/100;return{version:'v3.191.0',module:'pcc_neuro_ext92',function:'TelestrokeOutcomeExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['IVTriageExt']=function(input){const score=Math.round((0.2 + Number(input.doorToNeedle||30)*0.005 + Number(input.drt||60)*0.005)*100)/100;return{version:'v3.191.0',module:'pcc_neuro_ext92',function:'IVTriageExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CTPerfusionSelectionExt']=function(input){const score=Math.round((0.2 + Number(input.coreVol||15)*0.02 + Number(input.penumbra||50)*0.005 + Number(input.mismatchRatio||1.8)*0.2)*100)/100;return{version:'v3.191.0',module:'pcc_neuro_ext92',function:'CTPerfusionSelectionExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['LargeVesselOcclusionExt']=function(input){const score=Math.round((0.18 + Number(input.drivingScore||5)*0.06 + Number(input.dwi||1)*0.2 + Number(input.collateralPts||3)*0.08)*100)/100;return{version:'v3.191.0',module:'pcc_neuro_ext92',function:'LargeVesselOcclusionExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['DripShipExt']=function(input){const score=Math.round((0.2 + Number(input.distance||100)*0.001 + Number(input.tPA||1)*0.2 + Number(input.mothership||1)*0.2)*100)/100;return{version:'v3.191.0',module:'pcc_neuro_ext92',function:'DripShipExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['DoorInDoorOutExt']=function(input){const score=Math.round((0.15 + Number(input.dido||60)*-0.003 + 0.4 + Number(input.transfer||1)*0.2)*100)/100;return{version:'v3.191.0',module:'pcc_neuro_ext92',function:'DoorInDoorOutExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['TelestrokeConsentExt']=function(input){const score=Math.round((0.2 + Number(input.familyPresent||1)*0.1 + Number(input.signed||1)*0.3 + Number(input.language||1)*0.1)*100)/100;return{version:'v3.191.0',module:'pcc_neuro_ext92',function:'TelestrokeConsentExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['NIHSSFollowExt']=function(input){const score=Math.round((0.18 + Number(input.nihss||10)*0.03 + Number(input.day||7)*0.04 + Number(input.delta||5)*0.04)*100)/100;return{version:'v3.191.0',module:'pcc_neuro_ext92',function:'NIHSSFollowExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.191.0

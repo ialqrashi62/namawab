@@ -1,0 +1,6 @@
+// filepath: pcc/pcc_pediatric_surg_ext81/pcc_pediatric_surg_ext81_routes.js
+const express=require('express');const {functions:F}=require('./pcc_pediatric_surg_ext81_engine');const {authenticate}=require('../middleware');const router=express.Router();
+router.get('/list',(_req,res)=>res.json({module:'pcc_pediatric_surg_ext81',version:'v3.191.0',functions:Object.keys(F)}));
+router.post('/call/:fn',(req,res)=>{const fn=req.params.fn;if(!F[fn])return res.status(404).json({error:'not found'});const r=F[fn](req.body||{});res.json(r);});
+router.post('/record',(req,res)=>{const {fn,payload,decisionId}=req.body||{};if(!F[fn])return res.status(404).json({error:'not found'});const r=F[fn](payload||{});res.json({decisionId,...r});});
+module.exports=router;
