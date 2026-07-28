@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext113/pcc_neuro_ext113_engine.js
+module.exports.version='v3.212.0';
+module.exports.module='pcc_neuro_ext113';
+module.exports.functions={};
+module.exports.functions['AlzheimerExt']=function(input){const score=Math.round((0.15 + Number(input.age||70)*0.004 + Number(input.mmse||20)*0.03 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.212.0',module:'pcc_neuro_ext113',function:'AlzheimerExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VascularDementiaExt']=function(input){const score=Math.round((0.18 + Number(input.fazekas||2)*0.1 + Number(input.hachinski||7)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.212.0',module:'pcc_neuro_ext113',function:'VascularDementiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LewyBodyExt']=function(input){const score=Math.round((0.18 + Number(input.fluctuation||1)*0.2 + Number(input.visualHallucination||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.212.0',module:'pcc_neuro_ext113',function:'LewyBodyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FrontotemporalExt']=function(input){const score=Math.round((0.18 + Number(input.behavior||1)*0.2 + Number(input.language||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.212.0',module:'pcc_neuro_ext113',function:'FrontotemporalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MCIExt']=function(input){const score=Math.round((0.18 + Number(input.memory||1)*0.2 + Number(input.fcsrt||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.212.0',module:'pcc_neuro_ext113',function:'MCIExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MildADExt']=function(input){const score=Math.round((0.18 + Number(input.cdr||1)*0.2 + Number(input.mmse||20)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.212.0',module:'pcc_neuro_ext113',function:'MildADExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ModerateADExt']=function(input){const score=Math.round((0.18 + Number(input.cdr||2)*0.1 + Number(input.adl||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.212.0',module:'pcc_neuro_ext113',function:'ModerateADExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SevereADExt']=function(input){const score=Math.round((0.18 + Number(input.cdr||3)*0.05 + Number(input.bedbound||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.212.0',module:'pcc_neuro_ext113',function:'SevereADExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PosteriorCorticalExt']=function(input){const score=Math.round((0.18 + Number(input.visuospatial||1)*0.2 + Number(input.benson||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.212.0',module:'pcc_neuro_ext113',function:'PosteriorCorticalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PrimaryProgressiveAphasiaExt']=function(input){const score=Math.round((0.18 + Number(input.fluency||1)*0.2 + Number(input.comprehension||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.212.0',module:'pcc_neuro_ext113',function:'PrimaryProgressiveAphasiaExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.212.0
