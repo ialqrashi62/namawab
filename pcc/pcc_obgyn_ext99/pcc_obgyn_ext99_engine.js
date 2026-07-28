@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_obgyn_ext99/pcc_obgyn_ext99_engine.js
+module.exports.version='v3.17.17.0';
+module.exports.module='pcc_obgyn_ext99';
+module.exports.functions={};
+module.exports.functions['OBAntenatalExt']=function(input){const score=Math.round((0.18 + Number(input.obAntenatal||1)*0.2 + Number(input.ga||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_obgyn_ext99',function:'OBAntenatalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OBIntrapartumExt']=function(input){const score=Math.round((0.18 + Number(input.obIP||1)*0.2 + Number(input.cervixDil||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_obgyn_ext99',function:'OBIntrapartumExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OBPostpartumExt']=function(input){const score=Math.round((0.18 + Number(input.obPP||1)*0.2 + Number(input.ppDay||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_obgyn_ext99',function:'OBPostpartumExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OBHighRiskExt']=function(input){const score=Math.round((0.18 + Number(input.obHR||1)*0.2 + Number(input.riskScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_obgyn_ext99',function:'OBHighRiskExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GynGeneralExt']=function(input){const score=Math.round((0.18 + Number(input.gynGeneral||1)*0.2 + Number(input.gynAge||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_obgyn_ext99',function:'GynGeneralExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GynOncologyExt']=function(input){const score=Math.round((0.18 + Number(input.gynOnc||1)*0.2 + Number(input.gynStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_obgyn_ext99',function:'GynOncologyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GynInfertilityExt']=function(input){const score=Math.round((0.18 + Number(input.gynIF||1)*0.2 + Number(input.amh||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_obgyn_ext99',function:'GynInfertilityExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OBDiabetesExt']=function(input){const score=Math.round((0.18 + Number(input.obDM||1)*0.2 + Number(input.gdm||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_obgyn_ext99',function:'OBDiabetesExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OBPreeclampsiaExt']=function(input){const score=Math.round((0.18 + Number(input.obPE||1)*0.2 + Number(input.bpHigh||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_obgyn_ext99',function:'OBPreeclampsiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OBFetalMonitoringExt']=function(input){const score=Math.round((0.18 + Number(input.obFHR||1)*0.2 + Number(input.fhrCategory||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_obgyn_ext99',function:'OBFetalMonitoringExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.17.17.0

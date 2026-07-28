@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_surg_ext99/pcc_surg_ext99_engine.js
+module.exports.version='v3.17.17.0';
+module.exports.module='pcc_surg_ext99';
+module.exports.functions={};
+module.exports.functions['SurgPreopExt']=function(input){const score=Math.round((0.18 + Number(input.preOp||1)*0.2 + Number(input.asaClass||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgPreopExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SurgIntraopExt']=function(input){const score=Math.round((0.18 + Number(input.intraOp||1)*0.2 + Number(input.opDuration||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgIntraopExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SurgPostopExt']=function(input){const score=Math.round((0.18 + Number(input.postOp||1)*0.2 + Number(input.pod||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgPostopExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SurgCardiacExt']=function(input){const score=Math.round((0.18 + Number(input.surgCardiac||1)*0.2 + Number(input.bypassTime||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgCardiacExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SurgNeuroExt']=function(input){const score=Math.round((0.18 + Number(input.surgNeuro||1)*0.2 + Number(input.craniotomyType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgNeuroExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SurgOrthoExt']=function(input){const score=Math.round((0.18 + Number(input.surgOrtho||1)*0.2 + Number(input.orthoType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgOrthoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SurgGIext']=function(input){const score=Math.round((0.18 + Number(input.surgGI||1)*0.2 + Number(input.giProcedure||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgGIext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SurgVascularExt']=function(input){const score=Math.round((0.18 + Number(input.surgVasc||1)*0.2 + Number(input.vascType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgVascularExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SurgTransplantExt']=function(input){const score=Math.round((0.18 + Number(input.surgTx||1)*0.2 + Number(input.txType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgTransplantExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SurgOncologyExt']=function(input){const score=Math.round((0.18 + Number(input.surgOnc||1)*0.2 + Number(input.oncStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgOncologyExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.17.17.0
