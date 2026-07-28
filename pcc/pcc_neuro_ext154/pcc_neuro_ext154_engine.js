@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext154/pcc_neuro_ext154_engine.js
+module.exports.version='v3.253.0';
+module.exports.module='pcc_neuro_ext154';
+module.exports.functions={};
+module.exports.functions['CavernousSinusExt']=function(input){const score=Math.round((0.18 + Number(input.cs||1)*0.2 + Number(input.opthalmoplegia||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.253.0',module:'pcc_neuro_ext154',function:'CavernousSinusExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SuperiorOrbitalFissureExt']=function(input){const score=Math.round((0.18 + Number(input.sof||1)*0.2 + Number(input.orbital||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.253.0',module:'pcc_neuro_ext154',function:'SuperiorOrbitalFissureExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OrbitalApexExt']=function(input){const score=Math.round((0.18 + Number(input.apex||1)*0.2 + Number(input.vision||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.253.0',module:'pcc_neuro_ext154',function:'OrbitalApexExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GradenigoExt']=function(input){const score=Math.round((0.18 + Number(input.gradenigo||1)*0.2 + Number(input.petrous||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.253.0',module:'pcc_neuro_ext154',function:'GradenigoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TrigeminalNeuralgiaExt']=function(input){const score=Math.round((0.18 + Number(input.tic||1)*0.2 + Number(input.v2||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.253.0',module:'pcc_neuro_ext154',function:'TrigeminalNeuralgiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HemifacialSpasmExt']=function(input){const score=Math.round((0.18 + Number(input.hfs||1)*0.2 + Number(input.microvasc||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.253.0',module:'pcc_neuro_ext154',function:'HemifacialSpasmExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GlossopharyngealExt']=function(input){const score=Math.round((0.18 + Number(input.glossophar||1)*0.2 + Number(input.throat||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.253.0',module:'pcc_neuro_ext154',function:'GlossopharyngealExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BellPalsyExt']=function(input){const score=Math.round((0.18 + Number(input.bell||1)*0.2 + Number(input.houseBrack||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.253.0',module:'pcc_neuro_ext154',function:'BellPalsyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RamsayHuntExt']=function(input){const score=Math.round((0.18 + Number(input.ramsay||1)*0.2 + Number(input.vzv||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.253.0',module:'pcc_neuro_ext154',function:'RamsayHuntExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MelkerssonExt']=function(input){const score=Math.round((0.18 + Number(input.melkersson||1)*0.2 + Number(input.facialEdema||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.253.0',module:'pcc_neuro_ext154',function:'MelkerssonExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.253.0
