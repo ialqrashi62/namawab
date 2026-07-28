@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_fertility_ext102/pcc_fertility_ext102_engine.js
+module.exports.version='v3.50.50.0';
+module.exports.module='pcc_fertility_ext102';
+module.exports.functions={};
+module.exports.functions['FertBasicExt']=function(input){const score=Math.round((0.18 + Number(input.ftBas||1)*0.2 + Number(input.ftBasType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_fertility_ext102',function:'FertBasicExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FertMaleExt']=function(input){const score=Math.round((0.18 + Number(input.ftMale||1)*0.2 + Number(input.ftMaleCount||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_fertility_ext102',function:'FertMaleExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FertFemaleExt']=function(input){const score=Math.round((0.18 + Number(input.ftFem||1)*0.2 + Number(input.ftFemScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_fertility_ext102',function:'FertFemaleExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FertIVFext']=function(input){const score=Math.round((0.18 + Number(input.ftIVF||1)*0.2 + Number(input.ftIVFStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_fertility_ext102',function:'FertIVFext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FertIUIext']=function(input){const score=Math.round((0.18 + Number(input.ftIUI||1)*0.2 + Number(input.ftIUIType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_fertility_ext102',function:'FertIUIext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FertICSIext']=function(input){const score=Math.round((0.18 + Number(input.ftICSI||1)*0.2 + Number(input.ftICSIScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_fertility_ext102',function:'FertICSIext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FertPGText']=function(input){const score=Math.round((0.18 + Number(input.ftPGT||1)*0.2 + Number(input.ftPGTType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_fertility_ext102',function:'FertPGText',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FertCryoExt']=function(input){const score=Math.round((0.18 + Number(input.ftCryo||1)*0.2 + Number(input.ftCryoType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_fertility_ext102',function:'FertCryoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FertDonorExt']=function(input){const score=Math.round((0.18 + Number(input.ftDonor||1)*0.2 + Number(input.ftDonorType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_fertility_ext102',function:'FertDonorExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FertSuccessExt']=function(input){const score=Math.round((0.18 + Number(input.ftSucc||1)*0.2 + Number(input.ftSuccRate||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_fertility_ext102',function:'FertSuccessExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.50.50.0
