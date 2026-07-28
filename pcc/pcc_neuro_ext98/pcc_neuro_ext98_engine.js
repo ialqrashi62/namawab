@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext98/pcc_neuro_ext98_engine.js
+// pcc_neuro_ext98 engine (deterministic)
+module.exports.version='v3.197.0';
+module.exports.module='pcc_neuro_ext98';
+module.exports.functions={};
+module.exports.functions['CognitionClinicExt']=function(input){const score=Math.round((0.15 + Number(input.moca||26)*0.02 + Number(input.memory||80)*0.005 + Number(input.executive||75)*0.005)*100)/100;return{version:'v3.197.0',module:'pcc_neuro_ext98',function:'CognitionClinicExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['DementiaDiagnosticExt']=function(input){const score=Math.round((0.2 + Number(input.mmse||24)*0.02 + Number(input.biomarker||1)*0.2 + Number(input.fdg||1)*0.15)*100)/100;return{version:'v3.197.0',module:'pcc_neuro_ext98',function:'DementiaDiagnosticExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['MildCognitiveImpairmentExt']=function(input){const score=Math.round((0.18 + Number(input.fwdRecall||5)*0.04 + Number(input.brain||1)*0.2 + Number(input.adl||85)*0.005)*100)/100;return{version:'v3.197.0',module:'pcc_neuro_ext98',function:'MildCognitiveImpairmentExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['AlzheimerTreatmentExt']=function(input){const score=Math.round((0.15 + Number(input.ache||1)*0.15 + Number(input.memantine||1)*0.15 + Number(input.lecanemab||1)*0.2)*100)/100;return{version:'v3.197.0',module:'pcc_neuro_ext98',function:'AlzheimerTreatmentExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['FrontotemporalDementiaExt']=function(input){const score=Math.round((0.15 + Number(input.behavior||3)*0.05 + Number(input.language||3)*0.05 + Number(input.inheritance||1)*0.2)*100)/100;return{version:'v3.197.0',module:'pcc_neuro_ext98',function:'FrontotemporalDementiaExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['LewyBodyDementiaExt']=function(input){const score=Math.round((0.18 + Number(input.fluctuations||1)*0.2 + Number(input.visualHall||1)*0.2 + Number(input.parkinsonism||1)*0.15)*100)/100;return{version:'v3.197.0',module:'pcc_neuro_ext98',function:'LewyBodyDementiaExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['VascularDementiaExt']=function(input){const score=Math.round((0.15 + Number(input.fazekas||2)*0.1 + Number(input.vascular||1)*0.2 + Number(input.riskFactors||3)*0.05)*100)/100;return{version:'v3.197.0',module:'pcc_neuro_ext98',function:'VascularDementiaExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CJDiseaseEvalExt']=function(input){const score=Math.round((0.2 + Number(input.mri||1)*0.2 + Number(input.rtQuIC||1)*0.2 + Number(input.rapidDementia||1)*0.15)*100)/100;return{version:'v3.197.0',module:'pcc_neuro_ext98',function:'CJDiseaseEvalExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['NormalPressureHydroExt']=function(input){const score=Math.round((0.18 + Number(input.tapTest||1)*0.2 + Number(input.walkingSpeed||0.8)*0.5 + Number(input.brainVol||1)*0.15)*100)/100;return{version:'v3.197.0',module:'pcc_neuro_ext98',function:'NormalPressureHydroExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CognitiveRehabMgmExt']=function(input){const score=Math.round((0.15 + Number(input.intensity||3)*0.1 + Number(input.weeks||12)*0.04 + Number(input.gain||10)*0.04)*100)/100;return{version:'v3.197.0',module:'pcc_neuro_ext98',function:'CognitiveRehabMgmExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.197.0
