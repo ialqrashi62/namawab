@@ -559,6 +559,9 @@ const pccPediatricSurgExt49Router = require('./pcc_pediatric_surg_ext49/pcc_pedi
 const pccNeuroExt61Router = require('./pcc_neuro_ext61/pcc_neuro_ext61_routes');
 const pccPediatricNeuroExt50Router = require('./pcc_pediatric_neuro_ext50/pcc_pediatric_neuro_ext50_routes');
 const pccPediatricSurgExt50Router = require('./pcc_pediatric_surg_ext50/pcc_pediatric_surg_ext50_routes');
+const pccNeuroExt62Router = require('./pcc_neuro_ext62/pcc_neuro_ext62_routes');
+const pccPediatricNeuroExt51Router = require('./pcc_pediatric_neuro_ext51/pcc_pediatric_neuro_ext51_routes');
+const pccPediatricSurgExt51Router = require('./pcc_pediatric_surg_ext51/pcc_pediatric_surg_ext51_routes');
 const pccNeonatologyAdvancedRouter = require('./pcc_neonatology_advanced/pcc_neonatology_advanced_routes');
 const pccPediatricNeuroRouter = require('./pcc_pediatric_neuro/pcc_pediatric_neuro_routes');
 const pccObstetricsAdvancedRouter = require('./pcc_obstetrics_advanced/pcc_obstetrics_advanced_routes');
@@ -602,7 +605,7 @@ app.use(morgan('tiny'));
 555
 // --- Health ---
 app.get('/health', (_req, res) => res.json({
-  status: 'ok', service: 'pcc-sandbox', version: ('3.160.0'),
+  status: 'ok', service: 'pcc-sandbox', version: ('3.161.0'),
   modules: ['cath_lab', 'ccu', 'nnicu', 'bicu', 'copilot', 'picu', 'sicu', 'ticu', 'micu', 'honc', 'cticu', 'nicu', 'or', 'ed', 'obgyn', 'derma', 'gi', 'endo', 'rheum', 'nephro', 'heme', 'pharmacy', 'lab', 'cardiology', 'pulmonology', 'infectious_disease', 'radiology', 'oncology', 'billing_rcm', 'pedi', 'telehealth', 'transplant', 'stroke_neuro', 'anesthesia', 'wound_care', 'genetics', 'palliative', 'pedi_icu', 'ent', 'ophthalmology', 'urology', 'pmr', 'allergy', 'pain', 'sleep', 'bariatric', 'geriatrics', 'hematology', 'oncology_ext', 'hepatology', 'rheum_ext', 'pedi_sub', 'transplant_ext', 'cardio_ext', 'endo_ext', 'maternal_fetal', 'neuro_ext', 'gi_ext', 'derm_ext', 'cardio_surg', 'transplant_neph', 'bmt', 'rehab_ext', 'sports_med', 'forensic_med', 'public_health', 'dental', 'occupational', 'pain_ext', 'disaster', 'tropical', 'aviation', 'military', 'veterinary', 'audiology', 'neuropsych', 'speech_lang', 'nuclear_med', 'palliative_ext', 'hospital_admin', 'bioethics', 'chaplaincy', 'aerodigestive', 'hospice', 'pharmacy_clinical', 'clinical_pharm', 'transplant_heart', 'transplant_liver', 'transfusion_med', 'burn_center', 'ecmo_service', 'trauma_center', 'critical_care_ext', 'stroke_ext', 'cardiology_ext2', 'radiology_ext', 'pharmacy_compounding', 'lab_specialty', 'imaging_molecular', 'aerospace', 'bmt2', 'diving', 'mountain', 'tropical_ext', 'hand_therapy', 'cardiac_rehab', 'pelvic_rehab', 'vestibular_rehab', 'lymphedema', 'driving_rehab', 'music_therapy', 'art_therapy', 'recreational_therapy', 'hippotherapy', 'aquatic_therapy', 'child_life', 'low_vision', 'voice_therapy', 'prosthetics_orthotics', 'wound_ostomy', 'chronic_pain_rehab', 'telerehab', 'falls_prevention', 'frailty', 'geriatric_assessment', 'home_health', 'community_health', 'med_psych', 'comprehensive_rehab', 'sleep_medicine_ext', 'transplant_extended', 'transplant_living', 'neonatal_ext', 'perinatal_ext', 'fertility', 'transplant_pediatric', 'womens_health_ext', 'transplant_immunology', 'mens_health_ext', 'palliative_ext2', 'transplant_pharmacy', 'neuro_ext2', 'cv_ext2', 'neonatal_ext2', 'rad_ext', 'lab_ext', 'perinatal_ext2', 'pharmacy_ext', 'dental_ext', 'sports_med_ext', 'pain_ext2', 'psych_ext', 'occupational_ext', 'rehab_ext2', 'ent_ext', 'ophth_ext', 'hem_ext', 'onco_ext2', 'gastro_ext', 'rheum_ext2', 'id_ext', 'allergy_ext', 'endocrine_ext', 'derm_ext2', 'uro_ext', 'vasc_ext', 'ortho_ext', 'neph_ext2', 'plast_surg_ext', 'surg_ext', 'anesthesia2', 'radiology2', 'pathology_ext', 'geri_ext', 'gen_med_ext', 'trauma_ext', 'breast_ext', 'icu_ext2', 'obgyn_ext2', 'neonatal_ext3', 'perinatal_ext3', 'hem_ext2', 'gi_ext2', 'ent_ext2', 'derma_ext2', 'psych_ext2', 'onco_ext3', 'repro_ext', 'endo_ext2', 'ortho_ext2', 'cardio_ext3', 'allergy_ext2', 'cv_ext3', 'sleep_ext2', 'id_ext2', 'rheum_ext3', 'neph_ext3', 'pcc_utility', 'pcc_audit', 'pcc_admin'], ts: new Date().toISOString(),
 }));
 
@@ -1139,6 +1142,9 @@ app.use('/api/v1/pcc-pediatric-surg-ext49', pccPediatricSurgExt49Router);
 app.use('/api/v1/pcc-neuro-ext61', pccNeuroExt61Router);
 app.use('/api/v1/pcc-pediatric-neuro-ext50', pccPediatricNeuroExt50Router);
 app.use('/api/v1/pcc-pediatric-surg-ext50', pccPediatricSurgExt50Router);
+app.use('/api/v1/pcc-neuro-ext62', pccNeuroExt62Router);
+app.use('/api/v1/pcc-pediatric-neuro-ext51', pccPediatricNeuroExt51Router);
+app.use('/api/v1/pcc-pediatric-surg-ext51', pccPediatricSurgExt51Router);
 app.use('/api/v1/pcc-neonatology-advanced', pccNeonatologyAdvancedRouter);
 app.use('/api/v1/pcc-pediatric-neuro', pccPediatricNeuroRouter);
 app.use('/api/v1/pcc-obstetrics-advanced', pccObstetricsAdvancedRouter);
@@ -1187,7 +1193,7 @@ app.use((err, req, res, _next) => {
 // --- Start ---
 const server = app.listen(PORT, () => {
   // eslint-disable-next-line no-console
-  console.log(`PCC sandbox listening on port ${PORT} (v3.160.0: modules wired, P3-GR neuro_ext61/pediatric_neuro_ext50/pediatric_surg_ext50)`);
+  console.log(`PCC sandbox listening on port ${PORT} (v3.161.0: modules wired, P3-GS neuro_ext62/pediatric_neuro_ext51/pediatric_surg_ext51)`);
   // eslint-disable-next-line no-console
   console.log(`  Health:   http://localhost:${PORT}/health`);
   // eslint-disable-next-line no-console
