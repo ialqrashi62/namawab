@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neurosurgery_ext102/pcc_neurosurgery_ext102_engine.js
+module.exports.version='v3.61.61.0';
+module.exports.module='pcc_neurosurgery_ext102';
+module.exports.functions={};
+module.exports.functions['NSxGenExt']=function(input){const score=Math.round((0.18 + Number(input.nsGen||1)*0.2 + Number(input.nsGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NSxTumorExt']=function(input){const score=Math.round((0.18 + Number(input.nsTum||1)*0.2 + Number(input.nsTumType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxTumorExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NSxAVMext']=function(input){const score=Math.round((0.18 + Number(input.nsAVM||1)*0.2 + Number(input.nsAVMSpetzler||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxAVMext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NSxAneurExt']=function(input){const score=Math.round((0.18 + Number(input.nsAn||1)*0.2 + Number(input.nsAnHH||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxAneurExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NSxTBIext']=function(input){const score=Math.round((0.18 + Number(input.nsTBI||1)*0.2 + Number(input.nsTBIGCS||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxTBIext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NSxHemorExt']=function(input){const score=Math.round((0.18 + Number(input.nsHem||1)*0.2 + Number(input.nsHemVol||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxHemorExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NSxHydroExt']=function(input){const score=Math.round((0.18 + Number(input.nsHyd||1)*0.2 + Number(input.nsHydType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxHydroExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NSxSpineExt']=function(input){const score=Math.round((0.18 + Number(input.nsSp||1)*0.2 + Number(input.nsSpType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxSpineExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NSxFuncExt']=function(input){const score=Math.round((0.18 + Number(input.nsFn||1)*0.2 + Number(input.nsFnType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxFuncExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NSxSkullBaseExt']=function(input){const score=Math.round((0.18 + Number(input.nsSB||1)*0.2 + Number(input.nsSBtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxSkullBaseExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.61.61.0
