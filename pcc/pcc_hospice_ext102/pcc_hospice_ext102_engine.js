@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_hospice_ext102/pcc_hospice_ext102_engine.js
+module.exports.version='v3.52.52.0';
+module.exports.module='pcc_hospice_ext102';
+module.exports.functions={};
+module.exports.functions['HosGenExt']=function(input){const score=Math.round((0.18 + Number(input.hsGen||1)*0.2 + Number(input.hsGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HosEligibilityExt']=function(input){const score=Math.round((0.18 + Number(input.hsElig||1)*0.2 + Number(input.hsEligScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosEligibilityExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HosAdmitExt']=function(input){const score=Math.round((0.18 + Number(input.hsAdm||1)*0.2 + Number(input.hsAdmType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosAdmitExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HosPlanExt']=function(input){const score=Math.round((0.18 + Number(input.hsPlan||1)*0.2 + Number(input.hsPlanType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosPlanExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HosSymptomExt']=function(input){const score=Math.round((0.18 + Number(input.hsSym||1)*0.2 + Number(input.hsSymScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosSymptomExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HosCaregiverExt']=function(input){const score=Math.round((0.18 + Number(input.hsCare||1)*0.2 + Number(input.hsCareScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosCaregiverExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HosBereavementExt']=function(input){const score=Math.round((0.18 + Number(input.hsBer||1)*0.2 + Number(input.hsBerScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosBereavementExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HosSpiritualExt']=function(input){const score=Math.round((0.18 + Number(input.hsSpi||1)*0.2 + Number(input.hsSpiScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosSpiritualExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HosVolunteerExt']=function(input){const score=Math.round((0.18 + Number(input.hsVol||1)*0.2 + Number(input.hsVolScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosVolunteerExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HosDischargeExt']=function(input){const score=Math.round((0.18 + Number(input.hsDis||1)*0.2 + Number(input.hsDisType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosDischargeExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.52.52.0
