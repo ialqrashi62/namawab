@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext181/pcc_neuro_ext181_engine.js
+module.exports.version='v3.1.10.0';
+module.exports.module='pcc_neuro_ext181';
+module.exports.functions={};
+module.exports.functions['NeuroAidsExt']=function(input){const score=Math.round((0.18 + Number(input.hiv||1)*0.2 + Number(input.cd4||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.10.0',module:'pcc_neuro_ext181',function:'NeuroAidsExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeurosyphilisExt']=function(input){const score=Math.round((0.18 + Number(input.syphilis||1)*0.2 + Number(input.vdrl||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.10.0',module:'pcc_neuro_ext181',function:'NeurosyphilisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroLymeExt']=function(input){const score=Math.round((0.18 + Number(input.lyme||1)*0.2 + Number(input.titer||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.10.0',module:'pcc_neuro_ext181',function:'NeuroLymeExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroTBext']=function(input){const score=Math.round((0.18 + Number(input.tb||1)*0.2 + Number(input.tuberculoma||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.10.0',module:'pcc_neuro_ext181',function:'NeuroTBext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeurocysticercosisExt']=function(input){const score=Math.round((0.18 + Number(input.ncc||1)*0.2 + Number(input.cysticerci||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.10.0',module:'pcc_neuro_ext181',function:'NeurocysticercosisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroToxoplasmosisExt']=function(input){const score=Math.round((0.18 + Number(input.toxo||1)*0.2 + Number(input.cd4Toxo||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.10.0',module:'pcc_neuro_ext181',function:'NeuroToxoplasmosisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PMLext']=function(input){const score=Math.round((0.18 + Number(input.pml||1)*0.2 + Number(input.jcVirus||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.10.0',module:'pcc_neuro_ext181',function:'PMLext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroWhippleExt']=function(input){const score=Math.round((0.18 + Number(input.whipple||1)*0.2 + Number(input.oms||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.10.0',module:'pcc_neuro_ext181',function:'NeuroWhippleExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroBrucellosisExt']=function(input){const score=Math.round((0.18 + Number(input.brucellosis||1)*0.2 + Number(input.standard||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.10.0',module:'pcc_neuro_ext181',function:'NeuroBrucellosisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroCysticercRacExt']=function(input){const score=Math.round((0.18 + Number(input.nccRac||1)*0.2 + Number(input.subarach||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.10.0',module:'pcc_neuro_ext181',function:'NeuroCysticercRacExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.1.10.0
