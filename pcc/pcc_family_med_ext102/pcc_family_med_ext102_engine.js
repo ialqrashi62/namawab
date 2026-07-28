@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_family_med_ext102/pcc_family_med_ext102_engine.js
+module.exports.version='v3.77.77.0';
+module.exports.module='pcc_family_med_ext102';
+module.exports.functions={};
+module.exports.functions['FMGenExt']=function(input){const score=Math.round((0.18 + Number(input.fmGen||1)*0.2 + Number(input.fmGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.77.77.0',module:'pcc_family_med_ext102',function:'FMGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FMPedExt']=function(input){const score=Math.round((0.18 + Number(input.fmPed||1)*0.2 + Number(input.fmPedType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.77.77.0',module:'pcc_family_med_ext102',function:'FMPedExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FMAdultExt']=function(input){const score=Math.round((0.18 + Number(input.fmAd||1)*0.2 + Number(input.fmAdType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.77.77.0',module:'pcc_family_med_ext102',function:'FMAdultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FMGeriExt']=function(input){const score=Math.round((0.18 + Number(input.fmGer||1)*0.2 + Number(input.fmGerType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.77.77.0',module:'pcc_family_med_ext102',function:'FMGeriExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FMObGynExt']=function(input){const score=Math.round((0.18 + Number(input.fmOb||1)*0.2 + Number(input.fmObType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.77.77.0',module:'pcc_family_med_ext102',function:'FMObGynExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FMPrnExt']=function(input){const score=Math.round((0.18 + Number(input.fmPrn||1)*0.2 + Number(input.fmPrnScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.77.77.0',module:'pcc_family_med_ext102',function:'FMPrnExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FMPsychExt']=function(input){const score=Math.round((0.18 + Number(input.fmPs||1)*0.2 + Number(input.fmPsScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.77.77.0',module:'pcc_family_med_ext102',function:'FMPsychExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FMCommExt']=function(input){const score=Math.round((0.18 + Number(input.fmCo||1)*0.2 + Number(input.fmCoType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.77.77.0',module:'pcc_family_med_ext102',function:'FMCommExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FMScreenExt']=function(input){const score=Math.round((0.18 + Number(input.fmSc||1)*0.2 + Number(input.fmScType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.77.77.0',module:'pcc_family_med_ext102',function:'FMScreenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FMContinExt']=function(input){const score=Math.round((0.18 + Number(input.fmCn||1)*0.2 + Number(input.fmCnScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.77.77.0',module:'pcc_family_med_ext102',function:'FMContinExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.77.77.0
