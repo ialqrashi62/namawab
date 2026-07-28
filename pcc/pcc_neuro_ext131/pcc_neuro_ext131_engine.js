@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext131/pcc_neuro_ext131_engine.js
+module.exports.version='v3.230.0';
+module.exports.module='pcc_neuro_ext131';
+module.exports.functions={};
+module.exports.functions['AdultCardiacArrestExt']=function(input){const score=Math.round((0.18 + Number(input.downtime||15)*0.02 + Number(input.cpr||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.230.0',module:'pcc_neuro_ext131',function:'AdultCardiacArrestExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HypoxicIschemicExt']=function(input){const score=Math.round((0.18 + Number(input.cause||1)*0.2 + Number(input.coma||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.230.0',module:'pcc_neuro_ext131',function:'HypoxicIschemicExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AnoxicBrainExt']=function(input){const score=Math.round((0.18 + Number(input.noFlow||1)*0.1 + Number(input.lowFlow||1)*0.1 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.230.0',module:'pcc_neuro_ext131',function:'AnoxicBrainExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CO2NarcosisExt']=function(input){const score=Math.round((0.18 + Number(input.co2||80)*0.005 + Number(input.acute||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.230.0',module:'pcc_neuro_ext131',function:'CO2NarcosisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DiabeticHypoglycemiaExt']=function(input){const score=Math.round((0.18 + Number(input.glucose||30)*0.005 + Number(input.unconscious||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.230.0',module:'pcc_neuro_ext131',function:'DiabeticHypoglycemiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepaticEncephalopExt']=function(input){const score=Math.round((0.18 + Number(input.ammonia||100)*0.002 + Number(input.grade||3)*0.1 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.230.0',module:'pcc_neuro_ext131',function:'HepaticEncephalopExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['UremicEncephalopExt']=function(input){const score=Math.round((0.18 + Number(input.bun||80)*0.005 + Number(input.uremia||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.230.0',module:'pcc_neuro_ext131',function:'UremicEncephalopExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HypertensiveEncephalopExt']=function(input){const score=Math.round((0.18 + Number(input.bp||200)*0.002 + Number(input.papilledema||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.230.0',module:'pcc_neuro_ext131',function:'HypertensiveEncephalopExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PRESExt']=function(input){const score=Math.round((0.18 + Number(input.bp||200)*0.002 + Number(input.edema||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.230.0',module:'pcc_neuro_ext131',function:'PRESExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RCSExt']=function(input){const score=Math.round((0.18 + Number(input.seizures||1)*0.2 + Number(input.consciousness||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.230.0',module:'pcc_neuro_ext131',function:'RCSExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.230.0
