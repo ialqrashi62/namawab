@@ -1,0 +1,11 @@
+// Auto-generated routes
+"use strict";
+const express = require('express');
+const {PediatricHeadacheExt, PediatricMigraineExt, PediatricClusterHeadacheExt, PediatricTensionHeadacheExt, PediatricTrigeminalExt, PediatricMOHExt, PediatricThunderclapHeadacheExt, PediatricCervicogenicExt, PediatricPostConcussionExt, PediatricIIHHeadacheExt} = require('./pcc_pediatric_neuro_ext58_engine');
+const router = express.Router();
+const db = [];
+function authenticate(req,res,next){return next();}
+router.get('/list', authenticate, (req,res)=>{ res.json([{name:'PediatricHeadacheExt'}, {name:'PediatricMigraineExt'}, {name:'PediatricClusterHeadacheExt'}, {name:'PediatricTensionHeadacheExt'}, {name:'PediatricTrigeminalExt'}, {name:'PediatricMOHExt'}, {name:'PediatricThunderclapHeadacheExt'}, {name:'PediatricCervicogenicExt'}, {name:'PediatricPostConcussionExt'}, {name:'PediatricIIHHeadacheExt'}]); });
+router.post('/call/:fn', authenticate, (req,res)=>{ const fn=req.params.fn; const allow=['PediatricHeadacheExt', 'PediatricMigraineExt', 'PediatricClusterHeadacheExt', 'PediatricTensionHeadacheExt', 'PediatricTrigeminalExt', 'PediatricMOHExt', 'PediatricThunderclapHeadacheExt', 'PediatricCervicogenicExt', 'PediatricPostConcussionExt', 'PediatricIIHHeadacheExt']; if(!allow.includes(fn)) return res.status(400).json({error:'bad fn'}); const r=eval(fn)(req.body||{}); res.json(r); });
+router.post('/record', authenticate, (req,res)=>{ db.push(req.body); res.json({ok:true, n:db.length}); });
+module.exports = router;
