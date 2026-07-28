@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_sleep_ext102/pcc_sleep_ext102_engine.js
+module.exports.version='v3.51.51.0';
+module.exports.module='pcc_sleep_ext102';
+module.exports.functions={};
+module.exports.functions['SleepGenExt']=function(input){const score=Math.round((0.18 + Number(input.slGen||1)*0.2 + Number(input.slGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_sleep_ext102',function:'SleepGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SleepInsomniaExt']=function(input){const score=Math.round((0.18 + Number(input.slIns||1)*0.2 + Number(input.slInsScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_sleep_ext102',function:'SleepInsomniaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SleepApneaExt']=function(input){const score=Math.round((0.18 + Number(input.slApn||1)*0.2 + Number(input.slApnAHI||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_sleep_ext102',function:'SleepApneaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SleepRestlessExt']=function(input){const score=Math.round((0.18 + Number(input.slRLS||1)*0.2 + Number(input.slRLSscore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_sleep_ext102',function:'SleepRestlessExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SleepNarcolepsyExt']=function(input){const score=Math.round((0.18 + Number(input.slNar||1)*0.2 + Number(input.slNarType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_sleep_ext102',function:'SleepNarcolepsyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SleepParasomniaExt']=function(input){const score=Math.round((0.18 + Number(input.slPar||1)*0.2 + Number(input.slParType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_sleep_ext102',function:'SleepParasomniaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SleepCircadianExt']=function(input){const score=Math.round((0.18 + Number(input.slCir||1)*0.2 + Number(input.slCirType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_sleep_ext102',function:'SleepCircadianExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SleepHygieneExt']=function(input){const score=Math.round((0.18 + Number(input.slHyg||1)*0.2 + Number(input.slHygScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_sleep_ext102',function:'SleepHygieneExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SleepCPAPext']=function(input){const score=Math.round((0.18 + Number(input.slCPAP||1)*0.2 + Number(input.slCPAPhr||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_sleep_ext102',function:'SleepCPAPext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SleepStudyExt']=function(input){const score=Math.round((0.18 + Number(input.slStudy||1)*0.2 + Number(input.slStudyType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_sleep_ext102',function:'SleepStudyExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.51.51.0

@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_addiction_ext102/pcc_addiction_ext102_engine.js
+module.exports.version='v3.51.51.0';
+module.exports.module='pcc_addiction_ext102';
+module.exports.functions={};
+module.exports.functions['AddGenExt']=function(input){const score=Math.round((0.18 + Number(input.adGen||1)*0.2 + Number(input.adGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_addiction_ext102',function:'AddGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AddAlcoholExt']=function(input){const score=Math.round((0.18 + Number(input.adAlc||1)*0.2 + Number(input.adAlcScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_addiction_ext102',function:'AddAlcoholExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AddDrugExt']=function(input){const score=Math.round((0.18 + Number(input.adDrug||1)*0.2 + Number(input.adDrugType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_addiction_ext102',function:'AddDrugExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AddNicotineExt']=function(input){const score=Math.round((0.18 + Number(input.adNic||1)*0.2 + Number(input.adNicScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_addiction_ext102',function:'AddNicotineExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AddGamblingExt']=function(input){const score=Math.round((0.18 + Number(input.adGam||1)*0.2 + Number(input.adGamScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_addiction_ext102',function:'AddGamblingExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AddDetoxExt']=function(input){const score=Math.round((0.18 + Number(input.adDetox||1)*0.2 + Number(input.adDetoxType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_addiction_ext102',function:'AddDetoxExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AddRehabExt']=function(input){const score=Math.round((0.18 + Number(input.adReh||1)*0.2 + Number(input.adRehDays||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_addiction_ext102',function:'AddRehabExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AddRelapseExt']=function(input){const score=Math.round((0.18 + Number(input.adRel||1)*0.2 + Number(input.adRelRate||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_addiction_ext102',function:'AddRelapseExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AddMAText']=function(input){const score=Math.round((0.18 + Number(input.adMAT||1)*0.2 + Number(input.adMATType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_addiction_ext102',function:'AddMAText',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AddFamilyExt']=function(input){const score=Math.round((0.18 + Number(input.adFam||1)*0.2 + Number(input.adFamScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_addiction_ext102',function:'AddFamilyExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.51.51.0

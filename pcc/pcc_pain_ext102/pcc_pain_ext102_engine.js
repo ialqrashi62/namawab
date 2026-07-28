@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_pain_ext102/pcc_pain_ext102_engine.js
+module.exports.version='v3.51.51.0';
+module.exports.module='pcc_pain_ext102';
+module.exports.functions={};
+module.exports.functions['PainAcuteExt']=function(input){const score=Math.round((0.18 + Number(input.pnAcu||1)*0.2 + Number(input.pnAcuScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_pain_ext102',function:'PainAcuteExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PainChronicExt']=function(input){const score=Math.round((0.18 + Number(input.pnChr||1)*0.2 + Number(input.pnChrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_pain_ext102',function:'PainChronicExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PainNeuropathicExt']=function(input){const score=Math.round((0.18 + Number(input.pnNeur||1)*0.2 + Number(input.pnNeurScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_pain_ext102',function:'PainNeuropathicExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PainNociceptiveExt']=function(input){const score=Math.round((0.18 + Number(input.pnNoc||1)*0.2 + Number(input.pnNocType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_pain_ext102',function:'PainNociceptiveExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PainCancerExt']=function(input){const score=Math.round((0.18 + Number(input.pnCan||1)*0.2 + Number(input.pnCanScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_pain_ext102',function:'PainCancerExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PainPostopExt']=function(input){const score=Math.round((0.18 + Number(input.pnPO||1)*0.2 + Number(input.pnPODay||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_pain_ext102',function:'PainPostopExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PainMusculoskeletalExt']=function(input){const score=Math.round((0.18 + Number(input.pnMSK||1)*0.2 + Number(input.pnMSKtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_pain_ext102',function:'PainMusculoskeletalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PainMigraineExt']=function(input){const score=Math.round((0.18 + Number(input.pnMig||1)*0.2 + Number(input.pnMigScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_pain_ext102',function:'PainMigraineExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PainOpioidExt']=function(input){const score=Math.round((0.18 + Number(input.pnOp||1)*0.2 + Number(input.pnOpMME||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_pain_ext102',function:'PainOpioidExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PainIntervExt']=function(input){const score=Math.round((0.18 + Number(input.pnInt||1)*0.2 + Number(input.pnIntType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.51.51.0',module:'pcc_pain_ext102',function:'PainIntervExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.51.51.0
