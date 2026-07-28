@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_uro_ext101/pcc_uro_ext101_engine.js
+module.exports.version='v3.34.34.0';
+module.exports.module='pcc_uro_ext101';
+module.exports.functions={};
+module.exports.functions['UroGeneralExt']=function(input){const score=Math.round((0.18 + Number(input.uroGen||1)*0.2 + Number(input.uroGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_uro_ext101',function:'UroGeneralExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['UroBPHext']=function(input){const score=Math.round((0.18 + Number(input.uroBPH||1)*0.2 + Number(input.ippsScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_uro_ext101',function:'UroBPHext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['UroProstateCancerExt']=function(input){const score=Math.round((0.18 + Number(input.uroPCa||1)*0.2 + Number(input.psaPSA||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_uro_ext101',function:'UroProstateCancerExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['UroBladderCancerExt']=function(input){const score=Math.round((0.18 + Number(input.uroBladCa||1)*0.2 + Number(input.bladderCaStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_uro_ext101',function:'UroBladderCancerExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['UroKidneyCancerExt']=function(input){const score=Math.round((0.18 + Number(input.uroKCa||1)*0.2 + Number(input.kcaStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_uro_ext101',function:'UroKidneyCancerExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['UroTesticularExt']=function(input){const score=Math.round((0.18 + Number(input.uroTestis||1)*0.2 + Number(input.tcStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_uro_ext101',function:'UroTesticularExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['UroStoneExt']=function(input){const score=Math.round((0.18 + Number(input.uroStone||1)*0.2 + Number(input.stoneSizeU||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_uro_ext101',function:'UroStoneExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['UroStrictureExt']=function(input){const score=Math.round((0.18 + Number(input.uroStric||1)*0.2 + Number(input.strictureLoc||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_uro_ext101',function:'UroStrictureExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['UroIncontinenceExt']=function(input){const score=Math.round((0.18 + Number(input.uroIncont||1)*0.2 + Number(input.incontType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_uro_ext101',function:'UroIncontinenceExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['UroPediatricExt']=function(input){const score=Math.round((0.18 + Number(input.uroPed||1)*0.2 + Number(input.pedAge||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_uro_ext101',function:'UroPediatricExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.34.34.0
