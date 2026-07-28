@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext103/pcc_neuro_ext103_engine.js
+// pcc_neuro_ext103 engine (deterministic)
+module.exports.version='v3.202.0';
+module.exports.module='pcc_neuro_ext103';
+module.exports.functions={};
+module.exports.functions['SpineDisorderClinicExt']=function(input){const score=Math.round((0.15 + Number(input.level||3)*0.05 + Number(input.diagnosis||1)*0.2 + Number(input.complication||1)*0.2)*100)/100;return{version:'v3.202.0',module:'pcc_neuro_ext103',function:'SpineDisorderClinicExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CervicalStenosisEvalExt']=function(input){const score=Math.round((0.18 + Number(input.myles||1)*0.2 + Number(input.degen||1)*0.2 + Number(input.risk||2)*0.1)*100)/100;return{version:'v3.202.0',module:'pcc_neuro_ext103',function:'CervicalStenosisEvalExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CervicalMyelopathySurgExt']=function(input){const score=Math.round((0.15 + Number(input.approach||1)*0.2 + Number(input.levels||2)*0.1 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.202.0',module:'pcc_neuro_ext103',function:'CervicalMyelopathySurgExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['LumbarStenosisEvalExt']=function(input){const score=Math.round((0.18 + Number(input.claud||1)*0.2 + Number(input.pain||7)*0.02 + Number(input.degen||1)*0.15)*100)/100;return{version:'v3.202.0',module:'pcc_neuro_ext103',function:'LumbarStenosisEvalExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['LumbarFusionExt']=function(input){const score=Math.round((0.15 + Number(input.levels||2)*0.1 + Number(input.approach||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.202.0',module:'pcc_neuro_ext103',function:'LumbarFusionExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['SpinalCordStimExt']=function(input){const score=Math.round((0.15 + Number(input.trial||1)*0.2 + Number(input.coverage||80)*0.005 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.202.0',module:'pcc_neuro_ext103',function:'SpinalCordStimExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['ChordomaSurgExt']=function(input){const score=Math.round((0.18 + Number(input.location||1)*0.2 + Number(input.resection||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.202.0',module:'pcc_neuro_ext103',function:'ChordomaSurgExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['SpinalAVMExt']=function(input){const score=Math.round((0.15 + Number(input.spetzler||2)*0.15 + Number(input.embo||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.202.0',module:'pcc_neuro_ext103',function:'SpinalAVMExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CaudaEquinaExt']=function(input){const score=Math.round((0.18 + Number(input.sphincterLoss||1)*0.2 + Number(input.saddle||1)*0.2 + Number(input.decomp||1)*0.2)*100)/100;return{version:'v3.202.0',module:'pcc_neuro_ext103',function:'CaudaEquinaExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['FailedBackSyndromeExt']=function(input){const score=Math.round((0.15 + Number(input.previousSurg||2)*0.1 + Number(input.painScore||7)*0.05 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.202.0',module:'pcc_neuro_ext103',function:'FailedBackSyndromeExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.202.0
