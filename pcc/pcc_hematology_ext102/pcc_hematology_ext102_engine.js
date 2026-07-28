@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_hematology_ext102/pcc_hematology_ext102_engine.js
+module.exports.version='v3.58.58.0';
+module.exports.module='pcc_hematology_ext102';
+module.exports.functions={};
+module.exports.functions['HemGenExt']=function(input){const score=Math.round((0.18 + Number(input.heGen||1)*0.2 + Number(input.heGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_hematology_ext102',function:'HemGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HemAnemiaExt']=function(input){const score=Math.round((0.18 + Number(input.heAn||1)*0.2 + Number(input.heAnHgb||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_hematology_ext102',function:'HemAnemiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HemSickleExt']=function(input){const score=Math.round((0.18 + Number(input.heSic||1)*0.2 + Number(input.heSicType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_hematology_ext102',function:'HemSickleExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HemThalExt']=function(input){const score=Math.round((0.18 + Number(input.heThal||1)*0.2 + Number(input.heThalType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_hematology_ext102',function:'HemThalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HemLeukExt']=function(input){const score=Math.round((0.18 + Number(input.heLeuk||1)*0.2 + Number(input.heLeukType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_hematology_ext102',function:'HemLeukExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HemLymphExt']=function(input){const score=Math.round((0.18 + Number(input.heLym||1)*0.2 + Number(input.heLymType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_hematology_ext102',function:'HemLymphExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HemMDSext']=function(input){const score=Math.round((0.18 + Number(input.heMDS||1)*0.2 + Number(input.heMDSscore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_hematology_ext102',function:'HemMDSext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HemClotExt']=function(input){const score=Math.round((0.18 + Number(input.heClot||1)*0.2 + Number(input.heClotType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_hematology_ext102',function:'HemClotExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HemBleedExt']=function(input){const score=Math.round((0.18 + Number(input.heBleed||1)*0.2 + Number(input.heBleedScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_hematology_ext102',function:'HemBleedExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HemTransExt']=function(input){const score=Math.round((0.18 + Number(input.heTrans||1)*0.2 + Number(input.heTransType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_hematology_ext102',function:'HemTransExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.58.58.0

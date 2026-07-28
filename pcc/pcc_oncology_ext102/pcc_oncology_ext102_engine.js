@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_oncology_ext102/pcc_oncology_ext102_engine.js
+module.exports.version='v3.58.58.0';
+module.exports.module='pcc_oncology_ext102';
+module.exports.functions={};
+module.exports.functions['OncGenExt']=function(input){const score=Math.round((0.18 + Number(input.onGen||1)*0.2 + Number(input.onGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_oncology_ext102',function:'OncGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OncStageExt']=function(input){const score=Math.round((0.18 + Number(input.onStg||1)*0.2 + Number(input.onStgTNM||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_oncology_ext102',function:'OncStageExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OncChemoExt']=function(input){const score=Math.round((0.18 + Number(input.onChemo||1)*0.2 + Number(input.onChemoType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_oncology_ext102',function:'OncChemoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OncRadioExt']=function(input){const score=Math.round((0.18 + Number(input.onRad||1)*0.2 + Number(input.onRadGy||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_oncology_ext102',function:'OncRadioExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OncImmuneExt']=function(input){const score=Math.round((0.18 + Number(input.onImm||1)*0.2 + Number(input.onImmType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_oncology_ext102',function:'OncImmuneExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OncTargetExt']=function(input){const score=Math.round((0.18 + Number(input.onTar||1)*0.2 + Number(input.onTarType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_oncology_ext102',function:'OncTargetExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OncHormoneExt']=function(input){const score=Math.round((0.18 + Number(input.onHor||1)*0.2 + Number(input.onHorType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_oncology_ext102',function:'OncHormoneExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OncSurgExt']=function(input){const score=Math.round((0.18 + Number(input.onSurg||1)*0.2 + Number(input.onSurgType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_oncology_ext102',function:'OncSurgExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OncSurvExt']=function(input){const score=Math.round((0.18 + Number(input.onSurv||1)*0.2 + Number(input.onSurvScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_oncology_ext102',function:'OncSurvExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['OncPallExt']=function(input){const score=Math.round((0.18 + Number(input.onPal||1)*0.2 + Number(input.onPalScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_oncology_ext102',function:'OncPallExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.58.58.0

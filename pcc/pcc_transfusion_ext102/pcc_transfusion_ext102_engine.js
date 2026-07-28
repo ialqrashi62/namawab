@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_transfusion_ext102/pcc_transfusion_ext102_engine.js
+module.exports.version='v3.58.58.0';
+module.exports.module='pcc_transfusion_ext102';
+module.exports.functions={};
+module.exports.functions['TxGenExt']=function(input){const score=Math.round((0.18 + Number(input.trGen||1)*0.2 + Number(input.trGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_transfusion_ext102',function:'TxGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TxRBCext']=function(input){const score=Math.round((0.18 + Number(input.trRBC||1)*0.2 + Number(input.trRBCunit||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_transfusion_ext102',function:'TxRBCext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TxPLText']=function(input){const score=Math.round((0.18 + Number(input.trPLT||1)*0.2 + Number(input.trPLTcount||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_transfusion_ext102',function:'TxPLText',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TxFFPext']=function(input){const score=Math.round((0.18 + Number(input.trFFP||1)*0.2 + Number(input.trFFPtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_transfusion_ext102',function:'TxFFPext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TxCryoExt']=function(input){const score=Math.round((0.18 + Number(input.trCryo||1)*0.2 + Number(input.trCryoType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_transfusion_ext102',function:'TxCryoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TxTypeCrossExt']=function(input){const score=Math.round((0.18 + Number(input.trTC||1)*0.2 + Number(input.trTCtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_transfusion_ext102',function:'TxTypeCrossExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TxMassiveExt']=function(input){const score=Math.round((0.18 + Number(input.trMass||1)*0.2 + Number(input.trMassScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_transfusion_ext102',function:'TxMassiveExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TxReactionExt']=function(input){const score=Math.round((0.18 + Number(input.trRx||1)*0.2 + Number(input.trRxType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_transfusion_ext102',function:'TxReactionExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TxIrradiatedExt']=function(input){const score=Math.round((0.18 + Number(input.trIrr||1)*0.2 + Number(input.trIrrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_transfusion_ext102',function:'TxIrradiatedExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TxConsentExt']=function(input){const score=Math.round((0.18 + Number(input.trCon||1)*0.2 + Number(input.trConType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.58.58.0',module:'pcc_transfusion_ext102',function:'TxConsentExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.58.58.0
