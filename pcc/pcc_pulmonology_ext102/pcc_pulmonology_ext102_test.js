@@ -1,0 +1,1 @@
+const {functions:F}=require('./pcc_pulmonology_ext102_engine');let pass=0;for(const fn of Object.keys(F)){const r=F[fn]({});if(typeof r.score==='number'&&r.score>=0&&r.score<=1.5)pass++;}console.log('pcc_pulmonology_ext102 unit:',pass);if(pass!==10)process.exit(1);
