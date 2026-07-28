@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext90/pcc_neuro_ext90_engine.js
+// pcc_neuro_ext90 engine (deterministic)
+module.exports.version='v3.189.0';
+module.exports.module='pcc_neuro_ext90';
+module.exports.functions={};
+module.exports.functions['StereoEEGPlacementExt']=function(input){const score=Math.round((0.15 + Number(input.depths||10)*0.04 + Number(input.targetAcc||95)*0.005 + Number(input.duration||5)*0.04)*100)/100;return{version:'v3.189.0',module:'pcc_neuro_ext90',function:'StereoEEGPlacementExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['IntracranialEEGExt']=function(input){const score=Math.round((0.2 + Number(input.electrodes||60)*0.006 + Number(input.days||10)*0.02 + Number(input.yield||70)*0.005)*100)/100;return{version:'v3.189.0',module:'pcc_neuro_ext90',function:'IntracranialEEGExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['HighDensityEEGExt']=function(input){const score=Math.round((0.18 + Number(input.channels||256)*0.002 + Number(input.seizures||3)*0.05 + Number(input.spikes||30)*0.005)*100)/100;return{version:'v3.189.0',module:'pcc_neuro_ext90',function:'HighDensityEEGExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['MEGSrcLocalizationExt']=function(input){const score=Math.round((0.25 + Number(input.sensors||306)*0.001 + Number(input.corr||0.9)*0.3 + Number(input.dipoles||5)*0.05)*100)/100;return{version:'v3.189.0',module:'pcc_neuro_ext90',function:'MEGSrcLocalizationExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['OpticalImagingExt']=function(input){const score=Math.round((0.2 + Number(input.hbos||10)*0.02 + Number(input.fNIRS||1)*0.2 + Number(input.tasks||3)*0.05)*100)/100;return{version:'v3.189.0',module:'pcc_neuro_ext90',function:'OpticalImagingExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['TMSMappingExt']=function(input){const score=Math.round((0.15 + Number(input.coils||1)*0.15 + Number(input.intensity||1.2)*0.2 + Number(input.corticalMap||80)*0.005)*100)/100;return{version:'v3.189.0',module:'pcc_neuro_ext90',function:'TMSMappingExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['FunctionalMRIExt']=function(input){const score=Math.round((0.18 + Number(input.bold||1)*0.2 + Number(input.dyn||1)*0.15 + Number(input.taskFMRI||1)*0.15)*100)/100;return{version:'v3.189.0',module:'pcc_neuro_ext90',function:'FunctionalMRIExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['DiffusionTensorExt']=function(input){const score=Math.round((0.2 + Number(input.tracts||10)*0.04 + Number(input.fa||0.5)*0.5 + Number(input.fibers||1)*0.1)*100)/100;return{version:'v3.189.0',module:'pcc_neuro_ext90',function:'DiffusionTensorExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['MRISpectroscopyExt']=function(input){const score=Math.round((0.18 + Number(input.metabolites||5)*0.06 + Number(input.voxels||10)*0.02 + Number(input.NAA||1)*0.2)*100)/100;return{version:'v3.189.0',module:'pcc_neuro_ext90',function:'MRISpectroscopyExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PETAmyloidExt']=function(input){const score=Math.round((0.2 + Number(input.suvr||1.5)*0.3 + Number(input.drift||1)*0.1 + Number(input.centiloids||50)*0.008)*100)/100;return{version:'v3.189.0',module:'pcc_neuro_ext90',function:'PETAmyloidExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.189.0
