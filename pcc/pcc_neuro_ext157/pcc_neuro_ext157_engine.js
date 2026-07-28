@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext157/pcc_neuro_ext157_engine.js
+module.exports.version='v3.256.0';
+module.exports.module='pcc_neuro_ext157';
+module.exports.functions={};
+module.exports.functions['NeuroPsychEpilepsyExt']=function(input){const score=Math.round((0.18 + Number(input.psycho||1)*0.2 + Number(input.epilepsy||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'NeuroPsychEpilepsyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroPsychStrokeExt']=function(input){const score=Math.round((0.18 + Number(input.psStroke||1)*0.2 + Number(input.postStroke||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'NeuroPsychStrokeExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroPsychTBIext']=function(input){const score=Math.round((0.18 + Number(input.psTBI||1)*0.2 + Number(input.tbiPS||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'NeuroPsychTBIext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroPsychMSext']=function(input){const score=Math.round((0.18 + Number(input.psMS||1)*0.2 + Number(input.msNeurops||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'NeuroPsychMSext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroPsychParkExt']=function(input){const score=Math.round((0.18 + Number(input.psPark||1)*0.2 + Number(input.parkDem||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'NeuroPsychParkExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroPsychDemExt']=function(input){const score=Math.round((0.18 + Number(input.psDem||1)*0.2 + Number(input.behavioral||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'NeuroPsychDemExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PseudobulbarAffectExt']=function(input){const score=Math.round((0.18 + Number(input.pba||1)*0.2 + Number(input.dextrometh||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'PseudobulbarAffectExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AphasiaExt']=function(input){const score=Math.round((0.18 + Number(input.aphasia||1)*0.2 + Number(input.broca||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'AphasiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AlexiaExt']=function(input){const score=Math.round((0.18 + Number(input.alexia||1)*0.2 + Number(input.agnosia||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'AlexiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AgnosiaExt']=function(input){const score=Math.round((0.18 + Number(input.agnosia2||1)*0.2 + Number(input.recognition||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'AgnosiaExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.256.0
