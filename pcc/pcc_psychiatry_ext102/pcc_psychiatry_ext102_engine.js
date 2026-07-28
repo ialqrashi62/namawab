@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_psychiatry_ext102/pcc_psychiatry_ext102_engine.js
+module.exports.version='v3.66.66.0';
+module.exports.module='pcc_psychiatry_ext102';
+module.exports.functions={};
+module.exports.functions['PsyGenExt']=function(input){const score=Math.round((0.18 + Number(input.psGen||1)*0.2 + Number(input.psGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_psychiatry_ext102',function:'PsyGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PsyDepExt']=function(input){const score=Math.round((0.18 + Number(input.psDep||1)*0.2 + Number(input.psDepScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_psychiatry_ext102',function:'PsyDepExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PsyAnxExt']=function(input){const score=Math.round((0.18 + Number(input.psAnx||1)*0.2 + Number(input.psAnxScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_psychiatry_ext102',function:'PsyAnxExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PsyBipolarExt']=function(input){const score=Math.round((0.18 + Number(input.psBp||1)*0.2 + Number(input.psBpType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_psychiatry_ext102',function:'PsyBipolarExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PsySchizoExt']=function(input){const score=Math.round((0.18 + Number(input.psSch||1)*0.2 + Number(input.psSchScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_psychiatry_ext102',function:'PsySchizoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PsyPTSDext']=function(input){const score=Math.round((0.18 + Number(input.psPTS||1)*0.2 + Number(input.psPTSscore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_psychiatry_ext102',function:'PsyPTSDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PsyOCDext']=function(input){const score=Math.round((0.18 + Number(input.psOCD||1)*0.2 + Number(input.psOCDScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_psychiatry_ext102',function:'PsyOCDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PsyADHDext']=function(input){const score=Math.round((0.18 + Number(input.psAD||1)*0.2 + Number(input.psADScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_psychiatry_ext102',function:'PsyADHDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PsyEatingExt']=function(input){const score=Math.round((0.18 + Number(input.psEat||1)*0.2 + Number(input.psEatType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_psychiatry_ext102',function:'PsyEatingExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PsyPersonalityExt']=function(input){const score=Math.round((0.18 + Number(input.psPer||1)*0.2 + Number(input.psPerType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_psychiatry_ext102',function:'PsyPersonalityExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.66.66.0

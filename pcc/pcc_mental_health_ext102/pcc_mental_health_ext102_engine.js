@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_mental_health_ext102/pcc_mental_health_ext102_engine.js
+module.exports.version='v3.66.66.0';
+module.exports.module='pcc_mental_health_ext102';
+module.exports.functions={};
+module.exports.functions['MHGenExt']=function(input){const score=Math.round((0.18 + Number(input.mhGen||1)*0.2 + Number(input.mhGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MHCounselExt']=function(input){const score=Math.round((0.18 + Number(input.mhCou||1)*0.2 + Number(input.mhCouType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHCounselExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MHTherapyExt']=function(input){const score=Math.round((0.18 + Number(input.mhTh||1)*0.2 + Number(input.mhThType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHTherapyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MHGroupExt']=function(input){const score=Math.round((0.18 + Number(input.mhGr||1)*0.2 + Number(input.mhGrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHGroupExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MHFamilyExt']=function(input){const score=Math.round((0.18 + Number(input.mhFam||1)*0.2 + Number(input.mhFamType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHFamilyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MHCBText']=function(input){const score=Math.round((0.18 + Number(input.mhCBT||1)*0.2 + Number(input.mhCBTScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHCBText',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MHDBText']=function(input){const score=Math.round((0.18 + Number(input.mhDBT||1)*0.2 + Number(input.mhDBTScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHDBText',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MHMindfulExt']=function(input){const score=Math.round((0.18 + Number(input.mhMin||1)*0.2 + Number(input.mhMinScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHMindfulExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MHCrisisExt']=function(input){const score=Math.round((0.18 + Number(input.mhCri||1)*0.2 + Number(input.mhCriScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHCrisisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MHScreenExt']=function(input){const score=Math.round((0.18 + Number(input.mhScr||1)*0.2 + Number(input.mhScrScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHScreenExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.66.66.0
