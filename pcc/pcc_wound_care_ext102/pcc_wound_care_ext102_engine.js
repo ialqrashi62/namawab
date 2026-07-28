@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_wound_care_ext102/pcc_wound_care_ext102_engine.js
+module.exports.version='v3.64.64.0';
+module.exports.module='pcc_wound_care_ext102';
+module.exports.functions={};
+module.exports.functions['WCGenExt']=function(input){const score=Math.round((0.18 + Number(input.wcGen||1)*0.2 + Number(input.wcGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_wound_care_ext102',function:'WCGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['WCAcuteExt']=function(input){const score=Math.round((0.18 + Number(input.wcAcu||1)*0.2 + Number(input.wcAcuType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_wound_care_ext102',function:'WCAcuteExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['WCChronicExt']=function(input){const score=Math.round((0.18 + Number(input.wcChr||1)*0.2 + Number(input.wcChrScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_wound_care_ext102',function:'WCChronicExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['WCDiabeticExt']=function(input){const score=Math.round((0.18 + Number(input.wcDia||1)*0.2 + Number(input.wcDiaGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_wound_care_ext102',function:'WCDiabeticExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['WCPressureExt']=function(input){const score=Math.round((0.18 + Number(input.wcPrs||1)*0.2 + Number(input.wcPrsStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_wound_care_ext102',function:'WCPressureExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['WCVascularExt']=function(input){const score=Math.round((0.18 + Number(input.wcVas||1)*0.2 + Number(input.wcVasType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_wound_care_ext102',function:'WCVascularExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['WCSurgicalExt']=function(input){const score=Math.round((0.18 + Number(input.wcSur||1)*0.2 + Number(input.wcSurType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_wound_care_ext102',function:'WCSurgicalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['WCBurnExt']=function(input){const score=Math.round((0.18 + Number(input.wcBur||1)*0.2 + Number(input.wcBurDepth||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_wound_care_ext102',function:'WCBurnExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['WCTraumaExt']=function(input){const score=Math.round((0.18 + Number(input.wcTrv||1)*0.2 + Number(input.wcTrvScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_wound_care_ext102',function:'WCTraumaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['WCDressingExt']=function(input){const score=Math.round((0.18 + Number(input.wcDrs||1)*0.2 + Number(input.wcDrsType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_wound_care_ext102',function:'WCDressingExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.64.64.0
