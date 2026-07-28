@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_hepato_ext100/pcc_hepato_ext100_engine.js
+module.exports.version='v3.26.26.0';
+module.exports.module='pcc_hepato_ext100';
+module.exports.functions={};
+module.exports.functions['HepBext']=function(input){const score=Math.round((0.18 + Number(input.hepB||1)*0.2 + Number(input.hbvDna||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepBext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepCext']=function(input){const score=Math.round((0.18 + Number(input.hepC||1)*0.2 + Number(input.hcvRna||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepCext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepAlcoholExt']=function(input){const score=Math.round((0.18 + Number(input.hepAlc||1)*0.2 + Number(input.auditScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepAlcoholExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepNAFLDext']=function(input){const score=Math.round((0.18 + Number(input.hepNAFLD||1)*0.2 + Number(input.fib4Score||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepNAFLDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepCirrhosisExt']=function(input){const score=Math.round((0.18 + Number(input.hepCirc||1)*0.2 + Number(input.meldScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepCirrhosisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepFailureExt']=function(input){const score=Math.round((0.18 + Number(input.hepFail||1)*0.2 + Number(input.inrHep||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepFailureExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepTransplantExt']=function(input){const score=Math.round((0.18 + Number(input.hepTx||1)*0.2 + Number(input.meldNa||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepTransplantExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepAutoimmuneExt']=function(input){const score=Math.round((0.18 + Number(input.hepAIH||1)*0.2 + Number(input.aihScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepAutoimmuneExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepWilsonExt']=function(input){const score=Math.round((0.18 + Number(input.hepWilson||1)*0.2 + Number(input.cp24h||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepWilsonExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HepHemochromaExt']=function(input){const score=Math.round((0.18 + Number(input.hepHemo||1)*0.2 + Number(input.ferritinHep||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepHemochromaExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.26.26.0

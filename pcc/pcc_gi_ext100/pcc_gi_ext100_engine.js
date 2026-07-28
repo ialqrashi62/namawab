@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_gi_ext100/pcc_gi_ext100_engine.js
+module.exports.version='v3.26.26.0';
+module.exports.module='pcc_gi_ext100';
+module.exports.functions={};
+module.exports.functions['GIBleedingExt']=function(input){const score=Math.round((0.18 + Number(input.giBleed||1)*0.2 + Number(input.hgbDrop||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_gi_ext100',function:'GIBleedingExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GIIBDadultExt']=function(input){const score=Math.round((0.18 + Number(input.giIBD||1)*0.2 + Number(input.crpIBD||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_gi_ext100',function:'GIIBDadultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GIIBSadultExt']=function(input){const score=Math.round((0.18 + Number(input.giIBS||1)*0.2 + Number(input.ibsScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_gi_ext100',function:'GIIBSadultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GIGERDadultExt']=function(input){const score=Math.round((0.18 + Number(input.giGERD||1)*0.2 + Number(input.gerdQ||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_gi_ext100',function:'GIGERDadultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GICeliacExt']=function(input){const score=Math.round((0.18 + Number(input.giCeliac||1)*0.2 + Number(input.tissueTrans||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_gi_ext100',function:'GICeliacExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GIColorectalExt']=function(input){const score=Math.round((0.18 + Number(input.giColorectal||1)*0.2 + Number(input.polypSize||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_gi_ext100',function:'GIColorectalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GIObstructionExt']=function(input){const score=Math.round((0.18 + Number(input.giObs||1)*0.2 + Number(input.obsLevel||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_gi_ext100',function:'GIObstructionExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GIAppendicitisExt']=function(input){const score=Math.round((0.18 + Number(input.giAppendicitis||1)*0.2 + Number(input.alvaradoScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_gi_ext100',function:'GIAppendicitisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GIPediatricsExt']=function(input){const score=Math.round((0.18 + Number(input.giPed||1)*0.2 + Number(input.pedAge||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_gi_ext100',function:'GIPediatricsExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GICdiffExt']=function(input){const score=Math.round((0.18 + Number(input.giCdiff||1)*0.2 + Number(input.cdiffTox||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_gi_ext100',function:'GICdiffExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.26.26.0
