@@ -1,0 +1,2 @@
+-- pcc_preventive_medicine_ext102 up
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[pcc_preventive_medicine_ext102]') AND type = 'U') BEGIN CREATE TABLE [dbo].[pcc_preventive_medicine_ext102] ([id] INT IDENTITY(1,1) PRIMARY KEY,[tenant_id] NVARCHAR(64) NOT NULL,[version] NVARCHAR(16) NOT NULL,[module] NVARCHAR(64) NOT NULL,[function] NVARCHAR(128) NOT NULL,[input] NVARCHAR(MAX) NULL,[score] DECIMAL(6,2) NULL,[ts] DATETIME2 DEFAULT SYSUTCDATETIME()); END
