@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext151/pcc_neuro_ext151_engine.js
+module.exports.version='v3.250.0';
+module.exports.module='pcc_neuro_ext151';
+module.exports.functions={};
+module.exports.functions['MyastheniaCrisisExt']=function(input){const score=Math.round((0.18 + Number(input.mg||1)*0.2 + Number(input.crisis||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.250.0',module:'pcc_neuro_ext151',function:'MyastheniaCrisisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LambertEatonExt']=function(input){const score=Math.round((0.18 + Number(input.lems||1)*0.2 + Number(input.weakness||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.250.0',module:'pcc_neuro_ext151',function:'LambertEatonExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CIDPext']=function(input){const score=Math.round((0.18 + Number(input.cidp||1)*0.2 + Number(input.demyelinating||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.250.0',module:'pcc_neuro_ext151',function:'CIDPext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GuillainBarreExt']=function(input){const score=Math.round((0.18 + Number(input.gbs||1)*0.2 + Number(input.ascending||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.250.0',module:'pcc_neuro_ext151',function:'GuillainBarreExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MillerFisherExt']=function(input){const score=Math.round((0.18 + Number(input.mfs||1)*0.2 + Number(input.opthalmoplegia||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.250.0',module:'pcc_neuro_ext151',function:'MillerFisherExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BotulismExt']=function(input){const score=Math.round((0.18 + Number(input.botulism||1)*0.2 + Number(input.descending||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.250.0',module:'pcc_neuro_ext151',function:'BotulismExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PolymyositisExt']=function(input){const score=Math.round((0.18 + Number(input.pm||1)*0.2 + Number(input.proximal||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.250.0',module:'pcc_neuro_ext151',function:'PolymyositisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DermatomyositisExt']=function(input){const score=Math.round((0.18 + Number(input.dm||1)*0.2 + Number(input.heliotrope||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.250.0',module:'pcc_neuro_ext151',function:'DermatomyositisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['InclusionBodyExt']=function(input){const score=Math.round((0.18 + Number(input.ibm||1)*0.2 + Number(input.inclusion||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.250.0',module:'pcc_neuro_ext151',function:'InclusionBodyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MyotonicDystrophyExt']=function(input){const score=Math.round((0.18 + Number(input.dm1||1)*0.2 + Number(input.myotonia||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.250.0',module:'pcc_neuro_ext151',function:'MyotonicDystrophyExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.250.0
