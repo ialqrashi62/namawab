@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext116/pcc_neuro_ext116_engine.js
+module.exports.version='v3.215.0';
+module.exports.module='pcc_neuro_ext116';
+module.exports.functions={};
+module.exports.functions['SpinalCordInjuryExt']=function(input){const score=Math.round((0.18 + Number(input.ais||3)*0.1 + Number(input.level||6)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.215.0',module:'pcc_neuro_ext116',function:'SpinalCordInjuryExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TetraplegiaExt']=function(input){const score=Math.round((0.18 + Number(input.c1||1)*0.1 + Number(input.dvt||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.215.0',module:'pcc_neuro_ext116',function:'TetraplegiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ParaplegiaExt']=function(input){const score=Math.round((0.18 + Number(input.t1||1)*0.1 + Number(input.autonomic||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.215.0',module:'pcc_neuro_ext116',function:'ParaplegiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BrownSequardExt']=function(input){const score=Math.round((0.18 + Number(input.hemisection||1)*0.2 + Number(input.ipsilateral||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.215.0',module:'pcc_neuro_ext116',function:'BrownSequardExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AnteriorCordExt']=function(input){const score=Math.round((0.18 + Number(input.anterior||1)*0.2 + Number(input.motor||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.215.0',module:'pcc_neuro_ext116',function:'AnteriorCordExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CentralCordExt']=function(input){const score=Math.round((0.18 + Number(input.central||1)*0.2 + Number(input.upper||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.215.0',module:'pcc_neuro_ext116',function:'CentralCordExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CaudaEquinaExt']=function(input){const score=Math.round((0.18 + Number(input.lumbar||1)*0.2 + Number(input.sphincter||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.215.0',module:'pcc_neuro_ext116',function:'CaudaEquinaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ConusMedullarisExt']=function(input){const score=Math.round((0.18 + Number(input.t12||1)*0.2 + Number(input.sphincter||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.215.0',module:'pcc_neuro_ext116',function:'ConusMedullarisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SpinalShockExt']=function(input){const score=Math.round((0.18 + Number(input.areflexia||1)*0.2 + Number(input.days||3)*0.1 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.215.0',module:'pcc_neuro_ext116',function:'SpinalShockExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AutonomicDysreflexiaExt']=function(input){const score=Math.round((0.18 + Number(input.bp||180)*0.005 + Number(input.trigger||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.215.0',module:'pcc_neuro_ext116',function:'AutonomicDysreflexiaExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.215.0
