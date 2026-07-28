@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext111/pcc_neuro_ext111_engine.js
+// pcc_neuro_ext111 engine (deterministic)
+module.exports.version='v3.210.0';
+module.exports.module='pcc_neuro_ext111';
+module.exports.functions={};
+module.exports.functions['EpilepsyFocalExt']=function(input){const score=Math.round((0.18 + Number(input.frequency||4)*0.04 + Number(input.aed||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.210.0',module:'pcc_neuro_ext111',function:'EpilepsyFocalExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['EpilepsyGeneralizedExt']=function(input){const score=Math.round((0.18 + Number(input.seizureType||1)*0.2 + Number(input.aed||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.210.0',module:'pcc_neuro_ext111',function:'EpilepsyGeneralizedExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['StatusEpilepticusExt']=function(input){const score=Math.round((0.18 + Number(input.duration||10)*0.04 + Number(input.sezType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.210.0',module:'pcc_neuro_ext111',function:'StatusEpilepticusExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['RefractoryEpilepsyExt']=function(input){const score=Math.round((0.18 + Number(input.drugs||3)*0.1 + Number(input.dbs||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.210.0',module:'pcc_neuro_ext111',function:'RefractoryEpilepsyExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['EpilepsySurgeryExt']=function(input){const score=Math.round((0.18 + Number(input.resection||1)*0.2 + Number(input.engel||2)*0.1 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.210.0',module:'pcc_neuro_ext111',function:'EpilepsySurgeryExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['TemporalLobeEpilepsyExt']=function(input){const score=Math.round((0.18 + Number(input.mri||1)*0.2 + Number(input.surgery||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.210.0',module:'pcc_neuro_ext111',function:'TemporalLobeEpilepsyExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['FrontalLobeEpilepsyExt']=function(input){const score=Math.round((0.18 + Number(input.eeg||1)*0.2 + Number(input.surgery||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.210.0',module:'pcc_neuro_ext111',function:'FrontalLobeEpilepsyExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['ParietalEpilepsyExt']=function(input){const score=Math.round((0.18 + Number(input.eeg||1)*0.2 + Number(input.surgery||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.210.0',module:'pcc_neuro_ext111',function:'ParietalEpilepsyExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['OccipitalEpilepsyExt']=function(input){const score=Math.round((0.18 + Number(input.eeg||1)*0.2 + Number(input.surgery||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.210.0',module:'pcc_neuro_ext111',function:'OccipitalEpilepsyExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['LennoxGastautExt']=function(input){const score=Math.round((0.18 + Number(input.seizures||3)*0.1 + Number(input.aed||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.210.0',module:'pcc_neuro_ext111',function:'LennoxGastautExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.210.0
