@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_pathology_ext102/pcc_pathology_ext102_engine.js
+module.exports.version='v3.65.65.0';
+module.exports.module='pcc_pathology_ext102';
+module.exports.functions={};
+module.exports.functions['PathGenExt']=function(input){const score=Math.round((0.18 + Number(input.paGen||1)*0.2 + Number(input.paGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathHistoExt']=function(input){const score=Math.round((0.18 + Number(input.paHis||1)*0.2 + Number(input.paHisType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathHistoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathFrozenExt']=function(input){const score=Math.round((0.18 + Number(input.paFrz||1)*0.2 + Number(input.paFrzTime||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathFrozenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathImmunoExt']=function(input){const score=Math.round((0.18 + Number(input.paImm||1)*0.2 + Number(input.paImmType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathImmunoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathSpecialExt']=function(input){const score=Math.round((0.18 + Number(input.paSp||1)*0.2 + Number(input.paSpType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathSpecialExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathCancerExt']=function(input){const score=Math.round((0.18 + Number(input.paCan||1)*0.2 + Number(input.paCanStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathCancerExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathAutopsyExt']=function(input){const score=Math.round((0.18 + Number(input.paAut||1)*0.2 + Number(input.paAutType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathAutopsyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathFNAext']=function(input){const score=Math.round((0.18 + Number(input.paFNA||1)*0.2 + Number(input.paFNAScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathFNAext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathGIext']=function(input){const score=Math.round((0.18 + Number(input.paGI||1)*0.2 + Number(input.paGIType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathGIext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathBreastExt']=function(input){const score=Math.round((0.18 + Number(input.paBr||1)*0.2 + Number(input.paBrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathBreastExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.65.65.0

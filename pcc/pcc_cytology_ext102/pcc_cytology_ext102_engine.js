@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_cytology_ext102/pcc_cytology_ext102_engine.js
+module.exports.version='v3.65.65.0';
+module.exports.module='pcc_cytology_ext102';
+module.exports.functions={};
+module.exports.functions['CytGenExt']=function(input){const score=Math.round((0.18 + Number(input.cyGen||1)*0.2 + Number(input.cyGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_cytology_ext102',function:'CytGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CytPapExt']=function(input){const score=Math.round((0.18 + Number(input.cyPap||1)*0.2 + Number(input.cyPapScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_cytology_ext102',function:'CytPapExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CytFluidExt']=function(input){const score=Math.round((0.18 + Number(input.cyFlu||1)*0.2 + Number(input.cyFluType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_cytology_ext102',function:'CytFluidExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CytFNABreastExt']=function(input){const score=Math.round((0.18 + Number(input.cyFNB||1)*0.2 + Number(input.cyFNBScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_cytology_ext102',function:'CytFNABreastExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CytThyroidExt']=function(input){const score=Math.round((0.18 + Number(input.cyThy||1)*0.2 + Number(input.cyThyBethesda||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_cytology_ext102',function:'CytThyroidExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CytLymphExt']=function(input){const score=Math.round((0.18 + Number(input.cyLym||1)*0.2 + Number(input.cyLymType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_cytology_ext102',function:'CytLymphExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CytUrineExt']=function(input){const score=Math.round((0.18 + Number(input.cyUri||1)*0.2 + Number(input.cyUriScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_cytology_ext102',function:'CytUrineExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CytCSFext']=function(input){const score=Math.round((0.18 + Number(input.cyCSF||1)*0.2 + Number(input.cyCSFType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_cytology_ext102',function:'CytCSFext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CytSputumExt']=function(input){const score=Math.round((0.18 + Number(input.cySpu||1)*0.2 + Number(input.cySpuScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_cytology_ext102',function:'CytSputumExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CytCellBlockExt']=function(input){const score=Math.round((0.18 + Number(input.cyCB||1)*0.2 + Number(input.cyCBType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_cytology_ext102',function:'CytCellBlockExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.65.65.0
