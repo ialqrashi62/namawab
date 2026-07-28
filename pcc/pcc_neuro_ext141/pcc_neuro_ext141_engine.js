@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext141/pcc_neuro_ext141_engine.js
+module.exports.version='v3.240.0';
+module.exports.module='pcc_neuro_ext141';
+module.exports.functions={};
+module.exports.functions['CryptococcalMENext']=function(input){const score=Math.round((0.18 + Number(input.hiv||1)*0.2 + Number(input.csf||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'CryptococcalMENext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TBmeningitisAdultExt']=function(input){const score=Math.round((0.18 + Number(input.tb||1)*0.2 + Number(input.meningitis||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'TBmeningitisAdultExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HIVExt']=function(input){const score=Math.round((0.18 + Number(input.hiv||1)*0.2 + Number(input.cognitive||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'HIVExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HIVToxoplasmosisExt']=function(input){const score=Math.round((0.18 + Number(input.hiv||1)*0.2 + Number(input.toxo||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'HIVToxoplasmosisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PMLext']=function(input){const score=Math.round((0.18 + Number(input.jc||1)*0.2 + Number(input.demyelination||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'PMLext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AIDSDementiaExt']=function(input){const score=Math.round((0.18 + Number(input.aids||1)*0.2 + Number(input.cognitive||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'AIDSDementiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ToxoplasmosisExt']=function(input){const score=Math.round((0.18 + Number(input.toxo||1)*0.2 + Number(input.lesion||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'ToxoplasmosisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CysticercosisExt']=function(input){const score=Math.round((0.18 + Number(input.cyst||1)*0.2 + Number(input.seizure||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'CysticercosisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EchinococcusExt']=function(input){const score=Math.round((0.18 + Number(input.hydatid||1)*0.2 + Number(input.brain||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'EchinococcusExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AmebicMeningoExt']=function(input){const score=Math.round((0.18 + Number(input.amebic||1)*0.2 + Number(input.meningo||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'AmebicMeningoExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.240.0
