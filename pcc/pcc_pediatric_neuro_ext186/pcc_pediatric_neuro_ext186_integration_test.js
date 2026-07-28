@@ -1,0 +1,1 @@
+const {functions:F}=require('./pcc_pediatric_neuro_ext186_engine');let pass=0;const samples=[{v:1},{v:2},{v:3},{v:4},{v:5}];for(const fn of Object.keys(F)){for(const s of samples){const r=F[fn](s);if(r&&typeof r.score==='number')pass++;}}console.log('pcc_pediatric_neuro_ext186 integration:',pass);if(pass!==50)process.exit(1);
