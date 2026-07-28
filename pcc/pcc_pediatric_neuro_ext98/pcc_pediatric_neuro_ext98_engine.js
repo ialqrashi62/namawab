@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_pediatric_neuro_ext98/pcc_pediatric_neuro_ext98_engine.js
+// pcc_pediatric_neuro_ext98 engine (deterministic)
+module.exports.version='v3.208.0';
+module.exports.module='pcc_pediatric_neuro_ext98';
+module.exports.functions={};
+module.exports.functions['PediatricMSExt']=function(input){const score=Math.round((0.18 + Number(input.age||10)*0.04 + Number(input.edss||4)*0.05 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.208.0',module:'pcc_pediatric_neuro_ext98',function:'PediatricMSExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricNMOExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.aq4||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.208.0',module:'pcc_pediatric_neuro_ext98',function:'PediatricNMOExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricMOGExt']=function(input){const score=Math.round((0.18 + Number(input.age||6)*0.04 + Number(input.mog||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.208.0',module:'pcc_pediatric_neuro_ext98',function:'PediatricMOGExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricADEMExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.acute||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.208.0',module:'pcc_pediatric_neuro_ext98',function:'PediatricADEMExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricGBSext']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.albumin||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.208.0',module:'pcc_pediatric_neuro_ext98',function:'PediatricGBSext',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricCIDPExt']=function(input){const score=Math.round((0.18 + Number(input.age||7)*0.04 + Number(input.chronic||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.208.0',module:'pcc_pediatric_neuro_ext98',function:'PediatricCIDPExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricMyastheniaExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.ach||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.208.0',module:'pcc_pediatric_neuro_ext98',function:'PediatricMyastheniaExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricLambertEatonExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.vgcc||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.208.0',module:'pcc_pediatric_neuro_ext98',function:'PediatricLambertEatonExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricPolymyositisExt']=function(input){const score=Math.round((0.18 + Number(input.age||7)*0.04 + Number(input.ck||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.208.0',module:'pcc_pediatric_neuro_ext98',function:'PediatricPolymyositisExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricDermatomyositisExt']=function(input){const score=Math.round((0.18 + Number(input.age||6)*0.04 + Number(input.rash||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.208.0',module:'pcc_pediatric_neuro_ext98',function:'PediatricDermatomyositisExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.208.0
