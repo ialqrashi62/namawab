@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_pain_mgmt_ext102/pcc_pain_mgmt_ext102_engine.js
+module.exports.version='v3.71.71.0';
+module.exports.module='pcc_pain_mgmt_ext102';
+module.exports.functions={};
+module.exports.functions['PMGenExt']=function(input){const score=Math.round((0.18 + Number(input.pmGen||1)*0.2 + Number(input.pmGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PMAcuteExt']=function(input){const score=Math.round((0.18 + Number(input.pmAcu||1)*0.2 + Number(input.pmAcuScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMAcuteExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PMChronicExt']=function(input){const score=Math.round((0.18 + Number(input.pmChr||1)*0.2 + Number(input.pmChrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMChronicExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PMNeuroExt']=function(input){const score=Math.round((0.18 + Number(input.pmNeu||1)*0.2 + Number(input.pmNeuScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMNeuroExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PMCancerExt']=function(input){const score=Math.round((0.18 + Number(input.pmCan||1)*0.2 + Number(input.pmCanScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMCancerExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PMBlockExt']=function(input){const score=Math.round((0.18 + Number(input.pmBlk||1)*0.2 + Number(input.pmBlkType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMBlockExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PMInjectExt']=function(input){const score=Math.round((0.18 + Number(input.pmInj||1)*0.2 + Number(input.pmInjType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMInjectExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PMPumpExt']=function(input){const score=Math.round((0.18 + Number(input.pmPmp||1)*0.2 + Number(input.pmPmpType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMPumpExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PMStimExt']=function(input){const score=Math.round((0.18 + Number(input.pmStm||1)*0.2 + Number(input.pmStmType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMStimExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PMMultiExt']=function(input){const score=Math.round((0.18 + Number(input.pmMlt||1)*0.2 + Number(input.pmMltScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMMultiExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.71.71.0
