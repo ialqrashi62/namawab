@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_derm_ext100/pcc_derm_ext100_engine.js
+module.exports.version='v3.22.22.0';
+module.exports.module='pcc_derm_ext100';
+module.exports.functions={};
+module.exports.functions['DermEczemaExt']=function(input){const score=Math.round((0.18 + Number(input.dermEczema||1)*0.2 + Number(input.easiScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_derm_ext100',function:'DermEczemaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DermPsoriasisExt']=function(input){const score=Math.round((0.18 + Number(input.dermPsor||1)*0.2 + Number(input.pasiScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_derm_ext100',function:'DermPsoriasisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DermAcneExt']=function(input){const score=Math.round((0.18 + Number(input.dermAcne||1)*0.2 + Number(input.acneGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_derm_ext100',function:'DermAcneExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DermMelanomaExt']=function(input){const score=Math.round((0.18 + Number(input.dermMelanoma||1)*0.2 + Number(input.breslow||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_derm_ext100',function:'DermMelanomaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DermBCCext']=function(input){const score=Math.round((0.18 + Number(input.dermBCC||1)*0.2 + Number(input.bccType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_derm_ext100',function:'DermBCCext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DermSCCext']=function(input){const score=Math.round((0.18 + Number(input.dermSCC||1)*0.2 + Number(input.sccGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_derm_ext100',function:'DermSCCext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DermDrugExt']=function(input){const score=Math.round((0.18 + Number(input.dermDrug||1)*0.2 + Number(input.drugType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_derm_ext100',function:'DermDrugExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DermAutoimmuneExt']=function(input){const score=Math.round((0.18 + Number(input.dermAuto||1)*0.2 + Number(input.autoSkinAb||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_derm_ext100',function:'DermAutoimmuneExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DermInfectionExt']=function(input){const score=Math.round((0.18 + Number(input.dermInf||1)*0.2 + Number(input.dermPathogen||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_derm_ext100',function:'DermInfectionExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DermBurnExt']=function(input){const score=Math.round((0.18 + Number(input.dermBurn||1)*0.2 + Number(input.tbsaDerm||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_derm_ext100',function:'DermBurnExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.22.22.0
