@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_ent_ext102/pcc_ent_ext102_engine.js
+module.exports.version='v3.63.63.0';
+module.exports.module='pcc_ent_ext102';
+module.exports.functions={};
+module.exports.functions['EntGenExt']=function(input){const score=Math.round((0.18 + Number(input.enGen||1)*0.2 + Number(input.enGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_ent_ext102',function:'EntGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EntOtitisExt']=function(input){const score=Math.round((0.18 + Number(input.enOt||1)*0.2 + Number(input.enOtType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_ent_ext102',function:'EntOtitisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EntSinusExt']=function(input){const score=Math.round((0.18 + Number(input.enSin||1)*0.2 + Number(input.enSinScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_ent_ext102',function:'EntSinusExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EntTonsilExt']=function(input){const score=Math.round((0.18 + Number(input.enTon||1)*0.2 + Number(input.enTonScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_ent_ext102',function:'EntTonsilExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EntHearingExt']=function(input){const score=Math.round((0.18 + Number(input.enHea||1)*0.2 + Number(input.enHeadB||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_ent_ext102',function:'EntHearingExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EntVertigoExt']=function(input){const score=Math.round((0.18 + Number(input.enVer||1)*0.2 + Number(input.enVerScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_ent_ext102',function:'EntVertigoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EntVoiceExt']=function(input){const score=Math.round((0.18 + Number(input.enVoi||1)*0.2 + Number(input.enVoiType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_ent_ext102',function:'EntVoiceExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EntNoseExt']=function(input){const score=Math.round((0.18 + Number(input.enNose||1)*0.2 + Number(input.enNoseType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_ent_ext102',function:'EntNoseExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EntCancerExt']=function(input){const score=Math.round((0.18 + Number(input.enCan||1)*0.2 + Number(input.enCanStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_ent_ext102',function:'EntCancerExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EntSleepExt']=function(input){const score=Math.round((0.18 + Number(input.enSlp||1)*0.2 + Number(input.enSlpAHI||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_ent_ext102',function:'EntSleepExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.63.63.0

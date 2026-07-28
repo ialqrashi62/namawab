@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_dental_ext102/pcc_dental_ext102_engine.js
+module.exports.version='v3.63.63.0';
+module.exports.module='pcc_dental_ext102';
+module.exports.functions={};
+module.exports.functions['DenGenExt']=function(input){const score=Math.round((0.18 + Number(input.deGen||1)*0.2 + Number(input.deGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_dental_ext102',function:'DenGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DenCariesExt']=function(input){const score=Math.round((0.18 + Number(input.deCar||1)*0.2 + Number(input.deCarGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_dental_ext102',function:'DenCariesExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DenEndoExt']=function(input){const score=Math.round((0.18 + Number(input.deEndo||1)*0.2 + Number(input.deEndoType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_dental_ext102',function:'DenEndoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DenPerioExt']=function(input){const score=Math.round((0.18 + Number(input.dePer||1)*0.2 + Number(input.dePerScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_dental_ext102',function:'DenPerioExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DenProsthoExt']=function(input){const score=Math.round((0.18 + Number(input.dePros||1)*0.2 + Number(input.deProsType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_dental_ext102',function:'DenProsthoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DenOrthoExt']=function(input){const score=Math.round((0.18 + Number(input.deOrt||1)*0.2 + Number(input.deOrtType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_dental_ext102',function:'DenOrthoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DenOralSurgExt']=function(input){const score=Math.round((0.18 + Number(input.deOS||1)*0.2 + Number(input.deOSType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_dental_ext102',function:'DenOralSurgExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DenPediatricExt']=function(input){const score=Math.round((0.18 + Number(input.dePed||1)*0.2 + Number(input.dePedType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_dental_ext102',function:'DenPediatricExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DenImplantsExt']=function(input){const score=Math.round((0.18 + Number(input.deImp||1)*0.2 + Number(input.deImpScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_dental_ext102',function:'DenImplantsExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DenCancerExt']=function(input){const score=Math.round((0.18 + Number(input.deCan||1)*0.2 + Number(input.deCanStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.63.63.0',module:'pcc_dental_ext102',function:'DenCancerExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.63.63.0
