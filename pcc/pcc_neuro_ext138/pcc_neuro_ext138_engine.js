@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext138/pcc_neuro_ext138_engine.js
+module.exports.version='v3.237.0';
+module.exports.module='pcc_neuro_ext138';
+module.exports.functions={};
+module.exports.functions['SCDext']=function(input){const score=Math.round((0.18 + Number(input.scd||1)*0.2 + Number(input.crisis||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.237.0',module:'pcc_neuro_ext138',function:'SCDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SCDPainCrisisExt']=function(input){const score=Math.round((0.18 + Number(input.pain||1)*0.2 + Number(input.hydration||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.237.0',module:'pcc_neuro_ext138',function:'SCDPainCrisisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SCDStrokeExt']=function(input){const score=Math.round((0.18 + Number(input.stroke||1)*0.2 + Number(input.transfusion||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.237.0',module:'pcc_neuro_ext138',function:'SCDStrokeExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SCDAcuteChestExt']=function(input){const score=Math.round((0.18 + Number(input.chest||1)*0.2 + Number(input.fever||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.237.0',module:'pcc_neuro_ext138',function:'SCDAcuteChestExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SCDPriapismExt']=function(input){const score=Math.round((0.18 + Number(input.priapism||1)*0.2 + Number(input.aspiration||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.237.0',module:'pcc_neuro_ext138',function:'SCDPriapismExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SCDRenalExt']=function(input){const score=Math.round((0.18 + Number(input.ckd||1)*0.2 + Number(input.proteinuria||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.237.0',module:'pcc_neuro_ext138',function:'SCDRenalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SCDRetinopathyExt']=function(input){const score=Math.round((0.18 + Number(input.retina||1)*0.2 + Number(input.prolif||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.237.0',module:'pcc_neuro_ext138',function:'SCDRetinopathyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SCDAvNExt']=function(input){const score=Math.round((0.18 + Number(input.avn||1)*0.2 + Number(input.femur||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.237.0',module:'pcc_neuro_ext138',function:'SCDAvNExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SCDLegUlcerExt']=function(input){const score=Math.round((0.18 + Number(input.ulcer||1)*0.2 + Number(input.chronic||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.237.0',module:'pcc_neuro_ext138',function:'SCDLegUlcerExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SCDHydroxyureaExt']=function(input){const score=Math.round((0.18 + Number(input.hydroxyurea||1)*0.2 + Number(input.dose||1)*0.1 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.237.0',module:'pcc_neuro_ext138',function:'SCDHydroxyureaExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.237.0
