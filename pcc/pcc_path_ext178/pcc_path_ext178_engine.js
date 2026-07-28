@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_path_ext178/pcc_path_ext178_engine.js
+module.exports.version='v3.14.14.0';
+module.exports.module='pcc_path_ext178';
+module.exports.functions={};
+module.exports.functions['PathTumorExt']=function(input){const score=Math.round((0.18 + Number(input.pathTumor||1)*0.2 + Number(input.grade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathTumorExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathProstateExt']=function(input){const score=Math.round((0.18 + Number(input.pathProstate||1)*0.2 + Number(input.gleason||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathProstateExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathBreastExt']=function(input){const score=Math.round((0.18 + Number(input.pathBreast||1)*0.2 + Number(input.nottingham||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathBreastExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathColonExt']=function(input){const score=Math.round((0.18 + Number(input.pathColon||1)*0.2 + Number(input.tnmStage||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathColonExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathLungExt']=function(input){const score=Math.round((0.18 + Number(input.pathLung||1)*0.2 + Number(input.lungType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathLungExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathPancreasExt']=function(input){const score=Math.round((0.18 + Number(input.pathPanc||1)*0.2 + Number(input.differentiation||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathPancreasExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathOvaryExt']=function(input){const score=Math.round((0.18 + Number(input.pathOvary||1)*0.2 + Number(input.ovaryType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathOvaryExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathRenalExt']=function(input){const score=Math.round((0.18 + Number(input.pathRenal||1)*0.2 + Number(input.furhman||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathRenalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathThyroidExt']=function(input){const score=Math.round((0.18 + Number(input.pathThyroid||1)*0.2 + Number(input.thyroType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathThyroidExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PathLiverExt']=function(input){const score=Math.round((0.18 + Number(input.pathLiver||1)*0.2 + Number(input.liverGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathLiverExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.14.14.0
