@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext91/pcc_neuro_ext91_engine.js
+// pcc_neuro_ext91 engine (deterministic)
+module.exports.version='v3.190.0';
+module.exports.module='pcc_neuro_ext91';
+module.exports.functions={};
+module.exports.functions['EpilepsyNeuropsychExt']=function(input){const score=Math.round((0.2 + Number(input.memory||80)*0.005 + Number(input.executive||75)*0.005 + Number(input.attention||70)*0.005)*100)/100;return{version:'v3.190.0',module:'pcc_neuro_ext91',function:'EpilepsyNeuropsychExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['WadaLanguageExt']=function(input){const score=Math.round((0.2 + Number(input.leftDom||1)*0.2 + Number(input.rightDom||0)*0.05 + Number(input.memory||7)*0.04)*100)/100;return{version:'v3.190.0',module:'pcc_neuro_ext91',function:'WadaLanguageExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['MemoryWadaExt']=function(input){const score=Math.round((0.2 + Number(input.lMem||7)*0.04 + Number(input.rMem||7)*0.04 + Number(input.passFail||1)*0.15)*100)/100;return{version:'v3.190.0',module:'pcc_neuro_ext91',function:'MemoryWadaExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PreopNeuropsychExt']=function(input){const score=Math.round((0.18 + Number(input.brief||0)*0.1 + Number(input.wais||100)*0.005 + Number(input.cog||90)*0.005)*100)/100;return{version:'v3.190.0',module:'pcc_neuro_ext91',function:'PreopNeuropsychExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PostopCogDeclineExt']=function(input){const score=Math.round((0.2 + Number(input.followUp||12)*0.01 + Number(input.decline||5)*0.04 + Number(input.recovery||1)*0.1)*100)/100;return{version:'v3.190.0',module:'pcc_neuro_ext91',function:'PostopCogDeclineExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['RehabCogRestorationExt']=function(input){const score=Math.round((0.15 + Number(input.intensity||3)*0.1 + Number(input.weeks||8)*0.04 + Number(input.gain||10)*0.04)*100)/100;return{version:'v3.190.0',module:'pcc_neuro_ext91',function:'RehabCogRestorationExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['SeizureFreeOutcomeExt']=function(input){const score=Math.round((0.2 + Number(input.engelI||75)*0.005 + Number(input.followMonths||24)*0.01 + Number(input.qolie||80)*0.005)*100)/100;return{version:'v3.190.0',module:'pcc_neuro_ext91',function:'SeizureFreeOutcomeExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CognitiveRehabGoalsExt']=function(input){const score=Math.round((0.18 + Number(input.goals||5)*0.05 + Number(input.weeks||12)*0.04 + Number(input.met||3)*0.08)*100)/100;return{version:'v3.190.0',module:'pcc_neuro_ext91',function:'CognitiveRehabGoalsExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['MoodScreenEpilepsyExt']=function(input){const score=Math.round((0.2 + Number(input.phq9||5)*0.04 + Number(input.gad7||5)*0.04 + Number(input.suicide||0)*0.1)*100)/100;return{version:'v3.190.0',module:'pcc_neuro_ext91',function:'MoodScreenEpilepsyExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['NeuropsychologyReferralExt']=function(input){const score=Math.round((0.15 + Number(input.urgent||1)*0.3 + Number(input.reason||1)*0.1 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.190.0',module:'pcc_neuro_ext91',function:'NeuropsychologyReferralExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.190.0
