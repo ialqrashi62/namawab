@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext183/pcc_neuro_ext183_engine.js
+module.exports.version='v3.1.12.0';
+module.exports.module='pcc_neuro_ext183';
+module.exports.functions={};
+module.exports.functions['NeuroGeriatricExt']=function(input){const score=Math.round((0.18 + Number(input.geriNeuro||1)*0.2 + Number(input.frailty||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.12.0',module:'pcc_neuro_ext183',function:'NeuroGeriatricExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DementiaWorkupExt']=function(input){const score=Math.round((0.18 + Number(input.dementiaWorkup||1)*0.2 + Number(input.moCA||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.12.0',module:'pcc_neuro_ext183',function:'DementiaWorkupExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DeliriumExt']=function(input){const score=Math.round((0.18 + Number(input.delirium||1)*0.2 + Number(input.cam||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.12.0',module:'pcc_neuro_ext183',function:'DeliriumExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['FallsNeuroExt']=function(input){const score=Math.round((0.18 + Number(input.falls||1)*0.2 + Number(input.balance||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.12.0',module:'pcc_neuro_ext183',function:'FallsNeuroExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PolypharmacyNeuroExt']=function(input){const score=Math.round((0.18 + Number(input.polyPharm||1)*0.2 + Number(input.beers||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.12.0',module:'pcc_neuro_ext183',function:'PolypharmacyNeuroExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BPSDext']=function(input){const score=Math.round((0.18 + Number(input.bpsd||1)*0.2 + Number(input.agitation||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.12.0',module:'pcc_neuro_ext183',function:'BPSDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CapgrasExt']=function(input){const score=Math.round((0.18 + Number(input.capgras||1)*0.2 + Number(input.misidentif||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.12.0',module:'pcc_neuro_ext183',function:'CapgrasExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CharlesBonnetExt']=function(input){const score=Math.round((0.18 + Number(input.cbs||1)*0.2 + Number(input.visualHalluc||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.12.0',module:'pcc_neuro_ext183',function:'CharlesBonnetExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PDDext']=function(input){const score=Math.round((0.18 + Number(input.pdd||1)*0.2 + Number(input.parkinsonDem||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.12.0',module:'pcc_neuro_ext183',function:'PDDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DLBext']=function(input){const score=Math.round((0.18 + Number(input.dlb||1)*0.2 + Number(input.lewyBody||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.12.0',module:'pcc_neuro_ext183',function:'DLBext',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.1.12.0
