@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_immunology_ext102/pcc_immunology_ext102_engine.js
+module.exports.version='v3.60.60.0';
+module.exports.module='pcc_immunology_ext102';
+module.exports.functions={};
+module.exports.functions['ImmGenExt']=function(input){const score=Math.round((0.18 + Number(input.imGen||1)*0.2 + Number(input.imGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_immunology_ext102',function:'ImmGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImmPrimaryExt']=function(input){const score=Math.round((0.18 + Number(input.imPri||1)*0.2 + Number(input.imPriType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_immunology_ext102',function:'ImmPrimaryExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImmSecondaryExt']=function(input){const score=Math.round((0.18 + Number(input.imSec||1)*0.2 + Number(input.imSecType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_immunology_ext102',function:'ImmSecondaryExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImmCVIDext']=function(input){const score=Math.round((0.18 + Number(input.imCVID||1)*0.2 + Number(input.imCVIDscore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_immunology_ext102',function:'ImmCVIDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImmHyperExt']=function(input){const score=Math.round((0.18 + Number(input.imHIGM||1)*0.2 + Number(input.imHIGMtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_immunology_ext102',function:'ImmHyperExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImmSCIDext']=function(input){const score=Math.round((0.18 + Number(input.imSCID||1)*0.2 + Number(input.imSCIDtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_immunology_ext102',function:'ImmSCIDext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImmAutoExt']=function(input){const score=Math.round((0.18 + Number(input.imAuto||1)*0.2 + Number(input.imAutoType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_immunology_ext102',function:'ImmAutoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImmTransplantExt']=function(input){const score=Math.round((0.18 + Number(input.imTx||1)*0.2 + Number(input.imTxType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_immunology_ext102',function:'ImmTransplantExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImmIVIGext']=function(input){const score=Math.round((0.18 + Number(input.imIVIG||1)*0.2 + Number(input.imIVIGtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_immunology_ext102',function:'ImmIVIGext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ImmVaccExt']=function(input){const score=Math.round((0.18 + Number(input.imVacc||1)*0.2 + Number(input.imVaccType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_immunology_ext102',function:'ImmVaccExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.60.60.0

@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_allergy_ext102/pcc_allergy_ext102_engine.js
+module.exports.version='v3.60.60.0';
+module.exports.module='pcc_allergy_ext102';
+module.exports.functions={};
+module.exports.functions['AlgGenExt']=function(input){const score=Math.round((0.18 + Number(input.alGen||1)*0.2 + Number(input.alGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_allergy_ext102',function:'AlgGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AlgRhinitisExt']=function(input){const score=Math.round((0.18 + Number(input.alRhi||1)*0.2 + Number(input.alRhiScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_allergy_ext102',function:'AlgRhinitisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AlgAsthmaExt']=function(input){const score=Math.round((0.18 + Number(input.alAst||1)*0.2 + Number(input.alAstScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_allergy_ext102',function:'AlgAsthmaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AlgFoodExt']=function(input){const score=Math.round((0.18 + Number(input.alFood||1)*0.2 + Number(input.alFoodType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_allergy_ext102',function:'AlgFoodExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AlgDrugExt']=function(input){const score=Math.round((0.18 + Number(input.alDrug||1)*0.2 + Number(input.alDrugType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_allergy_ext102',function:'AlgDrugExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AlgInsectExt']=function(input){const score=Math.round((0.18 + Number(input.alIns||1)*0.2 + Number(input.alInsType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_allergy_ext102',function:'AlgInsectExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AlgLatexExt']=function(input){const score=Math.round((0.18 + Number(input.alLtx||1)*0.2 + Number(input.alLtxType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_allergy_ext102',function:'AlgLatexExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AlgUrticariaExt']=function(input){const score=Math.round((0.18 + Number(input.alUrt||1)*0.2 + Number(input.alUrtScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_allergy_ext102',function:'AlgUrticariaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AlgAnaphyExt']=function(input){const score=Math.round((0.18 + Number(input.alAna||1)*0.2 + Number(input.alAnaScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_allergy_ext102',function:'AlgAnaphyExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AlgImmunothExt']=function(input){const score=Math.round((0.18 + Number(input.alImm||1)*0.2 + Number(input.alImmType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_allergy_ext102',function:'AlgImmunothExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.60.60.0

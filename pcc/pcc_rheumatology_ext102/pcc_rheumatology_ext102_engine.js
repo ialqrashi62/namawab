@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_rheumatology_ext102/pcc_rheumatology_ext102_engine.js
+module.exports.version='v3.60.60.0';
+module.exports.module='pcc_rheumatology_ext102';
+module.exports.functions={};
+module.exports.functions['RheGenExt']=function(input){const score=Math.round((0.18 + Number(input.rhGen||1)*0.2 + Number(input.rhGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_rheumatology_ext102',function:'RheGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RheRAext']=function(input){const score=Math.round((0.18 + Number(input.rhRA||1)*0.2 + Number(input.rhRADAS28||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_rheumatology_ext102',function:'RheRAext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RheSLEext']=function(input){const score=Math.round((0.18 + Number(input.rhSLE||1)*0.2 + Number(input.rhSLEDAI||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_rheumatology_ext102',function:'RheSLEext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RheSpAext']=function(input){const score=Math.round((0.18 + Number(input.rhSpA||1)*0.2 + Number(input.rhSpAType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_rheumatology_ext102',function:'RheSpAext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RheVasculExt']=function(input){const score=Math.round((0.18 + Number(input.rhVas||1)*0.2 + Number(input.rhVasType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_rheumatology_ext102',function:'RheVasculExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RheGoutExt']=function(input){const score=Math.round((0.18 + Number(input.rhGout||1)*0.2 + Number(input.rhGoutUA||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_rheumatology_ext102',function:'RheGoutExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RheOAext']=function(input){const score=Math.round((0.18 + Number(input.rhOA||1)*0.2 + Number(input.rhOAGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_rheumatology_ext102',function:'RheOAext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RheSjogExt']=function(input){const score=Math.round((0.18 + Number(input.rhSjog||1)*0.2 + Number(input.rhSjogType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_rheumatology_ext102',function:'RheSjogExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RheScleroExt']=function(input){const score=Math.round((0.18 + Number(input.rhScl||1)*0.2 + Number(input.rhSclScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_rheumatology_ext102',function:'RheScleroExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['RheMyoExt']=function(input){const score=Math.round((0.18 + Number(input.rhMyo||1)*0.2 + Number(input.rhMyoType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.60.60.0',module:'pcc_rheumatology_ext102',function:'RheMyoExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.60.60.0
