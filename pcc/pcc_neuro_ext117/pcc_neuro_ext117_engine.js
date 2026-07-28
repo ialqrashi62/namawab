@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext117/pcc_neuro_ext117_engine.js
+module.exports.version='v3.216.0';
+module.exports.module='pcc_neuro_ext117';
+module.exports.functions={};
+module.exports.functions['GuillainBarreSyndromeExt']=function(input){const score=Math.round((0.18 + Number(input.progressive||1)*0.2 + Number(input.albumin||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.216.0',module:'pcc_neuro_ext117',function:'GuillainBarreSyndromeExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MillerFisherExt']=function(input){const score=Math.round((0.18 + Number(input.ophthalmoplegia||1)*0.2 + Number(input.ataxia||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.216.0',module:'pcc_neuro_ext117',function:'MillerFisherExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BickerstaffExt']=function(input){const score=Math.round((0.18 + Number(input.encephalopathy||1)*0.2 + Number(input.areflexia||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.216.0',module:'pcc_neuro_ext117',function:'BickerstaffExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CIDPext']=function(input){const score=Math.round((0.18 + Number(input.chronic||1)*0.2 + Number(input.demyelination||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.216.0',module:'pcc_neuro_ext117',function:'CIDPext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MMNExt']=function(input){const score=Math.round((0.18 + Number(input.multifocal||1)*0.2 + Number(input.conductionBlock||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.216.0',module:'pcc_neuro_ext117',function:'MMNExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AntiMAGExt']=function(input){const score=Math.round((0.18 + Number(input.mag||1)*0.2 + Number(input.sensory||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.216.0',module:'pcc_neuro_ext117',function:'AntiMAGExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['POEMSExt']=function(input){const score=Math.round((0.18 + Number(input.acuteOnset||1)*0.2 + Number(input.ivig||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.216.0',module:'pcc_neuro_ext117',function:'POEMSExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AMANExt']=function(input){const score=Math.round((0.18 + Number(input.aman||1)*0.2 + Number(input.motor||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.216.0',module:'pcc_neuro_ext117',function:'AMANExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AMSANExt']=function(input){const score=Math.round((0.18 + Number(input.amsan||1)*0.2 + Number(input.sensoryMotor||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.216.0',module:'pcc_neuro_ext117',function:'AMSANExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GBSvariantsExt']=function(input){const score=Math.round((0.18 + Number(input.variant||1)*0.2 + Number(input.ivig||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.216.0',module:'pcc_neuro_ext117',function:'GBSvariantsExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.216.0
