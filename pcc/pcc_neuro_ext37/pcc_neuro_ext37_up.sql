@@ -1,0 +1,8 @@
+-- pcc_neuro_ext37 v3.136.0 migration up
+CREATE TABLE IF NOT EXISTS pcc_neuro_ext37 (
+  id BIGINT IDENTITY PRIMARY KEY,
+  tenant_id NVARCHAR(64) NOT NULL,
+  fn NVARCHAR(128),
+  payload NVARCHAR(MAX),
+  ts DATETIME2 DEFAULT SYSUTCDATETIME()
+);
