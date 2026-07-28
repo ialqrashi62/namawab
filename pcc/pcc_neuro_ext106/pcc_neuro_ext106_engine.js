@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext106/pcc_neuro_ext106_engine.js
+// pcc_neuro_ext106 engine (deterministic)
+module.exports.version='v3.205.0';
+module.exports.module='pcc_neuro_ext106';
+module.exports.functions={};
+module.exports.functions['VertebralArteryDissectExt']=function(input){const score=Math.round((0.18 + Number(input.trauma||1)*0.2 + Number(input.dissection||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.205.0',module:'pcc_neuro_ext106',function:'VertebralArteryDissectExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CarotidArteryDissectExt']=function(input){const score=Math.round((0.18 + Number(input.trauma||1)*0.2 + Number(input.dissection||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.205.0',module:'pcc_neuro_ext106',function:'CarotidArteryDissectExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['IntracranialStentingExt']=function(input){const score=Math.round((0.18 + Number(input.stenosis||70)*0.005 + Number(input.stent||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.205.0',module:'pcc_neuro_ext106',function:'IntracranialStentingExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CerebralVenousStentingExt']=function(input){const score=Math.round((0.18 + Number(input.stenosis||50)*0.005 + Number(input.stent||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.205.0',module:'pcc_neuro_ext106',function:'CerebralVenousStentingExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CarotidBodyTumorExt']=function(input){const score=Math.round((0.18 + Number(input.size||3)*0.1 + Number(input.vesselInvolve||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.205.0',module:'pcc_neuro_ext106',function:'CarotidBodyTumorExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['MoyaMoyaPregnancyExt']=function(input){const score=Math.round((0.18 + Number(input.week||20)*0.01 + Number(input.bypass||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.205.0',module:'pcc_neuro_ext106',function:'MoyaMoyaPregnancyExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['StrokePregnancyExt']=function(input){const score=Math.round((0.18 + Number(input.trimester||1)*0.1 + Number(input.stroke||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.205.0',module:'pcc_neuro_ext106',function:'StrokePregnancyExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PostpartumStrokeExt']=function(input){const score=Math.round((0.18 + Number(input.days||7)*0.04 + Number(input.stroke||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.205.0',module:'pcc_neuro_ext106',function:'PostpartumStrokeExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PediatricStrokePregnancyExt']=function(input){const score=Math.round((0.18 + Number(input.age||15)*0.04 + Number(input.stroke||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.205.0',module:'pcc_neuro_ext106',function:'PediatricStrokePregnancyExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['NeonatalStrokeExt']=function(input){const score=Math.round((0.18 + Number(input.days||3)*0.1 + Number(input.stroke||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.205.0',module:'pcc_neuro_ext106',function:'NeonatalStrokeExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.205.0
