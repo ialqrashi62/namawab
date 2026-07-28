@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext156/pcc_neuro_ext156_engine.js
+module.exports.version='v3.255.0';
+module.exports.module='pcc_neuro_ext156';
+module.exports.functions={};
+module.exports.functions['BrainStimDBSext']=function(input){const score=Math.round((0.18 + Number(input.dbs||1)*0.2 + Number(input.target||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.255.0',module:'pcc_neuro_ext156',function:'BrainStimDBSext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VagusNerveStimExt']=function(input){const score=Math.round((0.18 + Number(input.vns||1)*0.2 + Number(input.epilepsy||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.255.0',module:'pcc_neuro_ext156',function:'VagusNerveStimExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ResponsiveNeuroStimExt']=function(input){const score=Math.round((0.18 + Number(input.rns||1)*0.2 + Number(input.seizureDetect||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.255.0',module:'pcc_neuro_ext156',function:'ResponsiveNeuroStimExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TMSforDepressionExt']=function(input){const score=Math.round((0.18 + Number(input.tms||1)*0.2 + Number(input.trd||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.255.0',module:'pcc_neuro_ext156',function:'TMSforDepressionExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TMSforStrokeRehabExt']=function(input){const score=Math.round((0.18 + Number(input.tmsStroke||1)*0.2 + Number(input.motor||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.255.0',module:'pcc_neuro_ext156',function:'TMSforStrokeRehabExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ECTdepressionExt']=function(input){const score=Math.round((0.18 + Number(input.ect||1)*0.2 + Number(input.trdEct||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.255.0',module:'pcc_neuro_ext156',function:'ECTdepressionExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeuroablationExt']=function(input){const score=Math.round((0.18 + Number(input.mrFocus||1)*0.2 + Number(input.tremor||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.255.0',module:'pcc_neuro_ext156',function:'NeuroablationExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SpinalCordStimExt']=function(input){const score=Math.round((0.18 + Number(input.scs||1)*0.2 + Number(input.pain||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.255.0',module:'pcc_neuro_ext156',function:'SpinalCordStimExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['IntrathecalPumpExt']=function(input){const score=Math.round((0.18 + Number(input.itpump||1)*0.2 + Number(input.spasticity||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.255.0',module:'pcc_neuro_ext156',function:'IntrathecalPumpExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GammaKnifeExt']=function(input){const score=Math.round((0.18 + Number(input.gk||1)*0.2 + Number(input.trigeminal||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.255.0',module:'pcc_neuro_ext156',function:'GammaKnifeExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.255.0
