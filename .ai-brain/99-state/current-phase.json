@@ -1,0 +1,83 @@
+{
+  "version": "2.0",
+  "updated_at": "2026-07-27T01:30:00+03:00",
+  "phase": "P3-C Skills v2 + Example CARD-001",
+  "status": "ACTIVE",
+  "owner_signal": null,
+  "previous_phase": "P3-B HALT (signal 4)",
+  "deliverables": {
+    "skills_v2_count": 8,
+    "skills_v2_list": [
+      "nm-7-expert-panel-orchestrator",
+      "nm-loop-engineering-v2",
+      "nm-autopilot-dept-generator",
+      "nm-token-saver-pack",
+      "nm-stitch-medical-ui",
+      "nm-dept-blueprint-template-v2",
+      "nm-rag-vector-mine",
+      "nm-comprehensive-deliverables-checklist"
+    ],
+    "master_catalog": ".ai-brain/00_SYSTEM/MASTER_CATALOG_v3.yaml",
+    "snippets_v2": ".ai-brain/skills/shared/snippets_v2.md",
+    "runbook": ".ai-brain/MASTER_RUNBOOK.md",
+    "example_dept": "CARD-001 (61 files, ~9,500 tokens)"
+  },
+  "token_savings": {
+    "s1_schema_first": "25%",
+    "s2_chunked_reasoning": "5%",
+    "s3_id_reference": "5%",
+    "s4_templated_output": "10%",
+    "s5_cached_context": "10%",
+    "s6_compressed_prompts": "10%",
+    "s7_selective_depth": "20%",
+    "s8_parallel_gen": "wall-time",
+    "snippet_reuse": "30%",
+    "effective_tier_2_dept": "3000-4000 tokens"
+  },
+  "scope": {
+    "tier_1_depts": 20,
+    "tier_2_depts": 40,
+    "tier_3_depts": 40,
+    "tier_4_depts": 20,
+    "total_depts": 120,
+    "total_sub_units": 350,
+    "files_per_tier_1_dept": 60,
+    "est_total_files": 6000
+  },
+  "next_actions": [
+    {
+      "step": 1,
+      "action": "Owner signal (1, 2, 3, or 4)",
+      "options": {
+        "1": "Continue P3-B L2_CRITIQUE on 22 depts (already in 02_MODULES_NEW/P3-B/)",
+        "2": "Begin Tier-1 batch (8 internal_medicine depts × 60 files = 480 files)",
+        "3": "Implement CARD-001 in namaweb/ (engines, routes, LLM chains)",
+        "4": "Halt and continue on existing track (current state)"
+      },
+      "default": "1 (continue existing) or 3 (implement CARD-001)"
+    },
+    {
+      "step": 2,
+      "action": "Once signal received, run Recipe B (Tier-1 batch) using nm-autopilot-dept-generator"
+    }
+  ],
+  "safety_rails_status": {
+    "all_applied": true,
+    "exception_count": 0
+  },
+  "compliance_status": {
+    "jci": "mapped (42_jci_checklist.md example)",
+    "cbahi": "mapped via JCI",
+    "nphies": "mapped (15 bundles, 45_nphies_zatca_map.md)",
+    "zatca": "blocked (GATE 9 — real CSID/OTP required)",
+    "pdpl": "DPIA complete (44_pdpl_dpia.md)",
+    "sfda": "mapped (drug + device class)"
+  },
+  "metrics": {
+    "files_created_this_session": 72,
+    "skills_created": 8,
+    "catalog_entries": 120,
+    "example_dept_complete": true,
+    "phases_logged_to_memory": true
+  }
+}

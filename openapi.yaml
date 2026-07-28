@@ -1,0 +1,332 @@
+openapi: 3.0.3
+info:
+  title: NamaMedical Enterprise Hospital Platform API
+  description: Comprehensive API for a multi-tenant hospital management system supporting 100+ clinical specialties, ZATCA compliance, and AI-powered clinical decision support.
+  version: 1.0.0
+  contact:
+    name: NamaMedical Engineering
+    email: dev@jumanasoft.com
+
+servers:
+  - url: /api
+    description: Local/Staging Server
+
+components:
+  securitySchemes:
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid
+    TenantHeader:
+      type: apiKey
+      in: header
+      name: x-tenant-id
+
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        id:
+          type: string
+          description: The ID of the created or updated resource.
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message.
+
+    AIResponse:
+      type: object
+      properties:
+        question:
+          type: string
+        answer:
+          type: string
+        citations:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              source: { type: string }
+              chapter: { type: string }
+        confidence:
+          type: number
+
+# --- API Paths ---
+paths:
+  # AI Copilot
+  /ai/copilot/ask:
+    post:
+      tags: [AI Copilot]
+      summary: RAG-powered clinical query
+      security: [{ CookieAuth: [], TenantHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question: { type: string }
+                queryEmbedding: { type: array, items: { type: number } }
+                departmentId: { type: integer }
+      responses:
+        '200':
+          description: Successful AI response
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AIResponse' }
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  # Cardiology
+  /cardiology/assessment:
+    post:
+      tags: [Cardiology]
+      summary: General cardiology exam
+      security: [{ CookieAuth: [], TenantHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                patient_id: { type: integer }
+                encounter_id: { type: integer }
+                heart_sounds: { type: string }
+                jvp_height: { type: string }
+                edema_grade: { type: string }
+                carotid_bruit: { type: string }
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessResponse' }
+
+  /cardiology/echo-params:
+    post:
+      tags: [Cardiology]
+      summary: Echo parameters
+      security: [{ CookieAuth: [], TenantHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                patient_id: { type: integer }
+                encounter_id: { type: integer }
+                ef_percent: { type: number }
+                lv_dimension: { type: number }
+                mitral_regurgitation_grade: { type: string }
+                aortic_stenosis_area: { type: number }
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessResponse' }
+
+  /cardiology/risk-score:
+    get:
+      tags: [Cardiology]
+      summary: ASCVD risk score
+      security: [{ CookieAuth: [], TenantHeader: [] }]
+      parameters:
+        - name: patient_id
+          in: query
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ascvd_score: { type: string }
+                  risk_category: { type: string }
+                  recommendation: { type: string }
+
+  /cardiology/ic/session:
+    post:
+      tags: [Interventional Cardiology]
+      summary: IC session (D2B calculation)
+      security: [{ CookieAuth: [], TenantHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                patient_id: { type: integer }
+                doctor_id: { type: integer }
+                access_site: { type: string }
+                status: { type: string }
+                door_time: { type: string, format: date-time }
+                balloon_time: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  session_id: { type: integer }
+                  d2b_metrics: { type: object }
+
+  # Pulmonology
+  /pulmonology/encounter:
+    post:
+      tags: [Pulmonology]
+      summary: Pulmonology encounter
+      security: [{ CookieAuth: [], TenantHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                patient_id: { type: integer }
+                doctor_id: { type: integer }
+                chief_complaint: { type: string }
+                respiratory_history: { type: string }
+                smoking_status: { type: string }
+                pack_years: { type: number }
+                physical_exam_findings: { type: string }
+                diagnosis_code: { type: string }
+                treatment_plan: { type: string }
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessResponse' }
+
+  # Surgery
+  /surgery/encounter:
+    post:
+      tags: [Surgery]
+      summary: General surgery encounter
+      security: [{ CookieAuth: [], TenantHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                patient_id: { type: integer }
+                surgeon_id: { type: integer }
+                surgical_indication: { type: string }
+                pre_op_diagnosis: { type: string }
+                post_op_diagnosis: { type: string }
+                surgical_approach: { type: string }
+                anesthesia_type: { type: string }
+                operation_time_min: { type: integer }
+                blood_loss_ml: { type: integer }
+                complications: { type: string }
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessResponse' }
+
+  # OBGYN
+  /obgyn/encounter:
+    post:
+      tags: [OBGYN]
+      summary: OBGYN encounter
+      security: [{ CookieAuth: [], TenantHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                patient_id: { type: integer }
+                doctor_id: { type: integer }
+                visit_type: { type: string }
+                gravida: { type: integer }
+                para: { type: integer }
+                lmp: { type: string, format: date-time }
+                edd: { type: string, format: date-time }
+                gestational_age_weeks: { type: number }
+                chief_complaint: { type: string }
+                physical_exam_findings: { type: string }
+                diagnosis_code: { type: string }
+                treatment_plan: { type: string }
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessResponse' }
+
+  # CPOE / Orders
+  /cpoe/order:
+    post:
+      tags: [CPOE]
+      summary: CDS-Gated order creation
+      security: [{ CookieAuth: [], TenantHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                patient_id: { type: integer }
+                type: { type: string }
+                encounter_ref: { type: string }
+                order_set_id: { type: integer }
+                status: { type: string }
+                items: { type: array, items: { type: string } }
+                override_reason: { type: string }
+                dose: { type: string }
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessResponse' }
+
+  # Auth
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: User login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: { type: object, properties: { success: { type: boolean }, token: { type: string } } }

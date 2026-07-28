@@ -1,0 +1,89 @@
+{
+  "version": "5.0",
+  "project": "NMEDCALVSCODE / NamaMedical ERP",
+  "last_scan_id": "SCAN-2026-07-24-0053",
+  "last_scan_report": "project_brain/scans/scan-2026-07-24-0053.json",
+  "last_plan_id": "PLAN-2026-07-24-0053",
+  "last_plan_path": "project_brain/plans/plan-2026-07-24-0053.md",
+  "updated_at": "2026-07-24T01:25:00+03:00",
+  "current_agent": "ORCHESTRATOR",
+  "current_task": "ready-pack-delivered",
+  "next_agent": "USER",
+  "agents_status": {
+    "SCANNER": "completed",
+    "PLANNER": "completed",
+    "DATABASE": "idle",
+    "BACKEND": "idle",
+    "FRONTEND": "idle",
+    "SECURITY": "idle",
+    "QA": "idle",
+    "ORCHESTRATOR": "completed"
+  },
+  "phases": {
+    "phase-1-scan":        { "status": "completed",  "agent": "SCANNER" },
+    "phase-2-plan":        { "status": "completed",  "agent": "PLANNER" },
+    "phase-3-approval-1":  { "status": "completed",  "agent": "USER", "approved_at": "2026-07-24T01:20:00+03:00", "approved_scope": "T1+T2" },
+    "phase-4-implement":   { "status": "completed",  "agent": "ORCHESTRATOR", "deliverable": "READY_PROMPT_PACK.md" },
+    "phase-5-qa":          { "status": "pending",    "agent": "QA", "blocked_by": "USER execution of T1+T2" },
+    "phase-6-approval-2":  { "status": "blocked",    "agent": "USER" }
+  },
+  "identified_tasks": [
+    {
+      "id": "T1",
+      "title": "Deploy RAG-grounded AI Copilot fix to production (Hetzner)",
+      "priority": "P0",
+      "status": "ready_to_execute",
+      "owner": "USER (needs SSH to 204.168.144.74)",
+      "blocked_by": null,
+      "deliverables": [
+        "project_brain/READY_PROMPT_PACK.md (steps 1.1-1.8)",
+        "project_brain/closeouts/T1_RAG_LIVE_DEPLOY_2026-07-24_AR.md (fill template)"
+      ],
+      "estimated_minutes": 30
+    },
+    {
+      "id": "T2",
+      "title": "Rotate 5 production secrets (MSSQL/PG/JWT/SESSION/E2E)",
+      "priority": "P0",
+      "status": "ready_to_execute",
+      "owner": "USER (owner-only)",
+      "blocked_by": null,
+      "deliverables": [
+        "project_brain/secrets-rotation.ps1 (DPAPI-protected generator)",
+        "project_brain/READY_PROMPT_PACK.md (steps 2.1-2.6)"
+      ],
+      "estimated_minutes": 15
+    },
+    {
+      "id": "T3",
+      "title": "GATE 9 (ZATCA UBL XAdES) blocked on real CSID",
+      "priority": "P2",
+      "status": "deferred",
+      "owner": "DEFERRED",
+      "blocked_by": "external ZATCA credentials + test vectors"
+    }
+  ],
+  "blockers": [
+    "USER_EXECUTION_REQUIRED: T1 needs SSH-capable machine; T2 needs owner authority.",
+    "T3 deferred until ZATCA CSID provided.",
+    "Phase 5 (QA) blocked until user reports T1+T2 execution results."
+  ],
+  "user_approvals_needed": 2,
+  "user_approvals_given": 1,
+  "deliverables": {
+    "scans":     ["project_brain/scans/scan-2026-07-24-0053.json"],
+    "plans":     ["project_brain/plans/plan-2026-07-24-0053.md"],
+    "ready":     ["project_brain/READY_PROMPT_PACK.md", "project_brain/secrets-rotation.ps1"],
+    "closeouts": ["project_brain/closeouts/T1_RAG_LIVE_DEPLOY_2026-07-24_AR.md"],
+    "state":     ["project_brain/orchestrator-state.json", "project_brain/agent-messages.json"]
+  },
+  "safety_rails_compliance": {
+    "no_hardcoded_secrets": true,
+    "no_phi_in_commits": true,
+    "no_production_mutation": true,
+    "no_server_js_modification": true,
+    "no_migrations_added": true,
+    "all_13_rails_respected": true
+  },
+  "agent_messages_summary": "ORCHESTRATOR -> USER: Ready pack delivered (T1+T2). All work in project_brain/ only. Awaiting execution feedback to advance to QA phase."
+}

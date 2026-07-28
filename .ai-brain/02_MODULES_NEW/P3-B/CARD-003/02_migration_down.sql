@@ -1,0 +1,13 @@
+<!-- BLUEPRINT v2 — informational, not yet live. See DECISIONS_PENDING.md -->
+
+-- CARD-003 DOWN
+BEGIN;
+DROP TABLE IF EXISTS ep_audit_log CASCADE;
+DROP TABLE IF EXISTS ep_red_flags CASCADE;
+DROP TABLE IF EXISTS device_followup CASCADE;
+DROP TABLE IF EXISTS device_leads CASCADE;
+DROP TABLE IF EXISTS device_remote_monitoring CASCADE;
+DROP TABLE IF EXISTS device_registry CASCADE;
+DROP TABLE IF EXISTS ep_study_findings CASCADE;
+DROP TABLE IF EXISTS ep_procedures CASCADE;
+COMMIT;

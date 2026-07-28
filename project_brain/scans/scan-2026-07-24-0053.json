@@ -1,0 +1,142 @@
+﻿{
+    "scan_id":  "SCAN-2026-07-24-0053",
+    "timestamp":  "2026-07-24T00:53:50.4286204+03:00",
+    "os":  "Windows",
+    "shell":  "PowerShell",
+    "cwd":  "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE",
+    "schema_version":  "5.0",
+    "total_files":  11252,
+    "total_dirs":  22,
+    "top_dirs":  [
+                     ".agents",
+                     ".ai-brain",
+                     ".cache",
+                     ".claude",
+                     ".git",
+                     ".playwright-mcp",
+                     ".vendor",
+                     ".venv",
+                     "748",
+                     "AppServerPortal",
+                     "backend",
+                     "docs",
+                     "local_backups",
+                     "namaweb",
+                     "namaweb-ovr-audit-independent",
+                     "ops",
+                     "pdf_exports",
+                     "project_brain",
+                     "scratch",
+                     "stitch_antigravity_token_saver_skills",
+                     "tmp",
+                     "tools"
+                 ],
+    "by_extension":  [
+                         {
+                             "ext":  ".md",
+                             "count":  7316
+                         },
+                         {
+                             "ext":  ".sql",
+                             "count":  1403
+                         },
+                         {
+                             "ext":  ".js",
+                             "count":  751
+                         },
+                         {
+                             "ext":  ".html",
+                             "count":  280
+                         },
+                         {
+                             "ext":  ".json",
+                             "count":  269
+                         },
+                         {
+                             "ext":  ".mjs",
+                             "count":  244
+                         },
+                         {
+                             "ext":  ".py",
+                             "count":  233
+                         },
+                         {
+                             "ext":  ".yaml",
+                             "count":  126
+                         },
+                         {
+                             "ext":  ".xsd",
+                             "count":  117
+                         },
+                         {
+                             "ext":  ".png",
+                             "count":  107
+                         },
+                         {
+                             "ext":  ".dbml",
+                             "count":  82
+                         },
+                         {
+                             "ext":  ".cs",
+                             "count":  41
+                         },
+                         {
+                             "ext":  ".sh",
+                             "count":  39
+                         },
+                         {
+                             "ext":  ".txt",
+                             "count":  31
+                         },
+                         {
+                             "ext":  ".yml",
+                             "count":  26
+                         },
+                         {
+                             "ext":  ".ts",
+                             "count":  22
+                         },
+                         {
+                             "ext":  ".ps1",
+                             "count":  19
+                         },
+                         {
+                             "ext":  ".tsx",
+                             "count":  16
+                         },
+                         {
+                             "ext":  ".example",
+                             "count":  13
+                         },
+                         {
+                             "ext":  ".bpmn",
+                             "count":  12
+                         }
+                     ],
+    "sub_counts":  {
+                       "namaweb":  1111,
+                       "docs":  2628,
+                       "project_brain":  1841,
+                       "migrations":  375,
+                       "skills_md":  86,
+                       "test_files":  597
+                   },
+    "has_agents_md":  true,
+    "has_server_js":  true,
+    "has_ai_rules":  true,
+    "stack_detected":  [
+                           "Node.js",
+                           "Express",
+                           "Vanilla JS",
+                           "PostgreSQL",
+                           "Tailwind"
+                       ],
+    "notes":  [
+                  "Project is NamaMedical ERP (jumanaMedical)",
+                  "Live deployment: Hetzner ubuntu-8gb-hel1-1 (204.168.144.74)",
+                  "Process: nama-medical-erp (PM2)",
+                  "44 clinical departments, 16 facility types",
+                  "Submodule: namaweb (own .git)",
+                  "Audit fork: namaweb-ovr-audit-independent (read-only)"
+              ]
+}

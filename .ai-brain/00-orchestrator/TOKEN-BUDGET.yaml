@@ -1,0 +1,139 @@
+# Token Budget — Master Builder v1.0 (NEW LAYOUT)
+# Status: PARKED — see .ai-brain/DECISIONS_PENDING.md before any Phase 1+ execution.
+# Date:   2026-07-24
+# Owner:  user (approval required between phases, per AGENTS.md §3 + .ai_rules §4)
+#
+# This file is the per-phase token budget FOR THE NEW LAYOUT ONLY.
+# The existing .ai-brain/00_SYSTEM/03_AUTOPILOT/ directory has its own
+# budget governed by .ai-brain/00_SYSTEM/PROMPT_ENGINE_v2.yaml and
+# .ai-brain/LOOP_ENGINEERING_PLAYBOOK.md. Do not touch that file.
+
+version: 1.0
+as_of: 2026-07-24
+currency: "tokens (rough equivalent; actual cost in USD)"
+
+# Cap per session (one phase per session, per .ai_rules §4)
+session:
+  hard_cap_tokens: 2_000_000          # ~2M tokens / session
+  soft_warning_tokens: 1_500_000
+  hard_stop_tokens: 2_500_000
+  reserved_for_state_writes: 25_000
+  reserved_for_closeout: 25_000
+
+# Per-phase allocation (only Phase 0 is unlocked)
+phases:
+  P0_init:
+    id: "P0-INIT"
+    name: "Initialization and structure"
+    status: "in_progress"
+    budget_tokens: 250_000
+    spent_tokens: 0                    # session estimate, will be backfilled
+    deliverables:
+      - ".ai-brain/99-state/current-phase.json"
+      - ".ai-brain/00-orchestrator/MASTER-PROMPT.md"
+      - ".ai-brain/01-requirements/medical-departments-tree.yaml"
+      - ".ai-brain/00-orchestrator/TOKEN-BUDGET.yaml (this file)"
+      - ".ai-brain/.gitignore"
+      - ".ai-brain/README.md"
+      - ".ai-brain/DECISIONS_PENDING.md"
+    unlock: "owner"                     # already issued 2026-07-24
+    next_unlock_required_from: "owner"
+
+  P1_database:
+    id: "P1-DB"
+    name: "Database + ERD (38 depts, PostgreSQL DDL)"
+    status: "blocked"
+    blocked_by:
+      - "DECISIONS_PENDING.md §1 (stack)"
+      - "DECISIONS_PENDING.md §2 (compliance)"
+      - "DECISIONS_PENDING.md §3 (scope)"
+    budget_tokens: 1_200_000
+    estimated_files: 39                # 38 SQL + 1 ERD.md
+    estimated_lines_per_sql: 250
+    estimated_total_lines: 9_500
+    unlock: "owner"
+
+  P2_backend:
+    id: "P2-BE"
+    name: "Backend services (FastAPI if §1.1=Python; Express if §1.1=Node)"
+    status: "blocked"
+    blocked_by: ["P1_database"]
+    budget_tokens: 4_000_000
+    estimated_files: 228               # 38 × 6 files
+    unlock: "owner"
+
+  P3_frontend:
+    id: "P3-FE"
+    name: "Frontend (Next.js if §1.4=Next.js; Vanilla JS if §1.4=Vanilla)"
+    status: "blocked"
+    blocked_by: ["P1_database"]
+    budget_tokens: 3_000_000
+    estimated_files: 152               # 38 × 4 files
+    unlock: "owner"
+
+  P4_ai_rag:
+    id: "P4-AI"
+    name: "AI / RAG (LangChain chains + ChromaDB collections + ingestion)"
+    status: "blocked"
+    blocked_by: ["P1_database"]
+    budget_tokens: 1_500_000
+    estimated_files: 8
+    unlock: "owner"
+
+  P5_devops:
+    id: "P5-DO"
+    name: "DevOps (Docker + k8s + Terraform + monitoring + CI)"
+    status: "blocked"
+    blocked_by: ["P2_backend", "P3_frontend"]
+    budget_tokens: 1_200_000
+    estimated_files: 9
+    unlock: "owner"
+
+  P6_security_compliance:
+    id: "P6-SC"
+    name: "Security + Compliance (RBAC + STRIDE + JCI + HIPAA + HL7-FHIR + JWT)"
+    status: "blocked"
+    blocked_by: ["P2_backend"]
+    budget_tokens: 1_500_000
+    estimated_files: 9
+    unlock: "owner"
+
+  P7_testing:
+    id: "P7-T"
+    name: "Testing + QA (unit + integration + clinical validation)"
+    status: "blocked"
+    blocked_by: ["P2_backend", "P3_frontend"]
+    budget_tokens: 1_500_000
+    estimated_files: 47
+    unlock: "owner"
+
+  P8_docs:
+    id: "P8-D"
+    name: "Documentation (API + user manual AR/EN + architecture + i18n)"
+    status: "blocked"
+    blocked_by: ["P2_backend", "P3_frontend"]
+    budget_tokens: 1_000_000
+    estimated_files: 6
+    unlock: "owner"
+
+  P9_project_mgmt:
+    id: "P9-PM"
+    name: "Project management (backlog + sprint + go-to-market + budget + tracker)"
+    status: "blocked"
+    blocked_by: ["P1_database"]
+    budget_tokens: 500_000
+    estimated_files: 5
+    unlock: "owner"
+
+# Roll-up
+total_estimated_tokens_all_phases: 15_400_000
+total_estimated_files_all_phases: 503
+
+# Hard stop rules
+hard_stops:
+  - "Session > 2.5M tokens → write closeout, return control to owner"
+  - "Single file > 2,000 lines → split (per prompt §1: 'إذا كان الملف > 500 سطر، قسّمه' — using 2,000 as a hard cap, with 500 as the soft target)"
+  - "Hardcoded secret, key, token, or PHI in any tracked file → revert + write finding to .ai-brain/findings/"
+  - "Any edit to namaweb/, namaweb-ovr-audit-independent/, ops/live_deploy/ WITHOUT owner authorization → revert + escalate"
+  - "Any push to a remote without owner authorization → revert + escalate"
+  - "Any merge to main / integration/* / audit/* without owner authorization → revert + escalate"

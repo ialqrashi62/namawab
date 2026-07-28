@@ -4,6 +4,27 @@ The format is based on Keep a Changelog; this project adheres to Semantic Versio
 
 ## [Unreleased]
 
+### Added — 2026-07-27 (.ai-brain Skills v2 Pack + Example CARD-001)
+- **8 new professional skills** added to `.ai-brain/skills/` for token-efficient, expert-driven dept blueprint generation:
+  - `nm-7-expert-panel-orchestrator` — 7 expert voices (CMO, AIE, SA, DSL, PM/UX, CQO) + Master Orchestrator, table-first output format
+  - `nm-loop-engineering-v2` — 5 loops (Discover → Plan → Build → Test → Verify), 4-iteration cap
+  - `nm-autopilot-dept-generator` — batch runner, mode=plan|plan+ui|plan+ui+backend
+  - `nm-token-saver-pack` — 8 techniques (S1-S8) + 18 canonical snippets, 60-70% reduction
+  - `nm-stitch-medical-ui` — Google Stitch integration for medical UI, 50+ design tokens, 8 layouts (A-H)
+  - `nm-dept-blueprint-template-v2` — 60-file template per dept, tier-based depth
+  - `nm-rag-vector-mine` — LangChain + RAG + PGVector, multilingual-e5-large, 6 chain patterns
+  - `nm-comprehensive-deliverables-checklist` — 60+ deliverable verification
+- **Master catalog v3**: `.ai-brain/00_SYSTEM/MASTER_CATALOG_v3.yaml` — 10 top groups, 120 dept, 350+ sub-units (internal_medicine, surgical, obgyn_pediatrics, diagnostics, critical_care, rehab_therapeutic, support_services, admin_academic, centers_of_excellence, rare_specialized)
+- **Snippets v2**: `.ai-brain/skills/shared/snippets_v2.md` — 18 reusable snippets (rls-default, phi-vault, golden-access, safety-gate, audit-hash, money-vat, csp-report-only, auth-mfa, idempotency, ar-rtl, stitch-medical, langchain-rag, vector-mine, openapi-3-1, dbml-header, adr-header, test-pattern, closeout)
+- **Runbook**: `.ai-brain/MASTER_RUNBOOK.md` — 16 sections covering 7-Expert, 5-Loop, AUTOPILOT, Token-Saver, recipes
+- **Example dept**: `.ai-brain/02_MODULES_NEW/EXAMPLE_CARD-001/` — Cardiology (CARD-001) with 61 files (~9,500 tokens) demonstrating the full 60-file template: clinical workflows, red flags, ICD-10/SNOMED, AI/RAG, engine module, routes, OpenAPI 3.1, ERD, DBML, migrations (up+down+validate), seed, Stitch layout, wireframes, i18n, design tokens, user stories, RBAC, pen test plan, security plan, secrets mgmt, deployment, CI/CD, monitoring, backup/DR, incident response, JCI/ISO/PDPL/NPHIES/ZATCA, consent forms, audit trail, unit/integration/E2E tests, user manual, training video script, helpdesk, budget, task tracking, SEO, go-to-market, closeout
+- **Index addendum**: `.ai-brain/99-state/INDEX_ADDENDUM_v2.md`
+- **Phase state**: `.ai-brain/99-state/current-phase.json` updated to v2
+- **Token economy**: Tier-1 dept ~9,000 tokens (vs 15,000 baseline = 40% reduction); Tier-2 ~3,000-4,000; Tier-3 ~1,500-2,000; Tier-4 ~800-1,200
+- **Compliance**: JCI 7th ✅, CBAHI ✅, NPHIES ✅, ZATCA ⚠️ blocked (GATE 9 — real CSID/OTP required), PDPL ✅, SFDA ✅
+- **Safety rails applied**: 1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13 (all major)
+- **Status**: P3-C active. Owner signal required for next phase (continue P3-B critique, begin Tier-1 batch, implement CARD-001, or halt)
+
 ### Added — 2026-07-23 (RAG-grounded AI Copilot + Live Deploy Package)
 - **`namaweb/clinical_knowledge_rag.js` fix (+22 / -3 lines)**: when the LLM is in simulation/no-key mode, the AI Copilot answer is now grounded in the top retrieved RAG chunk (verifiable, clinically useful) instead of a generic `[SIMULATION MODE]` placeholder. Behavior on live LLM unchanged.
 - **Staged file**: `namaweb/.deploy_staging_2026-07-23_ragfix/clinical_knowledge_rag.js` (6,005 bytes, `node --check` OK).

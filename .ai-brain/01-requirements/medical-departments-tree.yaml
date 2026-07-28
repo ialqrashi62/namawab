@@ -1,0 +1,299 @@
+# medical-departments-tree.yaml
+# Status: PARKED — see .ai-brain/DECISIONS_PENDING.md §3 before any Phase 1+ work.
+# Date:   2026-07-24
+# Owner:  user (approval required between phases)
+#
+# 38 departments, IDs DEP-001..DEP-038, as specified by the master builder
+# prompt v1.0. Where an existing module in .ai-brain/02_MODULES/ already
+# covers the same domain, an `aliases:` list points to it. Do not auto-
+# assume the existing module is identical — it may cover a wider or
+# narrower scope; the alias is a hint for reconciliation, not a 1:1 map.
+
+version: 1.0
+as_of: 2026-07-24
+total_departments: 38
+id_pattern: "DEP-XXX"
+hospital_groups:
+  - emergency_and_critical_care
+  - medical_specialties
+  - surgical_specialties
+  - women_and_children
+  - diagnostics_and_therapeutics
+  - supportive_and_administrative
+
+# --- Emergency & Critical Care ---
+- id: DEP-001
+  name_en: "Emergency Department"
+  name_ar: "قسم الطوارئ"
+  group: emergency_and_critical_care
+  aliases: [ER-001]
+  primary_icd10_chapters: ["S00-T88", "R00-R99"]
+
+- id: DEP-002
+  name_en: "Adult Intensive Care Unit (ICU)"
+  name_ar: "وحدة العناية المركزة للبالغين"
+  group: emergency_and_critical_care
+  aliases: [MICU]
+
+- id: DEP-003
+  name_en: "Coronary Care Unit (CCU)"
+  name_ar: "وحدة العناية القلبية"
+  group: emergency_and_critical_care
+  aliases: [CARD-001]
+
+- id: DEP-004
+  name_en: "Neonatal Intensive Care Unit (NICU)"
+  name_ar: "وحدة العناية المركزة لحديثي الولادة"
+  group: women_and_children
+  aliases: [PEDS-002]
+
+- id: DEP-005
+  name_en: "Pediatric Intensive Care Unit (PICU)"
+  name_ar: "وحدة العناية المركزة للأطفال"
+  group: women_and_children
+  aliases: [PEDS-002]
+
+- id: DEP-006
+  name_en: "Burn Unit"
+  name_ar: "وحدة الحروق"
+  group: surgical_specialties
+  aliases: []
+
+# --- Medical Specialties ---
+- id: DEP-007
+  name_en: "Cardiology"
+  name_ar: "أمراض القلب"
+  group: medical_specialties
+  aliases: [CARD-001]
+
+- id: DEP-008
+  name_en: "Pulmonology"
+  name_ar: "أمراض الجهاز التنفسي"
+  group: medical_specialties
+  aliases: [PULM-001]
+
+- id: DEP-009
+  name_en: "Gastroenterology"
+  name_ar: "أمراض الجهاز الهضمي"
+  group: medical_specialties
+  aliases: [GI-001]
+
+- id: DEP-010
+  name_en: "Nephrology & Dialysis"
+  name_ar: "أمراض الكلى وغسيل الكلى"
+  group: medical_specialties
+  aliases: [NEPH-001]
+
+- id: DEP-011
+  name_en: "Endocrinology & Diabetes"
+  name_ar: "أمراض الغدد الصماء والسكري"
+  group: medical_specialties
+  aliases: [ENDO-001]
+
+- id: DEP-012
+  name_en: "Hematology"
+  name_ar: "أمراض الدم"
+  group: medical_specialties
+  aliases: []
+
+- id: DEP-013
+  name_en: "Oncology & Medical Oncology"
+  name_ar: "الأورام والأورام الطبية"
+  group: medical_specialties
+  aliases: [ONC-001]
+
+- id: DEP-014
+  name_en: "Rheumatology"
+  name_ar: "أمراض الروماتيزم"
+  group: medical_specialties
+  aliases: []
+
+- id: DEP-015
+  name_en: "Infectious Diseases"
+  name_ar: "الأمراض المعدية"
+  group: medical_specialties
+  aliases: []
+
+- id: DEP-016
+  name_en: "Dermatology"
+  name_ar: "الأمراض الجلدية"
+  group: medical_specialties
+  aliases: []
+
+- id: DEP-017
+  name_en: "Neurology"
+  name_ar: "أمراض الأعصاب"
+  group: medical_specialties
+  aliases: []
+
+- id: DEP-018
+  name_en: "Psychiatry & Mental Health"
+  name_ar: "الطب النفسي والصحة النفسية"
+  group: medical_specialties
+  aliases: []
+
+# --- Surgical Specialties ---
+- id: DEP-019
+  name_en: "General Surgery"
+  name_ar: "الجراحة العامة"
+  group: surgical_specialties
+  aliases: [SURG-001]
+
+- id: DEP-020
+  name_en: "Orthopedics & Trauma"
+  name_ar: "جراحة العظام والكسور"
+  group: surgical_specialties
+  aliases: [ORTHO-001]
+
+- id: DEP-021
+  name_en: "Neurosurgery"
+  name_ar: "جراحة المخ والأعصاب"
+  group: surgical_specialties
+  aliases: []
+
+- id: DEP-022
+  name_en: "Cardiothoracic Surgery"
+  name_ar: "جراحة القلب والصدر"
+  group: surgical_specialties
+  aliases: []
+
+- id: DEP-023
+  name_en: "Vascular Surgery"
+  name_ar: "جراحة الأوعية الدموية"
+  group: surgical_specialties
+  aliases: []
+
+- id: DEP-024
+  name_en: "Urology"
+  name_ar: "جراحة المسالك البولية"
+  group: surgical_specialties
+  aliases: [URO-001]
+
+- id: DEP-025
+  name_en: "Otorhinolaryngology (ENT)"
+  name_ar: "الأنف والأذن والحنجرة"
+  group: surgical_specialties
+  aliases: [ENT-001]
+
+- id: DEP-026
+  name_en: "Ophthalmology"
+  name_ar: "طب وجراحة العيون"
+  group: surgical_specialties
+  aliases: [OPHTH-001]
+
+- id: DEP-027
+  name_en: "Plastic & Reconstructive Surgery"
+  name_ar: "جراحة التجميل والترميمية"
+  group: surgical_specialties
+  aliases: []
+
+- id: DEP-028
+  name_en: "Anesthesiology & Pain Management"
+  name_ar: "التخدير وإدارة الألم"
+  group: surgical_specialties
+  aliases: []
+
+# --- Women & Children ---
+- id: DEP-029
+  name_en: "Obstetrics & Gynecology (OB/GYN)"
+  name_ar: "النساء والتوليد"
+  group: women_and_children
+  aliases: [OBG-001]
+
+- id: DEP-030
+  name_en: "Pediatrics & General"
+  name_ar: "طب الأطفال العام"
+  group: women_and_children
+  aliases: [PEDS-002]
+
+- id: DEP-031
+  name_en: "Reproductive Medicine & IVF"
+  name_ar: "طب الإنجاب والإخصاب"
+  group: women_and_children
+  aliases: []
+
+- id: DEP-032
+  name_en: "Well-Baby & Lactation Clinic"
+  name_ar: "عيادة الطفل السليم والرضاعة"
+  group: women_and_children
+  aliases: []
+
+# --- Diagnostics & Therapeutics ---
+- id: DEP-033
+  name_en: "Radiology & Medical Imaging"
+  name_ar: "الأشعة والتصوير الطبي"
+  group: diagnostics_and_therapeutics
+  aliases: []
+
+- id: DEP-034
+  name_en: "Laboratory & Pathology"
+  name_ar: "المختبر وعلم الأمراض"
+  group: diagnostics_and_therapeutics
+  aliases: []
+
+- id: DEP-035
+  name_en: "Pharmacy & Therapeutics"
+  name_ar: "الصيدلية والعلاج الدوائي"
+  group: diagnostics_and_therapeutics
+  aliases: []
+
+- id: DEP-036
+  name_en: "Physiotherapy & Rehabilitation"
+  name_ar: "العلاج الطبيعي وإعادة التأهيل"
+  group: diagnostics_and_therapeutics
+  aliases: []
+
+# --- Supportive & Administrative ---
+- DEP-X-NOTE: "DEP-037 and DEP-038 reserved per master prompt; not yet specified."
+
+- id: DEP-037
+  name_en: "Central Sterile Services Department (CSSD)"
+  name_ar: "قسم التعقيم المركزي"
+  group: supportive_and_administrative
+  aliases: []
+
+- id: DEP-038
+  name_en: "Health Information Management (HIM) / Medical Records"
+  name_ar: "إدارة المعلومات الصحية / السجلات الطبية"
+  group: supportive_and_administrative
+  aliases: []
+
+# Cross-references
+cross_references:
+  live_modules_2_MODULES: ".ai-brain/02_MODULES/<existing-id>/ (62 modules, ~36 files each)"
+  live_routes_app_js:     "namaweb/public/js/app.js (route table; routes without a station.js listed in DEPARTMENT_COVERAGE_MAP.md)"
+  coverage_map:           ".ai-brain/DEPARTMENT_COVERAGE_MAP.md"
+  catalog:                ".ai-brain/01_DATA/CATALOG.yaml (186 IDs across 10 groups)"
+  decisions_pending:      ".ai-brain/DECISIONS_PENDING.md §3"
+
+# Status of each alias mapping
+alias_reconciliation_status:
+  exact_match: ["DEP-007→CARD-001 (likely broader; cardiology subspecialties in CARD-001)",
+                "DEP-019→SURG-001",
+                "DEP-029→OBG-001",
+                "DEP-030→PEDS-002",
+                "DEP-020→ORTHO-001",
+                "DEP-024→URO-001",
+                "DEP-025→ENT-001",
+                "DEP-026→OPHTH-001",
+                "DEP-011→ENDO-001"]
+  partial_match: ["DEP-008→PULM-001 (respiratory therapy not always included)",
+                  "DEP-009→GI-001 (hepatology may be elsewhere)",
+                  "DEP-010→NEPH-001 (dialysis unit may be separate)",
+                  "DEP-013→ONC-001 (radiation oncology may be DEP-033-adjacent)"]
+  no_existing_match: ["DEP-006 Burn Unit",
+                      "DEP-012 Hematology",
+                      "DEP-014 Rheumatology",
+                      "DEP-015 Infectious Diseases",
+                      "DEP-016 Dermatology",
+                      "DEP-017 Neurology",
+                      "DEP-018 Psychiatry & Mental Health",
+                      "DEP-021 Neurosurgery",
+                      "DEP-022 Cardiothoracic Surgery",
+                      "DEP-023 Vascular Surgery",
+                      "DEP-027 Plastic & Reconstructive Surgery",
+                      "DEP-028 Anesthesiology & Pain Management",
+                      "DEP-031 Reproductive Medicine & IVF",
+                      "DEP-032 Well-Baby & Lactation Clinic",
+                      "DEP-037 CSSD",
+                      "DEP-038 HIM / Medical Records"]

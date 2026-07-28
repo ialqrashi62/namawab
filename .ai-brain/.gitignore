@@ -1,0 +1,86 @@
+# .gitignore for the .ai-brain/ root only.
+# This file is the inner .gitignore; the repo root .gitignore governs
+# everything outside .ai-brain/. Do not duplicate top-level rules here.
+
+# Scratch / ephemeral agent working dirs
+runs/
+scratch/
+.cache/
+.tmp/
+
+# Findings, drafts, and unverified content (kept locally, never tracked)
+findings/
+drafts/
+unverified/
+
+# Reports generated from PHI or live data
+phi_reports/
+live_dumps/
+profiling/
+
+# Any output that could embed secrets, tokens, keys, or PHI
+*.secret
+*.token
+*.key
+*.pem
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example
+
+# Generated / vendored AI tool outputs (e.g. graphify)
+graphify-out/
+graphify-*/
+callflow-*.html
+graph.html
+graph.json
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Python (in case FastAPI stubs land here)
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Node (in case Stitch/Next.js stubs land here)
+node_modules/
+.next/
+out/
+dist/
+
+# Terraform (in case IaC stubs land here)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Kubernetes (decoded secrets)
+*.kubeconfig
+kubeconfig_*
+
+# LLM / observability artifacts
+langsmith_runs/
+langchain_cache/
+chroma_db/
+chroma-*/
+*.parquet
+*.embedding_cache
+
+# Personal / non-shareable
+NOTES_*.md
+TODO_*.md
+SCRATCH_*.md

@@ -1,0 +1,12 @@
+-- CARD-004 Migration UP
+
+BEGIN;
+
+CREATE TABLE CARD-004 (id UUID PK, tenant_id UUID FK, patient_id BIGINT, ...);
+ALTER TABLE CARD-004 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE CARD-004 FORCE ROW LEVEL SECURITY;
+CREATE POLICY CARD-004_tenant ON CARD-004 USING (tenant_id = current_setting('app.tenant_id')::UUID);
+
+-- +6 tables
+
+COMMIT;

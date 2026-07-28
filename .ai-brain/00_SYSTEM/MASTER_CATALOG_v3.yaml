@@ -1,0 +1,894 @@
+# ============================================================
+# NamaMedical — MASTER_CATALOG v3
+# فهرس 100+ قسم سريري / إداري / تشغيلي
+# مصدر الحقيقة لتوليد .ai-brain docs عبر nm-7-expert-panel + nm-autopilot
+# ============================================================
+#
+# convention:
+#   id:         معرف فريد ثابت
+#   name_ar:    الاسم بالعربي
+#   name_en:    الاسم بالإنجليزي
+#   group:      المجموعة الكبرى
+#   tier:       1=أساسي / 2=متقدم / 3=متخصص / 4=نادر
+#   subs:       قائمة الأقسام الفرعية (sub-units)
+#   primary_tables: الجداول الأساسية المتوقعة في DB
+#   key_apis:   أهم API endpoints
+#   icd10_chapter: فصل ICD-10 المرجعي
+#   snomed_domain: نطاق SNOMED CT
+#   compliance: علامات الامتثال المطلوبة
+#   stitch_layout: تخطيط Stitch المقترح (A-H)
+#   red_flags:  أهم الطوارئ / red flags
+#   notes:      ملاحظات خاصة
+# ============================================================
+
+meta:
+  version: 3.0
+  date: 2026-07-27
+  total_top_groups: 10
+  total_departments: 100+
+  total_sub_units: 350+
+  source: PROMPT_v4_2026-07-27
+  consumption_target: <= 800 tokens per single dept generation
+  language: AR primary, EN secondary
+  region: KSA primary, GCC ready
+
+# ============================================================
+# 1) الباطنية (Internal Medicine)
+# ============================================================
+internal_medicine:
+  cardiology:
+    id: CARD-001
+    name_ar: قسم طب القلب العام
+    name_en: Cardiology
+    group: internal_medicine
+    tier: 1
+    subs:
+      - id: CARD-002
+        name_ar: طب القلب التداخلي
+        name_en: Interventional Cardiology
+        subs: [Cath Lab, PCI, TAVR, MitraClip, Watchman, ASD/PFO Closure]
+      - id: CARD-003
+        name_ar: طب القلب الإلكتروفيزيولوجي
+        name_en: Electrophysiology
+        subs: [Ablation, Pacemaker, ICD, CRT, Leadless Pacemaker]
+      - id: CARD-004
+        name_ar: طب القلب الوقائي
+        name_en: Preventive Cardiology
+        subs: [Lipid Clinic, HTN Clinic, Cardiac Rehab]
+      - id: CARD-005
+        name_ar: طب القلب النووي
+        name_en: Nuclear Cardiology
+        subs: [SPECT MPI, PET MPI, MUGA]
+      - id: CARD-006
+        name_ar: طب القلب للحوامل
+        name_en: Cardio-Obstetrics
+        subs: [High-Risk Pregnancy Cardio, PPCM]
+      - id: CARD-007
+        name_ar: قسطرة القلب
+        name_en: Cardiac Catheterization Lab
+        subs: [Diagnostic Cath, PCI, FFR/iFR, IVUS/OCT]
+      - id: CARD-008
+        name_ar: أمراض الشرايين الطرفية
+        name_en: Peripheral Vascular Disease
+        subs: [PVI, Atherectomy, CLI, Wound Care]
+      - id: CARD-009
+        name_ar: الفشل القلبي المتقدم
+        name_en: Advanced Heart Failure
+        subs: [LVAD, Transplant, CardioMEMS, IV Diuresis Clinic]
+    primary_tables: [patients, encounters, ecg_records, echo_reports, holter_reports, stress_tests, cardiac_cath_reports, pci_procedures, device_implants, cardiac_rehab_plans]
+    key_apis: [/api/cardiology/encounters, /api/cardiology/ecg, /api/cardiology/echo, /api/cardiology/cath, /api/cardiology/devices, /api/cardiology/medications]
+    icd10_chapter: I00-I99 (Cardiovascular)
+    snomed_domain: 113257007 |Disorder of cardiovascular system|
+    compliance: [JCI-ACC, ESC, AHA, NPHIES-Cardiology-Bundle, SFDA]
+    stitch_layout: B
+    red_flags: [STEMI, NSTEMI-high-risk, Aortic Dissection, PE, Cardiac Tamponade, SCD-risk]
+    notes: High integration with ER (CODE STEMI), ICU, Radiology
+
+  pulmonology:
+    id: PULM-001
+    name_ar: قسم طب الصدر والجهاز التنفسي
+    name_en: Pulmonology
+    group: internal_medicine
+    tier: 1
+    subs:
+      - { id: PULM-002, name_ar: الحساسية والمناعة الرئوية, name_en: Allergic Pulmonology }
+      - { id: PULM-003, name_ar: طب النوم واضطرابات التنفس, name_en: Sleep Medicine }
+      - { id: PULM-004, name_ar: العناية التنفسية, name_en: Respiratory Care }
+      - { id: PULM-005, name_ar: مناظير الجهاز التنفسي, name_en: Bronchoscopy Unit }
+      - { id: PULM-006, name_ar: علاج الأكسجين المنزلي, name_en: Home Oxygen Therapy }
+    primary_tables: [pft_results, sleep_studies, bronchoscopy_reports, home_o2_prescriptions, asthma_action_plans, copd_assessments, tb_records]
+    key_apis: [/api/pulmonology/pft, /api/pulmonology/sleep, /api/pulmonology/bronch, /api/pulmonology/o2]
+    icd10_chapter: J00-J99
+    snomed_domain: 50043002 |Disorder of respiratory system|
+    compliance: [GOLD, GINA, ATS/ERS, NPHIES-Respiratory]
+    stitch_layout: B
+    red_flags: [Massive PE, Tension Pneumothorax, Status Asthmaticus, ARDS, Hemoptysis-massive]
+
+  gastroenterology:
+    id: GI-001
+    name_ar: قسم طب الجهاز الهضمي
+    name_en: Gastroenterology
+    group: internal_medicine
+    tier: 1
+    subs:
+      - { id: GI-002, name_ar: مناظير الجهاز الهضمي المتقدمة, name_en: Advanced Endoscopy, subs: [EUS, ERCP, Enteroscopy, Laparoscopy Medical] }
+      - { id: GI-003, name_ar: أمراض الكبد, name_en: Hepatology }
+      - { id: GI-004, name_ar: أمراض البنكرياس والقنوات الصفراوية, name_en: Pancreato-Biliary }
+      - { id: GI-005, name_ar: حركة الجهاز الهضمي, name_en: GI Motility }
+      - { id: GI-006, name_ar: التغذية السريرية, name_en: Clinical Nutrition Medicine }
+    primary_tables: [endoscopy_reports, ercp_procedures, eus_reports, liver_biopsy, fibroscans, motility_studies, nutrition_assessments]
+    key_apis: [/api/gi/endoscopy, /api/gi/liver, /api/gi/motility, /api/gi/nutrition]
+    icd10_chapter: K00-K95
+    snomed_domain: 53619000 |Disorder of digestive system|
+    compliance: [ASGE, AASLD, ESPGHAN, NPHIES-GI]
+
+  nephrology:
+    id: NEPH-001
+    name_ar: قسم طب الكلى العام
+    name_en: Nephrology
+    group: internal_medicine
+    tier: 1
+    subs:
+      - { id: NEPH-002, name_ar: زراعة الكلى, name_en: Renal Transplantation }
+      - { id: NEPH-003, name_ar: وحدة غسيل الكلى, name_en: Dialysis Unit, subs: [Hemodialysis, Peritoneal, Home, Plasmapheresis, Pediatric] }
+      - { id: NEPH-004, name_ar: غسيل الكلى للأطفال, name_en: Pediatric Dialysis }
+    primary_tables: [dialysis_sessions, transplant_workups, kidney_biopsies, ckd_stages, hd_adequacy_reports]
+    key_apis: [/api/nephrology/dialysis, /api/nephrology/transplant, /api/nephrology/ckd]
+    icd10_chapter: N00-N99
+    snomed_domain: 128294001 |Disorder of kidney|
+    compliance: [KDIGO, ASN, SRDT-KSA, SCOT, OPTN-style]
+
+  hematology_oncology:
+    id: ONC-001
+    name_ar: قسم طب الأورام العام
+    name_en: Medical Oncology
+    group: internal_medicine
+    tier: 1
+    subs:
+      - { id: ONC-002, name_ar: الأورام النسائية, name_en: Gynecologic Oncology }
+      - { id: ONC-003, name_ar: أمراض الدم, name_en: Hematology }
+      - { id: ONC-004, name_ar: التخثر والأنيميا, name_en: Coagulation & Anemia }
+      - { id: ONC-005, name_ar: زراعة النخاع العظمي, name_en: BMT Unit, subs: [Autologous, Allogeneic, Cord Blood] }
+    primary_tables: [chemo_protocols, chemo_cycles, bmt_workups, transfusion_records, tumor_markers, staging_forms]
+    key_apis: [/api/oncology/protocols, /api/oncology/cycles, /api/oncology/bmt, /api/oncology/markers]
+    icd10_chapter: C00-D49
+    snomed_domain: 55342001 |Neoplastic disease|
+    compliance: [NCCN, ASCO, ASH, FACT-JACIE for BMT, SFDA-ChemoSafety]
+
+  endocrinology:
+    id: ENDO-001
+    name_ar: قسم الغدد الصماء
+    name_en: Endocrinology
+    group: internal_medicine
+    tier: 1
+    subs:
+      - { id: ENDO-002, name_ar: السكري, name_en: Diabetology, subs: [T1DM, T2DM/IR, Gestational, Diabetic Foot] }
+      - { id: ENDO-003, name_ar: أمراض العظام الاستقلابية, name_en: Metabolic Bone Disease }
+      - { id: ENDO-004, name_ar: السمنة والتمثيل الغذائي, name_en: Obesity Medicine }
+    primary_tables: [hba1c_trends, cgm_readings, insulin_pump_data, thyroid_panel, bone_density_dexa, bariatric_workups]
+    key_apis: [/api/endo/diabetes, /api/endo/thyroid, /api/endo/bone, /api/endo/obesity]
+    icd10_chapter: E00-E90
+    snomed_domain: 126906006 |Endocrine disease|
+    compliance: [ADA, AACE, EASO, ASMBS]
+
+  rheumatology:
+    id: RHEUM-001
+    name_ar: قسم الأمراض الروماتيزمية
+    name_en: Rheumatology
+    group: internal_medicine
+    tier: 2
+    subs:
+      - { id: RHEUM-002, name_ar: المناعة السريرية, name_en: Clinical Immunology }
+      - { id: RHEUM-003, name_ar: الأمراض الالتهابية المزمنة, name_en: Autoimmune Diseases }
+      - { id: RHEUM-004, name_ar: الحساسية والربو, name_en: Allergy & Asthma }
+    primary_tables: [disease_activity_scores, biologic_infusion_logs, autoimmune_panels, allergy_test_results]
+    key_apis: [/api/rheum/scores, /api/rheum/biologics, /api/rheum/allergy]
+
+  infectious_diseases:
+    id: ID-001
+    name_ar: قسم الأمراض المعدية
+    name_en: Infectious Diseases
+    group: internal_medicine
+    tier: 1
+    subs:
+      - { id: ID-002, name_ar: الوقاية من العدوى, name_en: Infection Control }
+      - { id: ID-003, name_ar: الحميات والأمراض الاستوائية, name_en: Tropical Medicine }
+      - { id: ID-004, name_ar: العلاج بالمضادات الحيوية, name_en: Antimicrobial Stewardship }
+      - { id: ID-005, name_ar: طب المسافرين, name_en: Travel Medicine }
+      - { id: ID-006, name_ar: التطعيمات, name_en: Vaccination Center }
+    primary_tables: [abx_stewardship, culture_sensitivities, travel_vaccinations, infection_surveillance, outbreak_tracking]
+    key_apis: [/api/id/stewardship, /api/id/infection, /api/id/vaccines, /api/id/travel]
+    compliance: [WHO-ASP, CDC, MOH-GHC]
+
+  dermatology:
+    id: DERM-001
+    name_ar: قسم الأمراض الجلدية
+    name_en: Dermatology
+    group: internal_medicine
+    tier: 2
+    subs:
+      - { id: DERM-002, name_ar: الجلدية التجميلية, name_en: Cosmetic Dermatology }
+      - { id: DERM-003, name_ar: الجلدية الجراحية, name_en: Dermatosurgery }
+      - { id: DERM-004, name_ar: علاج الأورام الجلدية, name_en: Dermatologic Oncology }
+      - { id: DERM-005, name_ar: العلاج بالضوء, name_en: Phototherapy }
+    primary_tables: [derm_photos, skin_biopsies, phototherapy_sessions, mole_mapping]
+    key_apis: [/api/derm/visits, /api/derm/photos, /api/derm/biopsy, /api/derm/photo-therapy]
+
+# ============================================================
+# 2) الجراحية (Surgical)
+# ============================================================
+surgical:
+  general_surgery:
+    id: SURG-001
+    name_ar: قسم الجراحة العامة
+    name_en: General Surgery
+    group: surgical
+    tier: 1
+    subs:
+      - { id: SURG-002, name_ar: جراحة الأورام العامة, name_en: Surgical Oncology }
+      - { id: SURG-003, name_ar: جراحة الغدد الصماء, name_en: Endocrine Surgery, subs: [Thyroid, Adrenal, Parathyroid] }
+      - { id: SURG-004, name_ar: جراحة المناظير والروبوت, name_en: MIS & Robotic }
+      - { id: SURG-005, name_ar: جراحة السمنة, name_en: Bariatric Surgery }
+      - { id: SURG-006, name_ar: جراحة الثدي, name_en: Breast Surgery }
+      - { id: SURG-007, name_ar: جراحة المناطق الحرجة, name_en: Trauma Surgery }
+      - { id: SURG-008, name_ar: جراحة الأمعاء والقولون, name_en: Colorectal Surgery }
+    primary_tables: [surgical_cases, or_schedules, anesthesia_records, op_notes, surgical_counts, dressing_logs]
+    key_apis: [/api/surgery/cases, /api/surgery/or, /api/surgery/op-notes, /api/surgery/counts]
+    compliance: [ACS, SAGES, ERAS, ACS-COT, OR-Nursing-AORN]
+
+  cardiothoracic:
+    id: CTS-001
+    name_ar: قسم جراحة القلب والصدر
+    name_en: Cardiothoracic Surgery
+    group: surgical
+    tier: 2
+    subs:
+      - { id: CTS-002, name_ar: جراحة القلب المفتوح, name_en: Open Heart Surgery }
+      - { id: CTS-003, name_ar: جراحة الصدر, name_en: Thoracic Surgery }
+      - { id: CTS-004, name_ar: جراحة القصبة الهوائية, name_en: Airway Surgery }
+    primary_tables: [cabg_records, valve_replacements, thoracic_resections, airway_stents, ecmo_runs]
+    key_apis: [/api/cts/cases, /api/cts/ecmo, /api/cts/cabg, /api/cts/valve]
+
+  vascular:
+    id: VASC-001
+    name_ar: قسم جراحة الأوعية الدموية
+    name_en: Vascular Surgery
+    group: surgical
+    tier: 2
+    subs: [Endovascular, Grafts, Venous Disease]
+
+  neurosurgery:
+    id: NS-001
+    name_ar: قسم جراحة المخ والأعصاب
+    name_en: Neurosurgery
+    group: surgical
+    tier: 2
+    subs:
+      - { id: NS-002, name_ar: جراحة الأعصاب الوعائية, name_en: Cerebrovascular }
+      - { id: NS-003, name_ar: أورام المخ, name_en: Neuro-oncology Surgery }
+      - { id: NS-004, name_ar: جراحة الأعصاب الوظيفية, name_en: Functional Neurosurgery }
+      - { id: NS-005, name_ar: جراحة الأعصاب المحيطية, name_en: Peripheral Nerve }
+      - { id: NS-006, name_ar: جراحة القحف والوجه, name_en: Skull Base }
+      - { id: NS-007, name_ar: جراحة الأعصاب عبر الأنف, name_en: Endoscopic Neurosurgery }
+    primary_tables: [craniotomies, spine_fusions, dbs_procedures, emr_nihss, gcs_tracking]
+    key_apis: [/api/ns/cases, /api/ns/spine, /api/ns/dbs, /api/ns/ihs]
+
+  spine:
+    id: SPINE-001
+    name_ar: جراحة العمود الفقري
+    name_en: Spine Surgery
+    group: surgical
+    tier: 2
+    subs: [Interventional Spine, Scoliosis]
+
+  orthopedics:
+    id: ORTHO-001
+    name_ar: قسم جراحة العظام العامة
+    name_en: Orthopedic Surgery
+    group: surgical
+    tier: 1
+    subs:
+      - { id: ORTHO-002, name_ar: العمود الفقري العظمي, name_en: Spinal Orthopedics }
+      - { id: ORTHO-003, name_ar: المفاصل الاصطناعية, name_en: Joint Replacement, subs: [Hip, Knee, Shoulder/Elbow] }
+      - { id: ORTHO-004, name_ar: جراحة الحوادث والكسور, name_en: Trauma Orthopedics }
+      - { id: ORTHO-005, name_ar: جراحة اليد والميكروسكوبية, name_en: Hand & Microsurgery }
+      - { id: ORTHO-006, name_ar: جراحة القدم والكاحل, name_en: Foot & Ankle }
+      - { id: ORTHO-007, name_ar: طب وجراحة الرياضة, name_en: Sports Medicine & Arthroscopy }
+      - { id: ORTHO-008, name_ar: أورام العظام, name_en: Orthopedic Oncology }
+      - { id: ORTHO-009, name_ar: جراحة الأطفال العظمية, name_en: Pediatric Orthopedics }
+    primary_tables: [fracture_records, joint_replacements, arthroscopy_reports, sports_injury_assessments]
+    key_apis: [/api/ortho/cases, /api/ortho/joints, /api/ortho/fractures, /api/ortho/sports]
+
+  ophthalmology:
+    id: OPHTH-001
+    name_ar: قسم طب وجراحة العيون
+    name_en: Ophthalmology
+    group: surgical
+    tier: 2
+    subs:
+      - { id: OPHTH-002, name_ar: الشبكية والجسم الزجاجي, name_en: Vitreoretinal }
+      - { id: OPHTH-003, name_ar: القرنية وزراعتها, name_en: Cornea & External Disease, subs: [Eye Bank, DMEK/DSAEK] }
+      - { id: OPHTH-004, name_ar: المياه البيضاء, name_en: Cataract & Anterior Segment }
+      - { id: OPHTH-005, name_ar: المياه الزرقاء, name_en: Glaucoma }
+      - { id: OPHTH-006, name_ar: تجميل العيون والحجاج, name_en: Oculoplastics & Orbit }
+      - { id: OPHTH-007, name_ar: عيون الأطفال والحول, name_en: Pediatric Ophthalmology & Strabismus }
+      - { id: OPHTH-008, name_ar: العيون العصبي, name_en: Neuro-ophthalmology }
+      - { id: OPHTH-009, name_ar: قصر النظر والليزر, name_en: Refractive Surgery }
+
+  ent:
+    id: ENT-001
+    name_ar: قسم الأنف والأذن والحنجرة
+    name_en: Otolaryngology
+    group: surgical
+    tier: 1
+    subs:
+      - { id: ENT-002, name_ar: الرأس والرقبة, name_en: Head & Neck Surgery }
+      - { id: ENT-003, name_ar: الجيوب الأنفية والقاعدة القحفية, name_en: Rhinology & Skull Base }
+      - { id: ENT-004, name_ar: الأذن والسمع, name_en: Otology & Neurotology, subs: [Cochlear Implant] }
+      - { id: ENT-005, name_ar: الحنجرة والصوت, name_en: Laryngology }
+      - { id: ENT-006, name_ar: الغدة الدرقية, name_en: Thyroid Surgery }
+      - { id: ENT-007, name_ar: طب النوم والشخير, name_en: Sleep Surgery }
+
+  urology:
+    id: URO-001
+    name_ar: قسم جراحة المسالك البولية
+    name_en: Urology
+    group: surgical
+    tier: 1
+    subs:
+      - { id: URO-002, name_ar: الكلى المنظارية, name_en: Endourology & Stone Disease }
+      - { id: URO-003, name_ar: أورام المسالك, name_en: Urologic Oncology, subs: [Prostate, Bladder, Kidney] }
+      - { id: URO-004, name_ar: جراحة الأطفال, name_en: Pediatric Urology }
+      - { id: URO-005, name_ar: الذكورة والعقم, name_en: Andrology }
+      - { id: URO-006, name_ar: اضطرابات التبول, name_en: Female Urology & Urodynamics }
+      - { id: URO-007, name_ar: ترميم المسالك, name_en: Reconstructive Urology }
+
+  plastic_burns:
+    id: PLAS-001
+    name_ar: قسم جراحة التجميل والترميم
+    name_en: Plastic & Reconstructive
+    group: surgical
+    tier: 2
+    subs:
+      - { id: PLAS-002, name_ar: تجميل الوجه, name_en: Facial Plastic Surgery }
+      - { id: PLAS-003, name_ar: تجميل الجسم, name_en: Body Contouring }
+      - { id: PLAS-004, name_ar: الجراحات الميكروسكوبية, name_en: Microsurgery }
+      - { id: PLAS-005, name_ar: زراعة الأنسجة المركبة, name_en: Composite Tissue Allotransplantation }
+      - { id: BURN-001, name_ar: الحروق, name_en: Burns Center, subs: [Chemical/Electrical, Burn ICU, Reconstruction] }
+      - { id: MXF-001, name_ar: جراحة الوجه والفكين, name_en: Maxillofacial Surgery }
+
+# ============================================================
+# 3) النساء والتوليد والأطفال
+# ============================================================
+obgyn_pediatrics:
+  obgyn:
+    id: OBG-001
+    name_ar: قسم النساء والولادة
+    name_en: Obstetrics & Gynecology
+    group: obgyn_pediatrics
+    tier: 1
+    subs:
+      - { id: OBG-002, name_ar: طب الأم والجنين, name_en: Maternal-Fetal Medicine, subs: [High-Risk Pregnancy, Prenatal Diagnosis, 4D US] }
+      - { id: OBG-003, name_ar: أمراض النساء الجراحية, name_en: Gynecologic Surgery, subs: [Laparoscopy, Robotic] }
+      - { id: OBG-004, name_ar: الغدد التناسلية والعقم, name_en: Reproductive Endocrinology & IVF, subs: [IVF, ICSI, IMSI, PGD/PGS, Cryo] }
+      - { id: OBG-005, name_ar: طب المراهقات, name_en: Adolescent Gynecology }
+      - { id: OBG-006, name_ar: طب سن اليأس, name_en: Menopause Medicine }
+      - { id: OBG-007, name_ar: طب الأنثى التجميلي, name_en: Urogynecology & Cosmetic Gynecology }
+    primary_tables: [pregnancies, prenatal_visits, deliveries, partographs, apgar_scores, gyn_consults, ivf_cycles, cryo_samples]
+    key_apis: [/api/obg/pregnancy, /api/obg/delivery, /api/obg/prenatal, /api/obg/ivf, /api/obg/gyn]
+    compliance: [ACOG, RCOG, FIGO, MOH-MCH]
+
+  pediatrics:
+    id: PEDS-001
+    name_ar: قسم طب الأطفال العام
+    name_en: Pediatrics
+    group: obgyn_pediatrics
+    tier: 1
+    subs:
+      - { id: PEDS-002, name_ar: حديثي الولادة, name_en: Neonatology, subs: [NICU L3, NICU L4, Nursery, Follow-up] }
+      - { id: PEDS-003, name_ar: الأمراض الوراثية, name_en: Pediatric Genetics }
+      - { id: PEDS-004, name_ar: التغذية وسوء التغذية, name_en: Pediatric Nutrition }
+      - { id: PEDS-005, name_ar: طب الأطفال التنموي والسلوكي, name_en: Developmental Pediatrics }
+    primary_tables: [growth_charts, immunization_records, neonate_assessments, apgar_scores, developmental_screenings]
+
+  pediatric_subspecialties:
+    id: PEDS-SS
+    name_ar: تخصصات الأطفال الدقيقة
+    name_en: Pediatric Subspecialties
+    group: obgyn_pediatrics
+    tier: 2
+    subs:
+      - { id: PCARD-001, name_ar: قلب الأطفال, name_en: Pediatric Cardiology, subs: [Pediatric Cath, Pediatric Open Heart] }
+      - { id: PNEPH-001, name_ar: كلى الأطفال, name_en: Pediatric Nephrology }
+      - { id: PGI-001, name_ar: جهاز هضمي الأطفال, name_en: Pediatric Gastroenterology }
+      - { id: PHONC-001, name_ar: أورام ودم الأطفال, name_en: Pediatric Hematology-Oncology }
+      - { id: POPHTH-001, name_ar: عيون الأطفال, name_en: Pediatric Ophthalmology }
+      - { id: PENT-001, name_ar: أنف وأذن الأطفال, name_en: Pediatric ENT }
+      - { id: PDERM-001, name_ar: جلدية الأطفال, name_en: Pediatric Dermatology }
+      - { id: PENDO-001, name_ar: غدد الأطفال, name_en: Pediatric Endocrinology }
+      - { id: PRHEUM-001, name_ar: روماتيزم ومناعة الأطفال, name_en: Pediatric Rheumatology }
+      - { id: PORTHO-001, name_ar: عظام الأطفال, name_en: Pediatric Orthopedics }
+      - { id: PSURG-001, name_ar: جراحة الأطفال العامة, name_en: Pediatric General Surgery, subs: [Birth Defects, MIS, Tumors] }
+
+# ============================================================
+# 4) التشخيصية المتقدمة
+# ============================================================
+diagnostics:
+  radiology:
+    id: RAD-001
+    name_ar: قسم الأشعة التشخيصية
+    name_en: Diagnostic Radiology
+    group: diagnostics
+    tier: 1
+    subs:
+      - { id: RAD-002, name_ar: الأشعة التداخلية, name_en: Interventional Radiology, subs: [Angiography, Embolization, RFA, Stenting/IVC Filters] }
+      - { id: RAD-003, name_ar: الأشعة المقطعية, name_en: CT Scan, subs: [Dual-Energy, Cardiac CT, CT Angio] }
+      - { id: RAD-004, name_ar: الرنين المغناطيسي, name_en: MRI, subs: [fMRI, MRS, DTI, MRA/MRV, Breast/Pelvis] }
+      - { id: RAD-005, name_ar: الموجات الصوتية, name_en: Ultrasound, subs: [TEE, TRUS, 4D, Doppler] }
+      - { id: RAD-006, name_ar: الطب النووي, name_en: Nuclear Medicine, subs: [PET-CT/PET-MRI, Bone/Thyroid/Renal Scan, MPI, I-131, RaTx] }
+    primary_tables: [imaging_orders, imaging_reports, pacs_studies, dictation_records, radiation_dose_logs]
+    key_apis: [/api/rad/orders, /api/rad/reports, /api/rad/pacs, /api/rad/dose]
+    compliance: [ACR, RSNA, IAEA, NPHIES-Imaging-Bundle, PACS-DICOM]
+
+  laboratory:
+    id: LAB-001
+    name_ar: قسم المختبرات الطبية
+    name_en: Laboratory
+    group: diagnostics
+    tier: 1
+    subs:
+      - { id: LAB-002, name_ar: الباثولوجيا الإكلينيكية, name_en: Pathology, subs: [Histo, Cyto, Frozen Section, EM, IHC, Molecular] }
+      - { id: LAB-003, name_ar: الأحياء المجهرية, name_en: Microbiology, subs: [Bacteriology, Virology, Mycology, Parasitology, Blood Culture, AST] }
+      - { id: LAB-004, name_ar: الكيمياء الحيوية, name_en: Clinical Chemistry, subs: [Routine, Tumor Markers, TDM] }
+      - { id: LAB-005, name_ar: المناعة المخبرية, name_en: Immunology & Serology, subs: [Autoimmune, Allergy] }
+      - { id: LAB-006, name_ar: علم الوراثة, name_en: Medical Genetics, subs: [Cytogenetics, Molecular, PGD] }
+      - { id: LAB-007, name_ar: السموم, name_en: Toxicology, subs: [Drugs of Abuse, Heavy Metals, Pesticides] }
+      - { id: BB-001, name_ar: بنك الدم, name_en: Blood Bank, subs: [Transfusion, Apheresis, Cell Therapy, SDP] }
+    primary_tables: [lab_orders, lab_results, lab_samples, micro_cultures, ast_reports, blood_units, transfusion_records]
+    key_apis: [/api/lab/orders, /api/lab/results, /api/lab/micro, /api/lab/bb, /api/lab/path]
+    compliance: [CLIA, CAP, ISO-15189, NPHIES-Lab]
+
+  functional_tests:
+    id: FUNC-001
+    name_ar: الفحوصات الوظيفية
+    name_en: Functional Diagnostics
+    group: diagnostics
+    tier: 2
+    subs:
+      - { id: FUNC-002, name_ar: تخطيط القلب, name_en: ECG & Stress, subs: [Stress ECG, Dobutamine, Holter, Event Recorder] }
+      - { id: FUNC-003, name_ar: قسطرة الأوعية الدماغية, name_en: Cerebral Angiography }
+      - { id: FUNC-004, name_ar: قسطرة الجنب, name_en: Bronchial Angiography }
+      - { id: FUNC-005, name_ar: تخطيط العضلات والأعصاب, name_en: EMG & NCS, subs: [EMG, NCS, Evoked Potentials] }
+      - { id: FUNC-006, name_ar: تخطيط كهربية الدماغ, name_en: EEG, subs: [Video EEG, Sleep EEG] }
+      - { id: FUNC-007, name_ar: قياس وظائف الرئة, name_en: PFT, subs: [Exercise, DLCO] }
+      - { id: FUNC-008, name_ar: اختبارات التعرق والحساسية, name_en: Sweat Test & Allergy }
+
+# ============================================================
+# 5) العناية والطوارئ والألم
+# ============================================================
+critical_care:
+  emergency:
+    id: ER-001
+    name_ar: قسم الطوارئ
+    name_en: Emergency Department
+    group: critical_care
+    tier: 1
+    subs:
+      - { id: ER-002, name_ar: مركز الحوادث والإصابات الكبرى, name_en: Trauma Center, subs: [Level I, Level II] }
+      - { id: ER-003, name_ar: وحدة الطوارئ القلبية, name_en: Chest Pain Unit }
+      - { id: ER-004, name_ar: وحدة طوارئ الجلطات الدماغية, name_en: Stroke Unit / Code Stroke }
+      - { id: ER-005, name_ar: الطوارئ النفسية والسلوكية, name_en: Psychiatric Emergency }
+      - { id: ER-006, name_ar: طوارئ الأطفال, name_en: Pediatric ER }
+      - { id: ER-007, name_ar: الطوارئ السامة, name_en: Toxicology Emergency }
+      - { id: ER-008, name_ar: الطوارئ الحرارية, name_en: Hyper/Hypothermia Unit }
+      - { id: ER-009, name_ar: الفرز السريع, name_en: Triage }
+      - { id: ER-010, name_ar: الملاحظة القصيرة, name_en: Observation Unit }
+      - { id: ER-011, name_ar: الطوارئ الجراحية الصغرى, name_en: Minor Surgery ER }
+    primary_tables: [er_visits, triage_records, trauma_activations, code_stemies, code_strokes, observation_records]
+    key_apis: [/api/er/visits, /api/er/triage, /api/er/trauma, /api/er/code-stemi, /api/er/code-stroke]
+    compliance: [ACEP, ACS-COT, ATLS, AHA-Stroke, ESI-Triage, NPHIES-ER]
+
+  icu:
+    id: ICU-001
+    name_ar: أقسام العناية المركزة
+    name_en: Intensive Care Units
+    group: critical_care
+    tier: 1
+    subs:
+      - { id: MICU-001, name_ar: العناية المركزة للباطنة, name_en: Medical ICU }
+      - { id: SICU-001, name_ar: العناية المركزة الجراحية, name_en: Surgical ICU }
+      - { id: TICU-001, name_ar: العناية المركزة للحوادث, name_en: Trauma ICU }
+      - { id: CCU-001, name_ar: العناية القلبية, name_en: CCU }
+      - { id: NICU-001, name_ar: العناية العصبية, name_en: Neuro ICU }
+      - { id: PICU-001, name_ar: العناية للأطفال, name_en: Pediatric ICU }
+      - { id: NNICU-001, name_ar: العناية لحديثي الولادة, name_en: NICU }
+      - { id: BICU-001, name_ar: العناية للحروق, name_en: Burn ICU }
+      - { id: OICU-001, name_ar: العناية للأورام, name_en: Oncology ICU }
+      - { id: RICU-001, name_ar: العناية للكلى, name_en: Renal ICU / Dialysis ICU }
+      - { id: TICU-TX, name_ar: العناية بعد الزرع, name_en: Transplant ICU }
+      - { id: OBICU-001, name_ar: العناية للحوامل, name_en: Obstetric ICU }
+    primary_tables: [icu_admissions, vents_settings, icu_scores, icu_meds, icu_flowsheets, code_events]
+    key_apis: [/api/icu/admissions, /api/icu/vents, /api/icu/scores, /api/icu/careplan]
+    compliance: [SCCM, ESICM, JCAHO-ICU]
+
+  anesthesia_pain:
+    id: ANES-001
+    name_ar: إدارة الألم والتخدير
+    name_en: Anesthesia & Pain
+    group: critical_care
+    tier: 1
+    subs:
+      - { id: ANES-002, name_ar: التخدير العام, name_en: Anesthesiology, subs: [Surgical, Obstetric, Pediatric, Cardiac] }
+      - { id: ANES-003, name_ar: العلاج التداخلي للألم, name_en: Interventional Pain, subs: [Spinal Injection, RF Ablation, SCS, Intrathecal Pumps] }
+      - { id: PACU-001, name_ar: العناية بعد التخدير, name_en: PACU }
+      - { id: HBOT-001, name_ar: العلاج بالأكسجين عالي الضغط, name_en: Hyperbaric Oxygen }
+
+# ============================================================
+# 6) التأهيل والعلاج
+# ============================================================
+rehab_therapeutic:
+  rehabilitation:
+    id: REHAB-001
+    name_ar: العلاج الطبيعي والتأهيل
+    name_en: PM&R
+    group: rehab_therapeutic
+    tier: 2
+    subs:
+      - { id: REHAB-002, name_ar: العلاج الطبيعي, name_en: Physical Therapy, subs: [Electro, Hydro, Manual, Post-Op, Spine Pain] }
+      - { id: REHAB-003, name_ar: العلاج الوظيفي, name_en: Occupational Therapy, subs: [ADL, Sensory Integration] }
+      - { id: REHAB-004, name_ar: العلاج النطقي والبلع, name_en: Speech & Swallowing }
+      - { id: REHAB-005, name_ar: تأهيل الحوادث والشلل, name_en: SCI Rehab }
+      - { id: REHAB-006, name_ar: تأهيل الأطفال, name_en: Pediatric Rehab }
+      - { id: REHAB-007, name_ar: الأطراف الصناعية, name_en: Prosthetics & Orthotics }
+      - { id: REHAB-008, name_ar: العلاج بالألعاب, name_en: Child Life / Play Therapy }
+
+  oncology_therapeutics:
+    id: ONC-TX
+    name_ar: العلاج الإشعاعي والأدوية
+    name_en: Oncology Therapeutics
+    group: rehab_therapeutic
+    tier: 2
+    subs:
+      - { id: RT-001, name_ar: العلاج الإشعاعي, name_en: Radiation Oncology, subs: [IMRT, SRS, Gamma Knife, CyberKnife, Proton, Brachytherapy] }
+      - { id: RX-CLI, name_ar: الصيدلية الإكلينيكية, name_en: Clinical Pharmacy, subs: [Chemo, ICU, Pediatric, Hematology, Drug Info, TDM] }
+
+  integrative:
+    id: INT-MED
+    name_ar: العلاج التكميلي والبديل
+    name_en: Integrative Medicine
+    group: rehab_therapeutic
+    tier: 4
+    subs:
+      - { id: TCM-001, name_ar: الطب الصيني التقليدي, name_en: TCM, subs: [Acupuncture, Cupping] }
+      - { id: HERB-001, name_ar: العلاج بالأعشاب, name_en: Herbal Medicine }
+      - { id: AROMA-001, name_ar: الزيوت العطرية, name_en: Aromatherapy }
+      - { id: MUSIC-001, name_ar: العلاج بالموسيقى, name_en: Music Therapy }
+      - { id: ART-001, name_ar: العلاج بالفن, name_en: Art Therapy }
+      - { id: MASS-001, name_ar: التدليك الطبي, name_en: Medical Massage }
+      - { id: YOGA-001, name_ar: اليوغا الطبية, name_en: Medical Yoga }
+      - { id: PET-001, name_ar: العلاج بالحيوانات, name_en: Pet Therapy }
+
+# ============================================================
+# 7) الخدمات المساندة
+# ============================================================
+support_services:
+  nursing:
+    id: NUR-001
+    name_ar: التمريض
+    name_en: Nursing
+    group: support_services
+    tier: 1
+    subs:
+      - { id: NUR-002, name_ar: إدارة التمريض, name_en: Nursing Administration }
+      - { id: NUR-003, name_ar: التمريض الداخلي, name_en: Med-Surg Nursing }
+      - { id: NUR-004, name_ar: تمريض العمليات, name_en: Perioperative Nursing }
+      - { id: NUR-005, name_ar: تمريض العناية, name_en: Critical Care Nursing }
+      - { id: NUR-006, name_ar: تمريض الأطفال, name_en: Pediatric Nursing }
+      - { id: NUR-007, name_ar: تمريض النساء والولادة, name_en: Obstetric Nursing }
+      - { id: NUR-008, name_ar: التمريض المنزلي, name_en: Home Health Nursing }
+      - { id: NUR-009, name_ar: تمريض المسنين, name_en: Geriatric Nursing }
+      - { id: NUR-010, name_ar: تمريض الأورام, name_en: Oncology Nursing }
+      - { id: NUR-011, name_ar: تمريض الصحة النفسية, name_en: Psychiatric Nursing }
+      - { id: NUR-012, name_ar: التمريض الطارئ, name_en: Emergency Nursing }
+      - { id: NUR-013, name_ar: تمريض العيون, name_en: Ophthalmic Nursing }
+      - { id: NUR-014, name_ar: تمريض الأنف والأذن, name_en: ENT Nursing }
+      - { id: NUR-015, name_ar: تمريض الرعاية التلطيفية, name_en: Palliative Care Nursing }
+
+  nutrition:
+    id: NUT-001
+    name_ar: التغذية والمطبخ الطبي
+    name_en: Nutrition & Food Services
+    group: support_services
+    tier: 2
+    subs:
+      - { id: NUT-002, name_ar: التغذية العلاجية, name_en: Clinical Nutrition, subs: [TPN/Enteral, Chronic, Pediatric, Bariatric] }
+      - { id: NUT-003, name_ar: المطبخ المركزي, name_en: Central Kitchen, subs: [Therapeutic Meals, Room Service] }
+      - { id: NUT-004, name_ar: التغذية الوقائية, name_en: Preventive Nutrition }
+
+  psychosocial:
+    id: PSYC-SOC
+    name_ar: الخدمات الاجتماعية والنفسية
+    name_en: Psychosocial Services
+    group: support_services
+    tier: 2
+    subs:
+      - { id: SW-001, name_ar: الخدمة الاجتماعية الطبية, name_en: Medical Social Work }
+      - { id: PR-001, name_ar: رعاية المرضى, name_en: Patient Relations / Advocacy }
+      - { id: HE-001, name_ar: التوجيه والإرشاد الصحي, name_en: Health Education }
+      - { id: EAP-001, name_ar: الدعم النفسي للعاملين, name_en: Employee Assistance }
+
+  logistics_technical:
+    id: LOG-TECH
+    name_ar: الخدمات اللوجستية والفنية
+    name_en: Logistics & Technical
+    group: support_services
+    tier: 2
+    subs:
+      - { id: BME-001, name_ar: الهندسة الطبية, name_en: Biomedical Engineering, subs: [Equipment Maintenance, Calibration, Nanomedicine, Prosthetics] }
+      - { id: HIT-001, name_ar: المعلوماتية الصحية, name_en: Health IT, subs: [EMR, HIS, PACS, Cyber Security] }
+      - { id: TR-001, name_ar: الترجمة الطبية, name_en: Medical Translation }
+      - { id: HSD-001, name_ar: الإحصاء الطبي, name_en: Health Statistics & Data Analytics, subs: [Big Data, Epidemic Prediction] }
+      - { id: MED-COM, name_ar: الاتصالات الطبية, name_en: Medical Communication, subs: [Telemedicine, Teleradiology] }
+
+  safety_security:
+    id: SAFE-SEC
+    name_ar: الخدمات الأمنية والسلامة
+    name_en: Safety & Security
+    group: support_services
+    tier: 2
+    subs:
+      - { id: SEC-001, name_ar: الأمن الطبي, name_en: Security }
+      - { id: OHS-001, name_ar: السلامة والصحة المهنية, name_en: Occupational Health & Safety }
+      - { id: DM-001, name_ar: إدارة الكوارث, name_en: Disaster Management }
+
+# ============================================================
+# 8) الإدارة والأكاديمية
+# ============================================================
+admin_academic:
+  executive:
+    id: EXEC
+    name_ar: الإدارة التنفيذية والطبية
+    name_en: Executive Administration
+    group: admin_academic
+    tier: 1
+    subs:
+      - { id: EXEC-CEO, name_ar: مكتب المدير العام, name_en: CEO Office }
+      - { id: EXEC-CMO, name_ar: المدير الطبي, name_en: CMO }
+      - { id: EXEC-CNO, name_ar: المدير التمريضي, name_en: CNO }
+      - { id: EXEC-CFO, name_ar: المدير المالي, name_en: CFO }
+      - { id: EXEC-COO, name_ar: المدير التشغيلي, name_en: COO }
+      - { id: EXEC-MSC, name_ar: مجلس الأطباء, name_en: Medical Staff Council }
+      - { id: EXEC-EC, name_ar: لجنة الأخلاقيات, name_en: Ethics Committee }
+      - { id: EXEC-PCC, name_ar: لجنة الرعاية الطبية, name_en: Patient Care Committee }
+
+  quality_accreditation:
+    id: QA
+    name_ar: إدارة الجودة والاعتماد
+    name_en: Quality & Accreditation
+    group: admin_academic
+    tier: 1
+    subs:
+      - { id: QA-TQM, name_ar: الجودة الشاملة, name_en: TQM }
+      - { id: QA-CP, name_ar: تراخيص مزاولة المهنة, name_en: Credentialing & Privileging }
+      - { id: QA-IA, name_ar: الاعتماد الدولي, name_en: JCI/CAP/ISO }
+      - { id: QA-MA, name_ar: التدقيق الطبي, name_en: Medical Audit }
+      - { id: QA-PC, name_ar: شكاوى المرضى, name_en: Patient Complaints }
+      - { id: QA-RM, name_ar: إدارة المخاطر, name_en: Risk Management, subs: [Med Liability, Med Errors] }
+
+  education_research:
+    id: EDU-RES
+    name_ar: التعليم والبحث العلمي
+    name_en: Education & Research
+    group: admin_academic
+    tier: 2
+    subs:
+      - { id: EDU-CTR, name_ar: مركز التعليم الطبي, name_en: Medical Education Center, subs: [Internship, Residency, Fellowships, CME] }
+      - { id: RES-CTR, name_ar: مركز البحوث الطبية, name_en: Research Center, subs: [Clinical Trials, Basic Sci, Clin Pharm, IRB, Biostats, Publications] }
+      - { id: LIB-MED, name_ar: المكتبة الطبية, name_en: Medical Library }
+      - { id: SIM-CTR, name_ar: مركز المحاكاة الطبية, name_en: Simulation Center, subs: [Surgical, ER, OB/Peds] }
+
+  hr_admin:
+    id: HR-ADMIN
+    name_ar: الموارد البشرية والتطوير الإداري
+    name_en: HR & Admin
+    group: admin_academic
+    tier: 2
+    subs:
+      - { id: HR-MED, name_ar: الموارد البشرية الطبية, name_en: Medical HR, subs: [Recruitment, Career Path] }
+      - { id: HR-TD, name_ar: التدريب والتطوير, name_en: Training & Development }
+      - { id: HR-LEGAL, name_ar: الشؤون القانونية, name_en: Legal Affairs }
+      - { id: HR-PR, name_ar: العلاقات العامة, name_en: Public Relations, subs: [Medical Media, Community] }
+      - { id: HR-CS, name_ar: خدمة العملاء, name_en: Customer Service / Call Center }
+
+# ============================================================
+# 9) المراكز المتخصصة المتكاملة (Centers of Excellence)
+# ============================================================
+centers_of_excellence:
+  heart_vascular_center:
+    id: COE-HV
+    name_ar: مركز القلب والأوعية الدموية الشامل
+    name_en: Heart & Vascular Center
+    group: centers_of_excellence
+    tier: 1
+    composite_of: [CARD-001, CTS-001, VASC-001, FUNC-002]
+    red_flags: [STEMI, Aortic Dissection, Acute Limb Ischemia]
+  cancer_center:
+    id: COE-CA
+    name_ar: مركز الأورام المتكامل
+    name_en: Comprehensive Cancer Center
+    group: centers_of_excellence
+    tier: 1
+    composite_of: [ONC-001, RT-001, RAD-006, LAB-002]
+  orthopedic_spine_center:
+    id: COE-OS
+    name_ar: مركز العظام والمفاصل والعمود الفقري
+    name_en: Orthopedic & Spine Center
+    group: centers_of_excellence
+    tier: 1
+    composite_of: [ORTHO-001, SPINE-001, REHAB-001]
+  fertility_center:
+    id: COE-FT
+    name_ar: مركز العقم وعلاج الإنجاب
+    name_en: Advanced Fertility Center
+    group: centers_of_excellence
+    tier: 2
+    composite_of: [OBG-004, LAB-006]
+  ent_center:
+    id: COE-ENT
+    name_ar: مركز الأنف والأذن والحنجرة والرأس والرقبة
+    name_en: ENT & Head-Neck Center
+    composite_of: [ENT-001]
+  trauma_center:
+    id: COE-TR
+    name_ar: مركز الحوادث والإصابات الكبرى
+    name_en: Trauma Center
+    composite_of: [ER-002, TICU-001, ORTHO-004, NS-001]
+  burn_center:
+    id: COE-BRN
+    name_ar: مركز العناية المركزة للحروق
+    name_en: Burn Center
+    composite_of: [BURN-001, BICU-001, PLAS-005]
+  transplant_center:
+    id: COE-TX
+    name_ar: مركز زراعة الأعضاء
+    name_en: Transplant Center
+    composite_of: [NEPH-002, CTS-002, ONC-005, LAB-006]
+  geriatric_center:
+    id: COE-GER
+    name_ar: مركز العناية بالمسنين
+    name_en: Geriatric Center
+    composite_of: [NUR-009, REHAB-001]
+  pain_center:
+    id: COE-PN
+    name_ar: مركز الألم المزمن
+    name_en: Pain Center
+    composite_of: [ANES-003]
+  bariatric_center:
+    id: COE-BAR
+    name_ar: مركز السمنة والتمثيل الغذائي
+    name_en: Bariatric & Metabolic
+    composite_of: [ENDO-004, SURG-005, NUT-002]
+  children_hospital:
+    id: COE-CH
+    name_ar: مركز طب الأطفال
+    name_en: Children's Hospital
+    composite_of: [PEDS-001, PEDS-SS, PICU-001, NNICU-001]
+  behavioral_health:
+    id: COE-BH
+    name_ar: مركز الصحة النفسية
+    name_en: Behavioral Health
+  eye_institute:
+    id: COE-EYE
+    name_ar: مركز العيون المتقدم
+    name_en: Eye Institute
+    composite_of: [OPHTH-001]
+  neuroscience_stroke:
+    id: COE-NS
+    name_ar: مركز طب الأعصاب والسكتات الدماغية
+    name_en: Neuroscience & Stroke
+    composite_of: [NS-001, FUNC-006, ER-004, NICU-001]
+  women_fetal:
+    id: COE-WF
+    name_ar: مركز الأم والجنين
+    name_en: Women & Fetal Center
+    composite_of: [OBG-002, OBG-007, OBICU-001]
+
+# ============================================================
+# 10) نادرة ومتقدمة
+# ============================================================
+rare_specialized:
+  space_dive:
+    id: RARE-SD
+    name_ar: طب الفضاء والغوص
+    name_en: Space & Dive Medicine
+    group: rare_specialized
+    tier: 4
+  sleep_complex:
+    id: RARE-SLP
+    name_ar: طب النوم المعقد
+    name_en: Sleep Disorders Center
+    group: rare_specialized
+    tier: 4
+  epilepsy_emg:
+    id: RARE-EMU
+    name_ar: علاج الألم الصرعي المقاوم
+    name_en: Epilepsy Monitoring Unit
+    group: rare_specialized
+    tier: 4
+  stem_cell:
+    id: RARE-SC
+    name_ar: العلاج بالخلايا الجذعية المتقدم
+    name_en: Advanced Stem Cell Therapy
+    group: rare_specialized
+    tier: 4
+  fetal_surgery:
+    id: RARE-FS
+    name_ar: طب الأجنة الجراحي
+    name_en: Fetal Surgery
+    group: rare_specialized
+    tier: 4
+  fetal_medicine:
+    id: RARE-FM
+    name_ar: طب الأجنة والتشخيص قبل الولادة
+    name_en: Fetal Medicine Unit
+    group: rare_specialized
+    tier: 4
+  dbs:
+    id: RARE-DBS
+    name_ar: علاج اضطرابات الحركة العميقة
+    name_en: Deep Brain Stimulation
+    group: rare_specialized
+    tier: 4
+  radioisotope_therapy:
+    id: RARE-RIT
+    name_ar: العلاج بالجرعات المشعة النووية
+    name_en: Nuclear Medicine Therapy
+    group: rare_specialized
+    tier: 4
+  cryotherapy:
+    id: RARE-CRYO
+    name_ar: العلاج بالتبريد
+    name_en: Cryotherapy / Cryosurgery
+    group: rare_specialized
+    tier: 4
+  confocal_laser:
+    id: RARE-CLE
+    name_ar: طب المجهر الضوئي التداخلي
+    name_en: Confocal Laser Endomicroscopy
+    group: rare_specialized
+    tier: 4
+  pharmacogenomics:
+    id: RARE-PGX
+    name_ar: طب البصمة الوراثية
+    name_en: Pharmacogenomics
+    group: rare_specialized
+    tier: 4
+  nanomedicine:
+    id: RARE-NANO
+    name_ar: طب النانو والروبوتات الميكروسكوبية
+    name_en: Nanomedicine
+    group: rare_specialized
+    tier: 4
+
+# ============================================================
+# Defaults (Locked)
+# ============================================================
+defaults:
+  language: AR primary + EN secondary (RTL)
+  region: KSA primary + GCC ready
+  priority: Tier-1 → Tier-2 → Tier-3 → Tier-4
+  tenant: multi-tenant via tenant_id + RLS
+  money_vat: server-side only
+  phi: DPAPI KEK encryption
+  audit: hash-chained 7+ years
+  auth: SSO/JWT + MFA
+  rbac: Specialty-Based Access (Golden Access Rule)
+  ai: LangChain + RAG + PGVector + LLMOps
+  ui: Google Stitch Medical Design System
+  i18n: AR + EN + RTL/LTR
+  compliance: JCI 7th + CBAHI + NPHIES + ZATCA + SFDA + PDPL + HIPAA-aligned
+  test_minimum: 80% unit + 100% critical paths integration
+  loops: 5 (Discover → Plan → Build → Test → Verify)
+  l4_gates: 6 (Red Flags, Drug Safety, PHI Encrypted, Auth, Compliance, Critical Test Cases)
+  token_budget_per_dept: 800-1500 tokens output
+  panel: 7 experts + 1 master orchestrator
