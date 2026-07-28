@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_blood_bank_ext102/pcc_blood_bank_ext102_engine.js
+module.exports.version='v3.75.75.0';
+module.exports.module='pcc_blood_bank_ext102';
+module.exports.functions={};
+module.exports.functions['BBGenExt']=function(input){const score=Math.round((0.18 + Number(input.bbGen||1)*0.2 + Number(input.bbGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_blood_bank_ext102',function:'BBGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BBDonorExt']=function(input){const score=Math.round((0.18 + Number(input.bbDon||1)*0.2 + Number(input.bbDonType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_blood_bank_ext102',function:'BBDonorExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BBTypeExt']=function(input){const score=Math.round((0.18 + Number(input.bbTyp||1)*0.2 + Number(input.bbTypABO||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_blood_bank_ext102',function:'BBTypeExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BBScreenExt']=function(input){const score=Math.round((0.18 + Number(input.bbScr||1)*0.2 + Number(input.bbScrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_blood_bank_ext102',function:'BBScreenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BBCrossExt']=function(input){const score=Math.round((0.18 + Number(input.bbCr||1)*0.2 + Number(input.bbCrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_blood_bank_ext102',function:'BBCrossExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BBIssueExt']=function(input){const score=Math.round((0.18 + Number(input.bbIs||1)*0.2 + Number(input.bbIsType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_blood_bank_ext102',function:'BBIssueExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BBComponentExt']=function(input){const score=Math.round((0.18 + Number(input.bbCom||1)*0.2 + Number(input.bbComType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_blood_bank_ext102',function:'BBComponentExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BBApheresisExt']=function(input){const score=Math.round((0.18 + Number(input.bbAp||1)*0.2 + Number(input.bbApType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_blood_bank_ext102',function:'BBApheresisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BBTransReactExt']=function(input){const score=Math.round((0.18 + Number(input.bbTR||1)*0.2 + Number(input.bbTRtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_blood_bank_ext102',function:'BBTransReactExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['BBAuditExt']=function(input){const score=Math.round((0.18 + Number(input.bbAu||1)*0.2 + Number(input.bbAuScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_blood_bank_ext102',function:'BBAuditExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.75.75.0

@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_laboratory_ext102/pcc_laboratory_ext102_engine.js
+module.exports.version='v3.75.75.0';
+module.exports.module='pcc_laboratory_ext102';
+module.exports.functions={};
+module.exports.functions['LabGenExt']=function(input){const score=Math.round((0.18 + Number(input.lbGen||1)*0.2 + Number(input.lbGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_laboratory_ext102',function:'LabGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabChemExt']=function(input){const score=Math.round((0.18 + Number(input.lbCh||1)*0.2 + Number(input.lbChType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_laboratory_ext102',function:'LabChemExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabHemExt']=function(input){const score=Math.round((0.18 + Number(input.lbH||1)*0.2 + Number(input.lbHType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_laboratory_ext102',function:'LabHemExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabCoagExt']=function(input){const score=Math.round((0.18 + Number(input.lbCoag||1)*0.2 + Number(input.lbCoagType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_laboratory_ext102',function:'LabCoagExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabUrinExt']=function(input){const score=Math.round((0.18 + Number(input.lbUr||1)*0.2 + Number(input.lbUrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_laboratory_ext102',function:'LabUrinExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabEnzymExt']=function(input){const score=Math.round((0.18 + Number(input.lbEn||1)*0.2 + Number(input.lbEnType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_laboratory_ext102',function:'LabEnzymExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabHormoneExt']=function(input){const score=Math.round((0.18 + Number(input.lbHor||1)*0.2 + Number(input.lbHorType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_laboratory_ext102',function:'LabHormoneExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabToxExt']=function(input){const score=Math.round((0.18 + Number(input.lbTox||1)*0.2 + Number(input.lbToxType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_laboratory_ext102',function:'LabToxExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabQCext']=function(input){const score=Math.round((0.18 + Number(input.lbQC||1)*0.2 + Number(input.lbQCScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_laboratory_ext102',function:'LabQCext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LabCriticalExt']=function(input){const score=Math.round((0.18 + Number(input.lbCr||1)*0.2 + Number(input.lbCrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.75.75.0',module:'pcc_laboratory_ext102',function:'LabCriticalExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.75.75.0
