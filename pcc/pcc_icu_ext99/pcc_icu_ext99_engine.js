@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_icu_ext99/pcc_icu_ext99_engine.js
+module.exports.version='v3.16.16.0';
+module.exports.module='pcc_icu_ext99';
+module.exports.functions={};
+module.exports.functions['ICUSepsisExt']=function(input){const score=Math.round((0.18 + Number(input.icuSepsis||1)*0.2 + Number(input.sofa||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_icu_ext99',function:'ICUSepsisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICUARDSext']=function(input){const score=Math.round((0.18 + Number(input.icuARDS||1)*0.2 + Number(input.pfRatio||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_icu_ext99',function:'ICUARDSext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICUDKAext']=function(input){const score=Math.round((0.18 + Number(input.icuDKA||1)*0.2 + Number(input.bloodSugar||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_icu_ext99',function:'ICUDKAext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICUShockExt']=function(input){const score=Math.round((0.18 + Number(input.icuShock||1)*0.2 + Number(input.lactate||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_icu_ext99',function:'ICUShockExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICURenalFailureExt']=function(input){const score=Math.round((0.18 + Number(input.icuAKI||1)*0.2 + Number(input.creatPeak||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_icu_ext99',function:'ICURenalFailureExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICULiverFailureExt']=function(input){const score=Math.round((0.18 + Number(input.icuALF||1)*0.2 + Number(input.inrPeak||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_icu_ext99',function:'ICULiverFailureExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICUCVVIHext']=function(input){const score=Math.round((0.18 + Number(input.icuCVVH||1)*0.2 + Number(input.ufRate||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_icu_ext99',function:'ICUCVVIHext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICUVentExt']=function(input){const score=Math.round((0.18 + Number(input.icuVent||1)*0.2 + Number(input.peep||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_icu_ext99',function:'ICUVentExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICUSedationExt']=function(input){const score=Math.round((0.18 + Number(input.icuSedation||1)*0.2 + Number(input.rass||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_icu_ext99',function:'ICUSedationExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICUDeliriumExt']=function(input){const score=Math.round((0.18 + Number(input.icuDelirium||1)*0.2 + Number(input.camIcu||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_icu_ext99',function:'ICUDeliriumExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.16.16.0

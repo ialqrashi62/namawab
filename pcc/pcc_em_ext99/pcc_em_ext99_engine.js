@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_em_ext99/pcc_em_ext99_engine.js
+module.exports.version='v3.16.16.0';
+module.exports.module='pcc_em_ext99';
+module.exports.functions={};
+module.exports.functions['EMChestPainExt']=function(input){const score=Math.round((0.18 + Number(input.emCP||1)*0.2 + Number(input.cpScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_em_ext99',function:'EMChestPainExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EMDyspneaExt']=function(input){const score=Math.round((0.18 + Number(input.emDyspnea||1)*0.2 + Number(input.oxySat||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_em_ext99',function:'EMDyspneaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EMAlteredMentalExt']=function(input){const score=Math.round((0.18 + Number(input.emAMS||1)*0.2 + Number(input.gcs||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_em_ext99',function:'EMAlteredMentalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EMTraumaExt']=function(input){const score=Math.round((0.18 + Number(input.emTrauma||1)*0.2 + Number(input.issScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_em_ext99',function:'EMTraumaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EMPoisonExt']=function(input){const score=Math.round((0.18 + Number(input.emPoison||1)*0.2 + Number(input.toxicityLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_em_ext99',function:'EMPoisonExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EMStrokeAlertExt']=function(input){const score=Math.round((0.18 + Number(input.emStrokeAlert||1)*0.2 + Number(input.lastKnown||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_em_ext99',function:'EMStrokeAlertExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EMSTEMIext']=function(input){const score=Math.round((0.18 + Number(input.emSTEMI||1)*0.2 + Number(input.doorBalloon||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_em_ext99',function:'EMSTEMIext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EMAnaphylaxisExt']=function(input){const score=Math.round((0.18 + Number(input.emAnaphylax||1)*0.2 + Number(input.epiDose||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_em_ext99',function:'EMAnaphylaxisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EMBurnExt']=function(input){const score=Math.round((0.18 + Number(input.emBurn||1)*0.2 + Number(input.tbsaBurn||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_em_ext99',function:'EMBurnExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['EMHeatStrokeExt']=function(input){const score=Math.round((0.18 + Number(input.emHeat||1)*0.2 + Number(input.coreTemp||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.16.16.0',module:'pcc_em_ext99',function:'EMHeatStrokeExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.16.16.0
