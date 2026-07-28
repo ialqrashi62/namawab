@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext149/pcc_neuro_ext149_engine.js
+module.exports.version='v3.248.0';
+module.exports.module='pcc_neuro_ext149';
+module.exports.functions={};
+module.exports.functions['NeurocutaneousTBAExt']=function(input){const score=Math.round((0.18 + Number(input.tuberous||1)*0.2 + Number(input.brain||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.248.0',module:'pcc_neuro_ext149',function:'NeurocutaneousTBAExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeurofibromatosisExt']=function(input){const score=Math.round((0.18 + Number(input.nf||1)*0.2 + Number(input.tumor||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.248.0',module:'pcc_neuro_ext149',function:'NeurofibromatosisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SturgeWeberExt']=function(input){const score=Math.round((0.18 + Number(input.sturge||1)*0.2 + Number(input.brain||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.248.0',module:'pcc_neuro_ext149',function:'SturgeWeberExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['AtaxiaTelangiectasiaExt']=function(input){const score=Math.round((0.18 + Number(input.at||1)*0.2 + Number(input.cerebellar||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.248.0',module:'pcc_neuro_ext149',function:'AtaxiaTelangiectasiaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VonHippelLindauExt']=function(input){const score=Math.round((0.18 + Number(input.vhl||1)*0.2 + Number(input.hemangioblastoma||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.248.0',module:'pcc_neuro_ext149',function:'VonHippelLindauExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CADASILExt']=function(input){const score=Math.round((0.18 + Number(input.cadasil||1)*0.2 + Number(input.smallVessel||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.248.0',module:'pcc_neuro_ext149',function:'CADASILExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MELASExt']=function(input){const score=Math.round((0.18 + Number(input.melas||1)*0.2 + Number(input.mito||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.248.0',module:'pcc_neuro_ext149',function:'MELASExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MERRFExt']=function(input){const score=Math.round((0.18 + Number(input.merrf||1)*0.2 + Number(input.mito||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.248.0',module:'pcc_neuro_ext149',function:'MERRFExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['LeberExt']=function(input){const score=Math.round((0.18 + Number(input.leber||1)*0.2 + Number(input.optical||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.248.0',module:'pcc_neuro_ext149',function:'LeberExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HuntingtonExt']=function(input){const score=Math.round((0.18 + Number(input.huntington||1)*0.2 + Number(input.cag||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.248.0',module:'pcc_neuro_ext149',function:'HuntingtonExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.248.0
