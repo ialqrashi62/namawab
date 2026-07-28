@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_ent_ext100/pcc_ent_ext100_engine.js
+module.exports.version='v3.23.23.0';
+module.exports.module='pcc_ent_ext100';
+module.exports.functions={};
+module.exports.functions['ENTOtitisExt']=function(input){const score=Math.round((0.18 + Number(input.entOtitis||1)*0.2 + Number(input.omGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ent_ext100',function:'ENTOtitisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ENTSinusitisExt']=function(input){const score=Math.round((0.18 + Number(input.entSinus||1)*0.2 + Number(input.sinusCt||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ent_ext100',function:'ENTSinusitisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ENTTonsilExt']=function(input){const score=Math.round((0.18 + Number(input.entTonsil||1)*0.2 + Number(input.centorScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ent_ext100',function:'ENTTonsilExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ENTAllergicExt']=function(input){const score=Math.round((0.18 + Number(input.entAllergic||1)*0.2 + Number(input.igeENT||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ent_ext100',function:'ENTAllergicExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ENTVoiceExt']=function(input){const score=Math.round((0.18 + Number(input.entVoice||1)*0.2 + Number(input.voiceGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ent_ext100',function:'ENTVoiceExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ENTVertigoExt']=function(input){const score=Math.round((0.18 + Number(input.entVertigo||1)*0.2 + Number(input.dixHallpike||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ent_ext100',function:'ENTVertigoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ENTNoseBleedExt']=function(input){const score=Math.round((0.18 + Number(input.entNoseBleed||1)*0.2 + Number(input.bloodLoss||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ent_ext100',function:'ENTNoseBleedExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ENTSleepApneaExt']=function(input){const score=Math.round((0.18 + Number(input.entOSA||1)*0.2 + Number(input.ahiScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ent_ext100',function:'ENTSleepApneaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ENTHeadNeckExt']=function(input){const score=Math.round((0.18 + Number(input.entHN||1)*0.2 + Number(input.hnStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ent_ext100',function:'ENTHeadNeckExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ENTSmellTasteExt']=function(input){const score=Math.round((0.18 + Number(input.entSmell||1)*0.2 + Number(input.smellTest||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ent_ext100',function:'ENTSmellTasteExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.23.23.0
