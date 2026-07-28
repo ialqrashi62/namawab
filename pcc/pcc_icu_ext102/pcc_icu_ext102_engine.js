@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_icu_ext102/pcc_icu_ext102_engine.js
+module.exports.version='v3.72.72.0';
+module.exports.module='pcc_icu_ext102';
+module.exports.functions={};
+module.exports.functions['ICUGenExt']=function(input){const score=Math.round((0.18 + Number(input.icGen||1)*0.2 + Number(input.icGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_icu_ext102',function:'ICUGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICUAdmExt']=function(input){const score=Math.round((0.18 + Number(input.icAdm||1)*0.2 + Number(input.icAdmScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_icu_ext102',function:'ICUAdmExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICUVentExt']=function(input){const score=Math.round((0.18 + Number(input.icVen||1)*0.2 + Number(input.icVenMode||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_icu_ext102',function:'ICUVentExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICUVasoExt']=function(input){const score=Math.round((0.18 + Number(input.icVas||1)*0.2 + Number(input.icVasType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_icu_ext102',function:'ICUVasoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICUSedatExt']=function(input){const score=Math.round((0.18 + Number(input.icSed||1)*0.2 + Number(input.icSedScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_icu_ext102',function:'ICUSedatExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICUSepsisExt']=function(input){const score=Math.round((0.18 + Number(input.icSep||1)*0.2 + Number(input.icSepScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_icu_ext102',function:'ICUSepsisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICUARFext']=function(input){const score=Math.round((0.18 + Number(input.icARF||1)*0.2 + Number(input.icARFtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_icu_ext102',function:'ICUARFext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICUShockExt']=function(input){const score=Math.round((0.18 + Number(input.icShk||1)*0.2 + Number(input.icShkType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_icu_ext102',function:'ICUShockExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICURenalExt']=function(input){const score=Math.round((0.18 + Number(input.icRen||1)*0.2 + Number(input.icRenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_icu_ext102',function:'ICURenalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ICUDCext']=function(input){const score=Math.round((0.18 + Number(input.icDC||1)*0.2 + Number(input.icDCScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_icu_ext102',function:'ICUDCext',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.72.72.0

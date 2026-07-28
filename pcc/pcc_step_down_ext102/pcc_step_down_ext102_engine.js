@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_step_down_ext102/pcc_step_down_ext102_engine.js
+module.exports.version='v3.72.72.0';
+module.exports.module='pcc_step_down_ext102';
+module.exports.functions={};
+module.exports.functions['SDGenExt']=function(input){const score=Math.round((0.18 + Number(input.sdGen||1)*0.2 + Number(input.sdGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SDAdmExt']=function(input){const score=Math.round((0.18 + Number(input.sdAdm||1)*0.2 + Number(input.sdAdmScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDAdmExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SDMonExt']=function(input){const score=Math.round((0.18 + Number(input.sdMon||1)*0.2 + Number(input.sdMonType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDMonExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SDStepUpExt']=function(input){const score=Math.round((0.18 + Number(input.sdSu||1)*0.2 + Number(input.sdSuType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDStepUpExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SDStepDownExt']=function(input){const score=Math.round((0.18 + Number(input.sdSd||1)*0.2 + Number(input.sdSdType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDStepDownExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SDDischExt']=function(input){const score=Math.round((0.18 + Number(input.sdDis||1)*0.2 + Number(input.sdDisType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDDischExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SDRehabExt']=function(input){const score=Math.round((0.18 + Number(input.sdReh||1)*0.2 + Number(input.sdRehScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDRehabExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SDEducExt']=function(input){const score=Math.round((0.18 + Number(input.sdEdu||1)*0.2 + Number(input.sdEduType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDEducExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SDCoordExt']=function(input){const score=Math.round((0.18 + Number(input.sdCoo||1)*0.2 + Number(input.sdCooScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDCoordExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SDQualityExt']=function(input){const score=Math.round((0.18 + Number(input.sdQ||1)*0.2 + Number(input.sdQScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDQualityExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.72.72.0
