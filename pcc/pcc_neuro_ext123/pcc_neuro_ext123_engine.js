@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext123/pcc_neuro_ext123_engine.js
+module.exports.version='v3.222.0';
+module.exports.module='pcc_neuro_ext123';
+module.exports.functions={};
+module.exports.functions['SchwannomaExt']=function(input){const score=Math.round((0.18 + Number(input.size||3)*0.1 + Number(input.location||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.222.0',module:'pcc_neuro_ext123',function:'SchwannomaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['VestibularSchwannomaExt']=function(input){const score=Math.round((0.18 + Number(input.koos||3)*0.1 + Number(input.hearing||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.222.0',module:'pcc_neuro_ext123',function:'VestibularSchwannomaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TrigeminalSchwannomaExt']=function(input){const score=Math.round((0.18 + Number(input.v||3)*0.1 + Number(input.face||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.222.0',module:'pcc_neuro_ext123',function:'TrigeminalSchwannomaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NF2ext']=function(input){const score=Math.round((0.18 + Number(input.bilateral||1)*0.2 + Number(input.family||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.222.0',module:'pcc_neuro_ext123',function:'NF2ext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NF2vestibularExt']=function(input){const score=Math.round((0.18 + Number(input.bilateral||1)*0.2 + Number(input.merlin||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.222.0',module:'pcc_neuro_ext123',function:'NF2vestibularExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NeurofibromaExt']=function(input){const score=Math.round((0.18 + Number(input.nf1||1)*0.2 + Number(input.plexiform||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.222.0',module:'pcc_neuro_ext123',function:'NeurofibromaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MalignantPeripheralExt']=function(input){const score=Math.round((0.18 + Number(input.mpnst||1)*0.2 + Number(input.nf1||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.222.0',module:'pcc_neuro_ext123',function:'MalignantPeripheralExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GlomusTumorExt']=function(input){const score=Math.round((0.18 + Number(input.jugulare||1)*0.2 + Number(input.tympanicum||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.222.0',module:'pcc_neuro_ext123',function:'GlomusTumorExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HemangioblastomaExt']=function(input){const score=Math.round((0.18 + Number(input.vhl||1)*0.2 + Number(input.cyst||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.222.0',module:'pcc_neuro_ext123',function:'HemangioblastomaExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ChordomaExt']=function(input){const score=Math.round((0.18 + Number(input.clivus||1)*0.2 + Number(input.brainstem||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.222.0',module:'pcc_neuro_ext123',function:'ChordomaExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.222.0
