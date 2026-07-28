@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_neuro_ext137/pcc_neuro_ext137_engine.js
+module.exports.version='v3.236.0';
+module.exports.module='pcc_neuro_ext137';
+module.exports.functions={};
+module.exports.functions['CerebralAngiitisExt']=function(input){const score=Math.round((0.18 + Number(input.primary||1)*0.2 + Number(input.biopsy||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.236.0',module:'pcc_neuro_ext137',function:'CerebralAngiitisExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['PACNSext']=function(input){const score=Math.round((0.18 + Number(input.angiography||1)*0.2 + Number(input.biopsy||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.236.0',module:'pcc_neuro_ext137',function:'PACNSext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CNSVExt']=function(input){const score=Math.round((0.18 + Number(input.systemic||1)*0.2 + Number(input.large||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.236.0',module:'pcc_neuro_ext137',function:'CNSVExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['ReversibleVasoconstExt']=function(input){const score=Math.round((0.18 + Number(input.vasoconst||1)*0.2 + Number(input.thunderclap||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.236.0',module:'pcc_neuro_ext137',function:'ReversibleVasoconstExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CallFlemingExt']=function(input){const score=Math.round((0.18 + Number(input.vasoconst||1)*0.2 + Number(input.headache||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.236.0',module:'pcc_neuro_ext137',function:'CallFlemingExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['SusacSyndromeExt']=function(input){const score=Math.round((0.18 + Number(input.triade||1)*0.2 + Number(input.branchRetinal||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.236.0',module:'pcc_neuro_ext137',function:'SusacSyndromeExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['CADASILwithStrokeExt']=function(input){const score=Math.round((0.18 + Number(input.cadasil||1)*0.2 + Number(input.stroke||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.236.0',module:'pcc_neuro_ext137',function:'CADASILwithStrokeExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['HeparinInducedThrombExt']=function(input){const score=Math.round((0.18 + Number(input.hep||1)*0.2 + Number(input.thrombocytopenia||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.236.0',module:'pcc_neuro_ext137',function:'HeparinInducedThrombExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['DICext']=function(input){const score=Math.round((0.18 + Number(input.dic||1)*0.2 + Number(input.bleed||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.236.0',module:'pcc_neuro_ext137',function:'DICext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['TTPext']=function(input){const score=Math.round((0.18 + Number(input.ttp||1)*0.2 + Number(input.microangiopathy||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.236.0',module:'pcc_neuro_ext137',function:'TTPext',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.236.0
