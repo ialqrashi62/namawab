@@ -1,0 +1,17 @@
+// filepath: pcc/pcc_neuro_ext96/pcc_neuro_ext96_engine.js
+// pcc_neuro_ext96 engine (deterministic)
+module.exports.version='v3.195.0';
+module.exports.module='pcc_neuro_ext96';
+module.exports.functions={};
+module.exports.functions['SleepMedPolysomExt']=function(input){const score=Math.round((0.15 + Number(input.aHI||20)*0.01 + Number(input.spo2||85)*0.005 + Number(input.central||1)*0.1)*100)/100;return{version:'v3.195.0',module:'pcc_neuro_ext96',function:'SleepMedPolysomExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CPAPComplianceExt']=function(input){const score=Math.round((0.2 + Number(input.usageHours||4)*0.05 + Number(input.mask||1)*0.1 + Number(input.adherence||80)*0.005)*100)/100;return{version:'v3.195.0',module:'pcc_neuro_ext96',function:'CPAPComplianceExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['NarcolepsyManageExt']=function(input){const score=Math.round((0.18 + Number(input.cataplexy||1)*0.2 + Number(input.modafinil||1)*0.15 + Number(input.sodiumOxybate||1)*0.15)*100)/100;return{version:'v3.195.0',module:'pcc_neuro_ext96',function:'NarcolepsyManageExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['RestlessLegsMgmExt']=function(input){const score=Math.round((0.15 + Number(input.ferritin||50)*0.002 + Number(input.dopamine||1)*0.2 + Number(input.severity||20)*0.01)*100)/100;return{version:'v3.195.0',module:'pcc_neuro_ext96',function:'RestlessLegsMgmExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['ParasomniasEvalExt']=function(input){const score=Math.round((0.15 + Number(input.episodes||3)*0.05 + Number(input.rem||1)*0.15 + Number(input.triggers||2)*0.05)*100)/100;return{version:'v3.195.0',module:'pcc_neuro_ext96',function:'ParasomniasEvalExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['InsomniaCBTIExt']=function(input){const score=Math.round((0.15 + Number(input.sleepOnsetLatency||30)*0.005 + Number(input.wakeAfter||3)*0.05 + Number(input.treatments||5)*0.05)*100)/100;return{version:'v3.195.0',module:'pcc_neuro_ext96',function:'InsomniaCBTIExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['PeriodicLimbMovementExt']=function(input){const score=Math.round((0.18 + Number(input.plmsIndex||15)*0.01 + Number(input.arousals||10)*0.02 + Number(input.ferritin||50)*0.002)*100)/100;return{version:'v3.195.0',module:'pcc_neuro_ext96',function:'PeriodicLimbMovementExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['CircadianRhythmDisorderExt']=function(input){const score=Math.round((0.15 + Number(input.dsps||1)*0.2 + Number(input.melatonin||1)*0.15 + Number(input.chronotherapy||1)*0.15)*100)/100;return{version:'v3.195.0',module:'pcc_neuro_ext96',function:'CircadianRhythmDisorderExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['ShiftWorkDisorderExt']=function(input){const score=Math.round((0.15 + Number(input.shifts||3)*0.05 + Number(input.melatonin||1)*0.15 + Number(input.modafinil||1)*0.15)*100)/100;return{version:'v3.195.0',module:'pcc_neuro_ext96',function:'ShiftWorkDisorderExt',input,score,ts:new Date().toISOString()};};
+module.exports.functions['SleepApneaSurgeryEvalExt']=function(input){const score=Math.round((0.18 + Number(input.aiHI||20)*0.01 + Number(input.uyap||1)*0.2 + Number(input.bmi||30)*0.01)*100)/100;return{version:'v3.195.0',module:'pcc_neuro_ext96',function:'SleepApneaSurgeryEvalExt',input,score,ts:new Date().toISOString()};};
+
+// TS: v3.195.0
