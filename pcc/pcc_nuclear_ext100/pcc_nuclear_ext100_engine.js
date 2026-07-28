@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_nuclear_ext100/pcc_nuclear_ext100_engine.js
+module.exports.version='v3.28.28.0';
+module.exports.module='pcc_nuclear_ext100';
+module.exports.functions={};
+module.exports.functions['NucThyroidExt']=function(input){const score=Math.round((0.18 + Number(input.nucThyroid||1)*0.2 + Number(input.uptakeLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.28.28.0',module:'pcc_nuclear_ext100',function:'NucThyroidExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NucBoneExt']=function(input){const score=Math.round((0.18 + Number(input.nucBone||1)*0.2 + Number(input.boneFinding||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.28.28.0',module:'pcc_nuclear_ext100',function:'NucBoneExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NucRenalExt']=function(input){const score=Math.round((0.18 + Number(input.nucRenal||1)*0.2 + Number(input.gfrL||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.28.28.0',module:'pcc_nuclear_ext100',function:'NucRenalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NucCardiacExt']=function(input){const score=Math.round((0.18 + Number(input.nucCardiac||1)*0.2 + Number(input.perfusionDefect||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.28.28.0',module:'pcc_nuclear_ext100',function:'NucCardiacExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NucLungV_QExt']=function(input){const score=Math.round((0.18 + Number(input.nucVQ||1)*0.2 + Number(input.vqMatch||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.28.28.0',module:'pcc_nuclear_ext100',function:'NucLungV_QExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NucHIDAext']=function(input){const score=Math.round((0.18 + Number(input.nucHIDA||1)*0.2 + Number(input.hidaEjection||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.28.28.0',module:'pcc_nuclear_ext100',function:'NucHIDAext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NucGIbleedExt']=function(input){const score=Math.round((0.18 + Number(input.nucGIb||1)*0.2 + Number(input.giBleedLoc||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.28.28.0',module:'pcc_nuclear_ext100',function:'NucGIbleedExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NucMIBGext']=function(input){const score=Math.round((0.18 + Number(input.nucMIBG||1)*0.2 + Number(input.mibgFinding||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.28.28.0',module:'pcc_nuclear_ext100',function:'NucMIBGext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NucOctreotideExt']=function(input){const score=Math.round((0.18 + Number(input.nucOct||1)*0.2 + Number(input.octreotideFinding||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.28.28.0',module:'pcc_nuclear_ext100',function:'NucOctreotideExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['NucPSMAext']=function(input){const score=Math.round((0.18 + Number(input.nucPSMA||1)*0.2 + Number(input.psmaSUV||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.28.28.0',module:'pcc_nuclear_ext100',function:'NucPSMAext',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.28.28.0
