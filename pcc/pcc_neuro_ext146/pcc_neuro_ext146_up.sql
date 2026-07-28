@@ -1,0 +1,2 @@
+-- pcc_neuro_ext146 up
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[pcc_neuro_ext146]') AND type = 'U') BEGIN CREATE TABLE [dbo].[pcc_neuro_ext146] ([id] INT IDENTITY(1,1) PRIMARY KEY,[tenant_id] NVARCHAR(64) NOT NULL,[version] NVARCHAR(16) NOT NULL,[module] NVARCHAR(64) NOT NULL,[function] NVARCHAR(128) NOT NULL,[input] NVARCHAR(MAX) NULL,[score] DECIMAL(6,2) NULL,[ts] DATETIME2 DEFAULT SYSUTCDATETIME()); END
