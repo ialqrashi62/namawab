@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_gynecology_ext102/pcc_gynecology_ext102_engine.js
+module.exports.version='v3.67.67.0';
+module.exports.module='pcc_gynecology_ext102';
+module.exports.functions={};
+module.exports.functions['GynGenExt']=function(input){const score=Math.round((0.18 + Number(input.gyGen||1)*0.2 + Number(input.gyGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_gynecology_ext102',function:'GynGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GynMensExt']=function(input){const score=Math.round((0.18 + Number(input.gyMen||1)*0.2 + Number(input.gyMenScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_gynecology_ext102',function:'GynMensExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GynEndoExt']=function(input){const score=Math.round((0.18 + Number(input.gyEnd||1)*0.2 + Number(input.gyEndStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_gynecology_ext102',function:'GynEndoExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GynPCOSext']=function(input){const score=Math.round((0.18 + Number(input.gyPCOS||1)*0.2 + Number(input.gyPCOSscore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_gynecology_ext102',function:'GynPCOSext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GynFibExt']=function(input){const score=Math.round((0.18 + Number(input.gyFib||1)*0.2 + Number(input.gyFibSize||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_gynecology_ext102',function:'GynFibExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GynOvarExt']=function(input){const score=Math.round((0.18 + Number(input.gyOv||1)*0.2 + Number(input.gyOvType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_gynecology_ext102',function:'GynOvarExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GynCerExt']=function(input){const score=Math.round((0.18 + Number(input.gyCer||1)*0.2 + Number(input.gyCerScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_gynecology_ext102',function:'GynCerExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GynHPVext']=function(input){const score=Math.round((0.18 + Number(input.gyHPV||1)*0.2 + Number(input.gyHPVType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_gynecology_ext102',function:'GynHPVext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GynIncontExt']=function(input){const score=Math.round((0.18 + Number(input.gyIncon||1)*0.2 + Number(input.gyInconType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_gynecology_ext102',function:'GynIncontExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['GynProlapseExt']=function(input){const score=Math.round((0.18 + Number(input.gyProl||1)*0.2 + Number(input.gyProlStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_gynecology_ext102',function:'GynProlapseExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.67.67.0

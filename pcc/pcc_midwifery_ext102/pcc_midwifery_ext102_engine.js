@@ -1,0 +1,16 @@
+// filepath: pcc/pcc_midwifery_ext102/pcc_midwifery_ext102_engine.js
+module.exports.version='v3.67.67.0';
+module.exports.module='pcc_midwifery_ext102';
+module.exports.functions={};
+module.exports.functions['MidGenExt']=function(input){const score=Math.round((0.18 + Number(input.mwGen||1)*0.2 + Number(input.mwGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_midwifery_ext102',function:'MidGenExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MidPrenatalExt']=function(input){const score=Math.round((0.18 + Number(input.mwPre||1)*0.2 + Number(input.mwPreWeek||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_midwifery_ext102',function:'MidPrenatalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MidBirthExt']=function(input){const score=Math.round((0.18 + Number(input.mwBir||1)*0.2 + Number(input.mwBirType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_midwifery_ext102',function:'MidBirthExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MidPostnatalExt']=function(input){const score=Math.round((0.18 + Number(input.mwPost||1)*0.2 + Number(input.mwPostDay||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_midwifery_ext102',function:'MidPostnatalExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MidLactationExt']=function(input){const score=Math.round((0.18 + Number(input.mwLac||1)*0.2 + Number(input.mwLacScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_midwifery_ext102',function:'MidLactationExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MidNewbornExt']=function(input){const score=Math.round((0.18 + Number(input.mwNB||1)*0.2 + Number(input.mwNBDay||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_midwifery_ext102',function:'MidNewbornExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MidHomeExt']=function(input){const score=Math.round((0.18 + Number(input.mwHome||1)*0.2 + Number(input.mwHomeType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_midwifery_ext102',function:'MidHomeExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MidWaterExt']=function(input){const score=Math.round((0.18 + Number(input.mwWat||1)*0.2 + Number(input.mwWatScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_midwifery_ext102',function:'MidWaterExt',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MidVBACext']=function(input){const score=Math.round((0.18 + Number(input.mwVBAC||1)*0.2 + Number(input.mwVBACtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_midwifery_ext102',function:'MidVBACext',input,score,ts:new Date().toISOString()}};
+module.exports.functions['MidEmergencyExt']=function(input){const score=Math.round((0.18 + Number(input.mwEm||1)*0.2 + Number(input.mwEmType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_midwifery_ext102',function:'MidEmergencyExt',input,score,ts:new Date().toISOString()}};
+
+// TS: v3.67.67.0
