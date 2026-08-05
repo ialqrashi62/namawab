@@ -6,6 +6,46 @@ the change was small enough to be merged without its own report.
 
 ---
 
+## Wave 43 — 2026-08-05 — Express Error Handler + Metrics
+**Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_43_ERROR_HANDLER_AR.md`](PHASE_WAVE_43_ERROR_HANDLER_AR.md)
+
+### Discovered
+- 100+ route handlers in server.js catch errors with `} catch (e) { res.status(500).json({ error: 'Server error' }); }`
+  which silences the actual error message — operators see "Server error" in client logs but never see WHY.
+- Express 4 does NOT auto-handle async errors: a thrown error in an async handler can hang the connection.
+- JSON parse errors returned generic HTML error pages instead of JSON.
+- No Express error middleware was registered — errors passed via `next(err)` were lost.
+
+### Added
+- `namaweb/wave43_error_handler.js` — `makeErrorMiddleware({ logAudit })`, `makeNotFoundMiddleware()`,
+  `inc(kind, status, path)`, `reset()`, `getCounters()`, `toPrometheusMetrics()`,
+  `isRlsError()`, `isParseError()`. Classifies errors into parse / rls / not_found /
+  server / bad_request.
+- `namaweb/wave43_error_handler_test.js` — 37 unit / structural / safety tests (PASS on local + prod).
+- `namaweb/server.js` — 3 surgical edits:
+  - `const wave43 = require('./wave43_error_handler');`
+  - `/api/metrics/errors` + `/api/security/errors` endpoints (registered BEFORE SPA catch-all)
+  - `app.use(wave43.makeErrorMiddleware({ logAudit }));` registered LAST (after SPA catch-all)
+- 6 Prometheus gauges on `/api/metrics/errors` + per-status breakdown:
+  - `nama_errors_total`
+  - `nama_errors_parse_errors`
+  - `nama_errors_rls_errors`
+  - `nama_errors_not_found`
+  - `nama_errors_server_errors`
+  - `nama_errors_bad_request`
+  - `nama_errors_status_{code}` per HTTP status
+
+### Production verification
+- 50 malformed JSON POSTs → 14 caught (across 3+ workers, per-worker isolation)
+- JSON parse error response: `{"error":"Expected property name or '}' in JSON at position 1","kind":"parse"}`
+  (was: HTML error page)
+
+### Test status
+- `wave43_error_handler_test.js`: **37 / 37 PASS** (local + prod)
+- Cumulative waves 31–43: **273 / 273 PASS**
+
+---
+
 ## Wave 42 — 2026-08-05 — Process Lifecycle Observability + Graceful Shutdown
 **Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_42_PROCESS_LIFECYCLE_AR.md`](PHASE_WAVE_42_PROCESS_LIFECYCLE_AR.md)
 
