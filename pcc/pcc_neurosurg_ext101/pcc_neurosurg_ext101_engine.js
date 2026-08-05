@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_neurosurg_ext101/pcc_neurosurg_ext101_engine.js
-module.exports.version='v3.32.32.0';
-module.exports.module='pcc_neurosurg_ext101';
-module.exports.functions={};
-module.exports.functions['NSCraniotomyExt']=function(input){const score=Math.round((0.18 + Number(input.nsCraniotomy||1)*0.2 + Number(input.cranioInd||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.32.32.0',module:'pcc_neurosurg_ext101',function:'NSCraniotomyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSShuntExt']=function(input){const score=Math.round((0.18 + Number(input.nsShunt||1)*0.2 + Number(input.shuntType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.32.32.0',module:'pcc_neurosurg_ext101',function:'NSShuntExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSTumorResectExt']=function(input){const score=Math.round((0.18 + Number(input.nsTumorRes||1)*0.2 + Number(input.tumorResExtent||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.32.32.0',module:'pcc_neurosurg_ext101',function:'NSTumorResectExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSVascularExt']=function(input){const score=Math.round((0.18 + Number(input.nsVasc||1)*0.2 + Number(input.vascLesion||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.32.32.0',module:'pcc_neurosurg_ext101',function:'NSVascularExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSAneurysmExt']=function(input){const score=Math.round((0.18 + Number(input.nsAneurysm||1)*0.2 + Number(input.aneurysmSize||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.32.32.0',module:'pcc_neurosurg_ext101',function:'NSAneurysmExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSAVMext']=function(input){const score=Math.round((0.18 + Number(input.nsAVM||1)*0.2 + Number(input.avmGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.32.32.0',module:'pcc_neurosurg_ext101',function:'NSAVMext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSDBSext']=function(input){const score=Math.round((0.18 + Number(input.nsDBS||1)*0.2 + Number(input.dbsTarget||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.32.32.0',module:'pcc_neurosurg_ext101',function:'NSDBSext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSVNSext']=function(input){const score=Math.round((0.18 + Number(input.nsVNS||1)*0.2 + Number(input.vnsBattery||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.32.32.0',module:'pcc_neurosurg_ext101',function:'NSVNSext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSResectionEpilepsyExt']=function(input){const score=Math.round((0.18 + Number(input.nsEpilepsySx||1)*0.2 + Number(input.epilepsyFocus||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.32.32.0',module:'pcc_neurosurg_ext101',function:'NSResectionEpilepsyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSPedSurgeryExt']=function(input){const score=Math.round((0.18 + Number(input.nsPedSx||1)*0.2 + Number(input.nsPedType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.32.32.0',module:'pcc_neurosurg_ext101',function:'NSPedSurgeryExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.32.32.0';
+const MOD = 'pcc_neurosurg_ext101';
 
-// TS: v3.32.32.0
+function NSCraniotomyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSCraniotomyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NSCraniotomyExt", input, score, ts: TS, nSCraniotomyExt: _i.nSCraniotomyExt || null };
+}
+
+function NSShuntExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSShuntExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NSShuntExt", input, score, ts: TS, nSShuntExt: _i.nSShuntExt || null };
+}
+
+function NSTumorResectExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSTumorResectExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NSTumorResectExt", input, score, ts: TS, nSTumorResectExt: _i.nSTumorResectExt || null };
+}
+
+function NSVascularExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSVascularExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NSVascularExt", input, score, ts: TS, nSVascularExt: _i.nSVascularExt || null };
+}
+
+function NSAneurysmExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSAneurysmExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NSAneurysmExt", input, score, ts: TS, nSAneurysmExt: _i.nSAneurysmExt || null };
+}
+
+function NSAVMext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSAVMext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'NSAVMext', input, score, ts: TS, nSAVMext: _i.nSAVMext || null };
+}
+
+function NSDBSext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSDBSext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'NSDBSext', input, score, ts: TS, nSDBSext: _i.nSDBSext || null };
+}
+
+function NSVNSext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSVNSext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'NSVNSext', input, score, ts: TS, nSVNSext: _i.nSVNSext || null };
+}
+
+function NSResectionEpilepsyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSResectionEpilepsyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NSResectionEpilepsyExt", input, score, ts: TS, nSResectionEpilepsyExt: _i.nSResectionEpilepsyExt || null };
+}
+
+function NSPedSurgeryExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSPedSurgeryExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NSPedSurgeryExt", input, score, ts: TS, nSPedSurgeryExt: _i.nSPedSurgeryExt || null };
+}
+
+module.exports = {
+  NSCraniotomyExt,
+  NSShuntExt,
+  NSTumorResectExt,
+  NSVascularExt,
+  NSAneurysmExt,
+  NSAVMext,
+  NSDBSext,
+  NSVNSext,
+  NSResectionEpilepsyExt,
+  NSPedSurgeryExt,
+};

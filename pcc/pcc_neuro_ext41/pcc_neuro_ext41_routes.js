@@ -1,54 +1,23 @@
-// pcc_neuro_ext41 routes v3.140.0
+// Routes for pcc_neuro_ext41 — 3.213.0
+"use strict";
 const express = require('express');
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { ParkinsonDiseaseExt3, MultipleSystemAtrophyExt, ProgressiveSupranuclearPalsy, CorticobasalDegeneration, LewyBodyDementiaExt, ParkinsonismDementiaComplex, VascularParkinsonismExt, DrugInducedParkinsonism, EssentialTremorExt2, DystonicTremorExt } = require('./pcc_neuro_ext41_engine');
+const Engine = require('./pcc_neuro_ext41_engine.js');
+const VER = '3.213.0';
+const MOD = 'pcc_neuro_ext41';
+const LABEL = 'Neuro Ext41';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.140.0', module: 'pcc_neuro_ext41', label: 'PCC Neuro Ext41', functions: ['ParkinsonDiseaseExt3', 'MultipleSystemAtrophyExt', 'ProgressiveSupranuclearPalsy', 'CorticobasalDegeneration', 'LewyBodyDementiaExt', 'ParkinsonismDementiaComplex', 'VascularParkinsonismExt', 'DrugInducedParkinsonism', 'EssentialTremorExt2', 'DystonicTremorExt'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/ParkinsonDiseaseExt3', authenticate, (req, res) => {
-  res.json(ParkinsonDiseaseExt3(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/MultipleSystemAtrophyExt', authenticate, (req, res) => {
-  res.json(MultipleSystemAtrophyExt(req.body));
-});
-
-router.post('/call/ProgressiveSupranuclearPalsy', authenticate, (req, res) => {
-  res.json(ProgressiveSupranuclearPalsy(req.body));
-});
-
-router.post('/call/CorticobasalDegeneration', authenticate, (req, res) => {
-  res.json(CorticobasalDegeneration(req.body));
-});
-
-router.post('/call/LewyBodyDementiaExt', authenticate, (req, res) => {
-  res.json(LewyBodyDementiaExt(req.body));
-});
-
-router.post('/call/ParkinsonismDementiaComplex', authenticate, (req, res) => {
-  res.json(ParkinsonismDementiaComplex(req.body));
-});
-
-router.post('/call/VascularParkinsonismExt', authenticate, (req, res) => {
-  res.json(VascularParkinsonismExt(req.body));
-});
-
-router.post('/call/DrugInducedParkinsonism', authenticate, (req, res) => {
-  res.json(DrugInducedParkinsonism(req.body));
-});
-
-router.post('/call/EssentialTremorExt2', authenticate, (req, res) => {
-  res.json(EssentialTremorExt2(req.body));
-});
-
-router.post('/call/DystonicTremorExt', authenticate, (req, res) => {
-  res.json(DystonicTremorExt(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.140.0', module: 'pcc_neuro_ext41', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

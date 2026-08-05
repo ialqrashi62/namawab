@@ -1,54 +1,23 @@
-// pcc_neuro_ext47 routes v3.146.0
+// Routes for pcc_neuro_ext47 — 3.215.0
+"use strict";
 const express = require('express');
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { VertebrobasilarInsufficiencyExt, BasilarArteryThrombosisExt, PosteriorFossaStrokeExt, CerebellarStrokeExt, LateralMedullarySyndromeExt, MedialMedullarySyndromeExt, LateralPonsSyndromeExt, LockedInSyndromeExt, TopOfBasilarSyndromeExt, SubclavianStealSyndromeExt } = require('./pcc_neuro_ext47_engine');
+const Engine = require('./pcc_neuro_ext47_engine.js');
+const VER = '3.215.0';
+const MOD = 'pcc_neuro_ext47';
+const LABEL = 'Neuro Ext47';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.146.0', module: 'pcc_neuro_ext47', label: 'PCC Neuro Ext47', functions: ['VertebrobasilarInsufficiencyExt', 'BasilarArteryThrombosisExt', 'PosteriorFossaStrokeExt', 'CerebellarStrokeExt', 'LateralMedullarySyndromeExt', 'MedialMedullarySyndromeExt', 'LateralPonsSyndromeExt', 'LockedInSyndromeExt', 'TopOfBasilarSyndromeExt', 'SubclavianStealSyndromeExt'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/VertebrobasilarInsufficiencyExt', authenticate, (req, res) => {
-  res.json(VertebrobasilarInsufficiencyExt(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/BasilarArteryThrombosisExt', authenticate, (req, res) => {
-  res.json(BasilarArteryThrombosisExt(req.body));
-});
-
-router.post('/call/PosteriorFossaStrokeExt', authenticate, (req, res) => {
-  res.json(PosteriorFossaStrokeExt(req.body));
-});
-
-router.post('/call/CerebellarStrokeExt', authenticate, (req, res) => {
-  res.json(CerebellarStrokeExt(req.body));
-});
-
-router.post('/call/LateralMedullarySyndromeExt', authenticate, (req, res) => {
-  res.json(LateralMedullarySyndromeExt(req.body));
-});
-
-router.post('/call/MedialMedullarySyndromeExt', authenticate, (req, res) => {
-  res.json(MedialMedullarySyndromeExt(req.body));
-});
-
-router.post('/call/LateralPonsSyndromeExt', authenticate, (req, res) => {
-  res.json(LateralPonsSyndromeExt(req.body));
-});
-
-router.post('/call/LockedInSyndromeExt', authenticate, (req, res) => {
-  res.json(LockedInSyndromeExt(req.body));
-});
-
-router.post('/call/TopOfBasilarSyndromeExt', authenticate, (req, res) => {
-  res.json(TopOfBasilarSyndromeExt(req.body));
-});
-
-router.post('/call/SubclavianStealSyndromeExt', authenticate, (req, res) => {
-  res.json(SubclavianStealSyndromeExt(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.146.0', module: 'pcc_neuro_ext47', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

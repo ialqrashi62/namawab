@@ -1,54 +1,23 @@
-// pcc_neuro_ext43 routes v3.142.0
+// Routes for pcc_neuro_ext43 — 3.214.0
+"use strict";
 const express = require('express');
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { AdultHydrocephalusExt, NormalPressureHydrocephalusExt, CommunicatingHydrocephalusExt, NonCommunicatingHydrocephalusExt, ArrestedHydrocephalusExt, ExVacuoDilatationExt, CSFLeakExt, IntracranialHypotensionExt, PseudotumorCerebriExt2, CSFVenousFistulaExt } = require('./pcc_neuro_ext43_engine');
+const Engine = require('./pcc_neuro_ext43_engine.js');
+const VER = '3.214.0';
+const MOD = 'pcc_neuro_ext43';
+const LABEL = 'Neuro Ext43';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.142.0', module: 'pcc_neuro_ext43', label: 'PCC Neuro Ext43', functions: ['AdultHydrocephalusExt', 'NormalPressureHydrocephalusExt', 'CommunicatingHydrocephalusExt', 'NonCommunicatingHydrocephalusExt', 'ArrestedHydrocephalusExt', 'ExVacuoDilatationExt', 'CSFLeakExt', 'IntracranialHypotensionExt', 'PseudotumorCerebriExt2', 'CSFVenousFistulaExt'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/AdultHydrocephalusExt', authenticate, (req, res) => {
-  res.json(AdultHydrocephalusExt(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/NormalPressureHydrocephalusExt', authenticate, (req, res) => {
-  res.json(NormalPressureHydrocephalusExt(req.body));
-});
-
-router.post('/call/CommunicatingHydrocephalusExt', authenticate, (req, res) => {
-  res.json(CommunicatingHydrocephalusExt(req.body));
-});
-
-router.post('/call/NonCommunicatingHydrocephalusExt', authenticate, (req, res) => {
-  res.json(NonCommunicatingHydrocephalusExt(req.body));
-});
-
-router.post('/call/ArrestedHydrocephalusExt', authenticate, (req, res) => {
-  res.json(ArrestedHydrocephalusExt(req.body));
-});
-
-router.post('/call/ExVacuoDilatationExt', authenticate, (req, res) => {
-  res.json(ExVacuoDilatationExt(req.body));
-});
-
-router.post('/call/CSFLeakExt', authenticate, (req, res) => {
-  res.json(CSFLeakExt(req.body));
-});
-
-router.post('/call/IntracranialHypotensionExt', authenticate, (req, res) => {
-  res.json(IntracranialHypotensionExt(req.body));
-});
-
-router.post('/call/PseudotumorCerebriExt2', authenticate, (req, res) => {
-  res.json(PseudotumorCerebriExt2(req.body));
-});
-
-router.post('/call/CSFVenousFistulaExt', authenticate, (req, res) => {
-  res.json(CSFVenousFistulaExt(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.142.0', module: 'pcc_neuro_ext43', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

@@ -1,54 +1,23 @@
-// pcc_neuro_ext40 routes v3.139.0
+// Routes for pcc_neuro_ext40 — 3.213.0
+"use strict";
 const express = require('express');
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { MultipleSclerosisExt2, NeuromyelitisOpticaExt, MOGAntibodyDisorderExt, AcuteDisseminatedEncephalomyelitis, ClinicallyIsolatedSyndromeExt, RadiologicallyIsolatedSyndrome, ProgressiveMultifocalLeukoencephalopathy, ADEMExt2, CerebralVasculitisExt, CNSLupusExt } = require('./pcc_neuro_ext40_engine');
+const Engine = require('./pcc_neuro_ext40_engine.js');
+const VER = '3.213.0';
+const MOD = 'pcc_neuro_ext40';
+const LABEL = 'Neuro Ext40';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.139.0', module: 'pcc_neuro_ext40', label: 'PCC Neuro Ext40', functions: ['MultipleSclerosisExt2', 'NeuromyelitisOpticaExt', 'MOGAntibodyDisorderExt', 'AcuteDisseminatedEncephalomyelitis', 'ClinicallyIsolatedSyndromeExt', 'RadiologicallyIsolatedSyndrome', 'ProgressiveMultifocalLeukoencephalopathy', 'ADEMExt2', 'CerebralVasculitisExt', 'CNSLupusExt'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/MultipleSclerosisExt2', authenticate, (req, res) => {
-  res.json(MultipleSclerosisExt2(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/NeuromyelitisOpticaExt', authenticate, (req, res) => {
-  res.json(NeuromyelitisOpticaExt(req.body));
-});
-
-router.post('/call/MOGAntibodyDisorderExt', authenticate, (req, res) => {
-  res.json(MOGAntibodyDisorderExt(req.body));
-});
-
-router.post('/call/AcuteDisseminatedEncephalomyelitis', authenticate, (req, res) => {
-  res.json(AcuteDisseminatedEncephalomyelitis(req.body));
-});
-
-router.post('/call/ClinicallyIsolatedSyndromeExt', authenticate, (req, res) => {
-  res.json(ClinicallyIsolatedSyndromeExt(req.body));
-});
-
-router.post('/call/RadiologicallyIsolatedSyndrome', authenticate, (req, res) => {
-  res.json(RadiologicallyIsolatedSyndrome(req.body));
-});
-
-router.post('/call/ProgressiveMultifocalLeukoencephalopathy', authenticate, (req, res) => {
-  res.json(ProgressiveMultifocalLeukoencephalopathy(req.body));
-});
-
-router.post('/call/ADEMExt2', authenticate, (req, res) => {
-  res.json(ADEMExt2(req.body));
-});
-
-router.post('/call/CerebralVasculitisExt', authenticate, (req, res) => {
-  res.json(CerebralVasculitisExt(req.body));
-});
-
-router.post('/call/CNSLupusExt', authenticate, (req, res) => {
-  res.json(CNSLupusExt(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.139.0', module: 'pcc_neuro_ext40', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

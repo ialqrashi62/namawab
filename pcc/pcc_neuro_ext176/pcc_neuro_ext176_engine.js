@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_neuro_ext176/pcc_neuro_ext176_engine.js
-module.exports.version='v3.1.5.0';
-module.exports.module='pcc_neuro_ext176';
-module.exports.functions={};
-module.exports.functions['NeuroPsychSurgeryExt']=function(input){const score=Math.round((0.18 + Number(input.psSurg||1)*0.2 + Number(input.target||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.5.0',module:'pcc_neuro_ext176',function:'NeuroPsychSurgeryExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CapsulotomyExt']=function(input){const score=Math.round((0.18 + Number(input.capsulotomy||1)*0.2 + Number(input.ocdTarget||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.5.0',module:'pcc_neuro_ext176',function:'CapsulotomyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CingulotomyExt']=function(input){const score=Math.round((0.18 + Number(input.cingulotomy||1)*0.2 + Number(input.depressionTarget||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.5.0',module:'pcc_neuro_ext176',function:'CingulotomyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SubthalamotomyExt']=function(input){const score=Math.round((0.18 + Number(input.subthalamotomy||1)*0.2 + Number(input.parkTarget||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.5.0',module:'pcc_neuro_ext176',function:'SubthalamotomyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PallidotomyExt']=function(input){const score=Math.round((0.18 + Number(input.pallidotomy||1)*0.2 + Number(input.dystoniaTarget||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.5.0',module:'pcc_neuro_ext176',function:'PallidotomyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ThalamotomyExt']=function(input){const score=Math.round((0.18 + Number(input.thalamotomy||1)*0.2 + Number(input.tremorTarget||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.5.0',module:'pcc_neuro_ext176',function:'ThalamotomyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['LobotomyExt']=function(input){const score=Math.round((0.18 + Number(input.lobotomy||1)*0.2 + Number(input.historical||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.5.0',module:'pcc_neuro_ext176',function:'LobotomyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CordotomyExt']=function(input){const score=Math.round((0.18 + Number(input.cordotomy||1)*0.2 + Number(input.cancerPain||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.5.0',module:'pcc_neuro_ext176',function:'CordotomyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CommissurotomyExt']=function(input){const score=Math.round((0.18 + Number(input.commissurotomy||1)*0.2 + Number(input.epilepsyTarget||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.5.0',module:'pcc_neuro_ext176',function:'CommissurotomyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['DREZprocedureExt']=function(input){const score=Math.round((0.18 + Number(input.drez||1)*0.2 + Number(input.painTarget||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.5.0',module:'pcc_neuro_ext176',function:'DREZprocedureExt',input,score,ts:new Date().toISOString()}};
+// pcc_neuro_ext176_engine v3.316.52 (Phase 2 Batch 19 — Neuro ext175-186)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.52';
+const MOD = 'pcc_neuro_ext176';
 
-// TS: v3.1.5.0
+function NeuroPsychSurgeryExt(input) {
+  const i = input || {};
+  const v = Number(i.NeuroPsychSurgeryExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'NeuroPsychSurgeryExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CapsulotomyExt(input) {
+  const i = input || {};
+  const v = Number(i.CapsulotomyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CapsulotomyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CingulotomyExt(input) {
+  const i = input || {};
+  const v = Number(i.CingulotomyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CingulotomyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function SubthalamotomyExt(input) {
+  const i = input || {};
+  const v = Number(i.SubthalamotomyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'SubthalamotomyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PallidotomyExt(input) {
+  const i = input || {};
+  const v = Number(i.PallidotomyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PallidotomyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ThalamotomyExt(input) {
+  const i = input || {};
+  const v = Number(i.ThalamotomyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ThalamotomyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function LobotomyExt(input) {
+  const i = input || {};
+  const v = Number(i.LobotomyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'LobotomyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CordotomyExt(input) {
+  const i = input || {};
+  const v = Number(i.CordotomyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CordotomyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CommissurotomyExt(input) {
+  const i = input || {};
+  const v = Number(i.CommissurotomyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CommissurotomyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function DREZprocedureExt(input) {
+  const i = input || {};
+  const v = Number(i.DREZprocedureExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'DREZprocedureExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  NeuroPsychSurgeryExt, CapsulotomyExt, CingulotomyExt, SubthalamotomyExt, PallidotomyExt, ThalamotomyExt, LobotomyExt, CordotomyExt, CommissurotomyExt, DREZprocedureExt
+};

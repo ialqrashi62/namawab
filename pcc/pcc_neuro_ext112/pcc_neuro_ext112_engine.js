@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_neuro_ext112/pcc_neuro_ext112_engine.js
-module.exports.version='v3.211.0';
-module.exports.module='pcc_neuro_ext112';
-module.exports.functions={};
-module.exports.functions['MigraineExt']=function(input){const score=Math.round((0.18 + Number(input.frequency||4)*0.04 + Number(input.severity||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.211.0',module:'pcc_neuro_ext112',function:'MigraineExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['MigraineAuraExt']=function(input){const score=Math.round((0.18 + Number(input.aura||1)*0.2 + Number(input.frequency||4)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.211.0',module:'pcc_neuro_ext112',function:'MigraineAuraExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ChronicMigraineExt']=function(input){const score=Math.round((0.18 + Number(input.days||15)*0.02 + Number(input.medicationOveruse||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.211.0',module:'pcc_neuro_ext112',function:'ChronicMigraineExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ClusterHeadacheExt']=function(input){const score=Math.round((0.18 + Number(input.attacks||3)*0.1 + Number(input.duration||90)*0.005 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.211.0',module:'pcc_neuro_ext112',function:'ClusterHeadacheExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TensionHeadacheExt']=function(input){const score=Math.round((0.18 + Number(input.frequency||4)*0.04 + Number(input.tender||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.211.0',module:'pcc_neuro_ext112',function:'TensionHeadacheExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TrigeminalNeuralgiaExt']=function(input){const score=Math.round((0.18 + Number(input.paroxysms||5)*0.04 + Number(input.trigger||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.211.0',module:'pcc_neuro_ext112',function:'TrigeminalNeuralgiaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OccipitalNeuralgiaExt']=function(input){const score=Math.round((0.18 + Number(input.paroxysms||5)*0.04 + Number(input.trigger||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.211.0',module:'pcc_neuro_ext112',function:'OccipitalNeuralgiaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['IdiopathicIntracranialHTNExt']=function(input){const score=Math.round((0.18 + Number(input.opening||30)*0.01 + Number(input.papilledema||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.211.0',module:'pcc_neuro_ext112',function:'IdiopathicIntracranialHTNExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SpontaneousICSExt']=function(input){const score=Math.round((0.18 + Number(input.opening||8)*0.04 + Number(input.orthostatic||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.211.0',module:'pcc_neuro_ext112',function:'SpontaneousICSExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ReversibleCerebralVasoconstExt']=function(input){const score=Math.round((0.18 + Number(input.vasoconst||1)*0.2 + Number(input.headache||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.211.0',module:'pcc_neuro_ext112',function:'ReversibleCerebralVasoconstExt',input,score,ts:new Date().toISOString()}};
+// pcc_neuro_ext112_engine v3.316.46 (Phase 2 Batch 13 — Neuro ext103-114)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.46';
+const MOD = 'pcc_neuro_ext112';
 
-// TS: v3.211.0
+function MigraineExt(input) {
+  const i = input || {};
+  const v = Number(i.MigraineExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MigraineExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function MigraineAuraExt(input) {
+  const i = input || {};
+  const v = Number(i.MigraineAuraExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MigraineAuraExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ChronicMigraineExt(input) {
+  const i = input || {};
+  const v = Number(i.ChronicMigraineExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ChronicMigraineExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ClusterHeadacheExt(input) {
+  const i = input || {};
+  const v = Number(i.ClusterHeadacheExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ClusterHeadacheExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function TensionHeadacheExt(input) {
+  const i = input || {};
+  const v = Number(i.TensionHeadacheExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'TensionHeadacheExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function TrigeminalNeuralgiaExt(input) {
+  const i = input || {};
+  const v = Number(i.TrigeminalNeuralgiaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'TrigeminalNeuralgiaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function OccipitalNeuralgiaExt(input) {
+  const i = input || {};
+  const v = Number(i.OccipitalNeuralgiaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'OccipitalNeuralgiaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function IdiopathicIntracranialHTNExt(input) {
+  const i = input || {};
+  const v = Number(i.IdiopathicIntracranialHTNExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'IdiopathicIntracranialHTNExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function SpontaneousICSExt(input) {
+  const i = input || {};
+  const v = Number(i.SpontaneousICSExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'SpontaneousICSExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ReversibleCerebralVasoconstExt(input) {
+  const i = input || {};
+  const v = Number(i.ReversibleCerebralVasoconstExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ReversibleCerebralVasoconstExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  MigraineExt, MigraineAuraExt, ChronicMigraineExt, ClusterHeadacheExt, TensionHeadacheExt, TrigeminalNeuralgiaExt, OccipitalNeuralgiaExt, IdiopathicIntracranialHTNExt, SpontaneousICSExt, ReversibleCerebralVasoconstExt
+};

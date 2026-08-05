@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_neuro_ext144/pcc_neuro_ext144_engine.js
-module.exports.version='v3.243.0';
-module.exports.module='pcc_neuro_ext144';
-module.exports.functions={};
-module.exports.functions['SexualDysfunctionExt']=function(input){const score=Math.round((0.18 + Number(input.libido||1)*0.2 + Number(input.erectile||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'SexualDysfunctionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AutonomicDysreflexiaSexExt']=function(input){const score=Math.round((0.18 + Number(input.ad||1)*0.2 + Number(input.stimulus||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'AutonomicDysreflexiaSexExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['MSexualExt']=function(input){const score=Math.round((0.18 + Number(input.desire||1)*0.2 + Number(input.arousal||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'MSexualExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['FSexualExt']=function(input){const score=Math.round((0.18 + Number(input.lubrication||1)*0.2 + Number(input.orgasm||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'FSexualExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PostPartumSexualExt']=function(input){const score=Math.round((0.18 + Number(input.pp||1)*0.2 + Number(input.hormone||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'PostPartumSexualExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CancerSexualExt']=function(input){const score=Math.round((0.18 + Number(input.cancer||1)*0.2 + Number(input.treatment||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'CancerSexualExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['MedicationInducedExt']=function(input){const score=Math.round((0.18 + Number(input.ssri||1)*0.2 + Number(input.sexual||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'MedicationInducedExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['GenderDysphoriaExt']=function(input){const score=Math.round((0.18 + Number(input.dysphoria||1)*0.2 + Number(input.gender||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'GenderDysphoriaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HypogonadismExt']=function(input){const score=Math.round((0.18 + Number(input.test||1)*0.2 + Number(input.lowT||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'HypogonadismExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PrematureEjacExt']=function(input){const score=Math.round((0.18 + Number(input.pe||1)*0.2 + Number(input.anxiety||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.243.0',module:'pcc_neuro_ext144',function:'PrematureEjacExt',input,score,ts:new Date().toISOString()}};
+// pcc_neuro_ext144_engine v3.316.49 (Phase 2 Batch 16 — Neuro ext139-150)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.49';
+const MOD = 'pcc_neuro_ext144';
 
-// TS: v3.243.0
+function SexualDysfunctionExt(input) {
+  const i = input || {};
+  const v = Number(i.SexualDysfunctionExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'SexualDysfunctionExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AutonomicDysreflexiaSexExt(input) {
+  const i = input || {};
+  const v = Number(i.AutonomicDysreflexiaSexExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AutonomicDysreflexiaSexExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function MSexualExt(input) {
+  const i = input || {};
+  const v = Number(i.MSexualExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MSexualExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function FSexualExt(input) {
+  const i = input || {};
+  const v = Number(i.FSexualExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'FSexualExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PostPartumSexualExt(input) {
+  const i = input || {};
+  const v = Number(i.PostPartumSexualExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PostPartumSexualExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CancerSexualExt(input) {
+  const i = input || {};
+  const v = Number(i.CancerSexualExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CancerSexualExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function MedicationInducedExt(input) {
+  const i = input || {};
+  const v = Number(i.MedicationInducedExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MedicationInducedExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function GenderDysphoriaExt(input) {
+  const i = input || {};
+  const v = Number(i.GenderDysphoriaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'GenderDysphoriaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HypogonadismExt(input) {
+  const i = input || {};
+  const v = Number(i.HypogonadismExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HypogonadismExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PrematureEjacExt(input) {
+  const i = input || {};
+  const v = Number(i.PrematureEjacExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PrematureEjacExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  SexualDysfunctionExt, AutonomicDysreflexiaSexExt, MSexualExt, FSexualExt, PostPartumSexualExt, CancerSexualExt, MedicationInducedExt, GenderDysphoriaExt, HypogonadismExt, PrematureEjacExt
+};

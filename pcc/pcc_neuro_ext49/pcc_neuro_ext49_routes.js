@@ -1,54 +1,23 @@
-// pcc_neuro_ext49 routes v3.148.0
+// Routes for pcc_neuro_ext49 — 3.216.0
+"use strict";
 const express = require('express');
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { AutonomicDysreflexiaExt, OrthostaticHypotensionExt, PosturalOrthostaticTachycardiaExt, NeurocardiogenicSyncopeExt, CarotidSinusHypersensitivityExt, TiltTableSyncopeExt, PureAutonomicFailureExt, MultipleSystemAtrophyAutonomicExt, DysautonomiaExt, FamilialDysautonomiaExt } = require('./pcc_neuro_ext49_engine');
+const Engine = require('./pcc_neuro_ext49_engine.js');
+const VER = '3.216.0';
+const MOD = 'pcc_neuro_ext49';
+const LABEL = 'Neuro Ext49';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.148.0', module: 'pcc_neuro_ext49', label: 'PCC Neuro Ext49', functions: ['AutonomicDysreflexiaExt', 'OrthostaticHypotensionExt', 'PosturalOrthostaticTachycardiaExt', 'NeurocardiogenicSyncopeExt', 'CarotidSinusHypersensitivityExt', 'TiltTableSyncopeExt', 'PureAutonomicFailureExt', 'MultipleSystemAtrophyAutonomicExt', 'DysautonomiaExt', 'FamilialDysautonomiaExt'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/AutonomicDysreflexiaExt', authenticate, (req, res) => {
-  res.json(AutonomicDysreflexiaExt(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/OrthostaticHypotensionExt', authenticate, (req, res) => {
-  res.json(OrthostaticHypotensionExt(req.body));
-});
-
-router.post('/call/PosturalOrthostaticTachycardiaExt', authenticate, (req, res) => {
-  res.json(PosturalOrthostaticTachycardiaExt(req.body));
-});
-
-router.post('/call/NeurocardiogenicSyncopeExt', authenticate, (req, res) => {
-  res.json(NeurocardiogenicSyncopeExt(req.body));
-});
-
-router.post('/call/CarotidSinusHypersensitivityExt', authenticate, (req, res) => {
-  res.json(CarotidSinusHypersensitivityExt(req.body));
-});
-
-router.post('/call/TiltTableSyncopeExt', authenticate, (req, res) => {
-  res.json(TiltTableSyncopeExt(req.body));
-});
-
-router.post('/call/PureAutonomicFailureExt', authenticate, (req, res) => {
-  res.json(PureAutonomicFailureExt(req.body));
-});
-
-router.post('/call/MultipleSystemAtrophyAutonomicExt', authenticate, (req, res) => {
-  res.json(MultipleSystemAtrophyAutonomicExt(req.body));
-});
-
-router.post('/call/DysautonomiaExt', authenticate, (req, res) => {
-  res.json(DysautonomiaExt(req.body));
-});
-
-router.post('/call/FamilialDysautonomiaExt', authenticate, (req, res) => {
-  res.json(FamilialDysautonomiaExt(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.148.0', module: 'pcc_neuro_ext49', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

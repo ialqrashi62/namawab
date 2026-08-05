@@ -1,54 +1,23 @@
-// pcc_neuro_ext46 routes v3.145.0
+// Routes for pcc_neuro_ext46 — 3.215.0
+"use strict";
 const express = require('express');
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { BellPalsyExt2, RamsayHuntSyndromeExt, MelkerssonRosenthalExt, HeerfordtSyndromeExt, HemifacialSpasmExt, FacialMyokymiaExt, FacialSynkinesisExt, TrigeminalMotorNeuropathyExt, AbducensNervePalsyExt, TrochlearNervePalsyExt } = require('./pcc_neuro_ext46_engine');
+const Engine = require('./pcc_neuro_ext46_engine.js');
+const VER = '3.215.0';
+const MOD = 'pcc_neuro_ext46';
+const LABEL = 'Neuro Ext46';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.145.0', module: 'pcc_neuro_ext46', label: 'PCC Neuro Ext46', functions: ['BellPalsyExt2', 'RamsayHuntSyndromeExt', 'MelkerssonRosenthalExt', 'HeerfordtSyndromeExt', 'HemifacialSpasmExt', 'FacialMyokymiaExt', 'FacialSynkinesisExt', 'TrigeminalMotorNeuropathyExt', 'AbducensNervePalsyExt', 'TrochlearNervePalsyExt'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/BellPalsyExt2', authenticate, (req, res) => {
-  res.json(BellPalsyExt2(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/RamsayHuntSyndromeExt', authenticate, (req, res) => {
-  res.json(RamsayHuntSyndromeExt(req.body));
-});
-
-router.post('/call/MelkerssonRosenthalExt', authenticate, (req, res) => {
-  res.json(MelkerssonRosenthalExt(req.body));
-});
-
-router.post('/call/HeerfordtSyndromeExt', authenticate, (req, res) => {
-  res.json(HeerfordtSyndromeExt(req.body));
-});
-
-router.post('/call/HemifacialSpasmExt', authenticate, (req, res) => {
-  res.json(HemifacialSpasmExt(req.body));
-});
-
-router.post('/call/FacialMyokymiaExt', authenticate, (req, res) => {
-  res.json(FacialMyokymiaExt(req.body));
-});
-
-router.post('/call/FacialSynkinesisExt', authenticate, (req, res) => {
-  res.json(FacialSynkinesisExt(req.body));
-});
-
-router.post('/call/TrigeminalMotorNeuropathyExt', authenticate, (req, res) => {
-  res.json(TrigeminalMotorNeuropathyExt(req.body));
-});
-
-router.post('/call/AbducensNervePalsyExt', authenticate, (req, res) => {
-  res.json(AbducensNervePalsyExt(req.body));
-});
-
-router.post('/call/TrochlearNervePalsyExt', authenticate, (req, res) => {
-  res.json(TrochlearNervePalsyExt(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.145.0', module: 'pcc_neuro_ext46', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

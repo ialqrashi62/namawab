@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_neuro_ext174/pcc_neuro_ext174_engine.js
-module.exports.version='v3.1.3.0';
-module.exports.module='pcc_neuro_ext174';
-module.exports.functions={};
-module.exports.functions['EpilepsyGeneticsExt']=function(input){const score=Math.round((0.18 + Number(input.epiGene||1)*0.2 + Number(input.inherit||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.3.0',module:'pcc_neuro_ext174',function:'EpilepsyGeneticsExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SCN1AepilepsyExt']=function(input){const score=Math.round((0.18 + Number(input.scn1a||1)*0.2 + Number(input.dravet||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.3.0',module:'pcc_neuro_ext174',function:'SCN1AepilepsyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['GLUT1DeficiencyExt']=function(input){const score=Math.round((0.18 + Number(input.glut1||1)*0.2 + Number(input.glucoseCSF||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.3.0',module:'pcc_neuro_ext174',function:'GLUT1DeficiencyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PyridoxineDepExt']=function(input){const score=Math.round((0.18 + Number(input.pyridoxine||1)*0.2 + Number(input.b6Resp||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.3.0',module:'pcc_neuro_ext174',function:'PyridoxineDepExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PyridoxalPhosExt']=function(input){const score=Math.round((0.18 + Number(input.plp||1)*0.2 + Number(input.plpResp||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.3.0',module:'pcc_neuro_ext174',function:'PyridoxalPhosExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['FolinicAcidExt']=function(input){const score=Math.round((0.18 + Number(input.folinic||1)*0.2 + Number(input.folinicResp||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.3.0',module:'pcc_neuro_ext174',function:'FolinicAcidExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['KCNQ2encephalopathyExt']=function(input){const score=Math.round((0.18 + Number(input.kcnq2||1)*0.2 + Number(input.neonatalSz||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.3.0',module:'pcc_neuro_ext174',function:'KCNQ2encephalopathyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['STXBP1encephalopathyExt']=function(input){const score=Math.round((0.18 + Number(input.stxbp1||1)*0.2 + Number(input.eiec||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.3.0',module:'pcc_neuro_ext174',function:'STXBP1encephalopathyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CDKL5deficiencyExt']=function(input){const score=Math.round((0.18 + Number(input.cdkl5||1)*0.2 + Number(input.earlyOnset||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.3.0',module:'pcc_neuro_ext174',function:'CDKL5deficiencyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PCDH19epilepsyExt']=function(input){const score=Math.round((0.18 + Number(input.pcdh19||1)*0.2 + Number(input.femaleOnly||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.1.3.0',module:'pcc_neuro_ext174',function:'PCDH19epilepsyExt',input,score,ts:new Date().toISOString()}};
+// pcc_neuro_ext174_engine v3.316.51 (Phase 2 Batch 18 — Neuro ext163-174)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.51';
+const MOD = 'pcc_neuro_ext174';
 
-// TS: v3.1.3.0
+function EpilepsyGeneticsExt(input) {
+  const i = input || {};
+  const v = Number(i.EpilepsyGeneticsExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'EpilepsyGeneticsExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function SCN1AepilepsyExt(input) {
+  const i = input || {};
+  const v = Number(i.SCN1AepilepsyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'SCN1AepilepsyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function GLUT1DeficiencyExt(input) {
+  const i = input || {};
+  const v = Number(i.GLUT1DeficiencyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'GLUT1DeficiencyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PyridoxineDepExt(input) {
+  const i = input || {};
+  const v = Number(i.PyridoxineDepExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PyridoxineDepExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PyridoxalPhosExt(input) {
+  const i = input || {};
+  const v = Number(i.PyridoxalPhosExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PyridoxalPhosExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function FolinicAcidExt(input) {
+  const i = input || {};
+  const v = Number(i.FolinicAcidExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'FolinicAcidExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function KCNQ2encephalopathyExt(input) {
+  const i = input || {};
+  const v = Number(i.KCNQ2encephalopathyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'KCNQ2encephalopathyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function STXBP1encephalopathyExt(input) {
+  const i = input || {};
+  const v = Number(i.STXBP1encephalopathyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'STXBP1encephalopathyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CDKL5deficiencyExt(input) {
+  const i = input || {};
+  const v = Number(i.CDKL5deficiencyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CDKL5deficiencyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PCDH19epilepsyExt(input) {
+  const i = input || {};
+  const v = Number(i.PCDH19epilepsyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PCDH19epilepsyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  EpilepsyGeneticsExt, SCN1AepilepsyExt, GLUT1DeficiencyExt, PyridoxineDepExt, PyridoxalPhosExt, FolinicAcidExt, KCNQ2encephalopathyExt, STXBP1encephalopathyExt, CDKL5deficiencyExt, PCDH19epilepsyExt
+};

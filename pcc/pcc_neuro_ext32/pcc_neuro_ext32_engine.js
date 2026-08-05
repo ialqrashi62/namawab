@@ -1,6 +1,6 @@
 // pcc_neuro_ext32 engine v3.131.0
 module.exports = {
-  NeuroInflammatoryExt: (input = {}) => ({ version: '3.131.0', module: 'pcc_neuro_ext32', function: 'NeuroInflammatoryExt', input, score: Math.random(), ts: Date.now() }),
+  NeuroInflammatoryExt: (input = {}) => ({ version: '3.131.0', module: 'pcc_neuro_ext32', function: "NeuroInflammatoryExt", input, score: Math.random(), ts: Date.now() }),
   Neurosarcoidosis: (input = {}) => ({ version: '3.131.0', module: 'pcc_neuro_ext32', function: 'Neurosarcoidosis', input, score: Math.random(), ts: Date.now() }),
   NeuroLupus: (input = {}) => ({ version: '3.131.0', module: 'pcc_neuro_ext32', function: 'NeuroLupus', input, score: Math.random(), ts: Date.now() }),
   NeuroBehcet: (input = {}) => ({ version: '3.131.0', module: 'pcc_neuro_ext32', function: 'NeuroBehcet', input, score: Math.random(), ts: Date.now() }),

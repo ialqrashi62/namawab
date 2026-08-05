@@ -1,54 +1,23 @@
-// pcc_neuro_ext50 routes v3.149.0
+// Routes for pcc_neuro_ext50 — 3.216.0
+"use strict";
 const express = require('express');
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { MeningiomaExt, AnaplasticMeningiomaExt, HemangioblastomaExt, HemangiopericytomaExt, PrimaryCNSLymphomaExt, CNSLymphomaExt, GermCellTumorExt, PineoblastomaExt, PituitaryAdenomaExt, PituitaryApoplexyExt } = require('./pcc_neuro_ext50_engine');
+const Engine = require('./pcc_neuro_ext50_engine.js');
+const VER = '3.216.0';
+const MOD = 'pcc_neuro_ext50';
+const LABEL = 'Neuro Ext50';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.149.0', module: 'pcc_neuro_ext50', label: 'PCC Neuro Ext50', functions: ['MeningiomaExt', 'AnaplasticMeningiomaExt', 'HemangioblastomaExt', 'HemangiopericytomaExt', 'PrimaryCNSLymphomaExt', 'CNSLymphomaExt', 'GermCellTumorExt', 'PineoblastomaExt', 'PituitaryAdenomaExt', 'PituitaryApoplexyExt'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/MeningiomaExt', authenticate, (req, res) => {
-  res.json(MeningiomaExt(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/AnaplasticMeningiomaExt', authenticate, (req, res) => {
-  res.json(AnaplasticMeningiomaExt(req.body));
-});
-
-router.post('/call/HemangioblastomaExt', authenticate, (req, res) => {
-  res.json(HemangioblastomaExt(req.body));
-});
-
-router.post('/call/HemangiopericytomaExt', authenticate, (req, res) => {
-  res.json(HemangiopericytomaExt(req.body));
-});
-
-router.post('/call/PrimaryCNSLymphomaExt', authenticate, (req, res) => {
-  res.json(PrimaryCNSLymphomaExt(req.body));
-});
-
-router.post('/call/CNSLymphomaExt', authenticate, (req, res) => {
-  res.json(CNSLymphomaExt(req.body));
-});
-
-router.post('/call/GermCellTumorExt', authenticate, (req, res) => {
-  res.json(GermCellTumorExt(req.body));
-});
-
-router.post('/call/PineoblastomaExt', authenticate, (req, res) => {
-  res.json(PineoblastomaExt(req.body));
-});
-
-router.post('/call/PituitaryAdenomaExt', authenticate, (req, res) => {
-  res.json(PituitaryAdenomaExt(req.body));
-});
-
-router.post('/call/PituitaryApoplexyExt', authenticate, (req, res) => {
-  res.json(PituitaryApoplexyExt(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.149.0', module: 'pcc_neuro_ext50', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

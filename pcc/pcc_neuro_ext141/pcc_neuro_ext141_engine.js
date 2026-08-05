@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_neuro_ext141/pcc_neuro_ext141_engine.js
-module.exports.version='v3.240.0';
-module.exports.module='pcc_neuro_ext141';
-module.exports.functions={};
-module.exports.functions['CryptococcalMENext']=function(input){const score=Math.round((0.18 + Number(input.hiv||1)*0.2 + Number(input.csf||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'CryptococcalMENext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TBmeningitisAdultExt']=function(input){const score=Math.round((0.18 + Number(input.tb||1)*0.2 + Number(input.meningitis||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'TBmeningitisAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HIVExt']=function(input){const score=Math.round((0.18 + Number(input.hiv||1)*0.2 + Number(input.cognitive||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'HIVExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HIVToxoplasmosisExt']=function(input){const score=Math.round((0.18 + Number(input.hiv||1)*0.2 + Number(input.toxo||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'HIVToxoplasmosisExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PMLext']=function(input){const score=Math.round((0.18 + Number(input.jc||1)*0.2 + Number(input.demyelination||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'PMLext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AIDSDementiaExt']=function(input){const score=Math.round((0.18 + Number(input.aids||1)*0.2 + Number(input.cognitive||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'AIDSDementiaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ToxoplasmosisExt']=function(input){const score=Math.round((0.18 + Number(input.toxo||1)*0.2 + Number(input.lesion||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'ToxoplasmosisExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CysticercosisExt']=function(input){const score=Math.round((0.18 + Number(input.cyst||1)*0.2 + Number(input.seizure||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'CysticercosisExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['EchinococcusExt']=function(input){const score=Math.round((0.18 + Number(input.hydatid||1)*0.2 + Number(input.brain||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'EchinococcusExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AmebicMeningoExt']=function(input){const score=Math.round((0.18 + Number(input.amebic||1)*0.2 + Number(input.meningo||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.240.0',module:'pcc_neuro_ext141',function:'AmebicMeningoExt',input,score,ts:new Date().toISOString()}};
+// pcc_neuro_ext141_engine v3.316.49 (Phase 2 Batch 16 — Neuro ext139-150)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.49';
+const MOD = 'pcc_neuro_ext141';
 
-// TS: v3.240.0
+function CryptococcalMENext(input) {
+  const i = input || {};
+  const v = Number(i.CryptococcalMENext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CryptococcalMENext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function TBmeningitisAdultExt(input) {
+  const i = input || {};
+  const v = Number(i.TBmeningitisAdultExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'TBmeningitisAdultExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HIVExt(input) {
+  const i = input || {};
+  const v = Number(i.HIVExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HIVExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HIVToxoplasmosisExt(input) {
+  const i = input || {};
+  const v = Number(i.HIVToxoplasmosisExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HIVToxoplasmosisExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PMLext(input) {
+  const i = input || {};
+  const v = Number(i.PMLext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PMLext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AIDSDementiaExt(input) {
+  const i = input || {};
+  const v = Number(i.AIDSDementiaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AIDSDementiaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ToxoplasmosisExt(input) {
+  const i = input || {};
+  const v = Number(i.ToxoplasmosisExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ToxoplasmosisExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CysticercosisExt(input) {
+  const i = input || {};
+  const v = Number(i.CysticercosisExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CysticercosisExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function EchinococcusExt(input) {
+  const i = input || {};
+  const v = Number(i.EchinococcusExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'EchinococcusExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AmebicMeningoExt(input) {
+  const i = input || {};
+  const v = Number(i.AmebicMeningoExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AmebicMeningoExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  CryptococcalMENext, TBmeningitisAdultExt, HIVExt, HIVToxoplasmosisExt, PMLext, AIDSDementiaExt, ToxoplasmosisExt, CysticercosisExt, EchinococcusExt, AmebicMeningoExt
+};

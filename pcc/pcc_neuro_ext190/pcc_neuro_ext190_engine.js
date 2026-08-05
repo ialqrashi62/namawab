@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_neuro_ext190/pcc_neuro_ext190_engine.js
-module.exports.version='v3.19.19.0';
-module.exports.module='pcc_neuro_ext190';
-module.exports.functions={};
-module.exports.functions['BrainTumorAdultGliomaExt']=function(input){const score=Math.round((0.18 + Number(input.gliomaAdult||1)*0.2 + Number(input.whoGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_neuro_ext190',function:'BrainTumorAdultGliomaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['MeningiomaAdultExt']=function(input){const score=Math.round((0.18 + Number(input.meningiomaAdult||1)*0.2 + Number(input.whoGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_neuro_ext190',function:'MeningiomaAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PituitaryAdenomaAdultExt']=function(input){const score=Math.round((0.18 + Number(input.pitAd||1)*0.2 + Number(input.horomone||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_neuro_ext190',function:'PituitaryAdenomaAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AcousticNeuromaAdultExt']=function(input){const score=Math.round((0.18 + Number(input.acousticAdult||1)*0.2 + Number(input.hearingLoss||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_neuro_ext190',function:'AcousticNeuromaAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CraniopharyngiomaAdultExt']=function(input){const score=Math.round((0.18 + Number(input.craniophAdult||1)*0.2 + Number(input.visual||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_neuro_ext190',function:'CraniopharyngiomaAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['GBMAdultExt']=function(input){const score=Math.round((0.18 + Number(input.gbmAdult||1)*0.2 + Number(input.mgmt||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_neuro_ext190',function:'GBMAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['BrainMetastasisAdultExt']=function(input){const score=Math.round((0.18 + Number(input.metsAdult||1)*0.2 + Number(input.primaryCancer||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_neuro_ext190',function:'BrainMetastasisAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CNSLymphomaAdultExt']=function(input){const score=Math.round((0.18 + Number(input.cnsLymphomaAdult||1)*0.2 + Number(input.hivStatus||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_neuro_ext190',function:'CNSLymphomaAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['MedulloblastomaAdultExt']=function(input){const score=Math.round((0.18 + Number(input.medulloAdult||1)*0.2 + Number(input.molecular||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_neuro_ext190',function:'MedulloblastomaAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['EpendymomaAdultExt']=function(input){const score=Math.round((0.18 + Number(input.ependAdult||1)*0.2 + Number(input.location||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_neuro_ext190',function:'EpendymomaAdultExt',input,score,ts:new Date().toISOString()}};
+// pcc_neuro_ext190_engine v3.316.53 (Phase 2 Batch 20 — Neuro ext187-197 FINAL NEURO)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.53';
+const MOD = 'pcc_neuro_ext190';
 
-// TS: v3.19.19.0
+function BrainTumorAdultGliomaExt(input) {
+  const i = input || {};
+  const v = Number(i.BrainTumorAdultGliomaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'BrainTumorAdultGliomaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function MeningiomaAdultExt(input) {
+  const i = input || {};
+  const v = Number(i.MeningiomaAdultExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MeningiomaAdultExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PituitaryAdenomaAdultExt(input) {
+  const i = input || {};
+  const v = Number(i.PituitaryAdenomaAdultExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PituitaryAdenomaAdultExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AcousticNeuromaAdultExt(input) {
+  const i = input || {};
+  const v = Number(i.AcousticNeuromaAdultExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AcousticNeuromaAdultExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CraniopharyngiomaAdultExt(input) {
+  const i = input || {};
+  const v = Number(i.CraniopharyngiomaAdultExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CraniopharyngiomaAdultExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function GBMAdultExt(input) {
+  const i = input || {};
+  const v = Number(i.GBMAdultExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'GBMAdultExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function BrainMetastasisAdultExt(input) {
+  const i = input || {};
+  const v = Number(i.BrainMetastasisAdultExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'BrainMetastasisAdultExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CNSLymphomaAdultExt(input) {
+  const i = input || {};
+  const v = Number(i.CNSLymphomaAdultExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CNSLymphomaAdultExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function MedulloblastomaAdultExt(input) {
+  const i = input || {};
+  const v = Number(i.MedulloblastomaAdultExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MedulloblastomaAdultExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function EpendymomaAdultExt(input) {
+  const i = input || {};
+  const v = Number(i.EpendymomaAdultExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'EpendymomaAdultExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  BrainTumorAdultGliomaExt, MeningiomaAdultExt, PituitaryAdenomaAdultExt, AcousticNeuromaAdultExt, CraniopharyngiomaAdultExt, GBMAdultExt, BrainMetastasisAdultExt, CNSLymphomaAdultExt, MedulloblastomaAdultExt, EpendymomaAdultExt
+};

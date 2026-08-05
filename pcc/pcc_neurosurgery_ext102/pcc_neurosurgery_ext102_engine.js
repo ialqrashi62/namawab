@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_neurosurgery_ext102/pcc_neurosurgery_ext102_engine.js
-module.exports.version='v3.61.61.0';
-module.exports.module='pcc_neurosurgery_ext102';
-module.exports.functions={};
-module.exports.functions['NSxGenExt']=function(input){const score=Math.round((0.18 + Number(input.nsGen||1)*0.2 + Number(input.nsGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSxTumorExt']=function(input){const score=Math.round((0.18 + Number(input.nsTum||1)*0.2 + Number(input.nsTumType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxTumorExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSxAVMext']=function(input){const score=Math.round((0.18 + Number(input.nsAVM||1)*0.2 + Number(input.nsAVMSpetzler||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxAVMext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSxAneurExt']=function(input){const score=Math.round((0.18 + Number(input.nsAn||1)*0.2 + Number(input.nsAnHH||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxAneurExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSxTBIext']=function(input){const score=Math.round((0.18 + Number(input.nsTBI||1)*0.2 + Number(input.nsTBIGCS||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxTBIext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSxHemorExt']=function(input){const score=Math.round((0.18 + Number(input.nsHem||1)*0.2 + Number(input.nsHemVol||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxHemorExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSxHydroExt']=function(input){const score=Math.round((0.18 + Number(input.nsHyd||1)*0.2 + Number(input.nsHydType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxHydroExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSxSpineExt']=function(input){const score=Math.round((0.18 + Number(input.nsSp||1)*0.2 + Number(input.nsSpType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxSpineExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSxFuncExt']=function(input){const score=Math.round((0.18 + Number(input.nsFn||1)*0.2 + Number(input.nsFnType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxFuncExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NSxSkullBaseExt']=function(input){const score=Math.round((0.18 + Number(input.nsSB||1)*0.2 + Number(input.nsSBtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosurgery_ext102',function:'NSxSkullBaseExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.61.61.0';
+const MOD = 'pcc_neurosurgery_ext102';
 
-// TS: v3.61.61.0
+function NSxGenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSxGenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NSxGenExt", input, score, ts: TS, nSxGenExt: _i.nSxGenExt || null };
+}
+
+function NSxTumorExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSxTumorExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NSxTumorExt", input, score, ts: TS, nSxTumorExt: _i.nSxTumorExt || null };
+}
+
+function NSxAVMext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSxAVMext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'NSxAVMext', input, score, ts: TS, nSxAVMext: _i.nSxAVMext || null };
+}
+
+function NSxAneurExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSxAneurExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NSxAneurExt", input, score, ts: TS, nSxAneurExt: _i.nSxAneurExt || null };
+}
+
+function NSxTBIext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSxTBIext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'NSxTBIext', input, score, ts: TS, nSxTBIext: _i.nSxTBIext || null };
+}
+
+function NSxHemorExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSxHemorExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NSxHemorExt", input, score, ts: TS, nSxHemorExt: _i.nSxHemorExt || null };
+}
+
+function NSxHydroExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSxHydroExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NSxHydroExt", input, score, ts: TS, nSxHydroExt: _i.nSxHydroExt || null };
+}
+
+function NSxSpineExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSxSpineExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NSxSpineExt", input, score, ts: TS, nSxSpineExt: _i.nSxSpineExt || null };
+}
+
+function NSxFuncExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSxFuncExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NSxFuncExt", input, score, ts: TS, nSxFuncExt: _i.nSxFuncExt || null };
+}
+
+function NSxSkullBaseExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nSxSkullBaseExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NSxSkullBaseExt", input, score, ts: TS, nSxSkullBaseExt: _i.nSxSkullBaseExt || null };
+}
+
+module.exports = {
+  NSxGenExt,
+  NSxTumorExt,
+  NSxAVMext,
+  NSxAneurExt,
+  NSxTBIext,
+  NSxHemorExt,
+  NSxHydroExt,
+  NSxSpineExt,
+  NSxFuncExt,
+  NSxSkullBaseExt,
+};

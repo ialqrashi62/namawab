@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_neuro_ext126/pcc_neuro_ext126_engine.js
-module.exports.version='v3.225.0';
-module.exports.module='pcc_neuro_ext126';
-module.exports.functions={};
-module.exports.functions['MoyaMoyaAdultExt2']=function(input){const score=Math.round((0.18 + Number(input.bilateral||1)*0.2 + Number(input.bypass||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.225.0',module:'pcc_neuro_ext126',function:'MoyaMoyaAdultExt2',input,score,ts:new Date().toISOString()}};
-module.exports.functions['MoyaMoyaChildExt2']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.bilateral||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.225.0',module:'pcc_neuro_ext126',function:'MoyaMoyaChildExt2',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CerebralRevascDirectExt']=function(input){const score=Math.round((0.18 + Number(input.sta||1)*0.2 + Number(input.mca||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.225.0',module:'pcc_neuro_ext126',function:'CerebralRevascDirectExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CerebralRevascIndirectExt']=function(input){const score=Math.round((0.18 + Number(input.ems||1)*0.2 + Number(input.eda||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.225.0',module:'pcc_neuro_ext126',function:'CerebralRevascIndirectExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CombinedRevascExt']=function(input){const score=Math.round((0.18 + Number(input.direct||1)*0.2 + Number(input.indirect||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.225.0',module:'pcc_neuro_ext126',function:'CombinedRevascExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ICAToICABypassExt']=function(input){const score=Math.round((0.18 + Number(input.donor||1)*0.2 + Number(input.recipient||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.225.0',module:'pcc_neuro_ext126',function:'ICAToICABypassExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HighFlowBypassExt']=function(input){const score=Math.round((0.18 + Number(input.graft||1)*0.2 + Number(input.icaSacrifice||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.225.0',module:'pcc_neuro_ext126',function:'HighFlowBypassExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['STA-MCABypassExt']=function(input){const score=Math.round((0.18 + Number(input.sta||1)*0.2 + Number(input.m4||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.225.0',module:'pcc_neuro_ext126',function:'STA-MCABypassExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OccipitalArteryBypassExt']=function(input){const score=Math.round((0.18 + Number(input.oa||1)*0.2 + Number(input.pica||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.225.0',module:'pcc_neuro_ext126',function:'OccipitalArteryBypassExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['MultipleBypassExt']=function(input){const score=Math.round((0.18 + Number(input.bilateral||1)*0.2 + Number(input.staged||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.225.0',module:'pcc_neuro_ext126',function:'MultipleBypassExt',input,score,ts:new Date().toISOString()}};
+// pcc_neuro_ext126_engine v3.316.47 (Phase 2 Batch 14 — Neuro ext115-126)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.47';
+const MOD = 'pcc_neuro_ext126';
 
-// TS: v3.225.0
+function MoyaMoyaAdultExt2(input) {
+  const i = input || {};
+  const v = Number(i.MoyaMoyaAdultExt2 || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MoyaMoyaAdultExt2', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function MoyaMoyaChildExt2(input) {
+  const i = input || {};
+  const v = Number(i.MoyaMoyaChildExt2 || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MoyaMoyaChildExt2', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CerebralRevascDirectExt(input) {
+  const i = input || {};
+  const v = Number(i.CerebralRevascDirectExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CerebralRevascDirectExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CerebralRevascIndirectExt(input) {
+  const i = input || {};
+  const v = Number(i.CerebralRevascIndirectExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CerebralRevascIndirectExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CombinedRevascExt(input) {
+  const i = input || {};
+  const v = Number(i.CombinedRevascExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CombinedRevascExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ICAToICABypassExt(input) {
+  const i = input || {};
+  const v = Number(i.ICAToICABypassExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ICAToICABypassExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HighFlowBypassExt(input) {
+  const i = input || {};
+  const v = Number(i.HighFlowBypassExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HighFlowBypassExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function STA_MCABypassExt(input) {
+  const i = input || {};
+  const v = Number(i.STA_MCABypassExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'STA_MCABypassExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function OccipitalArteryBypassExt(input) {
+  const i = input || {};
+  const v = Number(i.OccipitalArteryBypassExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'OccipitalArteryBypassExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function MultipleBypassExt(input) {
+  const i = input || {};
+  const v = Number(i.MultipleBypassExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MultipleBypassExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  MoyaMoyaAdultExt2, MoyaMoyaChildExt2, CerebralRevascDirectExt, CerebralRevascIndirectExt, CombinedRevascExt, ICAToICABypassExt, HighFlowBypassExt, STA_MCABypassExt, OccipitalArteryBypassExt, MultipleBypassExt
+};

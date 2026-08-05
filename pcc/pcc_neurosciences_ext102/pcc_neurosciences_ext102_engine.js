@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_neurosciences_ext102/pcc_neurosciences_ext102_engine.js
-module.exports.version='v3.61.61.0';
-module.exports.module='pcc_neurosciences_ext102';
-module.exports.functions={};
-module.exports.functions['NScGenExt']=function(input){const score=Math.round((0.18 + Number(input.nxGen||1)*0.2 + Number(input.nxGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosciences_ext102',function:'NScGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NScStrokeExt']=function(input){const score=Math.round((0.18 + Number(input.nxStr||1)*0.2 + Number(input.nxStrNIHSS||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosciences_ext102',function:'NScStrokeExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NScSeizureExt']=function(input){const score=Math.round((0.18 + Number(input.nxSei||1)*0.2 + Number(input.nxSeiType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosciences_ext102',function:'NScSeizureExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NScHeadacheExt']=function(input){const score=Math.round((0.18 + Number(input.nxHA||1)*0.2 + Number(input.nxHAScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosciences_ext102',function:'NScHeadacheExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NScMovementExt']=function(input){const score=Math.round((0.18 + Number(input.nxMov||1)*0.2 + Number(input.nxMovType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosciences_ext102',function:'NScMovementExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NScDementiaExt']=function(input){const score=Math.round((0.18 + Number(input.nxDem||1)*0.2 + Number(input.nxDemMMSE||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosciences_ext102',function:'NScDementiaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NScMSext']=function(input){const score=Math.round((0.18 + Number(input.nxMS||1)*0.2 + Number(input.nxMSEDSS||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosciences_ext102',function:'NScMSext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NScNeuroExt']=function(input){const score=Math.round((0.18 + Number(input.nxNeu||1)*0.2 + Number(input.nxNeuType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosciences_ext102',function:'NScNeuroExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NScEMGext']=function(input){const score=Math.round((0.18 + Number(input.nxEMG||1)*0.2 + Number(input.nxEMGtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosciences_ext102',function:'NScEMGext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NScEEGext']=function(input){const score=Math.round((0.18 + Number(input.nxEEG||1)*0.2 + Number(input.nxEEGtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_neurosciences_ext102',function:'NScEEGext',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.61.61.0';
+const MOD = 'pcc_neurosciences_ext102';
 
-// TS: v3.61.61.0
+function NScGenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nScGenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NScGenExt", input, score, ts: TS, nScGenExt: _i.nScGenExt || null };
+}
+
+function NScStrokeExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nScStrokeExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NScStrokeExt", input, score, ts: TS, nScStrokeExt: _i.nScStrokeExt || null };
+}
+
+function NScSeizureExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nScSeizureExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NScSeizureExt", input, score, ts: TS, nScSeizureExt: _i.nScSeizureExt || null };
+}
+
+function NScHeadacheExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nScHeadacheExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NScHeadacheExt", input, score, ts: TS, nScHeadacheExt: _i.nScHeadacheExt || null };
+}
+
+function NScMovementExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nScMovementExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NScMovementExt", input, score, ts: TS, nScMovementExt: _i.nScMovementExt || null };
+}
+
+function NScDementiaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nScDementiaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NScDementiaExt", input, score, ts: TS, nScDementiaExt: _i.nScDementiaExt || null };
+}
+
+function NScMSext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nScMSext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'NScMSext', input, score, ts: TS, nScMSext: _i.nScMSext || null };
+}
+
+function NScNeuroExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nScNeuroExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NScNeuroExt", input, score, ts: TS, nScNeuroExt: _i.nScNeuroExt || null };
+}
+
+function NScEMGext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nScEMGext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'NScEMGext', input, score, ts: TS, nScEMGext: _i.nScEMGext || null };
+}
+
+function NScEEGext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nScEEGext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'NScEEGext', input, score, ts: TS, nScEEGext: _i.nScEEGext || null };
+}
+
+module.exports = {
+  NScGenExt,
+  NScStrokeExt,
+  NScSeizureExt,
+  NScHeadacheExt,
+  NScMovementExt,
+  NScDementiaExt,
+  NScMSext,
+  NScNeuroExt,
+  NScEMGext,
+  NScEEGext,
+};

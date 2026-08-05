@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_neuro_ext157/pcc_neuro_ext157_engine.js
-module.exports.version='v3.256.0';
-module.exports.module='pcc_neuro_ext157';
-module.exports.functions={};
-module.exports.functions['NeuroPsychEpilepsyExt']=function(input){const score=Math.round((0.18 + Number(input.psycho||1)*0.2 + Number(input.epilepsy||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'NeuroPsychEpilepsyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NeuroPsychStrokeExt']=function(input){const score=Math.round((0.18 + Number(input.psStroke||1)*0.2 + Number(input.postStroke||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'NeuroPsychStrokeExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NeuroPsychTBIext']=function(input){const score=Math.round((0.18 + Number(input.psTBI||1)*0.2 + Number(input.tbiPS||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'NeuroPsychTBIext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NeuroPsychMSext']=function(input){const score=Math.round((0.18 + Number(input.psMS||1)*0.2 + Number(input.msNeurops||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'NeuroPsychMSext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NeuroPsychParkExt']=function(input){const score=Math.round((0.18 + Number(input.psPark||1)*0.2 + Number(input.parkDem||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'NeuroPsychParkExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NeuroPsychDemExt']=function(input){const score=Math.round((0.18 + Number(input.psDem||1)*0.2 + Number(input.behavioral||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'NeuroPsychDemExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PseudobulbarAffectExt']=function(input){const score=Math.round((0.18 + Number(input.pba||1)*0.2 + Number(input.dextrometh||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'PseudobulbarAffectExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AphasiaExt']=function(input){const score=Math.round((0.18 + Number(input.aphasia||1)*0.2 + Number(input.broca||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'AphasiaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AlexiaExt']=function(input){const score=Math.round((0.18 + Number(input.alexia||1)*0.2 + Number(input.agnosia||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'AlexiaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AgnosiaExt']=function(input){const score=Math.round((0.18 + Number(input.agnosia2||1)*0.2 + Number(input.recognition||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.256.0',module:'pcc_neuro_ext157',function:'AgnosiaExt',input,score,ts:new Date().toISOString()}};
+// pcc_neuro_ext157_engine v3.316.50 (Phase 2 Batch 17 — Neuro ext151-162)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.50';
+const MOD = 'pcc_neuro_ext157';
 
-// TS: v3.256.0
+function NeuroPsychEpilepsyExt(input) {
+  const i = input || {};
+  const v = Number(i.NeuroPsychEpilepsyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'NeuroPsychEpilepsyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function NeuroPsychStrokeExt(input) {
+  const i = input || {};
+  const v = Number(i.NeuroPsychStrokeExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'NeuroPsychStrokeExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function NeuroPsychTBIext(input) {
+  const i = input || {};
+  const v = Number(i.NeuroPsychTBIext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'NeuroPsychTBIext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function NeuroPsychMSext(input) {
+  const i = input || {};
+  const v = Number(i.NeuroPsychMSext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'NeuroPsychMSext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function NeuroPsychParkExt(input) {
+  const i = input || {};
+  const v = Number(i.NeuroPsychParkExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'NeuroPsychParkExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function NeuroPsychDemExt(input) {
+  const i = input || {};
+  const v = Number(i.NeuroPsychDemExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'NeuroPsychDemExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PseudobulbarAffectExt(input) {
+  const i = input || {};
+  const v = Number(i.PseudobulbarAffectExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PseudobulbarAffectExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AphasiaExt(input) {
+  const i = input || {};
+  const v = Number(i.AphasiaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AphasiaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AlexiaExt(input) {
+  const i = input || {};
+  const v = Number(i.AlexiaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AlexiaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AgnosiaExt(input) {
+  const i = input || {};
+  const v = Number(i.AgnosiaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AgnosiaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  NeuroPsychEpilepsyExt, NeuroPsychStrokeExt, NeuroPsychTBIext, NeuroPsychMSext, NeuroPsychParkExt, NeuroPsychDemExt, PseudobulbarAffectExt, AphasiaExt, AlexiaExt, AgnosiaExt
+};

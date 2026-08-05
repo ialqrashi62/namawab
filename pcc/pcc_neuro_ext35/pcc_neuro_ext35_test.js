@@ -1,27 +1,19 @@
-// pcc_neuro_ext35 unit test v3.134.0
-const { SleepDisorderExt3, ObstructiveSleepApnea, CentralSleepApnea, MixedSleepApnea, SleepHypoventilation, ObesityHypoventilation, PeriodicLimbMovementExt, REMBehaviorDisorderExt, SleepParalysis, SleepTalking } = require('./pcc_neuro_ext35_engine');
-const assert = require('assert');
+// Auto-generated unit tests for pcc_neuro_ext35 — 3.211.0
+"use strict";
+const Engine = require('./pcc_neuro_ext35_engine.js');
+const VER = '3.211.0';
+let passed = 0, failed = 0;
+function test(name, fn) { try { fn(); passed++; console.log('  ok   ' + name); } catch (e) { failed++; console.error('  FAIL ' + name + ' :: ' + e.message); } }
 
-let passed = 0;
-assert.ok(SleepDisorderExt3()); passed++;
-assert.ok(SleepDisorderExt3({a:1})); passed++;
-assert.ok(ObstructiveSleepApnea()); passed++;
-assert.ok(ObstructiveSleepApnea({a:1})); passed++;
-assert.ok(CentralSleepApnea()); passed++;
-assert.ok(CentralSleepApnea({a:1})); passed++;
-assert.ok(MixedSleepApnea()); passed++;
-assert.ok(MixedSleepApnea({a:1})); passed++;
-assert.ok(SleepHypoventilation()); passed++;
-assert.ok(SleepHypoventilation({a:1})); passed++;
-assert.ok(ObesityHypoventilation()); passed++;
-assert.ok(ObesityHypoventilation({a:1})); passed++;
-assert.ok(PeriodicLimbMovementExt()); passed++;
-assert.ok(PeriodicLimbMovementExt({a:1})); passed++;
-assert.ok(REMBehaviorDisorderExt()); passed++;
-assert.ok(REMBehaviorDisorderExt({a:1})); passed++;
-assert.ok(SleepParalysis()); passed++;
-assert.ok(SleepParalysis({a:1})); passed++;
-assert.ok(SleepTalking()); passed++;
-assert.ok(SleepTalking({a:1})); passed++;
-
-console.log('pcc_neuro_ext35 unit:', passed, 'passed');
+test('EXT3AssessmentExt_returns_valid', () => { const r = Engine.EXT3AssessmentExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3ScoreExt_returns_valid', () => { const r = Engine.EXT3ScoreExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3StageExt_returns_valid', () => { const r = Engine.EXT3StageExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3PlanExt_returns_valid', () => { const r = Engine.EXT3PlanExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3RiskExt_returns_valid', () => { const r = Engine.EXT3RiskExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3DoseExt_returns_valid', () => { const r = Engine.EXT3DoseExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3FrequencyExt_returns_valid', () => { const r = Engine.EXT3FrequencyExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3DurationExt_returns_valid', () => { const r = Engine.EXT3DurationExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3FollowupExt_returns_valid', () => { const r = Engine.EXT3FollowupExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3OutcomeExt_returns_valid', () => { const r = Engine.EXT3OutcomeExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+console.log('Total: ' + (passed + failed) + ' | passed: ' + passed + ' | failed: ' + failed);
+process.exit(failed === 0 ? 0 : 1);

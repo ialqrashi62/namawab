@@ -1,6 +1,6 @@
 // pcc_neuro_ext26 engine v3.125.0
 module.exports = {
-  DemyelinatingDiseaseExt: (input = {}) => ({ version: '3.125.0', module: 'pcc_neuro_ext26', function: 'DemyelinatingDiseaseExt', input, score: Math.random(), ts: Date.now() }),
+  DemyelinatingDiseaseExt: (input = {}) => ({ version: '3.125.0', module: 'pcc_neuro_ext26', function: "DemyelinatingDiseaseExt", input, score: Math.random(), ts: Date.now() }),
   MultipleSclerosisVariants: (input = {}) => ({ version: '3.125.0', module: 'pcc_neuro_ext26', function: 'MultipleSclerosisVariants', input, score: Math.random(), ts: Date.now() }),
   MarburgMS: (input = {}) => ({ version: '3.125.0', module: 'pcc_neuro_ext26', function: 'MarburgMS', input, score: Math.random(), ts: Date.now() }),
   BaloConcentricSclerosis: (input = {}) => ({ version: '3.125.0', module: 'pcc_neuro_ext26', function: 'BaloConcentricSclerosis', input, score: Math.random(), ts: Date.now() }),

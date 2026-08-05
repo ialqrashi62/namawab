@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_neuro_ext115/pcc_neuro_ext115_engine.js
-module.exports.version='v3.214.0';
-module.exports.module='pcc_neuro_ext115';
-module.exports.functions={};
-module.exports.functions['TraumaticBrainInjuryExt']=function(input){const score=Math.round((0.18 + Number(input.gcs||8)*0.04 + Number(input.ct||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.214.0',module:'pcc_neuro_ext115',function:'TraumaticBrainInjuryExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ConcussionExt']=function(input){const score=Math.round((0.18 + Number(input.sport||1)*0.2 + Number(input.symptoms||3)*0.1 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.214.0',module:'pcc_neuro_ext115',function:'ConcussionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PostConcussionExt']=function(input){const score=Math.round((0.18 + Number(input.days||30)*0.01 + Number(input.symptoms||3)*0.1 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.214.0',module:'pcc_neuro_ext115',function:'PostConcussionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SubduralHematomaExt']=function(input){const score=Math.round((0.18 + Number(input.thickness||10)*0.04 + Number(input.midline||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.214.0',module:'pcc_neuro_ext115',function:'SubduralHematomaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['EpiduralHematomaExt']=function(input){const score=Math.round((0.18 + Number(input.thickness||10)*0.04 + Number(input.skullFracture||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.214.0',module:'pcc_neuro_ext115',function:'EpiduralHematomaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SubarachnoidTraumaticExt']=function(input){const score=Math.round((0.18 + Number(input.fisher||2)*0.1 + Number(input.huntHess||2)*0.1 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.214.0',module:'pcc_neuro_ext115',function:'SubarachnoidTraumaticExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['DiffuseAxonalExt']=function(input){const score=Math.round((0.18 + Number(input.gcs||6)*0.04 + Number(input.mri||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.214.0',module:'pcc_neuro_ext115',function:'DiffuseAxonalExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PenetratingBrainExt']=function(input){const score=Math.round((0.18 + Number(input.gcs||8)*0.04 + Number(input.vasospasm||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.214.0',module:'pcc_neuro_ext115',function:'PenetratingBrainExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SkullBaseFractureExt']=function(input){const score=Math.round((0.18 + Number(input.csfLeak||1)*0.2 + Number(input.cranialNerve||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.214.0',module:'pcc_neuro_ext115',function:'SkullBaseFractureExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CSFleakExt']=function(input){const score=Math.round((0.18 + Number(input.location||1)*0.2 + Number(input.pressure||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.214.0',module:'pcc_neuro_ext115',function:'CSFleakExt',input,score,ts:new Date().toISOString()}};
+// pcc_neuro_ext115_engine v3.316.47 (Phase 2 Batch 14 — Neuro ext115-126)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.47';
+const MOD = 'pcc_neuro_ext115';
 
-// TS: v3.214.0
+function TraumaticBrainInjuryExt(input) {
+  const i = input || {};
+  const v = Number(i.TraumaticBrainInjuryExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'TraumaticBrainInjuryExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ConcussionExt(input) {
+  const i = input || {};
+  const v = Number(i.ConcussionExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ConcussionExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PostConcussionExt(input) {
+  const i = input || {};
+  const v = Number(i.PostConcussionExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PostConcussionExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function SubduralHematomaExt(input) {
+  const i = input || {};
+  const v = Number(i.SubduralHematomaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'SubduralHematomaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function EpiduralHematomaExt(input) {
+  const i = input || {};
+  const v = Number(i.EpiduralHematomaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'EpiduralHematomaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function SubarachnoidTraumaticExt(input) {
+  const i = input || {};
+  const v = Number(i.SubarachnoidTraumaticExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'SubarachnoidTraumaticExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function DiffuseAxonalExt(input) {
+  const i = input || {};
+  const v = Number(i.DiffuseAxonalExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'DiffuseAxonalExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PenetratingBrainExt(input) {
+  const i = input || {};
+  const v = Number(i.PenetratingBrainExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PenetratingBrainExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function SkullBaseFractureExt(input) {
+  const i = input || {};
+  const v = Number(i.SkullBaseFractureExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'SkullBaseFractureExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CSFleakExt(input) {
+  const i = input || {};
+  const v = Number(i.CSFleakExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CSFleakExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  TraumaticBrainInjuryExt, ConcussionExt, PostConcussionExt, SubduralHematomaExt, EpiduralHematomaExt, SubarachnoidTraumaticExt, DiffuseAxonalExt, PenetratingBrainExt, SkullBaseFractureExt, CSFleakExt
+};

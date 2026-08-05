@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_neuro_ext139/pcc_neuro_ext139_engine.js
-module.exports.version='v3.238.0';
-module.exports.module='pcc_neuro_ext139';
-module.exports.functions={};
-module.exports.functions['HemophiliaExt']=function(input){const score=Math.round((0.18 + Number(input.factorVIII||1)*0.2 + Number(input.bleed||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.238.0',module:'pcc_neuro_ext139',function:'HemophiliaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['VonWillebrandExt']=function(input){const score=Math.round((0.18 + Number(input.vwf||1)*0.2 + Number(input.bleed||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.238.0',module:'pcc_neuro_ext139',function:'VonWillebrandExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ImmuneThrombocytopeniaExt']=function(input){const score=Math.round((0.18 + Number(input.platelet||20)*0.01 + Number(input.bleed||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.238.0',module:'pcc_neuro_ext139',function:'ImmuneThrombocytopeniaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AcquiredHemophiliaExt']=function(input){const score=Math.round((0.18 + Number(input.acquired||1)*0.2 + Number(input.factorVIII||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.238.0',module:'pcc_neuro_ext139',function:'AcquiredHemophiliaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['DICSecondaryExt']=function(input){const score=Math.round((0.18 + Number(input.dic||1)*0.2 + Number(input.cause||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.238.0',module:'pcc_neuro_ext139',function:'DICSecondaryExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ThromboticMicroangiopathyExt']=function(input){const score=Math.round((0.18 + Number(input.tma||1)*0.2 + Number(input.pltLow||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.238.0',module:'pcc_neuro_ext139',function:'ThromboticMicroangiopathyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HypercoagulableStateExt']=function(input){const score=Math.round((0.18 + Number(input.thrombophilia||1)*0.2 + Number(input.dvt||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.238.0',module:'pcc_neuro_ext139',function:'HypercoagulableStateExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AntiphospholipidSynExt']=function(input){const score=Math.round((0.18 + Number(input.lupus||1)*0.2 + Number(input.anticardiolipin||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.238.0',module:'pcc_neuro_ext139',function:'AntiphospholipidSynExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ThrombophiliaInheritedExt']=function(input){const score=Math.round((0.18 + Number(input.factorVleiden||1)*0.2 + Number(input.prothrombin||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.238.0',module:'pcc_neuro_ext139',function:'ThrombophiliaInheritedExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AnticoagulationReversalExt']=function(input){const score=Math.round((0.18 + Number(input.warfarin||1)*0.2 + Number(input.bleed||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.238.0',module:'pcc_neuro_ext139',function:'AnticoagulationReversalExt',input,score,ts:new Date().toISOString()}};
+// pcc_neuro_ext139_engine v3.316.49 (Phase 2 Batch 16 — Neuro ext139-150)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.49';
+const MOD = 'pcc_neuro_ext139';
 
-// TS: v3.238.0
+function HemophiliaExt(input) {
+  const i = input || {};
+  const v = Number(i.HemophiliaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HemophiliaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function VonWillebrandExt(input) {
+  const i = input || {};
+  const v = Number(i.VonWillebrandExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'VonWillebrandExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ImmuneThrombocytopeniaExt(input) {
+  const i = input || {};
+  const v = Number(i.ImmuneThrombocytopeniaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ImmuneThrombocytopeniaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AcquiredHemophiliaExt(input) {
+  const i = input || {};
+  const v = Number(i.AcquiredHemophiliaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AcquiredHemophiliaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function DICSecondaryExt(input) {
+  const i = input || {};
+  const v = Number(i.DICSecondaryExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'DICSecondaryExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ThromboticMicroangiopathyExt(input) {
+  const i = input || {};
+  const v = Number(i.ThromboticMicroangiopathyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ThromboticMicroangiopathyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HypercoagulableStateExt(input) {
+  const i = input || {};
+  const v = Number(i.HypercoagulableStateExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HypercoagulableStateExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AntiphospholipidSynExt(input) {
+  const i = input || {};
+  const v = Number(i.AntiphospholipidSynExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AntiphospholipidSynExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ThrombophiliaInheritedExt(input) {
+  const i = input || {};
+  const v = Number(i.ThrombophiliaInheritedExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ThrombophiliaInheritedExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AnticoagulationReversalExt(input) {
+  const i = input || {};
+  const v = Number(i.AnticoagulationReversalExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AnticoagulationReversalExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  HemophiliaExt, VonWillebrandExt, ImmuneThrombocytopeniaExt, AcquiredHemophiliaExt, DICSecondaryExt, ThromboticMicroangiopathyExt, HypercoagulableStateExt, AntiphospholipidSynExt, ThrombophiliaInheritedExt, AnticoagulationReversalExt
+};

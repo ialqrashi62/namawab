@@ -1,55 +1,23 @@
-// pcc_neuro_ext35 routes v3.134.0
+// Routes for pcc_neuro_ext35 — 3.211.0
+"use strict";
 const express = require('express');
-// auth: authenticate (per audit L4-4)
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { SleepDisorderExt3, ObstructiveSleepApnea, CentralSleepApnea, MixedSleepApnea, SleepHypoventilation, ObesityHypoventilation, PeriodicLimbMovementExt, REMBehaviorDisorderExt, SleepParalysis, SleepTalking } = require('./pcc_neuro_ext35_engine');
+const Engine = require('./pcc_neuro_ext35_engine.js');
+const VER = '3.211.0';
+const MOD = 'pcc_neuro_ext35';
+const LABEL = 'Neuro Ext35';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.134.0', module: 'pcc_neuro_ext35', label: 'PCC Neuro Ext35', functions: ['SleepDisorderExt3', 'ObstructiveSleepApnea', 'CentralSleepApnea', 'MixedSleepApnea', 'SleepHypoventilation', 'ObesityHypoventilation', 'PeriodicLimbMovementExt', 'REMBehaviorDisorderExt', 'SleepParalysis', 'SleepTalking'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/SleepDisorderExt3', authenticate, (req, res) => {
-  res.json(SleepDisorderExt3(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/ObstructiveSleepApnea', authenticate, (req, res) => {
-  res.json(ObstructiveSleepApnea(req.body));
-});
-
-router.post('/call/CentralSleepApnea', authenticate, (req, res) => {
-  res.json(CentralSleepApnea(req.body));
-});
-
-router.post('/call/MixedSleepApnea', authenticate, (req, res) => {
-  res.json(MixedSleepApnea(req.body));
-});
-
-router.post('/call/SleepHypoventilation', authenticate, (req, res) => {
-  res.json(SleepHypoventilation(req.body));
-});
-
-router.post('/call/ObesityHypoventilation', authenticate, (req, res) => {
-  res.json(ObesityHypoventilation(req.body));
-});
-
-router.post('/call/PeriodicLimbMovementExt', authenticate, (req, res) => {
-  res.json(PeriodicLimbMovementExt(req.body));
-});
-
-router.post('/call/REMBehaviorDisorderExt', authenticate, (req, res) => {
-  res.json(REMBehaviorDisorderExt(req.body));
-});
-
-router.post('/call/SleepParalysis', authenticate, (req, res) => {
-  res.json(SleepParalysis(req.body));
-});
-
-router.post('/call/SleepTalking', authenticate, (req, res) => {
-  res.json(SleepTalking(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.134.0', module: 'pcc_neuro_ext35', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;
