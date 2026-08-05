@@ -1,54 +1,23 @@
-// pcc_pediatric_surg_ext30 routes v3.140.0
+// Routes for pcc_pediatric_surg_ext30 — 3.223.0
+"use strict";
 const express = require('express');
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { PediatricOncologySurgeryExt, PediatricNeuroblastomaExt, PediatricWilmsTumorExt, PediatricHepatoblastomaExt, PediatricRhabdomyosarcomaExt, PediatricOsteosarcomaExt, PediatricEwingSarcomaExt, PediatricRetinoblastomaExt, PediatricBrainTumorExt, PediatricLymphomaSurgeryExt } = require('./pcc_pediatric_surg_ext30_engine');
+const Engine = require('./pcc_pediatric_surg_ext30_engine.js');
+const VER = '3.223.0';
+const MOD = 'pcc_pediatric_surg_ext30';
+const LABEL = 'Pediatric Surg Ext30';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.140.0', module: 'pcc_pediatric_surg_ext30', label: 'PCC Pediatric Surg Ext30', functions: ['PediatricOncologySurgeryExt', 'PediatricNeuroblastomaExt', 'PediatricWilmsTumorExt', 'PediatricHepatoblastomaExt', 'PediatricRhabdomyosarcomaExt', 'PediatricOsteosarcomaExt', 'PediatricEwingSarcomaExt', 'PediatricRetinoblastomaExt', 'PediatricBrainTumorExt', 'PediatricLymphomaSurgeryExt'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/PediatricOncologySurgeryExt', authenticate, (req, res) => {
-  res.json(PediatricOncologySurgeryExt(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/PediatricNeuroblastomaExt', authenticate, (req, res) => {
-  res.json(PediatricNeuroblastomaExt(req.body));
-});
-
-router.post('/call/PediatricWilmsTumorExt', authenticate, (req, res) => {
-  res.json(PediatricWilmsTumorExt(req.body));
-});
-
-router.post('/call/PediatricHepatoblastomaExt', authenticate, (req, res) => {
-  res.json(PediatricHepatoblastomaExt(req.body));
-});
-
-router.post('/call/PediatricRhabdomyosarcomaExt', authenticate, (req, res) => {
-  res.json(PediatricRhabdomyosarcomaExt(req.body));
-});
-
-router.post('/call/PediatricOsteosarcomaExt', authenticate, (req, res) => {
-  res.json(PediatricOsteosarcomaExt(req.body));
-});
-
-router.post('/call/PediatricEwingSarcomaExt', authenticate, (req, res) => {
-  res.json(PediatricEwingSarcomaExt(req.body));
-});
-
-router.post('/call/PediatricRetinoblastomaExt', authenticate, (req, res) => {
-  res.json(PediatricRetinoblastomaExt(req.body));
-});
-
-router.post('/call/PediatricBrainTumorExt', authenticate, (req, res) => {
-  res.json(PediatricBrainTumorExt(req.body));
-});
-
-router.post('/call/PediatricLymphomaSurgeryExt', authenticate, (req, res) => {
-  res.json(PediatricLymphomaSurgeryExt(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.140.0', module: 'pcc_pediatric_surg_ext30', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

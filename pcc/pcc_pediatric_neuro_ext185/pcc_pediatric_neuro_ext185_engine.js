@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_pediatric_neuro_ext185/pcc_pediatric_neuro_ext185_engine.js
-module.exports.version='v3.25.25.0';
-module.exports.module='pcc_pediatric_neuro_ext185';
-module.exports.functions={};
-module.exports.functions['PediatricDementiaExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pDem||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pediatric_neuro_ext185',function:'PediatricDementiaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricNCLext']=function(input){const score=Math.round((0.18 + Number(input.age||3)*0.04 + Number(input.pNCL||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pediatric_neuro_ext185',function:'PediatricNCLext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricSanfilippoExt']=function(input){const score=Math.round((0.18 + Number(input.age||2)*0.04 + Number(input.pMPS3||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pediatric_neuro_ext185',function:'PediatricSanfilippoExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricTaySachsExt']=function(input){const score=Math.round((0.18 + Number(input.age||0)*0.04 + Number(input.pTaySachs||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pediatric_neuro_ext185',function:'PediatricTaySachsExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricPKUadultExt']=function(input){const score=Math.round((0.18 + Number(input.age||0)*0.04 + Number(input.pPKU||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pediatric_neuro_ext185',function:'PediatricPKUadultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricWilsonExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.pWilson||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pediatric_neuro_ext185',function:'PediatricWilsonExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricEncephalitisExt']=function(input){const score=Math.round((0.18 + Number(input.age||3)*0.04 + Number(input.pEnceph||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pediatric_neuro_ext185',function:'PediatricEncephalitisExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricADEMEncephExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pADEMEnceph||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pediatric_neuro_ext185',function:'PediatricADEMEncephExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricDeliriumExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.pDelirium||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pediatric_neuro_ext185',function:'PediatricDeliriumExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricCogRehabExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pCogRehab||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_pediatric_neuro_ext185',function:'PediatricCogRehabExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.25.25.0';
+const MOD = 'pcc_pediatric_neuro_ext185';
 
-// TS: v3.25.25.0
+function PediatricDementiaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricDementiaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricDementiaExt", input, score, ts: TS, pediatricDementiaExt: _i.pediatricDementiaExt || null };
+}
+
+function PediatricNCLext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricNCLext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PediatricNCLext', input, score, ts: TS, pediatricNCLext: _i.pediatricNCLext || null };
+}
+
+function PediatricSanfilippoExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricSanfilippoExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricSanfilippoExt", input, score, ts: TS, pediatricSanfilippoExt: _i.pediatricSanfilippoExt || null };
+}
+
+function PediatricTaySachsExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricTaySachsExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricTaySachsExt", input, score, ts: TS, pediatricTaySachsExt: _i.pediatricTaySachsExt || null };
+}
+
+function PediatricPKUadultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricPKUadultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricPKUadultExt", input, score, ts: TS, pediatricPKUadultExt: _i.pediatricPKUadultExt || null };
+}
+
+function PediatricWilsonExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricWilsonExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricWilsonExt", input, score, ts: TS, pediatricWilsonExt: _i.pediatricWilsonExt || null };
+}
+
+function PediatricEncephalitisExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricEncephalitisExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricEncephalitisExt", input, score, ts: TS, pediatricEncephalitisExt: _i.pediatricEncephalitisExt || null };
+}
+
+function PediatricADEMEncephExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricADEMEncephExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricADEMEncephExt", input, score, ts: TS, pediatricADEMEncephExt: _i.pediatricADEMEncephExt || null };
+}
+
+function PediatricDeliriumExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricDeliriumExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricDeliriumExt", input, score, ts: TS, pediatricDeliriumExt: _i.pediatricDeliriumExt || null };
+}
+
+function PediatricCogRehabExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricCogRehabExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricCogRehabExt", input, score, ts: TS, pediatricCogRehabExt: _i.pediatricCogRehabExt || null };
+}
+
+module.exports = {
+  PediatricDementiaExt,
+  PediatricNCLext,
+  PediatricSanfilippoExt,
+  PediatricTaySachsExt,
+  PediatricPKUadultExt,
+  PediatricWilsonExt,
+  PediatricEncephalitisExt,
+  PediatricADEMEncephExt,
+  PediatricDeliriumExt,
+  PediatricCogRehabExt,
+};

@@ -49,7 +49,10 @@ router.post('/call/PediatricWheelchairTraining', authenticate, (req, res) => {
 });
 
 router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.133.0', module: 'pcc_pediatric_neuro_ext23', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
+  const { tenant_id, decisionId } = req.body || {};
+  if (!tenant_id && !decisionId) return res.status(400).json({ error: 'tenant_id or decisionId required' });
+
+  res.json({ version: '3.113.0', module: 'pcc_neuro_ext14', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true, tenant_id: tenant_id || null, decisionId: decisionId || null, ts: new Date().toISOString() });
 });
 
 module.exports = router;

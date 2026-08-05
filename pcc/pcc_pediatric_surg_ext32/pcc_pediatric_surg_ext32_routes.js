@@ -1,54 +1,23 @@
-// pcc_pediatric_surg_ext32 routes v3.142.0
+// Routes for pcc_pediatric_surg_ext32 — 3.224.0
+"use strict";
 const express = require('express');
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { PediatricUrologyExt3, PediatricPyeloplastyExt, PediatricUreteralReimplantExt, PediatricHypospadiasRepairExt, PediatricEpispadiasRepairExt, PediatricBladderExstrophyExt, PediatricCloacalExstrophyExt, PediatricPosteriorUrethralValvesExt, PediatricNephrectomyExt, PediatricPartialNephrectomyExt } = require('./pcc_pediatric_surg_ext32_engine');
+const Engine = require('./pcc_pediatric_surg_ext32_engine.js');
+const VER = '3.224.0';
+const MOD = 'pcc_pediatric_surg_ext32';
+const LABEL = 'Pediatric Surg Ext32';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.142.0', module: 'pcc_pediatric_surg_ext32', label: 'PCC Pediatric Surg Ext32', functions: ['PediatricUrologyExt3', 'PediatricPyeloplastyExt', 'PediatricUreteralReimplantExt', 'PediatricHypospadiasRepairExt', 'PediatricEpispadiasRepairExt', 'PediatricBladderExstrophyExt', 'PediatricCloacalExstrophyExt', 'PediatricPosteriorUrethralValvesExt', 'PediatricNephrectomyExt', 'PediatricPartialNephrectomyExt'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/PediatricUrologyExt3', authenticate, (req, res) => {
-  res.json(PediatricUrologyExt3(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/PediatricPyeloplastyExt', authenticate, (req, res) => {
-  res.json(PediatricPyeloplastyExt(req.body));
-});
-
-router.post('/call/PediatricUreteralReimplantExt', authenticate, (req, res) => {
-  res.json(PediatricUreteralReimplantExt(req.body));
-});
-
-router.post('/call/PediatricHypospadiasRepairExt', authenticate, (req, res) => {
-  res.json(PediatricHypospadiasRepairExt(req.body));
-});
-
-router.post('/call/PediatricEpispadiasRepairExt', authenticate, (req, res) => {
-  res.json(PediatricEpispadiasRepairExt(req.body));
-});
-
-router.post('/call/PediatricBladderExstrophyExt', authenticate, (req, res) => {
-  res.json(PediatricBladderExstrophyExt(req.body));
-});
-
-router.post('/call/PediatricCloacalExstrophyExt', authenticate, (req, res) => {
-  res.json(PediatricCloacalExstrophyExt(req.body));
-});
-
-router.post('/call/PediatricPosteriorUrethralValvesExt', authenticate, (req, res) => {
-  res.json(PediatricPosteriorUrethralValvesExt(req.body));
-});
-
-router.post('/call/PediatricNephrectomyExt', authenticate, (req, res) => {
-  res.json(PediatricNephrectomyExt(req.body));
-});
-
-router.post('/call/PediatricPartialNephrectomyExt', authenticate, (req, res) => {
-  res.json(PediatricPartialNephrectomyExt(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.142.0', module: 'pcc_pediatric_surg_ext32', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

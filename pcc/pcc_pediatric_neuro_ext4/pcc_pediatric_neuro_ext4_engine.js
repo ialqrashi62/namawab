@@ -1,6 +1,6 @@
 // pcc_pediatric_neuro_ext4 engine v3.114.0
 module.exports = {
-  PediatricConcussionExt: (input = {}) => ({ version: '3.114.0', module: 'pcc_pediatric_neuro_ext4', function: 'PediatricConcussionExt', input, score: Math.random(), ts: Date.now() }),
+  PediatricConcussionExt: (input = {}) => ({ version: '3.114.0', module: 'pcc_pediatric_neuro_ext4', function: "PediatricConcussionExt", input, score: Math.random(), ts: Date.now() }),
   PediatricPostConcussionSyndrome: (input = {}) => ({ version: '3.114.0', module: 'pcc_pediatric_neuro_ext4', function: 'PediatricPostConcussionSyndrome', input, score: Math.random(), ts: Date.now() }),
   PediatricTraumaticBrainInjury: (input = {}) => ({ version: '3.114.0', module: 'pcc_pediatric_neuro_ext4', function: 'PediatricTraumaticBrainInjury', input, score: Math.random(), ts: Date.now() }),
   PediatricBrainTumor: (input = {}) => ({ version: '3.114.0', module: 'pcc_pediatric_neuro_ext4', function: 'PediatricBrainTumor', input, score: Math.random(), ts: Date.now() }),

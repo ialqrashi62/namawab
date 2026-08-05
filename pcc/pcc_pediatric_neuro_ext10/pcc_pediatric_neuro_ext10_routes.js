@@ -1,55 +1,23 @@
-// pcc_pediatric_neuro_ext10 routes v3.120.0
+// Routes for pcc_pediatric_neuro_ext10 — 3.227.0
+"use strict";
 const express = require('express');
-// auth: authenticate (per audit L4-4)
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { PediatricLanguageDisorder, PediatricSpeechDelay, PediatricArticulationDisorder, PediatricPhonologicalDisorder, PediatricStuttering, PediatricApraxia, PediatricDysarthria, PediatricVoiceDisorder, PediatricDyslexia, PediatricDysgraphia } = require('./pcc_pediatric_neuro_ext10_engine');
+const Engine = require('./pcc_pediatric_neuro_ext10_engine.js');
+const VER = '3.227.0';
+const MOD = 'pcc_pediatric_neuro_ext10';
+const LABEL = 'Pediatric Neuro Ext10';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.120.0', module: 'pcc_pediatric_neuro_ext10', label: 'PCC Pediatric Neuro Ext10', functions: ['PediatricLanguageDisorder', 'PediatricSpeechDelay', 'PediatricArticulationDisorder', 'PediatricPhonologicalDisorder', 'PediatricStuttering', 'PediatricApraxia', 'PediatricDysarthria', 'PediatricVoiceDisorder', 'PediatricDyslexia', 'PediatricDysgraphia'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/PediatricLanguageDisorder', authenticate, (req, res) => {
-  res.json(PediatricLanguageDisorder(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/PediatricSpeechDelay', authenticate, (req, res) => {
-  res.json(PediatricSpeechDelay(req.body));
-});
-
-router.post('/call/PediatricArticulationDisorder', authenticate, (req, res) => {
-  res.json(PediatricArticulationDisorder(req.body));
-});
-
-router.post('/call/PediatricPhonologicalDisorder', authenticate, (req, res) => {
-  res.json(PediatricPhonologicalDisorder(req.body));
-});
-
-router.post('/call/PediatricStuttering', authenticate, (req, res) => {
-  res.json(PediatricStuttering(req.body));
-});
-
-router.post('/call/PediatricApraxia', authenticate, (req, res) => {
-  res.json(PediatricApraxia(req.body));
-});
-
-router.post('/call/PediatricDysarthria', authenticate, (req, res) => {
-  res.json(PediatricDysarthria(req.body));
-});
-
-router.post('/call/PediatricVoiceDisorder', authenticate, (req, res) => {
-  res.json(PediatricVoiceDisorder(req.body));
-});
-
-router.post('/call/PediatricDyslexia', authenticate, (req, res) => {
-  res.json(PediatricDyslexia(req.body));
-});
-
-router.post('/call/PediatricDysgraphia', authenticate, (req, res) => {
-  res.json(PediatricDysgraphia(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.120.0', module: 'pcc_pediatric_neuro_ext10', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

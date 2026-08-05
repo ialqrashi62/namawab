@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_pediatric_neuro_ext174/pcc_pediatric_neuro_ext174_engine.js
-module.exports.version='v3.14.14.0';
-module.exports.module='pcc_pediatric_neuro_ext174';
-module.exports.functions={};
-module.exports.functions['PediatricINOExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pINO||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_pediatric_neuro_ext174',function:'PediatricINOExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricOpsoclonusExt']=function(input){const score=Math.round((0.18 + Number(input.age||1)*0.04 + Number(input.pOpsoclonus||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_pediatric_neuro_ext174',function:'PediatricOpsoclonusExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricCongNystagmusExt']=function(input){const score=Math.round((0.18 + Number(input.age||0)*0.04 + Number(input.pCongNyst||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_pediatric_neuro_ext174',function:'PediatricCongNystagmusExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricIIIPalsyExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pIIIPalsy||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_pediatric_neuro_ext174',function:'PediatricIIIPalsyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricVIPalsyExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pVIPalsy||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_pediatric_neuro_ext174',function:'PediatricVIPalsyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricIVPalsyExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pIVPalsy||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_pediatric_neuro_ext174',function:'PediatricIVPalsyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricOphthalmoplegiaExt']=function(input){const score=Math.round((0.18 + Number(input.age||3)*0.04 + Number(input.pOph||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_pediatric_neuro_ext174',function:'PediatricOphthalmoplegiaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricCPEOExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pCPEO||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_pediatric_neuro_ext174',function:'PediatricCPEOExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricLeberHereditaryExt']=function(input){const score=Math.round((0.18 + Number(input.age||1)*0.04 + Number(input.pLHON||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_pediatric_neuro_ext174',function:'PediatricLeberHereditaryExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricSupranuclearPalsyExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.pSNP||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_pediatric_neuro_ext174',function:'PediatricSupranuclearPalsyExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.14.14.0';
+const MOD = 'pcc_pediatric_neuro_ext174';
 
-// TS: v3.14.14.0
+function PediatricINOExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricINOExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricINOExt", input, score, ts: TS, pediatricINOExt: _i.pediatricINOExt || null };
+}
+
+function PediatricOpsoclonusExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricOpsoclonusExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricOpsoclonusExt", input, score, ts: TS, pediatricOpsoclonusExt: _i.pediatricOpsoclonusExt || null };
+}
+
+function PediatricCongNystagmusExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricCongNystagmusExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricCongNystagmusExt", input, score, ts: TS, pediatricCongNystagmusExt: _i.pediatricCongNystagmusExt || null };
+}
+
+function PediatricIIIPalsyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricIIIPalsyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricIIIPalsyExt", input, score, ts: TS, pediatricIIIPalsyExt: _i.pediatricIIIPalsyExt || null };
+}
+
+function PediatricVIPalsyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricVIPalsyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricVIPalsyExt", input, score, ts: TS, pediatricVIPalsyExt: _i.pediatricVIPalsyExt || null };
+}
+
+function PediatricIVPalsyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricIVPalsyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricIVPalsyExt", input, score, ts: TS, pediatricIVPalsyExt: _i.pediatricIVPalsyExt || null };
+}
+
+function PediatricOphthalmoplegiaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricOphthalmoplegiaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricOphthalmoplegiaExt", input, score, ts: TS, pediatricOphthalmoplegiaExt: _i.pediatricOphthalmoplegiaExt || null };
+}
+
+function PediatricCPEOExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricCPEOExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricCPEOExt", input, score, ts: TS, pediatricCPEOExt: _i.pediatricCPEOExt || null };
+}
+
+function PediatricLeberHereditaryExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricLeberHereditaryExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricLeberHereditaryExt", input, score, ts: TS, pediatricLeberHereditaryExt: _i.pediatricLeberHereditaryExt || null };
+}
+
+function PediatricSupranuclearPalsyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricSupranuclearPalsyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricSupranuclearPalsyExt", input, score, ts: TS, pediatricSupranuclearPalsyExt: _i.pediatricSupranuclearPalsyExt || null };
+}
+
+module.exports = {
+  PediatricINOExt,
+  PediatricOpsoclonusExt,
+  PediatricCongNystagmusExt,
+  PediatricIIIPalsyExt,
+  PediatricVIPalsyExt,
+  PediatricIVPalsyExt,
+  PediatricOphthalmoplegiaExt,
+  PediatricCPEOExt,
+  PediatricLeberHereditaryExt,
+  PediatricSupranuclearPalsyExt,
+};

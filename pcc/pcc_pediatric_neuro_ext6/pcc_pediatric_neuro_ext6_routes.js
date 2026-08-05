@@ -1,55 +1,23 @@
-// pcc_pediatric_neuro_ext6 routes v3.116.0
+// Routes for pcc_pediatric_neuro_ext6 — 3.226.0
+"use strict";
 const express = require('express');
-// auth: authenticate (per audit L4-4)
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { PediatricSeizureEvaluation, PediatricFirstNonFebrileSeizure, PediatricNewOnsetRefractory, PediatricKetogenicDiet, PediatricVagalNerveStimulation, PediatricEpilepsyMonitoring, PediatricEEG, PediatricVideoEEG, PediatricSleepStudy, PediatricPolysomnography } = require('./pcc_pediatric_neuro_ext6_engine');
+const Engine = require('./pcc_pediatric_neuro_ext6_engine.js');
+const VER = '3.226.0';
+const MOD = 'pcc_pediatric_neuro_ext6';
+const LABEL = 'Pediatric Neuro Ext6';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.116.0', module: 'pcc_pediatric_neuro_ext6', label: 'PCC Pediatric Neuro Ext6', functions: ['PediatricSeizureEvaluation', 'PediatricFirstNonFebrileSeizure', 'PediatricNewOnsetRefractory', 'PediatricKetogenicDiet', 'PediatricVagalNerveStimulation', 'PediatricEpilepsyMonitoring', 'PediatricEEG', 'PediatricVideoEEG', 'PediatricSleepStudy', 'PediatricPolysomnography'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/PediatricSeizureEvaluation', authenticate, (req, res) => {
-  res.json(PediatricSeizureEvaluation(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/PediatricFirstNonFebrileSeizure', authenticate, (req, res) => {
-  res.json(PediatricFirstNonFebrileSeizure(req.body));
-});
-
-router.post('/call/PediatricNewOnsetRefractory', authenticate, (req, res) => {
-  res.json(PediatricNewOnsetRefractory(req.body));
-});
-
-router.post('/call/PediatricKetogenicDiet', authenticate, (req, res) => {
-  res.json(PediatricKetogenicDiet(req.body));
-});
-
-router.post('/call/PediatricVagalNerveStimulation', authenticate, (req, res) => {
-  res.json(PediatricVagalNerveStimulation(req.body));
-});
-
-router.post('/call/PediatricEpilepsyMonitoring', authenticate, (req, res) => {
-  res.json(PediatricEpilepsyMonitoring(req.body));
-});
-
-router.post('/call/PediatricEEG', authenticate, (req, res) => {
-  res.json(PediatricEEG(req.body));
-});
-
-router.post('/call/PediatricVideoEEG', authenticate, (req, res) => {
-  res.json(PediatricVideoEEG(req.body));
-});
-
-router.post('/call/PediatricSleepStudy', authenticate, (req, res) => {
-  res.json(PediatricSleepStudy(req.body));
-});
-
-router.post('/call/PediatricPolysomnography', authenticate, (req, res) => {
-  res.json(PediatricPolysomnography(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.116.0', module: 'pcc_pediatric_neuro_ext6', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

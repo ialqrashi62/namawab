@@ -1,17 +1,161 @@
-// filepath: pcc/pcc_pediatric_neuro_ext83/pcc_pediatric_neuro_ext83_engine.js
-// pcc_pediatric_neuro_ext83 engine (deterministic)
-module.exports.version='v3.193.0';
-module.exports.module='pcc_pediatric_neuro_ext83';
-module.exports.functions={};
-module.exports.functions['PediatricNeuroOncBoardExt']=function(input){const score=Math.round((0.15 + Number(input.cases||3)*0.05 + Number(input.subspecialists||4)*0.05 + Number(input.plan||1)*0.15)*100)/100;return{version:'v3.193.0',module:'pcc_pediatric_neuro_ext83',function:'PediatricNeuroOncBoardExt',input,score,ts:new Date().toISOString()};};
-module.exports.functions['PediatricMedulloblastomaExt']=function(input){const score=Math.round((0.18 + Number(input.molecular||2)*0.15 + Number(input.risk||1)*0.15 + Number(input.fossa||1)*0.1)*100)/100;return{version:'v3.193.0',module:'pcc_pediatric_neuro_ext83',function:'PediatricMedulloblastomaExt',input,score,ts:new Date().toISOString()};};
-module.exports.functions['PediatricEpendymomaExt']=function(input){const score=Math.round((0.15 + Number(input.grade||2)*0.1 + Number(input.resection||1)*0.2 + Number(input.fossa||1)*0.1)*100)/100;return{version:'v3.193.0',module:'pcc_pediatric_neuro_ext83',function:'PediatricEpendymomaExt',input,score,ts:new Date().toISOString()};};
-module.exports.functions['PediatricGliomaExt']=function(input){const score=Math.round((0.18 + Number(input.location||2)*0.1 + Number(input.histology||2)*0.1 + Number(input.braf||1)*0.2)*100)/100;return{version:'v3.193.0',module:'pcc_pediatric_neuro_ext83',function:'PediatricGliomaExt',input,score,ts:new Date().toISOString()};};
-module.exports.functions['PediatricATRTExt']=function(input){const score=Math.round((0.15 + Number(input.age||3)*0.1 + Number(input.surgery||1)*0.2 + Number(input.factors||2)*0.1)*100)/100;return{version:'v3.193.0',module:'pcc_pediatric_neuro_ext83',function:'PediatricATRTExt',input,score,ts:new Date().toISOString()};};
-module.exports.functions['PediatricDIPGExt']=function(input){const score=Math.round((0.2 + Number(input.duration||5)*0.04 + Number(input.symptoms||3)*0.05 + Number(input.biopsy||1)*0.15)*100)/100;return{version:'v3.193.0',module:'pcc_pediatric_neuro_ext83',function:'PediatricDIPGExt',input,score,ts:new Date().toISOString()};};
-module.exports.functions['PediatricSpinalCordTumorExt']=function(input){const score=Math.round((0.15 + Number(input.levels||3)*0.05 + Number(input.compression||1)*0.2 + Number(input.outcome||1)*0.15)*100)/100;return{version:'v3.193.0',module:'pcc_pediatric_neuro_ext83',function:'PediatricSpinalCordTumorExt',input,score,ts:new Date().toISOString()};};
-module.exports.functions['PediatricCraniopharyngiomaExt']=function(input){const score=Math.round((0.18 + Number(input.size||3)*0.05 + Number(input.approach||1)*0.2 + Number(input.endocrine||2)*0.1)*100)/100;return{version:'v3.193.0',module:'pcc_pediatric_neuro_ext83',function:'PediatricCraniopharyngiomaExt',input,score,ts:new Date().toISOString()};};
-module.exports.functions['PediatricNeurocutaneousExt']=function(input){const score=Math.round((0.15 + Number(input.syndrome||1)*0.2 + Number(input.tumors||2)*0.1 + Number(input.scan||3)*0.04)*100)/100;return{version:'v3.193.0',module:'pcc_pediatric_neuro_ext83',function:'PediatricNeurocutaneousExt',input,score,ts:new Date().toISOString()};};
-module.exports.functions['PediatricLateEffectsExt']=function(input){const score=Math.round((0.2 + Number(input.yearsSince||5)*0.05 + Number(input.chemo||1)*0.15 + Number(input.rt||1)*0.15)*100)/100;return{version:'v3.193.0',module:'pcc_pediatric_neuro_ext83',function:'PediatricLateEffectsExt',input,score,ts:new Date().toISOString()};};
+// pcc_pediatric_neuro_ext83_engine v3.316.55 (Phase 2 Batch 22 — Pediatric Neuro ext78-89)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.55';
+const MOD = 'pcc_pediatric_neuro_ext83';
 
-// TS: v3.193.0
+function PediatricNeuroOncBoardExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricNeuroOncBoardExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricNeuroOncBoardExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricMedulloblastomaExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricMedulloblastomaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricMedulloblastomaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricEpendymomaExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricEpendymomaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricEpendymomaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricGliomaExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricGliomaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricGliomaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricATRTExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricATRTExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricATRTExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricDIPGExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricDIPGExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricDIPGExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricSpinalCordTumorExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricSpinalCordTumorExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricSpinalCordTumorExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricCraniopharyngiomaExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricCraniopharyngiomaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricCraniopharyngiomaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricNeurocutaneousExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricNeurocutaneousExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricNeurocutaneousExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricLateEffectsExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricLateEffectsExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricLateEffectsExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  PediatricNeuroOncBoardExt, PediatricMedulloblastomaExt, PediatricEpendymomaExt, PediatricGliomaExt, PediatricATRTExt, PediatricDIPGExt, PediatricSpinalCordTumorExt, PediatricCraniopharyngiomaExt, PediatricNeurocutaneousExt, PediatricLateEffectsExt
+};

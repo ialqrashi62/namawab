@@ -1,55 +1,23 @@
-// pcc_pediatric_neuro_ext11 routes v3.121.0
+// Routes for pcc_pediatric_neuro_ext11 — 3.227.0
+"use strict";
 const express = require('express');
-// auth: authenticate (per audit L4-4)
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { PediatricNeurocutaneousSyndrome, PediatricTuberousSclerosis, PediatricNeurofibromatosis, PediatricSturgeWeberSyndrome, PediatricAtaxiaTelangiectasia, PediatricVonHippelLindau, PediatricGorlinSyndrome, PediatricHypomelanosisOfIto, PediatricLinearNevusSebaceous, PediatricIncontinentiaPigmenti } = require('./pcc_pediatric_neuro_ext11_engine');
+const Engine = require('./pcc_pediatric_neuro_ext11_engine.js');
+const VER = '3.227.0';
+const MOD = 'pcc_pediatric_neuro_ext11';
+const LABEL = 'Pediatric Neuro Ext11';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.121.0', module: 'pcc_pediatric_neuro_ext11', label: 'PCC Pediatric Neuro Ext11', functions: ['PediatricNeurocutaneousSyndrome', 'PediatricTuberousSclerosis', 'PediatricNeurofibromatosis', 'PediatricSturgeWeberSyndrome', 'PediatricAtaxiaTelangiectasia', 'PediatricVonHippelLindau', 'PediatricGorlinSyndrome', 'PediatricHypomelanosisOfIto', 'PediatricLinearNevusSebaceous', 'PediatricIncontinentiaPigmenti'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/PediatricNeurocutaneousSyndrome', authenticate, (req, res) => {
-  res.json(PediatricNeurocutaneousSyndrome(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/PediatricTuberousSclerosis', authenticate, (req, res) => {
-  res.json(PediatricTuberousSclerosis(req.body));
-});
-
-router.post('/call/PediatricNeurofibromatosis', authenticate, (req, res) => {
-  res.json(PediatricNeurofibromatosis(req.body));
-});
-
-router.post('/call/PediatricSturgeWeberSyndrome', authenticate, (req, res) => {
-  res.json(PediatricSturgeWeberSyndrome(req.body));
-});
-
-router.post('/call/PediatricAtaxiaTelangiectasia', authenticate, (req, res) => {
-  res.json(PediatricAtaxiaTelangiectasia(req.body));
-});
-
-router.post('/call/PediatricVonHippelLindau', authenticate, (req, res) => {
-  res.json(PediatricVonHippelLindau(req.body));
-});
-
-router.post('/call/PediatricGorlinSyndrome', authenticate, (req, res) => {
-  res.json(PediatricGorlinSyndrome(req.body));
-});
-
-router.post('/call/PediatricHypomelanosisOfIto', authenticate, (req, res) => {
-  res.json(PediatricHypomelanosisOfIto(req.body));
-});
-
-router.post('/call/PediatricLinearNevusSebaceous', authenticate, (req, res) => {
-  res.json(PediatricLinearNevusSebaceous(req.body));
-});
-
-router.post('/call/PediatricIncontinentiaPigmenti', authenticate, (req, res) => {
-  res.json(PediatricIncontinentiaPigmenti(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.121.0', module: 'pcc_pediatric_neuro_ext11', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

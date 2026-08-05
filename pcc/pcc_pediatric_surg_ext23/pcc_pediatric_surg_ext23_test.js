@@ -1,27 +1,19 @@
-// pcc_pediatric_surg_ext23 unit test v3.133.0
-const { PediatricRoboticSurgeryExt, PediatricDaVinci, PediatricRoboticProstatectomy, PediatricRoboticNephrectomy, PediatricRoboticPyeloplasty, PediatricRoboticHysterectomy, PediatricRoboticColectomy, PediatricRoboticGastricBypass, PediatricRoboticCholecystectomy, PediatricRoboticSplenectomy } = require('./pcc_pediatric_surg_ext23_engine');
-const assert = require('assert');
+// Auto-generated unit tests for pcc_pediatric_surg_ext23 — 3.221.0
+"use strict";
+const Engine = require('./pcc_pediatric_surg_ext23_engine.js');
+const VER = '3.221.0';
+let passed = 0, failed = 0;
+function test(name, fn) { try { fn(); passed++; console.log('  ok   ' + name); } catch (e) { failed++; console.error('  FAIL ' + name + ' :: ' + e.message); } }
 
-let passed = 0;
-assert.ok(PediatricRoboticSurgeryExt()); passed++;
-assert.ok(PediatricRoboticSurgeryExt({a:1})); passed++;
-assert.ok(PediatricDaVinci()); passed++;
-assert.ok(PediatricDaVinci({a:1})); passed++;
-assert.ok(PediatricRoboticProstatectomy()); passed++;
-assert.ok(PediatricRoboticProstatectomy({a:1})); passed++;
-assert.ok(PediatricRoboticNephrectomy()); passed++;
-assert.ok(PediatricRoboticNephrectomy({a:1})); passed++;
-assert.ok(PediatricRoboticPyeloplasty()); passed++;
-assert.ok(PediatricRoboticPyeloplasty({a:1})); passed++;
-assert.ok(PediatricRoboticHysterectomy()); passed++;
-assert.ok(PediatricRoboticHysterectomy({a:1})); passed++;
-assert.ok(PediatricRoboticColectomy()); passed++;
-assert.ok(PediatricRoboticColectomy({a:1})); passed++;
-assert.ok(PediatricRoboticGastricBypass()); passed++;
-assert.ok(PediatricRoboticGastricBypass({a:1})); passed++;
-assert.ok(PediatricRoboticCholecystectomy()); passed++;
-assert.ok(PediatricRoboticCholecystectomy({a:1})); passed++;
-assert.ok(PediatricRoboticSplenectomy()); passed++;
-assert.ok(PediatricRoboticSplenectomy({a:1})); passed++;
-
-console.log('pcc_pediatric_surg_ext23 unit:', passed, 'passed');
+test('EXT2AssessmentExt_returns_valid', () => { const r = Engine.EXT2AssessmentExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT2ScoreExt_returns_valid', () => { const r = Engine.EXT2ScoreExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT2StageExt_returns_valid', () => { const r = Engine.EXT2StageExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT2PlanExt_returns_valid', () => { const r = Engine.EXT2PlanExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT2RiskExt_returns_valid', () => { const r = Engine.EXT2RiskExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT2DoseExt_returns_valid', () => { const r = Engine.EXT2DoseExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT2FrequencyExt_returns_valid', () => { const r = Engine.EXT2FrequencyExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT2DurationExt_returns_valid', () => { const r = Engine.EXT2DurationExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT2FollowupExt_returns_valid', () => { const r = Engine.EXT2FollowupExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT2OutcomeExt_returns_valid', () => { const r = Engine.EXT2OutcomeExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+console.log('Total: ' + (passed + failed) + ' | passed: ' + passed + ' | failed: ' + failed);
+process.exit(failed === 0 ? 0 : 1);

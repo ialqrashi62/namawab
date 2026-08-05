@@ -1,27 +1,19 @@
-// pcc_pediatric_neuro_ext9 unit test v3.119.0
-const { PediatricDownSyndrome, PediatricFragileXSyndrome, PediatricWilliamsSyndrome, PediatricPraderWilliSyndrome, PediatricAngelmanSyndrome, PediatricTurnerSyndrome, PediatricNoonanSyndrome, PediatricMarfanSyndrome, PediatricMuscularDystrophy, PediatricSpinalMuscularAtrophy } = require('./pcc_pediatric_neuro_ext9_engine');
-const assert = require('assert');
+// Auto-generated unit tests for pcc_pediatric_neuro_ext9 — 3.227.0
+"use strict";
+const Engine = require('./pcc_pediatric_neuro_ext9_engine.js');
+const VER = '3.227.0';
+let passed = 0, failed = 0;
+function test(name, fn) { try { fn(); passed++; console.log('  ok   ' + name); } catch (e) { failed++; console.error('  FAIL ' + name + ' :: ' + e.message); } }
 
-let passed = 0;
-assert.ok(PediatricDownSyndrome()); passed++;
-assert.ok(PediatricDownSyndrome({a:1})); passed++;
-assert.ok(PediatricFragileXSyndrome()); passed++;
-assert.ok(PediatricFragileXSyndrome({a:1})); passed++;
-assert.ok(PediatricWilliamsSyndrome()); passed++;
-assert.ok(PediatricWilliamsSyndrome({a:1})); passed++;
-assert.ok(PediatricPraderWilliSyndrome()); passed++;
-assert.ok(PediatricPraderWilliSyndrome({a:1})); passed++;
-assert.ok(PediatricAngelmanSyndrome()); passed++;
-assert.ok(PediatricAngelmanSyndrome({a:1})); passed++;
-assert.ok(PediatricTurnerSyndrome()); passed++;
-assert.ok(PediatricTurnerSyndrome({a:1})); passed++;
-assert.ok(PediatricNoonanSyndrome()); passed++;
-assert.ok(PediatricNoonanSyndrome({a:1})); passed++;
-assert.ok(PediatricMarfanSyndrome()); passed++;
-assert.ok(PediatricMarfanSyndrome({a:1})); passed++;
-assert.ok(PediatricMuscularDystrophy()); passed++;
-assert.ok(PediatricMuscularDystrophy({a:1})); passed++;
-assert.ok(PediatricSpinalMuscularAtrophy()); passed++;
-assert.ok(PediatricSpinalMuscularAtrophy({a:1})); passed++;
-
-console.log('pcc_pediatric_neuro_ext9 unit:', passed, 'passed');
+test('EXT9AssessmentExt_returns_valid', () => { const r = Engine.EXT9AssessmentExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT9ScoreExt_returns_valid', () => { const r = Engine.EXT9ScoreExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT9StageExt_returns_valid', () => { const r = Engine.EXT9StageExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT9PlanExt_returns_valid', () => { const r = Engine.EXT9PlanExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT9RiskExt_returns_valid', () => { const r = Engine.EXT9RiskExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT9DoseExt_returns_valid', () => { const r = Engine.EXT9DoseExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT9FrequencyExt_returns_valid', () => { const r = Engine.EXT9FrequencyExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT9DurationExt_returns_valid', () => { const r = Engine.EXT9DurationExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT9FollowupExt_returns_valid', () => { const r = Engine.EXT9FollowupExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT9OutcomeExt_returns_valid', () => { const r = Engine.EXT9OutcomeExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+console.log('Total: ' + (passed + failed) + ' | passed: ' + passed + ' | failed: ' + failed);
+process.exit(failed === 0 ? 0 : 1);

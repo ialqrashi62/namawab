@@ -1,55 +1,23 @@
-// pcc_pediatric_surg_ext23 routes v3.133.0
+// Routes for pcc_pediatric_surg_ext23 — 3.221.0
+"use strict";
 const express = require('express');
-// auth: authenticate (per audit L4-4)
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { PediatricRoboticSurgeryExt, PediatricDaVinci, PediatricRoboticProstatectomy, PediatricRoboticNephrectomy, PediatricRoboticPyeloplasty, PediatricRoboticHysterectomy, PediatricRoboticColectomy, PediatricRoboticGastricBypass, PediatricRoboticCholecystectomy, PediatricRoboticSplenectomy } = require('./pcc_pediatric_surg_ext23_engine');
+const Engine = require('./pcc_pediatric_surg_ext23_engine.js');
+const VER = '3.221.0';
+const MOD = 'pcc_pediatric_surg_ext23';
+const LABEL = 'Pediatric Surg Ext23';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.133.0', module: 'pcc_pediatric_surg_ext23', label: 'PCC Pediatric Surg Ext23', functions: ['PediatricRoboticSurgeryExt', 'PediatricDaVinci', 'PediatricRoboticProstatectomy', 'PediatricRoboticNephrectomy', 'PediatricRoboticPyeloplasty', 'PediatricRoboticHysterectomy', 'PediatricRoboticColectomy', 'PediatricRoboticGastricBypass', 'PediatricRoboticCholecystectomy', 'PediatricRoboticSplenectomy'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/PediatricRoboticSurgeryExt', authenticate, (req, res) => {
-  res.json(PediatricRoboticSurgeryExt(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/PediatricDaVinci', authenticate, (req, res) => {
-  res.json(PediatricDaVinci(req.body));
-});
-
-router.post('/call/PediatricRoboticProstatectomy', authenticate, (req, res) => {
-  res.json(PediatricRoboticProstatectomy(req.body));
-});
-
-router.post('/call/PediatricRoboticNephrectomy', authenticate, (req, res) => {
-  res.json(PediatricRoboticNephrectomy(req.body));
-});
-
-router.post('/call/PediatricRoboticPyeloplasty', authenticate, (req, res) => {
-  res.json(PediatricRoboticPyeloplasty(req.body));
-});
-
-router.post('/call/PediatricRoboticHysterectomy', authenticate, (req, res) => {
-  res.json(PediatricRoboticHysterectomy(req.body));
-});
-
-router.post('/call/PediatricRoboticColectomy', authenticate, (req, res) => {
-  res.json(PediatricRoboticColectomy(req.body));
-});
-
-router.post('/call/PediatricRoboticGastricBypass', authenticate, (req, res) => {
-  res.json(PediatricRoboticGastricBypass(req.body));
-});
-
-router.post('/call/PediatricRoboticCholecystectomy', authenticate, (req, res) => {
-  res.json(PediatricRoboticCholecystectomy(req.body));
-});
-
-router.post('/call/PediatricRoboticSplenectomy', authenticate, (req, res) => {
-  res.json(PediatricRoboticSplenectomy(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.133.0', module: 'pcc_pediatric_surg_ext23', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

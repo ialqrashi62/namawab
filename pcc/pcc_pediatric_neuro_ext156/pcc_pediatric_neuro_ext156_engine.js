@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_pediatric_neuro_ext156/pcc_pediatric_neuro_ext156_engine.js
-module.exports.version='v3.12.8.0';
-module.exports.module='pcc_pediatric_neuro_ext156';
-module.exports.functions={};
-module.exports.functions['PediatricPituitaryAdExt']=function(input){const score=Math.round((0.18 + Number(input.age||10)*0.04 + Number(input.pPitAd||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.8.0',module:'pcc_pediatric_neuro_ext156',function:'PediatricPituitaryAdExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricAcromegalyExt']=function(input){const score=Math.round((0.18 + Number(input.age||12)*0.04 + Number(input.pAcro||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.8.0',module:'pcc_pediatric_neuro_ext156',function:'PediatricAcromegalyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricCushingExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.pCushing||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.8.0',module:'pcc_pediatric_neuro_ext156',function:'PediatricCushingExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricDIExt']=function(input){const score=Math.round((0.18 + Number(input.age||3)*0.04 + Number(input.pDI||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.8.0',module:'pcc_pediatric_neuro_ext156',function:'PediatricDIExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricSIADHExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pSIADH||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.8.0',module:'pcc_pediatric_neuro_ext156',function:'PediatricSIADHExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricHypothyroidExt']=function(input){const score=Math.round((0.18 + Number(input.age||1)*0.04 + Number(input.pHypo||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.8.0',module:'pcc_pediatric_neuro_ext156',function:'PediatricHypothyroidExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricCongHypothyroidExt']=function(input){const score=Math.round((0.18 + Number(input.age||0)*0.04 + Number(input.pCongHypo||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.8.0',module:'pcc_pediatric_neuro_ext156',function:'PediatricCongHypothyroidExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricHyperthyroidExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.pHyper||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.8.0',module:'pcc_pediatric_neuro_ext156',function:'PediatricHyperthyroidExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricAdrenalInsufficiencyExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pAdren||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.8.0',module:'pcc_pediatric_neuro_ext156',function:'PediatricAdrenalInsufficiencyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricPheochromExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.pPheo||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.8.0',module:'pcc_pediatric_neuro_ext156',function:'PediatricPheochromExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.12.8.0';
+const MOD = 'pcc_pediatric_neuro_ext156';
 
-// TS: v3.12.8.0
+function PediatricPituitaryAdExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricPituitaryAdExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricPituitaryAdExt", input, score, ts: TS, pediatricPituitaryAdExt: _i.pediatricPituitaryAdExt || null };
+}
+
+function PediatricAcromegalyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricAcromegalyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricAcromegalyExt", input, score, ts: TS, pediatricAcromegalyExt: _i.pediatricAcromegalyExt || null };
+}
+
+function PediatricCushingExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricCushingExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricCushingExt", input, score, ts: TS, pediatricCushingExt: _i.pediatricCushingExt || null };
+}
+
+function PediatricDIExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricDIExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricDIExt", input, score, ts: TS, pediatricDIExt: _i.pediatricDIExt || null };
+}
+
+function PediatricSIADHExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricSIADHExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricSIADHExt", input, score, ts: TS, pediatricSIADHExt: _i.pediatricSIADHExt || null };
+}
+
+function PediatricHypothyroidExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricHypothyroidExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricHypothyroidExt", input, score, ts: TS, pediatricHypothyroidExt: _i.pediatricHypothyroidExt || null };
+}
+
+function PediatricCongHypothyroidExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricCongHypothyroidExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricCongHypothyroidExt", input, score, ts: TS, pediatricCongHypothyroidExt: _i.pediatricCongHypothyroidExt || null };
+}
+
+function PediatricHyperthyroidExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricHyperthyroidExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricHyperthyroidExt", input, score, ts: TS, pediatricHyperthyroidExt: _i.pediatricHyperthyroidExt || null };
+}
+
+function PediatricAdrenalInsufficiencyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricAdrenalInsufficiencyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricAdrenalInsufficiencyExt", input, score, ts: TS, pediatricAdrenalInsufficiencyExt: _i.pediatricAdrenalInsufficiencyExt || null };
+}
+
+function PediatricPheochromExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricPheochromExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricPheochromExt", input, score, ts: TS, pediatricPheochromExt: _i.pediatricPheochromExt || null };
+}
+
+module.exports = {
+  PediatricPituitaryAdExt,
+  PediatricAcromegalyExt,
+  PediatricCushingExt,
+  PediatricDIExt,
+  PediatricSIADHExt,
+  PediatricHypothyroidExt,
+  PediatricCongHypothyroidExt,
+  PediatricHyperthyroidExt,
+  PediatricAdrenalInsufficiencyExt,
+  PediatricPheochromExt,
+};

@@ -1,27 +1,19 @@
-// pcc_pediatric_surg_ext34 unit test v3.144.0
-const { PediatricTraumaSurgeryExt, PediatricSplenectomyExt, PediatricHepatectomyExt, PediatricPancreatectomyExt, PediatricNephrectomyTraumaExt, PediatricBowelResectionTraumaExt, PediatricDamageControlExt, PediatricVascularTraumaRepairExt, PediatricNerveRepairTraumaExt, PediatricTendonRepairTraumaExt } = require('./pcc_pediatric_surg_ext34_engine');
-const assert = require('assert');
+// Auto-generated unit tests for pcc_pediatric_surg_ext34 — 3.225.0
+"use strict";
+const Engine = require('./pcc_pediatric_surg_ext34_engine.js');
+const VER = '3.225.0';
+let passed = 0, failed = 0;
+function test(name, fn) { try { fn(); passed++; console.log('  ok   ' + name); } catch (e) { failed++; console.error('  FAIL ' + name + ' :: ' + e.message); } }
 
-let passed = 0;
-assert.ok(PediatricTraumaSurgeryExt()); passed++;
-assert.ok(PediatricTraumaSurgeryExt({a:1})); passed++;
-assert.ok(PediatricSplenectomyExt()); passed++;
-assert.ok(PediatricSplenectomyExt({a:1})); passed++;
-assert.ok(PediatricHepatectomyExt()); passed++;
-assert.ok(PediatricHepatectomyExt({a:1})); passed++;
-assert.ok(PediatricPancreatectomyExt()); passed++;
-assert.ok(PediatricPancreatectomyExt({a:1})); passed++;
-assert.ok(PediatricNephrectomyTraumaExt()); passed++;
-assert.ok(PediatricNephrectomyTraumaExt({a:1})); passed++;
-assert.ok(PediatricBowelResectionTraumaExt()); passed++;
-assert.ok(PediatricBowelResectionTraumaExt({a:1})); passed++;
-assert.ok(PediatricDamageControlExt()); passed++;
-assert.ok(PediatricDamageControlExt({a:1})); passed++;
-assert.ok(PediatricVascularTraumaRepairExt()); passed++;
-assert.ok(PediatricVascularTraumaRepairExt({a:1})); passed++;
-assert.ok(PediatricNerveRepairTraumaExt()); passed++;
-assert.ok(PediatricNerveRepairTraumaExt({a:1})); passed++;
-assert.ok(PediatricTendonRepairTraumaExt()); passed++;
-assert.ok(PediatricTendonRepairTraumaExt({a:1})); passed++;
-
-console.log('pcc_pediatric_surg_ext34 unit:', passed, 'passed');
+test('EXT3AssessmentExt_returns_valid', () => { const r = Engine.EXT3AssessmentExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3ScoreExt_returns_valid', () => { const r = Engine.EXT3ScoreExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3StageExt_returns_valid', () => { const r = Engine.EXT3StageExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3PlanExt_returns_valid', () => { const r = Engine.EXT3PlanExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3RiskExt_returns_valid', () => { const r = Engine.EXT3RiskExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3DoseExt_returns_valid', () => { const r = Engine.EXT3DoseExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3FrequencyExt_returns_valid', () => { const r = Engine.EXT3FrequencyExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3DurationExt_returns_valid', () => { const r = Engine.EXT3DurationExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3FollowupExt_returns_valid', () => { const r = Engine.EXT3FollowupExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT3OutcomeExt_returns_valid', () => { const r = Engine.EXT3OutcomeExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+console.log('Total: ' + (passed + failed) + ' | passed: ' + passed + ' | failed: ' + failed);
+process.exit(failed === 0 ? 0 : 1);

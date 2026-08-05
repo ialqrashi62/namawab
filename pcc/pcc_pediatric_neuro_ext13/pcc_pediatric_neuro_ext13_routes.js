@@ -1,55 +1,23 @@
-// pcc_pediatric_neuro_ext13 routes v3.123.0
+// Routes for pcc_pediatric_neuro_ext13 — 3.228.0
+"use strict";
 const express = require('express');
-// auth: authenticate (per audit L4-4)
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { PediatricBrainMalformation, PediatricHoloprosencephaly, PediatricLissencephaly, PediatricPolymicrogyria, PediatricSchizencephaly, PediatricPorencephaly, PediatricHydrocephalusExt2, PediatricDandyWalker, PediatricArnoldChiari, PediatricSyringomyelia } = require('./pcc_pediatric_neuro_ext13_engine');
+const Engine = require('./pcc_pediatric_neuro_ext13_engine.js');
+const VER = '3.228.0';
+const MOD = 'pcc_pediatric_neuro_ext13';
+const LABEL = 'Pediatric Neuro Ext13';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.123.0', module: 'pcc_pediatric_neuro_ext13', label: 'PCC Pediatric Neuro Ext13', functions: ['PediatricBrainMalformation', 'PediatricHoloprosencephaly', 'PediatricLissencephaly', 'PediatricPolymicrogyria', 'PediatricSchizencephaly', 'PediatricPorencephaly', 'PediatricHydrocephalusExt2', 'PediatricDandyWalker', 'PediatricArnoldChiari', 'PediatricSyringomyelia'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/PediatricBrainMalformation', authenticate, (req, res) => {
-  res.json(PediatricBrainMalformation(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/PediatricHoloprosencephaly', authenticate, (req, res) => {
-  res.json(PediatricHoloprosencephaly(req.body));
-});
-
-router.post('/call/PediatricLissencephaly', authenticate, (req, res) => {
-  res.json(PediatricLissencephaly(req.body));
-});
-
-router.post('/call/PediatricPolymicrogyria', authenticate, (req, res) => {
-  res.json(PediatricPolymicrogyria(req.body));
-});
-
-router.post('/call/PediatricSchizencephaly', authenticate, (req, res) => {
-  res.json(PediatricSchizencephaly(req.body));
-});
-
-router.post('/call/PediatricPorencephaly', authenticate, (req, res) => {
-  res.json(PediatricPorencephaly(req.body));
-});
-
-router.post('/call/PediatricHydrocephalusExt2', authenticate, (req, res) => {
-  res.json(PediatricHydrocephalusExt2(req.body));
-});
-
-router.post('/call/PediatricDandyWalker', authenticate, (req, res) => {
-  res.json(PediatricDandyWalker(req.body));
-});
-
-router.post('/call/PediatricArnoldChiari', authenticate, (req, res) => {
-  res.json(PediatricArnoldChiari(req.body));
-});
-
-router.post('/call/PediatricSyringomyelia', authenticate, (req, res) => {
-  res.json(PediatricSyringomyelia(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.123.0', module: 'pcc_pediatric_neuro_ext13', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

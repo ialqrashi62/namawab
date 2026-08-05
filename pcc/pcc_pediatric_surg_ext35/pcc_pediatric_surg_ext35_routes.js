@@ -1,54 +1,23 @@
-// pcc_pediatric_surg_ext35 routes v3.145.0
+// Routes for pcc_pediatric_surg_ext35 — 3.225.0
+"use strict";
 const express = require('express');
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { PediatricENTTumorExt, PediatricThyroidectomyExt, PediatricParathyroidectomyExt, PediatricSalivaryGlandExt, PediatricCervicalLymphNodeExt, PediatricBranchialCleftExt, PediatricThyroglossalDuctExt, PediatricCysticHygromaExt, PediatricDermoidCystExt, PediatricLingualThyroidExt } = require('./pcc_pediatric_surg_ext35_engine');
+const Engine = require('./pcc_pediatric_surg_ext35_engine.js');
+const VER = '3.225.0';
+const MOD = 'pcc_pediatric_surg_ext35';
+const LABEL = 'Pediatric Surg Ext35';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.145.0', module: 'pcc_pediatric_surg_ext35', label: 'PCC Pediatric Surg Ext35', functions: ['PediatricENTTumorExt', 'PediatricThyroidectomyExt', 'PediatricParathyroidectomyExt', 'PediatricSalivaryGlandExt', 'PediatricCervicalLymphNodeExt', 'PediatricBranchialCleftExt', 'PediatricThyroglossalDuctExt', 'PediatricCysticHygromaExt', 'PediatricDermoidCystExt', 'PediatricLingualThyroidExt'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/PediatricENTTumorExt', authenticate, (req, res) => {
-  res.json(PediatricENTTumorExt(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/PediatricThyroidectomyExt', authenticate, (req, res) => {
-  res.json(PediatricThyroidectomyExt(req.body));
-});
-
-router.post('/call/PediatricParathyroidectomyExt', authenticate, (req, res) => {
-  res.json(PediatricParathyroidectomyExt(req.body));
-});
-
-router.post('/call/PediatricSalivaryGlandExt', authenticate, (req, res) => {
-  res.json(PediatricSalivaryGlandExt(req.body));
-});
-
-router.post('/call/PediatricCervicalLymphNodeExt', authenticate, (req, res) => {
-  res.json(PediatricCervicalLymphNodeExt(req.body));
-});
-
-router.post('/call/PediatricBranchialCleftExt', authenticate, (req, res) => {
-  res.json(PediatricBranchialCleftExt(req.body));
-});
-
-router.post('/call/PediatricThyroglossalDuctExt', authenticate, (req, res) => {
-  res.json(PediatricThyroglossalDuctExt(req.body));
-});
-
-router.post('/call/PediatricCysticHygromaExt', authenticate, (req, res) => {
-  res.json(PediatricCysticHygromaExt(req.body));
-});
-
-router.post('/call/PediatricDermoidCystExt', authenticate, (req, res) => {
-  res.json(PediatricDermoidCystExt(req.body));
-});
-
-router.post('/call/PediatricLingualThyroidExt', authenticate, (req, res) => {
-  res.json(PediatricLingualThyroidExt(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.145.0', module: 'pcc_pediatric_surg_ext35', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

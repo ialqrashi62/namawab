@@ -1,55 +1,23 @@
-// pcc_pediatric_neuro_ext9 routes v3.119.0
+// Routes for pcc_pediatric_neuro_ext9 — 3.227.0
+"use strict";
 const express = require('express');
-// auth: authenticate (per audit L4-4)
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { PediatricDownSyndrome, PediatricFragileXSyndrome, PediatricWilliamsSyndrome, PediatricPraderWilliSyndrome, PediatricAngelmanSyndrome, PediatricTurnerSyndrome, PediatricNoonanSyndrome, PediatricMarfanSyndrome, PediatricMuscularDystrophy, PediatricSpinalMuscularAtrophy } = require('./pcc_pediatric_neuro_ext9_engine');
+const Engine = require('./pcc_pediatric_neuro_ext9_engine.js');
+const VER = '3.227.0';
+const MOD = 'pcc_pediatric_neuro_ext9';
+const LABEL = 'Pediatric Neuro Ext9';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.119.0', module: 'pcc_pediatric_neuro_ext9', label: 'PCC Pediatric Neuro Ext9', functions: ['PediatricDownSyndrome', 'PediatricFragileXSyndrome', 'PediatricWilliamsSyndrome', 'PediatricPraderWilliSyndrome', 'PediatricAngelmanSyndrome', 'PediatricTurnerSyndrome', 'PediatricNoonanSyndrome', 'PediatricMarfanSyndrome', 'PediatricMuscularDystrophy', 'PediatricSpinalMuscularAtrophy'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/PediatricDownSyndrome', authenticate, (req, res) => {
-  res.json(PediatricDownSyndrome(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/PediatricFragileXSyndrome', authenticate, (req, res) => {
-  res.json(PediatricFragileXSyndrome(req.body));
-});
-
-router.post('/call/PediatricWilliamsSyndrome', authenticate, (req, res) => {
-  res.json(PediatricWilliamsSyndrome(req.body));
-});
-
-router.post('/call/PediatricPraderWilliSyndrome', authenticate, (req, res) => {
-  res.json(PediatricPraderWilliSyndrome(req.body));
-});
-
-router.post('/call/PediatricAngelmanSyndrome', authenticate, (req, res) => {
-  res.json(PediatricAngelmanSyndrome(req.body));
-});
-
-router.post('/call/PediatricTurnerSyndrome', authenticate, (req, res) => {
-  res.json(PediatricTurnerSyndrome(req.body));
-});
-
-router.post('/call/PediatricNoonanSyndrome', authenticate, (req, res) => {
-  res.json(PediatricNoonanSyndrome(req.body));
-});
-
-router.post('/call/PediatricMarfanSyndrome', authenticate, (req, res) => {
-  res.json(PediatricMarfanSyndrome(req.body));
-});
-
-router.post('/call/PediatricMuscularDystrophy', authenticate, (req, res) => {
-  res.json(PediatricMuscularDystrophy(req.body));
-});
-
-router.post('/call/PediatricSpinalMuscularAtrophy', authenticate, (req, res) => {
-  res.json(PediatricSpinalMuscularAtrophy(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.119.0', module: 'pcc_pediatric_neuro_ext9', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

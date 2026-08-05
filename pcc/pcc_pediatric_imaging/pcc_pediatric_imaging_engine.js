@@ -1,4 +1,4 @@
-// P3-EL pcc_pediatric_imaging_engine v3.102.0
+// P3_EL pcc_pediatric_imaging_engine v3.102.0
 'use strict';
 function PediatricBrainMRI(input) {
   const i = input || {};

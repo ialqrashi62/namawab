@@ -1,54 +1,23 @@
-// pcc_pediatric_surg_ext26 routes v3.136.0
+// Routes for pcc_pediatric_surg_ext26 — 3.222.0
+"use strict";
 const express = require('express');
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { PediatricHydrocephalusExt, PediatricVPShuntPlacement, PediatricVPShuntRevision, PediatricETVExt, PediatricCraniotomyExt, PediatricCraniectomyExt, PediatricTumorResectionExt, PediatricSpinalCordTumorExt, PediatricChiariDecompression, PediatricTetheredCordRelease } = require('./pcc_pediatric_surg_ext26_engine');
+const Engine = require('./pcc_pediatric_surg_ext26_engine.js');
+const VER = '3.222.0';
+const MOD = 'pcc_pediatric_surg_ext26';
+const LABEL = 'Pediatric Surg Ext26';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.136.0', module: 'pcc_pediatric_surg_ext26', label: 'PCC Pediatric Surg Ext26', functions: ['PediatricHydrocephalusExt', 'PediatricVPShuntPlacement', 'PediatricVPShuntRevision', 'PediatricETVExt', 'PediatricCraniotomyExt', 'PediatricCraniectomyExt', 'PediatricTumorResectionExt', 'PediatricSpinalCordTumorExt', 'PediatricChiariDecompression', 'PediatricTetheredCordRelease'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/PediatricHydrocephalusExt', authenticate, (req, res) => {
-  res.json(PediatricHydrocephalusExt(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/PediatricVPShuntPlacement', authenticate, (req, res) => {
-  res.json(PediatricVPShuntPlacement(req.body));
-});
-
-router.post('/call/PediatricVPShuntRevision', authenticate, (req, res) => {
-  res.json(PediatricVPShuntRevision(req.body));
-});
-
-router.post('/call/PediatricETVExt', authenticate, (req, res) => {
-  res.json(PediatricETVExt(req.body));
-});
-
-router.post('/call/PediatricCraniotomyExt', authenticate, (req, res) => {
-  res.json(PediatricCraniotomyExt(req.body));
-});
-
-router.post('/call/PediatricCraniectomyExt', authenticate, (req, res) => {
-  res.json(PediatricCraniectomyExt(req.body));
-});
-
-router.post('/call/PediatricTumorResectionExt', authenticate, (req, res) => {
-  res.json(PediatricTumorResectionExt(req.body));
-});
-
-router.post('/call/PediatricSpinalCordTumorExt', authenticate, (req, res) => {
-  res.json(PediatricSpinalCordTumorExt(req.body));
-});
-
-router.post('/call/PediatricChiariDecompression', authenticate, (req, res) => {
-  res.json(PediatricChiariDecompression(req.body));
-});
-
-router.post('/call/PediatricTetheredCordRelease', authenticate, (req, res) => {
-  res.json(PediatricTetheredCordRelease(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.136.0', module: 'pcc_pediatric_surg_ext26', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

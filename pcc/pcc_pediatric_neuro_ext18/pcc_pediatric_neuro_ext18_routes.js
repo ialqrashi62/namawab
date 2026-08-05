@@ -1,55 +1,23 @@
-// pcc_pediatric_neuro_ext18 routes v3.128.0
+// Routes for pcc_pediatric_neuro_ext18 — 3.230.0
+"use strict";
 const express = require('express');
-// auth: authenticate (per audit L4-4)
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { PediatricNeuropsychiatricEval, PediatricCognitiveAssessment, PediatricIntelligenceTest, PediatricAdaptiveFunction, PediatricLearningDisorder, PediatricIntellectualDisability, PediatricGlobalDevelopmentalDelay, PediatricSpecificLearningDisorder, PediatricMotorSkillsDisorder, PediatricCommunicationDisorder } = require('./pcc_pediatric_neuro_ext18_engine');
+const Engine = require('./pcc_pediatric_neuro_ext18_engine.js');
+const VER = '3.230.0';
+const MOD = 'pcc_pediatric_neuro_ext18';
+const LABEL = 'Pediatric Neuro Ext18';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.128.0', module: 'pcc_pediatric_neuro_ext18', label: 'PCC Pediatric Neuro Ext18', functions: ['PediatricNeuropsychiatricEval', 'PediatricCognitiveAssessment', 'PediatricIntelligenceTest', 'PediatricAdaptiveFunction', 'PediatricLearningDisorder', 'PediatricIntellectualDisability', 'PediatricGlobalDevelopmentalDelay', 'PediatricSpecificLearningDisorder', 'PediatricMotorSkillsDisorder', 'PediatricCommunicationDisorder'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/PediatricNeuropsychiatricEval', authenticate, (req, res) => {
-  res.json(PediatricNeuropsychiatricEval(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/PediatricCognitiveAssessment', authenticate, (req, res) => {
-  res.json(PediatricCognitiveAssessment(req.body));
-});
-
-router.post('/call/PediatricIntelligenceTest', authenticate, (req, res) => {
-  res.json(PediatricIntelligenceTest(req.body));
-});
-
-router.post('/call/PediatricAdaptiveFunction', authenticate, (req, res) => {
-  res.json(PediatricAdaptiveFunction(req.body));
-});
-
-router.post('/call/PediatricLearningDisorder', authenticate, (req, res) => {
-  res.json(PediatricLearningDisorder(req.body));
-});
-
-router.post('/call/PediatricIntellectualDisability', authenticate, (req, res) => {
-  res.json(PediatricIntellectualDisability(req.body));
-});
-
-router.post('/call/PediatricGlobalDevelopmentalDelay', authenticate, (req, res) => {
-  res.json(PediatricGlobalDevelopmentalDelay(req.body));
-});
-
-router.post('/call/PediatricSpecificLearningDisorder', authenticate, (req, res) => {
-  res.json(PediatricSpecificLearningDisorder(req.body));
-});
-
-router.post('/call/PediatricMotorSkillsDisorder', authenticate, (req, res) => {
-  res.json(PediatricMotorSkillsDisorder(req.body));
-});
-
-router.post('/call/PediatricCommunicationDisorder', authenticate, (req, res) => {
-  res.json(PediatricCommunicationDisorder(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.128.0', module: 'pcc_pediatric_neuro_ext18', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

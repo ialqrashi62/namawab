@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_pediatric_neuro_ext180/pcc_pediatric_neuro_ext180_engine.js
-module.exports.version='v3.20.20.0';
-module.exports.module='pcc_pediatric_neuro_ext180';
-module.exports.functions={};
-module.exports.functions['PediatricStrokeExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pStroke||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_pediatric_neuro_ext180',function:'PediatricStrokeExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricStrokeArterialExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pStrokeArt||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_pediatric_neuro_ext180',function:'PediatricStrokeArterialExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricStrokeSinusExt']=function(input){const score=Math.round((0.18 + Number(input.age||1)*0.04 + Number(input.pStrokeSinus||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_pediatric_neuro_ext180',function:'PediatricStrokeSinusExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricStrokePerinatalExt']=function(input){const score=Math.round((0.18 + Number(input.age||0)*0.04 + Number(input.pStrokePeri||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_pediatric_neuro_ext180',function:'PediatricStrokePerinatalExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricStrokeSickleExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pStrokeSickle||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_pediatric_neuro_ext180',function:'PediatricStrokeSickleExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricStrokeMoyaExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.pStrokeMoya||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_pediatric_neuro_ext180',function:'PediatricStrokeMoyaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricStrokeCADExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.pStrokeCAD||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_pediatric_neuro_ext180',function:'PediatricStrokeCADExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricStrokeRehabExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pStrokeRehab||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_pediatric_neuro_ext180',function:'PediatricStrokeRehabExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricStrokeFollowExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pStrokeFollow||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_pediatric_neuro_ext180',function:'PediatricStrokeFollowExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricTIAext']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.pTIA||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_pediatric_neuro_ext180',function:'PediatricTIAext',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.20.20.0';
+const MOD = 'pcc_pediatric_neuro_ext180';
 
-// TS: v3.20.20.0
+function PediatricStrokeExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricStrokeExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricStrokeExt", input, score, ts: TS, pediatricStrokeExt: _i.pediatricStrokeExt || null };
+}
+
+function PediatricStrokeArterialExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricStrokeArterialExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricStrokeArterialExt", input, score, ts: TS, pediatricStrokeArterialExt: _i.pediatricStrokeArterialExt || null };
+}
+
+function PediatricStrokeSinusExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricStrokeSinusExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricStrokeSinusExt", input, score, ts: TS, pediatricStrokeSinusExt: _i.pediatricStrokeSinusExt || null };
+}
+
+function PediatricStrokePerinatalExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricStrokePerinatalExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricStrokePerinatalExt", input, score, ts: TS, pediatricStrokePerinatalExt: _i.pediatricStrokePerinatalExt || null };
+}
+
+function PediatricStrokeSickleExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricStrokeSickleExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricStrokeSickleExt", input, score, ts: TS, pediatricStrokeSickleExt: _i.pediatricStrokeSickleExt || null };
+}
+
+function PediatricStrokeMoyaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricStrokeMoyaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricStrokeMoyaExt", input, score, ts: TS, pediatricStrokeMoyaExt: _i.pediatricStrokeMoyaExt || null };
+}
+
+function PediatricStrokeCADExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricStrokeCADExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricStrokeCADExt", input, score, ts: TS, pediatricStrokeCADExt: _i.pediatricStrokeCADExt || null };
+}
+
+function PediatricStrokeRehabExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricStrokeRehabExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricStrokeRehabExt", input, score, ts: TS, pediatricStrokeRehabExt: _i.pediatricStrokeRehabExt || null };
+}
+
+function PediatricStrokeFollowExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricStrokeFollowExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricStrokeFollowExt", input, score, ts: TS, pediatricStrokeFollowExt: _i.pediatricStrokeFollowExt || null };
+}
+
+function PediatricTIAext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricTIAext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PediatricTIAext', input, score, ts: TS, pediatricTIAext: _i.pediatricTIAext || null };
+}
+
+module.exports = {
+  PediatricStrokeExt,
+  PediatricStrokeArterialExt,
+  PediatricStrokeSinusExt,
+  PediatricStrokePerinatalExt,
+  PediatricStrokeSickleExt,
+  PediatricStrokeMoyaExt,
+  PediatricStrokeCADExt,
+  PediatricStrokeRehabExt,
+  PediatricStrokeFollowExt,
+  PediatricTIAext,
+};

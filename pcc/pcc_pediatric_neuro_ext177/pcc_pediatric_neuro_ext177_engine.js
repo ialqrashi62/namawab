@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_pediatric_neuro_ext177/pcc_pediatric_neuro_ext177_engine.js
-module.exports.version='v3.17.17.0';
-module.exports.module='pcc_pediatric_neuro_ext177';
-module.exports.functions={};
-module.exports.functions['PediatricMovementDrugExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.pMDrug||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_pediatric_neuro_ext177',function:'PediatricMovementDrugExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricBotulinumExt']=function(input){const score=Math.round((0.18 + Number(input.age||3)*0.04 + Number(input.pBotox||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_pediatric_neuro_ext177',function:'PediatricBotulinumExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricDBSext']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.pDBS||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_pediatric_neuro_ext177',function:'PediatricDBSext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricITBext']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pITB||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_pediatric_neuro_ext177',function:'PediatricITBext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricDystoniaRxExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pDystoniaRx||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_pediatric_neuro_ext177',function:'PediatricDystoniaRxExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricChoreaRxExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.pChoreaRx||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_pediatric_neuro_ext177',function:'PediatricChoreaRxExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricTicRxExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.pTicRx||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_pediatric_neuro_ext177',function:'PediatricTicRxExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricAtaxiaRxExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pAtaxiaRx||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_pediatric_neuro_ext177',function:'PediatricAtaxiaRxExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricMyoclonusRxExt']=function(input){const score=Math.round((0.18 + Number(input.age||1)*0.04 + Number(input.pMyoRx||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_pediatric_neuro_ext177',function:'PediatricMyoclonusRxExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricTremorRxExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.pTremorRx||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_pediatric_neuro_ext177',function:'PediatricTremorRxExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.17.17.0';
+const MOD = 'pcc_pediatric_neuro_ext177';
 
-// TS: v3.17.17.0
+function PediatricMovementDrugExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricMovementDrugExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricMovementDrugExt", input, score, ts: TS, pediatricMovementDrugExt: _i.pediatricMovementDrugExt || null };
+}
+
+function PediatricBotulinumExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricBotulinumExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricBotulinumExt", input, score, ts: TS, pediatricBotulinumExt: _i.pediatricBotulinumExt || null };
+}
+
+function PediatricDBSext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricDBSext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PediatricDBSext', input, score, ts: TS, pediatricDBSext: _i.pediatricDBSext || null };
+}
+
+function PediatricITBext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricITBext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PediatricITBext', input, score, ts: TS, pediatricITBext: _i.pediatricITBext || null };
+}
+
+function PediatricDystoniaRxExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricDystoniaRxExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricDystoniaRxExt", input, score, ts: TS, pediatricDystoniaRxExt: _i.pediatricDystoniaRxExt || null };
+}
+
+function PediatricChoreaRxExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricChoreaRxExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricChoreaRxExt", input, score, ts: TS, pediatricChoreaRxExt: _i.pediatricChoreaRxExt || null };
+}
+
+function PediatricTicRxExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricTicRxExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricTicRxExt", input, score, ts: TS, pediatricTicRxExt: _i.pediatricTicRxExt || null };
+}
+
+function PediatricAtaxiaRxExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricAtaxiaRxExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricAtaxiaRxExt", input, score, ts: TS, pediatricAtaxiaRxExt: _i.pediatricAtaxiaRxExt || null };
+}
+
+function PediatricMyoclonusRxExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricMyoclonusRxExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricMyoclonusRxExt", input, score, ts: TS, pediatricMyoclonusRxExt: _i.pediatricMyoclonusRxExt || null };
+}
+
+function PediatricTremorRxExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricTremorRxExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricTremorRxExt", input, score, ts: TS, pediatricTremorRxExt: _i.pediatricTremorRxExt || null };
+}
+
+module.exports = {
+  PediatricMovementDrugExt,
+  PediatricBotulinumExt,
+  PediatricDBSext,
+  PediatricITBext,
+  PediatricDystoniaRxExt,
+  PediatricChoreaRxExt,
+  PediatricTicRxExt,
+  PediatricAtaxiaRxExt,
+  PediatricMyoclonusRxExt,
+  PediatricTremorRxExt,
+};

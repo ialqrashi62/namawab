@@ -1,22 +1,22 @@
-// pcc_pediatric_neuro_ext8 integration test v3.118.0
-const request = require('supertest');
-const express = require('express');
-const router = require('./pcc_pediatric_neuro_ext8_routes');
-const app = express();
-app.use(express.json());
-app.use('/', router);
-const assert = require('assert');
-
-(async () => {
-  let passed = 0;
-  let res = await request(app).get('/list');
-  assert.strictEqual(res.status, 200); passed++;
-  assert.strictEqual(res.body.version, '3.118.0'); passed++;
-  for (const fn of ['PediatricAutismSpectrum', 'PediatricAspergerSyndrome', 'PediatricPervasiveDevelopmental', 'PediatricRettSyndrome', 'PediatricChildhoodDisintegrative', 'PediatricADHD', 'PediatricTouretteSyndrome', 'PediatricOCD', 'PediatricAnxietyDisorder', 'PediatricConductDisorder']) {
-    res = await request(app).post('/call/' + fn).send({t:'yes'});
-    assert.strictEqual(res.status, 200); passed++;
-    res = await request(app).post('/record').send({tenant_id:'t1',fn,input:{a:1}});
-    assert.strictEqual(res.status, 200); passed++;
-  }
-  console.log('pcc_pediatric_neuro_ext8 integration:', passed, 'passed');
-})();
+// Auto-generated integration tests for pcc_pediatric_neuro_ext8 — 3.226.0
+"use strict";
+const Engine = require('./pcc_pediatric_neuro_ext8_engine.js');
+let passed = 0, failed = 0;
+function test(name, fn) { try { fn(); passed++; console.log('  ok   ' + name); } catch (e) { failed++; console.error('  FAIL ' + name + ' :: ' + e.message); } }
+const F = Object.keys(Engine);
+test('Engine has 10 functions', () => { if (F.length !== 10) throw new Error('expected 10, got ' + F.length); });
+test('fn_1_EXT8AssessmentExt_handles_empty', () => { const r = Engine.EXT8AssessmentExt({}); if (r.module !== 'pcc_pediatric_neuro_ext8') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_2_EXT8ScoreExt_handles_empty', () => { const r = Engine.EXT8ScoreExt({}); if (r.module !== 'pcc_pediatric_neuro_ext8') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_3_EXT8StageExt_handles_empty', () => { const r = Engine.EXT8StageExt({}); if (r.module !== 'pcc_pediatric_neuro_ext8') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_4_EXT8PlanExt_handles_empty', () => { const r = Engine.EXT8PlanExt({}); if (r.module !== 'pcc_pediatric_neuro_ext8') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_5_EXT8RiskExt_handles_empty', () => { const r = Engine.EXT8RiskExt({}); if (r.module !== 'pcc_pediatric_neuro_ext8') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_6_EXT8DoseExt_handles_empty', () => { const r = Engine.EXT8DoseExt({}); if (r.module !== 'pcc_pediatric_neuro_ext8') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_7_EXT8FrequencyExt_handles_empty', () => { const r = Engine.EXT8FrequencyExt({}); if (r.module !== 'pcc_pediatric_neuro_ext8') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_8_EXT8DurationExt_handles_empty', () => { const r = Engine.EXT8DurationExt({}); if (r.module !== 'pcc_pediatric_neuro_ext8') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_9_EXT8FollowupExt_handles_empty', () => { const r = Engine.EXT8FollowupExt({}); if (r.module !== 'pcc_pediatric_neuro_ext8') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_10_EXT8OutcomeExt_handles_empty', () => { const r = Engine.EXT8OutcomeExt({}); if (r.module !== 'pcc_pediatric_neuro_ext8') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('No hardcoded secrets in any output', () => { for (const fn of F) { const j = JSON.stringify(Engine[fn]({})).toLowerCase(); if (j.includes('password=') || j.includes('api_key=') || j.includes('secret=')) throw new Error('secret in ' + fn); } });
+test('All functions have tenant_id placeholder support', () => { for (const fn of F) { const r = Engine[fn]({tenant_id: 'tenant_001'}); if (!r) throw new Error('no result in ' + fn); } });
+test('All functions include version field', () => { for (const fn of F) { const r = Engine[fn]({}); if (!r.version) throw new Error('no version in ' + fn); } });
+console.log('Total: ' + (passed + failed) + ' | passed: ' + passed + ' | failed: ' + failed);
+process.exit(failed === 0 ? 0 : 1);

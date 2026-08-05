@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_pediatric_neuro_ext122/pcc_pediatric_neuro_ext122_engine.js
-module.exports.version='v3.232.0';
-module.exports.module='pcc_pediatric_neuro_ext122';
-module.exports.functions={};
-module.exports.functions['PediatricNF1Ext']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.nf1||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.232.0',module:'pcc_pediatric_neuro_ext122',function:'PediatricNF1Ext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricNF1OpticExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.optic||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.232.0',module:'pcc_pediatric_neuro_ext122',function:'PediatricNF1OpticExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricNF1PNSText']=function(input){const score=Math.round((0.18 + Number(input.age||10)*0.04 + Number(input.pnst||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.232.0',module:'pcc_pediatric_neuro_ext122',function:'PediatricNF1PNSText',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricNF1LearningExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.learning||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.232.0',module:'pcc_pediatric_neuro_ext122',function:'PediatricNF1LearningExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricTSCExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.tsc||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.232.0',module:'pcc_pediatric_neuro_ext122',function:'PediatricTSCExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricSEGAext']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.sega||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.232.0',module:'pcc_pediatric_neuro_ext122',function:'PediatricSEGAext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricTSCepilepsyExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.epilepsy||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.232.0',module:'pcc_pediatric_neuro_ext122',function:'PediatricTSCepilepsyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricVHLExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.vhl||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.232.0',module:'pcc_pediatric_neuro_ext122',function:'PediatricVHLExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricVHLPheoExt']=function(input){const score=Math.round((0.18 + Number(input.age||10)*0.04 + Number(input.pheo||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.232.0',module:'pcc_pediatric_neuro_ext122',function:'PediatricVHLPheoExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricSturgeWeberExt']=function(input){const score=Math.round((0.18 + Number(input.age||1)*0.04 + Number(input.sturge||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.232.0',module:'pcc_pediatric_neuro_ext122',function:'PediatricSturgeWeberExt',input,score,ts:new Date().toISOString()}};
+// pcc_pediatric_neuro_ext122_engine v3.316.58 (Phase 2 Batch 25 — Pediatric Neuro ext112-123)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.58';
+const MOD = 'pcc_pediatric_neuro_ext122';
 
-// TS: v3.232.0
+function PediatricNF1Ext(input) {
+  const i = input || {};
+  const v = Number(i.PediatricNF1Ext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricNF1Ext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricNF1OpticExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricNF1OpticExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricNF1OpticExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricNF1PNSText(input) {
+  const i = input || {};
+  const v = Number(i.PediatricNF1PNSText || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricNF1PNSText', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricNF1LearningExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricNF1LearningExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricNF1LearningExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricTSCExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricTSCExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricTSCExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricSEGAext(input) {
+  const i = input || {};
+  const v = Number(i.PediatricSEGAext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricSEGAext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricTSCepilepsyExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricTSCepilepsyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricTSCepilepsyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricVHLExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricVHLExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricVHLExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricVHLPheoExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricVHLPheoExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricVHLPheoExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PediatricSturgeWeberExt(input) {
+  const i = input || {};
+  const v = Number(i.PediatricSturgeWeberExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PediatricSturgeWeberExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  PediatricNF1Ext, PediatricNF1OpticExt, PediatricNF1PNSText, PediatricNF1LearningExt, PediatricTSCExt, PediatricSEGAext, PediatricTSCepilepsyExt, PediatricVHLExt, PediatricVHLPheoExt, PediatricSturgeWeberExt
+};

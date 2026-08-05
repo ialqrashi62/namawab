@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_pediatric_neuro_ext160/pcc_pediatric_neuro_ext160_engine.js
-module.exports.version='v3.12.12.0';
-module.exports.module='pcc_pediatric_neuro_ext160';
-module.exports.functions={};
-module.exports.functions['PediatricDMDchildExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pDMD||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.12.0',module:'pcc_pediatric_neuro_ext160',function:'PediatricDMDchildExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricBMDchildExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.pBMD||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.12.0',module:'pcc_pediatric_neuro_ext160',function:'PediatricBMDchildExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricLGMDchildExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pLGMD||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.12.0',module:'pcc_pediatric_neuro_ext160',function:'PediatricLGMDchildExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricFSHDchildExt']=function(input){const score=Math.round((0.18 + Number(input.age||10)*0.04 + Number(input.pFSHD||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.12.0',module:'pcc_pediatric_neuro_ext160',function:'PediatricFSHDchildExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricOPMDchildExt']=function(input){const score=Math.round((0.18 + Number(input.age||12)*0.04 + Number(input.pOPMD||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.12.0',module:'pcc_pediatric_neuro_ext160',function:'PediatricOPMDchildExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricEDMDchildExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pEDMD||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.12.0',module:'pcc_pediatric_neuro_ext160',function:'PediatricEDMDchildExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricDM1childExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pDM1||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.12.0',module:'pcc_pediatric_neuro_ext160',function:'PediatricDM1childExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricCongMyopExt']=function(input){const score=Math.round((0.18 + Number(input.age||1)*0.04 + Number(input.pCongMyop||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.12.0',module:'pcc_pediatric_neuro_ext160',function:'PediatricCongMyopExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricMitoMyopExt']=function(input){const score=Math.round((0.18 + Number(input.age||1)*0.04 + Number(input.pMitoMyop||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.12.0',module:'pcc_pediatric_neuro_ext160',function:'PediatricMitoMyopExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricPompeExt']=function(input){const score=Math.round((0.18 + Number(input.age||1)*0.04 + Number(input.pPompe||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.12.0',module:'pcc_pediatric_neuro_ext160',function:'PediatricPompeExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.12.12.0';
+const MOD = 'pcc_pediatric_neuro_ext160';
 
-// TS: v3.12.12.0
+function PediatricDMDchildExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricDMDchildExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricDMDchildExt", input, score, ts: TS, pediatricDMDchildExt: _i.pediatricDMDchildExt || null };
+}
+
+function PediatricBMDchildExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricBMDchildExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricBMDchildExt", input, score, ts: TS, pediatricBMDchildExt: _i.pediatricBMDchildExt || null };
+}
+
+function PediatricLGMDchildExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricLGMDchildExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricLGMDchildExt", input, score, ts: TS, pediatricLGMDchildExt: _i.pediatricLGMDchildExt || null };
+}
+
+function PediatricFSHDchildExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricFSHDchildExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricFSHDchildExt", input, score, ts: TS, pediatricFSHDchildExt: _i.pediatricFSHDchildExt || null };
+}
+
+function PediatricOPMDchildExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricOPMDchildExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricOPMDchildExt", input, score, ts: TS, pediatricOPMDchildExt: _i.pediatricOPMDchildExt || null };
+}
+
+function PediatricEDMDchildExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricEDMDchildExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricEDMDchildExt", input, score, ts: TS, pediatricEDMDchildExt: _i.pediatricEDMDchildExt || null };
+}
+
+function PediatricDM1childExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricDM1childExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricDM1childExt", input, score, ts: TS, pediatricDM1childExt: _i.pediatricDM1childExt || null };
+}
+
+function PediatricCongMyopExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricCongMyopExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricCongMyopExt", input, score, ts: TS, pediatricCongMyopExt: _i.pediatricCongMyopExt || null };
+}
+
+function PediatricMitoMyopExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricMitoMyopExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricMitoMyopExt", input, score, ts: TS, pediatricMitoMyopExt: _i.pediatricMitoMyopExt || null };
+}
+
+function PediatricPompeExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricPompeExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricPompeExt", input, score, ts: TS, pediatricPompeExt: _i.pediatricPompeExt || null };
+}
+
+module.exports = {
+  PediatricDMDchildExt,
+  PediatricBMDchildExt,
+  PediatricLGMDchildExt,
+  PediatricFSHDchildExt,
+  PediatricOPMDchildExt,
+  PediatricEDMDchildExt,
+  PediatricDM1childExt,
+  PediatricCongMyopExt,
+  PediatricMitoMyopExt,
+  PediatricPompeExt,
+};

@@ -1,27 +1,19 @@
-// pcc_pediatric_neuro_ext18 unit test v3.128.0
-const { PediatricNeuropsychiatricEval, PediatricCognitiveAssessment, PediatricIntelligenceTest, PediatricAdaptiveFunction, PediatricLearningDisorder, PediatricIntellectualDisability, PediatricGlobalDevelopmentalDelay, PediatricSpecificLearningDisorder, PediatricMotorSkillsDisorder, PediatricCommunicationDisorder } = require('./pcc_pediatric_neuro_ext18_engine');
-const assert = require('assert');
+// Auto-generated unit tests for pcc_pediatric_neuro_ext18 — 3.230.0
+"use strict";
+const Engine = require('./pcc_pediatric_neuro_ext18_engine.js');
+const VER = '3.230.0';
+let passed = 0, failed = 0;
+function test(name, fn) { try { fn(); passed++; console.log('  ok   ' + name); } catch (e) { failed++; console.error('  FAIL ' + name + ' :: ' + e.message); } }
 
-let passed = 0;
-assert.ok(PediatricNeuropsychiatricEval()); passed++;
-assert.ok(PediatricNeuropsychiatricEval({a:1})); passed++;
-assert.ok(PediatricCognitiveAssessment()); passed++;
-assert.ok(PediatricCognitiveAssessment({a:1})); passed++;
-assert.ok(PediatricIntelligenceTest()); passed++;
-assert.ok(PediatricIntelligenceTest({a:1})); passed++;
-assert.ok(PediatricAdaptiveFunction()); passed++;
-assert.ok(PediatricAdaptiveFunction({a:1})); passed++;
-assert.ok(PediatricLearningDisorder()); passed++;
-assert.ok(PediatricLearningDisorder({a:1})); passed++;
-assert.ok(PediatricIntellectualDisability()); passed++;
-assert.ok(PediatricIntellectualDisability({a:1})); passed++;
-assert.ok(PediatricGlobalDevelopmentalDelay()); passed++;
-assert.ok(PediatricGlobalDevelopmentalDelay({a:1})); passed++;
-assert.ok(PediatricSpecificLearningDisorder()); passed++;
-assert.ok(PediatricSpecificLearningDisorder({a:1})); passed++;
-assert.ok(PediatricMotorSkillsDisorder()); passed++;
-assert.ok(PediatricMotorSkillsDisorder({a:1})); passed++;
-assert.ok(PediatricCommunicationDisorder()); passed++;
-assert.ok(PediatricCommunicationDisorder({a:1})); passed++;
-
-console.log('pcc_pediatric_neuro_ext18 unit:', passed, 'passed');
+test('EXT1AssessmentExt_returns_valid', () => { const r = Engine.EXT1AssessmentExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT1ScoreExt_returns_valid', () => { const r = Engine.EXT1ScoreExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT1StageExt_returns_valid', () => { const r = Engine.EXT1StageExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT1PlanExt_returns_valid', () => { const r = Engine.EXT1PlanExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT1RiskExt_returns_valid', () => { const r = Engine.EXT1RiskExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT1DoseExt_returns_valid', () => { const r = Engine.EXT1DoseExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT1FrequencyExt_returns_valid', () => { const r = Engine.EXT1FrequencyExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT1DurationExt_returns_valid', () => { const r = Engine.EXT1DurationExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT1FollowupExt_returns_valid', () => { const r = Engine.EXT1FollowupExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT1OutcomeExt_returns_valid', () => { const r = Engine.EXT1OutcomeExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+console.log('Total: ' + (passed + failed) + ' | passed: ' + passed + ' | failed: ' + failed);
+process.exit(failed === 0 ? 0 : 1);

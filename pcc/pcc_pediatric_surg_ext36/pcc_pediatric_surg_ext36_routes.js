@@ -1,54 +1,23 @@
-// pcc_pediatric_surg_ext36 routes v3.146.0
+// Routes for pcc_pediatric_surg_ext36 — 3.225.0
+"use strict";
 const express = require('express');
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { PediatricThoracicSurgeryExt, PediatricPectusRepairExt, PediatricNussProcedureExt, PediatricRavitchProcedureExt, PediatricEsophagealAtresiaExt, PediatricTEFistulaExt, PediatricDiaphragmaticHerniaExt, PediatricCDHRepairExt, PediatricEventrationExt, PediatricPhrenicNervePalsyExt } = require('./pcc_pediatric_surg_ext36_engine');
+const Engine = require('./pcc_pediatric_surg_ext36_engine.js');
+const VER = '3.225.0';
+const MOD = 'pcc_pediatric_surg_ext36';
+const LABEL = 'Pediatric Surg Ext36';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.146.0', module: 'pcc_pediatric_surg_ext36', label: 'PCC Pediatric Surg Ext36', functions: ['PediatricThoracicSurgeryExt', 'PediatricPectusRepairExt', 'PediatricNussProcedureExt', 'PediatricRavitchProcedureExt', 'PediatricEsophagealAtresiaExt', 'PediatricTEFistulaExt', 'PediatricDiaphragmaticHerniaExt', 'PediatricCDHRepairExt', 'PediatricEventrationExt', 'PediatricPhrenicNervePalsyExt'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/PediatricThoracicSurgeryExt', authenticate, (req, res) => {
-  res.json(PediatricThoracicSurgeryExt(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/PediatricPectusRepairExt', authenticate, (req, res) => {
-  res.json(PediatricPectusRepairExt(req.body));
-});
-
-router.post('/call/PediatricNussProcedureExt', authenticate, (req, res) => {
-  res.json(PediatricNussProcedureExt(req.body));
-});
-
-router.post('/call/PediatricRavitchProcedureExt', authenticate, (req, res) => {
-  res.json(PediatricRavitchProcedureExt(req.body));
-});
-
-router.post('/call/PediatricEsophagealAtresiaExt', authenticate, (req, res) => {
-  res.json(PediatricEsophagealAtresiaExt(req.body));
-});
-
-router.post('/call/PediatricTEFistulaExt', authenticate, (req, res) => {
-  res.json(PediatricTEFistulaExt(req.body));
-});
-
-router.post('/call/PediatricDiaphragmaticHerniaExt', authenticate, (req, res) => {
-  res.json(PediatricDiaphragmaticHerniaExt(req.body));
-});
-
-router.post('/call/PediatricCDHRepairExt', authenticate, (req, res) => {
-  res.json(PediatricCDHRepairExt(req.body));
-});
-
-router.post('/call/PediatricEventrationExt', authenticate, (req, res) => {
-  res.json(PediatricEventrationExt(req.body));
-});
-
-router.post('/call/PediatricPhrenicNervePalsyExt', authenticate, (req, res) => {
-  res.json(PediatricPhrenicNervePalsyExt(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.146.0', module: 'pcc_pediatric_surg_ext36', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

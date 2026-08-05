@@ -1,55 +1,23 @@
-// pcc_pediatric_neuro_ext7 routes v3.117.0
+// Routes for pcc_pediatric_neuro_ext7 — 3.226.0
+"use strict";
 const express = require('express');
-// auth: authenticate (per audit L4-4)
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { PediatricHeadacheEvaluation, PediatricMigraineAcute, PediatricMigraineProphylaxis, PediatricTensionType, PediatricChronicDailyHeadache, PediatricPostTraumatic, PediatricSinusitisHeadache, PediatricIntracranialHypertension, PediatricChiariHeadache, PediatricMedicationOveruse } = require('./pcc_pediatric_neuro_ext7_engine');
+const Engine = require('./pcc_pediatric_neuro_ext7_engine.js');
+const VER = '3.226.0';
+const MOD = 'pcc_pediatric_neuro_ext7';
+const LABEL = 'Pediatric Neuro Ext7';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.117.0', module: 'pcc_pediatric_neuro_ext7', label: 'PCC Pediatric Neuro Ext7', functions: ['PediatricHeadacheEvaluation', 'PediatricMigraineAcute', 'PediatricMigraineProphylaxis', 'PediatricTensionType', 'PediatricChronicDailyHeadache', 'PediatricPostTraumatic', 'PediatricSinusitisHeadache', 'PediatricIntracranialHypertension', 'PediatricChiariHeadache', 'PediatricMedicationOveruse'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/PediatricHeadacheEvaluation', authenticate, (req, res) => {
-  res.json(PediatricHeadacheEvaluation(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/PediatricMigraineAcute', authenticate, (req, res) => {
-  res.json(PediatricMigraineAcute(req.body));
-});
-
-router.post('/call/PediatricMigraineProphylaxis', authenticate, (req, res) => {
-  res.json(PediatricMigraineProphylaxis(req.body));
-});
-
-router.post('/call/PediatricTensionType', authenticate, (req, res) => {
-  res.json(PediatricTensionType(req.body));
-});
-
-router.post('/call/PediatricChronicDailyHeadache', authenticate, (req, res) => {
-  res.json(PediatricChronicDailyHeadache(req.body));
-});
-
-router.post('/call/PediatricPostTraumatic', authenticate, (req, res) => {
-  res.json(PediatricPostTraumatic(req.body));
-});
-
-router.post('/call/PediatricSinusitisHeadache', authenticate, (req, res) => {
-  res.json(PediatricSinusitisHeadache(req.body));
-});
-
-router.post('/call/PediatricIntracranialHypertension', authenticate, (req, res) => {
-  res.json(PediatricIntracranialHypertension(req.body));
-});
-
-router.post('/call/PediatricChiariHeadache', authenticate, (req, res) => {
-  res.json(PediatricChiariHeadache(req.body));
-});
-
-router.post('/call/PediatricMedicationOveruse', authenticate, (req, res) => {
-  res.json(PediatricMedicationOveruse(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.117.0', module: 'pcc_pediatric_neuro_ext7', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

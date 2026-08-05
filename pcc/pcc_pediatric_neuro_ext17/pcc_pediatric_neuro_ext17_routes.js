@@ -1,55 +1,23 @@
-// pcc_pediatric_neuro_ext17 routes v3.127.0
+// Routes for pcc_pediatric_neuro_ext17 — 3.229.0
+"use strict";
 const express = require('express');
-// auth: authenticate (per audit L4-4)
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { PediatricAcuteFlaccidMyelitis, PediatricAFM, PediatricEnterovirusD68, PediatricPolioLikeIllness, PediatricAcuteMyelitis, PediatricLimbWeakness, PediatricCranialNervePalsy, PediatricBrainstemEncephalitis, PediatricRhombencephalitis, PediatricBickerstaff } = require('./pcc_pediatric_neuro_ext17_engine');
+const Engine = require('./pcc_pediatric_neuro_ext17_engine.js');
+const VER = '3.229.0';
+const MOD = 'pcc_pediatric_neuro_ext17';
+const LABEL = 'Pediatric Neuro Ext17';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.127.0', module: 'pcc_pediatric_neuro_ext17', label: 'PCC Pediatric Neuro Ext17', functions: ['PediatricAcuteFlaccidMyelitis', 'PediatricAFM', 'PediatricEnterovirusD68', 'PediatricPolioLikeIllness', 'PediatricAcuteMyelitis', 'PediatricLimbWeakness', 'PediatricCranialNervePalsy', 'PediatricBrainstemEncephalitis', 'PediatricRhombencephalitis', 'PediatricBickerstaff'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/PediatricAcuteFlaccidMyelitis', authenticate, (req, res) => {
-  res.json(PediatricAcuteFlaccidMyelitis(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/PediatricAFM', authenticate, (req, res) => {
-  res.json(PediatricAFM(req.body));
-});
-
-router.post('/call/PediatricEnterovirusD68', authenticate, (req, res) => {
-  res.json(PediatricEnterovirusD68(req.body));
-});
-
-router.post('/call/PediatricPolioLikeIllness', authenticate, (req, res) => {
-  res.json(PediatricPolioLikeIllness(req.body));
-});
-
-router.post('/call/PediatricAcuteMyelitis', authenticate, (req, res) => {
-  res.json(PediatricAcuteMyelitis(req.body));
-});
-
-router.post('/call/PediatricLimbWeakness', authenticate, (req, res) => {
-  res.json(PediatricLimbWeakness(req.body));
-});
-
-router.post('/call/PediatricCranialNervePalsy', authenticate, (req, res) => {
-  res.json(PediatricCranialNervePalsy(req.body));
-});
-
-router.post('/call/PediatricBrainstemEncephalitis', authenticate, (req, res) => {
-  res.json(PediatricBrainstemEncephalitis(req.body));
-});
-
-router.post('/call/PediatricRhombencephalitis', authenticate, (req, res) => {
-  res.json(PediatricRhombencephalitis(req.body));
-});
-
-router.post('/call/PediatricBickerstaff', authenticate, (req, res) => {
-  res.json(PediatricBickerstaff(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.127.0', module: 'pcc_pediatric_neuro_ext17', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;

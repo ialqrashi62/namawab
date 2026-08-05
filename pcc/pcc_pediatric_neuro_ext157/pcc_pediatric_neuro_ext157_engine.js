@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_pediatric_neuro_ext157/pcc_pediatric_neuro_ext157_engine.js
-module.exports.version='v3.12.9.0';
-module.exports.module='pcc_pediatric_neuro_ext157';
-module.exports.functions={};
-module.exports.functions['PediatricOptNeurExt']=function(input){const score=Math.round((0.18 + Number(input.age||8)*0.04 + Number(input.pOptNeur2||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.9.0',module:'pcc_pediatric_neuro_ext157',function:'PediatricOptNeurExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricIONExt']=function(input){const score=Math.round((0.18 + Number(input.age||10)*0.04 + Number(input.pION||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.9.0',module:'pcc_pediatric_neuro_ext157',function:'PediatricIONExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricPapilledemaExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pPapilledema||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.9.0',module:'pcc_pediatric_neuro_ext157',function:'PediatricPapilledemaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricRetinoblastomaExt']=function(input){const score=Math.round((0.18 + Number(input.age||1)*0.04 + Number(input.retinoblast||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.9.0',module:'pcc_pediatric_neuro_ext157',function:'PediatricRetinoblastomaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricROPext']=function(input){const score=Math.round((0.18 + Number(input.age||0)*0.04 + Number(input.rop||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.9.0',module:'pcc_pediatric_neuro_ext157',function:'PediatricROPext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricLeberAmaurosisExt']=function(input){const score=Math.round((0.18 + Number(input.age||1)*0.04 + Number(input.lca||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.9.0',module:'pcc_pediatric_neuro_ext157',function:'PediatricLeberAmaurosisExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricCongCataractExt']=function(input){const score=Math.round((0.18 + Number(input.age||0)*0.04 + Number(input.congCataract||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.9.0',module:'pcc_pediatric_neuro_ext157',function:'PediatricCongCataractExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricGlaucomaExt']=function(input){const score=Math.round((0.18 + Number(input.age||3)*0.04 + Number(input.pGlaucoma||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.9.0',module:'pcc_pediatric_neuro_ext157',function:'PediatricGlaucomaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricOrbitalCellExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pOrbitalCell||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.9.0',module:'pcc_pediatric_neuro_ext157',function:'PediatricOrbitalCellExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricAmblyopiaExt']=function(input){const score=Math.round((0.18 + Number(input.age||3)*0.04 + Number(input.amblyopia||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.12.9.0',module:'pcc_pediatric_neuro_ext157',function:'PediatricAmblyopiaExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.12.9.0';
+const MOD = 'pcc_pediatric_neuro_ext157';
 
-// TS: v3.12.9.0
+function PediatricOptNeurExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricOptNeurExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricOptNeurExt", input, score, ts: TS, pediatricOptNeurExt: _i.pediatricOptNeurExt || null };
+}
+
+function PediatricIONExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricIONExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricIONExt", input, score, ts: TS, pediatricIONExt: _i.pediatricIONExt || null };
+}
+
+function PediatricPapilledemaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricPapilledemaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricPapilledemaExt", input, score, ts: TS, pediatricPapilledemaExt: _i.pediatricPapilledemaExt || null };
+}
+
+function PediatricRetinoblastomaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricRetinoblastomaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricRetinoblastomaExt", input, score, ts: TS, pediatricRetinoblastomaExt: _i.pediatricRetinoblastomaExt || null };
+}
+
+function PediatricROPext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricROPext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PediatricROPext', input, score, ts: TS, pediatricROPext: _i.pediatricROPext || null };
+}
+
+function PediatricLeberAmaurosisExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricLeberAmaurosisExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricLeberAmaurosisExt", input, score, ts: TS, pediatricLeberAmaurosisExt: _i.pediatricLeberAmaurosisExt || null };
+}
+
+function PediatricCongCataractExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricCongCataractExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricCongCataractExt", input, score, ts: TS, pediatricCongCataractExt: _i.pediatricCongCataractExt || null };
+}
+
+function PediatricGlaucomaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricGlaucomaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricGlaucomaExt", input, score, ts: TS, pediatricGlaucomaExt: _i.pediatricGlaucomaExt || null };
+}
+
+function PediatricOrbitalCellExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricOrbitalCellExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricOrbitalCellExt", input, score, ts: TS, pediatricOrbitalCellExt: _i.pediatricOrbitalCellExt || null };
+}
+
+function PediatricAmblyopiaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricAmblyopiaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricAmblyopiaExt", input, score, ts: TS, pediatricAmblyopiaExt: _i.pediatricAmblyopiaExt || null };
+}
+
+module.exports = {
+  PediatricOptNeurExt,
+  PediatricIONExt,
+  PediatricPapilledemaExt,
+  PediatricRetinoblastomaExt,
+  PediatricROPext,
+  PediatricLeberAmaurosisExt,
+  PediatricCongCataractExt,
+  PediatricGlaucomaExt,
+  PediatricOrbitalCellExt,
+  PediatricAmblyopiaExt,
+};

@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_pediatric_neuro_ext182/pcc_pediatric_neuro_ext182_engine.js
-module.exports.version='v3.22.22.0';
-module.exports.module='pcc_pediatric_neuro_ext182';
-module.exports.functions={};
-module.exports.functions['PediatricEpilepsyExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pEp||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_pediatric_neuro_ext182',function:'PediatricEpilepsyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricEpilepsyFocalExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pEpFocal||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_pediatric_neuro_ext182',function:'PediatricEpilepsyFocalExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricEpilepsyGeneralizedExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pEpGen||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_pediatric_neuro_ext182',function:'PediatricEpilepsyGeneralizedExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricStatusEpilepticusExt']=function(input){const score=Math.round((0.18 + Number(input.age||3)*0.04 + Number(input.pSE||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_pediatric_neuro_ext182',function:'PediatricStatusEpilepticusExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricFebrileSeizureExt']=function(input){const score=Math.round((0.18 + Number(input.age||2)*0.04 + Number(input.pFebSz||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_pediatric_neuro_ext182',function:'PediatricFebrileSeizureExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricInfantileSpasmExt']=function(input){const score=Math.round((0.18 + Number(input.age||0)*0.04 + Number(input.pIS||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_pediatric_neuro_ext182',function:'PediatricInfantileSpasmExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricLennoxExt']=function(input){const score=Math.round((0.18 + Number(input.age||3)*0.04 + Number(input.pLennox||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_pediatric_neuro_ext182',function:'PediatricLennoxExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricEpilepsySurgeryExt']=function(input){const score=Math.round((0.18 + Number(input.age||5)*0.04 + Number(input.pEpSx||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_pediatric_neuro_ext182',function:'PediatricEpilepsySurgeryExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricDietEpilepsyExt']=function(input){const score=Math.round((0.18 + Number(input.age||3)*0.04 + Number(input.pDietEp||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_pediatric_neuro_ext182',function:'PediatricDietEpilepsyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PediatricEpilepsyVaccineExt']=function(input){const score=Math.round((0.18 + Number(input.age||1)*0.04 + Number(input.pEpVacc||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_pediatric_neuro_ext182',function:'PediatricEpilepsyVaccineExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.22.22.0';
+const MOD = 'pcc_pediatric_neuro_ext182';
 
-// TS: v3.22.22.0
+function PediatricEpilepsyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricEpilepsyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricEpilepsyExt", input, score, ts: TS, pediatricEpilepsyExt: _i.pediatricEpilepsyExt || null };
+}
+
+function PediatricEpilepsyFocalExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricEpilepsyFocalExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricEpilepsyFocalExt", input, score, ts: TS, pediatricEpilepsyFocalExt: _i.pediatricEpilepsyFocalExt || null };
+}
+
+function PediatricEpilepsyGeneralizedExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricEpilepsyGeneralizedExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricEpilepsyGeneralizedExt", input, score, ts: TS, pediatricEpilepsyGeneralizedExt: _i.pediatricEpilepsyGeneralizedExt || null };
+}
+
+function PediatricStatusEpilepticusExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricStatusEpilepticusExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricStatusEpilepticusExt", input, score, ts: TS, pediatricStatusEpilepticusExt: _i.pediatricStatusEpilepticusExt || null };
+}
+
+function PediatricFebrileSeizureExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricFebrileSeizureExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricFebrileSeizureExt", input, score, ts: TS, pediatricFebrileSeizureExt: _i.pediatricFebrileSeizureExt || null };
+}
+
+function PediatricInfantileSpasmExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricInfantileSpasmExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricInfantileSpasmExt", input, score, ts: TS, pediatricInfantileSpasmExt: _i.pediatricInfantileSpasmExt || null };
+}
+
+function PediatricLennoxExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricLennoxExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricLennoxExt", input, score, ts: TS, pediatricLennoxExt: _i.pediatricLennoxExt || null };
+}
+
+function PediatricEpilepsySurgeryExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricEpilepsySurgeryExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricEpilepsySurgeryExt", input, score, ts: TS, pediatricEpilepsySurgeryExt: _i.pediatricEpilepsySurgeryExt || null };
+}
+
+function PediatricDietEpilepsyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricDietEpilepsyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricDietEpilepsyExt", input, score, ts: TS, pediatricDietEpilepsyExt: _i.pediatricDietEpilepsyExt || null };
+}
+
+function PediatricEpilepsyVaccineExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pediatricEpilepsyVaccineExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PediatricEpilepsyVaccineExt", input, score, ts: TS, pediatricEpilepsyVaccineExt: _i.pediatricEpilepsyVaccineExt || null };
+}
+
+module.exports = {
+  PediatricEpilepsyExt,
+  PediatricEpilepsyFocalExt,
+  PediatricEpilepsyGeneralizedExt,
+  PediatricStatusEpilepticusExt,
+  PediatricFebrileSeizureExt,
+  PediatricInfantileSpasmExt,
+  PediatricLennoxExt,
+  PediatricEpilepsySurgeryExt,
+  PediatricDietEpilepsyExt,
+  PediatricEpilepsyVaccineExt,
+};

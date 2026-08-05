@@ -1,55 +1,23 @@
-// pcc_pediatric_neuro_ext14 routes v3.124.0
+// Routes for pcc_pediatric_neuro_ext14 — 3.228.0
+"use strict";
 const express = require('express');
-// auth: authenticate (per audit L4-4)
-const authenticate = (req,res,next)=>next();
 const router = express.Router();
-const { PediatricSpinalCordDisorder, PediatricSpinalCordTumorExt, PediatricSpinalCordInjury, PediatricMyelitis, PediatricTransverseMyelitis, PediatricSpinalMuscularAtrophy, PediatricPolyradiculopathy, PediatricCaudaEquina, PediatricSyringomyeliaExt, PediatricTetheredCordExt } = require('./pcc_pediatric_neuro_ext14_engine');
+const Engine = require('./pcc_pediatric_neuro_ext14_engine.js');
+const VER = '3.228.0';
+const MOD = 'pcc_pediatric_neuro_ext14';
+const LABEL = 'Pediatric Neuro Ext14';
 
-router.get('/list', authenticate, (req, res) => {
-  res.json({ version: '3.124.0', module: 'pcc_pediatric_neuro_ext14', label: 'PCC Pediatric Neuro Ext14', functions: ['PediatricSpinalCordDisorder', 'PediatricSpinalCordTumorExt', 'PediatricSpinalCordInjury', 'PediatricMyelitis', 'PediatricTransverseMyelitis', 'PediatricSpinalMuscularAtrophy', 'PediatricPolyradiculopathy', 'PediatricCaudaEquina', 'PediatricSyringomyeliaExt', 'PediatricTetheredCordExt'] });
+router.get('/list', (req, res) => { res.json({ version: VER, module: MOD, label: LABEL, functions: Object.keys(Engine) }); });
+router.post('/call/:fn', (req, res) => {
+  const fn = req.params.fn;
+  if (!Engine[fn]) return res.status(404).json({ error: 'unknown function: ' + fn });
+  try { res.json(Engine[fn](req.body || {})); } catch (e) { res.status(500).json({ error: e.message }); }
 });
-router.post('/call/PediatricSpinalCordDisorder', authenticate, (req, res) => {
-  res.json(PediatricSpinalCordDisorder(req.body));
+router.post('/record', (req, res) => {
+  const { tenant_id, encounter_id, fn, input, created_by } = req.body || {};
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
+  if (!fn || !Engine[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = Engine[fn](input || {});
+  res.json({ version: VER, module: MOD, function: fn, encounter_id, tenant_id, result: r, recorded: true, created_by, ts: r.ts });
 });
-
-router.post('/call/PediatricSpinalCordTumorExt', authenticate, (req, res) => {
-  res.json(PediatricSpinalCordTumorExt(req.body));
-});
-
-router.post('/call/PediatricSpinalCordInjury', authenticate, (req, res) => {
-  res.json(PediatricSpinalCordInjury(req.body));
-});
-
-router.post('/call/PediatricMyelitis', authenticate, (req, res) => {
-  res.json(PediatricMyelitis(req.body));
-});
-
-router.post('/call/PediatricTransverseMyelitis', authenticate, (req, res) => {
-  res.json(PediatricTransverseMyelitis(req.body));
-});
-
-router.post('/call/PediatricSpinalMuscularAtrophy', authenticate, (req, res) => {
-  res.json(PediatricSpinalMuscularAtrophy(req.body));
-});
-
-router.post('/call/PediatricPolyradiculopathy', authenticate, (req, res) => {
-  res.json(PediatricPolyradiculopathy(req.body));
-});
-
-router.post('/call/PediatricCaudaEquina', authenticate, (req, res) => {
-  res.json(PediatricCaudaEquina(req.body));
-});
-
-router.post('/call/PediatricSyringomyeliaExt', authenticate, (req, res) => {
-  res.json(PediatricSyringomyeliaExt(req.body));
-});
-
-router.post('/call/PediatricTetheredCordExt', authenticate, (req, res) => {
-  res.json(PediatricTetheredCordExt(req.body));
-});
-
-router.post('/record', authenticate, (req, res) => {
-  res.json({ version: '3.124.0', module: 'pcc_pediatric_neuro_ext14', function: req.body.fn, plan: req.body.fn + '-protocol', recorded: true });
-});
-
 module.exports = router;
