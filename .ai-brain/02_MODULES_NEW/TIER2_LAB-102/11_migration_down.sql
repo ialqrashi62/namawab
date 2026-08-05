@@ -1,0 +1,7 @@
+-- lab_102 reverse
+BEGIN;
+DROP TABLE IF EXISTS lab_102_results CASCADE;
+DROP TABLE IF EXISTS lab_102_orders  CASCADE;
+DROP TABLE IF EXISTS lab_102_visits  CASCADE;
+DELETE FROM schema_migrations WHERE id = 'p3_LAB_102_up';
+COMMIT;

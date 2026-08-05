@@ -1,0 +1,2018 @@
+{
+  "ts": "2026-08-01T03:53:01.110Z",
+  "count": 287,
+  "upCount": 147,
+  "downCount": 140,
+  "rootDir": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations",
+  "entries": [
+    {
+      "file": "e0_01_tenants_archetype_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e0_01_tenants_archetype_down.sql",
+      "sha256": "6b6570d1c50cc02705cad921ee901516c39e45ba920e62e9297d802eed2ed80d",
+      "size": 599,
+      "mtime": "2026-06-26T23:56:01.566Z"
+    },
+    {
+      "file": "e0_01_tenants_archetype_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e0_01_tenants_archetype_up.sql",
+      "sha256": "0759387cae19ad2b18ba045aafbc12044700e66a708c5862d0717aa1b99719bd",
+      "size": 1782,
+      "mtime": "2026-06-26T23:56:01.567Z"
+    },
+    {
+      "file": "e0_02_facilities_extend_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e0_02_facilities_extend_down.sql",
+      "sha256": "55580260c9fb1cf3e465b4dbb4d03db4c814678212c97a3360bcfc3563f508d3",
+      "size": 1346,
+      "mtime": "2026-06-26T23:56:01.567Z"
+    },
+    {
+      "file": "e0_02_facilities_extend_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e0_02_facilities_extend_up.sql",
+      "sha256": "985ecfee1fe44817526288507be10e9ba16d68fa7e7a4e109f49fd9022d22d8a",
+      "size": 3361,
+      "mtime": "2026-06-26T23:56:01.567Z"
+    },
+    {
+      "file": "e0_03_facility_modules_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e0_03_facility_modules_down.sql",
+      "sha256": "4c669126dde85b28d45c98ea0a331ebb2b7140d0b2870ebd38b38fbde34ba43b",
+      "size": 416,
+      "mtime": "2026-06-26T23:56:01.568Z"
+    },
+    {
+      "file": "e0_03_facility_modules_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e0_03_facility_modules_up.sql",
+      "sha256": "3d41a707d98a4bf9da15e2fab9c1026d3a54cd8b45c0a5c8213b141aeab6df53",
+      "size": 1804,
+      "mtime": "2026-06-26T23:56:01.568Z"
+    },
+    {
+      "file": "e0_04_integration_settings_rls_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e0_04_integration_settings_rls_down.sql",
+      "sha256": "32a6dfc35bce133f37f1eb383db8523037c53483bf6c56620d986fca4d012acd",
+      "size": 677,
+      "mtime": "2026-06-26T23:56:01.568Z"
+    },
+    {
+      "file": "e0_04_integration_settings_rls_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e0_04_integration_settings_rls_up.sql",
+      "sha256": "64405c992cbd9d5efb0b6b3b00dd2a5bc56f2deac111769abf6d7031e87051dc",
+      "size": 1334,
+      "mtime": "2026-06-26T23:56:01.568Z"
+    },
+    {
+      "file": "e1_01_problems_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e1_01_problems_down.sql",
+      "sha256": "47d3354e4a95b19b2eff4d005705ec75cf0b171097c0905c963d23ae0f8fb54f",
+      "size": 429,
+      "mtime": "2026-06-26T23:56:01.581Z"
+    },
+    {
+      "file": "e1_01_problems_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e1_01_problems_up.sql",
+      "sha256": "05baf61b67d31a4844e23e067054e074c2009b8859a57a6ed489665cfcd69c7a",
+      "size": 2730,
+      "mtime": "2026-06-26T23:56:01.581Z"
+    },
+    {
+      "file": "e1_02_clinical_notes_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e1_02_clinical_notes_down.sql",
+      "sha256": "c27537462218ef38317c1d07aed93ee6811a13281b07184088eae3e888d5917f",
+      "size": 566,
+      "mtime": "2026-06-26T23:56:01.582Z"
+    },
+    {
+      "file": "e1_02_clinical_notes_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e1_02_clinical_notes_up.sql",
+      "sha256": "07b2e84fc6298087a13c70c35c906b5bab53c1a6d9581bde531d1a2bd391c80e",
+      "size": 3210,
+      "mtime": "2026-06-26T23:56:01.582Z"
+    },
+    {
+      "file": "e10_01_gl_structure_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e10_01_gl_structure_down.sql",
+      "sha256": "f70ddfd21e32b85a20535fc505e077302f66c549f6c55082e0d69617cea4cf6c",
+      "size": 3153,
+      "mtime": "2026-06-26T23:56:01.569Z"
+    },
+    {
+      "file": "e10_01_gl_structure_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e10_01_gl_structure_up.sql",
+      "sha256": "37afa8fd3c33ce49e4f2b9f9fd23903531be8720e8a40a29a250ad2fcbf2f883",
+      "size": 9156,
+      "mtime": "2026-06-26T23:56:01.569Z"
+    },
+    {
+      "file": "e10_02_cost_centers_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e10_02_cost_centers_down.sql",
+      "sha256": "419dbfeb3e0de874c1a81a397aa84133bdb575b9ac112d4bd2b511462e063ab7",
+      "size": 891,
+      "mtime": "2026-06-26T23:56:01.570Z"
+    },
+    {
+      "file": "e10_02_cost_centers_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e10_02_cost_centers_up.sql",
+      "sha256": "226a983aebdb92dace87b40199a5d84ec289c2b81a3fcb13fd0cfa2a0f5c4f44",
+      "size": 2587,
+      "mtime": "2026-06-26T23:56:01.570Z"
+    },
+    {
+      "file": "e10_03_zatca_invoices_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e10_03_zatca_invoices_down.sql",
+      "sha256": "2204543e5609b1d802f3854defaba17f9cfd2496cc8a8618e7a65d97d9d547d8",
+      "size": 1126,
+      "mtime": "2026-06-26T23:56:01.570Z"
+    },
+    {
+      "file": "e10_03_zatca_invoices_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e10_03_zatca_invoices_up.sql",
+      "sha256": "b2fabe9638c10bb97f6678ce7f2c4a3a5e8bfa24ac764b85b980c3e8e9c6f501",
+      "size": 3032,
+      "mtime": "2026-06-26T23:56:01.570Z"
+    },
+    {
+      "file": "e10_04_invoice_gl_link_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e10_04_invoice_gl_link_down.sql",
+      "sha256": "1b1ce8296d922c11eca4d0fda50ddf906f9d3892ce45359c1eeb3959252eb9d0",
+      "size": 725,
+      "mtime": "2026-06-26T23:56:01.571Z"
+    },
+    {
+      "file": "e10_04_invoice_gl_link_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e10_04_invoice_gl_link_up.sql",
+      "sha256": "5107d960ccc3664ee94a956b2fbb63b186a17231fc08df65e609189034267194",
+      "size": 1818,
+      "mtime": "2026-06-26T23:56:01.571Z"
+    },
+    {
+      "file": "e10_05_daily_close_rls_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e10_05_daily_close_rls_down.sql",
+      "sha256": "6fc98e6157c8b15582ba3eefcb97637e9b0b7103ab9ad3164a637edde80ffb76",
+      "size": 743,
+      "mtime": "2026-06-26T23:56:01.572Z"
+    },
+    {
+      "file": "e10_05_daily_close_rls_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e10_05_daily_close_rls_up.sql",
+      "sha256": "4ac0a47c836045aa23339dd830e855ab3b897c2773e3bc2278749a2305e8d83b",
+      "size": 1790,
+      "mtime": "2026-06-26T23:56:01.572Z"
+    },
+    {
+      "file": "e100_cardiology_general_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e100_cardiology_general_down.sql",
+      "sha256": "8eb3c33a726f48cb909185708ed277d26d9b6e468f7ce4c40d8b4d83e2bbafe5",
+      "size": 253,
+      "mtime": "2026-07-23T20:45:35.507Z"
+    },
+    {
+      "file": "e100_cardiology_general_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e100_cardiology_general_up.sql",
+      "sha256": "cf733ea5427bc3fb712a381dfc46435f93fa45c293fb32c00896b6b3606984ef",
+      "size": 2480,
+      "mtime": "2026-07-23T20:45:35.508Z"
+    },
+    {
+      "file": "e100_pulmonology_core_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e100_pulmonology_core_down.sql",
+      "sha256": "d35cb49dd3f9f594ed92dc8af69f7650a6a4b31ab43e81666e32a3c6bc3ff515",
+      "size": 307,
+      "mtime": "2026-07-23T20:45:35.508Z"
+    },
+    {
+      "file": "e100_pulmonology_core_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e100_pulmonology_core_up.sql",
+      "sha256": "c219d9abdab46680e20c22ca0f44d8c9ca7eb87e112b0497156abea7db46d2a5",
+      "size": 4275,
+      "mtime": "2026-07-23T20:45:35.509Z"
+    },
+    {
+      "file": "e101_gastroenterology_core_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e101_gastroenterology_core_down.sql",
+      "sha256": "e99e1579f2379c3bcf7a7a7aca0b006236487d170a28bafb9b0b43024f4dc9c3",
+      "size": 262,
+      "mtime": "2026-07-23T20:45:35.509Z"
+    },
+    {
+      "file": "e101_gastroenterology_core_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e101_gastroenterology_core_up.sql",
+      "sha256": "07dfe6710198e115975adb42ae1a42207eb991602b9d13c747b1496b23565096",
+      "size": 2982,
+      "mtime": "2026-07-23T20:45:35.510Z"
+    },
+    {
+      "file": "e101_interventional_cardiology_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e101_interventional_cardiology_down.sql",
+      "sha256": "9af7eb8cc3b815a76c5d47d758d3680187f335090cd692c6d3b99df6e065f5d1",
+      "size": 186,
+      "mtime": "2026-07-23T20:45:35.510Z"
+    },
+    {
+      "file": "e101_interventional_cardiology_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e101_interventional_cardiology_up.sql",
+      "sha256": "3256a04f51844d025112a81a16fb6048972174d9ddbbe01249c88097b8f667b4",
+      "size": 2410,
+      "mtime": "2026-07-23T20:45:35.511Z"
+    },
+    {
+      "file": "e102_general_surgery_core_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e102_general_surgery_core_down.sql",
+      "sha256": "678686923e53d3192e1a268baa2b096814f989bf2bc4d2433ece0407443fc078",
+      "size": 249,
+      "mtime": "2026-07-23T20:45:35.511Z"
+    },
+    {
+      "file": "e102_general_surgery_core_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e102_general_surgery_core_up.sql",
+      "sha256": "1cc5f98aa7d7ad3b97d3a57b814dd10050611c4b699dc35ca52f46ee745dc772",
+      "size": 2869,
+      "mtime": "2026-07-23T20:45:35.511Z"
+    },
+    {
+      "file": "e103_obgyn_core_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e103_obgyn_core_down.sql",
+      "sha256": "24d547ccdd842ce7447b981c3af7123f5c6cb009569c9d9f28bc3cd1d957ff3e",
+      "size": 233,
+      "mtime": "2026-07-23T20:45:35.511Z"
+    },
+    {
+      "file": "e103_obgyn_core_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e103_obgyn_core_up.sql",
+      "sha256": "e15f31141beb8ef89e7c87a84d0ecd98857ec7c431502d6fb3560afab9e0d4f4",
+      "size": 2943,
+      "mtime": "2026-07-23T20:45:35.512Z"
+    },
+    {
+      "file": "e11_01_claims_lifecycle_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e11_01_claims_lifecycle_down.sql",
+      "sha256": "1a248df75b02bbc2cc245402df26108a73b9c012f2703f0d0fc7b7826fb8f168",
+      "size": 2238,
+      "mtime": "2026-06-26T23:56:01.572Z"
+    },
+    {
+      "file": "e11_01_claims_lifecycle_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e11_01_claims_lifecycle_up.sql",
+      "sha256": "c71a9440b45cd1909fa6246e73c11940b3cdc34941713c1704a19c0e396f8630",
+      "size": 6281,
+      "mtime": "2026-06-26T23:56:01.573Z"
+    },
+    {
+      "file": "e11_02_companies_policies_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e11_02_companies_policies_down.sql",
+      "sha256": "7780f19554857f9a3454bf844e88a14f91f57092fb0677aaf145a96697929e1b",
+      "size": 1175,
+      "mtime": "2026-06-26T23:56:01.573Z"
+    },
+    {
+      "file": "e11_02_companies_policies_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e11_02_companies_policies_up.sql",
+      "sha256": "476704ccddb20a656696afc8c61f357afb7ace36f2d4236682b304a41ff958f4",
+      "size": 3888,
+      "mtime": "2026-06-26T23:56:01.573Z"
+    },
+    {
+      "file": "e11_03_nphies_lifecycle_tables_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e11_03_nphies_lifecycle_tables_down.sql",
+      "sha256": "a0c08f56a4437efa98e502fabbaa9fc6ad77e1bb46476054357280471add3a4f",
+      "size": 771,
+      "mtime": "2026-06-26T23:56:01.574Z"
+    },
+    {
+      "file": "e11_03_nphies_lifecycle_tables_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e11_03_nphies_lifecycle_tables_up.sql",
+      "sha256": "5554cfbe5b331d0bc495c75dd24598293cec8a54ef0a064e4ae25b0c3654abe5",
+      "size": 9135,
+      "mtime": "2026-06-26T23:56:01.574Z"
+    },
+    {
+      "file": "e12_001_surgery_or_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e12_001_surgery_or_down.sql",
+      "sha256": "4534eadaa95002505ecee0a3147a7ab6603101fb1b3e98630584437d09639b17",
+      "size": 637,
+      "mtime": "2026-06-26T23:56:01.574Z"
+    },
+    {
+      "file": "e12_001_surgery_or_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e12_001_surgery_or_up.sql",
+      "sha256": "e1857650954581130996c1f1682824115fe5c27f0b4f394f90ead5be73fb6f7d",
+      "size": 6999,
+      "mtime": "2026-06-26T23:56:01.574Z"
+    },
+    {
+      "file": "e14_ob_maternity_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e14_ob_maternity_down.sql",
+      "sha256": "5aaf3ca9ee60dd9e5887008591621609b1aa6fb98cb8f908eb7ed7da5a07c7f4",
+      "size": 954,
+      "mtime": "2026-06-26T23:56:01.575Z"
+    },
+    {
+      "file": "e14_ob_maternity_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e14_ob_maternity_up.sql",
+      "sha256": "cd8dd24cbd22bb5ef3a737d3a868d4b963a02b9f7cc4fe4413dc9a62d482f836",
+      "size": 12964,
+      "mtime": "2026-07-05T17:54:59.050Z"
+    },
+    {
+      "file": "e15_pathology_01_specimens_blocks_slides_reports_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e15_pathology_01_specimens_blocks_slides_reports_down.sql",
+      "sha256": "048399c805f59fa591efd38ac58c1321735f028e1faa5cf11caab8e423bfcbda",
+      "size": 873,
+      "mtime": "2026-06-26T23:56:01.576Z"
+    },
+    {
+      "file": "e15_pathology_01_specimens_blocks_slides_reports_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e15_pathology_01_specimens_blocks_slides_reports_up.sql",
+      "sha256": "9343aa30c01198441790617ae49d3a3ab2ec8ccc1e3da0317bfa195a3c56e7c6",
+      "size": 6554,
+      "mtime": "2026-07-05T17:56:15.994Z"
+    },
+    {
+      "file": "e16_01_inventory_cssd_rls_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e16_01_inventory_cssd_rls_down.sql",
+      "sha256": "1349f742da449b8ec1808c41a3778a08a90c012603dd006416b8a0ed810992c7",
+      "size": 2108,
+      "mtime": "2026-06-26T23:56:01.577Z"
+    },
+    {
+      "file": "e16_01_inventory_cssd_rls_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e16_01_inventory_cssd_rls_up.sql",
+      "sha256": "c8b9c5bb7f0ca27ec2651d873ffbeecfe375411427aa689d72a22955d5da3abc",
+      "size": 6842,
+      "mtime": "2026-06-26T23:56:01.577Z"
+    },
+    {
+      "file": "e16_02_supply_chain_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e16_02_supply_chain_down.sql",
+      "sha256": "cd8a236508ab54a3f29bad28b8c941ed17276a36e00823b26183e1607400372a",
+      "size": 807,
+      "mtime": "2026-06-26T23:56:01.577Z"
+    },
+    {
+      "file": "e16_02_supply_chain_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e16_02_supply_chain_up.sql",
+      "sha256": "44bbf2a41547dfc584eabec23d5aa18da94e97e498b29c805aa692d3d013237c",
+      "size": 10971,
+      "mtime": "2026-06-26T23:56:01.578Z"
+    },
+    {
+      "file": "e16_03_cssd_trays_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e16_03_cssd_trays_down.sql",
+      "sha256": "8b52e8e0c850087f3475c291c8c38e81ac26cc4b5c16f9731fb1bf24fd9cefd5",
+      "size": 444,
+      "mtime": "2026-06-26T23:56:01.578Z"
+    },
+    {
+      "file": "e16_03_cssd_trays_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e16_03_cssd_trays_up.sql",
+      "sha256": "43c58a30b1460925a0250f04151ef5718f5d8f2cc2c4896cb9554ce95ab96952",
+      "size": 2640,
+      "mtime": "2026-06-26T23:56:01.578Z"
+    },
+    {
+      "file": "e17_001_quality_capa_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e17_001_quality_capa_down.sql",
+      "sha256": "8680d731152cd83098dbee50618fab352ff336816da49b8e8da66bd5958824bf",
+      "size": 905,
+      "mtime": "2026-06-26T23:56:01.579Z"
+    },
+    {
+      "file": "e17_001_quality_capa_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e17_001_quality_capa_up.sql",
+      "sha256": "d144e1aee7f04ed6a5426f7439b133333d0dd6f3bab2e8b2505cc439bf797f0f",
+      "size": 5003,
+      "mtime": "2026-06-26T23:56:01.579Z"
+    },
+    {
+      "file": "e17_002_infection_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e17_002_infection_down.sql",
+      "sha256": "170e7424711ad7cb9fd045029aa884a10ed2326905772d5eba5651938bd31978",
+      "size": 486,
+      "mtime": "2026-06-26T23:56:01.580Z"
+    },
+    {
+      "file": "e17_002_infection_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e17_002_infection_up.sql",
+      "sha256": "eae5ab7e68338e330052525cf9562d2d8d23bbcbb431fc2ff953321ba6fbd2cd",
+      "size": 3898,
+      "mtime": "2026-06-26T23:56:01.580Z"
+    },
+    {
+      "file": "e18_01_hr_workforce_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e18_01_hr_workforce_down.sql",
+      "sha256": "4675ad3d1e6ead2a229fc32f73e4945c025571614e3d67c729c11508d27c8b12",
+      "size": 788,
+      "mtime": "2026-06-26T23:56:01.580Z"
+    },
+    {
+      "file": "e18_01_hr_workforce_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e18_01_hr_workforce_up.sql",
+      "sha256": "83d678742d7b49ff3b8449ed942a3cb0a420d5347caf7ac77dc1674a9bea9da0",
+      "size": 9682,
+      "mtime": "2026-06-26T23:56:01.581Z"
+    },
+    {
+      "file": "e2_01_coding_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e2_01_coding_down.sql",
+      "sha256": "72a7f770382c7b7fdb6aa68ecd97546a69cdf9cc03a454faeaecb4a85630ddd6",
+      "size": 709,
+      "mtime": "2026-06-26T23:56:01.582Z"
+    },
+    {
+      "file": "e2_01_coding_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e2_01_coding_up.sql",
+      "sha256": "bbdc1232ab4de21c23c394aab51be0e4b211c2a5a91e502933890c10b251a5ed",
+      "size": 2895,
+      "mtime": "2026-06-26T23:56:01.582Z"
+    },
+    {
+      "file": "e2_02_roi_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e2_02_roi_down.sql",
+      "sha256": "b29e9f23fba97a28280130f6b04c508672cb77e40dd788cc0b90a0dd11763bc3",
+      "size": 685,
+      "mtime": "2026-06-26T23:56:01.583Z"
+    },
+    {
+      "file": "e2_02_roi_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e2_02_roi_up.sql",
+      "sha256": "ba1994c813a7e0713fc608f6e150282a85446d232fac194e1a049ba880f3622c",
+      "size": 2617,
+      "mtime": "2026-06-26T23:56:01.583Z"
+    },
+    {
+      "file": "e2_03_record_access_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e2_03_record_access_down.sql",
+      "sha256": "ff7442e7728d63b271370e45de35d45663f5078b4f9550a68bddbe1ed6d601ef",
+      "size": 749,
+      "mtime": "2026-06-26T23:56:01.583Z"
+    },
+    {
+      "file": "e2_03_record_access_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e2_03_record_access_up.sql",
+      "sha256": "473383aa7641d8a84b6e9d960d029be1dfe206c7f084f51750df5e6831bc4a36",
+      "size": 2578,
+      "mtime": "2026-06-26T23:56:01.584Z"
+    },
+    {
+      "file": "e21_001_cardiology_specialties_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e21_001_cardiology_specialties_down.sql",
+      "sha256": "16ecadcba32cf1ff976a733da19b791d3dbb5f21e128e59a64d96dc2ed58b64a",
+      "size": 324,
+      "mtime": "2026-07-23T20:45:35.513Z"
+    },
+    {
+      "file": "e21_001_cardiology_specialties_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e21_001_cardiology_specialties_up.sql",
+      "sha256": "d88beb050e8294a68609cb58de54ab415577cb28b199a5f7283ba7549de35ccc",
+      "size": 3546,
+      "mtime": "2026-07-23T20:45:35.513Z"
+    },
+    {
+      "file": "e21_02_smart_templates_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e21_02_smart_templates_up.sql",
+      "sha256": "f4c4751a3c88c423ba2c7113e2991e61c08030ba8a0426e28d64c37b98c1cc59",
+      "size": 1179,
+      "mtime": "2026-07-03T02:35:39.269Z"
+    },
+    {
+      "file": "e21_03_icu_bundles_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e21_03_icu_bundles_up.sql",
+      "sha256": "3ff5f70867423d2a91d721bfee852d2a5e072b46864864e7b332be51c3da46c0",
+      "size": 1627,
+      "mtime": "2026-07-03T02:43:46.750Z"
+    },
+    {
+      "file": "e21_clinical_specialties_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e21_clinical_specialties_up.sql",
+      "sha256": "2347b1d27fb99c929817e859df38b6a490564d16450ccdbffdc7c12c39de1baa",
+      "size": 2564,
+      "mtime": "2026-06-30T12:15:11.676Z"
+    },
+    {
+      "file": "e22_01_operational_money_numeric_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e22_01_operational_money_numeric_down.sql",
+      "sha256": "e58d3b73035f5c7b225123b57059ec6a99078eb3fa0af3f2e28476a6112cc492",
+      "size": 1468,
+      "mtime": "2026-06-30T12:15:11.676Z"
+    },
+    {
+      "file": "e22_01_operational_money_numeric_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e22_01_operational_money_numeric_up.sql",
+      "sha256": "2c0227c022160bf79a1e20031e11b28031a5197457e53890ed756b9602b3d6a0",
+      "size": 2003,
+      "mtime": "2026-06-30T12:15:11.676Z"
+    },
+    {
+      "file": "e23_01_idempotency_keys_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e23_01_idempotency_keys_down.sql",
+      "sha256": "b1d2ab95026f34b9ad38198692388ce9798d344c60d0eb4de739cd5696c6fe2e",
+      "size": 225,
+      "mtime": "2026-06-30T12:15:11.684Z"
+    },
+    {
+      "file": "e23_01_idempotency_keys_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e23_01_idempotency_keys_up.sql",
+      "sha256": "753994b7a37802302cbd156969ec27be67dc5b354183eef8bf8b431285cd1b77",
+      "size": 2055,
+      "mtime": "2026-06-30T12:15:11.684Z"
+    },
+    {
+      "file": "e24_tenants_control_center_candidate_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e24_tenants_control_center_candidate_down.sql",
+      "sha256": "03b9de0b33b9de0acb8e651bbb9af7cf87dd7dfaa6ceda05ae41065cfafc9fa8",
+      "size": 430,
+      "mtime": "2026-06-30T12:15:11.684Z"
+    },
+    {
+      "file": "e24_tenants_control_center_candidate_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e24_tenants_control_center_candidate_up.sql",
+      "sha256": "4d2ff90935f8b00d1bc9851b8181597162e7895e6340f47486b27a5dcd3f3e5d",
+      "size": 683,
+      "mtime": "2026-06-30T12:15:11.684Z"
+    },
+    {
+      "file": "e25_plans_pricing_candidate_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e25_plans_pricing_candidate_down.sql",
+      "sha256": "a935b562fa429036bdc8983d3a753a1a1a07dfb2059028f1a5472c6f3b9b42cb",
+      "size": 448,
+      "mtime": "2026-06-30T12:15:11.684Z"
+    },
+    {
+      "file": "e25_plans_pricing_candidate_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e25_plans_pricing_candidate_up.sql",
+      "sha256": "f4459a566a3af180f6a568cafe5fd4b41bc218f5043e1f1b2171909c4a545d73",
+      "size": 3142,
+      "mtime": "2026-06-30T12:15:11.684Z"
+    },
+    {
+      "file": "e26_payment_gateway_ref_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e26_payment_gateway_ref_down.sql",
+      "sha256": "a17ea8ca3584bca03e28a12a502ac1dd6e1bcb5eba09e7496a2b0be765f59010",
+      "size": 208,
+      "mtime": "2026-06-30T12:47:35.947Z"
+    },
+    {
+      "file": "e26_payment_gateway_ref_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e26_payment_gateway_ref_up.sql",
+      "sha256": "c6c01b8c90393aa3ae5b5f5af096dab6522ec851f7389cd061c0e5237a28a381",
+      "size": 283,
+      "mtime": "2026-06-30T12:47:29.591Z"
+    },
+    {
+      "file": "e27_pharmacy_queue_columns_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e27_pharmacy_queue_columns_down.sql",
+      "sha256": "a12a61c24cf4627d571175debb875c93e472fceb43f5dec13f34198eda9573ea",
+      "size": 625,
+      "mtime": "2026-06-30T13:17:15.612Z"
+    },
+    {
+      "file": "e27_pharmacy_queue_columns_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e27_pharmacy_queue_columns_up.sql",
+      "sha256": "ed874ae11011490a9bec841942d8b5e7455e8a8e1f3e2343b16b2a8ca9aae128",
+      "size": 1222,
+      "mtime": "2026-06-30T13:17:06.744Z"
+    },
+    {
+      "file": "e28_patients_schema_reconciliation_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e28_patients_schema_reconciliation_down.sql",
+      "sha256": "c9a0b78f30331b386573d16ff034100b63f0fd938160e0807c5770b5de6a5ba7",
+      "size": 672,
+      "mtime": "2026-06-30T13:18:36.271Z"
+    },
+    {
+      "file": "e28_patients_schema_reconciliation_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e28_patients_schema_reconciliation_up.sql",
+      "sha256": "7b407770f35db8ed93fbec504319034e56642c52461ee707ba7039b4cfe96eb9",
+      "size": 910,
+      "mtime": "2026-06-30T13:18:32.577Z"
+    },
+    {
+      "file": "e29_prescriptions_rls_reconciliation_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e29_prescriptions_rls_reconciliation_down.sql",
+      "sha256": "e2771c49b9672a2e45b003f25d17c27dd9e05a5cec5aeffb349337017178d504",
+      "size": 396,
+      "mtime": "2026-06-30T13:19:17.728Z"
+    },
+    {
+      "file": "e29_prescriptions_rls_reconciliation_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e29_prescriptions_rls_reconciliation_up.sql",
+      "sha256": "3eb3859d2e3a50f512abfc64b05a0525c1ff8177b53d937d65ef9ac93a0f49ce",
+      "size": 988,
+      "mtime": "2026-06-30T13:19:13.884Z"
+    },
+    {
+      "file": "e3_01_lab_samples_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e3_01_lab_samples_down.sql",
+      "sha256": "1995b3c496fc3108b5a291cf78ab764a31af363ebc9ff65a166fb118d880bd76",
+      "size": 715,
+      "mtime": "2026-06-26T23:56:01.585Z"
+    },
+    {
+      "file": "e3_01_lab_samples_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e3_01_lab_samples_up.sql",
+      "sha256": "f7a0a3b0e297b29fbebd6e6e717d6b92615c6f5e0669c94a1c54902b0d9cf5db",
+      "size": 3678,
+      "mtime": "2026-07-05T19:20:38.242Z"
+    },
+    {
+      "file": "e3_02_lab_results_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e3_02_lab_results_down.sql",
+      "sha256": "c72547353a8ead78c4dc43b98887f4793bb9ab3e2052390b096af9f921df2c57",
+      "size": 2898,
+      "mtime": "2026-06-26T23:56:01.585Z"
+    },
+    {
+      "file": "e3_02_lab_results_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e3_02_lab_results_up.sql",
+      "sha256": "e63984796df17946a9b50f2529441209cbe40a9569a9d7f819245554f774d0db",
+      "size": 7280,
+      "mtime": "2026-06-26T23:56:01.586Z"
+    },
+    {
+      "file": "e3_03_lab_qc_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e3_03_lab_qc_down.sql",
+      "sha256": "8231e613b89320512108369e518dc783377d227207303dbf990705a9859c549a",
+      "size": 432,
+      "mtime": "2026-06-26T23:56:01.586Z"
+    },
+    {
+      "file": "e3_03_lab_qc_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e3_03_lab_qc_up.sql",
+      "sha256": "955d0f92933b84c9d20c46ff233541433c21915ac608a6326dc7331e4c650ae0",
+      "size": 2594,
+      "mtime": "2026-06-26T23:56:01.586Z"
+    },
+    {
+      "file": "e30_cardiology_module_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e30_cardiology_module_down.sql",
+      "sha256": "a11816820576fa2ad2bc9151cddb8a71bb8e822849c9c21d27d4556158f27469",
+      "size": 425,
+      "mtime": "2026-06-30T13:32:11.284Z"
+    },
+    {
+      "file": "e30_cardiology_module_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e30_cardiology_module_up.sql",
+      "sha256": "a54af980c1f83b5cf7c3594c5d65b1164cafc26313dff25e1093a704fb9ebc4a",
+      "size": 3410,
+      "mtime": "2026-06-30T13:39:07.509Z"
+    },
+    {
+      "file": "e31_gastro_module_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e31_gastro_module_down.sql",
+      "sha256": "797167449403ff49d1ddcf8c61a0a8e587fe893b88232dd2d21d218e831c98f1",
+      "size": 170,
+      "mtime": "2026-06-30T13:43:25.468Z"
+    },
+    {
+      "file": "e31_gastro_module_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e31_gastro_module_up.sql",
+      "sha256": "b0bb630378a1ab6a1d57daa1b607dac20229f1335cc74ce23777897d548716e8",
+      "size": 3414,
+      "mtime": "2026-06-30T13:43:21.214Z"
+    },
+    {
+      "file": "e32_endocrine_module_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e32_endocrine_module_down.sql",
+      "sha256": "27f63b6627b65cb539613a7febc519c979cc5f8d259f9e50ed880e78ce7d22fd",
+      "size": 173,
+      "mtime": "2026-06-30T13:47:19.460Z"
+    },
+    {
+      "file": "e32_endocrine_module_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e32_endocrine_module_up.sql",
+      "sha256": "bf6abef336f29aa5b9131441fb0613c0b735185403901a1809961f78038de200",
+      "size": 3415,
+      "mtime": "2026-06-30T13:47:15.886Z"
+    },
+    {
+      "file": "e33_nephrology_module_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e33_nephrology_module_down.sql",
+      "sha256": "df5f892f7a5f2130e702f72149a8349477ad925f6d3154f8b7aadb4df00dbcd1",
+      "size": 119,
+      "mtime": "2026-06-30T13:51:00.075Z"
+    },
+    {
+      "file": "e33_nephrology_module_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e33_nephrology_module_up.sql",
+      "sha256": "ca506f107f5a2ee5a9a295efd93ed184f78545f82edfe697579d2c9d00a95589",
+      "size": 2022,
+      "mtime": "2026-06-30T13:50:55.792Z"
+    },
+    {
+      "file": "e34_pulmonology_module_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e34_pulmonology_module_down.sql",
+      "sha256": "7b9cf93fece713b46301df1d72f84fc1193e22281fb8b7dad8d39a1fb4ac9d43",
+      "size": 127,
+      "mtime": "2026-06-30T13:55:40.101Z"
+    },
+    {
+      "file": "e34_pulmonology_module_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e34_pulmonology_module_up.sql",
+      "sha256": "261c38b3267910669fe4885a85fbff57ce52490a0488ffe530d437c0389384bd",
+      "size": 2125,
+      "mtime": "2026-06-30T13:55:34.937Z"
+    },
+    {
+      "file": "e35_rheumatology_module_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e35_rheumatology_module_down.sql",
+      "sha256": "f8b38f63d90b0923af6efc0a618bfaefe747da895280e0f2e4d0174cd61498df",
+      "size": 121,
+      "mtime": "2026-06-30T13:59:56.157Z"
+    },
+    {
+      "file": "e35_rheumatology_module_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e35_rheumatology_module_up.sql",
+      "sha256": "23b4057d878225d951642198e2b9393129266210c36c8481dd9ee67b363116e5",
+      "size": 2008,
+      "mtime": "2026-06-30T13:59:52.365Z"
+    },
+    {
+      "file": "e36_neurology_module_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e36_neurology_module_down.sql",
+      "sha256": "a61e2c80b75ffa4b38cf4d0f6c194fe5b6ae16de1fe194d11f4ee681ded8f1fa",
+      "size": 122,
+      "mtime": "2026-06-30T14:05:21.689Z"
+    },
+    {
+      "file": "e36_neurology_module_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e36_neurology_module_up.sql",
+      "sha256": "ac1ae6bddcc0d0918a3c0354fc8e1adfa46bfa34ceef8506aa3059eddd4123fc",
+      "size": 2266,
+      "mtime": "2026-06-30T14:05:18.019Z"
+    },
+    {
+      "file": "e37_nephrology_module_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e37_nephrology_module_down.sql",
+      "sha256": "df5f892f7a5f2130e702f72149a8349477ad925f6d3154f8b7aadb4df00dbcd1",
+      "size": 119,
+      "mtime": "2026-06-30T14:10:14.580Z"
+    },
+    {
+      "file": "e37_nephrology_module_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e37_nephrology_module_up.sql",
+      "sha256": "2028e188dfa93b111252644c5b5797b96ccaab8e5ad270214653590b28a12f03",
+      "size": 3346,
+      "mtime": "2026-06-30T14:11:02.549Z"
+    },
+    {
+      "file": "e38_ophthalmology_module_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e38_ophthalmology_module_down.sql",
+      "sha256": "939f96fe2d93c1d79603c65d24feff11835759cda8e5ec7c6c887c1a2193079a",
+      "size": 114,
+      "mtime": "2026-06-30T14:17:52.422Z"
+    },
+    {
+      "file": "e38_ophthalmology_module_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e38_ophthalmology_module_up.sql",
+      "sha256": "f1a06bed6147d8e0bfc6cebfaf91ec91448d09132c84500a4b712484bc735ea3",
+      "size": 2681,
+      "mtime": "2026-06-30T14:17:48.254Z"
+    },
+    {
+      "file": "e39_ent_module_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e39_ent_module_down.sql",
+      "sha256": "72cd76c4c05ab1222e5ea220c992b4ead5cc1d2741366fdabed7614ab8a3c821",
+      "size": 112,
+      "mtime": "2026-06-30T14:23:07.755Z"
+    },
+    {
+      "file": "e39_ent_module_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e39_ent_module_up.sql",
+      "sha256": "afcfe5ce50f94ddc4f46aaec86799a874fc30204a927d03ff6db970b248285f2",
+      "size": 3069,
+      "mtime": "2026-06-30T14:23:03.803Z"
+    },
+    {
+      "file": "e40_plastic_burns_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e40_plastic_burns_down.sql",
+      "sha256": "e44f6de8741330ffc9368c8dc4b736e9ba28ab81939158f25ed88d880c42f1fb",
+      "size": 172,
+      "mtime": "2026-06-30T14:31:09.836Z"
+    },
+    {
+      "file": "e40_plastic_burns_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e40_plastic_burns_up.sql",
+      "sha256": "7add72d2debcc2a0b03d8fe2f27bd6d4d05c119f9290b4ef03f07bf9e8b8bec9",
+      "size": 3664,
+      "mtime": "2026-06-30T14:31:06.043Z"
+    },
+    {
+      "file": "e41_intensive_care_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e41_intensive_care_down.sql",
+      "sha256": "6030192ba047116959bd26c64080c7baba6c519bcd7ce0c24ba81bac38779e86",
+      "size": 121,
+      "mtime": "2026-06-30T14:36:41.790Z"
+    },
+    {
+      "file": "e41_intensive_care_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e41_intensive_care_up.sql",
+      "sha256": "47bb3956a96eb8017eda39425646d674f73a56d156bfa227fb60f8538059a515",
+      "size": 2930,
+      "mtime": "2026-06-30T14:36:37.355Z"
+    },
+    {
+      "file": "e42_orthopedics_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e42_orthopedics_down.sql",
+      "sha256": "beea9cb0034c5aaf3087ae27ef16d91f88c0452dcb0bf725d33133453bb83e35",
+      "size": 174,
+      "mtime": "2026-06-30T14:44:35.219Z"
+    },
+    {
+      "file": "e42_orthopedics_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e42_orthopedics_up.sql",
+      "sha256": "1eb3a4f1be77c579ce5b3de234f4b6d407f5d54c16ab97e9fa39b077efee40a1",
+      "size": 3494,
+      "mtime": "2026-06-30T14:44:30.010Z"
+    },
+    {
+      "file": "e43_ophthalmology_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e43_ophthalmology_down.sql",
+      "sha256": "939f96fe2d93c1d79603c65d24feff11835759cda8e5ec7c6c887c1a2193079a",
+      "size": 114,
+      "mtime": "2026-06-30T14:51:18.698Z"
+    },
+    {
+      "file": "e43_ophthalmology_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e43_ophthalmology_up.sql",
+      "sha256": "57c50be241dda82d8a494b25ebb3ddd9557f0d3cae633dc5db73f83710b1cd9e",
+      "size": 2464,
+      "mtime": "2026-06-30T14:51:38.915Z"
+    },
+    {
+      "file": "e44_surgery_urology_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e44_surgery_urology_down.sql",
+      "sha256": "3b4d9ffabcc0de6e07bd9c3cbca6df942d8e984091540edcfe6e6b6a8a225fcb",
+      "size": 254,
+      "mtime": "2026-06-30T15:03:34.133Z"
+    },
+    {
+      "file": "e44_surgery_urology_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e44_surgery_urology_up.sql",
+      "sha256": "63a730a338997ef923ce69bbc20ac00b0368ca6273632e502c7373c567b993d7",
+      "size": 4587,
+      "mtime": "2026-06-30T15:03:29.385Z"
+    },
+    {
+      "file": "e45_specialties_next_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e45_specialties_next_down.sql",
+      "sha256": "327a48990e6b1d7e3e9d46ea47902b5ddf4eb3f0eb220ca26088179dd703ee12",
+      "size": 241,
+      "mtime": "2026-06-30T15:14:15.798Z"
+    },
+    {
+      "file": "e45_specialties_next_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e45_specialties_next_up.sql",
+      "sha256": "550396ab95d562f9af074a9efeb446c6b1723043807f2e2b5ff19c15168c8dba",
+      "size": 4429,
+      "mtime": "2026-06-30T15:14:11.071Z"
+    },
+    {
+      "file": "e46_specialties_next2_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e46_specialties_next2_down.sql",
+      "sha256": "a48238c4943ec40e91e13ce73cb196882b7e3e28cf6b6d894ecd593772a6273e",
+      "size": 263,
+      "mtime": "2026-06-30T15:56:50.566Z"
+    },
+    {
+      "file": "e46_specialties_next2_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e46_specialties_next2_up.sql",
+      "sha256": "77b75faa2066d59aa420d12742fc7795fe619b3239fc296d6b225f22c38a9ad2",
+      "size": 6021,
+      "mtime": "2026-06-30T15:57:59.599Z"
+    },
+    {
+      "file": "e47_billing_tables_candidate_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e47_billing_tables_candidate_down.sql",
+      "sha256": "5804cce23532df5295cda851ae7182d94f6bc168eefe7018243a40af72682929",
+      "size": 1140,
+      "mtime": "2026-07-01T18:30:49.300Z"
+    },
+    {
+      "file": "e47_billing_tables_candidate_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e47_billing_tables_candidate_up.sql",
+      "sha256": "6689fb308edb7e8418380905e65c0f3569dd30683bfc4787baeb5240a2655d44",
+      "size": 6730,
+      "mtime": "2026-07-01T18:26:52.961Z"
+    },
+    {
+      "file": "e48_ews_score_types_candidate_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e48_ews_score_types_candidate_down.sql",
+      "sha256": "9069e694c3405919342540155821f76279da4c32389fd05b451c199732cce91a",
+      "size": 531,
+      "mtime": "2026-07-02T21:01:45.563Z"
+    },
+    {
+      "file": "e48_ews_score_types_candidate_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e48_ews_score_types_candidate_up.sql",
+      "sha256": "bf146c6c1700b13b2c7508a7167c2dd04f34323cdf1cd7b8b928da82fe9284b5",
+      "size": 733,
+      "mtime": "2026-07-02T21:01:42.338Z"
+    },
+    {
+      "file": "e49_result_acknowledgements_candidate_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e49_result_acknowledgements_candidate_down.sql",
+      "sha256": "398dee3511931ccd01e924a31aa386c0b7a517d0e96582cf8499a10ae381b452",
+      "size": 310,
+      "mtime": "2026-07-02T21:08:45.673Z"
+    },
+    {
+      "file": "e49_result_acknowledgements_candidate_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e49_result_acknowledgements_candidate_up.sql",
+      "sha256": "b773efb613df5dbab250de45bd360d3238b0ed83a8950dfe4e0e377010ff053d",
+      "size": 2506,
+      "mtime": "2026-07-02T21:08:43.819Z"
+    },
+    {
+      "file": "e5_01_drug_batches_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e5_01_drug_batches_down.sql",
+      "sha256": "8fa6569e84b8eed6f5def2a9ac100c3d9dd230ddf3bdaef41cb522c42ea02a2d",
+      "size": 576,
+      "mtime": "2026-06-26T23:56:01.587Z"
+    },
+    {
+      "file": "e5_01_drug_batches_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e5_01_drug_batches_up.sql",
+      "sha256": "84f3a92fe796fb9291a9f0901ae279a4ca4e2ccebe389abc7e542363ec58e740",
+      "size": 3243,
+      "mtime": "2026-06-26T23:56:01.587Z"
+    },
+    {
+      "file": "e5_02_pharmacy_dispense_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e5_02_pharmacy_dispense_down.sql",
+      "sha256": "39d67ed893c21d95d1787ca22dc67ac970598761cf6939d0cc0487e26772da75",
+      "size": 1359,
+      "mtime": "2026-06-26T23:56:01.588Z"
+    },
+    {
+      "file": "e5_02_pharmacy_dispense_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e5_02_pharmacy_dispense_up.sql",
+      "sha256": "43c639a419e99e1a22d1bbd23582fbc0ebd58dbddc50d80ddde1b80a84ea10c3",
+      "size": 4074,
+      "mtime": "2026-06-26T23:56:01.588Z"
+    },
+    {
+      "file": "e5_03_controlled_log_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e5_03_controlled_log_down.sql",
+      "sha256": "f22abfb471b5704304ad4fcd9a2161cf0080ce2eb17a231d0931f076e1324f36",
+      "size": 1051,
+      "mtime": "2026-06-26T23:56:01.589Z"
+    },
+    {
+      "file": "e5_03_controlled_log_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e5_03_controlled_log_up.sql",
+      "sha256": "c2c30daa6a201fb6bfbf5904cc2a478c06b4ba77fd6d2caca65db924ada8ec12",
+      "size": 3514,
+      "mtime": "2026-06-26T23:56:01.589Z"
+    },
+    {
+      "file": "e50_clinical_rls_candidate_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e50_clinical_rls_candidate_down.sql",
+      "sha256": "559853c900edb35c1dfc24a26e3cb4398f8ea293959aae9cf7f6882d03f81188",
+      "size": 2128,
+      "mtime": "2026-07-02T21:23:37.306Z"
+    },
+    {
+      "file": "e50_clinical_rls_candidate_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e50_clinical_rls_candidate_up.sql",
+      "sha256": "4cfe1d2269c044478d10d27c7c13f0c5abb16b31d3502c6c3a12d6828da68040",
+      "size": 8203,
+      "mtime": "2026-07-03T01:22:52.953Z"
+    },
+    {
+      "file": "e50a_cardiology_specialized_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e50a_cardiology_specialized_down.sql",
+      "sha256": "b0345b9236cd8cc7fb89af7869f2ccd5c8396d1600a01d2e7e7491d33182ab7c",
+      "size": 207,
+      "mtime": "2026-07-23T20:45:35.514Z"
+    },
+    {
+      "file": "e50a_cardiology_specialized_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e50a_cardiology_specialized_up.sql",
+      "sha256": "ec722f1f132b8cf25bd3be28ef2759fa10f08ee55e407c2d2229e5c316a2804b",
+      "size": 1615,
+      "mtime": "2026-07-23T20:45:35.514Z"
+    },
+    {
+      "file": "e51_cardiology_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e51_cardiology_extensions_down.sql",
+      "sha256": "75348b54914567d8a18a3b2fd6af071bf1b8657448f1ad711481d3251894ef9c",
+      "size": 267,
+      "mtime": "2026-07-23T20:45:35.515Z"
+    },
+    {
+      "file": "e51_cardiology_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e51_cardiology_extensions_up.sql",
+      "sha256": "38c0b5134cc3e1e9b7fef0a43fbf2592b1192ffaa4cfa652f444d8ebc00c2b31",
+      "size": 3125,
+      "mtime": "2026-07-23T20:45:35.515Z"
+    },
+    {
+      "file": "e51_cath_lab_specialized_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e51_cath_lab_specialized_down.sql",
+      "sha256": "e04355ec59dd4740879780f0ea6ba5360dac700fe0d8abac620217c7a1779e54",
+      "size": 208,
+      "mtime": "2026-07-23T20:45:35.516Z"
+    },
+    {
+      "file": "e51_cath_lab_specialized_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e51_cath_lab_specialized_up.sql",
+      "sha256": "ba10a8b46c8bb3ea7899c9bfcac14f37283f6b15e5b9e645e49a684662fb61eb",
+      "size": 1791,
+      "mtime": "2026-07-23T20:45:35.516Z"
+    },
+    {
+      "file": "e52_ep_specialized_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e52_ep_specialized_down.sql",
+      "sha256": "e96d2ed5982e5de337fd6b0b4a761e4181cd9486e94fff4d526c4bb7b9d77c32",
+      "size": 206,
+      "mtime": "2026-07-23T20:45:35.516Z"
+    },
+    {
+      "file": "e52_ep_specialized_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e52_ep_specialized_up.sql",
+      "sha256": "82cef6d58a9d64f33316a6e6984c2dd51ff202b80eb92562b693e7b4dd2632f1",
+      "size": 1541,
+      "mtime": "2026-07-23T20:45:35.517Z"
+    },
+    {
+      "file": "e53_nuclear_cardiology_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e53_nuclear_cardiology_down.sql",
+      "sha256": "14db93d899a9f09e37dd767593fe1a97b4f00ce10453fa056d3a4cb316d21a10",
+      "size": 221,
+      "mtime": "2026-07-23T20:45:35.517Z"
+    },
+    {
+      "file": "e53_nuclear_cardiology_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e53_nuclear_cardiology_up.sql",
+      "sha256": "d6813a43eac28b5296efe868eb06318b4f9349828be8e945589e315c2ab5113d",
+      "size": 1682,
+      "mtime": "2026-07-23T20:45:35.519Z"
+    },
+    {
+      "file": "e54_preventive_cardio_ob_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e54_preventive_cardio_ob_down.sql",
+      "sha256": "230e0ee968ca9cd7379f21284ee63d843d351bc3e588ba239c0213cb204d3abf",
+      "size": 231,
+      "mtime": "2026-07-23T20:45:35.519Z"
+    },
+    {
+      "file": "e54_preventive_cardio_ob_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e54_preventive_cardio_ob_up.sql",
+      "sha256": "e96add4c9548666e23592514f305e0ab8b7db86c58216a1fcc7eeebd2bd43dca",
+      "size": 1816,
+      "mtime": "2026-07-23T20:45:35.520Z"
+    },
+    {
+      "file": "e55_vascular_ahf_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e55_vascular_ahf_down.sql",
+      "sha256": "17cd7f33d6f4adcea002f31a2556e2160de000023496fe1a36fbcdf385711a7e",
+      "size": 242,
+      "mtime": "2026-07-23T20:45:35.520Z"
+    },
+    {
+      "file": "e55_vascular_ahf_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e55_vascular_ahf_up.sql",
+      "sha256": "48a749d561c03af75e60ee90dc8a4ac75df56e832b71f380ba331c4dcf765edf",
+      "size": 2089,
+      "mtime": "2026-07-23T20:45:35.521Z"
+    },
+    {
+      "file": "e56_pulmonology_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e56_pulmonology_extensions_down.sql",
+      "sha256": "db40b5a8bd578209192e2b5052a8d28db0f968bec33dfea7745ad15c06d93abe",
+      "size": 273,
+      "mtime": "2026-07-23T20:45:35.521Z"
+    },
+    {
+      "file": "e56_pulmonology_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e56_pulmonology_extensions_up.sql",
+      "sha256": "3f09f13296b546b8ce94afcbd9382659c19347c71f1549ef6d7376611879e843",
+      "size": 2970,
+      "mtime": "2026-07-23T20:45:35.521Z"
+    },
+    {
+      "file": "e56_respiratory_specialized_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e56_respiratory_specialized_down.sql",
+      "sha256": "464790aa6ef9a5e53497288fe6efe00503ee27c5a62431aea6e928743650abe1",
+      "size": 227,
+      "mtime": "2026-07-23T20:45:35.522Z"
+    },
+    {
+      "file": "e56_respiratory_specialized_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e56_respiratory_specialized_up.sql",
+      "sha256": "10a2c5279329c39f15c598401f7c4248e1b988a0d0a40cf9ac23c82792c5bfb9",
+      "size": 1599,
+      "mtime": "2026-07-23T20:45:35.523Z"
+    },
+    {
+      "file": "e57_gastro_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e57_gastro_extensions_down.sql",
+      "sha256": "689e6cc6f9ba477d2a55f02e5a0e69ad38cdcaf62316c525979dd26ca3c834d3",
+      "size": 271,
+      "mtime": "2026-07-23T20:45:35.523Z"
+    },
+    {
+      "file": "e57_gastro_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e57_gastro_extensions_up.sql",
+      "sha256": "0ed65b7f53c5d33bf6a32db1d5b843825061d889f937baeb7bb1cedce2ac7cc9",
+      "size": 3069,
+      "mtime": "2026-07-23T20:45:35.524Z"
+    },
+    {
+      "file": "e57_respiratory_allergy_sleep_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e57_respiratory_allergy_sleep_down.sql",
+      "sha256": "5e189fe83643f4c200f851b65060f774740d5d0b086d2c52c745fe604ea4c68c",
+      "size": 318,
+      "mtime": "2026-07-23T20:45:35.524Z"
+    },
+    {
+      "file": "e57_respiratory_allergy_sleep_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e57_respiratory_allergy_sleep_up.sql",
+      "sha256": "bdeb8cd967aa6d291ff6cd4256305007cfb8e689ff7bb61829f5e1ae8335759d",
+      "size": 2599,
+      "mtime": "2026-07-23T20:45:35.524Z"
+    },
+    {
+      "file": "e58_respiratory_advanced_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e58_respiratory_advanced_down.sql",
+      "sha256": "7034f1d4c2338db7ee734d3825cb21a2c5aeca2f29300619fb7b19197d523ffc",
+      "size": 403,
+      "mtime": "2026-07-23T20:45:35.525Z"
+    },
+    {
+      "file": "e58_respiratory_advanced_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e58_respiratory_advanced_up.sql",
+      "sha256": "a875fba851dbe072ee8af71697b48ed98c9b163cfe67e6175355a81926647a4f",
+      "size": 3774,
+      "mtime": "2026-07-23T20:45:35.525Z"
+    },
+    {
+      "file": "e59_gastro_hepatology_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e59_gastro_hepatology_down.sql",
+      "sha256": "ad4e9fcc59715f211503cf1ac5d8904aa064e973fd5cf115cd402ca20c2de6b7",
+      "size": 269,
+      "mtime": "2026-07-23T20:45:35.525Z"
+    },
+    {
+      "file": "e59_gastro_hepatology_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e59_gastro_hepatology_up.sql",
+      "sha256": "c284bee22f774e60ce8b704a625d448309beca47e7edde98edd9d7089ddec971",
+      "size": 2425,
+      "mtime": "2026-07-23T20:45:35.526Z"
+    },
+    {
+      "file": "e6_01_mar_administrations_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e6_01_mar_administrations_down.sql",
+      "sha256": "5c613e1df0f1474838555743ab11786287279fa7f2f0be3daa2dfbd142f941be",
+      "size": 1051,
+      "mtime": "2026-06-26T23:56:01.589Z"
+    },
+    {
+      "file": "e6_01_mar_administrations_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e6_01_mar_administrations_up.sql",
+      "sha256": "f64b0fcd345545584d2d08a07c775f3d80c5cd23fa438273e649ae1de0c751da",
+      "size": 3874,
+      "mtime": "2026-06-26T23:56:01.589Z"
+    },
+    {
+      "file": "e6_02_nursing_io_records_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e6_02_nursing_io_records_down.sql",
+      "sha256": "15f526334a2cf570f1df711447ecfc40eb1bf6e2c836fa449238bc0dbf849e4b",
+      "size": 692,
+      "mtime": "2026-06-26T23:56:01.590Z"
+    },
+    {
+      "file": "e6_02_nursing_io_records_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e6_02_nursing_io_records_up.sql",
+      "sha256": "62be8009ef7b76f9c5b53d30fc2fb598e752f1324d819d72131b7ab26c392607",
+      "size": 2520,
+      "mtime": "2026-06-26T23:56:01.590Z"
+    },
+    {
+      "file": "e6_03_nursing_scores_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e6_03_nursing_scores_down.sql",
+      "sha256": "5916f6160a9572c35ce59b44b0125c4c5a137c530d02d41172af2ddf3503f442",
+      "size": 664,
+      "mtime": "2026-06-26T23:56:01.590Z"
+    },
+    {
+      "file": "e6_03_nursing_scores_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e6_03_nursing_scores_up.sql",
+      "sha256": "36cfdd924e8a1adb7e65f0ef85f46f27a2c788f2546402b0abe0d72087aaf367",
+      "size": 2680,
+      "mtime": "2026-06-26T23:56:01.590Z"
+    },
+    {
+      "file": "e6_04_nursing_rls_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e6_04_nursing_rls_down.sql",
+      "sha256": "61074745aedd82d883d4f91cec9b0bc59024d5e8400b7b419c773920efd22a48",
+      "size": 1082,
+      "mtime": "2026-07-05T23:38:02.667Z"
+    },
+    {
+      "file": "e6_04_nursing_rls_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e6_04_nursing_rls_up.sql",
+      "sha256": "61dc93481adcb5d17a89cc94b9252a3634eea28fc889ad72670557f3b6bff8d1",
+      "size": 4046,
+      "mtime": "2026-07-06T00:07:09.048Z"
+    },
+    {
+      "file": "e6_05_clinical_pharmacy_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e6_05_clinical_pharmacy_down.sql",
+      "sha256": "e253359d23f97e3196be9a7d7f1098ce833130995eeb0f47051d93223f6995c6",
+      "size": 51,
+      "mtime": "2026-07-06T00:29:05.995Z"
+    },
+    {
+      "file": "e6_05_clinical_pharmacy_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e6_05_clinical_pharmacy_up.sql",
+      "sha256": "45a0fa9dfd2d7da0466ca4d643122205cbec5fc3c7e8019a9d1bababe8b5fafd",
+      "size": 1724,
+      "mtime": "2026-07-06T00:29:00.923Z"
+    },
+    {
+      "file": "e60_nephrology_dialysis_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e60_nephrology_dialysis_down.sql",
+      "sha256": "e7d3b7566f3c73a9784da5e226f9764c23274749a265ffbb0a2fcac1ddf7c08d",
+      "size": 257,
+      "mtime": "2026-07-23T20:45:35.526Z"
+    },
+    {
+      "file": "e60_nephrology_dialysis_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e60_nephrology_dialysis_up.sql",
+      "sha256": "b388aea1d3429bc32674470626606c3e4f785d4048afec2c2a549ecde5d32f11",
+      "size": 2063,
+      "mtime": "2026-07-23T20:45:35.527Z"
+    },
+    {
+      "file": "e60_nephrology_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e60_nephrology_extensions_down.sql",
+      "sha256": "8faafb8e254dd7e650c8cb1a99d705c63fb6ae0fd76a40b7c3576fbd51aad173",
+      "size": 264,
+      "mtime": "2026-07-23T20:45:35.527Z"
+    },
+    {
+      "file": "e60_nephrology_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e60_nephrology_extensions_up.sql",
+      "sha256": "4b3b09e8922d964cabfb6de5eeae82d24b8f324151b25525af8ffa8198706453",
+      "size": 3116,
+      "mtime": "2026-07-23T20:45:35.528Z"
+    },
+    {
+      "file": "e61_oncology_hematology_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e61_oncology_hematology_down.sql",
+      "sha256": "066dde7838b83a87b99cfc5a1833b2a69f95e1e3ce260b13e7245ddfbc3aeef2",
+      "size": 255,
+      "mtime": "2026-07-23T20:45:35.528Z"
+    },
+    {
+      "file": "e61_oncology_hematology_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e61_oncology_hematology_up.sql",
+      "sha256": "4cbbce4cde0b1abe76205253dd0edc079a76f8a8d647376a63be5f9bac66b707",
+      "size": 2401,
+      "mtime": "2026-07-23T20:45:35.528Z"
+    },
+    {
+      "file": "e62_endocrine_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e62_endocrine_extensions_down.sql",
+      "sha256": "3040da24cd618dbe1717c7255fb45fce89c935655661809671e37e94969ba5f8",
+      "size": 210,
+      "mtime": "2026-07-23T20:45:35.529Z"
+    },
+    {
+      "file": "e62_endocrine_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e62_endocrine_extensions_up.sql",
+      "sha256": "a9ce0457d7fdbd350d044ef75c64d5a05821e3b01fcd36dcfba025eff6ef8595",
+      "size": 1933,
+      "mtime": "2026-07-23T20:45:35.530Z"
+    },
+    {
+      "file": "e62_endocrinology_diabetes_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e62_endocrinology_diabetes_down.sql",
+      "sha256": "6ab67040d071614a30ed1be78b8e99963992abc3fb9ff591f1ee246ab47a1126",
+      "size": 272,
+      "mtime": "2026-07-23T20:45:35.530Z"
+    },
+    {
+      "file": "e62_endocrinology_diabetes_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e62_endocrinology_diabetes_up.sql",
+      "sha256": "2c7fd2fd661fbb493ae0f826050c5d0c53c95f3ea3608b33f44fa060c2cb0376",
+      "size": 2165,
+      "mtime": "2026-07-23T20:45:35.530Z"
+    },
+    {
+      "file": "e63_rheumatology_immunology_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e63_rheumatology_immunology_down.sql",
+      "sha256": "b3c3285a1044302612dc0c3510c33b88f973ed1058d30bc9c44faa414cbb686b",
+      "size": 268,
+      "mtime": "2026-07-23T20:45:35.531Z"
+    },
+    {
+      "file": "e63_rheumatology_immunology_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e63_rheumatology_immunology_up.sql",
+      "sha256": "873d7a82ba4f31aba22164acccbaa0d92d5ecc8b8e9cee3e1582370e198b855a",
+      "size": 2104,
+      "mtime": "2026-07-23T20:45:35.531Z"
+    },
+    {
+      "file": "e64_infectious_diseases_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e64_infectious_diseases_down.sql",
+      "sha256": "cd39dbd893bdaeb65077dfd5c61c53911fdc1474ceb52fd26f2646aac98d725c",
+      "size": 232,
+      "mtime": "2026-07-23T20:45:35.532Z"
+    },
+    {
+      "file": "e64_infectious_diseases_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e64_infectious_diseases_up.sql",
+      "sha256": "7d3365d8b5199e0f07ad99fe14fb708a87dd6ab3611d25bee398c0e861ee8c3a",
+      "size": 1623,
+      "mtime": "2026-07-23T20:45:35.532Z"
+    },
+    {
+      "file": "e65_dermatology_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e65_dermatology_down.sql",
+      "sha256": "d6cb5ddc488fa1bc2f365369cf37a5087a0d756ae3f142f2c7f24c74fbf6d38b",
+      "size": 225,
+      "mtime": "2026-07-23T20:45:35.533Z"
+    },
+    {
+      "file": "e65_dermatology_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e65_dermatology_up.sql",
+      "sha256": "c2eb27f4d0750cae0810bb143f433c358d8b20e595c499f8f9d3b7fbed990c3d",
+      "size": 1451,
+      "mtime": "2026-07-23T20:45:35.534Z"
+    },
+    {
+      "file": "e65_oncology_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e65_oncology_extensions_down.sql",
+      "sha256": "6656bdc1f9d0faeae7559f4598be1ae2aec0f7e1d6e02ab78a001bd78955cc3d",
+      "size": 213,
+      "mtime": "2026-07-23T20:45:35.534Z"
+    },
+    {
+      "file": "e65_oncology_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e65_oncology_extensions_up.sql",
+      "sha256": "70ee9e6bdefad7216c7c8b0809e958bb1366f313a9e7d747a06727172003f3e5",
+      "size": 1931,
+      "mtime": "2026-07-23T20:45:35.535Z"
+    },
+    {
+      "file": "e66_general_surgery_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e66_general_surgery_down.sql",
+      "sha256": "4bbf48330ac68c8d4f158896c482c69e1ac99021fc20636646f0177e623cd01c",
+      "size": 259,
+      "mtime": "2026-07-23T20:45:35.535Z"
+    },
+    {
+      "file": "e66_general_surgery_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e66_general_surgery_up.sql",
+      "sha256": "d36822cc27fcb6404de4aea0a3ecf5ade074522b2dc716114a461cd45feff88e",
+      "size": 2004,
+      "mtime": "2026-07-23T20:45:35.536Z"
+    },
+    {
+      "file": "e67_cardio_thoracic_vascular_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e67_cardio_thoracic_vascular_down.sql",
+      "sha256": "4978428af6c151b061bfb3ced691b1368a3dbcaf1adfc281d88a503c216985ea",
+      "size": 239,
+      "mtime": "2026-07-23T20:45:35.536Z"
+    },
+    {
+      "file": "e67_cardio_thoracic_vascular_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e67_cardio_thoracic_vascular_up.sql",
+      "sha256": "1e6f1e675482aa29c02b7d4afdac8ff646e48cabb60062a09d126c9de872e544",
+      "size": 1428,
+      "mtime": "2026-07-23T20:45:35.536Z"
+    },
+    {
+      "file": "e67_rheuma_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e67_rheuma_extensions_down.sql",
+      "sha256": "fc3c4d5d0574c2aae9e6e63d91bfad6fcfbcc91d0def0156d40320311b5bb702",
+      "size": 213,
+      "mtime": "2026-07-23T20:45:35.537Z"
+    },
+    {
+      "file": "e67_rheuma_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e67_rheuma_extensions_up.sql",
+      "sha256": "807c0f3f606a353b258f05905f90c5c6428a86c1ce223f0fed56dbeb59b9eeb1",
+      "size": 1961,
+      "mtime": "2026-07-23T20:45:35.537Z"
+    },
+    {
+      "file": "e68_infectious_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e68_infectious_extensions_down.sql",
+      "sha256": "0d232c432121ec5b70b65a710fbe32740e3e9de215f3fff11366c8500ffd3df0",
+      "size": 219,
+      "mtime": "2026-07-23T20:45:35.538Z"
+    },
+    {
+      "file": "e68_infectious_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e68_infectious_extensions_up.sql",
+      "sha256": "e2228ce9d7ab06096bdc6c0ac46714ad4596af0262ed0360c07bacb4ddb44344",
+      "size": 2064,
+      "mtime": "2026-07-23T20:45:35.538Z"
+    },
+    {
+      "file": "e68_neurosurgery_spine_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e68_neurosurgery_spine_down.sql",
+      "sha256": "f75e42fd9ec93d0261c3c6d035b50cf724f88c94c76301f8219eca76adb75552",
+      "size": 274,
+      "mtime": "2026-07-23T20:45:35.539Z"
+    },
+    {
+      "file": "e68_neurosurgery_spine_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e68_neurosurgery_spine_up.sql",
+      "sha256": "3cbfbb40b8bf6a1b9649b396f5dddc262ced7568e1c76de11849fb2794bfd94b",
+      "size": 2856,
+      "mtime": "2026-07-23T20:45:35.539Z"
+    },
+    {
+      "file": "e69_derm_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e69_derm_extensions_down.sql",
+      "sha256": "ac30548fc8d35e65c51da0c97458b312a2d73c1d8741a70e2dbae40b17ecf302",
+      "size": 216,
+      "mtime": "2026-07-23T20:45:35.539Z"
+    },
+    {
+      "file": "e69_derm_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e69_derm_extensions_up.sql",
+      "sha256": "4b5b9718ea9532d4b58429542b97e20dbb9a59cdf531a0336f63e1372dc037a3",
+      "size": 1929,
+      "mtime": "2026-07-23T20:45:35.540Z"
+    },
+    {
+      "file": "e69_orthopedics_trauma_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e69_orthopedics_trauma_down.sql",
+      "sha256": "49aa8dc0e2179d0b05d8f8cd7c2b0ddafcdcd1fe4e6f5177b30adbb856b7d12a",
+      "size": 275,
+      "mtime": "2026-07-23T20:45:35.540Z"
+    },
+    {
+      "file": "e69_orthopedics_trauma_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e69_orthopedics_trauma_up.sql",
+      "sha256": "2e9a5a69fc5b5fd9cc0573302956a5682ceb59ebd524b28931fc83b8486f2e8b",
+      "size": 2790,
+      "mtime": "2026-07-23T20:45:35.541Z"
+    },
+    {
+      "file": "e7_01_emergency_ed_workflow_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e7_01_emergency_ed_workflow_down.sql",
+      "sha256": "3c211d9aad93478842820e1b6cd44cbcda6cec0a0d5990fc0e28f82fe219abb2",
+      "size": 1924,
+      "mtime": "2026-06-26T23:56:01.591Z"
+    },
+    {
+      "file": "e7_01_emergency_ed_workflow_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e7_01_emergency_ed_workflow_up.sql",
+      "sha256": "636a46ae673f32fcea7315adf25393b0833bda384e99c6060bc34969fab7ec95",
+      "size": 4021,
+      "mtime": "2026-06-26T23:56:01.591Z"
+    },
+    {
+      "file": "e7_02_emergency_rls_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e7_02_emergency_rls_down.sql",
+      "sha256": "e44ee1e518d1a7b0a5488928b27a398e2df7e8fff14a23ceec54bdc869c24415",
+      "size": 1292,
+      "mtime": "2026-06-26T23:56:01.591Z"
+    },
+    {
+      "file": "e7_02_emergency_rls_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e7_02_emergency_rls_up.sql",
+      "sha256": "03ee4d9c57ce4eff0e0f1b6ae981e3409bfe5491378520b73041f7440496fb5a",
+      "size": 3083,
+      "mtime": "2026-06-26T23:56:01.591Z"
+    },
+    {
+      "file": "e70_cardio_thoracic_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e70_cardio_thoracic_extensions_down.sql",
+      "sha256": "769db50bd526901b7cd339bde682ce7723cd02d6575ddd1ed6f06ae2eac28137",
+      "size": 231,
+      "mtime": "2026-07-23T20:45:35.541Z"
+    },
+    {
+      "file": "e70_cardio_thoracic_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e70_cardio_thoracic_extensions_up.sql",
+      "sha256": "d2fc798bd84ed11bbfcdeebefb6a8cd254e03220db0dc82549a49946664cc4f2",
+      "size": 2056,
+      "mtime": "2026-07-23T20:45:35.541Z"
+    },
+    {
+      "file": "e70_ophthalmology_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e70_ophthalmology_down.sql",
+      "sha256": "3ae8c3ed97ae001cd57a3aaec4511027fffbe6cb4d1b83d010c0264fc4dcbf82",
+      "size": 248,
+      "mtime": "2026-07-23T20:45:35.542Z"
+    },
+    {
+      "file": "e70_ophthalmology_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e70_ophthalmology_up.sql",
+      "sha256": "ae49fb2d279b98949c3a42b92602a893790ffc5f2bbafea280ba2364f25bbac1",
+      "size": 2447,
+      "mtime": "2026-07-23T20:45:35.542Z"
+    },
+    {
+      "file": "e71_ent_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e71_ent_down.sql",
+      "sha256": "047416f2a6ae2e409e97a9e734816bfc54132afe3ba4d1db393bd4a8b33602da",
+      "size": 236,
+      "mtime": "2026-07-23T20:45:35.543Z"
+    },
+    {
+      "file": "e71_ent_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e71_ent_up.sql",
+      "sha256": "23d820cfed16e61a5c184c6674855bbbea4176bd883ef23e53aa953ee512b0fa",
+      "size": 2419,
+      "mtime": "2026-07-23T20:45:35.543Z"
+    },
+    {
+      "file": "e71_neuro_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e71_neuro_extensions_down.sql",
+      "sha256": "3de450090143bb62964b7c4f1a01ecb79fbe00bef72731dc8058491dd5c3302a",
+      "size": 223,
+      "mtime": "2026-07-23T20:45:35.543Z"
+    },
+    {
+      "file": "e71_neuro_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e71_neuro_extensions_up.sql",
+      "sha256": "0c15882247c73790baa1351d922a9b4eb6280efe805f70da9cf60a3850ac0236",
+      "size": 2011,
+      "mtime": "2026-07-23T20:45:35.544Z"
+    },
+    {
+      "file": "e72_ortho_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e72_ortho_extensions_down.sql",
+      "sha256": "3031132ecc250e3910ab50b288feb7588ead380cbadbb718e38d930fd1f4d220",
+      "size": 221,
+      "mtime": "2026-07-23T20:45:35.544Z"
+    },
+    {
+      "file": "e72_ortho_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e72_ortho_extensions_up.sql",
+      "sha256": "aba03f7dce1fc7686bb2c8114d5c34a81b6b33da6488d6f88f93dc72af175d80",
+      "size": 1985,
+      "mtime": "2026-07-23T20:45:35.545Z"
+    },
+    {
+      "file": "e72_urology_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e72_urology_down.sql",
+      "sha256": "f3a842a3bc1d11a943cf734d68d5e262b7c8df20cdbbac294746ae13c7d01c92",
+      "size": 251,
+      "mtime": "2026-07-23T20:45:35.545Z"
+    },
+    {
+      "file": "e72_urology_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e72_urology_up.sql",
+      "sha256": "7bcd624b6ed3890233a9aa217e7129a644b54bdabd263319dbc4b9a3503fc557",
+      "size": 2479,
+      "mtime": "2026-07-23T20:45:35.546Z"
+    },
+    {
+      "file": "e73_eye_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e73_eye_extensions_down.sql",
+      "sha256": "c403d12b88a4fbf277deb4ddb55f173c461d851272ecc10921eccd8e8f0c26a9",
+      "size": 145,
+      "mtime": "2026-07-23T20:45:35.546Z"
+    },
+    {
+      "file": "e73_eye_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e73_eye_extensions_up.sql",
+      "sha256": "f4bc35ec69f2dc900103583048316010f67570a231e3b7584c0f54ddc3adbfc9",
+      "size": 1700,
+      "mtime": "2026-07-23T20:45:35.546Z"
+    },
+    {
+      "file": "e73_plastic_burns_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e73_plastic_burns_down.sql",
+      "sha256": "1841a9b53efefed065aaee23b57485bc0dbbf776fe4af0cad106235157d9ac64",
+      "size": 269,
+      "mtime": "2026-07-23T20:45:35.547Z"
+    },
+    {
+      "file": "e73_plastic_burns_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e73_plastic_burns_up.sql",
+      "sha256": "4838c715572aafc4ed8bd5eee354957dba9974eb7b75edb3fa9436de9dd3b0ce",
+      "size": 2627,
+      "mtime": "2026-07-23T20:45:35.547Z"
+    },
+    {
+      "file": "e74_ent_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e74_ent_extensions_down.sql",
+      "sha256": "9fec411a6d7ca7e663ec6c2a8ef0de8b2213d583a94ddbb532057a5f15be7e7e",
+      "size": 147,
+      "mtime": "2026-07-23T20:45:35.548Z"
+    },
+    {
+      "file": "e74_ent_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e74_ent_extensions_up.sql",
+      "sha256": "507af9d17958e157ed3fb659939459f085d0b041aeb787dd43c13ce77ca5fbb7",
+      "size": 1687,
+      "mtime": "2026-07-23T20:45:35.548Z"
+    },
+    {
+      "file": "e74_obgyn_ivf_mfm_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e74_obgyn_ivf_mfm_down.sql",
+      "sha256": "ab0f3d065c74f6ebf110cc4610c31f65a16c80b38699be1688157066e21ed09c",
+      "size": 300,
+      "mtime": "2026-07-23T20:45:35.549Z"
+    },
+    {
+      "file": "e74_obgyn_ivf_mfm_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e74_obgyn_ivf_mfm_up.sql",
+      "sha256": "2898e51439295c78b3ba817f12a79711b07611512c531a0ecc3ee0ed39a50e7a",
+      "size": 3434,
+      "mtime": "2026-07-23T20:45:35.549Z"
+    },
+    {
+      "file": "e75_pediatrics_nicu_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e75_pediatrics_nicu_down.sql",
+      "sha256": "b35528de8f33692d6768eace022abc8568cda1ae532334cb53187448bbdcdc2c",
+      "size": 308,
+      "mtime": "2026-07-23T20:45:35.549Z"
+    },
+    {
+      "file": "e75_pediatrics_nicu_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e75_pediatrics_nicu_up.sql",
+      "sha256": "cf73ad3837b70a2f9bd26289eff85aea2a0d38359e4af3770aa4537e69902f5d",
+      "size": 3212,
+      "mtime": "2026-07-23T20:45:35.550Z"
+    },
+    {
+      "file": "e75_urology_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e75_urology_extensions_down.sql",
+      "sha256": "7fc547ce0f3b54ae2a7cf36592f56e8b7f0b6e43e6f5351de5e3caaa5f156552",
+      "size": 154,
+      "mtime": "2026-07-23T20:45:35.550Z"
+    },
+    {
+      "file": "e75_urology_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e75_urology_extensions_up.sql",
+      "sha256": "6f21110650b9ffd925604e57ffb930b2198c5eef12468922e3c6667c1b488ca4",
+      "size": 1677,
+      "mtime": "2026-07-23T20:45:35.551Z"
+    },
+    {
+      "file": "e76_peds_subspecialties_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e76_peds_subspecialties_down.sql",
+      "sha256": "d9f5ca2dc1c5873f5552a4b400431b003578584e03c4f696ff61b02fb0311185",
+      "size": 255,
+      "mtime": "2026-07-23T20:45:35.551Z"
+    },
+    {
+      "file": "e76_peds_subspecialties_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e76_peds_subspecialties_up.sql",
+      "sha256": "a171915270dc9436aabdb6ceb6012d65e621c873edd30650f4fc410cba57b67c",
+      "size": 2281,
+      "mtime": "2026-07-23T20:45:35.552Z"
+    },
+    {
+      "file": "e76_plastic_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e76_plastic_extensions_down.sql",
+      "sha256": "29a015fa92895716d435bf81303852d84d7cb62be15fda2f1e86d177a8579b9b",
+      "size": 150,
+      "mtime": "2026-07-23T20:45:35.552Z"
+    },
+    {
+      "file": "e76_plastic_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e76_plastic_extensions_up.sql",
+      "sha256": "1dd29689c1594a1223d48b724610e987111eddb6d07a3ded01aa7e77f46129b6",
+      "size": 1668,
+      "mtime": "2026-07-23T20:45:35.553Z"
+    },
+    {
+      "file": "e77_diagnostics_advanced_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e77_diagnostics_advanced_down.sql",
+      "sha256": "018f26366702290caf1f90ebefba2d662390145e495454313521ea8bebcc3e0e",
+      "size": 317,
+      "mtime": "2026-07-23T20:45:35.553Z"
+    },
+    {
+      "file": "e77_diagnostics_advanced_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e77_diagnostics_advanced_up.sql",
+      "sha256": "01b0dea7787154c226bec0be8e20ee302240bd5a2be89e0fcc2b3f7001908fae",
+      "size": 3026,
+      "mtime": "2026-07-23T20:45:35.554Z"
+    },
+    {
+      "file": "e77_obgyn_peds_extensions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e77_obgyn_peds_extensions_down.sql",
+      "sha256": "aa7d021fc23b4e2597c4ef56fb51f77ef0d2d138aeda1be418d22d3cb99efa11",
+      "size": 173,
+      "mtime": "2026-07-23T20:45:35.554Z"
+    },
+    {
+      "file": "e77_obgyn_peds_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e77_obgyn_peds_extensions_up.sql",
+      "sha256": "5bf22cb09c580440df4cae9ee80726126bc74601eac957fecb614c443d3c1269",
+      "size": 2878,
+      "mtime": "2026-07-23T20:45:35.555Z"
+    },
+    {
+      "file": "e77_rad_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e77_rad_extensions_up.sql",
+      "sha256": "27cd6019ba7e2d41f2c7aa4c1455c85c8c6ce22ca221aa7785808c6ce36d1e3a",
+      "size": 1728,
+      "mtime": "2026-07-23T20:45:35.555Z"
+    },
+    {
+      "file": "e78_critical_care_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e78_critical_care_down.sql",
+      "sha256": "9dfa866fae6592a979fb6fdf6daa6ed786a090e87f2e977665c723945080f26a",
+      "size": 310,
+      "mtime": "2026-07-23T20:45:35.556Z"
+    },
+    {
+      "file": "e78_critical_care_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e78_critical_care_up.sql",
+      "sha256": "c344bd3a8ca6467dc3ab08c1bca9251ba96faf54d6746b1660ffe3e53ce5c635",
+      "size": 3305,
+      "mtime": "2026-07-23T20:45:35.556Z"
+    },
+    {
+      "file": "e78_lab_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e78_lab_extensions_up.sql",
+      "sha256": "35a4cf89e95f318fc7af2ed05de2121dee9472de7e0bea58f2556e8374c8da4c",
+      "size": 1576,
+      "mtime": "2026-07-23T20:45:35.557Z"
+    },
+    {
+      "file": "e79_func_extensions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e79_func_extensions_up.sql",
+      "sha256": "98dd7dc77ce5eda1b657c5ed2aee67e04f76e03d056099824cbe20db93ba309a",
+      "size": 977,
+      "mtime": "2026-07-23T20:45:35.557Z"
+    },
+    {
+      "file": "e79_rehab_support_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e79_rehab_support_down.sql",
+      "sha256": "116592cae21c1d0bc8e45e4e2cd61e007d01e7a85a0d12fb0a5313961807aa8c",
+      "size": 304,
+      "mtime": "2026-07-23T20:45:35.558Z"
+    },
+    {
+      "file": "e79_rehab_support_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e79_rehab_support_up.sql",
+      "sha256": "8537e2120981a1bcaa379a4b567c356209ea78524d78d2f6cc8d42ba718227de",
+      "size": 3016,
+      "mtime": "2026-07-23T20:45:35.559Z"
+    },
+    {
+      "file": "e8_01_inpatient_adt_rls_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e8_01_inpatient_adt_rls_down.sql",
+      "sha256": "7dc7b955675f8d4a409130132e7e941495bcb317d311dcd92b9ac308d5277003",
+      "size": 2372,
+      "mtime": "2026-06-26T23:56:01.592Z"
+    },
+    {
+      "file": "e8_01_inpatient_adt_rls_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e8_01_inpatient_adt_rls_up.sql",
+      "sha256": "f8b9da2eb721bd5b39db8d76aaef510c5b8dcc5143163dfc613ae6c606c295a4",
+      "size": 6079,
+      "mtime": "2026-06-26T23:56:01.592Z"
+    },
+    {
+      "file": "e8_02_bed_status_history_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e8_02_bed_status_history_down.sql",
+      "sha256": "2eb9d4ee402a7394cb62c06f13fa5a5f08112601950d315dd97321115479ebc4",
+      "size": 758,
+      "mtime": "2026-06-26T23:56:01.592Z"
+    },
+    {
+      "file": "e8_02_bed_status_history_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e8_02_bed_status_history_up.sql",
+      "sha256": "2a29a0fb7d2f14d82d3449965b1508de5481319e87fa8abd382520cb6253f09b",
+      "size": 2603,
+      "mtime": "2026-06-26T23:56:01.593Z"
+    },
+    {
+      "file": "e80_admin_ops_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e80_admin_ops_down.sql",
+      "sha256": "e7ae2328c53dff7d6dfdf0aea4d0e2fdd7d3e2b6d50ec22892f2133962d0f23f",
+      "size": 297,
+      "mtime": "2026-07-23T20:45:35.559Z"
+    },
+    {
+      "file": "e80_admin_ops_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e80_admin_ops_up.sql",
+      "sha256": "70ae9088a4a899647b92caae46029a104335eca8360eb9cf976a5e6977708404",
+      "size": 2707,
+      "mtime": "2026-07-23T20:45:35.559Z"
+    },
+    {
+      "file": "e80_critical_care_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e80_critical_care_down.sql",
+      "sha256": "4ff782ee900c296598bd358d44e57efc951303062cc3b4752db3a3eb0c7bcca3",
+      "size": 180,
+      "mtime": "2026-07-23T20:45:35.560Z"
+    },
+    {
+      "file": "e80_critical_care_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e80_critical_care_up.sql",
+      "sha256": "c5aab2d048a75a59c1898d1a4df370dc4ad4be5a7b4c1007f0189e82cc3493c2",
+      "size": 2864,
+      "mtime": "2026-07-23T20:45:35.560Z"
+    },
+    {
+      "file": "e81_rare_specialties_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e81_rare_specialties_down.sql",
+      "sha256": "4a05d2fa860076b2f46061d8c7e457b34de87cbb4b857418cf5f30d66fd822f0",
+      "size": 256,
+      "mtime": "2026-07-23T20:45:35.561Z"
+    },
+    {
+      "file": "e81_rare_specialties_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e81_rare_specialties_up.sql",
+      "sha256": "f54b3d54e5e21550c7733d2bd49b0750135c723b86d151cfbf7d5dfbabf75260",
+      "size": 2359,
+      "mtime": "2026-07-23T20:45:35.561Z"
+    },
+    {
+      "file": "e9_01_icu_rls_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e9_01_icu_rls_down.sql",
+      "sha256": "4ad81c248046e6e814a65384bd0762875c215198af424a9f342f279738d51b35",
+      "size": 2059,
+      "mtime": "2026-06-26T23:56:01.593Z"
+    },
+    {
+      "file": "e9_01_icu_rls_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e9_01_icu_rls_up.sql",
+      "sha256": "83a64d82b5b262782488a7c9df66cfcf15ac26f5b334a7bfeac9d9e0052f70da",
+      "size": 5212,
+      "mtime": "2026-06-26T23:56:01.593Z"
+    },
+    {
+      "file": "e9_02_icu_infusions_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e9_02_icu_infusions_down.sql",
+      "sha256": "0e8ebb13d62051a4ed99e6c59156b20a3a9ce5d4eecd34b5f58c2a3bccae544a",
+      "size": 728,
+      "mtime": "2026-06-26T23:56:01.593Z"
+    },
+    {
+      "file": "e9_02_icu_infusions_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\e9_02_icu_infusions_up.sql",
+      "sha256": "ebc92be85a667caeae165b740fb16aab33c26672e120beb768e8a59c66da1857",
+      "size": 2711,
+      "mtime": "2026-06-26T23:56:01.593Z"
+    },
+    {
+      "file": "ex_01_orders_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\ex_01_orders_down.sql",
+      "sha256": "0f229781f4914e9c3847f0301ce8d29e71281a80957e40b35acf23aee71e65d6",
+      "size": 689,
+      "mtime": "2026-06-26T23:56:01.594Z"
+    },
+    {
+      "file": "ex_01_orders_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\ex_01_orders_up.sql",
+      "sha256": "a397ad959dbbf38ca63ad382e9905025b926bbf71af8f2f8dc2ab42deedad657",
+      "size": 4769,
+      "mtime": "2026-06-26T23:56:01.594Z"
+    },
+    {
+      "file": "ex_02_rbac_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\ex_02_rbac_down.sql",
+      "sha256": "614b43ec7b8f5c5b5b94b356735e496639c46bb6c3a95bbcede37883b2785271",
+      "size": 414,
+      "mtime": "2026-06-26T23:56:01.594Z"
+    },
+    {
+      "file": "ex_02_rbac_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\ex_02_rbac_up.sql",
+      "sha256": "c1de76d2df76fddc06d169e6c375a0eb96377c527d944b2a191c8561899163f9",
+      "size": 2831,
+      "mtime": "2026-06-26T23:56:01.595Z"
+    },
+    {
+      "file": "ex_03_tenant_id_indexes_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\ex_03_tenant_id_indexes_down.sql",
+      "sha256": "5b08b64777272345391e39c0f8205407c44a1c3e06a32275edb3f601f8331aca",
+      "size": 6718,
+      "mtime": "2026-06-26T23:56:01.595Z"
+    },
+    {
+      "file": "ex_03_tenant_id_indexes_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\ex_03_tenant_id_indexes_up.sql",
+      "sha256": "c4a073bb444c13a6a08bb58a31327ee9b415a1acd615171cc6326c21af8d6535",
+      "size": 11793,
+      "mtime": "2026-07-05T19:21:01.185Z"
+    },
+    {
+      "file": "p0_01_deferred_modules_rls_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\p0_01_deferred_modules_rls_down.sql",
+      "sha256": "f00a6556c0dfa66aab8c9bfb1591d27c2b8a703b22f073894d76ba528e631897",
+      "size": 6522,
+      "mtime": "2026-06-30T12:15:11.684Z"
+    },
+    {
+      "file": "p0_01_deferred_modules_rls_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\p0_01_deferred_modules_rls_up.sql",
+      "sha256": "026aa40f470589de68dda93c1562b7dfeb019c68cf4ce5d1d3b49bf64c9804ea",
+      "size": 18060,
+      "mtime": "2026-06-30T12:15:11.684Z"
+    },
+    {
+      "file": "p1_01_account_lockout_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\p1_01_account_lockout_down.sql",
+      "sha256": "268bedd463b809179c95e209d63079f408eac64616ca98c0a710cf37b81581b8",
+      "size": 155,
+      "mtime": "2026-06-30T12:15:11.684Z"
+    },
+    {
+      "file": "p1_01_account_lockout_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\p1_01_account_lockout_up.sql",
+      "sha256": "00573662349f19f56cacef22fc6d6ccea24024d0bd6753452de0ebe01d619cd7",
+      "size": 285,
+      "mtime": "2026-06-30T12:15:11.684Z"
+    },
+    {
+      "file": "p1_01_legacy_core_rls_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\p1_01_legacy_core_rls_down.sql",
+      "sha256": "7395ede566f8dd2ec34fa5cd9a8d0a4de39fe51ec7e687d5fd112c15beaf0429",
+      "size": 1203,
+      "mtime": "2026-06-30T12:15:11.684Z"
+    },
+    {
+      "file": "p1_01_legacy_core_rls_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\p1_01_legacy_core_rls_up.sql",
+      "sha256": "b61ca763f5c35f1324d1450e3f7e24cdc4e0100f6ef2e2f0346e18e38d3c23df",
+      "size": 5294,
+      "mtime": "2026-06-30T12:15:11.684Z"
+    },
+    {
+      "file": "p1_02_gl_posting_idempotency_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\p1_02_gl_posting_idempotency_down.sql",
+      "sha256": "69aa37f6811f646681e3a6ce85963813e886d04b43a3a432eba1a78392f32ee3",
+      "size": 505,
+      "mtime": "2026-06-30T12:15:11.688Z"
+    },
+    {
+      "file": "p1_02_gl_posting_idempotency_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\p1_02_gl_posting_idempotency_up.sql",
+      "sha256": "73bd004d6a3aaff5b8d21e13c464975683d5952b4b6f9179fdd7659ecaf39381",
+      "size": 1569,
+      "mtime": "2026-06-30T12:15:11.688Z"
+    },
+    {
+      "file": "p1_03_department_owners_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\p1_03_department_owners_down.sql",
+      "sha256": "e5327132660cba121ebbd0ae27f05d42ceb78893c135cc888171b07fefed563f",
+      "size": 173,
+      "mtime": "2026-07-03T04:06:10.781Z"
+    },
+    {
+      "file": "p1_03_department_owners_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\p1_03_department_owners_up.sql",
+      "sha256": "b0dcb594c454c2421562e9c6245f418d3bf1fe1be9407beb0207ac2e5aff0f62",
+      "size": 1174,
+      "mtime": "2026-07-03T04:05:43.804Z"
+    },
+    {
+      "file": "p1_04_pricing_overrides_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\p1_04_pricing_overrides_down.sql",
+      "sha256": "0f8d163cfd44ca733abbc8a4a6d0950d205a3b23ba4cd8ee76035a1460ce158c",
+      "size": 372,
+      "mtime": "2026-07-03T05:05:20.554Z"
+    },
+    {
+      "file": "p1_04_pricing_overrides_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\p1_04_pricing_overrides_up.sql",
+      "sha256": "28db26818eff67ba87d9db87257054365abe77e3863d1e58a40186863c28947f",
+      "size": 4101,
+      "mtime": "2026-07-03T05:05:02.088Z"
+    },
+    {
+      "file": "p1_05_waiting_queue_acuity_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\p1_05_waiting_queue_acuity_down.sql",
+      "sha256": "28c38f0d5435347f7cfcf6c0544e79d07c6122745abba0a6c9cf2422bbb10777",
+      "size": 1194,
+      "mtime": "2026-07-05T18:57:27.959Z"
+    },
+    {
+      "file": "p1_05_waiting_queue_acuity_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\p1_05_waiting_queue_acuity_up.sql",
+      "sha256": "cce1edc30438fcc293f297ede5ebb01a56bd1be4153fb568d8887d4d2930ea92",
+      "size": 3523,
+      "mtime": "2026-07-05T18:57:23.770Z"
+    },
+    {
+      "file": "p1_06_exam_rooms_down.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\p1_06_exam_rooms_down.sql",
+      "sha256": "5b81ab8444495d21b39918c62dff4ed04291c1d00fc7c1febab163670f1bcc31",
+      "size": 386,
+      "mtime": "2026-07-05T19:09:40.766Z"
+    },
+    {
+      "file": "p1_06_exam_rooms_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\p1_06_exam_rooms_up.sql",
+      "sha256": "dd727188f68bc449b2888edbd667bb51cf959156f6dc78a267fdbeb81fc4de3a",
+      "size": 2041,
+      "mtime": "2026-07-05T19:09:36.289Z"
+    },
+    {
+      "file": "saudi_compliance_up.sql",
+      "full": "C:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\namaweb\\migrations\\saudi_compliance_up.sql",
+      "sha256": "ba082750cd692fcb843b333e0c7bbbbfb35eb9fb4b8af7b4fd9d6259fa6d2c83",
+      "size": 1241,
+      "mtime": "2026-06-30T12:15:11.688Z"
+    }
+  ]
+}

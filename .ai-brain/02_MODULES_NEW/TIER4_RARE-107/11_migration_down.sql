@@ -1,0 +1,7 @@
+-- rare_107 reverse
+BEGIN;
+DROP TABLE IF EXISTS rare_107_results CASCADE;
+DROP TABLE IF EXISTS rare_107_orders  CASCADE;
+DROP TABLE IF EXISTS rare_107_visits  CASCADE;
+DELETE FROM schema_migrations WHERE id = 'p3_RARE_107_up';
+COMMIT;

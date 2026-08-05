@@ -1,0 +1,7 @@
+-- coe_108 reverse
+BEGIN;
+DROP TABLE IF EXISTS coe_108_results CASCADE;
+DROP TABLE IF EXISTS coe_108_orders  CASCADE;
+DROP TABLE IF EXISTS coe_108_visits  CASCADE;
+DELETE FROM schema_migrations WHERE id = 'p3_COE_108_up';
+COMMIT;

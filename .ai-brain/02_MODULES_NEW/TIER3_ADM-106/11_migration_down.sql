@@ -1,0 +1,7 @@
+-- adm_106 reverse
+BEGIN;
+DROP TABLE IF EXISTS adm_106_results CASCADE;
+DROP TABLE IF EXISTS adm_106_orders  CASCADE;
+DROP TABLE IF EXISTS adm_106_visits  CASCADE;
+DELETE FROM schema_migrations WHERE id = 'p3_ADM_106_up';
+COMMIT;

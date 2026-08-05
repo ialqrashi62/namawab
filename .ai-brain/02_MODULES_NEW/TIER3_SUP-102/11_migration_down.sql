@@ -1,0 +1,7 @@
+-- sup_102 reverse
+BEGIN;
+DROP TABLE IF EXISTS sup_102_results CASCADE;
+DROP TABLE IF EXISTS sup_102_orders  CASCADE;
+DROP TABLE IF EXISTS sup_102_visits  CASCADE;
+DELETE FROM schema_migrations WHERE id = 'p3_SUP_102_up';
+COMMIT;

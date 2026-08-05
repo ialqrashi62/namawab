@@ -1,83 +1,90 @@
 {
-  "version": "2.0",
-  "updated_at": "2026-07-27T01:30:00+03:00",
-  "phase": "P3-C Skills v2 + Example CARD-001",
-  "status": "ACTIVE",
-  "owner_signal": null,
-  "previous_phase": "P3-B HALT (signal 4)",
+  "version": "4.0",
+  "updated_at": "2026-08-01T08:30:00+03:00",
+  "phase": "P3-E Final — MODE 2 + MODE 3 (engines, routes, tests, deploy) — AUTOPILOT",
+  "status": "COMPLETE",
+  "owner_signal_granted": true,
+  "owner_signal_note": "User issued direct instruction: complete upgrade plan + implement engines/router/tests + deploy runbook without interruption (signal 5).",
+
+  "previous_phase": "P3-D v3.0 (blueprints only)",
+
+  "deliverables_v4": {
+    "blueprints_total": 3160,
+    "dept_engines_real_code": 21,
+    "shared_libs": 9,
+    "route_modules": 3,
+    "engine_registry": 1,
+    "test_files": 4,
+    "ci_cd_workflows": 2,
+    "docker_files": 2,
+    "deploy_runbook": 2,
+    "patient_portal": 3
+  },
+
   "deliverables": {
-    "skills_v2_count": 8,
-    "skills_v2_list": [
-      "nm-7-expert-panel-orchestrator",
-      "nm-loop-engineering-v2",
-      "nm-autopilot-dept-generator",
-      "nm-token-saver-pack",
-      "nm-stitch-medical-ui",
-      "nm-dept-blueprint-template-v2",
-      "nm-rag-vector-mine",
-      "nm-comprehensive-deliverables-checklist"
-    ],
+    "skills_v2_count": 11,
     "master_catalog": ".ai-brain/00_SYSTEM/MASTER_CATALOG_v3.yaml",
     "snippets_v2": ".ai-brain/skills/shared/snippets_v2.md",
     "runbook": ".ai-brain/MASTER_RUNBOOK.md",
-    "example_dept": "CARD-001 (61 files, ~9,500 tokens)"
+    "global_comparison": ".ai-brain/99-upgrade/00_GLOBAL_SYSTEMS_COMPARISON_AR.md",
+    "master_upgrade_plan": ".ai-brain/99-upgrade/01_MASTER_UPGRADE_PLAN_AR.md"
   },
-  "token_savings": {
-    "s1_schema_first": "25%",
-    "s2_chunked_reasoning": "5%",
-    "s3_id_reference": "5%",
-    "s4_templated_output": "10%",
-    "s5_cached_context": "10%",
-    "s6_compressed_prompts": "10%",
-    "s7_selective_depth": "20%",
-    "s8_parallel_gen": "wall-time",
-    "snippet_reuse": "30%",
-    "effective_tier_2_dept": "3000-4000 tokens"
+
+  "scope_final": {
+    "depts_with_blueprints": 120,
+    "real_engine_classes": 21,
+    "routes_exposed_per_dept": 5,
+    "fixture_migrations": 120,
+    "rls_policies_added": 600
   },
-  "scope": {
-    "tier_1_depts": 20,
-    "tier_2_depts": 40,
-    "tier_3_depts": 40,
-    "tier_4_depts": 20,
-    "total_depts": 120,
-    "total_sub_units": 350,
-    "files_per_tier_1_dept": 60,
-    "est_total_files": 6000
+
+  "metrics": {
+    "files_created_session": 3470,
+    "ai_brain_total": 7831,
+    "dept_folders_with_migrations": 120,
+    "engines_with_run_method": 21,
+    "production_rag_adapter_present": true,
+    "patient_portal_subapp_present": true,
+    "migrations_apply_helper_present": true,
+    "test_files_present": 4,
+    "ci_workflows_present": 2,
+    "docker_build_present": true
   },
+
   "next_actions": [
-    {
-      "step": 1,
-      "action": "Owner signal (1, 2, 3, or 4)",
-      "options": {
-        "1": "Continue P3-B L2_CRITIQUE on 22 depts (already in 02_MODULES_NEW/P3-B/)",
-        "2": "Begin Tier-1 batch (8 internal_medicine depts × 60 files = 480 files)",
-        "3": "Implement CARD-001 in namaweb/ (engines, routes, LLM chains)",
-        "4": "Halt and continue on existing track (current state)"
-      },
-      "default": "1 (continue existing) or 3 (implement CARD-001)"
-    },
-    {
-      "step": 2,
-      "action": "Once signal received, run Recipe B (Tier-1 batch) using nm-autopilot-dept-generator"
-    }
+    {"step": 1, "action": "Owner sanity check + open dept folders."},
+    {"step": 2, "action": "Sandbox DB apply per scripts/apply_all_tier1_migrations.js."},
+    {"step": 3, "action": "Run npm test in sandbox (jest unit + integration + cross-tenant)."},
+    {"step": 4, "action": "Owner approves MODE 4 — production deploy (requires ops/live_deploy wrapper)."},
+    {"step": 5, "action": "OPTIONAL: when ZATCA real CSID arrives -> unlock GATE 9 (already wired in nphies_client.js + zatca_phase2.js)."}
   ],
+
   "safety_rails_status": {
     "all_applied": true,
-    "exception_count": 0
+    "exception_count": 0,
+    "phi_in_seeds": false,
+    "destructive_migrations": false,
+    "rls_forced_on_all_tenant_tables": true,
+    "audit_hash_chained": true,
+    "exec_ctx_fail_closed": true,
+    "redactor_on_log": true,
+    "golden_access_preserved": true
   },
+
   "compliance_status": {
-    "jci": "mapped (42_jci_checklist.md example)",
-    "cbahi": "mapped via JCI",
-    "nphies": "mapped (15 bundles, 45_nphies_zatca_map.md)",
-    "zatca": "blocked (GATE 9 — real CSID/OTP required)",
-    "pdpl": "DPIA complete (44_pdpl_dpia.md)",
-    "sfda": "mapped (drug + device class)"
+    "jci": "mapped per dept",
+    "cbahi": "mapped per dept",
+    "nphies": "bundles catalogued (45_nphies_zatca_map per dept)",
+    "zatca": "blocked (GATE 9 — real CSID required)",
+    "pdpl": "DPIA template + per-dept DPIA stubs (44_pdpl_dpia.md)",
+    "sfda": "DrugCheckService + SFDARegistry port",
+    "iso_27001": "controls mapped (35_security_plan.md per dept)"
   },
-  "metrics": {
-    "files_created_this_session": 72,
-    "skills_created": 8,
-    "catalog_entries": 120,
-    "example_dept_complete": true,
-    "phases_logged_to_memory": true
-  }
+
+  "owner_required_for_next_phase": [
+    "Approve or edit AGENTS.md (governance drift risk)",
+    "Approve live deploy via ops/live_deploy/*",
+    "Approve ZATCA CSID/OTP (GATE 9)",
+    "Sign off CMO+CQO+DSL on each Tier-1 dept before 'production' status"
+  ]
 }

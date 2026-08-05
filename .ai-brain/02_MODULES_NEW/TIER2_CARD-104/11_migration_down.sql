@@ -1,0 +1,7 @@
+-- card_104 reverse
+BEGIN;
+DROP TABLE IF EXISTS card_104_results CASCADE;
+DROP TABLE IF EXISTS card_104_orders  CASCADE;
+DROP TABLE IF EXISTS card_104_visits  CASCADE;
+DELETE FROM schema_migrations WHERE id = 'p3_CARD_104_up';
+COMMIT;

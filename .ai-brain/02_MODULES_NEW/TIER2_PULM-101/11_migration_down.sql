@@ -1,0 +1,7 @@
+-- pulm_101 reverse
+BEGIN;
+DROP TABLE IF EXISTS pulm_101_results CASCADE;
+DROP TABLE IF EXISTS pulm_101_orders  CASCADE;
+DROP TABLE IF EXISTS pulm_101_visits  CASCADE;
+DELETE FROM schema_migrations WHERE id = 'p3_PULM_101_up';
+COMMIT;

@@ -1,0 +1,7 @@
+-- onc_104 reverse
+BEGIN;
+DROP TABLE IF EXISTS onc_104_results CASCADE;
+DROP TABLE IF EXISTS onc_104_orders  CASCADE;
+DROP TABLE IF EXISTS onc_104_visits  CASCADE;
+DELETE FROM schema_migrations WHERE id = 'p3_ONC_104_up';
+COMMIT;

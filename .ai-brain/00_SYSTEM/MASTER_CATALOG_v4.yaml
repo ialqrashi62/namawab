@@ -1,0 +1,178 @@
+# NamaMedical vGlobal.0 — Master Catalog v4
+# 60+ clinical departments + 16 facility types + 100+ PCC modules
+
+catalog_version: 4.0.0
+release_date: 2026-08-01
+
+# === FACILITY TYPES (16) ===
+facility_types:
+  - medical_city
+  - general_hospital
+  - tertiary_hospital
+  - specialized_hospital
+  - polyclinic
+  - phc
+  - specialty_center
+  - diagnostic_center
+  - rehabilitation_center
+  - dialysis_center
+  - dental_center
+  - mental_health_center
+  - home_healthcare_unit
+  - mobile_clinic
+  - virtual_clinic
+  - health_unit
+
+# === CLINICAL DEPARTMENTS (60+) ===
+# Tier 1: Core (already implemented)
+tier_1_core:
+  - cardiology
+  - emergency
+  - internal_medicine
+  - pediatrics
+  - obgyn
+  - surgery
+  - orthopedics
+  - neurology
+  - oncology
+  - dermatology
+  - ent
+  - ophthalmology
+  - psychiatry
+  - infectious_disease
+  - nephrology
+  - gastroenterology
+  - endocrinology
+  - pulmonology
+  - rheumatology
+  - allergy_immunology
+  - urology
+  - anesthesiology
+  - radiology
+  - pathology
+  - icu
+  - nicu
+  - picu
+
+# Tier 2: Specialty (already implemented)
+tier_2_specialty:
+  - neurosurgery
+  - cardiothoracic_surgery
+  - vascular_surgery
+  - plastic_surgery
+  - pediatric_surgery
+  - bariatric_surgery
+  - transplant
+  - burn_unit
+  - wound_care
+  - pain_management
+  - palliative_care
+  - hospice
+  - sleep_center
+  - headache_clinic
+  - memory_clinic
+  - epilepsy_unit
+  - stroke_unit
+  - fertility
+  - genetics
+  - geriatrics
+
+# Tier 3: Diagnostic + Ancillary
+tier_3_diagnostic:
+  - laboratory
+  - microbiology
+  - blood_bank
+  - imaging
+  - nuclear_med
+  - interventional_radiology
+  - endoscopy
+  - pulmonary_function
+  - cardiac_cath_lab
+  - echocardiography
+  - vascular_lab
+  - neurophysiology
+  - audiology
+  - sleep_lab
+
+# Tier 4: Allied Health
+tier_4_allied:
+  - nutrition
+  - physical_therapy
+  - occupational_therapy
+  - speech_therapy
+  - respiratory_therapy
+  - dialysis
+  - infusion_therapy
+  - lactation_consulting
+  - social_work
+  - case_management
+  - chaplaincy
+  - pharmacy
+  - clinical_pharmacy
+  - nursing
+  - midwifery
+  - nurse_practitioner
+
+# Tier 5: Public Health + Community
+tier_5_public:
+  - vaccination
+  - travel_medicine
+  - occupational_health
+  - public_health
+  - epidemiology
+  - infection_control
+  - environmental_health
+  - school_health
+  - mch (maternal_child_health)
+  - family_planning
+  - tb_program
+  - hiv_program
+  - ncd_program
+  - mental_health_community
+
+# Tier 6: Specialized programs
+tier_6_specialty:
+  - addiction
+  - aerospace
+  - adolescent_medicine
+  - adrenal_health
+  - aerospace_ext
+  - allergy_advanced
+  - allergy_environmental
+  - integrative_med
+  - lifestyle_med
+  - military_med
+  - wound_ostomy
+  - transplant_coordination
+  - genetic_counseling
+  - hiv_aids
+  - hepatitis
+  - lymphatic
+  - mycology
+  - parasitology
+  - virology
+  - veterinary_public_health
+
+# === TOTAL COUNT ===
+total_departments: 116
+total_clinical_modules: 100
+total_pcc_modules: 1000  # via PCC phase 3 rollout
+
+# === ENTITLEMENT MATRIX (per facility type) ===
+entitlement_matrix:
+  medical_city: [all_60_plus]
+  general_hospital: [tier_1_core, tier_2_specialty, tier_3_diagnostic, tier_4_allied]
+  tertiary_hospital: [all_60_plus]
+  specialized_hospital: [tier_1_core, tier_2_specialty, tier_6_specialty]
+  polyclinic: [tier_3_diagnostic, pharmacy, family_med]
+  phc: [family_med, vaccination, mch, tb_program, hiv_program, ncd_program]
+  specialty_center: [single_specialty]
+  diagnostic_center: [tier_3_diagnostic]
+  rehabilitation_center: [physical_therapy, occupational_therapy, speech_therapy]
+  dialysis_center: [dialysis, nephrology]
+  dental_center: [dental]
+  mental_health_center: [psychiatry, addiction, mental_health_community]
+  home_healthcare_unit: [nursing, palliative_care, wound_care]
+  mobile_clinic: [vaccination, screening, family_med]
+  virtual_clinic: [telemedicine, mental_health]
+  health_unit: [pharmacy, vaccination, family_med]

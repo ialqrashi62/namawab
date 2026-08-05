@@ -1,0 +1,19 @@
+{
+  "ts": "2026-08-01T03:53:36.171Z",
+  "mode": "autopilot-audit",
+  "summary": {
+    "total": 195,
+    "scanned": 192,
+    "secretLines": 0,
+    "phiLines": 0
+  },
+  "totals": {
+    "files": 195,
+    "scanned": 192,
+    "secretLines": 0,
+    "phiLines": 0,
+    "findings": 0
+  },
+  "buckets": {},
+  "findings": []
+}

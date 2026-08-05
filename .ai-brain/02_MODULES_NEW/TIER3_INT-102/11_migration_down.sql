@@ -1,0 +1,7 @@
+-- int_102 reverse
+BEGIN;
+DROP TABLE IF EXISTS int_102_results CASCADE;
+DROP TABLE IF EXISTS int_102_orders  CASCADE;
+DROP TABLE IF EXISTS int_102_visits  CASCADE;
+DELETE FROM schema_migrations WHERE id = 'p3_INT_102_up';
+COMMIT;

@@ -1,0 +1,7 @@
+-- peds_101 reverse
+BEGIN;
+DROP TABLE IF EXISTS peds_101_results CASCADE;
+DROP TABLE IF EXISTS peds_101_orders  CASCADE;
+DROP TABLE IF EXISTS peds_101_visits  CASCADE;
+DELETE FROM schema_migrations WHERE id = 'p3_PEDS_101_up';
+COMMIT;

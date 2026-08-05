@@ -1,0 +1,7 @@
+-- obg_104 reverse
+BEGIN;
+DROP TABLE IF EXISTS obg_104_results CASCADE;
+DROP TABLE IF EXISTS obg_104_orders  CASCADE;
+DROP TABLE IF EXISTS obg_104_visits  CASCADE;
+DELETE FROM schema_migrations WHERE id = 'p3_OBG_104_up';
+COMMIT;

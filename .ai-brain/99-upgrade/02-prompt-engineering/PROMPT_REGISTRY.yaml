@@ -1,0 +1,336 @@
+---
+id: PROMPT-REGISTRY
+version: 1.0
+date: 2026-08-01
+owner: AIE+CMO
+status: ACTIVE
+---
+
+# PROMPT_REGISTRY.yaml — Central Catalog
+
+> **Path:** `.ai-brain/02-prompt-engineering/PROMPT_REGISTRY.yaml`
+> **Authority:** single source of truth for ALL clinical/operational prompts.
+> **Lifecycle:** draft → review → production → deprecated
+
+---
+
+## 1. Schema (full)
+
+```yaml
+prompts: List<PromptEntry>
+guardrails: List<GuardrailEntry>
+few_shot_examples: List<Example>
+citation_bundles: List<Bundle>
+```
+
+---
+
+## 2. PromptEntry full schema
+
+```yaml
+PromptEntry:
+  required:
+    - id: string        # PROMPT:<DEPT>:<encounter_or_feature>
+    - version: semver   # 1.4.0
+    - status: enum[draft, review, production, deprecated]
+    - owner: enum[CMO, AIE, CQO, DSL, SA, PM]
+    - dept: string      # CARD-001
+    - languages: List<string>  # ar, en
+    - tier: enum[1,2,3,4]
+    - safety_class: enum[critical, high, standard]
+    - requires_red_flag_check: bool
+    - requires_drug_check: bool
+    - requires_citation: bool
+    - input_schema_ref: string
+    - output_schema_ref: string
+    - guardrail_set_id: string
+    - max_tokens: int
+    - temperature: float
+    - model_target: enum[gpt-4o, claude-3.5, med-llama, multilingual-e5, local]
+    - eval_id: string
+    - citations_required: int  # min citations per claim
+  optional:
+    - fallback_chain: string
+    - few_shot_count: int
+    - locale: enum[ar-SA, en-US, both]
+    - cost_per_call_usd: float
+    - last_reviewed: ISO-8601
+    - next_review: ISO-8601
+    - aliases: List<string>
+    - notes: string
+```
+
+---
+
+## 3. Current entries (initial catalog — 13 dept × 3 prompts = ~40)
+
+```yaml
+prompts:
+
+  # ===== CARD (Cardiology) =====
+  - id: PROMPT:CARD-001:initial_assessment
+    version: 1.4.0
+    status: production
+    owner: CMO
+    dept: CARD-001
+    languages: [ar, en]
+    tier: 1
+    safety_class: critical
+    requires_red_flag_check: true
+    requires_drug_check: true
+    requires_citation: true
+    input_schema_ref: SCHEMA:CARD-001:encounter_input
+    output_schema_ref: SCHEMA:CARD-001:assessment_output
+    guardrail_set_id: GRD:CARD-001:v1
+    citations_required: 3
+    max_tokens: 1500
+    temperature: 0.1
+    model_target: gpt-4o
+    eval_id: EVAL:CARD-001:initial_assessment
+
+  - id: PROMPT:CARD-001:risk_stratification
+    version: 1.2.0
+    status: production
+    owner: CMO
+    dept: CARD-001
+    languages: [ar, en]
+    tier: 1
+    safety_class: critical
+    requires_red_flag_check: true
+    requires_drug_check: false
+    requires_citation: true
+    input_schema_ref: SCHEMA:CARD-001:risk_input
+    output_schema_ref: SCHEMA:CARD-001:risk_output
+    guardrail_set_id: GRD:CARD-001:v1
+    citations_required: 2
+    max_tokens: 1000
+    temperature: 0.05
+    model_target: gpt-4o
+    eval_id: EVAL:CARD-001:risk_stratification
+
+  # ===== ER (Emergency) =====
+  - id: PROMPT:ER-001:triage_esi
+    version: 1.5.0
+    status: production
+    owner: CMO
+    dept: ER-001
+    languages: [ar, en]
+    tier: 1
+    safety_class: critical
+    requires_red_flag_check: true
+    requires_drug_check: false
+    requires_citation: true
+    input_schema_ref: SCHEMA:ER-001:triage_input
+    output_schema_ref: SCHEMA:ER-001:esi_output
+    guardrail_set_id: GRD:ER-001:v1
+    citations_required: 2
+    max_tokens: 800
+    temperature: 0.05
+    model_target: gpt-4o
+    eval_id: EVAL:ER-001:triage_esi
+
+  # ===== ICU =====
+  - id: PROMPT:ICU-001:ews_sofa
+    version: 1.1.0
+    status: production
+    owner: CMO
+    dept: ICU-001
+    languages: [ar, en]
+    tier: 1
+    safety_class: critical
+    requires_red_flag_check: true
+    requires_drug_check: true
+    requires_citation: true
+    input_schema_ref: SCHEMA:ICU-001:ews_input
+    output_schema_ref: SCHEMA:ICU-001:sofa_output
+    guardrail_set_id: GRD:ICU-001:v1
+    citations_required: 2
+    max_tokens: 1200
+    temperature: 0.05
+    model_target: gpt-4o
+    eval_id: EVAL:ICU-001:ews_sofa
+
+  # ===== OBG (OB/GYN) =====
+  - id: PROMPT:OBG-001:prenatal_care
+    version: 1.0.0
+    status: production
+    owner: CMO
+    dept: OBG-001
+    languages: [ar, en]
+    tier: 1
+    safety_class: critical
+    requires_red_flag_check: true
+    requires_drug_check: true
+    requires_citation: true
+    input_schema_ref: SCHEMA:OBG-001:prenatal_input
+    output_schema_ref: SCHEMA:OBG-001:prenatal_output
+    guardrail_set_id: GRD:OBG-001:v1
+    citations_required: 3
+    max_tokens: 1500
+    temperature: 0.1
+    model_target: gpt-4o
+    eval_id: EVAL:OBG-001:prenatal_care
+
+  # ===== PEDS =====
+  - id: PROMPT:PEDS-001:well_child
+    version: 1.0.0
+    status: production
+    owner: CMO
+    dept: PEDS-001
+    languages: [ar, en]
+    tier: 1
+    safety_class: critical
+    requires_red_flag_check: true
+    requires_drug_check: true
+    requires_citation: true
+    input_schema_ref: SCHEMA:PEDS-001:well_input
+    output_schema_ref: SCHEMA:PEDS-001:well_output
+    guardrail_set_id: GRD:PEDS-001:v1
+    citations_required: 3
+    max_tokens: 1500
+    temperature: 0.1
+    model_target: gpt-4o
+    eval_id: EVAL:PEDS-001:well_child
+
+  # ===== General 13 AI Orchestrators =====
+  # Each maps to existing engine (ai_cardiology, ai_critical, ai_derm, ...)
+  # Same PROMPT_ENTRY schema, modular
+```
+
+---
+
+## 4. Guardrails Registry (subset)
+
+```yaml
+guardrails:
+  - id: GRD:PRE:phi_redact
+    module: src/guardrails/phi_redactor.js
+    when: every_request
+    fail_action: hard_fail
+  - id: GRD:PRE:tenant_check
+    module: src/tenant/require_tenant_context.js
+    when: every_request
+    fail_action: 403
+  - id: GRD:PRE:specialty_scope
+    module: src/rbac/specialty_scoper.js
+    when: every_request
+    fail_action: 403
+  - id: GRD:POST:red_flag
+    module: src/guardrails/red_flag_parser.js
+    override_allowed: false
+    when: every_response
+    on_breach: hard_fail_with_retry_prompt
+  - id: GRD:POST:drug_interaction
+    module: src/guardrails/drug_interaction_checker.js
+    when: every_response_with_drugs
+    fail_action: block_drug
+  - id: GRD:POST:citation_required
+    module: src/guardrails/citation_validator.js
+    when: every_clinical_response
+    min_citations: 2
+    fail_action: refuse_response
+  - id: GRD:POST:confidence_threshold
+    module: src/guardrails/confidence_scanner.js
+    when: every_response
+    min_confidence: 0.7
+    fail_action: emit_uncertain
+  - id: GRD:POST:pii_audit
+    module: src/guardrails/pii_auditor.js
+    when: every_response
+    on_breach: log_and_strip
+  - id: GRD:POST:sfda_check
+    module: src/guardrails/sfda_drug_validator.js
+    when: every_drug_response
+    authority: SFDA_Drug_DB_SAUDI
+    fail_action: block_drug_if_not_sfda_registered
+```
+
+---
+
+## 5. Citation Bundles (sources)
+
+```yaml
+citation_bundles:
+  - id: CIT:CBAHI:ED-04
+    source_type: cbahi_standard
+    document: CBAHI ED-04 STEMI Pathway
+    version: 2024.1
+    jurisdiction: KSA
+  - id: CIT:NPHIES:ACS-001
+    source_type: nphies_bundle
+    document: NPHIES Bundle ACS-001
+    version: 3.2
+    jurisdiction: KSA
+  - id: CIT:SFDA:DRUG-DB
+    source_type: sfda_registry
+    document: SFDA Drug Database
+    jurisdiction: KSA
+  - id: CIT:ESC-2024:STEMI
+    source_type: international_guideline
+    document: ESC 2024 STEMI Guidelines
+    jurisdiction: EU_KSA_accepted
+  - id: CIT:AHA-2023:CHEST_PAIN
+    source_type: international_guideline
+    document: AHA/ACC 2023 Chest Pain Guidelines
+  - id: CIT:KDIGO-2024:CKD
+    source_type: international_guideline
+    document: KDIGO 2024 CKD Guideline
+  - id: CIT:MOH-KSA:PDPL-2024
+    source_type: regulation
+    document: MOH PDPL 2024 Implementation Guide
+  # + 200 more bundles (per dept × per encounter)
+```
+
+---
+
+## 6. Eval Framework
+
+```yaml
+eval_datasets:
+  - id: DATASET:CARD-001:synthetic_eval_v3
+    cases: 250
+    sources: [
+      {n: 100, source: 'CBAHI red flag scenarios'},
+      {n: 50,  source: 'ESC guidelines'},
+      {n: 50,  source: 'Mass General Brigham case bank'},
+      {n: 50,  source: 'Local KSA case bank (deidentified)'}
+    ]
+    metrics:
+      - clinical_accuracy
+      - citation_coverage
+      - red_flag_recall
+      - drug_check_recall
+      - hallucination_rate
+      - cost_per_call
+      - latency_p95
+    target_thresholds:
+      clinical_accuracy: 0.95
+      red_flag_recall: 1.0
+      drug_check_recall: 1.0
+```
+
+---
+
+## 7. Conventions
+
+- **ID format**: `PROMPT:<DEPT-ID>:<feature>`
+- **Version**: semver; bump on any change
+- **Status**: `draft` → `review` → `production` → `deprecated`
+- **Owner**: the role responsible; co-sign required for `production`
+- **Re-eval**: every prompt must re-pass eval suite every 90 days
+- **Audit**: every prompt use is logged with patient_id (encrypted), provider_id, time, token used, model
+
+---
+
+## 8. Deployment
+
+- File: `.ai-brain/02-prompt-engineering/PROMPT_REGISTRY.yaml`
+- Loaded by: `src/ai/prompt_loader.js` (compile-time + runtime)
+- CI gate: every PR adding/changing a prompt must update this file
+- Auto-eval: `npm run prompt:eval -- --id=<prompt_id>`
+
+---
+
+> **Owner**: AIE + CMO
+> **Status**: v1.0 → ready for first cohort of prompts
+> **Next**: add PROMPTs for PULM, GI, NEPH, ONC, ENDO, ID, DERM, RHEUM (8 dept × 3 prompts = 24 entries)
