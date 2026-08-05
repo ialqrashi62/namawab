@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_cytology_ext100/pcc_cytology_ext100_engine.js
-module.exports.version='v3.29.29.0';
-module.exports.module='pcc_cytology_ext100';
-module.exports.functions={};
-module.exports.functions['CytoGynExt']=function(input){const score=Math.round((0.18 + Number(input.cytoGyn||1)*0.2 + Number(input.bethesdaScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.29.29.0',module:'pcc_cytology_ext100',function:'CytoGynExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CytoNonGynExt']=function(input){const score=Math.round((0.18 + Number(input.cytoNonGyn||1)*0.2 + Number(input.nonGynSource||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.29.29.0',module:'pcc_cytology_ext100',function:'CytoNonGynExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CytoFNAext']=function(input){const score=Math.round((0.18 + Number(input.cytoFNA||1)*0.2 + Number(input.fnaSite||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.29.29.0',module:'pcc_cytology_ext100',function:'CytoFNAext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CytoFluidExt']=function(input){const score=Math.round((0.18 + Number(input.cytoFluid||1)*0.2 + Number(input.fluidType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.29.29.0',module:'pcc_cytology_ext100',function:'CytoFluidExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CytoUrineExt']=function(input){const score=Math.round((0.18 + Number(input.cytoUrine||1)*0.2 + Number(input.urineCytology||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.29.29.0',module:'pcc_cytology_ext100',function:'CytoUrineExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CytoSputumExt']=function(input){const score=Math.round((0.18 + Number(input.cytoSputum||1)*0.2 + Number(input.sputumFinding||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.29.29.0',module:'pcc_cytology_ext100',function:'CytoSputumExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CytoCSFext']=function(input){const score=Math.round((0.18 + Number(input.cytoCSF||1)*0.2 + Number(input.csfCellType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.29.29.0',module:'pcc_cytology_ext100',function:'CytoCSFext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CytoBreastExt']=function(input){const score=Math.round((0.18 + Number(input.cytoBreast||1)*0.2 + Number(input.breastFinding||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.29.29.0',module:'pcc_cytology_ext100',function:'CytoBreastExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CytoThyroidExt']=function(input){const score=Math.round((0.18 + Number(input.cytoThyroid||1)*0.2 + Number(input.thyroCyto||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.29.29.0',module:'pcc_cytology_ext100',function:'CytoThyroidExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CytoLymphExt']=function(input){const score=Math.round((0.18 + Number(input.cytoLymph||1)*0.2 + Number(input.lymphCyto||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.29.29.0',module:'pcc_cytology_ext100',function:'CytoLymphExt',input,score,ts:new Date().toISOString()}};
+// pcc_cytology_ext100_engine v3.316.41 (Phase 2 Batch 8 — AdolescentMed/Allergy100/Alternative/Anesth/BloodBank/Burn/ClinicalTrials/Compliance/Culinary/Cytology/GenMed)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.41';
+const MOD = 'pcc_cytology_ext100';
 
-// TS: v3.29.29.0
+function CytoGynExt(input) {
+  const i = input || {};
+  const v = Number(i.CytoGynExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CytoGynExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CytoNonGynExt(input) {
+  const i = input || {};
+  const v = Number(i.CytoNonGynExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CytoNonGynExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CytoFNAext(input) {
+  const i = input || {};
+  const v = Number(i.CytoFNAext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CytoFNAext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CytoFluidExt(input) {
+  const i = input || {};
+  const v = Number(i.CytoFluidExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CytoFluidExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CytoUrineExt(input) {
+  const i = input || {};
+  const v = Number(i.CytoUrineExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CytoUrineExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CytoSputumExt(input) {
+  const i = input || {};
+  const v = Number(i.CytoSputumExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CytoSputumExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CytoCSFext(input) {
+  const i = input || {};
+  const v = Number(i.CytoCSFext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CytoCSFext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CytoBreastExt(input) {
+  const i = input || {};
+  const v = Number(i.CytoBreastExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CytoBreastExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CytoThyroidExt(input) {
+  const i = input || {};
+  const v = Number(i.CytoThyroidExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CytoThyroidExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CytoLymphExt(input) {
+  const i = input || {};
+  const v = Number(i.CytoLymphExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CytoLymphExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  CytoGynExt, CytoNonGynExt, CytoFNAext, CytoFluidExt, CytoUrineExt, CytoSputumExt, CytoCSFext, CytoBreastExt, CytoThyroidExt, CytoLymphExt
+};

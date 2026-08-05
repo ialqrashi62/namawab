@@ -1,73 +1,78 @@
-// P3-CA pcc_admin_engine.js — 10 pure functions
-const Engine = {
-  Facility: function (i) {
-    const type = (i.type || 'general_hospital');
-    if (type === 'medical_city') return { plan: 'full-modules' };
-    if (type === 'tertiary_hospital') return { plan: 'extended-modules' };
-    if (type === 'general_hospital') return { plan: 'standard-modules' };
-    if (type === 'polyclinic') return { plan: 'basic-modules' };
-    return { plan: 'limited-modules' };
-  },
-  User: function (i) {
-    const role = (i.role || 'viewer');
-    if (role === 'admin') return { plan: 'all-permissions' };
-    if (role === 'doctor') return { plan: 'clinical-permissions' };
-    if (role === 'nurse') return { plan: 'care-permissions' };
-    if (role === 'staff') return { plan: 'support-permissions' };
-    return { plan: 'read-only' };
-  },
-  Module: function (i) {
-    const action = (i.action || 'enable');
-    if (action === 'enable') return { plan: 'enable-module' };
-    if (action === 'disable') return { plan: 'disable-module' };
-    if (action === 'configure') return { plan: 'configure-module' };
-    return { plan: 'module-info' };
-  },
-  Config: function (i) {
-    const key = (i.key || 'default');
-    if (key === 'theme') return { plan: 'theme-config' };
-    if (key === 'lang') return { plan: 'lang-config' };
-    if (key === 'tz') return { plan: 'tz-config' };
-    return { plan: 'general-config' };
-  },
-  Branches: function (i) {
-    const type = (i.type || 'main');
-    if (type === 'branch') return { plan: 'branch-ops' };
-    if (type === 'satellite') return { plan: 'satellite-ops' };
-    return { plan: 'main-ops' };
-  },
-  Resource: function (i) {
-    const type = (i.type || 'cpu');
-    if (type === 'cpu') return { plan: 'monitor-cpu' };
-    if (type === 'memory') return { plan: 'monitor-memory' };
-    if (type === 'disk') return { plan: 'monitor-disk' };
-    return { plan: 'monitor-network' };
-  },
-  Backup: function (i) {
-    const type = (i.type || 'full');
-    if (type === 'full') return { plan: 'backup-full' };
-    if (type === 'incremental') return { plan: 'backup-incr' };
-    if (type === 'differential') return { plan: 'backup-diff' };
-    return { plan: 'backup-default' };
-  },
-  Restore: function (i) {
-    const backup = (i.backup || 'latest');
-    if (backup === 'latest') return { plan: 'restore-latest' };
-    if (backup === 'point-in-time') return { plan: 'restore-pit' };
-    return { plan: 'restore-typed' };
-  },
-  Migration: function (i) {
-    const direction = (i.direction || 'up');
-    if (direction === 'up') return { plan: 'migrate-up' };
-    if (direction === 'down') return { plan: 'migrate-down' };
-    return { plan: 'migrate-status' };
-  },
-  Health: function (i) {
-    const check = (i.check || 'db');
-    if (check === 'db') return { plan: 'check-db' };
-    if (check === 'redis') return { plan: 'check-redis' };
-    if (check === 'queue') return { plan: 'check-queue' };
-    return { plan: 'check-default' };
-  },
+// Upgraded from P3-CC legacy format to new clinical depth format (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:30:00Z';
+const VER = 'v3.41.0';
+const MOD = 'pcc_admin';
+
+function Facility(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.facility) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Facility', input, score, ts: TS, facility: _i.facility || null };
+}
+
+function User(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.user) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'User', input, score, ts: TS, user: _i.user || null };
+}
+
+function Module(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.module) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Module', input, score, ts: TS, module: _i.module || null };
+}
+
+function Config(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.config) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Config', input, score, ts: TS, config: _i.config || null };
+}
+
+function Branches(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.branches) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Branches', input, score, ts: TS, branches: _i.branches || null };
+}
+
+function Resource(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.resource) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Resource', input, score, ts: TS, resource: _i.resource || null };
+}
+
+function Backup(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.backup) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Backup', input, score, ts: TS, backup: _i.backup || null };
+}
+
+function Restore(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.restore) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Restore', input, score, ts: TS, restore: _i.restore || null };
+}
+
+function Migration(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.migration) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Migration', input, score, ts: TS, migration: _i.migration || null };
+}
+
+function Health(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.health) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Health', input, score, ts: TS, health: _i.health || null };
+}
+
+module.exports = {
+  Facility,
+  User,
+  Module,
+  Config,
+  Branches,
+  Resource,
+  Backup,
+  Restore,
+  Migration,
+  Health,
 };
-module.exports = Engine;

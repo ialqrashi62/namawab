@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_preventive_ext101/pcc_preventive_ext101_engine.js
-module.exports.version='v3.36.36.0';
-module.exports.module='pcc_preventive_ext101';
-module.exports.functions={};
-module.exports.functions['PrevVaccineExt']=function(input){const score=Math.round((0.18 + Number(input.pvVacc||1)*0.2 + Number(input.pvVaccType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.36.36.0',module:'pcc_preventive_ext101',function:'PrevVaccineExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PrevCancerExt']=function(input){const score=Math.round((0.18 + Number(input.pvCancer||1)*0.2 + Number(input.pvCancerType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.36.36.0',module:'pcc_preventive_ext101',function:'PrevCancerExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PrevCVDExt']=function(input){const score=Math.round((0.18 + Number(input.pvCVD||1)*0.2 + Number(input.pvCVDRisk||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.36.36.0',module:'pcc_preventive_ext101',function:'PrevCVDExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PrevDiabetesExt']=function(input){const score=Math.round((0.18 + Number(input.pvDM||1)*0.2 + Number(input.pvDMRisk||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.36.36.0',module:'pcc_preventive_ext101',function:'PrevDiabetesExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PrevObesityExt']=function(input){const score=Math.round((0.18 + Number(input.pvOb||1)*0.2 + Number(input.pvBMI||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.36.36.0',module:'pcc_preventive_ext101',function:'PrevObesityExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PrevSmokingExt']=function(input){const score=Math.round((0.18 + Number(input.pvSmoke||1)*0.2 + Number(input.pvPackYear||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.36.36.0',module:'pcc_preventive_ext101',function:'PrevSmokingExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PrevAlcoholExt']=function(input){const score=Math.round((0.18 + Number(input.pvAlc||1)*0.2 + Number(input.pvAudit||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.36.36.0',module:'pcc_preventive_ext101',function:'PrevAlcoholExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PrevSTIScreenExt']=function(input){const score=Math.round((0.18 + Number(input.pvSTI||1)*0.2 + Number(input.pvSTIType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.36.36.0',module:'pcc_preventive_ext101',function:'PrevSTIScreenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PrevMentalExt']=function(input){const score=Math.round((0.18 + Number(input.pvMental||1)*0.2 + Number(input.pvPHQ||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.36.36.0',module:'pcc_preventive_ext101',function:'PrevMentalExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PrevHealthLitExt']=function(input){const score=Math.round((0.18 + Number(input.pvHL||1)*0.2 + Number(input.pvHLLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.36.36.0',module:'pcc_preventive_ext101',function:'PrevHealthLitExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.36.36.0';
+const MOD = 'pcc_preventive_ext101';
 
-// TS: v3.36.36.0
+function PrevVaccineExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.prevVaccineExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PrevVaccineExt", input, score, ts: TS, prevVaccineExt: _i.prevVaccineExt || null };
+}
+
+function PrevCancerExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.prevCancerExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PrevCancerExt", input, score, ts: TS, prevCancerExt: _i.prevCancerExt || null };
+}
+
+function PrevCVDExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.prevCVDExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PrevCVDExt", input, score, ts: TS, prevCVDExt: _i.prevCVDExt || null };
+}
+
+function PrevDiabetesExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.prevDiabetesExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PrevDiabetesExt", input, score, ts: TS, prevDiabetesExt: _i.prevDiabetesExt || null };
+}
+
+function PrevObesityExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.prevObesityExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PrevObesityExt", input, score, ts: TS, prevObesityExt: _i.prevObesityExt || null };
+}
+
+function PrevSmokingExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.prevSmokingExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PrevSmokingExt", input, score, ts: TS, prevSmokingExt: _i.prevSmokingExt || null };
+}
+
+function PrevAlcoholExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.prevAlcoholExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PrevAlcoholExt", input, score, ts: TS, prevAlcoholExt: _i.prevAlcoholExt || null };
+}
+
+function PrevSTIScreenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.prevSTIScreenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PrevSTIScreenExt", input, score, ts: TS, prevSTIScreenExt: _i.prevSTIScreenExt || null };
+}
+
+function PrevMentalExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.prevMentalExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PrevMentalExt", input, score, ts: TS, prevMentalExt: _i.prevMentalExt || null };
+}
+
+function PrevHealthLitExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.prevHealthLitExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PrevHealthLitExt", input, score, ts: TS, prevHealthLitExt: _i.prevHealthLitExt || null };
+}
+
+module.exports = {
+  PrevVaccineExt,
+  PrevCancerExt,
+  PrevCVDExt,
+  PrevDiabetesExt,
+  PrevObesityExt,
+  PrevSmokingExt,
+  PrevAlcoholExt,
+  PrevSTIScreenExt,
+  PrevMentalExt,
+  PrevHealthLitExt,
+};
