@@ -6,6 +6,43 @@ the change was small enough to be merged without its own report.
 
 ---
 
+## Wave 39 — 2026-08-05 — CSP Report Persistence + Prometheus Metric
+**Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_39_CSP_REPORTS_AR.md`](PHASE_WAVE_39_CSP_REPORTS_AR.md)
+
+### Added
+- `namaweb/wave39_csp.js` — `persistCspReport(pool, body, sourceIp, userAgent, tenantId)`,
+  `summarizeCspReports(pool, {windowHours})`, `toPrometheusMetrics(summary)`. Best-effort
+  INSERT into `csp_reports`. 60s in-process cache.
+- `namaweb/wave39_csp_test.js` — 14 unit / structural / safety tests (PASS on local + prod).
+- `namaweb/migrations/p1_13_wave39_csp_reports_up.sql` + `_down.sql` —
+  new `csp_reports` table (RLS, FORCE RLS, BYPASSRLS-safe GRANTs).
+- `namaweb/server.js` — `/api/csp-report` handler rewritten as `async`
+  to await `wave39.persistCspReport`. Best-effort persistence (console
+  fallback retained).
+- `namaweb/server.js` — new endpoints:
+  - `GET /api/metrics/csp` (Prometheus, no auth)
+  - `GET /api/security/csp-reports` (Admin/IT JSON surface)
+  - `getWave39Report()` with 60s cache.
+- 3 new Prometheus gauges on `/api/metrics/csp`:
+  - `nama_csp_reports_total`
+  - `nama_csp_reports_last_24h`
+  - `nama_csp_reports_last_1h`
+
+### Changed
+- `server.js` `/api/csp-report` — sync `(req, res) => {...}` handler
+  upgraded to async with tenant-context capture (`getCurrentTenantId()`).
+
+### Why
+CSP reports were previously `console.warn`'d and discarded — every
+script-src / frame-ancestors violation was lost on rotation. Now persisted
+with tenant stamp (RLS) and exposed to Prometheus.
+
+### Test status
+- `wave39_csp_test.js`: **14 / 14 PASS** (local + prod)
+- Cumulative waves 31–39: **90 / 90 PASS**
+
+---
+
 ## Wave 38 — 2026-08-05 — Audit Chain Integrity Checker (BYPASSRLS)
 **Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`WAVE_38_AUDIT_CHAIN_AR.md`](WAVE_38_AUDIT_CHAIN_AR.md)
 
