@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_wellness_ext102/pcc_wellness_ext102_engine.js
-module.exports.version='v3.47.47.0';
-module.exports.module='pcc_wellness_ext102';
-module.exports.functions={};
-module.exports.functions['WellIntegralExt']=function(input){const score=Math.round((0.18 + Number(input.wlInt||1)*0.2 + Number(input.wlIntScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.47.47.0',module:'pcc_wellness_ext102',function:'WellIntegralExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['WellNutritionExt']=function(input){const score=Math.round((0.18 + Number(input.wlNut||1)*0.2 + Number(input.wlNutScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.47.47.0',module:'pcc_wellness_ext102',function:'WellNutritionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['WellFitnessExt']=function(input){const score=Math.round((0.18 + Number(input.wlFit||1)*0.2 + Number(input.wlFitScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.47.47.0',module:'pcc_wellness_ext102',function:'WellFitnessExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['WellMindfulnessExt']=function(input){const score=Math.round((0.18 + Number(input.wlMind||1)*0.2 + Number(input.wlMindScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.47.47.0',module:'pcc_wellness_ext102',function:'WellMindfulnessExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['WellResilienceExt']=function(input){const score=Math.round((0.18 + Number(input.wlRes||1)*0.2 + Number(input.wlResScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.47.47.0',module:'pcc_wellness_ext102',function:'WellResilienceExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['WellConnectionExt']=function(input){const score=Math.round((0.18 + Number(input.wlConn||1)*0.2 + Number(input.wlConnScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.47.47.0',module:'pcc_wellness_ext102',function:'WellConnectionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['WellPurposeExt']=function(input){const score=Math.round((0.18 + Number(input.wlPurp||1)*0.2 + Number(input.wlPurpScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.47.47.0',module:'pcc_wellness_ext102',function:'WellPurposeExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['WellEnergyExt']=function(input){const score=Math.round((0.18 + Number(input.wlEn||1)*0.2 + Number(input.wlEnScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.47.47.0',module:'pcc_wellness_ext102',function:'WellEnergyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['WellRecoveryExt']=function(input){const score=Math.round((0.18 + Number(input.wlRec||1)*0.2 + Number(input.wlRecScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.47.47.0',module:'pcc_wellness_ext102',function:'WellRecoveryExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['WellCheckExt']=function(input){const score=Math.round((0.18 + Number(input.wlChk||1)*0.2 + Number(input.wlChkScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.47.47.0',module:'pcc_wellness_ext102',function:'WellCheckExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.47.47.0';
+const MOD = 'pcc_wellness_ext102';
 
-// TS: v3.47.47.0
+function WellIntegralExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.wellIntegralExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "WellIntegralExt", input, score, ts: TS, wellIntegralExt: _i.wellIntegralExt || null };
+}
+
+function WellNutritionExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.wellNutritionExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "WellNutritionExt", input, score, ts: TS, wellNutritionExt: _i.wellNutritionExt || null };
+}
+
+function WellFitnessExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.wellFitnessExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "WellFitnessExt", input, score, ts: TS, wellFitnessExt: _i.wellFitnessExt || null };
+}
+
+function WellMindfulnessExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.wellMindfulnessExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "WellMindfulnessExt", input, score, ts: TS, wellMindfulnessExt: _i.wellMindfulnessExt || null };
+}
+
+function WellResilienceExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.wellResilienceExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "WellResilienceExt", input, score, ts: TS, wellResilienceExt: _i.wellResilienceExt || null };
+}
+
+function WellConnectionExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.wellConnectionExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "WellConnectionExt", input, score, ts: TS, wellConnectionExt: _i.wellConnectionExt || null };
+}
+
+function WellPurposeExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.wellPurposeExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "WellPurposeExt", input, score, ts: TS, wellPurposeExt: _i.wellPurposeExt || null };
+}
+
+function WellEnergyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.wellEnergyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "WellEnergyExt", input, score, ts: TS, wellEnergyExt: _i.wellEnergyExt || null };
+}
+
+function WellRecoveryExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.wellRecoveryExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "WellRecoveryExt", input, score, ts: TS, wellRecoveryExt: _i.wellRecoveryExt || null };
+}
+
+function WellCheckExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.wellCheckExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "WellCheckExt", input, score, ts: TS, wellCheckExt: _i.wellCheckExt || null };
+}
+
+module.exports = {
+  WellIntegralExt,
+  WellNutritionExt,
+  WellFitnessExt,
+  WellMindfulnessExt,
+  WellResilienceExt,
+  WellConnectionExt,
+  WellPurposeExt,
+  WellEnergyExt,
+  WellRecoveryExt,
+  WellCheckExt,
+};

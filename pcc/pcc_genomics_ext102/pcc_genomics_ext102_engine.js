@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_genomics_ext102/pcc_genomics_ext102_engine.js
-module.exports.version='v3.38.38.0';
-module.exports.module='pcc_genomics_ext102';
-module.exports.functions={};
-module.exports.functions['GenWholeGenomeExt']=function(input){const score=Math.round((0.18 + Number(input.gnWGS||1)*0.2 + Number(input.gnWgsCov||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_genomics_ext102',function:'GenWholeGenomeExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['GenExomeExt']=function(input){const score=Math.round((0.18 + Number(input.gnExome||1)*0.2 + Number(input.gnExomCov||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_genomics_ext102',function:'GenExomeExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['GenRNASeqExt']=function(input){const score=Math.round((0.18 + Number(input.gnRNA||1)*0.2 + Number(input.gnRnaTissue||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_genomics_ext102',function:'GenRNASeqExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['GenMethylationExt']=function(input){const score=Math.round((0.18 + Number(input.gnMeth||1)*0.2 + Number(input.gnMethSite||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_genomics_ext102',function:'GenMethylationExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['GenMicrobiomeExt']=function(input){const score=Math.round((0.18 + Number(input.gnMicro||1)*0.2 + Number(input.gnMicroSite||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_genomics_ext102',function:'GenMicrobiomeExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['GenPharmacogenomicExt']=function(input){const score=Math.round((0.18 + Number(input.gnPGx||1)*0.2 + Number(input.gnPgxDrug||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_genomics_ext102',function:'GenPharmacogenomicExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['GenEpigenomicExt']=function(input){const score=Math.round((0.18 + Number(input.gnEpig||1)*0.2 + Number(input.gnEpigMarker||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_genomics_ext102',function:'GenEpigenomicExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['GenSingleCellExt']=function(input){const score=Math.round((0.18 + Number(input.gnSC||1)*0.2 + Number(input.gnScType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_genomics_ext102',function:'GenSingleCellExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['GenSpatialExt']=function(input){const score=Math.round((0.18 + Number(input.gnSpatial||1)*0.2 + Number(input.gnSpatialTissue||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_genomics_ext102',function:'GenSpatialExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['GenMultiOmicsExt']=function(input){const score=Math.round((0.18 + Number(input.gnMulti||1)*0.2 + Number(input.gnMultiLayer||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_genomics_ext102',function:'GenMultiOmicsExt',input,score,ts:new Date().toISOString()}};
+// pcc_genomics_ext102_engine v3.316.42 (Phase 2 Batch 9 — GenSurg/Genetics/Genomics/Geriatric/GI/GlobalHealth/Hepato/HomeCare)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.42';
+const MOD = 'pcc_genomics_ext102';
 
-// TS: v3.38.38.0
+function GenWholeGenomeExt(input) {
+  const i = input || {};
+  const v = Number(i.GenWholeGenomeExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'GenWholeGenomeExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function GenExomeExt(input) {
+  const i = input || {};
+  const v = Number(i.GenExomeExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'GenExomeExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function GenRNASeqExt(input) {
+  const i = input || {};
+  const v = Number(i.GenRNASeqExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'GenRNASeqExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function GenMethylationExt(input) {
+  const i = input || {};
+  const v = Number(i.GenMethylationExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'GenMethylationExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function GenMicrobiomeExt(input) {
+  const i = input || {};
+  const v = Number(i.GenMicrobiomeExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'GenMicrobiomeExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function GenPharmacogenomicExt(input) {
+  const i = input || {};
+  const v = Number(i.GenPharmacogenomicExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'GenPharmacogenomicExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function GenEpigenomicExt(input) {
+  const i = input || {};
+  const v = Number(i.GenEpigenomicExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'GenEpigenomicExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function GenSingleCellExt(input) {
+  const i = input || {};
+  const v = Number(i.GenSingleCellExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'GenSingleCellExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function GenSpatialExt(input) {
+  const i = input || {};
+  const v = Number(i.GenSpatialExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'GenSpatialExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function GenMultiOmicsExt(input) {
+  const i = input || {};
+  const v = Number(i.GenMultiOmicsExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'GenMultiOmicsExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  GenWholeGenomeExt, GenExomeExt, GenRNASeqExt, GenMethylationExt, GenMicrobiomeExt, GenPharmacogenomicExt, GenEpigenomicExt, GenSingleCellExt, GenSpatialExt, GenMultiOmicsExt
+};

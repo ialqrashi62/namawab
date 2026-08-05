@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_palliative_ext102/pcc_palliative_ext102_engine.js
-module.exports.version='v3.52.52.0';
-module.exports.module='pcc_palliative_ext102';
-module.exports.functions={};
-module.exports.functions['PalGenExt']=function(input){const score=Math.round((0.18 + Number(input.plGen||1)*0.2 + Number(input.plGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_palliative_ext102',function:'PalGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PalSymptomExt']=function(input){const score=Math.round((0.18 + Number(input.plSym||1)*0.2 + Number(input.plSymScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_palliative_ext102',function:'PalSymptomExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PalPainExt']=function(input){const score=Math.round((0.18 + Number(input.plPain||1)*0.2 + Number(input.plPainScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_palliative_ext102',function:'PalPainExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PalDyspneaExt']=function(input){const score=Math.round((0.18 + Number(input.plDys||1)*0.2 + Number(input.plDysScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_palliative_ext102',function:'PalDyspneaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PalNauseaExt']=function(input){const score=Math.round((0.18 + Number(input.plNau||1)*0.2 + Number(input.plNauScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_palliative_ext102',function:'PalNauseaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PalConstipationExt']=function(input){const score=Math.round((0.18 + Number(input.plCon||1)*0.2 + Number(input.plConScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_palliative_ext102',function:'PalConstipationExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PalDeliriumExt']=function(input){const score=Math.round((0.18 + Number(input.plDel||1)*0.2 + Number(input.plDelScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_palliative_ext102',function:'PalDeliriumExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PalAnorexiaExt']=function(input){const score=Math.round((0.18 + Number(input.plAno||1)*0.2 + Number(input.plAnoScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_palliative_ext102',function:'PalAnorexiaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PalPsychExt']=function(input){const score=Math.round((0.18 + Number(input.plPsy||1)*0.2 + Number(input.plPsyScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_palliative_ext102',function:'PalPsychExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PalFamilyExt']=function(input){const score=Math.round((0.18 + Number(input.plFam||1)*0.2 + Number(input.plFamScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_palliative_ext102',function:'PalFamilyExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.52.52.0';
+const MOD = 'pcc_palliative_ext102';
 
-// TS: v3.52.52.0
+function PalGenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.palGenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PalGenExt", input, score, ts: TS, palGenExt: _i.palGenExt || null };
+}
+
+function PalSymptomExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.palSymptomExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PalSymptomExt", input, score, ts: TS, palSymptomExt: _i.palSymptomExt || null };
+}
+
+function PalPainExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.palPainExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PalPainExt", input, score, ts: TS, palPainExt: _i.palPainExt || null };
+}
+
+function PalDyspneaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.palDyspneaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PalDyspneaExt", input, score, ts: TS, palDyspneaExt: _i.palDyspneaExt || null };
+}
+
+function PalNauseaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.palNauseaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PalNauseaExt", input, score, ts: TS, palNauseaExt: _i.palNauseaExt || null };
+}
+
+function PalConstipationExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.palConstipationExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PalConstipationExt", input, score, ts: TS, palConstipationExt: _i.palConstipationExt || null };
+}
+
+function PalDeliriumExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.palDeliriumExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PalDeliriumExt", input, score, ts: TS, palDeliriumExt: _i.palDeliriumExt || null };
+}
+
+function PalAnorexiaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.palAnorexiaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PalAnorexiaExt", input, score, ts: TS, palAnorexiaExt: _i.palAnorexiaExt || null };
+}
+
+function PalPsychExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.palPsychExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PalPsychExt", input, score, ts: TS, palPsychExt: _i.palPsychExt || null };
+}
+
+function PalFamilyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.palFamilyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PalFamilyExt", input, score, ts: TS, palFamilyExt: _i.palFamilyExt || null };
+}
+
+module.exports = {
+  PalGenExt,
+  PalSymptomExt,
+  PalPainExt,
+  PalDyspneaExt,
+  PalNauseaExt,
+  PalConstipationExt,
+  PalDeliriumExt,
+  PalAnorexiaExt,
+  PalPsychExt,
+  PalFamilyExt,
+};

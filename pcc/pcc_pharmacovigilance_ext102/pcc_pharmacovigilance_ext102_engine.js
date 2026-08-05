@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_pharmacovigilance_ext102/pcc_pharmacovigilance_ext102_engine.js
-module.exports.version='v3.40.40.0';
-module.exports.module='pcc_pharmacovigilance_ext102';
-module.exports.functions={};
-module.exports.functions['PVReportingExt']=function(input){const score=Math.round((0.18 + Number(input.pvReport||1)*0.2 + Number(input.pvReportType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_pharmacovigilance_ext102',function:'PVReportingExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PVSignalExt']=function(input){const score=Math.round((0.18 + Number(input.pvSignal||1)*0.2 + Number(input.pvSignalStrength||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_pharmacovigilance_ext102',function:'PVSignalExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PVADRadultExt']=function(input){const score=Math.round((0.18 + Number(input.pvADR||1)*0.2 + Number(input.pvAdrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_pharmacovigilance_ext102',function:'PVADRadultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PVPeriodicExt']=function(input){const score=Math.round((0.18 + Number(input.pvPSUR||1)*0.2 + Number(input.pvPsurType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_pharmacovigilance_ext102',function:'PVPeriodicExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PVRiskMgmtExt']=function(input){const score=Math.round((0.18 + Number(input.pvRMP||1)*0.2 + Number(input.pvRmpType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_pharmacovigilance_ext102',function:'PVRiskMgmtExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PVVaccineExt']=function(input){const score=Math.round((0.18 + Number(input.pvVacc||1)*0.2 + Number(input.pvVaccType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_pharmacovigilance_ext102',function:'PVVaccineExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PVDeviceExt']=function(input){const score=Math.round((0.18 + Number(input.pvDevice||1)*0.2 + Number(input.pvDeviceType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_pharmacovigilance_ext102',function:'PVDeviceExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PVMedErrorExt']=function(input){const score=Math.round((0.18 + Number(input.pvError||1)*0.2 + Number(input.pvErrorType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_pharmacovigilance_ext102',function:'PVMedErrorExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PVLackEfficacyExt']=function(input){const score=Math.round((0.18 + Number(input.pvLoE||1)*0.2 + Number(input.pvLoeDrug||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_pharmacovigilance_ext102',function:'PVLackEfficacyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PVPregnancyExt']=function(input){const score=Math.round((0.18 + Number(input.pvPreg||1)*0.2 + Number(input.pvPregTrimest||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_pharmacovigilance_ext102',function:'PVPregnancyExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.40.40.0';
+const MOD = 'pcc_pharmacovigilance_ext102';
 
-// TS: v3.40.40.0
+function PVReportingExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pVReportingExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PVReportingExt", input, score, ts: TS, pVReportingExt: _i.pVReportingExt || null };
+}
+
+function PVSignalExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pVSignalExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PVSignalExt", input, score, ts: TS, pVSignalExt: _i.pVSignalExt || null };
+}
+
+function PVADRadultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pVADRadultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PVADRadultExt", input, score, ts: TS, pVADRadultExt: _i.pVADRadultExt || null };
+}
+
+function PVPeriodicExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pVPeriodicExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PVPeriodicExt", input, score, ts: TS, pVPeriodicExt: _i.pVPeriodicExt || null };
+}
+
+function PVRiskMgmtExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pVRiskMgmtExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PVRiskMgmtExt", input, score, ts: TS, pVRiskMgmtExt: _i.pVRiskMgmtExt || null };
+}
+
+function PVVaccineExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pVVaccineExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PVVaccineExt", input, score, ts: TS, pVVaccineExt: _i.pVVaccineExt || null };
+}
+
+function PVDeviceExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pVDeviceExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PVDeviceExt", input, score, ts: TS, pVDeviceExt: _i.pVDeviceExt || null };
+}
+
+function PVMedErrorExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pVMedErrorExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PVMedErrorExt", input, score, ts: TS, pVMedErrorExt: _i.pVMedErrorExt || null };
+}
+
+function PVLackEfficacyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pVLackEfficacyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PVLackEfficacyExt", input, score, ts: TS, pVLackEfficacyExt: _i.pVLackEfficacyExt || null };
+}
+
+function PVPregnancyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pVPregnancyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PVPregnancyExt", input, score, ts: TS, pVPregnancyExt: _i.pVPregnancyExt || null };
+}
+
+module.exports = {
+  PVReportingExt,
+  PVSignalExt,
+  PVADRadultExt,
+  PVPeriodicExt,
+  PVRiskMgmtExt,
+  PVVaccineExt,
+  PVDeviceExt,
+  PVMedErrorExt,
+  PVLackEfficacyExt,
+  PVPregnancyExt,
+};

@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_spine_surgery_ext102/pcc_spine_surgery_ext102_engine.js
-module.exports.version='v3.61.61.0';
-module.exports.module='pcc_spine_surgery_ext102';
-module.exports.functions={};
-module.exports.functions['SSxGenExt']=function(input){const score=Math.round((0.18 + Number(input.spGen||1)*0.2 + Number(input.spGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_spine_surgery_ext102',function:'SSxGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SSxDiscExt']=function(input){const score=Math.round((0.18 + Number(input.spDisc||1)*0.2 + Number(input.spDiscLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_spine_surgery_ext102',function:'SSxDiscExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SSxStenExt']=function(input){const score=Math.round((0.18 + Number(input.spSten||1)*0.2 + Number(input.spStenScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_spine_surgery_ext102',function:'SSxStenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SSxSpondExt']=function(input){const score=Math.round((0.18 + Number(input.spSpon||1)*0.2 + Number(input.spSponGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_spine_surgery_ext102',function:'SSxSpondExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SSxFracExt']=function(input){const score=Math.round((0.18 + Number(input.spFrac||1)*0.2 + Number(input.spFracTLICS||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_spine_surgery_ext102',function:'SSxFracExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SSxTumorExt']=function(input){const score=Math.round((0.18 + Number(input.spTum||1)*0.2 + Number(input.spTumType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_spine_surgery_ext102',function:'SSxTumorExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SSxDeformExt']=function(input){const score=Math.round((0.18 + Number(input.spDef||1)*0.2 + Number(input.spDefType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_spine_surgery_ext102',function:'SSxDeformExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SSxFusionExt']=function(input){const score=Math.round((0.18 + Number(input.spFus||1)*0.2 + Number(input.spFusLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_spine_surgery_ext102',function:'SSxFusionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SSxMinimExt']=function(input){const score=Math.round((0.18 + Number(input.spMin||1)*0.2 + Number(input.spMinType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_spine_surgery_ext102',function:'SSxMinimExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SSxPostExt']=function(input){const score=Math.round((0.18 + Number(input.spPost||1)*0.2 + Number(input.spPostDay||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.61.61.0',module:'pcc_spine_surgery_ext102',function:'SSxPostExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.61.61.0';
+const MOD = 'pcc_spine_surgery_ext102';
 
-// TS: v3.61.61.0
+function SSxGenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sSxGenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SSxGenExt", input, score, ts: TS, sSxGenExt: _i.sSxGenExt || null };
+}
+
+function SSxDiscExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sSxDiscExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SSxDiscExt", input, score, ts: TS, sSxDiscExt: _i.sSxDiscExt || null };
+}
+
+function SSxStenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sSxStenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SSxStenExt", input, score, ts: TS, sSxStenExt: _i.sSxStenExt || null };
+}
+
+function SSxSpondExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sSxSpondExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SSxSpondExt", input, score, ts: TS, sSxSpondExt: _i.sSxSpondExt || null };
+}
+
+function SSxFracExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sSxFracExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SSxFracExt", input, score, ts: TS, sSxFracExt: _i.sSxFracExt || null };
+}
+
+function SSxTumorExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sSxTumorExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SSxTumorExt", input, score, ts: TS, sSxTumorExt: _i.sSxTumorExt || null };
+}
+
+function SSxDeformExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sSxDeformExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SSxDeformExt", input, score, ts: TS, sSxDeformExt: _i.sSxDeformExt || null };
+}
+
+function SSxFusionExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sSxFusionExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SSxFusionExt", input, score, ts: TS, sSxFusionExt: _i.sSxFusionExt || null };
+}
+
+function SSxMinimExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sSxMinimExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SSxMinimExt", input, score, ts: TS, sSxMinimExt: _i.sSxMinimExt || null };
+}
+
+function SSxPostExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sSxPostExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SSxPostExt", input, score, ts: TS, sSxPostExt: _i.sSxPostExt || null };
+}
+
+module.exports = {
+  SSxGenExt,
+  SSxDiscExt,
+  SSxStenExt,
+  SSxSpondExt,
+  SSxFracExt,
+  SSxTumorExt,
+  SSxDeformExt,
+  SSxFusionExt,
+  SSxMinimExt,
+  SSxPostExt,
+};

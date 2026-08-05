@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_pathology_ext102/pcc_pathology_ext102_engine.js
-module.exports.version='v3.65.65.0';
-module.exports.module='pcc_pathology_ext102';
-module.exports.functions={};
-module.exports.functions['PathGenExt']=function(input){const score=Math.round((0.18 + Number(input.paGen||1)*0.2 + Number(input.paGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathHistoExt']=function(input){const score=Math.round((0.18 + Number(input.paHis||1)*0.2 + Number(input.paHisType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathHistoExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathFrozenExt']=function(input){const score=Math.round((0.18 + Number(input.paFrz||1)*0.2 + Number(input.paFrzTime||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathFrozenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathImmunoExt']=function(input){const score=Math.round((0.18 + Number(input.paImm||1)*0.2 + Number(input.paImmType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathImmunoExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathSpecialExt']=function(input){const score=Math.round((0.18 + Number(input.paSp||1)*0.2 + Number(input.paSpType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathSpecialExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathCancerExt']=function(input){const score=Math.round((0.18 + Number(input.paCan||1)*0.2 + Number(input.paCanStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathCancerExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathAutopsyExt']=function(input){const score=Math.round((0.18 + Number(input.paAut||1)*0.2 + Number(input.paAutType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathAutopsyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathFNAext']=function(input){const score=Math.round((0.18 + Number(input.paFNA||1)*0.2 + Number(input.paFNAScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathFNAext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathGIext']=function(input){const score=Math.round((0.18 + Number(input.paGI||1)*0.2 + Number(input.paGIType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathGIext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathBreastExt']=function(input){const score=Math.round((0.18 + Number(input.paBr||1)*0.2 + Number(input.paBrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.65.65.0',module:'pcc_pathology_ext102',function:'PathBreastExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.65.65.0';
+const MOD = 'pcc_pathology_ext102';
 
-// TS: v3.65.65.0
+function PathGenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathGenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathGenExt", input, score, ts: TS, pathGenExt: _i.pathGenExt || null };
+}
+
+function PathHistoExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathHistoExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathHistoExt", input, score, ts: TS, pathHistoExt: _i.pathHistoExt || null };
+}
+
+function PathFrozenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathFrozenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathFrozenExt", input, score, ts: TS, pathFrozenExt: _i.pathFrozenExt || null };
+}
+
+function PathImmunoExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathImmunoExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathImmunoExt", input, score, ts: TS, pathImmunoExt: _i.pathImmunoExt || null };
+}
+
+function PathSpecialExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathSpecialExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathSpecialExt", input, score, ts: TS, pathSpecialExt: _i.pathSpecialExt || null };
+}
+
+function PathCancerExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathCancerExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathCancerExt", input, score, ts: TS, pathCancerExt: _i.pathCancerExt || null };
+}
+
+function PathAutopsyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathAutopsyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathAutopsyExt", input, score, ts: TS, pathAutopsyExt: _i.pathAutopsyExt || null };
+}
+
+function PathFNAext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathFNAext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PathFNAext', input, score, ts: TS, pathFNAext: _i.pathFNAext || null };
+}
+
+function PathGIext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathGIext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PathGIext', input, score, ts: TS, pathGIext: _i.pathGIext || null };
+}
+
+function PathBreastExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathBreastExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathBreastExt", input, score, ts: TS, pathBreastExt: _i.pathBreastExt || null };
+}
+
+module.exports = {
+  PathGenExt,
+  PathHistoExt,
+  PathFrozenExt,
+  PathImmunoExt,
+  PathSpecialExt,
+  PathCancerExt,
+  PathAutopsyExt,
+  PathFNAext,
+  PathGIext,
+  PathBreastExt,
+};

@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_step_down_ext102/pcc_step_down_ext102_engine.js
-module.exports.version='v3.72.72.0';
-module.exports.module='pcc_step_down_ext102';
-module.exports.functions={};
-module.exports.functions['SDGenExt']=function(input){const score=Math.round((0.18 + Number(input.sdGen||1)*0.2 + Number(input.sdGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SDAdmExt']=function(input){const score=Math.round((0.18 + Number(input.sdAdm||1)*0.2 + Number(input.sdAdmScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDAdmExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SDMonExt']=function(input){const score=Math.round((0.18 + Number(input.sdMon||1)*0.2 + Number(input.sdMonType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDMonExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SDStepUpExt']=function(input){const score=Math.round((0.18 + Number(input.sdSu||1)*0.2 + Number(input.sdSuType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDStepUpExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SDStepDownExt']=function(input){const score=Math.round((0.18 + Number(input.sdSd||1)*0.2 + Number(input.sdSdType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDStepDownExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SDDischExt']=function(input){const score=Math.round((0.18 + Number(input.sdDis||1)*0.2 + Number(input.sdDisType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDDischExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SDRehabExt']=function(input){const score=Math.round((0.18 + Number(input.sdReh||1)*0.2 + Number(input.sdRehScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDRehabExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SDEducExt']=function(input){const score=Math.round((0.18 + Number(input.sdEdu||1)*0.2 + Number(input.sdEduType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDEducExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SDCoordExt']=function(input){const score=Math.round((0.18 + Number(input.sdCoo||1)*0.2 + Number(input.sdCooScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDCoordExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SDQualityExt']=function(input){const score=Math.round((0.18 + Number(input.sdQ||1)*0.2 + Number(input.sdQScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.72.72.0',module:'pcc_step_down_ext102',function:'SDQualityExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.72.72.0';
+const MOD = 'pcc_step_down_ext102';
 
-// TS: v3.72.72.0
+function SDGenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sDGenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SDGenExt", input, score, ts: TS, sDGenExt: _i.sDGenExt || null };
+}
+
+function SDAdmExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sDAdmExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SDAdmExt", input, score, ts: TS, sDAdmExt: _i.sDAdmExt || null };
+}
+
+function SDMonExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sDMonExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SDMonExt", input, score, ts: TS, sDMonExt: _i.sDMonExt || null };
+}
+
+function SDStepUpExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sDStepUpExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SDStepUpExt", input, score, ts: TS, sDStepUpExt: _i.sDStepUpExt || null };
+}
+
+function SDStepDownExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sDStepDownExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SDStepDownExt", input, score, ts: TS, sDStepDownExt: _i.sDStepDownExt || null };
+}
+
+function SDDischExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sDDischExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SDDischExt", input, score, ts: TS, sDDischExt: _i.sDDischExt || null };
+}
+
+function SDRehabExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sDRehabExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SDRehabExt", input, score, ts: TS, sDRehabExt: _i.sDRehabExt || null };
+}
+
+function SDEducExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sDEducExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SDEducExt", input, score, ts: TS, sDEducExt: _i.sDEducExt || null };
+}
+
+function SDCoordExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sDCoordExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SDCoordExt", input, score, ts: TS, sDCoordExt: _i.sDCoordExt || null };
+}
+
+function SDQualityExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sDQualityExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SDQualityExt", input, score, ts: TS, sDQualityExt: _i.sDQualityExt || null };
+}
+
+module.exports = {
+  SDGenExt,
+  SDAdmExt,
+  SDMonExt,
+  SDStepUpExt,
+  SDStepDownExt,
+  SDDischExt,
+  SDRehabExt,
+  SDEducExt,
+  SDCoordExt,
+  SDQualityExt,
+};

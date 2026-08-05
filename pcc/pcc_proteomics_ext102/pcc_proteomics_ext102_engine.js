@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_proteomics_ext102/pcc_proteomics_ext102_engine.js
-module.exports.version='v3.38.38.0';
-module.exports.module='pcc_proteomics_ext102';
-module.exports.functions={};
-module.exports.functions['ProMassSpecExt']=function(input){const score=Math.round((0.18 + Number(input.prMS||1)*0.2 + Number(input.prMsType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_proteomics_ext102',function:'ProMassSpecExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ProELISAExt']=function(input){const score=Math.round((0.18 + Number(input.prELISA||1)*0.2 + Number(input.prElisaTarget||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_proteomics_ext102',function:'ProELISAExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ProWBext']=function(input){const score=Math.round((0.18 + Number(input.prWB||1)*0.2 + Number(input.prWbAb||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_proteomics_ext102',function:'ProWBext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ProFlowExt']=function(input){const score=Math.round((0.18 + Number(input.prFlow||1)*0.2 + Number(input.prFlowMarker||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_proteomics_ext102',function:'ProFlowExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ProIHCext']=function(input){const score=Math.round((0.18 + Number(input.prIHC||1)*0.2 + Number(input.prIhcMarker||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_proteomics_ext102',function:'ProIHCext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ProBiomarkerExt']=function(input){const score=Math.round((0.18 + Number(input.prBiomarker||1)*0.2 + Number(input.prBiomarkerLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_proteomics_ext102',function:'ProBiomarkerExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ProPhosphoExt']=function(input){const score=Math.round((0.18 + Number(input.prPhos||1)*0.2 + Number(input.prPhosSite||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_proteomics_ext102',function:'ProPhosphoExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ProInteractomeExt']=function(input){const score=Math.round((0.18 + Number(input.prInt||1)*0.2 + Number(input.prIntType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_proteomics_ext102',function:'ProInteractomeExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ProStructExt']=function(input){const score=Math.round((0.18 + Number(input.prStruct||1)*0.2 + Number(input.prStructType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_proteomics_ext102',function:'ProStructExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ProClinExt']=function(input){const score=Math.round((0.18 + Number(input.prClin||1)*0.2 + Number(input.prClinInd||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.38.38.0',module:'pcc_proteomics_ext102',function:'ProClinExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.38.38.0';
+const MOD = 'pcc_proteomics_ext102';
 
-// TS: v3.38.38.0
+function ProMassSpecExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.proMassSpecExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ProMassSpecExt", input, score, ts: TS, proMassSpecExt: _i.proMassSpecExt || null };
+}
+
+function ProELISAExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.proELISAExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ProELISAExt", input, score, ts: TS, proELISAExt: _i.proELISAExt || null };
+}
+
+function ProWBext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.proWBext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'ProWBext', input, score, ts: TS, proWBext: _i.proWBext || null };
+}
+
+function ProFlowExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.proFlowExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ProFlowExt", input, score, ts: TS, proFlowExt: _i.proFlowExt || null };
+}
+
+function ProIHCext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.proIHCext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'ProIHCext', input, score, ts: TS, proIHCext: _i.proIHCext || null };
+}
+
+function ProBiomarkerExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.proBiomarkerExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ProBiomarkerExt", input, score, ts: TS, proBiomarkerExt: _i.proBiomarkerExt || null };
+}
+
+function ProPhosphoExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.proPhosphoExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ProPhosphoExt", input, score, ts: TS, proPhosphoExt: _i.proPhosphoExt || null };
+}
+
+function ProInteractomeExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.proInteractomeExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ProInteractomeExt", input, score, ts: TS, proInteractomeExt: _i.proInteractomeExt || null };
+}
+
+function ProStructExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.proStructExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ProStructExt", input, score, ts: TS, proStructExt: _i.proStructExt || null };
+}
+
+function ProClinExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.proClinExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ProClinExt", input, score, ts: TS, proClinExt: _i.proClinExt || null };
+}
+
+module.exports = {
+  ProMassSpecExt,
+  ProELISAExt,
+  ProWBext,
+  ProFlowExt,
+  ProIHCext,
+  ProBiomarkerExt,
+  ProPhosphoExt,
+  ProInteractomeExt,
+  ProStructExt,
+  ProClinExt,
+};

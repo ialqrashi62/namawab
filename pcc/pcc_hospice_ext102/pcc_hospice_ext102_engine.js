@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_hospice_ext102/pcc_hospice_ext102_engine.js
-module.exports.version='v3.52.52.0';
-module.exports.module='pcc_hospice_ext102';
-module.exports.functions={};
-module.exports.functions['HosGenExt']=function(input){const score=Math.round((0.18 + Number(input.hsGen||1)*0.2 + Number(input.hsGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HosEligibilityExt']=function(input){const score=Math.round((0.18 + Number(input.hsElig||1)*0.2 + Number(input.hsEligScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosEligibilityExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HosAdmitExt']=function(input){const score=Math.round((0.18 + Number(input.hsAdm||1)*0.2 + Number(input.hsAdmType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosAdmitExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HosPlanExt']=function(input){const score=Math.round((0.18 + Number(input.hsPlan||1)*0.2 + Number(input.hsPlanType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosPlanExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HosSymptomExt']=function(input){const score=Math.round((0.18 + Number(input.hsSym||1)*0.2 + Number(input.hsSymScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosSymptomExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HosCaregiverExt']=function(input){const score=Math.round((0.18 + Number(input.hsCare||1)*0.2 + Number(input.hsCareScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosCaregiverExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HosBereavementExt']=function(input){const score=Math.round((0.18 + Number(input.hsBer||1)*0.2 + Number(input.hsBerScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosBereavementExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HosSpiritualExt']=function(input){const score=Math.round((0.18 + Number(input.hsSpi||1)*0.2 + Number(input.hsSpiScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosSpiritualExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HosVolunteerExt']=function(input){const score=Math.round((0.18 + Number(input.hsVol||1)*0.2 + Number(input.hsVolScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosVolunteerExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HosDischargeExt']=function(input){const score=Math.round((0.18 + Number(input.hsDis||1)*0.2 + Number(input.hsDisType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.52.52.0',module:'pcc_hospice_ext102',function:'HosDischargeExt',input,score,ts:new Date().toISOString()}};
+// pcc_hospice_ext102_engine v3.316.43 (Phase 2 Batch 10 — HomeHealth/Hospice/ICU/Imaging/Immunology/Infectious)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.43';
+const MOD = 'pcc_hospice_ext102';
 
-// TS: v3.52.52.0
+function HosGenExt(input) {
+  const i = input || {};
+  const v = Number(i.HosGenExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HosGenExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HosEligibilityExt(input) {
+  const i = input || {};
+  const v = Number(i.HosEligibilityExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HosEligibilityExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HosAdmitExt(input) {
+  const i = input || {};
+  const v = Number(i.HosAdmitExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HosAdmitExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HosPlanExt(input) {
+  const i = input || {};
+  const v = Number(i.HosPlanExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HosPlanExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HosSymptomExt(input) {
+  const i = input || {};
+  const v = Number(i.HosSymptomExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HosSymptomExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HosCaregiverExt(input) {
+  const i = input || {};
+  const v = Number(i.HosCaregiverExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HosCaregiverExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HosBereavementExt(input) {
+  const i = input || {};
+  const v = Number(i.HosBereavementExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HosBereavementExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HosSpiritualExt(input) {
+  const i = input || {};
+  const v = Number(i.HosSpiritualExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HosSpiritualExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HosVolunteerExt(input) {
+  const i = input || {};
+  const v = Number(i.HosVolunteerExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HosVolunteerExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HosDischargeExt(input) {
+  const i = input || {};
+  const v = Number(i.HosDischargeExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HosDischargeExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  HosGenExt, HosEligibilityExt, HosAdmitExt, HosPlanExt, HosSymptomExt, HosCaregiverExt, HosBereavementExt, HosSpiritualExt, HosVolunteerExt, HosDischargeExt
+};

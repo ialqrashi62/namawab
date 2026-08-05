@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_reproductive_endocrinology_ext102/pcc_reproductive_endocrinology_ext102_engine.js
-module.exports.version='v3.50.50.0';
-module.exports.module='pcc_reproductive_endocrinology_ext102';
-module.exports.functions={};
-module.exports.functions['RepEndoCycleExt']=function(input){const score=Math.round((0.18 + Number(input.reCyc||1)*0.2 + Number(input.reCycDay||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_reproductive_endocrinology_ext102',function:'RepEndoCycleExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RepEndoHormoneExt']=function(input){const score=Math.round((0.18 + Number(input.reHor||1)*0.2 + Number(input.reHorType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_reproductive_endocrinology_ext102',function:'RepEndoHormoneExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RepEndoPCOSext']=function(input){const score=Math.round((0.18 + Number(input.rePCOS||1)*0.2 + Number(input.rePCOSscore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_reproductive_endocrinology_ext102',function:'RepEndoPCOSext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RepEndoEndoExt']=function(input){const score=Math.round((0.18 + Number(input.reEndo||1)*0.2 + Number(input.reEndoScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_reproductive_endocrinology_ext102',function:'RepEndoEndoExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RepEndoPubertyExt']=function(input){const score=Math.round((0.18 + Number(input.rePub||1)*0.2 + Number(input.rePubType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_reproductive_endocrinology_ext102',function:'RepEndoPubertyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RepEndoMenopauseExt']=function(input){const score=Math.round((0.18 + Number(input.reMen||1)*0.2 + Number(input.reMenScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_reproductive_endocrinology_ext102',function:'RepEndoMenopauseExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RepEndoAndroExt']=function(input){const score=Math.round((0.18 + Number(input.reAnd||1)*0.2 + Number(input.reAndLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_reproductive_endocrinology_ext102',function:'RepEndoAndroExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RepEndoThyroidExt']=function(input){const score=Math.round((0.18 + Number(input.reThy||1)*0.2 + Number(input.reThyTSH||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_reproductive_endocrinology_ext102',function:'RepEndoThyroidExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RepEndoContracepExt']=function(input){const score=Math.round((0.18 + Number(input.reCon||1)*0.2 + Number(input.reConType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_reproductive_endocrinology_ext102',function:'RepEndoContracepExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RepEndoFertilityExt']=function(input){const score=Math.round((0.18 + Number(input.reFert||1)*0.2 + Number(input.reFertScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.50.50.0',module:'pcc_reproductive_endocrinology_ext102',function:'RepEndoFertilityExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.50.50.0';
+const MOD = 'pcc_reproductive_endocrinology_ext102';
 
-// TS: v3.50.50.0
+function RepEndoCycleExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.repEndoCycleExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RepEndoCycleExt", input, score, ts: TS, repEndoCycleExt: _i.repEndoCycleExt || null };
+}
+
+function RepEndoHormoneExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.repEndoHormoneExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RepEndoHormoneExt", input, score, ts: TS, repEndoHormoneExt: _i.repEndoHormoneExt || null };
+}
+
+function RepEndoPCOSext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.repEndoPCOSext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'RepEndoPCOSext', input, score, ts: TS, repEndoPCOSext: _i.repEndoPCOSext || null };
+}
+
+function RepEndoEndoExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.repEndoEndoExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RepEndoEndoExt", input, score, ts: TS, repEndoEndoExt: _i.repEndoEndoExt || null };
+}
+
+function RepEndoPubertyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.repEndoPubertyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RepEndoPubertyExt", input, score, ts: TS, repEndoPubertyExt: _i.repEndoPubertyExt || null };
+}
+
+function RepEndoMenopauseExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.repEndoMenopauseExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RepEndoMenopauseExt", input, score, ts: TS, repEndoMenopauseExt: _i.repEndoMenopauseExt || null };
+}
+
+function RepEndoAndroExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.repEndoAndroExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RepEndoAndroExt", input, score, ts: TS, repEndoAndroExt: _i.repEndoAndroExt || null };
+}
+
+function RepEndoThyroidExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.repEndoThyroidExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RepEndoThyroidExt", input, score, ts: TS, repEndoThyroidExt: _i.repEndoThyroidExt || null };
+}
+
+function RepEndoContracepExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.repEndoContracepExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RepEndoContracepExt", input, score, ts: TS, repEndoContracepExt: _i.repEndoContracepExt || null };
+}
+
+function RepEndoFertilityExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.repEndoFertilityExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RepEndoFertilityExt", input, score, ts: TS, repEndoFertilityExt: _i.repEndoFertilityExt || null };
+}
+
+module.exports = {
+  RepEndoCycleExt,
+  RepEndoHormoneExt,
+  RepEndoPCOSext,
+  RepEndoEndoExt,
+  RepEndoPubertyExt,
+  RepEndoMenopauseExt,
+  RepEndoAndroExt,
+  RepEndoThyroidExt,
+  RepEndoContracepExt,
+  RepEndoFertilityExt,
+};

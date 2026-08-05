@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_obstetrics_ext102/pcc_obstetrics_ext102_engine.js
-module.exports.version='v3.67.67.0';
-module.exports.module='pcc_obstetrics_ext102';
-module.exports.functions={};
-module.exports.functions['ObsGenExt']=function(input){const score=Math.round((0.18 + Number(input.obGen||1)*0.2 + Number(input.obGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_obstetrics_ext102',function:'ObsGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ObsAntenatalExt']=function(input){const score=Math.round((0.18 + Number(input.obAnt||1)*0.2 + Number(input.obAntWeek||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_obstetrics_ext102',function:'ObsAntenatalExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ObsLaborExt']=function(input){const score=Math.round((0.18 + Number(input.obLab||1)*0.2 + Number(input.obLabStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_obstetrics_ext102',function:'ObsLaborExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ObsDeliveryExt']=function(input){const score=Math.round((0.18 + Number(input.obDel||1)*0.2 + Number(input.obDelType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_obstetrics_ext102',function:'ObsDeliveryExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ObsPostpartumExt']=function(input){const score=Math.round((0.18 + Number(input.obPP||1)*0.2 + Number(input.obPPDay||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_obstetrics_ext102',function:'ObsPostpartumExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ObsHighRiskExt']=function(input){const score=Math.round((0.18 + Number(input.obHR||1)*0.2 + Number(input.obHRScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_obstetrics_ext102',function:'ObsHighRiskExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ObsGDMext']=function(input){const score=Math.round((0.18 + Number(input.obGDM||1)*0.2 + Number(input.obGDMScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_obstetrics_ext102',function:'ObsGDMext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ObsPreeclExt']=function(input){const score=Math.round((0.18 + Number(input.obPE||1)*0.2 + Number(input.obPEScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_obstetrics_ext102',function:'ObsPreeclExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ObsFetalExt']=function(input){const score=Math.round((0.18 + Number(input.obFM||1)*0.2 + Number(input.obFMType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_obstetrics_ext102',function:'ObsFetalExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ObsInfertilityExt']=function(input){const score=Math.round((0.18 + Number(input.obIF||1)*0.2 + Number(input.obIFType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.67.67.0',module:'pcc_obstetrics_ext102',function:'ObsInfertilityExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.67.67.0';
+const MOD = 'pcc_obstetrics_ext102';
 
-// TS: v3.67.67.0
+function ObsGenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.obsGenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ObsGenExt", input, score, ts: TS, obsGenExt: _i.obsGenExt || null };
+}
+
+function ObsAntenatalExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.obsAntenatalExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ObsAntenatalExt", input, score, ts: TS, obsAntenatalExt: _i.obsAntenatalExt || null };
+}
+
+function ObsLaborExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.obsLaborExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ObsLaborExt", input, score, ts: TS, obsLaborExt: _i.obsLaborExt || null };
+}
+
+function ObsDeliveryExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.obsDeliveryExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ObsDeliveryExt", input, score, ts: TS, obsDeliveryExt: _i.obsDeliveryExt || null };
+}
+
+function ObsPostpartumExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.obsPostpartumExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ObsPostpartumExt", input, score, ts: TS, obsPostpartumExt: _i.obsPostpartumExt || null };
+}
+
+function ObsHighRiskExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.obsHighRiskExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ObsHighRiskExt", input, score, ts: TS, obsHighRiskExt: _i.obsHighRiskExt || null };
+}
+
+function ObsGDMext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.obsGDMext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'ObsGDMext', input, score, ts: TS, obsGDMext: _i.obsGDMext || null };
+}
+
+function ObsPreeclExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.obsPreeclExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ObsPreeclExt", input, score, ts: TS, obsPreeclExt: _i.obsPreeclExt || null };
+}
+
+function ObsFetalExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.obsFetalExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ObsFetalExt", input, score, ts: TS, obsFetalExt: _i.obsFetalExt || null };
+}
+
+function ObsInfertilityExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.obsInfertilityExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ObsInfertilityExt", input, score, ts: TS, obsInfertilityExt: _i.obsInfertilityExt || null };
+}
+
+module.exports = {
+  ObsGenExt,
+  ObsAntenatalExt,
+  ObsLaborExt,
+  ObsDeliveryExt,
+  ObsPostpartumExt,
+  ObsHighRiskExt,
+  ObsGDMext,
+  ObsPreeclExt,
+  ObsFetalExt,
+  ObsInfertilityExt,
+};

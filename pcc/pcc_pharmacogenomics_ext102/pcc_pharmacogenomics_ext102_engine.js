@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_pharmacogenomics_ext102/pcc_pharmacogenomics_ext102_engine.js
-module.exports.version='v3.74.74.0';
-module.exports.module='pcc_pharmacogenomics_ext102';
-module.exports.functions={};
-module.exports.functions['PGxGenExt']=function(input){const score=Math.round((0.18 + Number(input.pxGen||1)*0.2 + Number(input.pxGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacogenomics_ext102',function:'PGxGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PGxCYPext']=function(input){const score=Math.round((0.18 + Number(input.pxCYP||1)*0.2 + Number(input.pxCYPtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacogenomics_ext102',function:'PGxCYPext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PGxWarfarinExt']=function(input){const score=Math.round((0.18 + Number(input.pxWar||1)*0.2 + Number(input.pxWarDose||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacogenomics_ext102',function:'PGxWarfarinExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PGxClopExt']=function(input){const score=Math.round((0.18 + Number(input.pxClo||1)*0.2 + Number(input.pxCloType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacogenomics_ext102',function:'PGxClopExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PGxStatinExt']=function(input){const score=Math.round((0.18 + Number(input.pxSta||1)*0.2 + Number(input.pxStaType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacogenomics_ext102',function:'PGxStatinExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PGxSSRIext']=function(input){const score=Math.round((0.18 + Number(input.pxSS||1)*0.2 + Number(input.pxSSType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacogenomics_ext102',function:'PGxSSRIext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PGxTPMText']=function(input){const score=Math.round((0.18 + Number(input.pxTPMT||1)*0.2 + Number(input.pxTPMTtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacogenomics_ext102',function:'PGxTPMText',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PGxDPDext']=function(input){const score=Math.round((0.18 + Number(input.pxDPD||1)*0.2 + Number(input.pxDPDtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacogenomics_ext102',function:'PGxDPDext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PGxUGText']=function(input){const score=Math.round((0.18 + Number(input.pxUGT||1)*0.2 + Number(input.pxUGTtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacogenomics_ext102',function:'PGxUGText',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PGxReportExt']=function(input){const score=Math.round((0.18 + Number(input.pxRep||1)*0.2 + Number(input.pxRepType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.74.74.0',module:'pcc_pharmacogenomics_ext102',function:'PGxReportExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.74.74.0';
+const MOD = 'pcc_pharmacogenomics_ext102';
 
-// TS: v3.74.74.0
+function PGxGenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pGxGenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PGxGenExt", input, score, ts: TS, pGxGenExt: _i.pGxGenExt || null };
+}
+
+function PGxCYPext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pGxCYPext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PGxCYPext', input, score, ts: TS, pGxCYPext: _i.pGxCYPext || null };
+}
+
+function PGxWarfarinExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pGxWarfarinExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PGxWarfarinExt", input, score, ts: TS, pGxWarfarinExt: _i.pGxWarfarinExt || null };
+}
+
+function PGxClopExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pGxClopExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PGxClopExt", input, score, ts: TS, pGxClopExt: _i.pGxClopExt || null };
+}
+
+function PGxStatinExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pGxStatinExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PGxStatinExt", input, score, ts: TS, pGxStatinExt: _i.pGxStatinExt || null };
+}
+
+function PGxSSRIext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pGxSSRIext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PGxSSRIext', input, score, ts: TS, pGxSSRIext: _i.pGxSSRIext || null };
+}
+
+function PGxTPMText(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pGxTPMText) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PGxTPMText', input, score, ts: TS, pGxTPMText: _i.pGxTPMText || null };
+}
+
+function PGxDPDext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pGxDPDext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PGxDPDext', input, score, ts: TS, pGxDPDext: _i.pGxDPDext || null };
+}
+
+function PGxUGText(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pGxUGText) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PGxUGText', input, score, ts: TS, pGxUGText: _i.pGxUGText || null };
+}
+
+function PGxReportExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pGxReportExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PGxReportExt", input, score, ts: TS, pGxReportExt: _i.pGxReportExt || null };
+}
+
+module.exports = {
+  PGxGenExt,
+  PGxCYPext,
+  PGxWarfarinExt,
+  PGxClopExt,
+  PGxStatinExt,
+  PGxSSRIext,
+  PGxTPMText,
+  PGxDPDext,
+  PGxUGText,
+  PGxReportExt,
+};

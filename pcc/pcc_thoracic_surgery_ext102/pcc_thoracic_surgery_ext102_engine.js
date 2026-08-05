@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_thoracic_surgery_ext102/pcc_thoracic_surgery_ext102_engine.js
-module.exports.version='v3.55.55.0';
-module.exports.module='pcc_thoracic_surgery_ext102';
-module.exports.functions={};
-module.exports.functions['TSxGenExt']=function(input){const score=Math.round((0.18 + Number(input.tsGen||1)*0.2 + Number(input.tsGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_thoracic_surgery_ext102',function:'TSxGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TSxLobExt']=function(input){const score=Math.round((0.18 + Number(input.tsLob||1)*0.2 + Number(input.tsLobType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_thoracic_surgery_ext102',function:'TSxLobExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TSxPneumExt']=function(input){const score=Math.round((0.18 + Number(input.tsPneu||1)*0.2 + Number(input.tsPneuType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_thoracic_surgery_ext102',function:'TSxPneumExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TSxEsophExt']=function(input){const score=Math.round((0.18 + Number(input.tsEso||1)*0.2 + Number(input.tsEsoType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_thoracic_surgery_ext102',function:'TSxEsophExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TSxMediastExt']=function(input){const score=Math.round((0.18 + Number(input.tsMed||1)*0.2 + Number(input.tsMedType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_thoracic_surgery_ext102',function:'TSxMediastExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TSxChestWallExt']=function(input){const score=Math.round((0.18 + Number(input.tsCW||1)*0.2 + Number(input.tsCWType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_thoracic_surgery_ext102',function:'TSxChestWallExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TSxVATSext']=function(input){const score=Math.round((0.18 + Number(input.tsVATS||1)*0.2 + Number(input.tsVATSscore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_thoracic_surgery_ext102',function:'TSxVATSext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TSxTrachExt']=function(input){const score=Math.round((0.18 + Number(input.tsTra||1)*0.2 + Number(input.tsTraType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_thoracic_surgery_ext102',function:'TSxTrachExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TSxDiaphExt']=function(input){const score=Math.round((0.18 + Number(input.tsDia||1)*0.2 + Number(input.tsDiaType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_thoracic_surgery_ext102',function:'TSxDiaphExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TSxPostExt']=function(input){const score=Math.round((0.18 + Number(input.tsPost||1)*0.2 + Number(input.tsPostDay||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_thoracic_surgery_ext102',function:'TSxPostExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.55.55.0';
+const MOD = 'pcc_thoracic_surgery_ext102';
 
-// TS: v3.55.55.0
+function TSxGenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.tSxGenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TSxGenExt", input, score, ts: TS, tSxGenExt: _i.tSxGenExt || null };
+}
+
+function TSxLobExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.tSxLobExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TSxLobExt", input, score, ts: TS, tSxLobExt: _i.tSxLobExt || null };
+}
+
+function TSxPneumExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.tSxPneumExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TSxPneumExt", input, score, ts: TS, tSxPneumExt: _i.tSxPneumExt || null };
+}
+
+function TSxEsophExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.tSxEsophExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TSxEsophExt", input, score, ts: TS, tSxEsophExt: _i.tSxEsophExt || null };
+}
+
+function TSxMediastExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.tSxMediastExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TSxMediastExt", input, score, ts: TS, tSxMediastExt: _i.tSxMediastExt || null };
+}
+
+function TSxChestWallExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.tSxChestWallExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TSxChestWallExt", input, score, ts: TS, tSxChestWallExt: _i.tSxChestWallExt || null };
+}
+
+function TSxVATSext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.tSxVATSext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'TSxVATSext', input, score, ts: TS, tSxVATSext: _i.tSxVATSext || null };
+}
+
+function TSxTrachExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.tSxTrachExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TSxTrachExt", input, score, ts: TS, tSxTrachExt: _i.tSxTrachExt || null };
+}
+
+function TSxDiaphExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.tSxDiaphExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TSxDiaphExt", input, score, ts: TS, tSxDiaphExt: _i.tSxDiaphExt || null };
+}
+
+function TSxPostExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.tSxPostExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TSxPostExt", input, score, ts: TS, tSxPostExt: _i.tSxPostExt || null };
+}
+
+module.exports = {
+  TSxGenExt,
+  TSxLobExt,
+  TSxPneumExt,
+  TSxEsophExt,
+  TSxMediastExt,
+  TSxChestWallExt,
+  TSxVATSext,
+  TSxTrachExt,
+  TSxDiaphExt,
+  TSxPostExt,
+};

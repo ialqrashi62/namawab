@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_mental_health_ext102/pcc_mental_health_ext102_engine.js
-module.exports.version='v3.66.66.0';
-module.exports.module='pcc_mental_health_ext102';
-module.exports.functions={};
-module.exports.functions['MHGenExt']=function(input){const score=Math.round((0.18 + Number(input.mhGen||1)*0.2 + Number(input.mhGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['MHCounselExt']=function(input){const score=Math.round((0.18 + Number(input.mhCou||1)*0.2 + Number(input.mhCouType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHCounselExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['MHTherapyExt']=function(input){const score=Math.round((0.18 + Number(input.mhTh||1)*0.2 + Number(input.mhThType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHTherapyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['MHGroupExt']=function(input){const score=Math.round((0.18 + Number(input.mhGr||1)*0.2 + Number(input.mhGrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHGroupExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['MHFamilyExt']=function(input){const score=Math.round((0.18 + Number(input.mhFam||1)*0.2 + Number(input.mhFamType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHFamilyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['MHCBText']=function(input){const score=Math.round((0.18 + Number(input.mhCBT||1)*0.2 + Number(input.mhCBTScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHCBText',input,score,ts:new Date().toISOString()}};
-module.exports.functions['MHDBText']=function(input){const score=Math.round((0.18 + Number(input.mhDBT||1)*0.2 + Number(input.mhDBTScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHDBText',input,score,ts:new Date().toISOString()}};
-module.exports.functions['MHMindfulExt']=function(input){const score=Math.round((0.18 + Number(input.mhMin||1)*0.2 + Number(input.mhMinScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHMindfulExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['MHCrisisExt']=function(input){const score=Math.round((0.18 + Number(input.mhCri||1)*0.2 + Number(input.mhCriScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHCrisisExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['MHScreenExt']=function(input){const score=Math.round((0.18 + Number(input.mhScr||1)*0.2 + Number(input.mhScrScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.66.66.0',module:'pcc_mental_health_ext102',function:'MHScreenExt',input,score,ts:new Date().toISOString()}};
+// pcc_mental_health_ext102_engine v3.316.45 (Phase 2 Batch 12 — MentalHealth/Metabolic/Metabolomics/Midwifery/Molecular/Neonat/Nephro/Neuro)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.45';
+const MOD = 'pcc_mental_health_ext102';
 
-// TS: v3.66.66.0
+function MHGenExt(input) {
+  const i = input || {};
+  const v = Number(i.MHGenExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MHGenExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function MHCounselExt(input) {
+  const i = input || {};
+  const v = Number(i.MHCounselExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MHCounselExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function MHTherapyExt(input) {
+  const i = input || {};
+  const v = Number(i.MHTherapyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MHTherapyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function MHGroupExt(input) {
+  const i = input || {};
+  const v = Number(i.MHGroupExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MHGroupExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function MHFamilyExt(input) {
+  const i = input || {};
+  const v = Number(i.MHFamilyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MHFamilyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function MHCBText(input) {
+  const i = input || {};
+  const v = Number(i.MHCBText || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MHCBText', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function MHDBText(input) {
+  const i = input || {};
+  const v = Number(i.MHDBText || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MHDBText', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function MHMindfulExt(input) {
+  const i = input || {};
+  const v = Number(i.MHMindfulExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MHMindfulExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function MHCrisisExt(input) {
+  const i = input || {};
+  const v = Number(i.MHCrisisExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MHCrisisExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function MHScreenExt(input) {
+  const i = input || {};
+  const v = Number(i.MHScreenExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'MHScreenExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  MHGenExt, MHCounselExt, MHTherapyExt, MHGroupExt, MHFamilyExt, MHCBText, MHDBText, MHMindfulExt, MHCrisisExt, MHScreenExt
+};

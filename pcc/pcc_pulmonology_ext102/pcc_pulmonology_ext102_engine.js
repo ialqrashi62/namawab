@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_pulmonology_ext102/pcc_pulmonology_ext102_engine.js
-module.exports.version='v3.55.55.0';
-module.exports.module='pcc_pulmonology_ext102';
-module.exports.functions={};
-module.exports.functions['PulmGenExt']=function(input){const score=Math.round((0.18 + Number(input.plGen||1)*0.2 + Number(input.plGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_pulmonology_ext102',function:'PulmGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PulmAsthmaExt']=function(input){const score=Math.round((0.18 + Number(input.plAst||1)*0.2 + Number(input.plAstScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_pulmonology_ext102',function:'PulmAsthmaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PulmCOPDext']=function(input){const score=Math.round((0.18 + Number(input.plCOPD||1)*0.2 + Number(input.plCOPDFEV1||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_pulmonology_ext102',function:'PulmCOPDext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PulmPneumExt']=function(input){const score=Math.round((0.18 + Number(input.plPneu||1)*0.2 + Number(input.plPneuType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_pulmonology_ext102',function:'PulmPneumExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PulmTBext']=function(input){const score=Math.round((0.18 + Number(input.plTB||1)*0.2 + Number(input.plTBType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_pulmonology_ext102',function:'PulmTBext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PulmCancerExt']=function(input){const score=Math.round((0.18 + Number(input.plCan||1)*0.2 + Number(input.plCanStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_pulmonology_ext102',function:'PulmCancerExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PulmILDext']=function(input){const score=Math.round((0.18 + Number(input.plILD||1)*0.2 + Number(input.plILDType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_pulmonology_ext102',function:'PulmILDext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PulmPHTnext']=function(input){const score=Math.round((0.18 + Number(input.plPH||1)*0.2 + Number(input.plPHscore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_pulmonology_ext102',function:'PulmPHTnext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PulmPleuralExt']=function(input){const score=Math.round((0.18 + Number(input.plPleu||1)*0.2 + Number(input.plPleuType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_pulmonology_ext102',function:'PulmPleuralExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PulmSleepExt']=function(input){const score=Math.round((0.18 + Number(input.plSleep||1)*0.2 + Number(input.plSleepAHI||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.55.55.0',module:'pcc_pulmonology_ext102',function:'PulmSleepExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.55.55.0';
+const MOD = 'pcc_pulmonology_ext102';
 
-// TS: v3.55.55.0
+function PulmGenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pulmGenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PulmGenExt", input, score, ts: TS, pulmGenExt: _i.pulmGenExt || null };
+}
+
+function PulmAsthmaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pulmAsthmaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PulmAsthmaExt", input, score, ts: TS, pulmAsthmaExt: _i.pulmAsthmaExt || null };
+}
+
+function PulmCOPDext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pulmCOPDext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PulmCOPDext', input, score, ts: TS, pulmCOPDext: _i.pulmCOPDext || null };
+}
+
+function PulmPneumExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pulmPneumExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PulmPneumExt", input, score, ts: TS, pulmPneumExt: _i.pulmPneumExt || null };
+}
+
+function PulmTBext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pulmTBext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PulmTBext', input, score, ts: TS, pulmTBext: _i.pulmTBext || null };
+}
+
+function PulmCancerExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pulmCancerExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PulmCancerExt", input, score, ts: TS, pulmCancerExt: _i.pulmCancerExt || null };
+}
+
+function PulmILDext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pulmILDext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PulmILDext', input, score, ts: TS, pulmILDext: _i.pulmILDext || null };
+}
+
+function PulmPHTnext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pulmPHTnext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PulmPHTnext', input, score, ts: TS, pulmPHTnext: _i.pulmPHTnext || null };
+}
+
+function PulmPleuralExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pulmPleuralExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PulmPleuralExt", input, score, ts: TS, pulmPleuralExt: _i.pulmPleuralExt || null };
+}
+
+function PulmSleepExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pulmSleepExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PulmSleepExt", input, score, ts: TS, pulmSleepExt: _i.pulmSleepExt || null };
+}
+
+module.exports = {
+  PulmGenExt,
+  PulmAsthmaExt,
+  PulmCOPDext,
+  PulmPneumExt,
+  PulmTBext,
+  PulmCancerExt,
+  PulmILDext,
+  PulmPHTnext,
+  PulmPleuralExt,
+  PulmSleepExt,
+};

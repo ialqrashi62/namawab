@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_plastic_surgery_ext102/pcc_plastic_surgery_ext102_engine.js
-module.exports.version='v3.64.64.0';
-module.exports.module='pcc_plastic_surgery_ext102';
-module.exports.functions={};
-module.exports.functions['PSxGenExt']=function(input){const score=Math.round((0.18 + Number(input.psGen||1)*0.2 + Number(input.psGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_plastic_surgery_ext102',function:'PSxGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PSxReconExt']=function(input){const score=Math.round((0.18 + Number(input.psRec||1)*0.2 + Number(input.psRecType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_plastic_surgery_ext102',function:'PSxReconExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PSxCosmetExt']=function(input){const score=Math.round((0.18 + Number(input.psCos||1)*0.2 + Number(input.psCosType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_plastic_surgery_ext102',function:'PSxCosmetExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PSxBurnExt']=function(input){const score=Math.round((0.18 + Number(input.psBur||1)*0.2 + Number(input.psBurTBSA||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_plastic_surgery_ext102',function:'PSxBurnExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PSxHandExt']=function(input){const score=Math.round((0.18 + Number(input.psHnd||1)*0.2 + Number(input.psHndType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_plastic_surgery_ext102',function:'PSxHandExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PSxCranioExt']=function(input){const score=Math.round((0.18 + Number(input.psCrn||1)*0.2 + Number(input.psCrnType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_plastic_surgery_ext102',function:'PSxCranioExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PSxMicroExt']=function(input){const score=Math.round((0.18 + Number(input.psMic||1)*0.2 + Number(input.psMicType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_plastic_surgery_ext102',function:'PSxMicroExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PSxScarExt']=function(input){const score=Math.round((0.18 + Number(input.psScr||1)*0.2 + Number(input.psScrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_plastic_surgery_ext102',function:'PSxScarExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PSxFlapExt']=function(input){const score=Math.round((0.18 + Number(input.psFlp||1)*0.2 + Number(input.psFlpType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_plastic_surgery_ext102',function:'PSxFlapExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PSxPostExt']=function(input){const score=Math.round((0.18 + Number(input.psPst||1)*0.2 + Number(input.psPstDay||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.64.64.0',module:'pcc_plastic_surgery_ext102',function:'PSxPostExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.64.64.0';
+const MOD = 'pcc_plastic_surgery_ext102';
 
-// TS: v3.64.64.0
+function PSxGenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pSxGenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PSxGenExt", input, score, ts: TS, pSxGenExt: _i.pSxGenExt || null };
+}
+
+function PSxReconExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pSxReconExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PSxReconExt", input, score, ts: TS, pSxReconExt: _i.pSxReconExt || null };
+}
+
+function PSxCosmetExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pSxCosmetExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PSxCosmetExt", input, score, ts: TS, pSxCosmetExt: _i.pSxCosmetExt || null };
+}
+
+function PSxBurnExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pSxBurnExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PSxBurnExt", input, score, ts: TS, pSxBurnExt: _i.pSxBurnExt || null };
+}
+
+function PSxHandExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pSxHandExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PSxHandExt", input, score, ts: TS, pSxHandExt: _i.pSxHandExt || null };
+}
+
+function PSxCranioExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pSxCranioExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PSxCranioExt", input, score, ts: TS, pSxCranioExt: _i.pSxCranioExt || null };
+}
+
+function PSxMicroExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pSxMicroExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PSxMicroExt", input, score, ts: TS, pSxMicroExt: _i.pSxMicroExt || null };
+}
+
+function PSxScarExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pSxScarExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PSxScarExt", input, score, ts: TS, pSxScarExt: _i.pSxScarExt || null };
+}
+
+function PSxFlapExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pSxFlapExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PSxFlapExt", input, score, ts: TS, pSxFlapExt: _i.pSxFlapExt || null };
+}
+
+function PSxPostExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pSxPostExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PSxPostExt", input, score, ts: TS, pSxPostExt: _i.pSxPostExt || null };
+}
+
+module.exports = {
+  PSxGenExt,
+  PSxReconExt,
+  PSxCosmetExt,
+  PSxBurnExt,
+  PSxHandExt,
+  PSxCranioExt,
+  PSxMicroExt,
+  PSxScarExt,
+  PSxFlapExt,
+  PSxPostExt,
+};

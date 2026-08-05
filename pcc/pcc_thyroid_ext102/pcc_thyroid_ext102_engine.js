@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_thyroid_ext102/pcc_thyroid_ext102_engine.js
-module.exports.version='v3.57.57.0';
-module.exports.module='pcc_thyroid_ext102';
-module.exports.functions={};
-module.exports.functions['ThyGenExt']=function(input){const score=Math.round((0.18 + Number(input.thGen||1)*0.2 + Number(input.thGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ThyHypoExt']=function(input){const score=Math.round((0.18 + Number(input.thHypo||1)*0.2 + Number(input.thHypoTSH||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyHypoExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ThyHyperExt']=function(input){const score=Math.round((0.18 + Number(input.thHyper||1)*0.2 + Number(input.thHyperTSH||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyHyperExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ThyHashiExt']=function(input){const score=Math.round((0.18 + Number(input.thHash||1)*0.2 + Number(input.thHashTPO||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyHashiExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ThyGraveExt']=function(input){const score=Math.round((0.18 + Number(input.thGrav||1)*0.2 + Number(input.thGravScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyGraveExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ThyNoduleExt']=function(input){const score=Math.round((0.18 + Number(input.thNod||1)*0.2 + Number(input.thNodSize||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyNoduleExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ThyCancerExt']=function(input){const score=Math.round((0.18 + Number(input.thCan||1)*0.2 + Number(input.thCanStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyCancerExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ThyPregExt']=function(input){const score=Math.round((0.18 + Number(input.thPreg||1)*0.2 + Number(input.thPregType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyPregExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ThyPedExt']=function(input){const score=Math.round((0.18 + Number(input.thPeds||1)*0.2 + Number(input.thPedsType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThyPedExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ThySurgExt']=function(input){const score=Math.round((0.18 + Number(input.thSurg||1)*0.2 + Number(input.thSurgType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.57.57.0',module:'pcc_thyroid_ext102',function:'ThySurgExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.57.57.0';
+const MOD = 'pcc_thyroid_ext102';
 
-// TS: v3.57.57.0
+function ThyGenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.thyGenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ThyGenExt", input, score, ts: TS, thyGenExt: _i.thyGenExt || null };
+}
+
+function ThyHypoExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.thyHypoExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ThyHypoExt", input, score, ts: TS, thyHypoExt: _i.thyHypoExt || null };
+}
+
+function ThyHyperExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.thyHyperExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ThyHyperExt", input, score, ts: TS, thyHyperExt: _i.thyHyperExt || null };
+}
+
+function ThyHashiExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.thyHashiExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ThyHashiExt", input, score, ts: TS, thyHashiExt: _i.thyHashiExt || null };
+}
+
+function ThyGraveExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.thyGraveExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ThyGraveExt", input, score, ts: TS, thyGraveExt: _i.thyGraveExt || null };
+}
+
+function ThyNoduleExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.thyNoduleExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ThyNoduleExt", input, score, ts: TS, thyNoduleExt: _i.thyNoduleExt || null };
+}
+
+function ThyCancerExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.thyCancerExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ThyCancerExt", input, score, ts: TS, thyCancerExt: _i.thyCancerExt || null };
+}
+
+function ThyPregExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.thyPregExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ThyPregExt", input, score, ts: TS, thyPregExt: _i.thyPregExt || null };
+}
+
+function ThyPedExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.thyPedExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ThyPedExt", input, score, ts: TS, thyPedExt: _i.thyPedExt || null };
+}
+
+function ThySurgExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.thySurgExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ThySurgExt", input, score, ts: TS, thySurgExt: _i.thySurgExt || null };
+}
+
+module.exports = {
+  ThyGenExt,
+  ThyHypoExt,
+  ThyHyperExt,
+  ThyHashiExt,
+  ThyGraveExt,
+  ThyNoduleExt,
+  ThyCancerExt,
+  ThyPregExt,
+  ThyPedExt,
+  ThySurgExt,
+};

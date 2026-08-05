@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_undersea_ext102/pcc_undersea_ext102_engine.js
-module.exports.version='v3.42.42.0';
-module.exports.module='pcc_undersea_ext102';
-module.exports.functions={};
-module.exports.functions['UnderDivingExt']=function(input){const score=Math.round((0.18 + Number(input.unDiv||1)*0.2 + Number(input.unDepth||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.42.42.0',module:'pcc_undersea_ext102',function:'UnderDivingExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UnderDecompressExt']=function(input){const score=Math.round((0.18 + Number(input.unDecomp||1)*0.2 + Number(input.unDecompSev||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.42.42.0',module:'pcc_undersea_ext102',function:'UnderDecompressExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UnderBarotraumaExt']=function(input){const score=Math.round((0.18 + Number(input.unBaro||1)*0.2 + Number(input.unBaroType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.42.42.0',module:'pcc_undersea_ext102',function:'UnderBarotraumaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UnderNitrogenExt']=function(input){const score=Math.round((0.18 + Number(input.unN2||1)*0.2 + Number(input.unN2Depth||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.42.42.0',module:'pcc_undersea_ext102',function:'UnderNitrogenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UnderOxygenToxExt']=function(input){const score=Math.round((0.18 + Number(input.unO2||1)*0.2 + Number(input.unO2Dur||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.42.42.0',module:'pcc_undersea_ext102',function:'UnderOxygenToxExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UnderMarineExt']=function(input){const score=Math.round((0.18 + Number(input.unMarine||1)*0.2 + Number(input.unMarineType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.42.42.0',module:'pcc_undersea_ext102',function:'UnderMarineExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UnderDiveFitnessExt']=function(input){const score=Math.round((0.18 + Number(input.unFit||1)*0.2 + Number(input.unFitScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.42.42.0',module:'pcc_undersea_ext102',function:'UnderDiveFitnessExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UnderColdWaterExt']=function(input){const score=Math.round((0.18 + Number(input.unCold||1)*0.2 + Number(input.unColdTemp||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.42.42.0',module:'pcc_undersea_ext102',function:'UnderColdWaterExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UnderSubmarineExt']=function(input){const score=Math.round((0.18 + Number(input.unSub||1)*0.2 + Number(input.unSubAtm||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.42.42.0',module:'pcc_undersea_ext102',function:'UnderSubmarineExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UnderAquaticEnvenExt']=function(input){const score=Math.round((0.18 + Number(input.unEnven||1)*0.2 + Number(input.unEnvenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.42.42.0',module:'pcc_undersea_ext102',function:'UnderAquaticEnvenExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.42.42.0';
+const MOD = 'pcc_undersea_ext102';
 
-// TS: v3.42.42.0
+function UnderDivingExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.underDivingExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UnderDivingExt", input, score, ts: TS, underDivingExt: _i.underDivingExt || null };
+}
+
+function UnderDecompressExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.underDecompressExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UnderDecompressExt", input, score, ts: TS, underDecompressExt: _i.underDecompressExt || null };
+}
+
+function UnderBarotraumaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.underBarotraumaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UnderBarotraumaExt", input, score, ts: TS, underBarotraumaExt: _i.underBarotraumaExt || null };
+}
+
+function UnderNitrogenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.underNitrogenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UnderNitrogenExt", input, score, ts: TS, underNitrogenExt: _i.underNitrogenExt || null };
+}
+
+function UnderOxygenToxExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.underOxygenToxExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UnderOxygenToxExt", input, score, ts: TS, underOxygenToxExt: _i.underOxygenToxExt || null };
+}
+
+function UnderMarineExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.underMarineExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UnderMarineExt", input, score, ts: TS, underMarineExt: _i.underMarineExt || null };
+}
+
+function UnderDiveFitnessExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.underDiveFitnessExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UnderDiveFitnessExt", input, score, ts: TS, underDiveFitnessExt: _i.underDiveFitnessExt || null };
+}
+
+function UnderColdWaterExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.underColdWaterExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UnderColdWaterExt", input, score, ts: TS, underColdWaterExt: _i.underColdWaterExt || null };
+}
+
+function UnderSubmarineExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.underSubmarineExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UnderSubmarineExt", input, score, ts: TS, underSubmarineExt: _i.underSubmarineExt || null };
+}
+
+function UnderAquaticEnvenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.underAquaticEnvenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UnderAquaticEnvenExt", input, score, ts: TS, underAquaticEnvenExt: _i.underAquaticEnvenExt || null };
+}
+
+module.exports = {
+  UnderDivingExt,
+  UnderDecompressExt,
+  UnderBarotraumaExt,
+  UnderNitrogenExt,
+  UnderOxygenToxExt,
+  UnderMarineExt,
+  UnderDiveFitnessExt,
+  UnderColdWaterExt,
+  UnderSubmarineExt,
+  UnderAquaticEnvenExt,
+};

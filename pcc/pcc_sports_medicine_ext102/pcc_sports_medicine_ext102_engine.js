@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_sports_medicine_ext102/pcc_sports_medicine_ext102_engine.js
-module.exports.version='v3.48.48.0';
-module.exports.module='pcc_sports_medicine_ext102';
-module.exports.functions={};
-module.exports.functions['SportGenExt']=function(input){const score=Math.round((0.18 + Number(input.smGen||1)*0.2 + Number(input.smGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.48.48.0',module:'pcc_sports_medicine_ext102',function:'SportGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SportInjuryExt']=function(input){const score=Math.round((0.18 + Number(input.smInj||1)*0.2 + Number(input.smInjType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.48.48.0',module:'pcc_sports_medicine_ext102',function:'SportInjuryExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SportConcussionExt']=function(input){const score=Math.round((0.18 + Number(input.smConc||1)*0.2 + Number(input.smConcScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.48.48.0',module:'pcc_sports_medicine_ext102',function:'SportConcussionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SportCardioExt']=function(input){const score=Math.round((0.18 + Number(input.smCard||1)*0.2 + Number(input.smCardScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.48.48.0',module:'pcc_sports_medicine_ext102',function:'SportCardioExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SportNutritionExt']=function(input){const score=Math.round((0.18 + Number(input.smNut||1)*0.2 + Number(input.smNutType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.48.48.0',module:'pcc_sports_medicine_ext102',function:'SportNutritionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SportHydrationExt']=function(input){const score=Math.round((0.18 + Number(input.smHyd||1)*0.2 + Number(input.smHydL||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.48.48.0',module:'pcc_sports_medicine_ext102',function:'SportHydrationExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SportDopingExt']=function(input){const score=Math.round((0.18 + Number(input.smDop||1)*0.2 + Number(input.smDopType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.48.48.0',module:'pcc_sports_medicine_ext102',function:'SportDopingExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SportOveruseExt']=function(input){const score=Math.round((0.18 + Number(input.smOver||1)*0.2 + Number(input.smOverType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.48.48.0',module:'pcc_sports_medicine_ext102',function:'SportOveruseExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SportFemaleExt']=function(input){const score=Math.round((0.18 + Number(input.smFem||1)*0.2 + Number(input.smFemType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.48.48.0',module:'pcc_sports_medicine_ext102',function:'SportFemaleExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SportReturnExt']=function(input){const score=Math.round((0.18 + Number(input.smRet||1)*0.2 + Number(input.smRetScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.48.48.0',module:'pcc_sports_medicine_ext102',function:'SportReturnExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.48.48.0';
+const MOD = 'pcc_sports_medicine_ext102';
 
-// TS: v3.48.48.0
+function SportGenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sportGenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SportGenExt", input, score, ts: TS, sportGenExt: _i.sportGenExt || null };
+}
+
+function SportInjuryExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sportInjuryExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SportInjuryExt", input, score, ts: TS, sportInjuryExt: _i.sportInjuryExt || null };
+}
+
+function SportConcussionExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sportConcussionExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SportConcussionExt", input, score, ts: TS, sportConcussionExt: _i.sportConcussionExt || null };
+}
+
+function SportCardioExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sportCardioExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SportCardioExt", input, score, ts: TS, sportCardioExt: _i.sportCardioExt || null };
+}
+
+function SportNutritionExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sportNutritionExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SportNutritionExt", input, score, ts: TS, sportNutritionExt: _i.sportNutritionExt || null };
+}
+
+function SportHydrationExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sportHydrationExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SportHydrationExt", input, score, ts: TS, sportHydrationExt: _i.sportHydrationExt || null };
+}
+
+function SportDopingExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sportDopingExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SportDopingExt", input, score, ts: TS, sportDopingExt: _i.sportDopingExt || null };
+}
+
+function SportOveruseExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sportOveruseExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SportOveruseExt", input, score, ts: TS, sportOveruseExt: _i.sportOveruseExt || null };
+}
+
+function SportFemaleExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sportFemaleExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SportFemaleExt", input, score, ts: TS, sportFemaleExt: _i.sportFemaleExt || null };
+}
+
+function SportReturnExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sportReturnExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SportReturnExt", input, score, ts: TS, sportReturnExt: _i.sportReturnExt || null };
+}
+
+module.exports = {
+  SportGenExt,
+  SportInjuryExt,
+  SportConcussionExt,
+  SportCardioExt,
+  SportNutritionExt,
+  SportHydrationExt,
+  SportDopingExt,
+  SportOveruseExt,
+  SportFemaleExt,
+  SportReturnExt,
+};

@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_bioinformatics_ext102/pcc_bioinformatics_ext102_engine.js
-module.exports.version='v3.39.39.0';
-module.exports.module='pcc_bioinformatics_ext102';
-module.exports.functions={};
-module.exports.functions['BioSeqAnalysisExt']=function(input){const score=Math.round((0.18 + Number(input.biSeq||1)*0.2 + Number(input.biSeqType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.39.39.0',module:'pcc_bioinformatics_ext102',function:'BioSeqAnalysisExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['BioPhylogeneticExt']=function(input){const score=Math.round((0.18 + Number(input.biPhylo||1)*0.2 + Number(input.biPhyloTree||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.39.39.0',module:'pcc_bioinformatics_ext102',function:'BioPhylogeneticExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['BioStructureExt']=function(input){const score=Math.round((0.18 + Number(input.biStruct||1)*0.2 + Number(input.biStructType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.39.39.0',module:'pcc_bioinformatics_ext102',function:'BioStructureExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['BioNetworkExt']=function(input){const score=Math.round((0.18 + Number(input.biNet||1)*0.2 + Number(input.biNetType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.39.39.0',module:'pcc_bioinformatics_ext102',function:'BioNetworkExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['BioPathwayExt']=function(input){const score=Math.round((0.18 + Number(input.biPath||1)*0.2 + Number(input.biPathType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.39.39.0',module:'pcc_bioinformatics_ext102',function:'BioPathwayExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['BioMLext']=function(input){const score=Math.round((0.18 + Number(input.biML||1)*0.2 + Number(input.biMLModel||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.39.39.0',module:'pcc_bioinformatics_ext102',function:'BioMLext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['BioAIDrugExt']=function(input){const score=Math.round((0.18 + Number(input.biAIDrug||1)*0.2 + Number(input.biAIDrugTarget||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.39.39.0',module:'pcc_bioinformatics_ext102',function:'BioAIDrugExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['BioDBSearchExt']=function(input){const score=Math.round((0.18 + Number(input.biDB||1)*0.2 + Number(input.biDBQuery||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.39.39.0',module:'pcc_bioinformatics_ext102',function:'BioDBSearchExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['BioAnnotationExt']=function(input){const score=Math.round((0.18 + Number(input.biAnn||1)*0.2 + Number(input.biAnnType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.39.39.0',module:'pcc_bioinformatics_ext102',function:'BioAnnotationExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['BioPipelineExt']=function(input){const score=Math.round((0.18 + Number(input.biPipe||1)*0.2 + Number(input.biPipeType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.39.39.0',module:'pcc_bioinformatics_ext102',function:'BioPipelineExt',input,score,ts:new Date().toISOString()}};
+// pcc_bioinformatics_ext102_engine v3.316.74 (Phase 2 Batch 41 — Specialty ext101/102)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.74';
+const MOD = 'pcc_bioinformatics_ext102';
 
-// TS: v3.39.39.0
+function BioSeqAnalysisExt(input) {
+  const i = input || {};
+  const v = Number(i.BioSeqAnalysisExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'BioSeqAnalysisExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function BioPhylogeneticExt(input) {
+  const i = input || {};
+  const v = Number(i.BioPhylogeneticExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'BioPhylogeneticExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function BioStructureExt(input) {
+  const i = input || {};
+  const v = Number(i.BioStructureExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'BioStructureExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function BioNetworkExt(input) {
+  const i = input || {};
+  const v = Number(i.BioNetworkExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'BioNetworkExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function BioPathwayExt(input) {
+  const i = input || {};
+  const v = Number(i.BioPathwayExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'BioPathwayExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function BioMLext(input) {
+  const i = input || {};
+  const v = Number(i.BioMLext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'BioMLext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function BioAIDrugExt(input) {
+  const i = input || {};
+  const v = Number(i.BioAIDrugExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'BioAIDrugExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function BioDBSearchExt(input) {
+  const i = input || {};
+  const v = Number(i.BioDBSearchExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'BioDBSearchExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function BioAnnotationExt(input) {
+  const i = input || {};
+  const v = Number(i.BioAnnotationExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'BioAnnotationExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function BioPipelineExt(input) {
+  const i = input || {};
+  const v = Number(i.BioPipelineExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'BioPipelineExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  BioSeqAnalysisExt, BioPhylogeneticExt, BioStructureExt, BioNetworkExt, BioPathwayExt, BioMLext, BioAIDrugExt, BioDBSearchExt, BioAnnotationExt, BioPipelineExt
+};

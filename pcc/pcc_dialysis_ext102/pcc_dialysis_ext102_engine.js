@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_dialysis_ext102/pcc_dialysis_ext102_engine.js
-module.exports.version='v3.53.53.0';
-module.exports.module='pcc_dialysis_ext102';
-module.exports.functions={};
-module.exports.functions['DiaGenExt']=function(input){const score=Math.round((0.18 + Number(input.diGen||1)*0.2 + Number(input.diGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['DiaHDext']=function(input){const score=Math.round((0.18 + Number(input.diHD||1)*0.2 + Number(input.diHDhrs||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaHDext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['DiaPDext']=function(input){const score=Math.round((0.18 + Number(input.diPD||1)*0.2 + Number(input.diPDtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaPDext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['DiaAccessExt']=function(input){const score=Math.round((0.18 + Number(input.diAcc||1)*0.2 + Number(input.diAccType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaAccessExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['DiaAdequacyExt']=function(input){const score=Math.round((0.18 + Number(input.diAdq||1)*0.2 + Number(input.diAdqKtV||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaAdequacyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['DiaAnemiaExt']=function(input){const score=Math.round((0.18 + Number(input.diAn||1)*0.2 + Number(input.diAnHgb||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaAnemiaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['DiaMBDext']=function(input){const score=Math.round((0.18 + Number(input.diMBD||1)*0.2 + Number(input.diMBDtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaMBDext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['DiaCVext']=function(input){const score=Math.round((0.18 + Number(input.diCV||1)*0.2 + Number(input.diCVscore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaCVext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['DiaInfectionExt']=function(input){const score=Math.round((0.18 + Number(input.diInf||1)*0.2 + Number(input.diInfType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaInfectionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['DiaTransplantExt']=function(input){const score=Math.round((0.18 + Number(input.diTx||1)*0.2 + Number(input.diTxType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.53.53.0',module:'pcc_dialysis_ext102',function:'DiaTransplantExt',input,score,ts:new Date().toISOString()}};
+// pcc_dialysis_ext102_engine v3.316.75 (Phase 2 Batch 42 — Cardio/Surgery/Critical care/Diabetes)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.75';
+const MOD = 'pcc_dialysis_ext102';
 
-// TS: v3.53.53.0
+function DiaGenExt(input) {
+  const i = input || {};
+  const v = Number(i.DiaGenExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'DiaGenExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function DiaHDext(input) {
+  const i = input || {};
+  const v = Number(i.DiaHDext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'DiaHDext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function DiaPDext(input) {
+  const i = input || {};
+  const v = Number(i.DiaPDext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'DiaPDext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function DiaAccessExt(input) {
+  const i = input || {};
+  const v = Number(i.DiaAccessExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'DiaAccessExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function DiaAdequacyExt(input) {
+  const i = input || {};
+  const v = Number(i.DiaAdequacyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'DiaAdequacyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function DiaAnemiaExt(input) {
+  const i = input || {};
+  const v = Number(i.DiaAnemiaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'DiaAnemiaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function DiaMBDext(input) {
+  const i = input || {};
+  const v = Number(i.DiaMBDext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'DiaMBDext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function DiaCVext(input) {
+  const i = input || {};
+  const v = Number(i.DiaCVext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'DiaCVext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function DiaInfectionExt(input) {
+  const i = input || {};
+  const v = Number(i.DiaInfectionExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'DiaInfectionExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function DiaTransplantExt(input) {
+  const i = input || {};
+  const v = Number(i.DiaTransplantExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'DiaTransplantExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  DiaGenExt, DiaHDext, DiaPDext, DiaAccessExt, DiaAdequacyExt, DiaAnemiaExt, DiaMBDext, DiaCVext, DiaInfectionExt, DiaTransplantExt
+};

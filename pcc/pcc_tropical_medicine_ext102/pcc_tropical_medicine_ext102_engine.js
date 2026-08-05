@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_tropical_medicine_ext102/pcc_tropical_medicine_ext102_engine.js
-module.exports.version='v3.59.59.0';
-module.exports.module='pcc_tropical_medicine_ext102';
-module.exports.functions={};
-module.exports.functions['TrpGenExt']=function(input){const score=Math.round((0.18 + Number(input.tpGen||1)*0.2 + Number(input.tpGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_tropical_medicine_ext102',function:'TrpGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TrpMalariaExt']=function(input){const score=Math.round((0.18 + Number(input.tpMal||1)*0.2 + Number(input.tpMalType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_tropical_medicine_ext102',function:'TrpMalariaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TrpDengueExt']=function(input){const score=Math.round((0.18 + Number(input.tpDen||1)*0.2 + Number(input.tpDenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_tropical_medicine_ext102',function:'TrpDengueExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TrpCholeraExt']=function(input){const score=Math.round((0.18 + Number(input.tpCho||1)*0.2 + Number(input.tpChoType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_tropical_medicine_ext102',function:'TrpCholeraExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TrpTyphoidExt']=function(input){const score=Math.round((0.18 + Number(input.tpTyp||1)*0.2 + Number(input.tpTypType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_tropical_medicine_ext102',function:'TrpTyphoidExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TrpHepAext']=function(input){const score=Math.round((0.18 + Number(input.tpHA||1)*0.2 + Number(input.tpHAtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_tropical_medicine_ext102',function:'TrpHepAext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TrpHepBext']=function(input){const score=Math.round((0.18 + Number(input.tpHB||1)*0.2 + Number(input.tpHBtype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_tropical_medicine_ext102',function:'TrpHepBext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TrpSchistoExt']=function(input){const score=Math.round((0.18 + Number(input.tpSch||1)*0.2 + Number(input.tpSchType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_tropical_medicine_ext102',function:'TrpSchistoExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TrpLeishExt']=function(input){const score=Math.round((0.18 + Number(input.tpLei||1)*0.2 + Number(input.tpLeiType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_tropical_medicine_ext102',function:'TrpLeishExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TrpTravelExt']=function(input){const score=Math.round((0.18 + Number(input.tpTrv||1)*0.2 + Number(input.tpTrvType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.59.59.0',module:'pcc_tropical_medicine_ext102',function:'TrpTravelExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.59.59.0';
+const MOD = 'pcc_tropical_medicine_ext102';
 
-// TS: v3.59.59.0
+function TrpGenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.trpGenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TrpGenExt", input, score, ts: TS, trpGenExt: _i.trpGenExt || null };
+}
+
+function TrpMalariaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.trpMalariaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TrpMalariaExt", input, score, ts: TS, trpMalariaExt: _i.trpMalariaExt || null };
+}
+
+function TrpDengueExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.trpDengueExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TrpDengueExt", input, score, ts: TS, trpDengueExt: _i.trpDengueExt || null };
+}
+
+function TrpCholeraExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.trpCholeraExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TrpCholeraExt", input, score, ts: TS, trpCholeraExt: _i.trpCholeraExt || null };
+}
+
+function TrpTyphoidExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.trpTyphoidExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TrpTyphoidExt", input, score, ts: TS, trpTyphoidExt: _i.trpTyphoidExt || null };
+}
+
+function TrpHepAext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.trpHepAext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'TrpHepAext', input, score, ts: TS, trpHepAext: _i.trpHepAext || null };
+}
+
+function TrpHepBext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.trpHepBext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'TrpHepBext', input, score, ts: TS, trpHepBext: _i.trpHepBext || null };
+}
+
+function TrpSchistoExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.trpSchistoExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TrpSchistoExt", input, score, ts: TS, trpSchistoExt: _i.trpSchistoExt || null };
+}
+
+function TrpLeishExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.trpLeishExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TrpLeishExt", input, score, ts: TS, trpLeishExt: _i.trpLeishExt || null };
+}
+
+function TrpTravelExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.trpTravelExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TrpTravelExt", input, score, ts: TS, trpTravelExt: _i.trpTravelExt || null };
+}
+
+module.exports = {
+  TrpGenExt,
+  TrpMalariaExt,
+  TrpDengueExt,
+  TrpCholeraExt,
+  TrpTyphoidExt,
+  TrpHepAext,
+  TrpHepBext,
+  TrpSchistoExt,
+  TrpLeishExt,
+  TrpTravelExt,
+};

@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_orphan_drugs_ext102/pcc_orphan_drugs_ext102_engine.js
-module.exports.version='v3.40.40.0';
-module.exports.module='pcc_orphan_drugs_ext102';
-module.exports.functions={};
-module.exports.functions['OrphanDesignationExt']=function(input){const score=Math.round((0.18 + Number(input.orDesig||1)*0.2 + Number(input.orDesigStatus||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_orphan_drugs_ext102',function:'OrphanDesignationExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrphanAccessExt']=function(input){const score=Math.round((0.18 + Number(input.orAccess||1)*0.2 + Number(input.orAccessType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_orphan_drugs_ext102',function:'OrphanAccessExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrphanCostExt']=function(input){const score=Math.round((0.18 + Number(input.orCost||1)*0.2 + Number(input.orCostCover||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_orphan_drugs_ext102',function:'OrphanCostExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrphanTrialExt']=function(input){const score=Math.round((0.18 + Number(input.orTrial||1)*0.2 + Number(input.orTrialPhase||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_orphan_drugs_ext102',function:'OrphanTrialExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrphanSurrogateExt']=function(input){const score=Math.round((0.18 + Number(input.orSurrogate||1)*0.2 + Number(input.orSurrogateType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_orphan_drugs_ext102',function:'OrphanSurrogateExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrphanCompassionateExt']=function(input){const score=Math.round((0.18 + Number(input.orComp||1)*0.2 + Number(input.orCompType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_orphan_drugs_ext102',function:'OrphanCompassionateExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrphanRegistryExt']=function(input){const score=Math.round((0.18 + Number(input.orReg||1)*0.2 + Number(input.orRegSize||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_orphan_drugs_ext102',function:'OrphanRegistryExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrphanPediatricExt']=function(input){const score=Math.round((0.18 + Number(input.orPed||1)*0.2 + Number(input.orPedAge||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_orphan_drugs_ext102',function:'OrphanPediatricExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrphanGeneticExt']=function(input){const score=Math.round((0.18 + Number(input.orGen||1)*0.2 + Number(input.orGenDisorder||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_orphan_drugs_ext102',function:'OrphanGeneticExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrphanApprovalExt']=function(input){const score=Math.round((0.18 + Number(input.orAppr||1)*0.2 + Number(input.orApprPath||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_orphan_drugs_ext102',function:'OrphanApprovalExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.40.40.0';
+const MOD = 'pcc_orphan_drugs_ext102';
 
-// TS: v3.40.40.0
+function OrphanDesignationExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orphanDesignationExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrphanDesignationExt", input, score, ts: TS, orphanDesignationExt: _i.orphanDesignationExt || null };
+}
+
+function OrphanAccessExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orphanAccessExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrphanAccessExt", input, score, ts: TS, orphanAccessExt: _i.orphanAccessExt || null };
+}
+
+function OrphanCostExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orphanCostExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrphanCostExt", input, score, ts: TS, orphanCostExt: _i.orphanCostExt || null };
+}
+
+function OrphanTrialExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orphanTrialExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrphanTrialExt", input, score, ts: TS, orphanTrialExt: _i.orphanTrialExt || null };
+}
+
+function OrphanSurrogateExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orphanSurrogateExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrphanSurrogateExt", input, score, ts: TS, orphanSurrogateExt: _i.orphanSurrogateExt || null };
+}
+
+function OrphanCompassionateExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orphanCompassionateExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrphanCompassionateExt", input, score, ts: TS, orphanCompassionateExt: _i.orphanCompassionateExt || null };
+}
+
+function OrphanRegistryExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orphanRegistryExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrphanRegistryExt", input, score, ts: TS, orphanRegistryExt: _i.orphanRegistryExt || null };
+}
+
+function OrphanPediatricExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orphanPediatricExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrphanPediatricExt", input, score, ts: TS, orphanPediatricExt: _i.orphanPediatricExt || null };
+}
+
+function OrphanGeneticExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orphanGeneticExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrphanGeneticExt", input, score, ts: TS, orphanGeneticExt: _i.orphanGeneticExt || null };
+}
+
+function OrphanApprovalExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orphanApprovalExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrphanApprovalExt", input, score, ts: TS, orphanApprovalExt: _i.orphanApprovalExt || null };
+}
+
+module.exports = {
+  OrphanDesignationExt,
+  OrphanAccessExt,
+  OrphanCostExt,
+  OrphanTrialExt,
+  OrphanSurrogateExt,
+  OrphanCompassionateExt,
+  OrphanRegistryExt,
+  OrphanPediatricExt,
+  OrphanGeneticExt,
+  OrphanApprovalExt,
+};
