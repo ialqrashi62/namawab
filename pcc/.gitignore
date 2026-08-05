@@ -1,0 +1,42 @@
+# .gitignore for pcc/ sandbox
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Logs (autopilot iterations leave 100s of server_v*.log files)
+*.log
+*.err.log
+server_v*.log
+server_v*.err.log
+srv*.log
+server*.bak
+/pre_*.bak
+.*.bak
+node
+
+# Autosave backups (created during autopilot iterations)
+*.bak_v31*
+*.bak_v32*
+*.bak_*
+*.pre_*
+
+# Scratch (generated artifacts)
+scratch/server_*.log
+scratch/server_*.err.log
+scratch/master_out_*.txt
+scratch/.tmp/
+scratch/_debug.js
+scratch/_test.js
+scratch/_locate.txt
+
+# Local env
+.env
+.env.local
+.env.*.local
+
+# OS
+Thumbs.db
+.DS_Store

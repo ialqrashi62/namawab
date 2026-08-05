@@ -1,0 +1,5 @@
+Total modules: 1322
+---
+Total checked: 1322
+PASS: 1322
+FAIL: 0

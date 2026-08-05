@@ -1,0 +1,367 @@
+# =============================================================================
+# PCC Sandbox CI Workflow
+# =============================================================================
+# Triggers:   push to main, pull_request to main, weekly cron (Mon 06:00 UTC)
+# Jobs:       job-audit       (gates the rest) — boots server, runs master runner
+#             job-ops-scripts                 — runs health_check.sh + smoke_test.sh (v3.316.24)
+#             job-sdk-tests                   — syntax/type checks for 7 SDKs + Postman + OpenAPI
+#             job-docker                      — builds image, smoke-tests container
+# Caching:    npm, cargo (rust-cache), pip, go
+# Permissions: contents: read
+# Timeouts:   10 minutes per job
+#
+# ── Status badges (add to README.md) ────────────────────────────────────────
+# ![Audit](https://github.com/<owner>/<repo>/actions/workflows/pcc-ci.yml/badge.svg?event=push)
+# ![Audit (weekly)](https://github.com/<owner>/<repo>/actions/workflows/pcc-ci.yml/badge.svg?event=schedule)
+# Replace <owner>/<repo> with the actual GitHub org/repo once the workflow runs.
+# =============================================================================
+
+name: PCC CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Weekly: Mondays at 06:00 UTC — catches dependency / image rot
+  schedule:
+    - cron: "0 6 * * 1"
+
+# Cancel superseded runs on the same branch (saves CI minutes)
+concurrency:
+  group: pcc-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Minimum permissions for the GITHUB_TOKEN (read-only)
+permissions:
+  contents: read
+
+# Prevent accidental workflow recursion on fork PRs
+env:
+  PCC_ROOT: pcc
+  PCC_PORT: 3201
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Job 1: AUDIT (gates all downstream jobs)
+  #   - Boots the PCC server on port 3201
+  #   - Waits for /health to return 200
+  #   - Runs master_test_runner.js (4.7s — all 1322 modules)
+  #   - Uploads master_summary.json as a build artifact
+  # ---------------------------------------------------------------------------
+  job-audit:
+    name: Audit (boot + master runner)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: pcc/package-lock.json
+
+      - name: Install npm dependencies
+        working-directory: pcc
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Boot PCC server in background
+        working-directory: pcc
+        run: |
+          # Start the server, log to file, capture PID
+          nohup node server.js > server.ci.log 2>&1 &
+          echo $! > server.ci.pid
+          echo "Server started with PID $(cat server.ci.pid)"
+
+      - name: Wait for /health (max 30s)
+        working-directory: pcc
+        run: |
+          echo "Waiting for PCC server on port $PCC_PORT..."
+          for i in $(seq 1 30); do
+            if curl -fsS "http://127.0.0.1:${PCC_PORT}/health" >/dev/null 2>&1; then
+              echo "Server is up after ${i}s"
+              curl -s "http://127.0.0.1:${PCC_PORT}/health"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Server failed to become healthy within 30s"
+          echo "--- server.ci.log (last 50 lines) ---"
+          tail -n 50 server.ci.log || true
+          exit 1
+
+      - name: Run master test runner
+        working-directory: pcc
+        run: node scratch/master_test_runner.js
+
+      - name: Upload master_summary.json
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: master-summary
+          path: pcc/scratch/master_summary.json
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Upload server log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log
+          path: pcc/server.ci.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Stop server
+        if: always()
+        working-directory: pcc
+        run: |
+          if [ -f server.ci.pid ]; then
+            kill "$(cat server.ci.pid)" 2>/dev/null || true
+            rm -f server.ci.pid
+          fi
+
+  # ---------------------------------------------------------------------------
+  # Job 2: OPS SCRIPTS  (v3.316.24)
+  #   - Post-deploy health probes + smoke tests against a freshly booted server
+  #   - Runs after job-audit; no Docker dependency
+  #   - Validates scripts/health_check.sh and scripts/smoke_test.sh end-to-end
+  # ---------------------------------------------------------------------------
+  job-ops-scripts:
+    name: Ops scripts (health + smoke)
+    runs-on: ubuntu-latest
+    needs: job-audit
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps
+        working-directory: pcc
+        run: npm ci || npm install
+
+      - name: Boot server (background)
+        working-directory: pcc
+        run: |
+          PCC_PORT=3100 nohup node server.js > server.log 2>&1 &
+          sleep 5
+
+      - name: Run health_check.sh
+        working-directory: pcc
+        run: bash scripts/health_check.sh http://localhost:3100
+
+      - name: Run smoke_test.sh
+        working-directory: pcc
+        run: bash scripts/smoke_test.sh http://localhost:3100
+
+      - name: Tear down server
+        if: always()
+        working-directory: pcc
+        run: pkill -f 'node server.js' || true
+
+      - name: Upload server log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pcc-server-log
+          path: pcc/server.log
+
+  # ---------------------------------------------------------------------------
+  # Job 3: SDK TESTS  (was Job 2; renumbered after adding job-ops-scripts)
+  #   - Runs in parallel with job-docker (both need job-audit)
+  #   - Validates syntax/types for 7 SDKs (Java skipped — needs JDK)
+  #   - Validates Postman collection JSON
+  #   - Validates OpenAPI YAML
+  # ---------------------------------------------------------------------------
+  job-sdk-tests:
+    name: SDK tests (7 languages)
+    needs: job-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: pcc/sdk/typescript/package.json
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pcc/sdk/python/setup.py
+
+      - name: Setup Go 1.22
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache-dependency-path: pcc/sdk/go/go.sum
+
+      - name: Setup Ruby 3.2
+        uses: actions/setup-ruby@v2
+        with:
+          ruby-version: "3.2"
+          working-directory: pcc/sdk/ruby
+
+      - name: Setup PHP 8.2
+        uses: actions/setup-php@v2
+        with:
+          php-version: "8.2"
+
+      - name: Setup Rust (stable, cached)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          working-directory: pcc/sdk/rust
+
+      - name: Cache cargo registry and target
+        uses: Swatinstall/rust-cache@v2
+        with:
+          working-directory: pcc/sdk/rust
+          cache-on-failure: true
+
+      # --- SDK: Node.js (syntax check) ---------------------------------------
+      - name: sdk/nodejs — node --check
+        working-directory: pcc
+        run: node -c sdk/nodejs/pcc-sdk.js
+
+      # --- SDK: TypeScript (tsc --noEmit) ------------------------------------
+      - name: sdk/typescript — install deps
+        working-directory: pcc/sdk/typescript
+        run: |
+          if [ -f package.json ]; then
+            if [ -f package-lock.json ]; then npm ci; else npm install; fi
+          else
+            echo "No package.json — installing typescript globally"
+            npm install -g typescript
+          fi
+
+      - name: sdk/typescript — tsc --noEmit
+        working-directory: pcc/sdk/typescript
+        run: |
+          # Use local tsc if installed, otherwise npx
+          if [ -x node_modules/.bin/tsc ]; then
+            node_modules/.bin/tsc --noEmit pcc-sdk.ts
+          else
+            npx --yes -p typescript tsc --noEmit pcc-sdk.ts
+          fi
+
+      # --- SDK: Python (py_compile) ------------------------------------------
+      - name: sdk/python — py_compile
+        working-directory: pcc
+        run: python -m py_compile sdk/python/pcc_sdk.py
+
+      # --- SDK: Go (go vet) ---------------------------------------------------
+      - name: sdk/go — go vet
+        working-directory: pcc/sdk/go
+        run: go vet ./...
+
+      # --- SDK: Ruby (syntax) ------------------------------------------------
+      - name: sdk/ruby — ruby -c
+        working-directory: pcc
+        run: ruby -c sdk/ruby/pcc.rb
+
+      # --- SDK: PHP (syntax) -------------------------------------------------
+      - name: sdk/php — php -l
+        working-directory: pcc
+        run: php -l sdk/php/pcc.php
+
+      # --- SDK: Rust (cargo check) -------------------------------------------
+      - name: sdk/rust — cargo check
+        working-directory: pcc/sdk/rust
+        run: cargo check --all-targets
+
+      # --- (Java intentionally skipped: requires JDK install) ---------------
+
+      # --- Postman collection (JSON validity) -------------------------------
+      - name: Validate Postman collection JSON
+        working-directory: pcc
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('sdk/postman/pcc-sandbox.postman_collection.json','utf-8'))" \
+            && echo "Postman collection: valid JSON"
+
+      # --- OpenAPI YAML (use PyYAML, no extra npm deps) ---------------------
+      - name: Validate OpenAPI YAML
+        working-directory: pcc
+        run: |
+          pip install --quiet pyyaml
+          python -c "
+          import yaml, sys
+          with open('openapi-pcc.yaml', 'r', encoding='utf-8') as f:
+              doc = yaml.safe_load(f)
+          assert isinstance(doc, dict), 'YAML root must be a mapping'
+          assert 'openapi' in doc, 'Missing openapi version field'
+          assert 'paths' in doc, 'Missing paths field'
+          print(f'OpenAPI {doc[\"openapi\"]} OK — {len(doc[\"paths\"])} paths, {len(doc.get(\"components\",{}).get(\"schemas\",{}))} schemas')
+          "
+
+  # ---------------------------------------------------------------------------
+  # Job 3: DOCKER
+  #   - Builds the production image from pcc/docker/Dockerfile
+  #   - Smoke-tests by running the container and curling /health
+  # ---------------------------------------------------------------------------
+  job-docker:
+    name: Docker build + smoke test
+    needs: job-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build PCC sandbox image
+        working-directory: pcc
+        run: |
+          docker build \
+            --tag pcc-sandbox:ci \
+            --file docker/Dockerfile \
+            --label "org.opencontainers.image.title=pcc-sandbox" \
+            --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
+            --label "org.opencontainers.image.revision=${{ github.sha }}" \
+            .
+
+      - name: Smoke test (container /health)
+        working-directory: pcc
+        run: |
+          # Run container, expose on host port 3299 -> container 3201
+          CID=$(docker run -d --rm \
+            -p 3299:3201 \
+            --name pcc-sandbox-ci \
+            pcc-sandbox:ci)
+          echo "Container ID: $CID"
+          # Wait for /health (up to 30s)
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3299/health >/dev/null 2>&1; then
+              echo "Container is healthy after ${i}s"
+              curl -s http://127.0.0.1:3299/health
+              echo
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Container /health never returned ok"
+          echo "--- docker logs ---"
+          docker logs pcc-sandbox-ci || true
+          exit 1
+          # shellcheck disable=SC2317
+          docker stop pcc-sandbox-ci >/dev/null 2>&1 || true

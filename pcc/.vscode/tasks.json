@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "PCC server v3.316.25",
+			"type": "shell",
+			"command": "cd c:\\Users\\ice\\Desktop\\NMEDCALVSCODE\\pcc && set PCC_PORT=3100 && node server.js",
+			"isBackground": true,
+			"group": "server"
+		}
+	]
+}

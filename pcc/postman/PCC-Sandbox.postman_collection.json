@@ -1,0 +1,225 @@
+{
+  "info": {
+    "_postman_id": "pcc-sandbox-v3-316-24",
+    "name": "PCC Sandbox",
+    "description": "Auto-generated Postman collection for PCC Sandbox v3.316.24. Use {{baseUrl}} to point at any environment (local, staging, prod). 5 groups covering health, catalog, auth, audit/metrics, and GraphQL.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Health Checks",
+      "item": [
+        {
+          "name": "GET /healthz",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/healthz",
+              "host": ["{{baseUrl}}"],
+              "path": ["healthz"]
+            }
+          }
+        },
+        {
+          "name": "GET /livez",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/livez",
+              "host": ["{{baseUrl}}"],
+              "path": ["livez"]
+            }
+          }
+        },
+        {
+          "name": "GET /readyz",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/readyz",
+              "host": ["{{baseUrl}}"],
+              "path": ["readyz"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Catalog",
+      "item": [
+        {
+          "name": "GET /api/v1/pcc-catalog/stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pcc-catalog/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pcc-catalog", "stats"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/pcc-catalog/modules?limit=10",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pcc-catalog/modules?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pcc-catalog", "modules"],
+              "query": [
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/pcc-catalog/search?q=cardio&limit=3",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pcc-catalog/search?q=cardio&limit=3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pcc-catalog", "search"],
+              "query": [
+                { "key": "q", "value": "cardio" },
+                { "key": "limit", "value": "3" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Auth",
+      "item": [
+        {
+          "name": "POST /api/v1/pcc-catalog/api-token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"label\":\"postman-test\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pcc-catalog/api-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pcc-catalog", "api-token"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/pcc-catalog/api-token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pcc-catalog/api-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pcc-catalog", "api-token"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Audit & Metrics",
+      "item": [
+        {
+          "name": "GET /api/v1/pcc-catalog/audit?limit=5",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pcc-catalog/audit?limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pcc-catalog", "audit"],
+              "query": [
+                { "key": "limit", "value": "5" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /_metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/_metrics",
+              "host": ["{{baseUrl}}"],
+              "path": ["_metrics"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/pcc-catalog/badge.svg",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pcc-catalog/badge.svg",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pcc-catalog", "badge.svg"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. GraphQL",
+      "item": [
+        {
+          "name": "POST /graphql/query  (stats)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\":\"{ stats { totalModules totalFunctions totalCategories } }\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql/query",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql", "query"]
+            }
+          }
+        },
+        {
+          "name": "POST /graphql/query  (modules)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\":\"{ modules(limit: 5) }\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql/query",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql", "query"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3100" }
+  ]
+}

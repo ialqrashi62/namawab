@@ -1,0 +1,4 @@
+Auditing 1313 clinical modules (both legacy + new formats)...
+---
+PASS: 1313
+FAIL: 0

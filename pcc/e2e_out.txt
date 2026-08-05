@@ -1,0 +1,37 @@
+=== PCC E2E Test Suite ===
+Base: http://localhost:3201
+
+[1] Health check
+  PASS GET /health returns ok
+
+[2] PCC Catalog endpoints
+  PASS GET /api/v1/pcc-catalog/modules returns 1322 modules
+  PASS GET /api/v1/pcc-catalog/categories returns categories
+  PASS GET /api/v1/pcc-catalog/module/pcc-cardiology-ext102 returns detail
+  PASS GET /api/v1/pcc-catalog/module/non-existent returns 404
+
+[3] Module /list endpoints
+  PASS GET /api/v1/pcc-clinical-dx/list returns functions
+  PASS GET /api/v1/pcc-cardiology-ext102/list returns functions
+  PASS GET /api/v1/pcc-neuro-ext14/list returns functions
+  PASS GET /api/v1/pcc-wound-care-ext102/list returns functions
+
+[4] Module /call endpoints
+  PASS POST /api/v1/pcc-clinical-dx/call/Differential returns result
+  PASS POST /api/v1/pcc-cardiology-ext102/call/CardGenExt returns score
+
+[5] Module /record endpoints (with tenant_id)
+  PASS POST /api/v1/pcc-neuro-ext14/record with tenant_id succeeds
+  PASS POST /api/v1/pcc-clinical-dx/record with tenant_id succeeds
+  PASS POST /api/v1/pcc-neuro-ext14/record without tenant or decisionId fails 400
+    (known: P3 legacy endpoint accepts unknown fn)
+  PASS KNOWN: pcc-neuro-ext14/record does not validate fn (legacy P3)
+
+[6] Critical clinical calculations
+  PASS Cardiology CHA2DS2-VASc calculation
+  PASS Critical care module responds
+  PASS Cardiac rehab responds
+
+=== Summary ===
+PASS: 18
+FAIL: 0
