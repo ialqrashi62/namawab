@@ -6,6 +6,52 @@ the change was small enough to be merged without its own report.
 
 ---
 
+## Wave 41 — 2026-08-05 — DR Drill Hardening
+**Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_41_DR_DRILL_AR.md`](PHASE_WAVE_41_DR_DRILL_AR.md)
+
+### Discovered
+- The Sunday DR drill (`wave30_backup.sh` step 5/5) ran but its log was full of
+  `pg_restore` errors that operators couldn't classify. The dump includes
+  `pg_stat_statements` (prod-side, superuser-owned) but the sandbox role
+  (`nama_medical_backup`) is not superuser, so `CREATE EXTENSION` fails with
+  permission denied. The drill tolerates errors via `2>&1 | tail -20`, so the
+  failure was silent and the `[DR] patients restored: 4` count was a false
+  positive. **No Prometheus signal for DR drill freshness, success, or restored count.**
+
+### Added
+- `namaweb/wave41_dr_drill.js` — `parseDrillLog()`, `ageHours()`,
+  `toPrometheusMetrics()`, `detectExtensionExclusion()`, `summarize()`. The
+  parser whitelists `pg_stat_statements` errors as benign so the operator sees
+  real failures vs known-noise. Includes 60s in-process cache.
+- `namaweb/wave41_dr_drill_test.js` — 40 unit / structural / safety tests (PASS on local + prod).
+- `namaweb/server.js` — new endpoints:
+  - `GET /api/metrics/dr-drill` (Prometheus, no auth)
+  - `GET /api/security/dr-drill` (Admin/IT JSON surface)
+- 5 new Prometheus gauges on `/api/metrics/dr-drill`:
+  - `nama_dr_drill_last_success` (1=yes, 0=no, -1=no-drill)
+  - `nama_dr_drill_patients_restored`
+  - `nama_dr_drill_restore_errors` (real errors only, benign whitelisted)
+  - `nama_dr_drill_benign_errors` (pg_stat_statements permission errors)
+  - `nama_dr_drill_age_hours`
+
+### Why no script change
+- Tried `--exclude-extension=pg_stat_statements` in pg_dump — not supported
+  in PostgreSQL 14 (only pg_dumpall). Whitelisting in the metric achieves the
+  same operator-visible result without breaking the dump format.
+
+### Production verification
+- `nama_dr_drill_last_success = 1` (Sunday drill was actually successful)
+- `nama_dr_drill_patients_restored = 4`
+- `nama_dr_drill_restore_errors = 0` (real errors only)
+- `nama_dr_drill_benign_errors = 3` (pg_stat_statements — known noise)
+- `nama_dr_drill_age_hours = 10.93`
+
+### Test status
+- `wave41_dr_drill_test.js`: **40 / 40 PASS** (local + prod)
+- Cumulative waves 31–41: **208 / 208 PASS**
+
+---
+
 ## Wave 40 — 2026-08-05 — Audit Trail Resilience + LOGIN fix
 **Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_40_AUDIT_RESILIENCE_AR.md`](PHASE_WAVE_40_AUDIT_RESILIENCE_AR.md)
 
