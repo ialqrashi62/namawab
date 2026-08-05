@@ -6,6 +6,51 @@ the change was small enough to be merged without its own report.
 
 ---
 
+## Wave 40 — 2026-08-05 — Audit Trail Resilience + LOGIN fix
+**Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_40_AUDIT_RESILIENCE_AR.md`](PHASE_WAVE_40_AUDIT_RESILIENCE_AR.md)
+
+### Discovered
+- `Audit log error: new row violates row-level security policy for table "audit_trail"` was firing
+  silently on every pre-tenant `logAudit()` call (LOGIN, BLOCKED_AUTHORIZATION, etc).
+- Root cause: 3rd branch of `logAudit()` did INSERT without `tenant_id`, but the column has NO DEFAULT
+  and is NOT NULL. SET LOCAL was a no-op (no transaction wrapped). Each LOGIN was silently dropped.
+
+### Added
+- `namaweb/wave40_audit_resilience.js` — `inc(kind)`, `recordError(msg)`, `isRlsError(msg)`,
+  `getCounters()`, `reset()`, `toPrometheusMetrics()`. In-process counter module.
+- `namaweb/wave40_audit_resilience_test.js` — 39 unit / structural / safety tests (PASS on local + prod).
+- `namaweb/server.js` — new endpoints:
+  - `GET /api/metrics/audit-log` (Prometheus, no auth)
+  - `GET /api/security/audit-log` (Admin/IT JSON surface)
+- 6 new Prometheus gauges on `/api/metrics/audit-log`:
+  - `nama_audit_log_calls_total`
+  - `nama_audit_log_branch_tenant`
+  - `nama_audit_log_branch_anon`
+  - `nama_audit_log_branch_nocontext`
+  - `nama_audit_log_error_rls`
+  - `nama_audit_log_error_other`
+
+### Fixed
+- `logAudit()` — surgical 4-line instrumentation: increments counters on each branch + records
+  errors with classification (RLS vs other).
+- `logAudit()` `allowAnon` branch — wrapped in `BEGIN`/`SET LOCAL`/`INSERT`/`COMMIT` transaction
+  (SET LOCAL is a no-op outside a transaction). INSERT now passes `tenant_id=0` explicitly.
+- `/api/auth/login` — now passes `{ allowAnon: true }` since LOGIN is a pre-tenant event.
+- DB-1: Created `tenants(id=0, name='System Audit Trail', subdomain='system')` for the system
+  audit trail (FK target).
+- DB-2: `GRANT INSERT ON audit_trail TO nama_medical_backup` (the role lacked INSERT before).
+
+### Production verification
+- 5 sequential admin logins → 5 rows in audit_trail (id 199-203) with tenant_id=0.
+- `nama_audit_log_error_rls = 0` (was silently failing before).
+- `nama_audit_log_branch_anon = 1` (per worker, after the burst).
+
+### Test status
+- `wave40_audit_resilience_test.js`: **39 / 39 PASS** (local + prod)
+- Cumulative waves 31–40: **168 / 168 PASS**
+
+---
+
 ## Wave 39 — 2026-08-05 — CSP Report Persistence + Prometheus Metric
 **Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_39_CSP_REPORTS_AR.md`](PHASE_WAVE_39_CSP_REPORTS_AR.md)
 
