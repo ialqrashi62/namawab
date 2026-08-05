@@ -1,0 +1,19 @@
+{
+    "name": "jumanasoft/pcc-sdk",
+    "description": "PHP SDK for NamaMedical PCC Sandbox",
+    "type": "library",
+    "version": "3.316.6",
+    "require": {
+        "php": ">=8.0",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "JumanaSoft\\Pcc\\": "src/"
+        },
+        "files": ["src/pcc.php"]
+    },
+    "keywords": ["pcc", "sandbox", "medical", "namamedical"],
+    "license": "proprietary"
+}

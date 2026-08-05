@@ -1,0 +1,623 @@
+{
+  "info": {
+    "_postman_id": "pcc-sandbox-1785304240666",
+    "name": "PCC Sandbox API",
+    "description": "NamaMedical PCC Sandbox - 1322 modules, 10035 functions",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3201",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalog",
+      "item": [
+        {
+          "name": "GET /modules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pcc-catalog/modules",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pcc-catalog",
+                "modules"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pcc-catalog/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pcc-catalog",
+                "categories"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /module/:slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pcc-catalog/module/pcc-cardiology-ext102",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pcc-catalog",
+                "module",
+                "pcc-cardiology-ext102"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "GET /search?q=cardiology",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pcc-catalog/search?q=cardiology",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pcc-catalog",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "cardiology"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /lookup/:fn",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pcc-catalog/lookup/CardGenExt",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pcc-catalog",
+                "lookup",
+                "CardGenExt"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pcc-catalog/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pcc-catalog",
+                "stats"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Diagnostics",
+      "item": [
+        {
+          "name": "GET /diagnostics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pcc-diagnostics/diagnostics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pcc-diagnostics",
+                "diagnostics"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /version",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pcc-diagnostics/version",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pcc-diagnostics",
+                "version"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sample Modules",
+      "item": [
+        {
+          "name": "pcc-cardiology-ext102",
+          "item": [
+            {
+              "name": "GET /pcc-cardiology-ext102/list",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/pcc-cardiology-ext102/list",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "pcc-cardiology-ext102",
+                    "list"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "POST /pcc-cardiology-ext102/call/<fn>",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"test_input\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/pcc-cardiology-ext102/call/FunctionName",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "pcc-cardiology-ext102",
+                    "call",
+                    "FunctionName"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "POST /pcc-cardiology-ext102/record",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tenant_id\": \"tenant_001\",\n  \"fn\": \"FunctionName\",\n  \"input\": { \"x\": 1 },\n  \"created_by\": \"user_id\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/pcc-cardiology-ext102/record",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "pcc-cardiology-ext102",
+                    "record"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "pcc-clinical-dx",
+          "item": [
+            {
+              "name": "GET /pcc-clinical-dx/list",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/pcc-clinical-dx/list",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "pcc-clinical-dx",
+                    "list"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "POST /pcc-clinical-dx/call/<fn>",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"test_input\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/pcc-clinical-dx/call/FunctionName",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "pcc-clinical-dx",
+                    "call",
+                    "FunctionName"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "POST /pcc-clinical-dx/record",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tenant_id\": \"tenant_001\",\n  \"fn\": \"FunctionName\",\n  \"input\": { \"x\": 1 },\n  \"created_by\": \"user_id\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/pcc-clinical-dx/record",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "pcc-clinical-dx",
+                    "record"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "pcc-neuro-ext14",
+          "item": [
+            {
+              "name": "GET /pcc-neuro-ext14/list",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/pcc-neuro-ext14/list",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "pcc-neuro-ext14",
+                    "list"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "POST /pcc-neuro-ext14/call/<fn>",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"test_input\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/pcc-neuro-ext14/call/FunctionName",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "pcc-neuro-ext14",
+                    "call",
+                    "FunctionName"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "POST /pcc-neuro-ext14/record",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tenant_id\": \"tenant_001\",\n  \"fn\": \"FunctionName\",\n  \"input\": { \"x\": 1 },\n  \"created_by\": \"user_id\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/pcc-neuro-ext14/record",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "pcc-neuro-ext14",
+                    "record"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "pcc-wound-care-ext102",
+          "item": [
+            {
+              "name": "GET /pcc-wound-care-ext102/list",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/pcc-wound-care-ext102/list",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "pcc-wound-care-ext102",
+                    "list"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "POST /pcc-wound-care-ext102/call/<fn>",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"test_input\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/pcc-wound-care-ext102/call/FunctionName",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "pcc-wound-care-ext102",
+                    "call",
+                    "FunctionName"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "POST /pcc-wound-care-ext102/record",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tenant_id\": \"tenant_001\",\n  \"fn\": \"FunctionName\",\n  \"input\": { \"x\": 1 },\n  \"created_by\": \"user_id\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/pcc-wound-care-ext102/record",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "pcc-wound-care-ext102",
+                    "record"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "pcc-icu-ext99",
+          "item": [
+            {
+              "name": "GET /pcc-icu-ext99/list",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/pcc-icu-ext99/list",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "pcc-icu-ext99",
+                    "list"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "POST /pcc-icu-ext99/call/<fn>",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"test_input\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/pcc-icu-ext99/call/FunctionName",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "pcc-icu-ext99",
+                    "call",
+                    "FunctionName"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "POST /pcc-icu-ext99/record",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tenant_id\": \"tenant_001\",\n  \"fn\": \"FunctionName\",\n  \"input\": { \"x\": 1 },\n  \"created_by\": \"user_id\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/pcc-icu-ext99/record",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "pcc-icu-ext99",
+                    "record"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@jumanasoft/pcc-sdk",
+  "version": "3.316.2",
+  "description": "TypeScript SDK for NamaMedical PCC Sandbox",
+  "main": "pcc-sdk.ts",
+  "types": "pcc-sdk.d.ts",
+  "scripts": {
+    "build": "tsc pcc-sdk.ts --outDir dist --target ES2020 --module ESNext",
+    "test": "node test-sdk.js"
+  },
+  "keywords": [
+    "pcc",
+    "sandbox",
+    "medical",
+    "clinical",
+    "namamedical"
+  ],
+  "license": "UNLICENSED",
+  "dependencies": {}
+}

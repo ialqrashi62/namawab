@@ -1,0 +1,28 @@
+{
+  "name": "@jumanasoft/pcc-sdk-nodejs",
+  "version": "3.316.3",
+  "description": "Node.js SDK for NamaMedical PCC Sandbox",
+  "main": "pcc-sdk.js",
+  "module": "pcc-sdk.mjs",
+  "types": "pcc-sdk.d.ts",
+  "exports": {
+    ".": {
+      "require": "./pcc-sdk.js",
+      "import": "./pcc-sdk.mjs",
+      "types": "./pcc-sdk.d.ts"
+    }
+  },
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "pcc",
+    "sandbox",
+    "medical",
+    "namamedical"
+  ],
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18"
+  }
+}
