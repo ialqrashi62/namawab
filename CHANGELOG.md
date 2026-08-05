@@ -6,6 +6,50 @@ the change was small enough to be merged without its own report.
 
 ---
 
+## Wave 42 — 2026-08-05 — Process Lifecycle Observability + Graceful Shutdown
+**Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_42_PROCESS_LIFECYCLE_AR.md`](PHASE_WAVE_42_PROCESS_LIFECYCLE_AR.md)
+
+### Discovered
+- `pm2 list` showed all 4 workers with `restart count = 22`. PM2 saw 22 crashes per worker
+  but operators had zero visibility into WHY (server.js registered no `process.on('unhandledRejection')`,
+  `process.on('uncaughtException')`, or `process.on('SIGTERM')`). SIGTERM caused abrupt
+  exit; in-flight requests dropped with ECONNRESET; DB pool never closed cleanly.
+
+### Added
+- `namaweb/wave42_process_lifecycle.js` — `install({ logAudit, pool, httpServer })`,
+  `inc(kind, msg)`, `getCounters()`, `reset()`, `toPrometheusMetrics()`, `gracefulShutdown()`.
+  Registers handlers for `unhandledRejection`, `uncaughtException`, `SIGTERM`, `SIGINT`.
+- `namaweb/wave42_process_lifecycle_test.js` — 30 unit / structural / safety tests (PASS on local + prod).
+- `namaweb/server.js` — minimal 2-line surgery: capture http server + install wave42 inside listen callback.
+- `namaweb/server.js` — new endpoints:
+  - `GET /api/metrics/process` (Prometheus, no auth)
+  - `GET /api/security/process` (Admin/IT JSON surface)
+- 7 new Prometheus gauges on `/api/metrics/process`:
+  - `nama_process_unhandled_rejections_total`
+  - `nama_process_uncaught_exceptions_total`
+  - `nama_process_graceful_shutdowns_total`
+  - `nama_process_sigterm_total`
+  - `nama_process_sigint_total`
+  - `nama_process_uptime_seconds`
+
+### Changed
+- `server.js` `app.listen(PORT, ...)` → `const _server = app.listen(PORT, ...)` and calls
+  `wave42.install({ logAudit, pool, httpServer: _server })` inside the callback.
+
+### Production verification (manual SIGTERM test)
+- `kill -TERM 1538275` (worker 10)
+- Logs: `[Wave 42] SIGTERM received — graceful shutdown` + `[Wave 42] Graceful shutdown initiated (reason: SIGTERM)`
+- PM2: worker 10 → `launching` → `online` (restart 22 → 23)
+- audit_trail row 205: `tenant_id=0, action=SIGTERM, module=System, created_at=2026-08-05 22:46:56`
+- DB pool closed cleanly via `pool.end()`
+- In-flight requests drained before `process.exit(0)`
+
+### Test status
+- `wave42_process_lifecycle_test.js`: **30 / 30 PASS** (local + prod)
+- Cumulative waves 31–42: **238 / 238 PASS**
+
+---
+
 ## Wave 41 — 2026-08-05 — DR Drill Hardening
 **Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_41_DR_DRILL_AR.md`](PHASE_WAVE_41_DR_DRILL_AR.md)
 
