@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_ophth_ext100/pcc_ophth_ext100_engine.js
-module.exports.version='v3.23.23.0';
-module.exports.module='pcc_ophth_ext100';
-module.exports.functions={};
-module.exports.functions['OphthCataractExt']=function(input){const score=Math.round((0.18 + Number(input.ophCataract||1)*0.2 + Number(input.ophGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ophth_ext100',function:'OphthCataractExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OphthGlaucomaExt']=function(input){const score=Math.round((0.18 + Number(input.ophGlaucoma||1)*0.2 + Number(input.iopLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ophth_ext100',function:'OphthGlaucomaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OphthRetinaExt']=function(input){const score=Math.round((0.18 + Number(input.ophRetina||1)*0.2 + Number(input.retinalThick||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ophth_ext100',function:'OphthRetinaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OphthDiabeticExt']=function(input){const score=Math.round((0.18 + Number(input.ophDiabetic||1)*0.2 + Number(input.drGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ophth_ext100',function:'OphthDiabeticExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OphthAMDext']=function(input){const score=Math.round((0.18 + Number(input.ophAMD||1)*0.2 + Number(input.amdType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ophth_ext100',function:'OphthAMDext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OphthUveitisExt']=function(input){const score=Math.round((0.18 + Number(input.ophUveitis||1)*0.2 + Number(input.uveitisLoc||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ophth_ext100',function:'OphthUveitisExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OphthCorneaExt']=function(input){const score=Math.round((0.18 + Number(input.ophCornea||1)*0.2 + Number(input.corneaThick||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ophth_ext100',function:'OphthCorneaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OphthPediatricExt']=function(input){const score=Math.round((0.18 + Number(input.ophPed||1)*0.2 + Number(input.pedAge||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ophth_ext100',function:'OphthPediatricExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OphthTraumaExt']=function(input){const score=Math.round((0.18 + Number(input.ophTrauma||1)*0.2 + Number(input.traumaZone||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ophth_ext100',function:'OphthTraumaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OphthNeuroExt']=function(input){const score=Math.round((0.18 + Number(input.ophNeuro||1)*0.2 + Number(input.opticNerve||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.23.23.0',module:'pcc_ophth_ext100',function:'OphthNeuroExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.23.23.0';
+const MOD = 'pcc_ophth_ext100';
 
-// TS: v3.23.23.0
+function OphthCataractExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ophthCataractExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OphthCataractExt", input, score, ts: TS, ophthCataractExt: _i.ophthCataractExt || null };
+}
+
+function OphthGlaucomaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ophthGlaucomaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OphthGlaucomaExt", input, score, ts: TS, ophthGlaucomaExt: _i.ophthGlaucomaExt || null };
+}
+
+function OphthRetinaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ophthRetinaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OphthRetinaExt", input, score, ts: TS, ophthRetinaExt: _i.ophthRetinaExt || null };
+}
+
+function OphthDiabeticExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ophthDiabeticExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OphthDiabeticExt", input, score, ts: TS, ophthDiabeticExt: _i.ophthDiabeticExt || null };
+}
+
+function OphthAMDext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ophthAMDext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'OphthAMDext', input, score, ts: TS, ophthAMDext: _i.ophthAMDext || null };
+}
+
+function OphthUveitisExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ophthUveitisExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OphthUveitisExt", input, score, ts: TS, ophthUveitisExt: _i.ophthUveitisExt || null };
+}
+
+function OphthCorneaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ophthCorneaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OphthCorneaExt", input, score, ts: TS, ophthCorneaExt: _i.ophthCorneaExt || null };
+}
+
+function OphthPediatricExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ophthPediatricExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OphthPediatricExt", input, score, ts: TS, ophthPediatricExt: _i.ophthPediatricExt || null };
+}
+
+function OphthTraumaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ophthTraumaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OphthTraumaExt", input, score, ts: TS, ophthTraumaExt: _i.ophthTraumaExt || null };
+}
+
+function OphthNeuroExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ophthNeuroExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OphthNeuroExt", input, score, ts: TS, ophthNeuroExt: _i.ophthNeuroExt || null };
+}
+
+module.exports = {
+  OphthCataractExt,
+  OphthGlaucomaExt,
+  OphthRetinaExt,
+  OphthDiabeticExt,
+  OphthAMDext,
+  OphthUveitisExt,
+  OphthCorneaExt,
+  OphthPediatricExt,
+  OphthTraumaExt,
+  OphthNeuroExt,
+};

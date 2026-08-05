@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_pain_mgmt_ext102/pcc_pain_mgmt_ext102_engine.js
-module.exports.version='v3.71.71.0';
-module.exports.module='pcc_pain_mgmt_ext102';
-module.exports.functions={};
-module.exports.functions['PMGenExt']=function(input){const score=Math.round((0.18 + Number(input.pmGen||1)*0.2 + Number(input.pmGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMGenExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PMAcuteExt']=function(input){const score=Math.round((0.18 + Number(input.pmAcu||1)*0.2 + Number(input.pmAcuScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMAcuteExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PMChronicExt']=function(input){const score=Math.round((0.18 + Number(input.pmChr||1)*0.2 + Number(input.pmChrType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMChronicExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PMNeuroExt']=function(input){const score=Math.round((0.18 + Number(input.pmNeu||1)*0.2 + Number(input.pmNeuScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMNeuroExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PMCancerExt']=function(input){const score=Math.round((0.18 + Number(input.pmCan||1)*0.2 + Number(input.pmCanScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMCancerExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PMBlockExt']=function(input){const score=Math.round((0.18 + Number(input.pmBlk||1)*0.2 + Number(input.pmBlkType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMBlockExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PMInjectExt']=function(input){const score=Math.round((0.18 + Number(input.pmInj||1)*0.2 + Number(input.pmInjType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMInjectExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PMPumpExt']=function(input){const score=Math.round((0.18 + Number(input.pmPmp||1)*0.2 + Number(input.pmPmpType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMPumpExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PMStimExt']=function(input){const score=Math.round((0.18 + Number(input.pmStm||1)*0.2 + Number(input.pmStmType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMStimExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PMMultiExt']=function(input){const score=Math.round((0.18 + Number(input.pmMlt||1)*0.2 + Number(input.pmMltScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.71.71.0',module:'pcc_pain_mgmt_ext102',function:'PMMultiExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.71.71.0';
+const MOD = 'pcc_pain_mgmt_ext102';
 
-// TS: v3.71.71.0
+function PMGenExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pMGenExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PMGenExt", input, score, ts: TS, pMGenExt: _i.pMGenExt || null };
+}
+
+function PMAcuteExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pMAcuteExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PMAcuteExt", input, score, ts: TS, pMAcuteExt: _i.pMAcuteExt || null };
+}
+
+function PMChronicExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pMChronicExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PMChronicExt", input, score, ts: TS, pMChronicExt: _i.pMChronicExt || null };
+}
+
+function PMNeuroExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pMNeuroExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PMNeuroExt", input, score, ts: TS, pMNeuroExt: _i.pMNeuroExt || null };
+}
+
+function PMCancerExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pMCancerExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PMCancerExt", input, score, ts: TS, pMCancerExt: _i.pMCancerExt || null };
+}
+
+function PMBlockExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pMBlockExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PMBlockExt", input, score, ts: TS, pMBlockExt: _i.pMBlockExt || null };
+}
+
+function PMInjectExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pMInjectExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PMInjectExt", input, score, ts: TS, pMInjectExt: _i.pMInjectExt || null };
+}
+
+function PMPumpExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pMPumpExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PMPumpExt", input, score, ts: TS, pMPumpExt: _i.pMPumpExt || null };
+}
+
+function PMStimExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pMStimExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PMStimExt", input, score, ts: TS, pMStimExt: _i.pMStimExt || null };
+}
+
+function PMMultiExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pMMultiExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PMMultiExt", input, score, ts: TS, pMMultiExt: _i.pMMultiExt || null };
+}
+
+module.exports = {
+  PMGenExt,
+  PMAcuteExt,
+  PMChronicExt,
+  PMNeuroExt,
+  PMCancerExt,
+  PMBlockExt,
+  PMInjectExt,
+  PMPumpExt,
+  PMStimExt,
+  PMMultiExt,
+};

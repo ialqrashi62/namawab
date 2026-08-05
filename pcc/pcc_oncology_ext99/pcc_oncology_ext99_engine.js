@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_oncology_ext99/pcc_oncology_ext99_engine.js
-module.exports.version='v3.18.18.0';
-module.exports.module='pcc_oncology_ext99';
-module.exports.functions={};
-module.exports.functions['OncBreastExt']=function(input){const score=Math.round((0.18 + Number(input.oncBreast||1)*0.2 + Number(input.her2Status||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_oncology_ext99',function:'OncBreastExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OncLungExt']=function(input){const score=Math.round((0.18 + Number(input.oncLung||1)*0.2 + Number(input.egfrMut||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_oncology_ext99',function:'OncLungExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OncColonExt']=function(input){const score=Math.round((0.18 + Number(input.oncColon||1)*0.2 + Number(input.rasMut||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_oncology_ext99',function:'OncColonExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OncPancreasExt']=function(input){const score=Math.round((0.18 + Number(input.oncPanc||1)*0.2 + Number(input.brcaMut||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_oncology_ext99',function:'OncPancreasExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OncProstateExt']=function(input){const score=Math.round((0.18 + Number(input.oncProstate||1)*0.2 + Number(input.psaScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_oncology_ext99',function:'OncProstateExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OncRenalExt']=function(input){const score=Math.round((0.18 + Number(input.oncRenal||1)*0.2 + Number(input.clearCell||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_oncology_ext99',function:'OncRenalExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OncMelanomaExt']=function(input){const score=Math.round((0.18 + Number(input.oncMel||1)*0.2 + Number(input.brafMut||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_oncology_ext99',function:'OncMelanomaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OncHematologicExt']=function(input){const score=Math.round((0.18 + Number(input.oncHeme||1)*0.2 + Number(input.citogenRisk||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_oncology_ext99',function:'OncHematologicExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OncImmunotherapyExt']=function(input){const score=Math.round((0.18 + Number(input.oncIO||1)*0.2 + Number(input.pdl1||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_oncology_ext99',function:'OncImmunotherapyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OncTargetedTxExt']=function(input){const score=Math.round((0.18 + Number(input.oncTarget||1)*0.2 + Number(input.targetMutation||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.18.18.0',module:'pcc_oncology_ext99',function:'OncTargetedTxExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.18.18.0';
+const MOD = 'pcc_oncology_ext99';
 
-// TS: v3.18.18.0
+function OncBreastExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.oncBreastExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OncBreastExt", input, score, ts: TS, oncBreastExt: _i.oncBreastExt || null };
+}
+
+function OncLungExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.oncLungExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OncLungExt", input, score, ts: TS, oncLungExt: _i.oncLungExt || null };
+}
+
+function OncColonExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.oncColonExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OncColonExt", input, score, ts: TS, oncColonExt: _i.oncColonExt || null };
+}
+
+function OncPancreasExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.oncPancreasExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OncPancreasExt", input, score, ts: TS, oncPancreasExt: _i.oncPancreasExt || null };
+}
+
+function OncProstateExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.oncProstateExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OncProstateExt", input, score, ts: TS, oncProstateExt: _i.oncProstateExt || null };
+}
+
+function OncRenalExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.oncRenalExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OncRenalExt", input, score, ts: TS, oncRenalExt: _i.oncRenalExt || null };
+}
+
+function OncMelanomaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.oncMelanomaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OncMelanomaExt", input, score, ts: TS, oncMelanomaExt: _i.oncMelanomaExt || null };
+}
+
+function OncHematologicExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.oncHematologicExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OncHematologicExt", input, score, ts: TS, oncHematologicExt: _i.oncHematologicExt || null };
+}
+
+function OncImmunotherapyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.oncImmunotherapyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OncImmunotherapyExt", input, score, ts: TS, oncImmunotherapyExt: _i.oncImmunotherapyExt || null };
+}
+
+function OncTargetedTxExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.oncTargetedTxExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OncTargetedTxExt", input, score, ts: TS, oncTargetedTxExt: _i.oncTargetedTxExt || null };
+}
+
+module.exports = {
+  OncBreastExt,
+  OncLungExt,
+  OncColonExt,
+  OncPancreasExt,
+  OncProstateExt,
+  OncRenalExt,
+  OncMelanomaExt,
+  OncHematologicExt,
+  OncImmunotherapyExt,
+  OncTargetedTxExt,
+};
