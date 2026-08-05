@@ -1,4 +1,4 @@
-// P3-ED pcc_dental_advanced_engine v3.94.0
+// P3_ED pcc_dental_advanced_engine v3.94.0
 'use strict';
 function ImpactedThirdMolarAssessment(input) {
   const i = input || {};

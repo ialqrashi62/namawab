@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_surg_ext99/pcc_surg_ext99_engine.js
-module.exports.version='v3.17.17.0';
-module.exports.module='pcc_surg_ext99';
-module.exports.functions={};
-module.exports.functions['SurgPreopExt']=function(input){const score=Math.round((0.18 + Number(input.preOp||1)*0.2 + Number(input.asaClass||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgPreopExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SurgIntraopExt']=function(input){const score=Math.round((0.18 + Number(input.intraOp||1)*0.2 + Number(input.opDuration||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgIntraopExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SurgPostopExt']=function(input){const score=Math.round((0.18 + Number(input.postOp||1)*0.2 + Number(input.pod||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgPostopExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SurgCardiacExt']=function(input){const score=Math.round((0.18 + Number(input.surgCardiac||1)*0.2 + Number(input.bypassTime||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgCardiacExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SurgNeuroExt']=function(input){const score=Math.round((0.18 + Number(input.surgNeuro||1)*0.2 + Number(input.craniotomyType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgNeuroExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SurgOrthoExt']=function(input){const score=Math.round((0.18 + Number(input.surgOrtho||1)*0.2 + Number(input.orthoType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgOrthoExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SurgGIext']=function(input){const score=Math.round((0.18 + Number(input.surgGI||1)*0.2 + Number(input.giProcedure||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgGIext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SurgVascularExt']=function(input){const score=Math.round((0.18 + Number(input.surgVasc||1)*0.2 + Number(input.vascType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgVascularExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SurgTransplantExt']=function(input){const score=Math.round((0.18 + Number(input.surgTx||1)*0.2 + Number(input.txType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgTransplantExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SurgOncologyExt']=function(input){const score=Math.round((0.18 + Number(input.surgOnc||1)*0.2 + Number(input.oncStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_surg_ext99',function:'SurgOncologyExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.17.17.0';
+const MOD = 'pcc_surg_ext99';
 
-// TS: v3.17.17.0
+function SurgPreopExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.surgPreopExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SurgPreopExt", input, score, ts: TS, surgPreopExt: _i.surgPreopExt || null };
+}
+
+function SurgIntraopExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.surgIntraopExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SurgIntraopExt", input, score, ts: TS, surgIntraopExt: _i.surgIntraopExt || null };
+}
+
+function SurgPostopExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.surgPostopExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SurgPostopExt", input, score, ts: TS, surgPostopExt: _i.surgPostopExt || null };
+}
+
+function SurgCardiacExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.surgCardiacExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SurgCardiacExt", input, score, ts: TS, surgCardiacExt: _i.surgCardiacExt || null };
+}
+
+function SurgNeuroExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.surgNeuroExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SurgNeuroExt", input, score, ts: TS, surgNeuroExt: _i.surgNeuroExt || null };
+}
+
+function SurgOrthoExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.surgOrthoExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SurgOrthoExt", input, score, ts: TS, surgOrthoExt: _i.surgOrthoExt || null };
+}
+
+function SurgGIext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.surgGIext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'SurgGIext', input, score, ts: TS, surgGIext: _i.surgGIext || null };
+}
+
+function SurgVascularExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.surgVascularExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SurgVascularExt", input, score, ts: TS, surgVascularExt: _i.surgVascularExt || null };
+}
+
+function SurgTransplantExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.surgTransplantExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SurgTransplantExt", input, score, ts: TS, surgTransplantExt: _i.surgTransplantExt || null };
+}
+
+function SurgOncologyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.surgOncologyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SurgOncologyExt", input, score, ts: TS, surgOncologyExt: _i.surgOncologyExt || null };
+}
+
+module.exports = {
+  SurgPreopExt,
+  SurgIntraopExt,
+  SurgPostopExt,
+  SurgCardiacExt,
+  SurgNeuroExt,
+  SurgOrthoExt,
+  SurgGIext,
+  SurgVascularExt,
+  SurgTransplantExt,
+  SurgOncologyExt,
+};

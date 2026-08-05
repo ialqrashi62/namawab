@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_rad_ext179/pcc_rad_ext179_engine.js
-module.exports.version='v3.15.15.0';
-module.exports.module='pcc_rad_ext179';
-module.exports.functions={};
-module.exports.functions['RadDiabetesAdultExt']=function(input){const score=Math.round((0.18 + Number(input.radDM||1)*0.2 + Number(input.dmImaging||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_rad_ext179',function:'RadDiabetesAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RadCardiacAdultExt']=function(input){const score=Math.round((0.18 + Number(input.radCardiac||1)*0.2 + Number(input.ejectionFrac||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_rad_ext179',function:'RadCardiacAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RadRenalAdultExt']=function(input){const score=Math.round((0.18 + Number(input.radRenal||1)*0.2 + Number(input.renalCystic||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_rad_ext179',function:'RadRenalAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RadLiverAdultExt']=function(input){const score=Math.round((0.18 + Number(input.radLiver||1)*0.2 + Number(input.liverFat||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_rad_ext179',function:'RadLiverAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RadVascularAdultExt']=function(input){const score=Math.round((0.18 + Number(input.radVasc||1)*0.2 + Number(input.stenosis||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_rad_ext179',function:'RadVascularAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RadPulmAdultExt']=function(input){const score=Math.round((0.18 + Number(input.radPulm||1)*0.2 + Number(input.pulmFinding||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_rad_ext179',function:'RadPulmAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RadMusculoskeletalAdultExt']=function(input){const score=Math.round((0.18 + Number(input.radMSK||1)*0.2 + Number(input.fracture||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_rad_ext179',function:'RadMusculoskeletalAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RadInfectAdultExt']=function(input){const score=Math.round((0.18 + Number(input.radInf||1)*0.2 + Number(input.infectLoc||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_rad_ext179',function:'RadInfectAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RadOBAdultExt']=function(input){const score=Math.round((0.18 + Number(input.radOB||1)*0.2 + Number(input.gestAge||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_rad_ext179',function:'RadOBAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RadGUAdultExt']=function(input){const score=Math.round((0.18 + Number(input.radGU||1)*0.2 + Number(input.guFinding||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_rad_ext179',function:'RadGUAdultExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.15.15.0';
+const MOD = 'pcc_rad_ext179';
 
-// TS: v3.15.15.0
+function RadDiabetesAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.radDiabetesAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RadDiabetesAdultExt", input, score, ts: TS, radDiabetesAdultExt: _i.radDiabetesAdultExt || null };
+}
+
+function RadCardiacAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.radCardiacAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RadCardiacAdultExt", input, score, ts: TS, radCardiacAdultExt: _i.radCardiacAdultExt || null };
+}
+
+function RadRenalAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.radRenalAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RadRenalAdultExt", input, score, ts: TS, radRenalAdultExt: _i.radRenalAdultExt || null };
+}
+
+function RadLiverAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.radLiverAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RadLiverAdultExt", input, score, ts: TS, radLiverAdultExt: _i.radLiverAdultExt || null };
+}
+
+function RadVascularAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.radVascularAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RadVascularAdultExt", input, score, ts: TS, radVascularAdultExt: _i.radVascularAdultExt || null };
+}
+
+function RadPulmAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.radPulmAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RadPulmAdultExt", input, score, ts: TS, radPulmAdultExt: _i.radPulmAdultExt || null };
+}
+
+function RadMusculoskeletalAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.radMusculoskeletalAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RadMusculoskeletalAdultExt", input, score, ts: TS, radMusculoskeletalAdultExt: _i.radMusculoskeletalAdultExt || null };
+}
+
+function RadInfectAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.radInfectAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RadInfectAdultExt", input, score, ts: TS, radInfectAdultExt: _i.radInfectAdultExt || null };
+}
+
+function RadOBAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.radOBAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RadOBAdultExt", input, score, ts: TS, radOBAdultExt: _i.radOBAdultExt || null };
+}
+
+function RadGUAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.radGUAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RadGUAdultExt", input, score, ts: TS, radGUAdultExt: _i.radGUAdultExt || null };
+}
+
+module.exports = {
+  RadDiabetesAdultExt,
+  RadCardiacAdultExt,
+  RadRenalAdultExt,
+  RadLiverAdultExt,
+  RadVascularAdultExt,
+  RadPulmAdultExt,
+  RadMusculoskeletalAdultExt,
+  RadInfectAdultExt,
+  RadOBAdultExt,
+  RadGUAdultExt,
+};

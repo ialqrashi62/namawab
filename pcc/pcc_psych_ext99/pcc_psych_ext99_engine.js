@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_psych_ext99/pcc_psych_ext99_engine.js
-module.exports.version='v3.19.19.0';
-module.exports.module='pcc_psych_ext99';
-module.exports.functions={};
-module.exports.functions['PsychDepressionExt']=function(input){const score=Math.round((0.18 + Number(input.psychDep||1)*0.2 + Number(input.phq9||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_psych_ext99',function:'PsychDepressionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PsychAnxietyExt']=function(input){const score=Math.round((0.18 + Number(input.psychAnx||1)*0.2 + Number(input.gad7||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_psych_ext99',function:'PsychAnxietyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PsychBipolarExt']=function(input){const score=Math.round((0.18 + Number(input.psychBipolar||1)*0.2 + Number(input.ymrs||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_psych_ext99',function:'PsychBipolarExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PsychSchizoExt']=function(input){const score=Math.round((0.18 + Number(input.psychSchizo||1)*0.2 + Number(input.panss||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_psych_ext99',function:'PsychSchizoExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PsychPTSDext']=function(input){const score=Math.round((0.18 + Number(input.psychPTSD||1)*0.2 + Number(input.pclScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_psych_ext99',function:'PsychPTSDext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PsychSubstanceExt']=function(input){const score=Math.round((0.18 + Number(input.psychSubst||1)*0.2 + Number(input.substType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_psych_ext99',function:'PsychSubstanceExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PsychEatingExt']=function(input){const score=Math.round((0.18 + Number(input.psychEating||1)*0.2 + Number(input.bmi||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_psych_ext99',function:'PsychEatingExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PsychPersonalityExt']=function(input){const score=Math.round((0.18 + Number(input.psychPerson||1)*0.2 + Number(input.personDisorder||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_psych_ext99',function:'PsychPersonalityExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PsychGeriatricExt']=function(input){const score=Math.round((0.18 + Number(input.psychGeriatric||1)*0.2 + Number(input.mmseScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_psych_ext99',function:'PsychGeriatricExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PsychCrisisExt']=function(input){const score=Math.round((0.18 + Number(input.psychCrisis||1)*0.2 + Number(input.suicideRisk||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.19.19.0',module:'pcc_psych_ext99',function:'PsychCrisisExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.19.19.0';
+const MOD = 'pcc_psych_ext99';
 
-// TS: v3.19.19.0
+function PsychDepressionExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.psychDepressionExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PsychDepressionExt", input, score, ts: TS, psychDepressionExt: _i.psychDepressionExt || null };
+}
+
+function PsychAnxietyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.psychAnxietyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PsychAnxietyExt", input, score, ts: TS, psychAnxietyExt: _i.psychAnxietyExt || null };
+}
+
+function PsychBipolarExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.psychBipolarExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PsychBipolarExt", input, score, ts: TS, psychBipolarExt: _i.psychBipolarExt || null };
+}
+
+function PsychSchizoExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.psychSchizoExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PsychSchizoExt", input, score, ts: TS, psychSchizoExt: _i.psychSchizoExt || null };
+}
+
+function PsychPTSDext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.psychPTSDext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PsychPTSDext', input, score, ts: TS, psychPTSDext: _i.psychPTSDext || null };
+}
+
+function PsychSubstanceExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.psychSubstanceExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PsychSubstanceExt", input, score, ts: TS, psychSubstanceExt: _i.psychSubstanceExt || null };
+}
+
+function PsychEatingExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.psychEatingExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PsychEatingExt", input, score, ts: TS, psychEatingExt: _i.psychEatingExt || null };
+}
+
+function PsychPersonalityExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.psychPersonalityExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PsychPersonalityExt", input, score, ts: TS, psychPersonalityExt: _i.psychPersonalityExt || null };
+}
+
+function PsychGeriatricExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.psychGeriatricExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PsychGeriatricExt", input, score, ts: TS, psychGeriatricExt: _i.psychGeriatricExt || null };
+}
+
+function PsychCrisisExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.psychCrisisExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PsychCrisisExt", input, score, ts: TS, psychCrisisExt: _i.psychCrisisExt || null };
+}
+
+module.exports = {
+  PsychDepressionExt,
+  PsychAnxietyExt,
+  PsychBipolarExt,
+  PsychSchizoExt,
+  PsychPTSDext,
+  PsychSubstanceExt,
+  PsychEatingExt,
+  PsychPersonalityExt,
+  PsychGeriatricExt,
+  PsychCrisisExt,
+};

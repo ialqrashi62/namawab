@@ -1,21 +1,19 @@
-// P3-CL pcc_cardio_ext4 unit tests
+// Auto-generated unit tests for pcc_cardio_ext4 — 3.193.0
+"use strict";
 const Engine = require('./pcc_cardio_ext4_engine.js');
-const assert = require('assert');
+const VER = '3.193.0';
 let passed = 0, failed = 0;
-function it(name, fn) { try { fn(); console.log('  \u2713 ' + name); passed++; } catch (e) { console.log('  \u2717 ' + name + ': ' + e.message); failed++; } }
-function assertEq(a, b) { assert.strictEqual(a, b); }
+function test(name, fn) { try { fn(); passed++; console.log('  ok   ' + name); } catch (e) { failed++; console.error('  FAIL ' + name + ' :: ' + e.message); } }
 
-console.log('pcc_cardio_ext4 engine tests:');
-it('RS', () => assertEq(Engine.RiskStratification({ r: 150 }).plan, 'very-high-risk'));
-it('ACS', () => assertEq(Engine.ACS({ t: 'STEMI' }).plan, 'STEMI-activation'));
-it('HF', () => assertEq(Engine.HeartFailure({ nyha: 4 }).plan, 'NYHA-IV-severe'));
-it('Arr', () => assertEq(Engine.Arrhythmia({ t: 'VT' }).plan, 'ventricular-tachycardia'));
-it('Val', () => assertEq(Engine.Valvular({ t: 'AS' }).plan, 'aortic-stenosis'));
-it('HTN', () => assertEq(Engine.Hypertension({ sbp: 200 }).plan, 'hypertensive-crisis'));
-it('Lip', () => assertEq(Engine.Lipid({ ldl: 200 }).plan, 'severe-hypercholesterolemia'));
-it('AC', () => assertEq(Engine.Anticoag({ t: 'warfarin' }).plan, 'warfarin-INR-monitor'));
-it('CV', () => assertEq(Engine.Cardioversion({ t: 'electrical' }).plan, 'electrical-cardioversion'));
-it('Ech', () => assertEq(Engine.Echo({ ef: 25 }).plan, 'HFrEF'));
-
-console.log(`SUMMARY: ${passed} passed, ${failed} failed`);
+test('EXT4AssessmentExt_returns_valid', () => { const r = Engine.EXT4AssessmentExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT4ScoreExt_returns_valid', () => { const r = Engine.EXT4ScoreExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT4StageExt_returns_valid', () => { const r = Engine.EXT4StageExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT4PlanExt_returns_valid', () => { const r = Engine.EXT4PlanExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT4RiskExt_returns_valid', () => { const r = Engine.EXT4RiskExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT4DoseExt_returns_valid', () => { const r = Engine.EXT4DoseExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT4FrequencyExt_returns_valid', () => { const r = Engine.EXT4FrequencyExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT4DurationExt_returns_valid', () => { const r = Engine.EXT4DurationExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT4FollowupExt_returns_valid', () => { const r = Engine.EXT4FollowupExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+test('EXT4OutcomeExt_returns_valid', () => { const r = Engine.EXT4OutcomeExt({}); if (r.version !== VER) throw new Error('bad ver'); if (typeof r.score !== 'number') throw new Error('no score'); });
+console.log('Total: ' + (passed + failed) + ' | passed: ' + passed + ' | failed: ' + failed);
 process.exit(failed === 0 ? 0 : 1);

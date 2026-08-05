@@ -1,43 +1,22 @@
-// P3-CL pcc_cardio_ext4 integration test v3.50.0
+// Auto-generated integration tests for pcc_cardio_ext4 — 3.193.0
+"use strict";
 const Engine = require('./pcc_cardio_ext4_engine.js');
-const assert = require('assert');
 let passed = 0, failed = 0;
-function it(name, fn) { try { fn(); console.log('  ✓ integ-' + name); passed++; } catch (e) { console.log('  ✗ integ-' + name + ': ' + e.message); failed++; } }
-
-function makeDb() {
-  return {
-    insert: async (table, row) => ({ id: 1, ...row }),
-    select: async (table, where) => ({ rows: [{ id: 1, input: {}, result: { plan: 'mock' } }] }),
-    update: async (table, where, patch) => ({ id: 1, ...patch }),
-    delete: async (table, where) => ({ deleted: 1 }),
-  };
-}
-
-(async () => {
-  console.log('pcc_cardio_ext4 integration tests:');
-  const db = makeDb();
-  const t = await db.insert('p3cl_pcc_cardio_ext4', { encounter_id: 'e1', tenant_id: 't1', input: {}, result: { plan: 'test' }, module: 'pcc_cardio_ext4', created_by: 'u1' });
-  assert(t.id === 1);
-  passed++;
-  const got = await db.select('p3cl_pcc_cardio_ext4', { tenant_id: 't1' });
-  assert(got.rows.length > 0);
-  passed++;
-  const upd = await db.update('p3cl_pcc_cardio_ext4', { id: 1 }, { result: { plan: 'updated' } });
-  assert(upd.result.plan === 'updated');
-  passed++;
-  const del = await db.delete('p3cl_pcc_cardio_ext4', { id: 1 });
-  assert(del.deleted === 1);
-  passed++;
-  it('riskStratification', () => { const r = Engine.RiskStratification({}); assert(r.plan); });
-  it('aCS', () => { const r = Engine.ACS({}); assert(r.plan); });
-  it('heartFailure', () => { const r = Engine.HeartFailure({}); assert(r.plan); });
-  it('arrhythmia', () => { const r = Engine.Arrhythmia({}); assert(r.plan); });
-  it('valvular', () => { const r = Engine.Valvular({}); assert(r.plan); });
-  it('hypertension', () => { const r = Engine.Hypertension({}); assert(r.plan); });
-  it('lipid', () => { const r = Engine.Lipid({}); assert(r.plan); });
-  it('anticoag', () => { const r = Engine.Anticoag({}); assert(r.plan); });
-  it('cardioversion', () => { const r = Engine.Cardioversion({}); assert(r.plan); });
-  it('echo', () => { const r = Engine.Echo({}); assert(r.plan); });
-  console.log(`SUMMARY: ${passed} passed, ${failed} failed`);
-  process.exit(failed === 0 ? 0 : 1);
-})();
+function test(name, fn) { try { fn(); passed++; console.log('  ok   ' + name); } catch (e) { failed++; console.error('  FAIL ' + name + ' :: ' + e.message); } }
+const F = Object.keys(Engine);
+test('Engine has 10 functions', () => { if (F.length !== 10) throw new Error('expected 10, got ' + F.length); });
+test('fn_1_EXT4AssessmentExt_handles_empty', () => { const r = Engine.EXT4AssessmentExt({}); if (r.module !== 'pcc_cardio_ext4') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_2_EXT4ScoreExt_handles_empty', () => { const r = Engine.EXT4ScoreExt({}); if (r.module !== 'pcc_cardio_ext4') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_3_EXT4StageExt_handles_empty', () => { const r = Engine.EXT4StageExt({}); if (r.module !== 'pcc_cardio_ext4') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_4_EXT4PlanExt_handles_empty', () => { const r = Engine.EXT4PlanExt({}); if (r.module !== 'pcc_cardio_ext4') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_5_EXT4RiskExt_handles_empty', () => { const r = Engine.EXT4RiskExt({}); if (r.module !== 'pcc_cardio_ext4') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_6_EXT4DoseExt_handles_empty', () => { const r = Engine.EXT4DoseExt({}); if (r.module !== 'pcc_cardio_ext4') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_7_EXT4FrequencyExt_handles_empty', () => { const r = Engine.EXT4FrequencyExt({}); if (r.module !== 'pcc_cardio_ext4') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_8_EXT4DurationExt_handles_empty', () => { const r = Engine.EXT4DurationExt({}); if (r.module !== 'pcc_cardio_ext4') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_9_EXT4FollowupExt_handles_empty', () => { const r = Engine.EXT4FollowupExt({}); if (r.module !== 'pcc_cardio_ext4') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('fn_10_EXT4OutcomeExt_handles_empty', () => { const r = Engine.EXT4OutcomeExt({}); if (r.module !== 'pcc_cardio_ext4') throw new Error('wrong module'); if (!r.ts) throw new Error('no ts'); });
+test('No hardcoded secrets in any output', () => { for (const fn of F) { const j = JSON.stringify(Engine[fn]({})).toLowerCase(); if (j.includes('password=') || j.includes('api_key=') || j.includes('secret=')) throw new Error('secret in ' + fn); } });
+test('All functions have tenant_id placeholder support', () => { for (const fn of F) { const r = Engine[fn]({tenant_id: 'tenant_001'}); if (!r) throw new Error('no result in ' + fn); } });
+test('All functions include version field', () => { for (const fn of F) { const r = Engine[fn]({}); if (!r.version) throw new Error('no version in ' + fn); } });
+console.log('Total: ' + (passed + failed) + ' | passed: ' + passed + ' | failed: ' + failed);
+process.exit(failed === 0 ? 0 : 1);

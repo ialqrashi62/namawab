@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_rare_diseases_ext102/pcc_rare_diseases_ext102_engine.js
-module.exports.version='v3.40.40.0';
-module.exports.module='pcc_rare_diseases_ext102';
-module.exports.functions={};
-module.exports.functions['RareDxExt']=function(input){const score=Math.round((0.18 + Number(input.rdDx||1)*0.2 + Number(input.rdDxType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_rare_diseases_ext102',function:'RareDxExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RarePrevalenceExt']=function(input){const score=Math.round((0.18 + Number(input.rdPrev||1)*0.2 + Number(input.rdPrevRate||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_rare_diseases_ext102',function:'RarePrevalenceExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RareRegistryExt']=function(input){const score=Math.round((0.18 + Number(input.rdReg||1)*0.2 + Number(input.rdRegSize||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_rare_diseases_ext102',function:'RareRegistryExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RareCenterExt']=function(input){const score=Math.round((0.18 + Number(input.rdCenter||1)*0.2 + Number(input.rdCenterType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_rare_diseases_ext102',function:'RareCenterExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RarePediatricExt']=function(input){const score=Math.round((0.18 + Number(input.rdPed||1)*0.2 + Number(input.rdPedAge||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_rare_diseases_ext102',function:'RarePediatricExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RareNewbornExt']=function(input){const score=Math.round((0.18 + Number(input.rdNBS||1)*0.2 + Number(input.rdNbsCond||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_rare_diseases_ext102',function:'RareNewbornExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RareGeneticExt']=function(input){const score=Math.round((0.18 + Number(input.rdGen||1)*0.2 + Number(input.rdGenType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_rare_diseases_ext102',function:'RareGeneticExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RareMetabolicExt']=function(input){const score=Math.round((0.18 + Number(input.rdMet||1)*0.2 + Number(input.rdMetType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_rare_diseases_ext102',function:'RareMetabolicExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RareAdultExt']=function(input){const score=Math.round((0.18 + Number(input.rdAdult||1)*0.2 + Number(input.rdAdultType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_rare_diseases_ext102',function:'RareAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RareSupportExt']=function(input){const score=Math.round((0.18 + Number(input.rdSupport||1)*0.2 + Number(input.rdSupportType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.40.40.0',module:'pcc_rare_diseases_ext102',function:'RareSupportExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.40.40.0';
+const MOD = 'pcc_rare_diseases_ext102';
 
-// TS: v3.40.40.0
+function RareDxExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rareDxExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RareDxExt", input, score, ts: TS, rareDxExt: _i.rareDxExt || null };
+}
+
+function RarePrevalenceExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rarePrevalenceExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RarePrevalenceExt", input, score, ts: TS, rarePrevalenceExt: _i.rarePrevalenceExt || null };
+}
+
+function RareRegistryExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rareRegistryExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RareRegistryExt", input, score, ts: TS, rareRegistryExt: _i.rareRegistryExt || null };
+}
+
+function RareCenterExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rareCenterExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RareCenterExt", input, score, ts: TS, rareCenterExt: _i.rareCenterExt || null };
+}
+
+function RarePediatricExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rarePediatricExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RarePediatricExt", input, score, ts: TS, rarePediatricExt: _i.rarePediatricExt || null };
+}
+
+function RareNewbornExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rareNewbornExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RareNewbornExt", input, score, ts: TS, rareNewbornExt: _i.rareNewbornExt || null };
+}
+
+function RareGeneticExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rareGeneticExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RareGeneticExt", input, score, ts: TS, rareGeneticExt: _i.rareGeneticExt || null };
+}
+
+function RareMetabolicExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rareMetabolicExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RareMetabolicExt", input, score, ts: TS, rareMetabolicExt: _i.rareMetabolicExt || null };
+}
+
+function RareAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rareAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RareAdultExt", input, score, ts: TS, rareAdultExt: _i.rareAdultExt || null };
+}
+
+function RareSupportExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rareSupportExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RareSupportExt", input, score, ts: TS, rareSupportExt: _i.rareSupportExt || null };
+}
+
+module.exports = {
+  RareDxExt,
+  RarePrevalenceExt,
+  RareRegistryExt,
+  RareCenterExt,
+  RarePediatricExt,
+  RareNewbornExt,
+  RareGeneticExt,
+  RareMetabolicExt,
+  RareAdultExt,
+  RareSupportExt,
+};

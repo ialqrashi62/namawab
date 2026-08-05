@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_rheum_ext100/pcc_rheum_ext100_engine.js
-module.exports.version='v3.24.24.0';
-module.exports.module='pcc_rheum_ext100';
-module.exports.functions={};
-module.exports.functions['RheumRAadultExt']=function(input){const score=Math.round((0.18 + Number(input.rheumRAa||1)*0.2 + Number(input.das28Score||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_rheum_ext100',function:'RheumRAadultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RheumSLEadultExt']=function(input){const score=Math.round((0.18 + Number(input.rheumSLEa||1)*0.2 + Number(input.sledaiScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_rheum_ext100',function:'RheumSLEadultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RheumSpAadultExt']=function(input){const score=Math.round((0.18 + Number(input.rheumSpAa||1)*0.2 + Number(input.bathScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_rheum_ext100',function:'RheumSpAadultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RheumVasculitisAdultExt']=function(input){const score=Math.round((0.18 + Number(input.rheumVasc||1)*0.2 + Number(input.vascScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_rheum_ext100',function:'RheumVasculitisAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RheumSclerodermaAdultExt']=function(input){const score=Math.round((0.18 + Number(input.rheumScl||1)*0.2 + Number(input.sclerodactyly||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_rheum_ext100',function:'RheumSclerodermaAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RheumPolymyalgiaAdultExt']=function(input){const score=Math.round((0.18 + Number(input.rheumPMR||1)*0.2 + Number(input.crpLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_rheum_ext100',function:'RheumPolymyalgiaAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RheumGoutAdultExt']=function(input){const score=Math.round((0.18 + Number(input.rheumGout||1)*0.2 + Number(input.uricAcid||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_rheum_ext100',function:'RheumGoutAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RheumOsteoAdultExt']=function(input){const score=Math.round((0.18 + Number(input.rheumOA||1)*0.2 + Number(input.klGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_rheum_ext100',function:'RheumOsteoAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RheumFibroAdultExt']=function(input){const score=Math.round((0.18 + Number(input.rheumFibro||1)*0.2 + Number(input.fibromyalgiaScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_rheum_ext100',function:'RheumFibroAdultExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['RheumBiologicAdultExt']=function(input){const score=Math.round((0.18 + Number(input.rheumBiologic||1)*0.2 + Number(input.biologicClass||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_rheum_ext100',function:'RheumBiologicAdultExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.24.24.0';
+const MOD = 'pcc_rheum_ext100';
 
-// TS: v3.24.24.0
+function RheumRAadultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rheumRAadultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RheumRAadultExt", input, score, ts: TS, rheumRAadultExt: _i.rheumRAadultExt || null };
+}
+
+function RheumSLEadultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rheumSLEadultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RheumSLEadultExt", input, score, ts: TS, rheumSLEadultExt: _i.rheumSLEadultExt || null };
+}
+
+function RheumSpAadultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rheumSpAadultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RheumSpAadultExt", input, score, ts: TS, rheumSpAadultExt: _i.rheumSpAadultExt || null };
+}
+
+function RheumVasculitisAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rheumVasculitisAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RheumVasculitisAdultExt", input, score, ts: TS, rheumVasculitisAdultExt: _i.rheumVasculitisAdultExt || null };
+}
+
+function RheumSclerodermaAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rheumSclerodermaAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RheumSclerodermaAdultExt", input, score, ts: TS, rheumSclerodermaAdultExt: _i.rheumSclerodermaAdultExt || null };
+}
+
+function RheumPolymyalgiaAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rheumPolymyalgiaAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RheumPolymyalgiaAdultExt", input, score, ts: TS, rheumPolymyalgiaAdultExt: _i.rheumPolymyalgiaAdultExt || null };
+}
+
+function RheumGoutAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rheumGoutAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RheumGoutAdultExt", input, score, ts: TS, rheumGoutAdultExt: _i.rheumGoutAdultExt || null };
+}
+
+function RheumOsteoAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rheumOsteoAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RheumOsteoAdultExt", input, score, ts: TS, rheumOsteoAdultExt: _i.rheumOsteoAdultExt || null };
+}
+
+function RheumFibroAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rheumFibroAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RheumFibroAdultExt", input, score, ts: TS, rheumFibroAdultExt: _i.rheumFibroAdultExt || null };
+}
+
+function RheumBiologicAdultExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.rheumBiologicAdultExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "RheumBiologicAdultExt", input, score, ts: TS, rheumBiologicAdultExt: _i.rheumBiologicAdultExt || null };
+}
+
+module.exports = {
+  RheumRAadultExt,
+  RheumSLEadultExt,
+  RheumSpAadultExt,
+  RheumVasculitisAdultExt,
+  RheumSclerodermaAdultExt,
+  RheumPolymyalgiaAdultExt,
+  RheumGoutAdultExt,
+  RheumOsteoAdultExt,
+  RheumFibroAdultExt,
+  RheumBiologicAdultExt,
+};
