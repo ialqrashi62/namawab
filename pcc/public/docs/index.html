@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PCC Sandbox API Docs · v3.316.11</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css">
+  <style>
+    body { margin: 0; }
+    .topbar { background: #1f2937; color: #fff; padding: 12px 20px; font-family: system-ui; }
+    .topbar a { color: #93c5fd; text-decoration: none; margin-left: 16px; }
+    .topbar a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <strong>PCC Sandbox API</strong> · v3.316.11 · 1322 modules
+    <a href="/health">/health</a>
+    <a href="/api/v1/pcc-catalog/modules">/catalog/modules</a>
+    <a href="/api/v1/pcc-catalog/stats">/catalog/stats</a>
+    <a href="/api/v1/pcc-diagnostics/version">/version</a>
+  </div>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js" crossorigin></script>
+  <script>
+    window.onload = () => {
+      window.ui = SwaggerUIBundle({
+        url: '/openapi-pcc.yaml',
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [SwaggerUIBundle.presets.apis],
+        layout: 'BaseLayout'
+      });
+    };
+  </script>
+</body>
+</html>

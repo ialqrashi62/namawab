@@ -1,0 +1,42 @@
+# PCC Sandbox docker-compose
+# Brings up the PCC server + adminer for SQL inspection (optional)
+version: '3.8'
+
+services:
+  pcc:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: pcc-sandbox
+    ports:
+      - "3201:3201"
+    environment:
+      - PCC_PORT=3201
+      - NODE_ENV=production
+    volumes:
+      - ../scratch:/app/scratch
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3201/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  # Optional: PG database for SQL migrations (when ready)
+  pg:
+    image: postgres:16-alpine
+    container_name: pcc-postgres
+    profiles: ["with-db"]
+    environment:
+      POSTGRES_USER: nama_medical
+      POSTGRES_PASSWORD: __CHANGE_ME__
+      POSTGRES_DB: nama_medical
+    ports:
+      - "5432:5432"
+    volumes:
+      - pcc_pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pcc_pg_data:

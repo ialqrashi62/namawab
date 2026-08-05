@@ -1,0 +1,89 @@
+<!-- filepath: pcc/public/graphql/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PCC GraphQL &middot; v3.316.20</title>
+  <style>
+    body { margin: 0; min-height: 100vh; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: #f8fafc; color: #0f172a; }
+    .topbar { background: #1f2937; color: #fff; padding: 14px 24px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    .topbar strong { font-size: 18px; }
+    .topbar a { color: #93c5fd; text-decoration: none; font-size: 14px; }
+    .topbar a:hover { text-decoration: underline; }
+    .container { max-width: 960px; margin: 0 auto; padding: 24px; }
+    h2 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    h3 { color: #1e293b; margin-top: 28px; }
+    pre { background: #f1f5f9; padding: 14px; border-radius: 8px; overflow-x: auto; border: 1px solid #e2e8f0; }
+    pre code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; color: #1e293b; }
+    code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; }
+    p { line-height: 1.6; }
+    .badge { background: #10b981; color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 12px; margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <strong>PCC GraphQL &middot; v3.316.20</strong>
+    <span class="badge">EXECUTION LIVE</span>
+    <a href="/graphql/schema.graphql">schema.graphql</a>
+    <a href="/graphql/playground">Playground</a>
+    <a href="/graphql/query?query=%7B%20stats%20%7D">Test /graphql/query</a>
+    <a href="/docs">Swagger UI</a>
+    <a href="/admin">Admin Dashboard</a>
+    <a href="/">Home</a>
+  </div>
+  <div class="container">
+    <h2>GraphQL executor live &mdash; v3.316.20</h2>
+    <p>POST queries as JSON to <code>/graphql/query</code>:</p>
+    <pre><code>curl -sS -X POST http://localhost:3100/graphql/query \
+  -H "Content-Type: application/json" \
+  -d '{ "query": "{ stats }" }'</code></pre>
+
+    <h3>Try it &mdash; copy-paste these queries</h3>
+
+    <p>1. Catalog stats (with sub-selection):</p>
+    <pre><code>{
+  stats {
+    totalModules
+    totalFunctions
+    totalCategories
+  }
+}</code></pre>
+
+    <p>2. List 5 module slugs:</p>
+    <pre><code>{
+  modules(limit: 5)
+}</code></pre>
+
+    <p>3. Search "cardio" (returns slug string array):</p>
+    <pre><code>{
+  search(q: "cardio", limit: 3)
+}</code></pre>
+
+    <p>4. Coverage breakdown (raw upstream JSON):</p>
+    <pre><code>{
+  coverage
+}</code></pre>
+
+    <p>5. Audit log (last 5 entries):</p>
+    <pre><code>{
+  audit(limit: 5)
+}</code></pre>
+
+    <h3>Browser test (GET)</h3>
+    <p>For quick browser testing you can also call
+    <code>GET /graphql/query?query=...</code> (URL-encode the query body).
+    Example:
+    <a href="/graphql/query?query=%7B%20stats%20%7D"><code>/graphql/query?query={ stats }</code></a></p>
+
+    <h3>Schema</h3>
+    <p>Canonical SDL still served at
+    <a href="/graphql/schema.graphql"><code>/graphql/schema.graphql</code></a>.
+    The executor implements a minimal subset of those types: <code>modules</code>,
+    <code>module(slug)</code>, <code>search(q, limit)</code>, <code>lookup(fn)</code>,
+    <code>stats</code>, <code>coverage</code>, <code>audit(limit, tenant_id)</code>,
+    <code>call(module, fn, input, decisionId, tenant_id)</code>, and
+    <code>record(module, fn, input, decisionId, tenant_id)</code>.</p>
+  </div>
+</body>
+</html>
+

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- filepath: c:\Users\ice\Desktop\NMEDCALVSCODE\pcc\public\status\index.xml
+     PCC Sandbox Status — RSS 2.0 feed (v3.316.25)
+     Consumed by Pingdom, UptimeRobot, StatusCake, and similar monitors.
+     Companion to /status/status.json and /status/index.html.
+-->
+<rss version="2.0">
+  <channel>
+    <title>PCC Sandbox Status</title>
+    <link>/status/</link>
+    <description>Operational status of the PCC Sandbox service</description>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 29 Jul 2026 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>Operational</title>
+      <description>All systems normal. PCC Sandbox v3.316.22 is serving traffic.</description>
+      <pubDate>Wed, 29 Jul 2026 12:00:00 GMT</pubDate>
+      <guid isPermaLink="false">status-2026-07-29-12-00-00</guid>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,12 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+*.md
+.agents
+scratch/*.log
+scratch/*.bak
+ops
+public
+sdk
+namaweb-ovr-audit-independent

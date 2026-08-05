@@ -1,0 +1,24 @@
+{
+  "service": "pcc-sandbox",
+  "version": "3.316.22",
+  "status": "operational",
+  "last_checked_at": "2026-07-29T12:00:00Z",
+  "uptime_seconds": 86400,
+  "checks": {
+    "health": { "status": "ok", "http_code": 200 },
+    "livez":  { "status": "ok", "http_code": 200 },
+    "readyz": { "status": "ok", "http_code": 200 },
+    "metrics":{ "status": "ok", "http_code": 200 },
+    "catalog":{ "status": "ok", "modules_total": 1322, "functions_total": 13282 }
+  },
+  "endpoints": {
+    "swagger_ui": "/docs",
+    "graphql_explorer": "/graphql/",
+    "graphql_playground": "/graphql/playground",
+    "metrics": "/_metrics",
+    "catalog_browser": "/admin"
+  },
+  "incidents": [],
+  "next_scheduled_maintenance": null,
+  "support": { "github": "jumana-medical/pcc-sandbox", "docs": "/docs" }
+}

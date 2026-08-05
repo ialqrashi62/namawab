@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<!-- filepath: c:\Users\ice\Desktop\NMEDCALVSCODE\pcc\public\admin\index.html
+     PCC Sandbox Admin Dashboard — v3.316.17
+     Single-file, no build step. Tailwind via CDN, vanilla JS.
+     Reads /api/v1/pcc-catalog/{stats,coverage,duplicates,orphans,random,search}.
+     Self-contained — no other dependencies.
+-->
+<html lang="en" class="bg-slate-950">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PCC Admin · v3.316.17</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Tailwind config — palette tweaks (slate/emerald/rose).
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+          colors: {
+            slate: {
+              925: '#0b1220',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    /* Tiny custom helpers that pair nicely with Tailwind */
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.10) 37%, rgba(255,255,255,0.04) 63%);
+      background-size: 400% 100%;
+      animation: skel 1.4s ease infinite;
+      border-radius: 0.5rem;
+    }
+    @keyframes skel { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+    .bar-track { background: rgba(255,255,255,0.06); border-radius: 0.5rem; height: 0.6rem; overflow: hidden; }
+    .bar-fill { background: linear-gradient(90deg, #34d399, #10b981); height: 100%; border-radius: 0.5rem; transition: width 600ms ease; }
+    .bar-fill-warn { background: linear-gradient(90deg, #fb7185, #f43f5e); }
+    table tbody tr:hover { background: rgba(255,255,255,0.03); }
+    .badge {
+      display: inline-flex; align-items: center; gap: 0.25rem;
+      padding: 0.15rem 0.5rem; border-radius: 9999px;
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.02em;
+    }
+    .badge-green { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.35); }
+    .badge-rose  { background: rgba(244,63,94,0.15);  color: #fda4af; border: 1px solid rgba(244,63,94,0.35); }
+    .badge-slate { background: rgba(148,163,184,0.15); color: #cbd5e1; border: 1px solid rgba(148,163,184,0.35); }
+  </style>
+</head>
+<body class="min-h-screen text-slate-200 font-sans antialiased">
+  <!-- =================== HEADER =================== -->
+  <header class="sticky top-0 z-30 backdrop-blur bg-slate-950/80 border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-md bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-slate-950 font-bold text-sm">P</div>
+        <h1 class="text-base sm:text-lg font-semibold tracking-tight">
+          PCC Admin
+          <span class="text-emerald-400 font-mono text-xs sm:text-sm">· v3.316.17</span>
+        </h1>
+        <span id="module-counter" class="hidden sm:inline text-slate-400 text-xs font-mono ml-2">1322 modules</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="refresh-btn" type="button"
+                class="px-3 py-1.5 rounded-md border border-slate-700 hover:border-emerald-500/60 hover:text-emerald-300 text-slate-300 text-sm font-medium transition flex items-center gap-1.5"
+                title="Re-fetch all panels">
+          <span aria-hidden="true">↻</span><span class="hidden sm:inline">Refresh</span>
+        </button>
+        <button id="dark-toggle" type="button"
+                class="px-3 py-1.5 rounded-md border border-slate-700 hover:border-amber-400/60 hover:text-amber-300 text-slate-300 text-sm font-medium transition"
+                title="Toggle dark mode">
+          <span id="theme-icon" aria-hidden="true">🌙</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+    <!-- =================== STAT CARDS =================== -->
+    <section aria-label="Catalog statistics">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- Modules -->
+        <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs uppercase tracking-wider text-slate-400">Total Modules</span>
+            <span class="text-emerald-400 text-lg" aria-hidden="true">📦</span>
+          </div>
+          <div id="stat-modules" class="mt-2 text-3xl font-bold font-mono text-white">
+            <div class="skeleton h-8 w-24"></div>
+          </div>
+          <div class="text-xs text-slate-500 mt-1">across all categories</div>
+        </div>
+        <!-- Categories -->
+        <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs uppercase tracking-wider text-slate-400">Categories</span>
+            <span class="text-emerald-400 text-lg" aria-hidden="true">🗂️</span>
+          </div>
+          <div id="stat-categories" class="mt-2 text-3xl font-bold font-mono text-white">
+            <div class="skeleton h-8 w-20"></div>
+          </div>
+          <div class="text-xs text-slate-500 mt-1">distinct specialties</div>
+        </div>
+        <!-- Functions -->
+        <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs uppercase tracking-wider text-slate-400">Total Functions</span>
+            <span class="text-emerald-400 text-lg" aria-hidden="true">⚡</span>
+          </div>
+          <div id="stat-functions" class="mt-2 text-3xl font-bold font-mono text-white">
+            <div class="skeleton h-8 w-28"></div>
+          </div>
+          <div class="text-xs text-slate-500 mt-1">callable endpoints</div>
+        </div>
+        <!-- Duplicates -->
+        <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs uppercase tracking-wider text-slate-400">Duplicates</span>
+            <span class="text-rose-400 text-lg" aria-hidden="true">⚠</span>
+          </div>
+          <div id="stat-duplicates" class="mt-2 text-3xl font-bold font-mono text-white">
+            <div class="skeleton h-8 w-20"></div>
+          </div>
+          <div class="text-xs text-slate-500 mt-1">cross-module collisions</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================== SEARCH + RANDOM =================== -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-4" aria-label="Search and random picker">
+      <!-- Search -->
+      <div class="lg:col-span-2 rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-emerald-400" aria-hidden="true">🔍</span>
+          <h2 class="text-sm font-semibold tracking-wide text-slate-300">Module Search</h2>
+        </div>
+        <form id="search-form" class="flex gap-2 mb-3" autocomplete="off">
+          <input id="search-input" type="text" placeholder="Search modules (e.g. cardio, sepsis, trauma)..."
+                 class="flex-1 rounded-md bg-slate-950 border border-slate-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40 outline-none px-3 py-2 text-sm placeholder-slate-500" />
+          <button type="submit"
+                  class="px-4 py-2 rounded-md bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-sm transition">
+            Search
+          </button>
+        </form>
+        <div id="search-results" class="overflow-x-auto">
+          <div class="text-sm text-slate-500 italic">Type a query above and press Search to see results from <code class="font-mono text-slate-400">/api/v1/pcc-catalog/search</code>.</div>
+        </div>
+      </div>
+
+      <!-- Random Module -->
+      <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-emerald-400" aria-hidden="true">🎲</span>
+          <h2 class="text-sm font-semibold tracking-wide text-slate-300">Random Module</h2>
+        </div>
+        <button id="random-btn" type="button"
+                class="w-full px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-medium text-sm transition">
+          🎲 Pick Random Module
+        </button>
+        <div id="random-card" class="mt-3 text-sm text-slate-400">
+          Click the button to fetch a random module from <code class="font-mono text-slate-500">/random</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- =================== COVERAGE CHART =================== -->
+    <section class="rounded-xl border border-slate-800 bg-slate-900/60 p-4" aria-label="Category coverage">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-emerald-400" aria-hidden="true">📊</span>
+          <h2 class="text-sm font-semibold tracking-wide text-slate-300">Top Categories by Module Count</h2>
+        </div>
+        <span class="text-xs text-slate-500 font-mono">/coverage · top 10</span>
+      </div>
+      <div id="coverage-chart" class="space-y-2">
+        <!-- Skeleton bars -->
+        <div class="space-y-2">
+          <div class="skeleton h-6 w-full"></div>
+          <div class="skeleton h-6 w-11/12"></div>
+          <div class="skeleton h-6 w-10/12"></div>
+          <div class="skeleton h-6 w-9/12"></div>
+          <div class="skeleton h-6 w-8/12"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================== DUPLICATES TABLE =================== -->
+    <section class="rounded-xl border border-slate-800 bg-slate-900/60 p-4" aria-label="Cross-module duplicates">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-rose-400" aria-hidden="true">⚠</span>
+          <h2 class="text-sm font-semibold tracking-wide text-slate-300">Top Cross-Module Function Collisions</h2>
+        </div>
+        <span class="text-xs text-slate-500 font-mono">/duplicates · top 20</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="text-left text-xs uppercase tracking-wider text-slate-400 border-b border-slate-800">
+              <th class="py-2 pr-4 font-semibold">Function</th>
+              <th class="py-2 pr-4 font-semibold">Modules</th>
+              <th class="py-2 pr-4 font-semibold">Slug list</th>
+            </tr>
+          </thead>
+          <tbody id="duplicates-body" class="divide-y divide-slate-800/60">
+            <tr><td colspan="3" class="py-6 text-center text-slate-500 italic">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- =================== ORPHANS / DATA QUALITY =================== -->
+    <section class="rounded-xl border border-slate-800 bg-slate-900/60 p-4" aria-label="Data quality">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-emerald-400" aria-hidden="true">🛡</span>
+          <h2 class="text-sm font-semibold tracking-wide text-slate-300">Data Quality</h2>
+        </div>
+        <span class="text-xs text-slate-500 font-mono">/orphans</span>
+      </div>
+      <div id="orphans-panel" class="flex items-start gap-3 p-3 rounded-lg border border-slate-800 bg-slate-950/50">
+        <span id="orphans-badge" class="badge badge-slate mt-0.5">CHECKING…</span>
+        <div id="orphans-detail" class="text-sm text-slate-300">
+          Loading data-quality snapshot…
+        </div>
+      </div>
+    </section>
+
+    <!-- =================== FOOTER =================== -->
+    <footer class="pt-4 pb-8 text-center text-xs text-slate-600">
+      PCC Admin · sandbox · served from <code class="font-mono">/api/v1/pcc-catalog/*</code> · v3.316.17
+    </footer>
+  </main>
+
+  <script>
+    // ============== Helpers ==============
+    const $ = (sel) => document.querySelector(sel);
+    const API = '/api/v1/pcc-catalog';
+    const fmt = new Intl.NumberFormat('en-US');
+
+    function escapeHTML(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[c]);
+    }
+
+    async function getJSON(url) {
+      const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      if (!r.ok) throw new Error(`HTTP ${r.status} on ${url}`);
+      return r.json();
+    }
+
+    function setText(id, value) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = value;
+    }
+
+    // ============== Stats ==============
+    async function loadStats() {
+      try {
+        const d = await getJSON(`${API}/stats`);
+        setText('stat-modules',     fmt.format(d.modules || 0));
+        setText('stat-categories',  fmt.format(d.categories || 0));
+        setText('stat-functions',   fmt.format(d.total_functions || 0));
+        setText('stat-duplicates',  fmt.format(d.duplicate_function_names || 0));
+        const counter = document.getElementById('module-counter');
+        if (counter) counter.textContent = `${fmt.format(d.modules || 0)} modules`;
+        // also drive title in case it ever lands on the page
+        document.title = `PCC Admin · ${fmt.format(d.modules || 0)} modules`;
+      } catch (e) {
+        console.error('loadStats', e);
+        ['stat-modules','stat-categories','stat-functions','stat-duplicates'].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = '<span class="text-rose-400 text-sm">err</span>';
+        });
+      }
+    }
+
+    // ============== Coverage chart ==============
+    async function loadCoverage() {
+      const root = document.getElementById('coverage-chart');
+      try {
+        const d = await getJSON(`${API}/coverage`);
+        const breakdown = Array.isArray(d.breakdown) ? d.breakdown : [];
+        // Top 10 by module count
+        breakdown.sort((a, b) => (b.modules || 0) - (a.modules || 0));
+        const top = breakdown.slice(0, 10);
+        if (top.length === 0) {
+          root.innerHTML = '<div class="text-sm text-slate-500 italic">No coverage data.</div>';
+          return;
+        }
+        const max = Math.max(...top.map((c) => c.modules || 0));
+        root.innerHTML = top.map((c) => {
+          const pct = Math.max(2, Math.round(((c.modules || 0) / max) * 100));
+          return `
+            <div class="flex items-center gap-3">
+              <div class="w-32 sm:w-40 text-xs font-medium text-slate-300 truncate" title="${escapeHTML(c.category)}">${escapeHTML(c.category)}</div>
+              <div class="flex-1 bar-track"><div class="bar-fill" style="width: ${pct}%"></div></div>
+              <div class="w-20 text-right text-xs font-mono text-slate-300">${fmt.format(c.modules || 0)} <span class="text-slate-500">mod</span></div>
+              <div class="w-16 text-right text-xs font-mono text-slate-500">${fmt.format(c.total_functions || 0)} fn</div>
+            </div>`;
+        }).join('');
+      } catch (e) {
+        console.error('loadCoverage', e);
+        root.innerHTML = '<div class="text-sm text-rose-400 italic">Failed to load coverage.</div>';
+      }
+    }
+
+    // ============== Duplicates ==============
+    async function loadDuplicates() {
+      const body = document.getElementById('duplicates-body');
+      try {
+        const d = await getJSON(`${API}/duplicates`);
+        const list = Array.isArray(d.top_collisions) ? d.top_collisions : [];
+        if (list.length === 0) {
+          body.innerHTML = '<tr><td colspan="3" class="py-6 text-center text-emerald-400 italic">No collisions found.</td></tr>';
+          return;
+        }
+        body.innerHTML = list.slice(0, 20).map((row) => {
+          const fn = row.function || row.name || '';
+          const mods = Array.isArray(row.modules) ? row.modules : [];
+          const count = mods.length;
+          const badge = count >= 10 ? 'badge-rose' : count >= 5 ? 'badge-slate' : 'badge-green';
+          const preview = mods.slice(0, 6).map((m) => escapeHTML(m)).join(', ');
+          const more = mods.length > 6 ? ` <span class="text-slate-500">+${mods.length - 6} more</span>` : '';
+          return `
+            <tr>
+              <td class="py-2 pr-4 font-mono text-emerald-300">${escapeHTML(fn)}</td>
+              <td class="py-2 pr-4"><span class="badge ${badge}">×${count}</span></td>
+              <td class="py-2 pr-4 text-xs text-slate-400 font-mono">${preview}${more}</td>
+            </tr>`;
+        }).join('');
+      } catch (e) {
+        console.error('loadDuplicates', e);
+        body.innerHTML = '<tr><td colspan="3" class="py-6 text-center text-rose-400">Failed to load duplicates.</td></tr>';
+      }
+    }
+
+    // ============== Orphans ==============
+    async function loadOrphans() {
+      const badge = document.getElementById('orphans-badge');
+      const detail = document.getElementById('orphans-detail');
+      try {
+        const d = await getJSON(`${API}/orphans`);
+        const orphans = d.orphans_count || 0;
+        const small   = d.small_modules_count || 0;
+        const total   = d.total_modules || (d.modules_count || null);
+        const ok = orphans === 0 && small === 0;
+        badge.className = ok ? 'badge badge-green mt-0.5' : 'badge badge-rose mt-0.5';
+        badge.textContent = ok ? '✓ HEALTHY' : '⚠ REVIEW';
+        detail.innerHTML = `
+          <div>${escapeHTML(d.message || (ok ? 'All modules meet the size threshold.' : 'Some modules need review.'))}</div>
+          <ul class="mt-2 text-xs text-slate-400 space-y-1 font-mono">
+            <li>orphans (0 functions): <span class="text-slate-200">${fmt.format(orphans)}</span></li>
+            <li>small modules (&lt;5 functions): <span class="text-slate-200">${fmt.format(small)}</span></li>
+            ${total ? `<li>total modules checked: <span class="text-slate-200">${fmt.format(total)}</span></li>` : ''}
+          </ul>`;
+      } catch (e) {
+        console.error('loadOrphans', e);
+        badge.className = 'badge badge-rose mt-0.5';
+        badge.textContent = '⚠ ERROR';
+        detail.textContent = 'Failed to fetch /orphans.';
+      }
+    }
+
+    // ============== Search ==============
+    async function runSearch(q) {
+      const target = document.getElementById('search-results');
+      if (!q || q.trim() === '') {
+        target.innerHTML = '<div class="text-sm text-slate-500 italic">Enter a non-empty query.</div>';
+        return;
+      }
+      target.innerHTML = '<div class="text-sm text-slate-500 italic">Searching…</div>';
+      try {
+        const d = await getJSON(`${API}/search?q=${encodeURIComponent(q.trim())}`);
+        const list = Array.isArray(d.results) ? d.results : (Array.isArray(d.modules) ? d.modules : []);
+        if (list.length === 0) {
+          target.innerHTML = `<div class="text-sm text-slate-400 italic">No modules matched "<span class="font-mono text-slate-300">${escapeHTML(q)}</span>".</div>`;
+          return;
+        }
+        target.innerHTML = `
+          <table class="min-w-full text-sm">
+            <thead>
+              <tr class="text-left text-xs uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                <th class="py-2 pr-4 font-semibold">Module</th>
+                <th class="py-2 pr-4 font-semibold">Slug</th>
+                <th class="py-2 pr-4 font-semibold">Functions</th>
+                <th class="py-2 pr-4 font-semibold">API base</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60">
+              ${list.slice(0, 50).map((m) => `
+                <tr>
+                  <td class="py-2 pr-4 text-slate-200">${escapeHTML(m.module || m.name || m.slug || '')}</td>
+                  <td class="py-2 pr-4 font-mono text-emerald-300">${escapeHTML(m.url_slug || m.slug || '')}</td>
+                  <td class="py-2 pr-4 font-mono text-slate-300">${fmt.format(m.function_count || (m.functions ? m.functions.length : 0))}</td>
+                  <td class="py-2 pr-4 font-mono text-slate-400 text-xs">${escapeHTML(m.api_base || '')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          ${list.length > 50 ? `<div class="mt-2 text-xs text-slate-500 italic">Showing first 50 of ${fmt.format(list.length)} matches.</div>` : ''}
+        `;
+      } catch (e) {
+        console.error('runSearch', e);
+        target.innerHTML = '<div class="text-sm text-rose-400">Search failed.</div>';
+      }
+    }
+
+    // ============== Random ==============
+    async function pickRandom() {
+      const target = document.getElementById('random-card');
+      target.innerHTML = '<div class="text-sm text-slate-500 italic">Loading…</div>';
+      try {
+        const d = await getJSON(`${API}/random`);
+        const m = d.module || {};
+        const fns = Array.isArray(m.functions) ? m.functions : [];
+        target.innerHTML = `
+          <div class="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
+            <div class="text-xs text-emerald-400 uppercase tracking-wider font-semibold">${escapeHTML(m.module || 'module')}</div>
+            <div class="mt-1 text-base font-semibold text-white font-mono">${escapeHTML(m.url_slug || '')}</div>
+            <div class="mt-2 flex items-center gap-2 text-xs text-slate-400">
+              <span class="badge badge-green">v${escapeHTML(m.version || '?')}</span>
+              <span class="badge badge-slate">${fmt.format(m.function_count || fns.length)} fns</span>
+            </div>
+            ${fns.length ? `<div class="mt-2 text-xs text-slate-300 font-mono break-words">${fns.slice(0, 8).map(escapeHTML).join(', ')}${fns.length > 8 ? '…' : ''}</div>` : ''}
+            ${m.api_base ? `<div class="mt-2 text-xs text-slate-500 font-mono break-all">base: ${escapeHTML(m.api_base)}</div>` : ''}
+          </div>
+        `;
+      } catch (e) {
+        console.error('pickRandom', e);
+        target.innerHTML = '<div class="text-sm text-rose-400">Random fetch failed.</div>';
+      }
+    }
+
+    // ============== Theme toggle (light/dark) ==============
+    function toggleTheme() {
+      const root = document.documentElement;
+      const dark = !root.classList.contains('dark');
+      root.classList.toggle('dark');
+      document.body.classList.toggle('bg-slate-50', !dark);
+      document.body.classList.toggle('text-slate-900', !dark);
+      document.body.classList.toggle('bg-slate-950', dark);
+      document.body.classList.toggle('text-slate-200', dark);
+      const icon = document.getElementById('theme-icon');
+      if (icon) icon.textContent = dark ? '🌙' : '☀️';
+      try { localStorage.setItem('pcc-admin-theme', dark ? 'dark' : 'light'); } catch (_) {}
+    }
+    (function restoreTheme() {
+      try {
+        const t = localStorage.getItem('pcc-admin-theme');
+        if (t === 'light') toggleTheme();
+      } catch (_) {}
+    })();
+
+    // ============== Wiring ==============
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('refresh-btn').addEventListener('click', () => {
+        loadStats();
+        loadCoverage();
+        loadDuplicates();
+        loadOrphans();
+      });
+      document.getElementById('dark-toggle').addEventListener('click', toggleTheme);
+      document.getElementById('random-btn').addEventListener('click', pickRandom);
+
+      const form = document.getElementById('search-form');
+      const input = document.getElementById('search-input');
+      form.addEventListener('submit', (e) => { e.preventDefault(); runSearch(input.value); });
+      // also support pressing Enter from input itself
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); runSearch(input.value); }
+      });
+
+      // Initial load
+      loadStats();
+      loadCoverage();
+      loadDuplicates();
+      loadOrphans();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+# filepath: pcc/public/graphql/schema.graphql
+# PCC Sandbox GraphQL Schema v3.316.19
+# Mirror of REST API. All queries resolve against the in-memory catalog.
+# Server endpoint (when implemented): POST /graphql with Content-Type: application/json
+# Sandbox current state: SDL only; resolver layer is a future phase.
+
+scalar DateTime
+scalar JSON
+
+"""
+A single PCC module — corresponds to /api/v1/pcc-catalog/module/:slug
+"""
+type Module {
+  module: String!
+  urlSlug: String!
+  version: String!
+  functionCount: Int!
+  functions: [String!]!
+  apiBase: String!
+  endpoints: ModuleEndpoints!
+}
+
+type ModuleEndpoints {
+  list: String!
+  call: String!
+  record: String!
+}
+
+"""
+Search result — corresponds to /api/v1/pcc-catalog/search?q=...
+"""
+type SearchResult {
+  slug: String!
+  module: String!
+  version: String!
+  functionCount: Int!
+  score: Float!
+}
+
+"""
+Function-to-modules lookup — corresponds to /api/v1/pcc-catalog/function/:name
+"""
+type FunctionLookup {
+  function: String!
+  count: Int!
+  modules: [Module!]!
+}
+
+"""
+Catalog aggregate — corresponds to /api/v1/pcc-catalog/stats
+"""
+type CatalogStats {
+  version: String!
+  modules: Int!
+  categories: Int!
+  totalFunctions: Int!
+  avgFunctionsPerModule: Float!
+  duplicateFunctionNames: Int!
+  topCategories: [CategorySummary!]!
+}
+
+type CategorySummary {
+  name: String!
+  count: Int!
+}
+
+type CallResult {
+  version: String!
+  module: String!
+  function: String!
+  input: JSON
+  output: JSON!
+  tenantId: String
+  decisionId: String
+  ts: DateTime!
+}
+
+type RecordResult {
+  version: String!
+  module: String!
+  function: String!
+  tenantId: String
+  decisionId: String
+  createdBy: String
+  recorded: Boolean!
+  ts: DateTime!
+}
+
+input CallInput {
+  module: String!
+  function: String!
+  input: JSON!
+  tenantId: String
+  decisionId: String
+}
+
+input RecordInput {
+  module: String!
+  function: String!
+  input: JSON!
+  tenantId: String!
+  decisionId: String
+  createdBy: String
+}
+
+type Query {
+  """
+  List all modules (paginated). Default 100, max 500.
+  """
+  modules(limit: Int = 100, offset: Int = 0): [Module!]!
+
+  """
+  Get one module by slug.
+  """
+  module(slug: String!): Module
+
+  """
+  Full-text search.
+  """
+  search(query: String!, limit: Int = 20): [SearchResult!]!
+
+  """
+  Find all modules that expose a given function name.
+  """
+  functionLookup(name: String!): FunctionLookup!
+
+  """
+  Catalog aggregate stats.
+  """
+  stats: CatalogStats!
+
+  """
+  Pick a random module (deterministic with seed).
+  """
+  random(seed: Int): Module!
+}
+
+type Mutation {
+  """
+  Invoke a module function (does not persist).
+  """
+  call(input: CallInput!): CallResult!
+
+  """
+  Invoke + persist with tenant/decision tracking.
+  """
+  record(input: RecordInput!): RecordResult!
+}

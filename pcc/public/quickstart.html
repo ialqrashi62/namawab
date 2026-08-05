@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PCC Sandbox — Quickstart</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+  <style>
+    :root {
+      --primary: #1f5582;
+      --bg: #f7f9fc;
+      --card-bg: #ffffff;
+      --border: #e1e8ed;
+      --text: #2c3e50;
+      --muted: #6c757d;
+      --success: #28a745;
+      --info: #17a2b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .hero {
+      background: linear-gradient(135deg, #1f5582 0%, #2980b9 100%);
+      color: white;
+      padding: 48px 24px;
+      text-align: center;
+    }
+    .hero h1 { margin: 0 0 8px; font-size: 36px; font-weight: 700; }
+    .hero p { margin: 0 0 16px; opacity: 0.95; font-size: 18px; }
+    .hero .stats {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+    .hero .stat {
+      background: rgba(255,255,255,0.15);
+      padding: 12px 24px;
+      border-radius: 8px;
+      backdrop-filter: blur(10px);
+    }
+    .hero .stat strong { display: block; font-size: 24px; }
+    .hero .stat span { font-size: 13px; opacity: 0.9; }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+    h2 {
+      color: var(--primary);
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 8px;
+      margin-top: 32px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .card h3 {
+      margin: 0 0 8px;
+      color: var(--primary);
+      font-size: 18px;
+    }
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .card a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .card a:hover { text-decoration: underline; }
+    .endpoint {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin: 8px 0;
+      font-family: "SF Mono", Monaco, Consolas, monospace;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .method {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    .method.get { background: #d4edda; color: #155724; }
+    .method.post { background: #cce5ff; color: #004085; }
+    .path { color: var(--text); flex: 1; }
+    .desc { color: var(--muted); font-size: 12px; }
+    pre {
+      background: #2c3e50;
+      color: #ecf0f1;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    pre .comment { color: #95a5a6; }
+    pre .keyword { color: #3498db; }
+    pre .string { color: #e74c3c; }
+    .footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--muted);
+      font-size: 14px;
+      border-top: 1px solid var(--border);
+      margin-top: 48px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: var(--success);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      margin-left: 8px;
+    }
+    .live-status {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      background: rgba(40, 167, 69, 0.95);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+    }
+    .live-status.error { background: rgba(220, 53, 69, 0.95); }
+  </style>
+</head>
+<body>
+  <div id="liveStatus" class="live-status">● LIVE</div>
+
+  <div class="hero">
+    <h1>🏥 PCC Sandbox</h1>
+    <p>Programmable Clinical Components — 1322 modules, 13,282 functions</p>
+    <p><strong>NamaMedical Enterprise Hospital Platform</strong> · v3.316.3</p>
+    <div class="stats">
+      <div class="stat"><strong>1322</strong><span>Modules</span></div>
+      <div class="stat"><strong>255</strong><span>Categories</span></div>
+      <div class="stat"><strong>13,282</strong><span>Functions</span></div>
+      <div class="stat"><strong>1724</strong><span>req/s burst</span></div>
+      <div class="stat"><strong>1ms</strong><span>p95 latency</span></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>🚀 Quick Start</h2>
+
+    <h3>1. Health Check</h3>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/health</span>
+      <span class="desc">Server liveness</span>
+    </div>
+
+    <h3>2. Browse Catalog</h3>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/api/v1/pcc-catalog/modules</span>
+      <span class="desc">List all 1322 modules</span>
+    </div>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/api/v1/pcc-catalog/categories</span>
+      <span class="desc">255 categories</span>
+    </div>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/api/v1/pcc-catalog/module/&lt;slug&gt;</span>
+      <span class="desc">Module detail with functions</span>
+    </div>
+
+    <h3>3. Search</h3>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/api/v1/pcc-catalog/search?q=cardiology</span>
+      <span class="desc">Full-text search with scoring</span>
+    </div>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/api/v1/pcc-catalog/lookup/&lt;fn&gt;</span>
+      <span class="desc">Find modules exposing function</span>
+    </div>
+
+    <h3>4. Module Operations</h3>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/api/v1/&lt;slug&gt;/list</span>
+      <span class="desc">Module function list</span>
+    </div>
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <span class="path">/api/v1/&lt;slug&gt;/call/&lt;fn&gt;</span>
+      <span class="desc">Invoke a function</span>
+    </div>
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <span class="path">/api/v1/&lt;slug&gt;/record</span>
+      <span class="desc">Record with tenant context</span>
+    </div>
+
+    <h3>5. Diagnostics</h3>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/api/v1/pcc-diagnostics/diagnostics</span>
+      <span class="desc">Uptime + memory + catalog stats</span>
+    </div>
+
+    <h2>💻 Client SDKs</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>TypeScript <span class="badge">v3.316.3</span></h3>
+        <p>Full TypeScript SDK with types, 100 module shortcuts</p>
+        <pre><span class="comment">// npm install @jumanasoft/pcc-sdk</span>
+<span class="keyword">import</span> { PccClient } <span class="keyword">from</span> <span class="string">'@jumanasoft/pcc-sdk'</span>;
+
+<span class="keyword">const</span> client = <span class="keyword">new</span> PccClient({ baseUrl: <span class="string">'http://localhost:3201'</span> });
+<span class="keyword">const</span> r = <span class="keyword">await</span> client.call(<span class="string">'pcc-cardiology-ext102'</span>, <span class="string">'CardGenExt'</span>, { hr: <span class="string">80</span> });</pre>
+      </div>
+      <div class="card">
+        <h3>Node.js (CJS/ESM) <span class="badge">v3.316.3</span></h3>
+        <p>Zero-dependency Node SDK with CommonJS + ESM</p>
+        <pre><span class="comment">// npm install @jumanasoft/pcc-sdk-nodejs</span>
+<span class="keyword">const</span> PccClient = <span class="keyword">require</span>(<span class="string">'@jumanasoft/pcc-sdk-nodejs'</span>);
+
+<span class="keyword">const</span> client = <span class="keyword">new</span> PccClient({ baseUrl: <span class="string">'http://localhost:3201'</span> });
+<span class="keyword">const</span> r = <span class="keyword">await</span> client.call(<span class="string">'pcc-cardiology-ext102'</span>, <span class="string">'CardGenExt'</span>, { hr: <span class="string">80</span> });</pre>
+      </div>
+      <div class="card">
+        <h3>Python <span class="badge">v3.316.3</span></h3>
+        <p>Python SDK using only stdlib (urllib + json)</p>
+        <pre><span class="comment"># pip install pcc-sdk</span>
+<span class="keyword">from</span> pcc_sdk <span class="keyword">import</span> PccClient
+
+client = PccClient(base_url=<span class="string">'http://localhost:3201'</span>)
+r = client.call(<span class="string">'pcc-cardiology-ext102'</span>, <span class="string">'CardGenExt'</span>, {<span class="string">'hr'</span>: <span class="string">80</span>})</pre>
+      </div>
+    </div>
+
+    <h2>📊 Test Results</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Audit</h3>
+        <p><strong>1313/1313 PASS</strong> · 0 failures</p>
+        <p>Multi-format audit (legacy + new engine formats)</p>
+      </div>
+      <div class="card">
+        <h3>Live Verify</h3>
+        <p><strong>1322/1322 PASS</strong> · 0 failures</p>
+        <p>All modules respond to GET /list</p>
+      </div>
+      <div class="card">
+        <h3>E2E Test Suite</h3>
+        <p><strong>18/18 PASS</strong> · 0 failures</p>
+        <p>Health, Catalog, /list, /call, /record, Clinical calcs</p>
+      </div>
+      <div class="card">
+        <h3>OpenAPI Spec</h3>
+        <p><strong>20,161 lines</strong> · 1322 modules</p>
+        <p>Schema-driven spec with x-pcc-modules extension</p>
+      </div>
+      <div class="card">
+        <h3>SQL Migrations</h3>
+        <p><strong>597 SAFE</strong> · 0 destructive</p>
+        <p>596 up + 1 down, validated non-destructive</p>
+      </div>
+      <div class="card">
+        <h3>SDK Tests</h3>
+        <p><strong>6/6 PASS</strong> · 3 Node + 3 Python</p>
+        <p>All three SDKs pass health/catalog/call tests</p>
+      </div>
+    </div>
+
+    <h2>🔗 Useful Links</h2>
+    <div class="grid">
+      <div class="card"><h3><a href="./api-docs.html">📘 API Reference</a></h3><p>Interactive Swagger UI</p></div>
+      <div class="card"><h3><a href="../openapi-pcc.yaml">📄 OpenAPI Spec</a></h3><p>20,161 lines, 1322 modules</p></div>
+      <div class="card"><h3><a href="../PCC_CATALOG_README.md">📖 Catalog README</a></h3><p>Full catalog overview</p></div>
+      <div class="card"><h3><a href="../CHANGELOG.md">📋 Changelog</a></h3><p>v3.0.0 → v3.316.3</p></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>PCC Sandbox · NamaMedical ERP · Server: <code>http://localhost:3201</code> · v3.316.3</p>
+    <p>Generated 2026-07-29</p>
+  </div>
+
+  <script>
+    // Live status indicator
+    fetch('http://localhost:3201/health', { mode: 'cors' })
+      .then(r => r.json())
+      .then(d => {
+        const el = document.getElementById('liveStatus');
+        el.textContent = '● LIVE v' + d.version;
+      })
+      .catch(e => {
+        const el = document.getElementById('liveStatus');
+        el.textContent = '● OFFLINE';
+        el.classList.add('error');
+      });
+  </script>
+</body>
+</html>

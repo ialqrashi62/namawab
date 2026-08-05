@@ -1,0 +1,247 @@
+<!-- filepath: pcc/public/graphql/playground.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PCC GraphQL Playground &middot; v3.316.21</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-hover: #0ea5e9;
+      --error-fg: #fca5a5;
+      --error-bg: #450a0a;
+      --key: #38bdf8;
+      --str: #10b981;
+      --num: #fbbf24;
+      --bool: #f472b6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 18px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .topbar strong { font-size: 15px; color: var(--accent); }
+    .topbar a { color: var(--muted); text-decoration: none; font-size: 13px; }
+    .topbar a:hover { color: var(--accent); }
+    .topbar label.hint { color: var(--muted); font-size: 12px; }
+    button {
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    button:hover:not(:disabled) { background: var(--accent-hover); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    select, input[type="text"] {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+    input[type="text"]#vars { min-width: 200px; }
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      min-height: 0;
+    }
+    .pane { background: var(--bg); display: flex; flex-direction: column; min-height: 0; }
+    .pane-header {
+      background: var(--panel);
+      padding: 8px 14px;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border);
+    }
+    textarea#query {
+      flex: 1;
+      width: 100%;
+      background: var(--bg);
+      color: var(--text);
+      border: none;
+      outline: none;
+      padding: 14px;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      resize: none;
+    }
+    pre#response {
+      flex: 1;
+      margin: 0;
+      padding: 14px;
+      overflow: auto;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    pre#response.error { background: var(--error-bg); color: var(--error-fg); }
+    .k { color: var(--key); }
+    .s { color: var(--str); }
+    .n { color: var(--num); }
+    .b { color: var(--bool); }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <strong>PCC Playground &middot; v3.316.21</strong>
+    <button id="runBtn" title="Ctrl+Enter">Run</button>
+    <label class="hint" for="preset">Preset:</label>
+    <select id="preset">
+      <option value="">-- select --</option>
+      <option value='{ stats { totalModules totalFunctions totalCategories } }'>{ stats { ... } }</option>
+      <option value='{ modules(limit: 10) }'>{ modules(limit: 10) }</option>
+      <option value='{ search(q: "cardio", limit: 5) }'>{ search(q: "cardio", limit: 5) }</option>
+      <option value='{ coverage }'>{ coverage }</option>
+      <option value='{ audit(limit: 10) }'>{ audit(limit: 10) }</option>
+    </select>
+    <label class="hint" for="vars">Vars (JSON):</label>
+    <input type="text" id="vars" placeholder='{"key":"value"}'>
+    <a href="/graphql">Docs</a>
+    <a href="/graphql/schema.graphql">Schema</a>
+  </div>
+  <div class="main">
+    <div class="pane">
+      <div class="pane-header">Query</div>
+      <textarea id="query" spellcheck="false" placeholder="Enter your GraphQL query here..."></textarea>
+    </div>
+    <div class="pane">
+      <div class="pane-header">Response</div>
+      <pre id="response">// Click "Run" or press Ctrl+Enter to execute.</pre>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var STORAGE_KEY = 'pcc.gqlPlayground.query';
+      var DEFAULT_QUERY = '{ stats { totalModules totalFunctions totalCategories } }';
+      var queryEl = document.getElementById('query');
+      var varsEl = document.getElementById('vars');
+      var respEl = document.getElementById('response');
+      var presetEl = document.getElementById('preset');
+      var runBtn = document.getElementById('runBtn');
+
+      // Load persisted query
+      try {
+        var saved = localStorage.getItem(STORAGE_KEY);
+        queryEl.value = (saved != null && saved !== '') ? saved : DEFAULT_QUERY;
+      } catch (e) {
+        queryEl.value = DEFAULT_QUERY;
+      }
+
+      // Persist on edit
+      queryEl.addEventListener('input', function () {
+        try { localStorage.setItem(STORAGE_KEY, queryEl.value); } catch (e) { /* ignore quota */ }
+      });
+
+      // Preset -> populate textarea
+      presetEl.addEventListener('change', function () {
+        var idx = presetEl.selectedIndex;
+        if (idx > 0) {
+          queryEl.value = presetEl.options[idx].value;
+          try { localStorage.setItem(STORAGE_KEY, queryEl.value); } catch (e) {}
+          queryEl.focus();
+        }
+      });
+
+      // JSON syntax highlighter (regex-based, stdlib only)
+      function highlight(json) {
+        var esc = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return esc.replace(
+          /("(?:\\.|[^"\\])*")(\s*:)?|\b(true|false|null)\b|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g,
+          function (m, str, colon, kw, num) {
+            if (str) {
+              if (colon) return '<span class="k">' + str + '</span>' + colon;
+              return '<span class="s">' + str + '</span>';
+            }
+            if (kw) return '<span class="b">' + kw + '</span>';
+            if (num) return '<span class="n">' + num + '</span>';
+            return m;
+          }
+        );
+      }
+
+      function showError(msg) {
+        respEl.className = 'error';
+        respEl.textContent = msg;
+      }
+
+      function showJson(obj) {
+        respEl.className = '';
+        respEl.innerHTML = highlight(JSON.stringify(obj, null, 2));
+      }
+
+      async function run() {
+        var query = queryEl.value.trim();
+        if (!query) { showError('Query is empty.'); return; }
+        var body = { query: query };
+        var rawVars = varsEl.value.trim();
+        if (rawVars) {
+          try { body.variables = JSON.parse(rawVars); }
+          catch (e) { showError('Invalid variables JSON: ' + e.message); return; }
+        }
+        runBtn.disabled = true;
+        runBtn.textContent = 'Running...';
+        try {
+          var r = await fetch('/graphql/query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+          var text = await r.text();
+          if (!r.ok) { showError('HTTP ' + r.status + '\n' + text); return; }
+          var data;
+          try { data = JSON.parse(text); }
+          catch (e) { showError('Non-JSON response:\n' + text); return; }
+          if (data && data.errors && data.data == null) {
+            showError(JSON.stringify(data, null, 2));
+            return;
+          }
+          showJson(data);
+        } catch (e) {
+          showError('Network error: ' + e.message);
+        } finally {
+          runBtn.disabled = false;
+          runBtn.textContent = 'Run';
+        }
+      }
+
+      runBtn.addEventListener('click', run);
+      queryEl.addEventListener('keydown', function (e) {
+        if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); run(); }
+      });
+    })();
+  </script>
+</body>
+</html>
