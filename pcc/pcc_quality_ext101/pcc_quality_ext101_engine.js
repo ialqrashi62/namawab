@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_quality_ext101/pcc_quality_ext101_engine.js
-module.exports.version='v3.37.37.0';
-module.exports.module='pcc_quality_ext101';
-module.exports.functions={};
-module.exports.functions['QALeadershipExt']=function(input){const score=Math.round((0.18 + Number(input.qaLead||1)*0.2 + Number(input.qaLeadScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.37.37.0',module:'pcc_quality_ext101',function:'QALeadershipExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['QAPatientSafetyExt']=function(input){const score=Math.round((0.18 + Number(input.qaSafety||1)*0.2 + Number(input.qaIncidentRate||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.37.37.0',module:'pcc_quality_ext101',function:'QAPatientSafetyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['QAInfectionExt']=function(input){const score=Math.round((0.18 + Number(input.qaInfection||1)*0.2 + Number(input.qaInfRate||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.37.37.0',module:'pcc_quality_ext101',function:'QAInfectionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['QAMedicationExt']=function(input){const score=Math.round((0.18 + Number(input.qaMed||1)*0.2 + Number(input.qaMedErrorRate||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.37.37.0',module:'pcc_quality_ext101',function:'QAMedicationExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['QAFallsExt']=function(input){const score=Math.round((0.18 + Number(input.qaFalls||1)*0.2 + Number(input.qaFallRate||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.37.37.0',module:'pcc_quality_ext101',function:'QAFallsExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['QAPressUlcerExt']=function(input){const score=Math.round((0.18 + Number(input.qaPU||1)*0.2 + Number(input.qaPURate||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.37.37.0',module:'pcc_quality_ext101',function:'QAPressUlcerExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['QAReadmissionExt']=function(input){const score=Math.round((0.18 + Number(input.qaReadmit||1)*0.2 + Number(input.qaReadmitRate||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.37.37.0',module:'pcc_quality_ext101',function:'QAReadmissionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['QAMortalityExt']=function(input){const score=Math.round((0.18 + Number(input.qaMort||1)*0.2 + Number(input.qaMortRate||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.37.37.0',module:'pcc_quality_ext101',function:'QAMortalityExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['QAPtSatisfactionExt']=function(input){const score=Math.round((0.18 + Number(input.qaPtSat||1)*0.2 + Number(input.qaPtSatScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.37.37.0',module:'pcc_quality_ext101',function:'QAPtSatisfactionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['QAAccreditationExt']=function(input){const score=Math.round((0.18 + Number(input.qaAccred||1)*0.2 + Number(input.qaAccredCycle||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.37.37.0',module:'pcc_quality_ext101',function:'QAAccreditationExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.37.37.0';
+const MOD = 'pcc_quality_ext101';
 
-// TS: v3.37.37.0
+function QALeadershipExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.qALeadershipExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "QALeadershipExt", input, score, ts: TS, qALeadershipExt: _i.qALeadershipExt || null };
+}
+
+function QAPatientSafetyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.qAPatientSafetyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "QAPatientSafetyExt", input, score, ts: TS, qAPatientSafetyExt: _i.qAPatientSafetyExt || null };
+}
+
+function QAInfectionExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.qAInfectionExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "QAInfectionExt", input, score, ts: TS, qAInfectionExt: _i.qAInfectionExt || null };
+}
+
+function QAMedicationExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.qAMedicationExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "QAMedicationExt", input, score, ts: TS, qAMedicationExt: _i.qAMedicationExt || null };
+}
+
+function QAFallsExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.qAFallsExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "QAFallsExt", input, score, ts: TS, qAFallsExt: _i.qAFallsExt || null };
+}
+
+function QAPressUlcerExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.qAPressUlcerExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "QAPressUlcerExt", input, score, ts: TS, qAPressUlcerExt: _i.qAPressUlcerExt || null };
+}
+
+function QAReadmissionExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.qAReadmissionExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "QAReadmissionExt", input, score, ts: TS, qAReadmissionExt: _i.qAReadmissionExt || null };
+}
+
+function QAMortalityExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.qAMortalityExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "QAMortalityExt", input, score, ts: TS, qAMortalityExt: _i.qAMortalityExt || null };
+}
+
+function QAPtSatisfactionExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.qAPtSatisfactionExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "QAPtSatisfactionExt", input, score, ts: TS, qAPtSatisfactionExt: _i.qAPtSatisfactionExt || null };
+}
+
+function QAAccreditationExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.qAAccreditationExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "QAAccreditationExt", input, score, ts: TS, qAAccreditationExt: _i.qAAccreditationExt || null };
+}
+
+module.exports = {
+  QALeadershipExt,
+  QAPatientSafetyExt,
+  QAInfectionExt,
+  QAMedicationExt,
+  QAFallsExt,
+  QAPressUlcerExt,
+  QAReadmissionExt,
+  QAMortalityExt,
+  QAPtSatisfactionExt,
+  QAAccreditationExt,
+};

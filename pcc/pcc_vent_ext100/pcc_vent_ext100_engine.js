@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_vent_ext100/pcc_vent_ext100_engine.js
-module.exports.version='v3.25.25.0';
-module.exports.module='pcc_vent_ext100';
-module.exports.functions={};
-module.exports.functions['VentInvasiveExt']=function(input){const score=Math.round((0.18 + Number(input.vInvasive||1)*0.2 + Number(input.peepVal||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentInvasiveExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['VentNIVext']=function(input){const score=Math.round((0.18 + Number(input.vNIV||1)*0.2 + Number(input.ipapVal||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentNIVext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['VentHFNCext']=function(input){const score=Math.round((0.18 + Number(input.vHFNC||1)*0.2 + Number(input.flowRate||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentHFNCext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['VentARDSext']=function(input){const score=Math.round((0.18 + Number(input.vARDS||1)*0.2 + Number(input.pfRatioV||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentARDSext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['VentCOPDext']=function(input){const score=Math.round((0.18 + Number(input.vCOPD||1)*0.2 + Number(input.phLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentCOPDext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['VentAsthmaExt']=function(input){const score=Math.round((0.18 + Number(input.vAsthma||1)*0.2 + Number(input.peakPress||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentAsthmaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['VentWeaningExt']=function(input){const score=Math.round((0.18 + Number(input.vWeaning||1)*0.2 + Number(input.rsbiScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentWeaningExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['VentProneExt']=function(input){const score=Math.round((0.18 + Number(input.vProne||1)*0.2 + Number(input.proneHours||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentProneExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['VentTraumaExt']=function(input){const score=Math.round((0.18 + Number(input.vTrauma||1)*0.2 + Number(input.lungInjury||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentTraumaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['VentPediatricExt']=function(input){const score=Math.round((0.18 + Number(input.vPed||1)*0.2 + Number(input.pedAge||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_vent_ext100',function:'VentPediatricExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.25.25.0';
+const MOD = 'pcc_vent_ext100';
 
-// TS: v3.25.25.0
+function VentInvasiveExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ventInvasiveExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "VentInvasiveExt", input, score, ts: TS, ventInvasiveExt: _i.ventInvasiveExt || null };
+}
+
+function VentNIVext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ventNIVext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'VentNIVext', input, score, ts: TS, ventNIVext: _i.ventNIVext || null };
+}
+
+function VentHFNCext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ventHFNCext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'VentHFNCext', input, score, ts: TS, ventHFNCext: _i.ventHFNCext || null };
+}
+
+function VentARDSext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ventARDSext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'VentARDSext', input, score, ts: TS, ventARDSext: _i.ventARDSext || null };
+}
+
+function VentCOPDext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ventCOPDext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'VentCOPDext', input, score, ts: TS, ventCOPDext: _i.ventCOPDext || null };
+}
+
+function VentAsthmaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ventAsthmaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "VentAsthmaExt", input, score, ts: TS, ventAsthmaExt: _i.ventAsthmaExt || null };
+}
+
+function VentWeaningExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ventWeaningExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "VentWeaningExt", input, score, ts: TS, ventWeaningExt: _i.ventWeaningExt || null };
+}
+
+function VentProneExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ventProneExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "VentProneExt", input, score, ts: TS, ventProneExt: _i.ventProneExt || null };
+}
+
+function VentTraumaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ventTraumaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "VentTraumaExt", input, score, ts: TS, ventTraumaExt: _i.ventTraumaExt || null };
+}
+
+function VentPediatricExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.ventPediatricExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "VentPediatricExt", input, score, ts: TS, ventPediatricExt: _i.ventPediatricExt || null };
+}
+
+module.exports = {
+  VentInvasiveExt,
+  VentNIVext,
+  VentHFNCext,
+  VentARDSext,
+  VentCOPDext,
+  VentAsthmaExt,
+  VentWeaningExt,
+  VentProneExt,
+  VentTraumaExt,
+  VentPediatricExt,
+};

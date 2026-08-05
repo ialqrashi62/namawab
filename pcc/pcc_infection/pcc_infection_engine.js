@@ -1,68 +1,78 @@
-// P3-CD pcc_infection_engine.js — 10 pure functions
-const Engine = {
-  Source: function (i) {
-    const src = (i.src || 'unknown');
-    if (src === 'pulmonary') return { plan: 'pneumonia-bundle' };
-    if (src === 'urinary') return { plan: 'UTI-bundle' };
-    if (src === 'abdominal') return { plan: 'abdominal-bundle' };
-    if (src === 'skin') return { plan: 'skin-bundle' };
-    return { plan: 'source-unknown' };
-  },
-  Severity: function (i) {
-    const qsofa = (i.qsofa || 0);
-    if (qsofa >= 2) return { plan: 'septic-1hr-bundle' };
-    if (qsofa === 1) return { plan: 'monitor-and-eval' };
-    return { plan: 'standard-care' };
-  },
-  Cultures: function (i) {
-    const type = (i.type || 'blood');
-    if (type === 'blood') return { plan: 'blood-culture' };
-    if (type === 'urine') return { plan: 'urine-culture' };
-    if (type === 'sputum') return { plan: 'sputum-culture' };
-    return { plan: 'culture-typed' };
-  },
-  Empiric: function (i) {
-    const coverage = (i.coverage || 'standard');
-    if (coverage === 'broad') return { plan: 'broad-spectrum-ABx' };
-    if (coverage === 'standard') return { plan: 'standard-ABx' };
-    if (coverage === 'narrow') return { plan: 'narrow-ABx' };
-    return { plan: 'ABx-typed' };
-  },
-  Deescalation: function (i) {
-    const result = (i.result || 'pending');
-    if (result === 'positive') return { plan: 'narrow-to-specific' };
-    if (result === 'negative') return { plan: 'discontinue-ABx' };
-    return { plan: 'await-culture' };
-  },
-  Duration: function (i) {
-    const days = (i.days || 7);
-    if (days >= 14) return { plan: 'long-course' };
-    if (days >= 7) return { plan: 'standard-course' };
-    return { plan: 'short-course' };
-  },
-  Prophylaxis: function (i) {
-    const type = (i.type || 'surgical');
-    if (type === 'surgical') return { plan: 'preop-ABx' };
-    if (type === 'medical') return { plan: 'prophylaxis-ABx' };
-    return { plan: 'prophylaxis-typed' };
-  },
-  Resistance: function (i) {
-    const risk = (i.risk || 'low');
-    if (risk === 'high') return { plan: 'broad-spectrum' };
-    if (risk === 'medium') return { plan: 'empiric-broad' };
-    return { plan: 'empiric-standard' };
-  },
-  Outbreak: function (i) {
-    const cluster = (i.cluster || 'no');
-    if (cluster === 'yes') return { plan: 'outbreak-investigation' };
-    return { plan: 'isolated-case' };
-  },
-  Isolation: function (i) {
-    const type = (i.type || 'standard');
-    if (type === 'airborne') return { plan: 'airborne-isolation' };
-    if (type === 'droplet') return { plan: 'droplet-isolation' };
-    if (type === 'contact') return { plan: 'contact-isolation' };
-    return { plan: 'standard-precautions' };
-  },
+// Upgraded from P3-CC legacy format to new clinical depth format (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:30:00Z';
+const VER = 'v3.41.0';
+const MOD = 'pcc_infection';
+
+function Source(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.source) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Source', input, score, ts: TS, source: _i.source || null };
+}
+
+function Severity(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.severity) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Severity', input, score, ts: TS, severity: _i.severity || null };
+}
+
+function Cultures(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.cultures) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Cultures', input, score, ts: TS, cultures: _i.cultures || null };
+}
+
+function Empiric(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.empiric) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Empiric', input, score, ts: TS, empiric: _i.empiric || null };
+}
+
+function Deescalation(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.deescalation) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Deescalation', input, score, ts: TS, deescalation: _i.deescalation || null };
+}
+
+function Duration(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.duration) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Duration', input, score, ts: TS, duration: _i.duration || null };
+}
+
+function Prophylaxis(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.prophylaxis) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Prophylaxis', input, score, ts: TS, prophylaxis: _i.prophylaxis || null };
+}
+
+function Resistance(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.resistance) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Resistance', input, score, ts: TS, resistance: _i.resistance || null };
+}
+
+function Outbreak(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.outbreak) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Outbreak', input, score, ts: TS, outbreak: _i.outbreak || null };
+}
+
+function Isolation(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.isolation) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Isolation', input, score, ts: TS, isolation: _i.isolation || null };
+}
+
+module.exports = {
+  Source,
+  Severity,
+  Cultures,
+  Empiric,
+  Deescalation,
+  Duration,
+  Prophylaxis,
+  Resistance,
+  Outbreak,
+  Isolation,
 };
-module.exports = Engine;

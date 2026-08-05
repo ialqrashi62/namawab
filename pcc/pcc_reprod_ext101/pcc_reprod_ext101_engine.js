@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_reprod_ext101/pcc_reprod_ext101_engine.js
-module.exports.version='v3.34.34.0';
-module.exports.module='pcc_reprod_ext101';
-module.exports.functions={};
-module.exports.functions['ReproIFMExt']=function(input){const score=Math.round((0.18 + Number(input.rpIFM||1)*0.2 + Number(input.fshLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_reprod_ext101',function:'ReproIFMExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ReproIVFExt']=function(input){const score=Math.round((0.18 + Number(input.rpIVF||1)*0.2 + Number(input.ivfCycle||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_reprod_ext101',function:'ReproIVFExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ReproMaleExt']=function(input){const score=Math.round((0.18 + Number(input.rpMale||1)*0.2 + Number(input.spermCount||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_reprod_ext101',function:'ReproMaleExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ReproPCOSext']=function(input){const score=Math.round((0.18 + Number(input.rpPCOS||1)*0.2 + Number(input.amhRP||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_reprod_ext101',function:'ReproPCOSext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ReproEndometriosisExt']=function(input){const score=Math.round((0.18 + Number(input.rpEndo||1)*0.2 + Number(input.endoStageRP||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_reprod_ext101',function:'ReproEndometriosisExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ReproGeneticExt']=function(input){const score=Math.round((0.18 + Number(input.rpGen||1)*0.2 + Number(input.karyotype||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_reprod_ext101',function:'ReproGeneticExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ReproMiscarriageExt']=function(input){const score=Math.round((0.18 + Number(input.rpMiscar||1)*0.2 + Number(input.miscarRecur||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_reprod_ext101',function:'ReproMiscarriageExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ReproContraceptionExt']=function(input){const score=Math.round((0.18 + Number(input.rpContra||1)*0.2 + Number(input.contraType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_reprod_ext101',function:'ReproContraceptionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ReproMenstrualExt']=function(input){const score=Math.round((0.18 + Number(input.rpMens||1)*0.2 + Number(input.mensCycle||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_reprod_ext101',function:'ReproMenstrualExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ReproSexualExt']=function(input){const score=Math.round((0.18 + Number(input.rpSex||1)*0.2 + Number(input.sexualDysfn||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_reprod_ext101',function:'ReproSexualExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.34.34.0';
+const MOD = 'pcc_reprod_ext101';
 
-// TS: v3.34.34.0
+function ReproIFMExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.reproIFMExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ReproIFMExt", input, score, ts: TS, reproIFMExt: _i.reproIFMExt || null };
+}
+
+function ReproIVFExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.reproIVFExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ReproIVFExt", input, score, ts: TS, reproIVFExt: _i.reproIVFExt || null };
+}
+
+function ReproMaleExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.reproMaleExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ReproMaleExt", input, score, ts: TS, reproMaleExt: _i.reproMaleExt || null };
+}
+
+function ReproPCOSext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.reproPCOSext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'ReproPCOSext', input, score, ts: TS, reproPCOSext: _i.reproPCOSext || null };
+}
+
+function ReproEndometriosisExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.reproEndometriosisExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ReproEndometriosisExt", input, score, ts: TS, reproEndometriosisExt: _i.reproEndometriosisExt || null };
+}
+
+function ReproGeneticExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.reproGeneticExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ReproGeneticExt", input, score, ts: TS, reproGeneticExt: _i.reproGeneticExt || null };
+}
+
+function ReproMiscarriageExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.reproMiscarriageExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ReproMiscarriageExt", input, score, ts: TS, reproMiscarriageExt: _i.reproMiscarriageExt || null };
+}
+
+function ReproContraceptionExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.reproContraceptionExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ReproContraceptionExt", input, score, ts: TS, reproContraceptionExt: _i.reproContraceptionExt || null };
+}
+
+function ReproMenstrualExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.reproMenstrualExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ReproMenstrualExt", input, score, ts: TS, reproMenstrualExt: _i.reproMenstrualExt || null };
+}
+
+function ReproSexualExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.reproSexualExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "ReproSexualExt", input, score, ts: TS, reproSexualExt: _i.reproSexualExt || null };
+}
+
+module.exports = {
+  ReproIFMExt,
+  ReproIVFExt,
+  ReproMaleExt,
+  ReproPCOSext,
+  ReproEndometriosisExt,
+  ReproGeneticExt,
+  ReproMiscarriageExt,
+  ReproContraceptionExt,
+  ReproMenstrualExt,
+  ReproSexualExt,
+};

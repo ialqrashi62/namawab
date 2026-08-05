@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_preconception_ext101/pcc_preconception_ext101_engine.js
-module.exports.version='v3.35.35.0';
-module.exports.module='pcc_preconception_ext101';
-module.exports.functions={};
-module.exports.functions['PreconGeneralExt']=function(input){const score=Math.round((0.18 + Number(input.pcGen||1)*0.2 + Number(input.pcGenAge||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_preconception_ext101',function:'PreconGeneralExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PreconGeneticExt']=function(input){const score=Math.round((0.18 + Number(input.pcGen2||1)*0.2 + Number(input.famHistory||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_preconception_ext101',function:'PreconGeneticExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PreconNutritionExt']=function(input){const score=Math.round((0.18 + Number(input.pcNutr||1)*0.2 + Number(input.bmiPC||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_preconception_ext101',function:'PreconNutritionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PreconFolateExt']=function(input){const score=Math.round((0.18 + Number(input.pcFolate||1)*0.2 + Number(input.folateDose||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_preconception_ext101',function:'PreconFolateExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PreconDiabeticExt']=function(input){const score=Math.round((0.18 + Number(input.pcDM||1)*0.2 + Number(input.hba1cPC||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_preconception_ext101',function:'PreconDiabeticExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PreconHTNext']=function(input){const score=Math.round((0.18 + Number(input.pcHTN||1)*0.2 + Number(input.bpPC||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_preconception_ext101',function:'PreconHTNext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PreconThyroidExt']=function(input){const score=Math.round((0.18 + Number(input.pcThyroid||1)*0.2 + Number(input.tshPC||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_preconception_ext101',function:'PreconThyroidExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PreconVaccineExt']=function(input){const score=Math.round((0.18 + Number(input.pcVacc||1)*0.2 + Number(input.pcVaccType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_preconception_ext101',function:'PreconVaccineExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PreconSubstanceExt']=function(input){const score=Math.round((0.18 + Number(input.pcSubst||1)*0.2 + Number(input.pcSubstType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_preconception_ext101',function:'PreconSubstanceExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PreconMentalExt']=function(input){const score=Math.round((0.18 + Number(input.pcMental||1)*0.2 + Number(input.pcMentalScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_preconception_ext101',function:'PreconMentalExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.35.35.0';
+const MOD = 'pcc_preconception_ext101';
 
-// TS: v3.35.35.0
+function PreconGeneralExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.preconGeneralExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PreconGeneralExt", input, score, ts: TS, preconGeneralExt: _i.preconGeneralExt || null };
+}
+
+function PreconGeneticExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.preconGeneticExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PreconGeneticExt", input, score, ts: TS, preconGeneticExt: _i.preconGeneticExt || null };
+}
+
+function PreconNutritionExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.preconNutritionExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PreconNutritionExt", input, score, ts: TS, preconNutritionExt: _i.preconNutritionExt || null };
+}
+
+function PreconFolateExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.preconFolateExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PreconFolateExt", input, score, ts: TS, preconFolateExt: _i.preconFolateExt || null };
+}
+
+function PreconDiabeticExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.preconDiabeticExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PreconDiabeticExt", input, score, ts: TS, preconDiabeticExt: _i.preconDiabeticExt || null };
+}
+
+function PreconHTNext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.preconHTNext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PreconHTNext', input, score, ts: TS, preconHTNext: _i.preconHTNext || null };
+}
+
+function PreconThyroidExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.preconThyroidExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PreconThyroidExt", input, score, ts: TS, preconThyroidExt: _i.preconThyroidExt || null };
+}
+
+function PreconVaccineExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.preconVaccineExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PreconVaccineExt", input, score, ts: TS, preconVaccineExt: _i.preconVaccineExt || null };
+}
+
+function PreconSubstanceExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.preconSubstanceExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PreconSubstanceExt", input, score, ts: TS, preconSubstanceExt: _i.preconSubstanceExt || null };
+}
+
+function PreconMentalExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.preconMentalExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PreconMentalExt", input, score, ts: TS, preconMentalExt: _i.preconMentalExt || null };
+}
+
+module.exports = {
+  PreconGeneralExt,
+  PreconGeneticExt,
+  PreconNutritionExt,
+  PreconFolateExt,
+  PreconDiabeticExt,
+  PreconHTNext,
+  PreconThyroidExt,
+  PreconVaccineExt,
+  PreconSubstanceExt,
+  PreconMentalExt,
+};

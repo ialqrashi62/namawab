@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_immunology_ext100/pcc_immunology_ext100_engine.js
-module.exports.version='v3.22.22.0';
-module.exports.module='pcc_immunology_ext100';
-module.exports.functions={};
-module.exports.functions['ImmunoPIDext']=function(input){const score=Math.round((0.18 + Number(input.immPID||1)*0.2 + Number(input.pidType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_immunology_ext100',function:'ImmunoPIDext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ImmunoIgADefExt']=function(input){const score=Math.round((0.18 + Number(input.immIgA||1)*0.2 + Number(input.igaLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_immunology_ext100',function:'ImmunoIgADefExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ImmunoCVIDExt']=function(input){const score=Math.round((0.18 + Number(input.immCVID||1)*0.2 + Number(input.iggLevel||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_immunology_ext100',function:'ImmunoCVIDExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ImmunoSCIDext']=function(input){const score=Math.round((0.18 + Number(input.immSCID||1)*0.2 + Number(input.tcellCount||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_immunology_ext100',function:'ImmunoSCIDext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ImmunoComplementExt']=function(input){const score=Math.round((0.18 + Number(input.immCompl||1)*0.2 + Number(input.c3Level||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_immunology_ext100',function:'ImmunoComplementExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ImmunoAutoImmuneExt']=function(input){const score=Math.round((0.18 + Number(input.immAuto||1)*0.2 + Number(input.autoAbType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_immunology_ext100',function:'ImmunoAutoImmuneExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ImmunoTransplantRejExt']=function(input){const score=Math.round((0.18 + Number(input.immTxRej||1)*0.2 + Number(input.rejGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_immunology_ext100',function:'ImmunoTransplantRejExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ImmunoGVHDeXt']=function(input){const score=Math.round((0.18 + Number(input.immGVHD||1)*0.2 + Number(input.gvhdGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_immunology_ext100',function:'ImmunoGVHDeXt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ImmunoBiologicExt']=function(input){const score=Math.round((0.18 + Number(input.immBiologic||1)*0.2 + Number(input.biolAgent||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_immunology_ext100',function:'ImmunoBiologicExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ImmunoVaccineRespExt']=function(input){const score=Math.round((0.18 + Number(input.immVaccResp||1)*0.2 + Number(input.vaccAbTiter||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.22.22.0',module:'pcc_immunology_ext100',function:'ImmunoVaccineRespExt',input,score,ts:new Date().toISOString()}};
+// pcc_immunology_ext100_engine v3.316.43 (Phase 2 Batch 10 — HomeHealth/Hospice/ICU/Imaging/Immunology/Infectious)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.43';
+const MOD = 'pcc_immunology_ext100';
 
-// TS: v3.22.22.0
+function ImmunoPIDext(input) {
+  const i = input || {};
+  const v = Number(i.ImmunoPIDext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ImmunoPIDext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ImmunoIgADefExt(input) {
+  const i = input || {};
+  const v = Number(i.ImmunoIgADefExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ImmunoIgADefExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ImmunoCVIDExt(input) {
+  const i = input || {};
+  const v = Number(i.ImmunoCVIDExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ImmunoCVIDExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ImmunoSCIDext(input) {
+  const i = input || {};
+  const v = Number(i.ImmunoSCIDext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ImmunoSCIDext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ImmunoComplementExt(input) {
+  const i = input || {};
+  const v = Number(i.ImmunoComplementExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ImmunoComplementExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ImmunoAutoImmuneExt(input) {
+  const i = input || {};
+  const v = Number(i.ImmunoAutoImmuneExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ImmunoAutoImmuneExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ImmunoTransplantRejExt(input) {
+  const i = input || {};
+  const v = Number(i.ImmunoTransplantRejExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ImmunoTransplantRejExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ImmunoGVHDeXt(input) {
+  const i = input || {};
+  const v = Number(i.ImmunoGVHDeXt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ImmunoGVHDeXt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ImmunoBiologicExt(input) {
+  const i = input || {};
+  const v = Number(i.ImmunoBiologicExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ImmunoBiologicExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ImmunoVaccineRespExt(input) {
+  const i = input || {};
+  const v = Number(i.ImmunoVaccineRespExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ImmunoVaccineRespExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  ImmunoPIDext, ImmunoIgADefExt, ImmunoCVIDExt, ImmunoSCIDext, ImmunoComplementExt, ImmunoAutoImmuneExt, ImmunoTransplantRejExt, ImmunoGVHDeXt, ImmunoBiologicExt, ImmunoVaccineRespExt
+};

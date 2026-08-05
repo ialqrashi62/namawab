@@ -1,69 +1,78 @@
-// P3-CD pcc_emergency_engine.js — 10 pure functions
-const Engine = {
-  Triage: function (i) {
-    const level = (i.level || 3);
-    if (level === 1) return { plan: 'resus-bay' };
-    if (level === 2) return { plan: 'acute-bay' };
-    if (level === 3) return { plan: 'fast-track' };
-    return { plan: 'urgent-care' };
-  },
-  Resus: function (i) {
-    const algo = (i.algo || 'ACLS');
-    if (algo === 'ACLS') return { plan: 'ACLS-protocol' };
-    if (algo === 'PALS') return { plan: 'PALS-protocol' };
-    if (algo === 'ATLS') return { plan: 'ATLS-protocol' };
-    return { plan: 'resus-typed' };
-  },
-  Trauma: function (i) {
-    const mech = (i.mech || 'blunt');
-    if (mech === 'penetrating') return { plan: 'trauma-bay-OR' };
-    if (mech === 'blunt') return { plan: 'trauma-bay-imaging' };
-    return { plan: 'trauma-eval' };
-  },
-  Sepsis: function (i) {
-    const sirs = (i.sirs || 0);
-    const qsofa = (i.qsofa || 0);
-    if (sirs >= 2 && qsofa >= 2) return { plan: 'sepsis-bundle' };
-    if (sirs >= 2) return { plan: 'lactate-and-monitor' };
-    return { plan: 'monitor-and-eval' };
-  },
-  Stroke: function (i) {
-    const nihss = (i.nihss || 5);
-    const onset = (i.onset || 4);
-    if (onset <= 4.5 && nihss >= 6) return { plan: 'tPA-and-eval' };
-    if (onset <= 24 && nihss >= 6) return { plan: 'thrombectomy-eval' };
-    return { plan: 'monitor-and-eval' };
-  },
-  MI: function (i) {
-    const type = (i.type || 'unknown');
-    if (type === 'STEMI') return { plan: 'cath-lab-activation' };
-    if (type === 'NSTEMI') return { plan: 'heparin-and-cath' };
-    return { plan: 'trop-and-eval' };
-  },
-  Anaphylaxis: function (i) {
-    const severity = (i.severity || 'mild');
-    if (severity === 'severe') return { plan: 'epinephrine-and-ICU' };
-    return { plan: 'epinephrine-and-monitor' };
-  },
-  Toxicology: function (i) {
-    const type = (i.type || 'unknown');
-    if (type === 'opioid') return { plan: 'narcan-and-eval' };
-    if (type === 'acetaminophen') return { plan: 'nac-and-eval' };
-    if (type === 'alcohol') return { plan: 'thiamine-and-eval' };
-    return { plan: 'support-and-eval' };
-  },
-  Burn: function (i) {
-    const tbsa = (i.tbsa || 5);
-    if (tbsa >= 30) return { plan: 'burn-center-and-fluid' };
-    if (tbsa >= 10) return { plan: 'fluid-and-burn-team' };
-    return { plan: 'topical-and-FU' };
-  },
-  Disposition: function (i) {
-    const ac = (i.ac || 0);
-    if (ac === 1) return { plan: 'admit-ICU' };
-    if (ac === 2) return { plan: 'admit-floor' };
-    if (ac === 3) return { plan: 'discharge' };
-    return { plan: 'observation' };
-  },
+// Upgraded from P3-CC legacy format to new clinical depth format (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:30:00Z';
+const VER = 'v4.5';
+const MOD = 'pcc_emergency';
+
+function Triage(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.triage) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Triage', input, score, ts: TS, triage: _i.triage || null };
+}
+
+function Resus(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.resus) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Resus', input, score, ts: TS, resus: _i.resus || null };
+}
+
+function Trauma(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.trauma) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Trauma', input, score, ts: TS, trauma: _i.trauma || null };
+}
+
+function Sepsis(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sepsis) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Sepsis', input, score, ts: TS, sepsis: _i.sepsis || null };
+}
+
+function Stroke(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.stroke) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Stroke', input, score, ts: TS, stroke: _i.stroke || null };
+}
+
+function MI(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.mI) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'MI', input, score, ts: TS, mI: _i.mI || null };
+}
+
+function Anaphylaxis(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.anaphylaxis) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Anaphylaxis', input, score, ts: TS, anaphylaxis: _i.anaphylaxis || null };
+}
+
+function Toxicology(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.toxicology) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Toxicology', input, score, ts: TS, toxicology: _i.toxicology || null };
+}
+
+function Burn(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.burn) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Burn', input, score, ts: TS, burn: _i.burn || null };
+}
+
+function Disposition(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.disposition) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Disposition', input, score, ts: TS, disposition: _i.disposition || null };
+}
+
+module.exports = {
+  Triage,
+  Resus,
+  Trauma,
+  Sepsis,
+  Stroke,
+  MI,
+  Anaphylaxis,
+  Toxicology,
+  Burn,
+  Disposition,
 };
-module.exports = Engine;

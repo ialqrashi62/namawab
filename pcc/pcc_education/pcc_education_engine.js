@@ -1,4 +1,4 @@
-// P3-CE pcc_education_engine v3.43.0
+// P3_CE pcc_education_engine v3.43.0
 'use strict';
 function Curriculum(input) {
   const i = input || {};

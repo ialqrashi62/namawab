@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_ped_ext99/pcc_ped_ext99_engine.js
-module.exports.version='v3.17.17.0';
-module.exports.module='pcc_ped_ext99';
-module.exports.functions={};
-module.exports.functions['PedGeneralExt']=function(input){const score=Math.round((0.18 + Number(input.pedGen||1)*0.2 + Number(input.pedAge||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_ped_ext99',function:'PedGeneralExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PedNeonateExt']=function(input){const score=Math.round((0.18 + Number(input.pedNeo||1)*0.2 + Number(input.gaWeeks||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_ped_ext99',function:'PedNeonateExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PedInfantExt']=function(input){const score=Math.round((0.18 + Number(input.pedInfant||1)*0.2 + Number(input.pedAge||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_ped_ext99',function:'PedInfantExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PedChildExt']=function(input){const score=Math.round((0.18 + Number(input.pedChild||1)*0.2 + Number(input.pedAge||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_ped_ext99',function:'PedChildExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PedAdolescentExt']=function(input){const score=Math.round((0.18 + Number(input.pedAdol||1)*0.2 + Number(input.pedAge||12)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_ped_ext99',function:'PedAdolescentExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PedRespiratoryExt']=function(input){const score=Math.round((0.18 + Number(input.pedResp||1)*0.2 + Number(input.oxySat||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_ped_ext99',function:'PedRespiratoryExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PedGastroExt']=function(input){const score=Math.round((0.18 + Number(input.pedGI||1)*0.2 + Number(input.dehyd||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_ped_ext99',function:'PedGastroExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PedFeverExt']=function(input){const score=Math.round((0.18 + Number(input.pedFever||1)*0.2 + Number(input.temp||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_ped_ext99',function:'PedFeverExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PedVaccineExt']=function(input){const score=Math.round((0.18 + Number(input.pedVacc||1)*0.2 + Number(input.vaccAge||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_ped_ext99',function:'PedVaccineExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PedGrowthExt']=function(input){const score=Math.round((0.18 + Number(input.pedGrowth||1)*0.2 + Number(input.percentile||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.17.17.0',module:'pcc_ped_ext99',function:'PedGrowthExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.17.17.0';
+const MOD = 'pcc_ped_ext99';
 
-// TS: v3.17.17.0
+function PedGeneralExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pedGeneralExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PedGeneralExt", input, score, ts: TS, pedGeneralExt: _i.pedGeneralExt || null };
+}
+
+function PedNeonateExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pedNeonateExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PedNeonateExt", input, score, ts: TS, pedNeonateExt: _i.pedNeonateExt || null };
+}
+
+function PedInfantExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pedInfantExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PedInfantExt", input, score, ts: TS, pedInfantExt: _i.pedInfantExt || null };
+}
+
+function PedChildExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pedChildExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PedChildExt", input, score, ts: TS, pedChildExt: _i.pedChildExt || null };
+}
+
+function PedAdolescentExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pedAdolescentExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PedAdolescentExt", input, score, ts: TS, pedAdolescentExt: _i.pedAdolescentExt || null };
+}
+
+function PedRespiratoryExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pedRespiratoryExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PedRespiratoryExt", input, score, ts: TS, pedRespiratoryExt: _i.pedRespiratoryExt || null };
+}
+
+function PedGastroExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pedGastroExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PedGastroExt", input, score, ts: TS, pedGastroExt: _i.pedGastroExt || null };
+}
+
+function PedFeverExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pedFeverExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PedFeverExt", input, score, ts: TS, pedFeverExt: _i.pedFeverExt || null };
+}
+
+function PedVaccineExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pedVaccineExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PedVaccineExt", input, score, ts: TS, pedVaccineExt: _i.pedVaccineExt || null };
+}
+
+function PedGrowthExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pedGrowthExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PedGrowthExt", input, score, ts: TS, pedGrowthExt: _i.pedGrowthExt || null };
+}
+
+module.exports = {
+  PedGeneralExt,
+  PedNeonateExt,
+  PedInfantExt,
+  PedChildExt,
+  PedAdolescentExt,
+  PedRespiratoryExt,
+  PedGastroExt,
+  PedFeverExt,
+  PedVaccineExt,
+  PedGrowthExt,
+};

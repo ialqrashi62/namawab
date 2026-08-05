@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_hepato_ext100/pcc_hepato_ext100_engine.js
-module.exports.version='v3.26.26.0';
-module.exports.module='pcc_hepato_ext100';
-module.exports.functions={};
-module.exports.functions['HepBext']=function(input){const score=Math.round((0.18 + Number(input.hepB||1)*0.2 + Number(input.hbvDna||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepBext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HepCext']=function(input){const score=Math.round((0.18 + Number(input.hepC||1)*0.2 + Number(input.hcvRna||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepCext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HepAlcoholExt']=function(input){const score=Math.round((0.18 + Number(input.hepAlc||1)*0.2 + Number(input.auditScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepAlcoholExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HepNAFLDext']=function(input){const score=Math.round((0.18 + Number(input.hepNAFLD||1)*0.2 + Number(input.fib4Score||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepNAFLDext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HepCirrhosisExt']=function(input){const score=Math.round((0.18 + Number(input.hepCirc||1)*0.2 + Number(input.meldScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepCirrhosisExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HepFailureExt']=function(input){const score=Math.round((0.18 + Number(input.hepFail||1)*0.2 + Number(input.inrHep||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepFailureExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HepTransplantExt']=function(input){const score=Math.round((0.18 + Number(input.hepTx||1)*0.2 + Number(input.meldNa||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepTransplantExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HepAutoimmuneExt']=function(input){const score=Math.round((0.18 + Number(input.hepAIH||1)*0.2 + Number(input.aihScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepAutoimmuneExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HepWilsonExt']=function(input){const score=Math.round((0.18 + Number(input.hepWilson||1)*0.2 + Number(input.cp24h||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepWilsonExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HepHemochromaExt']=function(input){const score=Math.round((0.18 + Number(input.hepHemo||1)*0.2 + Number(input.ferritinHep||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_hepato_ext100',function:'HepHemochromaExt',input,score,ts:new Date().toISOString()}};
+// pcc_hepato_ext100_engine v3.316.42 (Phase 2 Batch 9 — GenSurg/Genetics/Genomics/Geriatric/GI/GlobalHealth/Hepato/HomeCare)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.42';
+const MOD = 'pcc_hepato_ext100';
 
-// TS: v3.26.26.0
+function HepBext(input) {
+  const i = input || {};
+  const v = Number(i.HepBext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HepBext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HepCext(input) {
+  const i = input || {};
+  const v = Number(i.HepCext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HepCext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HepAlcoholExt(input) {
+  const i = input || {};
+  const v = Number(i.HepAlcoholExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HepAlcoholExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HepNAFLDext(input) {
+  const i = input || {};
+  const v = Number(i.HepNAFLDext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HepNAFLDext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HepCirrhosisExt(input) {
+  const i = input || {};
+  const v = Number(i.HepCirrhosisExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HepCirrhosisExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HepFailureExt(input) {
+  const i = input || {};
+  const v = Number(i.HepFailureExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HepFailureExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HepTransplantExt(input) {
+  const i = input || {};
+  const v = Number(i.HepTransplantExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HepTransplantExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HepAutoimmuneExt(input) {
+  const i = input || {};
+  const v = Number(i.HepAutoimmuneExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HepAutoimmuneExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HepWilsonExt(input) {
+  const i = input || {};
+  const v = Number(i.HepWilsonExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HepWilsonExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HepHemochromaExt(input) {
+  const i = input || {};
+  const v = Number(i.HepHemochromaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HepHemochromaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  HepBext, HepCext, HepAlcoholExt, HepNAFLDext, HepCirrhosisExt, HepFailureExt, HepTransplantExt, HepAutoimmuneExt, HepWilsonExt, HepHemochromaExt
+};

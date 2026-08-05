@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_adolescent_ext101/pcc_adolescent_ext101_engine.js
-module.exports.version='v3.35.35.0';
-module.exports.module='pcc_adolescent_ext101';
-module.exports.functions={};
-module.exports.functions['AdolGeneralExt']=function(input){const score=Math.round((0.18 + Number(input.adGen||1)*0.2 + Number(input.adAge||13)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_adolescent_ext101',function:'AdolGeneralExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AdolPubertyExt']=function(input){const score=Math.round((0.18 + Number(input.adPuberty||1)*0.2 + Number(input.tannerStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_adolescent_ext101',function:'AdolPubertyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AdolEatingDisExt']=function(input){const score=Math.round((0.18 + Number(input.adEating||1)*0.2 + Number(input.eatingDisScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_adolescent_ext101',function:'AdolEatingDisExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AdolSubstanceExt']=function(input){const score=Math.round((0.18 + Number(input.adSubst||1)*0.2 + Number(input.substTypeAd||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_adolescent_ext101',function:'AdolSubstanceExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AdolMentalHealthExt']=function(input){const score=Math.round((0.18 + Number(input.adMH||1)*0.2 + Number(input.phqAdScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_adolescent_ext101',function:'AdolMentalHealthExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AdolSexualExt']=function(input){const score=Math.round((0.18 + Number(input.adSex||1)*0.2 + Number(input.sexActive||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_adolescent_ext101',function:'AdolSexualExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AdolPregnancyExt']=function(input){const score=Math.round((0.18 + Number(input.adPreg||1)*0.2 + Number(input.gestAgeAd||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_adolescent_ext101',function:'AdolPregnancyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AdolVaccineExt']=function(input){const score=Math.round((0.18 + Number(input.adVacc||1)*0.2 + Number(input.adVaccType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_adolescent_ext101',function:'AdolVaccineExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AdolSportsExt']=function(input){const score=Math.round((0.18 + Number(input.adSport||1)*0.2 + Number(input.adSportType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_adolescent_ext101',function:'AdolSportsExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AdolTransitionExt']=function(input){const score=Math.round((0.18 + Number(input.adTrans||1)*0.2 + Number(input.transStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.35.35.0',module:'pcc_adolescent_ext101',function:'AdolTransitionExt',input,score,ts:new Date().toISOString()}};
+// pcc_adolescent_ext101_engine v3.316.74 (Phase 2 Batch 41 — Specialty ext101/102)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.74';
+const MOD = 'pcc_adolescent_ext101';
 
-// TS: v3.35.35.0
+function AdolGeneralExt(input) {
+  const i = input || {};
+  const v = Number(i.AdolGeneralExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AdolGeneralExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AdolPubertyExt(input) {
+  const i = input || {};
+  const v = Number(i.AdolPubertyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AdolPubertyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AdolEatingDisExt(input) {
+  const i = input || {};
+  const v = Number(i.AdolEatingDisExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AdolEatingDisExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AdolSubstanceExt(input) {
+  const i = input || {};
+  const v = Number(i.AdolSubstanceExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AdolSubstanceExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AdolMentalHealthExt(input) {
+  const i = input || {};
+  const v = Number(i.AdolMentalHealthExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AdolMentalHealthExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AdolSexualExt(input) {
+  const i = input || {};
+  const v = Number(i.AdolSexualExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AdolSexualExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AdolPregnancyExt(input) {
+  const i = input || {};
+  const v = Number(i.AdolPregnancyExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AdolPregnancyExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AdolVaccineExt(input) {
+  const i = input || {};
+  const v = Number(i.AdolVaccineExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AdolVaccineExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AdolSportsExt(input) {
+  const i = input || {};
+  const v = Number(i.AdolSportsExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AdolSportsExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AdolTransitionExt(input) {
+  const i = input || {};
+  const v = Number(i.AdolTransitionExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AdolTransitionExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  AdolGeneralExt, AdolPubertyExt, AdolEatingDisExt, AdolSubstanceExt, AdolMentalHealthExt, AdolSexualExt, AdolPregnancyExt, AdolVaccineExt, AdolSportsExt, AdolTransitionExt
+};

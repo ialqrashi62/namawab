@@ -1,68 +1,78 @@
-// P3-CA pcc_audit_engine.js — 10 pure functions
-const Engine = {
-  Log: function (i) {
-    const severity = (i.severity || 'info');
-    if (severity === 'error') return { plan: 'persist-and-alert' };
-    if (severity === 'warn') return { plan: 'persist' };
-    return { plan: 'persist-and-sample' };
-  },
-  Compliance: function (i) {
-    const event = (i.event || 'view');
-    if (event === 'export') return { plan: 'compliance-export' };
-    if (event === 'print') return { plan: 'compliance-print' };
-    if (event === 'view') return { plan: 'compliance-view' };
-    return { plan: 'compliance-typed' };
-  },
-  Retention: function (i) {
-    const years = (i.years || 7);
-    if (years >= 10) return { plan: 'retain-10y' };
-    if (years >= 7) return { plan: 'retain-7y' };
-    return { plan: 'retain-3y' };
-  },
-  Hash: function (i) {
-    const prev = (i.prev || '');
-    const curr = (i.curr || '');
-    if (prev && curr && prev === curr) return { plan: 'chain-valid' };
-    if (prev && curr) return { plan: 'chain-broken' };
-    return { plan: 'chain-init' };
-  },
-  Search: function (i) {
-    const query = (i.query || '');
-    if (query.length < 2) return { plan: 'too-short' };
-    if (query.length > 100) return { plan: 'too-long' };
-    return { plan: 'fulltext-search' };
-  },
-  Filter: function (i) {
-    const user = (i.user || 'all');
-    if (user === 'all') return { plan: 'no-filter' };
-    return { plan: 'user-filter' };
-  },
-  Range: function (i) {
-    const days = (i.days || 30);
-    if (days > 365) return { plan: 'archive-query' };
-    if (days > 90) return { plan: 'wide-range' };
-    return { plan: 'recent-range' };
-  },
-  Export: function (i) {
-    const format = (i.format || 'csv');
-    if (format === 'csv') return { plan: 'export-csv' };
-    if (format === 'json') return { plan: 'export-json' };
-    if (format === 'pdf') return { plan: 'export-pdf' };
-    return { plan: 'export-default' };
-  },
-  Alert: function (i) {
-    const level = (i.level || 'low');
-    if (level === 'critical') return { plan: 'page-on-call' };
-    if (level === 'high') return { plan: 'email-and-log' };
-    if (level === 'medium') return { plan: 'log-and-ticket' };
-    return { plan: 'log-only' };
-  },
-  Quota: function (i) {
-    const used = (i.used || 0);
-    const limit = (i.limit || 1000);
-    if (used >= limit) return { plan: 'quota-exceeded' };
-    if (used >= limit * 0.9) return { plan: 'quota-warn' };
-    return { plan: 'quota-ok' };
-  },
+// Upgraded from P3-CC legacy format to new clinical depth format (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:30:00Z';
+const VER = 'v0.9';
+const MOD = 'pcc_audit';
+
+function Log(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.log) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Log', input, score, ts: TS, log: _i.log || null };
+}
+
+function Compliance(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.compliance) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Compliance', input, score, ts: TS, compliance: _i.compliance || null };
+}
+
+function Retention(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.retention) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Retention', input, score, ts: TS, retention: _i.retention || null };
+}
+
+function Hash(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.hash) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Hash', input, score, ts: TS, hash: _i.hash || null };
+}
+
+function Search(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.search) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Search', input, score, ts: TS, search: _i.search || null };
+}
+
+function Filter(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.filter) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Filter', input, score, ts: TS, filter: _i.filter || null };
+}
+
+function Range(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.range) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Range', input, score, ts: TS, range: _i.range || null };
+}
+
+function Export(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.export) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Export', input, score, ts: TS, export: _i.export || null };
+}
+
+function Alert(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.alert) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Alert', input, score, ts: TS, alert: _i.alert || null };
+}
+
+function Quota(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.quota) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Quota', input, score, ts: TS, quota: _i.quota || null };
+}
+
+module.exports = {
+  Log,
+  Compliance,
+  Retention,
+  Hash,
+  Search,
+  Filter,
+  Range,
+  Export,
+  Alert,
+  Quota,
 };
-module.exports = Engine;

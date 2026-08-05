@@ -1,74 +1,78 @@
-// P3-CD pcc_imaging_engine.js — 10 pure functions
-const Engine = {
-  Modality: function (i) {
-    const type = (i.type || 'CT');
-    if (type === 'CT') return { plan: 'CT-scan' };
-    if (type === 'MRI') return { plan: 'MRI-scan' };
-    if (type === 'US') return { plan: 'ultrasound' };
-    if (type === 'Xray') return { plan: 'xray' };
-    return { plan: 'modality-typed' };
-  },
-  Indication: function (i) {
-    const ind = (i.ind || 'r/o-fracture');
-    if (ind === 'PE') return { plan: 'CTPA' };
-    if (ind === 'stroke') return { plan: 'CT-head-CTA' };
-    if (ind === 'trauma') return { plan: 'pan-scan' };
-    if (ind === 'mass') return { plan: 'MRI-with-contrast' };
-    return { plan: 'standard-imaging' };
-  },
-  Contrast: function (i) {
-    const type = (i.type || 'none');
-    if (type === 'iodinated' && i.gfr && i.gfr < 30) return { plan: 'avoid-contrast' };
-    if (type === 'gadolinium' && i.gfr && i.gfr < 30) return { plan: 'avoid-contrast' };
-    if (type === 'iodinated') return { plan: 'iodinated-contrast' };
-    if (type === 'gadolinium') return { plan: 'gadolinium-contrast' };
-    return { plan: 'no-contrast' };
-  },
-  Dose: function (i) {
-    const ctdi = (i.ctdi || 5);
-    if (ctdi > 20) return { plan: 'high-dose' };
-    if (ctdi > 10) return { plan: 'moderate-dose' };
-    if (ctdi > 5) return { plan: 'low-dose' };
-    return { plan: 'ultra-low-dose' };
-  },
-  Protocol: function (i) {
-    const body = (i.body || 'head');
-    if (body === 'head') return { plan: 'head-protocol' };
-    if (body === 'chest') return { plan: 'chest-protocol' };
-    if (body === 'abdomen') return { plan: 'abdomen-protocol' };
-    if (body === 'pelvis') return { plan: 'pelvis-protocol' };
-    return { plan: 'generic-protocol' };
-  },
-  Urgency: function (i) {
-    const level = (i.level || 'routine');
-    if (level === 'stat') return { plan: 'stat-protocol' };
-    if (level === 'urgent') return { plan: 'urgent-protocol' };
-    return { plan: 'routine-protocol' };
-  },
-  Quality: function (i) {
-    const score = (i.score || 80);
-    if (score >= 90) return { plan: 'excellent-quality' };
-    if (score >= 70) return { plan: 'acceptable-quality' };
-    if (score >= 50) return { plan: 'repeat-needed' };
-    return { plan: 'uninterpretable' };
-  },
-  Comparison: function (i) {
-    const prior = (i.prior || 'no');
-    if (prior === 'yes') return { plan: 'compare-prior' };
-    return { plan: 'no-comparison' };
-  },
-  FollowUp: function (i) {
-    const finding = (i.finding || 'normal');
-    if (finding === 'worrisome') return { plan: 'short-FU' };
-    if (finding === 'stable') return { plan: 'standard-FU' };
-    if (finding === 'normal') return { plan: 'no-FU' };
-    return { plan: 'FU-typed' };
-  },
-  Report: function (i) {
-    const level = (i.level || 'standard');
-    if (level === 'critical') return { plan: 'critical-findings' };
-    if (level === 'urgent') return { plan: 'urgent-findings' };
-    return { plan: 'standard-report' };
-  },
+// Upgraded from P3-CC legacy format to new clinical depth format (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:30:00Z';
+const VER = 'v3.41.0';
+const MOD = 'pcc_imaging';
+
+function Modality(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.modality) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Modality', input, score, ts: TS, modality: _i.modality || null };
+}
+
+function Indication(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.indication) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Indication', input, score, ts: TS, indication: _i.indication || null };
+}
+
+function Contrast(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.contrast) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Contrast', input, score, ts: TS, contrast: _i.contrast || null };
+}
+
+function Dose(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.dose) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Dose', input, score, ts: TS, dose: _i.dose || null };
+}
+
+function Protocol(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.protocol) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Protocol', input, score, ts: TS, protocol: _i.protocol || null };
+}
+
+function Urgency(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.urgency) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Urgency', input, score, ts: TS, urgency: _i.urgency || null };
+}
+
+function Quality(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.quality) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Quality', input, score, ts: TS, quality: _i.quality || null };
+}
+
+function Comparison(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.comparison) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Comparison', input, score, ts: TS, comparison: _i.comparison || null };
+}
+
+function FollowUp(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.followUp) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'FollowUp', input, score, ts: TS, followUp: _i.followUp || null };
+}
+
+function Report(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.report) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Report', input, score, ts: TS, report: _i.report || null };
+}
+
+module.exports = {
+  Modality,
+  Indication,
+  Contrast,
+  Dose,
+  Protocol,
+  Urgency,
+  Quality,
+  Comparison,
+  FollowUp,
+  Report,
 };
-module.exports = Engine;

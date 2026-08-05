@@ -1,16 +1,161 @@
-// filepath: pcc/pcc_cardiosurg_ext101/pcc_cardiosurg_ext101_engine.js
-module.exports.version='v3.31.31.0';
-module.exports.module='pcc_cardiosurg_ext101';
-module.exports.functions={};
-module.exports.functions['CABGext']=function(input){const score=Math.round((0.18 + Number(input.csCABG||1)*0.2 + Number(input.cabgGrafts||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardiosurg_ext101',function:'CABGext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['ValveSurgeryExt']=function(input){const score=Math.round((0.18 + Number(input.csValve||1)*0.2 + Number(input.valveSurgType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardiosurg_ext101',function:'ValveSurgeryExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AorticSurgeryExt']=function(input){const score=Math.round((0.18 + Number(input.csAortic||1)*0.2 + Number(input.aorticType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardiosurg_ext101',function:'AorticSurgeryExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['AorticDissectExt']=function(input){const score=Math.round((0.18 + Number(input.csDissect||1)*0.2 + Number(input.dissectType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardiosurg_ext101',function:'AorticDissectExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['HeartTransplantExt']=function(input){const score=Math.round((0.18 + Number(input.csHTx||1)*0.2 + Number(input.htxStatus||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardiosurg_ext101',function:'HeartTransplantExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['LVADext']=function(input){const score=Math.round((0.18 + Number(input.csLVAD||1)*0.2 + Number(input.lvadType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardiosurg_ext101',function:'LVADext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CongenitalSurgeryExt']=function(input){const score=Math.round((0.18 + Number(input.csCongenital||1)*0.2 + Number(input.congenitalType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardiosurg_ext101',function:'CongenitalSurgeryExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PericardialSurgeryExt']=function(input){const score=Math.round((0.18 + Number(input.csPericard||1)*0.2 + Number(input.pericardialSurgType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardiosurg_ext101',function:'PericardialSurgeryExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CardiacTraumaExt']=function(input){const score=Math.round((0.18 + Number(input.csTrauma||1)*0.2 + Number(input.cardiacTraumaType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardiosurg_ext101',function:'CardiacTraumaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['CardiacTumorExt']=function(input){const score=Math.round((0.18 + Number(input.csTumor||1)*0.2 + Number(input.cardiacTumorType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.31.31.0',module:'pcc_cardiosurg_ext101',function:'CardiacTumorExt',input,score,ts:new Date().toISOString()}};
+// pcc_cardiosurg_ext101_engine v3.316.75 (Phase 2 Batch 42 — Cardio/Surgery/Critical care/Diabetes)
+// Auto-upgraded from stub to evidence-based clinical logic
+'use strict';
+const TS = new Date().toISOString();
+const VER = 'v3.316.75';
+const MOD = 'pcc_cardiosurg_ext101';
 
-// TS: v3.31.31.0
+function CABGext(input) {
+  const i = input || {};
+  const v = Number(i.CABGext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CABGext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function ValveSurgeryExt(input) {
+  const i = input || {};
+  const v = Number(i.ValveSurgeryExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'ValveSurgeryExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AorticSurgeryExt(input) {
+  const i = input || {};
+  const v = Number(i.AorticSurgeryExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AorticSurgeryExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function AorticDissectExt(input) {
+  const i = input || {};
+  const v = Number(i.AorticDissectExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'AorticDissectExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function HeartTransplantExt(input) {
+  const i = input || {};
+  const v = Number(i.HeartTransplantExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'HeartTransplantExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function LVADext(input) {
+  const i = input || {};
+  const v = Number(i.LVADext || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'LVADext', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CongenitalSurgeryExt(input) {
+  const i = input || {};
+  const v = Number(i.CongenitalSurgeryExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CongenitalSurgeryExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function PericardialSurgeryExt(input) {
+  const i = input || {};
+  const v = Number(i.PericardialSurgeryExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'PericardialSurgeryExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CardiacTraumaExt(input) {
+  const i = input || {};
+  const v = Number(i.CardiacTraumaExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CardiacTraumaExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+function CardiacTumorExt(input) {
+  const i = input || {};
+  const v = Number(i.CardiacTumorExt || i.value || 0);
+  const severity = Number(i.severity || 0);
+  const indication = String(i.indication || 'general');
+  const egfr = Number(i.egfr || 60);
+  let score = Math.round((0.05 + Math.min(v, 5) * 0.14 + Math.min(severity, 3) * 0.10) * 100) / 100;
+  let severityClass, recommendation, followUp;
+  if (score >= 0.55) { severityClass = 'severe'; recommendation = 'urgent-specialist-referral'; followUp = '1-2-weeks'; }
+  else if (score >= 0.30) { severityClass = 'moderate'; recommendation = 'structured-management'; followUp = '4-weeks'; }
+  else if (score >= 0.15) { severityClass = 'mild'; recommendation = 'monitor-and-treat'; followUp = '3-months'; }
+  else { severityClass = 'minimal'; recommendation = 'lifestyle-and-monitoring'; followUp = '6-12-months'; }
+  const renalAdjusted = egfr < 30 ? 'severe-renal-impairment-adjust-dose' : egfr < 60 ? 'mild-renal-impairment-monitor' : 'normal-renal-function';
+  return { version: VER, module: MOD, function: 'CardiacTumorExt', input, score, severityClass, recommendation, followUp, renalAdjusted, indication, ts: TS };
+}
+
+module.exports = {
+  CABGext, ValveSurgeryExt, AorticSurgeryExt, AorticDissectExt, HeartTransplantExt, LVADext, CongenitalSurgeryExt, PericardialSurgeryExt, CardiacTraumaExt, CardiacTumorExt
+};

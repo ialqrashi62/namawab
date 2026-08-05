@@ -1,4 +1,4 @@
-// P3-CG pcc_pharmacy_engine v3.45.0
+// P3_CG pcc_pharmacy_engine v3.45.0
 'use strict';
 function Dispense(input) {
   const i = input || {};

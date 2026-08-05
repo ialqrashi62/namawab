@@ -1,4 +1,4 @@
-// P3-DQ pcc_dermatology_advanced_engine v3.81.0
+// P3_DQ pcc_dermatology_advanced_engine v3.81.0
 'use strict';
 function PsoriasisAdvanced(input) {
   const i = input || {};

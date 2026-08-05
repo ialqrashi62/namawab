@@ -1,71 +1,78 @@
-// P3-CB pcc_analytics_engine.js — 10 pure functions
-const Engine = {
-  Aggregate: function (i) {
-    const type = (i.type || 'count');
-    if (type === 'sum') return { plan: 'agg-sum' };
-    if (type === 'avg') return { plan: 'agg-avg' };
-    if (type === 'count') return { plan: 'agg-count' };
-    if (type === 'max') return { plan: 'agg-max' };
-    return { plan: 'agg-default' };
-  },
-  Group: function (i) {
-    const field = (i.field || 'date');
-    if (field === 'date') return { plan: 'group-by-date' };
-    if (field === 'tenant') return { plan: 'group-by-tenant' };
-    if (field === 'module') return { plan: 'group-by-module' };
-    return { plan: 'group-by-default' };
-  },
-  Trend: function (i) {
-    const days = (i.days || 30);
-    if (days > 365) return { plan: 'trend-yearly' };
-    if (days > 90) return { plan: 'trend-quarterly' };
-    if (days > 30) return { plan: 'trend-monthly' };
-    return { plan: 'trend-daily' };
-  },
-  Anomaly: function (i) {
-    const score = (i.score || 0);
-    if (score >= 3) return { plan: 'anomaly-high' };
-    if (score >= 2) return { plan: 'anomaly-medium' };
-    if (score >= 1) return { plan: 'anomaly-low' };
-    return { plan: 'anomaly-none' };
-  },
-  Cohort: function (i) {
-    const size = (i.size || 10);
-    if (size >= 100) return { plan: 'cohort-large' };
-    if (size >= 10) return { plan: 'cohort-medium' };
-    return { plan: 'cohort-small' };
-  },
-  Funnel: function (i) {
-    const step = (i.step || 1);
-    if (step >= 5) return { plan: 'funnel-bottom' };
-    if (step >= 1) return { plan: 'funnel-step' };
-    return { plan: 'funnel-top' };
-  },
-  Retention: function (i) {
-    const days = (i.days || 30);
-    if (days >= 90) return { plan: 'high-retention' };
-    if (days >= 30) return { plan: 'medium-retention' };
-    return { plan: 'low-retention' };
-  },
-  Conversion: function (i) {
-    const rate = (i.rate || 50);
-    if (rate >= 80) return { plan: 'high-conversion' };
-    if (rate >= 50) return { plan: 'medium-conversion' };
-    return { plan: 'low-conversion' };
-  },
-  KPI: function (i) {
-    const target = (i.target || 100);
-    const actual = (i.actual || 50);
-    if (actual >= target) return { plan: 'kpi-met' };
-    if (actual >= target * 0.9) return { plan: 'kpi-near' };
-    return { plan: 'kpi-missed' };
-  },
-  Report: function (i) {
-    const type = (i.type || 'daily');
-    if (type === 'annual') return { plan: 'report-annual' };
-    if (type === 'quarterly') return { plan: 'report-quarterly' };
-    if (type === 'monthly') return { plan: 'report-monthly' };
-    return { plan: 'report-daily' };
-  },
+// Upgraded from P3-CC legacy format to new clinical depth format (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:30:00Z';
+const VER = 'v0.9';
+const MOD = 'pcc_analytics';
+
+function Aggregate(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.aggregate) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Aggregate', input, score, ts: TS, aggregate: _i.aggregate || null };
+}
+
+function Group(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.group) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Group', input, score, ts: TS, group: _i.group || null };
+}
+
+function Trend(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.trend) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Trend', input, score, ts: TS, trend: _i.trend || null };
+}
+
+function Anomaly(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.anomaly) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Anomaly', input, score, ts: TS, anomaly: _i.anomaly || null };
+}
+
+function Cohort(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.cohort) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Cohort', input, score, ts: TS, cohort: _i.cohort || null };
+}
+
+function Funnel(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.funnel) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Funnel', input, score, ts: TS, funnel: _i.funnel || null };
+}
+
+function Retention(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.retention) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Retention', input, score, ts: TS, retention: _i.retention || null };
+}
+
+function Conversion(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.conversion) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Conversion', input, score, ts: TS, conversion: _i.conversion || null };
+}
+
+function KPI(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.kPI) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'KPI', input, score, ts: TS, kPI: _i.kPI || null };
+}
+
+function Report(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.report) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Report', input, score, ts: TS, report: _i.report || null };
+}
+
+module.exports = {
+  Aggregate,
+  Group,
+  Trend,
+  Anomaly,
+  Cohort,
+  Funnel,
+  Retention,
+  Conversion,
+  KPI,
+  Report,
 };
-module.exports = Engine;

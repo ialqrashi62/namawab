@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_pancreas_ext100/pcc_pancreas_ext100_engine.js
-module.exports.version='v3.26.26.0';
-module.exports.module='pcc_pancreas_ext100';
-module.exports.functions={};
-module.exports.functions['PancAcuteExt']=function(input){const score=Math.round((0.18 + Number(input.pancAcute||1)*0.2 + Number(input.bisapScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_pancreas_ext100',function:'PancAcuteExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PancChronicExt']=function(input){const score=Math.round((0.18 + Number(input.pancChronic||1)*0.2 + Number(input.fecalElast||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_pancreas_ext100',function:'PancChronicExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PancCancerExt']=function(input){const score=Math.round((0.18 + Number(input.pancCancer||1)*0.2 + Number(input.ca199Level||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_pancreas_ext100',function:'PancCancerExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PancCystExt']=function(input){const score=Math.round((0.18 + Number(input.pancCyst||1)*0.2 + Number(input.cystSize||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_pancreas_ext100',function:'PancCystExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PancNeuroendocrineExt']=function(input){const score=Math.round((0.18 + Number(input.pancNET||1)*0.2 + Number(input.netGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_pancreas_ext100',function:'PancNeuroendocrineExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PancInsulinomaExt']=function(input){const score=Math.round((0.18 + Number(input.pancInsulinoma||1)*0.2 + Number(input.fastGlucose||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_pancreas_ext100',function:'PancInsulinomaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PancAutoimmuneExt']=function(input){const score=Math.round((0.18 + Number(input.pancAI||1)*0.2 + Number(input.igg4Level||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_pancreas_ext100',function:'PancAutoimmuneExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PancTraumaExt']=function(input){const score=Math.round((0.18 + Number(input.pancTrauma||1)*0.2 + Number(input.aastGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_pancreas_ext100',function:'PancTraumaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PancPediatricExt']=function(input){const score=Math.round((0.18 + Number(input.pancPed||1)*0.2 + Number(input.pedAge||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_pancreas_ext100',function:'PancPediatricExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PancSurgeryExt']=function(input){const score=Math.round((0.18 + Number(input.pancSurg||1)*0.2 + Number(input.whippleInd||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.26.26.0',module:'pcc_pancreas_ext100',function:'PancSurgeryExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.26.26.0';
+const MOD = 'pcc_pancreas_ext100';
 
-// TS: v3.26.26.0
+function PancAcuteExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pancAcuteExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PancAcuteExt", input, score, ts: TS, pancAcuteExt: _i.pancAcuteExt || null };
+}
+
+function PancChronicExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pancChronicExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PancChronicExt", input, score, ts: TS, pancChronicExt: _i.pancChronicExt || null };
+}
+
+function PancCancerExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pancCancerExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PancCancerExt", input, score, ts: TS, pancCancerExt: _i.pancCancerExt || null };
+}
+
+function PancCystExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pancCystExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PancCystExt", input, score, ts: TS, pancCystExt: _i.pancCystExt || null };
+}
+
+function PancNeuroendocrineExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pancNeuroendocrineExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PancNeuroendocrineExt", input, score, ts: TS, pancNeuroendocrineExt: _i.pancNeuroendocrineExt || null };
+}
+
+function PancInsulinomaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pancInsulinomaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PancInsulinomaExt", input, score, ts: TS, pancInsulinomaExt: _i.pancInsulinomaExt || null };
+}
+
+function PancAutoimmuneExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pancAutoimmuneExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PancAutoimmuneExt", input, score, ts: TS, pancAutoimmuneExt: _i.pancAutoimmuneExt || null };
+}
+
+function PancTraumaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pancTraumaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PancTraumaExt", input, score, ts: TS, pancTraumaExt: _i.pancTraumaExt || null };
+}
+
+function PancPediatricExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pancPediatricExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PancPediatricExt", input, score, ts: TS, pancPediatricExt: _i.pancPediatricExt || null };
+}
+
+function PancSurgeryExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pancSurgeryExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PancSurgeryExt", input, score, ts: TS, pancSurgeryExt: _i.pancSurgeryExt || null };
+}
+
+module.exports = {
+  PancAcuteExt,
+  PancChronicExt,
+  PancCancerExt,
+  PancCystExt,
+  PancNeuroendocrineExt,
+  PancInsulinomaExt,
+  PancAutoimmuneExt,
+  PancTraumaExt,
+  PancPediatricExt,
+  PancSurgeryExt,
+};

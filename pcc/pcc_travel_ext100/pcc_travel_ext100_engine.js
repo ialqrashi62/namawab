@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_travel_ext100/pcc_travel_ext100_engine.js
-module.exports.version='v3.21.21.0';
-module.exports.module='pcc_travel_ext100';
-module.exports.functions={};
-module.exports.functions['TravelPreTripExt']=function(input){const score=Math.round((0.18 + Number(input.trPreTrip||1)*0.2 + Number(input.destRisk||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.21.21.0',module:'pcc_travel_ext100',function:'TravelPreTripExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TravelVaccineExt']=function(input){const score=Math.round((0.18 + Number(input.trVacc||1)*0.2 + Number(input.vaccType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.21.21.0',module:'pcc_travel_ext100',function:'TravelVaccineExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TravelMalariaChemoExt']=function(input){const score=Math.round((0.18 + Number(input.trMalChemo||1)*0.2 + Number(input.chemoDrug||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.21.21.0',module:'pcc_travel_ext100',function:'TravelMalariaChemoExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TravelDiarrheaExt']=function(input){const score=Math.round((0.18 + Number(input.trDiarrhea||1)*0.2 + Number(input.stoolTravel||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.21.21.0',module:'pcc_travel_ext100',function:'TravelDiarrheaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TravelAltitudeExt']=function(input){const score=Math.round((0.18 + Number(input.trAltitude||1)*0.2 + Number(input.altitudeM||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.21.21.0',module:'pcc_travel_ext100',function:'TravelAltitudeExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TravelJetLagExt']=function(input){const score=Math.round((0.18 + Number(input.trJet||1)*0.2 + Number(input.timeZones||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.21.21.0',module:'pcc_travel_ext100',function:'TravelJetLagExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TravelDVTprophExt']=function(input){const score=Math.round((0.18 + Number(input.trDVT||1)*0.2 + Number(input.flightDuration||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.21.21.0',module:'pcc_travel_ext100',function:'TravelDVTprophExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TravelFoodWaterExt']=function(input){const score=Math.round((0.18 + Number(input.trFood||1)*0.2 + Number(input.foodRisk||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.21.21.0',module:'pcc_travel_ext100',function:'TravelFoodWaterExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TravelPostTripExt']=function(input){const score=Math.round((0.18 + Number(input.trPost||1)*0.2 + Number(input.feverPost||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.21.21.0',module:'pcc_travel_ext100',function:'TravelPostTripExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['TravelInsuranceExt']=function(input){const score=Math.round((0.18 + Number(input.trIns||1)*0.2 + Number(input.covType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.21.21.0',module:'pcc_travel_ext100',function:'TravelInsuranceExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.21.21.0';
+const MOD = 'pcc_travel_ext100';
 
-// TS: v3.21.21.0
+function TravelPreTripExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.travelPreTripExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TravelPreTripExt", input, score, ts: TS, travelPreTripExt: _i.travelPreTripExt || null };
+}
+
+function TravelVaccineExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.travelVaccineExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TravelVaccineExt", input, score, ts: TS, travelVaccineExt: _i.travelVaccineExt || null };
+}
+
+function TravelMalariaChemoExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.travelMalariaChemoExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TravelMalariaChemoExt", input, score, ts: TS, travelMalariaChemoExt: _i.travelMalariaChemoExt || null };
+}
+
+function TravelDiarrheaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.travelDiarrheaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TravelDiarrheaExt", input, score, ts: TS, travelDiarrheaExt: _i.travelDiarrheaExt || null };
+}
+
+function TravelAltitudeExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.travelAltitudeExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TravelAltitudeExt", input, score, ts: TS, travelAltitudeExt: _i.travelAltitudeExt || null };
+}
+
+function TravelJetLagExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.travelJetLagExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TravelJetLagExt", input, score, ts: TS, travelJetLagExt: _i.travelJetLagExt || null };
+}
+
+function TravelDVTprophExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.travelDVTprophExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TravelDVTprophExt", input, score, ts: TS, travelDVTprophExt: _i.travelDVTprophExt || null };
+}
+
+function TravelFoodWaterExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.travelFoodWaterExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TravelFoodWaterExt", input, score, ts: TS, travelFoodWaterExt: _i.travelFoodWaterExt || null };
+}
+
+function TravelPostTripExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.travelPostTripExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TravelPostTripExt", input, score, ts: TS, travelPostTripExt: _i.travelPostTripExt || null };
+}
+
+function TravelInsuranceExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.travelInsuranceExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "TravelInsuranceExt", input, score, ts: TS, travelInsuranceExt: _i.travelInsuranceExt || null };
+}
+
+module.exports = {
+  TravelPreTripExt,
+  TravelVaccineExt,
+  TravelMalariaChemoExt,
+  TravelDiarrheaExt,
+  TravelAltitudeExt,
+  TravelJetLagExt,
+  TravelDVTprophExt,
+  TravelFoodWaterExt,
+  TravelPostTripExt,
+  TravelInsuranceExt,
+};

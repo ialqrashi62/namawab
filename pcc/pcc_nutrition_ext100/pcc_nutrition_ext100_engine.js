@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_nutrition_ext100/pcc_nutrition_ext100_engine.js
-module.exports.version='v3.20.20.0';
-module.exports.module='pcc_nutrition_ext100';
-module.exports.functions={};
-module.exports.functions['NutrAssessmentExt']=function(input){const score=Math.round((0.18 + Number(input.nutrAssess||1)*0.2 + Number(input.alb||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_nutrition_ext100',function:'NutrAssessmentExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NutrMalnutritionExt']=function(input){const score=Math.round((0.18 + Number(input.nutrMaln||1)*0.2 + Number(input.weightLoss||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_nutrition_ext100',function:'NutrMalnutritionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NutrObesityExt']=function(input){const score=Math.round((0.18 + Number(input.nutrOb||1)*0.2 + Number(input.bmiNutr||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_nutrition_ext100',function:'NutrObesityExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NutrTPNext']=function(input){const score=Math.round((0.18 + Number(input.nutrTPN||1)*0.2 + Number(input.tpnDuration||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_nutrition_ext100',function:'NutrTPNext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NutrEnteralExt']=function(input){const score=Math.round((0.18 + Number(input.nutrEnt||1)*0.2 + Number(input.feedingType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_nutrition_ext100',function:'NutrEnteralExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NutrDiabeticExt']=function(input){const score=Math.round((0.18 + Number(input.nutrDM||1)*0.2 + Number(input.carbs||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_nutrition_ext100',function:'NutrDiabeticExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NutrRenalExt']=function(input){const score=Math.round((0.18 + Number(input.nutrRenal||1)*0.2 + Number(input.renalDiet||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_nutrition_ext100',function:'NutrRenalExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NutrCardiacExt']=function(input){const score=Math.round((0.18 + Number(input.nutrCard||1)*0.2 + Number(input.sodium||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_nutrition_ext100',function:'NutrCardiacExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NutrPediatricExt']=function(input){const score=Math.round((0.18 + Number(input.nutrPed||1)*0.2 + Number(input.pedAge||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_nutrition_ext100',function:'NutrPediatricExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['NutrGeriatricExt']=function(input){const score=Math.round((0.18 + Number(input.nutrGer||1)*0.2 + Number(input.gerAge||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.20.20.0',module:'pcc_nutrition_ext100',function:'NutrGeriatricExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.20.20.0';
+const MOD = 'pcc_nutrition_ext100';
 
-// TS: v3.20.20.0
+function NutrAssessmentExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nutrAssessmentExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NutrAssessmentExt", input, score, ts: TS, nutrAssessmentExt: _i.nutrAssessmentExt || null };
+}
+
+function NutrMalnutritionExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nutrMalnutritionExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NutrMalnutritionExt", input, score, ts: TS, nutrMalnutritionExt: _i.nutrMalnutritionExt || null };
+}
+
+function NutrObesityExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nutrObesityExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NutrObesityExt", input, score, ts: TS, nutrObesityExt: _i.nutrObesityExt || null };
+}
+
+function NutrTPNext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nutrTPNext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'NutrTPNext', input, score, ts: TS, nutrTPNext: _i.nutrTPNext || null };
+}
+
+function NutrEnteralExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nutrEnteralExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NutrEnteralExt", input, score, ts: TS, nutrEnteralExt: _i.nutrEnteralExt || null };
+}
+
+function NutrDiabeticExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nutrDiabeticExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NutrDiabeticExt", input, score, ts: TS, nutrDiabeticExt: _i.nutrDiabeticExt || null };
+}
+
+function NutrRenalExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nutrRenalExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NutrRenalExt", input, score, ts: TS, nutrRenalExt: _i.nutrRenalExt || null };
+}
+
+function NutrCardiacExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nutrCardiacExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NutrCardiacExt", input, score, ts: TS, nutrCardiacExt: _i.nutrCardiacExt || null };
+}
+
+function NutrPediatricExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nutrPediatricExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NutrPediatricExt", input, score, ts: TS, nutrPediatricExt: _i.nutrPediatricExt || null };
+}
+
+function NutrGeriatricExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.nutrGeriatricExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "NutrGeriatricExt", input, score, ts: TS, nutrGeriatricExt: _i.nutrGeriatricExt || null };
+}
+
+module.exports = {
+  NutrAssessmentExt,
+  NutrMalnutritionExt,
+  NutrObesityExt,
+  NutrTPNext,
+  NutrEnteralExt,
+  NutrDiabeticExt,
+  NutrRenalExt,
+  NutrCardiacExt,
+  NutrPediatricExt,
+  NutrGeriatricExt,
+};

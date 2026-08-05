@@ -1,71 +1,78 @@
-// P3-CB pcc_workflow_engine.js — 10 pure functions
-const Engine = {
-  State: function (i) {
-    const state = (i.state || 'pending');
-    if (state === 'pending') return { plan: 'awaiting-approval' };
-    if (state === 'approved') return { plan: 'ready-to-execute' };
-    if (state === 'rejected') return { plan: 'notify-and-archive' };
-    if (state === 'completed') return { plan: 'archive-and-close' };
-    return { plan: 'unknown-state' };
-  },
-  Transition: function (i) {
-    const from = (i.from || 'pending');
-    const to = (i.to || 'pending');
-    if (from === 'pending' && to === 'approved') return { plan: 'valid-transition' };
-    if (from === 'approved' && to === 'rejected') return { plan: 'valid-transition' };
-    if (from === 'approved' && to === 'completed') return { plan: 'valid-transition' };
-    return { plan: 'invalid-transition' };
-  },
-  Assignment: function (i) {
-    const role = (i.role || 'doctor');
-    if (role === 'doctor') return { plan: 'assign-to-doctor' };
-    if (role === 'nurse') return { plan: 'assign-to-nurse' };
-    if (role === 'tech') return { plan: 'assign-to-tech' };
-    return { plan: 'unassigned' };
-  },
-  Escalation: function (i) {
-    const level = (i.level || 'low');
-    if (level === 'critical') return { plan: 'escalate-immediate' };
-    if (level === 'high') return { plan: 'escalate-1hr' };
-    if (level === 'medium') return { plan: 'escalate-4hr' };
-    return { plan: 'no-escalation' };
-  },
-  Notify: function (i) {
-    const channel = (i.channel || 'email');
-    if (channel === 'sms') return { plan: 'send-sms' };
-    if (channel === 'email') return { plan: 'send-email' };
-    if (channel === 'push') return { plan: 'send-push' };
-    return { plan: 'no-notify' };
-  },
-  Approval: function (i) {
-    const level = (i.level || 'single');
-    if (level === 'dual') return { plan: 'dual-approval' };
-    if (level === 'single') return { plan: 'single-approval' };
-    return { plan: 'auto-approval' };
-  },
-  Schedule: function (i) {
-    const type = (i.type || 'one-time');
-    if (type === 'recurring') return { plan: 'cron-schedule' };
-    if (type === 'one-time') return { plan: 'one-time-job' };
-    return { plan: 'immediate' };
-  },
-  Queue: function (i) {
-    const priority = (i.priority || 'normal');
-    if (priority === 'urgent') return { plan: 'queue-front' };
-    if (priority === 'high') return { plan: 'queue-near-front' };
-    return { plan: 'queue-back' };
-  },
-  Timeout: function (i) {
-    const hours = (i.hours || 24);
-    if (hours <= 1) return { plan: 'expire-soon' };
-    if (hours <= 24) return { plan: 'expire-1d' };
-    return { plan: 'expire-future' };
-  },
-  Batch: function (i) {
-    const count = (i.count || 10);
-    if (count >= 100) return { plan: 'batch-large' };
-    if (count >= 10) return { plan: 'batch-medium' };
-    return { plan: 'batch-small' };
-  },
+// Upgraded from P3-CC legacy format to new clinical depth format (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:30:00Z';
+const VER = 'v3.41.0';
+const MOD = 'pcc_workflow';
+
+function State(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.state) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'State', input, score, ts: TS, state: _i.state || null };
+}
+
+function Transition(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.transition) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Transition', input, score, ts: TS, transition: _i.transition || null };
+}
+
+function Assignment(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.assignment) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Assignment', input, score, ts: TS, assignment: _i.assignment || null };
+}
+
+function Escalation(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.escalation) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Escalation', input, score, ts: TS, escalation: _i.escalation || null };
+}
+
+function Notify(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.notify) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Notify', input, score, ts: TS, notify: _i.notify || null };
+}
+
+function Approval(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.approval) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Approval', input, score, ts: TS, approval: _i.approval || null };
+}
+
+function Schedule(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.schedule) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Schedule', input, score, ts: TS, schedule: _i.schedule || null };
+}
+
+function Queue(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.queue) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Queue', input, score, ts: TS, queue: _i.queue || null };
+}
+
+function Timeout(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.timeout) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Timeout', input, score, ts: TS, timeout: _i.timeout || null };
+}
+
+function Batch(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.batch) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Batch', input, score, ts: TS, batch: _i.batch || null };
+}
+
+module.exports = {
+  State,
+  Transition,
+  Assignment,
+  Escalation,
+  Notify,
+  Approval,
+  Schedule,
+  Queue,
+  Timeout,
+  Batch,
 };
-module.exports = Engine;

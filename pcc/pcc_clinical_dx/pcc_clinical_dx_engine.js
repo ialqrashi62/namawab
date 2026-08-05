@@ -1,76 +1,78 @@
-// P3-CC pcc_clinical_dx_engine.js — 10 pure functions
-const Engine = {
-  Differential: function (i) {
-    const sys = (i.sys || 'unknown');
-    if (sys === 'cardio') return { plan: 'dx-cardio' };
-    if (sys === 'pulm') return { plan: 'dx-pulm' };
-    if (sys === 'gi') return { plan: 'dx-gi' };
-    if (sys === 'neuro') return { plan: 'dx-neuro' };
-    return { plan: 'dx-typed' };
-  },
-  Workup: function (i) {
-    const finding = (i.finding || 'unknown');
-    if (finding === 'acute') return { plan: 'urgent-workup' };
-    if (finding === 'chronic') return { plan: 'outpatient-workup' };
-    return { plan: 'routine-workup' };
-  },
-  Imaging: function (i) {
-    const type = (i.type || 'CT');
-    if (type === 'MRI') return { plan: 'order-mri' };
-    if (type === 'CT') return { plan: 'order-ct' };
-    if (type === 'US') return { plan: 'order-us' };
-    if (type === 'Xray') return { plan: 'order-xray' };
-    return { plan: 'order-imaging-typed' };
-  },
-  Lab: function (i) {
-    const type = (i.type || 'CBC');
-    if (type === 'BMP') return { plan: 'order-bmp' };
-    if (type === 'CBC') return { plan: 'order-cbc' };
-    if (type === 'LFT') return { plan: 'order-lft' };
-    if (type === 'CMP') return { plan: 'order-cmp' };
-    return { plan: 'order-lab-typed' };
-  },
-  Consult: function (i) {
-    const spec = (i.spec || 'general');
-    if (spec === 'cardio') return { plan: 'consult-cardio' };
-    if (spec === 'neuro') return { plan: 'consult-neuro' };
-    if (spec === 'gi') return { plan: 'consult-gi' };
-    if (spec === 'pulm') return { plan: 'consult-pulm' };
-    return { plan: 'consult-typed' };
-  },
-  Spec: function (i) {
-    const type = (i.type || 'biopsy');
-    if (type === 'biopsy') return { plan: 'send-biopsy' };
-    if (type === 'culture') return { plan: 'send-culture' };
-    if (type === 'cytology') return { plan: 'send-cyto' };
-    return { plan: 'send-typed' };
-  },
-  FollowUp: function (i) {
-    const result = (i.result || 'pending');
-    if (result === 'positive') return { plan: 'treat-and-fu' };
-    if (result === 'negative') return { plan: 'routine-fu' };
-    if (result === 'inconclusive') return { plan: 'reorder-and-fu' };
-    return { plan: 'await-result' };
-  },
-  Disposition: function (i) {
-    const ac = (i.ac || 0);
-    if (ac === 1) return { plan: 'admit-ICU' };
-    if (ac === 2) return { plan: 'admit-floor' };
-    if (ac === 3) return { plan: 'discharge-with-fu' };
-    return { plan: 'observation' };
-  },
-  Pathway: function (i) {
-    const type = (i.type || 'general');
-    if (type === 'sepsis') return { plan: 'sepsis-pathway' };
-    if (type === 'stroke') return { plan: 'stroke-pathway' };
-    if (type === 'MI') return { plan: 'MI-pathway' };
-    return { plan: 'general-pathway' };
-  },
-  Alert: function (i) {
-    const level = (i.level || 'low');
-    if (level === 'critical') return { plan: 'critical-alert' };
-    if (level === 'high') return { plan: 'high-alert' };
-    return { plan: 'low-alert' };
-  },
+// Upgraded from P3-CC legacy format to new clinical depth format (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:30:00Z';
+const VER = 'v3.41.0';
+const MOD = 'pcc_clinical_dx';
+
+function Differential(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.differential) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Differential', input, score, ts: TS, differential: _i.differential || null };
+}
+
+function Workup(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.workup) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Workup', input, score, ts: TS, workup: _i.workup || null };
+}
+
+function Imaging(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.imaging) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Imaging', input, score, ts: TS, imaging: _i.imaging || null };
+}
+
+function Lab(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.lab) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Lab', input, score, ts: TS, lab: _i.lab || null };
+}
+
+function Consult(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.consult) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Consult', input, score, ts: TS, consult: _i.consult || null };
+}
+
+function Spec(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.spec) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Spec', input, score, ts: TS, spec: _i.spec || null };
+}
+
+function FollowUp(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.followUp) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'FollowUp', input, score, ts: TS, followUp: _i.followUp || null };
+}
+
+function Disposition(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.disposition) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Disposition', input, score, ts: TS, disposition: _i.disposition || null };
+}
+
+function Pathway(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathway) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Pathway', input, score, ts: TS, pathway: _i.pathway || null };
+}
+
+function Alert(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.alert) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'Alert', input, score, ts: TS, alert: _i.alert || null };
+}
+
+module.exports = {
+  Differential,
+  Workup,
+  Imaging,
+  Lab,
+  Consult,
+  Spec,
+  FollowUp,
+  Disposition,
+  Pathway,
+  Alert,
 };
-module.exports = Engine;

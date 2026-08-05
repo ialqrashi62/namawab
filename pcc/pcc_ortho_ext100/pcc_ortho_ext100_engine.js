@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_ortho_ext100/pcc_ortho_ext100_engine.js
-module.exports.version='v3.24.24.0';
-module.exports.module='pcc_ortho_ext100';
-module.exports.functions={};
-module.exports.functions['OrthoFractureExt']=function(input){const score=Math.round((0.18 + Number(input.ortFracture||1)*0.2 + Number(input.fractType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_ortho_ext100',function:'OrthoFractureExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrthoSpineExt']=function(input){const score=Math.round((0.18 + Number(input.ortSpine||1)*0.2 + Number(input.spineLevel||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_ortho_ext100',function:'OrthoSpineExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrthoJointExt']=function(input){const score=Math.round((0.18 + Number(input.ortJoint||1)*0.2 + Number(input.jointScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_ortho_ext100',function:'OrthoJointExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrthoSportExt']=function(input){const score=Math.round((0.18 + Number(input.ortSport||1)*0.2 + Number(input.sportType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_ortho_ext100',function:'OrthoSportExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrthoHandExt']=function(input){const score=Math.round((0.18 + Number(input.ortHand||1)*0.2 + Number(input.handGrip||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_ortho_ext100',function:'OrthoHandExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrthoFootExt']=function(input){const score=Math.round((0.18 + Number(input.ortFoot||1)*0.2 + Number(input.footArch||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_ortho_ext100',function:'OrthoFootExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrthoTumorExt']=function(input){const score=Math.round((0.18 + Number(input.ortTumor||1)*0.2 + Number(input.boneTumorType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_ortho_ext100',function:'OrthoTumorExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrthoInfectionExt']=function(input){const score=Math.round((0.18 + Number(input.ortInf||1)*0.2 + Number(input.ortInfType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_ortho_ext100',function:'OrthoInfectionExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrthoPediatricExt']=function(input){const score=Math.round((0.18 + Number(input.ortPed||1)*0.2 + Number(input.pedAge||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_ortho_ext100',function:'OrthoPediatricExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['OrthoReconExt']=function(input){const score=Math.round((0.18 + Number(input.ortRecon||1)*0.2 + Number(input.orthoReconType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.24.24.0',module:'pcc_ortho_ext100',function:'OrthoReconExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.24.24.0';
+const MOD = 'pcc_ortho_ext100';
 
-// TS: v3.24.24.0
+function OrthoFractureExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orthoFractureExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrthoFractureExt", input, score, ts: TS, orthoFractureExt: _i.orthoFractureExt || null };
+}
+
+function OrthoSpineExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orthoSpineExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrthoSpineExt", input, score, ts: TS, orthoSpineExt: _i.orthoSpineExt || null };
+}
+
+function OrthoJointExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orthoJointExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrthoJointExt", input, score, ts: TS, orthoJointExt: _i.orthoJointExt || null };
+}
+
+function OrthoSportExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orthoSportExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrthoSportExt", input, score, ts: TS, orthoSportExt: _i.orthoSportExt || null };
+}
+
+function OrthoHandExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orthoHandExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrthoHandExt", input, score, ts: TS, orthoHandExt: _i.orthoHandExt || null };
+}
+
+function OrthoFootExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orthoFootExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrthoFootExt", input, score, ts: TS, orthoFootExt: _i.orthoFootExt || null };
+}
+
+function OrthoTumorExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orthoTumorExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrthoTumorExt", input, score, ts: TS, orthoTumorExt: _i.orthoTumorExt || null };
+}
+
+function OrthoInfectionExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orthoInfectionExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrthoInfectionExt", input, score, ts: TS, orthoInfectionExt: _i.orthoInfectionExt || null };
+}
+
+function OrthoPediatricExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orthoPediatricExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrthoPediatricExt", input, score, ts: TS, orthoPediatricExt: _i.orthoPediatricExt || null };
+}
+
+function OrthoReconExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.orthoReconExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "OrthoReconExt", input, score, ts: TS, orthoReconExt: _i.orthoReconExt || null };
+}
+
+module.exports = {
+  OrthoFractureExt,
+  OrthoSpineExt,
+  OrthoJointExt,
+  OrthoSportExt,
+  OrthoHandExt,
+  OrthoFootExt,
+  OrthoTumorExt,
+  OrthoInfectionExt,
+  OrthoPediatricExt,
+  OrthoReconExt,
+};

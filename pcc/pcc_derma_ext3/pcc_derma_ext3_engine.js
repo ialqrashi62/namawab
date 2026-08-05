@@ -1,4 +1,4 @@
-// P3-CL pcc_derma_ext3_engine v3.50.0
+// P3_CL pcc_derma_ext3_engine v3.50.0
 'use strict';
 function Lesion(input) {
   const i = input || {};

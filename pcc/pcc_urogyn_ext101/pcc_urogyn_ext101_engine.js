@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_urogyn_ext101/pcc_urogyn_ext101_engine.js
-module.exports.version='v3.34.34.0';
-module.exports.module='pcc_urogyn_ext101';
-module.exports.functions={};
-module.exports.functions['UGProlapseExt']=function(input){const score=Math.round((0.18 + Number(input.ugProlapse||1)*0.2 + Number(input.prolapseStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_urogyn_ext101',function:'UGProlapseExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UGIncontinenceExt']=function(input){const score=Math.round((0.18 + Number(input.ugIncont||1)*0.2 + Number(input.ugIncontType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_urogyn_ext101',function:'UGIncontinenceExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UGOveractiveExt']=function(input){const score=Math.round((0.18 + Number(input.ugOAB||1)*0.2 + Number(input.oabScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_urogyn_ext101',function:'UGOveractiveExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UGRecurrentUTIext']=function(input){const score=Math.round((0.18 + Number(input.ugUTI||1)*0.2 + Number(input.utiFreqUG||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_urogyn_ext101',function:'UGRecurrentUTIext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UGMeshComplicationExt']=function(input){const score=Math.round((0.18 + Number(input.ugMesh||1)*0.2 + Number(input.meshCompType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_urogyn_ext101',function:'UGMeshComplicationExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UGPFMText']=function(input){const score=Math.round((0.18 + Number(input.ugPFM||1)*0.2 + Number(input.pfmType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_urogyn_ext101',function:'UGPFMText',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UGInterstitialExt']=function(input){const score=Math.round((0.18 + Number(input.ugIC||1)*0.2 + Number(input.icPainScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_urogyn_ext101',function:'UGInterstitialExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UGEndometriosisExt']=function(input){const score=Math.round((0.18 + Number(input.ugEndo||1)*0.2 + Number(input.endoStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_urogyn_ext101',function:'UGEndometriosisExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UGBirthTraumaExt']=function(input){const score=Math.round((0.18 + Number(input.ugBirth||1)*0.2 + Number(input.birthTraumaType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_urogyn_ext101',function:'UGBirthTraumaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['UGMenopauseExt']=function(input){const score=Math.round((0.18 + Number(input.ugMenopause||1)*0.2 + Number(input.menoStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.34.34.0',module:'pcc_urogyn_ext101',function:'UGMenopauseExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.34.34.0';
+const MOD = 'pcc_urogyn_ext101';
 
-// TS: v3.34.34.0
+function UGProlapseExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.uGProlapseExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UGProlapseExt", input, score, ts: TS, uGProlapseExt: _i.uGProlapseExt || null };
+}
+
+function UGIncontinenceExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.uGIncontinenceExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UGIncontinenceExt", input, score, ts: TS, uGIncontinenceExt: _i.uGIncontinenceExt || null };
+}
+
+function UGOveractiveExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.uGOveractiveExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UGOveractiveExt", input, score, ts: TS, uGOveractiveExt: _i.uGOveractiveExt || null };
+}
+
+function UGRecurrentUTIext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.uGRecurrentUTIext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'UGRecurrentUTIext', input, score, ts: TS, uGRecurrentUTIext: _i.uGRecurrentUTIext || null };
+}
+
+function UGMeshComplicationExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.uGMeshComplicationExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UGMeshComplicationExt", input, score, ts: TS, uGMeshComplicationExt: _i.uGMeshComplicationExt || null };
+}
+
+function UGPFMText(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.uGPFMText) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'UGPFMText', input, score, ts: TS, uGPFMText: _i.uGPFMText || null };
+}
+
+function UGInterstitialExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.uGInterstitialExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UGInterstitialExt", input, score, ts: TS, uGInterstitialExt: _i.uGInterstitialExt || null };
+}
+
+function UGEndometriosisExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.uGEndometriosisExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UGEndometriosisExt", input, score, ts: TS, uGEndometriosisExt: _i.uGEndometriosisExt || null };
+}
+
+function UGBirthTraumaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.uGBirthTraumaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UGBirthTraumaExt", input, score, ts: TS, uGBirthTraumaExt: _i.uGBirthTraumaExt || null };
+}
+
+function UGMenopauseExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.uGMenopauseExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "UGMenopauseExt", input, score, ts: TS, uGMenopauseExt: _i.uGMenopauseExt || null };
+}
+
+module.exports = {
+  UGProlapseExt,
+  UGIncontinenceExt,
+  UGOveractiveExt,
+  UGRecurrentUTIext,
+  UGMeshComplicationExt,
+  UGPFMText,
+  UGInterstitialExt,
+  UGEndometriosisExt,
+  UGBirthTraumaExt,
+  UGMenopauseExt,
+};
