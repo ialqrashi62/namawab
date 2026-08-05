@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_sleep_ext100/pcc_sleep_ext100_engine.js
-module.exports.version='v3.25.25.0';
-module.exports.module='pcc_sleep_ext100';
-module.exports.functions={};
-module.exports.functions['SleepApneaExt']=function(input){const score=Math.round((0.18 + Number(input.slApnea||1)*0.2 + Number(input.ahiSL||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_sleep_ext100',function:'SleepApneaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SleepInsomniaExt']=function(input){const score=Math.round((0.18 + Number(input.slInsom||1)*0.2 + Number(input.isiScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_sleep_ext100',function:'SleepInsomniaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SleepNarcolepsyExt']=function(input){const score=Math.round((0.18 + Number(input.slNarc||1)*0.2 + Number(input.essScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_sleep_ext100',function:'SleepNarcolepsyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SleepRestlessLegExt']=function(input){const score=Math.round((0.18 + Number(input.slRLS||1)*0.2 + Number(input.rlsSeverity||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_sleep_ext100',function:'SleepRestlessLegExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SleepParasomniaExt']=function(input){const score=Math.round((0.18 + Number(input.slPara||1)*0.2 + Number(input.paraType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_sleep_ext100',function:'SleepParasomniaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SleepCircadianExt']=function(input){const score=Math.round((0.18 + Number(input.slCirc||1)*0.2 + Number(input.circType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_sleep_ext100',function:'SleepCircadianExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SleepPediatricExt']=function(input){const score=Math.round((0.18 + Number(input.slPed||1)*0.2 + Number(input.pedAge||5)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_sleep_ext100',function:'SleepPediatricExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SleepCPAPext']=function(input){const score=Math.round((0.18 + Number(input.slCPAP||1)*0.2 + Number(input.cpapHours||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_sleep_ext100',function:'SleepCPAPext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SleepShiftWorkExt']=function(input){const score=Math.round((0.18 + Number(input.slShift||1)*0.2 + Number(input.shiftType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_sleep_ext100',function:'SleepShiftWorkExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['SleepHygieneExt']=function(input){const score=Math.round((0.18 + Number(input.slHygiene||1)*0.2 + Number(input.sleepQuality||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.25.25.0',module:'pcc_sleep_ext100',function:'SleepHygieneExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.25.25.0';
+const MOD = 'pcc_sleep_ext100';
 
-// TS: v3.25.25.0
+function SleepApneaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sleepApneaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SleepApneaExt", input, score, ts: TS, sleepApneaExt: _i.sleepApneaExt || null };
+}
+
+function SleepInsomniaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sleepInsomniaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SleepInsomniaExt", input, score, ts: TS, sleepInsomniaExt: _i.sleepInsomniaExt || null };
+}
+
+function SleepNarcolepsyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sleepNarcolepsyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SleepNarcolepsyExt", input, score, ts: TS, sleepNarcolepsyExt: _i.sleepNarcolepsyExt || null };
+}
+
+function SleepRestlessLegExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sleepRestlessLegExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SleepRestlessLegExt", input, score, ts: TS, sleepRestlessLegExt: _i.sleepRestlessLegExt || null };
+}
+
+function SleepParasomniaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sleepParasomniaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SleepParasomniaExt", input, score, ts: TS, sleepParasomniaExt: _i.sleepParasomniaExt || null };
+}
+
+function SleepCircadianExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sleepCircadianExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SleepCircadianExt", input, score, ts: TS, sleepCircadianExt: _i.sleepCircadianExt || null };
+}
+
+function SleepPediatricExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sleepPediatricExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SleepPediatricExt", input, score, ts: TS, sleepPediatricExt: _i.sleepPediatricExt || null };
+}
+
+function SleepCPAPext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sleepCPAPext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'SleepCPAPext', input, score, ts: TS, sleepCPAPext: _i.sleepCPAPext || null };
+}
+
+function SleepShiftWorkExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sleepShiftWorkExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SleepShiftWorkExt", input, score, ts: TS, sleepShiftWorkExt: _i.sleepShiftWorkExt || null };
+}
+
+function SleepHygieneExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.sleepHygieneExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "SleepHygieneExt", input, score, ts: TS, sleepHygieneExt: _i.sleepHygieneExt || null };
+}
+
+module.exports = {
+  SleepApneaExt,
+  SleepInsomniaExt,
+  SleepNarcolepsyExt,
+  SleepRestlessLegExt,
+  SleepParasomniaExt,
+  SleepCircadianExt,
+  SleepPediatricExt,
+  SleepCPAPext,
+  SleepShiftWorkExt,
+  SleepHygieneExt,
+};

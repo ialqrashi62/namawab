@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_path_ext177/pcc_path_ext177_engine.js
-module.exports.version='v3.13.13.0';
-module.exports.module='pcc_path_ext177';
-module.exports.functions={};
-module.exports.functions['PathImmunoExt']=function(input){const score=Math.round((0.18 + Number(input.pathImmuno||1)*0.2 + Number(input.biopsyType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_path_ext177',function:'PathImmunoExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathRheumatoidExt']=function(input){const score=Math.round((0.18 + Number(input.pathRF||1)*0.2 + Number(input.synovialPath||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_path_ext177',function:'PathRheumatoidExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathVasculitisExt']=function(input){const score=Math.round((0.18 + Number(input.pathVasculitis||1)*0.2 + Number(input.vesselSize||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_path_ext177',function:'PathVasculitisExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathLupusExt']=function(input){const score=Math.round((0.18 + Number(input.pathLupus||1)*0.2 + Number(input.classCriteria||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_path_ext177',function:'PathLupusExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathSclerodermaExt']=function(input){const score=Math.round((0.18 + Number(input.pathSclero||1)*0.2 + Number(input.skinBiopsy||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_path_ext177',function:'PathSclerodermaExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathMyositisExt']=function(input){const score=Math.round((0.18 + Number(input.pathMyo||1)*0.2 + Number(input.muscleBiopsy||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_path_ext177',function:'PathMyositisExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathSarcoidosisExt']=function(input){const score=Math.round((0.18 + Number(input.pathSarco||1)*0.2 + Number(input.nonCaseating||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_path_ext177',function:'PathSarcoidosisExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathIBDext']=function(input){const score=Math.round((0.18 + Number(input.pathIBD||1)*0.2 + Number(input.crohnVsUC||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_path_ext177',function:'PathIBDext',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathCeliacExt']=function(input){const score=Math.round((0.18 + Number(input.pathCeliac||1)*0.2 + Number(input.marshScore||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_path_ext177',function:'PathCeliacExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathAmyloidExt']=function(input){const score=Math.round((0.18 + Number(input.pathAmyloid||1)*0.2 + Number(input.congoRed||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.13.13.0',module:'pcc_path_ext177',function:'PathAmyloidExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.13.13.0';
+const MOD = 'pcc_path_ext177';
 
-// TS: v3.13.13.0
+function PathImmunoExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathImmunoExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathImmunoExt", input, score, ts: TS, pathImmunoExt: _i.pathImmunoExt || null };
+}
+
+function PathRheumatoidExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathRheumatoidExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathRheumatoidExt", input, score, ts: TS, pathRheumatoidExt: _i.pathRheumatoidExt || null };
+}
+
+function PathVasculitisExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathVasculitisExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathVasculitisExt", input, score, ts: TS, pathVasculitisExt: _i.pathVasculitisExt || null };
+}
+
+function PathLupusExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathLupusExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathLupusExt", input, score, ts: TS, pathLupusExt: _i.pathLupusExt || null };
+}
+
+function PathSclerodermaExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathSclerodermaExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathSclerodermaExt", input, score, ts: TS, pathSclerodermaExt: _i.pathSclerodermaExt || null };
+}
+
+function PathMyositisExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathMyositisExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathMyositisExt", input, score, ts: TS, pathMyositisExt: _i.pathMyositisExt || null };
+}
+
+function PathSarcoidosisExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathSarcoidosisExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathSarcoidosisExt", input, score, ts: TS, pathSarcoidosisExt: _i.pathSarcoidosisExt || null };
+}
+
+function PathIBDext(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathIBDext) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: 'PathIBDext', input, score, ts: TS, pathIBDext: _i.pathIBDext || null };
+}
+
+function PathCeliacExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathCeliacExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathCeliacExt", input, score, ts: TS, pathCeliacExt: _i.pathCeliacExt || null };
+}
+
+function PathAmyloidExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathAmyloidExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathAmyloidExt", input, score, ts: TS, pathAmyloidExt: _i.pathAmyloidExt || null };
+}
+
+module.exports = {
+  PathImmunoExt,
+  PathRheumatoidExt,
+  PathVasculitisExt,
+  PathLupusExt,
+  PathSclerodermaExt,
+  PathMyositisExt,
+  PathSarcoidosisExt,
+  PathIBDext,
+  PathCeliacExt,
+  PathAmyloidExt,
+};

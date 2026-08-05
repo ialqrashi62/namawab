@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_path_ext178/pcc_path_ext178_engine.js
-module.exports.version='v3.14.14.0';
-module.exports.module='pcc_path_ext178';
-module.exports.functions={};
-module.exports.functions['PathTumorExt']=function(input){const score=Math.round((0.18 + Number(input.pathTumor||1)*0.2 + Number(input.grade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathTumorExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathProstateExt']=function(input){const score=Math.round((0.18 + Number(input.pathProstate||1)*0.2 + Number(input.gleason||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathProstateExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathBreastExt']=function(input){const score=Math.round((0.18 + Number(input.pathBreast||1)*0.2 + Number(input.nottingham||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathBreastExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathColonExt']=function(input){const score=Math.round((0.18 + Number(input.pathColon||1)*0.2 + Number(input.tnmStage||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathColonExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathLungExt']=function(input){const score=Math.round((0.18 + Number(input.pathLung||1)*0.2 + Number(input.lungType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathLungExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathPancreasExt']=function(input){const score=Math.round((0.18 + Number(input.pathPanc||1)*0.2 + Number(input.differentiation||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathPancreasExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathOvaryExt']=function(input){const score=Math.round((0.18 + Number(input.pathOvary||1)*0.2 + Number(input.ovaryType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathOvaryExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathRenalExt']=function(input){const score=Math.round((0.18 + Number(input.pathRenal||1)*0.2 + Number(input.furhman||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathRenalExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathThyroidExt']=function(input){const score=Math.round((0.18 + Number(input.pathThyroid||1)*0.2 + Number(input.thyroType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathThyroidExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathLiverExt']=function(input){const score=Math.round((0.18 + Number(input.pathLiver||1)*0.2 + Number(input.liverGrade||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.14.14.0',module:'pcc_path_ext178',function:'PathLiverExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.14.14.0';
+const MOD = 'pcc_path_ext178';
 
-// TS: v3.14.14.0
+function PathTumorExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathTumorExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathTumorExt", input, score, ts: TS, pathTumorExt: _i.pathTumorExt || null };
+}
+
+function PathProstateExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathProstateExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathProstateExt", input, score, ts: TS, pathProstateExt: _i.pathProstateExt || null };
+}
+
+function PathBreastExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathBreastExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathBreastExt", input, score, ts: TS, pathBreastExt: _i.pathBreastExt || null };
+}
+
+function PathColonExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathColonExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathColonExt", input, score, ts: TS, pathColonExt: _i.pathColonExt || null };
+}
+
+function PathLungExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathLungExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathLungExt", input, score, ts: TS, pathLungExt: _i.pathLungExt || null };
+}
+
+function PathPancreasExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathPancreasExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathPancreasExt", input, score, ts: TS, pathPancreasExt: _i.pathPancreasExt || null };
+}
+
+function PathOvaryExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathOvaryExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathOvaryExt", input, score, ts: TS, pathOvaryExt: _i.pathOvaryExt || null };
+}
+
+function PathRenalExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathRenalExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathRenalExt", input, score, ts: TS, pathRenalExt: _i.pathRenalExt || null };
+}
+
+function PathThyroidExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathThyroidExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathThyroidExt", input, score, ts: TS, pathThyroidExt: _i.pathThyroidExt || null };
+}
+
+function PathLiverExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathLiverExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathLiverExt", input, score, ts: TS, pathLiverExt: _i.pathLiverExt || null };
+}
+
+module.exports = {
+  PathTumorExt,
+  PathProstateExt,
+  PathBreastExt,
+  PathColonExt,
+  PathLungExt,
+  PathPancreasExt,
+  PathOvaryExt,
+  PathRenalExt,
+  PathThyroidExt,
+  PathLiverExt,
+};

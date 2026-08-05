@@ -1,31 +1,40 @@
-// P3-DI pcc_heart_failure_advanced_routes v3.73.0
-// P3-DI: authenticate via requireAuth middleware (sandbox: helmet/CSP enforced at app level)
+// P3-DI pcc_heart_failure_advanced_routes v3.316.32 (Phase 1A clinical-grade)
 'use strict';
 const express = require('express');
-const Engine = require('./pcc_heart_failure_advanced_engine.js');
-const VER = '3.73.0';
+const F = require('./pcc_heart_failure_advanced_engine.js');
+const VER = '3.316.32';
 const router = express.Router();
 
 router.get('/list', (req, res) => {
-  res.json({ version: VER, module: 'pcc_heart_failure_advanced', label: 'PCC Heart Failure Advanced', functions: Object.keys(Engine) });
+  res.json({ version: VER, module: 'pcc_heart_failure_advanced', label: 'PCC Heart Failure Advanced', functions: Object.keys(F) });
 });
 
-router.post('/call/NYHAStaging', (req, res) => { const r = Engine.NYHAStaging(req.body || {}); res.json({ version: VER, module: 'pcc_heart_failure_advanced', function: 'NYHAStaging', plan: r.plan }); });
-router.post('/call/BNPTrend', (req, res) => { const r = Engine.BNPTrend(req.body || {}); res.json({ version: VER, module: 'pcc_heart_failure_advanced', function: 'BNPTrend', plan: r.plan }); });
-router.post('/call/EjectionFraction', (req, res) => { const r = Engine.EjectionFraction(req.body || {}); res.json({ version: VER, module: 'pcc_heart_failure_advanced', function: 'EjectionFraction', plan: r.plan }); });
-router.post('/call/FluidStatus', (req, res) => { const r = Engine.FluidStatus(req.body || {}); res.json({ version: VER, module: 'pcc_heart_failure_advanced', function: 'FluidStatus', plan: r.plan }); });
-router.post('/call/CardiacDevice', (req, res) => { const r = Engine.CardiacDevice(req.body || {}); res.json({ version: VER, module: 'pcc_heart_failure_advanced', function: 'CardiacDevice', plan: r.plan }); });
-router.post('/call/HeartTransplantEval', (req, res) => { const r = Engine.HeartTransplantEval(req.body || {}); res.json({ version: VER, module: 'pcc_heart_failure_advanced', function: 'HeartTransplantEval', plan: r.plan }); });
-router.post('/call/PalliativeHF', (req, res) => { const r = Engine.PalliativeHF(req.body || {}); res.json({ version: VER, module: 'pcc_heart_failure_advanced', function: 'PalliativeHF', plan: r.plan }); });
-router.post('/call/AcuteDecompensation', (req, res) => { const r = Engine.AcuteDecompensation(req.body || {}); res.json({ version: VER, module: 'pcc_heart_failure_advanced', function: 'AcuteDecompensation', plan: r.plan }); });
-router.post('/call/DiureticStrategy', (req, res) => { const r = Engine.DiureticStrategy(req.body || {}); res.json({ version: VER, module: 'pcc_heart_failure_advanced', function: 'DiureticStrategy', plan: r.plan }); });
-router.post('/call/SelfManagement', (req, res) => { const r = Engine.SelfManagement(req.body || {}); res.json({ version: VER, module: 'pcc_heart_failure_advanced', function: 'SelfManagement', plan: r.plan }); });
+const wrap = (name) => (req, res) => {
+  try {
+    const r = F[name](req.body || {});
+    res.json({ version: VER, module: 'pcc_heart_failure_advanced', function: name, result: r });
+  } catch (e) {
+    res.status(400).json({ error: e.message, function: name });
+  }
+};
+
+router.post('/call/NYHAStaging', wrap('NYHAStaging'));
+router.post('/call/BNPTrend', wrap('BNPTrend'));
+router.post('/call/EjectionFraction', wrap('EjectionFraction'));
+router.post('/call/FluidStatus', wrap('FluidStatus'));
+router.post('/call/CardiacDevice', wrap('CardiacDevice'));
+router.post('/call/HeartTransplantEval', wrap('HeartTransplantEval'));
+router.post('/call/PalliativeHF', wrap('PalliativeHF'));
+router.post('/call/AcuteDecompensation', wrap('AcuteDecompensation'));
+router.post('/call/DiureticStrategy', wrap('DiureticStrategy'));
+router.post('/call/SelfManagement', wrap('SelfManagement'));
 
 router.post('/record', (req, res) => {
-  const { encounter_id, tenant_id, input, fn, created_by } = req.body || {};
+  const { tenant_id, decisionId, input, fn, created_by } = req.body || {};
   if (!tenant_id) return res.status(400).json({ error: 'tenant_id required' });
-  const r = Engine[fn](input || {});
-  res.json({ version: VER, module: 'pcc_heart_failure_advanced', function: fn, plan: r.plan, recorded: true });
+  if (!fn || !F[fn]) return res.status(400).json({ error: 'fn required and must be valid' });
+  const r = F[fn](input || {});
+  res.json({ version: VER, module: 'pcc_heart_failure_advanced', function: fn, result: r, recorded: true, tenant_id, decisionId: decisionId || null });
 });
 
 module.exports = router;

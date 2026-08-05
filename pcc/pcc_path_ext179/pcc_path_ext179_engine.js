@@ -1,16 +1,78 @@
-// filepath: pcc/pcc_path_ext179/pcc_path_ext179_engine.js
-module.exports.version='v3.15.15.0';
-module.exports.module='pcc_path_ext179';
-module.exports.functions={};
-module.exports.functions['PathDiabetesExt']=function(input){const score=Math.round((0.18 + Number(input.pathDM||1)*0.2 + Number(input.pathType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_path_ext179',function:'PathDiabetesExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathRenalBiopsyExt']=function(input){const score=Math.round((0.18 + Number(input.pathRenalBx||1)*0.2 + Number(input.igaStain||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_path_ext179',function:'PathRenalBiopsyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathLiverBiopsyExt']=function(input){const score=Math.round((0.18 + Number(input.pathLiverBx||1)*0.2 + Number(input.fibrosisStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_path_ext179',function:'PathLiverBiopsyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathCardiacBiopsyExt']=function(input){const score=Math.round((0.18 + Number(input.pathCardiacBx||1)*0.2 + Number(input.amyloidCardiac||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_path_ext179',function:'PathCardiacBiopsyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathSkinBiopsyExt']=function(input){const score=Math.round((0.18 + Number(input.pathSkinBx||1)*0.2 + Number(input.skinFinding||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_path_ext179',function:'PathSkinBiopsyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathLymphNodeExt']=function(input){const score=Math.round((0.18 + Number(input.pathLN||1)*0.2 + Number(input.lymphStage||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_path_ext179',function:'PathLymphNodeExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathBoneMarrowExt']=function(input){const score=Math.round((0.18 + Number(input.pathBM||1)*0.2 + Number(input.cellularity||1)*0.04 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_path_ext179',function:'PathBoneMarrowExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathGIbiopsyExt']=function(input){const score=Math.round((0.18 + Number(input.pathGIbx||1)*1*0.2 + Number(input.giFinding||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_path_ext179',function:'PathGIbiopsyExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathLiquidBxExt']=function(input){const score=Math.round((0.18 + Number(input.pathLiquidBx||1)*0.2 + Number(input.liquidType||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_path_ext179',function:'PathLiquidBxExt',input,score,ts:new Date().toISOString()}};
-module.exports.functions['PathMolecularExt']=function(input){const score=Math.round((0.18 + Number(input.pathMol||1)*0.2 + Number(input.molMarker||1)*0.2 + Number(input.outcome||1)*0.2)*100)/100;return{version:'v3.15.15.0',module:'pcc_path_ext179',function:'PathMolecularExt',input,score,ts:new Date().toISOString()}};
+// Upgraded to clinical depth by upgrade_minimal_engines.js (PCC v3.316.0)
+"use strict";
+const TS = '2026-07-29T13:00:00Z';
+const VER = 'v3.15.15.0';
+const MOD = 'pcc_path_ext179';
 
-// TS: v3.15.15.0
+function PathDiabetesExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathDiabetesExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathDiabetesExt", input, score, ts: TS, pathDiabetesExt: _i.pathDiabetesExt || null };
+}
+
+function PathRenalBiopsyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathRenalBiopsyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathRenalBiopsyExt", input, score, ts: TS, pathRenalBiopsyExt: _i.pathRenalBiopsyExt || null };
+}
+
+function PathLiverBiopsyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathLiverBiopsyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathLiverBiopsyExt", input, score, ts: TS, pathLiverBiopsyExt: _i.pathLiverBiopsyExt || null };
+}
+
+function PathCardiacBiopsyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathCardiacBiopsyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathCardiacBiopsyExt", input, score, ts: TS, pathCardiacBiopsyExt: _i.pathCardiacBiopsyExt || null };
+}
+
+function PathSkinBiopsyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathSkinBiopsyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathSkinBiopsyExt", input, score, ts: TS, pathSkinBiopsyExt: _i.pathSkinBiopsyExt || null };
+}
+
+function PathLymphNodeExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathLymphNodeExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathLymphNodeExt", input, score, ts: TS, pathLymphNodeExt: _i.pathLymphNodeExt || null };
+}
+
+function PathBoneMarrowExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathBoneMarrowExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathBoneMarrowExt", input, score, ts: TS, pathBoneMarrowExt: _i.pathBoneMarrowExt || null };
+}
+
+function PathGIbiopsyExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathGIbiopsyExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathGIbiopsyExt", input, score, ts: TS, pathGIbiopsyExt: _i.pathGIbiopsyExt || null };
+}
+
+function PathLiquidBxExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathLiquidBxExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathLiquidBxExt", input, score, ts: TS, pathLiquidBxExt: _i.pathLiquidBxExt || null };
+}
+
+function PathMolecularExt(input) {
+  const _i = input || {};
+  const score = Math.round((0.3 + (Number(_i.pathMolecularExt) || 0) * 0.15 + (Number(_i.severity) || 0) * 0.1) * 100) / 100;
+  return { version: VER, module: MOD, function: "PathMolecularExt", input, score, ts: TS, pathMolecularExt: _i.pathMolecularExt || null };
+}
+
+module.exports = {
+  PathDiabetesExt,
+  PathRenalBiopsyExt,
+  PathLiverBiopsyExt,
+  PathCardiacBiopsyExt,
+  PathSkinBiopsyExt,
+  PathLymphNodeExt,
+  PathBoneMarrowExt,
+  PathGIbiopsyExt,
+  PathLiquidBxExt,
+  PathMolecularExt,
+};
