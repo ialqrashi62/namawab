@@ -6,6 +6,46 @@ the change was small enough to be merged without its own report.
 
 ---
 
+## Wave 37 — 2026-08-05 — Redis Metric Ping Fix (silences `redis_down`)
+**Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`WAVE_37_REDIS_METRIC_AR.md`](WAVE_37_REDIS_METRIC_AR.md)
+
+### Added
+- `namaweb/wave37_redis_metric.js` — `setGlobalApp(app)` registers
+  the app handle on `global.__nama_app` so metrics modules can find
+  `app.locals.redisClient` without a circular `require`. `resolveRedisClient()`
+  walks every accessor the codebase has used (global, registered app,
+  env hint) and returns the client or `null`. `probeRedis()` pings with a
+  hard 1.5 s timeout and never throws.
+- `namaweb/wave37_redis_metric_test.js` — 19 unit / structural / safety
+  tests (PASS on local + prod).
+- New Prometheus gauge `nama_redis_ping_ms` (roundtrip latency of the
+  Redis PING).
+
+### Changed
+- `server.js` — calls `wave37.setGlobalApp(app)` once near the boot path,
+  right after `app = express()`. Idempotent.
+- `wave32_metrics.js` — replaced the inline `global.__nama_app` lookup
+  with `w37.resolveRedisClient()` + `w37.probeRedis()`. Surfaces
+  `redisLatencyMs` and `redisProbeReason` on the probe object.
+
+### Verified
+- 19/19 wave37 tests pass on prod.
+- 9/9 wave32 tests pass on prod.
+- `nama_redis_up` now reports **1** on prod (was 0).
+- `nama_redis_ping_ms` reports **1 ms** on prod.
+- `nama_alerts_firing` = **0** on prod. Zero firing alerts.
+
+### Safety rails
+- Rail 1 — no secrets. The helper only holds a reference to the client;
+  never logs connection strings or keyspace.
+- Rail 4 — read-only. `probeRedis()` only calls `client.ping()`.
+- Rail 12 — no client config logged.
+
+### Surfaced follow-up
+- **None.** The prod dashboard is now fully green. `nama_alerts_firing 0`.
+
+---
+
 ## Wave 36 — 2026-08-05 — RLS Defense-in-Depth Classifier
 **Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`WAVE_36_RLS_DEFENSE_AR.md`](WAVE_36_RLS_DEFENSE_AR.md)
 
