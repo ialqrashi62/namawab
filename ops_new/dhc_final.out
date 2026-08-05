@@ -1,0 +1,18 @@
+================================================================
+ NamaMedical DB Health — 2026-07-28T23:52:01Z
+================================================================
+ INFO  host=ubuntu-8gb-hel1-1 ts=2026-07-28T23:52:01Z
+ OK    connection: nama_medical_web@localhost:5432 (PG 14.23 (Ubuntu 14.23-0ubuntu0.22.04.1))
+ OK    tables: 358 public, 247 with RLS enabled
+ INFO  RLS drift: no baseline file (live=247); create /var/www/namaweb/ops/rls_baseline.txt to enable drift check
+ OK    migrations: 147 up, 140 down
+ INFO  latest: e75_pediatrics_nicu_up.sql
+ OK    disk: /var/lib/postgresql 4% used
+ OK    disk: /var/www 4% used
+ OK    disk: /var 4% used
+ INFO  pg_stat_statements: not installed (skipping slow query check)
+ OK    connections: 6/100 (6%)
+ OK    long-running: none > 5 minutes
+----------------------------------------------------------------
+ Summary: 0 warning(s), 0 critical
+================================================================

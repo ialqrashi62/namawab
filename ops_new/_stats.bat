@@ -1,0 +1,2 @@
+@echo off
+node -e "const fs=require('fs'); const s=fs.readFileSync('C:/Users/ice/Desktop/NMEDCALVSCODE/ops_new/smoke_test.sh','utf8'); console.log('LINES='+s.split(/\r?\n/).length); console.log('BYTES='+Buffer.byteLength(s,'utf8'));"

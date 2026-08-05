@@ -1,0 +1,461 @@
+openapi: 3.0.3
+info:
+  title: jumanaMedical PCC Catalog API
+  version: 3.77.77.0
+  description: |
+    ## نظرة عامة (Arabic Overview)
+    واجهة برمجة تطبيقات كتالوج وحدات PCC لنظام جمانة ميديكال ERP.
+    تعرض هذه الواجهة جميع الوحدات السريرية (PCC Modules) والإجراءات القابلة للاستدعاء،
+    وتدعم استدعاء أي دالة من أي وحدة مع تمرير الحمولة والحصول على النتيجة والدرجة والوقت.
+
+    - **عدد الوحدات الكلي**: 789 وحدة PCC
+    - **الأنماط**: `/api/v1/pcc-<name>-ext<n>/list` و `/api/v1/pcc-<name>-ext<n>/call/<fn>`
+    - **التوثيق المعماري**: `docs/ARCHITECTURE_MAP_AR.md` (المرجع الكنسي)
+    - **نطاق الأمان**: Tenant + RBAC + Idempotency
+
+    ## English Overview
+    The PCC (Programmable Clinical Component) Catalog API for the jumanaMedical ERP
+    exposes all 789 registered clinical modules and the function set each module offers.
+    Any module function may be invoked through the call endpoint with a payload, returning
+    a deterministic score, timestamp, and audit-friendly response envelope.
+
+    - **Modules total**: 789 PCC modules
+    - **List pattern**: `GET /api/v1/pcc-<name>-ext<n>/list`
+    - **Call pattern**: `POST /api/v1/pcc-<name>-ext<n>/call/<fn>`
+    - **Architecture map**: `docs/ARCHITECTURE_MAP_AR.md` (canonical reference)
+    - **Security**: Session cookie + Tenant header + RBAC; Idempotency-Key on POST
+  contact:
+    name: jumanaMedical API Team
+    url: https://jumanasoft.com
+    email: api@jumanasoft.example
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://jumanasoft.com/api/v1
+    description: Production (jumanasoft.com - Hetzner ubuntu-8gb-hel1-1)
+  - url: http://127.0.0.1:3101/api/v1
+    description: Local PCC development server (loopback only)
+
+tags:
+  - name: PCC Catalog
+    description: تصفح وفهرسة وحدات PCC - Browse and index the PCC module catalog
+  - name: PCC Module
+    description: استدعاء وحدات ودوال PCC - List and invoke PCC module functions
+  - name: Authentication
+    description: المصادقة والعزل - Session, tenant scoping, idempotency
+
+x-tagGroups:
+  - name: PCC API
+    tags:
+      - PCC Catalog
+      - PCC Module
+  - name: Cross-Cutting
+    tags:
+      - Authentication
+
+security:
+  - sessionCookie: []
+    tenantHeader: []
+
+paths:
+  /pcc-catalog/modules:
+    get:
+      tags:
+        - PCC Catalog
+      operationId: listPccModules
+      summary: قائمة جميع وحدات PCC الـ789 - List all 789 PCC modules
+      description: |
+        تُرجع فهرس جميع الوحدات الـ PCC المسجلة مع رقم الإصدار والعدد الكلي.
+        Returns the index of all registered PCC modules with version metadata and total count.
+        No pagination needed - the entire catalog fits in a single response.
+      responses:
+        '200':
+          description: Catalog fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PCCCatalog'
+              example:
+                version: 3.77.77.0
+                count: 789
+                modules:
+                  - pcc-cardiology-ext102
+                  - pcc-pediatrics-ext114
+                  - pcc-icu-ext121
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      x-codeSamples:
+        - lang: curl
+          label: Production
+          source: |
+            curl -sk -X GET https://jumanasoft.com/api/v1/pcc-catalog/modules \
+              -H "Cookie: jsessionid=__SESSION__" \
+              -H "X-Tenant-Id: tenant_001"
+        - lang: curl
+          label: Local
+          source: |
+            curl -s http://127.0.0.1:3101/api/v1/pcc-catalog/modules \
+              -H "Cookie: jsessionid=__SESSION__" \
+              -H "X-Tenant-Id: tenant_001"
+
+  /pcc-catalog/{module}/list:
+    get:
+      tags:
+        - PCC Module
+      operationId: listPccModuleFunctions
+      summary: استعراض دوال وحدة PCC محددة - List functions of a specific PCC module
+      description: |
+        تُرجع اسم الوحدة وإصدارها وقائمة الدوال القابلة للاستدعاء فيها.
+        Returns the module name, its version, and the list of invokable function names.
+        Path parameter `module` must match pattern `^[a-z][a-z0-9-]+$`.
+      parameters:
+        - $ref: '#/components/parameters/ModuleName'
+      responses:
+        '200':
+          description: Module manifest fetched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PCCModule'
+              example:
+                module: pcc-cardiology-ext102
+                version: 3.77.77.0
+                functions:
+                  - CardGenExt
+                  - ECGAnalyzerExt
+                  - EchoScoreExt
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      x-codeSamples:
+        - lang: curl
+          label: Production
+          source: |
+            curl -sk -X GET https://jumanasoft.com/api/v1/pcc-catalog/pcc-cardiology-ext102/list \
+              -H "Cookie: jsessionid=__SESSION__" \
+              -H "X-Tenant-Id: tenant_001"
+        - lang: curl
+          label: Local
+          source: |
+            curl -s http://127.0.0.1:3101/api/v1/pcc-catalog/pcc-cardiology-ext102/list \
+              -H "Cookie: jsessionid=__SESSION__" \
+              -H "X-Tenant-Id: tenant_001"
+
+  /pcc-catalog/{module}/call/{fn}:
+    post:
+      tags:
+        - PCC Module
+      operationId: callPccModuleFunction
+      summary: استدعاء دالة داخل وحدة PCC - Invoke a function inside a PCC module
+      description: |
+        يستدعي دالة محددة داخل وحدة PCC مع حمولة إدخال اختيارية، ويُرجع اسم الوحدة والدالة
+        والإدخال والدرجة والطابع الزمني. يدعم مفتاح التكرار `Idempotency-Key` لضمان الأمان
+        على المسارات النقدية.
+        Invokes a specific function inside a PCC module with optional input payload,
+        returning the function name, normalized input, deterministic score, and ISO timestamp.
+        Honors `Idempotency-Key` header for safe retries on critical (money/clinical) flows.
+      parameters:
+        - $ref: '#/components/parameters/ModuleName'
+        - $ref: '#/components/parameters/FunctionName'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PCCFunctionCallRequest'
+            example:
+              payload:
+                patientId: pt_123
+                heartRate: 88
+                systolic: 140
+                diastolic: 90
+              decisionId: dec_2026_07_29_001
+      responses:
+        '200':
+          description: Function executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PCCFunctionCall'
+              example:
+                module: pcc-cardiology-ext102
+                function: CardGenExt
+                input:
+                  patientId: pt_123
+                  heartRate: 88
+                score: 0.87
+                ts: '2026-07-29T12:34:56.789Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Idempotency conflict (same key, different payload)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Idempotency key reused with different payload
+                code: IDEMPOTENCY_CONFLICT
+        '500':
+          $ref: '#/components/responses/InternalError'
+      x-codeSamples:
+        - lang: curl
+          label: Production (idempotent)
+          source: |
+            curl -sk -X POST https://jumanasoft.com/api/v1/pcc-catalog/pcc-cardiology-ext102/call/CardGenExt \
+              -H "Cookie: jsessionid=__SESSION__" \
+              -H "X-Tenant-Id: tenant_001" \
+              -H "Idempotency-Key: idem_2026_07_29_cardgen_001" \
+              -H "Content-Type: application/json" \
+              -d '{"payload":{"heartRate":88}}'
+        - lang: curl
+          label: Local
+          source: |
+            curl -s -X POST http://127.0.0.1:3101/api/v1/pcc-catalog/pcc-cardiology-ext102/call/CardGenExt \
+              -H "Cookie: jsessionid=__SESSION__" \
+              -H "X-Tenant-Id: tenant_001" \
+              -H "Content-Type: application/json" \
+              -d '{}'
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: jsessionid
+      description: Express session cookie issued at login. Required on every protected route.
+    tenantHeader:
+      type: apiKey
+      in: header
+      name: X-Tenant-Id
+      description: Tenant context header. Required on every protected route (e.g. `tenant_001`).
+    idempotencyKey:
+      type: apiKey
+      in: header
+      name: Idempotency-Key
+      description: Optional but recommended on POST. Same key + same payload = same result; same key + different payload = 409.
+
+  parameters:
+    ModuleName:
+      name: module
+      in: path
+      required: true
+      description: PCC module identifier (lowercase, starts with a letter, allows digits and dashes)
+      schema:
+        type: string
+        pattern: '^[a-z][a-z0-9-]+$'
+        minLength: 3
+        maxLength: 64
+      example: pcc-cardiology-ext102
+    FunctionName:
+      name: fn
+      in: path
+      required: true
+      description: Function name to invoke inside the module (alphanumeric, must be one of the module's `functions`)
+      schema:
+        type: string
+        pattern: '^[A-Za-z][A-Za-z0-9_]+$'
+        minLength: 2
+        maxLength: 64
+      example: CardGenExt
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Optional idempotency token (UUID v4 recommended). Same key + same body returns the cached response; mismatched body returns 409.
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+      example: idem_2026_07_29_cardgen_001
+
+  schemas:
+    PCCModule:
+      type: object
+      description: Manifest of a single PCC module - its name, version, and exported functions
+      required:
+        - module
+        - version
+        - functions
+      properties:
+        module:
+          type: string
+          description: Canonical module identifier (e.g. `pcc-cardiology-ext102`)
+          example: pcc-cardiology-ext102
+        version:
+          type: string
+          description: SemVer-like version string of the module
+          example: 3.77.77.0
+        functions:
+          type: array
+          description: List of invokable function names exposed by this module
+          minItems: 1
+          items:
+            type: string
+          example:
+            - CardGenExt
+            - ECGAnalyzerExt
+            - EchoScoreExt
+
+    PCCCatalog:
+      type: object
+      description: Top-level catalog envelope returned by `GET /pcc-catalog/modules`
+      required:
+        - version
+        - count
+        - modules
+      properties:
+        version:
+          type: string
+          description: Catalog version (mirrors the running PCC server version)
+          example: 3.77.77.0
+        count:
+          type: integer
+          description: Total number of registered PCC modules
+          minimum: 0
+          example: 789
+        modules:
+          type: array
+          description: Ordered list of module identifiers
+          minItems: 0
+          items:
+            type: string
+          example:
+            - pcc-cardiology-ext102
+            - pcc-pediatrics-ext114
+            - pcc-icu-ext121
+
+    PCCFunctionCallRequest:
+      type: object
+      description: Request body for invoking a PCC function. Both fields are optional; the function may accept an empty payload.
+      properties:
+        payload:
+          type: object
+          description: Function-specific input. Schema is per-function; server validates per registered schema.
+          additionalProperties: true
+          example:
+            patientId: pt_123
+            heartRate: 88
+        decisionId:
+          type: string
+          description: Optional caller-side decision identifier for audit traceability (used in audit log + idempotency cache)
+          example: dec_2026_07_29_001
+
+    PCCFunctionCall:
+      type: object
+      description: Response envelope returned by `POST /pcc-catalog/{module}/call/{fn}`
+      required:
+        - module
+        - function
+        - input
+        - score
+        - ts
+      properties:
+        module:
+          type: string
+          description: Module that handled the call
+          example: pcc-cardiology-ext102
+        function:
+          type: string
+          description: Function that was invoked
+          example: CardGenExt
+        input:
+          type: object
+          description: Normalized input that was actually used (after defaults and validation)
+          additionalProperties: true
+          example:
+            patientId: pt_123
+            heartRate: 88
+        score:
+          type: number
+          description: Deterministic confidence/quality score in [0,1]
+          minimum: 0
+          maximum: 1
+          example: 0.87
+        ts:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of when the call completed
+          example: '2026-07-29T12:34:56.789Z'
+
+    Error:
+      type: object
+      description: Standard error envelope returned for all non-2xx responses
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: Module not found
+        code:
+          type: string
+          description: Machine-readable error code (stable, programmatic)
+          example: MODULE_NOT_FOUND
+
+  responses:
+    BadRequest: &err400
+      description: Bad request - malformed body, invalid path param, or schema violation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Invalid module name; must match ^[a-z][a-z0-9-]+$
+            code: BAD_REQUEST
+    Unauthorized: &err401
+      description: Unauthorized - missing or invalid session cookie
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Authentication required
+            code: UNAUTHORIZED
+    Forbidden: &err403
+      description: Forbidden - tenant scope mismatch or role not permitted
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Tenant context missing or access denied
+            code: FORBIDDEN
+    NotFound: &err404
+      description: Not found - module or function does not exist on this server
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Module not found
+            code: MODULE_NOT_FOUND
+    InternalError: &err500
+      description: Internal server error - unexpected exception; safe to retry with same idempotency key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Internal server error
+            code: INTERNAL_ERROR

@@ -1,0 +1,67 @@
+===HELP===
+sample_data_generator.js — NamaMedical PCC sample payload generator
+
+USAGE:
+  node sample_data_generator.js [options]
+  node sample_data_generator.js <module> [<function>] [options]
+
+OPTIONS:
+  --help           Show this help and exit
+  --list-modules   List known modules (queries /api/v1/pcc-index/catalog)
+  --save           Save each sample to /tmp/pcc_sample_<module>_<fn>.json
+  --no-curl        Omit the curl_example field (smaller output)
+
+EXAMPLES:
+  node sample_data_generator.js --help
+  node sample_data_generator.js --list-modules
+  node sample_data_generator.js pcc_cardiology_ext102 CardGenExt
+  node sample_data_generator.js pcc_cardiology_ext102 --save
+  node sample_data_generator.js                   # random module + fn
+
+NOTES:
+  - Heuristic payload kind is decided from the function name:
+    clinical_score: gen|generate|score|card|risk ...
+    calculation:    calc|measure|index|rate ...
+    flag_check:     flag|check|screen|rule ...
+    default:        id + timestamp + patient_id (UUID)
+  - All samples are SYNTHETIC. No real PHI.
+  - Loopback only: hits http://127.0.0.1:3101
+===HELP_EXIT=0===
+===SAMPLE_CARDIO===
+{
+  "module": "pcc_cardiology_ext102",
+  "function": "CardGenExt",
+  "version": "v3.54.54.0",
+  "sample_payload": {
+    "id": "867bb075-3193-43f1-a527-e353d44533b1",
+    "timestamp": "2026-07-29T00:11:03.965Z",
+    "patient_id": "b679d848-96ff-4e57-b097-c610535b3400",
+    "function_name": "CardGenExt",
+    "locale": "en-US",
+    "source": "sample_data_generator.js"
+  },
+  "payload_kind": "default",
+  "expected_score_range": "object metadata",
+  "api_url": "/api/v1/pcc-cardiology-ext102/call/CardGenExt",
+  "curl_example": "curl -X POST 'https://jumanasoft.com/api/v1/pcc-cardiology-ext102/call/CardGenExt' -H 'Content-Type: application/json' -d '{\"id\":\"867bb075-3193-43f1-a527-e353d44533b1\",\"timestamp\":\"2026-07-29T00:11:03.965Z\",\"patient_id\":\"b679d848-96ff-4e57-b097-c610535b3400\",\"function_name\":\"CardGenExt\",\"locale\":\"en-US\",\"source\":\"sample_data_generator.js\"}'"
+}
+===SAMPLE_EXIT=0===
+===AUDIT_HEAD===
+{
+  "events": [
+    {
+      "timestamp": "2026-07-28T23:48:37Z",
+      "source": "csp_preflight/csp_preflight_2026-07-28T23:48:37Z.log",
+      "level": "INFO",
+      "message": " CSP Enforce Pre-Flight — 2026-07-28T23:48:37Z",
+      "tenant_id": null,
+      "action": "log"
+    },
+    {
+      "timestamp": "2026-07-28T23:52:01Z",
+      "source": "db_health/db_health_2026-07-28.log",
+      "level": "INFO",
+      "message": " NamaMedical DB Health — 2026-07-28T23:52:01Z",
+      "tenant_id": null
+===AUDIT_EXIT=0===
+===DONE===
