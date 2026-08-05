@@ -1,158 +1,197 @@
-# PCC (Proof-of-Concept to Code) — Sandbox
+# PCC Sandbox
+
+**1322 clinical decision modules across 255 categories — 13282 functions**
+
+[![Version](https://img.shields.io/badge/version-3.316.27-blue.svg)](CHANGELOG.md)
+[![Modules](https://img.shields.io/badge/modules-1322-10b981.svg)](ENDPOINTS.md)
+[![Functions](https://img.shields.io/badge/functions-13282-0ea5e9.svg)](ENDPOINTS.md)
+[![License](https://img.shields.io/badge/license-Proprietary-red.svg)](#license)
+[![Live](https://img.shields.io/badge/demo-jumanasoft.com-success.svg)](https://jumanasoft.com)
+
+A self-contained Express + PostgreSQL sandbox that converts the **P3-B L1_DRAFT**
+clinical blueprints into runnable code. It sandboxes the live `namaweb/` ERP
+without touching it — separate database (`nama_pcc_sandbox`), dummy data, zero PHI,
+and loopback-only by default.
 
 > **This is a sandbox.** It does NOT touch the live `namaweb/`,
 > `namaweb-ovr-audit-independent/`, `ops/`, or `.env` files.
-> It uses a separate database (`nama_pcc_sandbox`) and dummy data.
+> See [RUNBOOK.md](RUNBOOK.md) for isolation guarantees.
 
-## What this is
+---
 
-The PCC converts the P3-B L1_DRAFT blueprint for **CARD-007 Cath Lab
-Specialized** into actual runnable code, demonstrating that the
-proposed stack (Node.js + Express + PostgreSQL + pg) can deliver
-the 10 engine functions, the 4 tables, and the 5 endpoints specified
-in the blueprint.
-
-## Files
-
-| Path | Purpose |
-|---|---|
-| `server.js` | Express sandbox server, port 3100 |
-| `db.js` | pg pool, `withTenant(tenantId, fn)` helper |
-| `middleware.js` | `authenticate`, `requireTenantScope`, `requireRole`, `validateBody`, `idempotencyGuard`, `writeAuditLog` |
-| `schemas.js` | Joi-style validation schemas for cath lab routes |
-| `engines/cath_lab_specialized_engine.js` | 10 deterministic functions (CTO, SYNTAX, IVUS, FFR/iFR, Medina, Ellis, rotablation, IVL, no-reflow, NHLBI dissection) |
-| `routes/cath_lab.js` | 5 endpoints: list, get, create procedure (idempotent), create vessel (idempotent), decision/jcto |
-| `migrations/cath_lab_up.sql` | 4 tables with RLS + FORCE RLS + tenant_id policies |
-| `migrations/cath_lab_down.sql` | non-destructive DROP only |
-| `tests/cath_lab_test.js` | 30 unit tests (engine + middleware) |
-| `package.json` | sandbox dependencies only |
-
-## How to run
-
-### 1. Install dependencies
+## Quick Start
 
 ```bash
-cd pcc
+git clone https://github.com/jumana/pcc-sandbox.git
+cd pcc-sandbox
 npm install
+node server.js                  # http://localhost:3100
 ```
-
-### 2. Run the engine tests (no DB needed)
 
 ```bash
-npm test
+curl http://localhost:3100/health                       # service info
+curl http://localhost:3100/api/v1/pcc-catalog/stats     # 1322 modules
+curl http://localhost:3100/_metrics                     # Prometheus
 ```
 
-Expected output: `Engine tests: 30 passed, 0 failed`.
+Optional: bring up PostgreSQL on `127.0.0.1:5432`, create `nama_pcc_sandbox`,
+then apply `migrations/cath_lab_up.sql` to unlock the 30 protected engine routes.
 
-### 3. (Optional) Bring up the sandbox DB
+---
 
-If you have a local PostgreSQL running on `127.0.0.1:5432`:
+## What's New in v3.316.27
 
-```sql
-CREATE DATABASE nama_pcc_sandbox;
-CREATE USER nama_pcc_app WITH PASSWORD 'pcc_sandbox_password';
-GRANT ALL ON DATABASE nama_pcc_sandbox TO nama_pcc_app;
-```
+12 versions · 1322 modules · 13282 functions · ~4045 endpoints
 
-Then apply the migration:
+| Feature | Endpoint / Artifact | Notes |
+|---|---|---|
+| Per-tenant rate limit | middleware (`pccTenantRateLimit`) | Tenant-scoped, header-aware, PG-persisted 429s |
+| PostgreSQL audit persistence | `audit_store.js` · `PCC_AUDIT_PERSIST=true` | Hash-chained, 7+ year retention opt-in |
+| K8s probes | `/healthz` · `/livez` · `/readyz` | text/plain, ready for `livenessProbe` / `readinessProbe` |
+| Prometheus metrics + histogram | `/_metrics` | `pcc_request_duration_seconds` with `le` buckets |
+| GraphQL executor + playground | `/graphql/query` · `/graphql/playground` | SDL at `/graphql/schema.graphql` |
+| API tokens (issue / revoke / refresh) | `POST /api/v1/pcc-catalog/api-token` | PG-backed (`token_store.js`), 32-byte hex |
+| Public status page | `/status/` · `/status/status.json` · `/status/index.xml` | HTML, JSON, RSS |
+| Daily snapshots (strict JSON) | `scripts/daily_snapshot.sh` · `/snapshots/` | Rotated, content-type checked |
+| Server-Sent Events stream | `/status/stream` | Live uptime, p95, error rate |
+| 9 Prometheus alerting rules | `alerts/pcc-alerts.yaml` | High error rate, low module count, token-store lag |
+
+See [CHANGELOG.md](CHANGELOG.md) for the full history.
+
+---
+
+## Endpoints at a Glance
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/health` | Service info + module list |
+| GET | `/healthz` · `/livez` · `/readyz` | K8s probes (text/plain) |
+| GET | `/_metrics` | Prometheus text format |
+| GET | `/api/v1/pcc-catalog/stats` | Module/function counts + top categories |
+| GET | `/api/v1/pcc-catalog/modules?limit=N` | Paginated module list |
+| GET | `/api/v1/pcc-catalog/categories` | 255 category list |
+| GET | `/api/v1/pcc-catalog/module/:slug` | Single module metadata |
+| GET | `/api/v1/pcc-catalog/search?q=…` | Tokenized module search |
+| GET | `/api/v1/pcc-catalog/lookup/:fn` | Reverse: function → modules |
+| GET | `/api/v1/pcc-catalog/coverage` | Per-category coverage breakdown |
+| GET | `/api/v1/pcc-catalog/duplicates` | Cross-module function duplicates |
+| GET | `/api/v1/pcc-catalog/orphans` | Modules with declared/actual mismatches |
+| GET | `/api/v1/pcc-catalog/random` | Random module picker |
+| GET | `/api/v1/pcc-catalog/badge.svg` | shields.io-style dynamic badge |
+| GET | `/api/v1/pcc-catalog/snapshots` | Daily snapshot index |
+| POST | `/api/v1/pcc-catalog/api-token` | Issue bearer token |
+| POST | `/api/v1/pcc-catalog/api-token/revoke` | Revoke token |
+| POST | `/api/v1/pcc-catalog/api-token/refresh` | Rotate token |
+| GET | `/api/v1/pcc-diagnostics/{diagnostics,version,coverage,bench/run}` | Health & load |
+| GET | `/status/stream` | Server-Sent Events (uptime, p95, errors) |
+| GET | `/api/v1/pcc-{slug}/list` · `/call/{fn}` · `/record` | 1322 × 3 module routes |
+
+> **Total: ~4045 endpoints.** Full table in [ENDPOINTS.md](ENDPOINTS.md).
+
+---
+
+## Architecture
+
+The PCC sandbox is a stateless Express service backed by PostgreSQL. Each of the
+1322 module folders contains a deterministic engine file (`{slug}_engine.js`) and
+a routes file (`{slug}_routes.js`) mounted at `/api/v1/pcc-{slug}`. The catalog is
+discovered by scanning the filesystem at boot and frozen into an in-memory
+`PCC_MODULES_LOOKUP` for fast lookups, plus a `PCC_SEARCH_INDEX` (tokenized
+keyword → module slugs) and a `PCC_FUNC_INDEX` (function name → module slugs).
+A ring-buffered in-memory audit log plus optional PG persistence track every
+write; API tokens are stored hashed in PG with rotate / revoke semantics. The
+GraphQL executor and in-browser playground are auto-generated from the catalog
+metadata, and the public status page streams uptime via SSE.
+
+See [`../docs/ARCHITECTURE_MAP_AR.md`](../docs/ARCHITECTURE_MAP_AR.md) for the
+full multi-tenant hospital platform architecture (this sandbox is a sibling of
+the `namaweb/` ERP, not a deployment target).
+
+---
+
+## SDKs
+
+First-party SDKs under [`sdk/`](sdk/) cover the major stacks:
+
+| Language | Path |
+|---|---|
+| TypeScript / Node.js | [`sdk/typescript/`](sdk/typescript/) · [`sdk/nodejs/`](sdk/nodejs/) |
+| Python | [`sdk/python/`](sdk/python/) |
+| Go | [`sdk/go/`](sdk/go/) |
+| Ruby | [`sdk/ruby/`](sdk/ruby/) |
+| PHP | [`sdk/php/`](sdk/php/) |
+| Rust | [`sdk/rust/`](sdk/rust/) |
+| Java | [`sdk/java/`](sdk/java/) |
+| Swift | [`sdk/swift/`](sdk/swift/) |
+| Kotlin | [`sdk/kotlin/`](sdk/kotlin/) |
+| Postman collection | [`postman/PCC-Sandbox.postman_collection.json`](postman/) |
+| Mock server (for SDK CI) | [`sdk/mock-server/`](sdk/mock-server/) |
+
+---
+
+## Operations
+
+| Concern | Where |
+|---|---|
+| Deploy to `jumanasoft.com` | [`scripts/README_DEPLOY.md`](scripts/README_DEPLOY.md) |
+| Deploy script (dry-run supported) | [`scripts/deploy_pcc_to_jumanasoft.sh`](scripts/deploy_pcc_to_jumanasoft.sh) |
+| Health check | [`scripts/health_check.sh`](scripts/health_check.sh) |
+| Smoke test | [`scripts/smoke_test.sh`](scripts/smoke_test.sh) |
+| Daily snapshot | [`scripts/daily_snapshot.sh`](scripts/daily_snapshot.sh) |
+| Seed demo data | [`scripts/seed_demo.js`](scripts/seed_demo.js) |
+| Live runbook | [`RUNBOOK.md`](RUNBOOK.md) |
 
 ```bash
-psql -d nama_pcc_sandbox -U nama_pcc_app -f migrations/cath_lab_up.sql
+# dry-run a deploy
+bash scripts/deploy_pcc_to_jumanasoft.sh --dry-run
+
+# health + smoke after a deploy
+bash scripts/health_check.sh
+bash scripts/smoke_test.sh
 ```
 
-### 4. Start the server
+---
 
-```bash
-npm start
-```
+## Monitoring
 
-Expected: `PCC sandbox listening on port 3100`
+| Surface | Path | Format |
+|---|---|---|
+| Grafana dashboard | [`dashboards/pcc-overview.json`](dashboards/pcc-overview.json) | JSON (importable) |
+| Prometheus alerts | [`alerts/pcc-alerts.yaml`](alerts/pcc-alerts.yaml) | 9 alert rules |
+| Prometheus scrape | `GET /_metrics` | text/plain (openmetrics-ish) |
+| Public status | `GET /status/` | HTML + RSS + JSON |
+| Live SSE | `GET /status/stream` | `text/event-stream` |
 
-Try:
+The Grafana dashboard tracks: uptime, request rate, p50/p95/p99 latency, error
+rate, per-tenant rate-limit hits, audit log size, and module-count drift.
 
-```bash
-curl http://localhost:3100/health
-curl "http://localhost:3100/api/v1/cath-lab/decision/jcto?bluntProximalCap=true&severeCalcification=true&lengthGt20=true"
-```
+---
 
-To call protected endpoints, add headers:
+## Contributing
 
-```bash
-curl -H 'x-pcc-user-id: 1' \
-     -H 'x-pcc-tenant-id: 00000000-0000-0000-0000-000000000001' \
-     -H 'x-pcc-role: CARD' \
-     -H 'idempotency-key: test-1' \
-     -H 'content-type: application/json' \
-     -d '{"patientId":1,"encounterId":1,"procedureType":"pci_simple","cptCodes":["92928"]}' \
-     http://localhost:3100/api/v1/cath-lab/procedures
-```
+This repository is **owner-gated**. The PCC catalog ships via the P3 phase
+shipper pipeline (see [`SHIP_P3NF.md`](SHIP_P3NF.md) for the most recent phase).
+Per-department changes follow the P3 canonical 4-file pattern
+(`{slug}_engine.js` + `{slug}_routes.js` + `{slug}_test.js` + migration).
 
-## Safety rails honored
+Before opening a PR:
 
-1. **No PHI in fixtures** — all test data is synthetic
-2. **No hardcoded secrets** — credentials via `process.env`
-3. **Tenant isolation** — every table has `tenant_id UUID NOT NULL` + RLS + FORCE RLS + per-tenant policy
-4. **Money routes are idempotent** — `idempotencyGuard` on POST `/procedures` and POST `/vessels`
-5. **Auth on every endpoint** — `authenticate + requireTenantScope + requireRole('CARD')`
-6. **Audit log is hash-chained** — `cath_lab_audit_log` with `prev_hash` and `entry_hash`
-7. **Fail-closed tenant** — `withTenant` throws if no tenant
-8. **No console.log of secrets** — error handler logs error only, not req body
-9. **CSP report-only** (sandbox uses `helmet` defaults; production would set `reportOnly`)
-10. **Money/VAT server-side** — no client totals
+1. Run `npm test` (engine tests, no DB)
+2. Run `bash scripts/smoke_test.sh` against your local server
+3. Update [CHANGELOG.md](CHANGELOG.md) under `[Unreleased]`
+4. Read the 13 safety rails in the parent [`AGENTS.md`](../AGENTS.md):
+   no hardcoded secrets, no PHI in fixtures, tenant isolation stays on,
+   money routes stay idempotent, fail-closed on missing tenant context, etc.
 
-## What this PCC does NOT cover
+---
 
-- Live database integration (the tests are engine-only)
-- Real authentication (PCC uses header-based stub)
-- NPHIES claim submission (out of scope for PCC)
-- PHI encryption at rest (column exists, key management is out of scope)
-- Real i18n (PCC is English-only; bilingual in P5+)
+## License
 
-## Status
+Proprietary — internal NamaMedical. See `LICENSE` (TBD).
 
-**PCC Complete (2026-07-24)**
+---
 
-- 6 deliverable files
-- 30 unit tests pass
-- Express server boots on port 3100
-- Health endpoint OK
-- All 10 engine functions have evidence-based scoring
+## Support
 
-## Status: P3-S SHIPPED ✅
-
-**v0.9.0** — 19 modules wired, ~197 engine functions, **801/801 tests passing**.
-
-### Modules
-**10 ICU**: ccu (66) + nnicu (72) + bicu (60) + picu (38) + sicu (34) + ticu (36) + micu (33) + honc (41) + cticu (40) + nicu (41) = 461
-**4 Procedural**: cath_lab (57) + or (41) + ed (39) + obgyn (38) = 175
-**4 Specialty (P3-R)**: derma (38) + gi (36) + endo (31) + rheum (32) = 137
-**1 LLM**: copilot (28)
-**Total: 801 tests**
-
-### Token-Saver Skills (NEW in P3-S)
-Located at `c:\Users\ice\Desktop\NMEDCALVSCODE\.agents\skills\p3-skills\`:
-- `SKILL.md` — pcc-scaffold (canonical 4-file pattern)
-- `icu-functions.md` — 10 ICUs × 10 functions table
-- `proc-functions.md` — 7 depts × 10 functions table
-- `audit.md` — 13-rail + 6-gate validator
-- `generate-pcc.md` — orchestrator
-- **35-50% token saving per new PCC**
-
-### Documentation
-- `SHIP_SKILLS.md` — **master closeout (P3-S)**
-- `SHIP_ABSOLUTE.md` — P3-P
-- `SHIP_ULTIMATE.md` — P3-M
-- `MEMORY_SNAPSHOT.md` — canonical state
-- `HANDOFF.md` — Phase 4 readiness
-- `SHIP_P3L.md` — 4 ICU PCCs
-- `SHIP_P3N.md` — 3 specialty ICUs
-- `SHIP_P3O.md` — 3 procedural
-- `SHIP_FINAL.md` — P3-K
-- `SHIP_SUMMARY.md` — first P3
-
-### Next: Phase 4 (awaiting owner authorization)
-- Real PostgreSQL (replace sql.js)
-- Real JWT (replace stub)
-- Real LLM (replace mock)
-- Per-ICU clinic workflow integration
-- Production cutover (Phase 6)
+Owner: `jumana@jumanasoft.com` (live) · on-call rota in [`RUNBOOK.md`](RUNBOOK.md).
+For incident response, see the runbook's `## Incident` section.
