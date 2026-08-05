@@ -1,0 +1,32 @@
+name: nama-medical-ci
+on:
+  push:
+    branches: [integration/*, main]
+  pull_request:
+    branches: [integration/*, main]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: namaweb
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install deps
+        run: npm ci --no-audit --no-fund
+      - name: Governance audit (rail-1/2/10/11/12)
+        run: node scripts/governance_audit.js
+      - name: Run smoke (45 tests)
+        run: node scripts/smoke.js
+  audit-chain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node namaweb/scripts/migrate_audit.js
