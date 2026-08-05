@@ -6,6 +6,69 @@ the change was small enough to be merged without its own report.
 
 ---
 
+## Wave 38 — 2026-08-05 — Audit Chain Integrity Checker (BYPASSRLS)
+**Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`WAVE_38_AUDIT_CHAIN_AR.md`](WAVE_38_AUDIT_CHAIN_AR.md)
+
+### Added
+- `namaweb/wave38_audit_chain.js` — the operator tool referenced in the
+  wave32 `audit_chain_gap` remediation text (which didn't exist before).
+  Runs `runAuditChainCheck({ exec, host, envPath, local })` against prod
+  via the dedicated BYPASSRLS `nama_medical_backup` role so it sees every
+  tenant — not just the app-role default. Returns
+  `{ scannedAt, gaps, perTenant, error, raw }`.
+- `namaweb/wave38_audit_chain_test.js` — 19 unit / structural / safety
+  tests (PASS on local + prod).
+- `namaweb/server.js` — new endpoints:
+  - `GET /api/security/audit-chain` (Admin/IT only JSON surface)
+  - `GET /api/metrics/audit-chain` (Prometheus, no auth)
+  - `getWave38Report()` with 60s cache.
+- 5 new Prometheus gauges on `/api/metrics/audit-chain`:
+  - `wave38_audit_chain_gaps_total`
+  - `wave38_audit_chain_tenants_scanned`
+  - `wave38_audit_chain_gappy_tenants`
+  - `wave38_audit_chain_tenant_gaps{tenant_id="…"}` (per-tenant)
+  - `wave38_audit_chain_last_error` (1=errored, 0=ok)
+- New `nama_audit_chain_gaps_total` gauge on `/api/metrics` (the
+  operator-visible total alongside the existing app-role view).
+
+### Changed
+- `wave32_metrics.js` — probe now reads `auditChainGapsTotal` from the
+  operator-visible report; the `audit_chain_gap` alert rule is updated
+  to fire `critical` when this count > 0 (was previously checking the
+  app-role view which masked the gap).
+- `wave32_metrics.js` — `toPrometheusMetrics({auditChain})` and
+  `getAlerts({auditChain})` threads the new report through.
+- `wave32_metrics_test.js` — updated to use `auditChainGapsTotal`.
+
+### Verified
+- 19/19 wave38 tests pass on prod.
+- 9/9 wave32 tests pass on prod.
+- 76 tests across 5 waves all PASS on local + prod
+  (wave38 + wave37 + wave36 + wave32 + wave31).
+- **Surfaced a real audit chain gap**: row id=180, tenant_id=1,
+  chain_idx=164, `prev_hash IS NULL`, action=`WAVE26_SMOKE`, created
+  2026-08-05 08:27:34. The wave32 alert now fires CRITICAL on this.
+- `nama_audit_chain_gaps_total 1` on prod.
+- `nama_alerts_firing 1` (the real `audit_chain_gap` alert — finally
+  firing on a real defect, not noise).
+
+### Safety rails
+- Rail 1 — no secrets in source. Outputs are row hashes (64-char hex),
+  tenant ids, and chain_idx — never row values or user details.
+- Rail 4 — read-only. SQL is SELECT-only; no INSERT/UPDATE/DELETE.
+- Rail 5 — defense-in-depth preserved. Metric probe still uses app role
+  for telemetry; the BYPASSRLS view is gated behind Admin/IT endpoint
+  + the dedicated Prometheus surface.
+- Rail 12 — exec wrappers return `{code, stdout, stderr}` for redaction.
+
+### Surfaced follow-up
+- The `WAVE26_SMOKE` gap row (id=180) needs to be either backfilled with
+  the correct `prev_hash` or accepted as historic. **Owner-gated**
+  decision: requires reviewing whether the row is load-bearing.
+  Operator has full forensics via `/api/security/audit-chain`.
+
+---
+
 ## Wave 37 — 2026-08-05 — Redis Metric Ping Fix (silences `redis_down`)
 **Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`WAVE_37_REDIS_METRIC_AR.md`](WAVE_37_REDIS_METRIC_AR.md)
 
