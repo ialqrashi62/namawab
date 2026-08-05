@@ -69,3 +69,10 @@ nama_kek*.dpapi
 # MCP secrets (template only — real keys in env)
 tools/mcp-server/mcp-config.template.json
 
+# Local PCC smoke logs (Iter 152-165 noise)
+server_local_*.log
+jest_smoke.log
+ops_new/
+*.err
+*.stderr
+
