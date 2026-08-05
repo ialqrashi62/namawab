@@ -6,6 +6,44 @@ the change was small enough to be merged without its own report.
 
 ---
 
+## Wave 44 — 2026-08-05 — HTTP Request Metrics
+**Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_44_HTTP_REQUEST_METRICS_AR.md`](PHASE_WAVE_44_HTTP_REQUEST_METRICS_AR.md)
+
+### Discovered
+- server.js had structured logging (pino) but NO Prometheus counters for HTTP traffic.
+  Operators couldn't see request volume, status class distribution, in-flight concurrency,
+  or average duration. `/api/metrics` exposed only DB/Redis/RLS/session/process gauges.
+
+### Added
+- `namaweb/wave44_http_request_metrics.js` — `makeHttpMetricsMiddleware()`,
+  `recordStart/recordEnd()`, `getCounters()`, `reset()`, `toPrometheusMetrics()`.
+  Tracks in-flight + per-method + per-status-class + per-path (capped 50) + avg duration.
+- `namaweb/wave44_http_request_metrics_test.js` — 46 unit / structural / safety tests (PASS on local + prod).
+- `namaweb/server.js` — 3 surgical edits:
+  - `const wave44 = require('./wave44_http_request_metrics');`
+  - `app.use(wave44.makeHttpMetricsMiddleware())` registered EARLY (after express.json, before routes)
+  - `/api/metrics/http` + `/api/security/http` endpoints (Admin/IT only JSON)
+- 9+ Prometheus gauges on `/api/metrics/http`:
+  - `nama_http_requests_total`
+  - `nama_http_in_flight_requests`
+  - `nama_http_avg_duration_ms`
+  - `nama_http_class_1xx` through `nama_http_class_5xx`
+  - `nama_http_method_{get,post,put,patch,delete,other}`
+
+### Production verification
+- 60-burst (20 health + 20 metrics + 20 nonexistent) on prod:
+  - `nama_http_requests_total = 15` (per-worker)
+  - `nama_http_class_2xx = 10` (health + metrics)
+  - `nama_http_class_4xx = 5` (nonexistent 404s)
+  - `nama_http_avg_duration_ms = 14.13`
+  - `nama_http_method_get = 15`
+
+### Test status
+- `wave44_http_request_metrics_test.js`: **46 / 46 PASS** (local + prod)
+- Cumulative waves 31–44: **282 / 282 PASS**
+
+---
+
 ## Wave 43 — 2026-08-05 — Express Error Handler + Metrics
 **Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_43_ERROR_HANDLER_AR.md`](PHASE_WAVE_43_ERROR_HANDLER_AR.md)
 
