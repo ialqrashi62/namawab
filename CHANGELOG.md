@@ -6,6 +6,48 @@ the change was small enough to be merged without its own report.
 
 ---
 
+## Wave 48 — 2026-08-06 — Security Metrics Aggregator (RLS / Audit Chain / Errors)
+**Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_48_SECURITY_AGGREGATOR_AR.md`](PHASE_WAVE_48_SECURITY_AGGREGATOR_AR.md)
+
+### Discovered
+- After Waves 46 + 47, 3 SECURITY-CRITICAL sub-modules still hid at separate endpoints:
+  - `/api/metrics/rls-defense` (Wave 36) — `wave36_rls_undefended` is the alert target!
+  - `/api/metrics/audit-chain` (Wave 38) — hash-chain integrity check
+  - `/api/metrics/errors`      (Wave 43) — Express error classification
+- **CRITICAL FINDING during deploy:** wave38 surfaced an audit-chain gap
+  (`wave38_audit_chain_tenant_gaps{tenant_id="1"} 1`) that was previously
+  invisible to the main scrape. Now visible — needs investigation (tampering
+  vs false positive from migration).
+
+### Added
+- `namaweb/wave48_security_aggregator.js` — `fetchSecuritySummaries()`,
+  `buildSecurityOutput()`, `aggregateSecurity()`, `listSecuritySubModules()`,
+  `countSecurityGauges()`, `hasSecurityMinimalOutput()`, `reset()`.
+- `namaweb/wave48_security_aggregator_test.js` — 68 unit + structural + safety tests.
+- `namaweb/server.js` — 2 surgical edits:
+  - `const wave48 = require('./wave48_security_aggregator');`
+  - `/api/metrics` now calls `wave48.aggregateSecurity({ pool })` (composes wave47 + wave48).
+- 2 new self-metrics: `nama_metrics_aggregator_security_modules_ok` + `_total`.
+- Degraded fallback for `runAuditChainCheck({pool})` when no pool provided —
+  emits empty `gaps:[]` report (operator sees degraded state via self-metric).
+
+### Verified on Production
+- **Before:** 55 unique metrics in `/api/metrics` (no security sub-modules).
+- **After:** 62 unique metrics (+7 new): wave36 + wave38 + nama_errors.
+- All 3 self-metrics healthy: `wave46=4/4`, `wave47=4/4`, `wave48=3/3`.
+- Real prod values flowing: `wave36_rls_undefended=0` (security intact),
+  `wave38_audit_chain_gaps_total=1` (the discovered gap),
+  `nama_errors_total=0`.
+
+### Key Lesson (architectural)
+A field-name collision in `fetchSecuritySummaries` — both `errors: counters`
+and `errors: errorsMeta` were returned from the same object. The second
+assignment silently overwrote the first. Renamed to `errors_meta`. Caught
+by `Object.keys(r.errors)` returning an empty array on a value that was
+actually `[{...}]`.
+
+---
+
 ## Wave 47 — 2026-08-06 — Aggregator Extension (backup/logrotate/DR/process)
 **Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_47_AGGREGATOR_EXTENSION_AR.md`](PHASE_WAVE_47_AGGREGATOR_EXTENSION_AR.md)
 
