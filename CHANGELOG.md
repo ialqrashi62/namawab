@@ -6,6 +6,51 @@ the change was small enough to be merged without its own report.
 
 ---
 
+## Wave 47 — 2026-08-06 — Aggregator Extension (backup/logrotate/DR/process)
+**Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_47_AGGREGATOR_EXTENSION_AR.md`](PHASE_WAVE_47_AGGREGATOR_EXTENSION_AR.md)
+
+### Discovered
+- After Wave 46 unified 4 sub-modules (39/40/44/45), 4 MORE sub-modules
+  remained hidden at separate `/api/metrics/<module>` paths:
+  - `/api/metrics/backup`     (Wave 34)
+  - `/api/metrics/logrotate`  (Wave 35)
+  - `/api/metrics/dr-drill`   (Wave 41)
+  - `/api/metrics/process`    (Wave 42)
+- A stale `/var/log/dr-restore.log` path bug was caught during deployment
+  (DR drill showed `last_success=0` instead of `1`). Production uses
+  `/var/backups/nama-medical/dr-restore.log`.
+
+### Added
+- `namaweb/wave47_aggregator_extension.js` — `fetchExtendedSummaries()`,
+  `buildExtendedOutput()`, `aggregateAll()`, `listExtendedSubModules()`,
+  `countExtendedGauges()`, `hasExtendedMinimalOutput()`, `reset()`.
+- `namaweb/wave47_aggregator_extension_test.js` — 58 unit + structural + safety tests.
+- `namaweb/server.js` — 2 surgical edits:
+  - `const wave47 = require('./wave47_aggregator_extension');`
+  - `/api/metrics` now calls `wave47.aggregateAll({ pool })` (composes wave46 + wave47).
+- 2 new self-metrics: `nama_metrics_aggregator_ext_modules_ok` + `_total`.
+- `deps.exec` override for fast tests + `deps.logPaths.drDrillLog` for env flexibility.
+- Production default `DEFAULT_DR_DRILL_LOG='/var/backups/nama-medical/dr-restore.log'`
+  matches server.js `getWave41Report()` — values now consistent.
+
+### Verified on Production
+- **Before:** 41 unique `nama_*` + `wave*` metrics in `/api/metrics` (Waves 39/40/44/45 only).
+- **After:** 54 unique metrics (+13 new): wave34 + wave35 + dr_drill + process.
+- Self-metrics confirm: `nama_metrics_aggregator_ext_modules_ok 4 / total 4`.
+- Real prod values: `nama_dr_drill_last_success=1`, `patients_restored=4`,
+  `age_hours=13.07`, `wave34_activation_status{...}=1` for all 4 checks.
+
+### Key Lessons
+- Wave 41's `summarize({})` defaulted to a non-prod log path. The aggregator
+  must encode production defaults that match every existing endpoint that uses
+  the same module — drifting defaults = silent wrong values.
+- `deps.exec` override for `validateActivation` reduces test time from 6s/call
+  to <100ms while preserving the same API surface.
+- Sub-endpoints (`/api/metrics/dr-drill` etc.) continue to work unchanged —
+  Grafana configurations pointing at them are NOT broken.
+
+---
+
 ## Wave 46 — 2026-08-06 — Unified Metrics Aggregator
 **Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_46_METRICS_AGGREGATOR_AR.md`](PHASE_WAVE_46_METRICS_AGGREGATOR_AR.md)
 
