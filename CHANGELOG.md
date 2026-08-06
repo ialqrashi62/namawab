@@ -6,6 +6,42 @@ the change was small enough to be merged without its own report.
 
 ---
 
+## Wave 46 — 2026-08-06 — Unified Metrics Aggregator
+**Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_46_METRICS_AGGREGATOR_AR.md`](PHASE_WAVE_46_METRICS_AGGREGATOR_AR.md)
+
+### Discovered
+- Each wave (39/40/44/45) added a sub-endpoint (`/api/metrics/csp`, `/api/metrics/audit-log`,
+  `/api/metrics/http`, `/api/metrics/db-pool`) — but the Prometheus scrape target is
+  `/api/metrics` only. **The new metrics were invisible to the primary scrape.**
+  Operators would have needed 5 separate scrape configs in Prometheus.
+
+### Added
+- `namaweb/wave46_metrics_aggregator.js` — `fetchAllSummaries()`, `buildPrometheusOutput()`,
+  `aggregate()`, `listSubModules()`, `countGauges()`, `hasMinimalOutput()`, `reset()`.
+- `namaweb/wave46_metrics_aggregator_test.js` — 69 unit + structural + safety tests (PASS on local + prod).
+- `namaweb/server.js` — 3 surgical edits:
+  - `const wave46 = require('./wave46_metrics_aggregator');`
+  - `/api/metrics` now appends `wave46.aggregate({ pool })` to the Wave 32 output
+  - New `/api/security/metrics-summary` (Admin/IT only) — JSON view of which sub-modules succeeded
+- 2 self-metrics exposed: `nama_metrics_aggregator_modules_ok` + `nama_metrics_aggregator_modules_total`.
+- 5s TTL cache prevents scrape thrash.
+- Failure-isolated `_safe()` wrapper ensures one sub-module's failure never 500s the scrape.
+
+### Verified on Production
+- **Before:** 24 unique `nama_*` metrics in `/api/metrics` (sub-modules hidden).
+- **After:** 41 unique `nama_*` metrics (CSP, audit, HTTP, DB pool all visible from one scrape).
+- Self-metric: `nama_metrics_aggregator_modules_ok 4` (all sub-modules succeeded).
+- `/api/security/metrics-summary` returns 401 for unauthenticated requests (correct).
+
+### Key Lessons
+- Sub-module signatures are NOT uniform: `summarizeCspReports(pool, opts)` vs
+  `summarize(pool)` vs `getCounters()`. The aggregator adapts to each.
+- Error handling is also non-uniform: Wave 39 swallows errors and returns empty summaries;
+  Waves 40/44/45 throw. The `_safe()` wrapper handles both shapes.
+- Fragmented Prometheus scrapes are operational debt. One unified scrape = one config to maintain.
+
+---
+
 ## Wave 45 — 2026-08-05 — PG Connection Pool Metrics
 **Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_45_DB_POOL_METRICS_AR.md`](PHASE_WAVE_45_DB_POOL_METRICS_AR.md)
 
