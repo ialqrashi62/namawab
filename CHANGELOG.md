@@ -6,6 +6,36 @@ the change was small enough to be merged without its own report.
 
 ---
 
+## Wave 45 — 2026-08-05 — PG Connection Pool Metrics
+**Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_45_DB_POOL_METRICS_AR.md`](PHASE_WAVE_45_DB_POOL_METRICS_AR.md)
+
+### Discovered
+- Operators had **zero visibility** into the PG connection pool. Could not detect saturation,
+  backpressure (waiting clients), or establish a deploy baseline. The only diagnostic was
+  manual `pg_stat_activity` snapshots.
+- A first-pass `_safeRead` assumed `pg.Pool` exposes counters as **functions**, but
+  `node-postgres` exposes them as **properties** (`typeof === 'number'`). All 5 gauges
+  were stuck at 0 on prod until the bug was caught by `scripts/pool_probe.js`.
+
+### Added
+- `namaweb/wave45_db_pool_metrics.js` — `summarize()`, `getSummary()`, `reset()`,
+  `toPrometheusMetrics()`. Works with both property and function-style pool APIs.
+- `namaweb/wave45_db_pool_metrics_test.js` — 37 unit + structural + safety tests
+  (PASS on local + prod). Tests now use **real** pg.Pool-shaped mocks (getter props).
+- `namaweb/server.js` — 2 surgical edits:
+  - `const wave45 = require('./wave45_db_pool_metrics');`
+  - `/api/metrics/db-pool` (Prometheus text) + `/api/security/db-pool` (Admin/IT JSON)
+- 5 Prometheus gauges: `nama_db_pool_total` / `idle` / `waiting` / `max` / `utilization`.
+- 5-second TTL cache prevents pool-reader thrash from scrapers.
+- Recommended alerts in Arabic report: `PGPoolHighUtilization`, `PGPoolWaitingClients`, `PGPoolExhausted`.
+
+### Verified on Production
+- **Before fix:** `nama_db_pool_total 0` (bug — `_safeRead` rejected non-function values).
+- **After fix:** `nama_db_pool_total 3` / `idle 3` / `waiting 0` / `max 20` / `utilization 0.15`
+  accurate reflection of cluster warmup + 15 concurrent `/api/health` requests.
+
+---
+
 ## Wave 44 — 2026-08-05 — HTTP Request Metrics
 **Owner:** Copilot  •  **Commit:** pending  •  **Report:** [`PHASE_WAVE_44_HTTP_REQUEST_METRICS_AR.md`](PHASE_WAVE_44_HTTP_REQUEST_METRICS_AR.md)
 
