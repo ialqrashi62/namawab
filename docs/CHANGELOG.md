@@ -4,6 +4,46 @@ The format is based on Keep a Changelog; this project adheres to Semantic Versio
 
 ## [Unreleased]
 
+### Added — 2026-08-09 (Wave A execution baseline — Subagent path)
+
+- Started Wave A execution on isolated branch `feat/waveA-subagent` from `integration/all-epics`.
+- Applied compliance bundle commit `2694b5f` as branch commit `71e4114`:
+  - `server.js` and `public/js/app.js` hardened for ZATCA/NPHIES/CBAHI settings handling.
+  - Added compliance helpers/tests under `lib/compliance/` and focused test files.
+- Added CI compliance gate in `.github/workflows/ci.yml` plus package scripts:
+  - `test:compliance:quick`
+  - `test:compliance:full`
+- Verification snapshot on Wave A worktree:
+  - `test:compliance:quick`: PASS
+  - `zatca_settings_route_integration_test.js`: requires `better-sqlite3` environment readiness on some Windows + Node 24 setups.
+
+### Added — 2026-08-09 (Compliance hardening — ZATCA + NPHIES + CBAHI)
+
+- Added structured NPHIES/CBAHI compliance settings helper at `namaweb/lib/compliance/integration_settings.js`:
+  - NPHIES: normalize + validate + redact (`fhir_version`, endpoint path checks, profile-required checks when enabled).
+  - CBAHI: normalize + validate + redact (`self_assessment_frequency` allowlist + profile-required checks when enabled).
+- Strengthened integration settings API in `namaweb/server.js`:
+  - Case-insensitive canonical handling for integration names.
+  - Fail-closed validation for enabled ZATCA/NPHIES/CBAHI payloads.
+  - Secret-preserving update behavior when UI sends redacted placeholders.
+  - Redacted GET response for ZATCA/NPHIES sensitive fields while preserving non-secret config.
+- Expanded ZATCA submit fail-closed guards in `namaweb/server.js`:
+  - Explicit onboarding-incomplete error when production credentials are missing.
+  - Structured config validation before signing/submission (CSR/key integrity checks).
+- Enhanced integration modal UX/validation in `namaweb/public/js/app.js`:
+  - Structured NPHIES/CBAHI forms instead of raw freeform JSON-only flow.
+  - Clear client-side validation and localized error messages before save.
+- Added/updated focused test coverage:
+  - `namaweb/integration_settings_test.js`
+  - `namaweb/zatca_settings_route_integration_test.js`
+  - `namaweb/zatca_submit_fail_closed_guard_test.js`
+  - `namaweb/nphies_cbahi_ui_config_test.js`
+- Verification snapshot (targeted run):
+  - `integration_settings_test.js`: PASS
+  - `zatca_settings_route_integration_test.js`: PASS (23/23)
+  - `zatca_submit_fail_closed_guard_test.js`: PASS (9/9)
+  - `nphies_cbahi_ui_config_test.js`: PASS (7/7)
+
 ### Added — 2026-08-05 (Wave 25 — BENCHMARK update + Post-Wave diagrams)
 
 - **`docs/BENCHMARK_GAP_ANALYSIS_AR.md` updated** with Post-Wave section + refreshed Feature Matrix + Top-20 Gaps status table. 15 of 20 Top-20 gaps now SHIPPED (75%).
@@ -11,7 +51,7 @@ The format is based on Keep a Changelog; this project adheres to Semantic Versio
 - **`docs/diagrams/BENCHMARK_STATUS_REPORT.pdf`** (12 pages, 323 KB) — focused status report: Executive Summary, Top-20 Gaps status, Score Card vs Epic/Oracle Health/MEDITECH/athena/TrakCare, RAIL Coverage Matrix, KSA Compliance, AI Maturity, Wave-by-Wave Closure Map, Owner Recommendation.
 - **`pcc_phase2_batch28_benchmark_wave25.md`** memory file documenting the gap-closure progression.
 
-### Added — 2026-08-05 (Waves 14–24 — defense-in-depth + a11y + observability)
+### Added — 2026-08-05 (Waves 14–26 — defense-in-depth + a11y + observability + production hardening)
 
 #### Wave 14 — Station a11y sweep
 - New Python sweep script `deploy/wave14_sweep_a11y.py` (~80 lines, idempotent) adds `type="button"` + `aria-label="<text>"` to every bare `<button>` across all 30 `public/js/*-station.js` files.
