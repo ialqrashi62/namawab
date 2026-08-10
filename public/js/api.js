@@ -10,11 +10,16 @@ const API = {
             window.location.href = '/login.html';
             throw new Error('Unauthorized');
         }
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.error || `HTTP error ${res.status}`);
+        }
         return res.json();
     },
     get: (url) => API.request(url),
     post: (url, data) => API.request(url, { method: 'POST', body: JSON.stringify(data) }),
     put: (url, data) => API.request(url, { method: 'PUT', body: JSON.stringify(data) }),
+    patch: (url, data) => API.request(url, { method: 'PATCH', body: JSON.stringify(data) }),
     del: (url) => API.request(url, { method: 'DELETE' }),
     delete: (url) => API.request(url, { method: 'DELETE' })
 };

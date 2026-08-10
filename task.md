@@ -1,16 +1,17 @@
-# Batch E Tasks - Governance, Facility & Analytics
+# 📋 قائمة مهام مراجعة المنظومة الطبية الشاملة (HOS_PRO)
 
-- [x] Refactor `renderSettings` (Tab 3) in `public/js/app.js` to implement Cybersecurity & Governance (Threat level, encryption stats, SDAIA compliance, session enforcement, pg_dump backup trigger, backups list, security audit trail)
-- [x] Refactor `renderMaintenance` in `public/js/app.js` to implement Biomedical & Facility Maintenance (Dashboard stats, preventive calendar, active tickets table, work orders queue, biomedical equipment registry)
-- [x] Refactor `renderDashboard` in `public/js/app.js` to implement Executive Analytics (Command Center, Vision 2030 metrics, departmental status cards, Chart.js live charts)
-- [x] Fix PostgreSQL query for Maintenance stats (comparing next_due text field with CURRENT_DATE::text)
-- [x] Compile local CSS styles using `npm run build:css`
-- [x] Verify syntax of modified source files using `node --check`
-- [x] Verify application in the browser using test credentials and confirm zero console errors
-- [x] Document results in reports:
-  - `docs/STITCH_BATCH_E_GOVERNANCE_FACILITY_ANALYTICS_REPORT_AR.md`
-  - `docs/STITCH_MODULE_BATCH_PROGRESS_AR.md`
-  - `docs/STITCH_DESIGN_IMPLEMENTATION_REPORT_AR.md`
-  - `task.md`
-  - `walkthrough.md`
-- [x] Create git commit for Batch E changes
+- `[x]` تفعيل وقراءة مهارات HOS_PRO بالكامل وفهم سياقها.
+- `[x]` فحص القائمة الجانبية الحالية (Sidebar) في `namaweb/public/js/app.js` وعد عناصرها (44 قسماً وظيفياً، 0 روابط مكسورة، 0 submenu هرمي بالقائمة الجانبية).
+- `[x]` إجراء تحليل الفجوات والمقارنة العالمية (Global Benchmark & Gap Analysis) وتحديد 25 قسماً مفقوداً ودمج 4 أقسام وتحديد P0-P3.
+- `[x]` بناء الكتالوج الرئيسي للأقسام (Master Department Catalog) وتوزيع 73 وحدة على 10 مجموعات تشغيلية.
+- `[x]` صياغة مخطط المتطلبات الفنية والسريرية (Requirements Blueprint) لجميع الموديولات الطبية والمساندة المقترحة.
+- `[x]` بناء مصفوفة الصلاحيات (RBAC Matrix) وقواعد منع تداخل المسؤوليات والتدقيق (PDPL & CBAHI).
+- `[x]` إعداد مصفوفة التمريض التخصصية وبوابات السلامة الطبية للأقسام عالية الخطورة (Safety Gates).
+- `[x]` تصميم واجهات المستخدم وحالات شاشات الأقسام الطبية والأزرار العامة والسريرية (UI/UX Blueprint).
+- `[x]` تخطيط جداول قواعد البيانات المقترحة وعلاقاتها وعزل المستأجرين وتصميم الـ APIs والتكاملات (HL7/FHIR/ZATCA/NPHIES).
+- `[x]` صياغة سيناريوهات سير العمل المتكاملة وتدفق البيانات (End-to-End Clinical Workflows).
+- `[x]` بناء خطة الاختبار والقبول البرمجي والسريري وفحص حظر Mojibake (QA & Acceptance Testing).
+- `[x]` توثيق وحفظ كامل المخرجات في المسار `.ai-brain/` بصيغة UTF-8 سليمة.
+- `[x]` تحديث ذاكرة المشروع (`AI_PROJECT_MEMORY.md`) وسجل المخرجات المنجزة (`walkthrough.md`).
+- `[x]` إجراء التدقيق الختامي وضمان عدم سقوط أي قسم طبي (Final No-Missing Department Audit).
+

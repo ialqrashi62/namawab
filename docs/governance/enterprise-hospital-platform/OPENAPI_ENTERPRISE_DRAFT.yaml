@@ -1,0 +1,87 @@
+openapi: 3.0.3
+info:
+  title: NamaMedical Enterprise Hospital Platform API
+  description: Draft OpenAPI Specification for Multi-Facility clinical and financial operations.
+  version: 1.0.0-draft
+paths:
+  /api/v1/facilities:
+    get:
+      summary: Retrieve available facilities
+      description: Get all registered hospitals, polyclinics, and primary care units.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FacilityDTO'
+  /api/v1/departments:
+    get:
+      summary: Retrieve departments
+      responses:
+        '200':
+          description: Successful response
+  /api/v1/appointments:
+    get:
+      summary: Retrieve appointments
+      responses:
+        '200':
+          description: Successful response
+  /api/v1/queue:
+    get:
+      summary: Retrieve patient queue
+      responses:
+        '200':
+          description: Successful response
+  /api/v1/encounters:
+    get:
+      summary: Retrieve clinical encounters
+      responses:
+        '200':
+          description: Successful response
+  /api/v1/clinical-orders:
+    get:
+      summary: Retrieve clinical orders
+      responses:
+        '200':
+          description: Successful response
+  /api/v1/clinical-results:
+    get:
+      summary: Retrieve diagnostic results
+      responses:
+        '200':
+          description: Successful response
+  /api/v1/clinical-pharmacy:
+    get:
+      summary: Retrieve pharmacy review queue
+      responses:
+        '200':
+          description: Successful response
+  /api/v1/clinical-billing:
+    get:
+      summary: Retrieve billing previews
+      responses:
+        '200':
+          description: Successful response
+  /api/v1/audit-events:
+    get:
+      summary: Retrieve audit events
+      responses:
+        '200':
+          description: Successful response
+
+components:
+  schemas:
+    FacilityDTO:
+      type: object
+      properties:
+        id:
+          type: string
+        name_en:
+          type: string
+        name_ar:
+          type: string
+        type:
+          type: string

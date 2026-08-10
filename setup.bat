@@ -1,12 +1,12 @@
 @echo off
 chcp 65001 >nul 2>&1
-title Nama Medical ERP - Auto Setup
+title jumanaMedical ERP - Auto Setup
 color 0A
 
 echo.
 echo  ╔════════════════════════════════════════════════════╗
-echo  ║      Nama Medical ERP - Automatic Setup           ║
-echo  ║      نما الطبي - التثبيت التلقائي                ║
+echo  ║      jumanaMedical ERP - Automatic Setup           ║
+echo  ║      جمانا الطبي - التثبيت التلقائي                ║
 echo  ╚════════════════════════════════════════════════════╝
 echo.
 

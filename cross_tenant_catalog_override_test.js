@@ -49,10 +49,18 @@ async function runTests() {
         await client.query("INSERT INTO tenants (id, name, subdomain, status) VALUES (1, 'Tenant A', 'tenant-a', 'active') ON CONFLICT (id) DO NOTHING");
         await client.query("INSERT INTO tenants (id, name, subdomain, status) VALUES (2, 'Tenant B', 'tenant-b', 'active') ON CONFLICT (id) DO NOTHING");
 
-        // Clean up overrides for a clean test run
-        await client.query("DELETE FROM tenant_lab_test_overrides WHERE tenant_id IN (1, 2)");
-        await client.query("DELETE FROM tenant_radiology_overrides WHERE tenant_id IN (1, 2)");
-        await client.query("DELETE FROM tenant_service_overrides WHERE tenant_id IN (1, 2)");
+        // Clean up overrides for a clean test run under FORCE RLS
+        await client.query("SET app.tenant_id = '1'");
+        await client.query("DELETE FROM tenant_lab_test_overrides WHERE tenant_id = 1");
+        await client.query("DELETE FROM tenant_radiology_overrides WHERE tenant_id = 1");
+        await client.query("DELETE FROM tenant_service_overrides WHERE tenant_id = 1");
+
+        await client.query("SET app.tenant_id = '2'");
+        await client.query("DELETE FROM tenant_lab_test_overrides WHERE tenant_id = 2");
+        await client.query("DELETE FROM tenant_radiology_overrides WHERE tenant_id = 2");
+        await client.query("DELETE FROM tenant_service_overrides WHERE tenant_id = 2");
+
+        await client.query("RESET app.tenant_id");
 
         // Retrieve a sample test, radiology exam, and medical service to use in tests
         const labItem = (await client.query("SELECT id, price, test_name FROM lab_tests_catalog ORDER BY id LIMIT 1")).rows[0];
@@ -209,10 +217,11 @@ async function runTests() {
             }
 
             // Query as superuser to verify Tenant A's override was NOT modified
-            await client.query("RESET app.tenant_id");
+            await client.query("SET app.tenant_id = '1'");
             await client.query("RESET ROLE");
             const verifyPrice = (await client.query("SELECT custom_price FROM tenant_lab_test_overrides WHERE test_id = $1 AND tenant_id = 1", [labItem.id])).rows[0].custom_price;
             assert(verifyPrice !== 999.0, "Tenant B cannot modify Tenant A's override price");
+            await client.query("RESET app.tenant_id");
         }
 
         // ==========================================

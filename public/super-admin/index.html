@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>مركز التحكّم بالمستأجرين — جمانة سوفت</title>
+  <link rel="stylesheet" href="/super-admin/super-admin.css" />
+</head>
+<body>
+  <header class="sa-header">
+    <div class="sa-brand"><span class="sa-logo">🛡️</span> جمانة سوفت — مركز التحكّم</div>
+    <div class="sa-sub">Super Admin · Tenant Control Center · Plans &amp; Pricing</div>
+  </header>
+
+  <nav class="sa-tabs" id="sa-tabs">
+    <button class="sa-tab active" data-tab="overview" type="button">نظرة عامة</button>
+    <button class="sa-tab" data-tab="tenants" type="button">المستأجرون</button>
+    <button class="sa-tab" data-tab="plans" type="button">الخطط والأسعار</button>
+  </nav>
+
+  <main class="sa-main">
+    <!-- ===== Overview panel (Phase 3) ===== -->
+    <section id="panel-overview" class="sa-panel">
+       <div class="sa-stats-grid">
+          <div class="sa-stat-card">
+             <div class="sa-stat-val" id="stat-revenue">0 SAR</div>
+             <div class="sa-stat-lbl">إجمالي الإيرادات (المحصّلة)</div>
+          </div>
+          <div class="sa-stat-card">
+             <div class="sa-stat-val" id="stat-tenants">0</div>
+             <div class="sa-stat-lbl">إجمالي المستأجرين</div>
+          </div>
+          <div class="sa-stat-card">
+             <div class="sa-stat-val" id="stat-active-subs">0</div>
+             <div class="sa-stat-lbl">الاشتراكات النشطة</div>
+          </div>
+       </div>
+
+       <div class="sa-chart-box">
+          <h3>توزيع الاشتراكات على الباقات</h3>
+          <div id="sa-chart-bars" class="sa-chart-bars"></div>
+       </div>
+    </section>
+
+    <!-- ===== Tenants panel (Batch 1) ===== -->
+    <section id="panel-tenants" class="sa-panel" hidden>
+      <section class="sa-toolbar">
+        <input id="sa-search" class="sa-input" type="search" placeholder="بحث بالاسم أو النطاق الفرعي…" aria-label="بحث" />
+        <select id="sa-status" class="sa-input" aria-label="تصفية بالحالة">
+          <option value="">كل الحالات</option>
+          <option value="active">نشط</option>
+          <option value="trial">تجريبي</option>
+          <option value="suspended">معلّق</option>
+          <option value="cancelled">ملغى</option>
+        </select>
+        <input id="sa-plan" class="sa-input" type="text" placeholder="الخطة (مثل standard)" aria-label="تصفية بالخطة" />
+        <button id="sa-refresh" class="sa-btn">تحديث</button>
+        <button id="sa-onboard-btn" class="sa-btn" type="button" style="background:var(--green)">+ تهيئة منشأة جديدة</button>
+      </section>
+
+      <section id="sa-state" class="sa-state" hidden></section>
+
+      <section class="sa-table-wrap">
+        <table class="sa-table" id="sa-table">
+          <thead>
+            <tr>
+              <th>#</th><th>المستأجر</th><th>النطاق الفرعي</th><th>الحالة</th><th>الخطة</th><th>أُنشئ</th><th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="sa-tbody"></tbody>
+        </table>
+      </section>
+
+      <aside id="sa-detail" class="sa-detail" hidden aria-live="polite"></aside>
+    </section>
+
+    <!-- ===== Plans & Pricing panel (Batch 3) ===== -->
+    <section id="panel-plans" class="sa-panel" hidden>
+      <section class="sa-toolbar">
+        <button id="pl-new" class="sa-btn" type="button">+ خطة جديدة</button>
+        <button id="pl-refresh" class="sa-btn sa-ghost" type="button">تحديث</button>
+      </section>
+
+      <section id="pl-state" class="sa-state" hidden></section>
+
+      <section class="sa-table-wrap">
+        <table class="sa-table" id="pl-table">
+          <thead>
+            <tr>
+              <th>المفتاح</th><th>الاسم</th><th>العملة</th><th>شهري</th><th>سنوي</th><th>تجربة</th><th>الحالة</th><th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="pl-tbody"></tbody>
+        </table>
+      </section>
+
+      <aside id="pl-form" class="sa-detail" hidden aria-live="polite"></aside>
+    </section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/onboarding-wizard.js"></script>
+  <script src="/super-admin/super-admin.js" defer></script>
+  <script src="/super-admin/plans-admin.js" defer></script>
+</body>
+</html>

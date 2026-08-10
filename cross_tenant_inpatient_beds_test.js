@@ -61,7 +61,14 @@ const routesToCheck = [
     { pattern: "app.put('/api/admissions/:id/discharge', requireAuth, requireTenantScope", label: "Patient Discharge: PUT /api/admissions/:id/discharge محمي بـ requireTenantScope" },
     { pattern: "app.post('/api/admissions/:id/rounds', requireAuth, requireTenantScope", label: "Add Daily Round: POST /api/admissions/:id/rounds محمي بـ requireTenantScope" },
     { pattern: "app.get('/api/admissions/:id/rounds', requireAuth, requireTenantScope", label: "List Daily Rounds: GET /api/admissions/:id/rounds محمي بـ requireTenantScope" },
-    { pattern: "app.post('/api/bed-transfers', requireAuth, requireTenantScope", label: "Bed Transfer: POST /api/bed-transfers محمي بـ requireTenantScope" }
+    { pattern: "app.post('/api/bed-transfers', requireAuth, requireTenantScope", label: "Bed Transfer: POST /api/bed-transfers محمي بـ requireTenantScope" },
+    // E8: new state-machine ADT routes (auth + role + tenant).
+    { pattern: "app.get('/api/adt/beds', requireAuth, requireRole('inpatient', 'nursing', 'doctor'), requireTenantScope", label: "E8 Bed Board: GET /api/adt/beds محمي (auth+role+tenant)" },
+    { pattern: "app.get('/api/adt/census', requireAuth, requireRole('inpatient', 'nursing', 'doctor'), requireTenantScope", label: "E8 Census: GET /api/adt/census محمي (auth+role+tenant)" },
+    { pattern: "app.post('/api/adt/admit', requireAuth, requireRole('inpatient', 'nursing', 'doctor'), requireTenantScope", label: "E8 Admit: POST /api/adt/admit محمي (auth+role+tenant)" },
+    { pattern: "app.post('/api/adt/transfer', requireAuth, requireRole('inpatient', 'nursing', 'doctor'), requireTenantScope", label: "E8 Transfer: POST /api/adt/transfer محمي (auth+role+tenant)" },
+    { pattern: "app.post('/api/adt/discharge', requireAuth, requireRole('inpatient', 'nursing', 'doctor'), requireTenantScope", label: "E8 Discharge: POST /api/adt/discharge محمي (auth+role+tenant)" },
+    { pattern: "app.post('/api/adt/bed-status', requireAuth, requireRole('inpatient', 'nursing', 'doctor'), requireTenantScope", label: "E8 Bed Status: POST /api/adt/bed-status محمي (auth+role+tenant)" }
 ];
 
 for (const { pattern, label } of routesToCheck) {
@@ -69,6 +76,15 @@ for (const { pattern, label } of routesToCheck) {
     const cleanContent = serverContent.replace(/\s+/g, '');
     const found = cleanContent.includes(cleanPattern);
     assert(found, label, `البحث عن: "${pattern}"`);
+}
+
+// E8 SHADOW-PATH CLOSURE: the legacy mutating ADT routes must now fail closed and redirect to the
+// E8 state-machine routes (no shadow path can bypass the FOR UPDATE / state validation).
+{
+    const cc = serverContent.replace(/\s+/g, '');
+    assert(cc.includes("status(409).json({error:'UsePOST/api/adt/admit',use:'/api/adt/admit'})"), "Legacy POST /api/admissions retired -> 409 redirect to /api/adt/admit");
+    assert(cc.includes("status(409).json({error:'UsePOST/api/adt/discharge',use:'/api/adt/discharge'})"), "Legacy PUT discharge retired -> 409 redirect to /api/adt/discharge");
+    assert(cc.includes("status(409).json({error:'UsePOST/api/adt/transfer',use:'/api/adt/transfer'})"), "Legacy POST /api/bed-transfers retired -> 409 redirect to /api/adt/transfer");
 }
 
 // ===== 2. فحص استعلامات SQL وتواجد فلاتر tenant_id والتحقق من السياق =====

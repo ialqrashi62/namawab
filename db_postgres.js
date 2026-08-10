@@ -1,6 +1,31 @@
 // PostgreSQL Database Layer - Full schema matching database.js
 const { Pool } = require('pg');
-require('dotenv').config();
+const path = require('path');
+if (process.env.NODE_ENV === 'staging') {
+    const fs = require('fs');
+    const envPath = path.join(__dirname, '.env.staging');
+    if (!fs.existsSync(envPath)) {
+        throw new Error('CRITICAL: .env.staging file is missing in staging mode! Staging must fail closed.');
+    }
+    // Delete existing DB env vars to prevent inheritance from parent process overriding staging config
+    delete process.env.DB_HOST;
+    delete process.env.DB_PORT;
+    delete process.env.DB_NAME;
+    delete process.env.DB_USER;
+    delete process.env.DB_PASSWORD;
+    
+    const existingPort = process.env.PORT;
+    require('dotenv').config({ path: envPath, override: true });
+    if (existingPort) {
+        process.env.PORT = existingPort;
+    }
+    
+    if (!process.env.DB_NAME || process.env.DB_NAME === 'nama_medical_web') {
+        throw new Error('CRITICAL: Invalid DB_NAME in staging mode! Must not connect to production database.');
+    }
+} else {
+    require('dotenv').config();
+}
 
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -8,17 +33,15 @@ const pool = new Pool({
     database: process.env.DB_NAME || 'nama_medical_web',
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('DB_PASSWORD is required in production'); })() : 'postgres'),
-    max: parseInt(process.env.DB_MAX_CONNECTIONS) || 20
+    max: parseInt(process.env.DB_MAX_CONNECTIONS) || 20,
+    idleTimeoutMillis: process.env.NODE_ENV === 'production' ? 30000 : 1000
 });
 
 // ===== TENANT CONTEXT WIRING FOR ROW LEVEL SECURITY (ported from security line 10ded01) =====
 // Binds app.tenant_id per-request via AsyncLocalStorage. FORCE-RLS policies read
 // current_setting('app.tenant_id'); the app uses pool.query directly, so without this the
 // session tenant is never set and every protected-table query returns 0 / fails WITH CHECK.
-const { AsyncLocalStorage } = require('async_hooks');
-const tenantStore = new AsyncLocalStorage();
-function runWithTenant(context, fn) { return tenantStore.run(context || {}, fn); }
-function getCurrentTenantId() { const s = tenantStore.getStore(); return s && s.tenantId ? s.tenantId : null; }
+const { tenantStore, runWithTenant, getCurrentTenantId } = require('./tenant_context');
 const _poolQuery = pool.query.bind(pool);
 pool.query = function (text, params) {
     const tid = getCurrentTenantId();
@@ -48,12 +71,18 @@ async function initDatabase() {
     // runs as a non-superuser (nama_medical_app) without CREATE on schema public, so running
     // CREATE TABLE/migrations here fails with "permission denied for schema public" and crashes
     // the app. Skip init/seed in production (tables/migrations are managed out-of-band).
-    if (process.env.NODE_ENV === 'production') {
-        console.log('[DB INFO] Production environment detected. Skipping table initialization and seeding.');
+    // SKIP_DB_INIT accepts '1'/'true'/'yes'. Tests spawn the server with SKIP_DB_INIT:'1'; the old strict
+    // === 'true' check silently ignored '1', so initDatabase ran and CREATE TABLE failed with
+    // "permission denied for schema public" under the non-superuser app role (crashing the spawned
+    // server -> integration tests got ECONNREFUSED). Production always skips regardless.
+    const _skipInit = ['1', 'true', 'yes'].includes(String(process.env.SKIP_DB_INIT || '').toLowerCase());
+    if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' || _skipInit) {
+        console.log('[DB INFO] Production/Staging environment detected or SKIP_DB_INIT set. Skipping table initialization and seeding.');
         return;
     }
     const client = await pool.connect();
     try {
+        const allowSeed = (process.env.NODE_ENV !== 'staging' && process.env.NODE_ENV !== 'production') || process.env.ALLOW_STAGING_SEED === 'true';
         // ===== CORE TABLES =====
         await client.query(`
 CREATE TABLE IF NOT EXISTS patients (
@@ -417,10 +446,97 @@ CREATE TABLE IF NOT EXISTS inventory_stock_count (
     difference INTEGER DEFAULT 0, count_date TEXT DEFAULT '',
     counted_by TEXT DEFAULT ''
 );
+
+CREATE TABLE IF NOT EXISTS plans (
+    id             SERIAL PRIMARY KEY,
+    plan_key       VARCHAR(50)  NOT NULL UNIQUE,
+    name_ar        VARCHAR(120) NOT NULL,
+    name_en        VARCHAR(120) NOT NULL,
+    description_ar TEXT         NOT NULL DEFAULT '',
+    description_en TEXT         NOT NULL DEFAULT '',
+    currency       CHAR(3)      NOT NULL,
+    monthly_price  NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (monthly_price >= 0),
+    yearly_price   NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (yearly_price  >= 0),
+    trial_days     INTEGER      NOT NULL DEFAULT 0 CHECK (trial_days >= 0 AND trial_days <= 365),
+    active         BOOLEAN      NOT NULL DEFAULT true,
+    sort_order     INTEGER      NOT NULL DEFAULT 0,
+    created_at     TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    updated_at     TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    CONSTRAINT plans_plan_key_fmt CHECK (plan_key ~ '^[a-z0-9_]{2,40}$')
+);
+
+CREATE TABLE IF NOT EXISTS plan_entitlements (
+    plan_id                INTEGER PRIMARY KEY REFERENCES plans(id) ON DELETE CASCADE,
+    max_users              INTEGER CHECK (max_users IS NULL OR max_users >= 0),
+    max_branches           INTEGER CHECK (max_branches IS NULL OR max_branches >= 0),
+    max_invoices_per_month INTEGER CHECK (max_invoices_per_month IS NULL OR max_invoices_per_month >= 0),
+    modules_enabled        TEXT        NOT NULL DEFAULT '',
+    support_level          VARCHAR(20) NOT NULL DEFAULT 'standard',
+    api_access             BOOLEAN     NOT NULL DEFAULT false,
+    custom_domain          BOOLEAN     NOT NULL DEFAULT false
+);
+
+CREATE TABLE IF NOT EXISTS tenant_plan_assignments (
+    id                SERIAL PRIMARY KEY,
+    tenant_id         INTEGER     NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    plan_key          VARCHAR(50) NOT NULL REFERENCES plans(plan_key),
+    assignment_source VARCHAR(20) NOT NULL DEFAULT 'manual',
+    assigned_by       INTEGER,
+    assigned_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+    effective_from    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    effective_to      TIMESTAMPTZ,
+    CONSTRAINT tpa_source_chk CHECK (assignment_source IN ('manual','trial','migration'))
+);
         `);
 
         // ===== OTHER TABLES =====
         await client.query(`
+CREATE TABLE IF NOT EXISTS clinical_departments (
+    id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    code TEXT NOT NULL UNIQUE,
+    name_ar TEXT DEFAULT '',
+    name_en TEXT DEFAULT '',
+    owner_role VARCHAR(50) NOT NULL DEFAULT 'CMO',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+ALTER TABLE clinical_departments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clinical_departments FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS rls_clinical_departments ON clinical_departments;
+CREATE POLICY rls_clinical_departments ON clinical_departments
+    USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::integer)
+    WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::integer);
+
+CREATE TABLE IF NOT EXISTS clinical_templates (
+    id SERIAL PRIMARY KEY,
+    tenant_id INTEGER REFERENCES tenants(id) ON DELETE CASCADE,
+    department_id INTEGER NOT NULL REFERENCES clinical_departments(id) ON DELETE CASCADE,
+    template_name_en VARCHAR(150),
+    template_name_ar VARCHAR(150),
+    version TEXT DEFAULT '1.0.0',
+    form_structure JSONB NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS clinical_records (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    patient_id INTEGER NOT NULL,
+    template_id INTEGER REFERENCES clinical_templates(id) ON DELETE SET NULL,
+    record_data JSONB NOT NULL,
+    is_locked INTEGER DEFAULT 0,
+    content_hash TEXT DEFAULT '',
+    digital_signature TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+ALTER TABLE clinical_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clinical_records FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS rls_clinical_records ON clinical_records;
+CREATE POLICY rls_clinical_records ON clinical_records
+    USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::integer)
+    WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::integer);
+
 CREATE TABLE IF NOT EXISTS medical_services (
     id SERIAL PRIMARY KEY,
     name_en TEXT DEFAULT '', name_ar TEXT DEFAULT '',
@@ -436,6 +552,7 @@ CREATE TABLE IF NOT EXISTS form_templates (
 );
 CREATE TABLE IF NOT EXISTS internal_messages (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     sender_id INTEGER, receiver_id INTEGER,
     subject TEXT DEFAULT '', body TEXT DEFAULT '',
     is_read INTEGER DEFAULT 0, priority TEXT DEFAULT 'Normal',
@@ -450,6 +567,7 @@ CREATE TABLE IF NOT EXISTS packages (
 );
 CREATE TABLE IF NOT EXISTS package_sessions (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     package_id INTEGER, patient_id INTEGER,
     session_number INTEGER DEFAULT 0, session_date TEXT DEFAULT '',
     status TEXT DEFAULT 'Pending', notes TEXT DEFAULT '',
@@ -474,6 +592,8 @@ CREATE TABLE IF NOT EXISTS online_bookings (
 );
 CREATE TABLE IF NOT EXISTS lab_samples (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER REFERENCES tenants(id) ON DELETE CASCADE,
+    facility_id INTEGER,
     order_id INTEGER, sample_type TEXT DEFAULT '',
     barcode TEXT DEFAULT '', collection_date TEXT DEFAULT '',
     collected_by TEXT DEFAULT '', status TEXT DEFAULT 'Collected',
@@ -911,6 +1031,7 @@ CREATE TABLE IF NOT EXISTS cssd_load_items (
         await client.query(`
 CREATE TABLE IF NOT EXISTS diet_orders (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     admission_id INTEGER, patient_id INTEGER, patient_name TEXT DEFAULT '',
     diet_type TEXT DEFAULT 'Regular',
     diet_type_ar TEXT DEFAULT 'عادي',
@@ -926,6 +1047,7 @@ CREATE TABLE IF NOT EXISTS diet_orders (
 );
 CREATE TABLE IF NOT EXISTS diet_meals (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     order_id INTEGER, patient_id INTEGER,
     meal_type TEXT DEFAULT 'Lunch',
     meal_date TEXT DEFAULT '',
@@ -938,6 +1060,7 @@ CREATE TABLE IF NOT EXISTS diet_meals (
 );
 CREATE TABLE IF NOT EXISTS nutrition_assessments (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER, patient_name TEXT DEFAULT '',
     assessment_date TEXT DEFAULT '',
     height_cm REAL DEFAULT 0, weight_kg REAL DEFAULT 0,
@@ -1134,40 +1257,44 @@ CREATE TABLE IF NOT EXISTS audit_trail (
         `);
 
         // Seed emergency beds
-        const ebCount = (await client.query('SELECT COUNT(*) as cnt FROM emergency_beds')).rows[0].cnt;
-        if (parseInt(ebCount) === 0) {
-            await client.query(`INSERT INTO emergency_beds (bed_name, bed_name_ar, zone, zone_ar, status) VALUES
-                ('ER-1', 'طوارئ-1', 'Resuscitation', 'الإنعاش', 'Available'),
-                ('ER-2', 'طوارئ-2', 'Resuscitation', 'الإنعاش', 'Available'),
-                ('ER-3', 'طوارئ-3', 'Critical', 'الحرجة', 'Available'),
-                ('ER-4', 'طوارئ-4', 'Critical', 'الحرجة', 'Available'),
-                ('ER-5', 'طوارئ-5', 'Acute', 'الحادة', 'Available'),
-                ('ER-6', 'طوارئ-6', 'Acute', 'الحادة', 'Available'),
-                ('ER-7', 'طوارئ-7', 'Observation', 'المراقبة', 'Available'),
-                ('ER-8', 'طوارئ-8', 'Observation', 'المراقبة', 'Available')
-            `);
+        if (allowSeed) {
+            const ebCount = (await client.query('SELECT COUNT(*) as cnt FROM emergency_beds')).rows[0].cnt;
+            if (parseInt(ebCount) === 0) {
+                await client.query(`INSERT INTO emergency_beds (bed_name, bed_name_ar, zone, zone_ar, status) VALUES
+                    ('ER-1', 'طوارئ-1', 'Resuscitation', 'الإنعاش', 'Available'),
+                    ('ER-2', 'طوارئ-2', 'Resuscitation', 'الإنعاش', 'Available'),
+                    ('ER-3', 'طوارئ-3', 'Critical', 'الحرجة', 'Available'),
+                    ('ER-4', 'طوارئ-4', 'Critical', 'الحرجة', 'Available'),
+                    ('ER-5', 'طوارئ-5', 'Acute', 'الحادة', 'Available'),
+                    ('ER-6', 'طوارئ-6', 'Acute', 'الحادة', 'Available'),
+                    ('ER-7', 'طوارئ-7', 'Observation', 'المراقبة', 'Available'),
+                    ('ER-8', 'طوارئ-8', 'Observation', 'المراقبة', 'Available')
+                `);
+            }
         }
 
         // Seed default wards and beds
-        const wardCount = (await client.query('SELECT COUNT(*) as cnt FROM wards')).rows[0].cnt;
-        if (parseInt(wardCount) === 0) {
-            await client.query(`INSERT INTO wards (ward_name, ward_name_ar, ward_type, floor, total_beds) VALUES
-                ('Medical Ward', 'جناح الباطنة', 'Medical', '2nd Floor', 20),
-                ('Surgical Ward', 'جناح الجراحة', 'Surgical', '3rd Floor', 20),
-                ('Pediatric Ward', 'جناح الأطفال', 'Pediatric', '4th Floor', 15),
-                ('Maternity Ward', 'جناح الولادة', 'Maternity', '4th Floor', 10),
-                ('ICU', 'العناية المركزة', 'ICU', '2nd Floor', 8),
-                ('NICU', 'عناية الأطفال المركزة', 'NICU', '4th Floor', 6),
-                ('CCU', 'عناية القلب', 'CCU', '2nd Floor', 6),
-                ('VIP Ward', 'جناح كبار الشخصيات', 'VIP', '5th Floor', 10)
-            `);
-            // Seed beds for each ward
-            const wards = (await client.query('SELECT id, total_beds, ward_type FROM wards')).rows;
-            for (const w of wards) {
-                for (let i = 1; i <= w.total_beds; i++) {
-                    const bedType = w.ward_type === 'ICU' || w.ward_type === 'NICU' || w.ward_type === 'CCU' ? 'ICU' : w.ward_type === 'VIP' ? 'VIP' : 'Standard';
-                    const room = Math.ceil(i / 2);
-                    await client.query('INSERT INTO beds (ward_id, bed_number, bed_type, room_number, status) VALUES ($1, $2, $3, $4, $5)', [w.id, `${i}`, bedType, `${room}`, 'Available']);
+        if (allowSeed) {
+            const wardCount = (await client.query('SELECT COUNT(*) as cnt FROM wards')).rows[0].cnt;
+            if (parseInt(wardCount) === 0) {
+                await client.query(`INSERT INTO wards (ward_name, ward_name_ar, ward_type, floor, total_beds) VALUES
+                    ('Medical Ward', 'جناح الباطنة', 'Medical', '2nd Floor', 20),
+                    ('Surgical Ward', 'جناح الجراحة', 'Surgical', '3rd Floor', 20),
+                    ('Pediatric Ward', 'جناح الأطفال', 'Pediatric', '4th Floor', 15),
+                    ('Maternity Ward', 'جناح الولادة', 'Maternity', '4th Floor', 10),
+                    ('ICU', 'العناية المركزة', 'ICU', '2nd Floor', 8),
+                    ('NICU', 'عناية الأطفال المركزة', 'NICU', '4th Floor', 6),
+                    ('CCU', 'عناية القلب', 'CCU', '2nd Floor', 6),
+                    ('VIP Ward', 'جناح كبار الشخصيات', 'VIP', '5th Floor', 10)
+                `);
+                // Seed beds for each ward
+                const wards = (await client.query('SELECT id, total_beds, ward_type FROM wards')).rows;
+                for (const w of wards) {
+                    for (let i = 1; i <= w.total_beds; i++) {
+                        const bedType = w.ward_type === 'ICU' || w.ward_type === 'NICU' || w.ward_type === 'CCU' ? 'ICU' : w.ward_type === 'VIP' ? 'VIP' : 'Standard';
+                        const room = Math.ceil(i / 2);
+                        await client.query('INSERT INTO beds (ward_id, bed_number, bed_type, room_number, status) VALUES ($1, $2, $3, $4, $5)', [w.id, `${i}`, bedType, `${room}`, 'Available']);
+                    }
                 }
             }
         }
@@ -1214,26 +1341,31 @@ CREATE TABLE IF NOT EXISTS audit_trail (
         await client.query(`DO $$ BEGIN ALTER TABLE patients ADD COLUMN gender TEXT DEFAULT ''; EXCEPTION WHEN duplicate_column THEN NULL; END $$;`);
 
         // Seed default operating rooms
-        const orCount = (await client.query('SELECT COUNT(*) as cnt FROM operating_rooms')).rows[0].cnt;
-        if (parseInt(orCount) === 0) {
-            await client.query(`INSERT INTO operating_rooms (room_name, room_name_ar, location, equipment, status) VALUES
-                ('OR-1', 'غرفة عمليات 1', 'الطابق الثاني', 'General Surgery Equipment', 'Available'),
-                ('OR-2', 'غرفة عمليات 2', 'الطابق الثاني', 'Orthopedic Equipment', 'Available'),
-                ('OR-3', 'غرفة عمليات 3', 'الطابق الثالث', 'Cardiac Equipment', 'Available'),
-                ('Minor OR', 'غرفة عمليات صغرى', 'الطابق الأول', 'Minor Procedures Equipment', 'Available')
-            `);
+        if (allowSeed) {
+            const orCount = (await client.query('SELECT COUNT(*) as cnt FROM operating_rooms')).rows[0].cnt;
+            if (parseInt(orCount) === 0) {
+                await client.query(`INSERT INTO operating_rooms (room_name, room_name_ar, location, equipment, status) VALUES
+                    ('OR-1', 'غرفة عمليات 1', 'الطابق الثاني', 'General Surgery Equipment', 'Available'),
+                    ('OR-2', 'غرفة عمليات 2', 'الطابق الثاني', 'Orthopedic Equipment', 'Available'),
+                    ('OR-3', 'غرفة عمليات 3', 'الطابق الثالث', 'Cardiac Equipment', 'Available'),
+                    ('Minor OR', 'غرفة عمليات صغرى', 'الطابق الأول', 'Minor Procedures Equipment', 'Available')
+                `);
+            }
         }
 
         // Default settings
-        const settingKeys = ['company_name_ar', 'company_name_en', 'tax_number', 'address', 'phone', 'logo_path', 'sample_data_inserted', 'theme'];
-        for (const key of settingKeys) {
-            await client.query('INSERT INTO company_settings (setting_key, setting_value) VALUES ($1, $2) ON CONFLICT (setting_key) DO NOTHING', [key, '']);
+        if (allowSeed) {
+            const settingKeys = ['company_name_ar', 'company_name_en', 'tax_number', 'address', 'phone', 'logo_path', 'sample_data_inserted', 'theme'];
+            for (const key of settingKeys) {
+                await client.query('INSERT INTO company_settings (setting_key, setting_value) VALUES ($1, $2) ON CONFLICT (setting_key) DO NOTHING', [key, '']);
+            }
         }
 
         // ===== MEDICAL RECORDS / HIM =====
         await client.query(`
 CREATE TABLE IF NOT EXISTS medical_records_files (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER, file_number TEXT DEFAULT '',
     location TEXT DEFAULT 'Archive', shelf_number TEXT DEFAULT '',
     status TEXT DEFAULT 'In Archive',
@@ -1243,6 +1375,7 @@ CREATE TABLE IF NOT EXISTS medical_records_files (
 );
 CREATE TABLE IF NOT EXISTS medical_records_requests (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER, file_number TEXT DEFAULT '',
     requested_by TEXT DEFAULT '', department TEXT DEFAULT '',
     purpose TEXT DEFAULT 'Clinic Visit',
@@ -1253,6 +1386,7 @@ CREATE TABLE IF NOT EXISTS medical_records_requests (
 );
 CREATE TABLE IF NOT EXISTS medical_records_coding (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER, visit_id INTEGER,
     primary_diagnosis TEXT DEFAULT '', primary_icd10 TEXT DEFAULT '',
     secondary_diagnoses TEXT DEFAULT '',
@@ -1266,6 +1400,7 @@ CREATE TABLE IF NOT EXISTS medical_records_coding (
         await client.query(`
 CREATE TABLE IF NOT EXISTS clinical_pharmacy_reviews (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER, patient_name TEXT DEFAULT '',
     prescription_id INTEGER,
     review_type TEXT DEFAULT 'Medication Review',
@@ -1275,20 +1410,26 @@ CREATE TABLE IF NOT EXISTS clinical_pharmacy_reviews (
     outcome TEXT DEFAULT 'Pending',
     severity TEXT DEFAULT 'Low',
     status TEXT DEFAULT 'Open',
+    branch_id INTEGER,
+    facility_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS drug_interactions (
     id SERIAL PRIMARY KEY,
     drug_a TEXT DEFAULT '', drug_b TEXT DEFAULT '',
     interaction_type TEXT DEFAULT '', severity TEXT DEFAULT 'Moderate',
-    description TEXT DEFAULT '', clinical_action TEXT DEFAULT ''
+    description TEXT DEFAULT '', clinical_action TEXT DEFAULT '',
+    tenant_id INTEGER, branch_id INTEGER
 );
 CREATE TABLE IF NOT EXISTS patient_drug_education (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER, patient_name TEXT DEFAULT '',
     medication TEXT DEFAULT '', instructions TEXT DEFAULT '',
     side_effects TEXT DEFAULT '', precautions TEXT DEFAULT '',
     educated_by TEXT DEFAULT '',
+    branch_id INTEGER,
+    facility_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
         `);
@@ -1297,6 +1438,7 @@ CREATE TABLE IF NOT EXISTS patient_drug_education (
         await client.query(`
 CREATE TABLE IF NOT EXISTS rehab_patients (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER, patient_name TEXT DEFAULT '',
     diagnosis TEXT DEFAULT '', referral_source TEXT DEFAULT '',
     therapist TEXT DEFAULT '', therapy_type TEXT DEFAULT 'Physical Therapy',
@@ -1307,6 +1449,7 @@ CREATE TABLE IF NOT EXISTS rehab_patients (
 );
 CREATE TABLE IF NOT EXISTS rehab_sessions (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     rehab_patient_id INTEGER, patient_id INTEGER,
     session_date TEXT DEFAULT '', session_number INTEGER DEFAULT 1,
     therapist TEXT DEFAULT '',
@@ -1318,6 +1461,7 @@ CREATE TABLE IF NOT EXISTS rehab_sessions (
 );
 CREATE TABLE IF NOT EXISTS rehab_goals (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     rehab_patient_id INTEGER,
     goal_description TEXT DEFAULT '',
     target_date TEXT DEFAULT '',
@@ -1327,6 +1471,7 @@ CREATE TABLE IF NOT EXISTS rehab_goals (
 );
 CREATE TABLE IF NOT EXISTS rehab_assessments (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     rehab_patient_id INTEGER, patient_id INTEGER,
     assessment_type TEXT DEFAULT '',
     rom_scores TEXT DEFAULT '', strength_scores TEXT DEFAULT '',
@@ -1414,6 +1559,7 @@ CREATE TABLE IF NOT EXISTS daily_close (
         await client.query(`
 CREATE TABLE IF NOT EXISTS portal_users (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER UNIQUE, username TEXT DEFAULT '',
     password_hash TEXT DEFAULT '', email TEXT DEFAULT '',
     phone TEXT DEFAULT '', is_active INTEGER DEFAULT 1,
@@ -1422,6 +1568,7 @@ CREATE TABLE IF NOT EXISTS portal_users (
 );
 CREATE TABLE IF NOT EXISTS portal_appointments (
     id SERIAL PRIMARY KEY,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     patient_id INTEGER, portal_user_id INTEGER,
     department TEXT DEFAULT '', preferred_date TEXT DEFAULT '',
     preferred_time TEXT DEFAULT '', reason TEXT DEFAULT '',
@@ -1635,23 +1782,25 @@ CREATE TABLE IF NOT EXISTS cosmetic_followups (
         `);
 
         // Seed cosmetic procedures catalog
-        await client.query(`INSERT INTO cosmetic_procedures (name_en, name_ar, category, description, estimated_duration, anesthesia_type, average_cost, risks, recovery_days) VALUES
-            ('Rhinoplasty', 'تجميل الأنف', 'Face', 'Reshaping of the nose for aesthetic or functional purposes', 120, 'General', 15000, 'Bleeding, infection, asymmetry, breathing difficulties, numbness', 14),
-            ('Blepharoplasty', 'شد الجفون', 'Face', 'Upper and/or lower eyelid surgery to remove excess skin and fat', 90, 'Local', 8000, 'Dry eyes, blurred vision, asymmetry, scarring', 10),
-            ('Facelift (Rhytidectomy)', 'شد الوجه', 'Face', 'Lifting and tightening facial tissues to reduce sagging', 180, 'General', 25000, 'Hematoma, nerve injury, scarring, hair loss near incisions', 21),
-            ('Otoplasty', 'تجميل الأذن', 'Face', 'Reshaping or repositioning of the ears', 90, 'Local', 7000, 'Asymmetry, infection, overcorrection, scarring', 7),
-            ('Lip Augmentation', 'تكبير الشفاه', 'Face', 'Enhancement of lip volume using fillers or implants', 30, 'Local', 3000, 'Swelling, bruising, asymmetry, allergic reaction', 3),
-            ('Botox Injection', 'حقن البوتوكس', 'Non-Surgical', 'Wrinkle relaxation using botulinum toxin', 15, 'None', 1500, 'Bruising, headache, drooping, temporary weakness', 0),
-            ('Dermal Fillers', 'حقن الفيلر', 'Non-Surgical', 'Volume restoration using hyaluronic acid fillers', 30, 'Local', 2500, 'Swelling, bruising, lumps, vascular occlusion', 2),
-            ('Chemical Peel', 'التقشير الكيميائي', 'Non-Surgical', 'Chemical solution applied to improve skin texture', 45, 'None', 1000, 'Redness, peeling, pigmentation changes, scarring', 5),
-            ('Breast Augmentation', 'تكبير الثدي', 'Body', 'Enlargement using implants or fat transfer', 120, 'General', 20000, 'Capsular contracture, implant rupture, asymmetry, infection', 14),
-            ('Liposuction', 'شفط الدهون', 'Body', 'Removal of excess fat deposits from specific body areas', 120, 'General', 12000, 'Contour irregularities, fluid accumulation, numbness', 14),
-            ('Abdominoplasty', 'شد البطن', 'Body', 'Removal of excess skin and fat from the abdomen', 180, 'General', 18000, 'Seroma, wound healing issues, scarring, numbness', 21),
-            ('Laser Hair Removal', 'إزالة الشعر بالليزر', 'Laser', 'Permanent hair reduction using laser technology', 30, 'None', 500, 'Burns, pigmentation changes, paradoxical growth', 0),
-            ('Laser Skin Resurfacing', 'تقشير البشرة بالليزر', 'Laser', 'Laser treatment to improve skin texture and reduce wrinkles', 60, 'Local', 3000, 'Redness, swelling, infection, pigmentation changes', 7),
-            ('Hair Transplant (FUE)', 'زراعة الشعر', 'Hair', 'Follicular unit extraction for hair restoration', 360, 'Local', 15000, 'Infection, scarring, graft failure, temporary shock loss', 14),
-            ('PRP Therapy', 'علاج البلازما', 'Non-Surgical', 'Platelet-rich plasma injections for skin rejuvenation', 30, 'None', 1500, 'Bruising, swelling, infection, minimal pain', 1)
-        ON CONFLICT DO NOTHING`);
+        if (allowSeed) {
+            await client.query(`INSERT INTO cosmetic_procedures (name_en, name_ar, category, description, estimated_duration, anesthesia_type, average_cost, risks, recovery_days) VALUES
+                ('Rhinoplasty', 'تجميل الأنف', 'Face', 'Reshaping of the nose for aesthetic or functional purposes', 120, 'General', 15000, 'Bleeding, infection, asymmetry, breathing difficulties, numbness', 14),
+                ('Blepharoplasty', 'شد الجفون', 'Face', 'Upper and/or lower eyelid surgery to remove excess skin and fat', 90, 'Local', 8000, 'Dry eyes, blurred vision, asymmetry, scarring', 10),
+                ('Facelift (Rhytidectomy)', 'شد الوجه', 'Face', 'Lifting and tightening facial tissues to reduce sagging', 180, 'General', 25000, 'Hematoma, nerve injury, scarring, hair loss near incisions', 21),
+                ('Otoplasty', 'تجميل الأذن', 'Face', 'Reshaping or repositioning of the ears', 90, 'Local', 7000, 'Asymmetry, infection, overcorrection, scarring', 7),
+                ('Lip Augmentation', 'تكبير الشفاه', 'Face', 'Enhancement of lip volume using fillers or implants', 30, 'Local', 3000, 'Swelling, bruising, asymmetry, allergic reaction', 3),
+                ('Botox Injection', 'حقن البوتوكس', 'Non-Surgical', 'Wrinkle relaxation using botulinum toxin', 15, 'None', 1500, 'Bruising, headache, drooping, temporary weakness', 0),
+                ('Dermal Fillers', 'حقن الفيلر', 'Non-Surgical', 'Volume restoration using hyaluronic acid fillers', 30, 'Local', 2500, 'Swelling, bruising, lumps, vascular occlusion', 2),
+                ('Chemical Peel', 'التقشير الكيميائي', 'Non-Surgical', 'Chemical solution applied to improve skin texture', 45, 'None', 1000, 'Redness, peeling, pigmentation changes, scarring', 5),
+                ('Breast Augmentation', 'تكبير الثدي', 'Body', 'Enlargement using implants or fat transfer', 120, 'General', 20000, 'Capsular contracture, implant rupture, asymmetry, infection', 14),
+                ('Liposuction', 'شفط الدهون', 'Body', 'Removal of excess fat deposits from specific body areas', 120, 'General', 12000, 'Contour irregularities, fluid accumulation, numbness', 14),
+                ('Abdominoplasty', 'شد البطن', 'Body', 'Removal of excess skin and fat from the abdomen', 180, 'General', 18000, 'Seroma, wound healing issues, scarring, numbness', 21),
+                ('Laser Hair Removal', 'إزالة الشعر بالليزر', 'Laser', 'Permanent hair reduction using laser technology', 30, 'None', 500, 'Burns, pigmentation changes, paradoxical growth', 0),
+                ('Laser Skin Resurfacing', 'تقشير البشرة بالليزر', 'Laser', 'Laser treatment to improve skin texture and reduce wrinkles', 60, 'Local', 3000, 'Redness, swelling, infection, pigmentation changes', 7),
+                ('Hair Transplant (FUE)', 'زراعة الشعر', 'Hair', 'Follicular unit extraction for hair restoration', 360, 'Local', 15000, 'Infection, scarring, graft failure, temporary shock loss', 14),
+                ('PRP Therapy', 'علاج البلازما', 'Non-Surgical', 'Platelet-rich plasma injections for skin rejuvenation', 30, 'None', 1500, 'Bruising, swelling, infection, minimal pain', 1)
+            ON CONFLICT DO NOTHING`);
+        }
 
         // ===== TENANT ISOLATION FOUNDATION TABLES =====
         await client.query(`
@@ -1773,49 +1922,94 @@ CREATE TABLE IF NOT EXISTS cosmetic_followups (
         `);
 
         // ===== IDEMPOTENT SEED DATA FOR DEFAULT TENANT =====
-        // Default Tenant
-        await client.query(`
-            INSERT INTO tenants (id, name, subdomain, status, plan_type) 
-            VALUES (1, 'Nama Medical Default Tenant', 'default', 'active', 'standard') 
-            ON CONFLICT (id) DO NOTHING
-        `);
-        // Default Facility
-        await client.query(`
-            INSERT INTO facilities (id, tenant_id, name, tax_number) 
-            VALUES (1, 1, 'Default Medical Facility', '300000000000003') 
-            ON CONFLICT (id) DO NOTHING
-        `);
-        // Default Branch
-        await client.query(`
-            ALTER TABLE branches ADD COLUMN IF NOT EXISTS facility_id INTEGER;
-        `);
-        await client.query(`
-            INSERT INTO branches (id, facility_id, name, address) 
-            VALUES (1, 1, 'Main Branch', 'Riyadh, Saudi Arabia') 
-            ON CONFLICT (id) DO NOTHING
-        `);
+        if (allowSeed) {
+            // Default Tenant
+            await client.query(`
+                INSERT INTO tenants (id, name, subdomain, status, plan_type) 
+                VALUES (1, 'Nama Medical Default Tenant', 'default', 'active', 'standard') 
+                ON CONFLICT (id) DO NOTHING
+            `);
+            // Default Facility
+            await client.query(`
+                INSERT INTO facilities (id, tenant_id, name, tax_number) 
+                VALUES (1, 1, 'Default Medical Facility', '300000000000003') 
+                ON CONFLICT (id) DO NOTHING
+            `);
+            // Default Branch
+            await client.query(`
+                ALTER TABLE branches ADD COLUMN IF NOT EXISTS facility_id INTEGER;
+            `);
+            await client.query(`
+                INSERT INTO branches (id, facility_id, name, address) 
+                VALUES (1, 1, 'Main Branch', 'Riyadh, Saudi Arabia') 
+                ON CONFLICT (id) DO NOTHING
+            `);
 
-        // Synchronize sequences after manual seeding of ID 1
-        await client.query(`
-            SELECT setval(pg_get_serial_sequence('tenants', 'id'), COALESCE((SELECT MAX(id)+1 FROM tenants), 1), false);
-            SELECT setval(pg_get_serial_sequence('facilities', 'id'), COALESCE((SELECT MAX(id)+1 FROM facilities), 1), false);
-            SELECT setval(pg_get_serial_sequence('branches', 'id'), COALESCE((SELECT MAX(id)+1 FROM branches), 1), false);
-        `).catch(err => console.error('Sequence sync error:', err.message));
+            // Synchronize sequences after manual seeding of ID 1
+            await client.query(`
+                SELECT setval(pg_get_serial_sequence('tenants', 'id'), COALESCE((SELECT MAX(id)+1 FROM tenants), 1), false);
+                SELECT setval(pg_get_serial_sequence('facilities', 'id'), COALESCE((SELECT MAX(id)+1 FROM facilities), 1), false);
+                SELECT setval(pg_get_serial_sequence('branches', 'id'), COALESCE((SELECT MAX(id)+1 FROM branches), 1), false);
+            `).catch(err => console.error('Sequence sync error:', err.message));
 
-        // Default admin
-        await client.query(`INSERT INTO system_users (username, password_hash, display_name, role) VALUES ('admin', '$2b$12$G36aRwyn13/eICGIdRF4leQfi/g6xYROPVNvQ1cMrh95PDK9fbs0q', 'المدير العام', 'Admin') ON CONFLICT (username) DO NOTHING`);
+            // Seed plans and plan_entitlements
+            // RAIL-11: fail-closed — always ensure new plan_keys exist (ON CONFLICT DO NOTHING)
+            const plans = [
+                { key: 'free_trial', name_ar: 'فترة تجريبية', name_en: 'Free Trial', desc_ar: 'تجربة مجانية لمدة 14 يوماً', desc_en: '14-day free trial', curr: 'SAR', m_price: 0, y_price: 0, trial: 14, sort: 1, max_u: 3, max_b: 1, max_i: 100, mods: 'dashboard,patients,appointments,settings', support: 'basic', api: false, domain: false },
+                { key: 'basic', name_ar: 'الباقة الأساسية', name_en: 'Basic Plan', desc_ar: 'للمستشفيات والعيادات الصغيرة', desc_en: 'For small clinics and hospitals', curr: 'SAR', m_price: 150, y_price: 1500, trial: 0, sort: 2, max_u: 10, max_b: 2, max_i: 1000, mods: 'dashboard,patients,appointments,nursing,billing,settings', support: 'standard', api: false, domain: false },
+                { key: 'premium', name_ar: 'الباقة المتميزة', name_en: 'Premium Plan', desc_ar: 'للمراكز الطبية المتوسطة والكبيرة', desc_en: 'For medium to large medical centers', curr: 'SAR', m_price: 500, y_price: 5000, trial: 0, sort: 3, max_u: 50, max_b: 5, max_i: 5000, mods: 'dashboard,patients,appointments,nursing,lab,radiology,pharmacy,inventory,billing,settings', support: 'priority', api: true, domain: true },
+                { key: 'enterprise', name_ar: 'باقة المنشآت الكبرى', name_en: 'Enterprise Plan', desc_ar: 'حلول متكاملة للمستشفيات والمجموعات الكبرى', desc_en: 'Complete solutions for large hospitals and groups', curr: 'SAR', m_price: 2000, y_price: 20000, trial: 0, sort: 4, max_u: null, max_b: null, max_i: null, mods: 'dashboard,patients,appointments,doctor,nursing,lab,radiology,pharmacy,inventory,invoices,accounts,finance,insurance,reports,messaging,settings,surgery,icu,emergency,inpatient,bloodbank,obgyn,antenatal,cssd,quality,infection,him,medical-records,pathology,hr,maintenance,api', support: 'enterprise', api: true, domain: true }
+            ];
+            for (const p of plans) {
+                const existing = (await client.query('SELECT id FROM plans WHERE plan_key = $1', [p.key])).rows[0];
+                if (!existing) {
+                    const row = (await client.query(`
+                        INSERT INTO plans (plan_key, name_ar, name_en, description_ar, description_en, currency, monthly_price, yearly_price, trial_days, sort_order)
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id
+                    `, [p.key, p.name_ar, p.name_en, p.desc_ar, p.desc_en, p.curr, p.m_price, p.y_price, p.trial, p.sort])).rows[0];
+                    await client.query(`
+                        INSERT INTO plan_entitlements (plan_id, max_users, max_branches, max_invoices_per_month, modules_enabled, support_level, api_access, custom_domain)
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                    `, [row.id, p.max_u, p.max_b, p.max_i, p.mods, p.support, p.api, p.domain]);
+                }
+            }
 
-        // Map admin to default tenant/facility
-        await client.query(`
-            INSERT INTO user_tenants (user_id, tenant_id) 
-            VALUES ((SELECT id FROM system_users WHERE username='admin' LIMIT 1), 1) 
-            ON CONFLICT (user_id, tenant_id) DO NOTHING
-        `);
-        await client.query(`
-            INSERT INTO user_facilities (user_id, facility_id, branch_id) 
-            VALUES ((SELECT id FROM system_users WHERE username='admin' LIMIT 1), 1, 1) 
-            ON CONFLICT (user_id, facility_id, branch_id) DO NOTHING
-        `);
+            // Default tenant plan assignment
+            // RAIL-11: fail-closed — only insert if plan_key exists
+            await client.query(`
+                INSERT INTO tenant_plan_assignments (tenant_id, plan_key, assignment_source)
+                SELECT 1, 'premium', 'manual'
+                WHERE EXISTS (SELECT 1 FROM plans WHERE plan_key = 'premium')
+                ON CONFLICT DO NOTHING
+            `);
+
+            // Default admin
+            await client.query(`INSERT INTO system_users (username, password_hash, display_name, role) VALUES ('admin', '$2b$12$G36aRwyn13/eICGIdRF4leQfi/g6xYROPVNvQ1cMrh95PDK9fbs0q', 'المدير العام', 'Admin') ON CONFLICT (username) DO NOTHING`);
+
+            // Map admin to default tenant/facility
+            await client.query(`
+                INSERT INTO user_tenants (user_id, tenant_id) 
+                VALUES ((SELECT id FROM system_users WHERE username='admin' LIMIT 1), 1) 
+                ON CONFLICT (user_id, tenant_id) DO NOTHING
+            `);
+            await client.query(`
+                INSERT INTO user_facilities (user_id, facility_id, branch_id) 
+                VALUES ((SELECT id FROM system_users WHERE username='admin' LIMIT 1), 1, 1) 
+                ON CONFLICT (user_id, facility_id, branch_id) DO NOTHING
+            `);
+
+            // Seed integration_settings for tenant 1
+            const intCount = (await client.query("SELECT COUNT(*) as cnt FROM integration_settings WHERE tenant_id = 1")).rows[0].cnt;
+            if (parseInt(intCount) === 0) {
+                await client.query(`
+                    INSERT INTO integration_settings (tenant_id, integration_name, provider, endpoint_url, is_enabled, config_json) VALUES
+                    (1, 'ZATCA', 'ZATCA', 'https://gw-fatoora.zatca.gov.sa/sdk/api/v2', 1, '{}'),
+                    (1, 'NPHIES', 'NPHIES', 'https://nphies.sa/api/v1/fhir', 1, '{}'),
+                    (1, 'CBAHI', 'CBAHI', 'https://cbahi.gov.sa/api/v1', 0, '{}'),
+                    (1, 'PDPL', 'Jumanasoft-Sec', 'https://www.jumanasoft.com/api/pdpl', 1, '{}')
+                `);
+            }
+        }
 
         // ===== MIGRATIONS: Add missing columns to existing tables =====
         try {
@@ -1872,6 +2066,15 @@ CREATE INDEX IF NOT EXISTS idx_consent_forms_tenant_facility ON consent_forms (t
 ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS facility_id INTEGER;
 CREATE INDEX IF NOT EXISTS idx_er_visits_tenant_facility ON emergency_visits (tenant_id, facility_id);
+-- E7 ED workflow / ESI columns (dev-only convenience; production receives these via migrations/e7_01_emergency_ed_workflow_up.sql).
+ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS esi_level INTEGER DEFAULT 0;
+ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS esi_rationale TEXT DEFAULT '';
+ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS er_phase TEXT DEFAULT 'Arrival';
+ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS triage_started_at TEXT DEFAULT '';
+ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS provider_assigned_at TEXT DEFAULT '';
+ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS time_to_provider_min INTEGER DEFAULT 0;
+ALTER TABLE emergency_visits ADD COLUMN IF NOT EXISTS disposition_type TEXT DEFAULT '';
+CREATE INDEX IF NOT EXISTS idx_er_visits_phase ON emergency_visits (tenant_id, status, esi_level);
 ALTER TABLE emergency_trauma_assessments ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 ALTER TABLE emergency_trauma_assessments ADD COLUMN IF NOT EXISTS facility_id INTEGER;
 ALTER TABLE admissions ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
@@ -2007,6 +2210,19 @@ ALTER TABLE pharmacy_opening_balances ADD COLUMN IF NOT EXISTS branch_id INTEGER
 ALTER TABLE audit_trail ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 CREATE INDEX IF NOT EXISTS idx_audit_trail_tenant ON audit_trail (tenant_id);
 ALTER TABLE quality_incidents ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
+-- E17: incident-management columns on pre-existing quality_incidents (canonical schema in migrations/e17_001; ALTERs kept idempotent so app boots before migration runs)
+-- I1 FIX: NOT NULL added to match migration canonical schema; ADD COLUMN IF NOT EXISTS is safe for existing rows (default fills them).
+ALTER TABLE quality_incidents ADD COLUMN IF NOT EXISTS harm_level TEXT NOT NULL DEFAULT 'None';
+ALTER TABLE quality_incidents ADD COLUMN IF NOT EXISTS near_miss INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE quality_incidents ADD COLUMN IF NOT EXISTS confidential INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE quality_incidents ADD COLUMN IF NOT EXISTS encounter_id INTEGER;
+ALTER TABLE quality_incidents ADD COLUMN IF NOT EXISTS visit_id INTEGER;
+ALTER TABLE quality_incidents ADD COLUMN IF NOT EXISTS workflow_state TEXT NOT NULL DEFAULT 'Open';
+-- I1 FIX: backfill any pre-existing rows that already have the column but with NULL (handles case where column existed without NOT NULL).
+UPDATE quality_incidents SET harm_level = 'None' WHERE harm_level IS NULL;
+UPDATE quality_incidents SET near_miss = 0 WHERE near_miss IS NULL;
+UPDATE quality_incidents SET confidential = 0 WHERE confidential IS NULL;
+UPDATE quality_incidents SET workflow_state = 'Open' WHERE workflow_state IS NULL;
 ALTER TABLE quality_patient_satisfaction ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 ALTER TABLE quality_kpis ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 ALTER TABLE infection_surveillance ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
@@ -2018,6 +2234,61 @@ ALTER TABLE integration_settings ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 ALTER TABLE queue_advertisements ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 ALTER TABLE maintenance_pm_schedules ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
 ALTER TABLE maintenance_equipment ADD COLUMN IF NOT EXISTS tenant_id INTEGER;
+
+-- Wisdom Dental & Periodontal Expansion
+ALTER TABLE dental_records ADD COLUMN IF NOT EXISTS affected_surfaces TEXT DEFAULT '';
+
+CREATE TABLE IF NOT EXISTS dental_periodontal_exams (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER,
+    tooth_number INTEGER,
+    probing_depth INTEGER,
+    bleeding_on_probing BOOLEAN DEFAULT FALSE,
+    gingival_recession INTEGER DEFAULT 0,
+    tenant_id INTEGER,
+    facility_id INTEGER,
+    exam_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_dental_periodontal_tenant ON dental_periodontal_exams (tenant_id, facility_id, patient_id);
+
+CREATE TABLE IF NOT EXISTS dental_images (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER,
+    tooth_number INTEGER,
+    image_path TEXT,
+    image_type TEXT DEFAULT 'X-Ray',
+    tenant_id INTEGER,
+    facility_id INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_dental_images_tenant ON dental_images (tenant_id, facility_id, patient_id);
+
+-- Cardiology & Oncology Expansion
+CREATE TABLE IF NOT EXISTS cardiology_cath_reports (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER,
+    blockage_lad INTEGER DEFAULT 0,
+    blockage_lcx INTEGER DEFAULT 0,
+    blockage_rca INTEGER DEFAULT 0,
+    findings TEXT DEFAULT '',
+    tenant_id INTEGER,
+    facility_id INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_cardio_cath_tenant ON cardiology_cath_reports (tenant_id, facility_id, patient_id);
+
+CREATE TABLE IF NOT EXISTS oncology_patient_regimens (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER,
+    regimen_name TEXT,
+    cycle_number INTEGER,
+    status TEXT DEFAULT 'Scheduled',
+    start_date TEXT,
+    tenant_id INTEGER,
+    facility_id INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_onco_regimens_tenant ON oncology_patient_regimens (tenant_id, facility_id, patient_id);
             `);
 
             // Perform backfill
@@ -2105,6 +2376,7 @@ UPDATE pharmacy_purchase_items SET tenant_id = 1 WHERE tenant_id IS NULL;
 UPDATE pharmacy_opening_balances SET tenant_id = 1, branch_id = 1 WHERE tenant_id IS NULL;
 UPDATE audit_trail SET tenant_id = 1 WHERE tenant_id IS NULL;
 UPDATE quality_incidents SET tenant_id = 1 WHERE tenant_id IS NULL;
+UPDATE quality_incidents SET workflow_state = CASE WHEN status = 'Closed' THEN 'Closed' ELSE 'Open' END WHERE workflow_state IS NULL;
 UPDATE quality_patient_satisfaction SET tenant_id = 1 WHERE tenant_id IS NULL;
 UPDATE quality_kpis SET tenant_id = 1 WHERE tenant_id IS NULL;
 UPDATE infection_surveillance SET tenant_id = 1 WHERE tenant_id IS NULL;
@@ -2118,6 +2390,933 @@ UPDATE maintenance_pm_schedules SET tenant_id = 1 WHERE tenant_id IS NULL;
 UPDATE maintenance_equipment SET tenant_id = 1 WHERE tenant_id IS NULL;
             `);
         } catch (e) { console.error('Migration error:', e.message); }
+
+        // ===== PHASE A — NEW TABLES (A1-A4) =====
+        try {
+            await client.query(`
+                -- A1: Patient Portal Messages
+                CREATE TABLE IF NOT EXISTS portal_messages (
+                    id SERIAL PRIMARY KEY,
+                    patient_id INTEGER REFERENCES patients(id),
+                    sender_type VARCHAR(20) DEFAULT 'patient' CHECK (sender_type IN ('patient','staff')),
+                    sender_name TEXT NOT NULL DEFAULT '',
+                    subject TEXT NOT NULL DEFAULT '',
+                    body TEXT NOT NULL DEFAULT '',
+                    department VARCHAR(100) DEFAULT 'General',
+                    is_read BOOLEAN DEFAULT FALSE,
+                    replied_at TIMESTAMPTZ,
+                    replied_by TEXT,
+                    reply_body TEXT,
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_portal_messages_patient ON portal_messages(patient_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_portal_messages_tenant ON portal_messages(tenant_id, is_read);
+
+                -- A2: Pediatric Immunizations (Saudi MOH National Immunization Program)
+                CREATE TABLE IF NOT EXISTS pediatric_immunizations (
+                    id SERIAL PRIMARY KEY,
+                    patient_id INTEGER NOT NULL REFERENCES patients(id),
+                    vaccine_name VARCHAR(200) NOT NULL,
+                    dose_number INTEGER DEFAULT 1,
+                    given_date DATE NOT NULL,
+                    batch_number VARCHAR(100) DEFAULT '',
+                    site VARCHAR(50) DEFAULT '',      -- Left arm / Right thigh / etc.
+                    route VARCHAR(30) DEFAULT 'IM',   -- IM / SC / ID / PO
+                    next_due DATE,
+                    reaction TEXT DEFAULT '',          -- أي ردة فعل
+                    given_by TEXT NOT NULL DEFAULT '',
+                    notes TEXT DEFAULT '',
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_pediatric_immunizations_patient ON pediatric_immunizations(patient_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_pediatric_immunizations_vaccine ON pediatric_immunizations(vaccine_name, tenant_id);
+
+                -- A3: Nursing Pain Assessments (NRS/VAS/FLACC/FACES)
+                CREATE TABLE IF NOT EXISTS nursing_pain_assessments (
+                    id SERIAL PRIMARY KEY,
+                    patient_id INTEGER NOT NULL REFERENCES patients(id),
+                    patient_name TEXT DEFAULT '',
+                    admission_id INTEGER REFERENCES admissions(id),
+                    pain_scale VARCHAR(20) DEFAULT 'NRS' CHECK (pain_scale IN ('NRS','VAS','FLACC','FACES','BPS')),
+                    pain_score INTEGER NOT NULL CHECK (pain_score BETWEEN 0 AND 10),
+                    pain_location TEXT DEFAULT '',        -- موقع الألم
+                    pain_character TEXT DEFAULT '',       -- طبيعة الألم
+                    pain_radiation TEXT DEFAULT '',       -- انتشار الألم
+                    pain_onset TEXT DEFAULT '',           -- متى بدأ
+                    pain_duration TEXT DEFAULT '',        -- المدة
+                    aggravating_factors TEXT DEFAULT '',  -- عوامل مُفاقِمة
+                    relieving_factors TEXT DEFAULT '',    -- عوامل مُخففة
+                    current_analgesia TEXT DEFAULT '',    -- مسكنات حالية
+                    pain_goal INTEGER DEFAULT 3,          -- هدف النقرس (0-10)
+                    reassessment_time TIMESTAMPTZ,        -- وقت إعادة التقييم
+                    notes TEXT DEFAULT '',
+                    assessed_by TEXT NOT NULL DEFAULT '',
+                    assessed_at TIMESTAMPTZ DEFAULT NOW(),
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_nursing_pain_patient ON nursing_pain_assessments(patient_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_nursing_pain_admission ON nursing_pain_assessments(admission_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_nursing_pain_score ON nursing_pain_assessments(pain_score, tenant_id);
+
+                -- A4: ICU Daily Goals Checklist (CBAHI Requirement — Intensivist Bundle)
+                CREATE TABLE IF NOT EXISTS icu_daily_goals (
+                    id SERIAL PRIMARY KEY,
+                    admission_id INTEGER NOT NULL REFERENCES admissions(id),
+                    patient_id INTEGER NOT NULL REFERENCES patients(id),
+                    patient_name TEXT DEFAULT '',
+                    goal_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                    -- Ventilator
+                    vent_goal_fio2 NUMERIC(5,2),          -- Target FiO2 %
+                    vent_goal_peep NUMERIC(5,1),           -- Target PEEP cmH2O
+                    vent_goal_tv NUMERIC(6,1),             -- Target Tidal Volume mL
+                    vent_wean_plan TEXT DEFAULT '',         -- خطة الفطام
+                    -- Sedation / Analgesia / Delirium (ABCDEF Bundle)
+                    sedation_target_rass SMALLINT,         -- Target RASS (-5 to +4)
+                    daily_sat BOOLEAN DEFAULT FALSE,        -- Daily Sedation Awakening Trial
+                    daily_sbt BOOLEAN DEFAULT FALSE,        -- Daily Spontaneous Breathing Trial
+                    pain_goal_nrs SMALLINT DEFAULT 3,
+                    delirium_cam_icu TEXT DEFAULT '',       -- CAM-ICU result (Positive/Negative/Unable)
+                    -- DVT / Stress Ulcer Prevention
+                    dvt_prophylaxis TEXT DEFAULT '',        -- Heparin SQ / Mechanical / Contraindicated
+                    stress_ulcer_prophy TEXT DEFAULT '',    -- PPI / H2 / Not Indicated
+                    -- Nutrition
+                    nutrition_route TEXT DEFAULT '',        -- PO / NG / NJ / TPN / NPO
+                    caloric_goal_kcal NUMERIC(8,1),
+                    protein_goal_g NUMERIC(6,1),
+                    -- Infection / Lines / VAP Prevention
+                    line_necessity_reviewed BOOLEAN DEFAULT FALSE,
+                    foley_necessity_reviewed BOOLEAN DEFAULT FALSE,
+                    oral_care_done BOOLEAN DEFAULT FALSE,   -- VAP Prevention
+                    hob_elevation BOOLEAN DEFAULT TRUE,     -- Head Of Bed 30-45°
+                    -- Early Mobility
+                    mobility_goal TEXT DEFAULT '',          -- Passive / Sitting / Standing / Ambulate
+                    -- Family Engagement
+                    family_update_done BOOLEAN DEFAULT FALSE,
+                    -- Free-text goals
+                    medical_goals TEXT DEFAULT '',
+                    nursing_goals TEXT DEFAULT '',
+                    goals_discussed_with_team BOOLEAN DEFAULT FALSE,
+                    notes TEXT DEFAULT '',
+                    -- Audit
+                    created_by TEXT DEFAULT '',
+                    updated_by TEXT,
+                    updated_at TIMESTAMPTZ,
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
+                    UNIQUE(admission_id, goal_date, tenant_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_icu_daily_goals_admission ON icu_daily_goals(admission_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_icu_daily_goals_date ON icu_daily_goals(goal_date, tenant_id);
+            `);
+            console.log('  ✅ Phase A tables created (portal_messages, pediatric_immunizations, nursing_pain_assessments, icu_daily_goals)');
+        } catch (e) { console.error('Phase A tables migration error:', e.message); }
+
+        // ===== PHASE B — SAUDI COMPLIANCE TABLES (B1-B3) =====
+        try {
+            await client.query(`
+                -- B1: NPHIES Remittance Advice (RA) from payer → provider
+                CREATE TABLE IF NOT EXISTS nphies_remittance_advice (
+                    id SERIAL PRIMARY KEY,
+                    claim_id INTEGER REFERENCES insurance_claims(id),
+                    payer_id INTEGER REFERENCES insurance_companies(id),
+                    remittance_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                    fhir_bundle_id TEXT DEFAULT '',           -- NPHIES Bundle.id
+                    payment_amount NUMERIC(12,2) DEFAULT 0,
+                    adjustment_amount NUMERIC(12,2) DEFAULT 0,
+                    denial_amount NUMERIC(12,2) DEFAULT 0,
+                    payment_date DATE,
+                    payment_reference TEXT DEFAULT '',
+                    adjudication_status VARCHAR(30) DEFAULT 'pending'
+                        CHECK (adjudication_status IN ('pending','approved','partial','denied','appealed')),
+                    denial_reason TEXT DEFAULT '',
+                    nphies_request_json JSONB,
+                    nphies_response_json JSONB,
+                    posted_to_gl BOOLEAN DEFAULT FALSE,   -- once posted to AR, lock
+                    posted_at TIMESTAMPTZ,
+                    posted_by TEXT,
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_nphies_ra_claim ON nphies_remittance_advice(claim_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_nphies_ra_payer ON nphies_remittance_advice(payer_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_nphies_ra_status ON nphies_remittance_advice(adjudication_status, tenant_id);
+
+                -- B1b: NPHIES Claim Status Inquiry log
+                CREATE TABLE IF NOT EXISTS nphies_claim_status_inquiry (
+                    id SERIAL PRIMARY KEY,
+                    claim_id INTEGER REFERENCES insurance_claims(id),
+                    inquiry_date TIMESTAMPTZ DEFAULT NOW(),
+                    fhir_task_id TEXT DEFAULT '',
+                    status_code VARCHAR(50) DEFAULT '',
+                    status_description TEXT DEFAULT '',
+                    nphies_request_json JSONB,
+                    nphies_response_json JSONB,
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_nphies_csi_claim ON nphies_claim_status_inquiry(claim_id, tenant_id);
+
+                -- B2: ZATCA Credit Notes (إشعارات الخصم/الائتمان)
+                CREATE TABLE IF NOT EXISTS zatca_credit_notes (
+                    id SERIAL PRIMARY KEY,
+                    original_invoice_id INTEGER REFERENCES zatca_invoices(id),
+                    credit_note_number TEXT NOT NULL DEFAULT '',
+                    buyer_name TEXT DEFAULT '',
+                    buyer_vat TEXT DEFAULT '',
+                    credit_reason TEXT DEFAULT '',         -- Cancellation / Return / Discount
+                    credit_reason_code VARCHAR(10) DEFAULT '', -- ZATCA reason codes
+                    subtotal NUMERIC(12,2) DEFAULT 0,
+                    vat_amount NUMERIC(12,2) DEFAULT 0,
+                    total_with_vat NUMERIC(12,2) DEFAULT 0,
+                    ubl_xml TEXT DEFAULT '',
+                    xml_hash TEXT DEFAULT '',
+                    digital_stamp TEXT DEFAULT '',
+                    qr_code TEXT DEFAULT '',
+                    clearance_status VARCHAR(30) DEFAULT 'pending',
+                    submission_status VARCHAR(30) DEFAULT 'pending',
+                    zatca_response JSONB,
+                    invoice_counter INTEGER DEFAULT 1,     -- ICV — sequential counter
+                    prev_invoice_hash TEXT DEFAULT '',     -- chaining
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_zatca_cn_invoice ON zatca_credit_notes(original_invoice_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_zatca_cn_tenant ON zatca_credit_notes(tenant_id, clearance_status);
+
+                -- B3a: HR Credentialing & Privileging (Physician / Nurse licenses & privileges)
+                CREATE TABLE IF NOT EXISTS hr_credentialing (
+                    id SERIAL PRIMARY KEY,
+                    employee_id INTEGER NOT NULL REFERENCES hr_employees(id),
+                    employee_name TEXT DEFAULT '',
+                    credential_type VARCHAR(50) NOT NULL  -- Medical License / DEA / Board Cert / Saudi Commission
+                        DEFAULT 'Medical License',
+                    credential_number TEXT NOT NULL DEFAULT '',
+                    issuing_body TEXT DEFAULT '',           -- Saudi Commission, MOH, SCHS...
+                    issue_date DATE,
+                    expiry_date DATE,
+                    is_active BOOLEAN DEFAULT TRUE,
+                    privilege_area TEXT DEFAULT '',         -- General Surgery / Cardiology...
+                    privilege_level VARCHAR(30) DEFAULT 'Full'
+                        CHECK (privilege_level IN ('Full','Supervised','Limited','Provisional')),
+                    verification_status VARCHAR(20) DEFAULT 'pending'
+                        CHECK (verification_status IN ('pending','verified','expired','revoked')),
+                    verified_by TEXT,
+                    verified_at TIMESTAMPTZ,
+                    alert_sent_30d BOOLEAN DEFAULT FALSE,  -- expiry alert 30 days
+                    alert_sent_7d BOOLEAN DEFAULT FALSE,   -- expiry alert 7 days
+                    document_url TEXT DEFAULT '',
+                    notes TEXT DEFAULT '',
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_hr_cred_employee ON hr_credentialing(employee_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_hr_cred_expiry ON hr_credentialing(expiry_date, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_hr_cred_type ON hr_credentialing(credential_type, tenant_id);
+
+                -- B3b: GOSI Records (General Organization for Social Insurance)
+                CREATE TABLE IF NOT EXISTS hr_gosi_records (
+                    id SERIAL PRIMARY KEY,
+                    employee_id INTEGER NOT NULL REFERENCES hr_employees(id),
+                    employee_name TEXT DEFAULT '',
+                    national_id TEXT DEFAULT '',
+                    iqama_number TEXT DEFAULT '',
+                    gosi_number TEXT DEFAULT '',           -- رقم التأمينات
+                    nationality VARCHAR(50) DEFAULT '',
+                    is_saudi BOOLEAN DEFAULT FALSE,
+                    basic_salary NUMERIC(12,2) DEFAULT 0,
+                    gosi_base_salary NUMERIC(12,2) DEFAULT 0,
+                    employee_share_pct NUMERIC(5,2) DEFAULT 9.75,  -- % موظف
+                    employer_share_pct NUMERIC(5,2) DEFAULT 12.00, -- % صاحب عمل (سعودي) أو 2% (غير سعودي - hazard only)
+                    employee_contribution NUMERIC(12,2) DEFAULT 0,
+                    employer_contribution NUMERIC(12,2) DEFAULT 0,
+                    total_contribution NUMERIC(12,2) DEFAULT 0,
+                    month_year DATE NOT NULL,              -- الشهر والسنة
+                    submission_status VARCHAR(20) DEFAULT 'pending'
+                        CHECK (submission_status IN ('pending','submitted','confirmed','error')),
+                    gosi_response JSONB,
+                    submitted_at TIMESTAMPTZ,
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
+                    UNIQUE(employee_id, month_year, tenant_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_gosi_employee ON hr_gosi_records(employee_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_gosi_month ON hr_gosi_records(month_year, tenant_id);
+
+                -- B3c: WPS Payroll File (Wage Protection System — نظام حماية الأجور)
+                CREATE TABLE IF NOT EXISTS hr_wps_files (
+                    id SERIAL PRIMARY KEY,
+                    file_reference TEXT NOT NULL DEFAULT '', -- WPS file reference number
+                    payroll_month DATE NOT NULL,             -- الشهر
+                    total_employees INTEGER DEFAULT 0,
+                    total_wages NUMERIC(14,2) DEFAULT 0,
+                    file_format VARCHAR(20) DEFAULT 'SIF',   -- SIF (Salary Information File)
+                    sif_content TEXT DEFAULT '',             -- محتوى ملف SIF
+                    bank_code TEXT DEFAULT '',               -- رمز البنك
+                    entity_id TEXT DEFAULT '',               -- Entity ID (MOL)
+                    mol_reference TEXT DEFAULT '',           -- Ministry of Labour ref
+                    submission_status VARCHAR(20) DEFAULT 'pending'
+                        CHECK (submission_status IN ('pending','submitted','approved','rejected')),
+                    submitted_at TIMESTAMPTZ,
+                    approved_at TIMESTAMPTZ,
+                    wps_response JSONB,
+                    notes TEXT DEFAULT '',
+                    created_by TEXT DEFAULT '',
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
+                    UNIQUE(payroll_month, tenant_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_wps_month ON hr_wps_files(payroll_month, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_wps_status ON hr_wps_files(submission_status, tenant_id);
+
+                -- B3d: Nitaqat / Saudization Tracking
+                CREATE TABLE IF NOT EXISTS hr_nitaqat_records (
+                    id SERIAL PRIMARY KEY,
+                    snapshot_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                    total_employees INTEGER DEFAULT 0,
+                    saudi_employees INTEGER DEFAULT 0,
+                    non_saudi_employees INTEGER DEFAULT 0,
+                    saudization_pct NUMERIC(5,2) DEFAULT 0,
+                    required_pct NUMERIC(5,2) DEFAULT 0,    -- الحد المطلوب حسب القطاع
+                    nitaqat_band VARCHAR(30) DEFAULT '',     -- Excellent/High/Medium/Low/Déficiente
+                    activity_code TEXT DEFAULT '',           -- GOSI activity code
+                    facility_size VARCHAR(20) DEFAULT '',    -- Small/Medium/Large/Giant
+                    exempted_employees INTEGER DEFAULT 0,    -- معفيون (مدير، طبيب أجنبي...)
+                    details_json JSONB,
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_nitaqat_date ON hr_nitaqat_records(snapshot_date, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_nitaqat_tenant ON hr_nitaqat_records(tenant_id, nitaqat_band);
+            `);
+            console.log('  ✅ Phase B tables created (nphies_remittance_advice, nphies_claim_status_inquiry, zatca_credit_notes, hr_credentialing, hr_gosi_records, hr_wps_files, hr_nitaqat_records)');
+        } catch (e) { console.error('Phase B tables migration error:', e.message); }
+
+        // ===== PHASE C — CLINICAL QUALITY (C1-C4) =====
+        try {
+            await client.query(`
+                -- C1: Controlled Substances (مراقبة المخدرات والمؤثرات العقلية)
+                CREATE TABLE IF NOT EXISTS pharmacy_controlled_substances (
+                    id SERIAL PRIMARY KEY,
+                    drug_name TEXT NOT NULL,
+                    drug_code TEXT DEFAULT '',              -- local formulary code
+                    schedule_class VARCHAR(10) DEFAULT '2' -- Saudi Schedule II/III/IV/V (مادة خاضعة)
+                        CHECK (schedule_class IN ('2','3','4','5','H','N')),
+                    dosage_form VARCHAR(50) DEFAULT '',
+                    strength TEXT DEFAULT '',
+                    unit VARCHAR(20) DEFAULT 'Tablet',
+                    opening_balance NUMERIC(10,3) DEFAULT 0,
+                    received_qty NUMERIC(10,3) DEFAULT 0,
+                    dispensed_qty NUMERIC(10,3) DEFAULT 0,
+                    wasted_qty NUMERIC(10,3) DEFAULT 0,
+                    closing_balance NUMERIC(10,3) DEFAULT 0,
+                    discrepancy NUMERIC(10,3) DEFAULT 0,
+                    record_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                    location VARCHAR(100) DEFAULT '',      -- Ward/Pharmacy/ICU
+                    witnessed_by TEXT DEFAULT '',          -- الشاهد الثاني (double-witness)
+                    verified_by TEXT DEFAULT '',
+                    notes TEXT DEFAULT '',
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
+                    UNIQUE(drug_code, record_date, location, tenant_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_cs_drug ON pharmacy_controlled_substances(drug_name, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_cs_date ON pharmacy_controlled_substances(record_date, tenant_id);
+
+                -- C1b: Controlled Substance Transactions (individual dispensing events)
+                CREATE TABLE IF NOT EXISTS pharmacy_cs_transactions (
+                    id SERIAL PRIMARY KEY,
+                    cs_id INTEGER REFERENCES pharmacy_controlled_substances(id),
+                    prescription_id INTEGER REFERENCES pharmacy_prescriptions(id),
+                    patient_id INTEGER REFERENCES patients(id),
+                    patient_name TEXT DEFAULT '',
+                    admission_id INTEGER,
+                    transaction_type VARCHAR(20) DEFAULT 'Dispense'
+                        CHECK (transaction_type IN ('Receive','Dispense','Waste','Return','Transfer','Count')),
+                    quantity NUMERIC(8,3) NOT NULL DEFAULT 0,
+                    balance_after NUMERIC(10,3) DEFAULT 0,
+                    witness1_name TEXT DEFAULT '',          -- الشاهد الأول (pharmacist)
+                    witness2_name TEXT DEFAULT '',          -- الشاهد الثاني (nurse/second pharmacist)
+                    witness1_id INTEGER,
+                    witness2_id INTEGER,
+                    administered_by TEXT DEFAULT '',
+                    administered_at TIMESTAMPTZ,
+                    reason TEXT DEFAULT '',
+                    waste_amount NUMERIC(8,3) DEFAULT 0,
+                    waste_reason TEXT DEFAULT '',
+                    is_signed BOOLEAN DEFAULT FALSE,       -- double-signed
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_cst_cs ON pharmacy_cs_transactions(cs_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_cst_patient ON pharmacy_cs_transactions(patient_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_cst_date ON pharmacy_cs_transactions(created_at, tenant_id);
+
+                -- C2: Medication Reconciliation (مطابقة الأدوية)
+                CREATE TABLE IF NOT EXISTS medication_reconciliations (
+                    id SERIAL PRIMARY KEY,
+                    patient_id INTEGER NOT NULL REFERENCES patients(id),
+                    admission_id INTEGER,
+                    reconciliation_type VARCHAR(20) NOT NULL DEFAULT 'Admission'
+                        CHECK (reconciliation_type IN ('Admission','Discharge','Transfer')),
+                    performed_by INTEGER,                  -- pharmacist/physician user_id
+                    performed_by_name TEXT DEFAULT '',
+                    performed_at TIMESTAMPTZ DEFAULT NOW(),
+                    status VARCHAR(20) DEFAULT 'Draft'
+                        CHECK (status IN ('Draft','Completed','Reviewed','Approved')),
+                    reviewed_by TEXT DEFAULT '',
+                    reviewed_at TIMESTAMPTZ,
+                    home_medications JSONB,                -- [{name, dose, route, frequency, last_taken}]
+                    hospital_medications JSONB,            -- [{name, dose, route, frequency, status: Continue/Hold/Modify/Discontinue}]
+                    discrepancies JSONB,                   -- [{drug, issue, action, resolved}]
+                    allergy_verified BOOLEAN DEFAULT FALSE,
+                    high_alert_checked BOOLEAN DEFAULT FALSE,
+                    patient_counselled BOOLEAN DEFAULT FALSE,
+                    notes TEXT DEFAULT '',
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_medrec_patient ON medication_reconciliations(patient_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_medrec_type ON medication_reconciliations(reconciliation_type, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_medrec_status ON medication_reconciliations(status, tenant_id);
+
+                -- C3a: Lab Microbiology (زراعة ومضادات حيوية)
+                CREATE TABLE IF NOT EXISTS lab_microbiology (
+                    id SERIAL PRIMARY KEY,
+                    order_id INTEGER REFERENCES lab_radiology_orders(id),
+                    patient_id INTEGER NOT NULL REFERENCES patients(id),
+                    admission_id INTEGER,
+                    specimen_type VARCHAR(50) DEFAULT '', -- Blood/Urine/Sputum/Wound/CSF/Stool
+                    collection_date DATE,
+                    collection_time TIME,
+                    collection_site TEXT DEFAULT '',
+                    gram_stain TEXT DEFAULT '',            -- Gram-positive cocci / Gram-negative rods
+                    preliminary_result TEXT DEFAULT '',
+                    final_result TEXT DEFAULT '',
+                    organism_identified TEXT DEFAULT '',   -- E. coli / Klebsiella / Staph aureus
+                    colony_count TEXT DEFAULT '',          -- >100,000 CFU/mL
+                    sensitivity_results JSONB,             -- [{antibiotic, mic, interpretation: S/I/R}]
+                    antibiogram_profile TEXT DEFAULT '',   -- MRSA/ESBL/VRE/CRE flag
+                    report_status VARCHAR(20) DEFAULT 'Pending'
+                        CHECK (report_status IN ('Pending','Preliminary','Final','Verified')),
+                    reported_by TEXT DEFAULT '',
+                    reported_at TIMESTAMPTZ,
+                    verified_by TEXT DEFAULT '',
+                    verified_at TIMESTAMPTZ,
+                    critical_value BOOLEAN DEFAULT FALSE,
+                    critical_notified_to TEXT DEFAULT '',
+                    critical_notified_at TIMESTAMPTZ,
+                    loinc_code VARCHAR(20) DEFAULT '',     -- LOINC for culture type
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_micro_patient ON lab_microbiology(patient_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_micro_order ON lab_microbiology(order_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_micro_organism ON lab_microbiology(organism_identified, tenant_id);
+
+                -- C3b: LOINC Code Reference table
+                CREATE TABLE IF NOT EXISTS lab_loinc_codes (
+                    id SERIAL PRIMARY KEY,
+                    loinc_code VARCHAR(20) UNIQUE NOT NULL,
+                    short_name TEXT DEFAULT '',
+                    long_name TEXT DEFAULT '',
+                    component TEXT DEFAULT '',             -- Analyte
+                    property TEXT DEFAULT '',              -- MCnc/SCnc/Prid
+                    time_aspect VARCHAR(20) DEFAULT '',    -- Pt/24H
+                    system TEXT DEFAULT '',                -- Bld/Urine/Ser/Plas
+                    scale VARCHAR(20) DEFAULT '',          -- Qn/Ord/Nom
+                    method TEXT DEFAULT '',
+                    class_name TEXT DEFAULT '',            -- CHEM/MICRO/COAG
+                    panel_name TEXT DEFAULT '',
+                    specimen_type TEXT DEFAULT '',
+                    unit TEXT DEFAULT '',
+                    normal_range_male TEXT DEFAULT '',
+                    normal_range_female TEXT DEFAULT '',
+                    is_active BOOLEAN DEFAULT TRUE,
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_loinc_code ON lab_loinc_codes(loinc_code);
+                CREATE INDEX IF NOT EXISTS idx_loinc_class ON lab_loinc_codes(class_name, tenant_id);
+
+                -- C4: Problem List ICD-10 (قائمة المشكلات مرتبطة بـ ICD-10)
+                CREATE TABLE IF NOT EXISTS patient_problem_list (
+                    id SERIAL PRIMARY KEY,
+                    patient_id INTEGER NOT NULL REFERENCES patients(id),
+                    admission_id INTEGER,
+                    icd10_code VARCHAR(20) NOT NULL DEFAULT '',
+                    icd10_description TEXT DEFAULT '',
+                    snomed_code VARCHAR(30) DEFAULT '',
+                    problem_name TEXT NOT NULL DEFAULT '',
+                    problem_type VARCHAR(30) DEFAULT 'Chronic'
+                        CHECK (problem_type IN ('Chronic','Acute','Historical','Surgical','Allergy','Social','Family')),
+                    onset_date DATE,
+                    resolved_date DATE,
+                    is_active BOOLEAN DEFAULT TRUE,
+                    severity VARCHAR(20) DEFAULT 'Moderate'
+                        CHECK (severity IN ('Mild','Moderate','Severe','Critical')),
+                    status VARCHAR(20) DEFAULT 'Active'
+                        CHECK (status IN ('Active','Resolved','Inactive','Recurrent')),
+                    added_by TEXT DEFAULT '',
+                    added_by_id INTEGER,
+                    last_updated_by TEXT DEFAULT '',
+                    encounter_id INTEGER,
+                    notes TEXT DEFAULT '',
+                    principal_diagnosis BOOLEAN DEFAULT FALSE,  -- PDx flag
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_ppl_patient ON patient_problem_list(patient_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_ppl_icd10 ON patient_problem_list(icd10_code, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_ppl_active ON patient_problem_list(is_active, tenant_id);
+
+                -- C4b: ICD-10 Code Reference (quick lookup)
+                CREATE TABLE IF NOT EXISTS icd10_codes (
+                    id SERIAL PRIMARY KEY,
+                    code VARCHAR(20) UNIQUE NOT NULL,
+                    description_en TEXT NOT NULL DEFAULT '',
+                    description_ar TEXT DEFAULT '',
+                    category VARCHAR(10) DEFAULT '',       -- A00-B99 / J00-J99...
+                    chapter TEXT DEFAULT '',
+                    is_billable BOOLEAN DEFAULT TRUE,
+                    is_valid BOOLEAN DEFAULT TRUE,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_icd10_code ON icd10_codes(code);
+                CREATE INDEX IF NOT EXISTS idx_icd10_desc ON icd10_codes(description_en);
+            `);
+            console.log('  ✅ Phase C tables created (pharmacy_controlled_substances, pharmacy_cs_transactions, medication_reconciliations, lab_microbiology, lab_loinc_codes, patient_problem_list, icd10_codes)');
+        } catch (e) { console.error('Phase C tables migration error:', e.message); }
+
+        // ===== PHASE D — FINANCE & OPERATIONS (D1-D3) =====
+        try {
+            await client.query(`
+                -- D1a: Accounts Payable (الذمم الدائنة)
+                CREATE TABLE IF NOT EXISTS finance_accounts_payable (
+                    id SERIAL PRIMARY KEY,
+                    vendor_id INTEGER,                     -- FK to vendors table
+                    vendor_name TEXT NOT NULL DEFAULT '',
+                    invoice_number TEXT NOT NULL DEFAULT '',
+                    invoice_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                    due_date DATE,
+                    po_reference TEXT DEFAULT '',          -- Purchase Order ref
+                    description TEXT DEFAULT '',
+                    subtotal NUMERIC(14,2) DEFAULT 0,
+                    vat_amount NUMERIC(14,2) DEFAULT 0,
+                    total_amount NUMERIC(14,2) NOT NULL DEFAULT 0,
+                    paid_amount NUMERIC(14,2) DEFAULT 0,
+                    balance_due NUMERIC(14,2) GENERATED ALWAYS AS (total_amount - paid_amount) STORED,
+                    payment_status VARCHAR(20) DEFAULT 'Unpaid'
+                        CHECK (payment_status IN ('Unpaid','Partial','Paid','Overdue','Disputed','Cancelled')),
+                    payment_method VARCHAR(30) DEFAULT '',
+                    payment_date DATE,
+                    payment_reference TEXT DEFAULT '',
+                    gl_account_code VARCHAR(20) DEFAULT '', -- GL mapping
+                    cost_center VARCHAR(50) DEFAULT '',
+                    approved_by TEXT DEFAULT '',
+                    approved_at TIMESTAMPTZ,
+                    attachment_url TEXT DEFAULT '',
+                    notes TEXT DEFAULT '',
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_ap_vendor ON finance_accounts_payable(vendor_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_ap_due ON finance_accounts_payable(due_date, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_ap_status ON finance_accounts_payable(payment_status, tenant_id);
+
+                -- D1b: Accounts Receivable (الذمم المدينة)
+                CREATE TABLE IF NOT EXISTS finance_accounts_receivable (
+                    id SERIAL PRIMARY KEY,
+                    patient_id INTEGER REFERENCES patients(id),
+                    patient_name TEXT DEFAULT '',
+                    payer_type VARCHAR(20) DEFAULT 'Patient'
+                        CHECK (payer_type IN ('Patient','Insurance','Government','Corporate','Other')),
+                    payer_id INTEGER,                      -- insurance_company_id or corporate_id
+                    payer_name TEXT DEFAULT '',
+                    invoice_number TEXT NOT NULL DEFAULT '',
+                    visit_id INTEGER,
+                    admission_id INTEGER,
+                    invoice_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                    due_date DATE,
+                    subtotal NUMERIC(14,2) DEFAULT 0,
+                    discount_amount NUMERIC(14,2) DEFAULT 0,
+                    insurance_share NUMERIC(14,2) DEFAULT 0,
+                    patient_share NUMERIC(14,2) DEFAULT 0,
+                    vat_amount NUMERIC(14,2) DEFAULT 0,
+                    total_amount NUMERIC(14,2) NOT NULL DEFAULT 0,
+                    collected_amount NUMERIC(14,2) DEFAULT 0,
+                    balance_due NUMERIC(14,2) GENERATED ALWAYS AS (total_amount - collected_amount) STORED,
+                    collection_status VARCHAR(20) DEFAULT 'Outstanding'
+                        CHECK (collection_status IN ('Outstanding','Partial','Collected','WriteOff','Disputed','Referred')),
+                    last_payment_date DATE,
+                    last_payment_amount NUMERIC(14,2) DEFAULT 0,
+                    aging_bucket VARCHAR(20) DEFAULT 'Current', -- Current/30d/60d/90d/120d+
+                    write_off_amount NUMERIC(14,2) DEFAULT 0,
+                    write_off_reason TEXT DEFAULT '',
+                    notes TEXT DEFAULT '',
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_ar_patient ON finance_accounts_receivable(patient_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_ar_payer ON finance_accounts_receivable(payer_type, payer_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_ar_status ON finance_accounts_receivable(collection_status, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_ar_due ON finance_accounts_receivable(due_date, tenant_id);
+
+                -- D2: Vendor Management (إدارة الموردين)
+                CREATE TABLE IF NOT EXISTS vendors (
+                    id SERIAL PRIMARY KEY,
+                    vendor_code TEXT UNIQUE,
+                    vendor_name_ar TEXT NOT NULL DEFAULT '',
+                    vendor_name_en TEXT DEFAULT '',
+                    vendor_type VARCHAR(30) DEFAULT 'Supplier'
+                        CHECK (vendor_type IN ('Supplier','Contractor','Consultant','Laboratory','Pharmaceutical','Medical Equipment','Maintenance','Other')),
+                    contact_person TEXT DEFAULT '',
+                    phone TEXT DEFAULT '',
+                    email TEXT DEFAULT '',
+                    address TEXT DEFAULT '',
+                    city TEXT DEFAULT 'Riyadh',
+                    country TEXT DEFAULT 'Saudi Arabia',
+                    vat_number TEXT DEFAULT '',            -- رقم ضريبة القيمة المضافة
+                    commercial_register TEXT DEFAULT '',   -- السجل التجاري
+                    iban TEXT DEFAULT '',
+                    bank_name TEXT DEFAULT '',
+                    payment_terms INTEGER DEFAULT 30,      -- أيام الدفع
+                    currency VARCHAR(5) DEFAULT 'SAR',
+                    credit_limit NUMERIC(14,2) DEFAULT 0,
+                    total_outstanding NUMERIC(14,2) DEFAULT 0,
+                    rating INTEGER DEFAULT 3               -- 1-5 نجوم
+                        CHECK (rating BETWEEN 1 AND 5),
+                    is_approved BOOLEAN DEFAULT FALSE,
+                    approved_by TEXT DEFAULT '',
+                    approved_at TIMESTAMPTZ,
+                    is_active BOOLEAN DEFAULT TRUE,
+                    contract_start DATE,
+                    contract_end DATE,
+                    notes TEXT DEFAULT '',
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_vendor_name ON vendors(vendor_name_ar, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_vendor_type ON vendors(vendor_type, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_vendor_active ON vendors(is_active, tenant_id);
+
+                -- D3: Financial Reports snapshots (تقارير مالية مُجمَّعة)
+                CREATE TABLE IF NOT EXISTS finance_report_snapshots (
+                    id SERIAL PRIMARY KEY,
+                    report_type VARCHAR(50) NOT NULL,      -- PL/BalanceSheet/CashFlow/AR_Aging/AP_Aging/Revenue
+                    report_period_start DATE NOT NULL,
+                    report_period_end DATE NOT NULL,
+                    generated_by TEXT DEFAULT '',
+                    generated_at TIMESTAMPTZ DEFAULT NOW(),
+                    report_data JSONB NOT NULL DEFAULT '{}',  -- full P&L / BS data
+                    total_revenue NUMERIC(16,2) DEFAULT 0,
+                    total_expenses NUMERIC(16,2) DEFAULT 0,
+                    net_income NUMERIC(16,2) DEFAULT 0,
+                    total_assets NUMERIC(16,2) DEFAULT 0,
+                    total_liabilities NUMERIC(16,2) DEFAULT 0,
+                    total_equity NUMERIC(16,2) DEFAULT 0,
+                    status VARCHAR(20) DEFAULT 'Draft'
+                        CHECK (status IN ('Draft','Final','Approved','Audited')),
+                    approved_by TEXT DEFAULT '',
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_fin_rep_type ON finance_report_snapshots(report_type, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_fin_rep_period ON finance_report_snapshots(report_period_start, tenant_id);
+            `);
+            console.log('  ✅ Phase D tables created (finance_accounts_payable, finance_accounts_receivable, vendors, finance_report_snapshots)');
+        } catch (e) { console.error('Phase D tables migration error:', e.message); }
+
+        // ===== PHASE E — INTEGRATION & AI (E1-E3) =====
+        try {
+            await client.query(`
+                -- E1: FHIR Resource Store (FHIR R4 resource cache/log)
+                CREATE TABLE IF NOT EXISTS fhir_resources (
+                    id SERIAL PRIMARY KEY,
+                    resource_type VARCHAR(50) NOT NULL,    -- Patient/Observation/Condition/MedicationRequest...
+                    resource_id TEXT NOT NULL DEFAULT '',  -- FHIR logical id
+                    version_id TEXT DEFAULT '1',
+                    resource_json JSONB NOT NULL,
+                    last_updated TIMESTAMPTZ DEFAULT NOW(),
+                    source_system VARCHAR(50) DEFAULT 'NamaMedical',
+                    source_reference TEXT DEFAULT '',      -- internal record reference
+                    is_active BOOLEAN DEFAULT TRUE,
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
+                    UNIQUE(resource_type, resource_id, tenant_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_fhir_type ON fhir_resources(resource_type, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_fhir_id ON fhir_resources(resource_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_fhir_updated ON fhir_resources(last_updated, tenant_id);
+
+                -- E2: HL7 Message Log (HL7 v2.x ADT/ORM/ORU messages)
+                CREATE TABLE IF NOT EXISTS hl7_messages (
+                    id SERIAL PRIMARY KEY,
+                    message_type VARCHAR(20) NOT NULL,     -- ADT^A01 / ORM^O01 / ORU^R01 / DFT^P03
+                    message_control_id TEXT DEFAULT '',
+                    sending_application TEXT DEFAULT 'NamaMedical',
+                    receiving_application TEXT DEFAULT '',
+                    sending_facility TEXT DEFAULT '',
+                    message_datetime TIMESTAMPTZ DEFAULT NOW(),
+                    patient_id INTEGER REFERENCES patients(id),
+                    message_body TEXT NOT NULL DEFAULT '', -- raw HL7 pipe-delimited
+                    parsed_json JSONB,                     -- parsed segments
+                    processing_status VARCHAR(20) DEFAULT 'Queued'
+                        CHECK (processing_status IN ('Queued','Processing','Sent','Acknowledged','Failed','Rejected')),
+                    ack_message TEXT DEFAULT '',
+                    error_message TEXT DEFAULT '',
+                    retry_count INTEGER DEFAULT 0,
+                    direction VARCHAR(10) DEFAULT 'Outbound'
+                        CHECK (direction IN ('Inbound','Outbound')),
+                    interface_name TEXT DEFAULT '',        -- LIS/RIS/Analyzer/PACS
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_hl7_type ON hl7_messages(message_type, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_hl7_patient ON hl7_messages(patient_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_hl7_status ON hl7_messages(processing_status, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_hl7_datetime ON hl7_messages(message_datetime, tenant_id);
+
+                -- E3: AI Clinical Decision Support Log
+                CREATE TABLE IF NOT EXISTS ai_cds_log (
+                    id SERIAL PRIMARY KEY,
+                    patient_id INTEGER REFERENCES patients(id),
+                    user_id INTEGER,
+                    user_name TEXT DEFAULT '',
+                    context_type VARCHAR(50) DEFAULT '',   -- Differential/DoseCheck/LabInterpretation/RiskScore
+                    input_data JSONB,                      -- clinical context sent to AI
+                    ai_model TEXT DEFAULT '',              -- gemini-pro / gpt-4 / claude
+                    ai_response JSONB,                     -- structured AI response
+                    recommendations TEXT DEFAULT '',
+                    accepted_by_clinician BOOLEAN,
+                    override_reason TEXT DEFAULT '',
+                    processing_time_ms INTEGER DEFAULT 0,
+                    tokens_used INTEGER DEFAULT 0,
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_ai_patient ON ai_cds_log(patient_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_ai_context ON ai_cds_log(context_type, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_ai_date ON ai_cds_log(created_at, tenant_id);
+
+                -- E3b: AI Voice Dictation sessions
+                CREATE TABLE IF NOT EXISTS ai_voice_sessions (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    user_name TEXT DEFAULT '',
+                    patient_id INTEGER REFERENCES patients(id),
+                    session_type VARCHAR(30) DEFAULT 'Clinical Note'
+                        CHECK (session_type IN ('Clinical Note','Discharge Summary','Referral Letter','Prescription','Radiology Report','Operative Note')),
+                    audio_duration_sec INTEGER DEFAULT 0,
+                    transcript_raw TEXT DEFAULT '',
+                    transcript_structured JSONB,           -- SOAP / structured output
+                    ai_model TEXT DEFAULT '',
+                    confidence_score NUMERIC(5,4) DEFAULT 0,
+                    draft_text TEXT DEFAULT '',
+                    final_text TEXT DEFAULT '',
+                    is_finalized BOOLEAN DEFAULT FALSE,
+                    finalized_at TIMESTAMPTZ,
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_voice_user ON ai_voice_sessions(user_id, tenant_id);
+                CREATE INDEX IF NOT EXISTS idx_voice_patient ON ai_voice_sessions(patient_id, tenant_id);
+            `);
+            console.log('  ✅ Phase E tables created (fhir_resources, hl7_messages, ai_cds_log, ai_voice_sessions)');
+        } catch (e) { console.error('Phase E tables migration error:', e.message); }
+
+        // ===== PHASE F — WORLD-CLASS CLINICAL QUALITY TABLES (F1-F3) =====
+        try {
+            await client.query(`
+                -- F1: Nursing Risk Assessments (Braden Scale & Morse Fall Risk)
+                CREATE TABLE IF NOT EXISTS nursing_risk_assessments (
+                    id SERIAL PRIMARY KEY,
+                    patient_id INTEGER REFERENCES patients(id),
+                    admission_id INTEGER,
+                    assessment_type VARCHAR(30) NOT NULL, -- 'Braden Scale' / 'Morse Fall Risk'
+                    total_score INTEGER NOT NULL,
+                    risk_level VARCHAR(20) NOT NULL,      -- Low / Moderate / High
+                    details JSONB NOT NULL DEFAULT '{}',  -- breakdown of parameters
+                    assessed_by TEXT DEFAULT '',
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_nurs_risk_pat ON nursing_risk_assessments(patient_id, tenant_id);
+
+                -- F2: Surgery Count Sheets (Sponge/Needle/Instrument counts)
+                CREATE TABLE IF NOT EXISTS surgery_count_sheets (
+                    id SERIAL PRIMARY KEY,
+                    surgery_id INTEGER,
+                    sponge_count_initial INTEGER DEFAULT 0,
+                    sponge_count_final INTEGER DEFAULT 0,
+                    needle_count_initial INTEGER DEFAULT 0,
+                    needle_count_final INTEGER DEFAULT 0,
+                    instrument_count_initial INTEGER DEFAULT 0,
+                    instrument_count_final INTEGER DEFAULT 0,
+                    counts_match BOOLEAN DEFAULT FALSE,
+                    witness1_name TEXT DEFAULT '',
+                    witness2_name TEXT DEFAULT '',
+                    notes TEXT DEFAULT '',
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_surg_count ON surgery_count_sheets(surgery_id, tenant_id);
+
+                -- F3: Neonatal Apgar Scores (Apgar scoring for newborns)
+                CREATE TABLE IF NOT EXISTS neonatal_apgar_scores (
+                    id SERIAL PRIMARY KEY,
+                    patient_id INTEGER REFERENCES patients(id),
+                    mother_id INTEGER REFERENCES patients(id),
+                    apgar_1min INTEGER DEFAULT 0,
+                    apgar_5min INTEGER DEFAULT 0,
+                    apgar_10min INTEGER DEFAULT 0,
+                    details JSONB NOT NULL DEFAULT '{}', -- details of individual scores
+                    assessed_by TEXT DEFAULT '',
+                    notes TEXT DEFAULT '',
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_neo_apgar_pat ON neonatal_apgar_scores(patient_id, tenant_id);
+
+                -- F: Notifications table (needed for low-stock and clinical alerts)
+                CREATE TABLE IF NOT EXISTS notifications (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER,
+                    target_role VARCHAR(50) DEFAULT '',
+                    title TEXT DEFAULT '',
+                    title_ar TEXT DEFAULT '',
+                    message TEXT DEFAULT '',
+                    body TEXT DEFAULT '',
+                    body_ar TEXT DEFAULT '',
+                    type VARCHAR(50) DEFAULT '',
+                    module VARCHAR(50) DEFAULT '',
+                    record_id INTEGER,
+                    is_read INTEGER DEFAULT 0,
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_notifications_tenant ON notifications(tenant_id);
+
+                -- Enable RLS and create policy for all four tables
+                ALTER TABLE nursing_risk_assessments ENABLE ROW LEVEL SECURITY;
+                ALTER TABLE nursing_risk_assessments FORCE ROW LEVEL SECURITY;
+                
+                ALTER TABLE surgery_count_sheets ENABLE ROW LEVEL SECURITY;
+                ALTER TABLE surgery_count_sheets FORCE ROW LEVEL SECURITY;
+                
+                ALTER TABLE neonatal_apgar_scores ENABLE ROW LEVEL SECURITY;
+                ALTER TABLE neonatal_apgar_scores FORCE ROW LEVEL SECURITY;
+
+                ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+                ALTER TABLE notifications FORCE ROW LEVEL SECURITY;
+            `);
+
+            // Creating policies separately to prevent failure if they already exist
+            try { await client.query("CREATE POLICY tenant_sec_nurs_risk ON nursing_risk_assessments FOR ALL USING (tenant_id = current_setting('app.tenant_id')::integer)"); } catch (e) { /* already exists */ }
+            try { await client.query("CREATE POLICY tenant_sec_surg_count ON surgery_count_sheets FOR ALL USING (tenant_id = current_setting('app.tenant_id')::integer)"); } catch (e) { /* already exists */ }
+            try { await client.query("CREATE POLICY tenant_sec_neo_apgar ON neonatal_apgar_scores FOR ALL USING (tenant_id = current_setting('app.tenant_id')::integer)"); } catch (e) { /* already exists */ }
+            try { await client.query("CREATE POLICY tenant_sec_notifications ON notifications FOR ALL USING (tenant_id = current_setting('app.tenant_id')::integer)"); } catch (e) { /* already exists */ }
+
+            console.log('  ✅ Phase F tables created (nursing_risk_assessments, surgery_count_sheets, neonatal_apgar_scores, notifications) with FORCE RLS enabled.');
+        } catch (e) { console.error('Phase F tables migration error:', e.message); }
+
+        // ===== Phase 3: Calibrations & Medical Waste =====
+        try {
+            await client.query(`
+                CREATE TABLE IF NOT EXISTS device_calibrations (
+                    id SERIAL PRIMARY KEY,
+                    device_name TEXT DEFAULT '',
+                    serial_number TEXT DEFAULT '',
+                    calibration_date TEXT DEFAULT '',
+                    next_calibration_date TEXT DEFAULT '',
+                    calibrated_by TEXT DEFAULT '',
+                    status TEXT DEFAULT 'Calibrated',
+                    notes TEXT DEFAULT '',
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_calibrations_tenant ON device_calibrations(tenant_id);
+
+                CREATE TABLE IF NOT EXISTS medical_waste_logs (
+                    id SERIAL PRIMARY KEY,
+                    waste_type TEXT DEFAULT '',
+                    weight_kg REAL DEFAULT 0,
+                    disposal_company TEXT DEFAULT '',
+                    truck_number TEXT DEFAULT '',
+                    logged_by TEXT DEFAULT '',
+                    logged_at TIMESTAMPTZ DEFAULT NOW(),
+                    notes TEXT DEFAULT '',
+                    tenant_id INTEGER NOT NULL DEFAULT 1,
+                    facility_id INTEGER
+                );
+                CREATE INDEX IF NOT EXISTS idx_waste_tenant ON medical_waste_logs(tenant_id);
+
+                ALTER TABLE device_calibrations ENABLE ROW LEVEL SECURITY;
+                ALTER TABLE device_calibrations FORCE ROW LEVEL SECURITY;
+
+                ALTER TABLE medical_waste_logs ENABLE ROW LEVEL SECURITY;
+                ALTER TABLE medical_waste_logs FORCE ROW LEVEL SECURITY;
+            `);
+
+            try { await client.query("CREATE POLICY tenant_sec_calibrations ON device_calibrations FOR ALL USING (tenant_id = current_setting('app.tenant_id')::integer)"); } catch (e) {}
+            try { await client.query("CREATE POLICY tenant_sec_waste ON medical_waste_logs FOR ALL USING (tenant_id = current_setting('app.tenant_id')::integer)"); } catch (e) {}
+
+            console.log('  ✅ Phase 3 tables created (device_calibrations, medical_waste_logs) with FORCE RLS.');
+        } catch (e) { console.error('Phase 3 tables migration error:', e.message); }
+
+        // Ensure RLS and policies for the 6 core tables needed by overrides & notification integration tests
+        try {
+            const extraTables = [
+                'lab_radiology_orders',
+                'nursing_vitals',
+                'pharmacy_prescriptions_queue',
+                'pharmacy_sales',
+                'pharmacy_sale_items',
+                'lab_samples'
+            ];
+            for (const table of extraTables) {
+                await client.query(`ALTER TABLE ${table} ENABLE ROW LEVEL SECURITY;`);
+                await client.query(`ALTER TABLE ${table} FORCE ROW LEVEL SECURITY;`);
+                const policyName = `rls_${table}_tenant_isolation`;
+                try {
+                    await client.query(`
+                        CREATE POLICY ${policyName} ON ${table}
+                        FOR ALL
+                        USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::integer)
+                        WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::integer)
+                    `);
+                } catch (e) { /* policy already exists */ }
+            }
+        } catch (e) { console.error('Extra RLS tables enablement error:', e.message); }
 
         console.log('  ✅ PostgreSQL tables created');
     } finally {
