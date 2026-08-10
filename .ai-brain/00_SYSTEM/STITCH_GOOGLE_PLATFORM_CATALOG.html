@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ar-SA" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NamaMedical — Stitch Platform Catalog</title>
+<style>
+  :root {
+    --nama-primary:#0d6efd;
+    --nama-success:#198754;
+    --nama-warning:#ffc107;
+    --nama-danger:#dc3545;
+    --nama-info:#0dcaf0;
+    --nama-radius:8px;
+    --nama-shadow:0 2px 6px rgba(0,0,0,.08);
+    --nama-font:'Tajawal','Inter',system-ui,sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: var(--nama-font); background: #f7f9fc; margin: 0; padding: 24px; color: #1a1a1a; }
+  .catalog { max-width: 1400px; margin: 0 auto; }
+  .catalog h1 { font-size: 32px; margin: 0 0 4px; color: #0d6efd; }
+  .catalog .meta { color: #6c757d; margin-bottom: 32px; font-size: 14px; }
+  .toc { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px; }
+  .toc-card { background: #fff; padding: 16px; border-radius: var(--nama-radius); box-shadow: var(--nama-shadow); text-decoration: none; color: #1a1a1a; }
+  .toc-card:hover { transform: translateY(-2px); transition: 0.2s; }
+  .toc-card .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; background: var(--nama-primary); color: #fff; }
+  .toc-card .name { display: block; margin-top: 8px; font-weight: 600; }
+  .toc-card .count { color: #6c757d; font-size: 12px; }
+  .archetype { background: #fff; border-radius: var(--nama-radius); box-shadow: var(--nama-shadow); padding: 24px; margin-bottom: 24px; }
+  .archetype h2 { font-size: 22px; color: var(--nama-primary); margin: 0 0 16px; padding-bottom: 12px; border-bottom: 2px solid #e9ecef; }
+  .archetype .description { color: #6c757d; margin-bottom: 20px; font-size: 14px; }
+  .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .preview { background: #fafbfc; border: 1px dashed #cbd5e0; border-radius: var(--nama-radius); padding: 16px; min-height: 220px; }
+  .preview-title { font-weight: 600; margin-bottom: 12px; color: var(--nama-primary); font-size: 13px; }
+  .preview-page { font-size: 11px; color: #6c757d; margin-bottom: 6px; }
+  .row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+  .row label { min-width: 80px; font-size: 11px; color: #495057; }
+  .input { flex: 1; padding: 4px 8px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 11px; }
+  .btn { padding: 4px 12px; border: 0; border-radius: 4px; color: #fff; cursor: pointer; font-size: 11px; }
+  .btn-primary { background: var(--nama-primary); }
+  .btn-success { background: var(--nama-success); }
+  .btn-warning { background: var(--nama-warning); color: #000; }
+  .btn-danger { background: var(--nama-danger); }
+  .table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .table th, .table td { padding: 5px; border-bottom: 1px solid #e9ecef; text-align: right; }
+  .table th { background: #f8f9fa; color: #6c757d; font-weight: 600; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 12px; font-size: 10px; }
+  .pill-active { background: #d1e7dd; color: #0f5132; }
+  .pill-warn { background: #fff3cd; color: #664d03; }
+  .alert { padding: 8px 12px; border-radius: 4px; margin-bottom: 8px; font-size: 11px; }
+  .alert-warn { background: #fff3cd; color: #664d03; }
+  .alert-danger { background: #f8d7da; color: #842029; }
+  .alert-info { background: #cff4fc; color: #055160; }
+  .kpi { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .kpi-cell { background: #fff; border: 1px solid #e9ecef; border-radius: 4px; padding: 8px; text-align: center; }
+  .kpi-value { font-size: 18px; font-weight: 700; color: var(--nama-primary); }
+  .kpi-label { font-size: 10px; color: #6c757d; }
+  .monitor-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .monitor-cell { padding: 4px; border-radius: 2px; text-align: center; font-size: 9px; color: #fff; }
+  .sched { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-size: 10px; }
+  .sched-cell { background: #e9ecef; padding: 6px; border-radius: 2px; text-align: center; min-height: 30px; }
+  .sched-cell.booked { background: var(--nama-primary); color: #fff; }
+  .wizard { display: flex; gap: 4px; margin-bottom: 12px; }
+  .wizard-step { flex: 1; padding: 6px; background: #e9ecef; text-align: center; border-radius: 4px; font-size: 10px; }
+  .wizard-step.active { background: var(--nama-primary); color: #fff; }
+  .wizard-step.done { background: var(--nama-success); color: #fff; }
+  .legend { font-size: 11px; color: #6c757d; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="catalog">
+  <h1>🏥 NamaMedical — Stitch Platform Catalog</h1>
+  <div class="meta">
+    60+ departments × 7 visual archetypes · ~295 page wireframes · generated 2026-08-10 ·
+    <code>nm-stitch-google-v2</code> + token-saver stitches · AR/EN · RTL/LTR · WCAG AA
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <a class="toc-card" href="#arch1">
+      <span class="badge">Arch 1</span>
+      <span class="name">📋 List + Filter</span>
+      <span class="count">80+ pages</span>
+    </a>
+    <a class="toc-card" href="#arch2">
+      <span class="badge">Arch 2</span>
+      <span class="name">📈 Chart Detail</span>
+      <span class="count">40+ pages</span>
+    </a>
+    <a class="toc-card" href="#arch3">
+      <span class="badge">Arch 3</span>
+      <span class="name">🧙 Workflow Wizard</span>
+      <span class="count">20+ pages</span>
+    </a>
+    <a class="toc-card" href="#arch4">
+      <span class="badge">Arch 4</span>
+      <span class="name">📝 Form + Submit</span>
+      <span class="count">100+ pages</span>
+    </a>
+    <a class="toc-card" href="#arch5">
+      <span class="badge">Arch 5</span>
+      <span class="name">📊 Dashboard + KPI</span>
+      <span class="count">30+ pages</span>
+    </a>
+    <a class="toc-card" href="#arch6">
+      <span class="badge">Arch 6</span>
+      <span class="name">📅 Calendar/Schedule</span>
+      <span class="count">15+ pages</span>
+    </a>
+    <a class="toc-card" href="#arch7">
+      <span class="badge">Arch 7</span>
+      <span class="name">🖥️ Real-time Monitor</span>
+      <span class="count">10+ pages</span>
+    </a>
+    <a class="toc-card" href="#arch8">
+      <span class="badge">Tokens</span>
+      <span class="name">🎨 Design Tokens</span>
+      <span class="count">AR/EN/RTL</span>
+    </a>
+  </div>
+
+  <!-- Archetype 1: List + Filter -->
+  <div class="archetype" id="arch1">
+    <h2>📋 Archetype 1: List + Filter</h2>
+    <div class="description">
+      Used by: Patient queue, Lab orders, Pharmacy queue, Imaging worklist, Billing queue, Claims pending,
+      Insurance pre-auth queue, OR bookings, Bed management, HR attendance, Inventory low-stock, Quality incidents,
+      Infection surveillance, Blood bank units, Surgery scheduling, ER triage board.
+      <strong>80+ pages across 60 departments.</strong>
+    </div>
+    <div class="preview-grid">
+      <div class="preview">
+        <div class="preview-title">CARDIOLOGY: Patient list</div>
+        <div class="preview-page">/stations/cardiology/patients</div>
+        <div class="row"><label>بحث:</label><input class="input" placeholder="MRN أو اسم" /></div>
+        <div class="row"><label>التاريخ:</label><input class="input" type="date" /></div>
+        <div class="row"><label>التشخيص:</label><input class="input" placeholder="I20, I21..." /></div>
+        <table class="table">
+          <thead><tr><th>الاسم</th><th>MRN</th><th>الحالة</th><th>إجراء</th></tr></thead>
+          <tbody>
+            <tr><td>أحمد علي</td><td>T-001</td><td><span class="pill pill-active">نشط</span></td><td><button class="btn btn-primary">فتح</button></td></tr>
+            <tr><td>سارة م.</td><td>T-002</td><td><span class="pill pill-warn">متابعة</span></td><td><button class="btn btn-primary">فتح</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="preview">
+        <div class="preview-title">LAB: Order queue</div>
+        <div class="preview-page">/stations/lab/orders</div>
+        <div class="row"><label>بحث:</label><input class="input" placeholder="MRN أو طبيب" /></div>
+        <div class="row"><label>القسم:</label><input class="input" placeholder="CBC, BMP..." /></div>
+        <div class="row"><label>الأولوية:</label><input class="input" placeholder="عادي/STAT" /></div>
+        <table class="table">
+          <thead><tr><th>MRN</th><th>الطلب</th><th>الحالة</th></tr></thead>
+          <tbody>
+            <tr><td>T-001</td><td>CBC</td><td><span class="pill pill-active">جاهز</span></td></tr>
+            <tr><td>T-002</td><td>BMP</td><td><span class="pill pill-warn">معلق</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="preview">
+        <div class="preview-title">PHARMACY: Drug queue</div>
+        <div class="preview-page">/stations/pharmacy/queue</div>
+        <div class="row"><label>بحث:</label><input class="input" placeholder="اسم دواء أو MRN" /></div>
+        <div class="row"><label>الحالة:</label><input class="input" placeholder="انتظار/جاهز/تسليم" /></div>
+        <table class="table">
+          <thead><tr><th>المريض</th><th>الدواء</th><th>الحالة</th></tr></thead>
+          <tbody>
+            <tr><td>T-001</td><td>Aspirin 81</td><td><span class="pill pill-active">جاهز</span></td></tr>
+            <tr><td>T-002</td><td>Metoprolol 50</td><td><span class="pill pill-warn">معلق</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Archetype 2: Chart Detail -->
+  <div class="archetype" id="arch2">
+    <h2>📈 Archetype 2: Chart Detail</h2>
+    <div class="description">
+      Used by: Vitals trend, Lab results graph, Imaging viewer, ECG rhythm, EWS chart,
+      ICU scoring, OB labor curve, ER triage timeline, Surgery anesthesia record, Oncology treatment timeline.
+      <strong>40+ pages.</strong>
+    </div>
+    <div class="preview-grid">
+      <div class="preview">
+        <div class="preview-title">ICU: Vitals trend</div>
+        <div class="preview-page">/stations/icu/patient/:id/vitals</div>
+        <svg width="100%" height="120" viewBox="0 0 300 120" style="background:#fff;border-radius:4px">
+          <polyline fill="none" stroke="#dc3545" stroke-width="2" points="0,60 30,40 60,80 90,50 120,70 150,30 180,60 210,50 240,40 270,80 300,50" />
+          <text x="5" y="15" font-size="9" fill="#6c757d">HR (bpm)</text>
+        </svg>
+        <div class="alert alert-danger">⚠️ HR > 120 → escalate</div>
+      </div>
+      <div class="preview">
+        <div class="preview-title">CARDIOLOGY: ECG</div>
+        <div class="preview-page">/stations/cardiology/ecg/:id</div>
+        <svg width="100%" height="120" viewBox="0 0 300 120" style="background:#fff;border-radius:4px">
+          <polyline fill="none" stroke="#198754" stroke-width="1.5" points="0,60 20,60 25,40 30,80 35,60 60,60 80,60 85,40 90,80 95,60 120,60" />
+          <text x="5" y="15" font-size="9" fill="#6c757d">Lead II</text>
+        </svg>
+        <div class="row"><label>النبض:</label><input class="input" value="72 bpm" /></div>
+      </div>
+      <div class="preview">
+        <div class="preview-title">LAB: Results</div>
+        <div class="preview-page">/stations/lab/result/:id</div>
+        <table class="table">
+          <thead><tr><th>الاختبار</th><th>النتيجة</th><th>المدى</th></tr></thead>
+          <tbody>
+            <tr><td>Hb</td><td>14.2 g/dL</td><td><span class="pill pill-active">طبيعي</span></td></tr>
+            <tr><td>WBC</td><td>15.3 ×10⁹/L</td><td><span class="pill pill-warn">عالي</span></td></tr>
+            <tr><td>Glucose</td><td>220 mg/dL</td><td><span class="pill pill-warn">عالي</span></td></tr>
+          </tbody>
+        </table>
+        <div class="alert alert-warn">⚠️ نتائج حرجة: glucose + كيتون → DKA</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Archetype 3: Workflow Wizard -->
+  <div class="archetype" id="arch3">
+    <h2>🧙 Archetype 3: Workflow Wizard</h2>
+    <div class="description">
+      Used by: Admission orders, Discharge summary, Surgery consent, Chemo regimen, Dialysis session,
+      Blood transfusion, ICU admit, ER triage, Anesthesia pre-op, OB delivery, Newborn admit.
+      <strong>20+ pages.</strong>
+    </div>
+    <div class="preview-grid">
+      <div class="preview">
+        <div class="preview-title">ADT: Admission orders</div>
+        <div class="preview-page">/stations/adt/admit</div>
+        <div class="wizard">
+          <div class="wizard-step done">1. المريض</div>
+          <div class="wizard-step active">2. التشخيص</div>
+          <div class="wizard-step">3. القسم</div>
+          <div class="wizard-step">4. الأوامر</div>
+          <div class="wizard-step">5. تأكيد</div>
+        </div>
+        <div class="row"><label>التشخيص:</label><input class="input" placeholder="ICD-10" /></div>
+        <div class="row"><label>النوع:</label><input class="input" placeholder="طوارئ/اختياري" /></div>
+        <div class="row"><button class="btn btn-primary">التالي</button><button class="btn btn-warning">رجوع</button></div>
+      </div>
+      <div class="preview">
+        <div class="preview-title">SURGERY: Consent</div>
+        <div class="preview-page">/stations/surgery/consent</div>
+        <div class="wizard">
+          <div class="wizard-step done">1. الإجراء</div>
+          <div class="wizard-step done">2. المخاطر</div>
+          <div class="wizard-step active">3. التوقيع</div>
+          <div class="wizard-step">4. الشهود</div>
+        </div>
+        <div class="alert alert-info">📜 شرح الإجراء + المخاطر + البدائل</div>
+        <div class="row"><label>التوقيع:</label><input class="input" placeholder="اسم + تاريخ" /></div>
+      </div>
+      <div class="preview">
+        <div class="preview-title">ONCOLOGY: Regimen</div>
+        <div class="preview-page">/stations/oncology/regimen</div>
+        <div class="wizard">
+          <div class="wizard-step done">1. السرطان</div>
+          <div class="wizard-step active">2. النظام</div>
+          <div class="wizard-step">3. الجرعة</div>
+          <div class="wizard-step">4. الموافقة</div>
+        </div>
+        <div class="row"><label>النظام:</label><input class="input" placeholder="FOLFOX, R-CHOP..." /></div>
+        <div class="row"><label>الدورات:</label><input class="input" type="number" value="6" /></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Archetype 4: Form + Submit -->
+  <div class="archetype" id="arch4">
+    <h2>📝 Archetype 4: Form + Submit</h2>
+    <div class="description">
+      Used by: Create patient, e-Prescription, Order entry, Vital signs entry, Procedure note,
+      Allergy documentation, Medication reconciliation, Pain assessment, Fall risk, Braden scale,
+      Mini-mental exam, Discharge instructions, Patient education, Appointment booking, etc.
+      <strong>100+ pages.</strong>
+    </div>
+    <div class="preview-grid">
+      <div class="preview">
+        <div class="preview-title">CREATE PATIENT</div>
+        <div class="preview-page">/patients/create</div>
+        <div class="row"><label>الاسم:</label><input class="input" /></div>
+        <div class="row"><label>الهوية:</label><input class="input" placeholder="10xxxxxxx" /></div>
+        <div class="row"><label>تاريخ الميلاد:</label><input class="input" type="date" /></div>
+        <div class="row"><label>الجوال:</label><input class="input" placeholder="+9665XXXXXXXX" /></div>
+        <div class="row"><button class="btn btn-primary">حفظ</button><button class="btn btn-warning">إلغاء</button></div>
+      </div>
+      <div class="preview">
+        <div class="preview-title">E-PRESCRIPTION</div>
+        <div class="preview-page">/prescription/new</div>
+        <div class="row"><label>الدواء:</label><input class="input" placeholder="ابحث في SFDA" /></div>
+        <div class="row"><label>الجرعة:</label><input class="input" placeholder="500 mg" /></div>
+        <div class="row"><label>التكرار:</label><input class="input" placeholder="كل 8 ساعات" /></div>
+        <div class="row"><label>المدة:</label><input class="input" placeholder="7 أيام" /></div>
+        <div class="row"><button class="btn btn-success">إرسال</button></div>
+      </div>
+      <div class="preview">
+        <div class="preview-title">VITAL SIGNS</div>
+        <div class="preview-page">/vitals/entry</div>
+        <div class="row"><label>HR:</label><input class="input" placeholder="72" /></div>
+        <div class="row"><label>SBP:</label><input class="input" placeholder="120" /></div>
+        <div class="row"><label>DBP:</label><input class="input" placeholder="80" /></div>
+        <div class="row"><label>SpO2:</label><input class="input" placeholder="98%" /></div>
+        <div class="row"><label>Temp:</label><input class="input" placeholder="37.0" /></div>
+        <div class="row"><button class="btn btn-primary">حفظ</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Archetype 5: Dashboard + KPI -->
+  <div class="archetype" id="arch5">
+    <h2>📊 Archetype 5: Dashboard + KPI</h2>
+    <div class="description">
+      Used by: CMO dashboard, CNO dashboard, Quality dashboard, Finance KPI, ER dashboard,
+      OR utilization, ICU occupancy, Pharmacy stock, HR attendance, Infection surveillance,
+      AI orchestrator usage, Bed management.
+      <strong>30+ pages.</strong>
+    </div>
+    <div class="preview-grid">
+      <div class="preview">
+        <div class="preview-title">CMO: Hospital overview</div>
+        <div class="preview-page">/dashboards/cmo</div>
+        <div class="kpi">
+          <div class="kpi-cell"><div class="kpi-value">142</div><div class="kpi-label">مرضى اليوم</div></div>
+          <div class="kpi-cell"><div class="kpi-value">87%</div><div class="kpi-label">إشغال الأسرّة</div></div>
+          <div class="kpi-cell"><div class="kpi-value">4.5</div><div class="kpi-label">رضا المرضى</div></div>
+        </div>
+        <div class="alert alert-info">📈 إيرادات الشهر: +12% مقارنة بالماضي</div>
+      </div>
+      <div class="preview">
+        <div class="preview-title">ER: Triage board</div>
+        <div class="preview-page">/dashboards/er</div>
+        <div class="kpi">
+          <div class="kpi-cell"><div class="kpi-value">12</div><div class="kpi-label">ESI 1-2</div></div>
+          <div class="kpi-cell"><div class="kpi-value">18</div><div class="kpi-label">ESI 3</div></div>
+          <div class="kpi-cell"><div class="kpi-value">34</div><div class="kpi-label">ESI 4-5</div></div>
+        </div>
+        <div class="alert alert-warn">⏱️ متوسط الانتظار: 18 دقيقة</div>
+      </div>
+      <div class="preview">
+        <div class="preview-title">AI: Orchestrator usage</div>
+        <div class="preview-page">/dashboards/ai</div>
+        <table class="table">
+          <thead><tr><th>المنسّق</th><th>مكالمات</th><th>تكلفة</th></tr></thead>
+          <tbody>
+            <tr><td>cardiology</td><td>234</td><td>$12.30</td></tr>
+            <tr><td>radiology</td><td>189</td><td>$9.80</td></tr>
+            <tr><td>lab</td><td>156</td><td>$7.50</td></tr>
+          </tbody>
+        </table>
+        <div class="alert alert-info">💰 تكلفة الشهر: $2,340 / Budget $3,000</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Archetype 6: Calendar/Schedule -->
+  <div class="archetype" id="arch6">
+    <h2>📅 Archetype 6: Calendar/Schedule</h2>
+    <div class="description">
+      Used by: OR schedule, Clinic appointments, Doctor on-call, Bed allocation, OR slot reservation,
+      Surgery booking, Round schedule, Tumor board, Quality meeting, HR shift, Maintenance window.
+      <strong>15+ pages.</strong>
+    </div>
+    <div class="preview-grid">
+      <div class="preview">
+        <div class="preview-title">OR: Surgery schedule</div>
+        <div class="preview-page">/or/schedule</div>
+        <div class="sched">
+          <div class="sched-cell">7am</div>
+          <div class="sched-cell">8am</div>
+          <div class="sched-cell">9am</div>
+          <div class="sched-cell">10am</div>
+          <div class="sched-cell">11am</div>
+          <div class="sched-cell">12pm</div>
+          <div class="sched-cell">1pm</div>
+        </div>
+        <div class="sched">
+          <div class="sched-cell booked">CABG</div>
+          <div class="sched-cell booked">CABG</div>
+          <div class="sched-cell booked">CABG</div>
+          <div class="sched-cell"></div>
+          <div class="sched-cell"></div>
+          <div class="sched-cell"></div>
+          <div class="sched-cell booked">Angio</div>
+        </div>
+        <div class="legend">غرفة 1: 2 عمليات | غرفة 2: 1 عملية</div>
+      </div>
+      <div class="preview">
+        <div class="preview-title">CLINIC: Appointments</div>
+        <div class="preview-page">/clinic/appointments</div>
+        <div class="sched">
+          <div class="sched-cell">السبت</div>
+          <div class="sched-cell">الأحد</div>
+          <div class="sched-cell">الإثنين</div>
+          <div class="sched-cell">الثلاثاء</div>
+          <div class="sched-cell">الأربعاء</div>
+          <div class="sched-cell">الخميس</div>
+          <div class="sched-cell">الجمعة</div>
+        </div>
+        <div class="sched">
+          <div class="sched-cell booked">12</div>
+          <div class="sched-cell booked">14</div>
+          <div class="sched-cell booked">10</div>
+          <div class="sched-cell booked">16</div>
+          <div class="sched-cell booked">12</div>
+          <div class="sched-cell">عطلة</div>
+          <div class="sched-cell">عطلة</div>
+        </div>
+        <div class="legend">إجمالي الأسبوع: 64 موعد</div>
+      </div>
+      <div class="preview">
+        <div class="preview-title">DOCTOR: On-call</div>
+        <div class="preview-page">/hr/oncall</div>
+        <table class="table">
+          <thead><tr><th>الطبيب</th><th>التاريخ</th><th>الموقع</th></tr></thead>
+          <tbody>
+            <tr><td>د. أحمد</td><td>10/8</td><td>ER</td></tr>
+            <tr><td>د. سارة</td><td>11/8</td><td>ICU</td></tr>
+            <tr><td>د. محمد</td><td>12/8</td><td>OR</td></tr>
+          </tbody>
+        </table>
+        <div class="row"><button class="btn btn-primary">تبديل</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Archetype 7: Real-time Monitor -->
+  <div class="archetype" id="arch7">
+    <h2>🖥️ Archetype 7: Real-time Monitor</h2>
+    <div class="description">
+      Used by: ICU central monitor, ER triage board, NICU monitor, OR anesthesia monitor,
+      Telemetry unit, Step-down unit, Pharmacy queue, Lab stat results, OR turnover.
+      <strong>10+ pages.</strong>
+    </div>
+    <div class="preview-grid">
+      <div class="preview">
+        <div class="preview-title">ICU: Central monitor</div>
+        <div class="preview-page">/monitors/icu</div>
+        <div class="monitor-grid">
+          <div class="monitor-cell" style="background:#198754">Bed 1<br/>72 bpm</div>
+          <div class="monitor-cell" style="background:#ffc107;color:#000">Bed 2<br/>108 bpm</div>
+          <div class="monitor-cell" style="background:#198754">Bed 3<br/>68 bpm</div>
+          <div class="monitor-cell" style="background:#dc3545">Bed 4<br/>145 bpm</div>
+        </div>
+        <div class="alert alert-danger">🚨 Bed 4: tachycardia → escalate</div>
+      </div>
+      <div class="preview">
+        <div class="preview-title">ER: Live triage</div>
+        <div class="preview-page">/monitors/er</div>
+        <table class="table">
+          <thead><tr><th>MRN</th><th>ESI</th><th>الانتظار</th><th>الحالة</th></tr></thead>
+          <tbody>
+            <tr><td>T-001</td><td>2</td><td>5min</td><td><span class="pill pill-warn">عاجل</span></td></tr>
+            <tr><td>T-002</td><td>3</td><td>12min</td><td><span class="pill pill-active">جاري</span></td></tr>
+            <tr><td>T-003</td><td>4</td><td>25min</td><td><span class="pill pill-active">منتظر</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="preview">
+        <div class="preview-title">OR: Anesthesia live</div>
+        <div class="preview-page">/monitors/or/anesthesia</div>
+        <div class="kpi">
+          <div class="kpi-cell"><div class="kpi-value">98%</div><div class="kpi-label">SpO2</div></div>
+          <div class="kpi-cell"><div class="kpi-value">120/80</div><div class="kpi-label">BP</div></div>
+          <div class="kpi-cell"><div class="kpi-value">1.2</div><div class="kpi-label">MAC</div></div>
+        </div>
+        <div class="alert alert-info">💉 Sevoflurane 1.2% + Remifentanil 0.1</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Archetype 8: Design Tokens -->
+  <div class="archetype" id="arch8">
+    <h2>🎨 Archetype 8: Design Tokens</h2>
+    <div class="description">
+      Shared across all 295+ pages. AR/EN with RTL/LTR flip. WCAG AA accessible.
+    </div>
+    <table class="table">
+      <thead><tr><th>Token</th><th>Value</th><th>Usage</th></tr></thead>
+      <tbody>
+        <tr><td>--nama-primary</td><td>#0d6efd</td><td>أزرار / أفعال رئيسية</td></tr>
+        <tr><td>--nama-success</td><td>#198754</td><td>نجاح / تأكيد</td></tr>
+        <tr><td>--nama-warning</td><td>#ffc107</td><td>تحذير / متابعة</td></tr>
+        <tr><td>--nama-danger</td><td>#dc3545</td><td>خطر / حذف / طوارئ</td></tr>
+        <tr><td>--nama-info</td><td>#0dcaf0</td><td>معلومات / تلميح</td></tr>
+        <tr><td>--nama-radius</td><td>8px</td><td>انحناء البطاقات</td></tr>
+        <tr><td>--nama-shadow</td><td>0 2px 6px rgba(0,0,0,.08)</td><td>ظل البطاقات</td></tr>
+        <tr><td>--nama-font</td><td>Tajawal, Inter</td><td>خط AR/EN</td></tr>
+        <tr><td>direction</td><td>RTL (AR) / LTR (EN)</td><td>اتجاه النص</td></tr>
+      </tbody>
+    </table>
+    <div class="legend">
+      ♿ WCAG AA: تباين ≥ 4.5:1 · ⌨️ Keyboard nav: Tab/Enter/Esc · 🌐 i18n: AR/EN/FR/UR
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
