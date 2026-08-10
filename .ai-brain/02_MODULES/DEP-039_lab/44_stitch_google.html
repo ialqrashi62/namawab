@@ -1,0 +1,120 @@
+<!-- 44_STITCH_GOOGLE.html — Lab (DEP-039) -->
+<!-- Visual reference for the Lab pages in NamaMedical SPA -->
+<!-- Generated from nm-stitch-medical-v2 patterns + stitch_antigravity_token_saver_skills -->
+
+<!DOCTYPE html>
+<html lang="ar-SA" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lab - Visual Reference - NamaMedical</title>
+  <link rel="stylesheet" href="https://jumanasoft.com/static/nama.css" />
+  <style>
+    /* Stitch tokens (token-saver snippet) */
+    :root {
+      --nama-primary: #0d6efd;
+      --nama-success: #198754;
+      --nama-warning: #ffc107;
+      --nama-danger: #dc3545;
+      --nama-radius: 8px;
+      --nama-shadow: 0 2px 6px rgba(0,0,0,.08);
+      --nama-font: 'Tajawal','Inter',system-ui,sans-serif;
+    }
+    body { font-family: var(--nama-font); background: #f7f9fc; margin: 0; padding: 24px; }
+    .ref { max-width: 1200px; margin: 0 auto; }
+    .ref h1 { font-size: 28px; margin: 0 0 4px; }
+    .ref .meta { color: #6c757d; margin-bottom: 24px; }
+    .ref .grid { display: grid; gap: 16px; }
+    .ref .card { background: #fff; border-radius: var(--nama-radius); box-shadow: var(--nama-shadow); padding: 20px; }
+    .ref .preview { background: #fafbfc; border: 1px dashed #cbd5e0; border-radius: var(--nama-radius); padding: 16px; margin-bottom: 16px; }
+    .ref .preview-title { font-weight: 600; margin-bottom: 8px; color: #0d6efd; }
+    .ref .row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .ref .row label { min-width: 140px; font-size: 14px; color: #495057; }
+    .ref .input { flex: 1; padding: 6px 10px; border: 1px solid #dee2e6; border-radius: 4px; }
+    .ref .btn { padding: 6px 16px; border: 0; border-radius: 4px; color: #fff; cursor: pointer; }
+    .ref .btn-primary { background: var(--nama-primary); }
+    .ref .btn-success { background: var(--nama-success); }
+    .ref .btn-warning { background: var(--nama-warning); color: #000; }
+    .ref .btn-danger { background: var(--nama-danger); }
+    .ref .table { width: 100%; border-collapse: collapse; }
+    .ref .table th, .ref .table td { padding: 8px; border-bottom: 1px solid #e9ecef; text-align: right; }
+    .ref .table th { background: #f8f9fa; font-size: 13px; color: #6c757d; }
+    .ref .pill { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; }
+    .ref .pill-active { background: #d1e7dd; color: #0f5132; }
+    .ref .pill-warn { background: #fff3cd; color: #664d03; }
+    .ref .alert { padding: 12px; border-radius: 4px; margin-bottom: 12px; }
+    .ref .alert-warn { background: #fff3cd; color: #664d03; }
+    .ref .alert-danger { background: #f8d7da; color: #842029; }
+    .ref .arch { font-family: monospace; background: #f1f3f5; padding: 12px; border-radius: 4px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+<div class="ref">
+  <h1>Lab — Stitch Google Visual Reference</h1>
+  <div class="meta">DEP-039 · generated 2026-08-10 · stitch_antigravity_token_saver_skills</div>
+
+  <div class="card">
+    <div class="preview-title">Page 1: Lab List + Filter</div>
+    <div class="preview">
+      <div class="row"><label>البحث / Search:</label><input class="input" placeholder="ابحث بالاسم / MRN / الهوية" /></div>
+      <div class="row"><label>التاريخ / Date:</label><input class="input" type="date" /></div>
+      <div class="row"><label>الحالة / Status:</label><input class="input" placeholder="نشط / سالب / محال" /></div>
+      <table class="table">
+        <thead><tr><th>الاسم</th><th>MRN</th><th>التاريخ</th><th>الحالة</th><th>الإجراء</th></tr></thead>
+        <tbody>
+          <tr><td>أحمد محمد علي</td><td>T-001</td><td>2026-08-10</td><td><span class="pill pill-active">نشط</span></td><td><button class="btn btn-primary">فتح</button></td></tr>
+          <tr><td>سارة عبدالله</td><td>T-002</td><td>2026-08-09</td><td><span class="pill pill-warn">متابعة</span></td><td><button class="btn btn-primary">فتح</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="preview-title">Page 2: Lab Detail (chart pattern)</div>
+    <div class="preview">
+      <div class="row"><label>الاسم:</label><input class="input" value="أحمد محمد علي" /></div>
+      <div class="row"><label>MRN:</label><input class="input" value="T-001" /></div>
+      <div class="row"><label>التاريخ:</label><input class="input" value="2026-08-10" /></div>
+      <div class="alert alert-warn">⚠️ تنبيه: نتائج حرجة تتطلب إبلاغ الطبيب المعالج</div>
+      <div class="row"><button class="btn btn-success">حفظ</button><button class="btn btn-warning">تعديل</button><button class="btn btn-danger">حذف</button></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="preview-title">Page 3: Lab Workflow Wizard</div>
+    <div class="preview">
+      <div class="arch">
+الخطوة 1 / 5: إدخال البيانات
+[====      ] 20%
+[ التالي ]
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="preview-title">Page 4: Lab Dashboard (KPI)</div>
+    <div class="preview">
+      <table class="table">
+        <thead><tr><th>المؤشر</th><th>القيمة</th><th>الهدف</th></tr></thead>
+        <tbody>
+          <tr><td>عدد المرضى اليوم</td><td>142</td><td>—</td></tr>
+          <tr><td>متوسط وقت الانتظار</td><td>18 دقيقة</td><td>< 30 دقيقة</td></tr>
+          <tr><td>معدل الرضا</td><td>4.5/5</td><td>> 4.0</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="preview-title">Page 5: Lab Form (submit)</div>
+    <div class="preview">
+      <div class="row"><label>الحقل 1:</label><input class="input" placeholder="إدخال" /></div>
+      <div class="row"><label>الحقل 2:</label><input class="input" placeholder="إدخال" /></div>
+      <div class="row"><label>الحقل 3:</label><textarea class="input" rows="3"></textarea></div>
+      <div class="row"><button class="btn btn-primary">إرسال</button><button class="btn btn-warning">إلغاء</button></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
