@@ -1,0 +1,178 @@
+# NamaMedical Master Catalog v5
+# Generated: 2026-08-08
+# 60 departments × 35 files each = 2100 file target
+# Status: 31 stations done, 19 missing, 21 engines done, 39 missing
+
+version: 5
+updated_at: 2026-08-08
+total_departments: 60
+total_files_target: 2100
+current_files: 7831_in_ai_brain + 31_stations + 21_engines + 396_migrations + 264_tests
+
+groups:
+  - id: 01
+    name: Internal Medicine
+    code_range: [DEP-001, DEP-010]
+    depts:
+      - { code: DEP-001, code_short: card, name_ar: "أمراض القلب", name_en: Cardiology, station: cardiology-station.js, status: done, priority: P0 }
+      - { code: DEP-002, code_short: endo, name_ar: "الغدد الصماء", name_en: Endocrinology, station: endocrine-station.js, status: done, priority: P0 }
+      - { code: DEP-003, code_short: gastro, name_ar: "الجهاز الهضمي", name_en: Gastroenterology, station: gastro-station.js, status: done, priority: P0 }
+      - { code: DEP-004, code_short: hemOnc, name_ar: "أمراض الدم والأورام", name_en: Hematology-Oncology, station: oncology-station.js, status: done, priority: P0 }
+      - { code: DEP-005, code_short: nephro, name_ar: "أمراض الكلى", name_en: Nephrology, station: nephrology-station.js, status: done, priority: P0 }
+      - { code: DEP-006, code_short: pulmo, name_ar: "أمراض الصدرية", name_en: Pulmonology, station: pulmonology-station.js, status: done, priority: P0 }
+      - { code: DEP-007, code_short: rheuma, name_ar: "الروماتيزم", name_en: Rheumatology, station: rheuma-station.js, status: done, priority: P0 }
+      - { code: DEP-008, code_short: id, name_ar: "الأمراض المعدية", name_en: Infectious Diseases, station: infectious-station.js, status: done, priority: P0 }
+      - { code: DEP-009, code_short: derm, name_ar: "الجلدية", name_en: Dermatology, station: derm-station.js, status: done, priority: P0 }
+      - { code: DEP-010, code_short: allergy, name_ar: "الحساسية والمناعة", name_en: Allergy-Immunology, status: missing, priority: P2 }
+
+  - id: 02
+    name: Surgery
+    code_range: [DEP-011, DEP-020]
+    depts:
+      - { code: DEP-011, code_short: genSurg, name_ar: "الجراحة العامة", name_en: General Surgery, station: surgery-station.js, status: done, priority: P0 }
+      - { code: DEP-012, code_short: ortho, name_ar: "العظام", name_en: Orthopedics, station: orthopedics-station.js, status: done, priority: P0 }
+      - { code: DEP-013, code_short: neuroSurg, name_ar: "جراحة المخ والأعصاب", name_en: Neurosurgery, station: neurosurgery-station.js, status: done, priority: P0 }
+      - { code: DEP-014, code_short: cardioTh, name_ar: "جراحة القلب والصدر", name_en: Cardiothoracic, station: cardiothoracic-station.js, status: done, priority: P0 }
+      - { code: DEP-015, code_short: ent, name_ar: "الأنف والأذن والحنجرة", name_en: ENT, station: ent-station.js, status: done, priority: P0 }
+      - { code: DEP-016, code_short: ophth, name_ar: "العيون", name_en: Ophthalmology, station: ophthalmology-station.js, status: done, priority: P0 }
+      - { code: DEP-017, code_short: uro, name_ar: "المسالك البولية", name_en: Urology, station: urology-station.js, status: done, priority: P0 }
+      - { code: DEP-018, code_short: plastic, name_ar: "التجميل والحروق", name_en: Plastic-Burns, station: plastic-surgery-station.js, status: done, priority: P0 }
+      - { code: DEP-019, code_short: vascular, name_ar: "جراحة الأوعية", name_en: Vascular Surgery, status: missing, priority: P1 }
+      - { code: DEP-020, code_short: transplant, name_ar: "جراحة الزرع", name_en: Transplant Surgery, status: missing, priority: P2 }
+
+  - id: 03
+    name: Critical Care
+    code_range: [DEP-021, DEP-025]
+    depts:
+      - { code: DEP-021, code_short: er, name_ar: "الطوارئ", name_en: Emergency, station: er-station.js, status: done, priority: P0 }
+      - { code: DEP-022, code_short: icu, name_ar: "العناية المركزة", name_en: ICU Adult, station: icu-station.js, status: done, priority: P0 }
+      - { code: DEP-023, code_short: nicu, name_ar: "العناية المركزة لحديثي الولادة", name_en: NICU, station: nicu-station.js, status: done, priority: P0 }
+      - { code: DEP-024, code_short: picu, name_ar: "العناية المركزة للأطفال", name_en: PICU, status: missing, priority: P1 }
+      - { code: DEP-025, code_short: pacu, name_ar: "إفاقة ما بعد التخدير", name_en: PACU, station: pacu-station.js, status: done, priority: P0 }
+
+  - id: 04
+    name: Pediatrics
+    code_range: [DEP-026, DEP-033]
+    depts:
+      - { code: DEP-026, code_short: peds, name_ar: "طب الأطفال", name_en: General Pediatrics, status: missing, priority: P0 }
+      - { code: DEP-027, code_short: neonate, name_ar: "حديثي الولادة", name_en: Neonatology, status: missing, priority: P1 }
+      - { code: DEP-028, code_short: pedsCard, name_ar: "قلب الأطفال", name_en: Pediatric Cardiology, status: missing, priority: P2 }
+      - { code: DEP-029, code_short: pedsNeuro, name_ar: "أعصاب الأطفال", name_en: Pediatric Neurology, status: missing, priority: P2 }
+      - { code: DEP-030, code_short: pedsNeph, name_ar: "كلى الأطفال", name_en: Pediatric Nephrology, status: missing, priority: P2 }
+      - { code: DEP-031, code_short: pedsHemOnc, name_ar: "دم وأورام الأطفال", name_en: Pediatric Hem-Onc, status: missing, priority: P2 }
+      - { code: DEP-032, code_short: pedsSurg, name_ar: "جراحة الأطفال", name_en: Pediatric Surgery, status: missing, priority: P2 }
+      - { code: DEP-033, code_short: pedsDev, name_ar: "تطور وإعادة تأهيل الأطفال", name_en: Pediatric Development-Rehab, status: missing, priority: P2 }
+
+  - id: 05
+    name: OB-GYN
+    code_range: [DEP-034, DEP-038]
+    depts:
+      - { code: DEP-034, code_short: obs, name_ar: "الولادة", name_en: Obstetrics, station: obgyn-peds-station.js, status: done, priority: P0 }
+      - { code: DEP-035, code_short: gyn, name_ar: "أمراض النساء", name_en: Gynecology, status: missing, priority: P0 }
+      - { code: DEP-036, code_short: fertility, name_ar: "الإخصاب", name_en: Reproductive Medicine IVF, status: missing, priority: P1 }
+      - { code: DEP-037, code_short: mfm, name_ar: "طب الأم والجنين", name_en: Maternal-Fetal Medicine, status: missing, priority: P2 }
+      - { code: DEP-038, code_short: urogyn, name_ar: "النسائية البولية", name_en: Urogynecology, status: missing, priority: P2 }
+
+  - id: 06
+    name: Diagnostics
+    code_range: [DEP-039, DEP-043]
+    depts:
+      - { code: DEP-039, code_short: lab, name_ar: "المختبر", name_en: Laboratory, station: lab-station.js, status: done, priority: P0 }
+      - { code: DEP-040, code_short: rad, name_ar: "الأشعة", name_en: Radiology, station: radiology-station.js, status: done, priority: P0 }
+      - { code: DEP-041, code_short: ir, name_ar: "الأشعة التداخلية", name_en: Interventional Radiology, status: missing, priority: P1 }
+      - { code: DEP-042, code_short: nucmed, name_ar: "الطب النووي", name_en: Nuclear Medicine, status: missing, priority: P2 }
+      - { code: DEP-043, code_short: path, name_ar: "علم الأمراض", name_en: Pathology, status: missing, priority: P1 }
+
+  - id: 07
+    name: Mental Health & Rehabilitation
+    code_range: [DEP-044, DEP-047]
+    depts:
+      - { code: DEP-044, code_short: psych, name_ar: "الطب النفسي", name_en: Psychiatry, status: missing, priority: P1 }
+      - { code: DEP-045, code_short: psychol, name_ar: "علم النفس", name_en: Psychology, status: missing, priority: P2 }
+      - { code: DEP-046, code_short: pt, name_ar: "العلاج الطبيعي", name_en: Physical Therapy-Rehab, status: missing, priority: P1 }
+      - { code: DEP-047, code_short: ot, name_ar: "العلاج الوظيفي", name_en: Occupational Therapy, status: missing, priority: P2 }
+
+  - id: 08
+    name: Oncology & Palliative
+    code_range: [DEP-048, DEP-050]
+    depts:
+      - { code: DEP-048, code_short: medOnc, name_ar: "الأورام الطبية", name_en: Medical Oncology, station: oncology-station.js, status: done, priority: P0 }
+      - { code: DEP-049, code_short: radOnc, name_ar: "علاج الأورام بالإشعاع", name_en: Radiation Oncology, status: missing, priority: P1 }
+      - { code: DEP-050, code_short: palliative, name_ar: "الرعاية التلطيفية", name_en: Palliative Care, status: missing, priority: P1 }
+
+  - id: 09
+    name: Anesthesia & Pain
+    code_range: [DEP-051, DEP-052]
+    depts:
+      - { code: DEP-051, code_short: anesth, name_ar: "التخدير", name_en: Anesthesia, station: anesthesia-station.js, status: done, priority: P0 }
+      - { code: DEP-052, code_short: pain, name_ar: "علاج الألم", name_en: Pain Management, status: missing, priority: P2 }
+
+  - id: 10
+    name: Operational & Support
+    code_range: [DEP-053, DEP-060]
+    depts:
+      - { code: DEP-053, code_short: pharmacy, name_ar: "الصيدلية", name_en: Pharmacy, status: missing, priority: P0 }
+      - { code: DEP-054, code_short: inventory, name_ar: "المخزون وسلسلة الإمداد", name_en: Inventory-Supply Chain, status: missing, priority: P0 }
+      - { code: DEP-055, code_short: finance, name_ar: "المالية والمحاسبة", name_en: Finance-Accounting, status: missing, priority: P0 }
+      - { code: DEP-056, code_short: hr, name_ar: "الموارد البشرية", name_en: HR-Staffing, status: missing, priority: P1 }
+      - { code: DEP-057, code_short: billing, name_ar: "الفوترة والترميز", name_en: Billing-Coding, status: missing, priority: P0 }
+      - { code: DEP-058, code_short: insurance, name_ar: "التأمين والمطالبات NPHIES", name_en: Insurance-Claims, status: missing, priority: P0 }
+      - { code: DEP-059, code_short: quality, name_ar: "الجودة وسلامة المرضى", name_en: Quality-Safety, status: missing, priority: P0 }
+      - { code: DEP-060, code_short: facility, name_ar: "إدارة المنشأة", name_en: Facility-Biomedical, status: missing, priority: P1 }
+
+# Summary stats
+stats:
+  total_depts: 60
+  depts_with_station: 31
+  depts_missing_station: 29
+  depts_priority_P0: 30
+  depts_priority_P1: 15
+  depts_priority_P2: 15
+  estimated_tokens_per_dept: 15000
+  estimated_total_tokens: 900000
+  estimated_wall_clock_hours: 8
+
+# Skills catalog
+skills:
+  v1_existing: 80
+  v2_new_in_session: 8
+  total_skills: 88
+
+# Engines
+engines:
+  done: 21
+  missing: 39
+
+# Stations
+stations:
+  done: 31
+  missing: 29
+  missing_top_priority:
+    - allergy-immunology
+    - vascular-surgery
+    - transplant-surgery
+    - picu
+    - general-pediatrics
+    - neonatology
+    - pediatric-cardiology
+    - pediatric-neurology
+    - pediatric-nephrology
+    - pediatric-hem-onc
+    - pediatric-surgery
+    - pediatric-development-rehab
+    - gynecology
+    - reproductive-medicine
+    - maternal-fetal-medicine
+    - urogynecology
+    - interventional-radiology
+    - nuclear-medicine
+    - pathology
+    - psychiatry
+    - psychology
+    - physical-therapy
+    - occupational-therapy
+    - radiation-oncology
+    - palliative-care
+    - pain-management
+    - pharmacy
+    - inventory
