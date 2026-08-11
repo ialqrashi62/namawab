@@ -1,0 +1,13 @@
+[PASS]   listExtendedSubModules returns the 4 expected modules
+[PASS]   listExtendedSubModules returns a fresh array
+[PASS]   TTL_MS is 5000 (matches wave45/46)
+[PASS]   fetchExtendedSummaries returns structure with 4 modules
+[PASS]   fetchExtendedSummaries tolerates null deps
+[PASS]   fetchExtendedSummaries isolates failures
+[PASS]   buildExtendedOutput handles null/empty input gracefully
+[PASS]   buildExtendedOutput self-metric reflects modules succeeded
+[PASS]   buildExtendedOutput skips null summaries gracefully
+[PASS]   buildExtendedOutput calls each module toPrometheusMetrics
+[PASS]   countExtendedGauges counts TYPE declarations
+[PASS]   countExtendedGauges returns 0 for null/empty
+[PASS]   hasExtendedMinimalOutput is true only when all 4 anchors present

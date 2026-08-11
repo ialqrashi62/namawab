@@ -1,0 +1,11 @@
+{
+  "infection_control.page_title": "Infection Control",
+  "infection_control.overview": "Aperçu",
+  "infection_control.overview_sub": "Patients du jour, rendez-vous, procédures",
+  "infection_control.queue_title": "File d'attente",
+  "infection_control.queue_sub": "Par priorité et statut",
+  "infection_control.view_queue": "Voir la file",
+  "infection_control.form_title": "Nouveau formulaire",
+  "infection_control.form_sub": "Ajouter une évaluation ou procédure",
+  "infection_control.back": "Retour"
+}

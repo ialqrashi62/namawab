@@ -1,0 +1,11 @@
+{
+  "pain_management.page_title": "Pain Management",
+  "pain_management.overview": "Aperçu",
+  "pain_management.overview_sub": "Patients du jour, rendez-vous, procédures",
+  "pain_management.queue_title": "File d'attente",
+  "pain_management.queue_sub": "Par priorité et statut",
+  "pain_management.view_queue": "Voir la file",
+  "pain_management.form_title": "Nouveau formulaire",
+  "pain_management.form_sub": "Ajouter une évaluation ou procédure",
+  "pain_management.back": "Retour"
+}

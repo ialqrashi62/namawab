@@ -1,0 +1,9 @@
+,familyMedicineVisitCreate
+    ,familyMedicineWellness
+    ,familyMedicineChronic
+    ,familyMedicineVaccinations
+    ,familyMedicineFamilyHistory
+    ,familyMedicinePreventive
+    ,aiCoPilotAsk
+    ,aiDocumentIngest
+};

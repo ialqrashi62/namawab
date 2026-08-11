@@ -1,0 +1,17 @@
+{
+  "{{dept.code_short}}.title": "{{dept.name_ar}}",
+  "{{dept.code_short}}.tabs.overview": "نظرة عامة",
+  "{{dept.code_short}}.tabs.orders": "الطلبات",
+  "{{dept.code_short}}.tabs.results": "النتائج",
+  "{{dept.code_short}}.tabs.notes": "الملاحظات",
+  "{{dept.code_short}}.vitals.hr": "معدل النبض",
+  "{{dept.code_short}}.vitals.bp": "ضغط الدم",
+  "{{dept.code_short}}.vitals.spo2": "تشبع الأكسجين",
+  "{{dept.code_short}}.orders.new": "طلب جديد",
+  "{{dept.code_short}}.notes.save_draft": "حفظ مسودة",
+  "{{dept.code_short}}.notes.sign": "توقيع",
+  "{{dept.code_short}}.ai.diagnose": "تشخيص بالذكاء الاصطناعي",
+  "{{dept.code_short}}.ai.placeholder": "اطرح سؤالاً سريرياً...",
+  "{{dept.code_short}}.errors.network": "خطأ في الاتصال بالشبكة",
+  "{{dept.code_short}}.errors.unauthorized": "غير مصرح"
+}

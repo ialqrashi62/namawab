@@ -1,0 +1,11 @@
+{
+  "infectious_disease.page_title": "Infectious Disease",
+  "infectious_disease.overview": "Overview",
+  "infectious_disease.overview_sub": "Today's patients, appointments, procedures",
+  "infectious_disease.queue_title": "Patient queue",
+  "infectious_disease.queue_sub": "By priority and status",
+  "infectious_disease.view_queue": "View queue",
+  "infectious_disease.form_title": "New form",
+  "infectious_disease.form_sub": "Add assessment or procedure",
+  "infectious_disease.back": "Back"
+}

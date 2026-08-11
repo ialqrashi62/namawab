@@ -1,0 +1,11 @@
+{
+  "movement.page_title": "movement",
+  "movement.overview": "نظرة عامة",
+  "movement.overview_sub": "مرضى اليوم، المواعيد، الإجراءات",
+  "movement.queue_title": "قائمة المرضى",
+  "movement.queue_sub": "حسب الأولوية والحالة",
+  "movement.view_queue": "عرض القائمة",
+  "movement.form_title": "نموذج جديد",
+  "movement.form_sub": "إضافة تقييم أو إجراء",
+  "movement.back": "عودة"
+}

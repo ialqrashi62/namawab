@@ -1,0 +1,11 @@
+{
+  "nicu.page_title": "Nicu",
+  "nicu.overview": "Aperçu",
+  "nicu.overview_sub": "Patients du jour, rendez-vous, procédures",
+  "nicu.queue_title": "File d'attente",
+  "nicu.queue_sub": "Par priorité et statut",
+  "nicu.view_queue": "Voir la file",
+  "nicu.form_title": "Nouveau formulaire",
+  "nicu.form_sub": "Ajouter une évaluation ou procédure",
+  "nicu.back": "Retour"
+}

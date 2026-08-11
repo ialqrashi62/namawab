@@ -1,0 +1,26 @@
+[PASS]   listSubModules returns the 5 known sub-modules
+[PASS]   recordScrapeStart returns a number
+[PASS]   recordScrapeEnd increments counters
+[PASS]   recordScrapeEnd maps unknown sub-modules to "unknown"
+[PASS]   recordScrapeEnd ignores clock skew (negative duration)
+[PASS]   per-sub-module counters isolate by name
+[PASS]   per-sub-module max tracks highest single observation
+[PASS]   slow threshold (100ms) flags scrapes over 100ms
+[PASS]   slow count returns 0 when no scrapes exceeded threshold
+[PASS]   aggregate avgDurationMs is total/count
+[PASS]   maxDurationMs tracks overall worst
+[PASS]   lastDurationMs and lastSubModule track most recent
+[PASS]   toPrometheusMetrics has all 6 aggregate gauges
+[PASS]   toPrometheusMetrics emits per-sub-module gauges
+[PASS]   toPrometheusMetrics works with passed counters object
+[PASS]   toPrometheusMetrics handles null/empty input
+[PASS]   source has no SQL DELETE FROM
+[PASS]   source has no SQL DROP
+[PASS]   source has no console.error of req.body
+[PASS]   source has no console.log of secrets/tokens
+[PASS]   source has no global assignment
+[PASS]   source never logs durations with sensitive context
+[PASS]   public API surface is complete
+[PASS]   makeScrapeTimer returns start/end closures
+
+Summary: 60 passed, 0 failed

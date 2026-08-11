@@ -1,0 +1,36 @@
+=== local cardiology ===
+9
+=== local oncology ===
+3
+=== live cardiology_engine ===
+ls: cannot access 'cardiology_engine.js': No such file or directory
+ls: cannot access 'nephrology_engine.js': No such file or directory
+ls: cannot access 'obgyn_engine.js': No such file or directory
+ls: cannot access 'pediatrics_engine.js': No such file or directory
+ls: cannot access 'surgery_engine.js': No such file or directory
+ls: cannot access 'pharmacy_engine.js': No such file or directory
+ls: cannot access 'pulmonology_engine.js': No such file or directory
+ls: cannot access 'gi_engine.js': No such file or directory
+ls: cannot access 'rheumatology_engine.js': No such file or directory
+ls: cannot access 'orthopedics_engine.js': No such file or directory
+ls: cannot access 'neurology_engine.js': No such file or directory
+-rw-r--r-- 1 root root 6986 Jul 23 03:28 oncology_engine.js
+=== migrations dir ===
+e47_billing_tables_candidate_down.sql
+e47_billing_tables_candidate_up.sql
+e47_billing_tables_candidate_validate.sql
+e48_ews_score_types_candidate_down.sql
+e48_ews_score_types_candidate_up.sql
+e48_ews_score_types_candidate_validate.sql
+e49_result_acknowledgements_candidate_down.sql
+e49_result_acknowledgements_candidate_up.sql
+e49_result_acknowledgements_candidate_validate.sql
+e50a_cardiology_specialized_down.sql
+e50a_cardiology_specialized_up.sql
+e50_clinical_rls_candidate_down.sql
+e50_clinical_rls_candidate_up.sql
+e50_clinical_rls_candidate_validate.sql
+e51_cardiology_extensions_down.sql
+e51_cardiology_extensions_up.sql
+e51_cath_lab_specialized_down.sql
+e51_cath_lab_specialized_up.sql

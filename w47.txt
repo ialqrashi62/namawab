@@ -1,0 +1,25 @@
+[PASS]   listExtendedSubModules returns the 4 expected modules
+[PASS]   listExtendedSubModules returns a fresh array
+[PASS]   TTL_MS is 5000 (matches wave45/46)
+[PASS]   fetchExtendedSummaries returns structure with 4 fields
+[PASS]   fetchExtendedSummaries tolerates null deps
+[PASS]   fetchExtendedSummaries structure has all 4 fields (with mock exec)
+[PASS]   buildExtendedOutput handles null/empty input gracefully
+[PASS]   buildExtendedOutput self-metric reflects modules succeeded
+[PASS]   buildExtendedOutput skips null summaries gracefully
+[PASS]   buildExtendedOutput calls each module toPrometheusMetrics
+[PASS]   countExtendedGauges counts TYPE declarations
+[PASS]   countExtendedGauges returns 0 for null/empty
+[PASS]   hasExtendedMinimalOutput is true only when all 4 anchors present
+[PASS]   aggregateAll caches for 5s and rebuilds after reset
+[PASS]   aggregateAll returns Prometheus text format
+[PASS]   source has no SQL DELETE FROM
+[PASS]   source has no SQL DROP
+[PASS]   source has no console.error of req.body
+[PASS]   source has no console.log of secrets/tokens
+[PASS]   source has no global assignment
+[PASS]   public API surface is complete
+[PASS]   fetchExtendedSummaries returns Promise
+[PASS]   aggregateAll returns Promise
+
+Summary: 58 passed, 0 failed

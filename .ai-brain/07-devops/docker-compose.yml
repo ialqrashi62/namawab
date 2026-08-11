@@ -1,0 +1,56 @@
+# filepath: .ai-brain/07-devops/docker-compose.yml
+# Generated 2026-08-08
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: nama_medical
+      POSTGRES_USER: nama_app
+      POSTGRES_PASSWORD: __CHANGE_ME__
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./namaweb/migrations:/docker-entrypoint-initdb.d
+    ports: ['5432:5432']
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nama_app"]
+      interval: 10s
+
+  redis:
+    image: redis:7-alpine
+    ports: ['6379:6379']
+
+  backend:
+    build:
+      context: .
+      dockerfile: .ai-brain/07-devops/docker/Dockerfile.backend
+    environment:
+      DATABASE_URL: postgresql://nama_app:__CHANGE_ME__@postgres:5432/nama_medical
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: production
+      PORT: 3000
+    depends_on:
+      postgres: { condition: service_healthy }
+    ports: ['3000:3000']
+
+  frontend:
+    build:
+      context: .
+      dockerfile: .ai-brain/07-devops/docker/Dockerfile.frontend
+    ports: ['8080:80']
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./.ai-brain/07-devops/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports: ['9090:9090']
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: __CHANGE_ME__
+    ports: ['3001:3000']
+
+volumes:
+  pgdata:

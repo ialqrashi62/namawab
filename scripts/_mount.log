@@ -1,0 +1,17 @@
+[backup] saved: /var/backups/server.js.before-mount-depts.20260810_181103
+[patch] server.js updated, 14 mount lines inserted (count sanity: 2)
+[verify] new mount lines:
+21162:try { app.use('/api/cardiology',   require('./cardiology_router'));   } catch(e){ console.warn('[mount] cardiology', e.message); }
+21163:try { app.use('/api/oncology',     require('./oncology_router'));     } catch(e){ console.warn('[mount] oncology', e.message); }
+21164:try { app.use('/api/pediatrics',   require('./pediatrics_router'));   } catch(e){ console.warn('[mount] pediatrics', e.message); }
+21165:try { app.use('/api/surgery',      require('./surgery_router'));      } catch(e){ console.warn('[mount] surgery', e.message); }
+21166:try { app.use('/api/pharmacy',     require('./pharmacy_router'));     } catch(e){ console.warn('[mount] pharmacy', e.message); }
+21167:try { app.use('/api/emergency',    require('./emergency_router'));    } catch(e){ console.warn('[mount] emergency', e.message); }
+21168:try { app.use('/api/endocrine',    require('./endocrine_router'));    } catch(e){ console.warn('[mount] endocrine', e.message); }
+21169:try { app.use('/api/pulmonology',  require('./pulmonology_router'));  } catch(e){ console.warn('[mount] pulmonology', e.message); }
+21170:try { app.use('/api/gi',           require('./gi_router'));           } catch(e){ console.warn('[mount] gi', e.message); }
+21171:try { app.use('/api/rheumatology', require('./rheumatology_router')); } catch(e){ console.warn('[mount] rheumatology', e.message); }
+21172:try { app.use('/api/orthopedics',  require('./orthopedics_router'));  } catch(e){ console.warn('[mount] orthopedics', e.message); }
+21173:try { app.use('/api/neurology',    require('./neurology_router'));    } catch(e){ console.warn('[mount] neurology', e.message); }
+21174:try { app.use('/api/nephrology',   require('./nephrology_router'));   } catch(e){ console.warn('[mount] nephrology', e.message); }
+21175:try { app.use('/api/obgyn',        require('./obgyn_router'));        } catch(e){ console.warn('[mount] obgyn', e.message); }

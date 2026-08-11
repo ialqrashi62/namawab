@@ -1,0 +1,134 @@
+{
+  "title": "NamaMedical ERP — Hospital Overview",
+  "uid": "nama-medical-overview",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "tags": ["namamedical", "hospital", "overview"],
+  "templating": {
+    "list": [
+      {
+        "name": "tenant",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(nama_http_requests_total, tenant_id)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Active Patients (by Tenant)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum(nama_active_patients_total) by (tenant_id)", "legendFormat": "{{tenant_id}}" }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" }
+    },
+    {
+      "id": 2,
+      "title": "Encounters Today",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum(increase(nama_encounters_total[24h]))", "legendFormat": "encounters" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "API p95 Latency (ms)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(nama_http_request_duration_seconds_bucket[5m]))) * 1000" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null }, { "color": "yellow", "value": 200 }, { "color": "red", "value": 500 }
+          ]}
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Error Rate (%)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum(rate(nama_http_requests_total{status=~\"5..\"}[5m])) / sum(rate(nama_http_requests_total[5m])) * 100" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 5 }
+          ]}
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "HTTP Request Rate by Endpoint",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum by (route) (rate(nama_http_requests_total[1m]))", "legendFormat": "{{route}}" }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Database Connection Pool Usage",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "nama_pg_pool_used / nama_pg_pool_total", "legendFormat": "{{pool}}" }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "LLM Cost (USD/day) by Model",
+      "type": "bargauge",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum by (model) (increase(nama_llm_cost_usd_total[24h]))", "legendFormat": "{{model}}" }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "PHI Encryption Operations/sec",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum(rate(nama_phi_encrypt_total[1m]))", "legendFormat": "encrypt" },
+        { "expr": "sum(rate(nama_phi_decrypt_total[1m]))", "legendFormat": "decrypt" }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Tenant RLS Violations (Forbidden)",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 20 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum(rate(nama_tenant_violation_total[1m])) by (tenant_id, route)", "legendFormat": "{{tenant_id}} - {{route}}" }
+      ],
+      "description": "Defense-in-depth: both app + DB layer active. Non-zero = attack attempt or app bug."
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "title": "NamaMedical — Clinical Workflow",
+  "uid": "nama-clinical",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "1m",
+  "time": { "from": "now-24h", "to": "now" },
+  "tags": ["namamedical", "clinical"],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Active Encounters by Department",
+      "type": "bargauge",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum by (department) (nama_active_encounters)", "legendFormat": "{{department}}" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Avg Time-to-Doctor (min) by Triage Level",
+      "type": "bargauge",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "avg by (esi_level) (nama_time_to_doctor_minutes)", "legendFormat": "ESI {{esi_level}}" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Sepsis Alerts (EWS >= 7)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum(rate(nama_sepsis_alerts_total[5m]))", "legendFormat": "alerts/sec" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Medication Errors Blocked (BCMA)",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum(increase(nama_bcma_blocked_total[24h]))", "legendFormat": "blocked" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null }, { "color": "yellow", "value": 1 }
+          ]}
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Lab TAT (turnaround time) by Test",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "avg by (test) (nama_lab_tat_minutes)", "format": "table", "instant": true }
+      ]
+    }
+  ]
+}

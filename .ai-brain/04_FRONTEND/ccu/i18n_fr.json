@@ -1,0 +1,11 @@
+{
+  "ccu.page_title": "Ccu",
+  "ccu.overview": "Aperçu",
+  "ccu.overview_sub": "Patients du jour, rendez-vous, procédures",
+  "ccu.queue_title": "File d'attente",
+  "ccu.queue_sub": "Par priorité et statut",
+  "ccu.view_queue": "Voir la file",
+  "ccu.form_title": "Nouveau formulaire",
+  "ccu.form_sub": "Ajouter une évaluation ou procédure",
+  "ccu.back": "Retour"
+}

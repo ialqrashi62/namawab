@@ -3207,6 +3207,100 @@ e_stamping_test.js` 18/18 PASS؛ regression (idor sweep، refund، insert stampi
   - `namaweb/walkthrough.md` (تحديث تقرير التسليم للمرحلة الثالثة)
 * **النتائج والنشر**: اجتياز كامل الـ **178** اختباراً بنجاح 100%، رفع ودفع التغييرات للمستودعات، وتفعيل عملية النشر المستمر للإنتاج الفعلي وإعادة تشغيل PM2 والتحقق من استقرار رابط الصحة 200 OK.
 
+---
 
+## 6. مراجعة بنية الـ Multi-Agent + Vector/RAG (Multi-Agent Loop Engineering Review)
+
+* **تاريخ المراجعة**: 2026-08-09 | الحالة: `STRUCTURE_REVIEW_COMPLETED` | مراجعة فنية للملفات المطلوبة مقابل الملفات الفعلية في `namaweb/`.
+* **الإجراء**: تنفيذ مهمة `MULTI_AGENT_LOOP_ENGINEERING_AR` التي طلبت فحص `src/lib/multi-agent/*.ts` و `src/lib/vector-store/*.ts` و `src/lib/rag/*.ts` (مرجع غير موجود) للتأكد من اكتمال الهياكل.
+
+### 6.1 ملاحظة جوهرية — المشروع JavaScript وليس TypeScript
+
+* ملف المهمة يفترض مسارات `*.ts` لكن `namaweb/` مبني على **CommonJS JavaScript** (Node.js + Vanilla JS + Express + PostgreSQL) ولا يحتوي أي ملف `.ts` خاص بالتطبيق. كل التحققات التالية أُجريت على ملفات `.js` المكافئة وظيفياً.
+
+### 6.2 ملف المرجع
+
+* `.ai-brain/MULTI_AGENT_LOOP_ENGINEERING_AR.md` — **غير موجود** في المستودع.
+* أقرب ملفين مرجعيين:
+  * `.ai-brain/LOOP_ENGINEERING_GUIDE_2026.md`
+  * `.ai-brain/LOOP_ENGINEERING_PLAYBOOK.md`
+  * `.ai-brain/MULTI_AGENT_PROMPT.md` و `MULTI_AGENT_PROMPTS_2026.md` (موجودان)
+* **التوصية**: إنشاء `MULTI_AGENT_LOOP_ENGINEERING_AR.md` كمرجع رسمي موحّد، أو تحديث ملف المهمة ليعكس مسارات JS الفعلية (`namaweb/lib/aiCoPilot/` و `namaweb/lib/vector/` و `namaweb/lib/` بدلاً من `src/lib/...`).
+
+### 6.3 وحدة الـ Multi-Agent (`namaweb/lib/aiCoPilot/`) — مكافئ `src/lib/multi-agent/`
+
+| المطلوب | الموجود | الحالة |
+|---|---|---|
+| `orchestrator.ts` | `namaweb/lib/aiCoPilot/orchestrator.js` | ✅ **موجود** — CoPilotOrchestrator مع `convene()` و `getOpinion()` و `explain()` و `getSession()` (257 سطر، UMD module) |
+| `types.ts` | غير موجود كملف مستقل | ⚠️ **مدمج** — الأنواع موثّقة JSDoc داخل `orchestrator.js` و `agents.js` (لا حاجة فعلية لـ `.ts`) |
+| `memory.ts` | غير موجود كملف مستقل | ⚠️ **مدمج** — الحالة مخزّنة داخل `CoPilotOrchestrator._state = { _sessions, _byTenant, _lastHash }` (in-memory). لا توجد وحدة ذاكرة دائمة |
+| (إضافي) | `agents.js` | ✅ كتالوج 5 وكلاء (radiologist, pathologist, oncologist, pharmacist, intensivist) |
+| (إضافي) | `consensus.js` | ✅ خوارزمية توافق + hash chain (SHA-256 عبر Node `crypto`، fallback FNV-1a) |
+
+* **اختبار الاستيراد**: `require('./lib/aiCoPilot/orchestrator.js')` ينجح نظيفاً.
+* **اختبار وظيفي**: جلسة `mode='tumor_board'` أنتجت `sessionId=CPS-mslilcbq-…` و 5 آراء و consensus=`defer` و escalation=true (المتوقع لأن stage=II يعطي oncologist=defer).
+* **لا imports مكسورة** في هذه الوحدة.
+
+### 6.4 وحدة الـ Vector Store (`namaweb/lib/vector/`) — مكافئ `src/lib/vector-store/`
+
+| المطلوب | الموجود | الحالة |
+|---|---|---|
+| `pg-vector.ts` | `namaweb/lib/vector/VectorStore.js` يحتوي `pgVectorBackend` كدالة backend | ✅ **مدمج** — `pickBackend('pgvector')` يفعّل driver pgvector (stub) |
+| (إضافي) | `VectorStore.js` (402 سطر) | ✅ كلاس كامل: `upsert` و `search` (cosine + BM25 hybrid 0.65/0.35) و `delete` و `count` |
+| (إضافي) | `namaweb/vector_mine.js` (66 سطر) | ✅ نسخة مبسّطة للتطوير المحلي (JSON file index) |
+| (إضافي) | `namaweb/ai/UniversalRAG.js` (53 سطر) | ✅ wrapper متعدد الـ corpora مع reranker و token budget |
+| (إضافي) | `namaweb/migrations/g01_vector_db_schema.sql` | ✅ schema الجداول في Postgres |
+
+* **اختبار وظيفي**: `new VectorStore({backend:'pgvector'})` أنشأ backend=pgvector، فهرسة 2 chunks ثم بحث `'sepsis bundle'` أعاد نتيجة من `g2` بنتيجة 1.000 (top hit).
+
+### 6.5 وحدة الـ RAG (`namaweb/lib/`) — مكافئ `src/lib/rag/`
+
+| المطلوب | الموجود | الحالة |
+|---|---|---|
+| `embedder.ts` | دالة `hashEmbed()` داخل `VectorStore.js` (32-d FNV-1a projection، L2-normalized) | ✅ **مدمج** — لا حاجة لملف منفصل |
+| `chunker.ts` | `chunkParagraph` / `chunkSentence` / `chunkFixedWindow` / `applyChunking` داخل `VectorStore.js` | ✅ **مدمج** — 3 استراتيجيات (paragraph / sentence / fixed-window) |
+| `engine.ts` | `VectorStore` + `RAGService` معاً يؤدّان دور المحرك | ✅ **مدمج** — المحرك موزّع على ملفين متكاملين |
+| (إضافي) | `RAGService.js` (101 سطر) | ✅ stub إنتاجي: vector + BM25 + KG + 24h cache + tenant guard |
+| (إضافي) | `RAGService.production.js` | ✅ نسخة الإنتاج (التفاصيل في الـ commit history) |
+| (إضافي) | `InMemoryRAGAdapter.js` (82 سطر) | ✅ adapter in-memory لـ sandbox |
+| (إضافي) | `RAG.production.e2e.js` | ✅ helper اختبارات e2e |
+| (إضافي) | `namaweb/clinical_knowledge_rag.js` (84+ سطر) | ✅ RAG سريري على Postgres مع dot product على `REAL[]` (بدون pgvector extension) |
+| (إضافي) | `namaweb/ai/UniversalRAG.js` | ✅ wrapper متعدد الـ corpora |
+
+* **اختبار استيراد**: كل الـ 10 ملفات (orchestrator, agents, consensus, VectorStore, RAGService, RAGService.production, InMemoryRAGAdapter, RAG.production.e2e, UniversalRAG, clinical_knowledge_rag) تُحمَّل بنجاح عبر `require()` بدون أخطاء syntax أو broken imports.
+* **حارس الـ Tenant Cross**: تم اختبار `RAGService.assertTenantScope([{tenantId:'t2'}], 't1')` → رماها بـ `RAG_TENANT_CROSS` كما متوقع (RAIL-5 ✅).
+
+### 6.6 ملاحظات تقنية إضافية
+
+1. **عدم تطابق interface بين RAGService و VectorStore**:
+   * `RAGService._freshRetrieve()` يستدعي `this.vector.retrieve(req)` (سطر 41 من `RAGService.js`).
+   * `VectorStore` يصدّر `search()` وليس `retrieve()`.
+   * هذا ليس import مكسور (كلاهما يُحمَّل نظيفاً) لكنه **عدم تطابق API سطحي**. في sandbox يُمسك عبر `try/catch` ويُرجع `[]` (سطر 44).
+   * **التوصية**: إما إضافة `VectorStore.prototype.retrieve = VectorStore.prototype.search` كـ alias، أو تعديل `RAGService` ليستدعي `search`.
+
+2. **عدم وجود tests مباشرة للـ orchestrator / VectorStore**:
+   * `clinical_knowledge_rag_test.js` موجود فقط لـ clinical RAG.
+   * لا توجد `*orchestrator*test.js` ولا `*vector*test.js` (تم التحقق بـ `Get-ChildItem -Recurse -Filter`).
+   * **التوصية**: إضافة `aiCoPilot_orchestrator_test.js` يغطي: convene() بنجاح، hash chain تسلسلي، tenant cross guard، explain()، و `vector_store_test.js` يغطي: upsert/search/delete، tenant filter، BM25+cosine blend.
+
+3. **التطبيق يستهلك `langchain` و `langgraph`** (موجودان في `node_modules/`) لكن كود التطبيق نفسه خام بدون LangChain shim في الـ hot path. ملف `ai_langchain_shim.js` موجود كـ opt-in layer.
+
+4. **لا تغيير على production**: لم يُلمَس أي ملف في `namaweb/server.js` أو `namaweb/db_postgres.js` أو الـ routes. هذه المراجعة قراءة-فقط.
+
+### 6.7 التوصيات الملخّصة (للقراءة فقط — لم تُنفَّذ)
+
+| # | الإجراء | الأولوية | الجهد |
+|---|---|---|---|
+| 1 | إنشاء `.ai-brain/MULTI_AGENT_LOOP_ENGINEERING_AR.md` كمرجع رسمي يطابق بنية JS الفعلية | P2 | 30 دقيقة |
+| 2 | إصلاح interface mismatch: إضافة `VectorStore.prototype.retrieve = this.search` أو تحديث `RAGService` | P1 | 15 دقيقة |
+| 3 | إضافة `aiCoPilot_orchestrator_test.js` (5 وكلاء + hash chain + tenant guard) | P1 | ساعة |
+| 4 | إضافة `vector_store_test.js` (upsert/search/delete + BM25 hybrid) | P1 | ساعة |
+| 5 | تقسيم `VectorStore.js` إلى `VectorStore.js` + `Chunker.js` + `Embedder.js` (لو رغبت في تطابق strict مع `src/lib/rag/*.ts`) | P3 | 3 ساعات |
+| 6 | إضافة وحدة `memory.js` دائمة (Postgres-backed) لـ CoPilotOrchestrator state | P2 | 4 ساعات |
+| 7 | إضافة types.js كملف JSDoc typedefs مركزي (اختياري — JS فقط) | P3 | ساعة |
+
+* **حالة النشر**: لم يتم تنفيذ deploy. لم يُلمَس production. كل الإجراءات أعلاه **محلية / اختيارية**.
+
+---
 
 

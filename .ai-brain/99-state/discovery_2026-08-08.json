@@ -1,0 +1,739 @@
+{
+  "date": "2026-08-08",
+  "workspace": "c:\\Users\\ice\\Desktop\\NMEDCALVSCODE",
+  "scan_duration_seconds": 0,
+  "summary": {
+    "total_stations": 80,
+    "total_engines": 0,
+    "total_migrations": 511,
+    "total_tests": 1,
+    "total_aibrain_files": 4327,
+    "total_aibrain_depts": 122,
+    "total_routes": 814
+  },
+  "stations": [
+    "allergy",
+    "anesth",
+    "anesthesia",
+    "billing",
+    "cardioTh",
+    "cardiology",
+    "cardiothoracic",
+    "critical",
+    "derm",
+    "dermatology",
+    "diagnostics",
+    "doctor",
+    "emergency",
+    "endocrine",
+    "endocrinology",
+    "ent",
+    "er",
+    "facility",
+    "fertility",
+    "finance",
+    "functional-tests",
+    "gastro",
+    "gastroenterology",
+    "genSurg",
+    "gyn",
+    "hemOnc",
+    "hr",
+    "icu",
+    "infectious",
+    "insurance",
+    "inventory",
+    "ir",
+    "lab",
+    "medOnc",
+    "mfm",
+    "neonate",
+    "nephrology",
+    "neuroSurg",
+    "neurosurgery",
+    "nicu",
+    "nucmed",
+    "nursing",
+    "obgyn-peds",
+    "obs",
+    "oncology",
+    "ophth",
+    "ophthalmology",
+    "ortho",
+    "orthopedics",
+    "ot",
+    "pacu",
+    "pain",
+    "palliative",
+    "path",
+    "peds",
+    "pedsCard",
+    "pedsDev",
+    "pedsHemOnc",
+    "pedsNeph",
+    "pedsNeuro",
+    "pedsSurg",
+    "pharmacy",
+    "picu",
+    "plastic",
+    "plastic-surgery",
+    "psych",
+    "psychol",
+    "pt",
+    "pulmonology",
+    "quality",
+    "radOnc",
+    "radiology",
+    "rheuma",
+    "rheumatology",
+    "surgery",
+    "transplant",
+    "uro",
+    "urogyn",
+    "urology",
+    "vascular"
+  ],
+  "engines": [],
+  "migrations_count": 511,
+  "tests_count": 1,
+  "aibrain_depts": [
+    {
+      "code": "ALGY-001",
+      "files": 36
+    },
+    {
+      "code": "ANES-001",
+      "files": 36
+    },
+    {
+      "code": "CARD-001",
+      "files": 35
+    },
+    {
+      "code": "CCU",
+      "files": 36
+    },
+    {
+      "code": "CTS-001",
+      "files": 36
+    },
+    {
+      "code": "DENT-001",
+      "files": 36
+    },
+    {
+      "code": "DEP-001_cardiology",
+      "files": 35
+    },
+    {
+      "code": "DEP-002_endocrinology",
+      "files": 35
+    },
+    {
+      "code": "DEP-003_gastroenterology",
+      "files": 35
+    },
+    {
+      "code": "DEP-004_hemOnc",
+      "files": 35
+    },
+    {
+      "code": "DEP-005_nephrology",
+      "files": 35
+    },
+    {
+      "code": "DEP-006_pulmonology",
+      "files": 35
+    },
+    {
+      "code": "DEP-007_rheumatology",
+      "files": 35
+    },
+    {
+      "code": "DEP-008_infectious",
+      "files": 35
+    },
+    {
+      "code": "DEP-009_dermatology",
+      "files": 35
+    },
+    {
+      "code": "DEP-010_allergy",
+      "files": 35
+    },
+    {
+      "code": "DEP-011_genSurg",
+      "files": 35
+    },
+    {
+      "code": "DEP-012_ortho",
+      "files": 35
+    },
+    {
+      "code": "DEP-013_neuroSurg",
+      "files": 35
+    },
+    {
+      "code": "DEP-014_cardioTh",
+      "files": 35
+    },
+    {
+      "code": "DEP-015_ent",
+      "files": 35
+    },
+    {
+      "code": "DEP-016_ophth",
+      "files": 35
+    },
+    {
+      "code": "DEP-017_uro",
+      "files": 35
+    },
+    {
+      "code": "DEP-018_plastic",
+      "files": 35
+    },
+    {
+      "code": "DEP-019_vascular",
+      "files": 35
+    },
+    {
+      "code": "DEP-020_transplant",
+      "files": 35
+    },
+    {
+      "code": "DEP-021_emergency",
+      "files": 35
+    },
+    {
+      "code": "DEP-022_icu",
+      "files": 35
+    },
+    {
+      "code": "DEP-023_nicu",
+      "files": 35
+    },
+    {
+      "code": "DEP-024_picu",
+      "files": 35
+    },
+    {
+      "code": "DEP-025_pacu",
+      "files": 35
+    },
+    {
+      "code": "DEP-026_peds",
+      "files": 35
+    },
+    {
+      "code": "DEP-027_neonate",
+      "files": 35
+    },
+    {
+      "code": "DEP-028_pedsCard",
+      "files": 35
+    },
+    {
+      "code": "DEP-029_pedsNeuro",
+      "files": 35
+    },
+    {
+      "code": "DEP-030_pedsNeph",
+      "files": 35
+    },
+    {
+      "code": "DEP-031_pedsHemOnc",
+      "files": 35
+    },
+    {
+      "code": "DEP-032_pedsSurg",
+      "files": 35
+    },
+    {
+      "code": "DEP-033_pedsDev",
+      "files": 35
+    },
+    {
+      "code": "DEP-034_obs",
+      "files": 35
+    },
+    {
+      "code": "DEP-035_gyn",
+      "files": 35
+    },
+    {
+      "code": "DEP-036_fertility",
+      "files": 35
+    },
+    {
+      "code": "DEP-037_mfm",
+      "files": 35
+    },
+    {
+      "code": "DEP-038_urogyn",
+      "files": 35
+    },
+    {
+      "code": "DEP-039_lab",
+      "files": 35
+    },
+    {
+      "code": "DEP-040_radiology",
+      "files": 35
+    },
+    {
+      "code": "DEP-041_ir",
+      "files": 35
+    },
+    {
+      "code": "DEP-042_nucmed",
+      "files": 35
+    },
+    {
+      "code": "DEP-043_path",
+      "files": 35
+    },
+    {
+      "code": "DEP-044_psych",
+      "files": 35
+    },
+    {
+      "code": "DEP-045_psychol",
+      "files": 35
+    },
+    {
+      "code": "DEP-046_pt",
+      "files": 35
+    },
+    {
+      "code": "DEP-047_ot",
+      "files": 35
+    },
+    {
+      "code": "DEP-048_medOnc",
+      "files": 35
+    },
+    {
+      "code": "DEP-049_radOnc",
+      "files": 35
+    },
+    {
+      "code": "DEP-050_palliative",
+      "files": 35
+    },
+    {
+      "code": "DEP-051_anesth",
+      "files": 35
+    },
+    {
+      "code": "DEP-052_pain",
+      "files": 35
+    },
+    {
+      "code": "DEP-053_pharmacy",
+      "files": 35
+    },
+    {
+      "code": "DEP-054_inventory",
+      "files": 35
+    },
+    {
+      "code": "DEP-055_finance",
+      "files": 35
+    },
+    {
+      "code": "DEP-056_hr",
+      "files": 35
+    },
+    {
+      "code": "DEP-057_billing",
+      "files": 35
+    },
+    {
+      "code": "DEP-058_insurance",
+      "files": 35
+    },
+    {
+      "code": "DEP-059_quality",
+      "files": 35
+    },
+    {
+      "code": "DEP-060_facility",
+      "files": 35
+    },
+    {
+      "code": "DERM-001",
+      "files": 36
+    },
+    {
+      "code": "DIET-001",
+      "files": 36
+    },
+    {
+      "code": "ENDO-001",
+      "files": 36
+    },
+    {
+      "code": "ENT-001",
+      "files": 36
+    },
+    {
+      "code": "ER-001",
+      "files": 35
+    },
+    {
+      "code": "ER-002",
+      "files": 36
+    },
+    {
+      "code": "ER-003",
+      "files": 36
+    },
+    {
+      "code": "ER-004",
+      "files": 36
+    },
+    {
+      "code": "GEN-001",
+      "files": 36
+    },
+    {
+      "code": "GERI-001",
+      "files": 36
+    },
+    {
+      "code": "GI-001",
+      "files": 36
+    },
+    {
+      "code": "HH-001",
+      "files": 36
+    },
+    {
+      "code": "ID-001",
+      "files": 36
+    },
+    {
+      "code": "LAB-001",
+      "files": 36
+    },
+    {
+      "code": "MICU",
+      "files": 36
+    },
+    {
+      "code": "NEPH-001",
+      "files": 36
+    },
+    {
+      "code": "NEUROS-001",
+      "files": 36
+    },
+    {
+      "code": "NNICU",
+      "files": 36
+    },
+    {
+      "code": "OBG-001",
+      "files": 35
+    },
+    {
+      "code": "OBG-002",
+      "files": 36
+    },
+    {
+      "code": "ONC-001",
+      "files": 34
+    },
+    {
+      "code": "OPHTH-001",
+      "files": 36
+    },
+    {
+      "code": "ORTHO-001",
+      "files": 37
+    },
+    {
+      "code": "PACU",
+      "files": 36
+    },
+    {
+      "code": "PAIN-001",
+      "files": 36
+    },
+    {
+      "code": "PATH-001",
+      "files": 36
+    },
+    {
+      "code": "PEDS-001",
+      "files": 36
+    },
+    {
+      "code": "PEDS-002",
+      "files": 36
+    },
+    {
+      "code": "PHARM-001",
+      "files": 36
+    },
+    {
+      "code": "PICU",
+      "files": 36
+    },
+    {
+      "code": "PLAST-001",
+      "files": 36
+    },
+    {
+      "code": "PREV-001",
+      "files": 36
+    },
+    {
+      "code": "PSYCH-001",
+      "files": 36
+    },
+    {
+      "code": "PULM-001",
+      "files": 36
+    },
+    {
+      "code": "RAD-001",
+      "files": 36
+    },
+    {
+      "code": "REHAB-001",
+      "files": 36
+    },
+    {
+      "code": "RHEUM-001",
+      "files": 36
+    },
+    {
+      "code": "SICU",
+      "files": 36
+    },
+    {
+      "code": "SLEEP-001",
+      "files": 36
+    },
+    {
+      "code": "SOC-001",
+      "files": 36
+    },
+    {
+      "code": "SPM-001",
+      "files": 36
+    },
+    {
+      "code": "SURG-001",
+      "files": 35
+    },
+    {
+      "code": "SURG-002",
+      "files": 36
+    },
+    {
+      "code": "SURG-003",
+      "files": 36
+    },
+    {
+      "code": "SURG-004",
+      "files": 36
+    },
+    {
+      "code": "SURG-005",
+      "files": 36
+    },
+    {
+      "code": "SURG-006",
+      "files": 36
+    },
+    {
+      "code": "SURG-007",
+      "files": 36
+    },
+    {
+      "code": "SURG-008",
+      "files": 36
+    },
+    {
+      "code": "SURG-009",
+      "files": 36
+    },
+    {
+      "code": "SURG-010",
+      "files": 36
+    },
+    {
+      "code": "SURG-011",
+      "files": 36
+    },
+    {
+      "code": "SURG-012",
+      "files": 36
+    },
+    {
+      "code": "TRMED-001",
+      "files": 36
+    },
+    {
+      "code": "URO-001",
+      "files": 36
+    },
+    {
+      "code": "VAS-001",
+      "files": 36
+    }
+  ],
+  "routes_count": 814,
+  "gap_analysis": {
+    "missing_stations_priority": [
+      {
+        "dept": "allergy-immunology",
+        "priority": "P2",
+        "reason": "subspecialty missing"
+      },
+      {
+        "dept": "vascular-surgery",
+        "priority": "P1",
+        "reason": "high volume"
+      },
+      {
+        "dept": "transplant-surgery",
+        "priority": "P2",
+        "reason": "subspecialty"
+      },
+      {
+        "dept": "picu",
+        "priority": "P1",
+        "reason": "pediatric critical care"
+      },
+      {
+        "dept": "general-pediatrics",
+        "priority": "P0",
+        "reason": "core dept"
+      },
+      {
+        "dept": "neonatology",
+        "priority": "P1",
+        "reason": "high volume"
+      },
+      {
+        "dept": "pediatric-cardiology",
+        "priority": "P2",
+        "reason": "subspecialty"
+      },
+      {
+        "dept": "gynecology",
+        "priority": "P0",
+        "reason": "core dept"
+      },
+      {
+        "dept": "reproductive-medicine",
+        "priority": "P1",
+        "reason": "IVF/ICSI"
+      },
+      {
+        "dept": "interventional-radiology",
+        "priority": "P1",
+        "reason": "imaging guided"
+      },
+      {
+        "dept": "pathology",
+        "priority": "P1",
+        "reason": "diagnostics"
+      },
+      {
+        "dept": "psychiatry",
+        "priority": "P1",
+        "reason": "behavioral health gap"
+      },
+      {
+        "dept": "physical-therapy",
+        "priority": "P1",
+        "reason": "rehab gap"
+      },
+      {
+        "dept": "radiation-oncology",
+        "priority": "P1",
+        "reason": "cancer care"
+      },
+      {
+        "dept": "palliative-care",
+        "priority": "P1",
+        "reason": "end-of-life"
+      },
+      {
+        "dept": "pharmacy",
+        "priority": "P0",
+        "reason": "core operational"
+      },
+      {
+        "dept": "billing",
+        "priority": "P0",
+        "reason": "core operational"
+      },
+      {
+        "dept": "insurance",
+        "priority": "P0",
+        "reason": "core operational (NPHIES)"
+      },
+      {
+        "dept": "quality-safety",
+        "priority": "P0",
+        "reason": "core operational"
+      }
+    ],
+    "missing_engines_priority": [
+      {
+        "dept": "rheumatology",
+        "priority": "P0"
+      },
+      {
+        "dept": "dermatology",
+        "priority": "P0"
+      },
+      {
+        "dept": "cardio-thoracic",
+        "priority": "P0"
+      },
+      {
+        "dept": "ent",
+        "priority": "P0"
+      },
+      {
+        "dept": "ophthalmology",
+        "priority": "P0"
+      },
+      {
+        "dept": "urology",
+        "priority": "P0"
+      },
+      {
+        "dept": "plastic",
+        "priority": "P0"
+      },
+      {
+        "dept": "anesthesia",
+        "priority": "P0"
+      },
+      {
+        "dept": "pacu",
+        "priority": "P0"
+      },
+      {
+        "dept": "obstetrics",
+        "priority": "P0"
+      }
+    ]
+  },
+  "next_actions": [
+    "Run nm-ultimate-blueprint-factory for 60 depts",
+    "Generate 30+ engines for missing depts",
+    "Generate 19+ stations for missing depts",
+    "Wire 60 dept routes into server.js",
+    "Apply 50+ new migrations",
+    "Run 50+ new tests"
+  ]
+}

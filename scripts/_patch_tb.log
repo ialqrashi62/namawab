@@ -1,0 +1,11 @@
+[patch] OK
+---verify---
+21162:try { app.use('/api/cardiology',   require('./middleware/tenant_bind'), require('./cardiology_router'));   } catch(e){ console.warn('[mount] cardiology', e.message); }
+21163:try { app.use('/api/oncology',     require('./middleware/tenant_bind'), require('./oncology_router'));     } catch(e){ console.warn('[mount] oncology', e.message); }
+21164:try { app.use('/api/pediatrics',   require('./middleware/tenant_bind'), require('./pediatrics_router'));   } catch(e){ console.warn('[mount] pediatrics', e.message); }
+---syntax---
+exit=0
+---reload---
+Use --update-env to update environment variables
+[PM2] Applying action reloadProcessId on app [nama-medical-erp](ids: [ 14 ])
+[PM2] [nama-medical-erp](14) Γ£ô

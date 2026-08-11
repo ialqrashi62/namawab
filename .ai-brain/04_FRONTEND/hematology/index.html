@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title data-i18n="hematology.page_title">hematology · NamaMedical</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --md-ref-typeface-brand: 'Cairo','Roboto',sans-serif; --md-sys-color-primary: #831843; }
+  html[lang="en"], html[lang="fr"] { --md-ref-typeface-brand: 'Roboto','Cairo',sans-serif; }
+  body { font-family: var(--md-ref-typeface-brand); margin: 0; background: #8318430A; color: #191C1B; }
+  .md-shell { display: grid; grid-template-rows: 64px 1fr; min-height: 100vh; }
+  .md-app-bar { display: flex; align-items: center; padding: 0 24px; gap: 16px; background: white; border-bottom: 1px solid rgba(0,0,0,.06); }
+  .md-app-bar h1 { font-size: 18px; margin: 0; font-weight: 600; }
+  .md-content { padding: 24px; max-width: 1200px; margin: 0 auto; }
+  .md-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap: 16px; }
+  .md-card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+  .md-card-title { margin: 0 0 8px; font-size: 18px; font-weight: 600; color: var(--md-sys-color-primary); }
+  .md-btn { display: inline-flex; padding: 10px 24px; border-radius: 999px; border: 0; background: var(--md-sys-color-primary); color: white; font-weight: 500; cursor: pointer; }
+  .md-lang-toggle { margin-inline-start: auto; display: flex; gap: 4px; }
+  .md-lang-toggle button { background: transparent; border: 1px solid #6F7978; border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+  .md-lang-toggle button.active { background: var(--md-sys-color-primary); color: white; border-color: var(--md-sys-color-primary); }
+</style>
+</head>
+<body>
+<div class="md-shell">
+  <header class="md-app-bar">
+    <span style="font-size:24px">🩸</span>
+    <h1 data-i18n="hematology.page_title">hematology</h1>
+    <div class="md-lang-toggle">
+      <button id="btn-ar" class="active" onclick="setLang('ar')">عربي</button>
+      <button id="btn-en" onclick="setLang('en')">EN</button>
+      <button id="btn-fr" onclick="setLang('fr')">FR</button>
+      <button id="btn-ur" onclick="setLang('ur')">UR</button>
+    </div>
+  </header>
+  <main class="md-content">
+    <div class="md-grid">
+      <div class="md-card">
+        <h3 class="md-card-title" data-i18n="hematology.overview">نظرة عامة</h3>
+        <p class="md-card-sub" data-i18n="hematology.overview_sub">مرضى اليوم، المواعيد، الإجراءات</p>
+      </div>
+      <div class="md-card">
+        <h3 class="md-card-title" data-i18n="hematology.queue_title">قائمة المرضى</h3>
+        <p class="md-card-sub" data-i18n="hematology.queue_sub">حسب الأولوية والحالة</p>
+        <button class="md-btn" data-i18n="hematology.view_queue">عرض القائمة</button>
+      </div>
+      <div class="md-card">
+        <h3 class="md-card-title" data-i18n="hematology.form_title">نموذج جديد</h3>
+        <p class="md-card-sub" data-i18n="hematology.form_sub">إضافة تقييم أو إجراء</p>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/js/nama-i18n.js"></script>
+<script src="/js/nama-api.js"></script>
+<script>
+async function setLang(lang) {
+    localStorage.setItem('nama_lang', lang);
+    document.documentElement.dir = (lang === 'ar' || lang === 'ur') ? 'rtl' : 'ltr';
+    document.documentElement.lang = lang;
+    document.querySelectorAll('.md-lang-toggle button').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + lang).classList.add('active');
+    await namaI18n.loadLocale(lang);
+    namaI18n.applyTranslations();
+}
+document.addEventListener('DOMContentLoaded', async () => {
+    const lang = localStorage.getItem('nama_lang') || 'ar';
+    await setLang(lang);
+});
+</script>
+</body>
+</html>

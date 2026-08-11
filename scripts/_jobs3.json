@@ -1,0 +1,145 @@
+{
+  "total_count": 1,
+  "jobs": [
+    {
+      "id": 93543345331,
+      "run_id": 31415474630,
+      "workflow_name": "deploy-hetzner-sftp",
+      "head_branch": "audit/phase-1a-critical-remediation",
+      "run_url": "https://api.github.com/repos/ialqrashi62/NamaMedical-namaweb-private-clean/actions/runs/31415474630",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOTGrad88AAAAVx54ssw",
+      "head_sha": "ca4f548167756311157d499ddae309e65f96384a",
+      "url": "https://api.github.com/repos/ialqrashi62/NamaMedical-namaweb-private-clean/actions/jobs/93543345331",
+      "html_url": "https://github.com/ialqrashi62/NamaMedical-namaweb-private-clean/actions/runs/31415474630/job/93543345331",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-08-10T17:43:49Z",
+      "started_at": "2026-08-10T17:43:58Z",
+      "completed_at": "2026-08-10T17:44:51Z",
+      "name": "deploy",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-08-10T17:44:07Z",
+          "completed_at": "2026-08-10T17:44:11Z"
+        },
+        {
+          "name": "Build appleboy/scp-action@v0.1.7",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-08-10T17:44:11Z",
+          "completed_at": "2026-08-10T17:44:14Z"
+        },
+        {
+          "name": "Build appleboy/ssh-action@v1.0.3",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-08-10T17:44:14Z",
+          "completed_at": "2026-08-10T17:44:16Z"
+        },
+        {
+          "name": "Checkout (full repo, submodules)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-08-10T17:44:16Z",
+          "completed_at": "2026-08-10T17:44:19Z"
+        },
+        {
+          "name": "Setup Node",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-08-10T17:44:19Z",
+          "completed_at": "2026-08-10T17:44:23Z"
+        },
+        {
+          "name": "Install SSH key for Hetzner",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 6,
+          "started_at": "2026-08-10T17:44:23Z",
+          "completed_at": "2026-08-10T17:44:23Z"
+        },
+        {
+          "name": "SCP entire namaweb tree to Hetzner",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7,
+          "started_at": "2026-08-10T17:44:23Z",
+          "completed_at": "2026-08-10T17:44:23Z"
+        },
+        {
+          "name": "Apply DB migrations on Hetzner",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8,
+          "started_at": "2026-08-10T17:44:23Z",
+          "completed_at": "2026-08-10T17:44:23Z"
+        },
+        {
+          "name": "Smoke test against live",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9,
+          "started_at": "2026-08-10T17:44:23Z",
+          "completed_at": "2026-08-10T17:44:23Z"
+        },
+        {
+          "name": "Roll back on smoke failure",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-08-10T17:44:23Z",
+          "completed_at": "2026-08-10T17:44:23Z"
+        },
+        {
+          "name": "Post Install SSH key for Hetzner",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18,
+          "started_at": "2026-08-10T17:44:23Z",
+          "completed_at": "2026-08-10T17:44:23Z"
+        },
+        {
+          "name": "Post Setup Node",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 19,
+          "started_at": "2026-08-10T17:44:23Z",
+          "completed_at": "2026-08-10T17:44:23Z"
+        },
+        {
+          "name": "Post Checkout (full repo, submodules)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20,
+          "started_at": "2026-08-10T17:44:23Z",
+          "completed_at": "2026-08-10T17:44:23Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21,
+          "started_at": "2026-08-10T17:44:23Z",
+          "completed_at": "2026-08-10T17:44:23Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/ialqrashi62/NamaMedical-namaweb-private-clean/check-runs/93543345331",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000000837,
+      "runner_name": "GitHub Actions 1000000837",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}

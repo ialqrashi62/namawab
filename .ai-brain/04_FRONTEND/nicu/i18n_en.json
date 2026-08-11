@@ -1,0 +1,11 @@
+{
+  "nicu.page_title": "Nicu",
+  "nicu.overview": "Overview",
+  "nicu.overview_sub": "Today's patients, appointments, procedures",
+  "nicu.queue_title": "Patient queue",
+  "nicu.queue_sub": "By priority and status",
+  "nicu.view_queue": "View queue",
+  "nicu.form_title": "New form",
+  "nicu.form_sub": "Add assessment or procedure",
+  "nicu.back": "Back"
+}

@@ -1,0 +1,23 @@
+# filepath: .ai-brain/07-devops/llm-observability/langsmith-config.yaml
+# LangSmith/LangFuse - Generated 2026-08-08
+langsmith:
+  api_key: __CHANGE_ME__
+  project: nama-medical-prod
+  endpoint: https://api.smith.langchain.com
+
+tracing:
+  enabled: true
+  sample_rate: 0.1
+  include_errors: true
+  metadata:
+    - tenant_id
+    - dept
+    - user_id
+
+evaluations:
+  - name: rag-precision
+    dataset: nama-medical-eval-v1
+    metrics: [faithfulness, answer_relevancy, context_precision]
+  - name: diagnosis-accuracy
+    dataset: nama-medical-diagnosis-v1
+    metrics: [exact_match, llm_judge]

@@ -1,0 +1,11 @@
+{
+  "movement.page_title": "Movement",
+  "movement.overview": "Aperçu",
+  "movement.overview_sub": "Patients du jour, rendez-vous, procédures",
+  "movement.queue_title": "File d'attente",
+  "movement.queue_sub": "Par priorité et statut",
+  "movement.view_queue": "Voir la file",
+  "movement.form_title": "Nouveau formulaire",
+  "movement.form_sub": "Ajouter une évaluation ou procédure",
+  "movement.back": "Retour"
+}

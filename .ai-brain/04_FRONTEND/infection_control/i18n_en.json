@@ -1,0 +1,11 @@
+{
+  "infection_control.page_title": "Infection Control",
+  "infection_control.overview": "Overview",
+  "infection_control.overview_sub": "Today's patients, appointments, procedures",
+  "infection_control.queue_title": "Patient queue",
+  "infection_control.queue_sub": "By priority and status",
+  "infection_control.view_queue": "View queue",
+  "infection_control.form_title": "New form",
+  "infection_control.form_sub": "Add assessment or procedure",
+  "infection_control.back": "Back"
+}

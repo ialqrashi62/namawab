@@ -1,0 +1,11 @@
+{
+  "pathology.page_title": "Pathology",
+  "pathology.overview": "Overview",
+  "pathology.overview_sub": "Today's patients, appointments, procedures",
+  "pathology.queue_title": "Patient queue",
+  "pathology.queue_sub": "By priority and status",
+  "pathology.view_queue": "View queue",
+  "pathology.form_title": "New form",
+  "pathology.form_sub": "Add assessment or procedure",
+  "pathology.back": "Back"
+}

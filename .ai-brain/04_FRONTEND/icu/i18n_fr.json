@@ -1,0 +1,11 @@
+{
+  "icu.page_title": "Icu",
+  "icu.overview": "Aperçu",
+  "icu.overview_sub": "Patients du jour, rendez-vous, procédures",
+  "icu.queue_title": "File d'attente",
+  "icu.queue_sub": "Par priorité et statut",
+  "icu.view_queue": "Voir la file",
+  "icu.form_title": "Nouveau formulaire",
+  "icu.form_sub": "Ajouter une évaluation ou procédure",
+  "icu.back": "Retour"
+}

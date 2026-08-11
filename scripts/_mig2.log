@@ -1,0 +1,20 @@
+=== e47_cardiology ===
+psql:migrations/patched/e47_cardiology_up.sql:152: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrations/patched/e47_cardiology_up.sql:155: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+ROLLBACK
+=== e48_endocrine_emergency ===
+psql:migrations/patched/e48_endocrine_emergency_up.sql:149: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrations/patched/e48_endocrine_emergency_up.sql:152: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+ROLLBACK
+=== e49_pediatrics_surgery_pharmacy ===
+psql:migrations/patched/e49_pediatrics_surgery_pharmacy_up.sql:143: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrations/patched/e49_pediatrics_surgery_pharmacy_up.sql:146: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+ROLLBACK
+=== e50_oncology_nephrology_obgyn ===
+psql:migrations/patched/e50_oncology_nephrology_obgyn_up.sql:133: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrations/patched/e50_oncology_nephrology_obgyn_up.sql:136: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+ROLLBACK
+=== e51_pulm_gi_rheum_ortho_neuro ===
+psql:migrations/patched/e51_pulm_gi_rheum_ortho_neuro_up.sql:115: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:migrations/patched/e51_pulm_gi_rheum_ortho_neuro_up.sql:118: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+ROLLBACK

@@ -1,0 +1,11 @@
+{
+  "picu.page_title": "Picu",
+  "picu.overview": "Overview",
+  "picu.overview_sub": "Today's patients, appointments, procedures",
+  "picu.queue_title": "Patient queue",
+  "picu.queue_sub": "By priority and status",
+  "picu.view_queue": "View queue",
+  "picu.form_title": "New form",
+  "picu.form_sub": "Add assessment or procedure",
+  "picu.back": "Back"
+}

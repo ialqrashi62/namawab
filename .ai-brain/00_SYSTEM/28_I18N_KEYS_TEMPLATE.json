@@ -1,0 +1,220 @@
+{
+  "$schema": "https://namamedical.sa/schemas/i18n/v1.json",
+  "module": "{{DEPT_SLUG}}",
+  "version": "1.0.0",
+  "locales": ["ar", "en", "fr", "ur"],
+  "default_locale": "ar",
+  "rtl_locales": ["ar", "ur"],
+  "keys": {
+    "{{DEPT_SLUG}}.title": {
+      "ar": "{{DEPT_NAME_AR}}",
+      "en": "{{DEPT_NAME_EN}}",
+      "fr": "{{DEPT_NAME_FR}}",
+      "ur": "{{DEPT_NAME_UR}}"
+    },
+    "{{DEPT_SLUG}}.subtitle": {
+      "ar": "قسم {{DEPT_NAME_AR}} - منصة NamaMedical",
+      "en": "{{DEPT_NAME_EN}} Department - NamaMedical",
+      "fr": "Département {{DEPT_NAME_FR}} - NamaMedical",
+      "ur": "{{DEPT_NAME_UR}} ڈیپارٹمنٹ - NamaMedical"
+    },
+    "{{DEPT_SLUG}}.nav.patients": {
+      "ar": "المرضى",
+      "en": "Patients",
+      "fr": "Patients",
+      "ur": "مریض"
+    },
+    "{{DEPT_SLUG}}.nav.queue": {
+      "ar": "قائمة الانتظار",
+      "en": "Queue",
+      "fr": "File d'attente",
+      "ur": "قطار"
+    },
+    "{{DEPT_SLUG}}.nav.calendar": {
+      "ar": "التقويم",
+      "en": "Calendar",
+      "fr": "Calendrier",
+      "ur": "کیلنڈر"
+    },
+    "{{DEPT_SLUG}}.nav.reports": {
+      "ar": "التقارير",
+      "en": "Reports",
+      "fr": "Rapports",
+      "ur": "رپورٹس"
+    },
+    "{{DEPT_SLUG}}.nav.settings": {
+      "ar": "الإعدادات",
+      "en": "Settings",
+      "fr": "Paramètres",
+      "ur": "ترتیبات"
+    },
+    "{{DEPT_SLUG}}.queue.empty": {
+      "ar": "لا يوجد مرضى في قائمة الانتظار",
+      "en": "No patients in queue",
+      "fr": "Aucun patient dans la file",
+      "ur": "قطار میں کوئی مریض نہیں"
+    },
+    "{{DEPT_SLUG}}.queue.add": {
+      "ar": "إضافة مريض",
+      "en": "Add Patient",
+      "fr": "Ajouter un patient",
+      "ur": "مریض شامل کریں"
+    },
+    "{{DEPT_SLUG}}.priority.routine": {
+      "ar": "عادي",
+      "en": "Routine",
+      "fr": "Routine",
+      "ur": "معمول"
+    },
+    "{{DEPT_SLUG}}.priority.urgent": {
+      "ar": "عاجل",
+      "en": "Urgent",
+      "fr": "Urgent",
+      "ur": "فوری"
+    },
+    "{{DEPT_SLUG}}.priority.stat": {
+      "ar": "فوري",
+      "en": "STAT",
+      "fr": "STAT",
+      "ur": "فوری"
+    },
+    "{{DEPT_SLUG}}.status.waiting": {
+      "ar": "في الانتظار",
+      "en": "Waiting",
+      "fr": "En attente",
+      "ur": "انتظار"
+    },
+    "{{DEPT_SLUG}}.status.in_progress": {
+      "ar": "قيد المعالجة",
+      "en": "In Progress",
+      "fr": "En cours",
+      "ur": "جاری"
+    },
+    "{{DEPT_SLUG}}.status.completed": {
+      "ar": "مكتمل",
+      "en": "Completed",
+      "fr": "Terminé",
+      "ur": "مکمل"
+    },
+    "{{DEPT_SLUG}}.status.cancelled": {
+      "ar": "ملغي",
+      "en": "Cancelled",
+      "fr": "Annulé",
+      "ur": "منسوخ"
+    },
+    "{{DEPT_SLUG}}.form.national_id": {
+      "ar": "الرقم الوطني",
+      "en": "National ID",
+      "fr": "ID national",
+      "ur": "قومی شناختی نمبر"
+    },
+    "{{DEPT_SLUG}}.form.full_name_ar": {
+      "ar": "الاسم الكامل (عربي)",
+      "en": "Full Name (Arabic)",
+      "fr": "Nom complet (arabe)",
+      "ur": "پورا نام (عربی)"
+    },
+    "{{DEPT_SLUG}}.form.full_name_en": {
+      "ar": "الاسم الكامل (إنجليزي)",
+      "en": "Full Name (English)",
+      "fr": "Nom complet (anglais)",
+      "ur": "پورا نام (انگریزی)"
+    },
+    "{{DEPT_SLUG}}.form.dob": {
+      "ar": "تاريخ الميلاد",
+      "en": "Date of Birth",
+      "fr": "Date de naissance",
+      "ur": "تاریخ پیدائش"
+    },
+    "{{DEPT_SLUG}}.form.gender": {
+      "ar": "الجنس",
+      "en": "Gender",
+      "fr": "Genre",
+      "ur": "جنس"
+    },
+    "{{DEPT_SLUG}}.form.gender.male": {
+      "ar": "ذكر",
+      "en": "Male",
+      "fr": "Homme",
+      "ur": "مرد"
+    },
+    "{{DEPT_SLUG}}.form.gender.female": {
+      "ar": "أنثى",
+      "en": "Female",
+      "fr": "Femme",
+      "ur": "عورت"
+    },
+    "{{DEPT_SLUG}}.form.gender.other": {
+      "ar": "آخر",
+      "en": "Other",
+      "fr": "Autre",
+      "ur": "دیگر"
+    },
+    "{{DEPT_SLUG}}.form.phone": {
+      "ar": "الهاتف",
+      "en": "Phone",
+      "fr": "Téléphone",
+      "ur": "فون"
+    },
+    "{{DEPT_SLUG}}.button.save": {
+      "ar": "حفظ",
+      "en": "Save",
+      "fr": "Enregistrer",
+      "ur": "محفوظ"
+    },
+    "{{DEPT_SLUG}}.button.cancel": {
+      "ar": "إلغاء",
+      "en": "Cancel",
+      "fr": "Annuler",
+      "ur": "منسوخ"
+    },
+    "{{DEPT_SLUG}}.button.search": {
+      "ar": "بحث",
+      "en": "Search",
+      "fr": "Rechercher",
+      "ur": "تلاش"
+    },
+    "{{DEPT_SLUG}}.button.export": {
+      "ar": "تصدير",
+      "en": "Export",
+      "fr": "Exporter",
+      "ur": "برآمد"
+    },
+    "{{DEPT_SLUG}}.button.print": {
+      "ar": "طباعة",
+      "en": "Print",
+      "fr": "Imprimer",
+      "ur": "پرنٹ"
+    },
+    "{{DEPT_SLUG}}.ai.placeholder": {
+      "ar": "اسأل عن {{DEPT_NAME_AR}}...",
+      "en": "Ask about {{DEPT_NAME_EN}}...",
+      "fr": "Posez une question sur {{DEPT_NAME_FR}}...",
+      "ur": "{{DEPT_NAME_UR}} کے بارے میں پوچھیں..."
+    },
+    "{{DEPT_SLUG}}.ai.thinking": {
+      "ar": "يفكر...",
+      "en": "Thinking...",
+      "fr": "Réflexion...",
+      "ur": "سوچ رہا ہے..."
+    },
+    "{{DEPT_SLUG}}.error.unauthorized": {
+      "ar": "غير مصرح لك بالوصول",
+      "en": "Unauthorized access",
+      "fr": "Accès non autorisé",
+      "ur": "غیر مجاز رسائی"
+    },
+    "{{DEPT_SLUG}}.error.not_found": {
+      "ar": "لم يتم العثور على المورد",
+      "en": "Resource not found",
+      "fr": "Ressource introuvable",
+      "ur": "وسائل نہیں ملی"
+    },
+    "{{DEPT_SLUG}}.error.server": {
+      "ar": "خطأ في الخادم، حاول مرة أخرى",
+      "en": "Server error, please try again",
+      "fr": "Erreur serveur, veuillez réessayer",
+      "ur": "سرور کی خرابی، دوبارہ کوشش کریں"
+    }
+  }
+}

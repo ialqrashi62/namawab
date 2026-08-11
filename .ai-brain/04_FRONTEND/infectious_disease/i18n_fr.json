@@ -1,0 +1,11 @@
+{
+  "infectious_disease.page_title": "Infectious Disease",
+  "infectious_disease.overview": "Aperçu",
+  "infectious_disease.overview_sub": "Patients du jour, rendez-vous, procédures",
+  "infectious_disease.queue_title": "File d'attente",
+  "infectious_disease.queue_sub": "Par priorité et statut",
+  "infectious_disease.view_queue": "Voir la file",
+  "infectious_disease.form_title": "Nouveau formulaire",
+  "infectious_disease.form_sub": "Ajouter une évaluation ou procédure",
+  "infectious_disease.back": "Retour"
+}

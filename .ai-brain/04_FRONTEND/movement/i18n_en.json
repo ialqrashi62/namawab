@@ -1,0 +1,11 @@
+{
+  "movement.page_title": "Movement",
+  "movement.overview": "Overview",
+  "movement.overview_sub": "Today's patients, appointments, procedures",
+  "movement.queue_title": "Patient queue",
+  "movement.queue_sub": "By priority and status",
+  "movement.view_queue": "View queue",
+  "movement.form_title": "New form",
+  "movement.form_sub": "Add assessment or procedure",
+  "movement.back": "Back"
+}

@@ -1,0 +1,11 @@
+{
+  "pathology.page_title": "Pathology",
+  "pathology.overview": "Aperçu",
+  "pathology.overview_sub": "Patients du jour, rendez-vous, procédures",
+  "pathology.queue_title": "File d'attente",
+  "pathology.queue_sub": "Par priorité et statut",
+  "pathology.view_queue": "Voir la file",
+  "pathology.form_title": "Nouveau formulaire",
+  "pathology.form_sub": "Ajouter une évaluation ou procédure",
+  "pathology.back": "Retour"
+}

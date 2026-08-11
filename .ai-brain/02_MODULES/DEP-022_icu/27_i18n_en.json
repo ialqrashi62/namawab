@@ -1,0 +1,17 @@
+{
+  "{{dept.code_short}}.title": "{{dept.name_en}}",
+  "{{dept.code_short}}.tabs.overview": "Overview",
+  "{{dept.code_short}}.tabs.orders": "Orders",
+  "{{dept.code_short}}.tabs.results": "Results",
+  "{{dept.code_short}}.tabs.notes": "Notes",
+  "{{dept.code_short}}.vitals.hr": "Heart Rate",
+  "{{dept.code_short}}.vitals.bp": "Blood Pressure",
+  "{{dept.code_short}}.vitals.spo2": "SpO2",
+  "{{dept.code_short}}.orders.new": "New Order",
+  "{{dept.code_short}}.notes.save_draft": "Save Draft",
+  "{{dept.code_short}}.notes.sign": "Sign",
+  "{{dept.code_short}}.ai.diagnose": "AI Diagnosis",
+  "{{dept.code_short}}.ai.placeholder": "Ask a clinical question...",
+  "{{dept.code_short}}.errors.network": "Network error",
+  "{{dept.code_short}}.errors.unauthorized": "Unauthorized"
+}

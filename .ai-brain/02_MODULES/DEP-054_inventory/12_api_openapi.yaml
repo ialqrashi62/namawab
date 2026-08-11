@@ -1,0 +1,85 @@
+openapi: 3.0.3
+info:
+  title: Inventory_Supply_Chain API
+  version: 1.0.0
+  description: المخزون وسلسلة الإمداد clinical endpoints
+servers:
+  - url: https://jumanasoft.com/api
+paths:
+  /api/inventory/list:
+    get:
+      summary: List items
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+  /api/inventory/{id}:
+    get:
+      summary: Get item
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: OK }
+  /api/inventory:
+    post:
+      summary: Create
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequest'
+      responses:
+        '201': { description: Created }
+  /api/inventory/{id}:
+    put:
+      summary: Update
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+      responses:
+        '200': { description: Updated }
+  /api/inventory/{id}:
+    delete:
+      summary: Soft delete
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Deleted }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    TenantHeader:
+      name: x-tenant-id
+      in: header
+      required: true
+      schema: { type: integer }
+  schemas:
+    ListResponse:
+      type: object
+      properties:
+        items: { type: array, items: { type: object } }
+        total: { type: integer }
+    CreateRequest:
+      type: object
+      required: [patient_id, code, value]
+      properties:
+        patient_id: { type: integer }
+        code: { type: string }
+        value: { type: string }

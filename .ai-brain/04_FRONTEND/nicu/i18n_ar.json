@@ -1,0 +1,11 @@
+{
+  "nicu.page_title": "nicu",
+  "nicu.overview": "نظرة عامة",
+  "nicu.overview_sub": "مرضى اليوم، المواعيد، الإجراءات",
+  "nicu.queue_title": "قائمة المرضى",
+  "nicu.queue_sub": "حسب الأولوية والحالة",
+  "nicu.view_queue": "عرض القائمة",
+  "nicu.form_title": "نموذج جديد",
+  "nicu.form_sub": "إضافة تقييم أو إجراء",
+  "nicu.back": "عودة"
+}

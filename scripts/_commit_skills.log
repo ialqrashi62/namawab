@@ -1,0 +1,10 @@
+[ops/jumanasoft-enterprise-facility-platform-staging-prep 3b2cf55c] ai-brain(skills): add 7 system-wide skills for grand-final release
+ 8 files changed, 669 insertions(+)
+ create mode 100644 .ai-brain/99-state/session_2026_08_10_buckets_complete.md
+ create mode 100644 .ai-brain/skills/nm-autopilot-grand-final/SKILL.md
+ create mode 100644 .ai-brain/skills/nm-comprehensive-medical-catalog/SKILL.md
+ create mode 100644 .ai-brain/skills/nm-dept-blueprint-template-v3/SKILL.md
+ create mode 100644 .ai-brain/skills/nm-loop-engineering-v3/SKILL.md
+ create mode 100644 .ai-brain/skills/nm-multi-agent-orchestrator-v3/SKILL.md
+ create mode 100644 .ai-brain/skills/nm-stitch-google-v2/SKILL.md
+ create mode 100644 .ai-brain/skills/nm-token-saver-v3/SKILL.md

@@ -1,0 +1,4 @@
+[ops/jumanasoft-enterprise-facility-platform-staging-prep 3457e68f] ops(deploy): add v5 deploy scripts (PS1 + SH) for Hetzner rollout
+ 2 files changed, 230 insertions(+)
+ create mode 100644 deploy_v5_full.ps1
+ create mode 100644 deploy_v5_full.sh

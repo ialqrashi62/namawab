@@ -1,0 +1,34 @@
+{
+  "colors": {
+    "primary": "#0F766E",
+    "primary_hover": "#0D9488",
+    "danger": "#DC2626",
+    "warning": "#F59E0B",
+    "success": "#10B981",
+    "info": "#3B82F6",
+    "bg": "#F9FAFB",
+    "surface": "#FFFFFF",
+    "text": "#111827",
+    "text_muted": "#6B7280",
+    "border": "#E5E7EB"
+  },
+  "typography": {
+    "font_ar": "IBM Plex Sans Arabic, Tajawal",
+    "font_en": "Inter, system-ui"
+  },
+  "spacing": {
+    "1": "0.25rem",
+    "2": "0.5rem",
+    "4": "1rem",
+    "6": "1.5rem",
+    "8": "2rem"
+  },
+  "radius": {
+    "sm": "0.25rem",
+    "md": "0.5rem",
+    "lg": "0.75rem"
+  },
+  "dept": "{{dept.code}}",
+  "dept_name_ar": "{{dept.name_ar}}",
+  "dept_name_en": "{{dept.name_en}}"
+}

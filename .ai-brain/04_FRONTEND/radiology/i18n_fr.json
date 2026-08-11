@@ -1,0 +1,11 @@
+{
+  "radiology.page_title": "Radiology",
+  "radiology.overview": "Aperçu",
+  "radiology.overview_sub": "Patients du jour, rendez-vous, procédures",
+  "radiology.queue_title": "File d'attente",
+  "radiology.queue_sub": "Par priorité et statut",
+  "radiology.view_queue": "Voir la file",
+  "radiology.form_title": "Nouveau formulaire",
+  "radiology.form_sub": "Ajouter une évaluation ou procédure",
+  "radiology.back": "Retour"
+}

@@ -1,0 +1,11 @@
+{
+  "sleep_medicine.page_title": "Sleep Medicine",
+  "sleep_medicine.overview": "Aperçu",
+  "sleep_medicine.overview_sub": "Patients du jour, rendez-vous, procédures",
+  "sleep_medicine.queue_title": "File d'attente",
+  "sleep_medicine.queue_sub": "Par priorité et statut",
+  "sleep_medicine.view_queue": "Voir la file",
+  "sleep_medicine.form_title": "Nouveau formulaire",
+  "sleep_medicine.form_sub": "Ajouter une évaluation ou procédure",
+  "sleep_medicine.back": "Retour"
+}

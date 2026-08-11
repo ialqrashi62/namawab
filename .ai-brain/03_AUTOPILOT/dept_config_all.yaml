@@ -1,0 +1,5014 @@
+depts:
+- code: DEP-001
+  code_short: cardiology
+  name_ar: أمراض القلب
+  name_en: Cardiology
+  parent_group: internal_medicine
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  subspecialties:
+  - general
+  - interventional
+  - electrophysiology
+  - echo
+  - nuclear
+  - hf
+  - structural
+  - congenital
+  conditions_top10:
+  - ACS
+  - heart_failure
+  - atrial_fibrillation
+  - hypertension
+  - valve_disease
+  - hyperlipidemia
+  - syncope
+  - endocarditis
+  - myocarditis
+  - pulmonary_embolism
+  procedures_top20:
+  - ECG
+  - echocardiogram
+  - stress_test
+  - holter
+  - cardiac_catheterization
+  - PCI
+  - CABG
+  - valve_replacement
+  - pacemaker_implant
+  - ICD
+  - ablation
+  - TEE
+  - cardiac_MRI
+  - CT_angiography
+  - pericardiocentesis
+  - ECMO
+  - IABP
+  - LVAD
+  - heart_transplant
+  - FFR
+  red_flags:
+  - STEMI
+  - cardiac_tamponade
+  - aortic_dissection
+  - cardiogenic_shock
+  - unstable_arrhythmia
+  - massive_PE
+  scores:
+  - CHA2DS2_VASc
+  - HAS_BLED
+  - HEART
+  - TIMI
+  - GRACE
+  - Killip
+  - NYHA
+  - Wells_PE
+  drugs_top:
+  - aspirin
+  - clopidogrel
+  - warfarin
+  - apixaban
+  - metoprolol
+  - lisinopril
+  - atorvastatin
+  - amiodarone
+  - digoxin
+  - furosemide
+  jci_controls:
+  - ACC-1
+  - ACC-2
+  - MMU-1
+  - MMU-2
+  - IPSG-1
+  - IPSG-2
+  - IPSG-3
+  - IPSG-4
+  - IPSG-5
+  - QPS-1
+  - QPS-2
+  - PFR-1
+  cbahi_controls:
+  - CARE-1
+  - EM-1
+  - MM-1
+  - PR-1
+  - RC-1
+  - SS-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - phone
+  - email
+  - national_id
+  - address
+  - insurance_card
+  rbac_roles:
+  - cardiologist
+  - cardiologist_interventional
+  - cardiologist_ep
+  - cardiology_nurse
+  - cardiology_tech
+- code: DEP-002
+  code_short: endocrinology
+  name_ar: الغدد الصماء
+  name_en: Endocrinology
+  parent_group: internal_medicine
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - polyclinic
+  - specialty_center
+  subspecialties:
+  - general
+  - diabetes
+  - thyroid
+  - bone
+  - adrenal
+  - pituitary
+  - reproductive
+  conditions_top10:
+  - diabetes_t1
+  - diabetes_t2
+  - gestational_diabetes
+  - hypothyroidism
+  - hyperthyroidism
+  - osteoporosis
+  - adrenal_insufficiency
+  - cushing
+  - acromegaly
+  - PCOS
+  procedures_top20:
+  - HbA1c
+  - OGTT
+  - thyroid_panel
+  - DEXA
+  - ACTH_stimulation
+  - dexamethasone_suppression
+  - insulin_pump
+  - CGM_placement
+  - fine_needle_aspiration
+  - parathyroidectomy
+  red_flags:
+  - DKA
+  - thyroid_storm
+  - adrenal_crisis
+  - severe_hypoglycemia
+  - hyperosmolar_state
+  scores:
+  - HOMA_IR
+  - FRAX
+  - DKA_severity
+  - thyroid_risk
+  drugs_top:
+  - metformin
+  - insulin
+  - levothyroxine
+  - methimazole
+  - propylthiouracil
+  - bisphosphonates
+  - denosumab
+  - hydrocortisone
+  - fludrocortisone
+  - GLP1_agonist
+  jci_controls:
+  - IPSG-1
+  - IPSG-3
+  - MMU-1
+  - QPS-1
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - cgm_data
+  rbac_roles:
+  - endocrinologist
+  - diabetologist
+  - endocrine_nurse
+  - diabetes_educator
+- code: DEP-003
+  code_short: gastroenterology
+  name_ar: الجهاز الهضمي
+  name_en: Gastroenterology
+  parent_group: internal_medicine
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - specialty_center
+  subspecialties:
+  - general
+  - endoscopy
+  - hepatology
+  - IBD
+  - motility
+  - pancreato_biliary
+  - clinical_nutrition
+  conditions_top10:
+  - GERD
+  - peptic_ulcer
+  - IBD_Crohn
+  - IBD_UC
+  - cirrhosis
+  - hepatitis_B
+  - hepatitis_C
+  - pancreatitis
+  - gallstones
+  - colorectal_cancer
+  procedures_top20:
+  - upper_endoscopy
+  - colonoscopy
+  - ERCP
+  - EUS
+  - liver_biopsy
+  - capsule_endoscopy
+  - sigmoidoscopy
+  - PEG_placement
+  - variceal_band_ligation
+  - paracentesis
+  red_flags:
+  - GI_bleeding
+  - bowel_perforation
+  - acute_pancreatitis
+  - cholangitis
+  - hepatic_failure
+  - esophageal_variceal_bleed
+  scores:
+  - MELD
+  - Child_Pugh
+  - Ranson
+  - Glasgow_pancreatitis
+  - Rockall
+  drugs_top:
+  - omeprazole
+  - mesalamine
+  - infliximab
+  - adalimumab
+  - entecavir
+  - sofosbuvir
+  - lactulose
+  - rifaximin
+  - ursodeoxycholic_acid
+  - pancrelipase
+  jci_controls:
+  - IPSG-1
+  - IPSG-3
+  - MMU-1
+  - PFR-2
+  cbahi_controls:
+  - CARE-1
+  - EM-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - endoscopy_images
+  rbac_roles:
+  - gastroenterologist
+  - hepatologist
+  - endoscopy_specialist
+  - gi_nurse
+- code: DEP-004
+  code_short: hemOnc
+  name_ar: أمراض الدم والأورام
+  name_en: Hematology_Oncology
+  parent_group: internal_medicine
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - hematology
+  - coagulation
+  - medical_oncology
+  - bmt
+  - solid_tumor
+  conditions_top10:
+  - breast_cancer
+  - lung_cancer
+  - colon_cancer
+  - lymphoma_leukemia
+  - multiple_myeloma
+  - anemia
+  - sickle_cell
+  - thalassemia
+  - ITP
+  - hemophilia
+  procedures_top20:
+  - chemotherapy
+  - bone_marrow_biopsy
+  - lumbar_puncture
+  - blood_transfusion
+  - plasmapheresis
+  - BMT_autologous
+  - BMT_allogeneic
+  - port_placement
+  - tumor_board
+  - genetic_counseling
+  red_flags:
+  - neutropenic_fever
+  - tumor_lysis
+  - hypercalcemia
+  - spinal_cord_compression
+  - SVCS
+  - DIC
+  scores:
+  - NCCN_risk
+  - IPSS
+  - HAS_BLED_onc
+  - ECOG
+  - Karnofsky
+  drugs_top:
+  - tamoxifen
+  - imatinib
+  - rituximab
+  - trastuzumab
+  - bevacizumab
+  - cisplatin
+  - doxorubicin
+  - cyclophosphamide
+  - lenalidomide
+  - ibrutinib
+  jci_controls:
+  - IPSG-1
+  - IPSG-3
+  - MMU-1
+  - MMU-2
+  - COP-1
+  - COP-2
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  - MM-2
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - genetic_data
+  rbac_roles:
+  - oncologist
+  - hematologist
+  - oncology_nurse
+  - bmt_coordinator
+- code: DEP-005
+  code_short: nephrology
+  name_ar: أمراض الكلى
+  name_en: Nephrology
+  parent_group: internal_medicine
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - dialysis_center
+  subspecialties:
+  - general
+  - dialysis
+  - transplant
+  - ckd
+  - electrolyte
+  - hypertension
+  conditions_top10:
+  - CKD_stage_3
+  - CKD_stage_4
+  - CKD_stage_5
+  - AKI
+  - glomerulonephritis
+  - nephrotic_syndrome
+  - polycystic_kidney
+  - renal_transplant
+  - ESRD
+  - electrolyte_disorders
+  procedures_top20:
+  - hemodialysis
+  - peritoneal_dialysis
+  - CRRT
+  - kidney_biopsy
+  - AV_fistula
+  - permcath_placement
+  - plasmapheresis
+  - renal_transplant
+  - transplant_biopsy
+  - home_dialysis
+  red_flags:
+  - hyperkalemia
+  - uremic_encephalopathy
+  - fluid_overload
+  - pericarditis_uremic
+  - transplant_rejection
+  scores:
+  - KDIGO
+  - Cockcroft_Gault
+  - MDRD
+  - CKD_EPI
+  - RIFLE
+  drugs_top:
+  - furosemide
+  - lisinopril
+  - losartan
+  - tacrolimus
+  - mycophenolate
+  - sevelamer
+  - epoetin
+  - darbepoetin
+  - cinacalcet
+  - sodium_bicarbonate
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - MMU-2
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - dialysis_records
+  rbac_roles:
+  - nephrologist
+  - transplant_nephrologist
+  - dialysis_nurse
+  - dialysis_tech
+- code: DEP-006
+  code_short: pulmonology
+  name_ar: أمراض الصدرية
+  name_en: Pulmonology
+  parent_group: internal_medicine
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  subspecialties:
+  - general
+  - sleep
+  - bronchoscopy
+  - critical_care
+  - interstitial
+  - occupational
+  conditions_top10:
+  - asthma
+  - COPD
+  - pneumonia
+  - TB
+  - lung_cancer
+  - sleep_apnea
+  - pulmonary_fibrosis
+  - PE
+  - pleural_effusion
+  - bronchiectasis
+  procedures_top20:
+  - bronchoscopy
+  - EBUS
+  - thoracentesis
+  - chest_tube
+  - PFT
+  - sleep_study
+  - CPAP_titration
+  - lung_biopsy
+  - pleurodesis
+  - tracheostomy
+  red_flags:
+  - massive_PE
+  - tension_pneumothorax
+  - status_asthmaticus
+  - ARDS
+  - massive_hemoptysis
+  scores:
+  - BODE
+  - GOLD
+  - mMRC
+  - Wells_PE
+  - AHI
+  drugs_top:
+  - salbutamol
+  - budesonide
+  - tiotropium
+  - montelukast
+  - theophylline
+  - prednisone
+  - levofloxacin
+  - isoniazid
+  - rifampin
+  - pirfenidone
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - EM-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - sleep_study_data
+  rbac_roles:
+  - pulmonologist
+  - sleep_specialist
+  - bronchoscopist
+  - respiratory_therapist
+- code: DEP-007
+  code_short: rheumatology
+  name_ar: الروماتيزم
+  name_en: Rheumatology
+  parent_group: internal_medicine
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - polyclinic
+  subspecialties:
+  - general
+  - autoimmune
+  - biologic
+  - pediatric_rheum
+  conditions_top10:
+  - RA
+  - SLE
+  - psoriatic_arthritis
+  - ankylosing_spondylitis
+  - gout
+  - scleroderma
+  - vasculitis
+  - polymyositis
+  - sjogren
+  - behcet
+  procedures_top20:
+  - joint_aspiration
+  - joint_injection
+  - biologic_infusion
+  - skin_biopsy
+  - nerve_conduction
+  - muscle_biopsy
+  - ultrasound_joint
+  - capillaroscopy
+  - vaccination_pre_immuno
+  red_flags:
+  - lupus_flare
+  - vasculitis_organ_threat
+  - macrophage_activation
+  - severe_DMARD_reaction
+  scores:
+  - DAS28
+  - SLEDAI
+  - BASDAI
+  - DAPSA
+  drugs_top:
+  - methotrexate
+  - hydroxychloroquine
+  - sulfasalazine
+  - leflunomide
+  - etanercept
+  - adalimumab
+  - tocilizumab
+  - rituximab
+  - mycophenolate
+  - cyclophosphamide
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - MMU-2
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  rbac_roles:
+  - rheumatologist
+  - rheumatology_nurse
+- code: DEP-008
+  code_short: infectious
+  name_ar: الأمراض المعدية
+  name_en: Infectious_Diseases
+  parent_group: internal_medicine
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  subspecialties:
+  - general
+  - infection_control
+  - tropical
+  - travel
+  - asp
+  - hiv
+  conditions_top10:
+  - UTI
+  - pneumonia
+  - sepsis
+  - cellulitis
+  - TB
+  - HIV
+  - hepatitis_B
+  - hepatitis_C
+  - meningitis
+  - endocarditis
+  procedures_top20:
+  - blood_culture
+  - lumbar_puncture
+  - wound_culture
+  - abscess_drainage
+  - HIV_testing
+  - travel_vaccination
+  - infection_surveillance
+  - contact_tracing
+  - antimicrobial_stewardship
+  - outbreak_investigation
+  red_flags:
+  - septic_shock
+  - meningitis_bacterial
+  - necrotizing_fasciitis
+  - MERS
+  - Ebola
+  scores:
+  - qSOFA
+  - SOFA
+  - CURB_65
+  drugs_top:
+  - vancomycin
+  - meropenem
+  - ceftriaxone
+  - azithromycin
+  - doxycycline
+  - oseltamivir
+  - acyclovir
+  - ganciclovir
+  - amphotericin_B
+  - linezolid
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - COP-3
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - hiv_status
+  rbac_roles:
+  - infectious_disease_specialist
+  - infection_control_officer
+  - hiv_counselor
+  - id_nurse
+- code: DEP-009
+  code_short: dermatology
+  name_ar: الجلدية
+  name_en: Dermatology
+  parent_group: internal_medicine
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - specialty_center
+  - polyclinic
+  subspecialties:
+  - general
+  - cosmetic
+  - dermatosurgery
+  - oncoderm
+  - phototherapy
+  - pediatric_derm
+  conditions_top10:
+  - eczema
+  - psoriasis
+  - acne
+  - skin_cancer
+  - vitiligo
+  - alopecia
+  - urticaria
+  - fungal_infection
+  - warts
+  - melasma
+  procedures_top20:
+  - skin_biopsy
+  - excision
+  - Mohs_surgery
+  - cryotherapy
+  - phototherapy
+  - laser_treatment
+  - botox
+  - filler
+  - chemical_peel
+  - skin_prick_test
+  red_flags:
+  - melanoma
+  - SJS_TEN
+  - severe_drug_reaction
+  - pemphigus
+  - angioedema
+  scores:
+  - PASI
+  - EASI
+  - DLQI
+  - SCORAD
+  drugs_top:
+  - hydrocortisone
+  - clobetasol
+  - tacrolimus
+  - isotretinoin
+  - doxycycline
+  - terbinafine
+  - acyclovir
+  - methotrexate
+  - dupilumab
+  - secukinumab
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - skin_photos
+  rbac_roles:
+  - dermatologist
+  - dermatology_surgeon
+  - cosmetic_specialist
+  - derm_nurse
+- code: DEP-010
+  code_short: allergy
+  name_ar: الحساسية والمناعة
+  name_en: Allergy_Immunology
+  parent_group: internal_medicine
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - polyclinic
+  subspecialties:
+  - general
+  - asthma
+  - urticaria
+  - food_allergy
+  - primary_immunodeficiency
+  - allergen_immunotherapy
+  conditions_top10:
+  - asthma
+  - allergic_rhinitis
+  - food_allergy
+  - urticaria
+  - anaphylaxis
+  - atopic_dermatitis
+  - drug_allergy
+  - venom_allergy
+  - latex_allergy
+  - primary_immunodeficiency
+  procedures_top20:
+  - skin_prick_test
+  - intradermal_test
+  - patch_test
+  - spirometry
+  - FeNO
+  - allergen_challenge
+  - immunotherapy
+  - drug_desensitization
+  - food_challenge
+  - IgE_testing
+  red_flags:
+  - anaphylaxis
+  - severe_asthma_exacerbation
+  - hereditary_angioedema
+  scores:
+  - ACT
+  - ATAQ
+  - Urticaria_activity
+  drugs_top:
+  - cetirizine
+  - loratadine
+  - montelukast
+  - omalizumab
+  - epinephrine_auto_injector
+  - prednisone
+  - methylprednisolone
+  - salbutamol
+  - budesonide
+  - tiotropium
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  rbac_roles:
+  - allergist
+  - immunologist
+  - allergy_nurse
+- code: DEP-011
+  code_short: genSurg
+  name_ar: الجراحة العامة
+  name_en: General_Surgery
+  parent_group: surgery
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  subspecialties:
+  - general
+  - laparoscopic
+  - colorectal
+  - breast
+  - endocrine_surg
+  - trauma
+  - bariatric
+  conditions_top10:
+  - appendicitis
+  - cholecystitis
+  - hernia
+  - colorectal_cancer
+  - breast_cancer
+  - bowel_obstruction
+  - diverticulitis
+  - hemorrhoids
+  - fistula
+  - pilonidal
+  procedures_top20:
+  - appendectomy
+  - cholecystectomy
+  - hernia_repair
+  - colectomy
+  - mastectomy
+  - thyroidectomy
+  - hemorrhoidectomy
+  - fistulotomy
+  - gastric_bypass
+  - splenectomy
+  red_flags:
+  - peritonitis
+  - bowel_perforation
+  - necrotizing_fasciitis
+  - ruptured_AAA
+  - mesenteric_ischemia
+  scores:
+  - ASA
+  - Mallampati
+  - Apgar
+  - POSSUM
+  drugs_top:
+  - cefazolin
+  - metronidazole
+  - enoxaparin
+  - tramadol
+  - morphine
+  - ondansetron
+  - lactulose
+  - pantoprazole
+  - paracetamol
+  - ketorolac
+  jci_controls:
+  - IPSG-1
+  - IPSG-4
+  - MMU-1
+  - MMU-2
+  - COP-1
+  cbahi_controls:
+  - CARE-1
+  - EM-1
+  - PR-1
+  - SS-2
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - surgical_photos
+  rbac_roles:
+  - general_surgeon
+  - surgical_resident
+  - scrub_nurse
+  - anesthesiologist
+- code: DEP-012
+  code_short: ortho
+  name_ar: العظام
+  name_en: Orthopedics
+  parent_group: surgery
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  subspecialties:
+  - general
+  - sports
+  - spine
+  - joint
+  - trauma
+  - hand
+  - foot_ankle
+  - pediatric_ortho
+  conditions_top10:
+  - osteoarthritis
+  - fracture
+  - ACL_tear
+  - meniscus_tear
+  - herniated_disc
+  - scoliosis
+  - carpal_tunnel
+  - rotator_cuff_tear
+  - hip_fracture
+  - clubfoot
+  procedures_top20:
+  - joint_replacement_knee
+  - joint_replacement_hip
+  - ACL_reconstruction
+  - meniscus_repair
+  - spinal_fusion
+  - discectomy
+  - fracture_ORIF
+  - carpal_tunnel_release
+  - arthroscopy
+  - clubfoot_casting
+  red_flags:
+  - compartment_syndrome
+  - open_fracture
+  - cauda_equina
+  - septic_arthritis
+  - dislocated_hip
+  scores:
+  - KOOS
+  - HOOS
+  - ODI
+  - VAS
+  - DASH
+  drugs_top:
+  - paracetamol
+  - ibuprofen
+  - celecoxib
+  - tramadol
+  - morphine
+  - enoxaparin
+  - cefazolin
+  - methotrexate
+  - alendronate
+  - denosumab
+  jci_controls:
+  - IPSG-1
+  - IPSG-4
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - EM-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - xray_images
+  rbac_roles:
+  - orthopedic_surgeon
+  - sports_medicine_specialist
+  - spine_surgeon
+  - orthopedic_nurse
+- code: DEP-013
+  code_short: neuroSurg
+  name_ar: جراحة المخ والأعصاب
+  name_en: Neurosurgery
+  parent_group: surgery
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - cranial
+  - spine
+  - functional
+  - vascular_neuro
+  - pediatric_neuro
+  - neuro_oncology
+  conditions_top10:
+  - brain_tumor
+  - brain_hemorrhage
+  - subarachnoid_hemorrhage
+  - hydrocephalus
+  - spinal_stenosis
+  - herniated_disc
+  - traumatic_brain_injury
+  - AVM
+  - aneurysm
+  - meningioma
+  procedures_top20:
+  - craniotomy
+  - tumor_resection
+  - aneurysm_clipping
+  - AVM_resection
+  - spinal_fusion
+  - discectomy
+  - laminectomy
+  - VP_shunt
+  - stereotactic_biopsy
+  - endoscopic_third_ventriculostomy
+  red_flags:
+  - increased_ICP
+  - status_ epilepticus
+  - subarachnoid_hemorrhage
+  - spinal_cord_compression
+  - brain_herniation
+  scores:
+  - GCS
+  - mRS
+  - NIHSS
+  - Karnofsky
+  - ECOG
+  drugs_top:
+  - dexamethasone
+  - mannitol
+  - hypertonic_saline
+  - levetiracetam
+  - phenytoin
+  - nimodipine
+  - morphine
+  - paracetamol
+  - enoxaparin
+  - cefazolin
+  jci_controls:
+  - IPSG-1
+  - IPSG-4
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - EM-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - ct_mri_images
+  rbac_roles:
+  - neurosurgeon
+  - spine_surgeon
+  - neuro_nurse
+  - neuro_icu_nurse
+- code: DEP-014
+  code_short: cardioTh
+  name_ar: جراحة القلب والصدر
+  name_en: Cardiothoracic_Surgery
+  parent_group: surgery
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - cardiac
+  - thoracic
+  - congenital
+  - heart_transplant
+  - lung_transplant
+  conditions_top10:
+  - CAD
+  - valve_disease
+  - aortic_aneurysm
+  - lung_cancer
+  - mediastinal_mass
+  - pneumothorax
+  - pleural_effusion
+  - esophageal_cancer
+  - congenital_heart_disease
+  - heart_failure
+  procedures_top20:
+  - CABG
+  - valve_replacement
+  - aortic_aneurysm_repair
+  - lobectomy
+  - pneumonectomy
+  - thoracotomy
+  - VATS
+  - heart_transplant
+  - LVAD_implant
+  - ECMO
+  red_flags:
+  - cardiac_tamponade
+  - aortic_dissection
+  - massive_hemoptysis
+  - tension_pneumothorax
+  - post_CABG_bleeding
+  scores:
+  - Euroscore
+  - STS_risk
+  - NYHA
+  - CCS
+  drugs_top:
+  - aspirin
+  - clopidogrel
+  - warfarin
+  - amiodarone
+  - dobutamine
+  - norepinephrine
+  - vancomycin
+  - cefazolin
+  - milrinone
+  - heparin
+  jci_controls:
+  - IPSG-1
+  - IPSG-4
+  - MMU-1
+  - MMU-2
+  cbahi_controls:
+  - CARE-1
+  - EM-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - ct_angio_images
+  rbac_roles:
+  - cardiothoracic_surgeon
+  - cardiac_surgeon
+  - thoracic_surgeon
+  - perfusionist
+  - cticu_nurse
+- code: DEP-015
+  code_short: ent
+  name_ar: الأنف والأذن والحنجرة
+  name_en: ENT
+  parent_group: surgery
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - polyclinic
+  - specialty_center
+  subspecialties:
+  - general
+  - otology
+  - rhinology
+  - laryngology
+  - head_neck
+  - pediatric_ent
+  - facial_plastic
+  conditions_top10:
+  - otitis_media
+  - sinusitis
+  - tonsillitis
+  - hearing_loss
+  - vertigo
+  - nasal_polyps
+  - deviated_septum
+  - vocal_cord_nodule
+  - head_neck_cancer
+  - sleep_apnea
+  procedures_top20:
+  - tonsillectomy
+  - adenoidectomy
+  - septoplasty
+  - FESS
+  - tympanoplasty
+  - cochlear_implant
+  - microlaryngoscopy
+  - thyroidectomy
+  - neck_dissection
+  - parotidectomy
+  red_flags:
+  - epiglottitis
+  - retropharyngeal_abscess
+  - sudden_hearing_loss
+  - neck_mass_malignant
+  - severe_epistaxis
+  scores:
+  - SNOT_22
+  - THI
+  - DHI
+  drugs_top:
+  - amoxicillin
+  - cefdinir
+  - azithromycin
+  - prednisone
+  - fluticasone_nasal
+  - mometasone
+  - ciprofloxacin_otic
+  - ofloxacin
+  - cetirizine
+  - loratadine
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - hearing_tests
+  rbac_roles:
+  - ent_surgeon
+  - otolaryngologist
+  - audiologist
+  - ent_nurse
+- code: DEP-016
+  code_short: ophth
+  name_ar: العيون
+  name_en: Ophthalmology
+  parent_group: surgery
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - specialty_center
+  subspecialties:
+  - general
+  - cataract
+  - retina
+  - glaucoma
+  - cornea
+  - pediatric_ophth
+  - oculoplastics
+  - refractive
+  conditions_top10:
+  - cataract
+  - glaucoma
+  - diabetic_retinopathy
+  - macular_degeneration
+  - refractive_error
+  - conjunctivitis
+  - dry_eye
+  - retinal_detachment
+  - amblyopia
+  - strabismus
+  procedures_top20:
+  - phacoemulsification
+  - trabeculectomy
+  - vitrectomy
+  - laser_photocoagulation
+  - intravitreal_injection
+  - corneal_transplant
+  - LASIK
+  - squint_surgery
+  - eyelid_surgery
+  - foreign_body_removal
+  red_flags:
+  - retinal_detachment
+  - acute_angle_closure
+  - endophthalmitis
+  - orbital_cellulitis
+  - chemical_burn_eye
+  scores:
+  - IOP
+  - BCVA
+  - logMAR
+  - OCT_findings
+  drugs_top:
+  - timolol
+  - latanoprost
+  - brimonidine
+  - prednisolone_acetate
+  - moxifloxacin
+  - atropine
+  - pilocarpine
+  - ranibizumab
+  - bevacizumab_intravitreal
+  - artificial_tears
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - oct_images
+  rbac_roles:
+  - ophthalmologist
+  - retina_specialist
+  - glaucoma_specialist
+  - optometrist
+  - ophthalmic_nurse
+- code: DEP-017
+  code_short: uro
+  name_ar: المسالك البولية
+  name_en: Urology
+  parent_group: surgery
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  subspecialties:
+  - general
+  - endourology
+  - uro_oncology
+  - robotic
+  - reconstructive
+  - pediatric_uro
+  - female_uro
+  - andrology
+  conditions_top10:
+  - BPH
+  - kidney_stones
+  - prostate_cancer
+  - bladder_cancer
+  - UTI
+  - erectile_dysfunction
+  - urinary_incontinence
+  - testicular_cancer
+  - hydrocele
+  - varicocele
+  procedures_top20:
+  - TURP
+  - nephrectomy
+  - prostatectomy
+  - cystectomy
+  - ureteroscopy
+  - ESWL
+  - PCNL
+  - circumcision
+  - vasectomy
+  - sling_procedure
+  red_flags:
+  - testicular_torsion
+  - Fournier_gangrene
+  - urosepsis
+  - acute_urinary_retention
+  - ruptured_bladder
+  scores:
+  - IPSS
+  - IIEF
+  - AUA_SS
+  - MSHQ
+  drugs_top:
+  - tamsulosin
+  - finasteride
+  - dutasteride
+  - ciprofloxacin
+  - levofloxacin
+  - oxybutynin
+  - mirabegron
+  - sildenafil
+  - tadalafil
+  - ketoconazole
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - EM-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - psa_results
+  rbac_roles:
+  - urologist
+  - uro_oncologist
+  - endourology_specialist
+  - urology_nurse
+- code: DEP-018
+  code_short: plastic
+  name_ar: التجميل والحروق
+  name_en: Plastic_Burns
+  parent_group: surgery
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - specialty_center
+  subspecialties:
+  - general
+  - cosmetic
+  - reconstructive
+  - burn
+  - microsurgery
+  - hand_surgery
+  - craniofacial
+  conditions_top10:
+  - burn_acute
+  - burn_chronic
+  - skin_cancer_reconstruction
+  - breast_reconstruction
+  - cleft_lip_palate
+  - scar_revision
+  - rhinoplasty
+  - abdominoplasty
+  - gynecomastia
+  - pressure_ulcer
+  procedures_top20:
+  - skin_graft
+  - flap_reconstruction
+  - breast_reconstruction
+  - facelift
+  - rhinoplasty
+  - liposuction
+  - abdominoplasty
+  - burn_debridement
+  - free_flap
+  - scar_revision
+  red_flags:
+  - inhalation_injury
+  - burn_shock
+  - compartment_syndrome_hand
+  - sepsis_after_burn
+  - necrotizing_fasciitis
+  scores:
+  - TBSA
+  - ABSI
+  - Baux
+  - Lund_Browder
+  drugs_top:
+  - silver_sulfadiazine
+  - mafenide
+  - mupirocin
+  - gabapentin
+  - pregabalin
+  - paracetamol
+  - tramadol
+  - morphine
+  - cefazolin
+  - lactulose
+  jci_controls:
+  - IPSG-1
+  - IPSG-4
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - EM-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - before_after_photos
+  rbac_roles:
+  - plastic_surgeon
+  - burn_specialist
+  - cosmetic_surgeon
+  - reconstructive_surgeon
+  - plastic_nurse
+- code: DEP-019
+  code_short: vascular
+  name_ar: جراحة الأوعية
+  name_en: Vascular_Surgery
+  parent_group: surgery
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  subspecialties:
+  - general
+  - endovascular
+  - aortic
+  - carotid
+  - peripheral
+  - dialysis_access
+  conditions_top10:
+  - AAA
+  - carotid_stenosis
+  - peripheral_artery_disease
+  - DVT
+  - varicose_veins
+  - aortic_dissection
+  - mesenteric_ischemia
+  - AV_fistula
+  - lymphedema
+  - vasculitis
+  procedures_top20:
+  - AAA_repair_open
+  - AAA_repair_EVAR
+  - carotid_endarterectomy
+  - bypass_graft
+  - angioplasty
+  - stenting
+  - thrombectomy
+  - AV_fistula_creation
+  - varicose_vein_stripping
+  - embolectomy
+  red_flags:
+  - ruptured_AAA
+  - aortic_dissection
+  - acute_limb_ischemia
+  - mesenteric_ischemia
+  - phlegmasia_cerulea_dolens
+  scores:
+  - ABI
+  - Rutherford
+  - CEAP
+  - PAD_risk
+  drugs_top:
+  - aspirin
+  - clopidogrel
+  - warfarin
+  - rivaroxaban
+  - atorvastatin
+  - metoprolol
+  - lisinopril
+  - cilostazol
+  - pentoxifylline
+  - heparin
+  jci_controls:
+  - IPSG-1
+  - IPSG-4
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - EM-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - ct_angio
+  rbac_roles:
+  - vascular_surgeon
+  - endovascular_specialist
+  - vascular_nurse
+- code: DEP-020
+  code_short: transplant
+  name_ar: جراحة الزرع
+  name_en: Transplant_Surgery
+  parent_group: surgery
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - kidney
+  - liver
+  - heart
+  - lung
+  - pancreas
+  - bone_marrow
+  conditions_top10:
+  - ESRD
+  - cirrhosis
+  - heart_failure
+  - lung_failure
+  - acute_leukemia
+  - kidney_pancreas_failure
+  - primary_hyperoxaluria
+  - polycystic_kidney_liver
+  - biliary_atresia
+  - cardiomyopathy
+  procedures_top20:
+  - kidney_transplant
+  - liver_transplant
+  - heart_transplant
+  - lung_transplant
+  - pancreas_transplant
+  - BMT_autologous
+  - BMT_allogeneic
+  - donor_nephrectomy
+  - multi_organ_procurement
+  - transplant_biopsy
+  red_flags:
+  - hyperacute_rejection
+  - acute_rejection
+  - transplant_thrombosis
+  - post_op_bleeding
+  - sepsis_post_transplant
+  scores:
+  - KDPI
+  - MELD
+  - LAS
+  - PELD
+  drugs_top:
+  - tacrolimus
+  - mycophenolate
+  - cyclosporine
+  - sirolimus
+  - prednisone
+  - basiliximab
+  - antithymocyte_globulin
+  - valganciclovir
+  - trimethoprim_sulfa
+  - itraconazole
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - MMU-2
+  - COP-2
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - donor_info
+  rbac_roles:
+  - transplant_surgeon
+  - transplant_coordinator
+  - immunosuppression_specialist
+  - transplant_nurse
+- code: DEP-021
+  code_short: emergency
+  name_ar: الطوارئ
+  name_en: Emergency
+  parent_group: critical_care
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  subspecialties:
+  - general
+  - trauma
+  - resuscitation
+  - observation
+  - toxicology
+  conditions_top10:
+  - chest_pain
+  - shortness_of_breath
+  - abdominal_pain
+  - trauma
+  - stroke
+  - sepsis
+  - anaphylaxis
+  - poisoning
+  - cardiac_arrest
+  - polytrauma
+  procedures_top20:
+  - intubation
+  - CPR
+  - central_line
+  - chest_tube
+  - laceration_repair
+  - fracture_splinting
+  - NG_tube
+  - urinary_catheter
+  - lumbar_puncture
+  - gastric_lavage
+  red_flags:
+  - cardiac_arrest
+  - polytrauma
+  - anaphylaxis
+  - sepsis_shock
+  - status_epilepticus
+  scores:
+  - ESI
+  - NEWS2
+  - qSOFA
+  - GCS
+  - RTS
+  drugs_top:
+  - epinephrine
+  - atropine
+  - amiodarone
+  - adenosine
+  - naloxone
+  - activated_charcoal
+  - acetylcysteine
+  - tranexamic_acid
+  - ceftriaxone
+  - ondansetron
+  jci_controls:
+  - IPSG-1
+  - IPSG-4
+  - IPSG-5
+  - IPSG-6
+  - MMU-1
+  - EM-1
+  - EM-2
+  cbahi_controls:
+  - EM-1
+  - EM-2
+  - EM-3
+  - MM-1
+  - SS-3
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - triage_data
+  rbac_roles:
+  - emergency_physician
+  - emergency_nurse
+  - trauma_surgeon
+  - er_tech
+- code: DEP-022
+  code_short: icu
+  name_ar: العناية المركزة
+  name_en: ICU_Adult
+  parent_group: critical_care
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  subspecialties:
+  - general
+  - medical
+  - surgical
+  - cardiac
+  - neuro
+  - burn
+  - trauma
+  conditions_top10:
+  - sepsis
+  - ARDS
+  - post_cardiac_surgery
+  - post_neuro_surgery
+  - severe_pneumonia
+  - septic_shock
+  - multi_organ_failure
+  - status_epilepticus
+  - severe_trauma
+  - GI_bleeding
+  procedures_top20:
+  - intubation
+  - mechanical_ventilation
+  - central_line
+  - arterial_line
+  - bronchoscopy_icu
+  - CRRT
+  - tracheostomy
+  - PEG_icu
+  - vasopressor_titration
+  - prone_positioning
+  red_flags:
+  - cardiac_arrest
+  - severe_hypoxia
+  - refractory_shock
+  - status_epilepticus
+  - brain_death_evaluation
+  scores:
+  - APACHE_II
+  - APACHE_IV
+  - SAPS_II
+  - SOFA
+  - qSOFA
+  - NEWS2
+  drugs_top:
+  - norepinephrine
+  - vasopressin
+  - dobutamine
+  - milrinone
+  - fentanyl
+  - propofol
+  - midazolam
+  - piperacillin_tazobactam
+  - meropenem
+  - vancomycin
+  jci_controls:
+  - IPSG-1
+  - IPSG-4
+  - IPSG-5
+  - MMU-1
+  - MMU-2
+  - COP-1
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  - MM-2
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - icu_monitoring
+  rbac_roles:
+  - intensivist
+  - icu_physician
+  - icu_nurse
+  - respiratory_therapist
+  - icu_pharmacist
+- code: DEP-023
+  code_short: nicu
+  name_ar: العناية المركزة لحديثي الولادة
+  name_en: NICU
+  parent_group: critical_care
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - premature
+  - surgical_neonate
+  - cardiac_neonate
+  - neuro_neonate
+  conditions_top10:
+  - prematurity
+  - RDS
+  - neonatal_sepsis
+  - neonatal_jaundice
+  - congenital_heart_disease
+  - NEC
+  - IVH
+  - birth_asphyxia
+  - meconium_aspiration
+  - diaphragmatic_hernia
+  procedures_top20:
+  - intubation_premature
+  - surfactant_administration
+  - central_line_umbilical
+  - exchange_transfusion
+  - phototherapy
+  - therapeutic_hypothermia
+  - ECMO_neonatal
+  - ROP_screening
+  - circumcision
+  - lumbar_puncture_neonatal
+  red_flags:
+  - severe_IVH
+  - NEC_perforation
+  - pneumothorax_neonate
+  - NEC_sepsis
+  - PDA_significant
+  scores:
+  - CRIB
+  - SNAP
+  - SNAPPE
+  - Apgar
+  - Silverman_Anderson
+  drugs_top:
+  - surfactant
+  - caffeine
+  - indomethacin
+  - ibuprofen
+  - dopamine
+  - dobutamine
+  - ampicillin
+  - gentamicin
+  - fentanyl
+  - midazolam
+  jci_controls:
+  - IPSG-1
+  - IPSG-4
+  - IPSG-5
+  - MMU-1
+  - MMU-2
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - birth_data
+  rbac_roles:
+  - neonatologist
+  - nicu_nurse
+  - nicu_respiratory_therapist
+- code: DEP-024
+  code_short: picu
+  name_ar: العناية المركزة للأطفال
+  name_en: PICU
+  parent_group: critical_care
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - pediatric_trauma
+  - post_cardiac_pediatric
+  - post_neuro_pediatric
+  - neonatal_pediatric
+  conditions_top10:
+  - pediatric_sepsis
+  - severe_asthma
+  - status_epilepticus
+  - diabetic_ketoacidosis
+  - post_cardiac_surgery
+  - severe_pneumonia
+  - traumatic_brain_injury
+  - anaphylaxis
+  - ingestions
+  - burns_pediatric
+  procedures_top20:
+  - pediatric_intubation
+  - mechanical_ventilation_pediatric
+  - central_line_pediatric
+  - arterial_line_pediatric
+  - bronchoscopy_pediatric
+  - CRRT_pediatric
+  - tracheostomy_pediatric
+  - sedation_pediatric
+  - pediatric_resuscitation
+  - ECMO_pediatric
+  red_flags:
+  - cardiac_arrest_pediatric
+  - severe_hypoxia_pediatric
+  - refractory_shock_pediatric
+  - status_epilepticus_pediatric
+  - brain_herniation_pediatric
+  scores:
+  - PELOD
+  - PRISM_III
+  - PIM2
+  - PEWS
+  - GCS_pediatric
+  drugs_top:
+  - epinephrine
+  - norepinephrine
+  - dopamine
+  - midazolam
+  - fentanyl
+  - propofol
+  - ceftriaxone
+  - vancomycin
+  - methylprednisolone
+  - salbutamol
+  jci_controls:
+  - IPSG-1
+  - IPSG-4
+  - IPSG-5
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - pediatric_data
+  rbac_roles:
+  - pediatric_intensivist
+  - picu_nurse
+  - pediatric_respiratory_therapist
+- code: DEP-025
+  code_short: pacu
+  name_ar: إفاقة ما بعد التخدير
+  name_en: PACU
+  parent_group: critical_care
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  subspecialties:
+  - general
+  - post_cardiac
+  - post_neuro
+  - post_ambulatory
+  - post_obstetric
+  conditions_top10:
+  - post_op_pain
+  - post_op_nausea
+  - residual_anesthesia
+  - hemodynamic_instability
+  - hypoxia_post_op
+  - hypothermia_post_op
+  - post_op_bleeding
+  - urinary_retention_post_op
+  - post_op_delirium
+  - emergence_agitation
+  procedures_top20:
+  - post_op_monitoring
+  - pain_management
+  - antiemetic_administration
+  - oxygen_therapy
+  - suction
+  - urinary_catheter_post_op
+  - drain_removal
+  - IV_access_post_op
+  - vitals_monitoring
+  - discharge_PACU
+  red_flags:
+  - airway_obstruction_post_op
+  - severe_hypoxia
+  - post_op_bleeding
+  - malignant_hyperthermia
+  - cardiac_arrest_post_op
+  scores:
+  - Aldrete
+  - PADSS
+  - Steward
+  - VAS
+  drugs_top:
+  - ondansetron
+  - metoclopramide
+  - morphine
+  - fentanyl
+  - paracetamol
+  - ketorolac
+  - sugammadex
+  - neostigmine
+  - ephedrine
+  - phenylephrine
+  jci_controls:
+  - IPSG-1
+  - IPSG-4
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - anesthesia_record
+  rbac_roles:
+  - anesthesiologist
+  - pacu_nurse
+  - post_op_nurse
+- code: DEP-026
+  code_short: peds
+  name_ar: طب الأطفال
+  name_en: General_Pediatrics
+  parent_group: pediatrics
+  facility_types:
+  - general_hospital
+  - polyclinic
+  - phc
+  - specialty_center
+  subspecialties:
+  - general
+  - newborn
+  - well_baby
+  - sick_visit
+  - adolescent
+  conditions_top10:
+  - URI
+  - otitis_media
+  - gastroenteritis
+  - pneumonia
+  - asthma
+  - fever_undetermined
+  - eczema
+  - obesity
+  - developmental_delay
+  - failure_to_thrive
+  procedures_top20:
+  - well_baby_visit
+  - vaccination
+  - growth_assessment
+  - hearing_screening
+  - vision_screening
+  - circumcision
+  - ear_piercing
+  - foreign_body_removal
+  - nebulizer
+  - pediatric_phlebotomy
+  red_flags:
+  - neonatal_sepsis
+  - meningitis_pediatric
+  - severe_dehydration
+  - intussusception
+  - appendicitis_pediatric
+  scores:
+  - BMI_percentile
+  - growth_percentile
+  - Apgar
+  drugs_top:
+  - amoxicillin
+  - paracetamol_pediatric
+  - ibuprofen_pediatric
+  - cetirizine_pediatric
+  - salbutamol_pediatric
+  - montelukast_pediatric
+  - flucloxacillin
+  - cefdinir_pediatric
+  - ondansetron_pediatric
+  - omeprazole_pediatric
+  jci_controls:
+  - IPSG-1
+  - IPSG-3
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - parent_info
+  rbac_roles:
+  - pediatrician
+  - pediatric_nurse
+  - neonatologist
+- code: DEP-027
+  code_short: neonate
+  name_ar: حديثي الولادة
+  name_en: Neonatology
+  parent_group: pediatrics
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - premature
+  - full_term
+  - high_risk_neonate
+  - follow_up_neonate
+  conditions_top10:
+  - prematurity
+  - RDS
+  - neonatal_sepsis
+  - neonatal_jaundice
+  - congenital_anomaly
+  - birth_asphyxia
+  - NEC
+  - IVH
+  - meconium_aspiration
+  - transient_tachypnea
+  procedures_top20:
+  - resuscitation_neonate
+  - surfactant_administration
+  - phototherapy
+  - exchange_transfusion
+  - umbilical_catheter
+  - neonatal_intubation
+  - neonatal_CPR
+  - screening_metabolic
+  - ROP_screening
+  - hearing_screening_neonate
+  red_flags:
+  - severe_IVH
+  - NEC_perforation
+  - pneumothorax_neonate
+  - diaphragmatic_hernia
+  - persistent_pulmonary_hypertension
+  scores:
+  - CRIB
+  - SNAP
+  - Apgar
+  - Silverman
+  - Downes
+  drugs_top:
+  - surfactant
+  - caffeine
+  - indomethacin
+  - ibuprofen
+  - ampicillin
+  - gentamicin
+  - dopamine
+  - dobutamine
+  - vitamin_K
+  - erythromycin_eye
+  jci_controls:
+  - IPSG-1
+  - IPSG-4
+  - IPSG-5
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - birth_data
+  - parent_info
+  rbac_roles:
+  - neonatologist
+  - neonatal_nurse
+  - neonatal_np
+- code: DEP-028
+  code_short: pedsCard
+  name_ar: قلب الأطفال
+  name_en: Pediatric_Cardiology
+  parent_group: pediatrics
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - fetal_cardiology
+  - interventional_pediatric
+  - electrophysiology_pediatric
+  - heart_failure_pediatric
+  conditions_top10:
+  - congenital_heart_disease
+  - VSD
+  - ASD
+  - TOF
+  - PDA
+  - coarctation
+  - Kawasaki_disease
+  - rheumatic_heart_disease_pediatric
+  - cardiomyopathy_pediatric
+  - arrhythmia_pediatric
+  procedures_top20:
+  - pediatric_echo
+  - fetal_echo
+  - pediatric_ECG
+  - cardiac_cath_pediatric
+  - device_closure_VSD
+  - balloon_valvuloplasty
+  - pacemaker_pediatric
+  - EP_study_pediatric
+  - exercise_test_pediatric
+  - holter_pediatric
+  red_flags:
+  - ductal_dependent_lesion
+  - cyanotic_spell
+  - cardiac_arrest_pediatric
+  - arrhythmia_pediatric
+  - endocarditis_pediatric
+  scores:
+  - Ross_heart_failure
+  - NYHA_pediatric
+  - Ross_classification
+  drugs_top:
+  - digoxin
+  - furosemide
+  - captopril
+  - enalapril
+  - propranolol
+  - amiodarone_pediatric
+  - sildenafil_pediatric
+  - bosentan
+  - aspirin_pediatric
+  - indomethacin_pediatric
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - echo_data
+  - parent_info
+  rbac_roles:
+  - pediatric_cardiologist
+  - echo_tech_pediatric
+  - pediatric_cardiac_nurse
+- code: DEP-029
+  code_short: pedsNeuro
+  name_ar: أعصاب الأطفال
+  name_en: Pediatric_Neurology
+  parent_group: pediatrics
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - neonatal_neuro
+  - epilepsy_pediatric
+  - neuromuscular
+  - neurodevelopmental
+  conditions_top10:
+  - epilepsy_pediatric
+  - cerebral_palsy
+  - headache_pediatric
+  - developmental_delay
+  - autism_spectrum
+  - muscular_dystrophy
+  - hydrocephalus
+  - traumatic_brain_injury_pediatric
+  - meningitis_pediatric
+  - neurocutaneous_syndrome
+  procedures_top20:
+  - pediatric_EEG
+  - pediatric_brain_MRI
+  - lumbar_puncture_pediatric
+  - ketogenic_diet
+  - vagus_nerve_stimulation
+  - botox_pediatric
+  - neuropsychological_test
+  - sleep_study_pediatric
+  - evoked_potentials
+  - nerve_conduction_pediatric
+  red_flags:
+  - status_epilepticus_pediatric
+  - increased_ICP_pediatric
+  - spinal_muscle_atrophy
+  - brain_tumor_pediatric
+  - stroke_pediatric
+  scores:
+  - CHOP_INTEND
+  - Hammersmith
+  - GMFCS
+  - BFMDRS
+  drugs_top:
+  - valproic_acid
+  - carbamazepine
+  - levetiracetam
+  - topiramate
+  - lamotrigine
+  - ethosuximide
+  - vigabatrin
+  - clobazam
+  - methylprednisolone_pediatric
+  - pyridoxine
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - eeg_data
+  - parent_info
+  rbac_roles:
+  - pediatric_neurologist
+  - pediatric_epileptologist
+  - neuro_nurse_pediatric
+- code: DEP-030
+  code_short: pedsNeph
+  name_ar: كلى الأطفال
+  name_en: Pediatric_Nephrology
+  parent_group: pediatrics
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - dialysis_pediatric
+  - transplant_pediatric
+  - nephrotic_pediatric
+  - hypertension_pediatric
+  conditions_top10:
+  - nephrotic_syndrome_pediatric
+  - UTI_pediatric
+  - hemolytic_uremic_syndrome
+  - glomerulonephritis_pediatric
+  - renal_failure_pediatric
+  - hydronephrosis
+  - VUR
+  - polycystic_kidney_pediatric
+  - renal_tubular_acidosis
+  - hypertension_pediatric
+  procedures_top20:
+  - pediatric_dialysis
+  - kidney_biopsy_pediatric
+  - renal_transplant_pediatric
+  - AV_fistula_pediatric
+  - peritoneal_dialysis_pediatric
+  - urodynamic_study_pediatric
+  - cystoscopy_pediatric
+  - micturating_cystourethrogram
+  - voiding_cystourethrogram
+  - renal_Ultrasound_pediatric
+  red_flags:
+  - acute_kidney_injury_pediatric
+  - hypertensive_emergency_pediatric
+  - hyperkalemia_pediatric
+  - uremic_encephalopathy_pediatric
+  - transplant_rejection_pediatric
+  scores:
+  - Schwartz_formula
+  - KDIGO_pediatric
+  - BP_percentile
+  drugs_top:
+  - prednisone_pediatric
+  - cyclophosphamide_pediatric
+  - mycophenolate_pediatric
+  - tacrolimus_pediatric
+  - lisinopril_pediatric
+  - enalapril_pediatric
+  - amlodipine_pediatric
+  - furosemide_pediatric
+  - sodium_bicarbonate_pediatric
+  - sevelamer_pediatric
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - parent_info
+  rbac_roles:
+  - pediatric_nephrologist
+  - pediatric_dialysis_nurse
+- code: DEP-031
+  code_short: pedsHemOnc
+  name_ar: دم وأورام الأطفال
+  name_en: Pediatric_HemOnc
+  parent_group: pediatrics
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - leukemia_pediatric
+  - solid_tumor_pediatric
+  - BMT_pediatric
+  - sickle_cell_pediatric
+  conditions_top10:
+  - ALL_pediatric
+  - AML_pediatric
+  - neuroblastoma
+  - wilms_tumor
+  - lymphoma_pediatric
+  - brain_tumor_pediatric
+  - sickle_cell_disease
+  - thalassemia_pediatric
+  - ITP_pediatric
+  - hemophilia_pediatric
+  procedures_top20:
+  - bone_marrow_aspiration_pediatric
+  - lumbar_puncture_intrathecal_pediatric
+  - chemotherapy_pediatric
+  - blood_transfusion_pediatric
+  - platelet_transfusion_pediatric
+  - BMT_pediatric
+  - port_placement_pediatric
+  - central_line_pediatric
+  - tumor_resection_pediatric
+  - radiotherapy_pediatric
+  red_flags:
+  - neutropenic_fever_pediatric
+  - tumor_lysis_pediatric
+  - spinal_cord_compression_pediatric
+  - SVCS_pediatric
+  - DIC_pediatric
+  scores:
+  - NCCN_pediatric
+  - Lansky
+  - ECOG_pediatric
+  - IPSS_pediatric
+  drugs_top:
+  - vincristine_pediatric
+  - methotrexate_pediatric
+  - doxorubicin_pediatric
+  - cyclophosphamide_pediatric
+  - prednisone_pediatric
+  - mercaptopurine_pediatric
+  - cytarabine_pediatric
+  - asparaginase
+  - imatinib_pediatric
+  - hydroxyurea_pediatric
+  jci_controls:
+  - IPSG-1
+  - IPSG-3
+  - MMU-1
+  - MMU-2
+  - COP-1
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  - MM-2
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - genetic_data
+  - parent_info
+  rbac_roles:
+  - pediatric_oncologist
+  - pediatric_hematologist
+  - oncology_nurse_pediatric
+  - bmt_coordinator_pediatric
+- code: DEP-032
+  code_short: pedsSurg
+  name_ar: جراحة الأطفال
+  name_en: Pediatric_Surgery
+  parent_group: pediatrics
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - neonatal_surgery
+  - urological_pediatric
+  - oncological_pediatric
+  - trauma_pediatric
+  conditions_top10:
+  - appendicitis_pediatric
+  - hernia_pediatric
+  - undescended_testis
+  - hypospadias
+  - intestinal_obstruction_pediatric
+  - intussusception
+  - hirschsprung_disease
+  - anorectal_malformation
+  - diaphragmatic_hernia
+  - tracheoesophageal_fistula
+  procedures_top20:
+  - appendectomy_pediatric
+  - hernia_repair_pediatric
+  - orchiopexy
+  - hypospadias_repair
+  - pull_through_hirschsprung
+  - anoplasty
+  - diaphragmatic_hernia_repair
+  - TEF_repair
+  - fundoplication_pediatric
+  - gastrostomy_pediatric
+  red_flags:
+  - midgut_volvulus
+  - perforated_appendicitis_pediatric
+  - bowel_obstruction_pediatric
+  - intussusception_pediatric
+  - diaphragmatic_hernia_pediatric
+  scores:
+  - ASA_pediatric
+  - Mallampati_pediatric
+  - Apgar
+  - POSSUM_pediatric
+  drugs_top:
+  - cefazolin_pediatric
+  - metronidazole_pediatric
+  - paracetamol_pediatric
+  - morphine_pediatric
+  - ondansetron_pediatric
+  - lactulose_pediatric
+  - enoxaparin_pediatric
+  - midazolam_pediatric
+  - fentanyl_pediatric
+  - ketorolac_pediatric
+  jci_controls:
+  - IPSG-1
+  - IPSG-4
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - EM-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - parent_info
+  - surgical_photos
+  rbac_roles:
+  - pediatric_surgeon
+  - neonatal_surgeon
+  - pediatric_anesthesiologist
+  - pediatric_surgical_nurse
+- code: DEP-033
+  code_short: pedsDev
+  name_ar: تطور وإعادة تأهيل الأطفال
+  name_en: Pediatric_Development_Rehab
+  parent_group: pediatrics
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - rehabilitation_center
+  - polyclinic
+  subspecialties:
+  - general
+  - developmental_peds
+  - neuro_rehab_peds
+  - sensory_integration
+  - behavioral_peds
+  conditions_top10:
+  - developmental_delay
+  - cerebral_palsy
+  - autism_spectrum
+  - down_syndrome
+  - dyslexia
+  - ADHD
+  - spina_bifida
+  - muscular_dystrophy_pediatric
+  - hearing_impairment_pediatric
+  - visual_impairment_pediatric
+  procedures_top20:
+  - developmental_assessment
+  - autism_screening
+  - hearing_assessment
+  - vision_assessment
+  - occupational_therapy_peds
+  - speech_therapy_peds
+  - physical_therapy_peds
+  - sensory_integration_therapy
+  - orthotics_peds
+  - assistive_devices_peds
+  red_flags:
+  - regression_in_skills
+  - severe_autism_crisis
+  - severe_cerebral_palsy_complications
+  - aspiration_risk
+  - status_psychomotor_regression
+  scores:
+  - GMFCS
+  - MFM
+  - Bayley
+  - ASQ
+  - M_CHAT
+  drugs_top:
+  - methylphenidate
+  - atomoxetine
+  - melatonin
+  - risperidone_pediatric
+  - aripiprazole_pediatric
+  - clonidine_pediatric
+  - guanfacine
+  - sertraline_pediatric
+  - fluoxetine_pediatric
+  - baclofen_pediatric
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - parent_info
+  rbac_roles:
+  - developmental_pediatrician
+  - pediatric_therapist
+  - speech_therapist_peds
+  - occupational_therapist_peds
+- code: DEP-034
+  code_short: obs
+  name_ar: الولادة
+  name_en: Obstetrics
+  parent_group: obgyn
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - polyclinic
+  subspecialties:
+  - general
+  - antenatal
+  - intrapartum
+  - postnatal
+  - high_risk_pregnancy
+  conditions_top10:
+  - normal_pregnancy
+  - gestational_diabetes
+  - preeclampsia
+  - preterm_labor
+  - ectopic_pregnancy
+  - placenta_previa
+  - placental_abruption
+  - postpartum_hemorrhage
+  - miscarriage
+  - hyperemesis_gravidarum
+  procedures_top20:
+  - normal_delivery
+  - cesarean_section
+  - vacuum_extraction
+  - forceps_delivery
+  - epidural
+  - episiotomy_repair
+  - manual_placenta_removal
+  - cervical_cerclage
+  - amniocentesis
+  - antenatal_corticosteroids
+  red_flags:
+  - eclampsia
+  - placental_abruption
+  - uterine_rupture
+  - cord_prolapse
+  - postpartum_hemorrhage
+  scores:
+  - Bishop
+  - APGAR
+  - partogram
+  - SOGC
+  - NICE_pre_eclampsia
+  drugs_top:
+  - oxytocin
+  - methylergometrine
+  - misoprostol
+  - magnesium_sulfate
+  - labetalol
+  - nifedipine
+  - methyldopa
+  - insulin_pregnancy
+  - heparin_pregnancy
+  - Rh_immunoglobulin
+  jci_controls:
+  - IPSG-1
+  - IPSG-4
+  - MMU-1
+  - MMU-2
+  - COP-2
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  - PR-1
+  - OB-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - pregnancy_data
+  rbac_roles:
+  - obstetrician
+  - midwife
+  - ob_nurse
+  - neonatologist
+- code: DEP-035
+  code_short: gyn
+  name_ar: أمراض النساء
+  name_en: Gynecology
+  parent_group: obgyn
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - polyclinic
+  subspecialties:
+  - general
+  - gyne_oncology
+  - reproductive_endocrine
+  - pediatric_adolescent_gyn
+  - menopause
+  - urogynecology
+  conditions_top10:
+  - menstrual_irregularity
+  - fibroids
+  - endometriosis
+  - ovarian_cyst
+  - cervical_dysplasia
+  - pelvic_inflammatory_disease
+  - menopause_symptoms
+  - polycystic_ovary
+  - vaginal_infection
+  - breast_lump
+  procedures_top20:
+  - hysterectomy
+  - myomectomy
+  - oophorectomy
+  - laparoscopy_gyn
+  - hysteroscopy
+  - colposcopy
+  - LEEP
+  - cervical_biopsy
+  - endometrial_biopsy
+  - IUD_placement
+  red_flags:
+  - ovarian_torsion
+  - ectopic_pregnancy_ruptured
+  - severe_pelvic_infection
+  - gynecologic_malignancy
+  - molar_pregnancy
+  scores:
+  - FIGO_stage
+  - menopause_symptom_severity
+  - PHQ_9
+  - GAD_7
+  drugs_top:
+  - combined_oral_contraceptive
+  - progestin
+  - levothyroxine
+  - clomiphene
+  - letrozole
+  - metformin
+  - tranexamic_acid
+  - mefenamic_acid
+  - doxycycline
+  - fluconazole
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - pregnancy_history
+  rbac_roles:
+  - gynecologist
+  - gyne_oncologist
+  - repro_endocrinologist
+  - gyn_nurse
+- code: DEP-036
+  code_short: fertility
+  name_ar: الإخصاب
+  name_en: Reproductive_Medicine_IVF
+  parent_group: obgyn
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - specialty_center
+  subspecialties:
+  - general
+  - IVF
+  - ICSI
+  - IMSI
+  - PGD
+  - egg_freezing
+  - sperm_donation
+  - surrogacy
+  conditions_top10:
+  - infertility_female
+  - infertility_male
+  - PCOS_infertility
+  - endometriosis_infertility
+  - tubal_factor
+  - male_factor_infertility
+  - unexplained_infertility
+  - recurrent_pregnancy_loss
+  - premature_ovarian_failure
+  - azoospermia
+  procedures_top20:
+  - IVF
+  - ICSI
+  - IMSI
+  - PGD
+  - embryo_transfer
+  - egg_retrieval
+  - sperm_retrieval
+  - IUI
+  - ovarian_stimulation
+  - embryo_freezing
+  red_flags:
+  - ovarian_hyperstimulation_syndrome
+  - ectopic_pregnancy_after_IVF
+  - multiple_pregnancy_high_order
+  - OHSS_severe
+  - donor_screening_failure
+  scores:
+  - AMH
+  - ovarian_reserve
+  - sperm_analysis
+  - fertilization_rate
+  - blastocyst_rate
+  drugs_top:
+  - clomiphene
+  - letrozole
+  - gonadotropins
+  - hCG_trigger
+  - progesterone_vaginal
+  - estrogen
+  - GnRH_agonist
+  - GnRH_antagonist
+  - metformin
+  - doxycycline
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - COP-2
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  - OB-2
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - fertility_data
+  - partner_info
+  rbac_roles:
+  - reproductive_endocrinologist
+  - ivf_specialist
+  - embryologist
+  - fertility_nurse
+- code: DEP-037
+  code_short: mfm
+  name_ar: طب الأم والجنين
+  name_en: Maternal_Fetal_Medicine
+  parent_group: obgyn
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - fetal_medicine
+  - prenatal_diagnosis
+  - high_risk_pregnancy
+  - multiple_pregnancy
+  conditions_top10:
+  - high_risk_pregnancy
+  - fetal_anomaly
+  - twins_pregnancy
+  - preeclampsia_severe
+  - gestational_diabetes_complicated
+  - fetal_growth_restriction
+  - RH_incompatibility
+  - preterm_labor_history
+  - placenta_accreta
+  - recurrent_miscarriage
+  procedures_top20:
+  - detailed_fetal_anatomy_scan
+  - amniocentesis
+  - CVS
+  - fetal_blood_sampling
+  - fetal_Echo
+  - cervical_length_measurement
+  - doppler_umbilical
+  - multifetal_reduction
+  - intrauterine_transfusion
+  - fetoscopy
+  red_flags:
+  - placenta_percreta
+  - severe_preeclampsia
+  - fetal_distress
+  - severe_IUGR
+  - twin_twin_transfusion
+  scores:
+  - Bishops
+  - cervical_length
+  - umbilical_artery_doppler
+  - fetal_biometry_percentile
+  drugs_top:
+  - magnesium_sulfate
+  - betamethasone
+  - nifedipine
+  - atosiban
+  - indomethacin
+  - labetalol
+  - aspirin_low_dose
+  - heparin_pregnancy
+  - Rh_immunoglobulin
+  - insulin_pregnancy
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - COP-2
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  - OB-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - fetal_data
+  rbac_roles:
+  - mfm_specialist
+  - fetal_medicine_specialist
+  - perinatal_nurse
+  - sonographer_mfm
+- code: DEP-038
+  code_short: urogyn
+  name_ar: النسائية البولية
+  name_en: Urogynecology
+  parent_group: obgyn
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  subspecialties:
+  - general
+  - pelvic_floor
+  - urinary_incontinence
+  - pelvic_organ_prolapse
+  - fistula_repair
+  conditions_top10:
+  - stress_incontinence
+  - urge_incontinence
+  - mixed_incontinence
+  - pelvic_organ_prolapse
+  - vesicovaginal_fistula
+  - rectovaginal_fistula
+  - urinary_retention
+  - recurrent_UTI_female
+  - overactive_bladder
+  - sexual_dysfunction_female
+  procedures_top20:
+  - midurethral_sling
+  - colporrhaphy
+  - hysterectomy_prolapse
+  - sacrocolpopexy
+  - fistula_repair
+  - botox_bladder
+  - tibial_nerve_stimulation
+  - pessary_placement
+  - urodynamic_study
+  - cystoscopy_urogyn
+  red_flags:
+  - obstructed_uropathy
+  - severe_prolapse_with_ulcer
+  - complicated_fistula
+  - urosepsis
+  - postoperative_complication_urogyn
+  scores:
+  - POP_Q
+  - UDI_6
+  - IIQ_7
+  - OAB_q
+  - PFDI_20
+  drugs_top:
+  - oxybutynin
+  - mirabegron
+  - duloxetine
+  - vaginal_estrogen
+  - topical_estrogen
+  - solifenacin
+  - tolterodine
+  - darifenacin
+  - fesoterodine
+  - trospium
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  cbahi_controls:
+  - CARE-1
+  - MM-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  rbac_roles:
+  - urogynecologist
+  - pelvic_floor_specialist
+  - urogyn_nurse
+- code: DEP-039
+  code_short: lab
+  name_ar: المختبر
+  name_en: Laboratory
+  parent_group: diagnostics
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - diagnostic_center
+  subspecialties:
+  - general
+  - clinical_chemistry
+  - microbiology
+  - hematology_lab
+  - immunology_lab
+  - molecular_lab
+  - blood_bank_lab
+  - toxicology_lab
+  - histopathology_lab
+  - genetics_lab
+  conditions_top10:
+  - anemia_workup
+  - diabetes_monitoring
+  - lipid_panel
+  - thyroid_workup
+  - infection_workup
+  - coagulation_workup
+  - liver_function_workup
+  - renal_function_workup
+  - cardiac_marker_workup
+  - tumor_marker_workup
+  procedures_top20:
+  - CBC
+  - lipid_panel
+  - HbA1c
+  - liver_function
+  - kidney_function
+  - thyroid_function
+  - coagulation_panel
+  - urinalysis
+  - blood_culture
+  - urine_culture
+  - stool_analysis
+  - hepatitis_panel
+  - HIV_test
+  - PSA
+  - troponin
+  - BNP
+  - vitamin_D
+  - ferritin
+  - Hb_electrophoresis
+  - PCR_testing
+  red_flags:
+  - critical_high_potassium
+  - critical_low_hemoglobin
+  - positive_blood_culture
+  - critical_high_troponin
+  - critical_low_platelets
+  scores:
+  - critical_values_protocol
+  - delta_check
+  - QC_westgard_rules
+  drugs_top:
+  - N_A_lab
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - QPS-3
+  - QPS-4
+  cbahi_controls:
+  - LAB-1
+  - LAB-2
+  - LAB-3
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - lab_results
+  rbac_roles:
+  - clinical_pathologist
+  - lab_technician
+  - microbiologist
+  - blood_bank_specialist
+- code: DEP-040
+  code_short: radiology
+  name_ar: الأشعة
+  name_en: Radiology
+  parent_group: diagnostics
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - diagnostic_center
+  subspecialties:
+  - general
+  - ct
+  - mri
+  - ultrasound
+  - mammography
+  - neuroradiology
+  - msk_radiology
+  - body_radiology
+  - pediatric_radiology
+  - emergency_radiology
+  conditions_top10:
+  - stroke_imaging
+  - trauma_imaging
+  - cancer_staging
+  - cardiac_imaging
+  - abdominal_imaging
+  - msk_imaging
+  - neuro_imaging
+  - breast_imaging
+  - vascular_imaging
+  - pediatric_imaging
+  procedures_top20:
+  - chest_xray
+  - abdominal_xray
+  - ct_head
+  - ct_chest
+  - ct_abdomen
+  - mri_brain
+  - mri_spine
+  - ultrasound_abdomen
+  - ultrasound_pelvic
+  - mammography
+  - doppler_study
+  - ct_angiography
+  - mr_angiography
+  - fluoroscopy
+  - barium_study
+  - ivp
+  - ct_guidance_biopsy
+  - US_guidance_biopsy
+  - DEXA_scan
+  - pet_ct
+  red_flags:
+  - aortic_dissection
+  - pulmonary_embolism
+  - ruptured_aneurysm
+  - tension_pneumothorax
+  - intracranial_hemorrhage
+  scores:
+  - BI_RADS
+  - PI_RADS
+  - LI_RADS
+  - TI_RADS
+  - lung_RADS
+  drugs_top:
+  - iohexol
+  - iodixanol
+  - gadolinium_contrast
+  - barium_sulfate
+  - saline_contrast
+  - glucagon
+  - buscopan
+  - lasix
+  - nitroglycerin
+  - oxygen
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - QPS-3
+  cbahi_controls:
+  - RAD-1
+  - RAD-2
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - dicom_images
+  rbac_roles:
+  - radiologist
+  - neuroradiologist
+  - msk_radiologist
+  - radiology_tech
+  - sonographer
+- code: DEP-041
+  code_short: ir
+  name_ar: الأشعة التداخلية
+  name_en: Interventional_Radiology
+  parent_group: diagnostics
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - vascular_ir
+  - non_vascular_ir
+  - neuro_ir
+  - oncologic_ir
+  - trauma_ir
+  conditions_top10:
+  - peripheral_artery_disease_ir
+  - aortic_aneurysm_ir
+  - GI_bleeding_ir
+  - tumor_ablation
+  - biliary_obstruction
+  - venous_thrombosis_ir
+  - dialysis_access_ir
+  - uterine_fibroids_ir
+  - pulmonary_embolism_ir
+  - stroke_ir
+  procedures_top20:
+  - angioplasty_ir
+  - stenting_ir
+  - embolization_ir
+  - TACE
+  - RFA_tumor
+  - cryoablation
+  - biopsy_ct_guided
+  - drainage_ct_guided
+  - nephrostomy_ir
+  - biliary_stent
+  - IVC_filter
+  - thrombectomy_ir
+  - uterine_fibroid_embolization
+  - varicocele_embolization
+  - dialysis_access_maintenance
+  red_flags:
+  - ruptured_AAA_ir
+  - contrast_nephropathy
+  - GI_bleeding_massive
+  - pulmonary_embolism_massive
+  - stroke_acute_ir
+  scores:
+  - TICI
+  - mRS
+  - NIHSS
+  - SVS_score
+  drugs_top:
+  - heparin_ir
+  - tPA_ir
+  - ondansetron
+  - fentanyl_ir
+  - midazolam_ir
+  - vancomycin_prophylaxis
+  - cefazolin_prophylaxis
+  - normal_saline_contrast
+  - iohexol
+  - iodixanol
+  jci_controls:
+  - IPSG-1
+  - IPSG-4
+  - MMU-1
+  cbahi_controls:
+  - RAD-1
+  - RAD-3
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - dicom_images
+  rbac_roles:
+  - interventional_radiologist
+  - ir_fellow
+  - ir_nurse
+  - ir_tech
+- code: DEP-042
+  code_short: nucmed
+  name_ar: الطب النووي
+  name_en: Nuclear_Medicine
+  parent_group: diagnostics
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - pet_imaging
+  - spect_imaging
+  - therapy_nuclear
+  - thyroid_nuclear
+  - bone_scan
+  conditions_top10:
+  - cancer_staging_nucmed
+  - bone_metastases_workup
+  - thyroid_cancer_nucmed
+  - hyperthyroidism_treatment
+  - neuroendocrine_tumor_imaging
+  - cardiac_perfusion_imaging
+  - renal_function_scan
+  - liver_function_scan
+  - infection_imaging
+  - dementia_imaging
+  procedures_top20:
+  - pet_ct
+  - bone_scan
+  - thyroid_scan
+  - MIBG_scan
+  - octreotide_scan
+  - renal_scan
+  - hepatobiliary_scan
+  - gastric_emptying_scan
+  - lung_perfusion_scan
+  - cardiac_perfusion_scan
+  - parathyroid_scan
+  - sentinel_node_mapping
+  - radioiodine_therapy
+  - lutetium_therapy
+  - yttrium_therapy
+  red_flags:
+  - thyroid_storm_post_rai
+  - radiation_exposure_accident
+  - severe_allergic_reaction_radiotracer
+  - bone_marrow_suppression_post_therapy
+  - radiation_safety_breach
+  scores:
+  - Deauville_criteria
+  - Krenning_score
+  - SUV_max
+  - ejection_fraction_nucmed
+  - GFR_nucmed
+  drugs_top:
+  - Tc_99m_pertechnetate
+  - I_131
+  - F_18_FDG
+  - Ga_68_dotatate
+  - In_111_pentetreotide
+  - Lu_177_dotatate
+  - I_131_MIBG
+  - Y_90_microspheres
+  - samarium_153
+  - strontium_89
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - FMS-1
+  - FMS-2
+  - FMS-3
+  cbahi_controls:
+  - RAD-1
+  - RAD-2
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - dicom_images
+  rbac_roles:
+  - nuclear_medicine_physician
+  - radiopharmacist
+  - nuclear_medicine_tech
+  - radiation_safety_officer
+- code: DEP-043
+  code_short: path
+  name_ar: علم الأمراض
+  name_en: Pathology
+  parent_group: diagnostics
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - diagnostic_center
+  subspecialties:
+  - general
+  - histopathology
+  - cytology
+  - molecular_pathology
+  - hematopathology
+  - dermatopathology
+  - neuropathology
+  - renal_pathology
+  - forensic_pathology
+  - clinical_pathology
+  conditions_top10:
+  - cancer_diagnosis
+  - lymphoma_classification
+  - leukemia_diagnosis
+  - melanoma_diagnosis
+  - breast_cancer_diagnosis
+  - GI_cancer_diagnosis
+  - renal_disease_diagnosis
+  - liver_disease_diagnosis
+  - transplant_rejection_diagnosis
+  - autoimmune_diagnosis
+  procedures_top20:
+  - histopathology_examination
+  - immunohistochemistry
+  - frozen_section
+  - cytology_examination
+  - FNAC
+  - bone_marrow_biopsy_examination
+  - molecular_testing_path
+  - FISH_test
+  - PCR_path
+  - flow_cytometry
+  - autopsy
+  - frozen_section_intraop
+  - special_stains_path
+  - electron_microscopy
+  - cytogenetics
+  red_flags:
+  - malignancy_diagnosis
+  - unexpected_finding_intraop
+  - transplant_rejection_acute
+  - aggressive_lymphoma
+  - leukemia_acute
+  scores:
+  - TNM_staging
+  - Gleason_score
+  - FIGO_stage
+  - Ann_Arbor
+  - ISN_RPS
+  drugs_top:
+  - N_A_path
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - QPS-3
+  - QPS-4
+  cbahi_controls:
+  - PATH-1
+  - PATH-2
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - pathology_images
+  - genetic_data
+  rbac_roles:
+  - pathologist
+  - hematopathologist
+  - molecular_pathologist
+  - pathologist_assistant
+  - histo_tech
+- code: DEP-044
+  code_short: psych
+  name_ar: الطب النفسي
+  name_en: Psychiatry
+  parent_group: mental_health
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - mental_health_center
+  - polyclinic
+  subspecialties:
+  - general
+  - child_adolescent_psych
+  - geriatric_psych
+  - addiction_psych
+  - forensic_psych
+  - consultation_liaison
+  - emergency_psych
+  conditions_top10:
+  - depression
+  - anxiety
+  - bipolar_disorder
+  - schizophrenia
+  - OCD
+  - PTSD
+  - eating_disorder
+  - substance_use_disorder
+  - ADHD
+  - dementia
+  procedures_top20:
+  - psychiatric_evaluation
+  - medication_management
+  - psychotherapy
+  - crisis_intervention
+  - ECT
+  - TMS
+  - ketamine_treatment
+  - inpatient_psychiatric_care
+  - substance_detox
+  - addiction_counseling
+  red_flags:
+  - suicidal_ideation
+  - homicidal_ideation
+  - acute_psychosis
+  - severe_mania
+  - serotonin_syndrome
+  scores:
+  - PHQ_9
+  - GAD_7
+  - Y_BOCS
+  - PCL_5
+  - AUDIT
+  - DAST
+  - MMSE
+  - MoCA
+  - GDS
+  - Hamilton_D
+  drugs_top:
+  - sertraline
+  - escitalopram
+  - fluoxetine
+  - venlafaxine
+  - mirtazapine
+  - quetiapine
+  - risperidone
+  - olanzapine
+  - aripiprazole
+  - lithium
+  - valproic_acid
+  - lamotrigine
+  - bupropion
+  - methylphenidate
+  - atomoxetine
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - MMU-2
+  - COP-4
+  - COP-5
+  cbahi_controls:
+  - PSY-1
+  - MM-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - mental_health_records
+  rbac_roles:
+  - psychiatrist
+  - addiction_specialist
+  - psychiatric_nurse
+  - psychologist
+  - social_worker
+- code: DEP-045
+  code_short: psychol
+  name_ar: علم النفس
+  name_en: Psychology
+  parent_group: mental_health
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - mental_health_center
+  - polyclinic
+  subspecialties:
+  - general
+  - clinical_psychology
+  - neuropsychology
+  - child_psychology
+  - health_psychology
+  - forensic_psychology
+  - sport_psychology
+  - rehabilitation_psychology
+  conditions_top10:
+  - depression_psych
+  - anxiety_psych
+  - trauma_psych
+  - adjustment_disorder
+  - bereavement
+  - relationship_issues
+  - stress_management
+  - behavioral_issues
+  - learning_disabilities
+  - chronic_illness_adjustment
+  procedures_top20:
+  - psychological_assessment
+  - psychotherapy_CBT
+  - psychotherapy_DBT
+  - psychotherapy_ACT
+  - family_therapy
+  - group_therapy
+  - crisis_counseling
+  - neuropsychological_testing
+  - behavioral_intervention
+  - mindfulness_therapy
+  red_flags:
+  - suicidal_risk
+  - acute_trauma_response
+  - severe_anxiety_panic
+  - dissociative_episode
+  - acute_psychosis_referral
+  scores:
+  - BDI
+  - BAI
+  - SCL_90
+  - MMPI_2
+  - WAIS
+  - WISC
+  drugs_top:
+  - N_A_psychology
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - COP-4
+  cbahi_controls:
+  - PSY-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - psychological_records
+  rbac_roles:
+  - clinical_psychologist
+  - neuropsychologist
+  - child_psychologist
+  - psychotherapist
+  - counseling_psychologist
+- code: DEP-046
+  code_short: pt
+  name_ar: العلاج الطبيعي
+  name_en: Physical_Therapy_Rehab
+  parent_group: rehabilitation
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - rehabilitation_center
+  - polyclinic
+  subspecialties:
+  - general
+  - orthopedic_pt
+  - neurological_pt
+  - cardiopulmonary_pt
+  - pediatric_pt
+  - geriatric_pt
+  - sports_pt
+  - aquatic_pt
+  - manual_therapy
+  - electrotherapy
+  conditions_top10:
+  - low_back_pain
+  - neck_pain
+  - osteoarthritis_pt
+  - stroke_rehab
+  - post_surgical_rehab
+  - sports_injury
+  - frozen_shoulder
+  - knee_injury_pt
+  - balance_disorders
+  - chronic_pain_pt
+  procedures_top20:
+  - manual_therapy_pt
+  - therapeutic_exercise
+  - electrotherapy_ultrasound
+  - hydrotherapy
+  - gait_training
+  - balance_training
+  - postural_correction
+  - ergonomic_assessment
+  - kinesiology_taping
+  - dry_needling
+  - McKenzie_method
+  - Mulligan_concept
+  - PNF_stretching
+  - strength_conditioning
+  - cardiac_rehab_program
+  red_flags:
+  - cauda_equina_referred
+  - acute_fracture_unstable
+  - DVT_suspected
+  - severe_neuropathy_progressive
+  - infection_open_wound
+  scores:
+  - Barthel_Index
+  - FIM
+  - Berg_Balance
+  - Oswestry
+  - DASH
+  drugs_top:
+  - N_A_pt
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  cbahi_controls:
+  - REH-1
+  - REH-2
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  rbac_roles:
+  - physical_therapist
+  - rehab_specialist
+  - orthopedic_pt
+  - neuro_pt
+  - sports_therapist
+- code: DEP-047
+  code_short: ot
+  name_ar: العلاج الوظيفي
+  name_en: Occupational_Therapy
+  parent_group: rehabilitation
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - rehabilitation_center
+  - polyclinic
+  - mental_health_center
+  subspecialties:
+  - general
+  - pediatric_ot
+  - geriatric_ot
+  - mental_health_ot
+  - hand_therapy
+  - neurological_ot
+  - sensory_integration_ot
+  - vocational_rehab
+  - driving_assessment
+  - home_modifications
+  conditions_top10:
+  - developmental_delay_ot
+  - autism_spectrum_ot
+  - sensory_processing_disorder
+  - stroke_rehab_ot
+  - traumatic_brain_injury_ot
+  - dementia_ot
+  - hand_injury_rehab
+  - learning_disabilities_ot
+  - work_injury_rehab
+  - burn_rehab_ot
+  procedures_top20:
+  - ADL_training
+  - fine_motor_skills_training
+  - sensory_integration_therapy
+  - hand_therapy_exercise
+  - splinting
+  - adaptive_equipment_assessment
+  - wheelchair_assessment
+  - cognitive_rehabilitation
+  - perceptual_training
+  - visual_perceptual_training
+  - environmental_modifications
+  - assistive_technology_training
+  red_flags:
+  - severe_developmental_regression
+  - suicidal_ideation_ot_session
+  - severe_sensory_overload
+  - aspiration_risk_during_feeding
+  - fall_risk_high_ot
+  scores:
+  - A_One
+  - COPM
+  - Sensory_Profile
+  - BOT_2
+  - Peabody_Dev_Motor
+  drugs_top:
+  - N_A_ot
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  cbahi_controls:
+  - REH-1
+  - REH-2
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - parent_info
+  rbac_roles:
+  - occupational_therapist
+  - hand_therapist
+  - pediatric_ot
+  - geriatric_ot
+  - mental_health_ot
+- code: DEP-048
+  code_short: medOnc
+  name_ar: الأورام الطبية
+  name_en: Medical_Oncology
+  parent_group: oncology
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - breast_oncology
+  - lung_oncology
+  - gi_oncology
+  - gyn_oncology
+  - hemato_oncology
+  - melanoma_oncology
+  - sarcoma_oncology
+  - neuro_oncology
+  - head_neck_oncology
+  conditions_top10:
+  - breast_cancer_onc
+  - lung_cancer_onc
+  - colorectal_cancer_onc
+  - prostate_cancer_onc
+  - ovarian_cancer_onc
+  - lymphoma_onc
+  - leukemia_onc
+  - melanoma_onc
+  - pancreatic_cancer_onc
+  - head_neck_cancer_onc
+  procedures_top20:
+  - chemotherapy_administration
+  - immunotherapy_administration
+  - targeted_therapy_administration
+  - hormone_therapy
+  - bone_marrow_transplant_onc
+  - clinical_trial_enrollment
+  - genetic_counseling_onc
+  - tumor_board_review
+  - palliative_chemotherapy
+  - survivorship_care_plan
+  - port_flush
+  - central_line_care_onc
+  - paracentesis_therapeutic
+  - thoracentesis_therapeutic
+  - lumbar_puncture_therapeutic
+  red_flags:
+  - neutropenic_fever_onc
+  - tumor_lysis_syndrome
+  - hypercalcemia_of_malignancy
+  - spinal_cord_compression_onc
+  - SVCS_onc
+  - brain_metastases_acute
+  scores:
+  - ECOG
+  - Karnofsky
+  - RECIST
+  - NCCN_risk_onc
+  - IPSS_onc
+  drugs_top:
+  - tamoxifen
+  - anastrozole
+  - letrozole
+  - cisplatin_onc
+  - carboplatin_onc
+  - paclitaxel_onc
+  - doxorubicin_onc
+  - cyclophosphamide_onc
+  - rituximab_onc
+  - trastuzumab_onc
+  - pembrolizumab
+  - nivolumab
+  - bevacizumab_onc
+  - erlotinib
+  - imatinib_onc
+  jci_controls:
+  - IPSG-1
+  - IPSG-3
+  - MMU-1
+  - MMU-2
+  - COP-1
+  - COP-2
+  cbahi_controls:
+  - ONC-1
+  - MM-1
+  - MM-2
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - genetic_data
+  rbac_roles:
+  - medical_oncologist
+  - oncology_nurse
+  - oncology_pharmacist
+  - genetic_counselor_onc
+- code: DEP-049
+  code_short: radOnc
+  name_ar: علاج الأورام بالإشعاع
+  name_en: Radiation_Oncology
+  parent_group: oncology
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  subspecialties:
+  - general
+  - external_beam_rt
+  - brachytherapy
+  - stereotactic_rt
+  - proton_therapy
+  - intraoperative_rt
+  - palliative_rt
+  - total_body_irradiation
+  conditions_top10:
+  - breast_cancer_rt
+  - prostate_cancer_rt
+  - lung_cancer_rt
+  - head_neck_cancer_rt
+  - brain_tumor_rt
+  - cervical_cancer_rt
+  - rectal_cancer_rt
+  - lymphoma_rt
+  - sarcoma_rt
+  - melanoma_rt
+  procedures_top20:
+  - EBRT_3D_conformal
+  - IMRT
+  - VMAT
+  - SBRT
+  - SRS
+  - brachytherapy_HDR
+  - brachytherapy_LDR
+  - total_body_irradiation
+  - intraoperative_rt
+  - proton_therapy_rt
+  - simulation_CT
+  - treatment_planning_rt
+  - immobilization_device
+  - image_guided_rt
+  - adaptive_rt
+  - hyperfractionated_rt
+  - hypofractionated_rt
+  - palliative_rt_course
+  - stereotactic_radiosurgery
+  - TBI_onc
+  red_flags:
+  - radiation_pneumonitis
+  - radiation_myelopathy
+  - severe_radiation_dermatitis
+  - brain_radiation_necrosis
+  - bowel_obstruction_post_rt
+  scores:
+  - RECIST
+  - RTOG_scoring
+  - CTCAE
+  - ECOG_rt
+  - Karnofsky_rt
+  drugs_top:
+  - amifostine
+  - dexamethasone_rt
+  - ondansetron_rt
+  - lorazepam_rt
+  - sucralfate
+  - mesalamine
+  - loperamide
+  - diphenoxylate
+  - topical_steroid
+  - sunscreen
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - MMU-2
+  - COP-1
+  - FMS-1
+  - FMS-2
+  - FMS-3
+  cbahi_controls:
+  - ONC-1
+  - ONC-2
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - ct_simulation_images
+  rbac_roles:
+  - radiation_oncologist
+  - medical_physicist
+  - dosimetrist
+  - radiation_therapist
+- code: DEP-050
+  code_short: palliative
+  name_ar: الرعاية التلطيفية
+  name_en: Palliative_Care
+  parent_group: oncology
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - home_healthcare_unit
+  subspecialties:
+  - general
+  - oncology_palliative
+  - hospice_palliative
+  - geriatric_palliative
+  - pediatric_palliative
+  - cardiac_palliative
+  - neuro_palliative
+  - pulmonary_palliative
+  - renal_palliative
+  conditions_top10:
+  - advanced_cancer_pall
+  - end_stage_heart_failure_pall
+  - end_stage_COPD_pall
+  - end_stage_renal_disease_pall
+  - advanced_dementia_pall
+  - advanced_ALS_pall
+  - advanced_HIV_pall
+  - advanced_liver_failure_pall
+  - advanced_Parkinson_pall
+  - end_of_life_general
+  procedures_top20:
+  - pain_management_palliative
+  - dyspnea_management_palliative
+  - nausea_management_palliative
+  - delirium_management_palliative
+  - anxiety_management_palliative
+  - advance_care_planning
+  - end_of_life_discussion
+  - hospice_referral
+  - family_meeting_palliative
+  - spiritual_care
+  - grief_counseling
+  - palliative_chemotherapy_decision
+  - palliative_sedation
+  - palliative_radiotherapy_decision
+  - withdrawal_of_care_discussion
+  - do_not_resuscitate_discussion
+  - palliative_care_referral
+  - home_hospice_setup
+  - respite_care_arrangement
+  - bereavement_support
+  red_flags:
+  - terminal_agitation
+  - severe_pain_breakthrough
+  - opioid_overdose_pall
+  - suicidal_ideation_pall
+  - severe_dyspnea_terminal
+  scores:
+  - ESAS
+  - PPS
+  - Karnofsky_pall
+  - Edmonton_Symptom_Assessment
+  - Palliative_Prognostic_Score
+  - PPI
+  drugs_top:
+  - morphine_pall
+  - fentanyl_pall
+  - oxycodone_pall
+  - hydromorphone_pall
+  - methadone_pall
+  - haloperidol_pall
+  - midazolam_pall
+  - levomepromazine_pall
+  - glycopyrrolate_pall
+  - octreotide_pall
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - MMU-2
+  - COP-4
+  - COP-5
+  cbahi_controls:
+  - PC-1
+  - MM-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - end_of_life_records
+  rbac_roles:
+  - palliative_care_physician
+  - hospice_physician
+  - palliative_nurse
+  - social_worker_pall
+  - chaplain
+- code: DEP-051
+  code_short: anesth
+  name_ar: التخدير
+  name_en: Anesthesia
+  parent_group: anesthesia
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  subspecialties:
+  - general
+  - regional_anesthesia
+  - obstetric_anesthesia
+  - cardiac_anesthesia
+  - neuro_anesthesia
+  - pediatric_anesthesia
+  - ambulatory_anesthesia
+  - critical_care_anesthesia
+  - pain_anesthesia
+  conditions_top10:
+  - pre_op_evaluation
+  - intra_op_anesthesia
+  - post_op_pain
+  - regional_block
+  - difficult_airway
+  - malignant_hyperthermia
+  - anaphylaxis_anesthesia
+  - local_anesthetic_toxicity
+  - awareness_under_anesthesia
+  - post_op_nausea_vomiting
+  procedures_top20:
+  - general_anesthesia
+  - spinal_anesthesia
+  - epidural_anesthesia
+  - regional_block_peripheral
+  - central_neuraxial_block
+  - fiberoptic_intubation
+  - difficult_airway_management
+  - arterial_line_placement
+  - central_line_anesthesia
+  - blood_pressure_invasive
+  - intra_op_monitoring
+  - TEE_intraop
+  - fluid_management
+  - blood_transfusion_intraop
+  - postoperative_pain_management
+  - regional_catheter_placement
+  - peripheral_nerve_block
+  - IV_access_difficult
+  - preoperative_assessment
+  - post_anesthesia_care
+  red_flags:
+  - malignant_hyperthermia_acute
+  - anaphylaxis_anesthesia
+  - local_anesthetic_toxicity
+  - difficult_airway_cannot_intubate
+  - intraop_cardiac_arrest
+  scores:
+  - ASA
+  - Mallampati
+  - Apgar
+  - Aldrete
+  - PADSS
+  - Cormack_Lehane
+  drugs_top:
+  - propofol
+  - sevoflurane
+  - desflurane
+  - midazolam
+  - fentanyl_anesthesia
+  - morphine_anesthesia
+  - remifentanil
+  - rocuronium
+  - succinylcholine
+  - sugammadex
+  - neostigmine
+  - ephedrine
+  - phenylephrine_anesthesia
+  - ondansetron_anesthesia
+  - dexmedetomidine
+  jci_controls:
+  - IPSG-1
+  - IPSG-4
+  - MMU-1
+  - MMU-2
+  - COP-1
+  cbahi_controls:
+  - ANE-1
+  - ANE-2
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - anesthesia_record
+  rbac_roles:
+  - anesthesiologist
+  - crna
+  - anesthesiologist_assistant
+  - anesthesia_tech
+- code: DEP-052
+  code_short: pain
+  name_ar: علاج الألم
+  name_en: Pain_Management
+  parent_group: anesthesia
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - polyclinic
+  - specialty_center
+  subspecialties:
+  - general
+  - acute_pain
+  - chronic_pain
+  - cancer_pain
+  - neuropathic_pain
+  - interventional_pain
+  - pediatric_pain
+  - palliative_pain
+  - headache_pain
+  - spine_pain
+  conditions_top10:
+  - low_back_pain_pain
+  - neck_pain_pain
+  - osteoarthritis_pain
+  - neuropathic_pain
+  - fibromyalgia
+  - migraine_chronic
+  - complex_regional_pain
+  - post_herpetic_neuralgia
+  - cancer_pain_chronic
+  - trigeminal_neuralgia
+  procedures_top20:
+  - epidural_steroid_injection
+  - facet_joint_injection
+  - sacroiliac_joint_injection
+  - radiofrequency_ablation_pain
+  - spinal_cord_stimulator
+  - intrathecal_pump
+  - peripheral_nerve_block_pain
+  - sympathetic_block
+  - trigger_point_injection
+  - botox_injection_pain
+  - ketamine_infusion
+  - lidocaine_infusion
+  - nerve_ablation
+  - vertebral_augmentation
+  - percutaneous_disc_decompression
+  - joint_injection_pain
+  - acupuncture
+  - TENS_therapy
+  - cognitive_behavioral_therapy_pain
+  - physical_therapy_pain
+  red_flags:
+  - cauda_equina_acute
+  - spinal_cord_compression_pain
+  - intracranial_hypertension
+  - intrathecal_pump_malfunction
+  - opioid_overdose_pain
+  scores:
+  - VAS
+  - NRS
+  - BPI
+  - ODI
+  - MPQ
+  - EQ_5D
+  - PCS
+  - PASS_20
+  drugs_top:
+  - gabapentin
+  - pregabalin
+  - duloxetine
+  - amitriptyline
+  - tramadol_pain
+  - oxycodone_pain
+  - morphine_pain
+  - fentanyl_patch
+  - lidocaine_patch
+  - capsaicin
+  - ketamine_oral
+  - baclofen
+  - tizanidine
+  - methylprednisolone_pain
+  - celecoxib_pain
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - MMU-2
+  cbahi_controls:
+  - PM-1
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - pain_records
+  rbac_roles:
+  - pain_specialist
+  - anesthesiologist_pain
+  - interventional_pain_physician
+  - pain_nurse
+  - pain_psychologist
+- code: DEP-053
+  code_short: pharmacy
+  name_ar: الصيدلية
+  name_en: Pharmacy
+  parent_group: operational
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - polyclinic
+  subspecialties:
+  - general
+  - inpatient_pharmacy
+  - retail_pharmacy
+  - clinical_pharmacy
+  - oncology_pharmacy
+  - nuclear_pharmacy
+  - compounding_pharmacy
+  - iv_admixture
+  conditions_top10:
+  - medication_safety
+  - drug_interaction
+  - allergy_check
+  - renal_dose_adjustment
+  - hepatic_dose_adjustment
+  - antimicrobial_stewardship
+  - formulary_management
+  - controlled_substance_management
+  - pharmacovigilance
+  - medication_reconciliation
+  procedures_top20:
+  - prescription_verification
+  - dispensing
+  - iv_admixture
+  - chemotherapy_admixing
+  - total_parenteral_nutrition
+  - unit_dose_distribution
+  - controlled_substance_distribution
+  - barcode_medication_administration
+  - drug_information_query
+  - pharmacokinetic_dosing
+  - warfarin_dosing
+  - vancomycin_dosing
+  - aminoglycoside_dosing
+  - renal_dose_adjustment
+  - hepatic_dose_adjustment
+  - medication_reconciliation
+  - adverse_drug_reaction_reporting
+  - medication_error_reporting
+  - drug_use_evaluation
+  - formulary_review
+  red_flags:
+  - medication_error_severe
+  - anaphylactic_drug_reaction
+  - narrow_therapeutic_index_toxicity
+  - controlled_substance_diversion
+  - look_alike_sound_alike_error
+  scores:
+  - medication_adherence_rate
+  - medication_error_rate
+  - BCMA_compliance
+  - ADR_rate
+  - antimicrobial_stewardship_metrics
+  drugs_top:
+  - warfarin_pharm
+  - methotrexate_pharm
+  - digoxin_pharm
+  - phenytoin_pharm
+  - theophylline_pharm
+  - lithium_pharm
+  - aminoglycosides
+  - vancomycin_pharm
+  - amphotericin_pharm
+  - chemotherapy_agents_pharm
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - MMU-2
+  - MMU-3
+  - MMU-4
+  - MMU-5
+  - MMU-6
+  - MMU-7
+  cbahi_controls:
+  - PHARM-1
+  - PHARM-2
+  - PHARM-3
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - medication_records
+  rbac_roles:
+  - pharmacist
+  - clinical_pharmacist
+  - oncology_pharmacist
+  - pharmacy_technician
+  - pharmacy_aide
+- code: DEP-054
+  code_short: inventory
+  name_ar: المخزون وسلسلة الإمداد
+  name_en: Inventory_Supply_Chain
+  parent_group: operational
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - polyclinic
+  subspecialties:
+  - general
+  - medical_supplies
+  - surgical_supplies
+  - pharmaceutical_inventory
+  - equipment_inventory
+  - blood_bank_inventory
+  - sterilization_supply
+  - sterile_processing
+  conditions_top10:
+  - stockout_critical
+  - expiry_management
+  - recall_management
+  - par_level_optimization
+  - vendor_management
+  - consignment_inventory
+  - just_in_time_inventory
+  - cycle_counting
+  - inventory_valuation
+  - dead_stock_management
+  procedures_top20:
+  - purchase_order_creation
+  - goods_receipt
+  - putaway
+  - picking
+  - packing
+  - shipping
+  - cycle_counting
+  - physical_inventory
+  - stock_adjustment
+  - transfer_order
+  - return_to_vendor
+  - slow_moving_report
+  - expiry_report
+  - recall_process
+  - vendor_evaluation
+  - contract_management
+  - demand_forecasting
+  - par_level_review
+  - ABC_analysis
+  - FSN_analysis
+  red_flags:
+  - critical_drug_stockout
+  - expired_drug_in_stock
+  - recalled_product_in_use
+  - blood_product_shortage
+  - surgical_supply_shortage
+  scores:
+  - stockout_rate
+  - expiry_rate
+  - inventory_turnover
+  - carrying_cost
+  - dead_stock_percentage
+  drugs_top:
+  - N_A_inventory
+  jci_controls:
+  - IPSG-1
+  - MMU-1
+  - FMS-4
+  - FMS-5
+  - FMS-6
+  cbahi_controls:
+  - SC-1
+  - SC-2
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - vendor_data
+  - financial_data
+  rbac_roles:
+  - pharmacy_supply_chain_manager
+  - materials_manager
+  - buyer
+  - storekeeper
+  - inventory_controller
+- code: DEP-055
+  code_short: finance
+  name_ar: المالية والمحاسبة
+  name_en: Finance_Accounting
+  parent_group: operational
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - polyclinic
+  - all_facilities
+  subspecialties:
+  - general
+  - accounts_payable
+  - accounts_receivable
+  - general_ledger
+  - payroll
+  - fixed_assets
+  - treasury
+  - budgeting
+  - financial_reporting
+  - cost_accounting
+  conditions_top10:
+  - cash_flow_management
+  - accounts_receivable_aging
+  - accounts_payable_management
+  - payroll_processing
+  - budget_variance_analysis
+  - fixed_asset_management
+  - financial_close_monthly
+  - audit_readiness
+  - tax_compliance
+  - ZATCA_compliance
+  procedures_top20:
+  - journal_entry
+  - accounts_payable_invoice
+  - accounts_receivable_invoice
+  - payment_processing
+  - payroll_calculation
+  - bank_reconciliation
+  - fixed_asset_depreciation
+  - budget_variance_analysis
+  - financial_statement_preparation
+  - ZATCA_invoice_generation
+  - vendor_payment
+  - customer_payment
+  - expense_report
+  - petty_cash_management
+  - accrual_recognition
+  - deferred_revenue
+  - prepaid_expense
+  - intercompany_transaction
+  - currency_revaluation
+  - financial_audit_response
+  red_flags:
+  - fraud_detection
+  - budget_breach_severe
+  - going_concern_issues
+  - ZATCA_non_compliance
+  - regulatory_penalty_risk
+  scores:
+  - current_ratio
+  - debt_to_equity
+  - days_sales_outstanding
+  - days_payable_outstanding
+  - inventory_turnover_finance
+  - gross_margin
+  - operating_margin
+  - return_on_assets
+  - EBITDA
+  - working_capital_ratio
+  drugs_top:
+  - N_A_finance
+  jci_controls:
+  - FMS-4
+  - FMS-5
+  - FMS-6
+  - FMS-7
+  cbahi_controls:
+  - FIN-1
+  - FIN-2
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - financial_data
+  - vendor_data
+  - employee_salary
+  rbac_roles:
+  - cfo
+  - finance_manager
+  - accountant
+  - accounts_payable_clerk
+  - accounts_receivable_clerk
+  - payroll_specialist
+- code: DEP-056
+  code_short: hr
+  name_ar: الموارد البشرية
+  name_en: HR_Staffing
+  parent_group: operational
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - all_facilities
+  subspecialties:
+  - general
+  - recruitment
+  - onboarding
+  - training_development
+  - performance_management
+  - compensation_benefits
+  - employee_relations
+  - hr_analytics
+  - workforce_planning
+  - employee_wellness
+  conditions_top10:
+  - staff_shortage
+  - high_turnover
+  - recruitment_challenge
+  - training_compliance
+  - performance_issues
+  - employee_grievance
+  - compensation_review
+  - workforce_planning
+  - succession_planning
+  - employee_engagement
+  procedures_top20:
+  - job_posting
+  - candidate_screening
+  - interview
+  - onboarding
+  - training_enrollment
+  - performance_review
+  - salary_review
+  - promotion
+  - disciplinary_action
+  - termination
+  - leave_management
+  - attendance_tracking
+  - employee_records
+  - contract_management
+  - gosi_registration
+  - muqeem_registration
+  - scfhs_credentialing
+  - saudization_compliance
+  - hr_reporting
+  - employee_survey
+  red_flags:
+  - employee_grievance_severe
+  - mass_resignation_event
+  - harassment_complaint
+  - regulatory_violation_hr
+  - workforce_crisis
+  scores:
+  - employee_turnover_rate
+  - time_to_hire
+  - training_completion_rate
+  - employee_satisfaction
+  - saudization_percentage
+  - retention_rate
+  - absenteeism_rate
+  - overtime_hours_per_employee
+  - employee_engagement_score
+  - performance_review_completion
+  drugs_top:
+  - N_A_hr
+  jci_controls:
+  - SQE-1
+  - SQE-2
+  - SQE-3
+  - SQE-4
+  - SQE-5
+  - SQE-6
+  - SQE-7
+  - SQE-8
+  cbahi_controls:
+  - HR-1
+  - HR-2
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - national_id
+  - salary
+  - employee_records
+  rbac_roles:
+  - hr_director
+  - hr_manager
+  - recruiter
+  - training_coordinator
+  - hr_specialist
+- code: DEP-057
+  code_short: billing
+  name_ar: الفوترة والترميز
+  name_en: Billing_Coding
+  parent_group: operational
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - polyclinic
+  - all_facilities
+  subspecialties:
+  - general
+  - inpatient_billing
+  - outpatient_billing
+  - ed_billing
+  - surgical_billing
+  - professional_coding
+  - facility_coding
+  - denial_management
+  conditions_top10:
+  - claim_denial
+  - undercoding
+  - overcoding
+  - unbilled_services
+  - late_billing
+  - ZATCA_non_compliance
+  - NPHIES_rejection
+  - charge_capture_issue
+  - coding_audit_finding
+  - payer_specific_denial
+  procedures_top20:
+  - charge_capture
+  - code_assignment_CPT
+  - code_assignment_ICD_10
+  - code_assignment_HCPCS
+  - claim_submission
+  - claim_resubmission
+  - denial_appeal
+  - payment_posting
+  - account_followup
+  - write_off_process
+  - refund_process
+  - ZATCA_invoice_generation
+  - NPHIES_claim_submission
+  - batch_billing
+  - individual_billing
+  - recurring_billing
+  - insurance_verification
+  - prior_authorization
+  - coding_audit
+  - revenue_cycle_analytics
+  red_flags:
+  - claim_denial_high_value
+  - coding_fraud_allegation
+  - ZATCA_penalty_risk
+  - payer_audit_finding
+  - charge_master_error_critical
+  scores:
+  - denial_rate
+  - days_in_AR
+  - clean_claim_rate
+  - first_pass_resolution_rate
+  - net_collection_rate
+  - gross_collection_rate
+  - charge_lag_days
+  - coding_accuracy_rate
+  - cost_to_collect
+  - revenue_per_encounter
+  drugs_top:
+  - N_A_billing
+  jci_controls:
+  - FMS-7
+  - ACC-1
+  - ACC-2
+  cbahi_controls:
+  - BILL-1
+  - BILL-2
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - billing_data
+  - insurance_data
+  rbac_roles:
+  - biller
+  - medical_coder
+  - denial_specialist
+  - billing_manager
+  - revenue_cycle_specialist
+- code: DEP-058
+  code_short: insurance
+  name_ar: التأمين والمطالبات
+  name_en: Insurance_Claims_NPHIES
+  parent_group: operational
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - all_facilities
+  subspecialties:
+  - general
+  - pre_authorization
+  - claims_management
+  - denial_management
+  - payer_relations
+  - network_management
+  - eligibility_verification
+  - coordination_of_benefits
+  - fraud_detection
+  - subrogation
+  conditions_top10:
+  - claim_denial_insurance
+  - prior_auth_denial
+  - eligibility_issue
+  - network_out
+  - coordination_of_benefits
+  - fraud_detection_case
+  - subrogation_case
+  - payer_contract_dispute
+  - claim_appeal_required
+  - chronic_condition_management_insurance
+  procedures_top20:
+  - eligibility_verification
+  - prior_authorization_request
+  - prior_authorization_followup
+  - claim_submission_nphies
+  - claim_status_inquiry
+  - claim_resubmission
+  - denial_appeal_nphies
+  - payment_reconciliation
+  - contract_management_insurance
+  - network_management
+  - payer_meeting
+  - fraud_investigation
+  - coordination_of_benefits_calc
+  - subrogation_recovery
+  - member_services_call
+  - grievance_handling
+  - premium_reconciliation
+  - capitation_reconciliation
+  - fee_schedule_management
+  - payer_reporting
+  red_flags:
+  - claim_denial_high_value_nphies
+  - prior_authorization_emergency_denial
+  - network_out_emergency
+  - fraud_allegation_severe
+  - payer_termination_threat
+  scores:
+  - denial_rate_nphies
+  - days_in_AR_nphies
+  - prior_auth_approval_rate
+  - network_adequacy
+  - member_satisfaction
+  - claim_accuracy_nphies
+  - payment_cycle_time
+  - cost_per_claim
+  - revenue_per_member
+  - loss_ratio
+  drugs_top:
+  - N_A_insurance
+  jci_controls:
+  - ACC-1
+  - ACC-2
+  cbahi_controls:
+  - INS-1
+  - INS-2
+  - PR-1
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - insurance_data
+  - claims_data
+  rbac_roles:
+  - insurance_coordinator
+  - claims_specialist
+  - denial_specialist
+  - network_manager
+  - member_services_rep
+- code: DEP-059
+  code_short: quality
+  name_ar: الجودة وسلامة المرضى
+  name_en: Quality_Safety
+  parent_group: operational
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - all_facilities
+  subspecialties:
+  - general
+  - clinical_quality
+  - patient_safety
+  - infection_control_quality
+  - accreditation_quality
+  - risk_management
+  - performance_improvement
+  - patient_experience
+  - outcome_measurement
+  - sentinel_event_review
+  conditions_top10:
+  - sentinel_event
+  - near_miss_event
+  - healthcare_associated_infection
+  - pressure_injury_hospital
+  - fall_with_injury_hospital
+  - medication_error_severe
+  - wrong_site_surgery
+  - retained_foreign_object
+  - transfusion_reaction
+  - hospital_acquired_condition
+  procedures_top20:
+  - sentinel_event_review
+  - RCA_root_cause_analysis
+  - FMEA_failure_mode_analysis
+  - infection_surveillance_quality
+  - pressure_injury_assessment
+  - fall_risk_assessment
+  - medication_safety_review
+  - hand_hygiene_audit
+  - antibiotic_stewardship_audit
+  - near_miss_reporting
+  - incident_reporting
+  - accreditation_preparation
+  - mock_survey
+  - quality_metric_collection
+  - performance_improvement_project
+  - patient_satisfaction_survey
+  - staff_compliance_audit
+  - environment_of_care_round
+  - clinical_pathway_audit
+  - evidence_based_practice_review
+  red_flags:
+  - sentinel_event_acute
+  - RCA_revealing_systemic_issue
+  - near_miss_high_severity
+  - accreditation_failure_risk
+  - regulatory_action_threat
+  scores:
+  - HSMR
+  - readmission_rate_quality
+  - mortality_rate_quality
+  - HAI_rate
+  - pressure_injury_rate
+  - fall_rate
+  - CAUTI_rate
+  - CLABSI_rate
+  - SSI_rate
+  - hand_hygiene_compliance
+  - patient_satisfaction_score
+  - staff_compliance_rate
+  - near_miss_rate
+  - incident_rate_per_1000_patient_days
+  - RCA_completion_rate
+  drugs_top:
+  - N_A_quality
+  jci_controls:
+  - QPS-1
+  - QPS-2
+  - QPS-3
+  - QPS-4
+  - QPS-5
+  - QPS-6
+  - QPS-7
+  - QPS-8
+  - QPS-9
+  - QPS-10
+  - QPS-11
+  - IPSG-1
+  - IPSG-2
+  - IPSG-3
+  - IPSG-4
+  - IPSG-5
+  - IPSG-6
+  cbahi_controls:
+  - QPS-1
+  - QPS-2
+  - PR-1
+  - SS-1
+  - SS-2
+  - SS-3
+  - SS-4
+  - SS-5
+  pdpl_pii_categories:
+  - name
+  - mrn
+  - dob
+  - incident_records
+  rbac_roles:
+  - quality_director
+  - patient_safety_officer
+  - infection_control_practitioner
+  - risk_manager
+  - accreditation_coordinator
+- code: DEP-060
+  code_short: facility
+  name_ar: إدارة المنشأة
+  name_en: Facility_Biomedical_Management
+  parent_group: operational
+  facility_types:
+  - medical_city
+  - tertiary_hospital
+  - general_hospital
+  - all_facilities
+  subspecialties:
+  - general
+  - biomedical_engineering
+  - maintenance
+  - housekeeping
+  - laundry
+  - catering_facility
+  - security
+  - parking
+  - biomedical_equipment
+  - facility_safety
+  conditions_top10:
+  - equipment_breakdown
+  - equipment_recall
+  - preventive_maintenance_overdue
+  - facility_safety_hazard
+  - housekeeping_complaint
+  - laundry_quality_issue
+  - catering_quality_issue
+  - security_incident
+  - parking_congestion
+  - biomedical_calibration_needed
+  procedures_top20:
+  - work_order_management
+  - preventive_maintenance_scheduling
+  - equipment_repair
+  - equipment_calibration
+  - equipment_validation
+  - equipment_recall_response
+  - facility_round
+  - safety_inspection
+  - housekeeping_quality_audit
+  - laundry_quality_audit
+  - food_safety_audit
+  - security_patrol
+  - parking_management
+  - vendor_management_facility
+  - contract_management_facility
+  - energy_management
+  - waste_management
+  - biomedical_waste_disposal
+  - fire_safety_check
+  - emergency_drills_facility
+  red_flags:
+  - critical_equipment_breakdown
+  - equipment_recall_safety_risk
+  - fire_safety_hazard
+  - biomedical_waste_spill
+  - security_breach_active
+  scores:
+  - equipment_uptime
+  - PM_completion_rate
+  - equipment_repair_response_time
+  - housekeeping_audit_score
+  - laundry_quality_score
+  - catering_satisfaction
+  - security_incident_rate
+  - energy_consumption_per_bed
+  - waste_per_bed
+  - fire_safety_compliance
+  drugs_top:
+  - N_A_facility
+  jci_controls:
+  - FMS-1
+  - FMS-2
+  - FMS-3
+  - FMS-4
+  - FMS-5
+  - FMS-6
+  - FMS-7
+  cbahi_controls:
+  - FAC-1
+  - FAC-2
+  - PR-1
+  pdpl_pii_categories:
+  - vendor_data
+  - equipment_records
+  - employee_records
+  rbac_roles:
+  - facility_manager
+  - biomedical_engineer
+  - maintenance_technician
+  - housekeeping_supervisor
+  - security_supervisor

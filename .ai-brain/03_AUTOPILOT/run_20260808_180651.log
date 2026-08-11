@@ -1,0 +1,34 @@
+Traceback (most recent call last):
+  File "C:\Users\ice\Desktop\NMEDCALVSCODE\.ai-brain\03_AUTOPILOT\nm-ultimate-blueprint-factory.py", line 2107, in generate_dept
+    content = render_file(template_str, dept, generated_at)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ice\Desktop\NMEDCALVSCODE\.ai-brain\03_AUTOPILOT\nm-ultimate-blueprint-factory.py", line 2068, in render_file
+    tmpl = Template(template_str)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ice\AppData\Roaming\Python\Python312\site-packages\jinja2\environment.py", line 1214, in __new__
+    return env.from_string(source, template_class=cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ice\AppData\Roaming\Python\Python312\site-packages\jinja2\environment.py", line 1111, in from_string
+    return cls.from_code(self, self.compile(source), gs, None)
+                               ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ice\AppData\Roaming\Python\Python312\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "C:\Users\ice\AppData\Roaming\Python\Python312\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "<unknown>", line 8, in template
+jinja2.exceptions.TemplateSyntaxError: expected token 'end of print statement', got '['
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\ice\Desktop\NMEDCALVSCODE\.ai-brain\03_AUTOPILOT\nm-ultimate-blueprint-factory.py", line 2151, in <module>
+    main()
+  File "C:\Users\ice\Desktop\NMEDCALVSCODE\.ai-brain\03_AUTOPILOT\nm-ultimate-blueprint-factory.py", line 2143, in main
+    files = generate_dept(d, out_root, generated_at)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ice\Desktop\NMEDCALVSCODE\.ai-brain\03_AUTOPILOT\nm-ultimate-blueprint-factory.py", line 2112, in generate_dept
+    print(f"  \ufffd\ufe0f Failed: {filename}: {e}")
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 2-3: character maps to <undefined>

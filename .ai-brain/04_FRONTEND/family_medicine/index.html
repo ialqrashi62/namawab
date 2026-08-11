@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title data-i18n="family_medicine.page_title">طب الأسرة · NamaMedical</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="/css/nama-tokens.css">
+
+<style>
+  :root {
+    --md-ref-typeface-brand: 'Cairo','Roboto',sans-serif;
+    --md-sys-color-primary: #006B5F;
+    --md-sys-color-on-primary: #FFFFFF;
+    --md-sys-color-surface: #FAFDFB;
+    --md-sys-color-on-surface: #191C1B;
+    --md-sys-color-outline: #6F7978;
+    --md-sys-shape-corner-medium: 12px;
+    --md-sys-shape-corner-large: 16px;
+    --md-sys-elevation-1: 0 1px 2px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.06);
+    --md-sys-elevation-2: 0 2px 6px rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.06);
+  }
+  html[lang="en"], html[lang="fr"] { --md-ref-typeface-brand: 'Roboto','Cairo',sans-serif; }
+  body { font-family: var(--md-ref-typeface-brand); margin: 0;
+         background: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); }
+  .md-btn { display: inline-flex; gap: 8px; padding: 10px 24px; border-radius: 999px;
+            font-weight: 500; cursor: pointer; transition: background .15s; }
+  .md-btn-filled { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); border: 0; }
+  .md-btn-filled:hover { box-shadow: var(--md-sys-elevation-2); }
+  .md-card { background: white; border-radius: var(--md-sys-shape-corner-large);
+             padding: 24px; box-shadow: var(--md-sys-elevation-1); margin-bottom: 16px; }
+  .md-card-title { margin: 0 0 8px; font-size: 18px; font-weight: 600; }
+  .md-card-sub { margin: 0; font-size: 14px; color: var(--md-sys-color-outline); }
+  .md-shell { display: grid; grid-template-rows: 64px 1fr; min-height: 100vh; }
+  .md-app-bar { display: flex; align-items: center; padding: 0 24px; gap: 16px;
+                background: white; border-bottom: 1px solid rgba(0,0,0,.06); }
+  .md-app-bar h1 { font-size: 18px; margin: 0; font-weight: 600; }
+  .md-content { padding: 24px; max-width: 1200px; margin: 0 auto; }
+  .md-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap: 16px; }
+  .md-lang-toggle { margin-inline-start: auto; display: flex; gap: 4px; }
+  .md-lang-toggle button { background: transparent; border: 1px solid var(--md-sys-color-outline);
+                           border-radius: 999px; padding: 4px 12px; cursor: pointer; font-weight: 500; }
+  .md-lang-toggle button.active { background: var(--md-sys-color-primary); color: white; border-color: var(--md-sys-color-primary); }
+  .md-foot { padding: 16px 24px; text-align: center; font-size: 12px; color: var(--md-sys-color-outline); }
+</style>
+</head>
+<body>
+<div class="md-shell">
+  <header class="md-app-bar">
+    <span style="font-size:24px">🏠</span>
+    <h1 data-i18n="family_medicine.page_title">طب الأسرة</h1>
+    <div class="md-lang-toggle">
+      <button id="btn-ar" class="active" onclick="setLang('ar')">عربي</button>
+      <button id="btn-en" onclick="setLang('en')">EN</button>
+      <button id="btn-fr" onclick="setLang('fr')">FR</button>
+      <button id="btn-ur" onclick="setLang('ur')">UR</button>
+    </div>
+  </header>
+
+  <main class="md-content">
+    <div class="md-grid">
+      <div class="md-card">
+        <h3 class="md-card-title" data-i18n="family_medicine.overview">نظرة عامة</h3>
+        <p class="md-card-sub">مرضى اليوم، الزيارات المجدولة، التطعيمات المستحقة</p>
+        <p style="font-size:32px;font-weight:700;color:var(--md-sys-color-primary);margin:8px 0">—</p>
+      </div>
+      <div class="md-card">
+        <h3 class="md-card-title" data-i18n="family_medicine.recent">النشاط الأخير</h3>
+        <p class="md-card-sub">آخر 5 زيارات، فحوصات، تطعيمات</p>
+      </div>
+      <div class="md-card">
+        <h3 class="md-card-title" data-i18n="family_medicine.preventive">الفحوصات الوقائية</h3>
+        <p class="md-card-sub">توصيات USPSTF للفحص المبكر</p>
+        <button class="md-btn md-btn-filled" onclick="window.location='form.html'" data-i18n="family_medicine.start_visit">ابدأ زيارة</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="md-foot">NamaMedical · طب الأسرة</footer>
+</div>
+
+<script src="/js/nama-i18n.js"></script>
+<script src="/js/nama-api.js"></script>
+<script>
+  async function setLang(lang) {
+      localStorage.setItem('nama_lang', lang);
+      document.documentElement.dir = (lang === 'ar' || lang === 'ur') ? 'rtl' : 'ltr';
+      document.documentElement.lang = lang;
+      document.querySelectorAll('.md-lang-toggle button').forEach(b => b.classList.remove('active'));
+      document.getElementById('btn-' + lang).classList.add('active');
+      await namaI18n.loadLocale(lang);
+      namaI18n.applyTranslations();
+  }
+  document.addEventListener('DOMContentLoaded', async () => {
+      const lang = localStorage.getItem('nama_lang') || 'ar';
+      await setLang(lang);
+  });
+</script>
+</body>
+</html>

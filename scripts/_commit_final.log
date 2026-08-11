@@ -1,0 +1,5 @@
+[ops/jumanasoft-enterprise-facility-platform-staging-prep ccd3baa2] ops(deploy-v5-final): production middleware + complete deploy artifacts
+ 3 files changed, 202 insertions(+)
+ create mode 100644 .ai-brain/99-state/deploy_v5_complete_2026_08_10.md
+ create mode 100644 scripts/middleware_index_production.js
+ create mode 100644 scripts/mw.js

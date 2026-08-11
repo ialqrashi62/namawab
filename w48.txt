@@ -1,0 +1,29 @@
+[PASS]   listSecuritySubModules returns the 3 expected modules
+[PASS]   listSecuritySubModules returns a fresh array
+[PASS]   TTL_MS is 5000
+[PASS]   SECURITY_SUB_MODULES constant matches listSecuritySubModules
+[PASS]   fetchSecuritySummaries tolerates no deps
+[PASS]   fetchSecuritySummaries returns structure with 3 fields
+[PASS]   fetchSecuritySummaries runs RLS scanner against server.js
+[PASS]   fetchSecuritySummaries audit_chain degraded when no pool
+[PASS]   fetchSecuritySummaries errors from in-memory counters
+[PASS]   fetchSecuritySummaries audit_chain degraded when no pool
+[PASS]   buildSecurityOutput handles null/empty input gracefully
+[PASS]   buildSecurityOutput self-metric reflects modules succeeded
+[PASS]   buildSecurityOutput calls each module toPrometheusMetrics
+[PASS]   buildSecurityOutput skips null summaries gracefully
+[PASS]   countSecurityGauges counts TYPE declarations
+[PASS]   countSecurityGauges returns 0 for null/empty
+[PASS]   hasSecurityMinimalOutput requires all 3 anchors
+[PASS]   aggregateSecurity caches for 5s and rebuilds after reset
+[PASS]   aggregateSecurity composes wave47 + wave48
+[PASS]   source has no SQL DELETE FROM
+[PASS]   source has no SQL DROP
+[PASS]   source has no console.error of req.body
+[PASS]   source has no console.log of secrets/tokens
+[PASS]   source has no global assignment
+[PASS]   public API surface is complete
+[PASS]   fetchSecuritySummaries returns Promise
+[PASS]   aggregateSecurity returns Promise
+
+Summary: 68 passed, 0 failed

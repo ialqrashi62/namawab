@@ -1,0 +1,11 @@
+{
+  "cicu.page_title": "Cicu",
+  "cicu.overview": "Aperçu",
+  "cicu.overview_sub": "Patients du jour, rendez-vous, procédures",
+  "cicu.queue_title": "File d'attente",
+  "cicu.queue_sub": "Par priorité et statut",
+  "cicu.view_queue": "Voir la file",
+  "cicu.form_title": "Nouveau formulaire",
+  "cicu.form_sub": "Ajouter une évaluation ou procédure",
+  "cicu.back": "Retour"
+}

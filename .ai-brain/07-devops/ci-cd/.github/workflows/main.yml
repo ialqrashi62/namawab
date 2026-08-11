@@ -1,0 +1,66 @@
+# filepath: .ai-brain/07-devops/ci-cd/.github/workflows/main.yml
+# GitHub Actions CI/CD - Generated 2026-08-08
+name: NamaMedical CI/CD
+
+on:
+  push:
+    branches: [main, integration/*]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: nama_test
+          POSTGRES_USER: nama_app
+          POSTGRES_PASSWORD: test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 10s
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm' }
+      - run: cd namaweb && npm ci
+      - run: cd namaweb && npm run test:safe
+        env:
+          DATABASE_URL: postgresql://nama_app:test@localhost:5432/nama_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+          SKIP_DB_INIT: '1'
+      - run: cd namaweb && npm run lint
+
+  deploy-staging:
+    needs: test
+    if: github.ref == 'refs/heads/integration/all-epics'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Hetzner staging
+        env:
+          SSH_KEY: ${{ secrets.HETZNER_SSH_KEY }}
+          HOST: ${{ secrets.HETZNER_STAGING_HOST }}
+        run: |
+          echo "$SSH_KEY" > /tmp/key && chmod 600 /tmp/key
+          ssh -i /tmp/key ubuntu@$HOST 'cd /opt/nama && git pull && npm ci --only=production && pm2 reload nama-medical-erp'
+
+  deploy-prod:
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to production
+        env:
+          SSH_KEY: ${{ secrets.HETZNER_SSH_KEY }}
+          HOST: ${{ secrets.HETZNER_PROD_HOST }}
+        run: |
+          echo "$SSH_KEY" > /tmp/key && chmod 600 /tmp/key
+          ssh -i /tmp/key ubuntu@$HOST 'cd /opt/nama && git pull && npm ci --only=production && pm2 reload nama-medical-erp'

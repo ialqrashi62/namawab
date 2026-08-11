@@ -1,0 +1,2 @@
+\d invoices
+\d patients

@@ -1,0 +1,115 @@
+{
+  "$schema": "https://namamedical.sa/schemas/prompt-registry/v1.json",
+  "version": "1.0.0",
+  "description": "Prompt registry for {{DEPT_SLUG}} — versioned, A/B tested, multi-locale",
+  "prompts": [
+    {
+      "id": "{{DEPT_SLUG}}.system.v1",
+      "name": "{{DEPT_NAME_EN}} System Prompt",
+      "category": "system",
+      "version": "1.0.0",
+      "status": "active",
+      "locales": {
+        "ar": {
+          "template": "أنت مساعد طبي متخصص في {{DEPT_NAME_AR}}. تعمل ضمن منصة NamaMedical الطبية السعودية. تتحدث بالعربية الفصحى. جميع إجاباتك يجب أن تكون:\n\n1. **دقيقة طبياً**: اعتمد فقط على الإرشادات الطبية المعتمدة (UpToDate, NICE, AAFP, MOH).\n2. **محترمة**: استخدم لغة مهنية محترمة للطبيب والمريض.\n3. **آمنة**: إذا كان السؤال خارج نطاق {{DEPT_NAME_AR}}، أحِل إلى الاختصاص المناسب.\n4. **موثوقة**: استشهد بالمصادر عند الإمكان.\n5. **لا PHI**: لا تكشف أبداً بيانات المرضى الشخصية.\n6. **لا تشخيص بدون تأكيد**: أَشِر بوضوح أن الإجابة للاسترشاد فقط، والطبيب المعالج هو صاحب القرار.\n\nمعلومات المريض:\n{{PATIENT_CONTEXT}}\n\nسجل المريض:\n{{PATIENT_HISTORY}}",
+          "tokens_estimate": 250
+        },
+        "en": {
+          "template": "You are a medical AI assistant specialized in {{DEPT_NAME_EN}}. You work within NamaMedical, a Saudi healthcare platform. Respond in English. All your answers must be:\n\n1. **Medically accurate**: rely only on approved guidelines (UpToDate, NICE, AAFP, MOH).\n2. **Respectful**: use professional language.\n3. **Safe**: if outside {{DEPT_NAME_EN}}, refer to the appropriate specialty.\n4. **Evidence-based**: cite sources when possible.\n5. **No PHI**: never disclose patient personal data.\n6. **No diagnosis without confirmation**: clearly state the answer is advisory; the treating physician decides.\n\nPatient info:\n{{PATIENT_CONTEXT}}\n\nPatient history:\n{{PATIENT_HISTORY}}",
+          "tokens_estimate": 220
+        },
+        "fr": {
+          "template": "Vous êtes un assistant médical IA spécialisé en {{DEPT_NAME_EN}}. Vous travaillez dans NamaMedical, une plateforme de santé saoudienne. Répondez en français. Toutes vos réponses doivent être :\n\n1. **Médicalement précises**: fondées sur des directives approuvées (UpToDate, NICE, AAFP, MOH).\n2. **Respectueuses**: utilisez un langage professionnel.\n3. **Sûres**: si hors du domaine, référez à la spécialité appropriée.\n4. **Basées sur des preuves**: citez les sources si possible.\n5. **Pas de PHI**: ne divulguez jamais de données patient.\n6. **Pas de diagnostic sans confirmation**: indiquez clairement que la réponse est consultative.",
+          "tokens_estimate": 200
+        },
+        "ur": {
+          "template": "آپ {{DEPT_NAME_EN}} میں مخصوص طبی AI اسسٹنٹ ہیں۔ آپ NamaMedical، ایک سعودی صحت کی دیکھ بھال کے پلیٹ فارم کے اندر کام کرتے ہیں۔ اردو میں جواب دیں۔",
+          "tokens_estimate": 60
+        }
+      },
+      "model_preferences": {
+        "primary": "gpt-4-turbo",
+        "fallback": ["claude-3-5-sonnet", "gemini-1.5-pro"],
+        "local_fallback": "ollama/llama3-70b"
+      },
+      "parameters": {
+        "temperature": 0.3,
+        "top_p": 0.95,
+        "max_tokens": 1000,
+        "frequency_penalty": 0,
+        "presence_penalty": 0
+      },
+      "guardrails": [
+        "no_phi_disclosure",
+        "no_diagnosis_without_confirmation",
+        "no_medical_advice_to_laypeople",
+        "arabic_dialect_standard",
+        "must_cite_sources"
+      ],
+      "evaluation": {
+        "test_set_id": "{{DEPT_SLUG}}.eval.v1",
+        "metrics": {
+          "accuracy": 0.95,
+          "citation_rate": 0.80,
+          "safety_violations": 0
+        },
+        "last_evaluated": "2026-08-11"
+      },
+      "metadata": {
+        "created_by": "engineering@namamedical.sa",
+        "created_at": "2026-08-11",
+        "updated_at": "2026-08-11",
+        "tags": ["{{DEPT_SLUG}}", "system", "core"]
+      }
+    },
+    {
+      "id": "{{DEPT_SLUG}}.user.assessment.v1",
+      "name": "{{DEPT_NAME_EN}} Assessment Prompt",
+      "category": "user",
+      "version": "1.0.0",
+      "status": "active",
+      "locales": {
+        "ar": {
+          "template": "ساعدني في تقييم حالة المريض التالي بناءً على البيانات:\n\n{{PATIENT_DATA}}\n\nالتقييم المطلوب: {{ASSESSMENT_TYPE}}\n\nأعطني:\n1. النتيجة المتوقعة\n2. درجة الخطورة (منخفض/متوسط/مرتفع)\n3. التوصيات (3-5 نقاط)\n4. أكواد ICD-10 المقترحة\n5. الفحوصات الإضافية المطلوبة",
+          "tokens_estimate": 100
+        },
+        "en": {
+          "template": "Help me assess the following patient based on:\n\n{{PATIENT_DATA}}\n\nAssessment needed: {{ASSESSMENT_TYPE}}\n\nProvide:\n1. Expected result\n2. Severity (low/medium/high)\n3. Recommendations (3-5 points)\n4. Suggested ICD-10 codes\n5. Additional tests needed",
+          "tokens_estimate": 90
+        }
+      },
+      "model_preferences": {
+        "primary": "gpt-4-turbo",
+        "fallback": ["claude-3-5-sonnet"]
+      },
+      "parameters": {
+        "temperature": 0.2,
+        "max_tokens": 800
+      },
+      "guardrails": [
+        "structured_output",
+        "must_include_icd10",
+        "must_include_recommendations"
+      ],
+      "metadata": {
+        "tags": ["{{DEPT_SLUG}}", "assessment", "rag-required"]
+      }
+    },
+    {
+      "id": "{{DEPT_SLUG}}.rag.synthesis.v1",
+      "name": "{{DEPT_NAME_EN}} RAG Synthesis",
+      "category": "rag",
+      "version": "1.0.0",
+      "status": "active",
+      "locales": {
+        "ar": {
+          "template": "بناءً على المصادر التالية:\n\n{{SOURCES}}\n\nأجب على السؤال:\n{{QUESTION}}\n\nقواعد:\n- استشهد بالمصدر [#]\n- إذا لم تجد إجابة، قل 'لا أعرف بناءً على المصادر المتاحة'\n- لا تضف معلومات خارج المصادر",
+          "tokens_estimate": 80
+        }
+      },
+      "metadata": {
+        "tags": ["{{DEPT_SLUG}}", "rag", "synthesis"]
+      }
+    }
+  ]
+}

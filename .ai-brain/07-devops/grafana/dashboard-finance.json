@@ -1,0 +1,51 @@
+{
+  "title": "NamaMedical — Finance & Insurance",
+  "uid": "nama-finance",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5m",
+  "time": { "from": "now-7d", "to": "now" },
+  "tags": ["namamedical", "finance"],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Daily Revenue (SAR)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum(increase(nama_revenue_sar_total[1d]))", "legendFormat": "revenue" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "NPHIES Claims (Submitted / Approved / Rejected)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum by (status) (increase(nama_nphies_claims_total[1d]))", "legendFormat": "{{status}}" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Idempotency Conflicts (4 money routes)",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 8 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum by (route) (rate(nama_idempotency_conflict_total[5m]))", "legendFormat": "{{route}}" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "ZATCA Invoices (B2B/B2C/Credit Note)",
+      "type": "bargauge",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 8 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum by (type) (increase(nama_zatca_invoices_total[1d]))", "legendFormat": "{{type}}" }
+      ]
+    }
+  ]
+}

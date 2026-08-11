@@ -1,0 +1,11 @@
+{
+  "radiology.page_title": "Radiology",
+  "radiology.overview": "Overview",
+  "radiology.overview_sub": "Today's patients, appointments, procedures",
+  "radiology.queue_title": "Patient queue",
+  "radiology.queue_sub": "By priority and status",
+  "radiology.view_queue": "View queue",
+  "radiology.form_title": "New form",
+  "radiology.form_sub": "Add assessment or procedure",
+  "radiology.back": "Back"
+}

@@ -1,0 +1,103 @@
+# filepath: 02_MODULES/DEP-031/19_backend_schemas.py
+# Pydantic schemas for Pediatric_HemOnc (DEP-031)
+
+from pydantic import BaseModel, Field
+from typing import Optional, List
+from datetime import datetime
+
+
+class PedshemoncEncounterBase(BaseModel):
+    patient_id: int
+    encounter_type: str = "outpatient"
+    chief_complaint: Optional[str] = None
+
+
+class PedshemoncEncounterCreate(PedshemoncEncounterBase):
+    diagnosis_codes: List[str] = []
+
+
+class PedshemoncEncounterUpdate(BaseModel):
+    status: Optional[str] = None
+    diagnosis_codes: Optional[List[str]] = None
+    notes: Optional[str] = None
+    ended_at: Optional[datetime] = None
+
+
+class PedshemoncEncounter(PedshemoncEncounterBase):
+    id: int
+    tenant_id: int
+    status: str
+    diagnosis_codes: List[str]
+    started_at: datetime
+    ended_at: Optional[datetime]
+    notes: Optional[str]
+    created_at: datetime
+    updated_at: datetime
+    model_config = {"from_attributes": True}
+
+
+class PedshemoncOrderBase(BaseModel):
+    patient_id: int
+    encounter_id: Optional[int] = None
+    order_type: str
+    order_code: str
+    order_detail: dict = {}
+    priority: str = "routine"
+
+
+class PedshemoncOrderCreate(PedshemoncOrderBase):
+    pass
+
+
+class PedshemoncOrder(PedshemoncOrderBase):
+    id: int
+    tenant_id: int
+    status: str
+    ordered_by: int
+    ordered_at: datetime
+    completed_at: Optional[datetime]
+    model_config = {"from_attributes": True}
+
+
+class PedshemoncResultBase(BaseModel):
+    patient_id: int
+    encounter_id: Optional[int] = None
+    order_id: Optional[int] = None
+    result_type: str
+    result_value: Optional[str] = None
+    result_unit: Optional[str] = None
+    reference_range: Optional[str] = None
+    abnormal_flag: Optional[str] = None
+
+
+class PedshemoncResultCreate(PedshemoncResultBase):
+    pass
+
+
+class PedshemoncResult(PedshemoncResultBase):
+    id: int
+    tenant_id: int
+    result_at: datetime
+    created_at: datetime
+    model_config = {"from_attributes": True}
+
+
+class PedshemoncNoteBase(BaseModel):
+    patient_id: int
+    encounter_id: Optional[int] = None
+    note_type: str = "progress"
+    note_text: str
+
+
+class PedshemoncNoteCreate(PedshemoncNoteBase):
+    pass
+
+
+class PedshemoncNote(PedshemoncNoteBase):
+    id: int
+    tenant_id: int
+    signed_at: Optional[datetime]
+    signed_by: Optional[int]
+    created_at: datetime
+    updated_at: datetime
+    model_config = {"from_attributes": True}

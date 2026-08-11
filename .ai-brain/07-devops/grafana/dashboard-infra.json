@@ -1,0 +1,68 @@
+{
+  "title": "NamaMedical — Infrastructure & APM",
+  "uid": "nama-infra",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "15s",
+  "time": { "from": "now-1h", "to": "now" },
+  "tags": ["namamedical", "infra"],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Node.js Event Loop Lag (ms)",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "nama_nodejs_eventloop_lag_seconds * 1000", "legendFormat": "{{instance}}" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Memory Usage (RSS) MB",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "nama_nodejs_memory_rss_bytes / 1024 / 1024", "legendFormat": "{{instance}}" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Redis Cache Hit Rate",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 6 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum(rate(nama_redis_hits_total[5m])) / (sum(rate(nama_redis_hits_total[5m])) + sum(rate(nama_redis_misses_total[5m])))" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Vector DB (pgvector) Latency",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 6 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "histogram_quantile(0.99, sum by (le) (rate(nama_pgvector_search_seconds_bucket[5m]))) * 1000" }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Audit Log Hash Chain Verification",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 6 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "nama_audit_chain_valid", "legendFormat": "valid" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "BROKEN", "color": "red" }, "1": { "text": "OK", "color": "green" }}}
+          ]
+        }
+      }
+    }
+  ]
+}

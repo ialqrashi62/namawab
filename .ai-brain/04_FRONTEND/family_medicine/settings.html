@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title data-i18n="family_medicine.settings">إعدادات · طب الأسرة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/nama-tokens.css">
+<style>
+  :root { --md-ref-typeface-brand: 'Cairo','Roboto',sans-serif; --md-sys-color-primary: #006B5F; }
+  html[lang="en"], html[lang="fr"] { --md-ref-typeface-brand: 'Roboto','Cairo',sans-serif; }
+  body { font-family: var(--md-ref-typeface-brand); margin: 0; background: #FAFDFB; color: #191C1B; }
+  .md-app-bar { display: flex; align-items: center; padding: 0 24px; gap: 16px; background: white;
+                border-bottom: 1px solid rgba(0,0,0,.06); height: 64px; }
+  .md-content { padding: 24px; max-width: 800px; margin: 0 auto; }
+  .md-card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 16px;
+             box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+  .md-card-title { margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #006B5F; }
+  .md-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0;
+            border-bottom: 1px solid rgba(0,0,0,.04); }
+  .md-row:last-child { border-bottom: 0; }
+  .md-row label { font-size: 14px; }
+  .switch { position: relative; width: 48px; height: 24px; background: #ccc; border-radius: 999px; cursor: pointer; transition: 0.2s; }
+  .switch.on { background: #006B5F; }
+  .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+                   background: white; border-radius: 50%; transition: 0.2s; }
+  .switch.on::after { left: 26px; }
+  .md-btn { padding: 10px 24px; border-radius: 999px; border: 0; cursor: pointer;
+            font-weight: 500; background: #006B5F; color: white; }
+  .md-lang-toggle { margin-inline-start: auto; display: flex; gap: 4px; }
+  .md-lang-toggle button { background: transparent; border: 1px solid #6F7978;
+                           border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+  .md-lang-toggle button.active { background: #006B5F; color: white; border-color: #006B5F; }
+</style>
+</head>
+<body>
+<header class="md-app-bar">
+  <a href="index.html" style="font-size:24px;text-decoration:none">🏠</a>
+  <h1 data-i18n="family_medicine.settings" style="font-size:18px;margin:0">الإعدادات</h1>
+  <div class="md-lang-toggle">
+    <button id="btn-ar" class="active" onclick="setLang('ar')">عربي</button>
+    <button id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+</header>
+<main class="md-content">
+  <div class="md-card">
+    <h2 class="md-card-title" data-i18n="settings.preventive">الفحوصات الوقائية</h2>
+    <div class="md-row">
+      <label data-i18n="settings.annual_checkup">فحص سنوي</label>
+      <div class="switch on" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="md-row">
+      <label data-i18n="settings.immunizations">تذكير التطعيمات</label>
+      <div class="switch on" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="md-row">
+      <label data-i18n="settings.cancer_screening">فحص السرطان</label>
+      <div class="switch on" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="md-row">
+      <label data-i18n="settings.chronic_followup">متابعة الأمراض المزمنة</label>
+      <div class="switch on" onclick="this.classList.toggle('on')"></div>
+    </div>
+  </div>
+  <div class="md-card">
+    <h2 class="md-card-title" data-i18n="settings.notifications">الإشعارات</h2>
+    <div class="md-row">
+      <label data-i18n="settings.email">بريد إلكتروني</label>
+      <div class="switch" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="md-row">
+      <label data-i18n="settings.sms">رسائل SMS</label>
+      <div class="switch on" onclick="this.classList.toggle('on')"></div>
+    </div>
+  </div>
+  <button class="md-btn" onclick="alert('تم حفظ الإعدادات')" data-i18n="settings.save">حفظ</button>
+</main>
+<script src="/js/nama-i18n.js"></script>
+<script src="/js/nama-api.js"></script>
+<script>
+async function setLang(lang) {
+    localStorage.setItem('nama_lang', lang);
+    document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+    document.documentElement.lang = lang;
+    document.querySelectorAll('.md-lang-toggle button').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + lang).classList.add('active');
+    await namaI18n.loadLocale(lang);
+    namaI18n.applyTranslations();
+}
+document.addEventListener('DOMContentLoaded', async () => {
+    const lang = localStorage.getItem('nama_lang') || 'ar';
+    await setLang(lang);
+});
+</script>
+</body>
+</html>

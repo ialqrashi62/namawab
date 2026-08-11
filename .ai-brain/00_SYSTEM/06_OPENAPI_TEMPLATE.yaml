@@ -1,0 +1,440 @@
+openapi: 3.0.3
+info:
+  title: "{{DEPT_NAME_EN}} API"
+  description: |
+    {{DEPT_NAME_EN}} department API for NamaMedical platform.
+    Saudi-compliance, multi-tenant, RLS-enforced, audit-logged.
+  version: "1.0.0"
+  contact:
+    name: NamaMedical Engineering
+    email: engineering@namamedical.sa
+  license:
+    name: Proprietary
+    url: https://jumanasoft.com/license
+
+servers:
+  - url: https://jumanasoft.com/api
+    description: Production
+  - url: https://staging.jumanasoft.com/api
+    description: Staging
+  - url: http://localhost:3000/api
+    description: Local
+
+tags:
+  - name: "{{DEPT_SLUG}}"
+    description: "{{DEPT_NAME_EN}} operations"
+
+security:
+  - BearerAuth: []
+  - TenantHeader: []
+
+paths:
+  /{{DEPT_SLUG}}/health:
+    get:
+      summary: Health check
+      tags: ["{{DEPT_SLUG}}"]
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  ts: { type: string, format: date-time }
+
+  /{{DEPT_SLUG}}/patients:
+    get:
+      summary: List patients in queue
+      tags: ["{{DEPT_SLUG}}"]
+      parameters:
+        - $ref: "#/components/parameters/TenantHeader"
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/PageSizeParam"
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [waiting, in_progress, completed, cancelled]
+        - in: query
+          name: priority
+          schema:
+            type: string
+            enum: [routine, urgent, stat]
+      responses:
+        "200":
+          description: List of patients
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Patient"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+    post:
+      summary: Add patient to {{DEPT_NAME_EN}} queue
+      tags: ["{{DEPT_SLUG}}"]
+      parameters:
+        - $ref: "#/components/parameters/TenantHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePatientRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /{{DEPT_SLUG}}/patients/{id}:
+    get:
+      summary: Get patient detail
+      tags: ["{{DEPT_SLUG}}"]
+      parameters:
+        - $ref: "#/components/parameters/TenantHeader"
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Patient detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientDetail"
+        "404": { $ref: "#/components/responses/NotFound" }
+
+    patch:
+      summary: Update patient record
+      tags: ["{{DEPT_SLUG}}"]
+      parameters:
+        - $ref: "#/components/parameters/TenantHeader"
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePatientRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+    delete:
+      summary: Soft-delete patient record
+      tags: ["{{DEPT_SLUG}}"]
+      parameters:
+        - $ref: "#/components/parameters/TenantHeader"
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204":
+          description: Deleted
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /{{DEPT_SLUG}}/assessments:
+    post:
+      summary: Submit clinical assessment
+      tags: ["{{DEPT_SLUG}}"]
+      parameters:
+        - $ref: "#/components/parameters/TenantHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssessmentRequest"
+      responses:
+        "201":
+          description: Assessment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssessmentResult"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+  /{{DEPT_SLUG}}/assessments/{id}:
+    get:
+      summary: Get assessment by ID
+      tags: ["{{DEPT_SLUG}}"]
+      parameters:
+        - $ref: "#/components/parameters/TenantHeader"
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Assessment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssessmentResult"
+
+  /{{DEPT_SLUG}}/codes:
+    get:
+      summary: Get medical codes (ICD-10, CPT, SNOMED)
+      tags: ["{{DEPT_SLUG}}"]
+      parameters:
+        - $ref: "#/components/parameters/TenantHeader"
+        - in: query
+          name: system
+          schema:
+            type: string
+            enum: [icd10, cpt, snomed, loinc, rxnorm]
+        - in: query
+          name: search
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of codes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MedicalCode"
+
+  /{{DEPT_SLUG}}/ai/chat:
+    post:
+      summary: AI co-pilot chat
+      tags: ["{{DEPT_SLUG}}"]
+      parameters:
+        - $ref: "#/components/parameters/TenantHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message: { type: string }
+                context:
+                  type: object
+                  additionalProperties: true
+                locale: { type: string, enum: [ar, en, fr, ur], default: ar }
+      responses:
+        "200":
+          description: AI response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  answer: { type: string }
+                  sources:
+                    type: array
+                    items: { type: string }
+                  cost_usd: { type: number }
+                  tokens: { type: integer }
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    TenantHeader:
+      type: apiKey
+      in: header
+      name: X-Tenant-Id
+
+  parameters:
+    TenantHeader:
+      in: header
+      name: X-Tenant-Id
+      required: true
+      schema: { type: string, format: uuid }
+    PageParam:
+      in: query
+      name: page
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSizeParam:
+      in: query
+      name: page_size
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+
+  schemas:
+    Patient:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        national_id: { type: string }
+        full_name_ar: { type: string }
+        full_name_en: { type: string }
+        dob: { type: string, format: date }
+        gender: { type: string, enum: [male, female, other] }
+        phone: { type: string }
+        email: { type: string, format: email }
+        status: { type: string }
+        priority: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    PatientDetail:
+      allOf:
+        - $ref: "#/components/schemas/Patient"
+        - type: object
+          properties:
+            history:
+              type: array
+              items: { type: object }
+            vitals:
+              type: object
+            allergies:
+              type: array
+              items: { type: string }
+            medications:
+              type: array
+              items: { type: object }
+
+    CreatePatientRequest:
+      type: object
+      required: [national_id, full_name_ar, dob, gender]
+      properties:
+        national_id: { type: string }
+        full_name_ar: { type: string }
+        full_name_en: { type: string }
+        dob: { type: string, format: date }
+        gender: { type: string, enum: [male, female, other] }
+        phone: { type: string }
+        priority: { type: string, enum: [routine, urgent, stat], default: routine }
+
+    UpdatePatientRequest:
+      type: object
+      properties:
+        status: { type: string }
+        notes: { type: string }
+        priority: { type: string }
+
+    AssessmentRequest:
+      type: object
+      required: [patient_id, type, inputs]
+      properties:
+        patient_id: { type: string, format: uuid }
+        type: { type: string }
+        inputs:
+          type: object
+          additionalProperties: true
+        notes: { type: string }
+
+    AssessmentResult:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        patient_id: { type: string, format: uuid }
+        type: { type: string }
+        score: { type: number }
+        category: { type: string }
+        recommendations:
+          type: array
+          items: { type: string }
+        created_at: { type: string, format: date-time }
+
+    MedicalCode:
+      type: object
+      properties:
+        system: { type: string }
+        code: { type: string }
+        display_ar: { type: string }
+        display_en: { type: string }
+        category: { type: string }
+
+    Pagination:
+      type: object
+      properties:
+        page: { type: integer }
+        page_size: { type: integer }
+        total: { type: integer }
+        total_pages: { type: integer }
+
+    ValidationError:
+      type: object
+      properties:
+        error: { type: string }
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+              code: { type: string }
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
+    Unauthorized:
+      description: Unauthorized (missing/invalid token)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
+    Forbidden:
+      description: Forbidden (insufficient permissions)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
+              trace_id: { type: string }

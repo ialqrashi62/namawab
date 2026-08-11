@@ -1,0 +1,42 @@
+# Technical Architecture — Medical_Oncology (DEP-048)
+
+> **PSA:** Mr. David Kim · Generated 2026-08-08
+
+## 1. API Surface
+- `GET /api/medOnc/list` — list items
+- `GET /api/medOnc/:id` — get item
+- `POST /api/medOnc` — create
+- `PUT /api/medOnc/:id` — update
+- `DELETE /api/medOnc/:id` — soft delete
+- `GET /api/medOnc/search?q=` — search
+- `POST /api/medOnc/ai/diagnose` — AI diagnosis
+
+## 2. Middleware Chain
+```
+requireAuth → requireTenantScope → requireRole(medOnc_*) →
+validateBody(RS.medOnc_schema) → idempotencyGuard (if money) →
+async (req, res) => { ... }
+```
+
+## 3. Database
+- 8-15 entities (see `13_data_erd.sql`)
+- All tables: FORCE_RLS enabled
+- Audit columns: created_at, updated_at, deleted_at
+- Indexes: tenant_id, patient_id, encounter_id, code
+
+## 4. RBAC Roles
+- **medical_oncologist**: scoped to medOnc
+- **oncology_nurse**: scoped to medOnc
+- **oncology_pharmacist**: scoped to medOnc
+- **genetic_counselor_onc**: scoped to medOnc
+
+
+## 5. Cache
+- Redis: 5min TTL on list/search
+- Vector cache: pgvector with ivfflat
+
+## 6. Performance Targets
+- p50 latency: <50ms
+- p95 latency: <200ms
+- p99 latency: <500ms
+- Throughput: 100 RPS per dept

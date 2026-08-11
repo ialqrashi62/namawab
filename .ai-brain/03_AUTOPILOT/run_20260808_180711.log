@@ -1,0 +1,10 @@
+  [FAIL] 16_data_seed.sql: expected token 'end of print statement', got '['
+Traceback (most recent call last):
+  File "C:\Users\ice\Desktop\NMEDCALVSCODE\.ai-brain\03_AUTOPILOT\nm-ultimate-blueprint-factory.py", line 2153, in <module>
+    main()
+  File "C:\Users\ice\Desktop\NMEDCALVSCODE\.ai-brain\03_AUTOPILOT\nm-ultimate-blueprint-factory.py", line 2147, in main
+    print(f"\u2705 {d['code']} ({d.get('name_en','?')}): {len(files)} files")
+  File "C:\Program Files\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 0: character maps to <undefined>

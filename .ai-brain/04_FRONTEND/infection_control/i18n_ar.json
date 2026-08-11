@@ -1,0 +1,11 @@
+{
+  "infection_control.page_title": "infection control",
+  "infection_control.overview": "نظرة عامة",
+  "infection_control.overview_sub": "مرضى اليوم، المواعيد، الإجراءات",
+  "infection_control.queue_title": "قائمة المرضى",
+  "infection_control.queue_sub": "حسب الأولوية والحالة",
+  "infection_control.view_queue": "عرض القائمة",
+  "infection_control.form_title": "نموذج جديد",
+  "infection_control.form_sub": "إضافة تقييم أو إجراء",
+  "infection_control.back": "عودة"
+}

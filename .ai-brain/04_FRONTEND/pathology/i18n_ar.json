@@ -1,0 +1,11 @@
+{
+  "pathology.page_title": "pathology",
+  "pathology.overview": "نظرة عامة",
+  "pathology.overview_sub": "مرضى اليوم، المواعيد، الإجراءات",
+  "pathology.queue_title": "قائمة المرضى",
+  "pathology.queue_sub": "حسب الأولوية والحالة",
+  "pathology.view_queue": "عرض القائمة",
+  "pathology.form_title": "نموذج جديد",
+  "pathology.form_sub": "إضافة تقييم أو إجراء",
+  "pathology.back": "عودة"
+}

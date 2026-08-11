@@ -1,0 +1,13 @@
+restored
+[patch v3] OK
+---verify mounts are BEFORE autowire_all_v25---
+21161:// ===== AUTO-MOUNT: 14 dept score routers (deploy v5, 2026-08-10) =====
+21177:// ===== autowire_all_v25 (2026-08-03) ΓÇö 44 routers =====
+---syntax check---
+exit=0
+---reload---
+Use --update-env to update environment variables
+[PM2] Applying action reloadProcessId on app [nama-medical-erp](ids: [ 10, 11, 12, 13 ])
+[PM2] [nama-medical-erp](11) Γ£ô
+[PM2] [nama-medical-erp](10) Γ£ô
+[PM2] [nama-medical-erp](12) Γ£ô

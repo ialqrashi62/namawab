@@ -1,0 +1,11 @@
+{
+  "radiology.page_title": "radiology",
+  "radiology.overview": "نظرة عامة",
+  "radiology.overview_sub": "مرضى اليوم، المواعيد، الإجراءات",
+  "radiology.queue_title": "قائمة المرضى",
+  "radiology.queue_sub": "حسب الأولوية والحالة",
+  "radiology.view_queue": "عرض القائمة",
+  "radiology.form_title": "نموذج جديد",
+  "radiology.form_sub": "إضافة تقييم أو إجراء",
+  "radiology.back": "عودة"
+}

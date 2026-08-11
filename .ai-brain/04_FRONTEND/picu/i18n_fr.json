@@ -1,0 +1,11 @@
+{
+  "picu.page_title": "Picu",
+  "picu.overview": "Aperçu",
+  "picu.overview_sub": "Patients du jour, rendez-vous, procédures",
+  "picu.queue_title": "File d'attente",
+  "picu.queue_sub": "Par priorité et statut",
+  "picu.view_queue": "Voir la file",
+  "picu.form_title": "Nouveau formulaire",
+  "picu.form_sub": "Ajouter une évaluation ou procédure",
+  "picu.back": "Retour"
+}

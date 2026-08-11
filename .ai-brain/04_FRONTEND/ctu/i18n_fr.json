@@ -1,0 +1,11 @@
+{
+  "ctu.page_title": "Ctu",
+  "ctu.overview": "Aperçu",
+  "ctu.overview_sub": "Patients du jour, rendez-vous, procédures",
+  "ctu.queue_title": "File d'attente",
+  "ctu.queue_sub": "Par priorité et statut",
+  "ctu.view_queue": "Voir la file",
+  "ctu.form_title": "Nouveau formulaire",
+  "ctu.form_sub": "Ajouter une évaluation ou procédure",
+  "ctu.back": "Retour"
+}

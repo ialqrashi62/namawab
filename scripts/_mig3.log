@@ -1,0 +1,131 @@
+  prepared: e47_cardiology_up.sql.v2
+  prepared: e48_endocrine_emergency_up.sql.v2
+  prepared: e49_pediatrics_surgery_pharmacy_up.sql.v2
+  prepared: e50_oncology_nephrology_obgyn_up.sql.v2
+  prepared: e51_pulm_gi_rheum_ortho_neuro_up.sql.v2
+
+================================================================
+Applying e47_cardiology (auto-commit per statement)
+================================================================
+CREATE POLICY
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+psql:e47_cardiology_up.sql.v2:111: NOTICE:  policy "cardiology_meds_tenant_isolation" for relation "cardiology_medications" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:e47_cardiology_up.sql.v2:143: NOTICE:  relation "cardiology_procedures" already exists, skipping
+CREATE TABLE
+psql:e47_cardiology_up.sql.v2:145: ERROR:  must be owner of table cardiology_procedures
+psql:e47_cardiology_up.sql.v2:146: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e47_cardiology_up.sql.v2:147: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e47_cardiology_up.sql.v2:149: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e47_cardiology_up.sql.v2:150: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e47_cardiology_up.sql.v2:152: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e47_cardiology_up.sql.v2:155: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+ROLLBACK
+
+================================================================
+Applying e48_endocrine_emergency (auto-commit per statement)
+================================================================
+ALTER TABLE
+psql:e48_endocrine_emergency_up.sql.v2:93: NOTICE:  policy "er_triage_tenant_isolation" for relation "er_triage" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:e48_endocrine_emergency_up.sql.v2:112: ERROR:  syntax error at or near "//"
+LINE 1: // =========================================================...
+        ^
+psql:e48_endocrine_emergency_up.sql.v2:114: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e48_endocrine_emergency_up.sql.v2:116: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e48_endocrine_emergency_up.sql.v2:117: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e48_endocrine_emergency_up.sql.v2:118: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e48_endocrine_emergency_up.sql.v2:121: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e48_endocrine_emergency_up.sql.v2:142: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e48_endocrine_emergency_up.sql.v2:144: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e48_endocrine_emergency_up.sql.v2:145: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e48_endocrine_emergency_up.sql.v2:147: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e48_endocrine_emergency_up.sql.v2:148: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e48_endocrine_emergency_up.sql.v2:149: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e48_endocrine_emergency_up.sql.v2:152: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+ROLLBACK
+
+================================================================
+Applying e49_pediatrics_surgery_pharmacy (auto-commit per statement)
+================================================================
+psql:e49_pediatrics_surgery_pharmacy_up.sql.v2:88: NOTICE:  policy "surgery_timeout_tenant_isolation" for relation "surgery_timeouts" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+psql:e49_pediatrics_surgery_pharmacy_up.sql.v2:113: NOTICE:  policy "drug_int_tenant_isolation" for relation "drug_interaction_checks" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+psql:e49_pediatrics_surgery_pharmacy_up.sql.v2:143: NOTICE:  policy "renal_dose_tenant_isolation" for relation "renal_dose_adjustments" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+COMMIT
+
+================================================================
+Applying e50_oncology_nephrology_obgyn (auto-commit per statement)
+================================================================
+psql:e50_oncology_nephrology_obgyn_up.sql.v2:80: NOTICE:  policy "neph_ckd_tenant_isolation" for relation "nephrology_ckd_assessments" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+psql:e50_oncology_nephrology_obgyn_up.sql.v2:106: NOTICE:  policy "neph_hd_tenant_isolation" for relation "nephrology_hd_adequacy" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+psql:e50_oncology_nephrology_obgyn_up.sql.v2:133: NOTICE:  policy "obgyn_parto_tenant_isolation" for relation "obgyn_partograph" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+COMMIT
+
+================================================================
+Applying e51_pulm_gi_rheum_ortho_neuro (auto-commit per statement)
+================================================================
+psql:e51_pulm_gi_rheum_ortho_neuro_up.sql.v2:69: NOTICE:  policy "rheum_tenant_isolation" for relation "rheumatology_assessments" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+psql:e51_pulm_gi_rheum_ortho_neuro_up.sql.v2:92: NOTICE:  policy "ortho_tenant_isolation" for relation "orthopedics_assessments" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:e51_pulm_gi_rheum_ortho_neuro_up.sql.v2:108: NOTICE:  relation "neurology_assessments" already exists, skipping
+CREATE TABLE
+psql:e51_pulm_gi_rheum_ortho_neuro_up.sql.v2:110: ERROR:  must be owner of table neurology_assessments
+psql:e51_pulm_gi_rheum_ortho_neuro_up.sql.v2:111: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e51_pulm_gi_rheum_ortho_neuro_up.sql.v2:113: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e51_pulm_gi_rheum_ortho_neuro_up.sql.v2:114: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e51_pulm_gi_rheum_ortho_neuro_up.sql.v2:115: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:e51_pulm_gi_rheum_ortho_neuro_up.sql.v2:118: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+ROLLBACK
+
+================================================================
+SUMMARY
+================================================================
+Applied: e47_cardiology e48_endocrine_emergency e49_pediatrics_surgery_pharmacy e50_oncology_nephrology_obgyn e51_pulm_gi_rheum_ortho_neuro
+Failed:  none
