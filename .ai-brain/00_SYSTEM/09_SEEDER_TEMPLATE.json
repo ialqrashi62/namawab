@@ -1,0 +1,93 @@
+{
+  "$schema": "https://namamedical.sa/schemas/seeder/v1.json",
+  "module": "{{DEPT_SLUG}}",
+  "version": "1.0.0",
+  "description": "Anonymized test fixtures for {{DEPT_SLUG}} — NO real PHI",
+  "data": {
+    "patients": [
+      {
+        "id": "00000000-0000-0000-0000-000000000001",
+        "national_id_hash": "sha256:placeholder1",
+        "full_name_ar": "مريض تجريبي ١",
+        "full_name_en": "Test Patient 1",
+        "dob": "1980-01-15",
+        "gender": "male",
+        "phone_hash": "sha256:placeholder1",
+        "tenant_id": "00000000-0000-0000-0000-000000000001"
+      },
+      {
+        "id": "00000000-0000-0000-0000-000000000002",
+        "national_id_hash": "sha256:placeholder2",
+        "full_name_ar": "مريض تجريبي ٢",
+        "full_name_en": "Test Patient 2",
+        "dob": "1992-05-22",
+        "gender": "female",
+        "phone_hash": "sha256:placeholder2",
+        "tenant_id": "00000000-0000-0000-0000-000000000001"
+      },
+      {
+        "id": "00000000-0000-0000-0000-000000000003",
+        "national_id_hash": "sha256:placeholder3",
+        "full_name_ar": "مريض تجريبي ٣",
+        "full_name_en": "Test Patient 3",
+        "dob": "1975-11-08",
+        "gender": "female",
+        "phone_hash": "sha256:placeholder3",
+        "tenant_id": "00000000-0000-0000-0000-000000000001"
+      }
+    ],
+    "tenants": [
+      {
+        "id": "00000000-0000-0000-0000-000000000001",
+        "name": "مستشفى تجريبي",
+        "name_en": "Test Hospital",
+        "facility_type": "مستشفى",
+        "city": "الرياض",
+        "country": "SA"
+      }
+    ],
+    "users": [
+      {
+        "id": "00000000-0000-0000-0000-000000000001",
+        "email": "doctor@test.namamedical.sa",
+        "full_name_ar": "د. أحمد التجريبي",
+        "full_name_en": "Dr. Ahmed Test",
+        "role": "doctor",
+        "tenant_id": "00000000-0000-0000-0000-000000000001"
+      }
+    ],
+    "departments": [
+      {
+        "slug": "{{DEPT_SLUG}}",
+        "name_ar": "{{DEPT_NAME_AR}}",
+        "name_en": "{{DEPT_NAME_EN}}",
+        "active": true,
+        "tenant_id": "00000000-0000-0000-0000-000000000001"
+      }
+    ],
+    "assessments": [
+      {
+        "id": "00000000-0000-0000-0000-000000000001",
+        "patient_id": "00000000-0000-0000-0000-000000000001",
+        "type": "routine",
+        "score": 75,
+        "category": "normal",
+        "recommendations": [
+          "متابعة دورية خلال 6 أشهر",
+          "فحص شامل سنوي"
+        ],
+        "codes": ["Z00.00"],
+        "created_by": "00000000-0000-0000-0000-000000000001",
+        "tenant_id": "00000000-0000-0000-0000-000000000001"
+      }
+    ]
+  },
+  "anonymization_note": "All PHI (names, IDs, phones) are SHA-256 hashed or replaced with placeholders. No real patient data.",
+  "metadata": {
+    "created_at": "2026-08-11",
+    "created_by": "engineering@namamedical.sa",
+    "tenant_id": "00000000-0000-0000-0000-000000000001",
+    "expires_at": "2027-08-11",
+    "license": "MIT (test data only)"
+  }
+}

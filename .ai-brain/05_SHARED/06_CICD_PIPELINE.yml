@@ -1,0 +1,219 @@
+# NamaMedical — CI/CD Pipeline
+# GitHub Actions
+# Stages: lint → test → build → security → deploy-staging → smoke → deploy-prod
+
+name: NamaMedical CI/CD
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master]
+
+env:
+  NODE_VERSION: '20'
+  POSTGRES_VERSION: '16'
+
+# Cancel in-progress runs for the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ==========================================
+  # GATE 1: Lint + Type check
+  # ==========================================
+  lint:
+    name: 🔍 Lint + Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: ${{ env.NODE_VERSION }}, cache: 'npm' }
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+
+  # ==========================================
+  # GATE 2: Unit tests
+  # ==========================================
+  test-unit:
+    name: 🧪 Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: ${{ env.NODE_VERSION }}, cache: 'npm' }
+      - run: npm ci
+      - run: npm run test:unit
+      - run: npm run test:coverage
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage/
+
+  # ==========================================
+  # GATE 3: Integration tests (with PostgreSQL)
+  # ==========================================
+  test-integration:
+    name: 🔗 Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_USER: nama_test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: nama_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://nama_test:test@localhost:5432/nama_test
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: ${{ env.NODE_VERSION }}, cache: 'npm' }
+      - run: npm ci
+      - run: npm run db:setup:test
+      - run: npm run test:integration
+
+  # ==========================================
+  # GATE 4: Build
+  # ==========================================
+  build:
+    name: 🏗 Build
+    needs: [lint, test-unit, test-integration]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: ${{ env.NODE_VERSION }}, cache: 'npm' }
+      - run: npm ci
+      - run: npm run build
+      - run: npm run build:frontend
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  # ==========================================
+  # GATE 5: Security scan
+  # ==========================================
+  security:
+    name: 🔒 Security Scan
+    needs: [build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: ${{ env.NODE_VERSION }}, cache: 'npm' }
+      - run: npm ci
+      - run: npm audit --audit-level=high
+      - name: OWASP ZAP baseline
+        uses: zaproxy/action-baseline@v0.7.0
+        with:
+          target: 'http://localhost:3000'
+          # Run only after build artifact is up
+      - name: Secret scan
+        run: npx secret-scanner scan
+
+  # ==========================================
+  # GATE 6: Deploy to Staging
+  # ==========================================
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    needs: [build, security]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: staging
+      url: https://staging.jumanasoft.com
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Hetzner
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HETZNER_HOST }}
+          username: ${{ secrets.HETZNER_USER }}
+          key: ${{ secrets.HETZNER_KEY }}
+          script: |
+            cd /www/wwwroot/staging.namainvist.com
+            git pull origin main
+            npm ci --production
+            npm run build
+            node migrate.js up
+            pm2 reload nama-medical-staging --update-env
+            sleep 5
+            curl -sf https://staging.jumanasoft.com/api/health || exit 1
+      - name: Smoke test
+        run: npm run smoke:staging
+
+  # ==========================================
+  # GATE 7: Deploy to Production
+  # ==========================================
+  deploy-prod:
+    name: 🚀 Deploy to Production
+    needs: [deploy-staging]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: production
+      url: https://jumanasoft.com
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pre-deploy backup
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HETZNER_HOST }}
+          username: ${{ secrets.HETZNER_USER }}
+          key: ${{ secrets.HETZNER_KEY }}
+          script: |
+            pg_dump -U nama nama_medical_prod > /var/backups/nama_pre_deploy_$(date +%Y%m%d_%H%M%S).sql
+      - name: Deploy to Hetzner (blue-green)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HETZNER_HOST }}
+          username: ${{ secrets.HETZNER_USER }}
+          key: ${{ secrets.HETZNER_KEY }}
+          script: |
+            cd /www/wwwroot/namainvist.com
+            git pull origin main
+            npm ci --production
+            npm run build
+            # Run migrations
+            node migrate.js up
+            # Blue-green deploy
+            PORT=3001 NODE_ENV=production node server.js &
+            sleep 5
+            until curl -sf http://localhost:3001/api/health; do sleep 1; done
+            # Switch Nginx
+            sudo sed -i 's/localhost:3000/localhost:3001/' /etc/nginx/conf.d/namainvist.com.conf
+            sudo nginx -s reload
+            sleep 60
+            # Stop old
+            pkill -f "PORT=3000" || true
+      - name: Smoke test
+        run: npm run smoke:prod
+      - name: Notify on Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "🚀 NamaMedical deployed to production: ${{ job.status }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
