@@ -1,0 +1,19 @@
+FROM node:20-alpine
+LABEL module="TIER3_CARD-304_ROBOTIC"
+LABEL department="Robotic CV Surgery"
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY tier3_card_304_robotic_engine.js ./
+COPY 09_router.js ./rcv_router.js
+
+ENV NODE_ENV=production
+ENV PORT=3204
+
+EXPOSE 3204
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
+  CMD wget -qO- http://localhost:3204/api/rcv/health || exit 1
+
+CMD ["node", "rcv_router.js"]

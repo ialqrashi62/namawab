@@ -1,0 +1,57 @@
+groups:
+  - name: cardio_onc.sla
+    rules:
+      - alert: AnthracyclineDoseHigh
+        expr: ahf_anthracycline_cum_dose_mg_m2 > 400
+        for: 1h
+        labels: { severity: page, team: cardio_onc }
+        annotations:
+          summary: "High cumulative anthracycline dose"
+          description: "Dose = {{ $value }} mg/m²"
+
+      - alert: EF_Drop10
+        expr: ahf_ef_drop_pct > 10
+        for: 5m
+        labels: { severity: critical, team: cardio_onc }
+        annotations:
+          summary: "EF drop >10% — hold chemo"
+
+      - alert: GLS_Drop15
+        expr: ahf_gls_relative_drop > 15
+        for: 5m
+        labels: { severity: page, team: cardio_onc }
+        annotations:
+          summary: "GLS drop >15% — early cardiotoxicity"
+
+      - alert: ICI_Myocarditis_Suspected
+        expr: cardio_onc_ici_troponin_uln > 1.5
+        for: 10m
+        labels: { severity: critical, team: cardio_onc }
+        annotations:
+          summary: "ICI myocarditis suspected — start steroids"
+
+      - alert: QTc550
+        expr: cardio_onc_qtc_ms > 550
+        for: 1m
+        labels: { severity: critical, team: cardio_onc }
+        annotations:
+          summary: "QTc >550ms — immediate hold"
+
+      - alert: ICI_NotMonitored
+        expr: rate(cardio_onc_ici_monitor_total[1d]) / rate(cardio_onc_ici_active_total[1d]) < 0.9
+        for: 7d
+        labels: { severity: warn, team: cardio_onc }
+        annotations:
+          summary: "ICI monitoring compliance <90%"
+
+recording_rules:
+  - name: cardio_onc.kpis
+    rules:
+      - record: coo:high_risk_pct
+        expr: sum(rate(cardio_onc_hfa_icos_very_high_total[1d])) / sum(rate(cardio_onc_cases_total[1d]))
+
+      - record: coo:cardiotoxicity_rate
+        expr: sum(rate(cardio_onc_cardiotox_total[30d])) / sum(rate(cardio_onc_chemo_total[30d]))
+
+      - record: coo:vte_drug_first_line
+        expr: sum(rate(cardio_onc_vte_doac_total[1d])) / sum(rate(cardio_onc_vte_total[1d]))

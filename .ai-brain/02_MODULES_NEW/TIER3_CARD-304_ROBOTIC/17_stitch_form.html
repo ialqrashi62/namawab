@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STS Risk Calculator</title>
+  <link rel="stylesheet" href="https://cdn.tailwindcss.com">
+</head>
+<body class="bg-slate-50">
+  <header class="bg-purple-600 text-white p-4">
+    <h1 class="text-2xl font-bold">STS Risk Calculator — حاسبة المخاطر</h1>
+  </header>
+  <main class="container mx-auto p-4 max-w-3xl">
+    <form id="sts-form" class="bg-white rounded-lg shadow p-6">
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div><label class="block text-sm font-medium mb-1">Age</label><input type="number" name="age" required class="w-full px-3 py-2 border rounded"></div>
+        <div><label class="block text-sm font-medium mb-1">EF %</label><input type="number" name="ef_pct" min="0" max="100" required class="w-full px-3 py-2 border rounded"></div>
+        <div><label class="block text-sm font-medium mb-1">Creatinine (mg/dL)</label><input type="number" step="0.1" name="creatinine" class="w-full px-3 py-2 border rounded"></div>
+        <div><label class="block text-sm font-medium mb-1">Gender</label><select name="female" class="w-full px-3 py-2 border rounded"><option value="false">Male</option><option value="true">Female</option></select></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <label class="flex items-center"><input type="checkbox" name="dialysis" class="mr-2"> Dialysis</label>
+        <label class="flex items-center"><input type="checkbox" name="emergency" class="mr-2"> Emergency</label>
+        <label class="flex items-center"><input type="checkbox" name="prior_cardiac_surgery" class="mr-2"> Prior Cardiac Surgery</label>
+        <label class="flex items-center"><input type="checkbox" name="diabetes" class="mr-2"> Diabetes</label>
+        <label class="flex items-center"><input type="checkbox" name="hypertension" class="mr-2"> Hypertension</label>
+        <label class="flex items-center"><input type="checkbox" name="copd" class="mr-2"> COPD</label>
+      </div>
+      <button type="submit" class="w-full mt-6 bg-purple-600 text-white px-6 py-3 rounded text-lg font-bold hover:bg-purple-700">Calculate STS Risk</button>
+    </form>
+  </main>
+  <script>
+    document.getElementById('sts-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const data = Object.fromEntries(fd.entries());
+      ['dialysis','emergency','prior_cardiac_surgery','diabetes','hypertension','copd'].forEach(c => { data[c] = fd.has(c); });
+      data.age = parseInt(data.age);
+      data.ef_pct = parseInt(data.ef_pct);
+      data.female = data.female === 'true';
+      data.creatinine = parseFloat(data.creatinine);
+      const r = await fetch('/api/rcv/score/sts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(data) });
+      const j = await r.json();
+      alert(`STS Score: ${j.result.score}\nRisk: ${j.result.risk.toUpperCase()}\n${j.result.recommendation}`);
+    });
+  </script>
+</body>
+</html>

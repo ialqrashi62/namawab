@@ -1,0 +1,19 @@
+FROM node:20-alpine
+LABEL module="TIER3_CARD-302_ADHF"
+LABEL department="Advanced Heart Failure"
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY tier3_card_302_ahf_engine.js ./
+COPY 09_router.js ./ahf_router.js
+
+ENV NODE_ENV=production
+ENV PORT=3202
+
+EXPOSE 3202
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
+  CMD wget -qO- http://localhost:3202/api/ahf/health || exit 1
+
+CMD ["node", "ahf_router.js"]

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cardio-Onc Risk Assessment Form</title>
+  <link rel="stylesheet" href="https://cdn.tailwindcss.com">
+</head>
+<body class="bg-slate-50">
+  <header class="bg-pink-600 text-white p-4">
+    <h1 class="text-2xl font-bold">Cardio-Onc Risk Assessment — تقييم خطر علاج السرطان</h1>
+  </header>
+  <main class="container mx-auto p-4 max-w-3xl">
+    <form id="coo-form" class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-bold mb-4">HFA-ICOS Risk Stratification</h2>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">Patient ID *</label>
+          <input type="number" name="patient_id" required class="w-full px-3 py-2 border rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Age</label>
+          <input type="number" name="age" required class="w-full px-3 py-2 border rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Cancer Type</label>
+          <select name="cancer_type" class="w-full px-3 py-2 border rounded">
+            <option value="breast">Breast</option>
+            <option value="lung">Lung</option>
+            <option value="lymphoma">Lymphoma</option>
+            <option value="leukemia">Leukemia</option>
+            <option value="colorectal">Colorectal</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm font-medium mb-1">Therapy</label>
+          <select name="therapy" class="w-full px-3 py-2 border rounded">
+            <option value="anthracycline">Anthracycline</option>
+            <option value="trastuzumab">Trastuzumab</option>
+            <option value="immunotherapy">Immunotherapy (ICI)</option>
+            <option value="tki">TKI</option>
+            <option value="vegf_inhibitor">VEGF Inhibitor</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Baseline EF %</label>
+          <input type="number" name="baseline_ef" min="10" max="100" required class="w-full px-3 py-2 border rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Anthracycline Cumulative mg/m²</label>
+          <input type="number" name="anthracycline_dose" min="0" required class="w-full px-3 py-2 border rounded">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <label class="flex items-center"><input type="checkbox" name="hypertension" class="mr-2"> Hypertension</label>
+        <label class="flex items-center"><input type="checkbox" name="diabetes" class="mr-2"> Diabetes</label>
+        <label class="flex items-center"><input type="checkbox" name="smoking" class="mr-2"> Smoking</label>
+        <label class="flex items-center"><input type="checkbox" name="hyperlipidemia" class="mr-2"> Hyperlipidemia</label>
+        <label class="flex items-center"><input type="checkbox" name="prior_cardiotoxicity" class="mr-2"> Prior Cardiotoxicity</label>
+        <label class="flex items-center"><input type="checkbox" name="al_amyloidosis" class="mr-2"> AL Amyloidosis</label>
+      </div>
+      <button type="submit" class="w-full mt-6 bg-pink-600 text-white px-6 py-3 rounded text-lg font-bold hover:bg-pink-700">Calculate HFA-ICOS Risk</button>
+    </form>
+  </main>
+  <script>
+    document.getElementById('coo-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const data = Object.fromEntries(fd.entries());
+      ['hypertension','diabetes','smoking','hyperlipidemia','prior_cardiotoxicity','al_amyloidosis'].forEach(c => {
+        data[c] = fd.has(c);
+      });
+      data.age = parseInt(data.age);
+      data.baseline_ef = parseInt(data.baseline_ef);
+      data.anthracycline_dose = parseFloat(data.anthracycline_dose);
+      const r = await fetch('/api/coo/score/hfa-icos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      const j = await r.json();
+      alert(`HFA-ICOS Score: ${j.result.score}\nRisk: ${j.result.risk.toUpperCase()}\n${j.result.recommendation}`);
+    });
+  </script>
+</body>
+</html>

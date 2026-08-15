@@ -1,0 +1,19 @@
+{
+  "module": "TIER3_CARD-303_ONCO",
+  "platform": "PostHog",
+  "events": [
+    { "name": "cardio_onc_assessment", "properties": { "tenant_id": "int", "patient_id": "int", "cancer_type": "string", "hfa_icos_risk": "string", "doctor_id": "int" } },
+    { "name": "chemo_modification", "properties": { "tenant_id": "int", "patient_id": "int", "agent": "string", "action": "string", "reason": "string" } },
+    { "name": "anthracycline_dose_check", "properties": { "tenant_id": "int", "patient_id": "int", "cumulative_dose": "number", "dox_equivalent": "number" } },
+    { "name": "ici_myocarditis_detected", "properties": { "tenant_id": "int", "patient_id": "int", "severity": "string", "ici_type": "string" } },
+    { "name": "vte_treatment_started", "properties": { "tenant_id": "int", "patient_id": "int", "drug": "string", "dose_mg": "number" } },
+    { "name": "cardioprotection_started", "properties": { "tenant_id": "int", "patient_id": "int", "drugs": "json" } },
+    { "name": "hfa_icos_scored", "properties": { "tenant_id": "int", "patient_id": "int", "score": "int", "risk": "string" } },
+    { "name": "amyloid_workup_ordered", "properties": { "tenant_id": "int", "patient_id": "int", "test": "string" } },
+    { "name": "coo_dashboard_viewed", "properties": { "tenant_id": "int", "user_id": "int", "role": "string" } },
+    { "name": "rag_query", "properties": { "tenant_id": "int", "user_id": "int", "topic": "string" } }
+  ],
+  "personas": ["cardio_onc_specialist", "medical_oncologist", "pharmacist", "radiation_oncologist", "hematologist"],
+  "cohorts": ["very_high_risk", "high_risk", "anthracycline_active", "ici_active", "her2_positive", "vte_cancer", "amyloid_workup"],
+  "insights": ["HFA-ICOS risk distribution", "Cardiotoxicity rate by agent", "VTE drug choice", "ICI myocarditis incidence"]
+}

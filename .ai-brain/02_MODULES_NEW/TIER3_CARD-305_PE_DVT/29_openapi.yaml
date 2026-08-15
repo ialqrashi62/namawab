@@ -1,0 +1,31 @@
+openapi: 3.0.3
+info:
+  title: NamaMedical PE/DVT Response Team API
+  version: 1.0.0
+  description: PERT API per ESC 2019, ACC 2024, AHA 2024
+servers:
+  - url: https://jumanasoft.com/api/pedvt
+  - url: http://localhost:3000/api/pedvt
+security:
+  - sessionAuth: []
+tags: [cases, scoring, treatment, cteph, stats]
+paths:
+  /health: { get: { tags: [cases], summary: Health, security: [], responses: { '200': {description: OK}, '401': {description: Unauthorized} } } }
+  /cases: { get: { tags: [cases], summary: List cases, responses: { '200': {description: OK} } }, post: { tags: [cases], summary: Create case, responses: { '201': {description: Created} } } }
+  /treatments: { post: { tags: [treatment], summary: Record treatment, responses: { '201': {description: OK} } } }
+  /score/spesi: { post: { tags: [scoring], summary: sPESI, responses: { '200': {description: OK} } } }
+  /score/wells-dvt: { post: { tags: [scoring], summary: Wells DVT, responses: { '200': {description: OK} } } }
+  /score/wells-pe: { post: { tags: [scoring], summary: Wells PE, responses: { '200': {description: OK} } } }
+  /severity: { post: { tags: [scoring], summary: PE Severity, responses: { '200': {description: OK} } } }
+  /thrombolysis: { post: { tags: [treatment], summary: Thrombolysis, responses: { '200': {description: OK} } } }
+  /cdt: { post: { tags: [treatment], summary: CDT, responses: { '200': {description: OK} } } }
+  /thrombectomy: { post: { tags: [treatment], summary: Thrombectomy, responses: { '200': {description: OK} } } }
+  /ivc-filter: { post: { tags: [treatment], summary: IVC filter, responses: { '200': {description: OK} } } }
+  /anticoag: { post: { tags: [treatment], summary: Anticoagulation, responses: { '200': {description: OK} } } }
+  /cteph: { post: { tags: [cteph], summary: CTEPH workup, responses: { '200': {description: OK} } } }
+  /pert-activate: { post: { tags: [scoring], summary: PERT activation, responses: { '200': {description: OK} } } }
+  /bleeding-risk: { post: { tags: [scoring], summary: Bleeding risk, responses: { '200': {description: OK} } } }
+  /stats: { get: { tags: [stats], summary: PE/DVT stats, responses: { '200': {description: OK} } } }
+components:
+  securitySchemes:
+    sessionAuth: { type: apiKey, in: cookie, name: connect.sid }

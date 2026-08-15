@@ -1,0 +1,59 @@
+groups:
+  - name: ahf.gdmt
+    rules:
+      - alert: LowGDMT4Pillar
+        expr: sum(rate(ahf_gdmt4_count_total[1d])) / sum(rate(ahf_hf_cases_total[1d])) < 0.75
+        for: 7d
+        labels: { severity: warn, team: ahf }
+        annotations:
+          summary: "GDMT 4-pillar implementation rate < 75%"
+          description: "GDMT rate = {{ $value }}"
+
+      - alert: HighReadmission30d
+        expr: sum(rate(ahf_readmitted_30d_total[30d])) / sum(rate(ahf_admissions_total[30d])) > 0.20
+        for: 7d
+        labels: { severity: warn, team: ahf }
+        annotations:
+          summary: "30-day readmission rate > 20%"
+
+      - alert: HighMortality30d
+        expr: sum(rate(ahf_mortality_30d_total[30d])) / sum(rate(ahf_admissions_total[30d])) > 0.10
+        for: 7d
+        labels: { severity: page, team: ahf }
+        annotations:
+          summary: "30-day mortality > 10%"
+
+      - alert: LVADPumpThrombosisHigh
+        expr: sum(rate(ahf_lvad_thrombosis_total[7d])) / sum(rate(ahf_lvad_active_total[7d])) > 0.05
+        for: 3d
+        labels: { severity: critical, team: ahf }
+        annotations:
+          summary: "LVAD pump thrombosis rate > 5%/week"
+
+  - name: ahf.shock
+    rules:
+      - alert: SCAIShockHigh
+        expr: sum(rate(ahf_scai_cde_total[24h])) > 5
+        for: 1h
+        labels: { severity: page, team: ahf }
+        annotations:
+          summary: "Multiple cardiogenic shock cases — confirm shock team"
+
+      - alert: LVADSpeedOutOfRange
+        expr: ahf_lvad_speed_rpm < 3000 || ahf_lvad_speed_rpm > 10000
+        for: 5m
+        labels: { severity: critical, team: ahf }
+        annotations:
+          summary: "LVAD speed out of safe range"
+
+recording_rules:
+  - name: ahf.daily.kpis
+    rules:
+      - record: ahf:gdmt4_pillar_rate
+        expr: sum(rate(ahf_gdmt4_count_total[1d])) / sum(rate(ahf_hf_cases_total[1d]))
+
+      - record: ahf:30d_mortality
+        expr: sum(rate(ahf_mortality_30d_total[30d])) / sum(rate(ahf_admissions_total[30d]))
+
+      - record: ahf:avg_maggic_score
+        expr: avg(ahf_maggic_score)

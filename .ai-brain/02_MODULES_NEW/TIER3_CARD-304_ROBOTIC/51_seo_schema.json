@@ -1,0 +1,45 @@
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalSpecialty",
+  "name": "Robotic Cardiovascular Surgery Center",
+  "alternateName": "مركز جراحة القلب الروبوتية",
+  "description": "Robotic CV Surgery Center offering DaVinci robotic mitral/CABG/ASD, TAVI/TAVR, MitraClip, WATCHMAN per STS 2024, ACC/AHA 2024, ESC 2023.",
+  "medicalSpecialty": "Cardiothoracic Surgery",
+  "availableService": [
+    { "@type": "MedicalProcedure", "name": "Robotic Mitral Valve Repair", "alternateName": "إصلاح الصمام التاجي الروبوتي", "procedureType": "Robotic", "device": "DaVinci Xi" },
+    { "@type": "MedicalProcedure", "name": "Robotic CABG", "alternateName": "CABG الروبوتي", "procedureType": "Robotic" },
+    { "@type": "MedicalProcedure", "name": "TAVI/TAVR", "alternateName": "TAVI", "procedureType": "Transcatheter", "device": "Sapien 3 / Evolut" },
+    { "@type": "MedicalProcedure", "name": "MitraClip", "alternateName": "MitraClip", "procedureType": "Transcatheter" },
+    { "@type": "MedicalProcedure", "name": "WATCHMAN", "alternateName": "WATCHMAN", "procedureType": "Transcatheter" }
+  ],
+  "medicalCode": { "codeValue": "Z95.9", "codingSystem": "ICD-10", "name": "Presence of cardiac device" },
+  "recognizedBy": [
+    { "@type": "Organization", "name": "STS" },
+    { "@type": "Organization", "name": "ACC/AHA" },
+    { "@type": "Organization", "name": "ESC" },
+    { "@type": "Organization", "name": "SFDA" },
+    { "@type": "Organization", "name": "CBAHI" },
+    { "@type": "Organization", "name": "NPHIES" },
+    { "@type": "Organization", "name": "SCFHS" }
+  ],
+  "hasHealthAspect": [
+    { "@type": "HealthAspect", "name": "Heart Team MDT", "description": "Cardiologist + Surgeon + Anesthesia" },
+    { "@type": "HealthAspect", "name": "Robotic Surgery", "description": "DaVinci platform" },
+    { "@type": "HealthAspect", "name": "Transcatheter Valve", "description": "TAVI / MitraClip" },
+    { "@type": "HealthAspect", "name": "LAA Closure", "description": "WATCHMAN" }
+  ],
+  "areaServed": { "@type": "Country", "name": "Saudi Arabia" },
+  "audience": {
+    "@type": "PeopleAudience",
+    "audienceType": "Cardiac surgery candidates, valve disease patients",
+    "geographicArea": "Kingdom of Saudi Arabia + GCC"
+  },
+  "keywords": [
+    "robotic surgery", "DaVinci", "mitral repair", "TAVI", "TAVR", "Sapien", "Evolut", "MitraClip", "WATCHMAN",
+    "cardiac surgery", "STS score", "EuroSCORE", "Heart Team", "CABG", "TECAB",
+    "Saudi Arabia", "CBAHI", "SFDA", "NPHIES", "SCFHS",
+    "جراحة القلب الروبوتية", "دافنشي", "إصلاح الصمام التاجي"
+  ],
+  "url": "https://jumanasoft.com/rcv",
+  "publisher": { "@type": "Organization", "name": "NamaMedical", "url": "https://jumanasoft.com" }
+}

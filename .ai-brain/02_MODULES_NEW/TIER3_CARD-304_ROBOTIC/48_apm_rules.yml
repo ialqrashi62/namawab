@@ -1,0 +1,56 @@
+groups:
+  - name: robotic_cv.safety
+    rules:
+      - alert: STS_ScoreHigh
+        expr: rcv_sts_score > 8
+        for: 1h
+        labels: { severity: page, team: rcv }
+        annotations:
+          summary: "STS Score >8% — High surgical risk"
+
+      - alert: ConversionToOpen
+        expr: rate(rcv_conversion_total[1d]) / rate(rcv_procedures_total[1d]) > 0.05
+        for: 7d
+        labels: { severity: warn, team: rcv }
+        annotations:
+          summary: "Conversion to open >5%"
+
+      - alert: PostOpMortality30d
+        expr: rate(rcv_mortality_30d_total[30d]) / rate(rcv_procedures_total[30d]) > 0.02
+        for: 7d
+        labels: { severity: critical, team: rcv }
+        annotations:
+          summary: "30-day mortality >2%"
+
+      - alert: StrokeIntraOp
+        expr: increase(rcv_intraop_stroke_total[1h]) > 0
+        for: 5m
+        labels: { severity: critical, team: rcv }
+        annotations:
+          summary: "Intra-op stroke detected"
+
+      - alert: TAVIDeviceMalposition
+        expr: increase(rcv_tavi_malposition_total[24h]) > 0
+        for: 10m
+        labels: { severity: page, team: rcv }
+        annotations:
+          summary: "TAVI valve malposition"
+
+      - alert: PreOpChecklistIncomplete
+        expr: rate(rcv_preop_incomplete_total[1d]) / rate(rcv_cases_total[1d]) > 0.05
+        for: 3d
+        labels: { severity: warn, team: rcv }
+        annotations:
+          summary: "Pre-op checklist incomplete >5%"
+
+recording_rules:
+  - name: rcv.kpis
+    rules:
+      - record: rcv:success_rate
+        expr: sum(rate(rcv_success_total[30d])) / sum(rate(rcv_procedures_total[30d]))
+
+      - record: rcv:conversion_rate
+        expr: sum(rate(rcv_conversion_total[30d])) / sum(rate(rcv_procedures_total[30d]))
+
+      - record: rcv:avg_los_days
+        expr: avg(rcv_hospital_days) by (procedure_type)

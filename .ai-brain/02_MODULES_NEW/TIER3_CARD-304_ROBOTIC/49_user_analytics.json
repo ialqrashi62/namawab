@@ -1,0 +1,19 @@
+{
+  "module": "TIER3_CARD-304_ROBOTIC",
+  "platform": "PostHog",
+  "events": [
+    { "name": "heart_team_decision", "properties": { "tenant_id": "int", "patient_id": "int", "decision": "string", "cardiologist_id": "int", "surgeon_id": "int" } },
+    { "name": "robotic_surgery_performed", "properties": { "tenant_id": "int", "patient_id": "int", "procedure_type": "string", "device": "string", "console_hours": "decimal" } },
+    { "name": "tavi_implant", "properties": { "tenant_id": "int", "patient_id": "int", "device": "string", "approach": "string" } },
+    { "name": "mitraclip_implant", "properties": { "tenant_id": "int", "patient_id": "int", "mr_grade": "int" } },
+    { "name": "watchman_implant", "properties": { "tenant_id": "int", "patient_id": "int", "lmm_size": "int" } },
+    { "name": "sts_scored", "properties": { "tenant_id": "int", "patient_id": "int", "score": "decimal", "risk": "string" } },
+    { "name": "preop_checklist_complete", "properties": { "tenant_id": "int", "patient_id": "int", "completed_items": "int" } },
+    { "name": "conversion_to_open", "properties": { "tenant_id": "int", "patient_id": "int", "reason": "string" } },
+    { "name": "rcv_dashboard_viewed", "properties": { "tenant_id": "int", "user_id": "int", "role": "string" } },
+    { "name": "rag_query", "properties": { "tenant_id": "int", "user_id": "int", "topic": "string" } }
+  ],
+  "personas": ["cardiac_surgeon", "interventional_cardiologist", "cardiac_anesthesiologist", "perfusionist", "icu_intensivist"],
+  "cohorts": ["sts_low", "sts_high", "tavi_eligible", "mitraclip_eligible", "watchman_eligible", "robotic_eligible"],
+  "insights": ["Procedure volume by type", "STS risk distribution", "Conversion rate", "30-day mortality"]
+}

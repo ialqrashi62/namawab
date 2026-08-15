@@ -1,0 +1,490 @@
+# CARD-301_STROKE — OpenAPI 3.0 Specification
+
+openapi: 3.0.3
+info:
+  title: NamaMedical Stroke Center API
+  version: 1.0.0
+  description: |
+    Comprehensive Stroke Center (CSC) endpoints per AHA/ASA 2019 guidelines.
+    Implements NIHSS, ASPECTS, mRS, ICH, Hunt-Hess, ABCD2, CHA2DS2-VASc, HAS-BLED scoring,
+    thrombolysis eligibility + dosing, thrombectomy tracking, and 30-day follow-up.
+  contact:
+    name: NamaMedical Stroke Team
+    email: stroke@namamedical.com
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://jumanasoft.com/api/stroke
+    description: Production
+  - url: http://localhost:3000/api/stroke
+    description: Local dev
+
+tags:
+  - name: cases
+  - name: thrombolysis
+  - name: thrombectomy
+  - name: imaging
+  - name: scoring
+  - name: follow-up
+  - name: stats
+
+security:
+  - sessionAuth: []
+
+paths:
+  /health:
+    get:
+      tags: [cases]
+      summary: Health check
+      security: []
+      responses:
+        '200': { description: OK }
+        '401': { description: Unauthorized }
+
+  /cases:
+    get:
+      tags: [cases]
+      summary: List stroke cases
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [active, discharged, transferred, deceased] }
+        - in: query
+          name: type
+          schema: { type: string, enum: [AIS, ICH, SAH, TIA, CVST] }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 100 }
+      responses:
+        '200':
+          description: Cases list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  count: { type: integer }
+                  rows: { type: array, items: { $ref: '#/components/schemas/StrokeCase' } }
+
+    post:
+      tags: [cases]
+      summary: Create a stroke case
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/StrokeCaseCreate'
+      responses:
+        '201':
+          description: Case created
+        '400': { description: Invalid input }
+        '401': { description: Unauthorized }
+
+  /thrombolysis:
+    post:
+      tags: [thrombolysis]
+      summary: Record thrombolysis treatment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ThrombolysisCreate' }
+      responses:
+        '201': { description: Treatment recorded }
+        '400': { description: Invalid input }
+
+  /thrombectomy:
+    post:
+      tags: [thrombectomy]
+      summary: Record thrombectomy procedure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ThrombectomyCreate' }
+      responses:
+        '201': { description: Procedure recorded }
+
+  /imaging:
+    post:
+      tags: [imaging]
+      summary: Record stroke imaging
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ImagingCreate' }
+      responses:
+        '201': { description: Imaging recorded }
+
+  /score/nihss:
+    post:
+      tags: [scoring]
+      summary: Calculate NIHSS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NIHSSInput' }
+      responses:
+        '200':
+          description: NIHSS calculated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  result: { $ref: '#/components/schemas/NIHSSResult' }
+
+  /score/aspects:
+    post:
+      tags: [scoring]
+      summary: Calculate ASPECTS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ASPECTSInput' }
+      responses:
+        '200':
+          description: ASPECTS calculated
+
+  /score/mrs:
+    post:
+      tags: [scoring]
+      summary: Calculate mRS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                score: { type: integer, minimum: 0, maximum: 6 }
+      responses:
+        '200': { description: mRS calculated }
+
+  /score/ich:
+    post:
+      tags: [scoring]
+      summary: ICH Score
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ICHInput' }
+      responses:
+        '200': { description: ICH Score calculated }
+
+  /score/hunt-hess:
+    post:
+      tags: [scoring]
+      summary: Hunt-Hess Scale
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                grade: { type: integer, minimum: 1, maximum: 5 }
+      responses:
+        '200': { description: Hunt-Hess calculated }
+
+  /score/abcd2:
+    post:
+      tags: [scoring]
+      summary: ABCD2 Score (TIA)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ABCD2Input' }
+      responses:
+        '200': { description: ABCD2 calculated }
+
+  /score/cha2ds2vasc:
+    post:
+      tags: [scoring]
+      summary: CHA2DS2-VASc Score
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CHA2DS2VAScInput' }
+      responses:
+        '200': { description: CHA2DS2-VASc calculated }
+
+  /score/has-bled:
+    post:
+      tags: [scoring]
+      summary: HAS-BLED Score
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/HASBLEDInput' }
+      responses:
+        '200': { description: HAS-BLED calculated }
+
+  /dose/tenecteplase:
+    post:
+      tags: [scoring]
+      summary: Calculate Tenecteplase dose (Saudi MoH 2024)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                weight_kg: { type: number, minimum: 30, maximum: 200 }
+                age: { type: integer }
+      responses:
+        '200': { description: Dose calculated }
+
+  /eligibility/thrombolysis:
+    post:
+      tags: [scoring]
+      summary: Check thrombolysis eligibility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EligibilityInput' }
+      responses:
+        '200':
+          description: Eligibility result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  result: { $ref: '#/components/schemas/EligibilityResult' }
+
+  /compliance/door-to-needle:
+    post:
+      tags: [scoring]
+      summary: Door-to-Needle compliance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                minutes: { type: integer, minimum: 0 }
+      responses:
+        '200': { description: Compliance result }
+
+  /bundle/secondary-prevention:
+    post:
+      tags: [scoring]
+      summary: 5-element secondary prevention bundle check
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                antiplatelet: { type: boolean }
+                statin: { type: boolean }
+                anticoagulation: { type: boolean }
+                bp_control: { type: boolean }
+                lifestyle: { type: boolean }
+      responses:
+        '200': { description: Bundle status }
+
+  /stats:
+    get:
+      tags: [stats]
+      summary: Aggregate stats
+      responses:
+        '200':
+          description: Stats
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Stats' }
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid
+
+  schemas:
+    StrokeCase:
+      type: object
+      properties:
+        id: { type: integer }
+        patient_id: { type: integer }
+        stroke_type: { type: string, enum: [AIS, ICH, SAH, TIA, CVST] }
+        nihss_score: { type: integer }
+        aspects_score: { type: integer }
+        status: { type: string }
+
+    StrokeCaseCreate:
+      type: object
+      required: [patient_id]
+      properties:
+        patient_id: { type: integer }
+        encounter_id: { type: integer }
+        stroke_type: { type: string }
+        arrival_time: { type: string, format: date-time }
+        last_known_well: { type: string, format: date-time }
+        nihss_score: { type: integer, minimum: 0, maximum: 42 }
+        ct_findings: { type: string }
+        aspects_score: { type: integer, minimum: 0, maximum: 10 }
+        code_stroke_activated: { type: boolean }
+        admitted_to_stroke_unit: { type: boolean }
+
+    ThrombolysisCreate:
+      type: object
+      required: [patient_id, agent, dose_mg]
+      properties:
+        patient_id: { type: integer }
+        agent: { type: string, enum: [tenecteplase, alteplase] }
+        dose_mg: { type: number }
+        weight_kg: { type: number }
+        door_to_needle_minutes: { type: integer }
+
+    ThrombectomyCreate:
+      type: object
+      required: [patient_id]
+      properties:
+        patient_id: { type: integer }
+        procedure_time: { type: string, format: date-time }
+        door_to_groin_minutes: { type: integer }
+        tici_score: { type: integer, minimum: 0, maximum: 3 }
+        mrs_30d: { type: integer, minimum: 0, maximum: 6 }
+
+    ImagingCreate:
+      type: object
+      required: [patient_id, imaging_type]
+      properties:
+        patient_id: { type: integer }
+        imaging_type: { type: string, enum: [CT, CTA, MRI, CTP, MRA] }
+        findings: { type: string }
+        aspects_score: { type: integer }
+        occlusion_site: { type: string }
+
+    NIHSSInput:
+      type: object
+      required: [consciousness, gaze, visual_fields, facial_palsy, motor_arm_left, motor_arm_right, motor_leg_left, motor_leg_right, limb_ataxia, sensory, language, dysarthria, extinction]
+      properties:
+        consciousness: { type: integer, minimum: 0, maximum: 3 }
+        gaze: { type: integer, minimum: 0, maximum: 2 }
+        visual_fields: { type: integer, minimum: 0, maximum: 3 }
+        facial_palsy: { type: integer, minimum: 0, maximum: 3 }
+        motor_arm_left: { type: integer, minimum: 0, maximum: 4 }
+        motor_arm_right: { type: integer, minimum: 0, maximum: 4 }
+        motor_leg_left: { type: integer, minimum: 0, maximum: 4 }
+        motor_leg_right: { type: integer, minimum: 0, maximum: 4 }
+        limb_ataxia: { type: integer, minimum: 0, maximum: 2 }
+        sensory: { type: integer, minimum: 0, maximum: 2 }
+        language: { type: integer, minimum: 0, maximum: 3 }
+        dysarthria: { type: integer, minimum: 0, maximum: 2 }
+        extinction: { type: integer, minimum: 0, maximum: 2 }
+
+    NIHSSResult:
+      type: object
+      properties:
+        score: { type: integer, minimum: 0, maximum: 42 }
+        severity: { type: string, enum: [minor, moderate, moderate_severe, severe] }
+        citation: { type: string }
+
+    ASPECTSInput:
+      type: object
+      properties:
+        caudate: { type: integer, minimum: 0, maximum: 1 }
+        lentiform: { type: integer, minimum: 0, maximum: 1 }
+        internal_capsule: { type: integer, minimum: 0, maximum: 1 }
+        insular_ribbon: { type: integer, minimum: 0, maximum: 1 }
+        mca_m1: { type: integer, minimum: 0, maximum: 1 }
+        mca_m2: { type: integer, minimum: 0, maximum: 1 }
+        mca_m3: { type: integer, minimum: 0, maximum: 1 }
+        mca_m4: { type: integer, minimum: 0, maximum: 1 }
+        mca_m5: { type: integer, minimum: 0, maximum: 1 }
+        mca_m6: { type: integer, minimum: 0, maximum: 1 }
+
+    ICHInput:
+      type: object
+      properties:
+        gcs: { type: integer, minimum: 3, maximum: 15 }
+        age: { type: integer }
+        ich_volume: { type: number }
+        ivh: { type: boolean }
+        infratentorial: { type: boolean }
+
+    ABCD2Input:
+      type: object
+      properties:
+        age: { type: integer }
+        bp: { type: string }
+        bp_diastolic: { type: integer }
+        clinical_features: { type: string, enum: [none, unilateral_weakness, speech_disturbance] }
+        duration: { type: string, enum: ['<10min', '10-59min', '>=60min'] }
+        diabetes: { type: boolean }
+
+    CHA2DS2VAScInput:
+      type: object
+      properties:
+        age: { type: integer }
+        sex: { type: string, enum: [male, female] }
+        chf: { type: boolean }
+        htn: { type: boolean }
+        stroke_prior: { type: boolean }
+        tia_prior: { type: boolean }
+        thromboembolism: { type: boolean }
+        vascular: { type: boolean }
+        diabetes: { type: boolean }
+
+    HASBLEDInput:
+      type: object
+      properties:
+        htn: { type: boolean }
+        renal: { type: boolean }
+        liver: { type: boolean }
+        stroke_prior: { type: boolean }
+        bleeding_prior: { type: boolean }
+        labile_inr: { type: boolean }
+        elderly: { type: boolean }
+        drugs: { type: boolean }
+        alcohol: { type: boolean }
+
+    EligibilityInput:
+      type: object
+      properties:
+        age: { type: integer }
+        tlkw_minutes: { type: integer }
+        nihss: { type: integer }
+        ct_hemorrhage: { type: boolean }
+        inr: { type: number }
+        platelets: { type: integer }
+        recent_surgery: { type: boolean }
+        recent_stroke: { type: boolean }
+        active_bleeding: { type: boolean }
+        bp_systolic: { type: integer }
+        bp_diastolic: { type: integer }
+
+    EligibilityResult:
+      type: object
+      properties:
+        eligible: { type: boolean }
+        exclusions: { type: array, items: { type: string } }
+        agent: { type: string }
+
+    Stats:
+      type: object
+      properties:
+        cases: { type: array }
+        dnt_compliance: { type: object }
+        mrs_30d: { type: array }

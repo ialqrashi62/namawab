@@ -1,0 +1,48 @@
+robotic_cv_context:
+  patient:
+    national_id: string
+    mrn: string
+    age: integer
+    gender: enum [male, female]
+    diagnosis: enum [mitral_regurgitation, aortic_stenosis, cad, asd, vsd, atrial_fibrillation, atrial_myxoma, tricuspid_regurgitation, aortic_aneurysm]
+    indication: string
+
+  cardiac_history:
+    prior_cardiac_surgery: boolean
+    prior_pci: boolean
+    prior_stroke: boolean
+    prior_mi: boolean
+    nyha_class: enum [I, II, III, IV]
+    ef_pct: integer
+    pulmonary_hypertension: boolean
+    cad_severity: enum [none, 1v, 2v, 3v, LM]
+
+  risk_assessment:
+    sts_score: decimal
+    euroscore_ii: decimal
+    frailty_score: enum [robust, prefrail, frail]
+    pulmonary_function: enum [normal, mild_impairment, severe_impairment]
+    renal_function: enum [normal, mild_ckd, severe_ckd]
+
+  procedure:
+    procedure_type: enum [robotic_mitral_repair, robotic_mitral_replace, robotic_cabg, robotic_asd, robotic_myxoma, robotic_tricuspid, robotic_maze, tavi, mitraclip, watchman, tevar, evar]
+    device: enum [davinci_xi, davinci_sp, sapien_3, evolut, mitraclip_g4, watchman_flx, sentinel]
+    console_hours: decimal
+    bypass_time_min: integer
+    cross_clamp_min: integer
+    conversion_to_open: boolean
+
+  outcomes:
+    success: boolean
+    complications: list<string>
+    icu_hours: integer
+    hospital_days: integer
+    mortality_30d: boolean
+    stroke: boolean
+    aki: boolean
+    pacemaker_implanted: boolean
+
+  follow_up:
+    next_echo_date: date
+    next_visit_date: date
+    anticoagulation: enum [warfarin, doac, lmwh, antiplatelet, none]

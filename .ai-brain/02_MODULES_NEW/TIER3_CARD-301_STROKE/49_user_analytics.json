@@ -1,0 +1,147 @@
+{
+  "module": "TIER3_CARD-301_STROKE",
+  "platform": "PostHog",
+  "events": [
+    {
+      "name": "code_stroke_activated",
+      "description": "Code Stroke activated by ER physician",
+      "properties": {
+        "tenant_id": "integer",
+        "doctor_id": "integer",
+        "patient_id": "integer",
+        "arrival_time": "datetime",
+        "tlkw_minutes": "integer",
+        "nihss_score": "integer",
+        "code_path": "string"
+      },
+      "category": "clinical",
+      "priority": "high"
+    },
+    {
+      "name": "thrombolysis_administered",
+      "description": "IV thrombolysis administered",
+      "properties": {
+        "tenant_id": "integer",
+        "patient_id": "integer",
+        "agent": "string",
+        "dose_mg": "number",
+        "door_to_needle_minutes": "integer",
+        "compliant": "boolean",
+        "ordering_physician": "integer"
+      },
+      "category": "treatment",
+      "priority": "critical"
+    },
+    {
+      "name": "thrombectomy_performed",
+      "description": "Mechanical thrombectomy procedure",
+      "properties": {
+        "tenant_id": "integer",
+        "patient_id": "integer",
+        "door_to_groin_minutes": "integer",
+        "tici_score": "integer",
+        "operator": "string"
+      },
+      "category": "treatment",
+      "priority": "critical"
+    },
+    {
+      "name": "nihss_calculated",
+      "description": "NIHSS score calculated",
+      "properties": {
+        "tenant_id": "integer",
+        "patient_id": "integer",
+        "score": "integer",
+        "severity": "string",
+        "computed_by": "user|ai"
+      },
+      "category": "scoring",
+      "priority": "normal"
+    },
+    {
+      "name": "tenecteplase_dosed",
+      "description": "Tenecteplase dose calculated",
+      "properties": {
+        "tenant_id": "integer",
+        "patient_id": "integer",
+        "weight_kg": "number",
+        "dose_mg": "number",
+        "ordering_physician": "integer"
+      },
+      "category": "safety",
+      "priority": "critical"
+    },
+    {
+      "name": "secondary_prevention_completed",
+      "description": "5-element prevention bundle complete",
+      "properties": {
+        "tenant_id": "integer",
+        "patient_id": "integer",
+        "completeness_pct": "integer",
+        "discharging_physician": "integer"
+      },
+      "category": "discharge",
+      "priority": "normal"
+    },
+    {
+      "name": "followup_30d",
+      "description": "30-day follow-up completed",
+      "properties": {
+        "tenant_id": "integer",
+        "patient_id": "integer",
+        "mrs_score": "integer",
+        "recurrent_event": "boolean",
+        "medication_adherent": "boolean"
+      },
+      "category": "outcome",
+      "priority": "high"
+    },
+    {
+      "name": "stroke_dashboard_viewed",
+      "description": "Quality dashboard accessed",
+      "properties": {
+        "tenant_id": "integer",
+        "user_id": "integer",
+        "role": "string",
+        "view_type": "gtwg-s|monthly|quarterly"
+      },
+      "category": "engagement",
+      "priority": "low"
+    },
+    {
+      "name": "rag_query",
+      "description": "RAG query on stroke knowledge base",
+      "properties": {
+        "tenant_id": "integer",
+        "user_id": "integer",
+        "query_length": "integer",
+        "top_similarity": "number",
+        "citation_count": "integer",
+        "language": "ar|en|fr|ur"
+      },
+      "category": "ai",
+      "priority": "low"
+    },
+    {
+      "name": "telestroke_consult",
+      "description": "Telestroke consultation initiated",
+      "properties": {
+        "tenant_id": "integer",
+        "spoke_hospital_id": "integer",
+        "hub_hospital_id": "integer",
+        "consultation_minutes": "integer",
+        "decision": "transfer|treat_locally|admit"
+      },
+      "category": "care_coordination",
+      "priority": "high"
+    }
+  ],
+  "personas": ["stroke_neurologist", "er_physician", "stroke_nurse", "interventional_radiologist", "quality_coordinator"],
+  "cohorts": ["high_nihss", "lvo_candidates", "thrombolysis_recipients", "thrombectomy_recipients", "30d_followup_due"],
+  "insights": [
+    "Door-to-needle trend by month",
+    "NIHSS distribution by clinical subtype",
+    "mRS outcome distribution at 30 days",
+    "Telestroke utilization by spoke"
+  ]
+}

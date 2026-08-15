@@ -1,0 +1,16 @@
+BEGIN
+CREATE TABLE
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+psql:migrations/e56_hub_settings_up.sql:24: NOTICE:  policy "hub_user_settings_tenant_isolation" for relation "hub_user_settings" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+CREATE TABLE
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+psql:migrations/e56_hub_settings_up.sql:45: NOTICE:  policy "hub_favorites_tenant_isolation" for relation "hub_favorites" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+COMMIT

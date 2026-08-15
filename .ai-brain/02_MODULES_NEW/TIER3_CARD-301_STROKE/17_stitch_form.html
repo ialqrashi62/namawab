@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Stroke Activation Form</title>
+  <link rel="stylesheet" href="https://cdn.tailwindcss.com">
+</head>
+<body class="bg-slate-50">
+  <header class="bg-red-600 text-white p-4">
+    <h1 class="text-2xl font-bold">⚠️ Code Stroke — تفعيل بروتوكول السكتة</h1>
+  </header>
+  <main class="container mx-auto p-4 max-w-3xl">
+    <form id="code-stroke-form" class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-bold mb-4 text-red-600">Time-Critical Information</h2>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">Patient ID *</label>
+          <input type="number" name="patient_id" required class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-red-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Last Known Well *</label>
+          <input type="datetime-local" name="last_known_well" required class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-red-500">
+        </div>
+      </div>
+      <h3 class="text-lg font-bold mt-6 mb-3">NIHSS (0-42)</h3>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-xs">Consciousness (0-3)</label><input type="number" name="consciousness" min="0" max="3" required class="w-full px-2 py-1 border rounded"></div>
+        <div><label class="block text-xs">Gaze (0-2)</label><input type="number" name="gaze" min="0" max="2" required class="w-full px-2 py-1 border rounded"></div>
+        <div><label class="block text-xs">Visual Fields (0-3)</label><input type="number" name="visual_fields" min="0" max="3" required class="w-full px-2 py-1 border rounded"></div>
+        <div><label class="block text-xs">Facial Palsy (0-3)</label><input type="number" name="facial_palsy" min="0" max="3" required class="w-full px-2 py-1 border rounded"></div>
+        <div><label class="block text-xs">Motor Arm Left (0-4)</label><input type="number" name="motor_arm_left" min="0" max="4" required class="w-full px-2 py-1 border rounded"></div>
+        <div><label class="block text-xs">Motor Arm Right (0-4)</label><input type="number" name="motor_arm_right" min="0" max="4" required class="w-full px-2 py-1 border rounded"></div>
+        <div><label class="block text-xs">Motor Leg Left (0-4)</label><input type="number" name="motor_leg_left" min="0" max="4" required class="w-full px-2 py-1 border rounded"></div>
+        <div><label class="block text-xs">Motor Leg Right (0-4)</label><input type="number" name="motor_leg_right" min="0" max="4" required class="w-full px-2 py-1 border rounded"></div>
+        <div><label class="block text-xs">Limb Ataxia (0-2)</label><input type="number" name="limb_ataxia" min="0" max="2" required class="w-full px-2 py-1 border rounded"></div>
+        <div><label class="block text-xs">Sensory (0-2)</label><input type="number" name="sensory" min="0" max="2" required class="w-full px-2 py-1 border rounded"></div>
+        <div><label class="block text-xs">Language (0-3)</label><input type="number" name="language" min="0" max="3" required class="w-full px-2 py-1 border rounded"></div>
+        <div><label class="block text-xs">Dysarthria (0-2)</label><input type="number" name="dysarthria" min="0" max="2" required class="w-full px-2 py-1 border rounded"></div>
+        <div><label class="block text-xs">Extinction (0-2)</label><input type="number" name="extinction" min="0" max="2" required class="w-full px-2 py-1 border rounded"></div>
+      </div>
+      <h3 class="text-lg font-bold mt-6 mb-3">Contraindications</h3>
+      <div class="space-y-2">
+        <label class="flex items-center"><input type="checkbox" name="ct_hemorrhage" class="mr-2"> CT shows hemorrhage</label>
+        <label class="flex items-center"><input type="checkbox" name="active_bleeding" class="mr-2"> Active internal bleeding</label>
+        <label class="flex items-center"><input type="checkbox" name="recent_surgery" class="mr-2"> Recent major surgery (&lt;14d)</label>
+        <label class="flex items-center"><input type="checkbox" name="recent_stroke" class="mr-2"> Recent stroke (&lt;90d)</label>
+      </div>
+      <div class="grid grid-cols-2 gap-4 mt-4">
+        <div><label class="block text-sm font-medium mb-1">INR</label><input type="number" step="0.1" name="inr" class="w-full px-3 py-2 border rounded"></div>
+        <div><label class="block text-sm font-medium mb-1">Platelets (×10³/µL)</label><input type="number" name="platelets" class="w-full px-3 py-2 border rounded"></div>
+        <div><label class="block text-sm font-medium mb-1">BP Systolic</label><input type="number" name="bp_systolic" class="w-full px-3 py-2 border rounded"></div>
+        <div><label class="block text-sm font-medium mb-1">BP Diastolic</label><input type="number" name="bp_diastolic" class="w-full px-3 py-2 border rounded"></div>
+        <div><label class="block text-sm font-medium mb-1">Weight (kg)</label><input type="number" step="0.1" name="weight_kg" class="w-full px-3 py-2 border rounded"></div>
+        <div><label class="block text-sm font-medium mb-1">Age</label><input type="number" name="age" class="w-full px-3 py-2 border rounded"></div>
+      </div>
+      <button type="submit" class="w-full mt-6 bg-red-600 text-white px-6 py-3 rounded text-lg font-bold hover:bg-red-700">🚨 Activate Code Stroke</button>
+    </form>
+  </main>
+  <script>
+    document.getElementById('code-stroke-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData.entries());
+      const checkboxes = ['ct_hemorrhage','active_bleeding','recent_surgery','recent_stroke'];
+      checkboxes.forEach(c => { data[c] = formData.has(c); });
+      const nihss = await fetch('/api/stroke/score/nihss', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      const elig = await fetch('/api/stroke/eligibility/thrombolysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      const nihssJson = await nihss.json();
+      const eligJson = await elig.json();
+      alert(`NIHSS: ${nihssJson.result.score} (${nihssJson.result.severity})\nEligible: ${eligJson.result.eligible ? 'YES' : 'NO'}\nExclusions: ${eligJson.result.exclusions.join(', ') || 'none'}`);
+    });
+  </script>
+</body>
+</html>

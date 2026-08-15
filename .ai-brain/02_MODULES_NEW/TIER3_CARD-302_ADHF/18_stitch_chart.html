@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced HF Quality Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.tailwindcss.com">
+</head>
+<body class="bg-slate-50">
+  <header class="bg-white shadow border-b p-4">
+    <h1 class="text-xl font-bold">Advanced Heart Failure Quality Dashboard</h1>
+  </header>
+  <main class="container mx-auto p-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-bold mb-4">GDMT 4-Pillar Implementation Rate</h3>
+        <svg viewBox="0 0 400 200" class="w-full">
+          <rect x="40" y="20" width="60" height="160" fill="#94a3b8"/>
+          <rect x="110" y="50" width="60" height="130" fill="#94a3b8"/>
+          <rect x="180" y="80" width="60" height="100" fill="#84cc16"/>
+          <rect x="250" y="80" width="60" height="100" fill="#10b981"/>
+          <text x="70" y="195" text-anchor="middle" font-size="11">ARNI</text>
+          <text x="140" y="195" text-anchor="middle" font-size="11">BB</text>
+          <text x="210" y="195" text-anchor="middle" font-size="11">MRA</text>
+          <text x="280" y="195" text-anchor="middle" font-size="11">SGLT2i</text>
+          <text x="70" y="15" text-anchor="middle" font-size="11">68%</text>
+          <text x="140" y="45" text-anchor="middle" font-size="11">62%</text>
+          <text x="210" y="75" text-anchor="middle" font-size="11">71%</text>
+          <text x="280" y="75" text-anchor="middle" font-size="11">75%</text>
+        </svg>
+      </div>
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-bold mb-4">30-Day Mortality by ADHF Status</h3>
+        <svg viewBox="0 0 400 200" class="w-full">
+          <line x1="40" y1="180" x2="380" y2="180" stroke="#94a3b8"/>
+          <line x1="40" y1="20" x2="40" y2="180" stroke="#94a3b8"/>
+          <line x1="40" y1="60" x2="380" y2="60" stroke="#fca5a5" stroke-dasharray="4 2"/>
+          <text x="50" y="55" font-size="10" fill="#dc2626">Target: 10%</text>
+          <rect x="60" y="120" width="60" height="60" fill="#10b981"/>
+          <rect x="140" y="90" width="60" height="90" fill="#84cc16"/>
+          <rect x="220" y="60" width="60" height="120" fill="#facc15"/>
+          <rect x="300" y="50" width="60" height="130" fill="#fb923c"/>
+          <text x="90" y="195" text-anchor="middle" font-size="11">NYHA II</text>
+          <text x="170" y="195" text-anchor="middle" font-size="11">NYHA III</text>
+          <text x="250" y="195" text-anchor="middle" font-size="11">NYHA IV</text>
+          <text x="330" y="195" text-anchor="middle" font-size="11">Stage D</text>
+        </svg>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

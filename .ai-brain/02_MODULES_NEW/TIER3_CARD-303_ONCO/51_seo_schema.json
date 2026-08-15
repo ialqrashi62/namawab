@@ -1,0 +1,46 @@
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalSpecialty",
+  "name": "Cardio-Oncology Center",
+  "alternateName": "مركز قلب-أورام",
+  "description": "Cardio-Oncology Center for cancer therapy cardiac complications, anthracycline/trastuzumab/ICI monitoring, cancer-associated VTE, cardiac amyloid per ESC 2022, AHA/ACC 2023, IC-OS 2024, NCCN 2024.",
+  "medicalSpecialty": "Cardio-Oncology",
+  "availableService": [
+    { "@type": "MedicalProcedure", "name": "Anthracycline Cardiotoxicity Surveillance", "alternateName": "مراقبة سمية الأنثراسيكلين", "procedureType": "Surveillance" },
+    { "@type": "MedicalProcedure", "name": "Trastuzumab Monitoring", "alternateName": "مراقبة تراستوزوماب", "procedureType": "Monitoring" },
+    { "@type": "MedicalProcedure", "name": "ICI Myocarditis Treatment", "alternateName": "علاج التهاب عضلة القلب ICI", "procedureType": "Therapeutic" },
+    { "@type": "MedicalProcedure", "name": "Cancer-Associated VTE Treatment", "alternateName": "علاج جلطات الأورام", "procedureType": "Anticoagulation" },
+    { "@type": "MedicalProcedure", "name": "Cardiac Amyloid Workup", "alternateName": "تشخيص داء النشواني", "procedureType": "Diagnostic" },
+    { "@type": "MedicalTherapy", "name": "Cardioprotection", "alternateName": "الحماية القلبية", "components": ["ACEi", "Beta-blocker", "Statin", "Dexrazoxane"] }
+  ],
+  "medicalCode": { "codeValue": "I43", "codingSystem": "ICD-10", "name": "Cardiomyopathy in diseases classified elsewhere" },
+  "recognizedBy": [
+    { "@type": "Organization", "name": "ESC" },
+    { "@type": "Organization", "name": "AHA/ACC" },
+    { "@type": "Organization", "name": "IC-OS" },
+    { "@type": "Organization", "name": "ASCO" },
+    { "@type": "Organization", "name": "NCCN" },
+    { "@type": "Organization", "name": "HFA-ICOS" },
+    { "@type": "Organization", "name": "CBAHI" },
+    { "@type": "Organization", "name": "Saudi MoH" }
+  ],
+  "hasHealthAspect": [
+    { "@type": "HealthAspect", "name": "Cancer Therapy Cardiac Safety", "description": "Anthracyclines, trastuzumab, ICIs" },
+    { "@type": "HealthAspect", "name": "Pre-Chemotherapy CV Risk Assessment", "description": "HFA-ICOS risk stratification" },
+    { "@type": "HealthAspect", "name": "Cancer Survivorship", "description": "Long-term CV complications" }
+  ],
+  "areaServed": { "@type": "Country", "name": "Saudi Arabia" },
+  "audience": {
+    "@type": "PeopleAudience",
+    "audienceType": "Cancer patients, oncologists, cardiologists",
+    "geographicArea": "Kingdom of Saudi Arabia + GCC"
+  },
+  "keywords": [
+    "cardio-oncology", "anthracycline", "trastuzumab", "Herceptin", "ICI", "pembrolizumab", "nivolumab",
+    "cardiotoxicity", "GLS", "HFA-ICOS", "ECHO", "cancer VTE", "DOAC", "cardiac amyloid",
+    "titin", "pyrophosphate scan", "cardioprotection", "dexrazoxane", "Saudi Arabia", "CBAHI",
+    "NCCN", "ASCO", "ESC", "AHA", "IC-OS", "LVEF", "cardio oncology", "أورام القلب"
+  ],
+  "url": "https://jumanasoft.com/cardio-onc",
+  "publisher": { "@type": "Organization", "name": "NamaMedical", "url": "https://jumanasoft.com" }
+}

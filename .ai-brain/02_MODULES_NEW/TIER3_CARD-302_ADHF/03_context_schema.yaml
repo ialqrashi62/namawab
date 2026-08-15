@@ -1,0 +1,95 @@
+# CARD-302_ADHF — Context Schema
+
+```yaml
+patient_context:
+  national_id: string
+  mrn: string
+  age: integer
+  gender: enum [male, female]
+  diagnosis: enum [hfrEF, hfmrEF, hfpEF, advanced_hf, cardiogenic_shock]
+  etiology: enum [ischemic, dilated, hypertrophic, restrictive, valvular, congenital, postpartum, takotsubo, tachycardia_induced, infiltrative]
+  comorbidities: list<string>
+  allergies: list<string>
+  weight_kg: number
+  height_cm: number
+  bmi: number
+
+clinical_context:
+  ef_pct: integer  # 0-100
+  edd_mm: integer  # LV end-diastolic diameter
+  esd_mm: integer  # LV end-systolic diameter
+  nyha_class: enum [I, II, III, IV]
+  acc_stage: enum [A, B, C, D]
+  nt_probnp: integer  # pg/mL
+  bnp: integer  # pg/mL
+  systolic_bp: integer
+  diastolic_bp: integer
+  heart_rate: integer
+  spo2: integer
+  cvp: integer  # Central venous pressure
+  pa_systolic: integer
+  pa_diastolic: integer
+  pcwp: integer  # Pulmonary capillary wedge pressure
+  cardiac_index: number
+  svr: integer
+  pvr: number  # Wood units
+  lactate: number
+  creatinine: number
+  gfr: number
+  sodium: integer
+  potassium: number
+  hba1c: number
+
+medications:
+  - name: string
+    dose: string
+    frequency: string
+    start_date: date
+  pillar_arni: boolean  # Sacubitril/Valsartan
+  pillar_betablocker: boolean  # Bisoprolol/Carvedilol/Metoprolol
+  pillar_mra: boolean  # Spironolactone/Eplerenone
+  pillar_sglt2i: boolean  # Dapagliflozin/Empagliflozin
+  diuretics: list<string>
+  anticoagulation: boolean
+  device_therapy: enum [none, icd, crtd, crtp, lva, ltot]
+
+shock_context:
+  soc_card_score: number  # 1-9
+  cardiogenic_shock: boolean
+  intermacs_profile: enum [1, 2, 3, 4, 5, 6, 7]
+  mcs_devices:
+    - enum [iabp, impella_2_5, impella_cp, impella_5_0, tandemheart, venoarterial_ecmo, corevalve_evolution]
+  on_inotropes: boolean
+  inotrope_drugs: list<string>
+
+transplant_context:
+  on_transplant_list: boolean
+  list_date: date
+  status: enum [1A, 1B, 2, 7, inactive]
+  waitlist_days: integer
+  pra_pct: number  # Panel reactive antibody
+  hla_typing: string
+  blood_group: string
+  meld_score: integer
+  match_run_eligible: boolean
+
+lvad_context:
+  device: enum [heartmate_2, heartmate_3, heartware_hvad, jarvik_2000]
+  implant_date: date
+  indication: enum [bridge_to_transplant, destination_therapy, bridge_to_decision]
+  pump_speed: integer  # RPM
+  pump_power: number  # Watts
+  pump_flow: number  # L/min
+  map_target: integer
+  anticoag_target_inr: number
+
+workflow_context:
+  lvad_complications:
+    - enum [pump_thrombosis, driveline_infection, gi_bleeding, stroke, rfa_failure]
+  transplant_complications:
+    - enum [rejection_acute, rejection_chronic, cav, renal_failure, infection, malignancy]
+  days_since_event: integer
+  last_clinic_visit: date
+  next_clinic_visit: date
+  cardiac_rehab_phase: enum [I, II, III, none]
+```

@@ -1,0 +1,18 @@
+{
+  "name": "stroke-center",
+  "script": "stroke_router.js",
+  "instances": 2,
+  "exec_mode": "cluster",
+  "max_memory_restart": "512M",
+  "env": {
+    "NODE_ENV": "production",
+    "PORT": 3201,
+    "MOUNT_PREFIX": "/api/stroke"
+  },
+  "log_date_format": "YYYY-MM-DD HH:mm:ss",
+  "error_file": "/var/log/pm2/stroke-error.log",
+  "out_file": "/var/log/pm2/stroke-out.log",
+  "merge_logs": true,
+  "max_restarts": 5,
+  "restart_delay": 3000
+}

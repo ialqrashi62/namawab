@@ -1,0 +1,1 @@
+SELECT tablename FROM pg_tables WHERE tablename LIKE '%invent%' OR tablename LIKE '%equipment%' OR tablename LIKE '%maintenance%' OR tablename LIKE '%stock%' OR tablename LIKE '%device%' ORDER BY tablename;

@@ -1,0 +1,20 @@
+{
+  "module": "TIER3_CARD-302_ADHF",
+  "platform": "PostHog",
+  "events": [
+    { "name": "gdmt_optimized", "properties": { "tenant_id": "int", "patient_id": "int", "doctor_id": "int", "pillars_added": "int", "complete": "bool" } },
+    { "name": "arni_started", "properties": { "tenant_id": "int", "patient_id": "int", "starting_dose_mg": "string", "washout_verified": "bool" } },
+    { "name": "sglt2i_added", "properties": { "tenant_id": "int", "patient_id": "int", "drug": "string", "gfr": "number" } },
+    { "name": "hf_admission", "properties": { "tenant_id": "int", "patient_id": "int", "nyha_class": "int", "iv_diuretic_dose_mg": "number" } },
+    { "name": "cardiogenic_shock_activated", "properties": { "tenant_id": "int", "patient_id": "int", "scai_stage": "string", "drips_initiated": "string" } },
+    { "name": "lvad_status_updated", "properties": { "tenant_id": "int", "patient_id": "int", "speed": "int", "power": "number", "flow": "number" } },
+    { "name": "transplant_listed", "properties": { "tenant_id": "int", "patient_id": "int", "status": "string", "scot_id": "string" } },
+    { "name": "biopsy_completed", "properties": { "tenant_id": "int", "patient_id": "int", "ishlt_grade": "string", "cav_status": "string" } },
+    { "name": "palliative_consult", "properties": { "tenant_id": "int", "patient_id": "int", "triggers": "json" } },
+    { "name": "ahf_dashboard_viewed", "properties": { "tenant_id": "int", "user_id": "int", "role": "string" } },
+    { "name": "rag_query", "properties": { "tenant_id": "int", "user_id": "int", "query_length": "int", "language": "string", "topic": "string" } }
+  ],
+  "personas": ["hf_cardiologist", "hf_nurse", "cardiac_surgeon", "transplant_coordinator", "pharmacist", "palliative_care"],
+  "cohorts": ["hfrEF", "hfmrEF", "hfpef", "stage_d", "lvad_active", "tx_listed", "tx_1a", "tx_1b"],
+  "insights": ["GDMT 4-pillar achievement", "30-day mortality by NYHA", "LVAD complication rate", "Transplant waitlist days"]
+}

@@ -1,0 +1,37 @@
+openapi: 3.0.3
+info:
+  title: NamaMedical Cardio-Oncology API
+  version: 1.0.0
+  description: Cardio-Onc API per ESC 2022, AHA/ACC 2023, IC-OS 2024, NCCN 2024
+servers:
+  - url: https://jumanasoft.com/api/coo
+  - url: http://localhost:3000/api/coo
+security:
+  - sessionAuth: []
+tags:
+  - cases
+  - cardiotoxicity
+  - ici
+  - vte
+  - scoring
+  - stats
+paths:
+  /health: { get: { tags: [cases], summary: Health, security: [], responses: { '200': {description: OK}, '401': {description: Unauthorized} } } }
+  /cases: { get: { tags: [cases], summary: List Cardio-Onc cases, responses: { '200': {description: OK} } }, post: { tags: [cases], summary: Create case, responses: { '201': {description: Created} } } }
+  /cardiotoxicity: { post: { tags: [cardiotoxicity], summary: Record cardiotoxicity event, responses: { '201': {description: OK} } } }
+  /ici-myocarditis: { post: { tags: [ici], summary: Record ICI myocarditis, responses: { '201': {description: OK} } } }
+  /vte: { post: { tags: [vte], summary: Record cancer VTE, responses: { '201': {description: OK} } } }
+  /score/hfa-icos: { post: { tags: [scoring], summary: HFA-ICOS Risk Score, responses: { '200': {description: OK} } } }
+  /score/ctcae: { post: { tags: [scoring], summary: CTCAE Grade, responses: { '200': {description: OK} } } }
+  /score/gls: { post: { tags: [scoring], summary: GLS Change Detection, responses: { '200': {description: OK} } } }
+  /score/ici-myocarditis: { post: { tags: [scoring], summary: ICI Myocarditis Severity, responses: { '200': {description: OK} } } }
+  /dose/anthracycline: { post: { tags: [scoring], summary: Anthracycline dose, responses: { '200': {description: OK} } } }
+  /score/trastuzumab: { post: { tags: [scoring], summary: Trastuzumab cardiotoxicity, responses: { '200': {description: OK} } } }
+  /monitor/qtc: { post: { tags: [scoring], summary: QTc monitoring, responses: { '200': {description: OK} } } }
+  /decision/vte: { post: { tags: [scoring], summary: VTE treatment decision, responses: { '200': {description: OK} } } }
+  /workup/amyloid: { post: { tags: [scoring], summary: Cardiac amyloid workup, responses: { '200': {description: OK} } } }
+  /decision/cardioprotection: { post: { tags: [scoring], summary: Cardioprotection decision, responses: { '200': {description: OK} } } }
+  /stats: { get: { tags: [stats], summary: Cardio-Onc stats, responses: { '200': {description: OK} } } }
+components:
+  securitySchemes:
+    sessionAuth: { type: apiKey, in: cookie, name: connect.sid }

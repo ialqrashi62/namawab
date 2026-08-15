@@ -1,0 +1,103 @@
+groups:
+  - name: stroke.center.sla
+    rules:
+      - alert: DoorToNeedleBreach
+        expr: histogram_quantile(0.95, sum by (le, tenant_id) (rate(stroke_dnt_seconds_bucket[5m]))) > 3600
+        for: 5m
+        labels:
+          severity: page
+          team: stroke
+        annotations:
+          summary: "Door-to-Needle SLA breach"
+          description: "P95 DNT = {{ $value }}s exceeds 60-min target"
+
+      - alert: DoorToGroinBreach
+        expr: histogram_quantile(0.95, sum by (le, tenant_id) (rate(stroke_dtg_seconds_bucket[5m]))) > 5400
+        for: 5m
+        labels:
+          severity: page
+          team: stroke
+        annotations:
+          summary: "Door-to-Groin SLA breach"
+          description: "P95 DTG = {{ $value }}s exceeds 90-min target"
+
+      - alert: StrokeUnitWait
+        expr: histogram_quantile(0.95, sum by (le, tenant_id) (rate(stroke_unit_admit_seconds_bucket[5m]))) > 10800
+        for: 15m
+        labels:
+          severity: warn
+          team: stroke
+        annotations:
+          summary: "Stroke Unit admission delayed"
+          description: "P95 unit wait = {{ $value }}s exceeds 3-hr target"
+
+      - alert: TenecteplaseDoseError
+        expr: increase(stroke_tenecteplase_dose_error_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          team: stroke
+        annotations:
+          summary: "Tenecteplase dose error detected"
+          description: "Dose outside 0.25 mg/kg ± 5% — investigate immediately"
+
+      - alert: HighHemorrhagicTransformation
+        expr: rate(stroke_hemorrhagic_transformation_total[24h]) > 0.06
+        for: 1h
+        labels:
+          severity: warn
+          team: stroke
+        annotations:
+          summary: "High hemorrhagic transformation rate"
+          description: "ICH post-tPA rate = {{ $value }} exceeds 6% benchmark"
+
+      - alert: LowFollowupRate
+        expr: rate(stroke_followup_completed_total[30d]) / rate(stroke_discharge_total[30d]) < 0.8
+        for: 7d
+        labels:
+          severity: warn
+          team: stroke
+        annotations:
+          summary: "30-day follow-up rate below 80%"
+          description: "Follow-up rate = {{ $value }}"
+
+  - name: stroke.center.usage
+    rules:
+      - alert: HighAPIErrorRate
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) by (route) / sum(rate(http_requests_total[5m])) by (route) > 0.01
+        for: 5m
+        labels:
+          severity: warn
+        annotations:
+          summary: "Stroke API error rate > 1%"
+
+      - alert: SlowRAG
+        expr: histogram_quantile(0.95, sum by (le) (rate(stroke_rag_retrieval_seconds_bucket[5m]))) > 0.2
+        for: 5m
+        labels:
+          severity: warn
+        annotations:
+          summary: "RAG retrieval P95 > 200ms"
+
+      - alert: VectorIndexMissing
+        expr: absent(stroke_vector_index_size)
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Stroke vector index unavailable"
+
+recording_rules:
+  - name: stroke.daily.kpis
+    rules:
+      - record: stroke:daily_cases
+        expr: sum(increase(stroke_cases_total[1d]))
+
+      - record: stroke:dnt_avg
+        expr: avg(stroke_dnt_seconds)
+
+      - record: stroke:thrombolysis_rate
+        expr: sum(rate(stroke_thrombolysis_admin_total[1d])) / sum(rate(stroke_cases_total[1d]))
+
+      - record: stroke:favorable_outcome
+        expr: sum(rate(stroke_mrs_le_2_total[30d])) / sum(rate(stroke_thrombectomy_total[30d]))

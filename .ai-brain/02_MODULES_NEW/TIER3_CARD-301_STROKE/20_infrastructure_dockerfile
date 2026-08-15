@@ -1,0 +1,19 @@
+FROM node:20-alpine
+LABEL module="TIER3_CARD-301_STROKE"
+LABEL department="Stroke Center"
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY tier3_card_301_stroke_engine.js ./
+COPY 09_router.js ./stroke_router.js
+
+ENV NODE_ENV=production
+ENV PORT=3201
+
+EXPOSE 3201
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
+  CMD wget -qO- http://localhost:3201/api/stroke/health || exit 1
+
+CMD ["node", "stroke_router.js"]

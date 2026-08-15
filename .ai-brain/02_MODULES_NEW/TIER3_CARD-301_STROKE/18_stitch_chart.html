@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stroke Center — Quality Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.tailwindcss.com">
+</head>
+<body class="bg-slate-50">
+  <header class="bg-white shadow border-b p-4">
+    <h1 class="text-xl font-bold">Stroke Quality Metrics (GWTG-S)</h1>
+  </header>
+  <main class="container mx-auto p-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-bold mb-4">Door-to-Needle Trend (آخر 12 شهر)</h3>
+        <svg viewBox="0 0 400 200" class="w-full">
+          <line x1="40" y1="180" x2="380" y2="180" stroke="#94a3b8"/>
+          <line x1="40" y1="20" x2="40" y2="180" stroke="#94a3b8"/>
+          <line x1="40" y1="60" x2="380" y2="60" stroke="#fca5a5" stroke-dasharray="4 2"/>
+          <text x="50" y="55" font-size="10" fill="#dc2626">Target: 60 min</text>
+          <polyline points="50,170 80,165 110,150 140,145 170,130 200,125 230,110 260,95 290,90 320,80 350,75 380,70" fill="none" stroke="#3b82f6" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-bold mb-4">mRS @ 30 days</h3>
+        <svg viewBox="0 0 400 200" class="w-full">
+          <rect x="50" y="40" width="40" height="140" fill="#10b981"/>
+          <rect x="100" y="60" width="40" height="120" fill="#10b981"/>
+          <rect x="150" y="80" width="40" height="100" fill="#84cc16"/>
+          <rect x="200" y="100" width="40" height="80" fill="#facc15"/>
+          <rect x="250" y="120" width="40" height="60" fill="#fb923c"/>
+          <rect x="300" y="140" width="40" height="40" fill="#ef4444"/>
+          <rect x="350" y="155" width="40" height="25" fill="#7f1d1d"/>
+          <text x="55" y="195" font-size="10">0</text>
+          <text x="105" y="195" font-size="10">1</text>
+          <text x="155" y="195" font-size="10">2</text>
+          <text x="205" y="195" font-size="10">3</text>
+          <text x="255" y="195" font-size="10">4</text>
+          <text x="305" y="195" font-size="10">5</text>
+          <text x="355" y="195" font-size="10">6</text>
+        </svg>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

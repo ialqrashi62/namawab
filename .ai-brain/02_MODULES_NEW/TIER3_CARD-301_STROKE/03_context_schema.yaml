@@ -1,0 +1,78 @@
+# CARD-301_STROKE — Context Schema
+
+```yaml
+patient_context:
+  national_id: string  # Saudi national ID (10 digits, 1|2 prefix)
+  mrn: string
+  age: integer  # 0-120
+  gender: enum [male, female, unknown]
+  weight_kg: number  # for thrombolysis dosing
+  comorbidities:
+    - enum [htn, dm, afib, prior_stroke, prior_tia, ich, mi, chf, valvular, carotid_stenosis, hyperlipidemia, smoking, anticoagulation_use]
+  allergies: list<string>
+  medications: list<string>
+  last_known_well: timestamp  # CRITICAL for thrombolysis window
+  symptom_onset: timestamp
+
+encounter_context:
+  encounter_id: string
+  facility_id: string
+  arrival_time: timestamp
+  code_stroke_activated: boolean
+  nihss_score: integer  # 0-42
+  nihss_subscores:
+    consciousness: integer  # 0-3
+    gaze: integer  # 0-2
+    visual_fields: integer  # 0-3
+    facial_palsy: integer  # 0-3
+    motor_arm_left: integer  # 0-4
+    motor_arm_right: integer  # 0-4
+    motor_leg_left: integer  # 0-4
+    motor_leg_right: integer  # 0-4
+    limb_ataxia: integer  # 0-2
+    sensory: integer  # 0-2
+    language: integer  # 0-3
+    dysarthria: integer  # 0-2
+    extinction: integer  # 0-2
+
+imaging_context:
+  ct_done: boolean
+  ct_time: timestamp
+  ct_findings: enum [no_acute_hemorrhage, ischemic_changes, hemorrhage, mass_effect, hyperdense_mca, early_ischemic_changes]
+  aspects_score: integer  # 0-10
+  cta_done: boolean
+  cta_findings: enum [large_vessel_occlusion, stenosis, no_occlusion, aneurysm, avm]
+  occlusion_site: enum [ica, m1, m2, basilar, pca, vertebral]
+  mri_done: boolean
+  perfusion_imaging: enum [favorable, unfavorable, not_done]
+
+treatment_context:
+  thrombolysis_decision: enum [eligible, contraindicated, declined, given]
+  thrombolysis_agent: enum [alteplase, tenecteplase, none]
+  thrombolysis_dose_mg: number
+  thrombolysis_time: timestamp
+  thrombectomy_decision: enum [performed, declined, transferred, not_indicated]
+  thrombectomy_time: timestamp
+  bp_target: string  # e.g., "<185/110" for tPA, "<140" post-tPA
+  antiplatelet: enum [aspirin, clopidogrel, aspirin+clopidogrel, ticagrelor, none]
+  anticoagulation: enum [warfarin, doac, none]
+  statin: enum [high_intensity, moderate_intensity, low_intensity, none]
+
+risk_scores:
+  ich_score: integer  # 0-6
+  hunt_hess: integer  # 1-5 (SAH)
+  abcd2: integer  # 0-7 (TIA)
+  cha2ds2vasc: integer  # 0-9
+  has_bled: integer  # 0-9
+  discharge_mrs: integer  # 0-6
+
+workflow_context:
+  door_to_needle_minutes: integer
+  door_to_ct_minutes: integer
+  door_to_groin_minutes: integer
+  stroke_unit_admitted: boolean
+  swallowing_assessed: boolean
+  dvt_prophylaxis: boolean
+  rehab_referred: boolean
+  secondary_prevention_bundle: boolean
+```

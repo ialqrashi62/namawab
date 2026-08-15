@@ -1,0 +1,70 @@
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalSpecialty",
+  "name": "Advanced Heart Failure Center",
+  "alternateName": "مركز قصور القلب المتقدم",
+  "description": "Comprehensive Advanced Heart Failure Center providing GDMT 4-pillar therapy, LVAD implantation, heart transplantation, and palliative care per AHA/ACC/HFSA 2022, ISHLT 2023, INTERMACS 2023.",
+  "medicalSpecialty": "Cardiology",
+  "availableService": [
+    {
+      "@type": "MedicalTherapy",
+      "name": "GDMT 4-Pillar",
+      "alternateName": "العلاج الرباعي",
+      "components": ["ARNI", "Beta-blocker", "MRA", "SGLT2i"]
+    },
+    {
+      "@type": "MedicalProcedure",
+      "name": "LVAD Implantation",
+      "alternateName": "زرع LVAD",
+      "procedureType": "Surgical",
+      "devices": ["HeartMate 3", "HeartMate II", "HeartWare HVAD"]
+    },
+    {
+      "@type": "MedicalProcedure",
+      "name": "Heart Transplant",
+      "alternateName": "زرع القلب",
+      "procedureType": "Transplant",
+      "approvedBy": "SCOT (Saudi Center for Organ Transplantation)"
+    },
+    {
+      "@type": "MedicalTherapy",
+      "name": "Palliative Care",
+      "alternateName": "الرعاية التلطيفية",
+      "indication": "Stage D HF"
+    }
+  ],
+  "medicalCode": {
+    "codeValue": "BD1Z",
+    "codingSystem": "ICD-11",
+    "name": "Heart failure, unspecified"
+  },
+  "recognizedBy": [
+    { "@type": "Organization", "name": "AHA/ACC/HFSA" },
+    { "@type": "Organization", "name": "ISHLT" },
+    { "@type": "Organization", "name": "INTERMACS" },
+    { "@type": "Organization", "name": "SCAI" },
+    { "@type": "Organization", "name": "SCOT" },
+    { "@type": "Organization", "name": "CBAHI" },
+    { "@type": "Organization", "name": "Saudi MoH" }
+  ],
+  "hasHealthAspect": [
+    { "@type": "HealthAspect", "name": "GDMT Optimization", "description": "4-pillar therapy for HFrEF" },
+    { "@type": "HealthAspect", "name": "Mechanical Circulatory Support", "description": "LVAD, ECMO, IABP" },
+    { "@type": "HealthAspect", "name": "Transplantation", "description": "SCOT listing + post-transplant care" },
+    { "@type": "HealthAspect", "name": "Palliative Care", "description": "End-stage HF" }
+  ],
+  "areaServed": { "@type": "Country", "name": "Saudi Arabia" },
+  "audience": {
+    "@type": "PeopleAudience",
+    "audienceType": "HF patients, cardiologists, cardiac surgeons",
+    "geographicArea": "Kingdom of Saudi Arabia + GCC"
+  },
+  "keywords": [
+    "advanced heart failure", "AHF", "GDMT", "sacubitril valsartan", "ARNI", "SGLT2i", "LVAD",
+    "HeartMate 3", "heart transplant", "INTERMACS", "SCAI shock", "DRIPS",
+    "MAGGIC", "MELD", "ISHLT", "SCOT", "Saudi Arabia", "CBBHI",
+    "HFrEF", "HFmrEF", "HFpEF", "Cardiology", "قصور القلب", "LVAD", "قطع قلب"
+  ],
+  "url": "https://jumanasoft.com/ahf",
+  "publisher": { "@type": "Organization", "name": "NamaMedical", "url": "https://jumanasoft.com" }
+}

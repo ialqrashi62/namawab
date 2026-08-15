@@ -1,0 +1,51 @@
+id,task,assignee,status,priority,estimate_hours,actual_hours,sprint,start_date,end_date,dependencies,labels
+A1-001,ERD design,@architect,done,high,4,3,1,2026-08-15,2026-08-15,none,design
+A1-002,5 migrations_up.sql,@backend,done,high,6,5,1,2026-08-15,2026-08-16,ERD,sql
+A1-003,5 migrations_down.sql,@backend,done,high,4,3,1,2026-08-16,2026-08-16,migration,sql
+A1-004,RLS policies,@backend,done,high,2,1,1,2026-08-16,2026-08-16,migration,security
+A1-005,Pure engine (16 functions),@backend,done,high,12,10,1,2026-08-16,2026-08-18,none,engine
+A1-006,Unit tests (30 cases),@qa,done,high,6,5,1,2026-08-18,2026-08-19,engine,test
+A1-007,OpenAPI spec,@backend,done,medium,3,2,1,2026-08-19,2026-08-19,engine,docs
+A2-001,Express router setup,@backend,done,high,2,1,2,2026-08-19,2026-08-19,engine,api
+A2-002,/cases endpoints,@backend,done,high,4,3,2,2026-08-19,2026-08-20,router,api
+A2-003,/admissions endpoints,@backend,done,high,4,3,2,2026-08-20,2026-08-20,router,api
+A2-004,/lvad endpoints,@backend,done,high,4,3,2,2026-08-20,2026-08-21,router,api
+A2-005,/transplant endpoints,@backend,done,high,4,3,2,2026-08-21,2026-08-21,router,api
+A2-006,Scoring endpoints (12),@backend,done,high,8,6,2,2026-08-21,2026-08-23,engine,api
+A2-007,Dosing endpoints,@backend,done,high,4,3,2,2026-08-23,2026-08-23,engine,api
+A2-008,Stats endpoint,@backend,done,medium,2,1,2,2026-08-23,2026-08-23,router,api
+A2-009,Integration tests,@qa,done,high,4,3,2,2026-08-23,2026-08-24,api,test
+A3-001,pgvector extension,@backend,done,high,2,1,3,2026-08-24,2026-08-24,db,vector
+A3-002,hf_clinical_knowledge table,@backend,done,high,3,2,3,2026-08-24,2026-08-25,vector,sql
+A3-003,Sample seeds,@backend,done,medium,6,5,3,2026-08-25,2026-08-26,vector,data
+A3-004,Similarity search,@backend,done,high,4,3,3,2026-08-26,2026-08-26,vector,ai
+A3-005,LangChain pipeline,@ai,done,high,8,7,3,2026-08-26,2026-08-28,vector,ai
+A3-006,Safety guardrails,@security,done,high,4,3,3,2026-08-28,2026-08-28,ai,security
+A4-001,Stitch index,@frontend,done,high,4,3,4,2026-08-28,2026-08-29,none,ui
+A4-002,Stitch detail,@frontend,done,medium,3,2,4,2026-08-29,2026-08-29,index,ui
+A4-003,Stitch form,@frontend,done,high,4,3,4,2026-08-29,2026-08-30,api,ui
+A4-004,Stitch chart,@frontend,done,medium,4,3,4,2026-08-30,2026-08-30,stats,ui
+A4-005,i18n AR,@frontend,done,high,4,3,4,2026-08-30,2026-08-31,ui,i18n
+A4-006,i18n EN,@frontend,done,high,3,2,4,2026-08-31,2026-08-31,ui,i18n
+A4-007,i18n FR,@frontend,done,medium,3,2,4,2026-08-31,2026-08-31,ui,i18n
+A4-008,i18n UR,@frontend,done,medium,3,2,4,2026-08-31,2026-09-01,ui,i18n
+A5-001,PDPL compliance,@compliance,done,high,4,3,5,2026-09-01,2026-09-01,none,compliance
+A5-002,CBAHI standards,@compliance,done,high,4,3,5,2026-09-01,2026-09-02,compliance,compliance
+A5-003,ISHLT + INTERMACS,@compliance,done,medium,3,2,5,2026-09-02,2026-09-02,compliance,compliance
+A5-004,STRIDE threat model,@security,done,high,4,3,5,2026-09-02,2026-09-03,none,security
+A5-005,User manual AR,@doc,done,high,4,3,5,2026-09-03,2026-09-03,ui,docs
+A5-006,User manual EN,@doc,done,high,4,3,5,2026-09-03,2026-09-04,ui,docs
+A5-007,Training videos,@training,done,medium,4,3,5,2026-09-04,2026-09-04,manual,training
+A5-008,Deployment runbook,@devops,done,high,4,3,5,2026-09-04,2026-09-05,none,deploy
+A6-001,Smoke tests,@qa,done,high,4,3,6,2026-09-05,2026-09-05,api,test
+A6-002,Security scan,@security,done,high,4,3,6,2026-09-05,2026-09-05,api,security
+A6-003,Apply migrations,@devops,done,high,3,2,6,2026-09-05,2026-09-06,migration,deploy
+A6-004,Verify RLS,@devops,done,high,2,1,6,2026-09-06,2026-09-06,migration,security
+A6-005,Performance test,@qa,done,medium,4,3,6,2026-09-06,2026-09-06,api,perf
+A6-006,Deploy production,@devops,done,high,3,2,6,2026-09-06,2026-09-07,all,deploy
+A6-007,Closeout,@lead,done,medium,4,3,6,2026-09-07,2026-09-08,all,docs
+A7-001,SCOT integration,@backend,planned,medium,8,,7,2026-09-15,2026-09-16,api,integration
+A7-002,ECMO module,@backend,planned,high,13,,7,2026-09-16,2026-09-18,api,advanced
+A7-003,Patient engagement,@frontend,planned,medium,8,,7,2026-09-19,2026-09-20,patient,frontend
+A7-004,Cardiac rehab,@backend,planned,medium,8,,7,2026-09-21,2026-09-22,rehab,integration
+A7-005,ML outcome prediction,@ai,planned,low,13,,7,2026-09-22,2026-09-24,ai,advanced

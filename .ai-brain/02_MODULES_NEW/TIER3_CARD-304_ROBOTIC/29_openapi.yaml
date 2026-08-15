@@ -1,0 +1,36 @@
+openapi: 3.0.3
+info:
+  title: NamaMedical Robotic CV Surgery API
+  version: 1.0.0
+  description: Robotic CV Surgery API per STS 2024, ACC/AHA 2024, ESC 2023
+servers:
+  - url: https://jumanasoft.com/api/rcv
+  - url: http://localhost:3000/api/rcv
+security:
+  - sessionAuth: []
+tags:
+  - cases
+  - procedures
+  - followups
+  - scoring
+  - eligibility
+  - stats
+paths:
+  /health: { get: { tags: [cases], summary: Health, security: [], responses: { '200': {description: OK}, '401': {description: Unauthorized} } } }
+  /cases: { get: { tags: [cases], summary: List cases, responses: { '200': {description: OK} } }, post: { tags: [cases], summary: Create case, responses: { '201': {description: Created} } } }
+  /procedures: { post: { tags: [procedures], summary: Record procedure, responses: { '201': {description: OK} } } }
+  /followups: { post: { tags: [followups], summary: Record follow-up, responses: { '201': {description: OK} } } }
+  /score/sts: { post: { tags: [scoring], summary: STS Risk Score, responses: { '200': {description: OK} } } }
+  /score/euroscore: { post: { tags: [scoring], summary: EuroSCORE II, responses: { '200': {description: OK} } } }
+  /eligibility/tavi: { post: { tags: [eligibility], summary: TAVI eligibility, responses: { '200': {description: OK} } } }
+  /eligibility/mitraclip: { post: { tags: [eligibility], summary: MitraClip eligibility, responses: { '200': {description: OK} } } }
+  /eligibility/watchman: { post: { tags: [eligibility], summary: WATCHMAN eligibility, responses: { '200': {description: OK} } } }
+  /eligibility/robotic: { post: { tags: [eligibility], summary: Robotic surgery eligibility, responses: { '200': {description: OK} } } }
+  /checklist/preop: { post: { tags: [scoring], summary: Pre-op checklist, responses: { '200': {description: OK} } } }
+  /risk/conversion: { post: { tags: [scoring], summary: Conversion to open risk, responses: { '200': {description: OK} } } }
+  /risk/postop: { post: { tags: [scoring], summary: Post-op complication risk, responses: { '200': {description: OK} } } }
+  /discharge/readiness: { post: { tags: [scoring], summary: Discharge readiness, responses: { '200': {description: OK} } } }
+  /stats: { get: { tags: [stats], summary: Robotic CV stats, responses: { '200': {description: OK} } } }
+components:
+  securitySchemes:
+    sessionAuth: { type: apiKey, in: cookie, name: connect.sid }

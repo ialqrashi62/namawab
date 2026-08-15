@@ -1,0 +1,47 @@
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalSpecialty",
+  "name": "PE/DVT Response Team",
+  "alternateName": "فريق استجابة الانسداد الرئوي والتجلط الوريدي",
+  "description": "PERT for acute pulmonary embolism and DVT per ESC 2019, ACC 2024, AHA 2024.",
+  "medicalSpecialty": "Vascular Medicine",
+  "availableService": [
+    {"@type": "MedicalProcedure", "name": "PERT Activation", "alternateName": "تفعيل PERT", "procedureType": "Emergency"},
+    {"@type": "MedicalProcedure", "name": "Thrombolysis", "alternateName": "Thrombolysis", "procedureType": "Emergency"},
+    {"@type": "MedicalProcedure", "name": "Catheter-Directed Therapy", "alternateName": "علاج بالقسطرة", "procedureType": "Interventional"},
+    {"@type": "MedicalProcedure", "name": "Mechanical Thrombectomy", "alternateName": "استئصال الخثرة", "procedureType": "Interventional"},
+    {"@type": "MedicalProcedure", "name": "IVC Filter", "alternateName": "فلتر IVC", "procedureType": "Interventional"},
+    {"@type": "MedicalProcedure", "name": "Anticoagulation", "alternateName": "مضادات التجلط", "procedureType": "Therapeutic"},
+    {"@type": "MedicalProcedure", "name": "CTEPH Workup", "alternateName": "CTEPH تشخيص", "procedureType": "Diagnostic"}
+  ],
+  "medicalCode": { "codeValue": "I26", "codingSystem": "ICD-10", "name": "Pulmonary embolism" },
+  "recognizedBy": [
+    {"@type": "Organization", "name": "ESC"},
+    {"@type": "Organization", "name": "ACC"},
+    {"@type": "Organization", "name": "AHA"},
+    {"@type": "Organization", "name": "CHEST"},
+    {"@type": "Organization", "name": "ISHLT"},
+    {"@type": "Organization", "name": "CBAHI"},
+    {"@type": "Organization", "name": "SFDA"},
+    {"@type": "Organization", "name": "MoH"}
+  ],
+  "hasHealthAspect": [
+    {"@type": "HealthAspect", "name": "Massive PE", "description": "Hemodynamic instability"},
+    {"@type": "HealthAspect", "name": "Submassive PE", "description": "RV dysfunction"},
+    {"@type": "HealthAspect", "name": "CTEPH", "description": "Chronic PH"}
+  ],
+  "areaServed": {"@type": "Country", "name": "Saudi Arabia"},
+  "audience": {
+    "@type": "PeopleAudience",
+    "audienceType": "PE/DVT patients, ER physicians",
+    "geographicArea": "Kingdom of Saudi Arabia + GCC"
+  },
+  "keywords": [
+    "PE", "DVT", "PERT", "thrombolysis", "Alteplase", "Tenecteplase",
+    "Apixaban", "Rivaroxaban", "DOAC", "LMWH", "IVC filter", "FlowTriever", "EKOS",
+    "sPESI", "Wells", "CTEPH", "PEA", "Saudi Arabia", "CBAHI",
+    "انسداد رئوي", "تجلط", "PERT"
+  ],
+  "url": "https://jumanasoft.com/pedvt",
+  "publisher": {"@type": "Organization", "name": "NamaMedical", "url": "https://jumanasoft.com"}
+}

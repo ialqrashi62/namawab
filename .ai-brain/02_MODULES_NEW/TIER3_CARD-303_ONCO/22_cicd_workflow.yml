@@ -1,0 +1,49 @@
+name: CI-CD-Cardio-Onc
+
+on:
+  push:
+    branches: [main, integration/*, audit/*]
+    paths:
+      - 'namaweb/tier3_card_303*/**'
+      - 'namaweb/coo_router.js'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: cd namaweb && npm ci
+      - run: cd namaweb && npm test -- --grep "Cardio-Onc"
+      - name: Security audit
+        run: cd namaweb && npm audit --audit-level=high
+
+  deploy-staging:
+    needs: test
+    if: github.ref == 'refs/heads/audit/phase-1a-critical-remediation'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to staging
+        run: |
+          scp -o StrictHostKeyChecking=no -i ${{ secrets.DEPLOY_KEY }} \
+            namaweb/tier3_card_303_onco_engine.js namaweb/coo_router.js \
+            root@staging.jumanasoft.com:/var/www/namaweb/
+          ssh -i ${{ secrets.DEPLOY_KEY }} root@staging.jumanasoft.com \
+            "cd /var/www/namaweb && pm2 reload coo --silent"
+
+  deploy-prod:
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to prod
+        run: |
+          scp -o StrictHostKeyChecking=no -i ${{ secrets.DEPLOY_KEY }} \
+            namaweb/tier3_card_303_onco_engine.js namaweb/coo_router.js \
+            root@204.168.144.74:/var/www/namaweb/
+          ssh -i ${{ secrets.DEPLOY_KEY }} root@204.168.144.74 \
+            "cd /var/www/namaweb && pm2 reload coo --silent"

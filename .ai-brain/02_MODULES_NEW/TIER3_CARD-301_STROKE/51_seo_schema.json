@@ -1,0 +1,119 @@
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalSpecialty",
+  "name": "Stroke Center",
+  "alternateName": "مركز السكتة الدماغية",
+  "description": "Comprehensive Stroke Center (CSC) providing acute ischemic stroke, intracerebral hemorrhage, subarachnoid hemorrhage, TIA, and secondary prevention per AHA/ASA 2019 guidelines.",
+  "medicalSpecialty": "Neurology",
+  "availableService": [
+    {
+      "@type": "MedicalProcedure",
+      "name": "IV Thrombolysis",
+      "alternateName": "الإذابة الوريدية",
+      "procedureType": "Therapeutic",
+      "drug": ["Tenecteplase", "Alteplase"],
+      "approvedBy": "Saudi MoH 2024"
+    },
+    {
+      "@type": "MedicalProcedure",
+      "name": "Mechanical Thrombectomy",
+      "alternateName": "استئصال الخثرة الميكانيكي",
+      "procedureType": "Interventional",
+      "indication": "Large Vessel Occlusion (LVO)"
+    },
+    {
+      "@type": "MedicalProcedure",
+      "name": "Stroke Unit Admission",
+      "alternateName": "القبول في وحدة السكتة",
+      "procedureType": "Acute Care"
+    },
+    {
+      "@type": "DiagnosticProcedure",
+      "name": "CT + CTA + CTP",
+      "alternateName": "الأشعة المقطعية",
+      "imagingModality": "CT, MRI"
+    },
+    {
+      "@type": "MedicalTherapy",
+      "name": "Secondary Prevention",
+      "alternateName": "الوقاية الثانوية",
+      "components": ["Antiplatelet", "Statin", "Anticoagulation", "BP Control", "Lifestyle"]
+    }
+  ],
+  "medicalCode": {
+    "codeValue": "8B00",
+    "codingSystem": "ICD-11",
+    "name": "Stroke"
+  },
+  "recognizedBy": [
+    {
+      "@type": "Organization",
+      "name": "AHA/ASA",
+      "alternateName": "American Heart Association"
+    },
+    {
+      "@type": "Organization",
+      "name": "Saudi MoH",
+      "alternateName": "وزارة الصحة السعودية"
+    },
+    {
+      "@type": "Organization",
+      "name": "CBAHI"
+    },
+    {
+      "@type": "Organization",
+      "name": "WSO",
+      "alternateName": "World Stroke Organization"
+    }
+  ],
+  "hasHealthAspect": [
+    {
+      "@type": "HealthAspect",
+      "name": "Time-Critical Care",
+      "description": "Door-to-Needle ≤ 60 minutes, Door-to-Groin ≤ 90 minutes"
+    },
+    {
+      "@type": "HealthAspect",
+      "name": "Multidisciplinary Team",
+      "description": "Neurologist, ER, Interventional Neuroradiology, Nursing, Rehab, Pharmacy"
+    }
+  ],
+  "areaServed": {
+    "@type": "Country",
+    "name": "Saudi Arabia"
+  },
+  "audience": {
+    "@type": "PeopleAudience",
+    "audienceType": "Stroke patients, neurologists, emergency physicians",
+    "geographicArea": "Kingdom of Saudi Arabia + GCC"
+  },
+  "keywords": [
+    "stroke",
+    "سكتة دماغية",
+    "acute ischemic stroke",
+    "AIS",
+    "ICH",
+    "SAH",
+    "TIA",
+    "Tenecteplase",
+    "Alteplase",
+    "thrombectomy",
+    "NIHSS",
+    "ASPECTS",
+    "mRS",
+    "door-to-needle",
+    "AHA/ASA",
+    "Saudi MoH",
+    "CBAHI",
+    "secondary prevention",
+    "stroke center",
+    "code stroke"
+  ],
+  "url": "https://jumanasoft.com/stroke",
+  "image": "https://jumanasoft.com/img/stroke-center.jpg",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NamaMedical",
+    "url": "https://jumanasoft.com"
+  }
+}

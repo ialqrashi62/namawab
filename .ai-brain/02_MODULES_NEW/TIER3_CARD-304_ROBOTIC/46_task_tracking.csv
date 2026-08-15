@@ -1,0 +1,45 @@
+id,task,assignee,status,priority,estimate_hours,actual_hours,sprint,start_date,end_date,dependencies,labels
+R1-001,ERD design,@architect,done,high,4,3,1,2026-08-29,2026-08-29,none,design
+R1-002,4 migrations_up.sql,@backend,done,high,4,3,1,2026-08-29,2026-08-30,ERD,sql
+R1-003,4 migrations_down.sql,@backend,done,high,3,2,1,2026-08-30,2026-08-30,migration,sql
+R1-004,RLS policies,@backend,done,high,2,1,1,2026-08-30,2026-08-30,migration,security
+R1-005,Pure engine (10 functions),@backend,done,high,8,7,1,2026-08-30,2026-09-01,none,engine
+R1-006,Unit tests (24 cases),@qa,done,high,4,3,1,2026-09-01,2026-09-01,engine,test
+R1-007,OpenAPI spec,@backend,done,medium,3,2,1,2026-09-01,2026-09-02,engine,docs
+R2-001,Express router,@backend,done,high,2,1,2,2026-09-02,2026-09-02,engine,api
+R2-002,/cases endpoints,@backend,done,high,3,2,2,2026-09-02,2026-09-03,router,api
+R2-003,/procedures endpoints,@backend,done,high,3,2,2,2026-09-03,2026-09-03,router,api
+R2-004,/followups endpoints,@backend,done,high,3,2,2,2026-09-03,2026-09-04,router,api
+R2-005,Scoring endpoints (8),@backend,done,high,6,5,2,2026-09-04,2026-09-06,engine,api
+R2-006,Eligibility endpoints,@backend,done,high,4,3,2,2026-09-06,2026-09-06,engine,api
+R2-007,Stats endpoint,@backend,done,medium,2,1,2,2026-09-06,2026-09-06,router,api
+R2-008,Integration tests,@qa,done,high,4,3,2,2026-09-06,2026-09-07,api,test
+R3-001,pgvector,@backend,done,high,2,1,3,2026-09-07,2026-09-07,db,vector
+R3-002,robotic_cv_knowledge table,@backend,done,high,3,2,3,2026-09-07,2026-09-08,vector,sql
+R3-003,Sample seeds,@backend,done,medium,4,3,3,2026-09-08,2026-09-09,vector,data
+R3-004,Similarity search,@backend,done,high,4,3,3,2026-09-09,2026-09-09,vector,ai
+R3-005,LangChain,@ai,done,high,6,5,3,2026-09-09,2026-09-11,vector,ai
+R3-006,Safety guardrails,@security,done,high,4,3,3,2026-09-11,2026-09-11,ai,security
+R4-001,Stitch index,@frontend,done,high,4,3,4,2026-09-11,2026-09-12,none,ui
+R4-002,Stitch detail,@frontend,done,medium,3,2,4,2026-09-12,2026-09-12,index,ui
+R4-003,Stitch form,@frontend,done,high,4,3,4,2026-09-12,2026-09-13,api,ui
+R4-004,Stitch chart,@frontend,done,medium,4,3,4,2026-09-13,2026-09-13,stats,ui
+R4-005,i18n AR,@frontend,done,high,4,3,4,2026-09-13,2026-09-14,ui,i18n
+R4-006,i18n EN,@frontend,done,high,3,2,4,2026-09-14,2026-09-14,ui,i18n
+R4-007,i18n FR,@frontend,done,medium,3,2,4,2026-09-14,2026-09-15,ui,i18n
+R4-008,i18n UR,@frontend,done,medium,3,2,4,2026-09-15,2026-09-15,ui,i18n
+R5-001,PDPL,@compliance,done,high,4,3,5,2026-09-15,2026-09-15,none,compliance
+R5-002,CBAHI,@compliance,done,high,4,3,5,2026-09-15,2026-09-16,compliance,compliance
+R5-003,SFDA,@compliance,done,medium,3,2,5,2026-09-16,2026-09-16,compliance,compliance
+R5-004,STRIDE,@security,done,high,4,3,5,2026-09-16,2026-09-17,none,security
+R5-005,Manual AR,@doc,done,high,4,3,5,2026-09-17,2026-09-17,ui,docs
+R5-006,Manual EN,@doc,done,high,4,3,5,2026-09-17,2026-09-18,ui,docs
+R5-007,Training videos,@training,done,medium,4,3,5,2026-09-18,2026-09-18,manual,training
+R5-008,Runbook,@devops,done,high,4,3,5,2026-09-18,2026-09-19,none,deploy
+R6-001,Smoke tests,@qa,done,high,4,3,6,2026-09-19,2026-09-19,api,test
+R6-002,Security scan,@security,done,high,4,3,6,2026-09-19,2026-09-19,api,security
+R6-003,Apply migrations,@devops,done,high,3,2,6,2026-09-19,2026-09-20,migration,deploy
+R6-004,Verify RLS,@devops,done,high,2,1,6,2026-09-20,2026-09-20,migration,security
+R6-005,Performance,@qa,done,medium,4,3,6,2026-09-20,2026-09-20,api,perf
+R6-006,Deploy prod,@devops,done,high,3,2,6,2026-09-20,2026-09-21,all,deploy
+R6-007,Closeout,@lead,done,medium,4,3,6,2026-09-21,2026-09-22,all,docs

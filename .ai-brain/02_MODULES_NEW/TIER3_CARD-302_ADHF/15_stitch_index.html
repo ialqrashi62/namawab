@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مركز قصور القلب المتقدم — NamaMedical</title>
+  <link rel="stylesheet" href="https://cdn.tailwindcss.com">
+</head>
+<body class="bg-slate-50" style="font-family: 'Cairo', 'Inter', system-ui, sans-serif;">
+  <header class="bg-white shadow border-b">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <h1 class="text-xl font-bold">مركز قصور القلب المتقدم</h1>
+      <span class="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700">GDMT 4-Pillar</span>
+    </div>
+  </header>
+  <main class="container mx-auto p-4">
+    <div class="mb-6">
+      <h2 class="text-3xl font-bold mb-2">Advanced Heart Failure Center</h2>
+      <p class="text-slate-600">GDMT + LVAD + Transplant + Palliative Care</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white rounded-lg shadow p-4">
+        <h3 class="text-sm text-slate-600">GDMT 4-Pillar (متوسط)</h3>
+        <p class="text-3xl font-bold" id="gdmt-avg">--</p>
+        <p class="text-xs text-green-600">Target: 4/4</p>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <h3 class="text-sm text-slate-600">Active LVAD Patients</h3>
+        <p class="text-3xl font-bold" id="lvad-count">--</p>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <h3 class="text-sm text-slate-600">Transplant Waitlist</h3>
+        <p class="text-3xl font-bold" id="tx-waitlist">--</p>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <h3 class="text-sm text-slate-600">30d Mortality (ADHF)</h3>
+        <p class="text-3xl font-bold" id="mortality-30d">--</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-xl font-bold mb-4">Active HF Cases</h3>
+      <table class="w-full">
+        <thead class="bg-slate-50 border-b">
+          <tr>
+            <th class="px-4 py-2 text-right">Patient</th>
+            <th class="px-4 py-2 text-right">EF</th>
+            <th class="px-4 py-2 text-right">NYHA</th>
+            <th class="px-4 py-2 text-right">Stage</th>
+            <th class="px-4 py-2 text-right">GDMT</th>
+            <th class="px-4 py-2 text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody id="active-cases"></tbody>
+      </table>
+    </div>
+  </main>
+  <script>
+    fetch('/api/ahf/cases?limit=10').then(r => r.json()).then(d => {
+      const tbody = document.getElementById('active-cases');
+      if (d.rows) {
+        tbody.innerHTML = d.rows.map(c => `
+          <tr class="border-b hover:bg-slate-50">
+            <td class="px-4 py-2">Patient #${c.patient_id}</td>
+            <td class="px-4 py-2"><span class="px-2 py-1 rounded ${c.ef_pct <= 40 ? 'bg-red-100 text-red-700' : (c.ef_pct <= 49 ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700')}">${c.ef_pct}%</span></td>
+            <td class="px-4 py-2">${c.nyha_class || '--'}</td>
+            <td class="px-4 py-2">${c.acc_stage || '--'}</td>
+            <td class="px-4 py-2">${c.gdmt_score || 0}/4</td>
+            <td class="px-4 py-2"><a href="/ahf/case/${c.id}" class="text-blue-600 hover:underline">عرض</a></td>
+          </tr>
+        `).join('');
+      }
+    });
+  </script>
+</body>
+</html>

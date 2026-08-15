@@ -1,0 +1,68 @@
+openapi: 3.0.3
+info:
+  title: NamaMedical Advanced Heart Failure API
+  version: 1.0.0
+  description: AHF Center API per AHA/ACC/HFSA 2022, ISHLT 2023, INTERMACS 2023
+servers:
+  - url: https://jumanasoft.com/api/ahf
+  - url: http://localhost:3000/api/ahf
+security:
+  - sessionAuth: []
+tags:
+  - cases
+  - scoring
+  - lvad
+  - transplant
+  - stats
+paths:
+  /health:
+    get: { tags: [cases], summary: Health, security: [], responses: { '200': {description: OK}, '401': {description: Unauthorized} } }
+  /cases:
+    get: { tags: [cases], summary: List HF cases, responses: { '200': {description: OK} } }
+    post: { tags: [cases], summary: Create HF case, responses: { '201': {description: Created} } }
+  /admissions:
+    post: { tags: [cases], summary: Record HF admission, responses: { '201': {description: OK} } }
+  /lvad:
+    post: { tags: [lvad], summary: Create LVAD record, responses: { '201': {description: OK} } }
+  /transplant:
+    post: { tags: [transplant], summary: Record transplant, responses: { '201': {description: OK} } }
+  /score/nyha:
+    post: { tags: [scoring], summary: NYHA Class, responses: { '200': {description: OK} } }
+  /score/acc-stage:
+    post: { tags: [scoring], summary: ACC Stage, responses: { '200': {description: OK} } }
+  /score/lvef:
+    post: { tags: [scoring], summary: LVEF Classification, responses: { '200': {description: OK} } }
+  /score/ntprobnp:
+    post: { tags: [scoring], summary: NT-proBNP Interpretation, responses: { '200': {description: OK} } }
+  /score/maggic:
+    post: { tags: [scoring], summary: MAGGIC Risk Score, responses: { '200': {description: OK} } }
+  /score/intermacs:
+    post: { tags: [scoring], summary: INTERMACS Profile, responses: { '200': {description: OK} } }
+  /score/scai-shock:
+    post: { tags: [scoring], summary: SCAI Shock Stage, responses: { '200': {description: OK} } }
+  /gdmt/eligibility:
+    post: { tags: [scoring], summary: GDMT 4-Pillar eligibility, responses: { '200': {description: OK} } }
+  /dose/arni:
+    post: { tags: [scoring], summary: ARNI dosing, responses: { '200': {description: OK} } }
+  /dose/sglt2i:
+    post: { tags: [scoring], summary: SGLT2i dosing, responses: { '200': {description: OK} } }
+  /lvad/checklist:
+    post: { tags: [lvad], summary: LVAD pre-op checklist, responses: { '200': {description: OK} } }
+  /transplant/listing:
+    post: { tags: [transplant], summary: Transplant listing status, responses: { '200': {description: OK} } }
+  /lvad/thrombosis-risk:
+    post: { tags: [lvad], summary: LVAD pump thrombosis risk, responses: { '200': {description: OK} } }
+  /score/heartmate3:
+    post: { tags: [scoring], summary: HeartMate 3 Risk Score, responses: { '200': {description: OK} } }
+  /dose/diuretic:
+    post: { tags: [scoring], summary: Diuretic Dose, responses: { '200': {description: OK} } }
+  /palliative/trigger:
+    post: { tags: [scoring], summary: Palliative care trigger, responses: { '200': {description: OK} } }
+  /stats:
+    get: { tags: [stats], summary: AHF stats, responses: { '200': {description: OK} } }
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid

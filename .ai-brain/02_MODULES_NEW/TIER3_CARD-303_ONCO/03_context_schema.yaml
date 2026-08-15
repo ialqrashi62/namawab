@@ -1,0 +1,57 @@
+cardio_onc_context:
+  patient:
+    national_id: string
+    mrn: string
+    age: integer
+    gender: enum [male, female]
+    cancer_type: enum [breast, lung, colorectal, lymphoma, leukemia, melanoma, ovarian, gastric, sarcoma, multiple_myeloma, other]
+    cancer_stage: enum [I, II, III, IV]
+    cancer_diagnosis_date: date
+    cancer_therapy: enum [anthracycline, trastuzumab, immunotherapy, tki, vegf_inhibitor, proteasome_inhibitor, alk_inhibitor, radiotherapy, car_t, transplant, none]
+
+  cardiac_history:
+    pre_existing_cv_disease: boolean
+    prior_chest_radiation: integer  # Gy
+    cv_risk_factors: list<string>
+    baseline_ef_pct: integer
+    baseline_gls_pct: integer
+    prior_cardiotoxicity: boolean
+
+  current_assessment:
+    ef_pct: integer
+    gls_pct: integer
+    lvef_drop_from_baseline: integer
+    symptoms: enum [none, fatigue, dyspnea, edema, chest_pain, palpitations]
+    troponin: number
+    bnp: integer
+    nt_probnp: integer
+    qtc_ms: integer
+    bp_systolic: integer
+    bp_diastolic: integer
+    ctcae_grade: enum [I, II, III, IV, V]
+
+  treatment:
+    anthracycline_cumulative_dose_mg_m2: number
+    anthracycline_type: enum [doxorubicin, epirubicin, daunorubicin, idarubicin, mitoxantrone]
+    trastuzumab_active: boolean
+    ici_active: boolean
+    ici_type: enum [pembrolizumab, nivolumab, atezolizumab, durvalumab, ipilimumab]
+    qt_prolonging_agents: list<string>
+    vegf_inhibitor_active: boolean
+    bp_management_recent: boolean
+    anticoagulation_active: boolean
+    anticoagulation_type: enum [warfarin, doac, lmwh]
+
+  workflow:
+    next_echo_date: date
+    next_biomarker_date: date
+    next_oncology_visit: date
+    next_cardiology_visit: date
+    cardioprotection_started: boolean
+    cardioprotection_drugs: list<string]
+
+  risk:
+    hf_risk: enum [low, moderate, high, very_high]
+    arr_risk: enum [low, moderate, high]
+    vte_risk: enum [low, moderate, high]
+    thromboembolic_risk: enum [low, moderate, high]
