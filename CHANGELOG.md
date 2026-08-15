@@ -1008,3 +1008,30 @@ amaweb/public/js/admin-panel.js (MFA-gated, audit-logged, 10 areas, RTL/LTR, WCA
 - Added 3 new token-saver skills for this phase: nm-autopilot-wave-runner-v1, nm-loop-gate-enforcer-v1, nm-multi-agent-wave-splitter-v1.
 - Added Wave 53 playbook for multi-agent parallel lanes and QG1..QG6 enforcement.
 
+
+## Wave 132-136 — 2026-08-15 — 5 Tier-3 Cardiac Departments (STROKE + ADHF + ONCO + ROBOTIC + PE/DVT)
+**Owner:** Copilot  •  **Commit:** f36754ce  •  **Report:** N/A
+
+### Added
+  - **TIER3_CARD-301_STROKE** (Stroke Center) — 52 files; engine 11 fns (NIHSS, ASPECTS, mRS, ICH, Hunt-Hess, ABCD², CHA₂DS₂-VASc, HAS-BLED, Tenecteplase dose, thrombolysis eligibility, door-to-needle, secondary prevention). 5 tables, FORCE RLS. Mounted at \/api/stroke\.
+  - **TIER3_CARD-302_ADHF** (Advanced Heart Failure) — 52 files; engine 16 fns (NYHA, ACC, LVEF, NT-proBNP, MAGGIC, INTERMACS, SCAI, GDMT, ARNI/SGLT2i dosing, LVAD checklist, transplant listing, HeartMate 3 risk). 5 tables, FORCE RLS. Mounted at \/api/ahf\.
+  - **TIER3_CARD-303_ONCO** (Cardio-Oncology) — 52 files; engine 10 fns (HFA-ICOS, CTCAE, GLS change, ICI myocarditis, anthracycline dose, trastuzumab risk, QTc, VTE, amyloid, cardioprotection). 4 tables, FORCE RLS. Mounted at \/api/coo\.
+  - **TIER3_CARD-304_ROBOTIC** (Robotic CV Surgery) — 52 files; engine 10 fns (STS, EuroSCORE II, TAVI/MitraClip/WATCHMAN/Robotic eligibility, pre-op 10-item checklist, conversion risk, post-op complications, discharge readiness). 4 tables, FORCE RLS. Mounted at \/api/rcv\.
+  - **TIER3_CARD-305_PE_DVT** (PERT Response Team) — 52 files; engine 12 fns (sPESI, Wells DVT/PE, severity, thrombolysis, CDT, thrombectomy, IVC filter, anticoagulation choice, CTEPH, PERT activation, bleeding risk). 3 tables, FORCE RLS. Mounted at \/api/pedvt\.
+  - **21 DB tables created** with FORCE RLS + tenant isolation policies.
+  - **5 live routers deployed** on jumanasoft.com; all endpoints return 401 (auth-gated).
+  - **Compliance:** ESC/AHA/ACC/IC-OS/ASCO/NCCN/HFA-ICOS/STS/CHEST/ISHLT/INTERMACS/SCAI/SCOT/CBAHI/NPHIES/SFDA/PDPL.
+
+### Safety Rails (preserved)
+  - No PHI in commits (dummy seeders only).
+  - FORCE RLS on all 21 new tables (5+4+4+4+4).
+  - Multi-tenant isolation enforced via \pp.tenant_id\ setting.
+  - No secrets committed (.env placeholders only).
+  - No force-push, linear history only.
+
+### Live Verification
+  - Stroke  : \https://jumanasoft.com/api/stroke/health\ → 401 ✓
+  - AHF     : \https://jumanasoft.com/api/ahf/health\    → 401 ✓
+  - Cardio-Onc: \https://jumanasoft.com/api/coo/health\  → 401 ✓
+  - Robotic : \https://jumanasoft.com/api/rcv/health\    → 401 ✓
+  - PE/DVT  : \https://jumanasoft.com/api/pedvt/health\  → 401 ✓
