@@ -1,0 +1,19 @@
+FROM node:20-alpine
+LABEL module="P0-2_COMMAND_CENTER"
+LABEL department="Hospital Command Center"
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY p0_2_command_center_engine.js ./
+COPY 09_router.js ./cc_router.js
+
+ENV NODE_ENV=production
+ENV PORT=3302
+
+EXPOSE 3302
+HEALTHCHECK --interval=15s --timeout=3s --start-period=10s \
+  CMD wget -qO- http://localhost:3302/api/cc/health || exit 1
+
+CMD ["node", "cc_router.js"]

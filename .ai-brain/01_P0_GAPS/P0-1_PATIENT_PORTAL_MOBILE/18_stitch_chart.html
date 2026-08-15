@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>اتجاهات حيوية — Vitals Trends</title>
+  <link rel="stylesheet" href="https://cdn.tailwindcss.com">
+</head>
+<body class="bg-slate-50 min-h-screen" style="font-family: 'Cairo', 'Inter', system-ui, sans-serif;">
+  <header class="bg-sky-600 text-white px-4 py-3 flex items-center gap-3 sticky top-0 z-50">
+    <a href="/pp" class="p-2">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    </a>
+    <h1 class="text-lg font-bold">اتجاهات حيوية</h1>
+  </header>
+
+  <main class="px-4 py-4 pb-20">
+    <!-- BP Trend -->
+    <section class="bg-white rounded-2xl shadow p-4 mb-4">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-bold">ضغط الدم</h3>
+        <span class="text-xs text-slate-600">آخر 30 يوم</span>
+      </div>
+      <svg viewBox="0 0 300 100" class="w-full">
+        <line x1="20" y1="50" x2="280" y2="50" stroke="#94a3b8" stroke-dasharray="2 2"/>
+        <text x="285" y="55" font-size="8" fill="#64748b">120</text>
+        <line x1="20" y1="20" x2="280" y2="20" stroke="#fca5a5" stroke-dasharray="2 2"/>
+        <text x="285" y="25" font-size="8" fill="#dc2626">140</text>
+        <polyline points="20,40 50,45 80,38 110,42 140,35 170,40 200,32 230,38 260,30" fill="none" stroke="#0ea5e9" stroke-width="2"/>
+        <polyline points="20,70 50,65 80,72 110,68 140,75 170,68 200,72 230,65 260,70" fill="none" stroke="#ec4899" stroke-width="2"/>
+      </svg>
+      <div class="flex justify-around mt-3">
+        <div class="text-center">
+          <p class="text-xs text-slate-600">انقباضي</p>
+          <p class="text-lg font-bold text-sky-700">128 mmHg</p>
+        </div>
+        <div class="text-center">
+          <p class="text-xs text-slate-600">انبساطي</p>
+          <p class="text-lg font-bold text-pink-700">82 mmHg</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Glucose Trend -->
+    <section class="bg-white rounded-2xl shadow p-4 mb-4">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-bold">السكر</h3>
+        <span class="text-xs text-slate-600">آخر 30 يوم</span>
+      </div>
+      <svg viewBox="0 0 300 100" class="w-full">
+        <line x1="20" y1="50" x2="280" y2="50" stroke="#94a3b8" stroke-dasharray="2 2"/>
+        <text x="285" y="55" font-size="8" fill="#64748b">100</text>
+        <line x1="20" y1="20" x2="280" y2="20" stroke="#fca5a5" stroke-dasharray="2 2"/>
+        <text x="285" y="25" font-size="8" fill="#dc2626">180</text>
+        <polyline points="20,55 50,60 80,50 110,65 140,45 170,55 200,40 230,50 260,45" fill="none" stroke="#10b981" stroke-width="2"/>
+      </svg>
+      <div class="text-center mt-3">
+        <p class="text-xs text-slate-600">متوسط السكر</p>
+        <p class="text-lg font-bold text-emerald-700">142 mg/dL</p>
+        <p class="text-xs text-slate-600 mt-1">HbA1c المتوقع: 6.4%</p>
+      </div>
+    </section>
+
+    <!-- Weight Trend -->
+    <section class="bg-white rounded-2xl shadow p-4 mb-4">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-bold">الوزن</h3>
+        <span class="text-xs text-slate-600">آخر 90 يوم</span>
+      </div>
+      <svg viewBox="0 0 300 100" class="w-full">
+        <polyline points="20,30 50,32 80,28 110,30 140,35 170,38 200,40 230,38 260,42" fill="none" stroke="#8b5cf6" stroke-width="2"/>
+      </svg>
+      <div class="text-center mt-3">
+        <p class="text-xs text-slate-600">الوزن الحالي</p>
+        <p class="text-lg font-bold text-purple-700">82 كجم</p>
+        <p class="text-xs text-emerald-600 mt-1">↓ 2 كجم من البداية</p>
+      </div>
+    </section>
+
+    <!-- Add New Reading -->
+    <button class="w-full bg-sky-600 text-white py-3 rounded-xl font-bold">
+      + تسجيل قراءة جديدة
+    </button>
+  </main>
+</body>
+</html>

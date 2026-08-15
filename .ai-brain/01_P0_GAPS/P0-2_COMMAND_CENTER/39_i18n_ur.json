@@ -1,0 +1,29 @@
+{
+  "locale": "ur",
+  "direction": "rtl",
+  "module": "P0-2_COMMAND_CENTER",
+  "keys": {
+    "app.title": "کمانڈ سینٹر",
+    "nav.dashboard": "ڈیش بورڈ",
+    "nav.beds": "بستر",
+    "nav.ed": "ایمرجنسی",
+    "nav.or": "آپریشن رومز",
+    "nav.mci": "ماس کیجوول�ی",
+    "nav.staff": "عملہ",
+    "nav.equipment": "آلات",
+    "nav.kpi": "KPIs",
+    "kpi.ed_occupancy": "ایمرجنسی قبضہ",
+    "kpi.or_utilization": "آپریشن روم استعمال",
+    "kpi.icu": "ICU بستر",
+    "kpi.alos": "اوسط قیام",
+    "kpi.mortality": "اموات",
+    "kpi.patient_sat": "مریض اطمینان",
+    "status.normal": "نارمل",
+    "status.busy": "مصروف",
+    "status.surge": "بھیڑ",
+    "status.critical": "نازک",
+    "action.activate_mci": "MCI فعال کریں",
+    "action.call_staff": "عملہ بلائیں",
+    "action.open_overflow": "Overflow کھولیں"
+  }
+}

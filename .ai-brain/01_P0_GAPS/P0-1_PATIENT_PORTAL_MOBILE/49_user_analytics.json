@@ -1,0 +1,21 @@
+{
+  "module": "P0-1_PATIENT_PORTAL_MOBILE",
+  "platform": "PostHog",
+  "events": [
+    { "name": "app_open", "properties": { "tenant_id": "int", "patient_id": "int", "platform": "string" } },
+    { "name": "nafath_login", "properties": { "tenant_id": "int", "patient_id": "int", "level": "string", "duration_ms": "int" } },
+    { "name": "appointment_booked", "properties": { "tenant_id": "int", "patient_id": "int", "specialty": "string", "modality": "string", "insurance_approved": "bool" } },
+    { "name": "telehealth_joined", "properties": { "tenant_id": "int", "patient_id": "int", "duration_min": "int" } },
+    { "name": "lab_results_viewed", "properties": { "tenant_id": "int", "patient_id": "int", "critical": "bool" } },
+    { "name": "refill_requested", "properties": { "tenant_id": "int", "patient_id": "int", "controlled": "bool", "approved": "bool" } },
+    { "name": "caregiver_granted", "properties": { "tenant_id": "int", "patient_id": "int", "relationship": "string" } },
+    { "name": "consent_withdrawn", "properties": { "tenant_id": "int", "patient_id": "int", "type": "string" } },
+    { "name": "bill_paid", "properties": { "tenant_id": "int", "patient_id": "int", "amount_sar": "decimal", "method": "string" } },
+    { "name": "vitals_recorded", "properties": { "tenant_id": "int", "patient_id": "int", "type": "string", "abnormal": "bool" } },
+    { "name": "fhir_exported", "properties": { "tenant_id": "int", "patient_id": "int", "sections": "json" } },
+    { "name": "rag_query", "properties": { "tenant_id": "int", "patient_id": "int", "query": "string", "language": "string" } }
+  ],
+  "personas": ["patient", "caregiver", "power_user", "chronic_patient"],
+  "cohorts": ["active_app_users", "telehealth_adopters", "chronic_disease", "elderly", "high_risk_patients"],
+  "insights": ["Daily active users", "Telehealth adoption", "Refill success rate", "Critical lab disclosure SLA", "Patient satisfaction"]
+}

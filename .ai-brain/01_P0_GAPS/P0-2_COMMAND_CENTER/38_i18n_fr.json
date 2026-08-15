@@ -1,0 +1,29 @@
+{
+  "locale": "fr",
+  "direction": "ltr",
+  "module": "P0-2_COMMAND_CENTER",
+  "keys": {
+    "app.title": "Centre de Commandement",
+    "nav.dashboard": "Tableau de bord",
+    "nav.beds": "Lits",
+    "nav.ed": "Urgences",
+    "nav.or": "Blocs Opératoires",
+    "nav.mci": "Victimes de Masse",
+    "nav.staff": "Personnel",
+    "nav.equipment": "Équipement",
+    "nav.kpi": "KPIs",
+    "kpi.ed_occupancy": "Occupation Urgences",
+    "kpi.or_utilization": "Utilisation Salles d'Op",
+    "kpi.icu": "Lits ICU",
+    "kpi.alos": "Durée Moyenne Séjour",
+    "kpi.mortality": "Mortalité",
+    "kpi.patient_sat": "Satisfaction Patient",
+    "status.normal": "Normal",
+    "status.busy": "Occupé",
+    "status.surge": "Saturé",
+    "status.critical": "Critique",
+    "action.activate_mci": "Activer MCI",
+    "action.call_staff": "Appeler Personnel",
+    "action.open_overflow": "Ouvrir Débordement"
+  }
+}

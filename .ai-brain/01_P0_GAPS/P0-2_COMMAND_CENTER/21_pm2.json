@@ -1,0 +1,18 @@
+{
+  "name": "cc",
+  "script": "cc_router.js",
+  "instances": 2,
+  "exec_mode": "cluster",
+  "max_memory_restart": "512M",
+  "env": {
+    "NODE_ENV": "production",
+    "PORT": 3302,
+    "MOUNT_PREFIX": "/api/cc"
+  },
+  "log_date_format": "YYYY-MM-DD HH:mm:ss",
+  "error_file": "/var/log/pm2/cc-error.log",
+  "out_file": "/var/log/pm2/cc-out.log",
+  "merge_logs": true,
+  "max_restarts": 5,
+  "restart_delay": 3000
+}

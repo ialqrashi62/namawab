@@ -1,0 +1,71 @@
+{
+  "module": "P0-1_PATIENT_PORTAL_MOBILE",
+  "design_tokens": {
+    "primary": "#0ea5e9",
+    "primary_dark": "#0369a1",
+    "primary_light": "#e0f2fe",
+    "accent": "#10b981",
+    "bg": "#f8fafc",
+    "card": "#ffffff",
+    "border": "#e2e8f0",
+    "text": "#0f172a",
+    "text_muted": "#64748b",
+    "success": "#10b981",
+    "warning": "#f59e0b",
+    "danger": "#ef4444",
+    "critical": "#dc2626"
+  },
+  "typography": {
+    "font_sans": "Cairo, Inter, system-ui, sans-serif",
+    "font_arabic": "Cairo, Tajawal, system-ui",
+    "font_mono": "JetBrains Mono, monospace"
+  },
+  "spacing": {
+    "xs": "0.25rem", "sm": "0.5rem", "md": "1rem",
+    "lg": "1.5rem", "xl": "2rem", "2xl": "3rem"
+  },
+  "radius": {
+    "sm": "0.25rem", "md": "0.75rem", "lg": "1rem", "xl": "1.5rem"
+  },
+  "shadow": {
+    "sm": "0 1px 2px rgba(0,0,0,0.05)",
+    "md": "0 2px 4px rgba(0,0,0,0.1)",
+    "lg": "0 10px 20px rgba(0,0,0,0.1)"
+  },
+  "icons": {
+    "library": "lucide-react",
+    "main": "home",
+    "appointments": "calendar",
+    "labs": "test-tube",
+    "medications": "pill",
+    "telehealth": "video",
+    "vitals": "heart-pulse",
+    "messaging": "message-circle",
+    "records": "file-text",
+    "billing": "wallet",
+    "caregiver": "users",
+    "consent": "shield-check"
+  },
+  "mobile": {
+    "viewport": "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no",
+    "touch_target": "min 44x44 px",
+    "safe_area": "respect notch + home indicator"
+  },
+  "animations": {
+    "duration_fast": "200ms",
+    "duration_normal": "300ms",
+    "easing": "ease-in-out"
+  },
+  "responsive": {
+    "mobile": "max-width: 640px",
+    "tablet": "max-width: 1024px",
+    "desktop": "min-width: 1025px"
+  },
+  "a11y": {
+    "wcag_level": "AA",
+    "contrast_ratio": 4.5,
+    "rtl_support": true,
+    "keyboard_nav": true,
+    "screen_reader": true
+  }
+}

@@ -1,0 +1,104 @@
+patient_portal_context:
+  patient:
+    national_id: string  # 10 digits
+    mrn: string  # hospital MRN
+    name: string  # bilingual
+    name_ar: string
+    name_en: string
+    date_of_birth: date
+    gender: enum [male, female]
+    mobile: string
+    email: string
+    nationality: string  # Saudi/non-Saudi
+    preferred_language: enum [ar, en, fr, ur]
+    absher_verified: boolean
+    nafath_verified: boolean
+
+  consent:
+    pdpl_consent_signed: boolean
+    pdpl_consent_date: date
+    marketing_consent: boolean
+    research_consent: boolean
+    third_party_sharing: boolean
+    consent_doc_id: string  # PDPL doc id
+
+  identity_verification:
+    method: enum [naforth, absher, biometric, otp, unauthenticated]
+    verified_at: timestamp
+    level: enum [L1_unverified, L2_otp, L3_biometric]
+    session_id: string
+
+  appointments:
+    upcoming: list<appointment_summary>
+    past: list<appointment_summary>
+    cancelled: integer
+    no_show_rate: decimal
+
+  lab_results:
+    pending_count: integer
+    recent_results: list<lab_result_summary>
+    critical_pending: integer
+
+  medications:
+    active_count: integer
+    refill_pending: integer
+    adherence_pct: decimal
+
+  vitals:
+    bp_recent: list<vital_measurement>
+    glucose_recent: list<vital_measurement>
+    weight_recent: list<vital_measurement>
+    spo2_recent: list<vital_measurement>
+
+  billing:
+    balance: decimal
+    insurance_status: enum [verified, pending, expired, none]
+    payment_methods: list<payment_method>
+
+  caregivers:
+    active_proxies: list<caregiver_info>
+
+  workflow:
+    next_action: string
+    reminders_active: list<reminder_info>
+    telehealth_eligible: boolean
+
+appointment_summary:
+  appointment_id: string
+  facility_name: string
+  specialty: string
+  date: date
+  time: string
+  doctor_name: string
+  modality: enum [in_person, video, phone]
+  status: enum [confirmed, pending, cancelled, completed, no_show]
+
+lab_result_summary:
+  result_id: string
+  test_name: string
+  value: string
+  reference_range: string
+  abnormal_flag: boolean
+  critical: boolean
+  resulted_at: timestamp
+  verified: boolean
+
+vital_measurement:
+  type: enum [systolic_bp, diastolic_bp, glucose, weight_kg, heart_rate, spo2, temperature_c]
+  value: decimal
+  unit: string
+  measured_at: timestamp
+  source: enum [self_reported, device_sync, manual_entry]
+
+caregiver_info:
+  caregiver_id: string
+  caregiver_name: string
+  relationship: enum [spouse, parent, child, sibling, legal_guardian]
+  consent_doc_id: string
+  expires_at: date
+
+reminder_info:
+  reminder_id: string
+  type: enum [medication, appointment, lab_follow_up, refill]
+  scheduled_at: timestamp
+  channel: enum [push, sms, email]

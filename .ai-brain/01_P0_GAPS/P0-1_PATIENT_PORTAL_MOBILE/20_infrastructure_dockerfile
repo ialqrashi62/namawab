@@ -1,0 +1,19 @@
+FROM node:20-alpine
+LABEL module="P0-1_PATIENT_PORTAL_MOBILE"
+LABEL department="Patient Portal Mobile"
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY p0_1_patient_portal_engine.js ./
+COPY 09_router.js ./pp_router.js
+
+ENV NODE_ENV=production
+ENV PORT=3301
+
+EXPOSE 3301
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
+  CMD wget -qO- http://localhost:3301/api/pp/health || exit 1
+
+CMD ["node", "pp_router.js"]

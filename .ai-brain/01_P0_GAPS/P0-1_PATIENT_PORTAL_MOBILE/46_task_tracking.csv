@@ -1,0 +1,48 @@
+id,task,assignee,status,priority,estimate_hours,actual_hours,sprint,start_date,end_date,dependencies,labels
+PP-001,ERD design,@architect,done,high,4,3,1,2026-08-12,2026-08-12,none,design
+PP-002,5 migrations_up.sql,@backend,done,high,4,3,1,2026-08-12,2026-08-13,ERD,sql
+PP-003,5 migrations_down.sql,@backend,done,high,3,2,1,2026-08-13,2026-08-13,migration,sql
+PP-004,RLS policies,@backend,done,high,2,1,1,2026-08-13,2026-08-13,migration,security
+PP-005,Pure engine (12 functions),@backend,done,high,8,7,1,2026-08-13,2026-08-15,none,engine
+PP-006,Unit tests (24 cases),@qa,done,high,4,3,1,2026-08-15,2026-08-15,engine,test
+PP-007,OpenAPI spec,@backend,done,medium,3,2,1,2026-08-15,2026-08-16,engine,docs
+PP-008,Express router,@backend,done,high,2,1,2,2026-08-16,2026-08-16,engine,api
+PP-009,Auth endpoints,@backend,done,high,3,2,2,2026-08-16,2026-08-17,naforth,api
+PP-010,Appointments endpoints,@backend,done,high,3,2,2,2026-08-17,2026-08-17,mawid,api
+PP-011,Telehealth endpoints,@backend,done,high,3,2,2,2026-08-17,2026-08-18,router,api
+PP-012,Lab endpoints,@backend,done,high,3,2,2,2026-08-18,2026-08-18,router,api
+PP-013,Medication endpoints,@backend,done,high,3,2,2,2026-08-18,2026-08-19,sfda,api
+PP-014,Caregiver endpoints,@backend,done,high,3,2,2,2026-08-19,2026-08-19,pdpl,api
+PP-015,Insurance endpoints,@backend,done,high,3,2,2,2026-08-19,2026-08-20,wateen,api
+PP-016,Consent endpoints,@backend,done,high,3,2,2,2026-08-20,2026-08-20,pdpl,api
+PP-017,Stats endpoint,@backend,done,medium,2,1,2,2026-08-20,2026-08-20,router,api
+PP-018,Integration tests,@qa,done,high,4,3,2,2026-08-20,2026-08-21,api,test
+PP-019,pgvector extension,@backend,done,high,2,1,3,2026-08-21,2026-08-21,db,vector
+PP-020,patient_portal_knowledge table,@backend,done,high,3,2,3,2026-08-21,2026-08-22,vector,sql
+PP-021,Sample seeds,@backend,done,medium,4,3,3,2026-08-22,2026-08-23,vector,data
+PP-022,Similarity search,@backend,done,high,4,3,3,2026-08-23,2026-08-23,vector,ai
+PP-023,LangChain pipeline,@ai,done,high,6,5,3,2026-08-23,2026-08-25,vector,ai
+PP-024,Safety guardrails,@security,done,high,4,3,3,2026-08-25,2026-08-25,ai,security
+PP-025,Stitch index (mobile),@frontend,done,high,4,3,4,2026-08-25,2026-08-26,none,ui
+PP-026,Stitch detail,@frontend,done,medium,3,2,4,2026-08-26,2026-08-26,index,ui
+PP-027,Stitch booking form,@frontend,done,high,4,3,4,2026-08-26,2026-08-27,api,ui
+PP-028,Stitch vitals chart,@frontend,done,medium,4,3,4,2026-08-27,2026-08-27,stats,ui
+PP-029,i18n AR (RTL),@frontend,done,high,4,3,4,2026-08-27,2026-08-28,ui,i18n
+PP-030,i18n EN,@frontend,done,high,3,2,4,2026-08-28,2026-08-28,ui,i18n
+PP-031,i18n FR,@frontend,done,medium,3,2,4,2026-08-28,2026-08-29,ui,i18n
+PP-032,i18n UR,@frontend,done,medium,3,2,4,2026-08-29,2026-08-29,ui,i18n
+PP-033,PDPL compliance,@compliance,done,high,4,3,5,2026-08-29,2026-08-29,none,compliance
+PP-034,CBAHI standards,@compliance,done,high,4,3,5,2026-08-29,2026-08-30,compliance,compliance
+PP-035,NHIA Sehhaty,@compliance,done,high,4,3,5,2026-08-30,2026-08-30,compliance,compliance
+PP-036,STRIDE,@security,done,high,4,3,5,2026-08-30,2026-08-31,none,security
+PP-037,Manual AR,@doc,done,high,4,3,5,2026-08-31,2026-08-31,ui,docs
+PP-038,Manual EN,@doc,done,high,4,3,5,2026-08-31,2026-09-01,ui,docs
+PP-039,Training videos,@training,done,medium,6,5,5,2026-09-01,2026-09-01,manual,training
+PP-040,Runbook,@devops,done,high,4,3,5,2026-09-01,2026-09-02,none,deploy
+PP-041,Smoke tests,@qa,done,high,4,3,6,2026-09-02,2026-09-02,api,test
+PP-042,Security scan,@security,done,high,4,3,6,2026-09-02,2026-09-02,api,security
+PP-043,Apply migrations,@devops,done,high,3,2,6,2026-09-02,2026-09-03,migration,deploy
+PP-044,Verify RLS,@devops,done,high,2,1,6,2026-09-03,2026-09-03,migration,security
+PP-045,Performance,@qa,done,medium,4,3,6,2026-09-03,2026-09-03,api,perf
+PP-046,Deploy prod,@devops,done,high,3,2,6,2026-09-03,2026-09-04,all,deploy
+PP-047,Closeout,@lead,done,medium,4,3,6,2026-09-04,2026-09-05,all,docs

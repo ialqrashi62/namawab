@@ -1,0 +1,64 @@
+{
+  "@context": "https://schema.org",
+  "@type": "MobileApplication",
+  "name": "NamaMedical Patient Portal",
+  "alternateName": "بوابة المريض",
+  "description": "Patient-facing mobile app for appointments, telehealth, lab results, medications, and PDPL-compliant consent management per Saudi PDPL 2024, CBAHI, NHIA Sehhaty, MoH Mawid, Wateen, SFDA.",
+  "applicationCategory": "MedicalApplication",
+  "operatingSystem": "iOS 16+, Android 12+, Web (PWA)",
+  "availableLanguage": ["ar", "en", "fr", "ur"],
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "SAR"
+  },
+  "featureList": [
+    "Nafath identity verification",
+    "PDPL privacy consent",
+    "Mawid appointment booking",
+    "Wateen insurance verification",
+    "Sehhaty national health record",
+    "Telehealth video visits",
+    "Lab results with critical alerts",
+    "Medication refills",
+    "Caregiver proxy access",
+    "Self-reported vitals",
+    "FHIR R4 data export",
+    "Bill payment",
+    "Bilingual (AR/EN/FR/UR)",
+    "Offline mode (PWA)",
+    "Push notifications",
+    "Biometric login"
+  ],
+  "medicalSpecialty": "All (Primary, Cardiology, Pediatrics, OB-GYN, etc.)",
+  "recognizedBy": [
+    { "@type": "Organization", "name": "PDPL 2024 Saudi Arabia" },
+    { "@type": "Organization", "name": "CBAHI" },
+    { "@type": "Organization", "name": "NHIA Sehhaty" },
+    { "@type": "Organization", "name": "MoH Mawid" },
+    { "@type": "Organization", "name": "Wateen Insurance" },
+    { "@type": "Organization", "name": "SFDA" },
+    { "@type": "Organization", "name": "NAFATH" },
+    { "@type": "Organization", "name": "WCAG 2.1 AA" }
+  ],
+  "hasHealthAspect": [
+    { "@type": "HealthAspect", "name": "Privacy Rights", "description": "PDPL 5 rights: access, correction, erasure, portability, withdraw" },
+    { "@type": "HealthAspect", "name": "Emergency Care", "description": "Always redirect emergencies to 911" },
+    { "@type": "HealthAspect", "name": "Medication Safety", "description": "Controlled substances require in-person visits" }
+  ],
+  "areaServed": { "@type": "Country", "name": "Saudi Arabia" },
+  "audience": {
+    "@type": "PeopleAudience",
+    "audienceType": "Patients, families, caregivers",
+    "geographicArea": "Kingdom of Saudi Arabia + GCC"
+  },
+  "keywords": [
+    "patient portal", "Nafath", "Absher", "Sehhaty", "Mawid", "Wateen", "SFDA",
+    "PDPL", "appointment booking", "telehealth", "video visit", "lab results",
+    "medication refill", "caregiver", "FHIR R4", "health records",
+    "بوابة المريض", "نفذ", "أبشر", "صحتي", "موعد", "وطئن", "حماية البيانات",
+    "Saudi Arabia", "Riyadh", "Jeddah", "Dammam", "Mecca", "Medina"
+  ],
+  "url": "https://jumanasoft.com/pp",
+  "publisher": { "@type": "Organization", "name": "NamaMedical", "url": "https://jumanasoft.com" }
+}

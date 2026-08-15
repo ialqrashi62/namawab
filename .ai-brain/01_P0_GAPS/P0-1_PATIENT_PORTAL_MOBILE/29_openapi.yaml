@@ -1,0 +1,45 @@
+openapi: 3.0.3
+info:
+  title: NamaMedical Patient Portal API
+  version: 1.0.0
+  description: Patient Portal Mobile per PDPL 2024, CBAHI, NHIA Sehhaty, MoH Mawid, Wateen, SFDA
+servers:
+  - url: https://jumanasoft.com/api/pp
+  - url: http://localhost:3000/api/pp
+security:
+  - patientJwt: []
+tags:
+  - auth
+  - appointments
+  - telehealth
+  - labs
+  - medications
+  - caregiver
+  - vitals
+  - records
+  - billing
+  - notifications
+  - consent
+  - risk
+  - stats
+paths:
+  /health: { get: { tags: [auth], summary: Health, security: [], responses: { '200': {description: OK} } } }
+  /auth/verify-identity: { post: { tags: [auth], summary: Verify patient identity (Nafath/Absher), security: [], responses: { '200': {description: OK} } } }
+  /appointments: { post: { tags: [appointments], summary: Book appointment, responses: { '201': {description: Created} } } }
+  /appointments/{patient_id}: { get: { tags: [appointments], summary: List patient appointments, responses: { '200': {description: OK} } } }
+  /telehealth/eligibility: { post: { tags: [telehealth], summary: Telehealth eligibility check, responses: { '200': {description: OK} } } }
+  /lab-results/disclose: { post: { tags: [labs], summary: Lab results disclosure gate, responses: { '200': {description: OK}, '400': {description: Critical needs verification} } } }
+  /refills/request: { post: { tags: [medications], summary: Medication refill request, responses: { '200': {description: OK} } } }
+  /caregiver/grant: { post: { tags: [caregiver], summary: Grant caregiver proxy access, responses: { '201': {description: Created} } } }
+  /vitals/record: { post: { tags: [vitals], summary: Record self-reported vital, responses: { '201': {description: Created} } } }
+  /export/fhir/{patient_id}: { get: { tags: [records], summary: FHIR R4 export, responses: { '200': {description: OK} } } }
+  /insurance/verify: { post: { tags: [billing], summary: Insurance verification (Wateen), responses: { '200': {description: OK} } } }
+  /notifications/push: { post: { tags: [notifications], summary: Push notification priority, responses: { '200': {description: OK} } } }
+  /consent/withdraw: { post: { tags: [consent], summary: Consent withdrawal (PDPL), responses: { '201': {description: Created} } } }
+  /risk/score: { post: { tags: [risk], summary: Health risk self-assessment, responses: { '200': {description: OK} } } }
+  /stats: { get: { tags: [stats], summary: Portal stats (admin), responses: { '200': {description: OK} } } }
+components:
+  securitySchemes:
+    patientJwt:
+      type: http
+      scheme: bearer

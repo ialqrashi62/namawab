@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KPI Dashboard — مؤشرات الأداء</title>
+  <link rel="stylesheet" href="https://cdn.tailwindcss.com">
+</head>
+<body class="bg-slate-900 text-white min-h-screen" style="font-family: 'Cairo', 'Inter', system-ui, sans-serif;">
+  <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 sticky top-0 z-50">
+    <h1 class="text-xl font-bold">KPI Dashboard — مؤشرات الأداء</h1>
+  </header>
+
+  <main class="p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- ED Occupancy -->
+      <div class="bg-slate-800 rounded-xl p-6 border-l-4 border-emerald-500">
+        <p class="text-sm text-slate-400">ED Occupancy</p>
+        <p class="text-5xl font-bold mt-2">68%</p>
+        <p class="text-xs text-emerald-400 mt-2">✓ Below 80% target</p>
+        <div class="mt-4 h-2 bg-slate-700 rounded-full">
+          <div class="bg-emerald-500 h-2 rounded-full" style="width: 68%"></div>
+        </div>
+      </div>
+
+      <!-- OR Utilization -->
+      <div class="bg-slate-800 rounded-xl p-6 border-l-4 border-emerald-500">
+        <p class="text-sm text-slate-400">OR Utilization</p>
+        <p class="text-5xl font-bold mt-2">82%</p>
+        <p class="text-xs text-emerald-400 mt-2">✓ Optimal (70-85%)</p>
+        <div class="mt-4 h-2 bg-slate-700 rounded-full">
+          <div class="bg-emerald-500 h-2 rounded-full" style="width: 82%"></div>
+        </div>
+      </div>
+
+      <!-- ALOS -->
+      <div class="bg-slate-800 rounded-xl p-6 border-l-4 border-emerald-500">
+        <p class="text-sm text-slate-400">ALOS</p>
+        <p class="text-5xl font-bold mt-2">3.8d</p>
+        <p class="text-xs text-emerald-400 mt-2">✓ Below 5d target</p>
+        <div class="mt-4 h-2 bg-slate-700 rounded-full">
+          <div class="bg-emerald-500 h-2 rounded-full" style="width: 76%"></div>
+        </div>
+      </div>
+
+      <!-- Mortality -->
+      <div class="bg-slate-800 rounded-xl p-6 border-l-4 border-emerald-500">
+        <p class="text-sm text-slate-400">Mortality Rate</p>
+        <p class="text-5xl font-bold mt-2">1.2%</p>
+        <p class="text-xs text-emerald-400 mt-2">✓ Below 2% target</p>
+        <div class="mt-4 h-2 bg-slate-700 rounded-full">
+          <div class="bg-emerald-500 h-2 rounded-full" style="width: 60%"></div>
+        </div>
+      </div>
+
+      <!-- ED LOS -->
+      <div class="bg-slate-800 rounded-xl p-6 border-l-4 border-emerald-500">
+        <p class="text-sm text-slate-400">ED LOS Average</p>
+        <p class="text-5xl font-bold mt-2">3.2h</p>
+        <p class="text-xs text-emerald-400 mt-2">✓ Below 4h target</p>
+        <div class="mt-4 h-2 bg-slate-700 rounded-full">
+          <div class="bg-emerald-500 h-2 rounded-full" style="width: 80%"></div>
+        </div>
+      </div>
+
+      <!-- Patient Satisfaction -->
+      <div class="bg-slate-800 rounded-xl p-6 border-l-4 border-emerald-500">
+        <p class="text-sm text-slate-400">Patient Satisfaction</p>
+        <p class="text-5xl font-bold mt-2">88%</p>
+        <p class="text-xs text-emerald-400 mt-2">✓ Above 85% target</p>
+        <div class="mt-4 h-2 bg-slate-700 rounded-full">
+          <div class="bg-emerald-500 h-2 rounded-full" style="width: 88%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="mt-6 bg-slate-800 rounded-xl p-6">
+      <h2 class="font-bold mb-4">Operational Status</h2>
+      <div class="grid grid-cols-4 gap-4 text-center">
+        <div>
+          <div class="w-16 h-16 rounded-full bg-emerald-500 mx-auto flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
+          <p class="mt-2 font-medium">Operations</p>
+          <p class="text-xs text-emerald-400">Normal</p>
+        </div>
+        <div>
+          <div class="w-16 h-16 rounded-full bg-emerald-500 mx-auto flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
+          <p class="mt-2 font-medium">ED</p>
+          <p class="text-xs text-emerald-400">Normal</p>
+        </div>
+        <div>
+          <div class="w-16 h-16 rounded-full bg-amber-500 mx-auto flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><circle cx="12" cy="12" r="10"/><path d="M12 6v6M12 16h.01"/></svg>
+          </div>
+          <p class="mt-2 font-medium">ICU</p>
+          <p class="text-xs text-amber-400">85% full</p>
+        </div>
+        <div>
+          <div class="w-16 h-16 rounded-full bg-emerald-500 mx-auto flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
+          <p class="mt-2 font-medium">Equipment</p>
+          <p class="text-xs text-emerald-400">Operational</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

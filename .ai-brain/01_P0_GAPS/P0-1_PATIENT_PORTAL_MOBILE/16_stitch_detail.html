@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0ea5e9">
+  <title>تفاصيل الموعد — Appointment Details</title>
+  <link rel="stylesheet" href="https://cdn.tailwindcss.com">
+</head>
+<body class="bg-slate-50 min-h-screen" style="font-family: 'Cairo', 'Inter', system-ui, sans-serif;">
+  <header class="bg-sky-600 text-white px-4 py-3 flex items-center gap-3 sticky top-0 z-50">
+    <a href="/pp" class="p-2">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    </a>
+    <h1 class="text-lg font-bold">تفاصيل الموعد</h1>
+  </header>
+
+  <main class="px-4 py-4 pb-20">
+    <!-- Doctor Card -->
+    <section class="bg-white rounded-2xl shadow p-5 mb-4">
+      <div class="flex items-center gap-4 mb-4">
+        <img src="https://i.pravatar.cc/80?img=12" alt="doctor" class="w-20 h-20 rounded-full">
+        <div>
+          <h2 class="text-xl font-bold">د. أحمد العتيبي</h2>
+          <p class="text-sky-600">استشاري أمراض القلب</p>
+          <div class="flex items-center gap-1 mt-1">
+            <span class="text-yellow-500">★★★★★</span>
+            <span class="text-xs text-slate-600">(4.8 / 234 تقييم)</span>
+          </div>
+        </div>
+      </div>
+      <div class="border-t pt-3 space-y-2">
+        <div class="flex items-center gap-2 text-sm">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <span>مستشفى الملك فهد التخصصي</span>
+        </div>
+        <div class="flex items-center gap-2 text-sm text-slate-600">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>الرياض، حي العليا</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Date & Time -->
+    <section class="bg-white rounded-2xl shadow p-5 mb-4">
+      <h3 class="font-bold mb-3">التاريخ والوقت</h3>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-sky-50 rounded-xl p-3 text-center">
+          <p class="text-xs text-slate-600">التاريخ</p>
+          <p class="text-lg font-bold text-sky-700">2026-08-20</p>
+        </div>
+        <div class="bg-sky-50 rounded-xl p-3 text-center">
+          <p class="text-xs text-slate-600">الوقت</p>
+          <p class="text-lg font-bold text-sky-700">10:00 ص</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modality -->
+    <section class="bg-white rounded-2xl shadow p-5 mb-4">
+      <h3 class="font-bold mb-3">نوع الزيارة</h3>
+      <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>
+        <div>
+          <p class="font-medium">تطبيب عن بعد (فيديو)</p>
+          <p class="text-xs text-slate-600">سيتم إرسال رابط الانضمام قبل الموعد بـ 15 دقيقة</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cost -->
+    <section class="bg-white rounded-2xl shadow p-5 mb-4">
+      <h3 class="font-bold mb-3">التكلفة</h3>
+      <div class="bg-emerald-50 rounded-xl p-4">
+        <div class="flex justify-between items-center">
+          <span>تكلفة الكشف</span>
+          <span class="font-bold">200 ر.س</span>
+        </div>
+        <div class="flex justify-between items-center text-sm text-emerald-700 mt-2">
+          <span>تغطية التأمين (80%)</span>
+          <span class="font-bold">-160 ر.س</span>
+        </div>
+        <div class="border-t mt-3 pt-3 flex justify-between items-center">
+          <span class="font-bold">صافي التكلفة</span>
+          <span class="text-xl font-bold text-emerald-700">40 ر.س</span>
+        </div>
+      </div>
+      <p class="text-xs text-slate-600 mt-2">تم التحقق من التأمين عبر Wateen ✅</p>
+    </section>
+
+    <!-- Actions -->
+    <section class="space-y-3">
+      <button class="w-full bg-sky-600 text-white py-3 rounded-xl font-bold hover:bg-sky-700">انضم للموعد</button>
+      <button class="w-full bg-white border border-slate-300 text-slate-700 py-3 rounded-xl font-medium">إعادة الجدولة</button>
+      <button class="w-full bg-white border border-red-300 text-red-600 py-3 rounded-xl font-medium">إلغاء الموعد</button>
+    </section>
+  </main>
+</body>
+</html>

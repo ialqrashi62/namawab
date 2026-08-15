@@ -1,0 +1,67 @@
+groups:
+  - name: patient_portal.performance
+    rules:
+      - alert: SlowAppointmentBooking
+        expr: histogram_quantile(0.95, rate(pp_appointment_booking_seconds_bucket[5m])) > 60
+        for: 5m
+        labels: { severity: warn, team: pp }
+        annotations:
+          summary: "Appointment booking P95 > 60 seconds"
+
+      - alert: TelehealthConnectFailure
+        expr: rate(pp_telehealth_connect_fail_total[5m]) / rate(pp_telehealth_connect_total[5m]) > 0.05
+        for: 3m
+        labels: { severity: page, team: pp }
+        annotations:
+          summary: "Telehealth connect failure >5%"
+
+  - name: patient_portal.safety
+    rules:
+      - alert: CriticalLabNotVerified
+        expr: increase(pp_critical_lab_unverified_total[1h]) > 0
+        for: 5m
+        labels: { severity: critical, team: pp }
+        annotations:
+          summary: "Critical lab result without clinician verification"
+
+      - alert: ControlledSubstanceBypass
+        expr: increase(pp_controlled_bypass_attempts_total[1h]) > 0
+        for: 5m
+        labels: { severity: critical, team: pp }
+        annotations:
+          summary: "Attempt to refill controlled substance via portal"
+
+      - alert: PDPLBreachSuspected
+        expr: increase(pp_phi_exposure_violation_total[1h]) > 0
+        for: 1m
+        labels: { severity: critical, team: security }
+        annotations:
+          summary: "PHI exposure violation detected"
+
+  - name: patient_portal.usage
+    rules:
+      - alert: LowTelehealthAdoption
+        expr: rate(pp_telehealth_visits_total[7d]) / rate(pp_total_appointments_total[7d]) < 0.20
+        for: 14d
+        labels: { severity: info, team: pp }
+        annotations:
+          summary: "Telehealth adoption <20%"
+
+      - alert: HighRefillFailure
+        expr: rate(pp_refill_rejected_total[7d]) / rate(pp_refill_total[7d]) > 0.15
+        for: 7d
+        labels: { severity: warn, team: pp }
+        annotations:
+          summary: "Refill rejection rate >15%"
+
+recording_rules:
+  - name: patient_portal.kpis
+    rules:
+      - record: pp:daily_active_users
+        expr: count(distinct(pp_session_id) by (1d))
+
+      - record: pp:appointment_booking_rate
+        expr: rate(pp_appointments_booked_total[7d])
+
+      - record: pp:consent_withdrawal_rate
+        expr: rate(pp_consent_withdrawn_total[30d]) / rate(pp_consent_signed_total[30d])
