@@ -191,6 +191,11 @@ try { app.use('/api/card_arr', require('./tier50_cardiology_ext_284_card_arr_rou
 try { app.use('/api/card_valve', require('./tier50_cardiology_ext_285_card_valve_router')); } catch(e) { console.error('card_valve mount failed', e.message); }
 try { app.use('/api/card_ischemic', require('./tier50_cardiology_ext_286_card_ischemic_router')); } catch(e) { console.error('card_ischemic mount failed', e.message); }
 try { app.use('/api/card_cong', require('./tier50_cardiology_ext_287_card_cong_router')); } catch(e) { console.error('card_cong mount failed', e.message); }
+try { app.use('/api/derm_infla', require('./tier51_dermatology_ext_288_derm_infla_router')); } catch(e) { console.error('derm_infla mount failed', e.message); }
+try { app.use('/api/derm_inf', require('./tier51_dermatology_ext_289_derm_inf_router')); } catch(e) { console.error('derm_inf mount failed', e.message); }
+try { app.use('/api/derm_neo', require('./tier51_dermatology_ext_290_derm_neo_router')); } catch(e) { console.error('derm_neo mount failed', e.message); }
+try { app.use('/api/derm_pig', require('./tier51_dermatology_ext_291_derm_pig_router')); } catch(e) { console.error('derm_pig mount failed', e.message); }
+try { app.use('/api/derm_proced', require('./tier51_dermatology_ext_292_derm_proced_router')); } catch(e) { console.error('derm_proced mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
