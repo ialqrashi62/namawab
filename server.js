@@ -21136,5 +21136,10 @@ try { app.use('/api/surg_ortho', require('./tier43_surgery_ext_249_ortho_surg_ro
 try { app.use('/api/surg_vasc', require('./tier43_surgery_ext_250_vascular_router')); } catch(e) { console.error('surg_vasc mount failed', e.message); }
 try { app.use('/api/surg_trauma', require('./tier43_surgery_ext_251_trauma_router')); } catch(e) { console.error('surg_trauma mount failed', e.message); }
 try { app.use('/api/surg_transplant', require('./tier43_surgery_ext_252_transplant_router')); } catch(e) { console.error('surg_transplant mount failed', e.message); }
+try { app.use('/api/ped_resp', require('./tier44_pediatrics_ext_253_ped_resp_router')); } catch(e) { console.error('ped_resp mount failed', e.message); }
+try { app.use('/api/ped_neonat', require('./tier44_pediatrics_ext_254_ped_neonat_router')); } catch(e) { console.error('ped_neonat mount failed', e.message); }
+try { app.use('/api/ped_gastro', require('./tier44_pediatrics_ext_255_ped_gastro_router')); } catch(e) { console.error('ped_gastro mount failed', e.message); }
+try { app.use('/api/ped_endo', require('./tier44_pediatrics_ext_256_ped_endo_router')); } catch(e) { console.error('ped_endo mount failed', e.message); }
+try { app.use('/api/ped_immuno', require('./tier44_pediatrics_ext_257_ped_immuno_router')); } catch(e) { console.error('ped_immuno mount failed', e.message); }
 
 startServer();
