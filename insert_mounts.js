@@ -126,6 +126,11 @@ try { app.use('/api/neuro_epi', require('./tier37_neurology_ext_219_epilepsy_rou
 try { app.use('/api/neuro_ms', require('./tier37_neurology_ext_220_ms_router')); } catch(e) { console.error('neuro_ms mount failed', e.message); }
 try { app.use('/api/neuro_mov', require('./tier37_neurology_ext_221_movement_router')); } catch(e) { console.error('neuro_mov mount failed', e.message); }
 try { app.use('/api/neuro_nm', require('./tier37_neurology_ext_222_neuro_musc_router')); } catch(e) { console.error('neuro_nm mount failed', e.message); }
+try { app.use('/api/derm_psor', require('./tier38_dermatology_ext_223_psoriasis_router')); } catch(e) { console.error('derm_psor mount failed', e.message); }
+try { app.use('/api/derm_ecz', require('./tier38_dermatology_ext_224_eczema_router')); } catch(e) { console.error('derm_ecz mount failed', e.message); }
+try { app.use('/api/derm_skin', require('./tier38_dermatology_ext_225_skin_cancer_router')); } catch(e) { console.error('derm_skin mount failed', e.message); }
+try { app.use('/api/derm_acne', require('./tier38_dermatology_ext_226_acne_router')); } catch(e) { console.error('derm_acne mount failed', e.message); }
+try { app.use('/api/derm_hair', require('./tier38_dermatology_ext_227_hair_nails_router')); } catch(e) { console.error('derm_hair mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
