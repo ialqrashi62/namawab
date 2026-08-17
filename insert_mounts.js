@@ -121,6 +121,11 @@ try { app.use('/api/infx_tb', require('./tier36_infectious_disease_ext_214_tb_ro
 try { app.use('/api/infx_hepa', require('./tier36_infectious_disease_ext_215_hepatitis_router')); } catch(e) { console.error('infx_hepa mount failed', e.message); }
 try { app.use('/api/infx_trop', require('./tier36_infectious_disease_ext_216_tropical_router')); } catch(e) { console.error('infx_trop mount failed', e.message); }
 try { app.use('/api/infx_stew', require('./tier36_infectious_disease_ext_217_stewardship_router')); } catch(e) { console.error('infx_stew mount failed', e.message); }
+try { app.use('/api/neuro_stroke', require('./tier37_neurology_ext_218_stroke_router')); } catch(e) { console.error('neuro_stroke mount failed', e.message); }
+try { app.use('/api/neuro_epi', require('./tier37_neurology_ext_219_epilepsy_router')); } catch(e) { console.error('neuro_epi mount failed', e.message); }
+try { app.use('/api/neuro_ms', require('./tier37_neurology_ext_220_ms_router')); } catch(e) { console.error('neuro_ms mount failed', e.message); }
+try { app.use('/api/neuro_mov', require('./tier37_neurology_ext_221_movement_router')); } catch(e) { console.error('neuro_mov mount failed', e.message); }
+try { app.use('/api/neuro_nm', require('./tier37_neurology_ext_222_neuro_musc_router')); } catch(e) { console.error('neuro_nm mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
