@@ -141,6 +141,11 @@ try { app.use('/api/ophth_retina', require('./tier40_ophthalmology_ext_234_retin
 try { app.use('/api/ophth_cornea', require('./tier40_ophthalmology_ext_235_cornea_router')); } catch(e) { console.error('ophth_cornea mount failed', e.message); }
 try { app.use('/api/ophth_plas', require('./tier40_ophthalmology_ext_236_oculoplast_router')); } catch(e) { console.error('ophth_plas mount failed', e.message); }
 try { app.use('/api/ophth_no', require('./tier40_ophthalmology_ext_237_neuro_ophth_router')); } catch(e) { console.error('ophth_no mount failed', e.message); }
+try { app.use('/api/ob_high_risk', require('./tier41_obstetrics_ext_238_high_risk_router')); } catch(e) { console.error('ob_high_risk mount failed', e.message); }
+try { app.use('/api/ob_fetal', require('./tier41_obstetrics_ext_239_fetal_mon_router')); } catch(e) { console.error('ob_fetal mount failed', e.message); }
+try { app.use('/api/ob_procedures', require('./tier41_obstetrics_ext_240_ob_procedures_router')); } catch(e) { console.error('ob_procedures mount failed', e.message); }
+try { app.use('/api/ob_postpartum', require('./tier41_obstetrics_ext_241_postpartum_router')); } catch(e) { console.error('ob_postpartum mount failed', e.message); }
+try { app.use('/api/ob_lactation', require('./tier41_obstetrics_ext_242_lactation_router')); } catch(e) { console.error('ob_lactation mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);

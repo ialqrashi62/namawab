@@ -47,7 +47,7 @@ const cases = [
   ['c_cp','/api/cardio_cath/cath_plan',{procedure_id:'CP1',access:'radial',approach:'diagnostic_with_pci',door_to_balloon_min:60,findings:'single_vessel',timiflow:'3'}],
   ['c_pci','/api/cardio_cath/pci_outcome',{pci_id:'PCI1',stent_count:1,complication:'none',timi_post:true,fluoroscopy_min:15,contrast_ml:200}],
   ['c_tav','/api/cardio_cath/tav',{procedure_id:'TAV1',approach:'transfemoral',valve_type:'balloon_expandable',pre_baa:true,gradient_post:10,paravalvular_leak:'mild',conduction_disturbance:0}],
-  ['c_mc','/api/cardio_cath/mitraclip',{procedure_id:'MC1',indication:'primary_mr',clips_deployed:1,post_mr_severity:'mild',soa:true,mlap:3}],
+  ['c_mc','/api/cardio_cath/mitraclip',{procedure_id:'MC1',indication:'primary_mr',clips_deployed:1,post_mr_severity:'mild',strait_orifice_area:2.5,mlap:3}],
   ['c_rev','/api/cardio_cath/lad_revascularization',{episode_id:'R1',territory:'lad',syntax_score:12,diabetic:false,recommendation:'pci',stenosis_pct:80}],
 
   ['c_af','/api/cardio_ep/afib_management',{assessment_id:'AF1',afib_type:'paroxysmal',cha2ds2vasc:2,has_bled:1,rate_control:'beta_blocker',anticoagulation:'warfarin',rhythm_control_attempt:false}],
