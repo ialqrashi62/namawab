@@ -21221,5 +21221,10 @@ try { app.use('/api/ai_diag_img', require('./tier60_ai_brain_ext_334_ai_diag_img
 try { app.use('/api/ai_nlp_doc', require('./tier60_ai_brain_ext_335_ai_nlp_doc_router')); } catch(e) { console.error('ai_nlp_doc mount failed', e.message); }
 try { app.use('/api/ai_forecast', require('./tier60_ai_brain_ext_336_ai_forecast_router')); } catch(e) { console.error('ai_forecast mount failed', e.message); }
 try { app.use('/api/ai_chatbot', require('./tier60_ai_brain_ext_337_ai_chatbot_router')); } catch(e) { console.error('ai_chatbot mount failed', e.message); }
+try { app.use('/api/ops_facility', require('./tier61_ops_ext_338_ops_facility_router')); } catch(e) { console.error('ops_facility mount failed', e.message); }
+try { app.use('/api/ops_assets', require('./tier61_ops_ext_339_ops_assets_router')); } catch(e) { console.error('ops_assets mount failed', e.message); }
+try { app.use('/api/ops_vendor', require('./tier61_ops_ext_340_ops_vendor_router')); } catch(e) { console.error('ops_vendor mount failed', e.message); }
+try { app.use('/api/ops_legal', require('./tier61_ops_ext_341_ops_legal_router')); } catch(e) { console.error('ops_legal mount failed', e.message); }
+try { app.use('/api/ops_quality', require('./tier61_ops_ext_342_ops_quality_router')); } catch(e) { console.error('ops_quality mount failed', e.message); }
 
 startServer();
