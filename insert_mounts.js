@@ -246,6 +246,11 @@ try { app.use('/api/ops_assets', require('./tier61_ops_ext_339_ops_assets_router
 try { app.use('/api/ops_vendor', require('./tier61_ops_ext_340_ops_vendor_router')); } catch(e) { console.error('ops_vendor mount failed', e.message); }
 try { app.use('/api/ops_legal', require('./tier61_ops_ext_341_ops_legal_router')); } catch(e) { console.error('ops_legal mount failed', e.message); }
 try { app.use('/api/ops_quality', require('./tier61_ops_ext_342_ops_quality_router')); } catch(e) { console.error('ops_quality mount failed', e.message); }
+try { app.use('/api/sp_geri', require('./tier62_spec_care_ext_343_sp_geri_router')); } catch(e) { console.error('sp_geri mount failed', e.message); }
+try { app.use('/api/sp_pall', require('./tier62_spec_care_ext_344_sp_pall_router')); } catch(e) { console.error('sp_pall mount failed', e.message); }
+try { app.use('/api/sp_home', require('./tier62_spec_care_ext_345_sp_home_router')); } catch(e) { console.error('sp_home mount failed', e.message); }
+try { app.use('/api/sp_rehab', require('./tier62_spec_care_ext_346_sp_rehab_router')); } catch(e) { console.error('sp_rehab mount failed', e.message); }
+try { app.use('/api/sp_mat', require('./tier62_spec_care_ext_347_sp_mat_router')); } catch(e) { console.error('sp_mat mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
