@@ -96,6 +96,11 @@ try { app.use('/api/nephro_da', require('./tier31_nephrology_ext_189_dialysis_ac
 try { app.use('/api/nephro_immuno', require('./tier31_nephrology_ext_190_transplant_immuno_router')); } catch(e) { console.error('nephro_immuno mount failed', e.message); }
 try { app.use('/api/nephro_ext', require('./tier31_nephrology_ext_191_nephro_ext_router')); } catch(e) { console.error('nephro_ext mount failed', e.message); }
 try { app.use('/api/nephro_nutrition', require('./tier31_nephrology_ext_192_renal_nutrition_router')); } catch(e) { console.error('nephro_nutrition mount failed', e.message); }
+try { app.use('/api/pulm_copd', require('./tier32_pulmonology_ext_193_copd_router')); } catch(e) { console.error('pulm_copd mount failed', e.message); }
+try { app.use('/api/pulm_asthma', require('./tier32_pulmonology_ext_194_asthma_router')); } catch(e) { console.error('pulm_asthma mount failed', e.message); }
+try { app.use('/api/pulm_sleep', require('./tier32_pulmonology_ext_195_sleep_router')); } catch(e) { console.error('pulm_sleep mount failed', e.message); }
+try { app.use('/api/pulm_ild', require('./tier32_pulmonology_ext_196_ild_router')); } catch(e) { console.error('pulm_ild mount failed', e.message); }
+try { app.use('/api/pulm_pc', require('./tier32_pulmonology_ext_197_pulm_critical_router')); } catch(e) { console.error('pulm_pc mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
