@@ -226,6 +226,11 @@ try { app.use('/api/img_us_ext', require('./tier57_imaging_ext_319_img_us_ext_ro
 try { app.use('/api/img_breast', require('./tier57_imaging_ext_320_img_breast_router')); } catch(e) { console.error('img_breast mount failed', e.message); }
 try { app.use('/api/img_msk', require('./tier57_imaging_ext_321_img_msk_router')); } catch(e) { console.error('img_msk mount failed', e.message); }
 try { app.use('/api/img_emergent', require('./tier57_imaging_ext_322_img_emergent_router')); } catch(e) { console.error('img_emergent mount failed', e.message); }
+try { app.use('/api/res_trial', require('./tier58_research_ext_323_res_trial_router')); } catch(e) { console.error('res_trial mount failed', e.message); }
+try { app.use('/api/res_pub', require('./tier58_research_ext_324_res_pub_router')); } catch(e) { console.error('res_pub mount failed', e.message); }
+try { app.use('/api/res_grant', require('./tier58_research_ext_325_res_grant_router')); } catch(e) { console.error('res_grant mount failed', e.message); }
+try { app.use('/api/res_data', require('./tier58_research_ext_326_res_data_router')); } catch(e) { console.error('res_data mount failed', e.message); }
+try { app.use('/api/res_ethics', require('./tier58_research_ext_327_res_ethics_router')); } catch(e) { console.error('res_ethics mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
