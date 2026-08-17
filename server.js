@@ -21176,5 +21176,10 @@ try { app.use('/api/derm_inf', require('./tier51_dermatology_ext_289_derm_inf_ro
 try { app.use('/api/derm_neo', require('./tier51_dermatology_ext_290_derm_neo_router')); } catch(e) { console.error('derm_neo mount failed', e.message); }
 try { app.use('/api/derm_pig', require('./tier51_dermatology_ext_291_derm_pig_router')); } catch(e) { console.error('derm_pig mount failed', e.message); }
 try { app.use('/api/derm_proced', require('./tier51_dermatology_ext_292_derm_proced_router')); } catch(e) { console.error('derm_proced mount failed', e.message); }
+try { app.use('/api/rehab_pt', require('./tier52_rehabilitation_ext_293_rehab_pt_router')); } catch(e) { console.error('rehab_pt mount failed', e.message); }
+try { app.use('/api/rehab_ot', require('./tier52_rehabilitation_ext_294_rehab_ot_router')); } catch(e) { console.error('rehab_ot mount failed', e.message); }
+try { app.use('/api/rehab_slp', require('./tier52_rehabilitation_ext_295_rehab_slp_router')); } catch(e) { console.error('rehab_slp mount failed', e.message); }
+try { app.use('/api/rehab_prosth', require('./tier52_rehabilitation_ext_296_rehab_prosth_router')); } catch(e) { console.error('rehab_prosth mount failed', e.message); }
+try { app.use('/api/rehab_pain', require('./tier52_rehabilitation_ext_297_rehab_pain_router')); } catch(e) { console.error('rehab_pain mount failed', e.message); }
 
 startServer();
