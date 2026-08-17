@@ -91,6 +91,11 @@ try { app.use('/api/hem_apheresis', require('./tier30_hematology_ext_184_apheres
 try { app.use('/api/hem_stem_cell', require('./tier30_hematology_ext_185_stem_cell_router')); } catch(e) { console.error('hem_stem_cell mount failed', e.message); }
 try { app.use('/api/hem_cell_therapy', require('./tier30_hematology_ext_186_cell_therapy_router')); } catch(e) { console.error('hem_cell_therapy mount failed', e.message); }
 try { app.use('/api/hem_coag_ext', require('./tier30_hematology_ext_187_coag_ext_router')); } catch(e) { console.error('hem_coag_ext mount failed', e.message); }
+try { app.use('/api/nephro_ckd', require('./tier31_nephrology_ext_188_ckd_router')); } catch(e) { console.error('nephro_ckd mount failed', e.message); }
+try { app.use('/api/nephro_da', require('./tier31_nephrology_ext_189_dialysis_access_router')); } catch(e) { console.error('nephro_da mount failed', e.message); }
+try { app.use('/api/nephro_immuno', require('./tier31_nephrology_ext_190_transplant_immuno_router')); } catch(e) { console.error('nephro_immuno mount failed', e.message); }
+try { app.use('/api/nephro_ext', require('./tier31_nephrology_ext_191_nephro_ext_router')); } catch(e) { console.error('nephro_ext mount failed', e.message); }
+try { app.use('/api/nephro_nutrition', require('./tier31_nephrology_ext_192_renal_nutrition_router')); } catch(e) { console.error('nephro_nutrition mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
