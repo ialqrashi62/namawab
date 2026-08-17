@@ -1,0 +1,6 @@
+
+try { app.use('/api/tele_visit', require('./tier59_telemedicine_328_tele_visit_router')); } catch(e) { console.error('tele_visit mount failed', e.message); }
+try { app.use('/api/tele_monitor', require('./tier59_telemedicine_329_tele_monitor_router')); } catch(e) { console.error('tele_monitor mount failed', e.message); }
+try { app.use('/api/tele_surg', require('./tier59_telemedicine_330_tele_surg_router')); } catch(e) { console.error('tele_surg mount failed', e.message); }
+try { app.use('/api/tele_psy', require('./tier59_telemedicine_331_tele_psy_router')); } catch(e) { console.error('tele_psy mount failed', e.message); }
+try { app.use('/api/tele_admin', require('./tier59_telemedicine_332_tele_admin_router')); } catch(e) { console.error('tele_admin mount failed', e.message); }

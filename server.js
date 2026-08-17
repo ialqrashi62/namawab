@@ -21211,5 +21211,10 @@ try { app.use('/api/res_pub', require('./tier58_research_ext_324_res_pub_router'
 try { app.use('/api/res_grant', require('./tier58_research_ext_325_res_grant_router')); } catch(e) { console.error('res_grant mount failed', e.message); }
 try { app.use('/api/res_data', require('./tier58_research_ext_326_res_data_router')); } catch(e) { console.error('res_data mount failed', e.message); }
 try { app.use('/api/res_ethics', require('./tier58_research_ext_327_res_ethics_router')); } catch(e) { console.error('res_ethics mount failed', e.message); }
+try { app.use('/api/tele_visit', require('./tier59_telemedicine_328_tele_visit_router')); } catch(e) { console.error('tele_visit mount failed', e.message); }
+try { app.use('/api/tele_monitor', require('./tier59_telemedicine_329_tele_monitor_router')); } catch(e) { console.error('tele_monitor mount failed', e.message); }
+try { app.use('/api/tele_surg', require('./tier59_telemedicine_330_tele_surg_router')); } catch(e) { console.error('tele_surg mount failed', e.message); }
+try { app.use('/api/tele_psy', require('./tier59_telemedicine_331_tele_psy_router')); } catch(e) { console.error('tele_psy mount failed', e.message); }
+try { app.use('/api/tele_admin', require('./tier59_telemedicine_332_tele_admin_router')); } catch(e) { console.error('tele_admin mount failed', e.message); }
 
 startServer();
