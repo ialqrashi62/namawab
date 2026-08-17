@@ -76,6 +76,11 @@ try { app.use('/api/ed_resus', require('./tier27_emergency_ext_169_resuscitation
 try { app.use('/api/ed_trauma', require('./tier27_emergency_ext_170_trauma_router')); } catch(e) { console.error('ed_trauma mount failed', e.message); }
 try { app.use('/api/ed_tox', require('./tier27_emergency_ext_171_toxicology_router')); } catch(e) { console.error('ed_tox mount failed', e.message); }
 try { app.use('/api/ed_ems', require('./tier27_emergency_ext_172_ems_router')); } catch(e) { console.error('ed_ems mount failed', e.message); }
+try { app.use('/api/ob_prenatal', require('./tier28_obstetrics_ext_173_prenatal_router')); } catch(e) { console.error('ob_prenatal mount failed', e.message); }
+try { app.use('/api/ob_labor', require('./tier28_obstetrics_ext_174_labor_router')); } catch(e) { console.error('ob_labor mount failed', e.message); }
+try { app.use('/api/ob_gynecology', require('./tier28_obstetrics_ext_175_gynecology_router')); } catch(e) { console.error('ob_gynecology mount failed', e.message); }
+try { app.use('/api/ob_neonatal', require('./tier28_obstetrics_ext_176_neonatal_router')); } catch(e) { console.error('ob_neonatal mount failed', e.message); }
+try { app.use('/api/ob_reproduction', require('./tier28_obstetrics_ext_177_reproduction_router')); } catch(e) { console.error('ob_reproduction mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
