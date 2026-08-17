@@ -176,6 +176,11 @@ try { app.use('/api/rad_neuro', require('./tier47_radiology_ext_269_rad_neuro_ro
 try { app.use('/api/rad_cardio', require('./tier47_radiology_ext_270_rad_cardio_router')); } catch(e) { console.error('rad_cardio mount failed', e.message); }
 try { app.use('/api/rad_gu_gi', require('./tier47_radiology_ext_271_rad_gu_gi_router')); } catch(e) { console.error('rad_gu_gi mount failed', e.message); }
 try { app.use('/api/rad_interv', require('./tier47_radiology_ext_272_rad_interv_router')); } catch(e) { console.error('rad_interv mount failed', e.message); }
+try { app.use('/api/lab_heme', require('./tier48_laboratory_ext_273_lab_heme_router')); } catch(e) { console.error('lab_heme mount failed', e.message); }
+try { app.use('/api/lab_chem', require('./tier48_laboratory_ext_274_lab_chem_router')); } catch(e) { console.error('lab_chem mount failed', e.message); }
+try { app.use('/api/lab_micro', require('./tier48_laboratory_ext_275_lab_micro_router')); } catch(e) { console.error('lab_micro mount failed', e.message); }
+try { app.use('/api/lab_immuno', require('./tier48_laboratory_ext_276_lab_immuno_router')); } catch(e) { console.error('lab_immuno mount failed', e.message); }
+try { app.use('/api/lab_mol', require('./tier48_laboratory_ext_277_lab_mol_router')); } catch(e) { console.error('lab_mol mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
