@@ -101,6 +101,11 @@ try { app.use('/api/pulm_asthma', require('./tier32_pulmonology_ext_194_asthma_r
 try { app.use('/api/pulm_sleep', require('./tier32_pulmonology_ext_195_sleep_router')); } catch(e) { console.error('pulm_sleep mount failed', e.message); }
 try { app.use('/api/pulm_ild', require('./tier32_pulmonology_ext_196_ild_router')); } catch(e) { console.error('pulm_ild mount failed', e.message); }
 try { app.use('/api/pulm_pc', require('./tier32_pulmonology_ext_197_pulm_critical_router')); } catch(e) { console.error('pulm_pc mount failed', e.message); }
+try { app.use('/api/endo_diabetes', require('./tier33_endocrinology_ext_198_diabetes_router')); } catch(e) { console.error('endo_diabetes mount failed', e.message); }
+try { app.use('/api/endo_thyroid', require('./tier33_endocrinology_ext_199_thyroid_router')); } catch(e) { console.error('endo_thyroid mount failed', e.message); }
+try { app.use('/api/endo_adrenal', require('./tier33_endocrinology_ext_200_adrenal_router')); } catch(e) { console.error('endo_adrenal mount failed', e.message); }
+try { app.use('/api/endo_pituitary', require('./tier33_endocrinology_ext_201_pituitary_router')); } catch(e) { console.error('endo_pituitary mount failed', e.message); }
+try { app.use('/api/endo_metabolic', require('./tier33_endocrinology_ext_202_metabolic_router')); } catch(e) { console.error('endo_metabolic mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
