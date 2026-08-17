@@ -111,6 +111,11 @@ try { app.use('/api/gi_hepa', require('./tier34_gastroenterology_ext_204_hepatol
 try { app.use('/api/gi_end', require('./tier34_gastroenterology_ext_205_endoscopy_router')); } catch(e) { console.error('gi_end mount failed', e.message); }
 try { app.use('/api/gi_onco', require('./tier34_gastroenterology_ext_206_gi_oncology_router')); } catch(e) { console.error('gi_onco mount failed', e.message); }
 try { app.use('/api/gi_nut', require('./tier34_gastroenterology_ext_207_gi_nutrition_router')); } catch(e) { console.error('gi_nut mount failed', e.message); }
+try { app.use('/api/rheum_ra', require('./tier35_rheumatology_ext_208_ra_router')); } catch(e) { console.error('rheum_ra mount failed', e.message); }
+try { app.use('/api/rheum_lupus', require('./tier35_rheumatology_ext_209_lupus_router')); } catch(e) { console.error('rheum_lupus mount failed', e.message); }
+try { app.use('/api/rheum_vasculitis', require('./tier35_rheumatology_ext_210_vasculitis_router')); } catch(e) { console.error('rheum_vasculitis mount failed', e.message); }
+try { app.use('/api/rheum_myo', require('./tier35_rheumatology_ext_211_myositis_router')); } catch(e) { console.error('rheum_myo mount failed', e.message); }
+try { app.use('/api/rheum_spine', require('./tier35_rheumatology_ext_212_spine_router')); } catch(e) { console.error('rheum_spine mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
