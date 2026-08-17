@@ -56,6 +56,11 @@ try { app.use('/api/dialysis_adequacy', require('./tier23_dialysis_ext_149_adequ
 try { app.use('/api/dialysis_complication', require('./tier23_dialysis_ext_150_complication_router')); } catch(e) { console.error('dialysis_complication mount failed', e.message); }
 try { app.use('/api/dialysis_peritoneal', require('./tier23_dialysis_ext_151_peritoneal_router')); } catch(e) { console.error('dialysis_peritoneal mount failed', e.message); }
 try { app.use('/api/dialysis_dialyzer', require('./tier23_dialysis_ext_152_dialyzer_router')); } catch(e) { console.error('dialysis_dialyzer mount failed', e.message); }
+try { app.use('/api/tx_candidate', require('./tier24_transplant_ext_153_candidate_router')); } catch(e) { console.error('tx_candidate mount failed', e.message); }
+try { app.use('/api/tx_donor', require('./tier24_transplant_ext_154_donor_router')); } catch(e) { console.error('tx_donor mount failed', e.message); }
+try { app.use('/api/tx_immuno', require('./tier24_transplant_ext_155_immuno_router')); } catch(e) { console.error('tx_immuno mount failed', e.message); }
+try { app.use('/api/tx_outcome', require('./tier24_transplant_ext_156_outcome_router')); } catch(e) { console.error('tx_outcome mount failed', e.message); }
+try { app.use('/api/tx_followup', require('./tier24_transplant_ext_157_followup_router')); } catch(e) { console.error('tx_followup mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
