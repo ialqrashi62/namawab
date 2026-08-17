@@ -81,6 +81,16 @@ try { app.use('/api/ob_labor', require('./tier28_obstetrics_ext_174_labor_router
 try { app.use('/api/ob_gynecology', require('./tier28_obstetrics_ext_175_gynecology_router')); } catch(e) { console.error('ob_gynecology mount failed', e.message); }
 try { app.use('/api/ob_neonatal', require('./tier28_obstetrics_ext_176_neonatal_router')); } catch(e) { console.error('ob_neonatal mount failed', e.message); }
 try { app.use('/api/ob_reproduction', require('./tier28_obstetrics_ext_177_reproduction_router')); } catch(e) { console.error('ob_reproduction mount failed', e.message); }
+try { app.use('/api/cardio_stress', require('./tier29_cardiology_ext_178_stress_router')); } catch(e) { console.error('cardio_stress mount failed', e.message); }
+try { app.use('/api/cardio_echo', require('./tier29_cardiology_ext_179_echo_router')); } catch(e) { console.error('cardio_echo mount failed', e.message); }
+try { app.use('/api/cardio_cath', require('./tier29_cardiology_ext_180_cath_router')); } catch(e) { console.error('cardio_cath mount failed', e.message); }
+try { app.use('/api/cardio_ep', require('./tier29_cardiology_ext_181_ep_router')); } catch(e) { console.error('cardio_ep mount failed', e.message); }
+try { app.use('/api/cardio_hf', require('./tier29_cardiology_ext_182_hf_router')); } catch(e) { console.error('cardio_hf mount failed', e.message); }
+try { app.use('/api/hem_transfusion', require('./tier30_hematology_ext_183_transfusion_router')); } catch(e) { console.error('hem_transfusion mount failed', e.message); }
+try { app.use('/api/hem_apheresis', require('./tier30_hematology_ext_184_apheresis_router')); } catch(e) { console.error('hem_apheresis mount failed', e.message); }
+try { app.use('/api/hem_stem_cell', require('./tier30_hematology_ext_185_stem_cell_router')); } catch(e) { console.error('hem_stem_cell mount failed', e.message); }
+try { app.use('/api/hem_cell_therapy', require('./tier30_hematology_ext_186_cell_therapy_router')); } catch(e) { console.error('hem_cell_therapy mount failed', e.message); }
+try { app.use('/api/hem_coag_ext', require('./tier30_hematology_ext_187_coag_ext_router')); } catch(e) { console.error('hem_coag_ext mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
