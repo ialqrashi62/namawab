@@ -136,6 +136,11 @@ try { app.use('/api/ent_rhino', require('./tier39_ent_ext_229_rhinology_router')
 try { app.use('/api/ent_laryn', require('./tier39_ent_ext_230_laryngology_router')); } catch(e) { console.error('ent_laryn mount failed', e.message); }
 try { app.use('/api/ent_hn', require('./tier39_ent_ext_231_head_neck_router')); } catch(e) { console.error('ent_hn mount failed', e.message); }
 try { app.use('/api/ent_ped', require('./tier39_ent_ext_232_ped_ent_router')); } catch(e) { console.error('ent_ped mount failed', e.message); }
+try { app.use('/api/ophth_glaucoma', require('./tier40_ophthalmology_ext_233_glaucoma_router')); } catch(e) { console.error('ophth_glaucoma mount failed', e.message); }
+try { app.use('/api/ophth_retina', require('./tier40_ophthalmology_ext_234_retina_router')); } catch(e) { console.error('ophth_retina mount failed', e.message); }
+try { app.use('/api/ophth_cornea', require('./tier40_ophthalmology_ext_235_cornea_router')); } catch(e) { console.error('ophth_cornea mount failed', e.message); }
+try { app.use('/api/ophth_plas', require('./tier40_ophthalmology_ext_236_oculoplast_router')); } catch(e) { console.error('ophth_plas mount failed', e.message); }
+try { app.use('/api/ophth_no', require('./tier40_ophthalmology_ext_237_neuro_ophth_router')); } catch(e) { console.error('ophth_no mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
