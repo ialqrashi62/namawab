@@ -21201,5 +21201,10 @@ try { app.use('/api/surg_plastic', require('./tier56_surgical_specialties_314_su
 try { app.use('/api/surg_urology', require('./tier56_surgical_specialties_315_surg_urology_router')); } catch(e) { console.error('surg_urology mount failed', e.message); }
 try { app.use('/api/surg_ent_surg', require('./tier56_surgical_specialties_316_surg_ent_surg_router')); } catch(e) { console.error('surg_ent_surg mount failed', e.message); }
 try { app.use('/api/surg_thoracic', require('./tier56_surgical_specialties_317_surg_thoracic_router')); } catch(e) { console.error('surg_thoracic mount failed', e.message); }
+try { app.use('/api/img_advanced', require('./tier57_imaging_ext_318_img_advanced_router')); } catch(e) { console.error('img_advanced mount failed', e.message); }
+try { app.use('/api/img_us_ext', require('./tier57_imaging_ext_319_img_us_ext_router')); } catch(e) { console.error('img_us_ext mount failed', e.message); }
+try { app.use('/api/img_breast', require('./tier57_imaging_ext_320_img_breast_router')); } catch(e) { console.error('img_breast mount failed', e.message); }
+try { app.use('/api/img_msk', require('./tier57_imaging_ext_321_img_msk_router')); } catch(e) { console.error('img_msk mount failed', e.message); }
+try { app.use('/api/img_emergent', require('./tier57_imaging_ext_322_img_emergent_router')); } catch(e) { console.error('img_emergent mount failed', e.message); }
 
 startServer();
