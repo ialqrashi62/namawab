@@ -106,6 +106,11 @@ try { app.use('/api/endo_thyroid', require('./tier33_endocrinology_ext_199_thyro
 try { app.use('/api/endo_adrenal', require('./tier33_endocrinology_ext_200_adrenal_router')); } catch(e) { console.error('endo_adrenal mount failed', e.message); }
 try { app.use('/api/endo_pituitary', require('./tier33_endocrinology_ext_201_pituitary_router')); } catch(e) { console.error('endo_pituitary mount failed', e.message); }
 try { app.use('/api/endo_metabolic', require('./tier33_endocrinology_ext_202_metabolic_router')); } catch(e) { console.error('endo_metabolic mount failed', e.message); }
+try { app.use('/api/gi_ibd', require('./tier34_gastroenterology_ext_203_ibd_router')); } catch(e) { console.error('gi_ibd mount failed', e.message); }
+try { app.use('/api/gi_hepa', require('./tier34_gastroenterology_ext_204_hepatology_router')); } catch(e) { console.error('gi_hepa mount failed', e.message); }
+try { app.use('/api/gi_end', require('./tier34_gastroenterology_ext_205_endoscopy_router')); } catch(e) { console.error('gi_end mount failed', e.message); }
+try { app.use('/api/gi_onco', require('./tier34_gastroenterology_ext_206_gi_oncology_router')); } catch(e) { console.error('gi_onco mount failed', e.message); }
+try { app.use('/api/gi_nut', require('./tier34_gastroenterology_ext_207_gi_nutrition_router')); } catch(e) { console.error('gi_nut mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
