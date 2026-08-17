@@ -1,0 +1,24 @@
+Γ£ö CLABSI SIR 1.8 = critical (high infection) (0.5486ms)
+Γ£ö CLABSI SIR 0.3 = low (better than expected) (0.0999ms)
+Γ£ö CAUTI SIR 1.1 = high (0.066ms)
+Γ£ö SSI SIR 0.7 = moderate (0.0596ms)
+Γ£ö MRSA LabID SIR 2.0 = critical (0.1284ms)
+Γ£ö HAI throws on missing required fields (0.2408ms)
+Γ£ö Research all inclusion + no exclusion = eligible (0.1361ms)
+Γ£ö Research 1 inclusion fail = ineligible (0.0626ms)
+Γ£ö Research 1 exclusion present = ineligible (0.0646ms)
+Γ£ö All credentials current = eligible (0.1812ms)
+Γ£ö License inactive = not eligible (critical) (0.0835ms)
+Γ£ö CME short + NPDB old = moderate (non-critical fails) (0.0508ms)
+Γ£ö DEA inactive = critical (0.0558ms)
+Γ£ö CME 20/30 = 67% (moderate) (4.8011ms)
+Γ£ö CME 0/30 close deadline = critical (0.0732ms)
+Γ£ö CME 30/30 = complete (low) (0.0695ms)
+Γä╣ tests 16
+Γä╣ suites 0
+Γä╣ pass 16
+Γä╣ fail 0
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 11.1206
