@@ -21010,5 +21010,10 @@ try { app.use('/api/infx_isolation', require('./tier18_infx_ext_123_isolation_ro
 try { app.use('/api/infx_mdro', require('./tier18_infx_ext_124_mdro_router')); } catch(e) { console.error('infx_mdro mount failed', e.message); }
 try { app.use('/api/infx_surveillance', require('./tier18_infx_ext_125_surveillance_router')); } catch(e) { console.error('infx_surveillance mount failed', e.message); }
 try { app.use('/api/infx_employee', require('./tier18_infx_ext_126_employee_router')); } catch(e) { console.error('infx_employee mount failed', e.message); }
+try { app.use('/api/him_coding', require('./tier19_him_ext_127_coding_router')); } catch(e) { console.error('him_coding mount failed', e.message); }
+try { app.use('/api/him_roi', require('./tier19_him_ext_128_roi_router')); } catch(e) { console.error('him_roi mount failed', e.message); }
+try { app.use('/api/him_deficiency', require('./tier19_him_ext_129_deficiency_router')); } catch(e) { console.error('him_deficiency mount failed', e.message); }
+try { app.use('/api/him_audit', require('./tier19_him_ext_130_audit_router')); } catch(e) { console.error('him_audit mount failed', e.message); }
+try { app.use('/api/him_release', require('./tier19_him_ext_131_release_router')); } catch(e) { console.error('him_release mount failed', e.message); }
 
 startServer();
