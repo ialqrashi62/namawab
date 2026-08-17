@@ -116,6 +116,11 @@ try { app.use('/api/rheum_lupus', require('./tier35_rheumatology_ext_209_lupus_r
 try { app.use('/api/rheum_vasculitis', require('./tier35_rheumatology_ext_210_vasculitis_router')); } catch(e) { console.error('rheum_vasculitis mount failed', e.message); }
 try { app.use('/api/rheum_myo', require('./tier35_rheumatology_ext_211_myositis_router')); } catch(e) { console.error('rheum_myo mount failed', e.message); }
 try { app.use('/api/rheum_spine', require('./tier35_rheumatology_ext_212_spine_router')); } catch(e) { console.error('rheum_spine mount failed', e.message); }
+try { app.use('/api/infx_hiv', require('./tier36_infectious_disease_ext_213_hiv_router')); } catch(e) { console.error('infx_hiv mount failed', e.message); }
+try { app.use('/api/infx_tb', require('./tier36_infectious_disease_ext_214_tb_router')); } catch(e) { console.error('infx_tb mount failed', e.message); }
+try { app.use('/api/infx_hepa', require('./tier36_infectious_disease_ext_215_hepatitis_router')); } catch(e) { console.error('infx_hepa mount failed', e.message); }
+try { app.use('/api/infx_trop', require('./tier36_infectious_disease_ext_216_tropical_router')); } catch(e) { console.error('infx_trop mount failed', e.message); }
+try { app.use('/api/infx_stew', require('./tier36_infectious_disease_ext_217_stewardship_router')); } catch(e) { console.error('infx_stew mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
