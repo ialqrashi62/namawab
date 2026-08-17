@@ -61,6 +61,11 @@ try { app.use('/api/tx_donor', require('./tier24_transplant_ext_154_donor_router
 try { app.use('/api/tx_immuno', require('./tier24_transplant_ext_155_immuno_router')); } catch(e) { console.error('tx_immuno mount failed', e.message); }
 try { app.use('/api/tx_outcome', require('./tier24_transplant_ext_156_outcome_router')); } catch(e) { console.error('tx_outcome mount failed', e.message); }
 try { app.use('/api/tx_followup', require('./tier24_transplant_ext_157_followup_router')); } catch(e) { console.error('tx_followup mount failed', e.message); }
+try { app.use('/api/rehab_function', require('./tier25_rehab_ext_158_function_router')); } catch(e) { console.error('rehab_function mount failed', e.message); }
+try { app.use('/api/rehab_therapy', require('./tier25_rehab_ext_159_therapy_router')); } catch(e) { console.error('rehab_therapy mount failed', e.message); }
+try { app.use('/api/rehab_prosthetic', require('./tier25_rehab_ext_160_prosthetic_router')); } catch(e) { console.error('rehab_prosthetic mount failed', e.message); }
+try { app.use('/api/rehab_neuro', require('./tier25_rehab_ext_161_neuro_router')); } catch(e) { console.error('rehab_neuro mount failed', e.message); }
+try { app.use('/api/rehab_pediatric', require('./tier25_rehab_ext_162_pediatric_router')); } catch(e) { console.error('rehab_pediatric mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
