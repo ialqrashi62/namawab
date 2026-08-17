@@ -66,6 +66,11 @@ try { app.use('/api/rehab_therapy', require('./tier25_rehab_ext_159_therapy_rout
 try { app.use('/api/rehab_prosthetic', require('./tier25_rehab_ext_160_prosthetic_router')); } catch(e) { console.error('rehab_prosthetic mount failed', e.message); }
 try { app.use('/api/rehab_neuro', require('./tier25_rehab_ext_161_neuro_router')); } catch(e) { console.error('rehab_neuro mount failed', e.message); }
 try { app.use('/api/rehab_pediatric', require('./tier25_rehab_ext_162_pediatric_router')); } catch(e) { console.error('rehab_pediatric mount failed', e.message); }
+try { app.use('/api/oncology_tumor', require('./tier26_oncology_ext_163_tumor_router')); } catch(e) { console.error('oncology_tumor mount failed', e.message); }
+try { app.use('/api/oncology_chemo', require('./tier26_oncology_ext_164_chemo_router')); } catch(e) { console.error('oncology_chemo mount failed', e.message); }
+try { app.use('/api/oncology_radiation', require('./tier26_oncology_ext_165_radiation_router')); } catch(e) { console.error('oncology_radiation mount failed', e.message); }
+try { app.use('/api/oncology_palliative', require('./tier26_oncology_ext_166_palliative_router')); } catch(e) { console.error('oncology_palliative mount failed', e.message); }
+try { app.use('/api/oncology_survivor', require('./tier26_oncology_ext_167_survivor_router')); } catch(e) { console.error('oncology_survivor mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
