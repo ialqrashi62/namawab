@@ -51,6 +51,11 @@ try { app.use('/api/wound_dressing', require('./tier22_wound_ext_144_dressing_ro
 try { app.use('/api/wound_healing', require('./tier22_wound_ext_145_healing_router')); } catch(e) { console.error('wound_healing mount failed', e.message); }
 try { app.use('/api/wound_measurement', require('./tier22_wound_ext_146_measurement_router')); } catch(e) { console.error('wound_measurement mount failed', e.message); }
 try { app.use('/api/wound_staging', require('./tier22_wound_ext_147_staging_router')); } catch(e) { console.error('wound_staging mount failed', e.message); }
+try { app.use('/api/dialysis_access', require('./tier23_dialysis_ext_148_access_router')); } catch(e) { console.error('dialysis_access mount failed', e.message); }
+try { app.use('/api/dialysis_adequacy', require('./tier23_dialysis_ext_149_adequacy_router')); } catch(e) { console.error('dialysis_adequacy mount failed', e.message); }
+try { app.use('/api/dialysis_complication', require('./tier23_dialysis_ext_150_complication_router')); } catch(e) { console.error('dialysis_complication mount failed', e.message); }
+try { app.use('/api/dialysis_peritoneal', require('./tier23_dialysis_ext_151_peritoneal_router')); } catch(e) { console.error('dialysis_peritoneal mount failed', e.message); }
+try { app.use('/api/dialysis_dialyzer', require('./tier23_dialysis_ext_152_dialyzer_router')); } catch(e) { console.error('dialysis_dialyzer mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
