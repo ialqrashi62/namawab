@@ -21126,5 +21126,10 @@ try { app.use('/api/ob_fetal', require('./tier41_obstetrics_ext_239_fetal_mon_ro
 try { app.use('/api/ob_procedures', require('./tier41_obstetrics_ext_240_ob_procedures_router')); } catch(e) { console.error('ob_procedures mount failed', e.message); }
 try { app.use('/api/ob_postpartum', require('./tier41_obstetrics_ext_241_postpartum_router')); } catch(e) { console.error('ob_postpartum mount failed', e.message); }
 try { app.use('/api/ob_lactation', require('./tier41_obstetrics_ext_242_lactation_router')); } catch(e) { console.error('ob_lactation mount failed', e.message); }
+try { app.use('/api/psych_mood', require('./tier42_psychiatry_ext_243_mood_anx_router')); } catch(e) { console.error('psych_mood mount failed', e.message); }
+try { app.use('/api/psych_psychotic', require('./tier42_psychiatry_ext_244_psychotic_router')); } catch(e) { console.error('psych_psychotic mount failed', e.message); }
+try { app.use('/api/psych_trauma', require('./tier42_psychiatry_ext_245_trauma_router')); } catch(e) { console.error('psych_trauma mount failed', e.message); }
+try { app.use('/api/psych_substance', require('./tier42_psychiatry_ext_246_substance_router')); } catch(e) { console.error('psych_substance mount failed', e.message); }
+try { app.use('/api/psych_neurodev', require('./tier42_psychiatry_ext_247_neurodev_router')); } catch(e) { console.error('psych_neurodev mount failed', e.message); }
 
 startServer();
