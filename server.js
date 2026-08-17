@@ -21166,5 +21166,10 @@ try { app.use('/api/nurs_med', require('./tier49_nursing_ext_279_nurs_med_router
 try { app.use('/api/nurs_wound', require('./tier49_nursing_ext_280_nurs_wound_router')); } catch(e) { console.error('nurs_wound mount failed', e.message); }
 try { app.use('/api/nurs_resp', require('./tier49_nursing_ext_281_nurs_resp_router')); } catch(e) { console.error('nurs_resp mount failed', e.message); }
 try { app.use('/api/nurs_safety', require('./tier49_nursing_ext_282_nurs_safety_router')); } catch(e) { console.error('nurs_safety mount failed', e.message); }
+try { app.use('/api/card_failure', require('./tier50_cardiology_ext_283_card_failure_router')); } catch(e) { console.error('card_failure mount failed', e.message); }
+try { app.use('/api/card_arr', require('./tier50_cardiology_ext_284_card_arr_router')); } catch(e) { console.error('card_arr mount failed', e.message); }
+try { app.use('/api/card_valve', require('./tier50_cardiology_ext_285_card_valve_router')); } catch(e) { console.error('card_valve mount failed', e.message); }
+try { app.use('/api/card_ischemic', require('./tier50_cardiology_ext_286_card_ischemic_router')); } catch(e) { console.error('card_ischemic mount failed', e.message); }
+try { app.use('/api/card_cong', require('./tier50_cardiology_ext_287_card_cong_router')); } catch(e) { console.error('card_cong mount failed', e.message); }
 
 startServer();
