@@ -46,6 +46,11 @@ try { app.use('/api/sched_template', require('./tier21_sched_ext_139_template_ro
 try { app.use('/api/sched_waitlist', require('./tier21_sched_ext_140_waitlist_router')); } catch(e) { console.error('sched_waitlist mount failed', e.message); }
 try { app.use('/api/sched_appointment', require('./tier21_sched_ext_141_appointment_router')); } catch(e) { console.error('sched_appointment mount failed', e.message); }
 try { app.use('/api/sched_staff', require('./tier21_sched_ext_142_staff_router')); } catch(e) { console.error('sched_staff mount failed', e.message); }
+try { app.use('/api/wound_assessment', require('./tier22_wound_ext_143_assessment_router')); } catch(e) { console.error('wound_assessment mount failed', e.message); }
+try { app.use('/api/wound_dressing', require('./tier22_wound_ext_144_dressing_router')); } catch(e) { console.error('wound_dressing mount failed', e.message); }
+try { app.use('/api/wound_healing', require('./tier22_wound_ext_145_healing_router')); } catch(e) { console.error('wound_healing mount failed', e.message); }
+try { app.use('/api/wound_measurement', require('./tier22_wound_ext_146_measurement_router')); } catch(e) { console.error('wound_measurement mount failed', e.message); }
+try { app.use('/api/wound_staging', require('./tier22_wound_ext_147_staging_router')); } catch(e) { console.error('wound_staging mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
