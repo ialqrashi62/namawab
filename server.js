@@ -21015,5 +21015,10 @@ try { app.use('/api/him_roi', require('./tier19_him_ext_128_roi_router')); } cat
 try { app.use('/api/him_deficiency', require('./tier19_him_ext_129_deficiency_router')); } catch(e) { console.error('him_deficiency mount failed', e.message); }
 try { app.use('/api/him_audit', require('./tier19_him_ext_130_audit_router')); } catch(e) { console.error('him_audit mount failed', e.message); }
 try { app.use('/api/him_release', require('./tier19_him_ext_131_release_router')); } catch(e) { console.error('him_release mount failed', e.message); }
+try { app.use('/api/research_trial', require('./tier20_research_ext_132_trial_router')); } catch(e) { console.error('research_trial mount failed', e.message); }
+try { app.use('/api/research_consent', require('./tier20_research_ext_133_consent_router')); } catch(e) { console.error('research_consent mount failed', e.message); }
+try { app.use('/api/research_irb', require('./tier20_research_ext_134_irb_router')); } catch(e) { console.error('research_irb mount failed', e.message); }
+try { app.use('/api/research_recruitment', require('./tier20_research_ext_135_recruitment_router')); } catch(e) { console.error('research_recruitment mount failed', e.message); }
+try { app.use('/api/research_biobank', require('./tier20_research_ext_136_biobank_router')); } catch(e) { console.error('research_biobank mount failed', e.message); }
 
 startServer();
