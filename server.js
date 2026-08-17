@@ -21161,5 +21161,10 @@ try { app.use('/api/lab_chem', require('./tier48_laboratory_ext_274_lab_chem_rou
 try { app.use('/api/lab_micro', require('./tier48_laboratory_ext_275_lab_micro_router')); } catch(e) { console.error('lab_micro mount failed', e.message); }
 try { app.use('/api/lab_immuno', require('./tier48_laboratory_ext_276_lab_immuno_router')); } catch(e) { console.error('lab_immuno mount failed', e.message); }
 try { app.use('/api/lab_mol', require('./tier48_laboratory_ext_277_lab_mol_router')); } catch(e) { console.error('lab_mol mount failed', e.message); }
+try { app.use('/api/nurs_assess', require('./tier49_nursing_ext_278_nurs_assess_router')); } catch(e) { console.error('nurs_assess mount failed', e.message); }
+try { app.use('/api/nurs_med', require('./tier49_nursing_ext_279_nurs_med_router')); } catch(e) { console.error('nurs_med mount failed', e.message); }
+try { app.use('/api/nurs_wound', require('./tier49_nursing_ext_280_nurs_wound_router')); } catch(e) { console.error('nurs_wound mount failed', e.message); }
+try { app.use('/api/nurs_resp', require('./tier49_nursing_ext_281_nurs_resp_router')); } catch(e) { console.error('nurs_resp mount failed', e.message); }
+try { app.use('/api/nurs_safety', require('./tier49_nursing_ext_282_nurs_safety_router')); } catch(e) { console.error('nurs_safety mount failed', e.message); }
 
 startServer();
