@@ -211,6 +211,11 @@ try { app.use('/api/er_cardio', require('./tier54_emergency_ext_304_er_cardio_ro
 try { app.use('/api/er_neuro', require('./tier54_emergency_ext_305_er_neuro_router')); } catch(e) { console.error('er_neuro mount failed', e.message); }
 try { app.use('/api/er_resp', require('./tier54_emergency_ext_306_er_resp_router')); } catch(e) { console.error('er_resp mount failed', e.message); }
 try { app.use('/api/er_gi_gi', require('./tier54_emergency_ext_307_er_gi_gi_router')); } catch(e) { console.error('er_gi_gi mount failed', e.message); }
+try { app.use('/api/triage_acu', require('./tier55_triage_ext_308_triage_acu_router')); } catch(e) { console.error('triage_acu mount failed', e.message); }
+try { app.use('/api/triage_intake', require('./tier55_triage_ext_309_triage_intake_router')); } catch(e) { console.error('triage_intake mount failed', e.message); }
+try { app.use('/api/triage_screen', require('./tier55_triage_ext_310_triage_screen_router')); } catch(e) { console.error('triage_screen mount failed', e.message); }
+try { app.use('/api/triage_ped', require('./tier55_triage_ext_311_triage_ped_router')); } catch(e) { console.error('triage_ped mount failed', e.message); }
+try { app.use('/api/triage_disp', require('./tier55_triage_ext_312_triage_disp_router')); } catch(e) { console.error('triage_disp mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
