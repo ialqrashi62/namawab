@@ -21020,5 +21020,11 @@ try { app.use('/api/research_consent', require('./tier20_research_ext_133_consen
 try { app.use('/api/research_irb', require('./tier20_research_ext_134_irb_router')); } catch(e) { console.error('research_irb mount failed', e.message); }
 try { app.use('/api/research_recruitment', require('./tier20_research_ext_135_recruitment_router')); } catch(e) { console.error('research_recruitment mount failed', e.message); }
 try { app.use('/api/research_biobank', require('./tier20_research_ext_136_biobank_router')); } catch(e) { console.error('research_biobank mount failed', e.message); }
+try { app.use('/api/sched_provider', require('./tier21_sched_ext_137_provider_router')); } catch(e) { console.error('sched_provider mount failed', e.message); }
+try { app.use('/api/sched_call', require('./tier21_sched_ext_138_call_router')); } catch(e) { console.error('sched_call mount failed', e.message); }
+try { app.use('/api/sched_template', require('./tier21_sched_ext_139_template_router')); } catch(e) { console.error('sched_template mount failed', e.message); }
+try { app.use('/api/sched_waitlist', require('./tier21_sched_ext_140_waitlist_router')); } catch(e) { console.error('sched_waitlist mount failed', e.message); }
+try { app.use('/api/sched_appointment', require('./tier21_sched_ext_141_appointment_router')); } catch(e) { console.error('sched_appointment mount failed', e.message); }
+try { app.use('/api/sched_staff', require('./tier21_sched_ext_142_staff_router')); } catch(e) { console.error('sched_staff mount failed', e.message); }
 
 startServer();
