@@ -21186,5 +21186,10 @@ try { app.use('/api/onc_lung', require('./tier53_oncology_ext_299_onc_lung_route
 try { app.use('/api/onc_gi', require('./tier53_oncology_ext_300_onc_gi_router')); } catch(e) { console.error('onc_gi mount failed', e.message); }
 try { app.use('/api/onc_gu', require('./tier53_oncology_ext_301_onc_gu_router')); } catch(e) { console.error('onc_gu mount failed', e.message); }
 try { app.use('/api/onc_heme', require('./tier53_oncology_ext_302_onc_heme_router')); } catch(e) { console.error('onc_heme mount failed', e.message); }
+try { app.use('/api/er_trauma', require('./tier54_emergency_ext_303_er_trauma_router')); } catch(e) { console.error('er_trauma mount failed', e.message); }
+try { app.use('/api/er_cardio', require('./tier54_emergency_ext_304_er_cardio_router')); } catch(e) { console.error('er_cardio mount failed', e.message); }
+try { app.use('/api/er_neuro', require('./tier54_emergency_ext_305_er_neuro_router')); } catch(e) { console.error('er_neuro mount failed', e.message); }
+try { app.use('/api/er_resp', require('./tier54_emergency_ext_306_er_resp_router')); } catch(e) { console.error('er_resp mount failed', e.message); }
+try { app.use('/api/er_gi_gi', require('./tier54_emergency_ext_307_er_gi_gi_router')); } catch(e) { console.error('er_gi_gi mount failed', e.message); }
 
 startServer();
