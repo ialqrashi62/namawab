@@ -151,6 +151,11 @@ try { app.use('/api/psych_psychotic', require('./tier42_psychiatry_ext_244_psych
 try { app.use('/api/psych_trauma', require('./tier42_psychiatry_ext_245_trauma_router')); } catch(e) { console.error('psych_trauma mount failed', e.message); }
 try { app.use('/api/psych_substance', require('./tier42_psychiatry_ext_246_substance_router')); } catch(e) { console.error('psych_substance mount failed', e.message); }
 try { app.use('/api/psych_neurodev', require('./tier42_psychiatry_ext_247_neurodev_router')); } catch(e) { console.error('psych_neurodev mount failed', e.message); }
+try { app.use('/api/surg_gi', require('./tier43_surgery_ext_248_gi_surg_router')); } catch(e) { console.error('surg_gi mount failed', e.message); }
+try { app.use('/api/surg_ortho', require('./tier43_surgery_ext_249_ortho_surg_router')); } catch(e) { console.error('surg_ortho mount failed', e.message); }
+try { app.use('/api/surg_vasc', require('./tier43_surgery_ext_250_vascular_router')); } catch(e) { console.error('surg_vasc mount failed', e.message); }
+try { app.use('/api/surg_trauma', require('./tier43_surgery_ext_251_trauma_router')); } catch(e) { console.error('surg_trauma mount failed', e.message); }
+try { app.use('/api/surg_transplant', require('./tier43_surgery_ext_252_transplant_router')); } catch(e) { console.error('surg_transplant mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
