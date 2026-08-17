@@ -236,6 +236,11 @@ try { app.use('/api/tele_monitor', require('./tier59_telemedicine_329_tele_monit
 try { app.use('/api/tele_surg', require('./tier59_telemedicine_330_tele_surg_router')); } catch(e) { console.error('tele_surg mount failed', e.message); }
 try { app.use('/api/tele_psy', require('./tier59_telemedicine_331_tele_psy_router')); } catch(e) { console.error('tele_psy mount failed', e.message); }
 try { app.use('/api/tele_admin', require('./tier59_telemedicine_332_tele_admin_router')); } catch(e) { console.error('tele_admin mount failed', e.message); }
+try { app.use('/api/ai_clin_dec', require('./tier60_ai_brain_ext_333_ai_clin_dec_router')); } catch(e) { console.error('ai_clin_dec mount failed', e.message); }
+try { app.use('/api/ai_diag_img', require('./tier60_ai_brain_ext_334_ai_diag_img_router')); } catch(e) { console.error('ai_diag_img mount failed', e.message); }
+try { app.use('/api/ai_nlp_doc', require('./tier60_ai_brain_ext_335_ai_nlp_doc_router')); } catch(e) { console.error('ai_nlp_doc mount failed', e.message); }
+try { app.use('/api/ai_forecast', require('./tier60_ai_brain_ext_336_ai_forecast_router')); } catch(e) { console.error('ai_forecast mount failed', e.message); }
+try { app.use('/api/ai_chatbot', require('./tier60_ai_brain_ext_337_ai_chatbot_router')); } catch(e) { console.error('ai_chatbot mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
