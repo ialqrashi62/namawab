@@ -21151,5 +21151,10 @@ try { app.use('/api/pharm_antinf', require('./tier46_pharmacy_ext_264_pharm_anti
 try { app.use('/api/pharm_chronic', require('./tier46_pharmacy_ext_265_pharm_chronic_router')); } catch(e) { console.error('pharm_chronic mount failed', e.message); }
 try { app.use('/api/pharm_pain', require('./tier46_pharmacy_ext_266_pharm_pain_router')); } catch(e) { console.error('pharm_pain mount failed', e.message); }
 try { app.use('/api/pharm_special', require('./tier46_pharmacy_ext_267_pharm_special_router')); } catch(e) { console.error('pharm_special mount failed', e.message); }
+try { app.use('/api/rad_body', require('./tier47_radiology_ext_268_rad_body_router')); } catch(e) { console.error('rad_body mount failed', e.message); }
+try { app.use('/api/rad_neuro', require('./tier47_radiology_ext_269_rad_neuro_router')); } catch(e) { console.error('rad_neuro mount failed', e.message); }
+try { app.use('/api/rad_cardio', require('./tier47_radiology_ext_270_rad_cardio_router')); } catch(e) { console.error('rad_cardio mount failed', e.message); }
+try { app.use('/api/rad_gu_gi', require('./tier47_radiology_ext_271_rad_gu_gi_router')); } catch(e) { console.error('rad_gu_gi mount failed', e.message); }
+try { app.use('/api/rad_interv', require('./tier47_radiology_ext_272_rad_interv_router')); } catch(e) { console.error('rad_interv mount failed', e.message); }
 
 startServer();
