@@ -21196,5 +21196,10 @@ try { app.use('/api/triage_intake', require('./tier55_triage_ext_309_triage_inta
 try { app.use('/api/triage_screen', require('./tier55_triage_ext_310_triage_screen_router')); } catch(e) { console.error('triage_screen mount failed', e.message); }
 try { app.use('/api/triage_ped', require('./tier55_triage_ext_311_triage_ped_router')); } catch(e) { console.error('triage_ped mount failed', e.message); }
 try { app.use('/api/triage_disp', require('./tier55_triage_ext_312_triage_disp_router')); } catch(e) { console.error('triage_disp mount failed', e.message); }
+try { app.use('/api/surg_neuro', require('./tier56_surgical_specialties_313_surg_neuro_router')); } catch(e) { console.error('surg_neuro mount failed', e.message); }
+try { app.use('/api/surg_plastic', require('./tier56_surgical_specialties_314_surg_plastic_router')); } catch(e) { console.error('surg_plastic mount failed', e.message); }
+try { app.use('/api/surg_urology', require('./tier56_surgical_specialties_315_surg_urology_router')); } catch(e) { console.error('surg_urology mount failed', e.message); }
+try { app.use('/api/surg_ent_surg', require('./tier56_surgical_specialties_316_surg_ent_surg_router')); } catch(e) { console.error('surg_ent_surg mount failed', e.message); }
+try { app.use('/api/surg_thoracic', require('./tier56_surgical_specialties_317_surg_thoracic_router')); } catch(e) { console.error('surg_thoracic mount failed', e.message); }
 
 startServer();
