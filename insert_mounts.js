@@ -166,6 +166,11 @@ try { app.use('/api/icu_sepsis', require('./tier45_icu_ext_259_icu_sepsis_router
 try { app.use('/api/icu_hemodyn', require('./tier45_icu_ext_260_icu_hemodyn_router')); } catch(e) { console.error('icu_hemodyn mount failed', e.message); }
 try { app.use('/api/icu_neuro', require('./tier45_icu_ext_261_icu_neuro_router')); } catch(e) { console.error('icu_neuro mount failed', e.message); }
 try { app.use('/api/icu_renal', require('./tier45_icu_ext_262_icu_renal_router')); } catch(e) { console.error('icu_renal mount failed', e.message); }
+try { app.use('/api/pharm_onco', require('./tier46_pharmacy_ext_263_pharm_onco_router')); } catch(e) { console.error('pharm_onco mount failed', e.message); }
+try { app.use('/api/pharm_antinf', require('./tier46_pharmacy_ext_264_pharm_antinf_router')); } catch(e) { console.error('pharm_antinf mount failed', e.message); }
+try { app.use('/api/pharm_chronic', require('./tier46_pharmacy_ext_265_pharm_chronic_router')); } catch(e) { console.error('pharm_chronic mount failed', e.message); }
+try { app.use('/api/pharm_pain', require('./tier46_pharmacy_ext_266_pharm_pain_router')); } catch(e) { console.error('pharm_pain mount failed', e.message); }
+try { app.use('/api/pharm_special', require('./tier46_pharmacy_ext_267_pharm_special_router')); } catch(e) { console.error('pharm_special mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
