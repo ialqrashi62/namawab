@@ -131,6 +131,11 @@ try { app.use('/api/derm_ecz', require('./tier38_dermatology_ext_224_eczema_rout
 try { app.use('/api/derm_skin', require('./tier38_dermatology_ext_225_skin_cancer_router')); } catch(e) { console.error('derm_skin mount failed', e.message); }
 try { app.use('/api/derm_acne', require('./tier38_dermatology_ext_226_acne_router')); } catch(e) { console.error('derm_acne mount failed', e.message); }
 try { app.use('/api/derm_hair', require('./tier38_dermatology_ext_227_hair_nails_router')); } catch(e) { console.error('derm_hair mount failed', e.message); }
+try { app.use('/api/ent_oto', require('./tier39_ent_ext_228_otology_router')); } catch(e) { console.error('ent_oto mount failed', e.message); }
+try { app.use('/api/ent_rhino', require('./tier39_ent_ext_229_rhinology_router')); } catch(e) { console.error('ent_rhino mount failed', e.message); }
+try { app.use('/api/ent_laryn', require('./tier39_ent_ext_230_laryngology_router')); } catch(e) { console.error('ent_laryn mount failed', e.message); }
+try { app.use('/api/ent_hn', require('./tier39_ent_ext_231_head_neck_router')); } catch(e) { console.error('ent_hn mount failed', e.message); }
+try { app.use('/api/ent_ped', require('./tier39_ent_ext_232_ped_ent_router')); } catch(e) { console.error('ent_ped mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
