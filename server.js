@@ -21005,5 +21005,10 @@ try { app.use('/api/portal_records', require('./tier17_portal_ext_118_records_ro
 try { app.use('/api/portal_appointments', require('./tier17_portal_ext_119_appointments_router')); } catch(e) { console.error('portal_appointments mount failed', e.message); }
 try { app.use('/api/portal_billing', require('./tier17_portal_ext_120_billing_router')); } catch(e) { console.error('portal_billing mount failed', e.message); }
 try { app.use('/api/portal_messaging', require('./tier17_portal_ext_121_messaging_router')); } catch(e) { console.error('portal_messaging mount failed', e.message); }
+try { app.use('/api/infx_outbreak', require('./tier18_infx_ext_122_outbreak_router')); } catch(e) { console.error('infx_outbreak mount failed', e.message); }
+try { app.use('/api/infx_isolation', require('./tier18_infx_ext_123_isolation_router')); } catch(e) { console.error('infx_isolation mount failed', e.message); }
+try { app.use('/api/infx_mdro', require('./tier18_infx_ext_124_mdro_router')); } catch(e) { console.error('infx_mdro mount failed', e.message); }
+try { app.use('/api/infx_surveillance', require('./tier18_infx_ext_125_surveillance_router')); } catch(e) { console.error('infx_surveillance mount failed', e.message); }
+try { app.use('/api/infx_employee', require('./tier18_infx_ext_126_employee_router')); } catch(e) { console.error('infx_employee mount failed', e.message); }
 
 startServer();
