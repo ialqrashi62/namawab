@@ -21141,5 +21141,10 @@ try { app.use('/api/ped_neonat', require('./tier44_pediatrics_ext_254_ped_neonat
 try { app.use('/api/ped_gastro', require('./tier44_pediatrics_ext_255_ped_gastro_router')); } catch(e) { console.error('ped_gastro mount failed', e.message); }
 try { app.use('/api/ped_endo', require('./tier44_pediatrics_ext_256_ped_endo_router')); } catch(e) { console.error('ped_endo mount failed', e.message); }
 try { app.use('/api/ped_immuno', require('./tier44_pediatrics_ext_257_ped_immuno_router')); } catch(e) { console.error('ped_immuno mount failed', e.message); }
+try { app.use('/api/icu_vent', require('./tier45_icu_ext_258_icu_vent_router')); } catch(e) { console.error('icu_vent mount failed', e.message); }
+try { app.use('/api/icu_sepsis', require('./tier45_icu_ext_259_icu_sepsis_router')); } catch(e) { console.error('icu_sepsis mount failed', e.message); }
+try { app.use('/api/icu_hemodyn', require('./tier45_icu_ext_260_icu_hemodyn_router')); } catch(e) { console.error('icu_hemodyn mount failed', e.message); }
+try { app.use('/api/icu_neuro', require('./tier45_icu_ext_261_icu_neuro_router')); } catch(e) { console.error('icu_neuro mount failed', e.message); }
+try { app.use('/api/icu_renal', require('./tier45_icu_ext_262_icu_renal_router')); } catch(e) { console.error('icu_renal mount failed', e.message); }
 
 startServer();
