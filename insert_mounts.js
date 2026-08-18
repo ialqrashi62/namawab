@@ -291,6 +291,11 @@ try { app.use('/api/img_interp', require('./tier70_img_diag_379_img_interp_route
 try { app.use('/api/img_admin', require('./tier70_img_diag_380_img_admin_router')); } catch(e) { console.error('img_admin mount failed', e.message); }
 try { app.use('/api/img_specialty', require('./tier70_img_diag_381_img_specialty_router')); } catch(e) { console.error('img_specialty mount failed', e.message); }
 try { app.use('/api/img_safety', require('./tier70_img_diag_382_img_safety_router')); } catch(e) { console.error('img_safety mount failed', e.message); }
+try { app.use('/api/nut_assess', require('./tier71_nut_383_nut_assess_router')); } catch(e) { console.error('nut_assess mount failed', e.message); }
+try { app.use('/api/nut_intervention', require('./tier71_nut_384_nut_intervention_router')); } catch(e) { console.error('nut_intervention mount failed', e.message); }
+try { app.use('/api/nut_clinical', require('./tier71_nut_385_nut_clinical_router')); } catch(e) { console.error('nut_clinical mount failed', e.message); }
+try { app.use('/api/nut_pediatric', require('./tier71_nut_386_nut_pediatric_router')); } catch(e) { console.error('nut_pediatric mount failed', e.message); }
+try { app.use('/api/nut_admin', require('./tier71_nut_387_nut_admin_router')); } catch(e) { console.error('nut_admin mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
