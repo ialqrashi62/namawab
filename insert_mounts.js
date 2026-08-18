@@ -261,6 +261,11 @@ try { app.use('/api/pop_screen', require('./tier64_pop_health_349_pop_screen_rou
 try { app.use('/api/pop_cohort', require('./tier64_pop_health_350_pop_cohort_router')); } catch(e) { console.error('pop_cohort mount failed', e.message); }
 try { app.use('/api/pop_outreach', require('./tier64_pop_health_351_pop_outreach_router')); } catch(e) { console.error('pop_outreach mount failed', e.message); }
 try { app.use('/api/pop_metrics', require('./tier64_pop_health_352_pop_metrics_router')); } catch(e) { console.error('pop_metrics mount failed', e.message); }
+try { app.use('/api/rev_charge', require('./tier65_rev_cycle_353_rev_charge_router')); } catch(e) { console.error('rev_charge mount failed', e.message); }
+try { app.use('/api/rev_claim', require('./tier65_rev_cycle_354_rev_claim_router')); } catch(e) { console.error('rev_claim mount failed', e.message); }
+try { app.use('/api/rev_payment', require('./tier65_rev_cycle_355_rev_payment_router')); } catch(e) { console.error('rev_payment mount failed', e.message); }
+try { app.use('/api/rev_audit', require('./tier65_rev_cycle_356_rev_audit_router')); } catch(e) { console.error('rev_audit mount failed', e.message); }
+try { app.use('/api/rev_contract', require('./tier65_rev_cycle_357_rev_contract_router')); } catch(e) { console.error('rev_contract mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
