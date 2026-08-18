@@ -21261,5 +21261,10 @@ try { app.use('/api/rx_oncology', require('./tier68_rx_369_rx_oncology_router'))
 try { app.use('/api/rx_specialty', require('./tier68_rx_370_rx_specialty_router')); } catch(e) { console.error('rx_specialty mount failed', e.message); }
 try { app.use('/api/rx_clinical_pharm', require('./tier68_rx_371_rx_clinical_pharm_router')); } catch(e) { console.error('rx_clinical_pharm mount failed', e.message); }
 try { app.use('/api/rx_informatics', require('./tier68_rx_372_rx_informatics_router')); } catch(e) { console.error('rx_informatics mount failed', e.message); }
+try { app.use('/api/mh_assess', require('./tier69_mh_373_mh_assess_router')); } catch(e) { console.error('mh_assess mount failed', e.message); }
+try { app.use('/api/mh_therapy', require('./tier69_mh_374_mh_therapy_router')); } catch(e) { console.error('mh_therapy mount failed', e.message); }
+try { app.use('/api/mh_psychopharm', require('./tier69_mh_375_mh_psychopharm_router')); } catch(e) { console.error('mh_psychopharm mount failed', e.message); }
+try { app.use('/api/mh_addiction', require('./tier69_mh_376_mh_addiction_router')); } catch(e) { console.error('mh_addiction mount failed', e.message); }
+try { app.use('/api/mh_community', require('./tier69_mh_377_mh_community_router')); } catch(e) { console.error('mh_community mount failed', e.message); }
 
 startServer();
