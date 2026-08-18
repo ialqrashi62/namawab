@@ -271,6 +271,11 @@ try { app.use('/api/lab_result', require('./tier66_lab_diag_359_lab_result_route
 try { app.use('/api/lab_micro', require('./tier66_lab_diag_360_lab_micro_router')); } catch(e) { console.error('lab_micro mount failed', e.message); }
 try { app.use('/api/lab_path', require('./tier66_lab_diag_361_lab_path_router')); } catch(e) { console.error('lab_path mount failed', e.message); }
 try { app.use('/api/lab_qc', require('./tier66_lab_diag_362_lab_qc_router')); } catch(e) { console.error('lab_qc mount failed', e.message); }
+try { app.use('/api/surg_pre_admit', require('./tier67_surg_periop_363_surg_pre_admit_router')); } catch(e) { console.error('surg_pre_admit mount failed', e.message); }
+try { app.use('/api/surg_intraop', require('./tier67_surg_periop_364_surg_intraop_router')); } catch(e) { console.error('surg_intraop mount failed', e.message); }
+try { app.use('/api/surg_postop', require('./tier67_surg_periop_365_surg_postop_router')); } catch(e) { console.error('surg_postop mount failed', e.message); }
+try { app.use('/api/surg_complications', require('./tier67_surg_periop_366_surg_complications_router')); } catch(e) { console.error('surg_complications mount failed', e.message); }
+try { app.use('/api/surg_quality', require('./tier67_surg_periop_367_surg_quality_router')); } catch(e) { console.error('surg_quality mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
