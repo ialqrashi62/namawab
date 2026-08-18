@@ -21231,5 +21231,15 @@ try { app.use('/api/sp_pall', require('./tier62_spec_care_ext_344_sp_pall_router
 try { app.use('/api/sp_home', require('./tier62_spec_care_ext_345_sp_home_router')); } catch(e) { console.error('sp_home mount failed', e.message); }
 try { app.use('/api/sp_rehab', require('./tier62_spec_care_ext_346_sp_rehab_router')); } catch(e) { console.error('sp_rehab mount failed', e.message); }
 try { app.use('/api/sp_mat', require('./tier62_spec_care_ext_347_sp_mat_router')); } catch(e) { console.error('sp_mat mount failed', e.message); }
+try { app.use('/api/px_satis', require('./tier63_px_348_px_satis_router')); } catch(e) { console.error('px_satis mount failed', e.message); }
+try { app.use('/api/px_engage', require('./tier63_px_349_px_engage_router')); } catch(e) { console.error('px_engage mount failed', e.message); }
+try { app.use('/api/px_access', require('./tier63_px_350_px_access_router')); } catch(e) { console.error('px_access mount failed', e.message); }
+try { app.use('/api/px_feedback', require('./tier63_px_351_px_feedback_router')); } catch(e) { console.error('px_feedback mount failed', e.message); }
+try { app.use('/api/px_journey', require('./tier63_px_352_px_journey_router')); } catch(e) { console.error('px_journey mount failed', e.message); }
+try { app.use('/api/pop_registries', require('./tier64_pop_health_348_pop_registries_router')); } catch(e) { console.error('pop_registries mount failed', e.message); }
+try { app.use('/api/pop_screen', require('./tier64_pop_health_349_pop_screen_router')); } catch(e) { console.error('pop_screen mount failed', e.message); }
+try { app.use('/api/pop_cohort', require('./tier64_pop_health_350_pop_cohort_router')); } catch(e) { console.error('pop_cohort mount failed', e.message); }
+try { app.use('/api/pop_outreach', require('./tier64_pop_health_351_pop_outreach_router')); } catch(e) { console.error('pop_outreach mount failed', e.message); }
+try { app.use('/api/pop_metrics', require('./tier64_pop_health_352_pop_metrics_router')); } catch(e) { console.error('pop_metrics mount failed', e.message); }
 
 startServer();
