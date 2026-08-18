@@ -296,6 +296,11 @@ try { app.use('/api/nut_intervention', require('./tier71_nut_384_nut_interventio
 try { app.use('/api/nut_clinical', require('./tier71_nut_385_nut_clinical_router')); } catch(e) { console.error('nut_clinical mount failed', e.message); }
 try { app.use('/api/nut_pediatric', require('./tier71_nut_386_nut_pediatric_router')); } catch(e) { console.error('nut_pediatric mount failed', e.message); }
 try { app.use('/api/nut_admin', require('./tier71_nut_387_nut_admin_router')); } catch(e) { console.error('nut_admin mount failed', e.message); }
+try { app.use('/api/er_triage', require('./tier72_er_388_er_triage_router')); } catch(e) { console.error('er_triage mount failed', e.message); }
+try { app.use('/api/er_resus', require('./tier72_er_389_er_resus_router')); } catch(e) { console.error('er_resus mount failed', e.message); }
+try { app.use('/api/er_medic', require('./tier72_er_390_er_medic_router')); } catch(e) { console.error('er_medic mount failed', e.message); }
+try { app.use('/api/er_trauma', require('./tier72_er_391_er_trauma_router')); } catch(e) { console.error('er_trauma mount failed', e.message); }
+try { app.use('/api/er_dispos', require('./tier72_er_392_er_dispos_router')); } catch(e) { console.error('er_dispos mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
