@@ -286,6 +286,11 @@ try { app.use('/api/mh_therapy', require('./tier69_mh_374_mh_therapy_router')); 
 try { app.use('/api/mh_psychopharm', require('./tier69_mh_375_mh_psychopharm_router')); } catch(e) { console.error('mh_psychopharm mount failed', e.message); }
 try { app.use('/api/mh_addiction', require('./tier69_mh_376_mh_addiction_router')); } catch(e) { console.error('mh_addiction mount failed', e.message); }
 try { app.use('/api/mh_community', require('./tier69_mh_377_mh_community_router')); } catch(e) { console.error('mh_community mount failed', e.message); }
+try { app.use('/api/img_proc', require('./tier70_img_diag_378_img_proc_router')); } catch(e) { console.error('img_proc mount failed', e.message); }
+try { app.use('/api/img_interp', require('./tier70_img_diag_379_img_interp_router')); } catch(e) { console.error('img_interp mount failed', e.message); }
+try { app.use('/api/img_admin', require('./tier70_img_diag_380_img_admin_router')); } catch(e) { console.error('img_admin mount failed', e.message); }
+try { app.use('/api/img_specialty', require('./tier70_img_diag_381_img_specialty_router')); } catch(e) { console.error('img_specialty mount failed', e.message); }
+try { app.use('/api/img_safety', require('./tier70_img_diag_382_img_safety_router')); } catch(e) { console.error('img_safety mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
