@@ -266,6 +266,11 @@ try { app.use('/api/rev_claim', require('./tier65_rev_cycle_354_rev_claim_router
 try { app.use('/api/rev_payment', require('./tier65_rev_cycle_355_rev_payment_router')); } catch(e) { console.error('rev_payment mount failed', e.message); }
 try { app.use('/api/rev_audit', require('./tier65_rev_cycle_356_rev_audit_router')); } catch(e) { console.error('rev_audit mount failed', e.message); }
 try { app.use('/api/rev_contract', require('./tier65_rev_cycle_357_rev_contract_router')); } catch(e) { console.error('rev_contract mount failed', e.message); }
+try { app.use('/api/lab_specimen', require('./tier66_lab_diag_358_lab_specimen_router')); } catch(e) { console.error('lab_specimen mount failed', e.message); }
+try { app.use('/api/lab_result', require('./tier66_lab_diag_359_lab_result_router')); } catch(e) { console.error('lab_result mount failed', e.message); }
+try { app.use('/api/lab_micro', require('./tier66_lab_diag_360_lab_micro_router')); } catch(e) { console.error('lab_micro mount failed', e.message); }
+try { app.use('/api/lab_path', require('./tier66_lab_diag_361_lab_path_router')); } catch(e) { console.error('lab_path mount failed', e.message); }
+try { app.use('/api/lab_qc', require('./tier66_lab_diag_362_lab_qc_router')); } catch(e) { console.error('lab_qc mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
