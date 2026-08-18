@@ -21256,5 +21256,10 @@ try { app.use('/api/surg_intraop', require('./tier67_surg_periop_364_surg_intrao
 try { app.use('/api/surg_postop', require('./tier67_surg_periop_365_surg_postop_router')); } catch(e) { console.error('surg_postop mount failed', e.message); }
 try { app.use('/api/surg_complications', require('./tier67_surg_periop_366_surg_complications_router')); } catch(e) { console.error('surg_complications mount failed', e.message); }
 try { app.use('/api/surg_quality', require('./tier67_surg_periop_367_surg_quality_router')); } catch(e) { console.error('surg_quality mount failed', e.message); }
+try { app.use('/api/rx_clinical', require('./tier68_rx_368_rx_clinical_router')); } catch(e) { console.error('rx_clinical mount failed', e.message); }
+try { app.use('/api/rx_oncology', require('./tier68_rx_369_rx_oncology_router')); } catch(e) { console.error('rx_oncology mount failed', e.message); }
+try { app.use('/api/rx_specialty', require('./tier68_rx_370_rx_specialty_router')); } catch(e) { console.error('rx_specialty mount failed', e.message); }
+try { app.use('/api/rx_clinical_pharm', require('./tier68_rx_371_rx_clinical_pharm_router')); } catch(e) { console.error('rx_clinical_pharm mount failed', e.message); }
+try { app.use('/api/rx_informatics', require('./tier68_rx_372_rx_informatics_router')); } catch(e) { console.error('rx_informatics mount failed', e.message); }
 
 startServer();
