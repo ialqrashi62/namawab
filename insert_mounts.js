@@ -336,6 +336,11 @@ try { app.use('/api/ophth_retina_v2', require('./tier79_ophth_ext_419_ophth_reti
 try { app.use('/api/ophth_cataract_v2', require('./tier79_ophth_ext_420_ophth_cataract_router')); } catch(e) { console.error('ophth_cataract_v2 mount failed', e.message); }
 try { app.use('/api/ophth_glaucoma_v2', require('./tier79_ophth_ext_421_ophth_glaucoma_router')); } catch(e) { console.error('ophth_glaucoma_v2 mount failed', e.message); }
 try { app.use('/api/ophth_pediatric_v2', require('./tier79_ophth_ext_422_ophth_pediatric_router')); } catch(e) { console.error('ophth_pediatric_v2 mount failed', e.message); }
+try { app.use('/api/ent_general_v2', require('./tier80_ent_ext_423_ent_general_router')); } catch(e) { console.error('ent_general_v2 mount failed', e.message); }
+try { app.use('/api/ent_sinus_v2', require('./tier80_ent_ext_424_ent_sinus_router')); } catch(e) { console.error('ent_sinus_v2 mount failed', e.message); }
+try { app.use('/api/ent_throat_v2', require('./tier80_ent_ext_425_ent_throat_router')); } catch(e) { console.error('ent_throat_v2 mount failed', e.message); }
+try { app.use('/api/ent_head_neck_v2', require('./tier80_ent_ext_426_ent_head_neck_router')); } catch(e) { console.error('ent_head_neck_v2 mount failed', e.message); }
+try { app.use('/api/ent_pediatric_v2', require('./tier80_ent_ext_427_ent_pediatric_router')); } catch(e) { console.error('ent_pediatric_v2 mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
