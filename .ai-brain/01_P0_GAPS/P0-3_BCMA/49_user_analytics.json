@@ -1,0 +1,15 @@
+{
+  "events": [
+    { "name": "bcma_scan_patient", "props": ["nurse_id", "patient_id", "tenant_id"] },
+    { "name": "bcma_scan_drug", "props": ["nurse_id", "drug_id", "tenant_id"] },
+    { "name": "bcma_administered", "props": ["mar_id", "five_rights_pass", "tenant_id"] },
+    { "name": "bcma_blocked_allergy", "props": ["mar_id", "allergy", "tenant_id"] },
+    { "name": "bcma_blocked_interaction", "props": ["mar_id", "interaction_severity", "tenant_id"] },
+    { "name": "bcma_high_alert_witness", "props": ["mar_id", "drug_name", "tenant_id"] },
+    { "name": "bcma_override", "props": ["mar_id", "reason_code", "tenant_id"] },
+    { "name": "bcma_late_dose", "props": ["mar_id", "minutes_late", "tenant_id"] },
+    { "name": "bcma_refused", "props": ["mar_id", "reason", "tenant_id"] },
+    { "name": "bcma_disposal", "props": ["drug_name", "witness_id", "tenant_id"] }
+  ],
+  "tools": { "mixpanel": true, "amplitude": false }
+}

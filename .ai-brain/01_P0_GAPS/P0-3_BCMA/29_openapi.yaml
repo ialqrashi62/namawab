@@ -1,0 +1,54 @@
+openapi: 3.0.3
+info:
+  title: BCMA API
+  version: 1.0.0
+  description: Barcode Medication Administration endpoints
+paths:
+  /api/bcma/health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+  /api/bcma/scan:
+    post:
+      summary: 5 Rights + allergy + interaction check
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                patient_barcode: { type: string }
+                drug_barcode: { type: string }
+                dose: { type: string }
+                route: { type: string }
+                scheduled_at: { type: string, format: date-time }
+                nurse_id: { type: integer }
+      responses:
+        '200':
+          description: OK
+        '409':
+          description: Blocked (allergy/interaction/high-alert)
+  /api/bcma/witness:
+    post:
+      summary: Second nurse witness for high-alert
+      responses:
+        '200':
+          description: Witness confirmed
+  /api/bcma/override:
+    post:
+      summary: Override block with reason
+      responses:
+        '200':
+          description: Override accepted
+        '400':
+          description: Missing reason or witness
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer

@@ -1,0 +1,22 @@
+{
+  "bcma.title": "بارکوڈ کے ذریعے دوائی کی فراہمی",
+  "bcma.scan.patient": "مریض کی کلائی اسکین کریں",
+  "bcma.scan.drug": "دوائی کا بارکوڈ اسکین کریں",
+  "bcma.dose": "خوراک",
+  "bcma.route": "راستہ",
+  "bcma.route.po": "منہ",
+  "bcma.route.iv": "وریدی",
+  "bcma.route.im": "عضلاتی",
+  "bcma.route.sc": "جلد کے نیچے",
+  "bcma.rights.pass": "5 حقوق کی تصدیق",
+  "bcma.rights.block": "5 حقوق ناکام",
+  "bcma.allergy.block": "الرجی کا پتہ چلا — بلاک",
+  "bcma.interaction.warn": "دوائیوں کا تعامل",
+  "bcma.highalert.witness": "اعلیٰ خطرے کی دوائی کے لیے گواہ درکار",
+  "bcma.override.reason": "تجاوز کی وجہ",
+  "bcma.override.approve": "منظوری درکار",
+  "bcma.confirm": "فراہمی کی تصدیق",
+  "bcma.refuse": "انکار",
+  "bcma.late.flag": "دیر سے خوراک",
+  "bcma.dispose": "گواہ کے ساتھ دوائی کا تلف"
+}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>BCMA — نموذج الإعطاء</title>
+<style>
+  body { font-family: 'Tajawal', sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 20px; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; max-width: 700px; margin: 0 auto; }
+  h1 { color: #38bdf8; }
+  label { display: block; margin: 10px 0 4px; color: #94a3b8; font-size: 14px; }
+  input, select { width: 100%; padding: 10px; background: #0f172a; color: #f1f5f9; border: 1px solid #334155; border-radius: 6px; font-size: 16px; }
+  .scan-row { display: flex; gap: 8px; align-items: center; }
+  .scan-row button { padding: 10px 14px; background: #38bdf8; color: #0f172a; border: 0; border-radius: 6px; font-weight: bold; cursor: pointer; }
+  .scan-row button:active { background: #0ea5e9; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>📋 تسجيل إعطاء الدواء (BCMA)</h1>
+  <form id="bcmaForm">
+    <label>مسح معصم المريض</label>
+    <div class="scan-row">
+      <input type="text" id="barcodePatient" placeholder="Patient barcode" required>
+      <button type="button" onclick="simulateScan('barcodePatient')">📷 مسح</button>
+    </div>
+    <label>مسح كود الدواء</label>
+    <div class="scan-row">
+      <input type="text" id="barcodeDrug" placeholder="Drug barcode" required>
+      <button type="button" onclick="simulateScan('barcodeDrug')">📷 مسح</button>
+    </div>
+    <label>الجرعة</label>
+    <input type="text" id="dose" required>
+    <label>المسار</label>
+    <select id="route">
+      <option value="PO">فموي</option>
+      <option value="IV">وريدي</option>
+      <option value="IM">عضلي</option>
+      <option value="SC">تحت الجلد</option>
+    </select>
+    <label>ملاحظات</label>
+    <input type="text" id="notes">
+    <button type="submit" style="margin-top: 16px; padding: 12px; background: #10b981; color: #fff; border: 0; border-radius: 6px; font-size: 16px; cursor: pointer;">✅ تأكيد الإعطاء</button>
+  </form>
+</div>
+<script>
+function simulateScan(id) { document.getElementById(id).value = 'BC-' + Date.now(); }
+document.getElementById('bcmaForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target));
+  const res = await fetch('/api/bcma/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  alert(res.ok ? '✅ تم الإعطاء' : '❌ مرفوض: ' + (await res.text()));
+});
+</script>
+</body>
+</html>

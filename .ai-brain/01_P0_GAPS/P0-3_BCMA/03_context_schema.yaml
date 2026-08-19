@@ -1,0 +1,27 @@
+# P0-3 BCMA Context Schema
+
+bcma_context:
+  schema_version: "1.0"
+  specialty: pharmacy_safety
+  module: bcma
+  inputs:
+    - patient_id: INTEGER (required, FK patients)
+    - drug_id: INTEGER (required, FK drug_catalog)
+    - dose: VARCHAR(50) (required)
+    - route: ENUM(PO, IV, IM, SC, IN, PR, SL, Topical) (required)
+    - scheduled_at: TIMESTAMPTZ (required)
+    - prescriber_id: INTEGER (required, FK users)
+    - nurse_id: INTEGER (required, FK users)
+    - witness_id: INTEGER (optional, for high-alert)
+    - barcode_patient: VARCHAR(80) (required, from scan)
+    - barcode_drug: VARCHAR(80) (required, from scan)
+    - barcode_prescriber: VARCHAR(80) (optional)
+  outputs:
+    - mar_entry_id: VARCHAR(50)
+    - five_rights: JSONB
+    - status: ENUM(administered, refused, omitted, missed)
+    - alerts: TEXT[]
+    - witness_required: BOOLEAN
+  citations:
+    - "ISMP 5 Rights 2024"
+    - "TJC NPSG.03.04.01"

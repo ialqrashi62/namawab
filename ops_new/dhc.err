@@ -1,0 +1,527 @@
++ set -euo pipefail
++ APP_ROOT=/var/www/namaweb
++ ENV_FILE=/var/www/namaweb/.env
++ MIGRATIONS_DIR=/var/www/namaweb/migrations
++ LOG_DIR=/var/log/namaweb
+++ date -u +%Y-%m-%d
++ DATE_TAG=2026-07-28
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ TS=2026-07-28T23:48:44Z
++ LOG_FILE=/var/log/namaweb/db_health_2026-07-28.log
++ DISK_WARN_PCT=80
++ DISK_CRIT_PCT=95
++ RLS_DRIFT_WARN=5
++ CONN_PCT_WARN=80
++ LONG_QUERY_SEC=60
++ [[ '' == \-\-\h\e\l\p ]]
++ [[ '' == \-\h ]]
++ mkdir -p /var/log/namaweb
++ WARN=0
++ CRIT=0
++ LINES=()
++ main
++ load_env
++ [[ -f /var/www/namaweb/.env ]]
++ local env_tmp
+++ mktemp
++ env_tmp=/tmp/tmp.JyEGNMlWBY
++ tr -d '\r'
++ set -a
++ source /tmp/tmp.JyEGNMlWBY
+++ DB_HOST=localhost
+++ DB_PORT=5432
+++ DB_NAME=nama_medical_web
+++ DB_USER=nama_medical_app
+++ DB_PASSWORD='NamaMedicalApp@2026!'
+++ DB_MAX_CONNECTIONS=20
+++ PORT=3000
+++ SESSION_SECRET=nama-medical-erp-secret-x7k9m2p4q8w1
+++ NODE_ENV=production
+++ REDIS_HOST=localhost
+++ REDIS_PORT=6379
+++ SUPER_ADMIN_ENABLED=true
+++ SUPER_ADMIN_USERS=admin
+++ ENTITLEMENTS_ENABLED=true
++ set +a
++ rm -f /tmp/tmp.JyEGNMlWBY
+++ hostname -f
++ record info 'host=ubuntu-8gb-hel1-1 ts=2026-07-28T23:48:44Z'
++ local sev=info
++ shift
++ case "${sev}" in
++ LINES+=("INFO  $*")
++ check_connection
++ command -v psql
++ export PGHOST=localhost PGPORT=5432 PGUSER=nama_medical_app PGDATABASE=nama_medical_web 'PGPASSWORD=NamaMedicalApp@2026!'
++ PGHOST=localhost
++ PGPORT=5432
++ PGUSER=nama_medical_app
++ PGDATABASE=nama_medical_web
++ PGPASSWORD='NamaMedicalApp@2026!'
++ local version
+++ psql -tAc 'SHOW server_version'
++ version='14.23 (Ubuntu 14.23-0ubuntu0.22.04.1)'
++ record ok 'connection: nama_medical_web@localhost:5432 (PG 14.23 (Ubuntu 14.23-0ubuntu0.22.04.1))'
++ local sev=ok
++ shift
++ case "${sev}" in
++ LINES+=("OK    $*")
++ [[ 0 -gt 0 ]]
++ check_table_counts
++ local total rls
+++ psql -tAc 'SELECT count(*) FROM information_schema.tables WHERE table_schema='\''public'\'';'
++ total=358
+++ psql -tAc 'SELECT count(*) FROM pg_tables WHERE schemaname='\''public'\'' AND rowsecurity=true;'
++ rls=247
++ [[ -z 358 ]]
++ [[ -z 247 ]]
++ record ok 'tables: 358 public, 247 with RLS enabled'
++ local sev=ok
++ shift
++ case "${sev}" in
++ LINES+=("OK    $*")
++ check_rls_drift
++ local rls
+++ psql -tAc 'SELECT count(*) FROM pg_tables WHERE schemaname='\''public'\'' AND rowsecurity=true;'
++ rls=247
++ [[ -f /var/www/namaweb/ops/rls_baseline.txt ]]
++ record info 'RLS drift: no baseline file (live=247); create /var/www/namaweb/ops/rls_baseline.txt to enable drift check'
++ local sev=info
++ shift
++ case "${sev}" in
++ LINES+=("INFO  $*")
++ check_migrations
++ [[ ! -d /var/www/namaweb/migrations ]]
++ local up_files
+++ find /var/www/namaweb/migrations -maxdepth 1 -type f -name '*_up.sql'
+++ wc -l
++ up_files=147
++ local down_files
+++ wc -l
+++ find /var/www/namaweb/migrations -maxdepth 1 -type f -name '*_down.sql'
++ down_files=140
++ local orphan_downs
+++ find /var/www/namaweb/migrations -maxdepth 1 -type f -name '*_down.sql'
+++ read -r d
+++ wc -l
+++ local base=/var/www/namaweb/migrations/e16_01_inventory_cssd_rls
+++ [[ ! -f /var/www/namaweb/migrations/e16_01_inventory_cssd_rls_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e65_dermatology
+++ [[ ! -f /var/www/namaweb/migrations/e65_dermatology_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e75_pediatrics_nicu
+++ [[ ! -f /var/www/namaweb/migrations/e75_pediatrics_nicu_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e33_nephrology_module
+++ [[ ! -f /var/www/namaweb/migrations/e33_nephrology_module_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e64_infectious_diseases
+++ [[ ! -f /var/www/namaweb/migrations/e64_infectious_diseases_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e101_gastroenterology_core
+++ [[ ! -f /var/www/namaweb/migrations/e101_gastroenterology_core_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e16_03_cssd_trays
+++ [[ ! -f /var/www/namaweb/migrations/e16_03_cssd_trays_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e77_diagnostics_advanced
+++ [[ ! -f /var/www/namaweb/migrations/e77_diagnostics_advanced_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e12_001_surgery_or
+++ [[ ! -f /var/www/namaweb/migrations/e12_001_surgery_or_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e69_orthopedics_trauma
+++ [[ ! -f /var/www/namaweb/migrations/e69_orthopedics_trauma_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e2_03_record_access
+++ [[ ! -f /var/www/namaweb/migrations/e2_03_record_access_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e59_gastro_hepatology
+++ [[ ! -f /var/www/namaweb/migrations/e59_gastro_hepatology_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e38_ophthalmology_module
+++ [[ ! -f /var/www/namaweb/migrations/e38_ophthalmology_module_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e22_01_operational_money_numeric
+++ [[ ! -f /var/www/namaweb/migrations/e22_01_operational_money_numeric_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e63_rheumatology_immunology
+++ [[ ! -f /var/www/namaweb/migrations/e63_rheumatology_immunology_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e76_plastic_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e76_plastic_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e40_plastic_burns
+++ [[ ! -f /var/www/namaweb/migrations/e40_plastic_burns_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e32_endocrine_module
+++ [[ ! -f /var/www/namaweb/migrations/e32_endocrine_module_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e55_vascular_ahf
+++ [[ ! -f /var/www/namaweb/migrations/e55_vascular_ahf_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e9_01_icu_rls
+++ [[ ! -f /var/www/namaweb/migrations/e9_01_icu_rls_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e58_respiratory_advanced
+++ [[ ! -f /var/www/namaweb/migrations/e58_respiratory_advanced_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/p0_01_deferred_modules_rls
+++ [[ ! -f /var/www/namaweb/migrations/p0_01_deferred_modules_rls_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e61_oncology_hematology
+++ [[ ! -f /var/www/namaweb/migrations/e61_oncology_hematology_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e77_obgyn_peds_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e77_obgyn_peds_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/ex_02_rbac
+++ [[ ! -f /var/www/namaweb/migrations/ex_02_rbac_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e10_04_invoice_gl_link
+++ [[ ! -f /var/www/namaweb/migrations/e10_04_invoice_gl_link_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e79_rehab_support
+++ [[ ! -f /var/www/namaweb/migrations/e79_rehab_support_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e0_02_facilities_extend
+++ [[ ! -f /var/www/namaweb/migrations/e0_02_facilities_extend_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e27_pharmacy_queue_columns
+++ [[ ! -f /var/www/namaweb/migrations/e27_pharmacy_queue_columns_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e54_preventive_cardio_ob
+++ [[ ! -f /var/www/namaweb/migrations/e54_preventive_cardio_ob_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e18_01_hr_workforce
+++ [[ ! -f /var/www/namaweb/migrations/e18_01_hr_workforce_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e71_neuro_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e71_neuro_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e72_urology
+++ [[ ! -f /var/www/namaweb/migrations/e72_urology_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/ex_03_tenant_id_indexes
+++ [[ ! -f /var/www/namaweb/migrations/ex_03_tenant_id_indexes_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e67_cardio_thoracic_vascular
+++ [[ ! -f /var/www/namaweb/migrations/e67_cardio_thoracic_vascular_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e70_ophthalmology
+++ [[ ! -f /var/www/namaweb/migrations/e70_ophthalmology_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e10_01_gl_structure
+++ [[ ! -f /var/www/namaweb/migrations/e10_01_gl_structure_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e68_infectious_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e68_infectious_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e101_interventional_cardiology
+++ [[ ! -f /var/www/namaweb/migrations/e101_interventional_cardiology_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e1_02_clinical_notes
+++ [[ ! -f /var/www/namaweb/migrations/e1_02_clinical_notes_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e17_001_quality_capa
+++ [[ ! -f /var/www/namaweb/migrations/e17_001_quality_capa_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e24_tenants_control_center_candidate
+++ [[ ! -f /var/www/namaweb/migrations/e24_tenants_control_center_candidate_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e75_urology_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e75_urology_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e49_result_acknowledgements_candidate
+++ [[ ! -f /var/www/namaweb/migrations/e49_result_acknowledgements_candidate_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e21_001_cardiology_specialties
+++ [[ ! -f /var/www/namaweb/migrations/e21_001_cardiology_specialties_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e3_02_lab_results
+++ [[ ! -f /var/www/namaweb/migrations/e3_02_lab_results_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e10_03_zatca_invoices
+++ [[ ! -f /var/www/namaweb/migrations/e10_03_zatca_invoices_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e74_obgyn_ivf_mfm
+++ [[ ! -f /var/www/namaweb/migrations/e74_obgyn_ivf_mfm_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e66_general_surgery
+++ [[ ! -f /var/www/namaweb/migrations/e66_general_surgery_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e2_02_roi
+++ [[ ! -f /var/www/namaweb/migrations/e2_02_roi_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e7_01_emergency_ed_workflow
+++ [[ ! -f /var/www/namaweb/migrations/e7_01_emergency_ed_workflow_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e31_gastro_module
+++ [[ ! -f /var/www/namaweb/migrations/e31_gastro_module_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e102_general_surgery_core
+++ [[ ! -f /var/www/namaweb/migrations/e102_general_surgery_core_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e39_ent_module
+++ [[ ! -f /var/www/namaweb/migrations/e39_ent_module_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e29_prescriptions_rls_reconciliation
+++ [[ ! -f /var/www/namaweb/migrations/e29_prescriptions_rls_reconciliation_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e15_pathology_01_specimens_blocks_slides_reports
+++ [[ ! -f /var/www/namaweb/migrations/e15_pathology_01_specimens_blocks_slides_reports_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/p1_04_pricing_overrides
+++ [[ ! -f /var/www/namaweb/migrations/p1_04_pricing_overrides_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e25_plans_pricing_candidate
+++ [[ ! -f /var/www/namaweb/migrations/e25_plans_pricing_candidate_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/p1_02_gl_posting_idempotency
+++ [[ ! -f /var/www/namaweb/migrations/p1_02_gl_posting_idempotency_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e6_01_mar_administrations
+++ [[ ! -f /var/www/namaweb/migrations/e6_01_mar_administrations_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e26_payment_gateway_ref
+++ [[ ! -f /var/www/namaweb/migrations/e26_payment_gateway_ref_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e0_01_tenants_archetype
+++ [[ ! -f /var/www/namaweb/migrations/e0_01_tenants_archetype_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e7_02_emergency_rls
+++ [[ ! -f /var/www/namaweb/migrations/e7_02_emergency_rls_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e8_02_bed_status_history
+++ [[ ! -f /var/www/namaweb/migrations/e8_02_bed_status_history_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e0_03_facility_modules
+++ [[ ! -f /var/www/namaweb/migrations/e0_03_facility_modules_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e65_oncology_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e65_oncology_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e3_03_lab_qc
+++ [[ ! -f /var/www/namaweb/migrations/e3_03_lab_qc_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e11_03_nphies_lifecycle_tables
+++ [[ ! -f /var/www/namaweb/migrations/e11_03_nphies_lifecycle_tables_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e5_02_pharmacy_dispense
+++ [[ ! -f /var/www/namaweb/migrations/e5_02_pharmacy_dispense_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e81_rare_specialties
+++ [[ ! -f /var/www/namaweb/migrations/e81_rare_specialties_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e6_05_clinical_pharmacy
+++ [[ ! -f /var/www/namaweb/migrations/e6_05_clinical_pharmacy_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e3_01_lab_samples
+++ [[ ! -f /var/www/namaweb/migrations/e3_01_lab_samples_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e67_rheuma_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e67_rheuma_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e51_cardiology_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e51_cardiology_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e100_cardiology_general
+++ [[ ! -f /var/www/namaweb/migrations/e100_cardiology_general_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e50_clinical_rls_candidate
+++ [[ ! -f /var/www/namaweb/migrations/e50_clinical_rls_candidate_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e47_billing_tables_candidate
+++ [[ ! -f /var/www/namaweb/migrations/e47_billing_tables_candidate_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e35_rheumatology_module
+++ [[ ! -f /var/www/namaweb/migrations/e35_rheumatology_module_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e36_neurology_module
+++ [[ ! -f /var/www/namaweb/migrations/e36_neurology_module_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e57_gastro_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e57_gastro_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e14_ob_maternity
+++ [[ ! -f /var/www/namaweb/migrations/e14_ob_maternity_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e80_admin_ops
+++ [[ ! -f /var/www/namaweb/migrations/e80_admin_ops_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e6_02_nursing_io_records
+++ [[ ! -f /var/www/namaweb/migrations/e6_02_nursing_io_records_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e41_intensive_care
+++ [[ ! -f /var/www/namaweb/migrations/e41_intensive_care_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e69_derm_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e69_derm_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e80_critical_care
+++ [[ ! -f /var/www/namaweb/migrations/e80_critical_care_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e57_respiratory_allergy_sleep
+++ [[ ! -f /var/www/namaweb/migrations/e57_respiratory_allergy_sleep_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e100_pulmonology_core
+++ [[ ! -f /var/www/namaweb/migrations/e100_pulmonology_core_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/ex_01_orders
+++ [[ ! -f /var/www/namaweb/migrations/ex_01_orders_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e60_nephrology_dialysis
+++ [[ ! -f /var/www/namaweb/migrations/e60_nephrology_dialysis_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/p1_03_department_owners
+++ [[ ! -f /var/www/namaweb/migrations/p1_03_department_owners_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e5_01_drug_batches
+++ [[ ! -f /var/www/namaweb/migrations/e5_01_drug_batches_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e78_critical_care
+++ [[ ! -f /var/www/namaweb/migrations/e78_critical_care_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e1_01_problems
+++ [[ ! -f /var/www/namaweb/migrations/e1_01_problems_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e8_01_inpatient_adt_rls
+++ [[ ! -f /var/www/namaweb/migrations/e8_01_inpatient_adt_rls_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e74_ent_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e74_ent_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e76_peds_subspecialties
+++ [[ ! -f /var/www/namaweb/migrations/e76_peds_subspecialties_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e6_03_nursing_scores
+++ [[ ! -f /var/www/namaweb/migrations/e6_03_nursing_scores_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e53_nuclear_cardiology
+++ [[ ! -f /var/www/namaweb/migrations/e53_nuclear_cardiology_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e103_obgyn_core
+++ [[ ! -f /var/www/namaweb/migrations/e103_obgyn_core_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/p1_06_exam_rooms
+++ [[ ! -f /var/www/namaweb/migrations/p1_06_exam_rooms_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e50a_cardiology_specialized
+++ [[ ! -f /var/www/namaweb/migrations/e50a_cardiology_specialized_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/p1_05_waiting_queue_acuity
+++ [[ ! -f /var/www/namaweb/migrations/p1_05_waiting_queue_acuity_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e30_cardiology_module
+++ [[ ! -f /var/www/namaweb/migrations/e30_cardiology_module_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e52_ep_specialized
+++ [[ ! -f /var/www/namaweb/migrations/e52_ep_specialized_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e34_pulmonology_module
+++ [[ ! -f /var/www/namaweb/migrations/e34_pulmonology_module_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e56_pulmonology_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e56_pulmonology_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e68_neurosurgery_spine
+++ [[ ! -f /var/www/namaweb/migrations/e68_neurosurgery_spine_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e73_plastic_burns
+++ [[ ! -f /var/www/namaweb/migrations/e73_plastic_burns_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e73_eye_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e73_eye_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e44_surgery_urology
+++ [[ ! -f /var/www/namaweb/migrations/e44_surgery_urology_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e51_cath_lab_specialized
+++ [[ ! -f /var/www/namaweb/migrations/e51_cath_lab_specialized_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e62_endocrine_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e62_endocrine_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e48_ews_score_types_candidate
+++ [[ ! -f /var/www/namaweb/migrations/e48_ews_score_types_candidate_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/p1_01_legacy_core_rls
+++ [[ ! -f /var/www/namaweb/migrations/p1_01_legacy_core_rls_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e17_002_infection
+++ [[ ! -f /var/www/namaweb/migrations/e17_002_infection_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e2_01_coding
+++ [[ ! -f /var/www/namaweb/migrations/e2_01_coding_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e37_nephrology_module
+++ [[ ! -f /var/www/namaweb/migrations/e37_nephrology_module_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e56_respiratory_specialized
+++ [[ ! -f /var/www/namaweb/migrations/e56_respiratory_specialized_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e9_02_icu_infusions
+++ [[ ! -f /var/www/namaweb/migrations/e9_02_icu_infusions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e72_ortho_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e72_ortho_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e16_02_supply_chain
+++ [[ ! -f /var/www/namaweb/migrations/e16_02_supply_chain_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e46_specialties_next2
+++ [[ ! -f /var/www/namaweb/migrations/e46_specialties_next2_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e23_01_idempotency_keys
+++ [[ ! -f /var/www/namaweb/migrations/e23_01_idempotency_keys_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e11_01_claims_lifecycle
+++ [[ ! -f /var/www/namaweb/migrations/e11_01_claims_lifecycle_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e0_04_integration_settings_rls
+++ [[ ! -f /var/www/namaweb/migrations/e0_04_integration_settings_rls_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e45_specialties_next
+++ [[ ! -f /var/www/namaweb/migrations/e45_specialties_next_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e71_ent
+++ [[ ! -f /var/www/namaweb/migrations/e71_ent_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e43_ophthalmology
+++ [[ ! -f /var/www/namaweb/migrations/e43_ophthalmology_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e42_orthopedics
+++ [[ ! -f /var/www/namaweb/migrations/e42_orthopedics_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e5_03_controlled_log
+++ [[ ! -f /var/www/namaweb/migrations/e5_03_controlled_log_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e60_nephrology_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e60_nephrology_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e10_02_cost_centers
+++ [[ ! -f /var/www/namaweb/migrations/e10_02_cost_centers_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e11_02_companies_policies
+++ [[ ! -f /var/www/namaweb/migrations/e11_02_companies_policies_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e62_endocrinology_diabetes
+++ [[ ! -f /var/www/namaweb/migrations/e62_endocrinology_diabetes_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e28_patients_schema_reconciliation
+++ [[ ! -f /var/www/namaweb/migrations/e28_patients_schema_reconciliation_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e10_05_daily_close_rls
+++ [[ ! -f /var/www/namaweb/migrations/e10_05_daily_close_rls_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/p1_01_account_lockout
+++ [[ ! -f /var/www/namaweb/migrations/p1_01_account_lockout_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e70_cardio_thoracic_extensions
+++ [[ ! -f /var/www/namaweb/migrations/e70_cardio_thoracic_extensions_up.sql ]]
+++ read -r d
+++ local base=/var/www/namaweb/migrations/e6_04_nursing_rls
+++ [[ ! -f /var/www/namaweb/migrations/e6_04_nursing_rls_up.sql ]]
+++ read -r d
++ orphan_downs=0

@@ -1,0 +1,27 @@
+# P0-3 BCMA — APM Rules
+name: bcma-apm
+
+rules:
+  - id: high_block_rate
+    condition: blocks_per_hour > 20
+    action: page_on_call
+  - id: scan_latency
+    condition: scan_response_p95 > 500
+    action: alert_warning
+  - id: override_spike
+    condition: overrides_per_hour > 5
+    action: notify_pharmacy_lead
+  - id: witness_timeout
+    condition: witness_wait_time > 5min
+    action: alert_critical
+  - id: error_rate
+    condition: error_pct > 1
+    action: alert_error
+
+metrics:
+  - scans_total
+  - blocks_total
+  - overrides_total
+  - high_alert_total
+  - late_dose_total
+  - witness_required_total

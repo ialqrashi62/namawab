@@ -1,0 +1,31 @@
+{
+  "locale": "en",
+  "direction": "ltr",
+  "module": "P0-3_BCMA",
+  "keys": {
+    "app.title": "BCMA — Barcode Medication Administration",
+    "app.subtitle": "Closed-loop medication safety",
+    "nav.dashboard": "Dashboard",
+    "nav.scan": "Scan",
+    "nav.mar": "MAR",
+    "nav.overrides": "Overrides",
+    "nav.alerts": "Alerts",
+    "nav.stats": "Statistics",
+    "action.scan_wristband": "Scan Wristband",
+    "action.scan_drug": "Scan Drug",
+    "action.administer": "Administer",
+    "action.block": "Block",
+    "rights.patient": "Right Patient",
+    "rights.drug": "Right Drug",
+    "rights.dose": "Right Dose",
+    "rights.route": "Right Route",
+    "rights.time": "Right Time",
+    "alert.allergy": "Allergy Alert",
+    "alert.interaction": "Drug Interaction Alert",
+    "alert.high_alert": "High-Alert Medication",
+    "alert.override": "Override Documented",
+    "witness.required": "Witness Required",
+    "verify.success": "Verified",
+    "verify.failed": "Verification Failed"
+  }
+}

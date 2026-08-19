@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>BCMA — Chart</title>
+<style>
+  body { font-family: 'Tajawal', sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 20px; }
+  h1 { color: #38bdf8; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  th, td { padding: 10px; text-align: right; border-bottom: 1px solid #334155; }
+  th { background: #1e293b; color: #94a3b8; }
+  tr:hover td { background: #1e293b; }
+  .pill { padding: 4px 8px; border-radius: 999px; font-size: 12px; }
+  .pill.ok { background: #10b981; }
+  .pill.warn { background: #f59e0b; }
+  .pill.err { background: #ef4444; }
+</style>
+</head>
+<body>
+<h1>📊 BCMA Chart — سجل الإعطاء</h1>
+<table>
+<thead><tr><th>الوقت</th><th>الدواء</th><th>الجرعة</th><th>الحالة</th><th>التنبيهات</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+<script>
+fetch('/api/bcma/chart').then(r => r.json()).then(d => {
+  document.getElementById('rows').innerHTML = (d.entries || []).map(e => `
+    <tr>
+      <td>${new Date(e.administered_at || e.scheduled_at).toLocaleString('ar-SA')}</td>
+      <td>${e.drug_name}</td>
+      <td>${e.dose}</td>
+      <td><span class="pill ${e.status === 'administered' ? 'ok' : 'warn'}">${e.status}</span></td>
+      <td>${(e.alerts || []).join(', ') || '—'}</td>
+    </tr>
+  `).join('');
+});
+</script>
+</body>
+</html>

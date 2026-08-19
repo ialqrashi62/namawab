@@ -1,0 +1,21 @@
+{
+  "theme": "dark-clinical",
+  "colors": {
+    "background": "#0f172a",
+    "card": "#1e293b",
+    "border": "#334155",
+    "text_primary": "#f1f5f9",
+    "text_secondary": "#94a3b8",
+    "accent_blue": "#38bdf8",
+    "success": "#10b981",
+    "warning": "#f59e0b",
+    "danger": "#ef4444"
+  },
+  "fonts": {
+    "primary_ar": "Tajawal",
+    "primary_en": "Inter",
+    "mono": "JetBrains Mono"
+  },
+  "border_radius": "12px",
+  "shadow": "0 4px 16px rgba(0,0,0,0.3)"
+}

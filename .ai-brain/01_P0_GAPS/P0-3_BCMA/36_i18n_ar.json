@@ -1,0 +1,31 @@
+{
+  "locale": "ar",
+  "direction": "rtl",
+  "module": "P0-3_BCMA",
+  "keys": {
+    "app.title": "BCMA — الباركود الطبي",
+    "app.subtitle": "Barcode Medication Administration",
+    "nav.dashboard": "لوحة المعلومات",
+    "nav.scan": "مسح",
+    "nav.mar": "سجل الأدوية",
+    "nav.overrides": "التجاوزات",
+    "nav.alerts": "التنبيهات",
+    "nav.stats": "الإحصائيات",
+    "action.scan_wristband": "مسح معصم المريض",
+    "action.scan_drug": "مسح الدواء",
+    "action.administer": "إعطاء الدواء",
+    "action.block": "حظر الإعطاء",
+    "rights.patient": "المريض الصحيح",
+    "rights.drug": "الدواء الصحيح",
+    "rights.dose": "الجرعة الصحيحة",
+    "rights.route": "المسار الصحيح",
+    "rights.time": "الوقت الصحيح",
+    "alert.allergy": "تنبيه حساسية",
+    "alert.interaction": "تنبيه تفاعل دوائي",
+    "alert.high_alert": "دواء عالي الخطورة",
+    "alert.override": "تجاوز مع توثيق",
+    "witness.required": "مطلوب شهود",
+    "verify.success": "تم التحقق بنجاح",
+    "verify.failed": "فشل التحقق"
+  }
+}

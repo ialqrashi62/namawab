@@ -1,0 +1,18 @@
+{
+  "copd.title": "COPD — مرض الانسداد الرئوي المزمن",
+  "copd.gold.stage": "تصنيف GOLD",
+  "copd.group": "المجموعة",
+  "copd.airflow": "شدة انسداد الهواء",
+  "copd.exac.severity": "حدة النوبة",
+  "copd.exac.mild": "خفيفة",
+  "copd.exac.moderate": "متوسطة",
+  "copd.exac.severe": "شديدة",
+  "copd.inhaler.adherence": "الالتزام بالبخاخ",
+  "copd.inhaler.good": "التزام جيد",
+  "copd.inhaler.poor": "التزام ضعيف",
+  "copd.oxygen.ltot": "الأكسجين طويل المدى",
+  "copd.rehab.eligible": "مؤهل لإعادة التأهيل",
+  "copd.vacc.influenza": "الإنفلونزا",
+  "copd.vacc.pneumococcal": "الالتهاب الرئوي",
+  "copd.vacc.due": "مستحق"
+}

@@ -1,0 +1,12 @@
+{
+  "name": "nama-bcma",
+  "script": "./bcma_service.js",
+  "instances": 2,
+  "exec_mode": "cluster",
+  "max_memory_restart": "256M",
+  "env": {
+    "NODE_ENV": "production",
+    "PORT": 3001,
+    "TENANT_HEADER_REQUIRED": "true"
+  }
+}

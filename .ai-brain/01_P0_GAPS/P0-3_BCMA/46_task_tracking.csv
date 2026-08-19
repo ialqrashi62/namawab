@@ -1,0 +1,18 @@
+task_id,title,owner,status,estimate_days,sprint
+BCMA-001,DB migrations,backend,completed,1,Sprint1
+BCMA-002,5 Rights engine,backend,completed,2,Sprint1
+BCMA-003,Allergy check,backend,completed,2,Sprint1
+BCMA-004,Basic scan flow,fullstack,completed,3,Sprint1
+BCMA-005,High-alert identify,backend,pending,2,Sprint2
+BCMA-006,2-nurse witness,fullstack,pending,3,Sprint2
+BCMA-007,Override workflow,fullstack,pending,2,Sprint2
+BCMA-008,Audit log,backend,pending,1,Sprint2
+BCMA-009,Mobile UI,frontend,pending,4,Sprint3
+BCMA-010,Offline mode,fullstack,pending,3,Sprint3
+BCMA-011,Late dose detection,backend,pending,2,Sprint3
+BCMA-012,PRN tracking,backend,pending,1,Sprint3
+BCMA-013,Disposal flow,fullstack,pending,2,Sprint3
+BCMA-014,Drug interaction RAG,backend,pending,3,Sprint4
+BCMA-015,eMAR chart,fullstack,pending,3,Sprint4
+BCMA-016,Reports,backend,pending,2,Sprint4
+BCMA-017,i18n AR/EN/FR/UR,frontend,pending,2,Sprint4

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>BCMA — تفاصيل الدواء</title>
+<style>
+  body { font-family: 'Tajawal', sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 20px; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; max-width: 800px; margin: 0 auto; }
+  h1 { color: #38bdf8; }
+  .field { margin: 10px 0; }
+  .label { color: #94a3b8; font-size: 14px; }
+  .value { font-size: 18px; color: #f1f5f9; }
+  .badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 12px; margin-right: 6px; }
+  .badge.high-alert { background: #f59e0b; color: #000; }
+  .badge.controlled { background: #ef4444; color: #fff; }
+  .badge.normal { background: #10b981; color: #fff; }
+  .alert { padding: 12px; border-radius: 8px; background: #7f1d1d; color: #fee2e2; margin: 10px 0; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>💊 تفاصيل الدواء</h1>
+  <div class="field"><span class="label">اسم الدواء:</span><div class="value" id="drug-name">--</div></div>
+  <div class="field"><span class="label">الجرعة:</span><div class="value" id="dose">--</div></div>
+  <div class="field"><span class="label">المسار:</span><div class="value" id="route">--</div></div>
+  <div class="field"><span class="label">التوقيت المجدول:</span><div class="value" id="scheduled">--</div></div>
+  <div class="field"><span class="label">الحالة:</span>
+    <span class="badge normal" id="badge-status">عادي</span>
+    <span class="badge high-alert" id="badge-high-alert" style="display:none;">HIGH-ALERT</span>
+    <span class="badge controlled" id="badge-controlled" style="display:none;">Controlled</span>
+  </div>
+  <div class="alert" id="alerts-container" style="display:none;"></div>
+  <button class="btn">✅ تأكيد الإعطاء</button>
+  <button class="btn" style="background:#ef4444;">❌ رفض</button>
+</div>
+</body>
+</html>

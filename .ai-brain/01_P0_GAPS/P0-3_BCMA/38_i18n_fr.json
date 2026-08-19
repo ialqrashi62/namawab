@@ -1,0 +1,22 @@
+{
+  "bcma.title": "Administration des médicaments par code-barres",
+  "bcma.scan.patient": "Scanner le poignet du patient",
+  "bcma.scan.drug": "Scanner le code-barres du médicament",
+  "bcma.dose": "Dose",
+  "bcma.route": "Voie",
+  "bcma.route.po": "Oral",
+  "bcma.route.iv": "Intraveineuse",
+  "bcma.route.im": "Intramusculaire",
+  "bcma.route.sc": "Sous-cutanée",
+  "bcma.rights.pass": "5 Bons vérifiés",
+  "bcma.rights.block": "5 Bons échoués",
+  "bcma.allergy.block": "Allergie détectée — bloqué",
+  "bcma.interaction.warn": "Interaction médicamenteuse détectée",
+  "bcma.highalert.witness": "Témoin requis pour médicament à haut risque",
+  "bcma.override.reason": "Raison du contournement",
+  "bcma.override.approve": "Approbateur requis",
+  "bcma.confirm": "Confirmer l'administration",
+  "bcma.refuse": "Refuser",
+  "bcma.late.flag": "Dose tardive",
+  "bcma.dispose": "Élimination du médicament avec témoin"
+}
