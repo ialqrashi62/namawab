@@ -321,6 +321,11 @@ try { app.use('/api/endo_thyroid_v2', require('./tier76_endo_ext_404_endo_thyroi
 try { app.use('/api/endo_adrenal_v2', require('./tier76_endo_ext_405_endo_adrenal_router')); } catch(e) { console.error('endo_adrenal_v2 mount failed', e.message); }
 try { app.use('/api/endo_pituitary_v2', require('./tier76_endo_ext_406_endo_pituitary_router')); } catch(e) { console.error('endo_pituitary_v2 mount failed', e.message); }
 try { app.use('/api/endo_special_v2', require('./tier76_endo_ext_407_endo_special_router')); } catch(e) { console.error('endo_special_v2 mount failed', e.message); }
+try { app.use('/api/neuro_stroke_v2', require('./tier77_neuro_ext_408_neuro_stroke_router')); } catch(e) { console.error('neuro_stroke_v2 mount failed', e.message); }
+try { app.use('/api/neuro_epilepsy_v2', require('./tier77_neuro_ext_409_neuro_epilepsy_router')); } catch(e) { console.error('neuro_epilepsy_v2 mount failed', e.message); }
+try { app.use('/api/neuro_movement_v2', require('./tier77_neuro_ext_410_neuro_movement_router')); } catch(e) { console.error('neuro_movement_v2 mount failed', e.message); }
+try { app.use('/api/neuro_neuromuscular_v2', require('./tier77_neuro_ext_411_neuro_neuromuscular_router')); } catch(e) { console.error('neuro_neuromuscular_v2 mount failed', e.message); }
+try { app.use('/api/neuro_headache_v2', require('./tier77_neuro_ext_412_neuro_headache_router')); } catch(e) { console.error('neuro_headache_v2 mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
