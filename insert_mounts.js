@@ -301,6 +301,11 @@ try { app.use('/api/er_resus', require('./tier72_er_389_er_resus_router')); } ca
 try { app.use('/api/er_medic', require('./tier72_er_390_er_medic_router')); } catch(e) { console.error('er_medic mount failed', e.message); }
 try { app.use('/api/er_trauma', require('./tier72_er_391_er_trauma_router')); } catch(e) { console.error('er_trauma mount failed', e.message); }
 try { app.use('/api/er_dispos', require('./tier72_er_392_er_dispos_router')); } catch(e) { console.error('er_dispos mount failed', e.message); }
+try { app.use('/api/cardio_ext_ep', require('./tier73_cardio_ext_383_cardio_ep_router')); } catch(e) { console.error('cardio_ext_ep mount failed', e.message); }
+try { app.use('/api/cardio_ext_imaging', require('./tier73_cardio_ext_384_cardio_imaging_router')); } catch(e) { console.error('cardio_ext_imaging mount failed', e.message); }
+try { app.use('/api/cardio_ext_chf', require('./tier73_cardio_ext_385_cardio_chf_router')); } catch(e) { console.error('cardio_ext_chf mount failed', e.message); }
+try { app.use('/api/cardio_ext_rehab', require('./tier73_cardio_ext_386_cardio_rehab_router')); } catch(e) { console.error('cardio_ext_rehab mount failed', e.message); }
+try { app.use('/api/cardio_ext_prevention', require('./tier73_cardio_ext_387_cardio_prevention_router')); } catch(e) { console.error('cardio_ext_prevention mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
