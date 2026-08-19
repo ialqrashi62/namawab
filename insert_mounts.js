@@ -451,6 +451,18 @@ try { app.use('/api/surg_oncology_v2', require('./tier102_surg_oncology_534_rout
 try { app.use('/api/surg_vascular_v2', require('./tier102_surg_vascular_535_router')); } catch(e) { console.error('surg_vascular_v2 mount failed', e.message); }
 try { app.use('/api/surg_trauma_v2', require('./tier102_surg_trauma_536_router')); } catch(e) { console.error('surg_trauma_v2 mount failed', e.message); }
 try { app.use('/api/surg_transplant_v2', require('./tier102_surg_transplant_537_router')); } catch(e) { console.error('surg_transplant_v2 mount failed', e.message); }
+try { app.use('/api/pathology_v2', require('./tier103_pathology_538_router')); } catch(e) { console.error('pathology_v2 mount failed', e.message); }
+try { app.use('/api/radiology_extended_v2', require('./tier103_radiology_extended_539_router')); } catch(e) { console.error('radiology_extended_v2 mount failed', e.message); }
+try { app.use('/api/nuclear_medicine_v2', require('./tier103_nuclear_medicine_540_router')); } catch(e) { console.error('nuclear_medicine_v2 mount failed', e.message); }
+try { app.use('/api/lab_management_v2', require('./tier103_lab_management_541_router')); } catch(e) { console.error('lab_management_v2 mount failed', e.message); }
+try { app.use('/api/blood_bank_v2', require('./tier103_blood_bank_542_router')); } catch(e) { console.error('blood_bank_v2 mount failed', e.message); }
+try { app.use('/api/quality_v2', require('./tier104_quality_543_router')); } catch(e) { console.error('quality_v2 mount failed', e.message); }
+try { app.use('/api/compliance_v2', require('./tier104_compliance_544_router')); } catch(e) { console.error('compliance_v2 mount failed', e.message); }
+try { app.use('/api/epidemiology_v2', require('./tier104_epidemiology_545_router')); } catch(e) { console.error('epidemiology_v2 mount failed', e.message); }
+try { app.use('/api/public_health_v2', require('./tier104_public_health_546_router')); } catch(e) { console.error('public_health_v2 mount failed', e.message); }
+try { app.use('/api/qi_v2', require('./tier104_qi_547_router')); } catch(e) { console.error('qi_v2 mount failed', e.message); }
+try { app.use('/api/research_v2', require('./tier104_research_548_router')); } catch(e) { console.error('research_v2 mount failed', e.message); }
+try { app.use('/api/telemedicine_v2', require('./tier104_telemedicine_549_router')); } catch(e) { console.error('telemedicine_v2 mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
