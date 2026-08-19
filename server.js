@@ -21426,5 +21426,10 @@ try { app.use('/api/peds_picu_v2', require('./tier101_peds_picu_529_router')); }
 try { app.use('/api/peds_cardiology_v2', require('./tier101_peds_cardiology_530_router')); } catch(e) { console.error('peds_cardiology_v2 mount failed', e.message); }
 try { app.use('/api/peds_pulmonology_v2', require('./tier101_peds_pulmonology_531_router')); } catch(e) { console.error('peds_pulmonology_v2 mount failed', e.message); }
 try { app.use('/api/peds_development_v2', require('./tier101_peds_development_532_router')); } catch(e) { console.error('peds_development_v2 mount failed', e.message); }
+try { app.use('/api/surg_general_v2', require('./tier102_surg_general_533_router')); } catch(e) { console.error('surg_general_v2 mount failed', e.message); }
+try { app.use('/api/surg_oncology_v2', require('./tier102_surg_oncology_534_router')); } catch(e) { console.error('surg_oncology_v2 mount failed', e.message); }
+try { app.use('/api/surg_vascular_v2', require('./tier102_surg_vascular_535_router')); } catch(e) { console.error('surg_vascular_v2 mount failed', e.message); }
+try { app.use('/api/surg_trauma_v2', require('./tier102_surg_trauma_536_router')); } catch(e) { console.error('surg_trauma_v2 mount failed', e.message); }
+try { app.use('/api/surg_transplant_v2', require('./tier102_surg_transplant_537_router')); } catch(e) { console.error('surg_transplant_v2 mount failed', e.message); }
 
 startServer();
