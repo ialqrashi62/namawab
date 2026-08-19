@@ -311,6 +311,11 @@ try { app.use('/api/onc_ext_followup', require('./tier74_onc_ext_394_onc_ext_fol
 try { app.use('/api/onc_ext_special', require('./tier74_onc_ext_395_onc_ext_special_router')); } catch(e) { console.error('onc_ext_special mount failed', e.message); }
 try { app.use('/api/onc_ext_symptom', require('./tier74_onc_ext_396_onc_ext_symptom_router')); } catch(e) { console.error('onc_ext_symptom mount failed', e.message); }
 try { app.use('/api/onc_ext_support', require('./tier74_onc_ext_397_onc_ext_support_router')); } catch(e) { console.error('onc_ext_support mount failed', e.message); }
+try { app.use('/api/pulm_assess', require('./tier75_pulm_ext_398_pulm_assess_router')); } catch(e) { console.error('pulm_assess mount failed', e.message); }
+try { app.use('/api/pulm_disease', require('./tier75_pulm_ext_399_pulm_disease_router')); } catch(e) { console.error('pulm_disease mount failed', e.message); }
+try { app.use('/api/pulm_proc', require('./tier75_pulm_ext_400_pulm_proc_router')); } catch(e) { console.error('pulm_proc mount failed', e.message); }
+try { app.use('/api/pulm_special', require('./tier75_pulm_ext_401_pulm_special_router')); } catch(e) { console.error('pulm_special mount failed', e.message); }
+try { app.use('/api/pulm_icu', require('./tier75_pulm_ext_402_pulm_icu_router')); } catch(e) { console.error('pulm_icu mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
