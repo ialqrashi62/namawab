@@ -21453,5 +21453,10 @@ try { app.use('/api/trauma_center_v2', require('./tier106_trauma_center_556_rout
 try { app.use('/api/disaster_v2', require('./tier106_disaster_557_router')); } catch(e) { console.error('disaster_v2 mount failed', e.message); }
 try { app.use('/api/poison_control_v2', require('./tier106_poison_control_558_router')); } catch(e) { console.error('poison_control_v2 mount failed', e.message); }
 try { app.use('/api/pre_hospital_v2', require('./tier106_pre_hospital_559_router')); } catch(e) { console.error('pre_hospital_v2 mount failed', e.message); }
+try { app.use('/api/nursing_assess_v2', require('./tier107_nursing_assess_561_router')); } catch(e) { console.error('nursing_assess_v2 mount failed', e.message); }
+try { app.use('/api/nursing_med_admin_v2', require('./tier107_nursing_med_admin_562_router')); } catch(e) { console.error('nursing_med_admin_v2 mount failed', e.message); }
+try { app.use('/api/wound_care_v2', require('./tier107_wound_care_563_router')); } catch(e) { console.error('wound_care_v2 mount failed', e.message); }
+try { app.use('/api/iv_therapy_v2', require('./tier107_iv_therapy_564_router')); } catch(e) { console.error('iv_therapy_v2 mount failed', e.message); }
+try { app.use('/api/allied_health_v2', require('./tier107_allied_health_565_router')); } catch(e) { console.error('allied_health_v2 mount failed', e.message); }
 
 startServer();
