@@ -21463,5 +21463,10 @@ try { app.use('/api/mri_advanced_v2', require('./tier108_mri_advanced_567_router
 try { app.use('/api/ultrasound_advanced_v2', require('./tier108_ultrasound_advanced_568_router')); } catch(e) { console.error('ultrasound_advanced_v2 mount failed', e.message); }
 try { app.use('/api/imaging_ai_v2', require('./tier108_imaging_ai_569_router')); } catch(e) { console.error('imaging_ai_v2 mount failed', e.message); }
 try { app.use('/api/imaging_quality_v2', require('./tier108_imaging_quality_570_router')); } catch(e) { console.error('imaging_quality_v2 mount failed', e.message); }
+try { app.use('/api/pain_mgmt_v2', require('./tier109_pain_management_571_router')); } catch(e) { console.error('pain_mgmt_v2 mount failed', e.message); }
+try { app.use('/api/palliative_care_v2', require('./tier109_palliative_care_572_router')); } catch(e) { console.error('palliative_care_v2 mount failed', e.message); }
+try { app.use('/api/spine_care_v2', require('./tier109_spine_care_573_router')); } catch(e) { console.error('spine_care_v2 mount failed', e.message); }
+try { app.use('/api/sports_medicine_v2', require('./tier109_sports_medicine_574_router')); } catch(e) { console.error('sports_medicine_v2 mount failed', e.message); }
+try { app.use('/api/sleep_medicine_v2', require('./tier109_sleep_medicine_575_router')); } catch(e) { console.error('sleep_medicine_v2 mount failed', e.message); }
 
 startServer();
