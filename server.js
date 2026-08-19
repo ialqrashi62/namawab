@@ -21483,5 +21483,10 @@ try { app.use('/api/pathogen_tracking_v2', require('./tier112_pathogen_tracking_
 try { app.use('/api/immunization_v2', require('./tier112_immunization_592_router')); } catch(e) { console.error('immunization_v2 mount failed', e.message); }
 try { app.use('/api/sterilization_v2', require('./tier112_sterilization_593_router')); } catch(e) { console.error('sterilization_v2 mount failed', e.message); }
 try { app.use('/api/stew_extended_v2', require('./tier112_stew_extended_594_router')); } catch(e) { console.error('stew_extended_v2 mount failed', e.message); }
+try { app.use('/api/ob_extended_v2', require('./tier113_ob_extended_595_router')); } catch(e) { console.error('ob_extended_v2 mount failed', e.message); }
+try { app.use('/api/maternal_med_v2', require('./tier113_maternal_medicine_596_router')); } catch(e) { console.error('maternal_med_v2 mount failed', e.message); }
+try { app.use('/api/reproductive_endocrine_v2', require('./tier113_reproductive_endocrine_597_router')); } catch(e) { console.error('reproductive_endocrine_v2 mount failed', e.message); }
+try { app.use('/api/fertility_v2', require('./tier113_fertility_598_router')); } catch(e) { console.error('fertility_v2 mount failed', e.message); }
+try { app.use('/api/gyne_onc_extended_v2', require('./tier113_gyne_oncology_extended_599_router')); } catch(e) { console.error('gyne_onc_extended_v2 mount failed', e.message); }
 
 startServer();
