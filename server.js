@@ -21421,5 +21421,10 @@ try { app.use('/api/obgyn_gyn_onc_v2', require('./tier100_obgyn_gyn_onc_524_rout
 try { app.use('/api/obgyn_rei_v2', require('./tier100_obgyn_rei_525_router')); } catch(e) { console.error('obgyn_rei_v2 mount failed', e.message); }
 try { app.use('/api/obgyn_menopause_v2', require('./tier100_obgyn_menopause_526_router')); } catch(e) { console.error('obgyn_menopause_v2 mount failed', e.message); }
 try { app.use('/api/obgyn_reproductive_v2', require('./tier100_obgyn_reproductive_527_router')); } catch(e) { console.error('obgyn_reproductive_v2 mount failed', e.message); }
+try { app.use('/api/peds_neonatal_v2', require('./tier101_peds_neonatal_528_router')); } catch(e) { console.error('peds_neonatal_v2 mount failed', e.message); }
+try { app.use('/api/peds_picu_v2', require('./tier101_peds_picu_529_router')); } catch(e) { console.error('peds_picu_v2 mount failed', e.message); }
+try { app.use('/api/peds_cardiology_v2', require('./tier101_peds_cardiology_530_router')); } catch(e) { console.error('peds_cardiology_v2 mount failed', e.message); }
+try { app.use('/api/peds_pulmonology_v2', require('./tier101_peds_pulmonology_531_router')); } catch(e) { console.error('peds_pulmonology_v2 mount failed', e.message); }
+try { app.use('/api/peds_development_v2', require('./tier101_peds_development_532_router')); } catch(e) { console.error('peds_development_v2 mount failed', e.message); }
 
 startServer();
