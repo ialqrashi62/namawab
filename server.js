@@ -21296,5 +21296,10 @@ try { app.use('/api/pulm_disease', require('./tier75_pulm_ext_399_pulm_disease_r
 try { app.use('/api/pulm_proc', require('./tier75_pulm_ext_400_pulm_proc_router')); } catch(e) { console.error('pulm_proc mount failed', e.message); }
 try { app.use('/api/pulm_special', require('./tier75_pulm_ext_401_pulm_special_router')); } catch(e) { console.error('pulm_special mount failed', e.message); }
 try { app.use('/api/pulm_icu', require('./tier75_pulm_ext_402_pulm_icu_router')); } catch(e) { console.error('pulm_icu mount failed', e.message); }
+try { app.use('/api/endo_diabetes_v2', require('./tier76_endo_ext_403_endo_diabetes_router')); } catch(e) { console.error('endo_diabetes_v2 mount failed', e.message); }
+try { app.use('/api/endo_thyroid_v2', require('./tier76_endo_ext_404_endo_thyroid_router')); } catch(e) { console.error('endo_thyroid_v2 mount failed', e.message); }
+try { app.use('/api/endo_adrenal_v2', require('./tier76_endo_ext_405_endo_adrenal_router')); } catch(e) { console.error('endo_adrenal_v2 mount failed', e.message); }
+try { app.use('/api/endo_pituitary_v2', require('./tier76_endo_ext_406_endo_pituitary_router')); } catch(e) { console.error('endo_pituitary_v2 mount failed', e.message); }
+try { app.use('/api/endo_special_v2', require('./tier76_endo_ext_407_endo_special_router')); } catch(e) { console.error('endo_special_v2 mount failed', e.message); }
 
 startServer();
