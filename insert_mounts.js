@@ -351,6 +351,11 @@ try { app.use('/api/obgyn_gyne_v2', require('./tier82_obgyn_ext_434_obgyn_gyne_r
 try { app.use('/api/obgyn_onc_v2', require('./tier82_obgyn_ext_435_obgyn_onc_router')); } catch(e) { console.error('obgyn_onc_v2 mount failed', e.message); }
 try { app.use('/api/obgyn_labor_v2', require('./tier82_obgyn_ext_436_obgyn_labor_router')); } catch(e) { console.error('obgyn_labor_v2 mount failed', e.message); }
 try { app.use('/api/obgyn_repro_v2', require('./tier82_obgyn_ext_437_obgyn_repro_router')); } catch(e) { console.error('obgyn_repro_v2 mount failed', e.message); }
+try { app.use('/api/derm_general_v2', require('./tier83_derm_ext_438_derm_general_router')); } catch(e) { console.error('derm_general_v2 mount failed', e.message); }
+try { app.use('/api/derm_onc_v2', require('./tier83_derm_ext_439_derm_onc_router')); } catch(e) { console.error('derm_onc_v2 mount failed', e.message); }
+try { app.use('/api/derm_immuno_v2', require('./tier83_derm_ext_440_derm_immuno_router')); } catch(e) { console.error('derm_immuno_v2 mount failed', e.message); }
+try { app.use('/api/derm_cosmetic_v2', require('./tier83_derm_ext_441_derm_cosmetic_router')); } catch(e) { console.error('derm_cosmetic_v2 mount failed', e.message); }
+try { app.use('/api/derm_peds_v2', require('./tier83_derm_ext_442_derm_peds_router')); } catch(e) { console.error('derm_peds_v2 mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
