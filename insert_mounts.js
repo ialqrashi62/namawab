@@ -527,3 +527,9 @@ try { app.use('/api/specialty_rehab_v2', require('./tier116_specialty_rehab_614_
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
 console.log('Inserted', mounts.split('\n').length, 'mounts. New file size:', newC.length);
+
+try { app.use('/api/workflow_v2', require('./tier117_workflow_615_router')); } catch(e) { console.error('workflow_v2 mount failed', e.message); }
+try { app.use('/api/cds_v2', require('./tier117_clinical_decision_617_router')); } catch(e) { console.error('cds_v2 mount failed', e.message); }
+try { app.use('/api/quality_metric_v2', require('./tier117_quality_metrics_618_router')); } catch(e) { console.error('quality_metric_v2 mount failed', e.message); }
+try { app.use('/api/credentialing_v2', require('./tier117_credentialing_619_router')); } catch(e) { console.error('credentialing_v2 mount failed', e.message); }
+
