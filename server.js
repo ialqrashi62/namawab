@@ -21473,5 +21473,10 @@ try { app.use('/api/antimicrobial_stewardship_v2', require('./tier110_antimicrob
 try { app.use('/api/chemotherapy_pharmacy_v2', require('./tier110_chemotherapy_pharmacy_582_router')); } catch(e) { console.error('chemotherapy_pharmacy_v2 mount failed', e.message); }
 try { app.use('/api/adverse_drug_reaction_v2', require('./tier110_adverse_drug_reaction_583_router')); } catch(e) { console.error('adverse_drug_reaction_v2 mount failed', e.message); }
 try { app.use('/api/medication_safety_v2', require('./tier110_medication_safety_584_router')); } catch(e) { console.error('medication_safety_v2 mount failed', e.message); }
+try { app.use('/api/cardiac_cath_v2', require('./tier111_cardiac_cath_585_router')); } catch(e) { console.error('cardiac_cath_v2 mount failed', e.message); }
+try { app.use('/api/cardiac_rehab_v2', require('./tier111_cardiac_rehab_586_router')); } catch(e) { console.error('cardiac_rehab_v2 mount failed', e.message); }
+try { app.use('/api/electrophysiology_v2', require('./tier111_electrophysiology_587_router')); } catch(e) { console.error('electrophysiology_v2 mount failed', e.message); }
+try { app.use('/api/dialysis_v2', require('./tier111_dialysis_588_router')); } catch(e) { console.error('dialysis_v2 mount failed', e.message); }
+try { app.use('/api/neuro_diag_v2', require('./tier111_neuro_diagnostic_589_router')); } catch(e) { console.error('neuro_diag_v2 mount failed', e.message); }
 
 startServer();
