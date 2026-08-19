@@ -431,6 +431,11 @@ try { app.use('/api/cardio_imaging_v2', require('./tier98_cardio_imaging_514_rou
 try { app.use('/api/cardio_intervention_v2', require('./tier98_cardio_intervention_515_router')); } catch(e) { console.error('cardio_intervention_v2 mount failed', e.message); }
 try { app.use('/api/cardio_ep_v2', require('./tier98_cardio_electrophysiology_516_router')); } catch(e) { console.error('cardio_ep_v2 mount failed', e.message); }
 try { app.use('/api/cardio_valve_v2', require('./tier98_cardio_valve_517_router')); } catch(e) { console.error('cardio_valve_v2 mount failed', e.message); }
+try { app.use('/api/icu_extended_v2', require('./tier99_icu_extended_518_router')); } catch(e) { console.error('icu_extended_v2 mount failed', e.message); }
+try { app.use('/api/ed_extended_v2', require('./tier99_ed_extended_519_router')); } catch(e) { console.error('ed_extended_v2 mount failed', e.message); }
+try { app.use('/api/perioperative_v2', require('./tier99_perioperative_520_router')); } catch(e) { console.error('perioperative_v2 mount failed', e.message); }
+try { app.use('/api/rehab_v2', require('./tier99_rehab_521_router')); } catch(e) { console.error('rehab_v2 mount failed', e.message); }
+try { app.use('/api/oncology_extended_v2', require('./tier99_oncology_extended_522_router')); } catch(e) { console.error('oncology_extended_v2 mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
