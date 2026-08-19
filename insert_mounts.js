@@ -366,6 +366,11 @@ try { app.use('/api/pain_chronic_v2', require('./tier85_pain_ext_449_pain_chroni
 try { app.use('/api/pain_procedures_v2', require('./tier85_pain_ext_450_pain_procedures_router')); } catch(e) { console.error('pain_procedures_v2 mount failed', e.message); }
 try { app.use('/api/pain_rehab_v2', require('./tier85_pain_ext_451_pain_rehab_router')); } catch(e) { console.error('pain_rehab_v2 mount failed', e.message); }
 try { app.use('/api/pain_specialty_v2', require('./tier85_pain_ext_452_pain_specialty_router')); } catch(e) { console.error('pain_specialty_v2 mount failed', e.message); }
+try { app.use('/api/card_heart_failure_v2', require('./tier86_card_ext_453_card_heart_failure_router')); } catch(e) { console.error('card_heart_failure_v2 mount failed', e.message); }
+try { app.use('/api/card_intervention_v2', require('./tier86_card_ext_454_card_intervention_router')); } catch(e) { console.error('card_intervention_v2 mount failed', e.message); }
+try { app.use('/api/card_imaging_v2', require('./tier86_card_ext_455_card_imaging_router')); } catch(e) { console.error('card_imaging_v2 mount failed', e.message); }
+try { app.use('/api/card_rehab_v2', require('./tier86_card_ext_456_card_rehab_router')); } catch(e) { console.error('card_rehab_v2 mount failed', e.message); }
+try { app.use('/api/card_arrhythmia_v2', require('./tier86_card_ext_457_card_arrhythmia_router')); } catch(e) { console.error('card_arrhythmia_v2 mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
