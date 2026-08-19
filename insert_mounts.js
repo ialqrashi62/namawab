@@ -468,6 +468,11 @@ try { app.use('/api/billing_ext_v2', require('./tier105_billing_extended_551_rou
 try { app.use('/api/insurance_v2', require('./tier105_insurance_552_router')); } catch(e) { console.error('insurance_v2 mount failed', e.message); }
 try { app.use('/api/administrative_v2', require('./tier105_administrative_553_router')); } catch(e) { console.error('administrative_v2 mount failed', e.message); }
 try { app.use('/api/communication_v2', require('./tier105_communication_554_router')); } catch(e) { console.error('communication_v2 mount failed', e.message); }
+try { app.use('/api/er_ext_v2', require('./tier106_er_extended_555_router')); } catch(e) { console.error('er_ext_v2 mount failed', e.message); }
+try { app.use('/api/trauma_center_v2', require('./tier106_trauma_center_556_router')); } catch(e) { console.error('trauma_center_v2 mount failed', e.message); }
+try { app.use('/api/disaster_v2', require('./tier106_disaster_557_router')); } catch(e) { console.error('disaster_v2 mount failed', e.message); }
+try { app.use('/api/poison_control_v2', require('./tier106_poison_control_558_router')); } catch(e) { console.error('poison_control_v2 mount failed', e.message); }
+try { app.use('/api/pre_hospital_v2', require('./tier106_pre_hospital_559_router')); } catch(e) { console.error('pre_hospital_v2 mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
