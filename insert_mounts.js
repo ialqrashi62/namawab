@@ -421,6 +421,11 @@ try { app.use('/api/diabetes_t2dm_v2', require('./tier96_diabetes_t2dm_504_route
 try { app.use('/api/thyroid_extended_v2', require('./tier96_thyroid_extended_505_router')); } catch(e) { console.error('thyroid_extended_v2 mount failed', e.message); }
 try { app.use('/api/adrenal_pituitary_v2', require('./tier96_adrenal_pituitary_506_router')); } catch(e) { console.error('adrenal_pituitary_v2 mount failed', e.message); }
 try { app.use('/api/bone_metabolic_v2', require('./tier96_bone_metabolic_507_router')); } catch(e) { console.error('bone_metabolic_v2 mount failed', e.message); }
+try { app.use('/api/neph_acute_v2', require('./tier97_neph_acute_508_router')); } catch(e) { console.error('neph_acute_v2 mount failed', e.message); }
+try { app.use('/api/neph_glomerular_v2', require('./tier97_neph_glomerular_509_router')); } catch(e) { console.error('neph_glomerular_v2 mount failed', e.message); }
+try { app.use('/api/neph_vascular_v2', require('./tier97_neph_vascular_510_router')); } catch(e) { console.error('neph_vascular_v2 mount failed', e.message); }
+try { app.use('/api/neph_dialysis_v2', require('./tier97_neph_dialysis_511_router')); } catch(e) { console.error('neph_dialysis_v2 mount failed', e.message); }
+try { app.use('/api/neph_imaging_v2', require('./tier97_neph_imaging_512_router')); } catch(e) { console.error('neph_imaging_v2 mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
