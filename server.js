@@ -21406,5 +21406,10 @@ try { app.use('/api/neph_glomerular_v2', require('./tier97_neph_glomerular_509_r
 try { app.use('/api/neph_vascular_v2', require('./tier97_neph_vascular_510_router')); } catch(e) { console.error('neph_vascular_v2 mount failed', e.message); }
 try { app.use('/api/neph_dialysis_v2', require('./tier97_neph_dialysis_511_router')); } catch(e) { console.error('neph_dialysis_v2 mount failed', e.message); }
 try { app.use('/api/neph_imaging_v2', require('./tier97_neph_imaging_512_router')); } catch(e) { console.error('neph_imaging_v2 mount failed', e.message); }
+try { app.use('/api/cardio_acute_v2', require('./tier98_cardio_acute_513_router')); } catch(e) { console.error('cardio_acute_v2 mount failed', e.message); }
+try { app.use('/api/cardio_imaging_v2', require('./tier98_cardio_imaging_514_router')); } catch(e) { console.error('cardio_imaging_v2 mount failed', e.message); }
+try { app.use('/api/cardio_intervention_v2', require('./tier98_cardio_intervention_515_router')); } catch(e) { console.error('cardio_intervention_v2 mount failed', e.message); }
+try { app.use('/api/cardio_ep_v2', require('./tier98_cardio_electrophysiology_516_router')); } catch(e) { console.error('cardio_ep_v2 mount failed', e.message); }
+try { app.use('/api/cardio_valve_v2', require('./tier98_cardio_valve_517_router')); } catch(e) { console.error('cardio_valve_v2 mount failed', e.message); }
 
 startServer();
