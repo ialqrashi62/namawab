@@ -12,7 +12,7 @@ function core_measure(req) {
   ensureNum(req.observed_events, 'oe');
   ensureNum(req.expected_events, 'ee');
   ensureNum(req.performance_score, 'ps');
-  ensureEnum(req.benchmark, 'bm', ['top_decile','median','bottom_decile','exceeds','meets','below','other','unknown']);
+  ensureEnum(req.benchmark, 'bm', ['top_decile','above_mean','at_mean','below_mean','bottom_decile','other','unknown']);
   ensureStr(req.provider, 'pr');
   return { mid: req.measure_id };
 }
@@ -22,7 +22,7 @@ function ami_performance(req) {
   ensureStr(req.measure_name, 'mn');
   ensureNum(req.compliance_pct, 'cp');
   ensureNum(req.target, 'tgt');
-  ensureNum(req.exceptions_count, 'exc');
+  ensureNum(req.exceptions_count, 'ec');
   ensureStr(req.provider, 'pr');
   return { mid: req.measure_id };
 }
@@ -31,7 +31,7 @@ function stroke_performance(req) {
   ensureStr(req.measure_id, 'mid');
   ensureStr(req.measure_name, 'mn');
   ensureNum(req.median_minutes, 'mm');
-  ensureNum(req.target_minutes, 'tmin');
+  ensureNum(req.target_minutes, 'tm');
   ensureNum(req.patients_eligible, 'pe');
   ensureNum(req.patients_treated, 'pt');
   ensureStr(req.provider, 'pr');
@@ -43,7 +43,7 @@ function vte_performance(req) {
   ensureStr(req.measure_name, 'mn');
   ensureNum(req.compliance_pct, 'cp');
   ensureNum(req.patients_assessed, 'pa');
-  ensureNum(req.patients_received, 'prc');
+  ensureNum(req.patients_received, 'pr2');
   ensureStr(req.provider, 'pr');
   return { mid: req.measure_id };
 }

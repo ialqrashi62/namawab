@@ -7,39 +7,39 @@ function ensureEnum(v, f, list) { if (!list.includes(String(v))) throw new Valid
 
 function privilege_request(req) {
   ensureStr(req.patient_id, 'patient_id');
-  ensureStr(req.privilege_id, 'pid');
+  ensureStr(req.privilege_id, 'prid');
   ensureStr(req.user_id, 'uid');
-  ensureStr(req.privileges_requested, 'pr');
+  ensureStr(req.privileges_requested, 'pvr');
   ensureBool(req.training_completed, 'tc');
   ensureNum(req.references_count, 'rc');
   ensureBool(req.board_certified, 'bc');
-  ensureEnum(req.status, 'st', ['pending','approved','denied','conditional','other','unknown']);
+  ensureEnum(req.status, 'st', ['approved','denied','pending','deferred','withdrawn','other','unknown']);
   ensureStr(req.provider, 'pr');
-  return { pid: req.privilege_id };
+  return { prid: req.privilege_id };
 }
 function privilege_renewal(req) {
   ensureStr(req.patient_id, 'patient_id');
-  ensureStr(req.renewal_id, 'rid');
+  ensureStr(req.renewal_id, 'rnid');
   ensureStr(req.user_id, 'uid');
   ensureStr(req.last_renewal_date, 'lrd');
   ensureStr(req.due_date, 'dd');
   ensureNum(req.cme_hours_earned, 'che');
-  ensureNum(req.cme_required, 'cr');
-  ensureEnum(req.renewal_status, 'rs', ['pending','approved','expired','denied','other','unknown']);
+  ensureNum(req.cme_required, 'cr2');
+  ensureEnum(req.renewal_status, 'rs', ['approved','pending','denied','deferred','other','unknown']);
   ensureStr(req.provider, 'pr');
-  return { rid: req.renewal_id };
+  return { rnid: req.renewal_id };
 }
 function peer_review(req) {
   ensureStr(req.patient_id, 'patient_id');
-  ensureStr(req.review_id, 'rid');
-  ensureStr(req.physician_id, 'phi');
-  ensureNum(req.cases_reviewed, 'crd');
+  ensureStr(req.review_id, 'rvid');
+  ensureStr(req.physician_id, 'pid');
+  ensureNum(req.cases_reviewed, 'cr');
   ensureNum(req.cases_with_issues, 'cwi');
   ensureStr(req.reviewer, 'rev');
   ensureStr(req.recommendations, 'rec');
-  ensureEnum(req.outcome, 'out', ['completed','pending','escalated','other','unknown']);
+  ensureEnum(req.outcome, 'oc', ['completed','in_progress','pending','deferred','other','unknown']);
   ensureStr(req.provider, 'pr');
-  return { rid: req.review_id };
+  return { rvid: req.review_id };
 }
 function license_verification(req) {
   ensureStr(req.patient_id, 'patient_id');
@@ -54,14 +54,14 @@ function license_verification(req) {
 }
 function credentialing_renewal(req) {
   ensureStr(req.patient_id, 'patient_id');
-  ensureStr(req.renewal_id, 'rid');
-  ensureStr(req.practitioner_id, 'pi');
-  ensureEnum(req.credentialing_type, 'ct', ['md','np','pa','rn','crna','other','unknown']);
+  ensureStr(req.renewal_id, 'rnid');
+  ensureStr(req.practitioner_id, 'pract');
+  ensureEnum(req.credentialing_type, 'ct', ['md','np','pa','rn','cna','other','unknown']);
   ensureStr(req.expiration_date, 'ed');
   ensureBool(req.malpractice_insurance_active, 'mia');
   ensureBool(req.peer_review_complete, 'prc');
   ensureStr(req.provider, 'pr');
-  return { rid: req.renewal_id };
+  return { rnid: req.renewal_id };
 }
 
 function funcs() { return { privilege_request, privilege_renewal, peer_review, license_verification, credentialing_renewal }; }

@@ -1,11 +1,10 @@
 // filepath: test_tier117_engines.js
 const fs = require('fs');
 const engines = [
-  ['tier117_workflow_615_engine', ['order_set','care_pathway','referral_management','handoff','shift_report']],
-  ['tier117_capacity_616_engine', ['bed_management','staff_scheduling','equipment_tracking','room_utilization','resource_allocation']],
-  ['tier117_documentation_617_engine', ['clinical_note','discharge_summary','procedure_note','consultation_note','progress_note']],
-  ['tier117_decision_support_618_engine', ['clinical_alert','drug_interaction','preventive_care_alert','best_practice_alert','risk_score']],
-  ['tier117_analytics_619_engine', ['dashboard','report','cohort_analysis','outcome_tracking','kpi_monitoring']]
+  ['tier117_workflow_615_engine', ['handoff_sbar','protocol_activation','order_set','rounding_list','discharge_checklist']],
+  ['tier117_clinical_decision_617_engine', ['drug_interaction','renal_dose_alert','sepsis_alert','pressure_ulcer_alert','fall_alert']],
+  ['tier117_quality_metrics_618_engine', ['core_measure','ami_performance','stroke_performance','vte_performance','patient_satisfaction']],
+  ['tier117_credentialing_619_engine', ['privilege_request','privilege_renewal','peer_review','license_verification','credentialing_renewal']]
 ];
 let pass = 0, fail = 0, bodyIdx = 0;
 for (const [engName, fns] of engines) {
