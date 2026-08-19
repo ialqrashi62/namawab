@@ -346,6 +346,11 @@ try { app.use('/api/uro_renal_v2', require('./tier81_uro_ext_429_uro_renal_route
 try { app.use('/api/uro_onco_v2', require('./tier81_uro_ext_430_uro_onco_router')); } catch(e) { console.error('uro_onco_v2 mount failed', e.message); }
 try { app.use('/api/uro_peds_v2', require('./tier81_uro_ext_431_uro_peds_router')); } catch(e) { console.error('uro_peds_v2 mount failed', e.message); }
 try { app.use('/api/uro_andrology_v2', require('./tier81_uro_ext_432_uro_andrology_router')); } catch(e) { console.error('uro_andrology_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_antenatal_v2', require('./tier82_obgyn_ext_433_obgyn_antenatal_router')); } catch(e) { console.error('obgyn_antenatal_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_gyne_v2', require('./tier82_obgyn_ext_434_obgyn_gyne_router')); } catch(e) { console.error('obgyn_gyne_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_onc_v2', require('./tier82_obgyn_ext_435_obgyn_onc_router')); } catch(e) { console.error('obgyn_onc_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_labor_v2', require('./tier82_obgyn_ext_436_obgyn_labor_router')); } catch(e) { console.error('obgyn_labor_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_repro_v2', require('./tier82_obgyn_ext_437_obgyn_repro_router')); } catch(e) { console.error('obgyn_repro_v2 mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
