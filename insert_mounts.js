@@ -361,6 +361,11 @@ try { app.use('/api/psych_anxiety_v2', require('./tier84_psych_ext_444_psych_anx
 try { app.use('/api/psych_mood_v2', require('./tier84_psych_ext_445_psych_mood_router')); } catch(e) { console.error('psych_mood_v2 mount failed', e.message); }
 try { app.use('/api/psych_sud_v2', require('./tier84_psych_ext_446_psych_sud_router')); } catch(e) { console.error('psych_sud_v2 mount failed', e.message); }
 try { app.use('/api/psych_emerg_v2', require('./tier84_psych_ext_447_psych_emerg_router')); } catch(e) { console.error('psych_emerg_v2 mount failed', e.message); }
+try { app.use('/api/pain_acute_v2', require('./tier85_pain_ext_448_pain_acute_router')); } catch(e) { console.error('pain_acute_v2 mount failed', e.message); }
+try { app.use('/api/pain_chronic_v2', require('./tier85_pain_ext_449_pain_chronic_router')); } catch(e) { console.error('pain_chronic_v2 mount failed', e.message); }
+try { app.use('/api/pain_procedures_v2', require('./tier85_pain_ext_450_pain_procedures_router')); } catch(e) { console.error('pain_procedures_v2 mount failed', e.message); }
+try { app.use('/api/pain_rehab_v2', require('./tier85_pain_ext_451_pain_rehab_router')); } catch(e) { console.error('pain_rehab_v2 mount failed', e.message); }
+try { app.use('/api/pain_specialty_v2', require('./tier85_pain_ext_452_pain_specialty_router')); } catch(e) { console.error('pain_specialty_v2 mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
