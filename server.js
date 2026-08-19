@@ -21306,5 +21306,10 @@ try { app.use('/api/neuro_epilepsy_v2', require('./tier77_neuro_ext_409_neuro_ep
 try { app.use('/api/neuro_movement_v2', require('./tier77_neuro_ext_410_neuro_movement_router')); } catch(e) { console.error('neuro_movement_v2 mount failed', e.message); }
 try { app.use('/api/neuro_neuromuscular_v2', require('./tier77_neuro_ext_411_neuro_neuromuscular_router')); } catch(e) { console.error('neuro_neuromuscular_v2 mount failed', e.message); }
 try { app.use('/api/neuro_headache_v2', require('./tier77_neuro_ext_412_neuro_headache_router')); } catch(e) { console.error('neuro_headache_v2 mount failed', e.message); }
+try { app.use('/api/ortho_trauma_v2', require('./tier78_ortho_ext_413_ortho_trauma_router')); } catch(e) { console.error('ortho_trauma_v2 mount failed', e.message); }
+try { app.use('/api/ortho_joint_v2', require('./tier78_ortho_ext_414_ortho_joint_router')); } catch(e) { console.error('ortho_joint_v2 mount failed', e.message); }
+try { app.use('/api/ortho_spine_v2', require('./tier78_ortho_ext_415_ortho_spine_router')); } catch(e) { console.error('ortho_spine_v2 mount failed', e.message); }
+try { app.use('/api/ortho_sports_v2', require('./tier78_ortho_ext_416_ortho_sports_router')); } catch(e) { console.error('ortho_sports_v2 mount failed', e.message); }
+try { app.use('/api/ortho_pediatric_v2', require('./tier78_ortho_ext_417_ortho_pediatric_router')); } catch(e) { console.error('ortho_pediatric_v2 mount failed', e.message); }
 
 startServer();
