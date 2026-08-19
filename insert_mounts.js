@@ -341,6 +341,11 @@ try { app.use('/api/ent_sinus_v2', require('./tier80_ent_ext_424_ent_sinus_route
 try { app.use('/api/ent_throat_v2', require('./tier80_ent_ext_425_ent_throat_router')); } catch(e) { console.error('ent_throat_v2 mount failed', e.message); }
 try { app.use('/api/ent_head_neck_v2', require('./tier80_ent_ext_426_ent_head_neck_router')); } catch(e) { console.error('ent_head_neck_v2 mount failed', e.message); }
 try { app.use('/api/ent_pediatric_v2', require('./tier80_ent_ext_427_ent_pediatric_router')); } catch(e) { console.error('ent_pediatric_v2 mount failed', e.message); }
+try { app.use('/api/uro_general_v2', require('./tier81_uro_ext_428_uro_general_router')); } catch(e) { console.error('uro_general_v2 mount failed', e.message); }
+try { app.use('/api/uro_renal_v2', require('./tier81_uro_ext_429_uro_renal_router')); } catch(e) { console.error('uro_renal_v2 mount failed', e.message); }
+try { app.use('/api/uro_onco_v2', require('./tier81_uro_ext_430_uro_onco_router')); } catch(e) { console.error('uro_onco_v2 mount failed', e.message); }
+try { app.use('/api/uro_peds_v2', require('./tier81_uro_ext_431_uro_peds_router')); } catch(e) { console.error('uro_peds_v2 mount failed', e.message); }
+try { app.use('/api/uro_andrology_v2', require('./tier81_uro_ext_432_uro_andrology_router')); } catch(e) { console.error('uro_andrology_v2 mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
