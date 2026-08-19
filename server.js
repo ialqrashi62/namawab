@@ -21311,5 +21311,10 @@ try { app.use('/api/ortho_joint_v2', require('./tier78_ortho_ext_414_ortho_joint
 try { app.use('/api/ortho_spine_v2', require('./tier78_ortho_ext_415_ortho_spine_router')); } catch(e) { console.error('ortho_spine_v2 mount failed', e.message); }
 try { app.use('/api/ortho_sports_v2', require('./tier78_ortho_ext_416_ortho_sports_router')); } catch(e) { console.error('ortho_sports_v2 mount failed', e.message); }
 try { app.use('/api/ortho_pediatric_v2', require('./tier78_ortho_ext_417_ortho_pediatric_router')); } catch(e) { console.error('ortho_pediatric_v2 mount failed', e.message); }
+try { app.use('/api/ophth_general_v2', require('./tier79_ophth_ext_418_ophth_general_router')); } catch(e) { console.error('ophth_general_v2 mount failed', e.message); }
+try { app.use('/api/ophth_retina_v2', require('./tier79_ophth_ext_419_ophth_retina_router')); } catch(e) { console.error('ophth_retina_v2 mount failed', e.message); }
+try { app.use('/api/ophth_cataract_v2', require('./tier79_ophth_ext_420_ophth_cataract_router')); } catch(e) { console.error('ophth_cataract_v2 mount failed', e.message); }
+try { app.use('/api/ophth_glaucoma_v2', require('./tier79_ophth_ext_421_ophth_glaucoma_router')); } catch(e) { console.error('ophth_glaucoma_v2 mount failed', e.message); }
+try { app.use('/api/ophth_pediatric_v2', require('./tier79_ophth_ext_422_ophth_pediatric_router')); } catch(e) { console.error('ophth_pediatric_v2 mount failed', e.message); }
 
 startServer();
