@@ -21443,5 +21443,10 @@ try { app.use('/api/public_health_v2', require('./tier104_public_health_546_rout
 try { app.use('/api/qi_v2', require('./tier104_qi_547_router')); } catch(e) { console.error('qi_v2 mount failed', e.message); }
 try { app.use('/api/research_v2', require('./tier104_research_548_router')); } catch(e) { console.error('research_v2 mount failed', e.message); }
 try { app.use('/api/telemedicine_v2', require('./tier104_telemedicine_549_router')); } catch(e) { console.error('telemedicine_v2 mount failed', e.message); }
+try { app.use('/api/scheduling_v2', require('./tier105_scheduling_550_router')); } catch(e) { console.error('scheduling_v2 mount failed', e.message); }
+try { app.use('/api/billing_ext_v2', require('./tier105_billing_extended_551_router')); } catch(e) { console.error('billing_ext_v2 mount failed', e.message); }
+try { app.use('/api/insurance_v2', require('./tier105_insurance_552_router')); } catch(e) { console.error('insurance_v2 mount failed', e.message); }
+try { app.use('/api/administrative_v2', require('./tier105_administrative_553_router')); } catch(e) { console.error('administrative_v2 mount failed', e.message); }
+try { app.use('/api/communication_v2', require('./tier105_communication_554_router')); } catch(e) { console.error('communication_v2 mount failed', e.message); }
 
 startServer();
