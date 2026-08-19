@@ -306,6 +306,11 @@ try { app.use('/api/cardio_ext_imaging', require('./tier73_cardio_ext_384_cardio
 try { app.use('/api/cardio_ext_chf', require('./tier73_cardio_ext_385_cardio_chf_router')); } catch(e) { console.error('cardio_ext_chf mount failed', e.message); }
 try { app.use('/api/cardio_ext_rehab', require('./tier73_cardio_ext_386_cardio_rehab_router')); } catch(e) { console.error('cardio_ext_rehab mount failed', e.message); }
 try { app.use('/api/cardio_ext_prevention', require('./tier73_cardio_ext_387_cardio_prevention_router')); } catch(e) { console.error('cardio_ext_prevention mount failed', e.message); }
+try { app.use('/api/onc_ext_treat', require('./tier74_onc_ext_393_onc_ext_treat_router')); } catch(e) { console.error('onc_ext_treat mount failed', e.message); }
+try { app.use('/api/onc_ext_followup', require('./tier74_onc_ext_394_onc_ext_followup_router')); } catch(e) { console.error('onc_ext_followup mount failed', e.message); }
+try { app.use('/api/onc_ext_special', require('./tier74_onc_ext_395_onc_ext_special_router')); } catch(e) { console.error('onc_ext_special mount failed', e.message); }
+try { app.use('/api/onc_ext_symptom', require('./tier74_onc_ext_396_onc_ext_symptom_router')); } catch(e) { console.error('onc_ext_symptom mount failed', e.message); }
+try { app.use('/api/onc_ext_support', require('./tier74_onc_ext_397_onc_ext_support_router')); } catch(e) { console.error('onc_ext_support mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
