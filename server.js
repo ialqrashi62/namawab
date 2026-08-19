@@ -21488,5 +21488,10 @@ try { app.use('/api/maternal_med_v2', require('./tier113_maternal_medicine_596_r
 try { app.use('/api/reproductive_endocrine_v2', require('./tier113_reproductive_endocrine_597_router')); } catch(e) { console.error('reproductive_endocrine_v2 mount failed', e.message); }
 try { app.use('/api/fertility_v2', require('./tier113_fertility_598_router')); } catch(e) { console.error('fertility_v2 mount failed', e.message); }
 try { app.use('/api/gyne_onc_extended_v2', require('./tier113_gyne_oncology_extended_599_router')); } catch(e) { console.error('gyne_onc_extended_v2 mount failed', e.message); }
+try { app.use('/api/anxiety_v2', require('./tier114_anxiety_600_router')); } catch(e) { console.error('anxiety_v2 mount failed', e.message); }
+try { app.use('/api/mood_v2', require('./tier114_mood_601_router')); } catch(e) { console.error('mood_v2 mount failed', e.message); }
+try { app.use('/api/psychotic_v2', require('./tier114_psychotic_602_router')); } catch(e) { console.error('psychotic_v2 mount failed', e.message); }
+try { app.use('/api/trauma_v2', require('./tier114_trauma_603_router')); } catch(e) { console.error('trauma_v2 mount failed', e.message); }
+try { app.use('/api/substance_use_v2', require('./tier114_substance_use_604_router')); } catch(e) { console.error('substance_use_v2 mount failed', e.message); }
 
 startServer();
