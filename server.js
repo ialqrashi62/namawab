@@ -21468,5 +21468,10 @@ try { app.use('/api/palliative_care_v2', require('./tier109_palliative_care_572_
 try { app.use('/api/spine_care_v2', require('./tier109_spine_care_573_router')); } catch(e) { console.error('spine_care_v2 mount failed', e.message); }
 try { app.use('/api/sports_medicine_v2', require('./tier109_sports_medicine_574_router')); } catch(e) { console.error('sports_medicine_v2 mount failed', e.message); }
 try { app.use('/api/sleep_medicine_v2', require('./tier109_sleep_medicine_575_router')); } catch(e) { console.error('sleep_medicine_v2 mount failed', e.message); }
+try { app.use('/api/pharmacy_clinical_v2', require('./tier110_pharmacy_clinical_580_router')); } catch(e) { console.error('pharmacy_clinical_v2 mount failed', e.message); }
+try { app.use('/api/antimicrobial_stewardship_v2', require('./tier110_antimicrobial_stewardship_581_router')); } catch(e) { console.error('antimicrobial_stewardship_v2 mount failed', e.message); }
+try { app.use('/api/chemotherapy_pharmacy_v2', require('./tier110_chemotherapy_pharmacy_582_router')); } catch(e) { console.error('chemotherapy_pharmacy_v2 mount failed', e.message); }
+try { app.use('/api/adverse_drug_reaction_v2', require('./tier110_adverse_drug_reaction_583_router')); } catch(e) { console.error('adverse_drug_reaction_v2 mount failed', e.message); }
+try { app.use('/api/medication_safety_v2', require('./tier110_medication_safety_584_router')); } catch(e) { console.error('medication_safety_v2 mount failed', e.message); }
 
 startServer();
