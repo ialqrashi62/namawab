@@ -21478,5 +21478,10 @@ try { app.use('/api/cardiac_rehab_v2', require('./tier111_cardiac_rehab_586_rout
 try { app.use('/api/electrophysiology_v2', require('./tier111_electrophysiology_587_router')); } catch(e) { console.error('electrophysiology_v2 mount failed', e.message); }
 try { app.use('/api/dialysis_v2', require('./tier111_dialysis_588_router')); } catch(e) { console.error('dialysis_v2 mount failed', e.message); }
 try { app.use('/api/neuro_diag_v2', require('./tier111_neuro_diagnostic_589_router')); } catch(e) { console.error('neuro_diag_v2 mount failed', e.message); }
+try { app.use('/api/infection_control_v2', require('./tier112_infection_control_590_router')); } catch(e) { console.error('infection_control_v2 mount failed', e.message); }
+try { app.use('/api/pathogen_tracking_v2', require('./tier112_pathogen_tracking_591_router')); } catch(e) { console.error('pathogen_tracking_v2 mount failed', e.message); }
+try { app.use('/api/immunization_v2', require('./tier112_immunization_592_router')); } catch(e) { console.error('immunization_v2 mount failed', e.message); }
+try { app.use('/api/sterilization_v2', require('./tier112_sterilization_593_router')); } catch(e) { console.error('sterilization_v2 mount failed', e.message); }
+try { app.use('/api/stew_extended_v2', require('./tier112_stew_extended_594_router')); } catch(e) { console.error('stew_extended_v2 mount failed', e.message); }
 
 startServer();

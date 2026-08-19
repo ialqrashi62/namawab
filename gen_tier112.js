@@ -29,7 +29,7 @@ const bodies = [
   {"patient_id":"C6","wgs_id":"wg_6","sample_count":12,"strain_type":"st8","spa_type":"t008","transmission_cluster":true,"control_measures":"implemented","provider":"pt_001"},
   {"patient_id":"C7","contact_id":"ct_7","exposure_date":"2026-09-01","contacts_count":25,"contacts_reached":24,"tested":20,"positive":3,"provider":"pt_001"},
   {"patient_id":"C8","sampling_id":"es_8","location":"room_5","culture_positive":true,"organism":"acinetobacter","intervention":"cleaning","remediation":true,"provider":"pt_001"},
-  {"patient_id":"C9","line_list_id":"ll_9","exposure":"tb","cases_count":12,"hcw_count":5,"patient_count":7","onset_period":"2026-08-15_to2026-09-01","provider":"pt_001"},
+  {"patient_id":"C9","line_list_id":"ll_9","exposure":"tb","cases_count":12,"hcw_count":5,"patient_count":7,"onset_period":"2026-08-15_to2026-09-01","provider":"pt_001"},
   {"patient_id":"C10","schedule_id":"vs_10","patient_id":"C10","age_months":6,"vaccines_due":2,"vaccines_given":2,"schedule_status":"on_track","next_visit":"2027-03-01","provider":"im_001"},
   {"patient_id":"C11","administration_id":"va_11","vaccine":"mmr","lot_number":"MR123","site":"deltoid","dose_number":0,"reactions":0,"provider":"im_001"},
   {"patient_id":"C12","screening_id":"co_12","vaccine":"yellow_fever","contraindication":true,"reason":"pregnant","alternatives_offered":true,"deferred_to":"postpartum","provider":"im_001"},
