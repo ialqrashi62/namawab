@@ -478,6 +478,11 @@ try { app.use('/api/nursing_med_admin_v2', require('./tier107_nursing_med_admin_
 try { app.use('/api/wound_care_v2', require('./tier107_wound_care_563_router')); } catch(e) { console.error('wound_care_v2 mount failed', e.message); }
 try { app.use('/api/iv_therapy_v2', require('./tier107_iv_therapy_564_router')); } catch(e) { console.error('iv_therapy_v2 mount failed', e.message); }
 try { app.use('/api/allied_health_v2', require('./tier107_allied_health_565_router')); } catch(e) { console.error('allied_health_v2 mount failed', e.message); }
+try { app.use('/api/ct_advanced_v2', require('./tier108_ct_advanced_566_router')); } catch(e) { console.error('ct_advanced_v2 mount failed', e.message); }
+try { app.use('/api/mri_advanced_v2', require('./tier108_mri_advanced_567_router')); } catch(e) { console.error('mri_advanced_v2 mount failed', e.message); }
+try { app.use('/api/ultrasound_advanced_v2', require('./tier108_ultrasound_advanced_568_router')); } catch(e) { console.error('ultrasound_advanced_v2 mount failed', e.message); }
+try { app.use('/api/imaging_ai_v2', require('./tier108_imaging_ai_569_router')); } catch(e) { console.error('imaging_ai_v2 mount failed', e.message); }
+try { app.use('/api/imaging_quality_v2', require('./tier108_imaging_quality_570_router')); } catch(e) { console.error('imaging_quality_v2 mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
