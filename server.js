@@ -21396,5 +21396,10 @@ try { app.use('/api/hepatology_cirrhosis_v2', require('./tier95_hepatology_cirrh
 try { app.use('/api/hepatology_liver_failure_v2', require('./tier95_hepatology_liver_failure_500_router')); } catch(e) { console.error('hepatology_liver_failure_v2 mount failed', e.message); }
 try { app.use('/api/hepatology_pediatric_v2', require('./tier95_hepatology_pediatric_501_router')); } catch(e) { console.error('hepatology_pediatric_v2 mount failed', e.message); }
 try { app.use('/api/hepatology_metabolic_v2', require('./tier95_hepatology_metabolic_502_router')); } catch(e) { console.error('hepatology_metabolic_v2 mount failed', e.message); }
+try { app.use('/api/diabetes_t1dm_v2', require('./tier96_diabetes_t1dm_503_router')); } catch(e) { console.error('diabetes_t1dm_v2 mount failed', e.message); }
+try { app.use('/api/diabetes_t2dm_v2', require('./tier96_diabetes_t2dm_504_router')); } catch(e) { console.error('diabetes_t2dm_v2 mount failed', e.message); }
+try { app.use('/api/thyroid_extended_v2', require('./tier96_thyroid_extended_505_router')); } catch(e) { console.error('thyroid_extended_v2 mount failed', e.message); }
+try { app.use('/api/adrenal_pituitary_v2', require('./tier96_adrenal_pituitary_506_router')); } catch(e) { console.error('adrenal_pituitary_v2 mount failed', e.message); }
+try { app.use('/api/bone_metabolic_v2', require('./tier96_bone_metabolic_507_router')); } catch(e) { console.error('bone_metabolic_v2 mount failed', e.message); }
 
 startServer();
