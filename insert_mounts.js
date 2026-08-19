@@ -356,6 +356,11 @@ try { app.use('/api/derm_onc_v2', require('./tier83_derm_ext_439_derm_onc_router
 try { app.use('/api/derm_immuno_v2', require('./tier83_derm_ext_440_derm_immuno_router')); } catch(e) { console.error('derm_immuno_v2 mount failed', e.message); }
 try { app.use('/api/derm_cosmetic_v2', require('./tier83_derm_ext_441_derm_cosmetic_router')); } catch(e) { console.error('derm_cosmetic_v2 mount failed', e.message); }
 try { app.use('/api/derm_peds_v2', require('./tier83_derm_ext_442_derm_peds_router')); } catch(e) { console.error('derm_peds_v2 mount failed', e.message); }
+try { app.use('/api/psych_general_v2', require('./tier84_psych_ext_443_psych_general_router')); } catch(e) { console.error('psych_general_v2 mount failed', e.message); }
+try { app.use('/api/psych_anxiety_v2', require('./tier84_psych_ext_444_psych_anxiety_router')); } catch(e) { console.error('psych_anxiety_v2 mount failed', e.message); }
+try { app.use('/api/psych_mood_v2', require('./tier84_psych_ext_445_psych_mood_router')); } catch(e) { console.error('psych_mood_v2 mount failed', e.message); }
+try { app.use('/api/psych_sud_v2', require('./tier84_psych_ext_446_psych_sud_router')); } catch(e) { console.error('psych_sud_v2 mount failed', e.message); }
+try { app.use('/api/psych_emerg_v2', require('./tier84_psych_ext_447_psych_emerg_router')); } catch(e) { console.error('psych_emerg_v2 mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
