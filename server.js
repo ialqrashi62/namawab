@@ -14835,6 +14835,10 @@ try { app.use('/api/eng/tier151-pls-713', require('./tier151_pls_713_router.js')
 try { app.use('/api/eng/tier151-wou-714', require('./tier151_wou_714_router.js')); } catch(e) { console.error('mount tier151_wou_714_router.js fail', e.message); }
 try { app.use('/api/eng/tier151-pod-715', require('./tier151_pod_715_router.js')); } catch(e) { console.error('mount tier151_pod_715_router.js fail', e.message); }
 try { app.use('/api/eng/tier151-sle-716', require('./tier151_sle_716_router.js')); } catch(e) { console.error('mount tier151_sle_716_router.js fail', e.message); }
+try { app.use('/api/eng/tier152-pdc-717', require('./tier152_pdc_717_router.js')); } catch(e) { console.error('mount tier152_pdc_717_router.js fail', e.message); }
+try { app.use('/api/eng/tier152-pcs-718', require('./tier152_pcs_718_router.js')); } catch(e) { console.error('mount tier152_pcs_718_router.js fail', e.message); }
+try { app.use('/api/eng/tier152-pgu-719', require('./tier152_pgu_719_router.js')); } catch(e) { console.error('mount tier152_pgu_719_router.js fail', e.message); }
+try { app.use('/api/eng/tier152-chi-720', require('./tier152_chi_720_router.js')); } catch(e) { console.error('mount tier152_chi_720_router.js fail', e.message); }
 async function startServer() {
     try {
         console.log('\n  🐘 Connecting to PostgreSQL...');
