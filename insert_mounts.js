@@ -436,6 +436,11 @@ try { app.use('/api/ed_extended_v2', require('./tier99_ed_extended_519_router'))
 try { app.use('/api/perioperative_v2', require('./tier99_perioperative_520_router')); } catch(e) { console.error('perioperative_v2 mount failed', e.message); }
 try { app.use('/api/rehab_v2', require('./tier99_rehab_521_router')); } catch(e) { console.error('rehab_v2 mount failed', e.message); }
 try { app.use('/api/oncology_extended_v2', require('./tier99_oncology_extended_522_router')); } catch(e) { console.error('oncology_extended_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_mfm_v2', require('./tier100_obgyn_mfm_523_router')); } catch(e) { console.error('obgyn_mfm_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_gyn_onc_v2', require('./tier100_obgyn_gyn_onc_524_router')); } catch(e) { console.error('obgyn_gyn_onc_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_rei_v2', require('./tier100_obgyn_rei_525_router')); } catch(e) { console.error('obgyn_rei_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_menopause_v2', require('./tier100_obgyn_menopause_526_router')); } catch(e) { console.error('obgyn_menopause_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_reproductive_v2', require('./tier100_obgyn_reproductive_527_router')); } catch(e) { console.error('obgyn_reproductive_v2 mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
