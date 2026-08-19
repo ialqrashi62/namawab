@@ -14823,6 +14823,10 @@ try { app.use('/api/eng/tier148-onc-701', require('./tier148_onc_701_router.js')
 try { app.use('/api/eng/tier148-obg-702', require('./tier148_obg_702_router.js')); } catch(e) { console.error('mount tier148_obg_702_router.js fail', e.message); }
 try { app.use('/api/eng/tier148-nic-703', require('./tier148_nic_703_router.js')); } catch(e) { console.error('mount tier148_nic_703_router.js fail', e.message); }
 try { app.use('/api/eng/tier148-bld-704', require('./tier148_bld_704_router.js')); } catch(e) { console.error('mount tier148_bld_704_router.js fail', e.message); }
+try { app.use('/api/eng/tier149-car-705', require('./tier149_car_705_router.js')); } catch(e) { console.error('mount tier149_car_705_router.js fail', e.message); }
+try { app.use('/api/eng/tier149-pul-706', require('./tier149_pul_706_router.js')); } catch(e) { console.error('mount tier149_pul_706_router.js fail', e.message); }
+try { app.use('/api/eng/tier149-gi-707', require('./tier149_gi_707_router.js')); } catch(e) { console.error('mount tier149_gi_707_router.js fail', e.message); }
+try { app.use('/api/eng/tier149-nep-708', require('./tier149_nep_708_router.js')); } catch(e) { console.error('mount tier149_nep_708_router.js fail', e.message); }
 async function startServer() {
     try {
         console.log('\n  🐘 Connecting to PostgreSQL...');
