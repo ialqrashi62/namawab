@@ -518,6 +518,11 @@ try { app.use('/api/orthopedics_ext_v2', require('./tier115_orthopedics_extended
 try { app.use('/api/otolaryngology_v2', require('./tier115_otolaryngology_607_router')); } catch(e) { console.error('otolaryngology_v2 mount failed', e.message); }
 try { app.use('/api/ophthalmology_v2', require('./tier115_ophthalmology_608_router')); } catch(e) { console.error('ophthalmology_v2 mount failed', e.message); }
 try { app.use('/api/dentistry_v2', require('./tier115_dentistry_609_router')); } catch(e) { console.error('dentistry_v2 mount failed', e.message); }
+try { app.use('/api/pt_extended_v2', require('./tier116_pt_extended_610_router')); } catch(e) { console.error('pt_extended_v2 mount failed', e.message); }
+try { app.use('/api/ot_extended_v2', require('./tier116_ot_extended_611_router')); } catch(e) { console.error('ot_extended_v2 mount failed', e.message); }
+try { app.use('/api/st_voice_v2', require('./tier116_st_voice_612_router')); } catch(e) { console.error('st_voice_v2 mount failed', e.message); }
+try { app.use('/api/rehab_engineering_v2', require('./tier116_rehab_engineering_613_router')); } catch(e) { console.error('rehab_engineering_v2 mount failed', e.message); }
+try { app.use('/api/specialty_rehab_v2', require('./tier116_specialty_rehab_614_router')); } catch(e) { console.error('specialty_rehab_v2 mount failed', e.message); }
 `;
 const newC = c.slice(0, idx) + mounts + '\n' + c.slice(idx);
 fs.writeFileSync('server.js', newC);
