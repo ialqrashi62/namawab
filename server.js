@@ -15222,6 +15222,32 @@ try { app.use('/api/eng/tier170-ane-794', require('./tier170_ane_794_router.js')
   app.use("/tier225_e3_1068", require("./tier225_e3_1068_router"));
   app.use("/tier225_e4_1069", require("./tier225_e4_1069_router"));
   app.use("/tier225_e5_1070", require("./tier225_e5_1070_router"));
+
+  app.use("/tier226_a1_1071", require("./tier226_a1_1071_router"));
+  app.use("/tier226_a2_1072", require("./tier226_a2_1072_router"));
+  app.use("/tier226_a3_1073", require("./tier226_a3_1073_router"));
+  app.use("/tier226_a4_1074", require("./tier226_a4_1074_router"));
+  app.use("/tier226_a5_1075", require("./tier226_a5_1075_router"));
+  app.use("/tier227_b1_1076", require("./tier227_b1_1076_router"));
+  app.use("/tier227_b2_1077", require("./tier227_b2_1077_router"));
+  app.use("/tier227_b3_1078", require("./tier227_b3_1078_router"));
+  app.use("/tier227_b4_1079", require("./tier227_b4_1079_router"));
+  app.use("/tier227_b5_1080", require("./tier227_b5_1080_router"));
+  app.use("/tier228_c1_1081", require("./tier228_c1_1081_router"));
+  app.use("/tier228_c2_1082", require("./tier228_c2_1082_router"));
+  app.use("/tier228_c3_1083", require("./tier228_c3_1083_router"));
+  app.use("/tier228_c4_1084", require("./tier228_c4_1084_router"));
+  app.use("/tier228_c5_1085", require("./tier228_c5_1085_router"));
+  app.use("/tier229_d1_1086", require("./tier229_d1_1086_router"));
+  app.use("/tier229_d2_1087", require("./tier229_d2_1087_router"));
+  app.use("/tier229_d3_1088", require("./tier229_d3_1088_router"));
+  app.use("/tier229_d4_1089", require("./tier229_d4_1089_router"));
+  app.use("/tier229_d5_1090", require("./tier229_d5_1090_router"));
+  app.use("/tier230_e1_1091", require("./tier230_e1_1091_router"));
+  app.use("/tier230_e2_1092", require("./tier230_e2_1092_router"));
+  app.use("/tier230_e3_1093", require("./tier230_e3_1093_router"));
+  app.use("/tier230_e4_1094", require("./tier230_e4_1094_router"));
+  app.use("/tier230_e5_1095", require("./tier230_e5_1095_router"));
 async function startServer() {
     try {
         console.log('\n  🐘 Connecting to PostgreSQL...');
