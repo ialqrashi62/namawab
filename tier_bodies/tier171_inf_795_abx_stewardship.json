@@ -1,0 +1,1 @@
+{"tenant_id":"t1","patient_id":"p1","provider":"p","drug":"vancomycin","dose_mg":1000,"class":"glycopeptide","duration_days":7,"culture_directed":true,"indication":"targeted","deescalation_count":1,"reviewed":true}

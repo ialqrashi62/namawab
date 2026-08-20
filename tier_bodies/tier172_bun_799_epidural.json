@@ -1,0 +1,1 @@
+{"tenant_id":"t1","patient_id":"p1","provider":"p","age":35,"height_cm":170,"weight_kg":75,"catheter_level":8,"medication":"bupivacaine","infusion_rate_ml_hr":8,"days_in_place":3,"outcome":"effective","complication_score":1}

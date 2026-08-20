@@ -1,0 +1,1 @@
+{"tenant_id":"t1","patient_id":"p1","provider":"p","age":60,"diagnosis":"post_MI","sessions":30,"mets_achieved":5,"bp_baseline":150,"bp_current":130,"hr_baseline":80,"hr_current":70,"adherence_pct":80,"disposition":"graduate"}

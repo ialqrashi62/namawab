@@ -14911,6 +14911,31 @@ try { app.use('/api/eng/tier170-nrs-791', require('./tier170_nrs_791_router.js')
 try { app.use('/api/eng/tier170-rad-792', require('./tier170_rad_792_router.js')); } catch(e) { console.error('mount tier170_rad_792_router.js fail', e.message); }
 try { app.use('/api/eng/tier170-lab-793', require('./tier170_lab_793_router.js')); } catch(e) { console.error('mount tier170_lab_793_router.js fail', e.message); }
 try { app.use('/api/eng/tier170-ane-794', require('./tier170_ane_794_router.js')); } catch(e) { console.error('mount tier170_ane_794_router.js fail', e.message); }
+
+  app.use("/tier171_inf_795", require("./tier171_inf_795_router"));
+  app.use("/tier171_emp_796", require("./tier171_emp_796_router"));
+  app.use("/tier171_phr_797", require("./tier171_phr_797_router"));
+  app.use("/tier171_qui_798", require("./tier171_qui_798_router"));
+  app.use("/tier172_bun_799", require("./tier172_bun_799_router"));
+  app.use("/tier172_car_805", require("./tier172_car_805_router"));
+  app.use("/tier172_neu_802", require("./tier172_neu_802_router"));
+  app.use("/tier172_bre_803", require("./tier172_bre_803_router"));
+  app.use("/tier172_gyn_804", require("./tier172_gyn_804_router"));
+  app.use("/tier173_pul_806", require("./tier173_pul_806_router"));
+  app.use("/tier173_skp_807", require("./tier173_skp_807_router"));
+  app.use("/tier173_mus_808", require("./tier173_mus_808_router"));
+  app.use("/tier173_int_809", require("./tier173_int_809_router"));
+  app.use("/tier173_ped_810", require("./tier173_ped_810_router"));
+  app.use("/tier174_hem_811", require("./tier174_hem_811_router"));
+  app.use("/tier174_onc_812", require("./tier174_onc_812_router"));
+  app.use("/tier174_car_813", require("./tier174_car_813_router"));
+  app.use("/tier174_nep_814", require("./tier174_nep_814_router"));
+  app.use("/tier174_pal_815", require("./tier174_pal_815_router"));
+  app.use("/tier175_eye_816", require("./tier175_eye_816_router"));
+  app.use("/tier175_ent_817", require("./tier175_ent_817_router"));
+  app.use("/tier175_ski_818", require("./tier175_ski_818_router"));
+  app.use("/tier175_mus_819", require("./tier175_mus_819_router"));
+  app.use("/tier175_psy_820", require("./tier175_psy_820_router"));
 async function startServer() {
     try {
         console.log('\n  🐘 Connecting to PostgreSQL...');

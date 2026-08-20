@@ -1,0 +1,1 @@
+{"tenant_id":"t1","patient_id":"p1","provider":"p","age":35,"condition":"eczema","allergens_count":30,"positive_count":4,"allergens_positive":"fragrance, nickel, balsam, cobalt","relevance_score":8,"reading_days":2,"late_read":false}

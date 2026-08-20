@@ -1,0 +1,1 @@
+{"tenant_id":"t1","patient_id":"p1","provider":"p","area":"pharmacy","standard":"JCI","findings_count":3,"critical_findings":1,"compliance_pct":90,"outcome":"partial","followup_days":30,"disposition":"monitoring"}

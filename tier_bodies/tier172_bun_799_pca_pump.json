@@ -1,0 +1,1 @@
+{"tenant_id":"t1","patient_id":"p1","provider":"p","drug":"morphine","dose_mg":2,"lockout_min":10,"demands_24h":30,"deliveries_24h":25,"pain_score_avg":3,"sedation_score":-1,"disposition":"continue","days_in_use":2}

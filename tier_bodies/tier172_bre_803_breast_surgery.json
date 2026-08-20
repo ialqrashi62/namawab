@@ -1,0 +1,1 @@
+{"tenant_id":"t1","patient_id":"p1","provider":"p","type":"lumpectomy","duration_min":90,"ebl_ml":50,"nodes_removed":2,"margins_mm":5,"skin_sparing":false,"reconstruction":"none","hospital_days":1,"complication":"none"}

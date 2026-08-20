@@ -1,0 +1,1 @@
+{"tenant_id":"t1","patient_id":"p1","provider":"p","age":65,"type":"AF","duration_min":60,"hr":130,"bp_systolic":110,"spo2":95,"symptoms":true,"treatment":"cardioversion","recurrence_count":1}
