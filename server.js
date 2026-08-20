@@ -15092,6 +15092,32 @@ try { app.use('/api/eng/tier170-ane-794', require('./tier170_ane_794_router.js')
   app.use("/tier205_ad3_968", require("./tier205_ad3_968_router"));
   app.use("/tier205_ad4_969", require("./tier205_ad4_969_router"));
   app.use("/tier205_ad5_970", require("./tier205_ad5_970_router"));
+
+  app.use("/tier206_a1_946", require("./tier206_a1_946_router"));
+  app.use("/tier206_a2_947", require("./tier206_a2_947_router"));
+  app.use("/tier206_a3_948", require("./tier206_a3_948_router"));
+  app.use("/tier206_a4_949", require("./tier206_a4_949_router"));
+  app.use("/tier206_a5_950", require("./tier206_a5_950_router"));
+  app.use("/tier207_b1_951", require("./tier207_b1_951_router"));
+  app.use("/tier207_b2_952", require("./tier207_b2_952_router"));
+  app.use("/tier207_b3_953", require("./tier207_b3_953_router"));
+  app.use("/tier207_b4_954", require("./tier207_b4_954_router"));
+  app.use("/tier207_b5_955", require("./tier207_b5_955_router"));
+  app.use("/tier208_c1_956", require("./tier208_c1_956_router"));
+  app.use("/tier208_c2_957", require("./tier208_c2_957_router"));
+  app.use("/tier208_c3_958", require("./tier208_c3_958_router"));
+  app.use("/tier208_c4_959", require("./tier208_c4_959_router"));
+  app.use("/tier208_c5_960", require("./tier208_c5_960_router"));
+  app.use("/tier209_d1_961", require("./tier209_d1_961_router"));
+  app.use("/tier209_d2_962", require("./tier209_d2_962_router"));
+  app.use("/tier209_d3_963", require("./tier209_d3_963_router"));
+  app.use("/tier209_d4_964", require("./tier209_d4_964_router"));
+  app.use("/tier209_d5_965", require("./tier209_d5_965_router"));
+  app.use("/tier210_e1_966", require("./tier210_e1_966_router"));
+  app.use("/tier210_e2_967", require("./tier210_e2_967_router"));
+  app.use("/tier210_e3_968", require("./tier210_e3_968_router"));
+  app.use("/tier210_e4_969", require("./tier210_e4_969_router"));
+  app.use("/tier210_e5_970", require("./tier210_e5_970_router"));
 async function startServer() {
     try {
         console.log('\n  🐘 Connecting to PostgreSQL...');
