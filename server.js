@@ -14891,6 +14891,26 @@ try { app.use('/api/eng/tier165-gen-771', require('./tier165_gen_771_router.js')
 try { app.use('/api/eng/tier165-phr-772', require('./tier165_phr_772_router.js')); } catch(e) { console.error('mount tier165_phr_772_router.js fail', e.message); }
 try { app.use('/api/eng/tier165-bio-773', require('./tier165_bio_773_router.js')); } catch(e) { console.error('mount tier165_bio_773_router.js fail', e.message); }
 try { app.use('/api/eng/tier165-eth-774', require('./tier165_eth_774_router.js')); } catch(e) { console.error('mount tier165_eth_774_router.js fail', e.message); }
+try { app.use('/api/eng/tier166-cul-775', require('./tier166_cul_775_router.js')); } catch(e) { console.error('mount tier166_cul_775_router.js fail', e.message); }
+try { app.use('/api/eng/tier166-psy-776', require('./tier166_psy_776_router.js')); } catch(e) { console.error('mount tier166_psy_776_router.js fail', e.message); }
+try { app.use('/api/eng/tier166-den-777', require('./tier166_den_777_router.js')); } catch(e) { console.error('mount tier166_den_777_router.js fail', e.message); }
+try { app.use('/api/eng/tier166-vis-778', require('./tier166_vis_778_router.js')); } catch(e) { console.error('mount tier166_vis_778_router.js fail', e.message); }
+try { app.use('/api/eng/tier167-aud-779', require('./tier167_aud_779_router.js')); } catch(e) { console.error('mount tier167_aud_779_router.js fail', e.message); }
+try { app.use('/api/eng/tier167-spe-780', require('./tier167_spe_780_router.js')); } catch(e) { console.error('mount tier167_spe_780_router.js fail', e.message); }
+try { app.use('/api/eng/tier167-drm-781', require('./tier167_drm_781_router.js')); } catch(e) { console.error('mount tier167_drm_781_router.js fail', e.message); }
+try { app.use('/api/eng/tier167-onc-782', require('./tier167_onc_782_router.js')); } catch(e) { console.error('mount tier167_onc_782_router.js fail', e.message); }
+try { app.use('/api/eng/tier168-reh-783', require('./tier168_reh_783_router.js')); } catch(e) { console.error('mount tier168_reh_783_router.js fail', e.message); }
+try { app.use('/api/eng/tier168-ped-784', require('./tier168_ped_784_router.js')); } catch(e) { console.error('mount tier168_ped_784_router.js fail', e.message); }
+try { app.use('/api/eng/tier168-gyn-785', require('./tier168_gyn_785_router.js')); } catch(e) { console.error('mount tier168_gyn_785_router.js fail', e.message); }
+try { app.use('/api/eng/tier168-obg-786', require('./tier168_obg_786_router.js')); } catch(e) { console.error('mount tier168_obg_786_router.js fail', e.message); }
+try { app.use('/api/eng/tier169-icu-787', require('./tier169_icu_787_router.js')); } catch(e) { console.error('mount tier169_icu_787_router.js fail', e.message); }
+try { app.use('/api/eng/tier169-emr-788', require('./tier169_emr_788_router.js')); } catch(e) { console.error('mount tier169_emr_788_router.js fail', e.message); }
+try { app.use('/api/eng/tier169-tra-789', require('./tier169_tra_789_router.js')); } catch(e) { console.error('mount tier169_tra_789_router.js fail', e.message); }
+try { app.use('/api/eng/tier169-cad-790', require('./tier169_cad_790_router.js')); } catch(e) { console.error('mount tier169_cad_790_router.js fail', e.message); }
+try { app.use('/api/eng/tier170-nrs-791', require('./tier170_nrs_791_router.js')); } catch(e) { console.error('mount tier170_nrs_791_router.js fail', e.message); }
+try { app.use('/api/eng/tier170-rad-792', require('./tier170_rad_792_router.js')); } catch(e) { console.error('mount tier170_rad_792_router.js fail', e.message); }
+try { app.use('/api/eng/tier170-lab-793', require('./tier170_lab_793_router.js')); } catch(e) { console.error('mount tier170_lab_793_router.js fail', e.message); }
+try { app.use('/api/eng/tier170-ane-794', require('./tier170_ane_794_router.js')); } catch(e) { console.error('mount tier170_ane_794_router.js fail', e.message); }
 async function startServer() {
     try {
         console.log('\n  🐘 Connecting to PostgreSQL...');
