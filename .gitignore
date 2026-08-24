@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Build artifacts
 build/
 .cache/
@@ -66,10 +65,9 @@ nama_kek*.dpapi
 .vendor/
 .ai-brain/external-skills/
 .agents/skills/
-=======
+
 node_modules/
 nama_medical_web.db
 nama_medical_web.db-shm
 nama_medical_web.db-wal
 *.db-journal
->>>>>>> 8d788596 (NamaMedical-ERP-v1.0)
