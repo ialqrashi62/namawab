@@ -4,12 +4,13 @@
 
 | Metric | Before | After |
 |---|---|---|
-| `server.js` size | 22,360 lines | **4,729 lines** (-78.9%) |
+| `server.js` size | 22,360 lines | **4,153 lines** (-81.4%) |
 | Extracted routers | 0 | **123 modules** (`routes/*.routes.js`, 37,032 lines) |
 | Routes extracted | — | **1,013** (+ 2 libs: `lib/notifications`, `lib/billing`) |
+| Helper libs (Phase 2) | — | **15 libs**: 6 pure (`lib/*.js`) + 8 pool-bound factories (`lib/pool-fns/*.js`) + `tx.js` |
 | QA | — | **123/123 PASS**, WIRING GATE 123/123 |
 
-Remaining in server.js by design: global middleware (cors/json/session/helmet/rate-limits), shared engines/helpers (e9–e18 families), boot/seed code, SPA catch-all (`app.get('*')`).
+Remaining in server.js by design: global middleware setup, `corsAllowlist` (closes over `app`), `startServer` boot/seed block (~181L), mounts, SPA catch-all.
 
 ## Architecture Pattern
 
@@ -52,6 +53,18 @@ backup → scan_deps → extract → fix factory sig → node --check both files
 | `crypto.createHash is not a function` | DI mock instead of real builtin | Top-level `const crypto = require('crypto')` in modules using it directly |
 | Load-time crashes (`requireTenantAdmin is not defined`) | Dep used inside middleware chain defined at load, missed by runtime-only trace | Wiring gate + grep `\bdep\b` sweep before declaring done |
 | PowerShell 5.1 `$arr += ,@($a+1,$b+1)` throws op_Addition | PS parser evaluates expressions inside array literal as Object[] | Precompute ints into variables first |
+
+## Phase 2 — Helper Extraction
+
+68 top-level defs moved out of server.js in 3 passes (each pass: backup → brace-aware cut by name → lib file → require wiring → `node --check` + WIRING GATE + full 123-module QA):
+
+| Pass | Libs | Pattern |
+|---|---|---|
+| A (pure) | `lib/guards.js`, `roles.js`, `tenant-context.js`, `read-fallback.js`, `mfa.js`, `domain-utils.js` | plain named exports |
+| B (pool-bound) | `lib/pool-fns/{audit, auth-session, results-audit, patient360, icu, misc, ai-wrap}.js` | `module.exports = ({ pool, logAudit }) => ({ ...fns })`; server.js destructures once after `pool` init |
+| C (stragglers) | `lib/pool-fns/tx.js` + extended tenant-context/domain-utils | same |
+
+Load-order rule: helper requires are inserted at the position of the first removed def, guaranteeing they exist before any mount evaluates them at load time.
 
 ## Known Limitations
 

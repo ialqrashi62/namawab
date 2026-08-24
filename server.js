@@ -316,28 +316,21 @@ app.all('/uploads/radiology/*', (req, res) => res.status(404).json({ error: 'Not
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-function requireAuth(req, res, next) {
-    if (req.session && req.session.user) return next();
-    res.status(401).json({ error: 'Unauthorized' });
-}
+// ===== extracted helpers (Phase 2: behavior-preserving moves) =====
+const { requireAuth, requireCatalogAccess, sendBillingError } = require('./lib/guards');
+const { isHrOrAdmin, normalizeRoleName, hasAnyRole, canReviewOvr, canViewAdminAuditTrail, e17CanSeeConfidential, isHimOrAdmin } = require('./lib/roles');
+const { getRequestTenantContext, requireTenantScope, requireTenantContext, requireFacilityContext, withTenantFilter, e17RequireTenant, e11RequireTenant, lisRequireTenant, e10RequireTenant, e12RequireTenant, e13RequireTenant, e13Respond, e7RequireTenant, e8RequireTenant, e9RequireTenant } = require('./lib/tenant-context');
+const { isOptionalReadSchemaError, optionalReadFallback } = require('./lib/read-fallback');
+const { mfaB32Encode, mfaB32Decode, mfaGenSecret, mfaCodeAt, mfaVerify, mfaMatchCounter, mfaConsume } = require('./lib/mfa');
+const { e17IsValidIncidentTransition, e17IsValidCapaTransition, e17ComputeRisk, e11IntId, e11Money, e11Err, e11NphiesEnabled, e10PostingEnabled, e10ZatcaEnabled, e10IntId, e10Err, e12IntId, e12NormalizeStatus, e12IsValidSurgeryTransition, e12WhoNextState, e8CanTransitionBed, e8IntId, isHighAlertMed, marNorm } = require('./lib/domain-utils');
 
 // ===== CATALOG EDIT RESTRICTION (Admin/Manager only) =====
-const requireCatalogAccess = (req, res, next) => {
-    const role = (req.session.user?.role || '').toLowerCase();
-    if (['admin', 'manager', 'administrator'].includes(role)) return next();
-    return res.status(403).json({ error: 'Access denied. Only Admin/Manager can edit catalog items.' });
-};
 
 // ===== DISCOUNT LIMIT BY ROLE + server-side billing integrity (PHASE 1 C-2/C-3) =====
 // Pure, unit-tested helpers live in ./billing_integrity.js (parseMoney / enforceDiscountCap fail closed).
 const { MAX_DISCOUNT_BY_ROLE, parseMoney, enforceDiscountCap, parsePositiveMoneyToMinorUnits, toMinorUnits, assertAmountWithinCap } = require('./billing_integrity');
 
 // sendBillingError: translate a thrown integrity error into its HTTP status (defaults to 500 for unexpected errors).
-function sendBillingError(res, e) {
-    if (e && e.statusCode) return res.status(e.statusCode).json({ error: e.message });
-    console.error('Billing error:', e && e.message);
-    return res.status(500).json({ error: 'Server error' });
-}
 
 // RBAC middleware - role-based access control
 const ROLE_PERMISSIONS = {
@@ -364,60 +357,25 @@ const ROLE_PERMISSIONS = {
     'Infection Control': ['dashboard', 'infection', 'quality', 'nursing', 'reports', 'messaging'],
     'Staff': ['dashboard', 'messaging']
 };
-function requireRole(...modules) {
-    return (req, res, next) => {
-        if (!req.session || !req.session.user) {
-            const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
-            logAudit(null, 'Anonymous', 'BLOCKED_AUTHORIZATION', 'Auth', `Unauthenticated access to route requiring modules [${modules.join(', ')}]`, clientIp);
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-        const role = req.session.user.role;
-        const perms = ROLE_PERMISSIONS[role];
-        if (perms === '*') return next(); // Admin
-        if (perms && modules.some(m => perms.includes(m))) return next();
-        const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
-        logAudit(req.session.user.id, req.session.user.display_name, 'BLOCKED_AUTHORIZATION', 'Auth', `Blocked role ${role} from route requiring modules [${modules.join(', ')}]`, clientIp);
-        res.status(403).json({ error: 'Access denied' });
-    };
-}
+// ===== extracted pool-bound helpers (Phase 2 pass B: factory DI) =====
+const { logAudit } = require('./lib/pool-fns/audit')({ pool });
+const { requireRole, establishSession } = require('./lib/pool-fns/auth-session')({ pool, logAudit });
+const { resultAckTableExists, resultAckAuditKey, auditResultAckExists, auditResultAckFallback } = require('./lib/pool-fns/results-audit')({ pool, logAudit });
+const { centerPatient360 } = require('./lib/pool-fns/patient360')({ pool });
+const { e9LoadActiveIcuAdmission, e9PostFlowsheet, e9PostScore } = require('./lib/pool-fns/icu')({ pool, logAudit });
+const { e12LoadSurgery, _himPushSource } = require('./lib/pool-fns/misc')({ pool });
+const { _aiWrap, _aiOrch } = require('./lib/pool-fns/ai-wrap')({ logAudit });
 
 // H-7: HR or Admin may see compensation fields; everyone else gets a safe staff-directory projection.
-function isHrOrAdmin(user) {
-    const r = user && user.role;
-    if (r === 'Admin') return true;
-    const perms = ROLE_PERMISSIONS[r];
-    return Array.isArray(perms) && perms.includes('hr');
-}
 
-function normalizeRoleName(role) {
-    return String(role || '').trim().toLowerCase();
-}
 
-function hasAnyRole(user, roles) {
-    const currentRole = normalizeRoleName(user && user.role);
-    return roles.map(normalizeRoleName).includes(currentRole);
-}
 
-function canReviewOvr(user) {
-    return hasAnyRole(user, ['Admin', 'Quality Manager', 'Infection Control', 'Director']);
-}
 
-function canViewAdminAuditTrail(user) {
-    return hasAnyRole(user, ['Admin', 'IT', 'Quality Manager', 'Director']);
-}
 
 // directory-safe employee columns (excludes salary / commission_type / commission_value)
 const EMPLOYEE_DIRECTORY_COLS = 'id, name, name_ar, name_en, role, department_ar, department_en, status, created_at';
 
 // Audit trail helper
-async function logAudit(userId, userName, action, module, details, ip) {
-    try {
-        await pool.query(
-            'INSERT INTO audit_trail (user_id, username, action, module, new_values, ip_address) VALUES ($1,$2,$3,$4,$5,$6)',
-            [userId, userName || '', action || '', module || '', details || '', ip || '']
-        );
-    } catch (e) { console.error('Audit log error:', e.message); }
-}
 
 // ===== SaaS Batch 2: unified Auth/RBAC guards (one tested source of truth; behavior-preserving) =====
 // requireTenantAdmin replaces duplicated inline `role !== 'Admin'` checks (same 403 + same audit events
@@ -447,47 +405,11 @@ if (process.env.AUDIT_ALL_MUTATIONS === 'true') console.log('[AUDIT] Auto-audit 
 // SECURITY: a tenant-bound user's tenant comes from the trusted SESSION and can never be
 // overridden by an x-tenant-id header (see tenant_resolve.js). The header is honored only
 // for a tenant-unbound privileged session (super admin) or the non-prod dev fallback.
-function getRequestTenantContext(req) {
-    const headerTenant = req.headers['x-tenant-id'] || req.headers['x-tenant-id-key'] || null;
-    const resolved = resolveTenantContext({
-        headerTenant,
-        sessionUser: req.session && req.session.user ? req.session.user : null,
-        isProduction: process.env.NODE_ENV === 'production',
-    });
-    const ctx = { tenantId: resolved.tenantId, facilityId: resolved.facilityId, isProduction: resolved.isProduction };
-    ctx.toPostgres = () => ctx.tenantId;
-    ctx.valueOf = () => ctx.tenantId;
-    ctx.toString = () => String(ctx.tenantId || '');
-    return ctx;
-}
 
-function isOptionalReadSchemaError(e) {
-    return e && (e.code === '42P01' || e.code === '42703');
-}
 
-function optionalReadFallback(res, e, fallback = []) {
-    if (!isOptionalReadSchemaError(e)) return false;
-    return res.json(fallback), true;
-}
 
 // Middleware: block any request that has no tenantId in production
-function requireTenantScope(req, res, next) {
-    const { tenantId, isProduction } = getRequestTenantContext(req);
-    if (!tenantId && isProduction) {
-        // Security: reject in production with 403 — never expose unscoped data
-        return res.status(403).json({ error: 'Tenant scope required' });
-    }
-    next();
-}
 
-function requireTenantContext(req, res, next) {
-    const { tenantId } = getRequestTenantContext(req);
-    if (!tenantId) {
-        return res.status(400).json({ error: 'Missing tenant context' });
-    }
-    req.tenantId = tenantId;
-    next();
-}
 
 const requirePermission = makeRequirePermission({
     pool,
@@ -501,18 +423,6 @@ const requirePermission = makeRequirePermission({
     }
 });
 
-function requireFacilityContext(req, res, next) {
-    const { tenantId, facilityId } = getRequestTenantContext(req);
-    if (!tenantId) {
-        return res.status(400).json({ error: 'Missing tenant context' });
-    }
-    if (!facilityId) {
-        return res.status(400).json({ error: 'Missing facility context' });
-    }
-    req.tenantId = tenantId;
-    req.facilityId = facilityId;
-    next();
-}
 
 // Gate 7: idempotency guard for money/claim-mutating routes. OPT-IN (only engages when the
 // client sends an Idempotency-Key header) and FAIL-OPEN (never blocks billing on an infra
@@ -525,31 +435,12 @@ const idempotencyGuard = makeIdempotencyGuard({
     logger: console,
 });
 
-function withTenantFilter(queryText, params, tenantId) {
-    if (!tenantId) return { queryText, params };
-    const hasWhere = queryText.toLowerCase().includes('where');
-    const separator = hasWhere ? ' AND ' : ' WHERE ';
-    const paramIndex = params.length + 1;
-    const modifiedQuery = queryText + separator + `tenant_id = $${paramIndex}`;
-    const modifiedParams = [...params, tenantId];
-    return { queryText: modifiedQuery, params: modifiedParams };
-}
 
 // ===== SMS NOTIFICATION HELPERS (extracted -> lib/notifications/notifyHelpers.js; behavior-preserving) =====
 const { sendLabResultNotification, sendDoctorSMS, sendRadiologyResultNotification, sendPatientEmail, sendDoctorEmail } =
     require('./lib/notifications/notifyHelpers')({ pool, smsService, emailService });
 // ===== EPIC E17 — Quality / Incidents / CAPA + Infection Control =====
 // Fail-closed tenant guard for E17: returns integer tenantId or throws (caller -> 403).
-function e17RequireTenant(req) {
-    const { tenantId, isProduction } = getRequestTenantContext(req);
-    const tid = parseInt(tenantId, 10);
-    if (!Number.isInteger(tid) || tid <= 0) {
-        const err = new Error('Tenant scope required');
-        err.statusCode = 403;
-        throw err;
-    }
-    return tid;
-}
 
 // Server-side authority enums (client may NOT invent values).
 const E17_INCIDENT_SEVERITY = ['low', 'medium', 'high', 'critical'];
@@ -563,10 +454,6 @@ const E17_INCIDENT_TRANSITIONS = {
     'Action': ['Closed'],
     'Closed': []
 };
-function e17IsValidIncidentTransition(from, to) {
-    const allowed = E17_INCIDENT_TRANSITIONS[from];
-    return Array.isArray(allowed) && allowed.includes(to);
-}
 
 // CAPA state machine (server-enforced; rejects invalid transitions with 409).
 const E17_CAPA_TRANSITIONS = {
@@ -576,23 +463,9 @@ const E17_CAPA_TRANSITIONS = {
     'Verified': [],
     'Cancelled': []
 };
-function e17IsValidCapaTransition(from, to) {
-    const allowed = E17_CAPA_TRANSITIONS[from];
-    return Array.isArray(allowed) && allowed.includes(to);
-}
 const E17_CAPA_TYPES = ['Corrective', 'Preventive'];
 
 // Risk register: server computes score + level (anti-spoof — never trusts client).
-function e17ComputeRisk(likelihood, impact) {
-    const L = Math.min(5, Math.max(1, parseInt(likelihood, 10) || 1));
-    const I = Math.min(5, Math.max(1, parseInt(impact, 10) || 1));
-    const score = L * I;
-    let level = 'Low';
-    if (score >= 15) level = 'Extreme';
-    else if (score >= 10) level = 'High';
-    else if (score >= 5) level = 'Medium';
-    return { likelihood: L, impact: I, score, level };
-}
 const E17_PRECAUTION_TYPES = ['standard', 'contact', 'droplet', 'airborne', 'protective'];
 const E17_AMS_SEVERITY = ['Advisory', 'Action Required', 'Critical'];
 
@@ -603,51 +476,11 @@ const activeUserSessions = new Map(); // userId -> sessionId
 
 // ===== AUTH ROUTES =====
 // A2: establish authenticated session — shared by password-only login and post-MFA completion
-async function establishSession(req, user, clientIp) {
-    // prevent session fixation: issue a fresh session id at successful authentication
-    await new Promise((resolve, reject) => req.session.regenerate(err => (err ? reject(err) : resolve())));
-    const previousSessionId = activeUserSessions.get(user.id);
-    if (previousSessionId && previousSessionId !== req.sessionID) {
-        req.sessionStore.destroy(previousSessionId, (err) => { if (err) console.error('Error destroying old session:', err); });
-    }
-    let userTenantId = null, userFacilityId = null;
-    try {
-        const tenantRow = (await pool.query('SELECT tenant_id FROM user_tenants WHERE user_id=$1 AND is_active=true LIMIT 1', [user.id])).rows[0];
-        if (tenantRow) {
-            userTenantId = tenantRow.tenant_id;
-            const facRow = (await pool.query('SELECT facility_id FROM user_facilities WHERE user_id=$1 AND is_primary=true LIMIT 1', [user.id])).rows[0];
-            if (facRow) userFacilityId = facRow.facility_id;
-        }
-    } catch (e) { console.error('Error fetching tenant/facility scope for user:', e); }
-    if (!userTenantId && process.env.NODE_ENV !== 'production') { userTenantId = 1; userFacilityId = 1; }
-    req.session.user = {
-        id: user.id, username: user.username, name: user.display_name, display_name: user.display_name,
-        role: user.role, speciality: user.speciality || '', permissions: user.permissions || '',
-        tenantId: userTenantId, facilityId: userFacilityId
-    };
-    activeUserSessions.set(user.id, req.sessionID);
-    await pool.query('UPDATE system_users SET last_ip=$1 WHERE id=$2', [clientIp, user.id]).catch(() => { });
-    logAudit(user.id, user.display_name, 'LOGIN', 'Auth', `User logged in as ${user.role}`, clientIp);
-}
 
 // A2 MFA — RFC-6238 TOTP via built-in crypto (no external dependency); secrets are never logged
 const MFA_B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-function mfaB32Encode(buf) { let bits = 0, val = 0, out = ''; for (const b of buf) { val = (val << 8) | b; bits += 8; while (bits >= 5) { out += MFA_B32[(val >>> (bits - 5)) & 31]; bits -= 5; } } if (bits > 0) out += MFA_B32[(val << (5 - bits)) & 31]; return out; }
-function mfaB32Decode(str) { let bits = 0, val = 0; const out = []; for (const c of String(str).replace(/=+$/, '').toUpperCase()) { const idx = MFA_B32.indexOf(c); if (idx < 0) continue; val = (val << 5) | idx; bits += 5; if (bits >= 8) { out.push((val >>> (bits - 8)) & 0xff); bits -= 8; } } return Buffer.from(out); }
-function mfaGenSecret() { return mfaB32Encode(require('crypto').randomBytes(20)); }
-function mfaCodeAt(secret, counter) { const key = mfaB32Decode(secret); const buf = Buffer.alloc(8); buf.writeBigUInt64BE(BigInt(counter)); const h = require('crypto').createHmac('sha1', key).update(buf).digest(); const o = h[h.length - 1] & 0xf; const n = ((h[o] & 0x7f) << 24) | ((h[o + 1] & 0xff) << 16) | ((h[o + 2] & 0xff) << 8) | (h[o + 3] & 0xff); return (n % 1000000).toString().padStart(6, '0'); }
-function mfaVerify(secret, token, window = 1) { if (!secret || !token) return false; const t = Math.floor(Date.now() / 1000 / 30); const tok = String(token).trim(); for (let i = -window; i <= window; i++) { if (mfaCodeAt(secret, t + i) === tok) return true; } return false; }
-function mfaMatchCounter(secret, token, window = 1) { if (!secret || !token) return null; const t = Math.floor(Date.now() / 1000 / 30); const tok = String(token).trim(); for (let i = -window; i <= window; i++) { if (mfaCodeAt(secret, t + i) === tok) return t + i; } return null; }
 // TOTP replay guard: reject any code whose 30s counter was already consumed for this user (in-memory; codes expire in ~90s so this needs no persistence)
 const mfaLastCounter = new Map();
-function mfaConsume(uid, secret, token) {
-    const ctr = mfaMatchCounter(secret, token);
-    if (ctr === null) return false;
-    const last = mfaLastCounter.get(uid);
-    if (last !== undefined && ctr <= last) return false;   // replay
-    mfaLastCounter.set(uid, ctr);
-    return true;
-}
 
 // ===== /API/AUTH (extracted -> routes/auth.routes.js; behavior-preserving) =====
 app.use(require('./routes/auth.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, activeUserSessions, bcrypt, ce, establishSession, loginLimiter, mfaConsume }));
@@ -727,32 +560,8 @@ app.use(require('./routes/invoices.routes.js')({ pool, requireAuth, requireRole,
 const E11_INS_ROLES = ['insurance', 'finance'];
 
 // fail-closed tenant resolver: null tenant => throw 403 (no unscoped fallback). Mirrors e7/e8/e9/e10.
-function e11RequireTenant(req) {
-    const { tenantId } = getRequestTenantContext(req);
-    if (!tenantId) { const err = new Error('Tenant scope required'); err.e11Status = 403; throw err; }
-    return tenantId;
-}
 // integer-id coercion guard: positive integer or null (no padded-string/float bypass — E6 lesson).
-function e11IntId(v) {
-    if (v === null || v === undefined || v === '') return null;
-    const n = Number(v);
-    if (!Number.isInteger(n) || n <= 0) return null;
-    return n;
-}
-function e11Money(v) {
-    const n = Number(v);
-    if (!Number.isFinite(n) || n < 0) return null;
-    return e11Engine.round2(n);
-}
-function e11Err(res, e) {
-    if (e && e.e11Status) return res.status(e.e11Status).json({ error: e.message });
-    console.error('E11 insurance error:', e && e.message);
-    return res.status(500).json({ error: 'Server error' });
-}
 // NPHIES external integration gate — default OFF (no real creds => never call NPHIES; intent-only stub).
-function e11NphiesEnabled() {
-    return /^(1|true|on|yes)$/i.test(String(process.env.NPHIES_ENABLED || '').trim());
-}
 
 // ----- Insurance companies (tenant-scoped) -----
 // ===== /API/INSURANCE (extracted -> routes/insurance.routes.js; behavior-preserving) =====
@@ -852,11 +661,6 @@ app.use(require('./routes/lab.routes.js')({ pool, requireAuth, requireRole, requ
 // ----------------------------------------------------------------------------
 
 // Helper: hard tenant gate for LIS writes (fail-closed). Returns tenantId or sends 400 and returns null.
-function lisRequireTenant(req, res) {
-    const { tenantId, facilityId } = getRequestTenantContext(req);
-    if (!tenantId) { res.status(400).json({ error: 'Missing tenant context' }); return null; }
-    return { tenantId, facilityId };
-}
 
 // ---- SAMPLES: list ----
 
@@ -875,46 +679,9 @@ function lisRequireTenant(req, res) {
 // ---- RESULTS: report/release (FAIL-CLOSED: critical needs a documented call-back) ----
 
 // ===== GATE 3: PHYSICIAN RESULT ACKNOWLEDGEMENT =====
-async function resultAckTableExists() {
-    const r = await pool.query("SELECT to_regclass('public.result_acknowledgements') AS t");
-    return !!r.rows[0].t;
-}
 
-function resultAckAuditKey(tenantId, type, resultId, userId) {
-    return `ACK|tenant=${tenantId}|type=${type}|result=${resultId}|user=${userId || 'unknown'}`;
-}
 
-async function auditResultAckExists(tenantId, type, resultId, userId) {
-    const key = resultAckAuditKey(tenantId, type, resultId, userId);
-    const r = await pool.query(
-        `SELECT id FROM audit_trail
-         WHERE action='RESULT_ACK_FALLBACK' AND module='Lab' AND new_values=$1
-         LIMIT 1`,
-        [key]
-    );
-    return !!r.rows.length;
-}
 
-async function auditResultAckFallback(req, ctx, type, resultId, patientId, ack) {
-    const key = resultAckAuditKey(ctx.tenantId, type, resultId, req.session.user?.id);
-    if (await auditResultAckExists(ctx.tenantId, type, resultId, req.session.user?.id)) {
-        return { duplicate: true };
-    }
-    await pool.query(
-        'INSERT INTO audit_trail (user_id, username, action, module, new_values, ip_address) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id',
-        [
-            req.session.user?.id,
-            req.session.user?.display_name || '',
-            'RESULT_ACK_FALLBACK',
-            'Lab',
-            key,
-            req.ip || ''
-        ]
-    );
-    await logAudit(req.session.user?.id, req.session.user?.display_name, 'RESULT_ACK', 'Lab',
-        `Acknowledged ${type} result #${resultId} (level: ${ack.level}, patient #${patientId}, fallback=audit_trail)`, req.ip);
-    return { duplicate: false, key };
-}
 
 // POST /api/results/:type/:id/acknowledge — the ordering/covering physician documents
 // having reviewed a verified abnormal/critical result. Level comes from the server-side
@@ -1024,31 +791,9 @@ app.use(require('./routes/hr.routes.js')({ pool, requireAuth, requireRole, requi
 // ============================================================================================
 
 // posting gate — default OFF. Only "1"/"true" (case-insensitive) enables ledger posting.
-function e10PostingEnabled() {
-    return /^(1|true|on|yes)$/i.test(String(process.env.ACCOUNTING_POSTING_ENABLED || '').trim());
-}
 // ZATCA external clearance/reporting gate — default OFF (no real CSID => never call ZATCA).
-function e10ZatcaEnabled() {
-    return /^(1|true|on|yes)$/i.test(String(process.env.ZATCA_ENABLED || '').trim());
-}
 // fail-closed tenant resolver: null tenant => throw 403 (no unscoped fallback). Mirrors e7/e8/e9.
-function e10RequireTenant(req) {
-    const { tenantId } = getRequestTenantContext(req);
-    if (!tenantId) { const err = new Error('Tenant scope required'); err.e10Status = 403; throw err; }
-    return tenantId;
-}
 // integer-id coercion guard: positive integer or null (no padded-string / float bypass — E6 lesson).
-function e10IntId(v) {
-    if (v === null || v === undefined || v === '') return null;
-    const n = Number(v);
-    if (!Number.isInteger(n) || n <= 0) return null;
-    return n;
-}
-function e10Err(res, e) {
-    if (e && e.e10Status) return res.status(e.e10Status).json({ error: e.message });
-    console.error('E10 finance error:', e && e.message);
-    return res.status(500).json({ error: 'Server error' });
-}
 
 // ----- Chart of Accounts (tenant-scoped; account_class validated server-side) -----
 const E10_ACCOUNT_CLASSES = ['Asset', 'Liability', 'Equity', 'Revenue', 'Expense'];
@@ -1132,28 +877,9 @@ app.use(require('./routes/clinical.routes.js')({ addVAT, calcVAT, getRequestTena
 // stamped from the session (never from the body). The LLM call goes through ai_langchain_shim:
 // live when LLM_API_KEY is set, deterministic RAG-grounded fallback otherwise.
 const AI_ORCH_ROLE = requireRole('doctor', 'nursing');
-function _aiWrap(name, fn) {
-    return async (req, res) => {
-        try {
-            const { tenantId, facilityId } = getRequestTenantContext(req);
-            const out = await fn({
-                ...req.body,
-                tenant_id: tenantId,
-                facility_id: facilityId,
-                actor: { id: req.session.user?.id, name: req.session.user?.display_name || req.session.user?.name },
-            });
-            logAudit(req.session.user?.id, req.session.user?.display_name, 'AI_ORCHESTRATOR', 'AI',
-                `Orchestrator ${name} called by user #${req.session.user?.id}`, req.ip);
-            res.json({ ok: true, function: name, result: out });
-        } catch (e) {
-            res.status(e.statusCode || 500).json({ error: e.message || 'Server error' });
-        }
-    };
-}
 
 // Lazy requires — orchestrators are constructed on each call; this avoids pulling in
 // every vector store at boot (and keeps the AI route table declarative).
-function _aiOrch(name) { return require('./' + name); }
 
 // ===== /API/AI (extracted -> routes/ai.routes.js; behavior-preserving) =====
 app.use(require('./routes/ai.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, cds, _aiOrch, _aiWrap, AI_ORCH_ROLE }));
@@ -1182,30 +908,6 @@ app.use(require('./routes/cardiology.routes.js')({ addVAT, calcVAT, getRequestTe
 // Each Center mounts a thin route that calls centerPatient360 with its own table list.
 // tenant isolation is enforced by both the explicit AND tenant_id=$N on every query AND the
 // FORCE RLS policy on the wrapped tables. centerPatient360 itself also rejects null tenant.
-async function centerPatient360(req, res, tables) {
-    try {
-        const { tenantId, facilityId } = getRequestTenantContext(req);
-        if (!tenantId) return res.status(400).json({ error: 'Tenant context required' });
-        const patientId = parseInt(req.params.patient_id, 10);
-        if (!Number.isInteger(patientId)) return res.status(400).json({ error: 'Invalid patient_id' });
-        // IDOR: patient must belong to this tenant.
-        const pt = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [patientId, tenantId])).rows[0];
-        if (!pt) return res.status(404).json({ error: 'Patient not found' });
-        const tenantCheck = ` AND tenant_id = $${2}`;
-        const tenantParams = [patientId, tenantId];
-        const out = { patient_id: patientId, tenant_id: tenantId, records: {} };
-        for (const t of tables) {
-            try {
-                const rows = (await pool.query(`SELECT * FROM ${t} WHERE patient_id=$1${tenantCheck} ORDER BY created_at DESC`, tenantParams)).rows;
-                out.records[t] = rows;
-            } catch (e) {
-                if (isOptionalReadSchemaError(e)) out.records[t] = [];
-                else throw e;
-            }
-        }
-        res.json(out);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
-}
 
 // Heart & Vascular Center — Patient-360 (Wave 8). Aggregates cardiology_procedures + ecg_records
 // + cardiology_assessments for the requested patient, all tenant-scoped.
@@ -1509,23 +1211,8 @@ app.use(require('./routes/operating-rooms.routes.js')({ pool, requireAuth, requi
 // ============================================================================
 // Fail-closed tenant resolver for E12: throws in production when no tenant is bound.
 // Mirrors the e7/e8/e9 requireTenant pattern (NO unscoped fallback in production).
-function e12RequireTenant(req) {
-    const { tenantId, facilityId, isProduction } = getRequestTenantContext(req);
-    if (!tenantId) {
-        if (isProduction) {
-            const err = new Error('Tenant scope required');
-            err.statusCode = 403;
-            throw err;
-        }
-    }
-    return { tenantId: tenantId || null, facilityId: facilityId || null };
-}
 
 // Integer-only id coercion (no string/padded-id coercion bypass — E6 lesson).
-function e12IntId(v) {
-    const n = Number(v);
-    return Number.isInteger(n) && n > 0 ? n : null;
-}
 
 // ---- Surgery status state machine (server-enforced; reject invalid transitions 409) ----
 // Scheduled -> InProgress -> PACU -> Completed (+ Cancelled from any non-terminal).
@@ -1538,44 +1225,13 @@ const E12_SURGERY_TRANSITIONS = {
     'Completed': [],
     'Cancelled': []
 };
-function e12NormalizeStatus(s) {
-    if (s === 'In Progress') return 'InProgress';
-    return s;
-}
-function e12IsValidSurgeryTransition(fromRaw, toRaw) {
-    const from = fromRaw || 'Scheduled';
-    const to = e12NormalizeStatus(toRaw);
-    if (!E12_SURGERY_STATUS.includes(to)) return false;
-    const allowed = E12_SURGERY_TRANSITIONS[from] || E12_SURGERY_TRANSITIONS[e12NormalizeStatus(from)] || [];
-    return allowed.includes(to);
-}
 
 // ---- WHO Safe Surgery Checklist phase state machine ----
 // Not Started -> Sign-In -> Time-Out -> Sign-Out -> Completed (sequential; skipping -> 409).
 const E12_WHO_ORDER = ['Not Started', 'Sign-In', 'Time-Out', 'Sign-Out', 'Completed'];
 const E12_WHO_PHASE_TO_STATE = { 'sign-in': 'Sign-In', 'time-out': 'Time-Out', 'sign-out': 'Sign-Out' };
-function e12WhoNextState(currentState, phase) {
-    // Returns { ok, newState, error }. Enforces strict sequential ordering.
-    const target = E12_WHO_PHASE_TO_STATE[phase];
-    if (!target) return { ok: false, error: 'Unknown checklist phase' };
-    const curIdx = E12_WHO_ORDER.indexOf(currentState || 'Not Started');
-    const tgtIdx = E12_WHO_ORDER.indexOf(target);
-    if (tgtIdx !== curIdx + 1) {
-        return { ok: false, error: `Invalid checklist phase order: cannot move from "${currentState || 'Not Started'}" to "${target}"` };
-    }
-    // Completing Sign-Out advances the state to Completed.
-    const newState = (target === 'Sign-Out') ? 'Completed' : target;
-    return { ok: true, newState };
-}
 
 // Helper: verify surgery ownership (tenant-scoped). Returns row or null.
-async function e12LoadSurgery(surgeryId, tenantId) {
-    const q = tenantId
-        ? 'SELECT * FROM surgeries WHERE id=$1 AND tenant_id=$2'
-        : 'SELECT * FROM surgeries WHERE id=$1';
-    const params = tenantId ? [surgeryId, tenantId] : [surgeryId];
-    return (await pool.query(q, params)).rows[0] || null;
-}
 
 // ===== E12: OR SCHEDULING — slots + conflict detection + transactional reservation =====
 // List slots for a room/date (tenant scoped).
@@ -1637,27 +1293,6 @@ app.use(require('./routes/blood-bank.routes.js')({ pool, requireAuth, requireRol
 //
 // e13RequireTenant: returns the request tenant or THROWS (fail-closed). Never
 // returns a fallback that would widen scope; the route catch -> 403.
-function e13RequireTenant(req) {
-    const { tenantId, isProduction } = getRequestTenantContext(req);
-    if (!tenantId) {
-        const err = new Error('Tenant scope required');
-        err.e13Status = 403;
-        throw err;
-    }
-    // tenantId must be an integer (no string/padded-id coercion bypass — E6)
-    const t = Number(tenantId);
-    if (!Number.isInteger(t) || t <= 0) {
-        const err = new Error('Invalid tenant scope');
-        err.e13Status = 403;
-        throw err;
-    }
-    return t;
-}
-function e13Respond(res, e) {
-    if (e && e.e13Status) return res.status(e.e13Status).json({ error: e.message });
-    console.error('bloodbank route error:', e && e.message);
-    return res.status(500).json({ error: 'Server error' });
-}
 const BB_VALID_COMPONENTS = ['Whole Blood', 'Packed RBC', 'FFP', 'Platelets', 'Cryoprecipitate'];
 const BB_NEAR_EXPIRY_DAYS = 7;
 
@@ -1759,11 +1394,6 @@ app.use(require('./routes/emergency.routes.js')({ pool, requireAuth, requireRole
 // these guarded routes — there is no shadow/unguarded path.
 
 // Fail-closed tenant resolver for E7: throws when tenant is missing so no helper ever runs unscoped.
-function e7RequireTenant(req) {
-    const { tenantId, facilityId } = getRequestTenantContext(req);
-    if (!tenantId) { const err = new Error('Tenant scope required'); err.e7Status = 403; throw err; }
-    return { tenantId, facilityId };
-}
 
 // ED workflow phases + valid transitions (server-authoritative state machine).
 const ER_PHASES = ['Arrival', 'Triage', 'Waiting', 'InTreatment', 'Disposition'];
@@ -1815,11 +1445,6 @@ app.use(require('./routes/bed-transfers_legacy_disabled.routes.js')({ pool, requ
 // ============================================================
 
 // Fail-closed tenant resolver (mirrors e7RequireTenant — generic, no unscoped fallback).
-function e8RequireTenant(req) {
-    const { tenantId, facilityId } = getRequestTenantContext(req);
-    if (!tenantId) { const err = new Error('Tenant scope required'); err.e8Status = 403; throw err; }
-    return { tenantId, facilityId };
-}
 
 // Server-authoritative bed status lifecycle. 'Available' is the legacy vacant terminal
 // (kept for backward compat with the existing schema/seeds). Allowed transitions:
@@ -1838,24 +1463,12 @@ const E8_BED_TRANSITIONS = {
 };
 // A bed is "occupiable" by an admission only if currently free.
 const E8_BED_FREE_STATES = ['Available', 'Reserved'];
-function e8CanTransitionBed(from, to) {
-    if (!E8_BED_STATUSES.includes(to)) return false;
-    const f = from || 'Available';
-    if (f === to) return true; // idempotent no-op allowed
-    return (E8_BED_TRANSITIONS[f] || []).includes(to);
-}
 
 // Admission lifecycle: Active -> (Transferred-in-place stays Active) -> Discharged.
 // Discharge is only valid from an Active admission; transfer is only valid for Active.
 const E8_ADMISSION_TERMINAL = ['Discharged'];
 
 // Coerce an id to a positive integer (no string/padded-id coercion bypass — E6 lesson).
-function e8IntId(v) {
-    if (v === null || v === undefined || v === '') return null;
-    const n = Number(v);
-    if (!Number.isInteger(n) || n <= 0) return null;
-    return n;
-}
 
 // GET /api/adt/beds — bed board (status + current patient) for the tenant.
 // ===== /API/ADT (extracted -> routes/adt.routes.js; behavior-preserving) =====
@@ -1900,19 +1513,11 @@ app.use(require('./routes/adt.routes.js')({ pool, requireAuth, requireRole, requ
 const E9_ICU_WARD_TYPES = ['ICU', 'NICU', 'CCU'];
 
 // Fail-closed tenant resolver (mirrors e8RequireTenant — no unscoped fallback).
-function e9RequireTenant(req) {
-    const { tenantId, facilityId } = getRequestTenantContext(req);
-    if (!tenantId) { const err = new Error('Tenant scope required'); err.e9Status = 403; throw err; }
-    return { tenantId, facilityId };
-}
 
 // Coerce an id to a positive integer (no string/padded-id coercion bypass — E6 lesson).
-function e9IntId(v) {
-    if (v === null || v === undefined || v === '') return null;
-    const n = Number(v);
-    if (!Number.isInteger(n) || n <= 0) return null;
-    return n;
-}
+const { e18RequireTenant, e14RequireTenant } = require('./lib/tenant-context');
+const { e9IntId, e14IntId } = require('./lib/domain-utils');
+const { e14PatientInTenant, e14PregnancyInTenant, getPatientActiveMeds, e18BeginTenantTx, withPharmacyTx } = require('./lib/pool-fns/tx')({ pool });
 
 // Validate that admissionId belongs to this tenant, is Active, and sits in an ICU-typed ward.
 // Returns the admission row (with patient_id) or throws an e9Status error.
@@ -1920,46 +1525,11 @@ function e9IntId(v) {
 //   - not found / cross-tenant => 404 (no leak)
 //   - not Active (e.g. Discharged) => 409
 //   - not in an ICU/NICU/CCU ward => 409
-async function e9LoadActiveIcuAdmission(admissionId, tenantId) {
-    const aid = e9IntId(admissionId);
-    if (!aid) { const e = new Error('Valid admission_id is required'); e.e9Status = 422; throw e; }
-    const row = (await pool.query(
-        `SELECT a.id, a.patient_id, a.status, w.ward_type
-         FROM admissions a
-         LEFT JOIN beds b ON a.bed_id = b.id AND b.tenant_id = $2
-         LEFT JOIN wards w ON COALESCE(b.ward_id, a.ward_id) = w.id AND w.tenant_id = $2
-         WHERE a.id = $1 AND a.tenant_id = $2`,
-        [aid, tenantId])).rows[0];
-    if (!row) { const e = new Error('Admission not found'); e.e9Status = 404; throw e; }
-    if (row.status !== 'Active') { const e = new Error(`Cannot record ICU data on a ${row.status} admission`); e.e9Status = 409; throw e; }
-    if (!E9_ICU_WARD_TYPES.includes(row.ward_type)) {
-        const e = new Error('Admission is not in an ICU/NICU/CCU ward'); e.e9Status = 409; throw e;
-    }
-    return row;
-}
 
 // GET /api/icu/patients — Active admissions in ICU-typed wards (tenant-scoped, fail-closed).
 
 // ----- ICU flowsheet (time-stamped vitals/hemodynamics/I-O) — backed by icu_monitoring -----
 // POST /api/icu/flowsheet  (canonical blueprint name). Legacy alias: POST /api/icu/monitoring.
-async function e9PostFlowsheet(req, res) {
-    try {
-        const { tenantId, facilityId } = e9RequireTenant(req);
-        const adm = await e9LoadActiveIcuAdmission(req.body.admission_id, tenantId);
-        const b = req.body;
-        const num = v => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
-        const r = await pool.query(
-            `INSERT INTO icu_monitoring (admission_id,patient_id,hr,sbp,dbp,map,rr,spo2,temp,etco2,cvp,fio2,peep,urine_output,notes,recorded_by,tenant_id,facility_id)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING *`,
-            [adm.id, adm.patient_id, num(b.hr), num(b.sbp), num(b.dbp), num(b.map), num(b.rr), num(b.spo2), num(b.temp), num(b.etco2), num(b.cvp), num(b.fio2), num(b.peep), num(b.urine_output), String(b.notes || ''), String(b.recorded_by || req.session.user?.display_name || ''), tenantId, facilityId || null]);
-        logAudit(req.session.user?.id, req.session.user?.display_name, 'ICU_FLOWSHEET', 'ICU',
-            `Flowsheet row for admission #${adm.id} (patient #${adm.patient_id})`, req.ip);
-        res.json(r.rows[0]);
-    } catch (e) {
-        if (e.e9Status) return res.status(e.e9Status).json({ error: e.message });
-        res.status(500).json({ error: 'Server error' });
-    }
-}
 
 // ----- Infusions / drips (continuous IV meds) — NEW table icu_infusions -----
 // Bonus safety: if a drug name is supplied, run a server-derived allergy check (cds.checkDrugAllergy)
@@ -1968,57 +1538,6 @@ async function e9PostFlowsheet(req, res) {
 // ----- ICU acuity scores (SERVER-SIDE SOFA / GCS / APACHE-II) — icu_scores -----
 // POST /api/icu/score (canonical) + legacy alias POST /api/icu/scores. Accepts RAW observations;
 // the score/band are computed by icu_scoring.js — any client apache_ii/sofa/gcs is IGNORED.
-async function e9PostScore(req, res) {
-    try {
-        const { tenantId, facilityId } = e9RequireTenant(req);
-        const adm = await e9LoadActiveIcuAdmission(req.body.admission_id, tenantId);
-        const b = req.body;
-
-        // Server-authoritative scoring from raw observations (anti-spoof).
-        const result = icuScoring.computeICUScores({
-            vitals: b.vitals || {},
-            gcs_eye: b.gcs_eye, gcs_verbal: b.gcs_verbal, gcs_motor: b.gcs_motor, gcs_total: b.gcs_total,
-            pao2_fio2: b.pao2_fio2, pao2: b.pao2, fio2: b.fio2, ventilated: b.ventilated,
-            platelets: b.platelets, bilirubin: b.bilirubin, creatinine: b.creatinine,
-            urine_output_24h: b.urine_output_24h, urine_24h: b.urine_24h,
-            map: b.map != null ? b.map : (b.vitals && b.vitals.map),
-            dopamine: b.dopamine, dobutamine: b.dobutamine, epinephrine: b.epinephrine, norepinephrine: b.norepinephrine,
-            temp: b.temp != null ? b.temp : (b.vitals && b.vitals.temp),
-            hr: b.hr != null ? b.hr : (b.vitals && b.vitals.hr),
-            rr: b.rr != null ? b.rr : (b.vitals && b.vitals.rr),
-            spo2: b.spo2 != null ? b.spo2 : (b.vitals && b.vitals.spo2),
-            age: b.age, chronic_health: b.chronic_health, immunocompromised: b.immunocompromised
-        });
-
-        // RASS / CAM-ICU / pain are observed nursing assessments (not derangement-derived) — accept
-        // but clamp to safe ranges; Braden/Morse retained for backward compat (nursing scores).
-        const clampInt = (v, lo, hi, dflt) => { const n = parseInt(v); return Number.isInteger(n) ? Math.max(lo, Math.min(hi, n)) : dflt; };
-        const rass = clampInt(b.rass, -5, 4, 0);
-        const cam = clampInt(b.cam_icu, 0, 1, 0);
-        const braden = clampInt(b.braden, 6, 23, 23);
-        const morse = clampInt(b.morse_fall, 0, 125, 0);
-        const pain = clampInt(b.pain_score, 0, 10, 0);
-
-        const r = await pool.query(
-            `INSERT INTO icu_scores (admission_id,patient_id,score_date,apache_ii,sofa,gcs,rass,cam_icu,braden,morse_fall,pain_score,calculated_by,tenant_id,facility_id)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
-            [adm.id, adm.patient_id, new Date().toISOString().split('T')[0],
-             result.apache, result.sofa, (result.gcs ?? null), rass, cam, braden, morse, pain,
-             String(b.calculated_by || req.session.user?.display_name || ''), tenantId, facilityId || null]);
-        logAudit(req.session.user?.id, req.session.user?.display_name, 'ICU_SCORE', 'ICU',
-            `Acuity scored admission #${adm.id}: SOFA ${result.sofa} (${result.sofa_band}), GCS ${result.gcs}, APACHE ${result.apache} (${result.apache_band})`, req.ip);
-        res.json({
-            ...r.rows[0],
-            sofa: result.sofa, sofa_band: result.sofa_band, sofa_mortality_risk: result.sofa_mortality_risk,
-            gcs: result.gcs, gcs_band: result.gcs_band,
-            apache: result.apache, apache_band: result.apache_band, apache_mortality_risk: result.apache_mortality_risk,
-            complete: result.complete, components: result.components, missing: result.missing
-        });
-    } catch (e) {
-        if (e.e9Status) return res.status(e.e9Status).json({ error: e.message });
-        res.status(500).json({ error: 'Server error' });
-    }
-}
 
 // ----- Fluid balance (intake/output) — icu_fluid_balance (server computes totals) -----
 
@@ -2045,10 +1564,6 @@ app.use(require('./routes/infection.routes.js')({ pool, requireAuth, requireRole
 
 // ===== QUALITY & PATIENT SAFETY (E17 HARDENED: tenant-scoped + RBAC + audit + state machine) =====
 // confidential incidents are restricted to Admin / Quality Manager (RBAC-restricted PHI).
-function e17CanSeeConfidential(req) {
-    const role = req.session?.user?.role;
-    return role === 'Admin' || role === 'Quality Manager';
-}
 // ===== /API/QUALITY (extracted -> routes/quality.routes.js; behavior-preserving) =====
 app.use(require('./routes/quality.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, e17CanSeeConfidential, e17ComputeRisk, e17IsValidCapaTransition, e17IsValidIncidentTransition, e17RequireTenant, optionalReadFallback, E17_CAPA_TYPES, E17_INCIDENT_HARM, E17_INCIDENT_SEVERITY, E17_INCIDENT_TYPES }));
 
@@ -2177,12 +1692,6 @@ const MAR_HIGH_ALERT = [
     'oxycodone', 'potassium chloride', 'kcl', 'magnesium sulfate', 'digoxin', 'epinephrine',
     'norepinephrine', 'chemotherapy', 'methotrexate', 'insulin glargine', 'oxytocin',
 ];
-function isHighAlertMed(name) {
-    const n = String(name || '').trim().toLowerCase();
-    if (!n) return false;
-    return MAR_HIGH_ALERT.some(h => n.includes(h));
-}
-function marNorm(s) { return String(s == null ? '' : s).trim().toLowerCase().replace(/\s+/g, ' '); }
 
 // ===== /API/MAR (extracted -> routes/mar.routes.js; behavior-preserving) =====
 app.use(require('./routes/mar.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, cds, getPatientActiveMeds, isHighAlertMed, MAR_TIME_WINDOW_MIN, marNorm }));
@@ -2221,12 +1730,6 @@ app.use(require('./routes/ews.routes.js')({ pool, requireAuth, requireRole, requ
 // ============================================================
 
 // helper: append an event source without aborting the whole aggregation if a table is missing
-async function _himPushSource(events, sql, params, mapFn) {
-    try {
-        const rows = (await pool.query(sql, params)).rows;
-        rows.forEach(r => { const ev = mapFn(r); if (ev) events.push(ev); });
-    } catch (e) { /* table may not exist yet (E1 not landed) — degrade gracefully */ }
-}
 
 // 1) LONGITUDINAL RECORD — aggregate the full chronological chart; EVERY access is logged.
 // ===== /API/HIM (extracted -> routes/him.routes.js; behavior-preserving) =====
@@ -2241,10 +1744,6 @@ app.use(require('./routes/him.routes.js')({ pool, requireAuth, requireRole, requ
 // STRICT server-side gate for the HIM audit surfaces (access-log + break-glass): ONLY the dedicated
 // HIM role or Admin — NOT the broad 'medical-records'/'him' module (which Doctors also hold). The
 // client tab is already gated to ['Admin','HIM']; this mirrors that check server-side (defense-in-depth).
-function isHimOrAdmin(req) {
-    const role = req.session?.user?.role;
-    return role === 'HIM' || role === 'Admin';
-}
 
 // 4) RECORD ACCESS LOG (read) — HIM access audit, Admin/HIM only.
 
@@ -2333,19 +1832,8 @@ app.use(require('./routes/print.routes.js')({ addVAT, calcVAT, getRequestTenantC
 // ============================================================================
 
 // fail-CLOSED tenant resolver (mirrors e16RequireTenant): trusted session tenant or null.
-function e18RequireTenant(req) {
-    const { tenantId, facilityId } = getRequestTenantContext(req);
-    if (!tenantId) return { ok: false };               // fail-closed: no unscoped fallback
-    return { ok: true, tenantId, facilityId };
-}
 // Dedicated-client tenant tx (pool.connect bypasses the patched pool.query wrapper, so
 // app.tenant_id must be set explicitly for FORCE-RLS rows to be visible under FOR UPDATE).
-async function e18BeginTenantTx(tenantId) {
-    const client = await pool.connect();
-    await client.query('BEGIN');
-    await client.query("SELECT set_config('app.tenant_id', $1, true)", [String(tenantId)]);
-    return client;
-}
 
 // ---- LICENSES: list with SERVER-SIDE expiry classification (SCFHS alerts) ----
 
@@ -3274,35 +2762,6 @@ app.listen(PORT, () => {
 //   2) active/pending med-type orders (orders.type='med' -> order_items.catalog_ref) via the E-X tables.
 // Returns a de-duplicated array of drug-name strings. RLS also enforces tenant isolation; the explicit
 // tenant_id predicate is defense-in-depth. Caller treats a thrown error as FAIL-SAFE (warns, never skips).
-async function getPatientActiveMeds(patientId, tenantId) {
-    // I2: FAIL-CLOSED. Refuse to run unscoped — a falsy tenantId previously fell back to a cross-tenant query
-    // that returned meds across ALL tenants. Both callers run behind requireTenantScope, so this is
-    // defense-in-depth (the throw is treated FAIL-SAFE by callers, surfacing a warning, never a silent skip).
-    if (!tenantId) throw new Error('tenantId required for getPatientActiveMeds');
-    const meds = [];
-    // 1) Pharmacy queue (not dispensed / cancelled)
-    const qSql = "SELECT medication_name FROM pharmacy_prescriptions_queue WHERE patient_id=$1 AND tenant_id=$2 AND COALESCE(status,'') NOT IN ('Dispensed','Cancelled','Rejected')";
-    const qParams = [patientId, tenantId];
-    for (const r of (await pool.query(qSql, qParams)).rows) {
-        if (r.medication_name) meds.push(String(r.medication_name));
-    }
-    // 2) Active/pending med-type orders (E-X orders/order_items). Best-effort: a missing orders table
-    //    must not break the gate — but a real query error propagates so the caller fails SAFE (warns).
-    try {
-        const oSql = "SELECT oi.catalog_ref FROM order_items oi JOIN orders o ON oi.order_id=o.id WHERE o.patient_id=$1 AND o.tenant_id=$2 AND o.type='med' AND o.status IN ('pending','active')";
-        const oParams = [patientId, tenantId];
-        for (const r of (await pool.query(oSql, oParams)).rows) {
-            if (r.catalog_ref) meds.push(String(r.catalog_ref));
-        }
-    } catch (e) {
-        // orders table may be absent in some deployments; the queue source above still applies.
-        // Do NOT swallow into a silent pass at the caller — but a missing-relation here is tolerated.
-        if (!/relation .* does not exist/i.test(e.message || '')) throw e;
-    }
-    // de-duplicate (case-insensitive)
-    const seen = new Set();
-    return meds.filter(m => { const k = m.trim().toLowerCase(); if (!k || seen.has(k)) return false; seen.add(k); return true; });
-}
 
 // Doctor sends prescription → Pharmacy queue
 
@@ -3333,22 +2792,6 @@ async function getPatientActiveMeds(patientId, tenantId) {
 // The patched pool.query binds tenant per-call only, so multi-statement RLS transactions must set
 // app.tenant_id themselves on the client. Fail-closed: a null tenantId here means NO binding => RLS
 // (FORCE) yields zero rows, so the transaction cannot touch any tenant's data.
-async function withPharmacyTx(tenantId, fn) {
-    const client = await pool.connect();
-    try {
-        await client.query("SELECT set_config('app.tenant_id', $1, false)", [tenantId ? String(tenantId) : '']);
-        await client.query('BEGIN');
-        const out = await fn(client);
-        await client.query('COMMIT');
-        return out;
-    } catch (e) {
-        try { await client.query('ROLLBACK'); } catch (_) { /* best-effort */ }
-        throw e;
-    } finally {
-        try { await client.query("SELECT set_config('app.tenant_id', '', false)"); } catch (_) { /* reset best-effort */ }
-        client.release();
-    }
-}
 
 // --- GET pharmacy stock view: per-drug on-hand (sum of batches) + low-stock / near-expiry flags ---
 
@@ -3413,28 +2856,9 @@ app.use(require('./routes/visits.routes.js')({ addVAT, calcVAT, getRequestTenant
 
 // e14RequireTenant — fail-closed tenant resolver for OB routes. Returns an integer
 // tenantId or null; callers MUST treat null as "block" (no unscoped fallback in prod).
-function e14RequireTenant(req) {
-    const { tenantId } = getRequestTenantContext(req);
-    if (tenantId === null || tenantId === undefined || tenantId === '') return null;
-    const t = parseInt(tenantId, 10);
-    return Number.isInteger(t) ? t : null;
-}
-function e14IntId(v) { const n = parseInt(v, 10); return Number.isInteger(n) ? n : null; }
 
 // Verify a patient belongs to the caller's tenant. Returns the integer id or null.
-async function e14PatientInTenant(patientId, tenantId) {
-    const pid = e14IntId(patientId);
-    if (pid === null) return null;
-    const row = (await pool.query('SELECT id FROM patients WHERE id=$1 AND tenant_id=$2', [pid, tenantId])).rows[0];
-    return row ? pid : null;
-}
 // Load a tenant-owned pregnancy row (or null). Used for ownership + state checks.
-async function e14PregnancyInTenant(pregnancyId, tenantId) {
-    const id = e14IntId(pregnancyId);
-    if (id === null) return null;
-    const row = (await pool.query('SELECT * FROM obgyn_pregnancies WHERE id=$1 AND tenant_id=$2', [id, tenantId])).rows[0];
-    return row || null;
-}
 
 const OB_RBAC = ['obgyn', 'antenatal', 'doctor', 'nursing'];
 
