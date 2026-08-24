@@ -66,13 +66,41 @@ backup → scan_deps → extract → fix factory sig → node --check both files
 
 Load-order rule: helper requires are inserted at the position of the first removed def, guaranteeing they exist before any mount evaluates them at load time.
 
+## Boot Verification (REAL runtime proof)
+
+The local workspace was missing ~200 runtime files (`db_postgres.js`, engines, services, tier routers) that only existed on the deploy machine. Recovery:
+
+- **~40 core modules restored from git history** (commit `438c4e38` WIP waves 14-25 + `87fbd65c` TIER206-210): `db_postgres.js` (3,209L), `tenant_context`, `sms_service`, `email_service`, `crypto_envelope`, `lis`, `finance_engine`, `bloodbank_compat`, `ob_engine`, seeders, `orders`, `rbac`, `rbac_guards`, `entitlements`, `super_admin`, `plans`, `user_provisioning`, `audit_middleware`, `validation`, `route_schemas`, `password_policy`, `cds`, `ai_langchain_shim`, `clinical_prompts`, `clinical_cpoe`, scoring engines (`esi`, `icu`, `specialty`, `nursing`, `ews`), `result_loop`, `tenant_resolve`, `idempotency`, `e11_insurance_engine`, `pathology_engine`, `e16_inventory_engine`, `e18_hr_engine`, `onboarding`, `payment_adapter`, `billing_integrity`, tier210 router+engine.
+- **149 files never existed in this repo** (tier291-310 routers etc., live only on the deploy machine). For local verification only, throwaway stub routers were generated (marker: `TEMP STUB`); they are NOT committed.
+
+### Load-order fixes required after extraction
+
+| Symbol | Problem | Fix |
+|---|---|---|
+| `crypto` | defined L3263, referenced by invoices mount at load | hoisted to top requires |
+| `calcVAT/addVAT` binding | auth mount (L485) evaluated before const init (TDZ) | moved above first consumer mount |
+| tx binding (`getPatientActiveMeds`, ...) | pharmacy mount before init | hoisted above pharmacy mount |
+| `OB_RBAC`, `E12_WHO_ORDER`, `ZATCA_CREDIT_REASON_CODES`, `RAD_*` consts | same TDZ class | auto-relocated by `depsort.ps1` (static TDZ scanner over all 123 mount dep lists) |
+
+### Result (development env, real PostgreSQL + Redis)
+
+```
+GET /api/health   -> 200 {"status":"UP","db":"up","redis":"up",...}
+GET /api/patients -> 401 (auth guard active)
+GET /api/auth/me  -> 401
+GET /             -> 200 SPA
+```
+
+Final QA battery after boot fixes: syntax OK, lib load tests PASS, wiring gate PASS, full route QA **123/123 PASS**, `server.js` = **4,157 lines (-81.4%)**.
+
+Bug caught by boot test that mocks missed: `lib/tenant-context.js` referenced `resolveTenantContext` without importing it -> added `require('../tenant_resolve')`.
+
 ## Known Limitations
 
-- **Boot smoke test blocked locally**: `server.js:10` requires `./db_postgres.js`, which has never existed in this repo copy (absent from HEAD too). Pre-existing condition, unrelated to refactor. Full-boot validation must run where `db_postgres.js` exists (production/staging checkout). All other verification (syntax, per-module runtime, wiring) passes.
-- `namaweb` is an independent git repo (nested/submodule): ~381 uncommitted changes including this entire refactor.
+- Tier291-310 router files are absent from this repository copy entirely; mounts for them fail-soft via try/catch in production and via local-only stubs here.
+- `namaweb` is an independent git repo (nested/submodule).
 
 ## Suggested Next Steps
 
-1. Commit the refactor inside `namaweb/` (single commit or batched by cluster).
-2. On a machine with `db_postgres.js`: run boot smoke (`SKIP_SEED=1 PORT=3777 node server.js`) + hit `/api/health`.
-3. Optional phase 2: extract remaining top-level helpers (64 defs) into `lib/` engines — diminishing returns; current state already reviewable.
+1. On the deploy machine: pull this branch and diff its `server.js` against the production one before cutover; restore any missing tier routers from the deploy checkout into git.
+2. Optional phase 3: extract remaining top-level helpers — diminishing returns; current state is reviewable and runtime-proven.

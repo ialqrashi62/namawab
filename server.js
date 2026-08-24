@@ -12,6 +12,7 @@ const bcrypt = require('bcryptjs');
 const smsService = require('./sms_service');
 const emailService = require('./email_service');
 const ce = require('./crypto_envelope'); // A3 at-rest envelope encryption (DPAPI KEK); graceful when not configured
+const crypto = require('crypto'); // hoisted: referenced by early route mounts
 const lis = require('./lis'); // E3 LIS clinical-safety core (autoVerify / isCritical / HL7 parse / QC) — pure functions
 const fe = require('./finance_engine'); // E10 GL/ZATCA pure engine (balanced-entry, VAT, aging, UBL/QR)
 const bbCompat = require('./bloodbank_compat'); // E13 blood-bank ABO/Rh compatibility engine (pure, fail-closed)
@@ -133,6 +134,16 @@ app.use((req, res, next) => {
 // cookies, Authorization, body, or PHI. Rate-limited to bound log volume.
 const cspReportLimiter = rateLimit({ windowMs: 60 * 1000, max: 60, standardHeaders: false, legacyHeaders: false });
 // ===== /API/CSP-REPORT (extracted -> routes/csp-report.routes.js; behavior-preserving) =====
+// ===== hoisted const defs referenced by earlier route mounts (auto-relocated) =====
+const E12_WHO_ORDER = ['Not Started', 'Sign-In', 'Time-Out', 'Sign-Out', 'Completed'];
+const ZATCA_CREDIT_REASON_CODES = {
+    'CANCEL': 'Cancellation of invoice',
+    'RETURN': 'Return of goods/services',
+    'DISCOUNT': 'Discount adjustment',
+    'ERROR': 'Correction of billing error',
+    'OVERPAY': 'Overpayment correction'
+};
+
 app.use(require('./routes/csp-report.routes.js')({ cspReportLimiter }));
 
 // Rate limiting for login endpoint
@@ -316,13 +327,13 @@ app.all('/uploads/radiology/*', (req, res) => res.status(404).json({ error: 'Not
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ===== extracted helpers (Phase 2: behavior-preserving moves) =====
+// ===== extracted helpers (Phase 2 pass A: pure) =====
 const { requireAuth, requireCatalogAccess, sendBillingError } = require('./lib/guards');
 const { isHrOrAdmin, normalizeRoleName, hasAnyRole, canReviewOvr, canViewAdminAuditTrail, e17CanSeeConfidential, isHimOrAdmin } = require('./lib/roles');
-const { getRequestTenantContext, requireTenantScope, requireTenantContext, requireFacilityContext, withTenantFilter, e17RequireTenant, e11RequireTenant, lisRequireTenant, e10RequireTenant, e12RequireTenant, e13RequireTenant, e13Respond, e7RequireTenant, e8RequireTenant, e9RequireTenant } = require('./lib/tenant-context');
+const { getRequestTenantContext, requireTenantScope, requireTenantContext, requireFacilityContext, withTenantFilter, e17RequireTenant, e11RequireTenant, lisRequireTenant, e10RequireTenant, e12RequireTenant, e13RequireTenant, e13Respond, e7RequireTenant, e8RequireTenant, e9RequireTenant, e18RequireTenant, e14RequireTenant } = require('./lib/tenant-context');
 const { isOptionalReadSchemaError, optionalReadFallback } = require('./lib/read-fallback');
 const { mfaB32Encode, mfaB32Decode, mfaGenSecret, mfaCodeAt, mfaVerify, mfaMatchCounter, mfaConsume } = require('./lib/mfa');
-const { e17IsValidIncidentTransition, e17IsValidCapaTransition, e17ComputeRisk, e11IntId, e11Money, e11Err, e11NphiesEnabled, e10PostingEnabled, e10ZatcaEnabled, e10IntId, e10Err, e12IntId, e12NormalizeStatus, e12IsValidSurgeryTransition, e12WhoNextState, e8CanTransitionBed, e8IntId, isHighAlertMed, marNorm } = require('./lib/domain-utils');
+const { e17IsValidIncidentTransition, e17IsValidCapaTransition, e17ComputeRisk, e11IntId, e11Money, e11Err, e11NphiesEnabled, e10PostingEnabled, e10ZatcaEnabled, e10IntId, e10Err, e12IntId, e12NormalizeStatus, e12IsValidSurgeryTransition, e12WhoNextState, e8CanTransitionBed, e8IntId, e9IntId, e14IntId, isHighAlertMed, marNorm } = require('./lib/domain-utils');
 
 // ===== CATALOG EDIT RESTRICTION (Admin/Manager only) =====
 
@@ -482,6 +493,9 @@ const MFA_B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 // TOTP replay guard: reject any code whose 30s counter was already consumed for this user (in-memory; codes expire in ~90s so this needs no persistence)
 const mfaLastCounter = new Map();
 
+// ===== VAT HELPER (extracted -> lib/billing/vatHelpers.js; behavior-preserving) =====
+const { calcVAT, addVAT } = require('./lib/billing/vatHelpers')({ pool });
+
 // ===== /API/AUTH (extracted -> routes/auth.routes.js; behavior-preserving) =====
 app.use(require('./routes/auth.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, activeUserSessions, bcrypt, ce, establishSession, loginLimiter, mfaConsume }));
 
@@ -512,8 +526,6 @@ app.use(require('./routes/system.routes.js')({ pool, requireAuth, requireRole, r
 
 
 // ===== VAT HELPER =====
-// ===== VAT HELPER (extracted -> lib/billing/vatHelpers.js; behavior-preserving) =====
-const { calcVAT, addVAT } = require('./lib/billing/vatHelpers')({ pool });
 
 // ===== DASHBOARD (extracted -> routes/dashboard.routes.js; behavior-preserving) =====
 app.use(require('./routes/dashboard.routes.js')({ pool, requireAuth, requireTenantScope, getRequestTenantContext }));
@@ -702,6 +714,17 @@ app.use(require('./routes/results.routes.js')({ pool, requireAuth, requireRole, 
 // ---- QC: enter a point (Levey-Jennings / Westgard 1-3s) ----
 
 // ===== RADIOLOGY =====
+// ===== RAD worklist state machine (needed by radiology mount above its old position) =====
+const RAD_WORKLIST_STATES = ['Scheduled', 'Arrived', 'InProgress', 'Completed', 'Reported'];
+const RAD_WORKLIST_NEXT = {
+    Scheduled: ['Arrived'],
+    Arrived: ['InProgress'],
+    InProgress: ['Completed'],
+    Completed: ['Reported'],
+    Reported: []
+};
+const RAD_MWL_ENABLED = String(process.env.RAD_MWL_ENABLED || '').toLowerCase() === 'true';
+
 // ===== /API/RADIOLOGY (extracted -> routes/radiology.routes.js; behavior-preserving) =====
 app.use(require('./routes/radiology.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, sendDoctorSMS, sendRadiologyResultNotification, resultLoop, ce, upload, isOptionalReadSchemaError, optionalReadFallback, RAD_MWL_ENABLED, RAD_WORKLIST_NEXT, RAD_WORKLIST_STATES }));
 
@@ -720,15 +743,6 @@ app.use(require('./routes/phi-files.routes.js')({ pool, requireAuth, requireRole
 // audited. DICOM/image bytes are NEVER served here — only via guarded /api/phi-files/:id.
 // PACS/MWL is GATED behind RAD_MWL_ENABLED (no external connection; metadata only).
 // ============================================================================
-const RAD_WORKLIST_STATES = ['Scheduled', 'Arrived', 'InProgress', 'Completed', 'Reported'];
-const RAD_WORKLIST_NEXT = {
-    Scheduled: ['Arrived'],
-    Arrived: ['InProgress'],
-    InProgress: ['Completed'],
-    Completed: ['Reported'],
-    Reported: []
-};
-const RAD_MWL_ENABLED = String(process.env.RAD_MWL_ENABLED || '').toLowerCase() === 'true';
 
 // --- E4-S1: RIS worklist list (tenant-scoped) ---
 
@@ -757,6 +771,8 @@ const RAD_MWL_ENABLED = String(process.env.RAD_MWL_ENABLED || '').toLowerCase() 
 // ===== END E4 RADIOLOGY =====
 
 // ===== PHARMACY =====
+const { e14PatientInTenant, e14PregnancyInTenant, getPatientActiveMeds, e18BeginTenantTx, withPharmacyTx } = require('./lib/pool-fns/tx')({ pool });
+
 // ===== /API/PHARMACY (extracted -> routes/pharmacy.routes.js; behavior-preserving) =====
 app.use(require('./routes/pharmacy.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, cds, getPatientActiveMeds, withPharmacyTx, optionalReadFallback }));
 
@@ -984,6 +1000,7 @@ app.use(require('./routes/pediatrics.routes.js')({ pool, requireAuth, requireRol
 
 
 // ===== OBGYN DEPARTMENT (G21) =====
+const OB_RBAC = ['obgyn', 'antenatal', 'doctor', 'nursing'];
 // ===== /API/OBGYN (extracted -> routes/obgyn.routes.js; behavior-preserving) =====
 app.use(require('./routes/obgyn.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, e14IntId, e14PatientInTenant, e14PregnancyInTenant, e14RequireTenant, OB_RBAC, obEngine, optionalReadFallback }));
 
@@ -1228,7 +1245,6 @@ const E12_SURGERY_TRANSITIONS = {
 
 // ---- WHO Safe Surgery Checklist phase state machine ----
 // Not Started -> Sign-In -> Time-Out -> Sign-Out -> Completed (sequential; skipping -> 409).
-const E12_WHO_ORDER = ['Not Started', 'Sign-In', 'Time-Out', 'Sign-Out', 'Completed'];
 const E12_WHO_PHASE_TO_STATE = { 'sign-in': 'Sign-In', 'time-out': 'Time-Out', 'sign-out': 'Sign-Out' };
 
 // Helper: verify surgery ownership (tenant-scoped). Returns row or null.
@@ -1515,9 +1531,6 @@ const E9_ICU_WARD_TYPES = ['ICU', 'NICU', 'CCU'];
 // Fail-closed tenant resolver (mirrors e8RequireTenant — no unscoped fallback).
 
 // Coerce an id to a positive integer (no string/padded-id coercion bypass — E6 lesson).
-const { e18RequireTenant, e14RequireTenant } = require('./lib/tenant-context');
-const { e9IntId, e14IntId } = require('./lib/domain-utils');
-const { e14PatientInTenant, e14PregnancyInTenant, getPatientActiveMeds, e18BeginTenantTx, withPharmacyTx } = require('./lib/pool-fns/tx')({ pool });
 
 // Validate that admissionId belongs to this tenant, is Active, and sits in an ICU-typed ward.
 // Returns the admission row (with patient_id) or throws an e9Status error.
@@ -2860,7 +2873,6 @@ app.use(require('./routes/visits.routes.js')({ addVAT, calcVAT, getRequestTenant
 // Verify a patient belongs to the caller's tenant. Returns the integer id or null.
 // Load a tenant-owned pregnancy row (or null). Used for ownership + state checks.
 
-const OB_RBAC = ['obgyn', 'antenatal', 'doctor', 'nursing'];
 
 // Pregnancy Records — list (tenant-scoped; integer-validated filters)
 
@@ -3259,7 +3271,6 @@ async function checkAndTriggerAutoReorder(itemId, tenantId, client) {
 // ============================================================================
 // ===== DYNAMIC EMR ENGINE ROUTES (Phase 1) =====
 // ============================================================================
-const crypto = require('crypto');
 
 // 1. GET /api/clinical/departments - List all clinical departments
 
@@ -3321,13 +3332,6 @@ async function assignTenantPlanHelper(tenantId, planKey, source, assignedBy = nu
 // GET /api/nphies/remittance/summary — dashboard summary
 
 // ─── B2: ZATCA CREDIT NOTES ─────────────────────────────────────────────────
-const ZATCA_CREDIT_REASON_CODES = {
-    'CANCEL': 'Cancellation of invoice',
-    'RETURN': 'Return of goods/services',
-    'DISCOUNT': 'Discount adjustment',
-    'ERROR': 'Correction of billing error',
-    'OVERPAY': 'Overpayment correction'
-};
 
 // GET /api/zatca/credit-notes — list credit notes
 
