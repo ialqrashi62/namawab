@@ -85,6 +85,12 @@
 34. سياسات RLS وحّدت على النمط الرسمي text-compare (f014 style) على الإنتاج وفي الملفات
 35. commits: `8606676e` dev · `5470989a` integration — مرفوعة
 
+## ✅ P2-DONE — E2E Regression Suite (GAP-9)
+36. `namaweb/tests/e2e_route_sweep.js` — سويت آلي يقرأ كل راوترات الـ loader (regex 171-399)، يستخرج أسماء المسارات (صريحة من الراوتر أو من funcs المحرك)، ويصنّف ALIVE/DEAD/ERROR + Deep checks بحمولات حقيقية (--deep)
+37. **كشف عيب توليد حقيقي:** tier279_i1_1336_router موصول بمحرك a5 بالخطأ + tier116 بنسختيه — تم إصلاح الثلاثة ونشرها
+38. **نتائج الإنتاج النهائية:** routers=731 · probed=716 · stubs-skipped=15 · **ALIVE=716 DEAD=0 ERROR=0** · DEEP 5/5 · **SWEEP GREEN** (`/var/www/backups-master/E2E_SWEEP_PROD_FINAL.txt`)
+39. تنبيه موثق: الجلسة الموازية حذفت ملفات untracked من dev مرتين — استُعيدت من worktree التكامل. (سبب إضافي لفصل المستودعات)
+
 ## ⏳ Backlog (موثّق — يحتاج جلسات قادمة)
 - W2: منصة — pgvector schema رسمي داخل التطبيق، helpdesk module، SEO sitemap، APM/langfuse wiring، i18n consolidation، analytics events، BI pack، DR automation
 - W3: ربط بلوبيرنتات .ai-brain بكود فعلي (engine generation from blueprints)
