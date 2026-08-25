@@ -64,6 +64,11 @@
 
 **TOTALS: 11/11 GREEN on production.**
 
+## ✅ W2-إضافي (نفس الجلسة، بعد الفحص الشامل)
+22. `public/sitemap.xml` (28 URL) + `public/robots.txt` → **حية على الإنتاج** SITEMAP:200 / ROBOTS:200 — commit `18bc2dcb`
+23. **اكتشاف جلسة متوازية نشطة** تعدّل server.js و routes/*.js (34 ملف جديد ظهر 5:00AM + حلقة mount قديمة أعيد إدراجها). القرار: تجنّب الاصطدام — عدم تعديل server.js بينما هي نشطة. الحلقتان معاً غير ضارتين (نفس المسارات، الأول يكسب).
+24. ملاحظة صحة: فحص نهائي أثبت أن الحلقتين معاً لا تكسران شيئاً (11/11 فوق شغّالة على نفس السيرفر).
+
 ## ⏳ Backlog (موثّق — يحتاج جلسات قادمة)
 - W2: منصة — pgvector schema رسمي داخل التطبيق، helpdesk module، SEO sitemap، APM/langfuse wiring، i18n consolidation، analytics events، BI pack، DR automation
 - W3: ربط بلوبيرنتات .ai-brain بكود فعلي (engine generation from blueprints)

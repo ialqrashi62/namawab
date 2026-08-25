@@ -65,8 +65,8 @@
 | **AUDIT-DONE** | 3-layer gap analysis → GAP_ANALYSIS_CATALOG.md | — | ✅ 74/80 content-covered |
 | **W1-DONE (2026-08-25)** | tier311-314 gap modules built + deployed LIVE | sequential+verified | ✅ |
 | **W-BLUEPRINTS-DONE** | 35 full (×35 files) + 27 compact (×12) = **1,591 ملف** via `tools_gen/generate_blueprints.py` | python generator | ✅ |
-| W2 next | platform backlog: pgvector schema, helpdesk, SEO, APM, i18n consolidation | queued | |
-| W3 next | wire blueprint engines → real app code per dept | queued | |
+| **W2-DONE** | platform: helpdesk(315) SEO static+robots(316) APM/LLM-obs(317) analytics/BI(318) pgvector f015 — **كلها حية على الإنتاج** | ✅ 11/11 sweep GREEN |
+| W3 ongoing | blueprint→code wiring per dept (methodology in ACTIVITY_LOG) + تنبيه: جلسة متوازية نشطة على server.js/routes | coordinated later |
 
 > NOTE: prod runs branch `production/live-20260825`; deploys are ADDITIVE-ONLY.
 > كل عمل يُسجَّل في: ACTIVITY_LOG.md
