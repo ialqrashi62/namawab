@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: PM&R Rehabilitation API, version: 1.0.0 }
+paths:
+    /pmr_rehabilitation/barthel_index:
+      post:
+        summary: barthel_index
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /pmr_rehabilitation/therapy_plan_set:
+      post:
+        summary: therapy_plan_set
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /pmr_rehabilitation/swallow_screen:
+      post:
+        summary: swallow_screen
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /pmr_rehabilitation/prosthetic_fit:
+      post:
+        summary: prosthetic_fit
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /pmr_rehabilitation/progress_note:
+      post:
+        summary: progress_note
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

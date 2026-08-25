@@ -1,0 +1,5 @@
+- POST /api/radiation_oncology_pharmacy/rt_plan_fraction 200 envelope (supertest, seeded tenant)
+- POST /api/radiation_oncology_pharmacy/chemo_verification 200 envelope (supertest, seeded tenant)
+- POST /api/radiation_oncology_pharmacy/tdm_interpret 200 envelope (supertest, seeded tenant)
+- POST /api/radiation_oncology_pharmacy/adr_report 200 envelope (supertest, seeded tenant)
+- POST /api/radiation_oncology_pharmacy/pharm_intervention 200 envelope (supertest, seeded tenant)

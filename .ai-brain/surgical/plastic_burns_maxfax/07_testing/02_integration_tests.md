@@ -1,0 +1,5 @@
+- POST /api/plastic_burns_maxfax/tbsa_rule_of_nines 200 envelope (supertest, seeded tenant)
+- POST /api/plastic_burns_maxfax/fluid_parkland 200 envelope (supertest, seeded tenant)
+- POST /api/plastic_burns_maxfax/flap_monitor 200 envelope (supertest, seeded tenant)
+- POST /api/plastic_burns_maxfax/mandible_plating 200 envelope (supertest, seeded tenant)
+- POST /api/plastic_burns_maxfax/graft_take_pct 200 envelope (supertest, seeded tenant)

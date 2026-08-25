@@ -1,0 +1,5 @@
+- POST /api/laboratory_medicine/order_panel 200 envelope (supertest, seeded tenant)
+- POST /api/laboratory_medicine/validate_result_delta 200 envelope (supertest, seeded tenant)
+- POST /api/laboratory_medicine/critical_value_alert 200 envelope (supertest, seeded tenant)
+- POST /api/laboratory_medicine/crossmatch_request 200 envelope (supertest, seeded tenant)
+- POST /api/laboratory_medicine/culture_sensitivity 200 envelope (supertest, seeded tenant)

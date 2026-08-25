@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Neurosurgery & Spine API, version: 1.0.0 }
+paths:
+    /neurosurgery_spine/wfns_grade:
+      post:
+        summary: wfns_grade
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /neurosurgery_spine/glioma_plan:
+      post:
+        summary: glioma_plan
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /neurosurgery_spine/db candidacy:
+      post:
+        summary: db candidacy
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /neurosurgery_spine/spine_deformity_measure:
+      post:
+        summary: spine_deformity_measure
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /neurosurgery_spine/icp_manage:
+      post:
+        summary: icp_manage
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

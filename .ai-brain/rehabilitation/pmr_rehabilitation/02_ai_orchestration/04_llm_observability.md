@@ -1,0 +1,3 @@
+- Trace every chain-run: prompt tokens, latency, citations count
+- Langfuse project: namaweb-pmr_rehabilitation
+- Alert: citation_rate < 95% for 1h

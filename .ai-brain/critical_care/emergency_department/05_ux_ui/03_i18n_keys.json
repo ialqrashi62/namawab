@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Emergency Department",
+  "actions": {
+   "esi triage": "Esi Triage",
+   "door to doctor timer": "Door To Doctor Timer",
+   "code activation": "Code Activation",
+   "tox ingest assess": "Tox Ingest Assess",
+   "obs reassess": "Obs Reassess"
+  },
+  "common": {
+   "dept.name": "Emergency Department",
+   "dept.name_ar": "الطوارئ الشاملة",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الطوارئ الشاملة",
+  "actions": {
+   "esi triage": "— esi triage",
+   "door to doctor timer": "— door to doctor timer",
+   "code activation": "— code activation",
+   "tox ingest assess": "— tox ingest assess",
+   "obs reassess": "— obs reassess"
+  },
+  "common": {
+   "dept.name": "Emergency Department",
+   "dept.name_ar": "الطوارئ الشاملة",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

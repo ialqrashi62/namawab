@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Nursing Services API, version: 1.0.0 }
+paths:
+    /nursing_services/shift_handover:
+      post:
+        summary: shift_handover
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /nursing_services/fall_risk_morse:
+      post:
+        summary: fall_risk_morse
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /nursing_services/pressure_ulcer_stage:
+      post:
+        summary: pressure_ulcer_stage
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /nursing_services/med_admin_mar:
+      post:
+        summary: med_admin_mar
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /nursing_services/escalation_call:
+      post:
+        summary: escalation_call
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

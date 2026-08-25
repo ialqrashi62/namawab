@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Laboratory Medicine & Blood Bank API, version: 1.0.0 }
+paths:
+    /laboratory_medicine/order_panel:
+      post:
+        summary: order_panel
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /laboratory_medicine/validate_result_delta:
+      post:
+        summary: validate_result_delta
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /laboratory_medicine/critical_value_alert:
+      post:
+        summary: critical_value_alert
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /laboratory_medicine/crossmatch_request:
+      post:
+        summary: crossmatch_request
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /laboratory_medicine/culture_sensitivity:
+      post:
+        summary: culture_sensitivity
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

@@ -1,0 +1,3 @@
+- Trace every chain-run: prompt tokens, latency, citations count
+- Langfuse project: namaweb-radiation_oncology_pharmacy
+- Alert: citation_rate < 95% for 1h

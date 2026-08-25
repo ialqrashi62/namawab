@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: General Surgery API, version: 1.0.0 }
+paths:
+    /general_surgery/or_slot_book:
+      post:
+        summary: or_slot_book
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /general_surgery/preop_clearance:
+      post:
+        summary: preop_clearance
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /general_surgery/postop_complication:
+      post:
+        summary: postop_complication
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /general_surgery/wound_grade:
+      post:
+        summary: wound_grade
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /general_surgery/disposition:
+      post:
+        summary: disposition
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

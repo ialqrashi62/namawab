@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Education, Research & Simulation API, version: 1.0.0 }
+paths:
+    /education_research_simulation/enroll_subject:
+      post:
+        summary: enroll_subject
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /education_research_simulation/sae_report:
+      post:
+        summary: sae_report
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /education_research_simulation/cme_credit_award:
+      post:
+        summary: cme_credit_award
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /education_research_simulation/sim_scenario_run:
+      post:
+        summary: sim_scenario_run
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /education_research_simulation/publication_track:
+      post:
+        summary: publication_track
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

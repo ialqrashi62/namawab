@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Emergency Department API, version: 1.0.0 }
+paths:
+    /emergency_department/esi_triage:
+      post:
+        summary: esi_triage
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /emergency_department/door_to_doctor_timer:
+      post:
+        summary: door_to_doctor_timer
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /emergency_department/code_activation:
+      post:
+        summary: code_activation
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /emergency_department/tox_ingest_assess:
+      post:
+        summary: tox_ingest_assess
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /emergency_department/obs_reassess:
+      post:
+        summary: obs_reassess
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

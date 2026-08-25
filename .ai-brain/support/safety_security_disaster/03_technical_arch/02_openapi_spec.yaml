@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Safety, Security & Disaster API, version: 1.0.0 }
+paths:
+    /safety_security_disaster/incident_report:
+      post:
+        summary: incident_report
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /safety_security_disaster/pep_exposure_flow:
+      post:
+        summary: pep_exposure_flow
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /safety_security_disaster/mci_activate_triage_color:
+      post:
+        summary: mci_activate_triage_color
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /safety_security_disaster/evacuation_route:
+      post:
+        summary: evacuation_route
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /safety_security_disaster/staff_exposure_log:
+      post:
+        summary: staff_exposure_log
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

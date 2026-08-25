@@ -1,0 +1,5 @@
+- POST /api/icu_anesthesia_pain/sofa_calculate 200 envelope (supertest, seeded tenant)
+- POST /api/icu_anesthesia_pain/rass_assess 200 envelope (supertest, seeded tenant)
+- POST /api/icu_anesthesia_pain/vent_settings_log 200 envelope (supertest, seeded tenant)
+- POST /api/icu_anesthesia_pain/pain_intervention 200 envelope (supertest, seeded tenant)
+- POST /api/icu_anesthesia_pain/pacu_aldrete 200 envelope (supertest, seeded tenant)

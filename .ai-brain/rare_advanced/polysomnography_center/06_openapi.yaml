@@ -1,0 +1,33 @@
+openapi: 3.1.0
+info: { title: Polysomnography Center API, version: 1.0.0 }
+paths:
+    /polysomnography_center/polysomnography_cent_main:
+      post:
+        summary: polysomnography_cent_main
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /polysomnography_center/polysomnography_cent_list:
+      post:
+        summary: polysomnography_cent_list
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

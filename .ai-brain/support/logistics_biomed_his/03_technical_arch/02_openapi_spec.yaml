@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Biomedical, HIS & Logistics API, version: 1.0.0 }
+paths:
+    /logistics_biomed_his/device_pm_due:
+      post:
+        summary: device_pm_due
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /logistics_biomed_his/calibration_record:
+      post:
+        summary: calibration_record
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /logistics_biomed_his/pacs_downtime_toggle:
+      post:
+        summary: pacs_downtime_toggle
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /logistics_biomed_his/translate_request:
+      post:
+        summary: translate_request
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /logistics_biomed_his/epidemic_forecast:
+      post:
+        summary: epidemic_forecast
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Radiology & Imaging API, version: 1.0.0 }
+paths:
+    /radiology_imaging/order_study:
+      post:
+        summary: order_study
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /radiology_imaging/contrast_safety_check:
+      post:
+        summary: contrast_safety_check
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /radiology_imaging/report_structured:
+      post:
+        summary: report_structured
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /radiology_imaging/radiation_dose_log:
+      post:
+        summary: radiation_dose_log
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /radiology_imaging/critical_result_notify:
+      post:
+        summary: critical_result_notify
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Dermatology API, version: 1.0.0 }
+paths:
+    /dermatology/lesion_triage_abcde:
+      post:
+        summary: lesion_triage_abcde
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /dermatology/biopsy_type:
+      post:
+        summary: biopsy_type
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /dermatology/phototherapy_dose:
+      post:
+        summary: phototherapy_dose
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /dermatology/acne_grade:
+      post:
+        summary: acne_grade
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /dermatology/cosmetic_consult:
+      post:
+        summary: cosmetic_consult
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

@@ -1,0 +1,5 @@
+- POST /api/nutrition_food_services/nutritional_screen_must 200 envelope (supertest, seeded tenant)
+- POST /api/nutrition_food_services/tpn_formula 200 envelope (supertest, seeded tenant)
+- POST /api/nutrition_food_services/diet_order 200 envelope (supertest, seeded tenant)
+- POST /api/nutrition_food_services/room_service_menu 200 envelope (supertest, seeded tenant)
+- POST /api/nutrition_food_services/malnutrition_grade 200 envelope (supertest, seeded tenant)

@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "HR, Legal, PR & Call Center",
+  "actions": {
+   "recruiter pipeline": "Recruiter Pipeline",
+   "license expiry watch": "License Expiry Watch",
+   "complaint sla track": "Complaint Sla Track",
+   "media request gate": "Media Request Gate",
+   "career plan": "Career Plan"
+  },
+  "common": {
+   "dept.name": "HR, Legal, PR & Call Center",
+   "dept.name_ar": "الموارد البشرية والقانونية والعلاقات",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الموارد البشرية والقانونية والعلاقات",
+  "actions": {
+   "recruiter pipeline": "— recruiter pipeline",
+   "license expiry watch": "— license expiry watch",
+   "complaint sla track": "— complaint sla track",
+   "media request gate": "— media request gate",
+   "career plan": "— career plan"
+  },
+  "common": {
+   "dept.name": "HR, Legal, PR & Call Center",
+   "dept.name_ar": "الموارد البشرية والقانونية والعلاقات",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

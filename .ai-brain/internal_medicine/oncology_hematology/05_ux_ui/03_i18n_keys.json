@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Oncology & Hematology",
+  "actions": {
+   "chemo regimen": "Chemo Regimen",
+   "neutropenia risk": "Neutropenia Risk",
+   "bmt conditioning": "Bmt Conditioning",
+   "transfusion order": "Transfusion Order",
+   "response assess": "Response Assess"
+  },
+  "common": {
+   "dept.name": "Oncology & Hematology",
+   "dept.name_ar": "الدم والأورام",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الدم والأورام",
+  "actions": {
+   "chemo regimen": "— chemo regimen",
+   "neutropenia risk": "— neutropenia risk",
+   "bmt conditioning": "— bmt conditioning",
+   "transfusion order": "— transfusion order",
+   "response assess": "— response assess"
+  },
+  "common": {
+   "dept.name": "Oncology & Hematology",
+   "dept.name_ar": "الدم والأورام",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

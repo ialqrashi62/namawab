@@ -1,0 +1,5 @@
+- POST /api/cardiology/risk_stratify 200 envelope (supertest, seeded tenant)
+- POST /api/cardiology/ecg_interpret 200 envelope (supertest, seeded tenant)
+- POST /api/cardiology/echo_order 200 envelope (supertest, seeded tenant)
+- POST /api/cardiology/med_titrate 200 envelope (supertest, seeded tenant)
+- POST /api/cardiology/followup_plan 200 envelope (supertest, seeded tenant)

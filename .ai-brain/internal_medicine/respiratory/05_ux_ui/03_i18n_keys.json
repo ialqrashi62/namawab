@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Pulmonology & Respiratory",
+  "actions": {
+   "spirometry interpret": "Spirometry Interpret",
+   "inhaler optimize": "Inhaler Optimize",
+   "sleep study order": "Sleep Study Order",
+   "oxygen titrate": "Oxygen Titrate",
+   "exacerbation plan": "Exacerbation Plan"
+  },
+  "common": {
+   "dept.name": "Pulmonology & Respiratory",
+   "dept.name_ar": "الصدر والتنفس",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الصدر والتنفس",
+  "actions": {
+   "spirometry interpret": "— spirometry interpret",
+   "inhaler optimize": "— inhaler optimize",
+   "sleep study order": "— sleep study order",
+   "oxygen titrate": "— oxygen titrate",
+   "exacerbation plan": "— exacerbation plan"
+  },
+  "common": {
+   "dept.name": "Pulmonology & Respiratory",
+   "dept.name_ar": "الصدر والتنفس",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

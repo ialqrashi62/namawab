@@ -1,0 +1,5 @@
+- POST /api/dermatology/lesion_triage_abcde 200 envelope (supertest, seeded tenant)
+- POST /api/dermatology/biopsy_type 200 envelope (supertest, seeded tenant)
+- POST /api/dermatology/phototherapy_dose 200 envelope (supertest, seeded tenant)
+- POST /api/dermatology/acne_grade 200 envelope (supertest, seeded tenant)
+- POST /api/dermatology/cosmetic_consult 200 envelope (supertest, seeded tenant)

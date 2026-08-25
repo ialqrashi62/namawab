@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Food & Nutrition Services",
+  "actions": {
+   "nutritional screen must": "Nutritional Screen Must",
+   "tpn formula": "Tpn Formula",
+   "diet order": "Diet Order",
+   "room service menu": "Room Service Menu",
+   "malnutrition grade": "Malnutrition Grade"
+  },
+  "common": {
+   "dept.name": "Food & Nutrition Services",
+   "dept.name_ar": "التغذية والمطبخ الطبي",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "التغذية والمطبخ الطبي",
+  "actions": {
+   "nutritional screen must": "— nutritional screen must",
+   "tpn formula": "— tpn formula",
+   "diet order": "— diet order",
+   "room service menu": "— room service menu",
+   "malnutrition grade": "— malnutrition grade"
+  },
+  "common": {
+   "dept.name": "Food & Nutrition Services",
+   "dept.name_ar": "التغذية والمطبخ الطبي",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

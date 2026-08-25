@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Functional Diagnostics",
+  "actions": {
+   "book functional test": "Book Functional Test",
+   "interpret ecg stress": "Interpret Ecg Stress",
+   "emg report": "Emg Report",
+   "pft pre post": "Pft Pre Post",
+   "eeg findings": "Eeg Findings"
+  },
+  "common": {
+   "dept.name": "Functional Diagnostics",
+   "dept.name_ar": "الفحوصات الوظيفية",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الفحوصات الوظيفية",
+  "actions": {
+   "book functional test": "— book functional test",
+   "interpret ecg stress": "— interpret ecg stress",
+   "emg report": "— emg report",
+   "pft pre post": "— pft pre post",
+   "eeg findings": "— eeg findings"
+  },
+  "common": {
+   "dept.name": "Functional Diagnostics",
+   "dept.name_ar": "الفحوصات الوظيفية",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

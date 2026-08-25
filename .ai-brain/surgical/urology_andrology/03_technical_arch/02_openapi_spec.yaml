@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Urology & Andrology API, version: 1.0.0 }
+paths:
+    /urology_andrology/stone_ct_protocol:
+      post:
+        summary: stone_ct_protocol
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /urology_andrology/ips_score:
+      post:
+        summary: ips_score
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /urology_andrology/psa_pathway:
+      post:
+        summary: psa_pathway
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /urology_andrology/uroflowmetry:
+      post:
+        summary: uroflowmetry
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /urology_andrology/semen_analysis:
+      post:
+        summary: semen_analysis
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

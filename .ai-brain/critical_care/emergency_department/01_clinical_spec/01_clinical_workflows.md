@@ -1,0 +1,12 @@
+# Workflows
+- **General ER** (عام): intake → assessment → plan → followup
+- **Trauma Center L-I/II** (حوادث كبرى): intake → assessment → plan → followup
+- **Chest Pain Unit** (ألم صدري): intake → assessment → plan → followup
+- **Stroke Code Stroke** (جلطة): intake → assessment → plan → followup
+- **Psychiatric** (نفسية): intake → assessment → plan → followup
+- **Pediatric ER** (أطفال): intake → assessment → plan → followup
+- **Toxicology** (سموم): intake → assessment → plan → followup
+- **Hyper/Hypothermia** (حرارية): intake → assessment → plan → followup
+- **Triage ESI** (فرز): intake → assessment → plan → followup
+- **Observation** (ملاحظة): intake → assessment → plan → followup
+- **Minor Surgery** (جراحة صغرى): intake → assessment → plan → followup

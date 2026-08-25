@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Laboratory Medicine & Blood Bank",
+  "actions": {
+   "order panel": "Order Panel",
+   "validate result delta": "Validate Result Delta",
+   "critical value alert": "Critical Value Alert",
+   "crossmatch request": "Crossmatch Request",
+   "culture sensitivity": "Culture Sensitivity"
+  },
+  "common": {
+   "dept.name": "Laboratory Medicine & Blood Bank",
+   "dept.name_ar": "المختبرات والبنك",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "المختبرات والبنك",
+  "actions": {
+   "order panel": "— order panel",
+   "validate result delta": "— validate result delta",
+   "critical value alert": "— critical value alert",
+   "crossmatch request": "— crossmatch request",
+   "culture sensitivity": "— culture sensitivity"
+  },
+  "common": {
+   "dept.name": "Laboratory Medicine & Blood Bank",
+   "dept.name_ar": "المختبرات والبنك",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

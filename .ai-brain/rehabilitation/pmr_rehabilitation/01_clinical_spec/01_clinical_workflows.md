@@ -1,0 +1,11 @@
+# Workflows
+- **Electrotherapy** (كهربي): intake → assessment → plan → followup
+- **Hydrotherapy** (مائي): intake → assessment → plan → followup
+- **Manual Therapy** (يدوي): intake → assessment → plan → followup
+- **Post-op Rehab** (بعد الجراحة): intake → assessment → plan → followup
+- **Occupational ADL** (وظيفي): intake → assessment → plan → followup
+- **Speech & Swallow VFSS** (نطقي بلع): intake → assessment → plan → followup
+- **SCI Rehab** (شلل): intake → assessment → plan → followup
+- **Pediatric Rehab** (أطفال): intake → assessment → plan → followup
+- **Prosthetics/Orthotics** (أطراف صناعية): intake → assessment → plan → followup
+- **Play Therapy** (لعب علاجي): intake → assessment → plan → followup

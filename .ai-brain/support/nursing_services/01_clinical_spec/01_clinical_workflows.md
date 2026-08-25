@@ -1,0 +1,14 @@
+# Workflows
+- **Med-Surg** (داخلي): intake → assessment → plan → followup
+- **Perioperative** (عمليات): intake → assessment → plan → followup
+- **Critical Care** (مركزة): intake → assessment → plan → followup
+- **Pediatric** (أطفال): intake → assessment → plan → followup
+- **Obstetric** (ولادة): intake → assessment → plan → followup
+- **Home Health** (منزلي): intake → assessment → plan → followup
+- **Geriatric** (مسنين): intake → assessment → plan → followup
+- **Oncology** (أورام): intake → assessment → plan → followup
+- **Psychiatric** (نفسي): intake → assessment → plan → followup
+- **Emergency** (طارئ): intake → assessment → plan → followup
+- **Ophthalmic** (عيون): intake → assessment → plan → followup
+- **ENT** (أنف أذن): intake → assessment → plan → followup
+- **Palliative** (تلطيفي): intake → assessment → plan → followup

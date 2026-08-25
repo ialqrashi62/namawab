@@ -1,0 +1,5 @@
+- POST /api/integrative_medicine/session_consent 200 envelope (supertest, seeded tenant)
+- POST /api/integrative_medicine/cupping_plan 200 envelope (supertest, seeded tenant)
+- POST /api/integrative_medicine/herbal_interaction_check 200 envelope (supertest, seeded tenant)
+- POST /api/integrative_medicine/outcome_scale 200 envelope (supertest, seeded tenant)
+- POST /api/integrative_medicine/practitioner_assign 200 envelope (supertest, seeded tenant)

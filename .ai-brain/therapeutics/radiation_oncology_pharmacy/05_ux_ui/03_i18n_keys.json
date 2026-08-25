@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Radiation Oncology & Clinical Pharmacy",
+  "actions": {
+   "rt plan fraction": "Rt Plan Fraction",
+   "chemo verification": "Chemo Verification",
+   "tdm interpret": "Tdm Interpret",
+   "adr report": "Adr Report",
+   "pharm intervention": "Pharm Intervention"
+  },
+  "common": {
+   "dept.name": "Radiation Oncology & Clinical Pharmacy",
+   "dept.name_ar": "العلاج الإشعاعي والصيدلية الإكلينيكية",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "العلاج الإشعاعي والصيدلية الإكلينيكية",
+  "actions": {
+   "rt plan fraction": "— rt plan fraction",
+   "chemo verification": "— chemo verification",
+   "tdm interpret": "— tdm interpret",
+   "adr report": "— adr report",
+   "pharm intervention": "— pharm intervention"
+  },
+  "common": {
+   "dept.name": "Radiation Oncology & Clinical Pharmacy",
+   "dept.name_ar": "العلاج الإشعاعي والصيدلية الإكلينيكية",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

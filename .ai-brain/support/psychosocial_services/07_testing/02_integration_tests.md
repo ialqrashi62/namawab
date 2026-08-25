@@ -1,0 +1,5 @@
+- POST /api/psychosocial_services/case_open 200 envelope (supertest, seeded tenant)
+- POST /api/psychosocial_services/discharge_coordination 200 envelope (supertest, seeded tenant)
+- POST /api/psychosocial_services/abuse_referral 200 envelope (supertest, seeded tenant)
+- POST /api/psychosocial_services/education_session 200 envelope (supertest, seeded tenant)
+- POST /api/psychosocial_services/advocacy_complaint 200 envelope (supertest, seeded tenant)

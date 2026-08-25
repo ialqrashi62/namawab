@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: HR, Legal, PR & Call Center API, version: 1.0.0 }
+paths:
+    /hr_legal_pr_callcenter/recruiter_pipeline:
+      post:
+        summary: recruiter_pipeline
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /hr_legal_pr_callcenter/license_expiry_watch:
+      post:
+        summary: license_expiry_watch
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /hr_legal_pr_callcenter/complaint_sla_track:
+      post:
+        summary: complaint_sla_track
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /hr_legal_pr_callcenter/media_request_gate:
+      post:
+        summary: media_request_gate
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /hr_legal_pr_callcenter/career_plan:
+      post:
+        summary: career_plan
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

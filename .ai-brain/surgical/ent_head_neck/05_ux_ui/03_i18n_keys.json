@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "ENT & Head-Neck",
+  "actions": {
+   "audiogram read": "Audiogram Read",
+   "sinus ct lund": "Sinus Ct Lund",
+   "cochlear candidacy": "Cochlear Candidacy",
+   "voice vhi score": "Voice Vhi Score",
+   "tonsillectomy indication": "Tonsillectomy Indication"
+  },
+  "common": {
+   "dept.name": "ENT & Head-Neck",
+   "dept.name_ar": "الأنف والأذن والحنجرة",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الأنف والأذن والحنجرة",
+  "actions": {
+   "audiogram read": "— audiogram read",
+   "sinus ct lund": "— sinus ct lund",
+   "cochlear candidacy": "— cochlear candidacy",
+   "voice vhi score": "— voice vhi score",
+   "tonsillectomy indication": "— tonsillectomy indication"
+  },
+  "common": {
+   "dept.name": "ENT & Head-Neck",
+   "dept.name_ar": "الأنف والأذن والحنجرة",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

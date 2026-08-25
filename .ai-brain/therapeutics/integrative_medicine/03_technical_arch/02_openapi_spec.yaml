@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Integrative Medicine API, version: 1.0.0 }
+paths:
+    /integrative_medicine/session_consent:
+      post:
+        summary: session_consent
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /integrative_medicine/cupping_plan:
+      post:
+        summary: cupping_plan
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /integrative_medicine/herbal_interaction_check:
+      post:
+        summary: herbal_interaction_check
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /integrative_medicine/outcome_scale:
+      post:
+        summary: outcome_scale
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /integrative_medicine/practitioner_assign:
+      post:
+        summary: practitioner_assign
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

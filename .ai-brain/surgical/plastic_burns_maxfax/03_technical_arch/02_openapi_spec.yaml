@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Plastic, Burns & Maxillofacial API, version: 1.0.0 }
+paths:
+    /plastic_burns_maxfax/tbsa_rule_of_nines:
+      post:
+        summary: tbsa_rule_of_nines
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /plastic_burns_maxfax/fluid_parkland:
+      post:
+        summary: fluid_parkland
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /plastic_burns_maxfax/flap_monitor:
+      post:
+        summary: flap_monitor
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /plastic_burns_maxfax/mandible_plating:
+      post:
+        summary: mandible_plating
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /plastic_burns_maxfax/graft_take_pct:
+      post:
+        summary: graft_take_pct
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

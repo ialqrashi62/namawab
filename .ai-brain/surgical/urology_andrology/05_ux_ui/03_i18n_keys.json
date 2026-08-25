@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Urology & Andrology",
+  "actions": {
+   "stone ct protocol": "Stone Ct Protocol",
+   "ips score": "Ips Score",
+   "psa pathway": "Psa Pathway",
+   "uroflowmetry": "Uroflowmetry",
+   "semen analysis": "Semen Analysis"
+  },
+  "common": {
+   "dept.name": "Urology & Andrology",
+   "dept.name_ar": "المسالك والذكورة",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "المسالك والذكورة",
+  "actions": {
+   "stone ct protocol": "— stone ct protocol",
+   "ips score": "— ips score",
+   "psa pathway": "— psa pathway",
+   "uroflowmetry": "— uroflowmetry",
+   "semen analysis": "— semen analysis"
+  },
+  "common": {
+   "dept.name": "Urology & Andrology",
+   "dept.name_ar": "المسالك والذكورة",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

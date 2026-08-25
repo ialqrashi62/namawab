@@ -1,0 +1,5 @@
+- POST /api/pediatrics/growth_percentile 200 envelope (supertest, seeded tenant)
+- POST /api/pediatrics/apgar_score 200 envelope (supertest, seeded tenant)
+- POST /api/pediatrics/nicu_snofield 200 envelope (supertest, seeded tenant)
+- POST /api/pediatrics/vaccine_schedule_peds 200 envelope (supertest, seeded tenant)
+- POST /api/pediatrics/development_milestone 200 envelope (supertest, seeded tenant)

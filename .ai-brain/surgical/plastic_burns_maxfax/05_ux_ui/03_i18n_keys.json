@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Plastic, Burns & Maxillofacial",
+  "actions": {
+   "tbsa rule of nines": "Tbsa Rule Of Nines",
+   "fluid parkland": "Fluid Parkland",
+   "flap monitor": "Flap Monitor",
+   "mandible plating": "Mandible Plating",
+   "graft take pct": "Graft Take Pct"
+  },
+  "common": {
+   "dept.name": "Plastic, Burns & Maxillofacial",
+   "dept.name_ar": "التجميل والترميم والحروق",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "التجميل والترميم والحروق",
+  "actions": {
+   "tbsa rule of nines": "— tbsa rule of nines",
+   "fluid parkland": "— fluid parkland",
+   "flap monitor": "— flap monitor",
+   "mandible plating": "— mandible plating",
+   "graft take pct": "— graft take pct"
+  },
+  "common": {
+   "dept.name": "Plastic, Burns & Maxillofacial",
+   "dept.name_ar": "التجميل والترميم والحروق",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

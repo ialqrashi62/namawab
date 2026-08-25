@@ -1,0 +1,3 @@
+- Trace every chain-run: prompt tokens, latency, citations count
+- Langfuse project: namaweb-nutrition_food_services
+- Alert: citation_rate < 95% for 1h

@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Oncology & Hematology API, version: 1.0.0 }
+paths:
+    /oncology_hematology/chemo_regimen:
+      post:
+        summary: chemo_regimen
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /oncology_hematology/neutropenia_risk:
+      post:
+        summary: neutropenia_risk
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /oncology_hematology/bmt_conditioning:
+      post:
+        summary: bmt_conditioning
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /oncology_hematology/transfusion_order:
+      post:
+        summary: transfusion_order
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /oncology_hematology/response_assess:
+      post:
+        summary: response_assess
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

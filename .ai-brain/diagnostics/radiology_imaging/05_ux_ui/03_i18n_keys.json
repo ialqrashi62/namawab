@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Radiology & Imaging",
+  "actions": {
+   "order study": "Order Study",
+   "contrast safety check": "Contrast Safety Check",
+   "report structured": "Report Structured",
+   "radiation dose log": "Radiation Dose Log",
+   "critical result notify": "Critical Result Notify"
+  },
+  "common": {
+   "dept.name": "Radiology & Imaging",
+   "dept.name_ar": "الأشعة والتصوير",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الأشعة والتصوير",
+  "actions": {
+   "order study": "— order study",
+   "contrast safety check": "— contrast safety check",
+   "report structured": "— report structured",
+   "radiation dose log": "— radiation dose log",
+   "critical result notify": "— critical result notify"
+  },
+  "common": {
+   "dept.name": "Radiology & Imaging",
+   "dept.name_ar": "الأشعة والتصوير",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

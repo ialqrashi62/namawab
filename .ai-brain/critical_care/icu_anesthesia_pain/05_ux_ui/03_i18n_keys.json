@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "ICU, Anesthesia & Pain",
+  "actions": {
+   "sofa calculate": "Sofa Calculate",
+   "rass assess": "Rass Assess",
+   "vent settings log": "Vent Settings Log",
+   "pain intervention": "Pain Intervention",
+   "pacu aldrete": "Pacu Aldrete"
+  },
+  "common": {
+   "dept.name": "ICU, Anesthesia & Pain",
+   "dept.name_ar": "الرعاية المركزة والتخدير والألم",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الرعاية المركزة والتخدير والألم",
+  "actions": {
+   "sofa calculate": "— sofa calculate",
+   "rass assess": "— rass assess",
+   "vent settings log": "— vent settings log",
+   "pain intervention": "— pain intervention",
+   "pacu aldrete": "— pacu aldrete"
+  },
+  "common": {
+   "dept.name": "ICU, Anesthesia & Pain",
+   "dept.name_ar": "الرعاية المركزة والتخدير والألم",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

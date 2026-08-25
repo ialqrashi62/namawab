@@ -1,0 +1,5 @@
+- POST /api/nursing_services/shift_handover 200 envelope (supertest, seeded tenant)
+- POST /api/nursing_services/fall_risk_morse 200 envelope (supertest, seeded tenant)
+- POST /api/nursing_services/pressure_ulcer_stage 200 envelope (supertest, seeded tenant)
+- POST /api/nursing_services/med_admin_mar 200 envelope (supertest, seeded tenant)
+- POST /api/nursing_services/escalation_call 200 envelope (supertest, seeded tenant)

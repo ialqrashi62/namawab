@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Nephrology & Dialysis API, version: 1.0.0 }
+paths:
+    /nephrology/egfr_calculate:
+      post:
+        summary: egfr_calculate
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /nephrology/dialysis_prescribe:
+      post:
+        summary: dialysis_prescribe
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /nephrology/ktv_measure:
+      post:
+        summary: ktv_measure
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /nephrology/transplant_workup:
+      post:
+        summary: transplant_workup
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /nephrology/phosphate_manage:
+      post:
+        summary: phosphate_manage
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

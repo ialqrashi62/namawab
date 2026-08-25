@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Executive Admin, Quality & Accreditation",
+  "actions": {
+   "sentinel event open": "Sentinel Event Open",
+   "credential verify": "Credential Verify",
+   "audit cycle": "Audit Cycle",
+   "complaint triage": "Complaint Triage",
+   "kpi dashboard data": "Kpi Dashboard Data"
+  },
+  "common": {
+   "dept.name": "Executive Admin, Quality & Accreditation",
+   "dept.name_ar": "الإدارة التنفيذية والجودة والاعتماد",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الإدارة التنفيذية والجودة والاعتماد",
+  "actions": {
+   "sentinel event open": "— sentinel event open",
+   "credential verify": "— credential verify",
+   "audit cycle": "— audit cycle",
+   "complaint triage": "— complaint triage",
+   "kpi dashboard data": "— kpi dashboard data"
+  },
+  "common": {
+   "dept.name": "Executive Admin, Quality & Accreditation",
+   "dept.name_ar": "الإدارة التنفيذية والجودة والاعتماد",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

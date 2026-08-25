@@ -1,0 +1,5 @@
+- POST /api/logistics_biomed_his/device_pm_due 200 envelope (supertest, seeded tenant)
+- POST /api/logistics_biomed_his/calibration_record 200 envelope (supertest, seeded tenant)
+- POST /api/logistics_biomed_his/pacs_downtime_toggle 200 envelope (supertest, seeded tenant)
+- POST /api/logistics_biomed_his/translate_request 200 envelope (supertest, seeded tenant)
+- POST /api/logistics_biomed_his/epidemic_forecast 200 envelope (supertest, seeded tenant)

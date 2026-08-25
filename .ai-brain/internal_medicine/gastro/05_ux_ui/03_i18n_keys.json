@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Gastroenterology & Hepatology",
+  "actions": {
+   "endoscopy book": "Endoscopy Book",
+   "liver score meld": "Liver Score Meld",
+   "pancreatitis severity": "Pancreatitis Severity",
+   "motility test": "Motility Test",
+   "nutrition plan": "Nutrition Plan"
+  },
+  "common": {
+   "dept.name": "Gastroenterology & Hepatology",
+   "dept.name_ar": "الجهاز الهضمي والكبد",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الجهاز الهضمي والكبد",
+  "actions": {
+   "endoscopy book": "— endoscopy book",
+   "liver score meld": "— liver score meld",
+   "pancreatitis severity": "— pancreatitis severity",
+   "motility test": "— motility test",
+   "nutrition plan": "— nutrition plan"
+  },
+  "common": {
+   "dept.name": "Gastroenterology & Hepatology",
+   "dept.name_ar": "الجهاز الهضمي والكبد",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

@@ -1,0 +1,5 @@
+- POST /api/cardiothoracic_vascular/euroscore_calc 200 envelope (supertest, seeded tenant)
+- POST /api/cardiothoracic_vascular/cabg_list 200 envelope (supertest, seeded tenant)
+- POST /api/cardiothoracic_vascular/aneurysm_size_plan 200 envelope (supertest, seeded tenant)
+- POST /api/cardiothoracic_vascular/vein_mapping 200 envelope (supertest, seeded tenant)
+- POST /api/cardiothoracic_vascular/postop_drain_check 200 envelope (supertest, seeded tenant)

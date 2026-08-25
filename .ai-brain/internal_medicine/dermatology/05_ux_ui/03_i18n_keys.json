@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Dermatology",
+  "actions": {
+   "lesion triage abcde": "Lesion Triage Abcde",
+   "biopsy type": "Biopsy Type",
+   "phototherapy dose": "Phototherapy Dose",
+   "acne grade": "Acne Grade",
+   "cosmetic consult": "Cosmetic Consult"
+  },
+  "common": {
+   "dept.name": "Dermatology",
+   "dept.name_ar": "الجلدية",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الجلدية",
+  "actions": {
+   "lesion triage abcde": "— lesion triage abcde",
+   "biopsy type": "— biopsy type",
+   "phototherapy dose": "— phototherapy dose",
+   "acne grade": "— acne grade",
+   "cosmetic consult": "— cosmetic consult"
+  },
+  "common": {
+   "dept.name": "Dermatology",
+   "dept.name_ar": "الجلدية",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

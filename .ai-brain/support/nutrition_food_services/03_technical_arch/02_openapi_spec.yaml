@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Food & Nutrition Services API, version: 1.0.0 }
+paths:
+    /nutrition_food_services/nutritional_screen_must:
+      post:
+        summary: nutritional_screen_must
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /nutrition_food_services/tpn_formula:
+      post:
+        summary: tpn_formula
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /nutrition_food_services/diet_order:
+      post:
+        summary: diet_order
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /nutrition_food_services/room_service_menu:
+      post:
+        summary: room_service_menu
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /nutrition_food_services/malnutrition_grade:
+      post:
+        summary: malnutrition_grade
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

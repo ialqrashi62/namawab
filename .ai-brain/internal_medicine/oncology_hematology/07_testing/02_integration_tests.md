@@ -1,0 +1,5 @@
+- POST /api/oncology_hematology/chemo_regimen 200 envelope (supertest, seeded tenant)
+- POST /api/oncology_hematology/neutropenia_risk 200 envelope (supertest, seeded tenant)
+- POST /api/oncology_hematology/bmt_conditioning 200 envelope (supertest, seeded tenant)
+- POST /api/oncology_hematology/transfusion_order 200 envelope (supertest, seeded tenant)
+- POST /api/oncology_hematology/response_assess 200 envelope (supertest, seeded tenant)

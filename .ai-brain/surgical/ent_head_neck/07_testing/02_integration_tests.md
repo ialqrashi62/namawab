@@ -1,0 +1,5 @@
+- POST /api/ent_head_neck/audiogram_read 200 envelope (supertest, seeded tenant)
+- POST /api/ent_head_neck/sinus_ct_lund 200 envelope (supertest, seeded tenant)
+- POST /api/ent_head_neck/cochlear candidacy 200 envelope (supertest, seeded tenant)
+- POST /api/ent_head_neck/voice_vhi_score 200 envelope (supertest, seeded tenant)
+- POST /api/ent_head_neck/tonsillectomy_indication 200 envelope (supertest, seeded tenant)

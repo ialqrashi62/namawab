@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Pediatrics & Neonatology",
+  "actions": {
+   "growth percentile": "Growth Percentile",
+   "apgar score": "Apgar Score",
+   "nicu snofield": "Nicu Snofield",
+   "vaccine schedule peds": "Vaccine Schedule Peds",
+   "development milestone": "Development Milestone"
+  },
+  "common": {
+   "dept.name": "Pediatrics & Neonatology",
+   "dept.name_ar": "طب الأطفال وحديثي الولادة",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "طب الأطفال وحديثي الولادة",
+  "actions": {
+   "growth percentile": "— growth percentile",
+   "apgar score": "— apgar score",
+   "nicu snofield": "— nicu snofield",
+   "vaccine schedule peds": "— vaccine schedule peds",
+   "development milestone": "— development milestone"
+  },
+  "common": {
+   "dept.name": "Pediatrics & Neonatology",
+   "dept.name_ar": "طب الأطفال وحديثي الولادة",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

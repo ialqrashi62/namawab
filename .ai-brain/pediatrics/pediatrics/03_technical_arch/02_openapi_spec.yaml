@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Pediatrics & Neonatology API, version: 1.0.0 }
+paths:
+    /pediatrics/growth_percentile:
+      post:
+        summary: growth_percentile
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /pediatrics/apgar_score:
+      post:
+        summary: apgar_score
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /pediatrics/nicu_snofield:
+      post:
+        summary: nicu_snofield
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /pediatrics/vaccine_schedule_peds:
+      post:
+        summary: vaccine_schedule_peds
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /pediatrics/development_milestone:
+      post:
+        summary: development_milestone
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

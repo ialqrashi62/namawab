@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Endocrinology & Diabetes",
+  "actions": {
+   "hba1c trend": "Hba1C Trend",
+   "insulin titrate": "Insulin Titrate",
+   "foot screen": "Foot Screen",
+   "thyroid panel": "Thyroid Panel",
+   "obesity plan": "Obesity Plan"
+  },
+  "common": {
+   "dept.name": "Endocrinology & Diabetes",
+   "dept.name_ar": "الغدد والسكري",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الغدد والسكري",
+  "actions": {
+   "hba1c trend": "— hba1c trend",
+   "insulin titrate": "— insulin titrate",
+   "foot screen": "— foot screen",
+   "thyroid panel": "— thyroid panel",
+   "obesity plan": "— obesity plan"
+  },
+  "common": {
+   "dept.name": "Endocrinology & Diabetes",
+   "dept.name_ar": "الغدد والسكري",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

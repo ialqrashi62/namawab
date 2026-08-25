@@ -1,0 +1,5 @@
+- POST /api/general_surgery/or_slot_book 200 envelope (supertest, seeded tenant)
+- POST /api/general_surgery/preop_clearance 200 envelope (supertest, seeded tenant)
+- POST /api/general_surgery/postop_complication 200 envelope (supertest, seeded tenant)
+- POST /api/general_surgery/wound_grade 200 envelope (supertest, seeded tenant)
+- POST /api/general_surgery/disposition 200 envelope (supertest, seeded tenant)

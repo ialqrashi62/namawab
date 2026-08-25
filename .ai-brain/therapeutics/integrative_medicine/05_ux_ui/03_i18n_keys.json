@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Integrative Medicine",
+  "actions": {
+   "session consent": "Session Consent",
+   "cupping plan": "Cupping Plan",
+   "herbal interaction check": "Herbal Interaction Check",
+   "outcome scale": "Outcome Scale",
+   "practitioner assign": "Practitioner Assign"
+  },
+  "common": {
+   "dept.name": "Integrative Medicine",
+   "dept.name_ar": "الطب التكاملي البديل",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الطب التكاملي البديل",
+  "actions": {
+   "session consent": "— session consent",
+   "cupping plan": "— cupping plan",
+   "herbal interaction check": "— herbal interaction check",
+   "outcome scale": "— outcome scale",
+   "practitioner assign": "— practitioner assign"
+  },
+  "common": {
+   "dept.name": "Integrative Medicine",
+   "dept.name_ar": "الطب التكاملي البديل",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

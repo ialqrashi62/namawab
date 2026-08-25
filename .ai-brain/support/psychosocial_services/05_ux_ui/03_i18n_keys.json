@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Psychosocial Services",
+  "actions": {
+   "case open": "Case Open",
+   "discharge coordination": "Discharge Coordination",
+   "abuse referral": "Abuse Referral",
+   "education session": "Education Session",
+   "advocacy complaint": "Advocacy Complaint"
+  },
+  "common": {
+   "dept.name": "Psychosocial Services",
+   "dept.name_ar": "الخدمات الاجتماعية والنفسية",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الخدمات الاجتماعية والنفسية",
+  "actions": {
+   "case open": "— case open",
+   "discharge coordination": "— discharge coordination",
+   "abuse referral": "— abuse referral",
+   "education session": "— education session",
+   "advocacy complaint": "— advocacy complaint"
+  },
+  "common": {
+   "dept.name": "Psychosocial Services",
+   "dept.name_ar": "الخدمات الاجتماعية والنفسية",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

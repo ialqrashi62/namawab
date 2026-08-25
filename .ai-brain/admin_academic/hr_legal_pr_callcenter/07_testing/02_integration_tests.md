@@ -1,0 +1,5 @@
+- POST /api/hr_legal_pr_callcenter/recruiter_pipeline 200 envelope (supertest, seeded tenant)
+- POST /api/hr_legal_pr_callcenter/license_expiry_watch 200 envelope (supertest, seeded tenant)
+- POST /api/hr_legal_pr_callcenter/complaint_sla_track 200 envelope (supertest, seeded tenant)
+- POST /api/hr_legal_pr_callcenter/media_request_gate 200 envelope (supertest, seeded tenant)
+- POST /api/hr_legal_pr_callcenter/career_plan 200 envelope (supertest, seeded tenant)

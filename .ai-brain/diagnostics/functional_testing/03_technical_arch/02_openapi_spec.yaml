@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Functional Diagnostics API, version: 1.0.0 }
+paths:
+    /functional_testing/book_functional_test:
+      post:
+        summary: book_functional_test
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /functional_testing/interpret_ecg_stress:
+      post:
+        summary: interpret_ecg_stress
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /functional_testing/emg_report:
+      post:
+        summary: emg_report
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /functional_testing/pft_pre_post:
+      post:
+        summary: pft_pre_post
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /functional_testing/eeg_findings:
+      post:
+        summary: eeg_findings
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

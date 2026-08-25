@@ -1,0 +1,5 @@
+- POST /api/orthopedics/ao_classify 200 envelope (supertest, seeded tenant)
+- POST /api/orthopedics/mirels_score 200 envelope (supertest, seeded tenant)
+- POST /api/orthopedics/arthroplasty_plan 200 envelope (supertest, seeded tenant)
+- POST /api/orthopedics/compartment_check 200 envelope (supertest, seeded tenant)
+- POST /api/orthopedics/ddh_screen 200 envelope (supertest, seeded tenant)

@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Education, Research & Simulation",
+  "actions": {
+   "enroll subject": "Enroll Subject",
+   "sae report": "Sae Report",
+   "cme credit award": "Cme Credit Award",
+   "sim scenario run": "Sim Scenario Run",
+   "publication track": "Publication Track"
+  },
+  "common": {
+   "dept.name": "Education, Research & Simulation",
+   "dept.name_ar": "التعليم والبحث والمحاكاة",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "التعليم والبحث والمحاكاة",
+  "actions": {
+   "enroll subject": "— enroll subject",
+   "sae report": "— sae report",
+   "cme credit award": "— cme credit award",
+   "sim scenario run": "— sim scenario run",
+   "publication track": "— publication track"
+  },
+  "common": {
+   "dept.name": "Education, Research & Simulation",
+   "dept.name_ar": "التعليم والبحث والمحاكاة",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

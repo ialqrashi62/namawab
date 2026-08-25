@@ -1,0 +1,33 @@
+openapi: 3.1.0
+info: { title: Bariatric & Metabolic Center API, version: 1.0.0 }
+paths:
+    /bariatric_metabolic_center/bariatric_metabolic__main:
+      post:
+        summary: bariatric_metabolic__main
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /bariatric_metabolic_center/bariatric_metabolic__list:
+      post:
+        summary: bariatric_metabolic__list
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

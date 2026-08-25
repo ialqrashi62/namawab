@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Radiation Oncology & Clinical Pharmacy API, version: 1.0.0 }
+paths:
+    /radiation_oncology_pharmacy/rt_plan_fraction:
+      post:
+        summary: rt_plan_fraction
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /radiation_oncology_pharmacy/chemo_verification:
+      post:
+        summary: chemo_verification
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /radiation_oncology_pharmacy/tdm_interpret:
+      post:
+        summary: tdm_interpret
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /radiation_oncology_pharmacy/adr_report:
+      post:
+        summary: adr_report
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /radiation_oncology_pharmacy/pharm_intervention:
+      post:
+        summary: pharm_intervention
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

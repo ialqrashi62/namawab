@@ -1,0 +1,5 @@
+- POST /api/executive_quality_accreditation/sentinel_event_open 200 envelope (supertest, seeded tenant)
+- POST /api/executive_quality_accreditation/credential_verify 200 envelope (supertest, seeded tenant)
+- POST /api/executive_quality_accreditation/audit_cycle 200 envelope (supertest, seeded tenant)
+- POST /api/executive_quality_accreditation/complaint_triage 200 envelope (supertest, seeded tenant)
+- POST /api/executive_quality_accreditation/kpi_dashboard_data 200 envelope (supertest, seeded tenant)

@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Cardiothoracic & Vascular Surgery",
+  "actions": {
+   "euroscore calc": "Euroscore Calc",
+   "cabg list": "Cabg List",
+   "aneurysm size plan": "Aneurysm Size Plan",
+   "vein mapping": "Vein Mapping",
+   "postop drain check": "Postop Drain Check"
+  },
+  "common": {
+   "dept.name": "Cardiothoracic & Vascular Surgery",
+   "dept.name_ar": "قلب وصدر وأوعية جراحة",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "قلب وصدر وأوعية جراحة",
+  "actions": {
+   "euroscore calc": "— euroscore calc",
+   "cabg list": "— cabg list",
+   "aneurysm size plan": "— aneurysm size plan",
+   "vein mapping": "— vein mapping",
+   "postop drain check": "— postop drain check"
+  },
+  "common": {
+   "dept.name": "Cardiothoracic & Vascular Surgery",
+   "dept.name_ar": "قلب وصدر وأوعية جراحة",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: ICU, Anesthesia & Pain API, version: 1.0.0 }
+paths:
+    /icu_anesthesia_pain/sofa_calculate:
+      post:
+        summary: sofa_calculate
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /icu_anesthesia_pain/rass_assess:
+      post:
+        summary: rass_assess
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /icu_anesthesia_pain/vent_settings_log:
+      post:
+        summary: vent_settings_log
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /icu_anesthesia_pain/pain_intervention:
+      post:
+        summary: pain_intervention
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /icu_anesthesia_pain/pacu_aldrete:
+      post:
+        summary: pacu_aldrete
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

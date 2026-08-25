@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Biomedical, HIS & Logistics",
+  "actions": {
+   "device pm due": "Device Pm Due",
+   "calibration record": "Calibration Record",
+   "pacs downtime toggle": "Pacs Downtime Toggle",
+   "translate request": "Translate Request",
+   "epidemic forecast": "Epidemic Forecast"
+  },
+  "common": {
+   "dept.name": "Biomedical, HIS & Logistics",
+   "dept.name_ar": "اللوجستية والفنية",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "اللوجستية والفنية",
+  "actions": {
+   "device pm due": "— device pm due",
+   "calibration record": "— calibration record",
+   "pacs downtime toggle": "— pacs downtime toggle",
+   "translate request": "— translate request",
+   "epidemic forecast": "— epidemic forecast"
+  },
+  "common": {
+   "dept.name": "Biomedical, HIS & Logistics",
+   "dept.name_ar": "اللوجستية والفنية",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

@@ -1,0 +1,5 @@
+- POST /api/pmr_rehabilitation/barthel_index 200 envelope (supertest, seeded tenant)
+- POST /api/pmr_rehabilitation/therapy_plan_set 200 envelope (supertest, seeded tenant)
+- POST /api/pmr_rehabilitation/swallow_screen 200 envelope (supertest, seeded tenant)
+- POST /api/pmr_rehabilitation/prosthetic_fit 200 envelope (supertest, seeded tenant)
+- POST /api/pmr_rehabilitation/progress_note 200 envelope (supertest, seeded tenant)

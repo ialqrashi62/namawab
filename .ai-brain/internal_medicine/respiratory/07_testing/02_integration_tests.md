@@ -1,0 +1,5 @@
+- POST /api/respiratory/spirometry_interpret 200 envelope (supertest, seeded tenant)
+- POST /api/respiratory/inhaler_optimize 200 envelope (supertest, seeded tenant)
+- POST /api/respiratory/sleep_study_order 200 envelope (supertest, seeded tenant)
+- POST /api/respiratory/oxygen_titrate 200 envelope (supertest, seeded tenant)
+- POST /api/respiratory/exacerbation_plan 200 envelope (supertest, seeded tenant)

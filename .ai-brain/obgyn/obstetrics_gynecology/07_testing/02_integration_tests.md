@@ -1,0 +1,5 @@
+- POST /api/obstetrics_gynecology/ctg_interpret 200 envelope (supertest, seeded tenant)
+- POST /api/obstetrics_gynecology/bishop_score 200 envelope (supertest, seeded tenant)
+- POST /api/obstetrics_gynecology/ivf_stimulation_protocol 200 envelope (supertest, seeded tenant)
+- POST /api/obstetrics_gynecology/gdm_screen 200 envelope (supertest, seeded tenant)
+- POST /api/obstetrics_gynecology/pph_risk 200 envelope (supertest, seeded tenant)

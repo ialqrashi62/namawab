@@ -1,0 +1,5 @@
+- POST /api/emergency_department/esi_triage 200 envelope (supertest, seeded tenant)
+- POST /api/emergency_department/door_to_doctor_timer 200 envelope (supertest, seeded tenant)
+- POST /api/emergency_department/code_activation 200 envelope (supertest, seeded tenant)
+- POST /api/emergency_department/tox_ingest_assess 200 envelope (supertest, seeded tenant)
+- POST /api/emergency_department/obs_reassess 200 envelope (supertest, seeded tenant)

@@ -1,0 +1,5 @@
+- POST /api/nephrology/egfr_calculate 200 envelope (supertest, seeded tenant)
+- POST /api/nephrology/dialysis_prescribe 200 envelope (supertest, seeded tenant)
+- POST /api/nephrology/ktv_measure 200 envelope (supertest, seeded tenant)
+- POST /api/nephrology/transplant_workup 200 envelope (supertest, seeded tenant)
+- POST /api/nephrology/phosphate_manage 200 envelope (supertest, seeded tenant)

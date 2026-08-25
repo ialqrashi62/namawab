@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Orthopedics",
+  "actions": {
+   "ao classify": "Ao Classify",
+   "mirels score": "Mirels Score",
+   "arthroplasty plan": "Arthroplasty Plan",
+   "compartment check": "Compartment Check",
+   "ddh screen": "Ddh Screen"
+  },
+  "common": {
+   "dept.name": "Orthopedics",
+   "dept.name_ar": "العظام والمفاصل",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "العظام والمفاصل",
+  "actions": {
+   "ao classify": "— ao classify",
+   "mirels score": "— mirels score",
+   "arthroplasty plan": "— arthroplasty plan",
+   "compartment check": "— compartment check",
+   "ddh screen": "— ddh screen"
+  },
+  "common": {
+   "dept.name": "Orthopedics",
+   "dept.name_ar": "العظام والمفاصل",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

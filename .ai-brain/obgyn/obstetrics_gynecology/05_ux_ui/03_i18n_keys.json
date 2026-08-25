@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "OB/GYN & Fetal Medicine",
+  "actions": {
+   "ctg interpret": "Ctg Interpret",
+   "bishop score": "Bishop Score",
+   "ivf stimulation protocol": "Ivf Stimulation Protocol",
+   "gdm screen": "Gdm Screen",
+   "pph risk": "Pph Risk"
+  },
+  "common": {
+   "dept.name": "OB/GYN & Fetal Medicine",
+   "dept.name_ar": "النساء والتوليد",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "النساء والتوليد",
+  "actions": {
+   "ctg interpret": "— ctg interpret",
+   "bishop score": "— bishop score",
+   "ivf stimulation protocol": "— ivf stimulation protocol",
+   "gdm screen": "— gdm screen",
+   "pph risk": "— pph risk"
+  },
+  "common": {
+   "dept.name": "OB/GYN & Fetal Medicine",
+   "dept.name_ar": "النساء والتوليد",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

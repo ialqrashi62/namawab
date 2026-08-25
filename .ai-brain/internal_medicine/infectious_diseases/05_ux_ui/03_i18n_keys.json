@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Infectious Diseases",
+  "actions": {
+   "sepsis bundle": "Sepsis Bundle",
+   "antibiogram review": "Antibiogram Review",
+   "travel advice": "Travel Advice",
+   "vaccine schedule": "Vaccine Schedule",
+   "isolation level": "Isolation Level"
+  },
+  "common": {
+   "dept.name": "Infectious Diseases",
+   "dept.name_ar": "المعدية والطفيليات",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "المعدية والطفيليات",
+  "actions": {
+   "sepsis bundle": "— sepsis bundle",
+   "antibiogram review": "— antibiogram review",
+   "travel advice": "— travel advice",
+   "vaccine schedule": "— vaccine schedule",
+   "isolation level": "— isolation level"
+  },
+  "common": {
+   "dept.name": "Infectious Diseases",
+   "dept.name_ar": "المعدية والطفيليات",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

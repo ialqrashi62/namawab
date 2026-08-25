@@ -1,0 +1,5 @@
+- POST /api/neurosurgery_spine/wfns_grade 200 envelope (supertest, seeded tenant)
+- POST /api/neurosurgery_spine/glioma_plan 200 envelope (supertest, seeded tenant)
+- POST /api/neurosurgery_spine/db candidacy 200 envelope (supertest, seeded tenant)
+- POST /api/neurosurgery_spine/spine_deformity_measure 200 envelope (supertest, seeded tenant)
+- POST /api/neurosurgery_spine/icp_manage 200 envelope (supertest, seeded tenant)

@@ -1,0 +1,5 @@
+- POST /api/education_research_simulation/enroll_subject 200 envelope (supertest, seeded tenant)
+- POST /api/education_research_simulation/sae_report 200 envelope (supertest, seeded tenant)
+- POST /api/education_research_simulation/cme_credit_award 200 envelope (supertest, seeded tenant)
+- POST /api/education_research_simulation/sim_scenario_run 200 envelope (supertest, seeded tenant)
+- POST /api/education_research_simulation/publication_track 200 envelope (supertest, seeded tenant)

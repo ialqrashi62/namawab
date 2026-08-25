@@ -1,0 +1,33 @@
+openapi: 3.1.0
+info: { title: ENT & Head-Neck Center API, version: 1.0.0 }
+paths:
+    /ent_headneck_center/ent_headneck_center_main:
+      post:
+        summary: ent_headneck_center_main
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /ent_headneck_center/ent_headneck_center_list:
+      post:
+        summary: ent_headneck_center_list
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

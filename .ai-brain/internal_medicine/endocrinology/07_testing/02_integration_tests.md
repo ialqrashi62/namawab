@@ -1,0 +1,5 @@
+- POST /api/endocrinology/hba1c_trend 200 envelope (supertest, seeded tenant)
+- POST /api/endocrinology/insulin_titrate 200 envelope (supertest, seeded tenant)
+- POST /api/endocrinology/foot_screen 200 envelope (supertest, seeded tenant)
+- POST /api/endocrinology/thyroid_panel 200 envelope (supertest, seeded tenant)
+- POST /api/endocrinology/obesity_plan 200 envelope (supertest, seeded tenant)

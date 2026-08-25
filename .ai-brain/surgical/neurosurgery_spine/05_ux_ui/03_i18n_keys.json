@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Neurosurgery & Spine",
+  "actions": {
+   "wfns grade": "Wfns Grade",
+   "glioma plan": "Glioma Plan",
+   "db candidacy": "Db Candidacy",
+   "spine deformity measure": "Spine Deformity Measure",
+   "icp manage": "Icp Manage"
+  },
+  "common": {
+   "dept.name": "Neurosurgery & Spine",
+   "dept.name_ar": "المخ والأعصاب والعمود",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "المخ والأعصاب والعمود",
+  "actions": {
+   "wfns grade": "— wfns grade",
+   "glioma plan": "— glioma plan",
+   "db candidacy": "— db candidacy",
+   "spine deformity measure": "— spine deformity measure",
+   "icp manage": "— icp manage"
+  },
+  "common": {
+   "dept.name": "Neurosurgery & Spine",
+   "dept.name_ar": "المخ والأعصاب والعمود",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

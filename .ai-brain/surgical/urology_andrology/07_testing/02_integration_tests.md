@@ -1,0 +1,5 @@
+- POST /api/urology_andrology/stone_ct_protocol 200 envelope (supertest, seeded tenant)
+- POST /api/urology_andrology/ips_score 200 envelope (supertest, seeded tenant)
+- POST /api/urology_andrology/psa_pathway 200 envelope (supertest, seeded tenant)
+- POST /api/urology_andrology/uroflowmetry 200 envelope (supertest, seeded tenant)
+- POST /api/urology_andrology/semen_analysis 200 envelope (supertest, seeded tenant)

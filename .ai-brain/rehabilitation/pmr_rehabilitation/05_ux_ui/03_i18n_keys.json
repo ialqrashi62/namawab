@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "PM&R Rehabilitation",
+  "actions": {
+   "barthel index": "Barthel Index",
+   "therapy plan set": "Therapy Plan Set",
+   "swallow screen": "Swallow Screen",
+   "prosthetic fit": "Prosthetic Fit",
+   "progress note": "Progress Note"
+  },
+  "common": {
+   "dept.name": "PM&R Rehabilitation",
+   "dept.name_ar": "الطب الطبيعي والتأهيل",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الطب الطبيعي والتأهيل",
+  "actions": {
+   "barthel index": "— barthel index",
+   "therapy plan set": "— therapy plan set",
+   "swallow screen": "— swallow screen",
+   "prosthetic fit": "— prosthetic fit",
+   "progress note": "— progress note"
+  },
+  "common": {
+   "dept.name": "PM&R Rehabilitation",
+   "dept.name_ar": "الطب الطبيعي والتأهيل",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

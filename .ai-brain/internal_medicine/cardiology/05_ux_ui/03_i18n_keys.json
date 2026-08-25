@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Cardiology & Vascular",
+  "actions": {
+   "risk stratify": "Risk Stratify",
+   "ecg interpret": "Ecg Interpret",
+   "echo order": "Echo Order",
+   "med titrate": "Med Titrate",
+   "followup plan": "Followup Plan"
+  },
+  "common": {
+   "dept.name": "Cardiology & Vascular",
+   "dept.name_ar": "القلب والأوعية الدموية",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "القلب والأوعية الدموية",
+  "actions": {
+   "risk stratify": "— risk stratify",
+   "ecg interpret": "— ecg interpret",
+   "echo order": "— echo order",
+   "med titrate": "— med titrate",
+   "followup plan": "— followup plan"
+  },
+  "common": {
+   "dept.name": "Cardiology & Vascular",
+   "dept.name_ar": "القلب والأوعية الدموية",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

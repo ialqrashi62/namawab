@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: ENT & Head-Neck API, version: 1.0.0 }
+paths:
+    /ent_head_neck/audiogram_read:
+      post:
+        summary: audiogram_read
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /ent_head_neck/sinus_ct_lund:
+      post:
+        summary: sinus_ct_lund
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /ent_head_neck/cochlear candidacy:
+      post:
+        summary: cochlear candidacy
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /ent_head_neck/voice_vhi_score:
+      post:
+        summary: voice_vhi_score
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /ent_head_neck/tonsillectomy_indication:
+      post:
+        summary: tonsillectomy_indication
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

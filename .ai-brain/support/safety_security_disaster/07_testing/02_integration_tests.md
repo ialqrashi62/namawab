@@ -1,0 +1,5 @@
+- POST /api/safety_security_disaster/incident_report 200 envelope (supertest, seeded tenant)
+- POST /api/safety_security_disaster/pep_exposure_flow 200 envelope (supertest, seeded tenant)
+- POST /api/safety_security_disaster/mci_activate_triage_color 200 envelope (supertest, seeded tenant)
+- POST /api/safety_security_disaster/evacuation_route 200 envelope (supertest, seeded tenant)
+- POST /api/safety_security_disaster/staff_exposure_log 200 envelope (supertest, seeded tenant)

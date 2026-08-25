@@ -1,0 +1,5 @@
+- POST /api/gastro/endoscopy_book 200 envelope (supertest, seeded tenant)
+- POST /api/gastro/liver_score_meld 200 envelope (supertest, seeded tenant)
+- POST /api/gastro/pancreatitis_severity 200 envelope (supertest, seeded tenant)
+- POST /api/gastro/motility_test 200 envelope (supertest, seeded tenant)
+- POST /api/gastro/nutrition_plan 200 envelope (supertest, seeded tenant)

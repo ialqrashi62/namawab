@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Endocrinology & Diabetes API, version: 1.0.0 }
+paths:
+    /endocrinology/hba1c_trend:
+      post:
+        summary: hba1c_trend
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /endocrinology/insulin_titrate:
+      post:
+        summary: insulin_titrate
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /endocrinology/foot_screen:
+      post:
+        summary: foot_screen
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /endocrinology/thyroid_panel:
+      post:
+        summary: thyroid_panel
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /endocrinology/obesity_plan:
+      post:
+        summary: obesity_plan
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

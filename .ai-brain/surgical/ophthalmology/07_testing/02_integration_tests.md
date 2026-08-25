@@ -1,0 +1,5 @@
+- POST /api/ophthalmology/va_snellen 200 envelope (supertest, seeded tenant)
+- POST /api/ophthalmology/cataract_biometry 200 envelope (supertest, seeded tenant)
+- POST /api/ophthalmology/iop_tonometry 200 envelope (supertest, seeded tenant)
+- POST /api/ophthalmology/retina_oct_scan 200 envelope (supertest, seeded tenant)
+- POST /api/ophthalmology/lasik_candidate 200 envelope (supertest, seeded tenant)

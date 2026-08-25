@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Infectious Diseases API, version: 1.0.0 }
+paths:
+    /infectious_diseases/sepsis_bundle:
+      post:
+        summary: sepsis_bundle
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /infectious_diseases/antibiogram_review:
+      post:
+        summary: antibiogram_review
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /infectious_diseases/travel_advice:
+      post:
+        summary: travel_advice
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /infectious_diseases/vaccine_schedule:
+      post:
+        summary: vaccine_schedule
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /infectious_diseases/isolation_level:
+      post:
+        summary: isolation_level
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

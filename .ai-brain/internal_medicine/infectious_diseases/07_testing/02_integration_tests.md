@@ -1,0 +1,5 @@
+- POST /api/infectious_diseases/sepsis_bundle 200 envelope (supertest, seeded tenant)
+- POST /api/infectious_diseases/antibiogram_review 200 envelope (supertest, seeded tenant)
+- POST /api/infectious_diseases/travel_advice 200 envelope (supertest, seeded tenant)
+- POST /api/infectious_diseases/vaccine_schedule 200 envelope (supertest, seeded tenant)
+- POST /api/infectious_diseases/isolation_level 200 envelope (supertest, seeded tenant)

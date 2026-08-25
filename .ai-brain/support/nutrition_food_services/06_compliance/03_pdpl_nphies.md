@@ -1,0 +1,1 @@
+PDPL: lawful basis=consent+care; fields collected minimal; retention 10y; breach 72h notify. Consent fields: patient_signature, guardian_if_minor, purpose, scope_share. NPHIES mapping: encounter→ClaimBundle when insured.

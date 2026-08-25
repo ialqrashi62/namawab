@@ -1,0 +1,33 @@
+openapi: 3.1.0
+info: { title: Space & Dive Medicine API, version: 1.0.0 }
+paths:
+    /space_dive_medicine/space_dive_medicine_main:
+      post:
+        summary: space_dive_medicine_main
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /space_dive_medicine/space_dive_medicine_list:
+      post:
+        summary: space_dive_medicine_list
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

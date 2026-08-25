@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Ophthalmology Institute API, version: 1.0.0 }
+paths:
+    /ophthalmology/va_snellen:
+      post:
+        summary: va_snellen
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /ophthalmology/cataract_biometry:
+      post:
+        summary: cataract_biometry
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /ophthalmology/iop_tonometry:
+      post:
+        summary: iop_tonometry
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /ophthalmology/retina_oct_scan:
+      post:
+        summary: retina_oct_scan
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /ophthalmology/lasik_candidate:
+      post:
+        summary: lasik_candidate
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

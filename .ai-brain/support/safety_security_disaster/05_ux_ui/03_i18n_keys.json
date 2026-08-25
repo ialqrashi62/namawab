@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Safety, Security & Disaster",
+  "actions": {
+   "incident report": "Incident Report",
+   "pep exposure flow": "Pep Exposure Flow",
+   "mci activate triage color": "Mci Activate Triage Color",
+   "evacuation route": "Evacuation Route",
+   "staff exposure log": "Staff Exposure Log"
+  },
+  "common": {
+   "dept.name": "Safety, Security & Disaster",
+   "dept.name_ar": "الأمن والسلامة والكوارث",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الأمن والسلامة والكوارث",
+  "actions": {
+   "incident report": "— incident report",
+   "pep exposure flow": "— pep exposure flow",
+   "mci activate triage color": "— mci activate triage color",
+   "evacuation route": "— evacuation route",
+   "staff exposure log": "— staff exposure log"
+  },
+  "common": {
+   "dept.name": "Safety, Security & Disaster",
+   "dept.name_ar": "الأمن والسلامة والكوارث",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

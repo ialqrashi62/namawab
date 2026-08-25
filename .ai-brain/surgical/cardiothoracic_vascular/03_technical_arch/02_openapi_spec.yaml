@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Cardiothoracic & Vascular Surgery API, version: 1.0.0 }
+paths:
+    /cardiothoracic_vascular/euroscore_calc:
+      post:
+        summary: euroscore_calc
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /cardiothoracic_vascular/cabg_list:
+      post:
+        summary: cabg_list
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /cardiothoracic_vascular/aneurysm_size_plan:
+      post:
+        summary: aneurysm_size_plan
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /cardiothoracic_vascular/vein_mapping:
+      post:
+        summary: vein_mapping
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /cardiothoracic_vascular/postop_drain_check:
+      post:
+        summary: postop_drain_check
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

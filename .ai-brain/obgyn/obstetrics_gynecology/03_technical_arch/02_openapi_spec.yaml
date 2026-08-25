@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: OB/GYN & Fetal Medicine API, version: 1.0.0 }
+paths:
+    /obstetrics_gynecology/ctg_interpret:
+      post:
+        summary: ctg_interpret
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /obstetrics_gynecology/bishop_score:
+      post:
+        summary: bishop_score
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /obstetrics_gynecology/ivf_stimulation_protocol:
+      post:
+        summary: ivf_stimulation_protocol
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /obstetrics_gynecology/gdm_screen:
+      post:
+        summary: gdm_screen
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /obstetrics_gynecology/pph_risk:
+      post:
+        summary: pph_risk
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

@@ -1,0 +1,5 @@
+- POST /api/radiology_imaging/order_study 200 envelope (supertest, seeded tenant)
+- POST /api/radiology_imaging/contrast_safety_check 200 envelope (supertest, seeded tenant)
+- POST /api/radiology_imaging/report_structured 200 envelope (supertest, seeded tenant)
+- POST /api/radiology_imaging/radiation_dose_log 200 envelope (supertest, seeded tenant)
+- POST /api/radiology_imaging/critical_result_notify 200 envelope (supertest, seeded tenant)

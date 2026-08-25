@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Nephrology & Dialysis",
+  "actions": {
+   "egfr calculate": "Egfr Calculate",
+   "dialysis prescribe": "Dialysis Prescribe",
+   "ktv measure": "Ktv Measure",
+   "transplant workup": "Transplant Workup",
+   "phosphate manage": "Phosphate Manage"
+  },
+  "common": {
+   "dept.name": "Nephrology & Dialysis",
+   "dept.name_ar": "الكلى والغسيل",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الكلى والغسيل",
+  "actions": {
+   "egfr calculate": "— egfr calculate",
+   "dialysis prescribe": "— dialysis prescribe",
+   "ktv measure": "— ktv measure",
+   "transplant workup": "— transplant workup",
+   "phosphate manage": "— phosphate manage"
+  },
+  "common": {
+   "dept.name": "Nephrology & Dialysis",
+   "dept.name_ar": "الكلى والغسيل",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

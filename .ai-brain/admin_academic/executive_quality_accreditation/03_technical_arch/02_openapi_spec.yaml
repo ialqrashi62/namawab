@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info: { title: Executive Admin, Quality & Accreditation API, version: 1.0.0 }
+paths:
+    /executive_quality_accreditation/sentinel_event_open:
+      post:
+        summary: sentinel_event_open
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /executive_quality_accreditation/credential_verify:
+      post:
+        summary: credential_verify
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /executive_quality_accreditation/audit_cycle:
+      post:
+        summary: audit_cycle
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /executive_quality_accreditation/complaint_triage:
+      post:
+        summary: complaint_triage
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+    /executive_quality_accreditation/kpi_dashboard_data:
+      post:
+        summary: kpi_dashboard_data
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Payload'}
+        responses:
+          '200': {description: OK}
+          '400': {description: Validation}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [tenant_id]
+      properties:
+        tenant_id: {type: string, format: uuid}
+        patient_id: {type: string, format: uuid}

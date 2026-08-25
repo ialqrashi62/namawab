@@ -1,0 +1,36 @@
+{
+ "en": {
+  "dept_name": "Rheumatology & Immunology",
+  "actions": {
+   "das28 score": "Das28 Score",
+   "biologic eligibility": "Biologic Eligibility",
+   "autoimmune panel": "Autoimmune Panel",
+   "allergy test": "Allergy Test",
+   "steroid taper": "Steroid Taper"
+  },
+  "common": {
+   "dept.name": "Rheumatology & Immunology",
+   "dept.name_ar": "الروماتيزم والمناعة",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ },
+ "ar": {
+  "dept_name": "الروماتيزم والمناعة",
+  "actions": {
+   "das28 score": "— das28 score",
+   "biologic eligibility": "— biologic eligibility",
+   "autoimmune panel": "— autoimmune panel",
+   "allergy test": "— allergy test",
+   "steroid taper": "— steroid taper"
+  },
+  "common": {
+   "dept.name": "Rheumatology & Immunology",
+   "dept.name_ar": "الروماتيزم والمناعة",
+   "action.save": "Save|حفظ",
+   "action.cancel": "Cancel|إلغاء",
+   "status.active": "Active|نشط"
+  }
+ }
+}

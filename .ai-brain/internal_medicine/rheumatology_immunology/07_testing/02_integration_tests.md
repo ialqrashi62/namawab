@@ -1,0 +1,5 @@
+- POST /api/rheumatology_immunology/das28_score 200 envelope (supertest, seeded tenant)
+- POST /api/rheumatology_immunology/biologic_eligibility 200 envelope (supertest, seeded tenant)
+- POST /api/rheumatology_immunology/autoimmune_panel 200 envelope (supertest, seeded tenant)
+- POST /api/rheumatology_immunology/allergy_test 200 envelope (supertest, seeded tenant)
+- POST /api/rheumatology_immunology/steroid_taper 200 envelope (supertest, seeded tenant)
