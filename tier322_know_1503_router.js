@@ -1,11 +1,12 @@
-// tier322_know_1503_router.js — knowledge ingest + semantic search (JSONB embeddings)
+﻿// tier322_know_1503_router.js â€” knowledge ingest + semantic search (JSONB embeddings)
 const express = require('express');
 const { query } = require('./db_postgres');
 const { embed, chunkText } = require('./lib/embeddings');
 const eng = require('./tier322_know_1503_engine.js');
+const { ValidationError } = eng;
 const r = express.Router();
 
-function wrap(h) { return (req, res) => Promise.resolve(h(req, res)).catch(e => res.status(500).json({ ok: false, error: e.message })); }
+function wrap(h) { return (req, res) => Promise.resolve(h(req, res)).catch(e => res.status(e instanceof ValidationError ? 400 : 500).json({ ok: false, error: e.message })); }
 
 r.post('/ingest', wrap(async (req, res) => {
   const v = eng.validate_ingest(req.body || {});
