@@ -77,6 +77,14 @@
 28. خطة 90 يوم: الآن GAP-1,2,3,7,9 · لاحقاً GAP-4,5,6,8,10
 29. commits: `c1a3c87b` (benchmark DSL) · `25d3c5f4` (docs) — مرفوعة
 
+## ✅ P1-DONE — إصرار البيانات (Multi-Agent × 3 + تكامل مُتحقق)
+30. 3 وكلاء متوازيين بنوا: `tier319` Analytics-events · `tier320` Helpdesk-tickets · `tier321` APM-metrics (engine نقية + routers DB-backed عبر db_postgres.query) + migrations f016/f017/f018 (up/down/validate)
+31. loader range موسّع 171→**399** في التطوير والإنتاج معاً (نفس الاستبدال الجراحي)
+32. مايجريشنز مطبقة فعلياً: محلياً (3 جداول اتصلبت) وعلى إنتاج قاعدة البيانات (M16/M17/M18 OK)
+33. **إثبات إصرار حقيقي:** Event id=2 · Ticket id=1 (sla 15د) · APM id=1 band=fast — صفوف فعلية في PostgreSQL
+34. سياسات RLS وحّدت على النمط الرسمي text-compare (f014 style) على الإنتاج وفي الملفات
+35. commits: `8606676e` dev · `5470989a` integration — مرفوعة
+
 ## ⏳ Backlog (موثّق — يحتاج جلسات قادمة)
 - W2: منصة — pgvector schema رسمي داخل التطبيق، helpdesk module، SEO sitemap، APM/langfuse wiring، i18n consolidation، analytics events، BI pack، DR automation
 - W3: ربط بلوبيرنتات .ai-brain بكود فعلي (engine generation from blueprints)
