@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { funcs } = require('./tier116_rehab_engineering_613_engine');
+const { funcs } = require('./tier116_rehab_engineering_613_engine.js');
 const f = funcs();
 function asyncH(h) { return (req, res, next) => Promise.resolve(h(req, res, next)).catch(next); }
 router.post('/wheelchair_assessment', asyncH((req, res) => { const r = f.wheelchair_assessment(req.body || {}); res.json({ ok: true, op: 'wheelchair_assessment', result: r }); }));
