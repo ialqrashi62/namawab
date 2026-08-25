@@ -69,6 +69,14 @@
 23. **اكتشاف جلسة متوازية نشطة** تعدّل server.js و routes/*.js (34 ملف جديد ظهر 5:00AM + حلقة mount قديمة أعيد إدراجها). القرار: تجنّب الاصطدام — عدم تعديل server.js بينما هي نشطة. الحلقتان معاً غير ضارتين (نفس المسارات، الأول يكسب).
 24. ملاحظة صحة: فحص نهائي أثبت أن الحلقتين معاً لا تكسران شيئاً (11/11 فوق شغّالة على نفس السيرفر).
 
+## ✅ W2-BENCHMARK (المقارنة العالمية — Multi-Agent)
+24. وكيل PM/QA → `ROADMAP_GAPS_USER_STORIES.md` (122 سطر، 6 سبرنتات، 10 فجوات → user stories بمعايير قبول GIVEN/WHEN/THEN)
+25. وكيل المحلل الصحي → `BENCHMARK_WORLD_SYSTEMS.md` (86 سطر، 6 أبعاد × 5 أنظمة عالمية + NamaMedical)
+26. `lib/benchmark/Gap.js` + `Competitors.js` — DSL حقيقي: Gap.compare() / Gap.prioritize('90d') يعمل ومختبَر
+27. **نتيجة المقارنة الفخرية:** clinical 4/5 (Epic يتقدم) · **ksa_compliance 5/5 = NamaMedical أولاً** فوق الجميع
+28. خطة 90 يوم: الآن GAP-1,2,3,7,9 · لاحقاً GAP-4,5,6,8,10
+29. commits: `c1a3c87b` (benchmark DSL) · `25d3c5f4` (docs) — مرفوعة
+
 ## ⏳ Backlog (موثّق — يحتاج جلسات قادمة)
 - W2: منصة — pgvector schema رسمي داخل التطبيق، helpdesk module، SEO sitemap، APM/langfuse wiring، i18n consolidation، analytics events، BI pack، DR automation
 - W3: ربط بلوبيرنتات .ai-brain بكود فعلي (engine generation from blueprints)
