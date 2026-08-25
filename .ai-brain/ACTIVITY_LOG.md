@@ -108,6 +108,13 @@
 49. **سناب شوت عبر plumbing** (GIT_INDEX_FILE معزول — صفر لمسة لعملهم): برانش `wip-untracked-snapshot-20260825` = 20a073cb على GitHub يشمل 129 عنصر (34 routes جديدة + tier279/280 + mynama/server.js)
 50. `COORDINATION.md` — خريطة الفروع والمناطق النشطة وقواعد النشر ونقاط قرار المالك
 
+## 🔒 SECURITY GATE — ENABLED & VERIFIED ON PRODUCTION
+51. `tierGate` مطوّر: يقبل جلسة مستخدم **أو** `x-api-key` (timingSafeEqual) — wiring env-gated بعد express.json في سيرفرَي التطوير والإنتاج (`8606676e`+ لاحقاً)
+52. مفعّل فعلياً على الإنتاج: TIER_AUTH_REQUIRED=1 + TIER_API_KEY في `/root/.env` (**هذا الملف هو الذي يقرؤه dotenv لأن cwd=/root** — سبب جوهري موثق)
+53. تحقق ثلاثي: ANON→401 ✓ · KEYED→يمرّ للمحرك ✓ · غير-tier/health مفتوح ✓
+54. السويت المفتاحي النهائي: **719/719 ALIVE · DEEP 5/5** — محفوظ `E2E_SWEEP_POST_GATE_KEYED.txt`
+55. السويت نفسه حدّث ليُرسل x-api-key من env تلقائياً
+
 ## ⏳ Backlog (موثّق — يحتاج جلسات قادمة)
 - W2: منصة — pgvector schema رسمي داخل التطبيق، helpdesk module، SEO sitemap، APM/langfuse wiring، i18n consolidation، analytics events، BI pack، DR automation
 - W3: ربط بلوبيرنتات .ai-brain بكود فعلي (engine generation from blueprints)
