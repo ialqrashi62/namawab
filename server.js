@@ -1,4 +1,4 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
@@ -13,7 +13,7 @@ const smsService = require('./sms_service');
 const emailService = require('./email_service');
 const ce = require('./crypto_envelope'); // A3 at-rest envelope encryption (DPAPI KEK); graceful when not configured
 const crypto = require('crypto'); // hoisted: referenced by early route mounts
-const lis = require('./lis'); // E3 LIS clinical-safety core (autoVerify / isCritical / HL7 parse / QC) — pure functions
+const lis = require('./lis'); // E3 LIS clinical-safety core (autoVerify / isCritical / HL7 parse / QC) â€” pure functions
 const fe = require('./finance_engine'); // E10 GL/ZATCA pure engine (balanced-entry, VAT, aging, UBL/QR)
 const bbCompat = require('./bloodbank_compat'); // E13 blood-bank ABO/Rh compatibility engine (pure, fail-closed)
 const obEngine = require('./ob_engine'); // E14 OB/Maternity server-side authority engine (EDD/GA/GPAL/APGAR/biometry/risk)
@@ -33,7 +33,7 @@ const cds = require('./cds');
 // (cardiology, critical, derm, diagnostics, endocrine, gastro, infectious, nephrology,
 // obgyn_peds, oncology, pulmonology, rheuma, surgery) can use the LLMClient when keys
 // are configured and a deterministic RAG-grounded fallback otherwise. No behavior change
-// at runtime when LLM_API_KEY is unset — orchestrators remain callable.
+// at runtime when LLM_API_KEY is unset â€” orchestrators remain callable.
 try {
     const langchain = require('langchain');
     const shim = require('./ai_langchain_shim');
@@ -53,7 +53,7 @@ const icuScoring = require('./icu_scoring');
 const specialtyScores = require('./specialty_scores');
 // Gate 2: server-side early-warning + sepsis screening engine (MEWS/PEWS/qSOFA/SIRS + escalation).
 const ewsEngine = require('./ews_engine');
-// Gate 3: order↔result closed-loop + acknowledgement policy engine.
+// Gate 3: orderâ†”result closed-loop + acknowledgement policy engine.
 const resultLoop = require('./result_loop');
 // Gate 4: tenant-context resolution (session precedence over x-tenant-id header, anti-spoof).
 const { resolveTenantContext } = require('./tenant_resolve');
@@ -67,7 +67,7 @@ const { mountOnboardingRoutes } = require('./onboarding'); // E0 Facility Onboar
 const paymentAdapter = require('./payment_adapter');
 
 
-// Multer setup for radiology image uploads — A3A: PHI vault OUTSIDE public webroot (no static/direct access)
+// Multer setup for radiology image uploads â€” A3A: PHI vault OUTSIDE public webroot (no static/direct access)
 const uploadsDir = path.join(__dirname, 'phi_vault', 'radiology');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 const upload = multer({
@@ -130,7 +130,7 @@ app.use((req, res, next) => {
 });
 
 // CSP violation report collector (sanitized, PHI-free, no DB). Registered BEFORE session/CSRF so the
-// browser's unauthenticated report POST is always accepted. Logs a truncated summary only — never
+// browser's unauthenticated report POST is always accepted. Logs a truncated summary only â€” never
 // cookies, Authorization, body, or PHI. Rate-limited to bound log volume.
 const cspReportLimiter = rateLimit({ windowMs: 60 * 1000, max: 60, standardHeaders: false, legacyHeaders: false });
 // ===== /API/CSP-REPORT (extracted -> routes/csp-report.routes.js; behavior-preserving) =====
@@ -149,7 +149,7 @@ app.use(require('./routes/csp-report.routes.js')({ cspReportLimiter }));
 // Rate limiting for login endpoint
 const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { error: 'Too many login attempts, please try again after 15 minutes' } });
 
-// Middleware — CORS restricted to an allowlist (no more reflect-any-origin with credentials).
+// Middleware â€” CORS restricted to an allowlist (no more reflect-any-origin with credentials).
 app.use(cors({
     origin: function (origin, cb) {
         if (!origin) return cb(null, true);             // same-origin / non-browser (no Origin header)
@@ -256,7 +256,7 @@ if (process.env.REDIS_URL || process.env.REDIS_HOST) {
 
 const sessionConfig = {
     secret: process.env.SESSION_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('SESSION_SECRET is required in production'); })() : 'dev-only-insecure-secret-change-me'),
-    // resave:false — the session store (Redis via connect-redis / FallbackSessionStore) implements touch(),
+    // resave:false â€” the session store (Redis via connect-redis / FallbackSessionStore) implements touch(),
     // so rolling TTL is preserved without rewriting unchanged sessions on every request (avoids write churn
     // and a lost-update race between concurrent requests). OWASP session-management best practice.
     resave: false,
@@ -276,7 +276,7 @@ if (sessionStore) {
 
 app.use(session(sessionConfig));
 
-// ===== Gate 3: CSRF defense-in-depth — Origin/Referer check for state-changing requests =====
+// ===== Gate 3: CSRF defense-in-depth â€” Origin/Referer check for state-changing requests =====
 // Complements sameSite=lax cookies. Conservative & reversible: safe methods pass; missing Origin
 // (non-browser clients, health checks) passes (auth + sameSite still apply); same-origin always
 // passes; cross-origin mutations are blocked unless the Origin is in CORS_ALLOWED_ORIGINS.
@@ -450,7 +450,7 @@ const idempotencyGuard = makeIdempotencyGuard({
 // ===== SMS NOTIFICATION HELPERS (extracted -> lib/notifications/notifyHelpers.js; behavior-preserving) =====
 const { sendLabResultNotification, sendDoctorSMS, sendRadiologyResultNotification, sendPatientEmail, sendDoctorEmail } =
     require('./lib/notifications/notifyHelpers')({ pool, smsService, emailService });
-// ===== EPIC E17 — Quality / Incidents / CAPA + Infection Control =====
+// ===== EPIC E17 â€” Quality / Incidents / CAPA + Infection Control =====
 // Fail-closed tenant guard for E17: returns integer tenantId or throws (caller -> 403).
 
 // Server-side authority enums (client may NOT invent values).
@@ -476,7 +476,7 @@ const E17_CAPA_TRANSITIONS = {
 };
 const E17_CAPA_TYPES = ['Corrective', 'Preventive'];
 
-// Risk register: server computes score + level (anti-spoof — never trusts client).
+// Risk register: server computes score + level (anti-spoof â€” never trusts client).
 const E17_PRECAUTION_TYPES = ['standard', 'contact', 'droplet', 'airborne', 'protective'];
 const E17_AMS_SEVERITY = ['Advisory', 'Action Required', 'Critical'];
 
@@ -486,9 +486,9 @@ const E17_AMS_SEVERITY = ['Advisory', 'Action Required', 'Critical'];
 const activeUserSessions = new Map(); // userId -> sessionId
 
 // ===== AUTH ROUTES =====
-// A2: establish authenticated session — shared by password-only login and post-MFA completion
+// A2: establish authenticated session â€” shared by password-only login and post-MFA completion
 
-// A2 MFA — RFC-6238 TOTP via built-in crypto (no external dependency); secrets are never logged
+// A2 MFA â€” RFC-6238 TOTP via built-in crypto (no external dependency); secrets are never logged
 const MFA_B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 // TOTP replay guard: reject any code whose 30s counter was already consumed for this user (in-memory; codes expire in ~90s so this needs no persistence)
 const mfaLastCounter = new Map();
@@ -500,7 +500,7 @@ const { calcVAT, addVAT } = require('./lib/billing/vatHelpers')({ pool });
 app.use(require('./routes/auth.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, activeUserSessions, bcrypt, ce, establishSession, loginLimiter, mfaConsume }));
 
 
-// ===== A2 MFA (TOTP) — opt-in; NO global enforcement (mfa_enabled per-user, default false) =====
+// ===== A2 MFA (TOTP) â€” opt-in; NO global enforcement (mfa_enabled per-user, default false) =====
 // ===== /API/MFA (extracted -> routes/mfa.routes.js; behavior-preserving) =====
 app.use(require('./routes/mfa.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, bcrypt, ce, mfaConsume, mfaGenSecret, mfaVerify, requireTenantAdmin }));
 
@@ -508,11 +508,11 @@ app.use(require('./routes/mfa.routes.js')({ pool, requireAuth, requireRole, requ
 
 // confirm enrollment (or re-verify): on first enable, issue one-time recovery codes (returned once; only hashes stored)
 
-// second factor at login — uses the pending challenge set by /api/auth/login; accepts TOTP or a one-time recovery code
+// second factor at login â€” uses the pending challenge set by /api/auth/login; accepts TOTP or a one-time recovery code
 
-// self-disable own MFA — requires a valid current TOTP
+// self-disable own MFA â€” requires a valid current TOTP
 
-// admin reset — Admin only; the recovery path so MFA can never permanently lock out any user (incl. the last admin)
+// admin reset â€” Admin only; the recovery path so MFA can never permanently lock out any user (incl. the last admin)
 
 // ===== /API/HEALTH (extracted -> routes/health.routes.js; behavior-preserving) =====
 app.use(require('./routes/health.routes.js')({ addVAT, calcVAT, getRequestTenantContext, logAudit, pool, requireAuth, requireRole, requireTenantScope, RS, validateBody }));
@@ -544,7 +544,7 @@ app.use(require('./routes/appointments.routes.js')({ pool, requireAuth, requireR
 
 
 
-// ===== OPD — OUTPATIENT DEPARTMENT (سير عمل العيادات الخارجية) =====
+// ===== OPD â€” OUTPATIENT DEPARTMENT (Ø³ÙŠØ± Ø¹Ù…Ù„ Ø§Ù„Ø¹ÙŠØ§Ø¯Ø§Øª Ø§Ù„Ø®Ø§Ø±Ø¬ÙŠØ©) =====
 // ===== /API/OPD (extracted -> routes/opd.routes.js; behavior-preserving) =====
 app.use(require('./routes/opd.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit }));
 
@@ -572,8 +572,8 @@ app.use(require('./routes/invoices.routes.js')({ pool, requireAuth, requireRole,
 const E11_INS_ROLES = ['insurance', 'finance'];
 
 // fail-closed tenant resolver: null tenant => throw 403 (no unscoped fallback). Mirrors e7/e8/e9/e10.
-// integer-id coercion guard: positive integer or null (no padded-string/float bypass — E6 lesson).
-// NPHIES external integration gate — default OFF (no real creds => never call NPHIES; intent-only stub).
+// integer-id coercion guard: positive integer or null (no padded-string/float bypass â€” E6 lesson).
+// NPHIES external integration gate â€” default OFF (no real creds => never call NPHIES; intent-only stub).
 
 // ----- Insurance companies (tenant-scoped) -----
 // ===== /API/INSURANCE (extracted -> routes/insurance.routes.js; behavior-preserving) =====
@@ -593,15 +593,15 @@ app.use(require('./routes/nphies.routes.js')({ pool, requireAuth, requireRole, r
 // ----- Pre-authorization workflow (request -> approved/denied/partial; server-authoritative) -----
 
 
-// pre-auth decision — server-authoritative state machine (requested -> approved/denied/partial)
+// pre-auth decision â€” server-authoritative state machine (requested -> approved/denied/partial)
 
 // ----- Claims (lifecycle: draft -> submitted -> adjudicated -> remittance_posted; denied/appealed) -----
 
-// create claim — always 'draft'/'Pending'; amounts requested only, adjudication is server-side later
+// create claim â€” always 'draft'/'Pending'; amounts requested only, adjudication is server-side later
 
-// claim state transition — single server-authoritative endpoint (replaces direct status PUT)
+// claim state transition â€” single server-authoritative endpoint (replaces direct status PUT)
 
-// LEGACY status PUT — HARDENED: route the old client {status} payload through the state machine (409 on invalid).
+// LEGACY status PUT â€” HARDENED: route the old client {status} payload through the state machine (409 on invalid).
 // Pre-existing window.updateClaim still calls PUT /api/insurance/claims/:id with {status:'Approved'|'Rejected'}.
 
 // ----- Claim lines (link claim -> medical_services chargemaster) -----
@@ -613,16 +613,16 @@ app.use(require('./routes/nphies.routes.js')({ pool, requireAuth, requireRole, r
 // ----- Payer pricing tiers (per-payer chargemaster) -----
 
 
-// ----- NPHIES submission (GATED — 503 stub when NPHIES_ENABLED off; records submission intent) -----
+// ----- NPHIES submission (GATED â€” 503 stub when NPHIES_ENABLED off; records submission intent) -----
 // ===== end E11 INSURANCE / NPHIES =====
 
 // ===== /API/MEDICAL (extracted -> routes/medical.routes.js; behavior-preserving) =====
 app.use(require('./routes/medical.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, optionalReadFallback, requireCatalogAccess }));
 
 
-// ===== EMR LOCK / SIGNATURE (Phase A1) — sign+lock, amend (no silent edit after lock); tenant-scoped via RLS =====
+// ===== EMR LOCK / SIGNATURE (Phase A1) â€” sign+lock, amend (no silent edit after lock); tenant-scoped via RLS =====
 // SIGNATURE ATTRIBUTION: signing+locking a physician medical record is a PHYSICIAN act only.
-// Nurses document via nursing_vitals / assessments / MAR — they must not sign medical_records.
+// Nurses document via nursing_vitals / assessments / MAR â€” they must not sign medical_records.
 // ===== /API/MEDICAL-RECORDS (extracted -> routes/medical-records.routes.js; behavior-preserving) =====
 app.use(require('./routes/medical-records.routes.js')({ addVAT, calcVAT, getRequestTenantContext, logAudit, pool, requireAuth, requireRole, requireTenantScope, RS, validateBody }));
 
@@ -660,7 +660,7 @@ app.use(require('./routes/lab.routes.js')({ pool, requireAuth, requireRole, requ
 
 
 // ============================================================================
-// ===== E3 LABORATORY / LIS — sample lifecycle, structured results, =====
+// ===== E3 LABORATORY / LIS â€” sample lifecycle, structured results, =====
 // =====    auto-verification, critical call-back, HL7 ingest, QC      =====
 // ----------------------------------------------------------------------------
 // CLINICAL SAFETY + TENANT SECURITY rules enforced on EVERY endpoint below:
@@ -695,13 +695,13 @@ app.use(require('./routes/lab.routes.js')({ pool, requireAuth, requireRole, requ
 
 
 
-// POST /api/results/:type/:id/acknowledge — the ordering/covering physician documents
+// POST /api/results/:type/:id/acknowledge â€” the ordering/covering physician documents
 // having reviewed a verified abnormal/critical result. Level comes from the server-side
 // resultLoop.ackRequirement policy, never from the client.
 // ===== /API/RESULTS (extracted -> routes/results.routes.js; behavior-preserving) =====
 app.use(require('./routes/results.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, auditResultAckFallback, lisRequireTenant, resultAckTableExists, resultLoop }));
 
-// GET /api/results/unacknowledged — physician worklist of verified abnormal/critical lab
+// GET /api/results/unacknowledged â€” physician worklist of verified abnormal/critical lab
 // results not yet acknowledged by anyone (server-side policy; normal results excluded).
 
 // ---- HL7 INBOUND (gated; sandbox parse+store only, NO external connection) ----
@@ -732,15 +732,15 @@ app.use(require('./routes/radiology.routes.js')({ pool, requireAuth, requireRole
 
 
 
-// A3A: guarded PHI file download — auth + EXPLICIT tenant predicate (defense-in-depth atop FORCE RLS); path-traversal denied; content-type pinned (no sniff-to-active-content)
+// A3A: guarded PHI file download â€” auth + EXPLICIT tenant predicate (defense-in-depth atop FORCE RLS); path-traversal denied; content-type pinned (no sniff-to-active-content)
 // ===== /API/PHI-FILES (extracted -> routes/phi-files.routes.js; behavior-preserving) =====
 app.use(require('./routes/phi-files.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, ce, upload }));
 
 // ============================================================================
-// ===== E4: RADIOLOGY — RIS WORKLIST + DICOM STUDIES (metadata) + STRUCTURED REPORTS
+// ===== E4: RADIOLOGY â€” RIS WORKLIST + DICOM STUDIES (metadata) + STRUCTURED REPORTS
 // All E4 endpoints are tenant-scoped with an EXPLICIT tenant_id predicate on EVERY
 // query (defense-in-depth atop FORCE RLS), FAIL-CLOSED on null tenant context, and
-// audited. DICOM/image bytes are NEVER served here — only via guarded /api/phi-files/:id.
+// audited. DICOM/image bytes are NEVER served here â€” only via guarded /api/phi-files/:id.
 // PACS/MWL is GATED behind RAD_MWL_ENABLED (no external connection; metadata only).
 // ============================================================================
 
@@ -754,16 +754,16 @@ app.use(require('./routes/phi-files.routes.js')({ pool, requireAuth, requireRole
 
 // --- E4-S2: list DICOM study metadata for an exam (tenant-scoped) ---
 
-// --- E4-S2: DICOM Modality Worklist (MWL) — GATED, parse/serve scheduled exams only; NO external connection ---
+// --- E4-S2: DICOM Modality Worklist (MWL) â€” GATED, parse/serve scheduled exams only; NO external connection ---
 
-// --- E4-S3: prior-comparison — only SIGNED priors, same patient + modality, within tenant ---
+// --- E4-S3: prior-comparison â€” only SIGNED priors, same patient + modality, within tenant ---
 
 // --- E4-S3: create / update a structured report draft (tenant-scoped) ---
 
 // --- E4-S3: record critical-finding notification (documents the call-back; required before signing) ---
-// RBAC: report state-mutating endpoints are restricted to radiology/doctor (medico-legal) — not any tenant user.
+// RBAC: report state-mutating endpoints are restricted to radiology/doctor (medico-legal) â€” not any tenant user.
 
-// --- E4-S3: SIGN report — FAIL-CLOSED if critical without documented notification ---
+// --- E4-S3: SIGN report â€” FAIL-CLOSED if critical without documented notification ---
 
 // --- E4-S3: addendum to a SIGNED report (creates a new linked report) ---
 
@@ -806,10 +806,10 @@ app.use(require('./routes/hr.routes.js')({ pool, requireAuth, requireRole, requi
 // CRITICAL invariants: balanced-entry (sum debit==credit), posting-gate, tenant scoping.
 // ============================================================================================
 
-// posting gate — default OFF. Only "1"/"true" (case-insensitive) enables ledger posting.
-// ZATCA external clearance/reporting gate — default OFF (no real CSID => never call ZATCA).
+// posting gate â€” default OFF. Only "1"/"true" (case-insensitive) enables ledger posting.
+// ZATCA external clearance/reporting gate â€” default OFF (no real CSID => never call ZATCA).
 // fail-closed tenant resolver: null tenant => throw 403 (no unscoped fallback). Mirrors e7/e8/e9.
-// integer-id coercion guard: positive integer or null (no padded-string / float bypass — E6 lesson).
+// integer-id coercion guard: positive integer or null (no padded-string / float bypass â€” E6 lesson).
 
 // ----- Chart of Accounts (tenant-scoped; account_class validated server-side) -----
 const E10_ACCOUNT_CLASSES = ['Asset', 'Liability', 'Equity', 'Revenue', 'Expense'];
@@ -821,11 +821,11 @@ app.use(require('./routes/finance.routes.js')({ pool, requireAuth, requireRole, 
 
 // ----- General Ledger: read one entry with its lines (tenant-scoped, IDOR-safe) -----
 
-// ----- General Ledger: create a balanced journal entry (DRAFT) — SERVER-SIDE balance enforcement -----
+// ----- General Ledger: create a balanced journal entry (DRAFT) â€” SERVER-SIDE balance enforcement -----
 // Body: { entry_date, description, reference, source_type?, lines:[{account_id, debit, credit, notes?}] }
 // Unbalanced (sum debit != sum credit) => 422. Created as DRAFT regardless of the posting flag.
 
-// ----- General Ledger: POST a draft entry to the ledger — GATED by ACCOUNTING_POSTING_ENABLED -----
+// ----- General Ledger: POST a draft entry to the ledger â€” GATED by ACCOUNTING_POSTING_ENABLED -----
 // State machine: DRAFT -> POSTED. Posting is irreversible (immutable); re-posting => 409.
 
 // ----- General Ledger: REVERSE a posted entry (the only mutation of a POSTED entry) -----
@@ -894,7 +894,7 @@ app.use(require('./routes/clinical.routes.js')({ addVAT, calcVAT, getRequestTena
 // live when LLM_API_KEY is set, deterministic RAG-grounded fallback otherwise.
 const AI_ORCH_ROLE = requireRole('doctor', 'nursing');
 
-// Lazy requires — orchestrators are constructed on each call; this avoids pulling in
+// Lazy requires â€” orchestrators are constructed on each call; this avoids pulling in
 // every vector store at boot (and keeps the AI route table declarative).
 
 // ===== /API/AI (extracted -> routes/ai.routes.js; behavior-preserving) =====
@@ -919,18 +919,18 @@ app.use(require('./routes/cardiology.routes.js')({ addVAT, calcVAT, getRequestTe
 
 
 
-// ===== WAVE 9: CENTERS OF EXCELLENCE — PATIENT-360 AGGREGATOR (shared helper) =====
+// ===== WAVE 9: CENTERS OF EXCELLENCE â€” PATIENT-360 AGGREGATOR (shared helper) =====
 // Aggregates any number of tenant-scoped specialty tables into a single Patient-360 response.
 // Each Center mounts a thin route that calls centerPatient360 with its own table list.
 // tenant isolation is enforced by both the explicit AND tenant_id=$N on every query AND the
 // FORCE RLS policy on the wrapped tables. centerPatient360 itself also rejects null tenant.
 
-// Heart & Vascular Center — Patient-360 (Wave 8). Aggregates cardiology_procedures + ecg_records
+// Heart & Vascular Center â€” Patient-360 (Wave 8). Aggregates cardiology_procedures + ecg_records
 // + cardiology_assessments for the requested patient, all tenant-scoped.
 // ===== CENTERS PATIENT-360 (extracted -> routes/centers-patient360.routes.js; behavior-preserving) =====
 app.use(require('./routes/centers-patient360.routes.js')({ centerPatient360, getRequestTenantContext, logAudit, pool, requireAuth, requireRole, requireTenantScope, RS }));
 
-// Centers of Excellence — Patient-360 aggregators (Wave 9). One route per Center; each
+// Centers of Excellence â€” Patient-360 aggregators (Wave 9). One route per Center; each
 // resolves tenant context inline and delegates to centerPatient360 with its own table list.
 // Tenant-scoped read; explicit tenant filtering is applied via the shared helper.
 // ===== /API/BEHAVIORAL-HEALTH-COE (extracted -> routes/behavioral-health-coe.routes.js; behavior-preserving) =====
@@ -1066,92 +1066,92 @@ app.use(require('./routes/forms.routes.js')({ pool, requireAuth, requireRole, re
 
 
 
-// ===== DOCTOR STATION — DEDICATED ENDPOINTS =====
+// ===== DOCTOR STATION â€” DEDICATED ENDPOINTS =====
 
 /**
  * GET /api/doctor/wait-queue
- * قائمة انتظار الطبيب — تعرض المرضى في الانتظار مع بيانات المؤشرات الحيوية
+ * Ù‚Ø§Ø¦Ù…Ø© Ø§Ù†ØªØ¸Ø§Ø± Ø§Ù„Ø·Ø¨ÙŠØ¨ â€” ØªØ¹Ø±Ø¶ Ø§Ù„Ù…Ø±Ø¶Ù‰ ÙÙŠ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø± Ù…Ø¹ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø¤Ø´Ø±Ø§Øª Ø§Ù„Ø­ÙŠÙˆÙŠØ©
  */
 // ===== /API/DOCTOR (extracted -> routes/doctor.routes.js; behavior-preserving) =====
 app.use(require('./routes/doctor.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit }));
 
 /**
  * GET /api/patients/:id/chart
- * الملف السريري الكامل للمريض — يُحمَّل عند اختيار مريض في محطة الطبيب
+ * Ø§Ù„Ù…Ù„Ù Ø§Ù„Ø³Ø±ÙŠØ±ÙŠ Ø§Ù„ÙƒØ§Ù…Ù„ Ù„Ù„Ù…Ø±ÙŠØ¶ â€” ÙŠÙØ­Ù…ÙŽÙ‘Ù„ Ø¹Ù†Ø¯ Ø§Ø®ØªÙŠØ§Ø± Ù…Ø±ÙŠØ¶ ÙÙŠ Ù…Ø­Ø·Ø© Ø§Ù„Ø·Ø¨ÙŠØ¨
  */
 
 /**
  * GET /api/patients/:id/vitals  (alias to patient_scores)
- * المؤشرات الحيوية للمريض — مطلوبة لمحطة الطبيب
+ * Ø§Ù„Ù…Ø¤Ø´Ø±Ø§Øª Ø§Ù„Ø­ÙŠÙˆÙŠØ© Ù„Ù„Ù…Ø±ÙŠØ¶ â€” Ù…Ø·Ù„ÙˆØ¨Ø© Ù„Ù…Ø­Ø·Ø© Ø§Ù„Ø·Ø¨ÙŠØ¨
  */
 
 /**
  * GET /api/patients/:id/problems
- * قائمة المشكلات الطبية للمريض
+ * Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ù…Ø´ÙƒÙ„Ø§Øª Ø§Ù„Ø·Ø¨ÙŠØ© Ù„Ù„Ù…Ø±ÙŠØ¶
  */
 
 /**
  * POST /api/patients/:id/problems
- * إضافة مشكلة طبية للمريض
+ * Ø¥Ø¶Ø§ÙØ© Ù…Ø´ÙƒÙ„Ø© Ø·Ø¨ÙŠØ© Ù„Ù„Ù…Ø±ÙŠØ¶
  */
 
 /**
  * GET /api/patients/:id/allergies
- * قائمة الحساسيات للمريض
+ * Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø­Ø³Ø§Ø³ÙŠØ§Øª Ù„Ù„Ù…Ø±ÙŠØ¶
  */
 
 /**
  * GET /api/patients/:id/medications
- * الأدوية الحالية للمريض
+ * Ø§Ù„Ø£Ø¯ÙˆÙŠØ© Ø§Ù„Ø­Ø§Ù„ÙŠØ© Ù„Ù„Ù…Ø±ÙŠØ¶
  */
 
 /**
  * GET /api/patients/:id/lab-results
- * نتائج المختبر والأشعة للمريض — مع تفاصيل كاملة
+ * Ù†ØªØ§Ø¦Ø¬ Ø§Ù„Ù…Ø®ØªØ¨Ø± ÙˆØ§Ù„Ø£Ø´Ø¹Ø© Ù„Ù„Ù…Ø±ÙŠØ¶ â€” Ù…Ø¹ ØªÙØ§ØµÙŠÙ„ ÙƒØ§Ù…Ù„Ø©
  */
 
 /**
  * GET /api/patients/:id/active-orders
- * لوحة الأوامر النشطة — كل الأوامر المعلّقة والجارية للمريض
+ * Ù„ÙˆØ­Ø© Ø§Ù„Ø£ÙˆØ§Ù…Ø± Ø§Ù„Ù†Ø´Ø·Ø© â€” ÙƒÙ„ Ø§Ù„Ø£ÙˆØ§Ù…Ø± Ø§Ù„Ù…Ø¹Ù„Ù‘Ù‚Ø© ÙˆØ§Ù„Ø¬Ø§Ø±ÙŠØ© Ù„Ù„Ù…Ø±ÙŠØ¶
  */
 
 /**
- * POST /api/orders  (clinical orders — lab, radiology, medication, nursing, diet, iv, referral, procedure, discharge)
- * إنشاء أمر طبي من محطة الطبيب
+ * POST /api/orders  (clinical orders â€” lab, radiology, medication, nursing, diet, iv, referral, procedure, discharge)
+ * Ø¥Ù†Ø´Ø§Ø¡ Ø£Ù…Ø± Ø·Ø¨ÙŠ Ù…Ù† Ù…Ø­Ø·Ø© Ø§Ù„Ø·Ø¨ÙŠØ¨
  */
 // ===== /API/ORDERS (extracted -> routes/orders.routes.js; behavior-preserving) =====
 app.use(require('./routes/orders.routes.js')({ addVAT, calcVAT, getRequestTenantContext, logAudit, pool, requireAuth, requireRole, requireTenantScope, RS, validateBody }));
 
 /**
  * POST /api/encounters/:id/sign
- * التوقيع الإلكتروني على الزيارة وقفل السجل السريري
+ * Ø§Ù„ØªÙˆÙ‚ÙŠØ¹ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ø¹Ù„Ù‰ Ø§Ù„Ø²ÙŠØ§Ø±Ø© ÙˆÙ‚ÙÙ„ Ø§Ù„Ø³Ø¬Ù„ Ø§Ù„Ø³Ø±ÙŠØ±ÙŠ
  */
 // ===== /API/ENCOUNTERS (extracted -> routes/encounters.routes.js; behavior-preserving) =====
 app.use(require('./routes/encounters.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit }));
 
 /**
  * GET /api/patients/:id/history-extended
- * التاريخ السريري الشامل: اجتماعي، عائلي، جراحي، تطعيمات
+ * Ø§Ù„ØªØ§Ø±ÙŠØ® Ø§Ù„Ø³Ø±ÙŠØ±ÙŠ Ø§Ù„Ø´Ø§Ù…Ù„: Ø§Ø¬ØªÙ…Ø§Ø¹ÙŠØŒ Ø¹Ø§Ø¦Ù„ÙŠØŒ Ø¬Ø±Ø§Ø­ÙŠØŒ ØªØ·Ø¹ÙŠÙ…Ø§Øª
  */
 
 /**
  * POST/PUT /api/patients/:id/social-history
- * حفظ/تحديث التاريخ الاجتماعي للمريض
+ * Ø­ÙØ¸/ØªØ­Ø¯ÙŠØ« Ø§Ù„ØªØ§Ø±ÙŠØ® Ø§Ù„Ø§Ø¬ØªÙ…Ø§Ø¹ÙŠ Ù„Ù„Ù…Ø±ÙŠØ¶
  */
 
 /**
  * POST /api/patients/:id/family-history
- * إضافة بند في التاريخ العائلي
+ * Ø¥Ø¶Ø§ÙØ© Ø¨Ù†Ø¯ ÙÙŠ Ø§Ù„ØªØ§Ø±ÙŠØ® Ø§Ù„Ø¹Ø§Ø¦Ù„ÙŠ
  */
 
 /**
  * GET /api/pharmacy/drugs
- * قائمة الأدوية من الصيدلية
+ * Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø£Ø¯ÙˆÙŠØ© Ù…Ù† Ø§Ù„ØµÙŠØ¯Ù„ÙŠØ©
  */
 
 /**
  * GET /api/medical/services
- * الخدمات الطبية
+ * Ø§Ù„Ø®Ø¯Ù…Ø§Øª Ø§Ù„Ø·Ø¨ÙŠØ©
  */
 
 // ===== WAITING QUEUE =====
@@ -1224,12 +1224,12 @@ app.use(require('./routes/operating-rooms.routes.js')({ pool, requireAuth, requi
 
 
 // ============================================================================
-// ===== EPIC E12 — SURGERY / OPERATING ROOM (OR scheduling, WHO checklist, PACU, operative note + consumption)
+// ===== EPIC E12 â€” SURGERY / OPERATING ROOM (OR scheduling, WHO checklist, PACU, operative note + consumption)
 // ============================================================================
 // Fail-closed tenant resolver for E12: throws in production when no tenant is bound.
 // Mirrors the e7/e8/e9 requireTenant pattern (NO unscoped fallback in production).
 
-// Integer-only id coercion (no string/padded-id coercion bypass — E6 lesson).
+// Integer-only id coercion (no string/padded-id coercion bypass â€” E6 lesson).
 
 // ---- Surgery status state machine (server-enforced; reject invalid transitions 409) ----
 // Scheduled -> InProgress -> PACU -> Completed (+ Cancelled from any non-terminal).
@@ -1249,7 +1249,7 @@ const E12_WHO_PHASE_TO_STATE = { 'sign-in': 'Sign-In', 'time-out': 'Time-Out', '
 
 // Helper: verify surgery ownership (tenant-scoped). Returns row or null.
 
-// ===== E12: OR SCHEDULING — slots + conflict detection + transactional reservation =====
+// ===== E12: OR SCHEDULING â€” slots + conflict detection + transactional reservation =====
 // List slots for a room/date (tenant scoped).
 // ===== /API/OR (extracted -> routes/or.routes.js; behavior-preserving) =====
 app.use(require('./routes/or.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, checkAndTriggerAutoReorder, E12_WHO_ORDER, E12_WHO_PHASE_TO_STATE, e12IntId, e12IsValidSurgeryTransition, e12LoadSurgery, e12NormalizeStatus, e12RequireTenant, e12WhoNextState, optionalReadFallback, requirePermission }));
@@ -1276,7 +1276,7 @@ app.use(require('./routes/or.routes.js')({ pool, requireAuth, requireRole, requi
 // Save operative note + record consumption lines, decrementing inventory_items.stock_qty transactionally.
 // Locks inventory rows in ascending id order (deadlock avoidance). Counts-not-verified -> 'Incomplete' (never falsely reassuring).
 
-// ===== BLOOD BANK (LEGACY READ ROUTES — tenant-scoped hardening; E13) =====
+// ===== BLOOD BANK (LEGACY READ ROUTES â€” tenant-scoped hardening; E13) =====
 // These legacy /api/blood-bank/* paths are retained for backward compatibility
 // but are now tenant-scoped (were cross-tenant leaks). The PRIMARY UI uses the
 // new /api/bloodbank/* safe routes. Legacy MUTATION paths are deprecated (410)
@@ -1297,7 +1297,7 @@ app.use(require('./routes/blood-bank.routes.js')({ pool, requireAuth, requireRol
 
 
 // =====================================================================
-// ===== E13 BLOOD BANK (SAFE) — /api/bloodbank/* ======================
+// ===== E13 BLOOD BANK (SAFE) â€” /api/bloodbank/* ======================
 // =====================================================================
 // World-class blood-bank workflow with the critical safety invariants:
 //  - server-side ABO/Rh compatibility (bbCompat); client cannot mark compatible
@@ -1367,7 +1367,7 @@ app.use(require('./routes/consent-forms.routes.js')({ addVAT, calcVAT, getReques
 
 
 // ===== LAB & RADIOLOGY ORDERS (Payment-First Workflow) =====
-// Doctor creates order → status='Pending Payment' → Reception pays → status='Requested' → Lab/Rad processes
+// Doctor creates order â†’ status='Pending Payment' â†’ Reception pays â†’ status='Requested' â†’ Lab/Rad processes
 
 // Get lab orders (only paid/approved ones visible to lab)
 
@@ -1381,7 +1381,7 @@ app.use(require('./routes/consent-forms.routes.js')({ addVAT, calcVAT, getReques
 
 // Direct lab order (from lab page - auto approved)
 
-// Reception approves payment → order goes to Lab/Radiology
+// Reception approves payment â†’ order goes to Lab/Radiology
 
 // Update lab/radiology order status (In Progress, Done)
 
@@ -1401,13 +1401,13 @@ app.use(require('./routes/emergency.routes.js')({ pool, requireAuth, requireRole
 
 
 
-// ===== E7: EMERGENCY DEPARTMENT — ESI TRIAGE, TRACKING BOARD, WORKFLOW STATE MACHINE =====
+// ===== E7: EMERGENCY DEPARTMENT â€” ESI TRIAGE, TRACKING BOARD, WORKFLOW STATE MACHINE =====
 // All routes: requireAuth + requireRole('emergency','nursing','doctor') + requireTenantScope.
 // ESI level is computed SERVER-SIDE by esi_engine.computeESI() from clinical inputs; any
 // client-sent esi_level is advisory only and is NEVER trusted. Every query carries an explicit
-// AND tenant_id=$N on top of FORCE RLS; a null tenant fails closed (403 / zero rows) — never
+// AND tenant_id=$N on top of FORCE RLS; a null tenant fails closed (403 / zero rows) â€” never
 // an unscoped fallback. The PRIMARY UI buttons (triage / assign provider / disposition) call
-// these guarded routes — there is no shadow/unguarded path.
+// these guarded routes â€” there is no shadow/unguarded path.
 
 // Fail-closed tenant resolver for E7: throws when tenant is missing so no helper ever runs unscoped.
 
@@ -1415,18 +1415,18 @@ app.use(require('./routes/emergency.routes.js')({ pool, requireAuth, requireRole
 const ER_PHASES = ['Arrival', 'Triage', 'Waiting', 'InTreatment', 'Disposition'];
 const ER_DISPOSITIONS = ['Admitted', 'Discharged', 'Transferred', 'LWBS'];
 
-// GET /api/er/board — active ED patients ordered by ESI priority (1 first) then arrival time.
+// GET /api/er/board â€” active ED patients ordered by ESI priority (1 first) then arrival time.
 // ===== /API/ER (extracted -> routes/er.routes.js; behavior-preserving) =====
 app.use(require('./routes/er.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, e7RequireTenant, ER_DISPOSITIONS, esiEngine }));
 
-// POST /api/er/triage — compute ESI SERVER-SIDE, persist, set phase Waiting, start the clock.
+// POST /api/er/triage â€” compute ESI SERVER-SIDE, persist, set phase Waiting, start the clock.
 // Body: { visit_id, vitals:{hr,rr,spo2,sbp,temp,loc}, chief_complaint, pain_score, resources|resource_count,
 //         high_risk, age, ... }  (any client-sent esi_level is ignored.)
 
-// POST /api/er/assign-provider — provider picks up the patient; record time-to-provider.
+// POST /api/er/assign-provider â€” provider picks up the patient; record time-to-provider.
 // Body: { visit_id, provider }  (provider name; defaults to acting user.)
 
-// POST /api/er/disposition — close the ED encounter (admit[->ADT]/discharge/transfer/LWBS).
+// POST /api/er/disposition â€” close the ED encounter (admit[->ADT]/discharge/transfer/LWBS).
 // Body: { visit_id, disposition_type, diagnosis, instructions, medications, followup_date,
 //         admission_department, admitting_doctor }  State machine: disposition before triage => 409.
 
@@ -1453,14 +1453,14 @@ app.use(require('./routes/bed-transfers.routes.js')({ pool, requireAuth, require
 app.use(require('./routes/bed-transfers_legacy_disabled.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit }));
 
 // ============================================================
-// ===== E8 INPATIENT / ADT — state-machine, race-safe bed mgmt =====
+// ===== E8 INPATIENT / ADT â€” state-machine, race-safe bed mgmt =====
 // World-class ADT: admit / transfer / discharge + census + bed board, with a
 // server-authoritative bed-status lifecycle and admission state machine. Every
 // bed occupy/free is done inside a transaction with SELECT ... FOR UPDATE on the
 // bed row so two concurrent admits can never double-occupy one bed.
 // ============================================================
 
-// Fail-closed tenant resolver (mirrors e7RequireTenant — generic, no unscoped fallback).
+// Fail-closed tenant resolver (mirrors e7RequireTenant â€” generic, no unscoped fallback).
 
 // Server-authoritative bed status lifecycle. 'Available' is the legacy vacant terminal
 // (kept for backward compat with the existing schema/seeds). Allowed transitions:
@@ -1484,17 +1484,17 @@ const E8_BED_FREE_STATES = ['Available', 'Reserved'];
 // Discharge is only valid from an Active admission; transfer is only valid for Active.
 const E8_ADMISSION_TERMINAL = ['Discharged'];
 
-// Coerce an id to a positive integer (no string/padded-id coercion bypass — E6 lesson).
+// Coerce an id to a positive integer (no string/padded-id coercion bypass â€” E6 lesson).
 
-// GET /api/adt/beds — bed board (status + current patient) for the tenant.
+// GET /api/adt/beds â€” bed board (status + current patient) for the tenant.
 // ===== /API/ADT (extracted -> routes/adt.routes.js; behavior-preserving) =====
 app.use(require('./routes/adt.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, E8_ADMISSION_TERMINAL, E8_BED_FREE_STATES, E8_BED_STATUSES, e8CanTransitionBed, e8IntId, e8RequireTenant }));
 
-// GET /api/adt/census — occupancy by ward. Only 'Occupied' counts as occupied;
-// only 'Available' counts as available (Reserved/Cleaning/Blocked are neither —
+// GET /api/adt/census â€” occupancy by ward. Only 'Occupied' counts as occupied;
+// only 'Available' counts as available (Reserved/Cleaning/Blocked are neither â€”
 // fixes the legacy binary census math which counted any non-Occupied as available).
 
-// POST /api/adt/admit — admit a patient into a bed.
+// POST /api/adt/admit â€” admit a patient into a bed.
 // Two modes (both tenant-scoped, race-safe):
 //   (a) place an existing admission (e.g. an ER->ADT handoff row with no bed) into a bed:
 //       body { admission_id, bed_id }
@@ -1503,34 +1503,34 @@ app.use(require('./routes/adt.routes.js')({ pool, requireAuth, requireRole, requ
 //              department, ward_id, bed_id, diagnosis, icd10_code, diet_order, expected_los }
 // The destination bed is locked FOR UPDATE; if it is not free (Available/Reserved) => 409.
 
-// POST /api/adt/transfer — move an Active admission between beds/wards, atomically.
+// POST /api/adt/transfer â€” move an Active admission between beds/wards, atomically.
 // body { admission_id, to_bed, transfer_reason }
 // Locks BOTH beds FOR UPDATE; frees the source (-> Cleaning) and occupies the dest;
 // rejects a dest that is not free (409); records the transfer in bed_transfers.
 
-// POST /api/adt/discharge — end an Active admission, free its bed (-> Cleaning), record disposition.
+// POST /api/adt/discharge â€” end an Active admission, free its bed (-> Cleaning), record disposition.
 // body { admission_id, discharge_type, discharge_summary, discharge_instructions,
 //        discharge_medications, followup_date, followup_doctor }
 
-// POST /api/adt/bed-status — explicit bed-status transition (housekeeping / blocking / reserve).
+// POST /api/adt/bed-status â€” explicit bed-status transition (housekeeping / blocking / reserve).
 // body { bed_id, status }. Validated server-side against E8_BED_TRANSITIONS; an Occupied bed
 // cannot be flipped to Available via this route (must go through discharge/transfer).
 
 // ============================================================
 // ===== E9 ICU / CRITICAL CARE (hardened) =====
 // All routes: requireAuth + requireRole('icu','nursing','doctor') + requireTenantScope.
-// Fail-closed tenant resolver (e9RequireTenant) — null tenant => 403 (NO unscoped fallback).
-// Integer id coercion (e9IntId) — no string/padded-id bypass (E6 lesson).
+// Fail-closed tenant resolver (e9RequireTenant) â€” null tenant => 403 (NO unscoped fallback).
+// Integer id coercion (e9IntId) â€” no string/padded-id bypass (E6 lesson).
 // Writes only attach to an Active, tenant-owned admission whose bed is in an ICU/NICU/CCU ward.
-// Acuity scores (SOFA/GCS/APACHE-II) are computed SERVER-SIDE via icu_scoring.js — any
+// Acuity scores (SOFA/GCS/APACHE-II) are computed SERVER-SIDE via icu_scoring.js â€” any
 // client-supplied score/band is ADVISORY ONLY and is IGNORED (anti-spoof, E6/E7 lesson).
 // ICU wards classified by ward_type IN ('ICU','NICU','CCU').
 // ============================================================
 const E9_ICU_WARD_TYPES = ['ICU', 'NICU', 'CCU'];
 
-// Fail-closed tenant resolver (mirrors e8RequireTenant — no unscoped fallback).
+// Fail-closed tenant resolver (mirrors e8RequireTenant â€” no unscoped fallback).
 
-// Coerce an id to a positive integer (no string/padded-id coercion bypass — E6 lesson).
+// Coerce an id to a positive integer (no string/padded-id coercion bypass â€” E6 lesson).
 
 // Validate that admissionId belongs to this tenant, is Active, and sits in an ICU-typed ward.
 // Returns the admission row (with patient_id) or throws an e9Status error.
@@ -1539,22 +1539,22 @@ const E9_ICU_WARD_TYPES = ['ICU', 'NICU', 'CCU'];
 //   - not Active (e.g. Discharged) => 409
 //   - not in an ICU/NICU/CCU ward => 409
 
-// GET /api/icu/patients — Active admissions in ICU-typed wards (tenant-scoped, fail-closed).
+// GET /api/icu/patients â€” Active admissions in ICU-typed wards (tenant-scoped, fail-closed).
 
-// ----- ICU flowsheet (time-stamped vitals/hemodynamics/I-O) — backed by icu_monitoring -----
+// ----- ICU flowsheet (time-stamped vitals/hemodynamics/I-O) â€” backed by icu_monitoring -----
 // POST /api/icu/flowsheet  (canonical blueprint name). Legacy alias: POST /api/icu/monitoring.
 
-// ----- Infusions / drips (continuous IV meds) — NEW table icu_infusions -----
+// ----- Infusions / drips (continuous IV meds) â€” NEW table icu_infusions -----
 // Bonus safety: if a drug name is supplied, run a server-derived allergy check (cds.checkDrugAllergy)
-// against the patient's active allergy list — fail-safe (records a warning, does NOT silently block).
+// against the patient's active allergy list â€” fail-safe (records a warning, does NOT silently block).
 
-// ----- ICU acuity scores (SERVER-SIDE SOFA / GCS / APACHE-II) — icu_scores -----
+// ----- ICU acuity scores (SERVER-SIDE SOFA / GCS / APACHE-II) â€” icu_scores -----
 // POST /api/icu/score (canonical) + legacy alias POST /api/icu/scores. Accepts RAW observations;
-// the score/band are computed by icu_scoring.js — any client apache_ii/sofa/gcs is IGNORED.
+// the score/band are computed by icu_scoring.js â€” any client apache_ii/sofa/gcs is IGNORED.
 
-// ----- Fluid balance (intake/output) — icu_fluid_balance (server computes totals) -----
+// ----- Fluid balance (intake/output) â€” icu_fluid_balance (server computes totals) -----
 
-// ----- ICU board — ICU-bed patients + latest SOFA/GCS + vent status, sorted by acuity -----
+// ----- ICU board â€” ICU-bed patients + latest SOFA/GCS + vent status, sorted by acuity -----
 
 // ===== CSSD =====
 // ===== /API/CSSD (extracted -> routes/cssd.routes.js; behavior-preserving) =====
@@ -1569,7 +1569,7 @@ app.use(require('./routes/nutrition.routes.js')({ pool, requireAuth, requireRole
 // ===== INFECTION CONTROL (E17 HARDENED: tenant-scoped + RBAC) =====
 // ===== /API/INFECTION (extracted -> routes/infection.routes.js; behavior-preserving) =====
 app.use(require('./routes/infection.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, e17RequireTenant, optionalReadFallback, E17_AMS_SEVERITY, E17_PRECAUTION_TYPES }));
-// C2 FIX: outbreaks/exposures/hand-hygiene hardened — requireRole('infection') + requireTenantScope + fail-closed e17RequireTenant + tenant_id in every query + reported_by from session (L1).
+// C2 FIX: outbreaks/exposures/hand-hygiene hardened â€” requireRole('infection') + requireTenantScope + fail-closed e17RequireTenant + tenant_id in every query + reported_by from session (L1).
 
 // ===== E17 HAI isolation tracking =====
 
@@ -1580,7 +1580,7 @@ app.use(require('./routes/infection.routes.js')({ pool, requireAuth, requireRole
 // ===== /API/QUALITY (extracted -> routes/quality.routes.js; behavior-preserving) =====
 app.use(require('./routes/quality.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, e17CanSeeConfidential, e17ComputeRisk, e17IsValidCapaTransition, e17IsValidIncidentTransition, e17RequireTenant, optionalReadFallback, E17_CAPA_TYPES, E17_INCIDENT_HARM, E17_INCIDENT_SEVERITY, E17_INCIDENT_TYPES }));
 
-// ===== E17 CAPA (corrective/preventive actions) — state machine + audit =====
+// ===== E17 CAPA (corrective/preventive actions) â€” state machine + audit =====
 
 // ===== E17 Risk Register (CBAHI indicators / score / trend) =====
 
@@ -1602,40 +1602,40 @@ app.use(require('./routes/cosmetic.routes.js')({ addVAT, calcVAT, getRequestTena
 // ===== /API/PORTAL (extracted -> routes/portal.routes.js; behavior-preserving) =====
 app.use(require('./routes/portal.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, bcrypt }));
 
-// ===== A1: PATIENT PORTAL — Lab Results, Medications, Visit Summary, Messages =====
+// ===== A1: PATIENT PORTAL â€” Lab Results, Medications, Visit Summary, Messages =====
 // Portal endpoints secured with IDOR protection: patient_id must match tenant scope.
 
-// GET /api/portal/lab-results?patient_id=X — نتائج المختبر للمريض عبر البوابة
+// GET /api/portal/lab-results?patient_id=X â€” Ù†ØªØ§Ø¦Ø¬ Ø§Ù„Ù…Ø®ØªØ¨Ø± Ù„Ù„Ù…Ø±ÙŠØ¶ Ø¹Ø¨Ø± Ø§Ù„Ø¨ÙˆØ§Ø¨Ø©
 
-// GET /api/portal/medications?patient_id=X — الأدوية الحالية للمريض
+// GET /api/portal/medications?patient_id=X â€” Ø§Ù„Ø£Ø¯ÙˆÙŠØ© Ø§Ù„Ø­Ø§Ù„ÙŠØ© Ù„Ù„Ù…Ø±ÙŠØ¶
 
-// GET /api/portal/visit-summary?patient_id=X — ملخص زيارات المريض
+// GET /api/portal/visit-summary?patient_id=X â€” Ù…Ù„Ø®Øµ Ø²ÙŠØ§Ø±Ø§Øª Ø§Ù„Ù…Ø±ÙŠØ¶
 
-// GET /api/portal/messages?patient_id=X — رسائل المريض
+// GET /api/portal/messages?patient_id=X â€” Ø±Ø³Ø§Ø¦Ù„ Ø§Ù„Ù…Ø±ÙŠØ¶
 
-// POST /api/portal/messages — إرسال رسالة من المريض للطاقم
+// POST /api/portal/messages â€” Ø¥Ø±Ø³Ø§Ù„ Ø±Ø³Ø§Ù„Ø© Ù…Ù† Ø§Ù„Ù…Ø±ÙŠØ¶ Ù„Ù„Ø·Ø§Ù‚Ù…
 
-// ===== A2: PEDIATRICS — Immunization Schedule (Saudi MOH National Immunization Program) =====
+// ===== A2: PEDIATRICS â€” Immunization Schedule (Saudi MOH National Immunization Program) =====
 
-// GET /api/pediatrics/immunization-schedule — جدول التطعيمات الوطني السعودي
+// GET /api/pediatrics/immunization-schedule â€” Ø¬Ø¯ÙˆÙ„ Ø§Ù„ØªØ·Ø¹ÙŠÙ…Ø§Øª Ø§Ù„ÙˆØ·Ù†ÙŠ Ø§Ù„Ø³Ø¹ÙˆØ¯ÙŠ
 
-// GET /api/pediatrics/immunization-records/:patientId — سجلات التطعيم للمريض
+// GET /api/pediatrics/immunization-records/:patientId â€” Ø³Ø¬Ù„Ø§Øª Ø§Ù„ØªØ·Ø¹ÙŠÙ… Ù„Ù„Ù…Ø±ÙŠØ¶
 
-// POST /api/pediatrics/immunization — تسجيل تطعيم جديد
+// POST /api/pediatrics/immunization â€” ØªØ³Ø¬ÙŠÙ„ ØªØ·Ø¹ÙŠÙ… Ø¬Ø¯ÙŠØ¯
 
-// GET /api/pediatrics/weight-based-dose — حاسبة الجرعة حسب الوزن
+// GET /api/pediatrics/weight-based-dose â€” Ø­Ø§Ø³Ø¨Ø© Ø§Ù„Ø¬Ø±Ø¹Ø© Ø­Ø³Ø¨ Ø§Ù„ÙˆØ²Ù†
 
-// ===== A3: NURSING — Pain Assessment (NRS/VAS/FLACC) =====
+// ===== A3: NURSING â€” Pain Assessment (NRS/VAS/FLACC) =====
 
-// POST /api/nursing/pain-assessment — تسجيل تقييم الألم
+// POST /api/nursing/pain-assessment â€” ØªØ³Ø¬ÙŠÙ„ ØªÙ‚ÙŠÙŠÙ… Ø§Ù„Ø£Ù„Ù…
 
-// GET /api/nursing/pain-history/:patientId — تاريخ الألم للمريض
+// GET /api/nursing/pain-history/:patientId â€” ØªØ§Ø±ÙŠØ® Ø§Ù„Ø£Ù„Ù… Ù„Ù„Ù…Ø±ÙŠØ¶
 
 // ===== A4: ICU DAILY GOALS CHECKLIST (CBAHI Requirement) =====
 
-// POST /api/icu/daily-goals — تسجيل أهداف اليوم للمريض ICU
+// POST /api/icu/daily-goals â€” ØªØ³Ø¬ÙŠÙ„ Ø£Ù‡Ø¯Ø§Ù Ø§Ù„ÙŠÙˆÙ… Ù„Ù„Ù…Ø±ÙŠØ¶ ICU
 
-// GET /api/icu/daily-goals/:admissionId — استرجاع أهداف اليوم
+// GET /api/icu/daily-goals/:admissionId â€” Ø§Ø³ØªØ±Ø¬Ø§Ø¹ Ø£Ù‡Ø¯Ø§Ù Ø§Ù„ÙŠÙˆÙ…
 
 // ===== ZATCA E-INVOICING =====
 // ===== E10 ZATCA PHASE-2 E-INVOICE (tenant-scoped, role-gated; clearance GATED off) =====
@@ -1650,7 +1650,7 @@ app.use(require('./routes/zatca.routes.js')({ pool, requireAuth, requireRole, re
 // ===== /API/TELEMEDICINE (extracted -> routes/telemedicine.routes.js; behavior-preserving) =====
 app.use(require('./routes/telemedicine.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit }));
 
-// ===== PATHOLOGY (legacy cases — hardened: tenant-scoped + RBAC + audit) =====
+// ===== PATHOLOGY (legacy cases â€” hardened: tenant-scoped + RBAC + audit) =====
 // Superseded by the E15 path_specimens workflow below; retained for back-compat
 // but now tenant-isolated (was an unscoped cross-tenant leak).
 // ===== /API/PATHOLOGY (extracted -> routes/pathology.routes.js; behavior-preserving) =====
@@ -1673,27 +1673,27 @@ app.use(require('./routes/cme.routes.js')({ addVAT, calcVAT, getRequestTenantCon
 app.use(require('./routes/emar.routes.js')({ addVAT, calcVAT, getRequestTenantContext, logAudit, pool, requireAuth, requireRole, requireTenantScope, RS, validateBody }));
 // LEGACY eMAR documentation route. The PRIMARY nurse "Give" UI posts to the safe
 // /api/mar/administer (server-enforced 5-rights + CDS + witness). To CLOSE the 5-rights bypass,
-// this legacy route may ONLY document a NOT-given / held / refused dose — it can NEVER record an
+// this legacy route may ONLY document a NOT-given / held / refused dose â€” it can NEVER record an
 // actual administration. Any attempt to record a "Given" event is rejected (410 MAR_USE_SAFE_PATH)
 // and must go through /api/mar/administer. Role-gated, tenant-scoped, status FORCED 'Not Given',
 // every write audited.
 
 // ============================================================================
-// E6 MAR — SAFE medication administration (server-enforced 5 RIGHTS + CDS + witness).
-// POST /api/mar/administer  — the PRIMARY nurse "Give" path (NOT /api/emar/administrations).
+// E6 MAR â€” SAFE medication administration (server-enforced 5 RIGHTS + CDS + witness).
+// POST /api/mar/administer  â€” the PRIMARY nurse "Give" path (NOT /api/emar/administrations).
 //
 // Fail-CLOSED security model. Every right is verified SERVER-SIDE against the authoritative
 // prescription/order row (the client medication/dose/route strings are NEVER trusted):
-//   Right Patient — the source row's patient_id must equal the submitted patient_id, and the
+//   Right Patient â€” the source row's patient_id must equal the submitted patient_id, and the
 //                   patient must belong to this tenant. Mismatch => 422 MAR_WRONG_PATIENT.
-//   Right Drug    — scanned drug barcode/name must match the prescribed medication. => MAR_WRONG_DRUG.
-//   Right Dose    — administered dose must equal prescribed dose unless override_reason. => MAR_OVERRIDE_DOSE.
-//   Right Route   — administered route must equal prescribed route unless override_reason. => MAR_OVERRIDE_ROUTE.
-//   Right Time    — scheduled_at vs server clock within MAR_TIME_WINDOW_MIN; outside => override_reason. => MAR_OVERRIDE_TIME.
-//   CDS           — cds.checkDrugAllergy + checkDrugDrugInteraction (server-derived active meds),
+//   Right Drug    â€” scanned drug barcode/name must match the prescribed medication. => MAR_WRONG_DRUG.
+//   Right Dose    â€” administered dose must equal prescribed dose unless override_reason. => MAR_OVERRIDE_DOSE.
+//   Right Route   â€” administered route must equal prescribed route unless override_reason. => MAR_OVERRIDE_ROUTE.
+//   Right Time    â€” scheduled_at vs server clock within MAR_TIME_WINDOW_MIN; outside => override_reason. => MAR_OVERRIDE_TIME.
+//   CDS           â€” cds.checkDrugAllergy + checkDrugDrugInteraction (server-derived active meds),
 //                   fail-SAFE: an engine error becomes a WARNING (never a silent OK). A CRITICAL
 //                   alert HARD-STOPS (422 MAR_CDS_BLOCK) unless override_reason (then audited).
-//   Witness       — a high-alert drug (HIGH_ALERT list) requires a DISTINCT witness_user_id that is
+//   Witness       â€” a high-alert drug (HIGH_ALERT list) requires a DISTINCT witness_user_id that is
 //                   a real system_users row in the SAME tenant. else 422 MAR_WITNESS_REQUIRED (fail-closed).
 // On success writes mar_administrations (tenant_id stamped; explicit AND tenant_id=$N on every query;
 // null tenant => fail-closed) and audits MAR_ADMINISTRATION. Every blocked right/override is audited.
@@ -1710,7 +1710,7 @@ const MAR_HIGH_ALERT = [
 app.use(require('./routes/mar.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, cds, getPatientActiveMeds, isHighAlertMed, MAR_TIME_WINDOW_MIN, marNorm }));
 
 // ============================================================================
-// E6 NURSING SCORES — POST /api/nursing/scores
+// E6 NURSING SCORES â€” POST /api/nursing/scores
 // Accepts RAW observations and computes the score + band SERVER-SIDE via nursing_scores.js
 // (the client can NEVER forge a "score"). Writes nursing_scores (tenant_id + explicit AND
 // tenant_id predicate). Incomplete Braden (any missing subscale) => 422 (item 8, fail-closed).
@@ -1718,11 +1718,11 @@ app.use(require('./routes/mar.routes.js')({ pool, requireAuth, requireRole, requ
 
 // ===== NURSING CARE PLANS =====
 
-// ===== GATE 2: EARLY-WARNING & SEPSIS SCREEN (stateless compute — no score persistence
+// ===== GATE 2: EARLY-WARNING & SEPSIS SCREEN (stateless compute â€” no score persistence
 // until the nursing_scores score_type CHECK is extended by the e48 candidate DDL) =====
 // Computes MEWS (adult) / PEWS (pediatric) / qSOFA / SIRS / sepsis screen SERVER-SIDE from
 // raw observations and returns the deterministic escalation recommendation. Client totals
-// are never accepted. Advisory only — never a diagnosis. The request is audited (module
+// are never accepted. Advisory only â€” never a diagnosis. The request is audited (module
 // EWS) so screening activity is traceable even before persistence lands.
 // ===== /API/EWS (extracted -> routes/ews.routes.js; behavior-preserving) =====
 app.use(require('./routes/ews.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, ewsEngine }));
@@ -1744,27 +1744,27 @@ app.use(require('./routes/ews.routes.js')({ pool, requireAuth, requireRole, requ
 
 // helper: append an event source without aborting the whole aggregation if a table is missing
 
-// 1) LONGITUDINAL RECORD — aggregate the full chronological chart; EVERY access is logged.
+// 1) LONGITUDINAL RECORD â€” aggregate the full chronological chart; EVERY access is logged.
 // ===== /API/HIM (extracted -> routes/him.routes.js; behavior-preserving) =====
 app.use(require('./routes/him.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit, isHimOrAdmin, _himPushSource, optionalReadFallback }));
 
-// 2) CODING — list / add structured codes for an encounter or patient.
+// 2) CODING â€” list / add structured codes for an encounter or patient.
 
-// 2b) DEFICIENCIES — encounters/records missing required coding or signature.
+// 2b) DEFICIENCIES â€” encounters/records missing required coding or signature.
 
-// 3) ROI (Release of Information) — create / approve / deny / release. All audited; RBAC-guarded.
+// 3) ROI (Release of Information) â€” create / approve / deny / release. All audited; RBAC-guarded.
 
 // STRICT server-side gate for the HIM audit surfaces (access-log + break-glass): ONLY the dedicated
-// HIM role or Admin — NOT the broad 'medical-records'/'him' module (which Doctors also hold). The
+// HIM role or Admin â€” NOT the broad 'medical-records'/'him' module (which Doctors also hold). The
 // client tab is already gated to ['Admin','HIM']; this mirrors that check server-side (defense-in-depth).
 
-// 4) RECORD ACCESS LOG (read) — HIM access audit, Admin/HIM only.
+// 4) RECORD ACCESS LOG (read) â€” HIM access audit, Admin/HIM only.
 
-// 4b) BREAK-GLASS — emergency access: REQUIRES a reason, records break_glass access + raises BREAK_GLASS audit alert.
+// 4b) BREAK-GLASS â€” emergency access: REQUIRES a reason, records break_glass access + raises BREAK_GLASS audit alert.
 
 // ===== CLINICAL PHARMACY (E5: tenant-scoped for consistency with the rest of pharmacy) =====
 
-// ===== OVR — INCIDENT REPORTS (بلاغات الحوادث — CBAHI Safety Culture) =====
+// ===== OVR â€” INCIDENT REPORTS (Ø¨Ù„Ø§ØºØ§Øª Ø§Ù„Ø­ÙˆØ§Ø¯Ø« â€” CBAHI Safety Culture) =====
 // Auto-create table if not exists
 (async () => {
   try {
@@ -1823,7 +1823,7 @@ app.use(require('./routes/oncology.routes.js')({ pool, requireAuth, requireRole,
 // ===== MESSAGING =====
 
 // ===== AUDIT TRAIL =====
-// H-6: audit trail is a security log — restricted to system/security operators (settings module = IT/Admin),
+// H-6: audit trail is a security log â€” restricted to system/security operators (settings module = IT/Admin),
 // tenant-scoped with an explicit predicate (defense-in-depth atop FORCE RLS). No client tenant_id trusted.
 // ===== /API/AUDIT-TRAIL (extracted -> routes/audit-trail.routes.js; behavior-preserving) =====
 app.use(require('./routes/audit-trail.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit }));
@@ -1835,7 +1835,7 @@ app.use(require('./routes/print.routes.js')({ addVAT, calcVAT, getRequestTenantC
 
 
 // ============================================================================
-// ===== E18 — HR / WORKFORCE (employees PII, SCFHS licenses, shifts, attendance,
+// ===== E18 â€” HR / WORKFORCE (employees PII, SCFHS licenses, shifts, attendance,
 //        leave state machine, payroll-slip [GL posting GATED OFF]) =====
 // All E18 tables provisioned out-of-band via candidate migration e18_01 (NOT in
 //   db_postgres.js bootstrap). Every route: requireAuth + requireRole('hr') (HR+Admin)
@@ -1864,7 +1864,7 @@ app.use(require('./routes/print.routes.js')({ addVAT, calcVAT, getRequestTenantC
 
 // ---- LEAVE REQUESTS: create (status forced 'requested'; days computed server-side) ----
 
-// ---- LEAVE REQUESTS: state transition (approve/deny/cancel) — 409 on invalid ----
+// ---- LEAVE REQUESTS: state transition (approve/deny/cancel) â€” 409 on invalid ----
 
 // ---- PAYROLL SLIPS: list ----
 
@@ -1985,9 +1985,9 @@ try { app.use('/api/eng/tier170-rad-792', require('./tier170_rad_792_router.js')
 try { app.use('/api/eng/tier170-lab-793', require('./tier170_lab_793_router.js')); } catch(e) { console.error('mount tier170_lab_793_router.js fail', e.message); }
 try { app.use('/api/eng/tier170-ane-794', require('./tier170_ane_794_router.js')); } catch(e) { console.error('mount tier170_ane_794_router.js fail', e.message); }
 
-// Auto-mount generated tier routers (171-310): unified loader, path='/'+base
+// Auto-mount generated tier routers (171-399): unified loader, path='/'+base
 for (const f of require('fs').readdirSync(__dirname).sort()) {
-  if (!/^tier(?:17[1-9]|1[89]\d|2\d\d|3[01]\d)_\w+_\d+_router\.js$/.test(f)) continue;
+  if (!/^tier(?:17[1-9]|1[89]\d|2\d\d|3\d\d)_\w+_\d+_router\.js$/.test(f)) continue;
   try { app.use('/' + f.replace(/_router\.js$/, ''), require('./' + f)); }
   catch(e) { console.error('mount ' + f + ' fail', e.message); }
 }
@@ -2020,7 +2020,7 @@ for (const f of require('fs').readdirSync(__dirname).sort()) {
 
 async function startServer() {
     try {
-        console.log('\n  🐘 Connecting to PostgreSQL...');
+        console.log('\n  ðŸ˜ Connecting to PostgreSQL...');
         await initDatabase();
         // Boot-time demo seed + catalog population run ONLY outside production. In production the
         // schema/catalogs already exist and the app runs as a non-superuser (nama_medical_app) that
@@ -2096,12 +2096,12 @@ for (const f of require('fs').readdirSync(__dirname).sort()) {
 }
 
 app.listen(PORT, () => {
-            console.log(`\n  ✅ jumanaMedical Web is running!`);
-            console.log(`  🌐 Open: http://localhost:${PORT}`);
-            console.log(`  📦 Database: PostgreSQL (nama_medical_web)\n`);
+            console.log(`\n  âœ… jumanaMedical Web is running!`);
+            console.log(`  ðŸŒ Open: http://localhost:${PORT}`);
+            console.log(`  ðŸ“¦ Database: PostgreSQL (nama_medical_web)\n`);
         });
     } catch (err) {
-        console.error('  ❌ Failed to start:', err.message);
+        console.error('  âŒ Failed to start:', err.message);
         process.exit(1);
     }
 }
@@ -2114,7 +2114,7 @@ app.listen(PORT, () => {
 // Returns a de-duplicated array of drug-name strings. RLS also enforces tenant isolation; the explicit
 // tenant_id predicate is defense-in-depth. Caller treats a thrown error as FAIL-SAFE (warns, never skips).
 
-// Doctor sends prescription → Pharmacy queue
+// Doctor sends prescription â†’ Pharmacy queue
 
 // Get pharmacy prescriptions queue
 
@@ -2126,12 +2126,12 @@ app.listen(PORT, () => {
 
 // ============================================================================
 // ===== E5 PHARMACY: FEFO BATCHES + PHARMACIST VERIFICATION + DISPENSE + CONTROLLED DRUGS =====
-// Builds on E1 cds.js (REUSED — no duplicated matrix). CLINICAL-SAFETY: FAIL-CLOSED.
+// Builds on E1 cds.js (REUSED â€” no duplicated matrix). CLINICAL-SAFETY: FAIL-CLOSED.
 // Rules enforced here:
 //   - FEFO: dispense from the earliest NON-EXPIRED batch first; NEVER from an expired batch;
 //     insufficient on-hand across valid batches => 409 (no partial silent dispense).
 //   - VERIFY: pharmacist re-runs the E1 CDS engine (allergy + dose + drug-drug) against the
-//     patient's active meds queried SERVER-SIDE (getPatientActiveMeds — never trust client).
+//     patient's active meds queried SERVER-SIDE (getPatientActiveMeds â€” never trust client).
 //     A CRITICAL alert HARD-STOPS (422) unless override_reason is supplied (then AUDITED).
 //   - CONTROLLED: dispensing a controlled/high-alert drug REQUIRES a second witness id; missing
 //     witness => 422 (fail-closed). A double-entry controlled_drug_log row records balance before/after.
@@ -2149,13 +2149,13 @@ app.listen(PORT, () => {
 // --- POST receive a drug batch (FEFO lot) ---
 
 // --- PUT pharmacist VERIFY: re-run E1 CDS engine (allergy + dose + drug-drug) at the pharmacist checkpoint ---
-// Active meds are derived SERVER-SIDE (getPatientActiveMeds) — never trusted from the client (E1 CRITICAL-2 lesson).
+// Active meds are derived SERVER-SIDE (getPatientActiveMeds) â€” never trusted from the client (E1 CRITICAL-2 lesson).
 
 // --- POST FEFO DISPENSE (by barcode or drug_id): single transaction, decrements earliest non-expired batch first ---
 // Requires the queue item to be 'Verified'. Controlled drugs require a witness (fail-closed).
 
 // --- Wasfaty / NPHIES coverage stub (gated; NO external call) ---
-// Behind WASFATY_ENABLED. Records coverage INTENT only — never opens a real connection.
+// Behind WASFATY_ENABLED. Records coverage INTENT only â€” never opens a real connection.
 
 // ===== P&L REPORT =====
 
@@ -2200,19 +2200,19 @@ app.use(require('./routes/visits.routes.js')({ addVAT, calcVAT, getRequestTenant
 // pregnancy / delivery ownership is verified against the caller's tenant; cross-tenant
 // access returns 404 (never leak existence). Authority fields (EDD, GA, GPAL living,
 // APGAR total, biometry GA/percentile, risk flags) are computed SERVER-SIDE via
-// ob_engine (anti-spoof — client-submitted values are ignored). Delivery is gated by a
+// ob_engine (anti-spoof â€” client-submitted values are ignored). Delivery is gated by a
 // server-side state machine (Active -> Delivered only) with SELECT ... FOR UPDATE.
 // IDs are compared as integers (parseInt + Number.isInteger), never string-coerced.
 // ============================================================================
 
-// e14RequireTenant — fail-closed tenant resolver for OB routes. Returns an integer
+// e14RequireTenant â€” fail-closed tenant resolver for OB routes. Returns an integer
 // tenantId or null; callers MUST treat null as "block" (no unscoped fallback in prod).
 
 // Verify a patient belongs to the caller's tenant. Returns the integer id or null.
 // Load a tenant-owned pregnancy row (or null). Used for ownership + state checks.
 
 
-// Pregnancy Records — list (tenant-scoped; integer-validated filters)
+// Pregnancy Records â€” list (tenant-scoped; integer-validated filters)
 
 // SHADOWED/DEAD: an earlier app.post('/api/obgyn/pregnancies', ...) (~line 5123) is
 // registered first, so Express never routes here. Kept for reference until the OB endpoints
@@ -2220,16 +2220,16 @@ app.use(require('./routes/visits.routes.js')({ addVAT, calcVAT, getRequestTenant
 // the effective handler above was hardened to accept this route's payload shape too.
 
 
-// Antenatal Visits — read (verify pregnancy ownership first)
+// Antenatal Visits â€” read (verify pregnancy ownership first)
 
 
 // ===== PARTOGRAM (labor progression trend; tenant-scoped) =====
 
 
-// Ultrasound Records — biometry -> GA/percentile computed server-side
+// Ultrasound Records â€” biometry -> GA/percentile computed server-side
 
 
-// Delivery Records — state machine (Active -> Delivered) + SELECT...FOR UPDATE; server APGAR
+// Delivery Records â€” state machine (Active -> Delivered) + SELECT...FOR UPDATE; server APGAR
 
 
 // ===== NEONATAL RECORD (attached 1:1 to a delivery; APGAR computed server-side) =====
@@ -2239,7 +2239,7 @@ app.use(require('./routes/visits.routes.js')({ addVAT, calcVAT, getRequestTenant
 
 // OB/GYN Lab Panels (tenant-scoped catalog)
 
-// OB/GYN Dashboard Stats — fail-closed tenant scoping (HR#1: null tenant -> 403, no unscoped fallback)
+// OB/GYN Dashboard Stats â€” fail-closed tenant scoping (HR#1: null tenant -> 403, no unscoped fallback)
 
 
 // ===== CONSENT FORMS =====
@@ -2281,10 +2281,10 @@ app.use(require('./routes/drug-interactions.routes.js')({ pool, requireAuth, req
 app.use(require('./routes/allergy-check.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit }));
 
 // ===== PARTIAL PAYMENT & REFUND =====
-// H-1: partial payment — amount validated server-side (fail-closed), outstanding computed from DB,
+// H-1: partial payment â€” amount validated server-side (fail-closed), outstanding computed from DB,
 // no overpayment, row-locked transaction (race-safe), tenant-scoped + RLS-bound under the manual client.
 
-// H-2: refund — original invoice MUST belong to current tenant (IDOR fix), amount validated server-side,
+// H-2: refund â€” original invoice MUST belong to current tenant (IDOR fix), amount validated server-side,
 // refundable = amount_paid - already-refunded (server-computed, tenant-scoped), refund row stamped with
 // tenant_id/facility_id, row-locked transaction. No GL/journal/ZATCA/NPHIES (out of scope).
 
@@ -2332,7 +2332,7 @@ app.use(require('./routes/cash-drawer.routes.js')({ addVAT, calcVAT, getRequestT
 
 
 
-// ===== PATHOLOGY SPECIMENS (E15 — tenant-scoped, RBAC, server-authoritative state machine) =====
+// ===== PATHOLOGY SPECIMENS (E15 â€” tenant-scoped, RBAC, server-authoritative state machine) =====
 // Hierarchy: path_specimens -> path_blocks -> path_slides ; path_reports (1:1 per specimen).
 // Reads: pathology/lab/doctor. Writes: pathology/lab. Sign-out/addendum: pathology only.
 
@@ -2340,19 +2340,19 @@ app.use(require('./routes/cash-drawer.routes.js')({ addVAT, calcVAT, getRequestT
 
 // GET one specimen with blocks + slides + report (tenant-scoped; IDOR -> 404).
 
-// CREATE specimen — accession server-generated; patient validated same-tenant (IDOR -> 404).
+// CREATE specimen â€” accession server-generated; patient validated same-tenant (IDOR -> 404).
 
 // ADD block to specimen (tenant-scoped; specimen must be same-tenant -> 404 else).
 
 // ADD slide to a block (validates block + specimen same-tenant chain).
 
-// STATE transition — server-authoritative; invalid -> 409. SignedOut is terminal.
+// STATE transition â€” server-authoritative; invalid -> 409. SignedOut is terminal.
 
 // SAVE report draft (gross/micro/diagnosis/SNOMED). Blocked once SignedOut (addendum-only).
 
-// SIGN-OUT — pathologist only; final transition Reported -> SignedOut; locks report.
+// SIGN-OUT â€” pathologist only; final transition Reported -> SignedOut; locks report.
 
-// ADDENDUM — only after sign-out; append-only, never edits the signed report body.
+// ADDENDUM â€” only after sign-out; append-only, never edits the signed report body.
 
 // LEGACY GUARD: old client called PUT /api/pathology/specimens/:id { status:'completed' }.
 // That bypassed the state machine. It is now rewired to a 409 telling clients to use /state.
@@ -2362,12 +2362,12 @@ app.use(require('./routes/cash-drawer.routes.js')({ addVAT, calcVAT, getRequestT
 // ===== CME EVENTS =====
 
 // ===== INFECTION CONTROL REPORTS =====
-// C1 FIX: /api/infection-control/reports hardened — requireRole('infection') + requireTenantScope + fail-closed e17RequireTenant + tenant_id in every query.
+// C1 FIX: /api/infection-control/reports hardened â€” requireRole('infection') + requireTenantScope + fail-closed e17RequireTenant + tenant_id in every query.
 // The primary UI path now calls /api/infection/surveillance (window.reportInfection); this legacy route is retained read-only for resolveIc and is fully guarded.
 
 // ===== MAINTENANCE ORDERS =====
 
-// ===== INSURANCE POLICIES (moved into the E11 INSURANCE / NPHIES block above — tenant-scoped) =====
+// ===== INSURANCE POLICIES (moved into the E11 INSURANCE / NPHIES block above â€” tenant-scoped) =====
 
 // ===== INVENTORY ITEMS =====
 
@@ -2420,7 +2420,7 @@ app.use('/api/v1/plans', plansPublicAlias);
 const nphiesV1 = require('./nphies_v1_stub');
 app.use('/api/v1/nphies', requireAuth, nphiesV1);
 
-// ===== CLINICAL CALCULATOR ROUTERS — Phase 2E2 (18 fns) + Phase 3 (48 fns across 26 engines) =====
+// ===== CLINICAL CALCULATOR ROUTERS â€” Phase 2E2 (18 fns) + Phase 3 (48 fns across 26 engines) =====
 // Both routers are READ-ONLY clinical decision-support: no DB writes, no PHI, no PII.
 // requireAuth + requireTenantScope are applied INSIDE each router (router-level middleware).
 // Engine throws on validation error => translated to 400 with code='engine_error'.
@@ -2439,10 +2439,10 @@ app.use('/api/phase3/v2', makePhase3V2Router({ requireAuth, requireTenantScope }
 // ===== FHIR R4 Public Surface (additive 2026-08-03, RAIL-5) =====
 // Mounted at /fhir/*. Tenant scoping is enforced INSIDE the router via
 // lib/route-guards (requireTenant + requireTenantScope, fail-closed).
-// No new global middleware — purely additive `app.use('/fhir', ...)`.
+// No new global middleware â€” purely additive `app.use('/fhir', ...)`.
 app.use('/fhir', require('./routes/fhir_router'));
 
-// ===== SaaS Batch 4A: Entitlements Runtime Resolver — OBSERVE-ONLY read surface, flag-gated =====
+// ===== SaaS Batch 4A: Entitlements Runtime Resolver â€” OBSERVE-ONLY read surface, flag-gated =====
 // Inert unless ENTITLEMENTS_ENABLED=true (zero behavior change otherwise). No creation point is gated.
 // Read-only: Super Admin views the RESOLVED entitlements for a tenant. Fail-open if e25 catalog is absent.
 if (process.env.ENTITLEMENTS_ENABLED === 'true') {
@@ -2502,7 +2502,7 @@ mountClinicalRoutes(app, {
 });
 
 // ============================================================================
-// ===== E16 — INVENTORY / SUPPLY CHAIN + CSSD (batches, PO, GRN, movements,
+// ===== E16 â€” INVENTORY / SUPPLY CHAIN + CSSD (batches, PO, GRN, movements,
 //        transactional no-negative stock, CSSD biological-indicator gate) =====
 // All tables provisioned out-of-band via candidate migrations e16_01/e16_02/e16_03
 //   (NOT in db_postgres.js bootstrap). Every route: requireAuth + requireRole + tenant scope
@@ -2551,9 +2551,9 @@ async function checkAndTriggerAutoReorder(itemId, tenantId, client) {
                          VALUES ($1, $2, $3, $3, $4, $5, $6, $7, $8, $9)`,
                         [
                             `Low Stock Alert: ${item.item_name}`,
-                            `تنبيه انخفاض المخزون: ${item.item_name}`,
+                            `ØªÙ†Ø¨ÙŠÙ‡ Ø§Ù†Ø®ÙØ§Ø¶ Ø§Ù„Ù…Ø®Ø²ÙˆÙ†: ${item.item_name}`,
                             `Item "${item.item_name}" is below safety stock level. Current quantity: ${item.stock_qty}.`,
-                            `الصنف "${item.item_name}" أقل من حد الأمان. الكمية الحالية: ${item.stock_qty}.`,
+                            `Ø§Ù„ØµÙ†Ù "${item.item_name}" Ø£Ù‚Ù„ Ù…Ù† Ø­Ø¯ Ø§Ù„Ø£Ù…Ø§Ù†. Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„Ø­Ø§Ù„ÙŠØ©: ${item.stock_qty}.`,
                             'warning',
                             'Inventory',
                             itemId,
@@ -2577,14 +2577,14 @@ async function checkAndTriggerAutoReorder(itemId, tenantId, client) {
 
 // ---- purchase orders: create (draft) ----
 
-// ---- purchase orders: state transition (approve / cancel) — server-side state machine ----
+// ---- purchase orders: state transition (approve / cancel) â€” server-side state machine ----
 
 // ---- GRN: receive goods against an approved/partially-received PO (TRANSACTIONAL) ----
 // Increments stock by creating a batch + a 'receive' movement per line, advances PO line/header
 // state, all in one transaction. Receiving only valid from approved/partially_received (else 409).
 
 // ---- stock movement: issue / adjust / transfer (TRANSACTIONAL, no-negative, FEFO) ----
-// The server is authoritative on the movement sign — a client cannot turn an 'issue' into a
+// The server is authoritative on the movement sign â€” a client cannot turn an 'issue' into a
 // stock-increasing op. Decrements are FEFO across batches and blocked (409) if insufficient.
 
 // ---- stock movements ledger (read) ----
@@ -2592,18 +2592,18 @@ async function checkAndTriggerAutoReorder(itemId, tenantId, client) {
 // ---- periodic stock count / reconciliation (records variance; optional adjust movement) ----
 
 // ============================================================================
-// ===== E16 — CSSD biological-indicator (BI) gate (fail-CLOSED) =====
+// ===== E16 â€” CSSD biological-indicator (BI) gate (fail-CLOSED) =====
 // A cycle's BI result is recorded server-side; a cycle/tray can only be RELEASED for sterile
 // issue when the BI is an explicit recorded PASS. The client cannot self-assert 'Pass'.
 // ============================================================================
 
-// record the BI / CI result for a cycle (does NOT itself release — that is a separate gated step)
+// record the BI / CI result for a cycle (does NOT itself release â€” that is a separate gated step)
 
-// THE GATE: release a completed cycle's load for sterile issue — fail-CLOSED on BI.
+// THE GATE: release a completed cycle's load for sterile issue â€” fail-CLOSED on BI.
 
 // CSSD trays: list / create (packed) ----
 
-// issue a STERILE tray to OR/ward — fail-CLOSED: only a tray already 'sterile' may be issued.
+// issue a STERILE tray to OR/ward â€” fail-CLOSED: only a tray already 'sterile' may be issued.
 // ===== END E16 ROUTES =====
 
 // ============================================================================
@@ -2658,70 +2658,70 @@ async function assignTenantPlanHelper(tenantId, planKey, source, assignedBy = nu
 
 // ===== PHASE B: SAUDI COMPLIANCE (B1: NPHIES Remittance, B2: ZATCA Credit Notes, B3: HR Saudi) =====
 
-// ─── B1: NPHIES REMITTANCE ADVICE ───────────────────────────────────────────
-// GET /api/nphies/remittance — list remittance advice records
+// â”€â”€â”€ B1: NPHIES REMITTANCE ADVICE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// GET /api/nphies/remittance â€” list remittance advice records
 
-// POST /api/nphies/remittance — record a remittance advice (manual or from NPHIES response)
+// POST /api/nphies/remittance â€” record a remittance advice (manual or from NPHIES response)
 
-// POST /api/nphies/remittance/:id/post-to-ar — post remittance to AR (Accounts Receivable) and GL
+// POST /api/nphies/remittance/:id/post-to-ar â€” post remittance to AR (Accounts Receivable) and GL
 
-// POST /api/nphies/claim-status-inquiry — FHIR Task-based claim status inquiry (gated)
+// POST /api/nphies/claim-status-inquiry â€” FHIR Task-based claim status inquiry (gated)
 
-// GET /api/nphies/remittance/summary — dashboard summary
+// GET /api/nphies/remittance/summary â€” dashboard summary
 
-// ─── B2: ZATCA CREDIT NOTES ─────────────────────────────────────────────────
+// â”€â”€â”€ B2: ZATCA CREDIT NOTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// GET /api/zatca/credit-notes — list credit notes
+// GET /api/zatca/credit-notes â€” list credit notes
 
-// POST /api/zatca/credit-note — generate credit note for an invoice
+// POST /api/zatca/credit-note â€” generate credit note for an invoice
 
-// POST /api/zatca/credit-note/:id/submit — submit credit note to ZATCA (gated)
+// POST /api/zatca/credit-note/:id/submit â€” submit credit note to ZATCA (gated)
 
-// GET /api/zatca/invoice-chain — verify hash chain integrity
+// GET /api/zatca/invoice-chain â€” verify hash chain integrity
 
-// ─── B3a: HR CREDENTIALING & PRIVILEGING ────────────────────────────────────
-// GET /api/hr/credentialing — list credentials
+// â”€â”€â”€ B3a: HR CREDENTIALING & PRIVILEGING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// GET /api/hr/credentialing â€” list credentials
 
-// GET /api/hr/credentialing/alerts — expiring soon
+// GET /api/hr/credentialing/alerts â€” expiring soon
 
-// POST /api/hr/credentialing — add credential
+// POST /api/hr/credentialing â€” add credential
 
-// PUT /api/hr/credentialing/:id/verify — verify credential
+// PUT /api/hr/credentialing/:id/verify â€” verify credential
 
-// ─── B3b: GOSI INTEGRATION ──────────────────────────────────────────────────
-// GET /api/hr/gosi — list GOSI records
+// â”€â”€â”€ B3b: GOSI INTEGRATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// GET /api/hr/gosi â€” list GOSI records
 
-// POST /api/hr/gosi/calculate — calculate GOSI contributions for a month
+// POST /api/hr/gosi/calculate â€” calculate GOSI contributions for a month
 
-// GET /api/hr/gosi/summary/:month — monthly GOSI summary
+// GET /api/hr/gosi/summary/:month â€” monthly GOSI summary
 
-// ─── B3c: WPS — WAGE PROTECTION SYSTEM ─────────────────────────────────────
-// GET /api/hr/wps — list WPS files
+// â”€â”€â”€ B3c: WPS â€” WAGE PROTECTION SYSTEM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// GET /api/hr/wps â€” list WPS files
 
-// POST /api/hr/wps/generate — generate SIF file for a payroll month
+// POST /api/hr/wps/generate â€” generate SIF file for a payroll month
 
-// PUT /api/hr/wps/:id/submit — mark WPS file as submitted
+// PUT /api/hr/wps/:id/submit â€” mark WPS file as submitted
 
-// ─── B3d: NITAQAT / SAUDIZATION ─────────────────────────────────────────────
-// GET /api/hr/nitaqat — get latest Nitaqat snapshot
+// â”€â”€â”€ B3d: NITAQAT / SAUDIZATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// GET /api/hr/nitaqat â€” get latest Nitaqat snapshot
 
-// POST /api/hr/nitaqat/calculate — calculate current Saudization %
+// POST /api/hr/nitaqat/calculate â€” calculate current Saudization %
 
 
 // ===== PHASE C: CLINICAL QUALITY (C1: Controlled Substances, C2: Med Rec, C3: Micro/LOINC, C4: Problem List/ICD-10) =====
 
-// ─── C1: CONTROLLED SUBSTANCES ──────────────────────────────────────────────
+// â”€â”€â”€ C1: CONTROLLED SUBSTANCES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 
-// ─── C2: MEDICATION RECONCILIATION ──────────────────────────────────────────
+// â”€â”€â”€ C2: MEDICATION RECONCILIATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
-// ─── C3: LAB MICROBIOLOGY & LOINC ───────────────────────────────────────────
+// â”€â”€â”€ C3: LAB MICROBIOLOGY & LOINC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 
-// ─── C4: PROBLEM LIST & ICD-10 ──────────────────────────────────────────────
+// â”€â”€â”€ C4: PROBLEM LIST & ICD-10 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 
@@ -2775,55 +2775,55 @@ async function postTransactionToGL(tenantId, entryNumber, description, reference
 
 // ===== PHASE D: FINANCE & OPERATIONS (D1: AP/AR, D2: Vendors, D3: Financial snapshots) =====
 
-// ─── D1: ACCOUNTS PAYABLE & RECEIVABLE ──────────────────────────────────────
+// â”€â”€â”€ D1: ACCOUNTS PAYABLE & RECEIVABLE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 
 
 
 
-// ─── D2: VENDORS ────────────────────────────────────────────────────────────
+// â”€â”€â”€ D2: VENDORS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // ===== /API/VENDORS (extracted -> routes/vendors.routes.js; behavior-preserving) =====
 app.use(require('./routes/vendors.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit }));
 
 
-// ─── D3: FINANCIAL REPORTS SNAPSHOTS ────────────────────────────────────────
+// â”€â”€â”€ D3: FINANCIAL REPORTS SNAPSHOTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 
 // ===== PHASE E: INTEGRATION & AI (E1: FHIR Resources, E2: HL7 Messages, E3: AI CDS & Voice) =====
 
-// ─── E1: FHIR RESOURCE STORE ────────────────────────────────────────────────
+// â”€â”€â”€ E1: FHIR RESOURCE STORE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // ===== /API/FHIR (extracted -> routes/fhir.routes.js; behavior-preserving) =====
 app.use(require('./routes/fhir.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit }));
 
 
-// ─── E2: HL7 MESSAGE LOG ────────────────────────────────────────────────────
+// â”€â”€â”€ E2: HL7 MESSAGE LOG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // ===== /API/HL7 (extracted -> routes/hl7.routes.js; behavior-preserving) =====
 app.use(require('./routes/hl7.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit }));
 
 
-// ─── E3: AI CLINICAL DECISION SUPPORT & VOICE ───────────────────────────────
+// â”€â”€â”€ E3: AI CLINICAL DECISION SUPPORT & VOICE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 
 // ===== PHASE F1: WORLD-CLASS CLINICAL QUALITY ENDPOINTS =====
 
-// POST /api/clinical/safety-check — فحص تعارض الأدوية وحساسية المريض
+// POST /api/clinical/safety-check â€” ÙØ­Øµ ØªØ¹Ø§Ø±Ø¶ Ø§Ù„Ø£Ø¯ÙˆÙŠØ© ÙˆØ­Ø³Ø§Ø³ÙŠØ© Ø§Ù„Ù…Ø±ÙŠØ¶
 
-// POST /api/nursing/risk-assessment — تسجيل تقييم خطورة Braden Scale أو Morse Fall Risk
+// POST /api/nursing/risk-assessment â€” ØªØ³Ø¬ÙŠÙ„ ØªÙ‚ÙŠÙŠÙ… Ø®Ø·ÙˆØ±Ø© Braden Scale Ø£Ùˆ Morse Fall Risk
 
-// GET /api/nursing/risk-assessments/:patientId — استرجاع تقييمات الخطورة للمريض
+// GET /api/nursing/risk-assessments/:patientId â€” Ø§Ø³ØªØ±Ø¬Ø§Ø¹ ØªÙ‚ÙŠÙŠÙ…Ø§Øª Ø§Ù„Ø®Ø·ÙˆØ±Ø© Ù„Ù„Ù…Ø±ÙŠØ¶
 
-// GET /api/nursing/risk-assessments — استرجاع كافة تقييمات الخطورة للمستأجر الحالي
+// GET /api/nursing/risk-assessments â€” Ø§Ø³ØªØ±Ø¬Ø§Ø¹ ÙƒØ§ÙØ© ØªÙ‚ÙŠÙŠÙ…Ø§Øª Ø§Ù„Ø®Ø·ÙˆØ±Ø© Ù„Ù„Ù…Ø³ØªØ£Ø¬Ø± Ø§Ù„Ø­Ø§Ù„ÙŠ
 
-// POST /api/surgery/count-sheet — تسجيل جرد الأدوات الجراحية والشاش
+// POST /api/surgery/count-sheet â€” ØªØ³Ø¬ÙŠÙ„ Ø¬Ø±Ø¯ Ø§Ù„Ø£Ø¯ÙˆØ§Øª Ø§Ù„Ø¬Ø±Ø§Ø­ÙŠØ© ÙˆØ§Ù„Ø´Ø§Ø´
 
-// GET /api/surgery/count-sheet/:surgeryId — استرجاع جرد الأدوات للجراحة
+// GET /api/surgery/count-sheet/:surgeryId â€” Ø§Ø³ØªØ±Ø¬Ø§Ø¹ Ø¬Ø±Ø¯ Ø§Ù„Ø£Ø¯ÙˆØ§Øª Ù„Ù„Ø¬Ø±Ø§Ø­Ø©
 
-// POST /api/pediatrics/apgar — تسجيل نقاط تقييم أبغار للمولود
+// POST /api/pediatrics/apgar â€” ØªØ³Ø¬ÙŠÙ„ Ù†Ù‚Ø§Ø· ØªÙ‚ÙŠÙŠÙ… Ø£Ø¨ØºØ§Ø± Ù„Ù„Ù…ÙˆÙ„ÙˆØ¯
 
-// GET /api/pediatrics/apgar/:patientId — استرجاع نقاط تقييم أبغار للمولود
+// GET /api/pediatrics/apgar/:patientId â€” Ø§Ø³ØªØ±Ø¬Ø§Ø¹ Ù†Ù‚Ø§Ø· ØªÙ‚ÙŠÙŠÙ… Ø£Ø¨ØºØ§Ø± Ù„Ù„Ù…ÙˆÙ„ÙˆØ¯
 
 
 
@@ -2852,7 +2852,7 @@ async function ensureVisitLifecycleTable() {
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_visit_lifecycle_patient ON visit_lifecycle(patient_id)`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_visit_lifecycle_date ON visit_lifecycle(created_at)`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_visit_lifecycle_tenant ON visit_lifecycle(tenant_id)`);
-        console.log('[NS] visit_lifecycle table ensured ✅');
+        console.log('[NS] visit_lifecycle table ensured âœ…');
     } catch (e) { console.warn('[NS] visit_lifecycle ensure:', e.message); }
 }
 
@@ -2875,7 +2875,7 @@ async function ensureNursingIOTable() {
             )
         `);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_nursing_io_patient ON nursing_io(patient_id)`);
-        console.log('[NS] nursing_io table ensured ✅');
+        console.log('[NS] nursing_io table ensured âœ…');
     } catch (e) { console.warn('[NS] nursing_io ensure:', e.message); }
 }
 
@@ -2898,35 +2898,35 @@ async function ensureNursingHandoverTable() {
             )
         `);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_nursing_handover_patient ON nursing_handover(patient_id)`);
-        console.log('[NS] nursing_handover table ensured ✅');
+        console.log('[NS] nursing_handover table ensured âœ…');
     } catch (e) { console.warn('[NS] nursing_handover ensure:', e.message); }
 }
 
 // Run table provisioning on startup
 Promise.all([ensureVisitLifecycleTable(), ensureNursingIOTable(), ensureNursingHandoverTable()])
-    .then(() => console.log('[NS] All nursing extension tables ready ✅'))
+    .then(() => console.log('[NS] All nursing extension tables ready âœ…'))
     .catch(e => console.warn('[NS] Table setup warning:', e.message));
 
-// ===== I&O: GET — get all entries for a patient =====
+// ===== I&O: GET â€” get all entries for a patient =====
 
-// ===== I&O: POST — add entry =====
+// ===== I&O: POST â€” add entry =====
 
 // ===== Handover SBAR: GET =====
 
 // ===== Handover SBAR: POST =====
 
-// ===== DEVICE CALIBRATIONS (معايرة الأجهزة الطبية) =====
+// ===== DEVICE CALIBRATIONS (Ù…Ø¹Ø§ÙŠØ±Ø© Ø§Ù„Ø£Ø¬Ù‡Ø²Ø© Ø§Ù„Ø·Ø¨ÙŠØ©) =====
 
 
-// ===== MEDICAL WASTE LOGS (تتبع النفايات الطبية الخطرة) =====
+// ===== MEDICAL WASTE LOGS (ØªØªØ¨Ø¹ Ø§Ù„Ù†ÙØ§ÙŠØ§Øª Ø§Ù„Ø·Ø¨ÙŠØ© Ø§Ù„Ø®Ø·Ø±Ø©) =====
 // ===== /API/SAFETY (extracted -> routes/safety.routes.js; behavior-preserving) =====
 app.use(require('./routes/safety.routes.js')({ pool, requireAuth, requireRole, requireTenantScope, validateBody, RS, getRequestTenantContext, calcVAT, addVAT, logAudit }));
 
 
-// AUTO-MOUNT: dept_api_v4 (P3-E v6 owner-flagged) — reuses pg pool + session from main app
+// AUTO-MOUNT: dept_api_v4 (P3-E v6 owner-flagged) â€” reuses pg pool + session from main app
 try {
   app.use('/api/v4/dept', require('./routes/dept_router'));
-// ===== autowire_all_v23 (2026-08-03) — 28 routers =====
+// ===== autowire_all_v23 (2026-08-03) â€” 28 routers =====
 try { (function(){var _m=require("./routes/fhir_router");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/fhir",_r);}else{console.warn('[autowire] /fhir skipped: no router');}})(); } catch (e) { console.warn('[autowire] /fhir skipped:', e.message); }
 try { (function(){var _m=require("./routes/careplans");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/careplans",_r);}else{console.warn('[autowire] /api/v4/careplans skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/careplans skipped:', e.message); }
 try { (function(){var _m=require("./routes/discharge");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/discharge",_r);}else{console.warn('[autowire] /api/v4/discharge skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/discharge skipped:', e.message); }
@@ -2959,7 +2959,7 @@ try { (function(){var _m=require("./routes/salesforce");var _r=(_m&&_m.router)||
 
 try { app.use('/api/v4/dept', require('./routes/dept_router')); } catch (e) { console.warn('[mount] /api/v4/dept not mounted:', e.message); }
 
-// AUTO-MOUNT: mynama_portal (P3-E v6 owner-flagged) — patient portal sub-app
+// AUTO-MOUNT: mynama_portal (P3-E v6 owner-flagged) â€” patient portal sub-app
 try {
   const _mynamaApp = require('./mynama/server');
   if (_mynamaApp && (_mynamaApp.handle || typeof _mynamaApp === 'function')) app.use('/mynama', _mynamaApp);
