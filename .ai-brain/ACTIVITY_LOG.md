@@ -97,6 +97,13 @@
 42. تحقق محلي كامل ثم نشر إنتاجي: M19 applied · INGEST ok · **SEARCH أعاد اقتباس ER_red_flags_v1** 🟢
 43. ملاحظات موثقة: (أ) ترقية pgvector لاحقاً = ops task مع f015 جاهز (ب) مسار قراءة احتياطي بمعامل tenant صريح للاستدعاءات بلا جلسة — يُستبدل بجلسة مصادقة عند تفعيل حماية سطح tiers (بند أمني قائم مسبقاً لكل 731 راوتر)
 
+## ✅ P3-DONE + P5-BCMA-software + Security-gate-ready
+44. `tier323_cdss_1504` — **CDSS موحد**: registry pattern يلف المحركات المتحققة (HEART/Mirels/EMU) عبر POST /evaluate {rule,params} + POST /catalog — حي: HEART ok:true مع citation
+45. `tier325_bcma_1505` — **BCMA software-side**: فحص القواعد الخمس (مريض/دواء/جرعة/طريق/وقت) → BLOCKED+violations، override log بمشرف، MAR record — حي: RIGHT_PATIENT BLOCKED ✓
+46. `lib/middleware/tierGate.js` — بوابة auth جاهزة للتفعيل بسطر واحد + env flag (غير مفعلة افتراضياً لتجنب كسر التكاملات القائمة — قرار موثق)
+47. إصلاح error-handling في tier322 (ValidationError→400 بدل 500) اكتشفه السويت الآلي — **دليل عملي أن الـ suite يعمل**
+48. السويت النهائي: routers=734 · ALIVE=719 · DEAD=0 · ERROR=0 · **GREEN**
+
 ## ⏳ Backlog (موثّق — يحتاج جلسات قادمة)
 - W2: منصة — pgvector schema رسمي داخل التطبيق، helpdesk module، SEO sitemap، APM/langfuse wiring، i18n consolidation، analytics events، BI pack، DR automation
 - W3: ربط بلوبيرنتات .ai-brain بكود فعلي (engine generation from blueprints)
