@@ -12,3 +12,7 @@ find_lines.js
 out.txt
 # A3A PHI vault (radiology/clinical files) — never commit PHI
 phi_vault/
+
+# graphify (project-local knowledge graph tool + artifacts)
+tools/graphify/
+graphify-out/
