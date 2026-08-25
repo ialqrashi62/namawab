@@ -1,4 +1,4 @@
-// tests/e2e_route_sweep.js — E2E regression sweep over auto-mounted tier routers
+﻿// tests/e2e_route_sweep.js â€” E2E regression sweep over auto-mounted tier routers
 // Usage: BASE=http://127.0.0.1:3000 node tests/e2e_route_sweep.js [--deep]
 // Classifies per module: ALIVE (200/400-validation) | DEAD(404) | ERROR(500) | SKIP(stub/no-engine)
 'use strict';
@@ -32,7 +32,7 @@ async function probe(basePath, fn) {
   try {
     const res = await fetch(`${BASE}${basePath}/${fn}`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-tenant-id': 't1' },
+      headers: { 'content-type': 'application/json', 'x-tenant-id': 't1', ...(process.env.TIER_API_KEY ? { 'x-api-key': process.env.TIER_API_KEY } : {}) },
       body: JSON.stringify({ tenant_id: 't1', patient_id: 'p1' }),
       signal: ctl.signal,
     });
@@ -85,7 +85,7 @@ async function probe(basePath, fn) {
   if (err.length) console.log('ERROR LIST:\n' + err.map(d => `  ${d.base} ${d.detail || ''}`).join('\n'));
   if (net.length) console.log('NET LIST:\n' + net.map(d => `  ${d.base} ${d.detail || ''}`).join('\n'));
 
-  // Deep curated checks (real payloads → ok:true)
+  // Deep curated checks (real payloads â†’ ok:true)
   let deepPass = 0, deepTotal = 0;
   const deep = [
     ['/tier313_cpu_1494/t313_e1_heart_score', { history_score: 2, ecg_score: 1, age_score: 2, risk_factor_score: 1, troponin_score: 0 }],
@@ -98,7 +98,7 @@ async function probe(basePath, fn) {
     for (const [u, extra] of deep) {
       deepTotal++;
       try {
-        const res = await fetch(`${BASE}${u}`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-tenant-id': 't1' },
+        const res = await fetch(`${BASE}${u}`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-tenant-id': 't1', ...(process.env.TIER_API_KEY ? { 'x-api-key': process.env.TIER_API_KEY } : {}) },
           body: JSON.stringify({ tenant_id: 't1', patient_id: 'p1', ...extra }) });
         const j = await res.json().catch(() => ({}));
         if (j.ok === true) { deepPass++; } else console.log('DEEP FAIL', u, JSON.stringify(j).slice(0, 90));
