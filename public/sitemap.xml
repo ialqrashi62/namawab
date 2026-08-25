@@ -1,122 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- الصفحة الرئيسية -->
-  <url>
-    <loc>https://jumanasoft.com/</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <!-- من نحن -->
-  <url>
-    <loc>https://jumanasoft.com/about/</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <!-- الحلول والخدمات -->
-  <url>
-    <loc>https://jumanasoft.com/solutions/</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <!-- حلول HIS -->
-  <url>
-    <loc>https://jumanasoft.com/solutions/hospital-information-system/</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <!-- حلول EMR -->
-  <url>
-    <loc>https://jumanasoft.com/solutions/emr/</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <!-- المواعيد قوائم الانتظار -->
-  <url>
-    <loc>https://jumanasoft.com/solutions/appointments/</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <!-- الصيدلية الدوائية -->
-  <url>
-    <loc>https://jumanasoft.com/solutions/pharmacy/</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <!-- المختبرات LIS -->
-  <url>
-    <loc>https://jumanasoft.com/solutions/laboratory/</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <!-- الأشعة RIS -->
-  <url>
-    <loc>https://jumanasoft.com/solutions/radiology/</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <!-- الفوترة والمالية -->
-  <url>
-    <loc>https://jumanasoft.com/solutions/billing/</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <!-- الأقسام الطبية -->
-  <url>
-    <loc>https://jumanasoft.com/departments/</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <!-- دليل التوثيق والمساعد -->
-  <url>
-    <loc>https://jumanasoft.com/docs/</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <!-- الأسئلة الشائعة -->
-  <url>
-    <loc>https://jumanasoft.com/faq/</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <!-- اتصل بنا -->
-  <url>
-    <loc>https://jumanasoft.com/contact/</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <!-- سياسة الخصوصية -->
-  <url>
-    <loc>https://jumanasoft.com/privacy/</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <!-- كتالوج وحدات PCC -->
-  <url>
-    <loc>https://jumanasoft.com/pcc-catalog/</loc>
-    <lastmod>2026-07-29</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <!-- الشروط والأحكام -->
-  <url>
-    <loc>https://jumanasoft.com/terms/</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
+  <url><loc>https://jumanasoft.com/</loc></url>
+  <url><loc>https://jumanasoft.com/station-index.html</loc></url>
+  <url><loc>https://jumanasoft.com/#cardiology</loc></url>
+  <url><loc>https://jumanasoft.com/#pulmonology</loc></url>
+  <url><loc>https://jumanasoft.com/#gastroenterology</loc></url>
+  <url><loc>https://jumanasoft.com/#nephrology</loc></url>
+  <url><loc>https://jumanasoft.com/#oncology</loc></url>
+  <url><loc>https://jumanasoft.com/#endocrinology</loc></url>
+  <url><loc>https://jumanasoft.com/#rheumatology</loc></url>
+  <url><loc>https://jumanasoft.com/#infectious_diseases</loc></url>
+  <url><loc>https://jumanasoft.com/#dermatology</loc></url>
+  <url><loc>https://jumanasoft.com/#general_surgery</loc></url>
+  <url><loc>https://jumanasoft.com/#cardiothoracic</loc></url>
+  <url><loc>https://jumanasoft.com/#neurosurgery</loc></url>
+  <url><loc>https://jumanasoft.com/#orthopedics</loc></url>
+  <url><loc>https://jumanasoft.com/#ophthalmology</loc></url>
+  <url><loc>https://jumanasoft.com/#ent</loc></url>
+  <url><loc>https://jumanasoft.com/#urology</loc></url>
+  <url><loc>https://jumanasoft.com/#plastic_burns</loc></url>
+  <url><loc>https://jumanasoft.com/#obgyn</loc></url>
+  <url><loc>https://jumanasoft.com/#pediatrics</loc></url>
+  <url><loc>https://jumanasoft.com/#radiology</loc></url>
+  <url><loc>https://jumanasoft.com/#laboratory</loc></url>
+  <url><loc>https://jumanasoft.com/#emergency</loc></url>
+  <url><loc>https://jumanasoft.com/#icu</loc></url>
+  <url><loc>https://jumanasoft.com/#anesthesia_pain</loc></url>
+  <url><loc>https://jumanasoft.com/#rehabilitation</loc></url>
+  <url><loc>https://jumanasoft.com/#helpdesk</loc></url>
 </urlset>

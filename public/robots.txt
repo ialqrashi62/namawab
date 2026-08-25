@@ -1,23 +1,5 @@
 User-agent: *
-Allow: /$
-Allow: /index.html$
-Allow: /css/
-Allow: /js/
-Allow: /img/
-Allow: /about/
-Allow: /solutions/
-Allow: /departments/
-Allow: /docs/
-Allow: /faq/
-Allow: /pcc-catalog/
-Allow: /contact/
-Allow: /privacy/
-Allow: /terms/
-Disallow: /login.html
-Disallow: /admin.html
-Disallow: /super-admin/
+Allow: /
 Disallow: /api/
-Disallow: /uploads/
-Disallow: /consent-forms/
-
+Disallow: /node_modules/
 Sitemap: https://jumanasoft.com/sitemap.xml
