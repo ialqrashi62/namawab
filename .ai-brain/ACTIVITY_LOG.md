@@ -35,6 +35,35 @@
     - 27 بلوبيرنت مضغوط × 12 ملف (مراكز التميز×16 + النادر المتقدم×11)
     - كل بلوبيرنت يشمل: workflows, sub-units, ICD-10, red flags, RAG/LangChain chains, pgvector schema, prompts, observability, DBML+RLS, OpenAPI 3.1, engine JS, routes, middleware, data flow, ERD mermaid, ADR, migrations up/down/validate, CI/CD runbook, Stitch layout pick, wireframes, i18n EN|AR, design tokens, JCI/ISO/PDPL checklists, unit/integration/E2E tests, manual, video script, consent forms, helpdesk SLA
 
+## ✅ W2 منجز أيضاً (نفس الجلسة)
+18. بناء وحدات المنصة الأربع ونشرها حية:
+    - `tier315` Helpdesk (SLA breach engine: sev1=15min ✓ breached+27)
+    - `tier316` SEO (sitemap/robots/meta/JSON-LD/lighthouse budgets) ✓ robots output verified
+    - `tier317` APM + LLM observability (latency bands, error-rate paging, LLM trace cost+citation-gate, uptime SLO, slow-query report)
+    - `tier318` Analytics/BI (funnel conversion, dept ranking, retention cohorts, BI export)
+19. `migrations/f015_pgvector_init_*.sql` — جدول knowledge_chunks رسمي (vector(1536)+ivfflat+RLS) up/down
+20. تنظيف المجلدات القديمة الفارغة (.ai-brain): oncology/rheumatology/cardiothoracic القديمة
+21. commits: `3be72910` platform tiers · `be351c44` pgvector — مرفوعة GitHub
+
+21. commits: `3be72910` platform tiers · `be351c44` pgvector — مرفوعة GitHub
+
+## 🏁 FINAL VERIFICATION SWEEP (الإنتاج، نهاية الجلسة)
+| Check | Result |
+|---|---|
+| HEALTH | 200 |
+| tier271 revived | PASS ok:true |
+| tier311 OR-scheduling | PASS ok:true |
+| tier312 Mirels ortho-onc | PASS ok:true |
+| tier313 HEART CPU | PASS ok:true |
+| tier315 Helpdesk SLA | PASS ok:true |
+| tier316 SEO robots | PASS ok:true |
+| tier317 APM latency | PASS ok:true |
+| tier318 Analytics funnel | PASS ok:true |
+| px_satis revived (legacy) | working (`{"resolution":"phone_callback"}`) |
+| legacy t145 triage control | PASS ok:true |
+
+**TOTALS: 11/11 GREEN on production.**
+
 ## ⏳ Backlog (موثّق — يحتاج جلسات قادمة)
 - W2: منصة — pgvector schema رسمي داخل التطبيق، helpdesk module، SEO sitemap، APM/langfuse wiring، i18n consolidation، analytics events، BI pack، DR automation
 - W3: ربط بلوبيرنتات .ai-brain بكود فعلي (engine generation from blueprints)
