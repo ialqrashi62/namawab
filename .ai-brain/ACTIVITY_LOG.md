@@ -91,6 +91,12 @@
 38. **نتائج الإنتاج النهائية:** routers=731 · probed=716 · stubs-skipped=15 · **ALIVE=716 DEAD=0 ERROR=0** · DEEP 5/5 · **SWEEP GREEN** (`/var/www/backups-master/E2E_SWEEP_PROD_FINAL.txt`)
 39. تنبيه موثق: الجلسة الموازية حذفت ملفات untracked من dev مرتين — استُعيدت من worktree التكامل. (سبب إضافي لفصل المستودعات)
 
+## ✅ P4-DONE — pgvector/RAG Pipeline (مسار هجين موثق)
+40. pgvector extension غير متوفر في Postgres14 بالسيرفر (محاولة apt+PGDG فشلت) → **قرار هندسي:** مسار RAG-lite يعمل اليوم: جدول `knowledge_chunks_fb` (embedding jsonb) + `lib/embeddings.js` بموفر قابل للتبديل (OPENAI إن توفر مفتاح، وإلا fallback256 lexical-cosine)
+41. `tier322_know_1503` — POST /ingest (chunking 1100/150) + POST /search (embed→rank→citations topK)
+42. تحقق محلي كامل ثم نشر إنتاجي: M19 applied · INGEST ok · **SEARCH أعاد اقتباس ER_red_flags_v1** 🟢
+43. ملاحظات موثقة: (أ) ترقية pgvector لاحقاً = ops task مع f015 جاهز (ب) مسار قراءة احتياطي بمعامل tenant صريح للاستدعاءات بلا جلسة — يُستبدل بجلسة مصادقة عند تفعيل حماية سطح tiers (بند أمني قائم مسبقاً لكل 731 راوتر)
+
 ## ⏳ Backlog (موثّق — يحتاج جلسات قادمة)
 - W2: منصة — pgvector schema رسمي داخل التطبيق، helpdesk module، SEO sitemap، APM/langfuse wiring، i18n consolidation، analytics events، BI pack، DR automation
 - W3: ربط بلوبيرنتات .ai-brain بكود فعلي (engine generation from blueprints)
