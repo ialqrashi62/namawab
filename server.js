@@ -2581,11 +2581,6 @@ try { app.use('/api/eng/tier170-ane-794', require('./tier170_ane_794_router.js')
 
 
 
-  app.use('/tier290_a1_1391', require('./tier290_a1_1391_router'));
-  app.use('/tier290_a2_1392', require('./tier290_a2_1392_router'));
-  app.use('/tier290_a3_1393', require('./tier290_a3_1393_router'));
-  app.use('/tier290_a4_1394', require('./tier290_a4_1394_router'));
-  app.use('/tier290_a5_1395', require('./tier290_a5_1395_router'));
 async function startServer() {
     try {
         console.log('\n  🐘 Connecting to PostgreSQL...');
@@ -2656,107 +2651,14 @@ async function startServer() {
 
 
 
-try { app.use('/tier291_k1_1396', require('./tier291_k1_1396_router.js')); } catch(e) { console.error('mount tier291_k1_1396_router.js fail', e.message); }
-try { app.use('/tier291_k2_1397', require('./tier291_k2_1397_router.js')); } catch(e) { console.error('mount tier291_k2_1397_router.js fail', e.message); }
-try { app.use('/tier291_k3_1398', require('./tier291_k3_1398_router.js')); } catch(e) { console.error('mount tier291_k3_1398_router.js fail', e.message); }
-try { app.use('/tier291_k4_1399', require('./tier291_k4_1399_router.js')); } catch(e) { console.error('mount tier291_k4_1399_router.js fail', e.message); }
-try { app.use('/tier291_k5_1400', require('./tier291_k5_1400_router.js')); } catch(e) { console.error('mount tier291_k5_1400_router.js fail', e.message); }
-try { app.use('/tier292_l1_1401', require('./tier292_l1_1401_router.js')); } catch(e) { console.error('mount tier292_l1_1401_router.js fail', e.message); }
-try { app.use('/tier292_l2_1402', require('./tier292_l2_1402_router.js')); } catch(e) { console.error('mount tier292_l2_1402_router.js fail', e.message); }
-try { app.use('/tier292_l3_1403', require('./tier292_l3_1403_router.js')); } catch(e) { console.error('mount tier292_l3_1403_router.js fail', e.message); }
-try { app.use('/tier292_l4_1404', require('./tier292_l4_1404_router.js')); } catch(e) { console.error('mount tier292_l4_1404_router.js fail', e.message); }
-try { app.use('/tier292_l5_1405', require('./tier292_l5_1405_router.js')); } catch(e) { console.error('mount tier292_l5_1405_router.js fail', e.message); }
-try { app.use('/tier293_m1_1406', require('./tier293_m1_1406_router.js')); } catch(e) { console.error('mount tier293_m1_1406_router.js fail', e.message); }
-try { app.use('/tier293_m2_1407', require('./tier293_m2_1407_router.js')); } catch(e) { console.error('mount tier293_m2_1407_router.js fail', e.message); }
-try { app.use('/tier293_m3_1408', require('./tier293_m3_1408_router.js')); } catch(e) { console.error('mount tier293_m3_1408_router.js fail', e.message); }
-try { app.use('/tier293_m4_1409', require('./tier293_m4_1409_router.js')); } catch(e) { console.error('mount tier293_m4_1409_router.js fail', e.message); }
-try { app.use('/tier293_m5_1410', require('./tier293_m5_1410_router.js')); } catch(e) { console.error('mount tier293_m5_1410_router.js fail', e.message); }
-try { app.use('/tier294_n1_1411', require('./tier294_n1_1411_router.js')); } catch(e) { console.error('mount tier294_n1_1411_router.js fail', e.message); }
-try { app.use('/tier294_n2_1412', require('./tier294_n2_1412_router.js')); } catch(e) { console.error('mount tier294_n2_1412_router.js fail', e.message); }
-try { app.use('/tier294_n3_1413', require('./tier294_n3_1413_router.js')); } catch(e) { console.error('mount tier294_n3_1413_router.js fail', e.message); }
-try { app.use('/tier294_n4_1414', require('./tier294_n4_1414_router.js')); } catch(e) { console.error('mount tier294_n4_1414_router.js fail', e.message); }
-try { app.use('/tier294_n5_1415', require('./tier294_n5_1415_router.js')); } catch(e) { console.error('mount tier294_n5_1415_router.js fail', e.message); }
-try { app.use('/tier295_o1_1416', require('./tier295_o1_1416_router.js')); } catch(e) { console.error('mount tier295_o1_1416_router.js fail', e.message); }
-try { app.use('/tier295_o2_1417', require('./tier295_o2_1417_router.js')); } catch(e) { console.error('mount tier295_o2_1417_router.js fail', e.message); }
-try { app.use('/tier295_o3_1418', require('./tier295_o3_1418_router.js')); } catch(e) { console.error('mount tier295_o3_1418_router.js fail', e.message); }
-try { app.use('/tier295_o4_1419', require('./tier295_o4_1419_router.js')); } catch(e) { console.error('mount tier295_o4_1419_router.js fail', e.message); }
-try { app.use('/tier295_o5_1420', require('./tier295_o5_1420_router.js')); } catch(e) { console.error('mount tier295_o5_1420_router.js fail', e.message); }
-try { app.use('/tier296_p1_1421', require('./tier296_p1_1421_router.js')); } catch(e) { console.error('mount tier296_p1_1421_router.js fail', e.message); }
-try { app.use('/tier296_p2_1422', require('./tier296_p2_1422_router.js')); } catch(e) { console.error('mount tier296_p2_1422_router.js fail', e.message); }
-try { app.use('/tier296_p3_1423', require('./tier296_p3_1423_router.js')); } catch(e) { console.error('mount tier296_p3_1423_router.js fail', e.message); }
-try { app.use('/tier296_p4_1424', require('./tier296_p4_1424_router.js')); } catch(e) { console.error('mount tier296_p4_1424_router.js fail', e.message); }
-try { app.use('/tier296_p5_1425', require('./tier296_p5_1425_router.js')); } catch(e) { console.error('mount tier296_p5_1425_router.js fail', e.message); }
-try { app.use('/tier297_q1_1426', require('./tier297_q1_1426_router.js')); } catch(e) { console.error('mount tier297_q1_1426_router.js fail', e.message); }
-try { app.use('/tier297_q2_1427', require('./tier297_q2_1427_router.js')); } catch(e) { console.error('mount tier297_q2_1427_router.js fail', e.message); }
-try { app.use('/tier297_q3_1428', require('./tier297_q3_1428_router.js')); } catch(e) { console.error('mount tier297_q3_1428_router.js fail', e.message); }
-try { app.use('/tier297_q4_1429', require('./tier297_q4_1429_router.js')); } catch(e) { console.error('mount tier297_q4_1429_router.js fail', e.message); }
-try { app.use('/tier297_q5_1430', require('./tier297_q5_1430_router.js')); } catch(e) { console.error('mount tier297_q5_1430_router.js fail', e.message); }
-try { app.use('/tier298_r1_1431', require('./tier298_r1_1431_router.js')); } catch(e) { console.error('mount tier298_r1_1431_router.js fail', e.message); }
-try { app.use('/tier298_r2_1432', require('./tier298_r2_1432_router.js')); } catch(e) { console.error('mount tier298_r2_1432_router.js fail', e.message); }
-try { app.use('/tier298_r3_1433', require('./tier298_r3_1433_router.js')); } catch(e) { console.error('mount tier298_r3_1433_router.js fail', e.message); }
-try { app.use('/tier298_r4_1434', require('./tier298_r4_1434_router.js')); } catch(e) { console.error('mount tier298_r4_1434_router.js fail', e.message); }
-try { app.use('/tier298_r5_1435', require('./tier298_r5_1435_router.js')); } catch(e) { console.error('mount tier298_r5_1435_router.js fail', e.message); }
-try { app.use('/tier299_s1_1436', require('./tier299_s1_1436_router.js')); } catch(e) { console.error('mount tier299_s1_1436_router.js fail', e.message); }
-try { app.use('/tier299_s2_1437', require('./tier299_s2_1437_router.js')); } catch(e) { console.error('mount tier299_s2_1437_router.js fail', e.message); }
-try { app.use('/tier299_s3_1438', require('./tier299_s3_1438_router.js')); } catch(e) { console.error('mount tier299_s3_1438_router.js fail', e.message); }
-try { app.use('/tier299_s4_1439', require('./tier299_s4_1439_router.js')); } catch(e) { console.error('mount tier299_s4_1439_router.js fail', e.message); }
-try { app.use('/tier299_s5_1440', require('./tier299_s5_1440_router.js')); } catch(e) { console.error('mount tier299_s5_1440_router.js fail', e.message); }
-try { app.use('/tier300_t1_1441', require('./tier300_t1_1441_router.js')); } catch(e) { console.error('mount tier300_t1_1441_router.js fail', e.message); }
-try { app.use('/tier300_t2_1442', require('./tier300_t2_1442_router.js')); } catch(e) { console.error('mount tier300_t2_1442_router.js fail', e.message); }
-try { app.use('/tier300_t3_1443', require('./tier300_t3_1443_router.js')); } catch(e) { console.error('mount tier300_t3_1443_router.js fail', e.message); }
-try { app.use('/tier300_t4_1444', require('./tier300_t4_1444_router.js')); } catch(e) { console.error('mount tier300_t4_1444_router.js fail', e.message); }
-try { app.use('/tier300_t5_1445', require('./tier300_t5_1445_router.js')); } catch(e) { console.error('mount tier300_t5_1445_router.js fail', e.message); }
 
-try { app.use('/tier301_u1_1442', require('./tier301_u1_1442_router.js')); } catch(e) { console.error('mount tier301_u1_1442_router.js fail', e.message); }
-try { app.use('/tier301_u2_1443', require('./tier301_u2_1443_router.js')); } catch(e) { console.error('mount tier301_u2_1443_router.js fail', e.message); }
-try { app.use('/tier301_u3_1444', require('./tier301_u3_1444_router.js')); } catch(e) { console.error('mount tier301_u3_1444_router.js fail', e.message); }
-try { app.use('/tier301_u4_1445', require('./tier301_u4_1445_router.js')); } catch(e) { console.error('mount tier301_u4_1445_router.js fail', e.message); }
-try { app.use('/tier301_u5_1446', require('./tier301_u5_1446_router.js')); } catch(e) { console.error('mount tier301_u5_1446_router.js fail', e.message); }
-try { app.use('/tier302_v1_1447', require('./tier302_v1_1447_router.js')); } catch(e) { console.error('mount tier302_v1_1447_router.js fail', e.message); }
-try { app.use('/tier302_v2_1448', require('./tier302_v2_1448_router.js')); } catch(e) { console.error('mount tier302_v2_1448_router.js fail', e.message); }
-try { app.use('/tier302_v3_1449', require('./tier302_v3_1449_router.js')); } catch(e) { console.error('mount tier302_v3_1449_router.js fail', e.message); }
-try { app.use('/tier302_v4_1450', require('./tier302_v4_1450_router.js')); } catch(e) { console.error('mount tier302_v4_1450_router.js fail', e.message); }
-try { app.use('/tier302_v5_1451', require('./tier302_v5_1451_router.js')); } catch(e) { console.error('mount tier302_v5_1451_router.js fail', e.message); }
-try { app.use('/tier303_w1_1452', require('./tier303_w1_1452_router.js')); } catch(e) { console.error('mount tier303_w1_1452_router.js fail', e.message); }
-try { app.use('/tier303_w2_1453', require('./tier303_w2_1453_router.js')); } catch(e) { console.error('mount tier303_w2_1453_router.js fail', e.message); }
-try { app.use('/tier303_w3_1454', require('./tier303_w3_1454_router.js')); } catch(e) { console.error('mount tier303_w3_1454_router.js fail', e.message); }
-try { app.use('/tier303_w4_1455', require('./tier303_w4_1455_router.js')); } catch(e) { console.error('mount tier303_w4_1455_router.js fail', e.message); }
-try { app.use('/tier303_w5_1456', require('./tier303_w5_1456_router.js')); } catch(e) { console.error('mount tier303_w5_1456_router.js fail', e.message); }
-try { app.use('/tier304_x1_1457', require('./tier304_x1_1457_router.js')); } catch(e) { console.error('mount tier304_x1_1457_router.js fail', e.message); }
-try { app.use('/tier304_x2_1458', require('./tier304_x2_1458_router.js')); } catch(e) { console.error('mount tier304_x2_1458_router.js fail', e.message); }
-try { app.use('/tier304_x3_1459', require('./tier304_x3_1459_router.js')); } catch(e) { console.error('mount tier304_x3_1459_router.js fail', e.message); }
-try { app.use('/tier304_x4_1460', require('./tier304_x4_1460_router.js')); } catch(e) { console.error('mount tier304_x4_1460_router.js fail', e.message); }
-try { app.use('/tier304_x5_1461', require('./tier304_x5_1461_router.js')); } catch(e) { console.error('mount tier304_x5_1461_router.js fail', e.message); }
-try { app.use('/tier305_y1_1462', require('./tier305_y1_1462_router.js')); } catch(e) { console.error('mount tier305_y1_1462_router.js fail', e.message); }
-try { app.use('/tier305_y2_1463', require('./tier305_y2_1463_router.js')); } catch(e) { console.error('mount tier305_y2_1463_router.js fail', e.message); }
-try { app.use('/tier305_y3_1464', require('./tier305_y3_1464_router.js')); } catch(e) { console.error('mount tier305_y3_1464_router.js fail', e.message); }
-try { app.use('/tier305_y4_1465', require('./tier305_y4_1465_router.js')); } catch(e) { console.error('mount tier305_y4_1465_router.js fail', e.message); }
-try { app.use('/tier305_y5_1466', require('./tier305_y5_1466_router.js')); } catch(e) { console.error('mount tier305_y5_1466_router.js fail', e.message); }
-try { app.use('/tier306_z1_1467', require('./tier306_z1_1467_router.js')); } catch(e) { console.error('mount tier306_z1_1467_router.js fail', e.message); }
-try { app.use('/tier306_z2_1468', require('./tier306_z2_1468_router.js')); } catch(e) { console.error('mount tier306_z2_1468_router.js fail', e.message); }
-try { app.use('/tier306_z3_1469', require('./tier306_z3_1469_router.js')); } catch(e) { console.error('mount tier306_z3_1469_router.js fail', e.message); }
-try { app.use('/tier306_z4_1470', require('./tier306_z4_1470_router.js')); } catch(e) { console.error('mount tier306_z4_1470_router.js fail', e.message); }
-try { app.use('/tier306_z5_1471', require('./tier306_z5_1471_router.js')); } catch(e) { console.error('mount tier306_z5_1471_router.js fail', e.message); }
-try { app.use('/tier307_aa1_1472', require('./tier307_aa1_1472_router.js')); } catch(e) { console.error('mount tier307_aa1_1472_router.js fail', e.message); }
-try { app.use('/tier307_aa2_1473', require('./tier307_aa2_1473_router.js')); } catch(e) { console.error('mount tier307_aa2_1473_router.js fail', e.message); }
-try { app.use('/tier307_aa3_1474', require('./tier307_aa3_1474_router.js')); } catch(e) { console.error('mount tier307_aa3_1474_router.js fail', e.message); }
-try { app.use('/tier307_aa4_1475', require('./tier307_aa4_1475_router.js')); } catch(e) { console.error('mount tier307_aa4_1475_router.js fail', e.message); }
-try { app.use('/tier307_aa5_1476', require('./tier307_aa5_1476_router.js')); } catch(e) { console.error('mount tier307_aa5_1476_router.js fail', e.message); }
-try { app.use('/tier308_ab1_1477', require('./tier308_ab1_1477_router.js')); } catch(e) { console.error('mount tier308_ab1_1477_router.js fail', e.message); }
-try { app.use('/tier308_ab2_1478', require('./tier308_ab2_1478_router.js')); } catch(e) { console.error('mount tier308_ab2_1478_router.js fail', e.message); }
-try { app.use('/tier308_ab3_1479', require('./tier308_ab3_1479_router.js')); } catch(e) { console.error('mount tier308_ab3_1479_router.js fail', e.message); }
-try { app.use('/tier308_ab4_1480', require('./tier308_ab4_1480_router.js')); } catch(e) { console.error('mount tier308_ab4_1480_router.js fail', e.message); }
-try { app.use('/tier308_ab5_1481', require('./tier308_ab5_1481_router.js')); } catch(e) { console.error('mount tier308_ab5_1481_router.js fail', e.message); }
-try { app.use('/tier309_ac1_1482', require('./tier309_ac1_1482_router.js')); } catch(e) { console.error('mount tier309_ac1_1482_router.js fail', e.message); }
-try { app.use('/tier309_ac2_1483', require('./tier309_ac2_1483_router.js')); } catch(e) { console.error('mount tier309_ac2_1483_router.js fail', e.message); }
-try { app.use('/tier309_ac3_1484', require('./tier309_ac3_1484_router.js')); } catch(e) { console.error('mount tier309_ac3_1484_router.js fail', e.message); }
-try { app.use('/tier309_ac4_1485', require('./tier309_ac4_1485_router.js')); } catch(e) { console.error('mount tier309_ac4_1485_router.js fail', e.message); }
-try { app.use('/tier309_ac5_1486', require('./tier309_ac5_1486_router.js')); } catch(e) { console.error('mount tier309_ac5_1486_router.js fail', e.message); }
-try { app.use('/tier310_ad1_1487', require('./tier310_ad1_1487_router.js')); } catch(e) { console.error('mount tier310_ad1_1487_router.js fail', e.message); }
-try { app.use('/tier310_ad2_1488', require('./tier310_ad2_1488_router.js')); } catch(e) { console.error('mount tier310_ad2_1488_router.js fail', e.message); }
-try { app.use('/tier310_ad3_1489', require('./tier310_ad3_1489_router.js')); } catch(e) { console.error('mount tier310_ad3_1489_router.js fail', e.message); }
-try { app.use('/tier310_ad4_1490', require('./tier310_ad4_1490_router.js')); } catch(e) { console.error('mount tier310_ad4_1490_router.js fail', e.message); }
-try { app.use('/tier310_ad5_1491', require('./tier310_ad5_1491_router.js')); } catch(e) { console.error('mount tier310_ad5_1491_router.js fail', e.message); }
+// Auto-mount generated tier routers (290-310): path = '/' + file base name
+for (const f of require('fs').readdirSync(__dirname).sort()) {
+  if (!/^tier(?:29\d|30\d|31\d)_\w+_\d+_router\.js$/.test(f)) continue;
+  try { app.use('/' + f.replace(/_router\.js$/, ''), require('./' + f)); }
+  catch(e) { console.error('mount ' + f + ' fail', e.message); }
+}
+
 app.listen(PORT, () => {
             console.log(`\n  ✅ jumanaMedical Web is running!`);
             console.log(`  🌐 Open: http://localhost:${PORT}`);
