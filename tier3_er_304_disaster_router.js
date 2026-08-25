@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_er_304_disaster_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-disaster-medicine' }));
+router.post('/start', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.startTriage(req.body) }));
+router.post('/mci-class', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.mciIncidentClassification(req.body) }));
+router.post('/surge', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.hospitalSurgeCapacity(req.body) }));
+router.post('/decon', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.decontaminationProtocol(req.body) }));
+router.post('/comms', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.disasterCommunicationPlan(req.body) }));
+module.exports = router;

@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_hemonc_301_lymphoma_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-lymphoma' }));
+router.post('/classify', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.lymphomaClassification(req.body) }));
+router.post('/stage', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.lymphomaStaging(req.body) }));
+router.post('/ipi', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.lymphomaIPI(req.body) }));
+router.post('/treatment', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.lymphomaTreatment(req.body) }));
+router.post('/response', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.lymphomaResponseAssessment(req.body) }));
+router.post('/surveillance', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.lymphomaSurveillance(req.body) }));
+module.exports = router;

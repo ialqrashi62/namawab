@@ -1,0 +1,14 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_infect_301_sepsis_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-sepsis' }));
+router.post('/qsofa', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.qsofaScore(req.body) }));
+router.post('/sofa', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.sofaScore(req.body) }));
+router.post('/screen', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.sepsisScreening(req.body) }));
+router.post('/bundle', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.sscBundle(req.body) }));
+router.post('/antibiotic', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.antibioticSelection(req.body) }));
+router.post('/source-control', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.sourceControl(req.body) }));
+router.post('/lactate-clearance', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.lactateClearance(req.body) }));
+module.exports = router;

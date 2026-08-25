@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_int_106_preop_clear_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-int-preopclear' }));
+router.post('/cardiac', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.preOpCardiacRisk(req.body) }));
+router.post('/pulmonary', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.preOpPulmonaryRisk(req.body) }));
+router.post('/anticoag', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.periOpAnticoagManagement(req.body) }));
+router.post('/meds', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.periOpMedicationManagement(req.body) }));
+router.post('/complication', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.postOpComplicationPrevention(req.body) }));
+module.exports = router;

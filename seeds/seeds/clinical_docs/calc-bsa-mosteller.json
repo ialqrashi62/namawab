@@ -1,0 +1,7 @@
+{
+  "doc_id": "calc-bsa-mosteller",
+  "doc_kind": "calculator",
+  "title": "Body Surface Area - Mosteller Formula",
+  "title_ar": "مساحة سطح الجسم - صيغة موستيلر",
+  "content": "# Body Surface Area - Mosteller Formula\n\n## Formula\nBSA (m²) = √(height_cm × weight_kg / 3600)\n\n## Example\n- Height 170 cm, Weight 70 kg\n- BSA = √(170 × 70 / 3600) = √3.31 = 1.82 m²\n\n## Use\n- Chemotherapy dosing\n- Cardiac output (indexed)\n- GFR estimation\n\n## Reference Ranges\n- Adult male: 1.9-2.0 m²\n- Adult female: 1.6-1.7 m²\n- Newborn: 0.25 m²\n- 2-year-old: 0.5 m²\n- 9-year-old: 1.0 m²"
+}

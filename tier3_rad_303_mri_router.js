@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_rad_303_mri_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-mri' }));
+router.post('/safety-screen', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.mriSafetyScreening(req.body) }));
+router.post('/gadolinium', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.gadoliniumScreening(req.body) }));
+router.post('/spine', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.spineMriInterpretation(req.body) }));
+router.post('/ms-mri', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.msBrainMriMcdonald(req.body) }));
+router.post('/cardiac-viability', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.mriCardiacViability(req.body) }));
+module.exports = router;

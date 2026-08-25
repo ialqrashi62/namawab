@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_infect_303_hiv_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-hiv' }));
+router.post('/screen', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.hivScreening(req.body) }));
+router.post('/initiate', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.artInitiation(req.body) }));
+router.post('/monitor', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.artMonitoring(req.body) }));
+router.post('/opportunistic', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.opportunisticInfectionProphylaxis(req.body) }));
+router.post('/prep', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.prepEligibility(req.body) }));
+module.exports = router;

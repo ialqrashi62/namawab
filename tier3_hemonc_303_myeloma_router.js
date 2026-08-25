@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_hemonc_303_myeloma_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-myeloma' }));
+router.post('/diagnose', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.myelomaDiagnosticCriteria(req.body) }));
+router.post('/stage', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.mayoRissStaging(req.body) }));
+router.post('/risk', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.mmRiskStratification(req.body) }));
+router.post('/treatment', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.myelomaTreatment(req.body) }));
+router.post('/response', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.mmResponseAssessment(req.body) }));
+router.post('/renal', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.renalMgmtInMM(req.body) }));
+module.exports = router;

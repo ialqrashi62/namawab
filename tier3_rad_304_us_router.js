@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_rad_304_us_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-ultrasound' }));
+router.post('/fast', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.fastScanTrauma(req.body) }));
+router.post('/obstetric', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.obstetricUltrasoundEdd(req.body) }));
+router.post('/echo', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.basicEchocardiography(req.body) }));
+router.post('/doppler', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.vascularDoppler(req.body) }));
+router.post('/abdominal', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.abdominalUltrasound(req.body) }));
+module.exports = router;

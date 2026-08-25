@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_hemonc_304_solid_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-solid-tumor' }));
+router.post('/tnm', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.tnmStage(req.body) }));
+router.post('/ecog', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.performanceScore(req.body) }));
+router.post('/toxicity', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ctcaeGrading(req.body) }));
+router.post('/her2', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.targetedTherapyEligibility(req.body) }));
+router.post('/chemo-dose', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.chemoDoseCalculation(req.body) }));
+router.post('/survivorship', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.survivorshipPlan(req.body) }));
+module.exports = router;

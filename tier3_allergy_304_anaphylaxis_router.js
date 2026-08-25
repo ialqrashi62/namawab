@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_allergy_304_anaphylaxis_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-anaphylaxis' }));
+router.post('/acute', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.acuteAnaphylaxisTreatment(req.body) }));
+router.post('/biphasic', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.biphasicAnaphylaxisRisk(req.body) }));
+router.post('/mastocytosis', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.mastocytosisAssessment(req.body) }));
+router.post('/ait', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.allergenImmunotherapy(req.body) }));
+router.post('/mcd', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.mastCellDisorderWorkup(req.body) }));
+module.exports = router;

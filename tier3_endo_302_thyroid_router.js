@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_endo_302_thyroid_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-thyroid' }));
+router.post('/hypothyroid', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.hypothyroidDosing(req.body) }));
+router.post('/hyperthyroid', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.hyperthyroidManagement(req.body) }));
+router.post('/thyroid-cancer', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.thyroidCancerStaging(req.body) }));
+router.post('/thyroid-storm', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.thyroidStormManagement(req.body) }));
+router.post('/pregnancy', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.thyroidInPregnancy(req.body) }));
+module.exports = router;

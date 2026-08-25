@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_musk_302_sports_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-sports-med' }));
+router.post('/acl', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.aclClassification(req.body) }));
+router.post('/meniscus', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.meniscusTearClassification(req.body) }));
+router.post('/rotator-cuff', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.rotatorCuff(req.body) }));
+router.post('/prp', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.prpIndication(req.body) }));
+router.post('/rts', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.returnToSport(req.body) }));
+module.exports = router;

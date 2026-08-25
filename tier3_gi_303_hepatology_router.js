@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_gi_303_hepatology_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-hepatology' }));
+router.post('/fibrosis', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.fibrosisAssessmentNafldHcv(req.body) }));
+router.post('/hepatitis-b', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.hepatitisBTreatment(req.body) }));
+router.post('/hepatitis-c', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.hepatitisCDaaTherapy(req.body) }));
+router.post('/cirrhosis', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.cirrhosisDecompensationMeldNa(req.body) }));
+router.post('/hepatocellular-carcinoma', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.hepatocellularCarcinomaBclc(req.body) }));
+module.exports = router;

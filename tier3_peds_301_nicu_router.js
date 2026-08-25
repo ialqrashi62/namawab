@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_peds_301_nicu_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-nicu' }));
+router.post('/apgar', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.apgarScore(req.body) }));
+router.post('/nrp', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.nrpResuscitation(req.body) }));
+router.post('/silverman', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.silvermanAndersenScore(req.body) }));
+router.post('/sepsis', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.neonatalSepsis(req.body) }));
+router.post('/rop', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ropScreening(req.body) }));
+router.post('/dose', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.neonatalDoseCalculations(req.body) }));
+module.exports = router;

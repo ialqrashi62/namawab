@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_gi_303_hepatitis_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-hepatitis' }));
+router.post('/hbv', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.hbvStaging(req.body) }));
+router.post('/hcv', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.hcvTreatment(req.body) }));
+router.post('/hdv', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.hdvScreening(req.body) }));
+router.post('/vaccination', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.hepatitisVaccinationCheck(req.body) }));
+router.post('/screening', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.hepBScreeningProtocol(req.body) }));
+module.exports = router;

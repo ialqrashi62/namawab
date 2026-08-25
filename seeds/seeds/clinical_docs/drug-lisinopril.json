@@ -1,0 +1,7 @@
+{
+  "doc_id": "drug-lisinopril",
+  "doc_kind": "drug",
+  "title": "Lisinopril - Drug Reference",
+  "title_ar": "ليزينوبريل - مرجع الدواء",
+  "content": "# Lisinopril\n\n## Class\nACE inhibitor\n\n## Indications\n- Hypertension\n- Heart failure\n- Post-MI LV dysfunction\n- Diabetic nephropathy\n\n## Dosing\n- HTN: 10mg daily, titrate to 20-40mg\n- HF: 5mg daily, target 20-35mg\n- Start low if elderly or renal impairment\n\n## Renal Dosing\n- eGFR ≥30: usual dose\n- eGFR <30: start 5mg, titrate cautiously\n\n## Contraindications\n- Pregnancy (teratogenic)\n- Bilateral renal artery stenosis\n- Angioedema history\n- Hyperkalemia\n\n## Adverse Effects\n- Dry cough (10-20%)\n- Hyperkalemia\n- Angioedema (rare, <1%)\n- Hypotension (first dose)\n- AKI (especially with dehydration)\n\n## Monitoring\n- BP at 1-2 weeks\n- Potassium and creatinine at 1-2 weeks\n- Cough assessment\n\n## Drug Interactions\n- K-sparing diuretics: hyperkalemia\n- NSAIDs: decrease efficacy, increase AKI risk\n- Lithium: lithium toxicity\n- ARBs: avoid combination"
+}

@@ -1,0 +1,7 @@
+{
+  "doc_id": "protocol-asp-2024",
+  "doc_kind": "protocol",
+  "title": "IV to PO Switch Criteria - ASP 2024",
+  "title_ar": "معايير التحويل من الوريد إلى الفم - برنامج إدارة المضادات الحيوية 2024",
+  "content": "# IV to PO Switch Criteria - Antimicrobial Stewardship 2024\n\n## When to Switch\n1. Patient is clinically improving\n2. Afebrile (T <38°C) for 24-48 hours\n3. WBC normalizing\n4. Tolerating oral intake\n5. No malabsorption\n6. Functioning GI tract\n\n## Suitable Antibiotics (high oral bioavailability)\n- Fluoroquinolones: >90% (levofloxacin, ciprofloxacin)\n- Metronidazole: ~100%\n- Linezolid: 100%\n- TMP-SMX: ~90%\n- Doxycycline: ~90%\n- Clindamycin: ~90%\n- Amoxicillin: ~80%\n\n## Not Suitable for IV to PO\n- Carbapenems (no oral equivalent)\n- Vancomycin (PO is for C. diff only)\n- Aminoglycosides (no oral equivalent)\n- Beta-lactams (variable, often <60%)\n\n## Saudi MOH ASP Goals\n- Reduce IV antibiotic days by 30%\n- Switch rate target: 40% within 48-72 hrs\n- Reassess at 48-72 hours for all IV antibiotics\n- Document indication in chart\n\n## Exceptions\n- Endocarditis: full IV course\n- S. aureus bacteremia: 14 days IV minimum\n- Neutropenic fever\n- Meningitis\n- Deep abscess (until drained)"
+}

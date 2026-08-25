@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_int_103_lipids_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-int-lipids' }));
+router.post('/risk', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ascvdRiskCalculation(req.body) }));
+router.post('/statin', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.statinSelectionAndDosing(req.body) }));
+router.post('/non-statin', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.nonStatinLipidTherapy(req.body) }));
+router.post('/monitor', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.lipidMonitoringAndToxicity(req.body) }));
+router.post('/lifestyle', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.lifestyleInterventionLipids(req.body) }));
+module.exports = router;

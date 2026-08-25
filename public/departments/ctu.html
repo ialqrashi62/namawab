@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CTU — NamaMedical</title>
+  <link rel="stylesheet" href="/css/tailwind-compiled.css">
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f8fafc; margin: 0; padding: 0; }
+    .header { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); color: white; padding: 24px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .engine-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .engine-card h3 { margin: 0 0 12px 0; color: #0f172a; }
+    .engine-card textarea { width: 100%; min-height: 80px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; box-sizing: border-box; }
+    .engine-card button { padding: 8px 16px; background: #0f766e; color: white; border: 0; border-radius: 6px; cursor: pointer; margin-top: 8px; }
+    .engine-card button:hover { background: #14b8a6; }
+    .result { background: #f1f5f9; padding: 12px; border-radius: 6px; margin-top: 12px; font-family: monospace; font-size: 12px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .status-healthy { background: #d1fae5; color: #065f46; }
+    .status-unhealthy { background: #fee2e2; color: #991b1b; }
+    .status-unknown { background: #fef3c7; color: #78350f; }
+    .breadcrumb { margin-bottom: 16px; font-size: 14px; color: #64748b; }
+    .breadcrumb a { color: #0f766e; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">Home</a> / <a href="/departments/hub.html">Departments</a> / CTU</div>
+      <h1 style="margin: 0 0 8px 0;">CTU</h1>
+      <p style="margin: 0; opacity: 0.9;">Clinical assessments for ctu department</p>
+      <p style="margin: 8px 0 0 0;"><span id="statusBadge" class="status-badge status-unknown">checking...</span></p>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>Available Assessments</h2>
+    <p style="color: #64748b; margin-bottom: 24px;">Click "Run" to execute an assessment engine. Input is JSON.</p>
+    
+    <div class="engine-card">
+      <h3>copdExacerbation</h3>
+      <p style="color: #64748b; font-size: 13px; margin: 0 0 8px 0;">POST /api/ctu/assessments/copdExacerbation</p>
+      <textarea id="input-copdExacerbation" placeholder='{"patientId": "p1", "age": 45}'></textarea>
+      <button onclick="runEngine('copdExacerbation')">Run copdExacerbation</button>
+      <div class="result" id="result-copdExacerbation" style="display:none"></div>
+    </div>
+    
+
+    <div class="engine-card">
+      <h3>asthmaControl</h3>
+      <p style="color: #64748b; font-size: 13px; margin: 0 0 8px 0;">POST /api/ctu/assessments/asthmaControl</p>
+      <textarea id="input-asthmaControl" placeholder='{"patientId": "p1", "age": 45}'></textarea>
+      <button onclick="runEngine('asthmaControl')">Run asthmaControl</button>
+      <div class="result" id="result-asthmaControl" style="display:none"></div>
+    </div>
+    
+
+    <div class="engine-card">
+      <h3>ardsSeverity</h3>
+      <p style="color: #64748b; font-size: 13px; margin: 0 0 8px 0;">POST /api/ctu/assessments/ardsSeverity</p>
+      <textarea id="input-ardsSeverity" placeholder='{"patientId": "p1", "age": 45}'></textarea>
+      <button onclick="runEngine('ardsSeverity')">Run ardsSeverity</button>
+      <div class="result" id="result-ardsSeverity" style="display:none"></div>
+    </div>
+    
+
+    <div class="engine-card">
+      <h3>weaningSuccessProbability</h3>
+      <p style="color: #64748b; font-size: 13px; margin: 0 0 8px 0;">POST /api/ctu/assessments/weaningSuccessProbability</p>
+      <textarea id="input-weaningSuccessProbability" placeholder='{"patientId": "p1", "age": 45}'></textarea>
+      <button onclick="runEngine('weaningSuccessProbability')">Run weaningSuccessProbability</button>
+      <div class="result" id="result-weaningSuccessProbability" style="display:none"></div>
+    </div>
+    
+
+    <div class="engine-card">
+      <h3>longTermOxygenNeed</h3>
+      <p style="color: #64748b; font-size: 13px; margin: 0 0 8px 0;">POST /api/ctu/assessments/longTermOxygenNeed</p>
+      <textarea id="input-longTermOxygenNeed" placeholder='{"patientId": "p1", "age": 45}'></textarea>
+      <button onclick="runEngine('longTermOxygenNeed')">Run longTermOxygenNeed</button>
+      <div class="result" id="result-longTermOxygenNeed" style="display:none"></div>
+    </div>
+    
+    
+  </div>
+
+  <script>
+    async function checkHealth() {
+      try {
+        const res = await fetch('/api/ctu/health', { credentials: 'include' });
+        const badge = document.getElementById('statusBadge');
+        if (res.ok) {
+          badge.className = 'status-badge status-healthy';
+          badge.textContent = '✓ API online';
+        } else {
+          badge.className = 'status-badge status-unhealthy';
+          badge.textContent = '✗ API error: ' + res.status;
+        }
+      } catch (e) {
+        const badge = document.getElementById('statusBadge');
+        badge.className = 'status-badge status-unhealthy';
+        badge.textContent = '✗ Connection failed';
+      }
+    }
+
+    async function runEngine(engineName) {
+      const inputEl = document.getElementById('input-' + engineName);
+      const resultEl = document.getElementById('result-' + engineName);
+      let input;
+      try {
+        input = JSON.parse(inputEl.value || '{}');
+      } catch (e) {
+        resultEl.textContent = 'Invalid JSON: ' + e.message;
+        resultEl.style.display = 'block';
+        return;
+      }
+      resultEl.textContent = 'Running...';
+      resultEl.style.display = 'block';
+      try {
+        const res = await fetch('/api/ctu/assessments/' + engineName, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(input)
+        });
+        const data = await res.json();
+        resultEl.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        resultEl.textContent = 'Error: ' + e.message;
+      }
+    }
+
+    checkHealth();
+  </script>
+</body>
+</html>

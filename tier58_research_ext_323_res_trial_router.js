@@ -1,0 +1,13 @@
+// filepath: tier58_research_ext_323_res_trial_router.js
+const express = require('express');
+const router = express.Router();
+const { funcs, ValidationError } = require('./tier58_research_ext_323_res_trial_engine');
+const eps = ['clinical_trial_enroll','clinical_trial_followup','clinical_trial_closeout','adverse_event_reporting','protocol_deviation'];
+function asyncH(fn) { return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next); }
+eps.forEach(name => {
+  router.post('/' + name, asyncH((req, res) => {
+    try { res.json(funcs()[name](req.body || {})); }
+    catch (e) { if (e instanceof ValidationError) return res.status(400).json({ error: e.message, field: e.field }); throw e; }
+  }));
+});
+module.exports = router;

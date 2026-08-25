@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_sup_107_security_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-sup-security' }));
+router.post('/incident', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.securityIncidentResponse(req.body) }));
+router.post('/access', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.accessControlManagement(req.body) }));
+router.post('/visitor', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.visitorManagement(req.body) }));
+router.post('/code', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.activeThreatCodeProtocol(req.body) }));
+router.post('/infant', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.infantAbductionPrevention(req.body) }));
+module.exports = router;

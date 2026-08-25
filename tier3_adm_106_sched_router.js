@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_adm_106_sched_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-adm-scheduling' }));
+router.post('/appointment', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.appointmentBooking(req.body) }));
+router.post('/waitlist', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.waitlistManagement(req.body) }));
+router.post('/overbook', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.overbookingStrategy(req.body) }));
+router.post('/reminder', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.patientReminderSystem(req.body) }));
+router.post('/no-show', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.noShowReduction(req.body) }));
+module.exports = router;

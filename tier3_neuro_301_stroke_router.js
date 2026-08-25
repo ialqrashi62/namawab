@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_neuro_301_stroke_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-stroke' }));
+router.post('/nihss', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.nihssScore(req.body) }));
+router.post('/aspects', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.aspectsScore(req.body) }));
+router.post('/tpa', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.tPACandidacy(req.body) }));
+router.post('/thrombectomy', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.thrombectomyEligibility(req.body) }));
+router.post('/etiology', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.strokeEtiology(req.body) }));
+router.post('/rehab', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.strokeRehabPlan(req.body) }));
+module.exports = router;

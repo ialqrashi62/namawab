@@ -1,0 +1,14 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_infect_304_tb_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-tb' }));
+router.post('/screen', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.tbScreening(req.body) }));
+router.post('/genexpert', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.geneXpertInterpretation(req.body) }));
+router.post('/ds-regimen', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.dsTbRegimen(req.body) }));
+router.post('/mdr-regimen', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.mdrTbRegimen(req.body) }));
+router.post('/ltbi', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ltbiTreatment(req.body) }));
+router.post('/contact', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.contactTracing(req.body) }));
+router.post('/bcg', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.bcgVaccination(req.body) }));
+module.exports = router;

@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_rheum_304_osteoporosis_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-osteoporosis' }));
+router.post('/frax', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.fraxScoreCalculation(req.body) }));
+router.post('/dxa', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.dxaInterpretation(req.body) }));
+router.post('/treatment', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.osteoporosisTreatment(req.body) }));
+router.post('/giop', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.glucocorticoidInducedOsteporosis(req.body) }));
+router.post('/pagets', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.pagetsDiseaseOfBone(req.body) }));
+module.exports = router;

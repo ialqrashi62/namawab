@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SaaS Plans - NamaMedical</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f8fafc; margin: 0; padding: 0; color: #0f172a; }
+    .header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 32px 24px; text-align: center; }
+    .header h1 { margin: 0; font-size: 28px; }
+    .header .sub { opacity: 0.85; margin-top: 8px; }
+    .container { max-width: 1200px; margin: -24px auto 0; padding: 0 24px 32px; }
+    .tenant-card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 24px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .plan { background: white; border-radius: 16px; padding: 24px; border: 2px solid #e2e8f0; transition: all 0.2s; }
+    .plan.popular { border-color: #3b82f6; transform: scale(1.02); }
+    .plan-name { font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin: 0 0 8px 0; }
+    .plan-name-ar { font-size: 16px; color: #0f172a; margin: 0 0 16px 0; direction: rtl; }
+    .price { font-size: 36px; font-weight: 700; color: #0f172a; }
+    .price span { font-size: 16px; color: #64748b; }
+    .features { list-style: none; padding: 0; margin: 16px 0; }
+    .features li { padding: 6px 0; color: #475569; font-size: 14px; border-bottom: 1px solid #f1f5f9; }
+    .features li:before { content: '✓ '; color: #10b981; font-weight: 700; }
+    .btn { width: 100%; padding: 12px; border: 0; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-primary { background: #3b82f6; color: white; }
+    .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+    .badge { display: inline-block; padding: 4px 10px; background: #3b82f6; color: white; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .stat { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
+    .stat:last-child { border-bottom: 0; }
+    .stat-label { color: #64748b; font-size: 14px; }
+    .stat-value { font-weight: 600; }
+    .progress { background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 4px; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #10b981 0%, #f59e0b 100%); }
+    .progress-fill.over { background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%); }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>💎 NamaMedical SaaS Plans</h1>
+    <div class="sub">Choose the right plan for your facility · All prices in SAR · Cancel anytime</div>
+  </div>
+  <div class="container">
+    <div class="tenant-card" id="tenantCard">
+      <h2 style="margin:0 0 12px 0;">📊 Current Subscription</h2>
+      <div id="currentSub">⏳ Loading...</div>
+    </div>
+    <div class="grid" id="plansGrid">⏳ Loading plans...</div>
+  </div>
+
+  <script>
+    function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+    function fmt(n) { return n != null ? Number(n).toLocaleString() : '∞'; }
+
+    async function loadOverview() {
+        try {
+            const res = await fetch('/api/saas-billing/tenant/overview', { credentials: 'include' });
+            if (!res.ok) {
+                document.getElementById('currentSub').innerHTML = '⚠️ Not signed in or no tenant context.';
+                return;
+            }
+            const d = await res.json();
+            const sub = d.subscription;
+            const u = d.usage;
+            const util = d.utilization || {};
+            const html = sub ? `
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+                    <div>
+                        <div style="font-size:13px;color:#64748b;text-transform:uppercase;">Current Plan</div>
+                        <div style="font-size:22px;font-weight:700;color:#0f172a;margin:4px 0;">${escapeHtml(sub.plan_name)}</div>
+                        <div style="color:#64748b;font-size:13px;">${escapeHtml(sub.plan_name_ar || '')}</div>
+                        <span class="badge" style="background:${sub.status === 'active' ? '#10b981' : '#94a3b8'};margin-top:8px;">${escapeHtml(sub.status)}</span>
+                        <div style="margin-top:12px;font-size:13px;color:#64748b;">
+                            Started: ${new Date(sub.started_at).toLocaleDateString()}<br>
+                            Expires: ${new Date(sub.expires_at).toLocaleDateString()}
+                        </div>
+                    </div>
+                    <div>
+                        <div class="stat"><span class="stat-label">Users</span><span class="stat-value">${fmt(u.users)}${u.users_limit ? ' / ' + fmt(u.users_limit) : ''}</span></div>
+                        ${u.users_limit ? `<div class="progress"><div class="progress-fill ${util.users_pct > 90 ? 'over' : ''}" style="width:${Math.min(util.users_pct, 100)}%"></div></div>` : ''}
+                        <div class="stat" style="margin-top:8px;"><span class="stat-label">Patients</span><span class="stat-value">${fmt(u.patients)}${u.patients_limit ? ' / ' + fmt(u.patients_limit) : ''}</span></div>
+                        ${u.patients_limit ? `<div class="progress"><div class="progress-fill ${util.patients_pct > 90 ? 'over' : ''}" style="width:${Math.min(util.patients_pct, 100)}%"></div></div>` : ''}
+                        <div class="stat" style="margin-top:8px;"><span class="stat-label">Monthly Appointments</span><span class="stat-value">${fmt(u.monthly_appointments)}</span></div>
+                    </div>
+                </div>
+            ` : '<div style="color:#64748b;">⚠️ No active subscription. Choose a plan below to get started.</div>';
+            document.getElementById('currentSub').innerHTML = html;
+        } catch (e) {
+            document.getElementById('currentSub').innerHTML = '⚠️ Error: ' + escapeHtml(e.message);
+        }
+    }
+
+    async function loadPlans() {
+        try {
+            const res = await fetch('/api/saas-billing/plans');
+            const data = await res.json();
+            const plans = data.plans || [];
+            if (plans.length === 0) {
+                document.getElementById('plansGrid').innerHTML = '<div style="color:#64748b;text-align:center;padding:40px;">No plans available. Please contact sales.</div>';
+                return;
+            }
+            // Mark middle plan as popular
+            const popularIdx = Math.floor(plans.length / 2);
+            document.getElementById('plansGrid').innerHTML = plans.map((p, i) => {
+                const isPopular = i === popularIdx && plans.length >= 3;
+                const feats = Array.isArray(p.features) ? p.features : [];
+                return `
+                    <div class="plan ${isPopular ? 'popular' : ''}">
+                        ${isPopular ? '<div style="text-align:center;margin-bottom:8px;"><span class="badge">⭐ Most Popular</span></div>' : ''}
+                        <h3 class="plan-name">${escapeHtml(p.name)}</h3>
+                        ${p.name_ar ? `<div class="plan-name-ar">${escapeHtml(p.name_ar)}</div>` : ''}
+                        <div class="price">${p.price_sar === 0 ? 'Free' : fmt(p.price_sar) + ' <span>SAR/' + escapeHtml(p.billing_period || 'month') + '</span>'}</div>
+                        <ul class="features">
+                            ${feats.map(f => `<li>${escapeHtml(typeof f === 'string' ? f : f.label || JSON.stringify(f))}</li>`).join('')}
+                            ${p.max_users ? `<li>Up to ${p.max_users} users</li>` : ''}
+                            ${p.max_patients ? `<li>Up to ${p.max_patients.toLocaleString()} patients</li>` : ''}
+                        </ul>
+                        <button class="btn btn-primary" onclick="subscribe('${escapeHtml(p.code).replace(/'/g, "\\'")}')">Choose ${escapeHtml(p.name)}</button>
+                    </div>
+                `;
+            }).join('');
+        } catch (e) {
+            document.getElementById('plansGrid').innerHTML = '⚠️ Error: ' + escapeHtml(e.message);
+        }
+    }
+
+    async function subscribe(code) {
+        if (!confirm('Subscribe to ' + code + '? This will replace your current plan.')) return;
+        try {
+            const res = await fetch('/api/saas-billing/tenant/subscribe', {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plan_code: code })
+            });
+            const data = await res.json();
+            if (!res.ok) { alert('Failed: ' + (data.error || res.status)); return; }
+            alert('🎉 Subscribed to ' + code + ' successfully!');
+            loadOverview();
+        } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    loadOverview();
+    loadPlans();
+  </script>
+</body>
+</html>

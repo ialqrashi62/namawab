@@ -105,6 +105,13 @@
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
+  <!-- كتالوج وحدات PCC -->
+  <url>
+    <loc>https://jumanasoft.com/pcc-catalog/</loc>
+    <lastmod>2026-07-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <!-- الشروط والأحكام -->
   <url>
     <loc>https://jumanasoft.com/terms/</loc>

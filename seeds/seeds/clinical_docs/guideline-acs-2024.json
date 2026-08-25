@@ -1,0 +1,7 @@
+{
+  "doc_id": "guideline-acs-2024",
+  "doc_kind": "guideline",
+  "title": "Acute Coronary Syndrome - ESC 2023",
+  "title_ar": "المتلازمة التاجية الحادة - ESC 2023",
+  "content": "# Acute Coronary Syndrome - ESC 2023\n\n## Classification\n- STEMI: ST elevation ≥1mm in 2 contiguous leads (≥2mm in V2-V3)\n- NSTEMI: troponin elevation without ST elevation\n- Unstable angina: ischemia without troponin elevation\n\n## STEMI Management\n- Door-to-balloon <90 minutes (PCI-capable center)\n- Door-to-needle <30 minutes if PCI not available\n- Aspirin 150-300mg loading\n- Ticagrelor 180mg loading (or clopidogrel 600mg if fibrinolysis)\n- Anticoagulation: UFH bolus 60 U/kg\n- Primary PCI: preferred reperfusion\n\n## NSTEMI\n- Risk stratify (GRACE score)\n- Invasive strategy within 24h if high risk\n- Aspirin + ticagrelor\n- Anticoagulation: fondaparinux 2.5mg SC (preferred)\n\n## Troponin\n- High-sensitivity troponin: 0/1-hour algorithm\n- 0h <5 ng/L: rule out\n- 0h ≥52 ng/L: rule in\n- Otherwise: repeat at 1 hour\n\n## Secondary Prevention\n- Dual antiplatelet: aspirin + ticagrelor 12 months\n- High-intensity statin: atorvastatin 80mg\n- ACE inhibitor: lifelong if LV dysfunction\n- Beta-blocker: if LVEF <40%\n- Cardiac rehab: within 2 weeks"
+}

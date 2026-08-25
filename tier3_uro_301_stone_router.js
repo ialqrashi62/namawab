@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_uro_301_stone_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-stone' }));
+router.post('/colic', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.renalColicInitial(req.body) }));
+router.post('/size-location', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.stoneSizeLocationDecision(req.body) }));
+router.post('/eswl-urs', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.eswlVsUreteroscopy(req.body) }));
+router.post('/prevention', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.stonePrevention24hUrine(req.body) }));
+router.post('/stent', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ureteralStentManagement(req.body) }));
+module.exports = router;

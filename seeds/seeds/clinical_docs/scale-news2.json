@@ -1,0 +1,7 @@
+{
+  "doc_id": "scale-news2",
+  "doc_kind": "scale",
+  "title": "NEWS2 Score (UK NHS)",
+  "title_ar": "درجة NEWS2",
+  "content": "# NEWS2 Score (UK NHS)\n\n## Parameters (0-3 each)\n- Respiratory rate\n- Oxygen saturation\n- Temperature\n- Systolic BP\n- Heart rate\n- Consciousness (AVPU)\n\n## Score Interpretation\n- 0-4: Low risk (routine monitoring)\n- 5-6: Medium risk (urgent response)\n- ≥7: High risk (emergency response)\n\n## Triggers\n- Any single parameter 3: urgent response\n- Total ≥7: emergency response\n- Total 5-6: urgent response\n- Total 0-4 but previously higher: increase frequency\n\n## Use\n- Early warning for clinical deterioration\n- Triggers escalation to critical care outreach\n- Standardized across UK NHS hospitals\n- Adopted in Saudi MOH pilot hospitals"
+}

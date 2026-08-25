@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_adm_109_safety_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-adm-safety' }));
+router.post('/event', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.adverseEventReporting(req.body) }));
+router.post('/rca', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.rootCauseAnalysis(req.body) }));
+router.post('/fmea', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.failureModeEffectsAnalysis(req.body) }));
+router.post('/safety-brief', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.dailySafetyBrief(req.body) }));
+router.post('/culture', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.safetyCultureSurvey(req.body) }));
+module.exports = router;

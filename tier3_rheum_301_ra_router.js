@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_rheum_301_ra_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-ra' }));
+router.post('/classification', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.raClassificationEularAcr(req.body) }));
+router.post('/das28', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.das28DiseaseActivity(req.body) }));
+router.post('/t2t', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.treatToTargetStrategy(req.body) }));
+router.post('/biologics', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.biologicsInRa(req.body) }));
+router.post('/extra-articular', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.extraArticularRa(req.body) }));
+module.exports = router;

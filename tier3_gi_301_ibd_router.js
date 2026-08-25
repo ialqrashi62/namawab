@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_gi_301_ibd_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-ibd' }));
+router.post('/cd-activity', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.crohnActivity(req.body) }));
+router.post('/uc-activity', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ulcerativeActivity(req.body) }));
+router.post('/step-therapy', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.stepTherapyIBD(req.body) }));
+router.post('/biologics', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.biologicsEligibilityIBD(req.body) }));
+router.post('/cancer-surveillance', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.colorectalCancerSurveillance(req.body) }));
+module.exports = router;

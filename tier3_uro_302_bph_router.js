@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_uro_302_bph_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-bph-prostate' }));
+router.post('/ipss', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.bphLutsIpssAssessment(req.body) }));
+router.post('/psa', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.psaInterpretation(req.body) }));
+router.post('/biopsy', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.prostateBiopsyDecision(req.body) }));
+router.post('/medical', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.bphMedicalTherapy(req.body) }));
+router.post('/surgery', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.turpVsLaser(req.body) }));
+module.exports = router;

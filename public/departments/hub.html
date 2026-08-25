@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Departments Hub - NamaMedical</title>
+  <meta name="description" content="62 clinical departments of NamaMedical Hospital - cross-department navigation and live health status">
+  <link rel="stylesheet" href="/css/tailwind-compiled.css">
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; margin: 0; padding: 0; }
+    .header { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); color: white; padding: 32px 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .header h1 { margin: 0; font-size: 32px; font-weight: 700; }
+    .header p { margin: 8px 0 0 0; opacity: 0.9; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .toolbar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+    .toolbar input { flex: 1; min-width: 220px; padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
+    .toolbar select { padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; }
+    .toolbar button { padding: 10px 20px; background: #0f766e; color: white; border: 0; border-radius: 8px; cursor: pointer; }
+    .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .stat-card { background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; }
+    .stat-label { font-size: 12px; color: #64748b; text-transform: uppercase; }
+    .stat-value { font-size: 24px; font-weight: 700; margin-top: 4px; color: #0f172a; }
+    .stat-value.success { color: #10b981; }
+    .group-bar { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .group-bar button { padding: 8px 16px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 13px; }
+    .group-bar button.active { background: #0f766e; color: white; border-color: #0f766e; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; transition: all 0.2s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); border-color: #14b8a6; }
+    .card-icon { font-size: 32px; }
+    .card-title { font-weight: 600; font-size: 15px; margin-top: 8px; }
+    .card-code { font-size: 11px; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 4px; }
+    .card-meta { font-size: 12px; color: #64748b; margin-top: 8px; }
+    .pulse { width: 10px; height: 10px; border-radius: 50%; animation: pulse 2s infinite; display: inline-block; margin-right: 4px; }
+    .pulse.healthy { background: #10b981; }
+    .pulse.unhealthy { background: #ef4444; }
+    .pulse.unknown { background: #f59e0b; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .empty { grid-column: 1 / -1; text-align: center; padding: 48px; color: #64748b; }
+    .footer { text-align: center; padding: 32px; color: #64748b; font-size: 13px; }
+    .quicklinks { display: flex; gap: 8px; margin-top: 8px; }
+    .quicklinks a { color: #0f766e; font-size: 12px; text-decoration: none; padding: 2px 8px; border: 1px solid #e2e8f0; border-radius: 4px; }
+    .quicklinks a:hover { background: #f0fdfa; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="container">
+      <h1>🏥 Departments Hub</h1>
+      <p>62 clinical departments · Live health status · Cross-department navigation</p>
+      <div class="quicklinks">
+        <a href="/station-index.html">📊 Station Index</a>
+        <a href="/openapi.json">📄 OpenAPI Spec</a>
+        <a href="/admin.html">⚙️ Admin</a>
+        <a href="/index.html">🏠 Home</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="stats-bar" id="statsBar">
+      <div class="stat-card"><div class="stat-label">Total Departments</div><div class="stat-value" id="totalDepts">62</div></div>
+      <div class="stat-card"><div class="stat-label">Healthy</div><div class="stat-value success" id="healthyCount">—</div></div>
+      <div class="stat-card"><div class="stat-label">With Issues</div><div class="stat-value" id="issuesCount">—</div></div>
+      <div class="stat-card"><div class="stat-label">AI Co-Pilot</div><div class="stat-value" id="aiStatus">—</div></div>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="Search department…">
+      <select id="statusFilter">
+        <option value="all">All Status</option>
+        <option value="healthy">Healthy</option>
+        <option value="unhealthy">Issues</option>
+      </select>
+      <button id="refreshBtn">↻ Re-verify</button>
+    </div>
+
+    <div class="group-bar" id="groupBar">
+      <button class="active" data-group="all">All</button>
+      <button data-group="cardiology">Cardiology</button>
+      <button data-group="critical">Critical Care</button>
+      <button data-group="neuro">Neurology</button>
+      <button data-group="surgical">Surgical</button>
+      <button data-group="pediatric">Pediatric</button>
+      <button data-group="mental">Mental Health</button>
+      <button data-group="diagnostic">Diagnostic</button>
+      <button data-group="ai">AI-Powered</button>
+    </div>
+
+    <div class="grid" id="grid">
+      <div style="grid-column: 1/-1; text-align: center; padding: 48px; color: #64748b;">Loading<span style="display:inline-block;margin-left:8px;">⏳</span></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>NamaMedical Hospital Platform · Live at <a href="https://jumanasoft.com">jumanasoft.com</a> · <span id="lastUpdate"></span></p>
+  </div>
+
+  <script>
+    const DEPTS = [
+      // group: 'cardiology'
+      { d: 'cardiology', name: 'Cardiology', i: '❤️', g: 'cardiology' },
+      { d: 'cardiac_rehab', name: 'Cardiac Rehab', i: '🏃', g: 'cardiology' },
+      { d: 'ccu', name: 'CCU', i: '🏥', g: 'cardiology' },
+      { d: 'cicu', name: 'CICU', i: '🏥', g: 'cardiology' },
+      // group: 'critical'
+      { d: 'icu', name: 'ICU', i: '🛏️', g: 'critical' },
+      { d: 'nicu', name: 'NICU', i: '👶', g: 'critical' },
+      { d: 'picu', name: 'PICU', i: '🧒', g: 'critical' },
+      { d: 'ctu', name: 'CTU', i: '🩺', g: 'critical' },
+      { d: 'stroke_unit', name: 'Stroke Unit', i: '🧠', g: 'critical' },
+      { d: 'burn_unit', name: 'Burn Unit', i: '🔥', g: 'critical' },
+      { d: 'dialysis', name: 'Dialysis', i: '💧', g: 'critical' },
+      { d: 'thoracic_surgery', name: 'Thoracic Surgery', i: '🫁', g: 'critical' },
+      { d: 'transplant', name: 'Transplant', i: '🫀', g: 'critical' },
+      { d: 'trauma_surgery', name: 'Trauma Surgery', i: '🚑', g: 'critical' },
+      { d: 'vascular_surgery', name: 'Vascular Surgery', i: '🩸', g: 'critical' },
+      { d: 'wound_care', name: 'Wound Care', i: '🩹', g: 'critical' },
+      // group: 'neuro'
+      { d: 'neurology', name: 'Neurology', i: '🧠', g: 'neuro' },
+      { d: 'neurosurgery', name: 'Neurosurgery', i: '🧠', g: 'neuro' },
+      { d: 'epilepsy', name: 'Epilepsy', i: '⚡', g: 'neuro' },
+      { d: 'headache', name: 'Headache', i: '🤕', g: 'neuro' },
+      { d: 'memory_clinic', name: 'Memory Clinic', i: '🧠', g: 'neuro' },
+      { d: 'movement', name: 'Movement', i: '🚶', g: 'neuro' },
+      { d: 'movement_disorders', name: 'Movement Disorders', i: '🚶', g: 'neuro' },
+      { d: 'multiple_sclerosis', name: 'Multiple Sclerosis', i: '🧠', g: 'neuro' },
+      { d: 'neuro_oncology', name: 'Neuro-Oncology', i: '🧠', g: 'neuro' },
+      // group: 'surgical'
+      { d: 'surgery', name: 'Surgery', i: '🔪', g: 'surgical' },
+      { d: 'orthopedics', name: 'Orthopedics', i: '🦴', g: 'surgical' },
+      { d: 'anesthesia', name: 'Anesthesia', i: '💉', g: 'surgical' },
+      { d: 'plastic_surgery', name: 'Plastic Surgery', i: '🩺', g: 'surgical' },
+      { d: 'otolaryngology', name: 'Otolaryngology', i: '👂', g: 'surgical' },
+      { d: 'ent', name: 'ENT', i: '👂', g: 'surgical' },
+      { d: 'ophthalmology', name: 'Ophthalmology', i: '👁️', g: 'surgical' },
+      { d: 'dental', name: 'Dental', i: '🦷', g: 'surgical' },
+      { d: 'oral_surgery', name: 'Oral Surgery', i: '🦷', g: 'surgical' },
+      { d: 'urology', name: 'Urology', i: '🩺', g: 'surgical' },
+      // group: 'pediatric'
+      { d: 'pediatrics', name: 'Pediatrics', i: '👶', g: 'pediatric' },
+      { d: 'neonatology', name: 'Neonatology', i: '👶', g: 'pediatric' },
+      { d: 'adolescent', name: 'Adolescent', i: '🧒', g: 'pediatric' },
+      { d: 'obstetrics', name: 'Obstetrics', i: '🤰', g: 'pediatric' },
+      { d: 'maternal_fetal', name: 'Maternal-Fetal', i: '🤰', g: 'pediatric' },
+      { d: 'fetal_medicine', name: 'Fetal Medicine', i: '🤰', g: 'pediatric' },
+      { d: 'ivf', name: 'IVF', i: '🧬', g: 'pediatric' },
+      { d: 'gynecology', name: 'Gynecology', i: '🌸', g: 'pediatric' },
+      { d: 'obstetrics_gynecology', name: 'OB/GYN', i: '🌸', g: 'pediatric' },
+      { d: 'reproductive', name: 'Reproductive', i: '🧬', g: 'pediatric' },
+      // group: 'mental'
+      { d: 'psychiatry', name: 'Psychiatry', i: '🧠', g: 'mental' },
+      { d: 'psychology', name: 'Psychology', i: '🧠', g: 'mental' },
+      { d: 'geriatrics', name: 'Geriatrics', i: '👴', g: 'mental' },
+      { d: 'chaplaincy', name: 'Chaplaincy', i: '⛪', g: 'mental' },
+      { d: 'social_work', name: 'Social Work', i: '🤝', g: 'mental' },
+      { d: 'sleep_medicine', name: 'Sleep Medicine', i: '😴', g: 'mental' },
+      { d: 'palliative_care', name: 'Palliative Care', i: '🕊️', g: 'mental' },
+      { d: 'pain_management', name: 'Pain Management', i: '💊', g: 'mental' },
+      // group: 'diagnostic'
+      { d: 'radiology', name: 'Radiology', i: '🩻', g: 'diagnostic' },
+      { d: 'nuclear_medicine', name: 'Nuclear Medicine', i: '☢️', g: 'diagnostic' },
+      { d: 'pathology', name: 'Pathology', i: '🔬', g: 'diagnostic' },
+      { d: 'endocrinology', name: 'Endocrinology', i: '🦋', g: 'diagnostic' },
+      { d: 'hematology', name: 'Hematology', i: '🩸', g: 'diagnostic' },
+      { d: 'oncology', name: 'Oncology', i: '🎗️', g: 'diagnostic' },
+      { d: 'nephrology', name: 'Nephrology', i: '🫘', g: 'diagnostic' },
+      { d: 'gastroenterology', name: 'Gastroenterology', i: '🫄', g: 'diagnostic' },
+      { d: 'pulmonology', name: 'Pulmonology', i: '🫁', g: 'diagnostic' },
+      { d: 'rheumatology', name: 'Rheumatology', i: '🦴', g: 'diagnostic' },
+      { d: 'infectious_disease', name: 'Infectious Disease', i: '🦠', g: 'diagnostic' },
+      { d: 'immunology', name: 'Immunology', i: '🛡️', g: 'diagnostic' },
+      { d: 'allergy', name: 'Allergy', i: '🤧', g: 'diagnostic' },
+      { d: 'dermatology', name: 'Dermatology', i: '🧴', g: 'diagnostic' },
+      { d: 'genetics', name: 'Genetics', i: '🧬', g: 'diagnostic' },
+      { d: 'nutrition', name: 'Nutrition', i: '🥗', g: 'diagnostic' },
+      { d: 'infection_control', name: 'Infection Control', i: '🧼', g: 'diagnostic' },
+      // group: 'ai'
+      { d: 'ai', name: 'AI Co-Pilot', i: '🤖', g: 'ai' },
+      // extra
+      { d: 'family_medicine', name: 'Family Medicine', i: '👨‍👩‍👧', g: 'mental' },
+      { d: 'sports_medicine', name: 'Sports Medicine', i: '⚽', g: 'rehab' },
+      { d: 'audiology', name: 'Audiology', i: '👂', g: 'diagnostic' },
+      { d: 'rehabilitation', name: 'Rehabilitation', i: '🏃', g: 'rehab' },
+      { d: 'physiotherapy', name: 'Physiotherapy', i: '🧘', g: 'rehab' },
+      { d: 'occupational_therapy', name: 'Occupational Therapy', i: '💪', g: 'rehab' },
+      { d: 'speech_therapy', name: 'Speech Therapy', i: '🗣️', g: 'rehab' },
+      { d: 'pulmonary_rehab', name: 'Pulmonary Rehab', i: '🫁', g: 'rehab' },
+      { d: 'cardiac_rehab', name: 'Cardiac Rehab', i: '🏃', g: 'rehab' }
+    ];
+
+    async function checkHealth(d) {
+      try {
+        const r = await fetch(`/api/${d}/health`, { credentials: 'include' });
+        if (r.ok) {
+          const data = await r.json();
+          return { ok: true, dept: data.dept || d };
+        }
+        return { ok: false };
+      } catch (e) { return { ok: false }; }
+    }
+
+    async function verify() {
+      const checks = await Promise.all(DEPTS.map(async d => {
+        const r = await checkHealth(d.d);
+        return { ...d, ...r };
+      }));
+      const healthy = checks.filter(c => c.ok).length;
+      const ai = checks.find(c => c.d === 'ai');
+      document.getElementById('healthyCount').textContent = healthy;
+      document.getElementById('issuesCount').textContent = checks.length - healthy;
+      document.getElementById('aiStatus').textContent = ai && ai.ok ? '✓ online' : '— offline';
+      document.getElementById('lastUpdate').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+      window._checks = checks;
+      render();
+    }
+
+    function render() {
+      const checks = window._checks || [];
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const statusFilter = document.getElementById('statusFilter').value;
+      const activeGroup = document.querySelector('.group-bar button.active').dataset.group;
+      const filtered = checks.filter(c => {
+        if (search && !c.name.toLowerCase().includes(search) && !c.d.toLowerCase().includes(search)) return false;
+        if (statusFilter === 'healthy' && !c.ok) return false;
+        if (statusFilter === 'unhealthy' && c.ok) return false;
+        if (activeGroup !== 'all' && c.g !== activeGroup) return false;
+        return true;
+      });
+      const grid = document.getElementById('grid');
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div class="empty">No departments match your filters.</div>';
+        return;
+      }
+      grid.innerHTML = filtered.map(c => `
+        <a href="/departments/${c.d}.html" class="card">
+          <div class="card-icon">${c.i}</div>
+          <div class="card-title">${c.name}</div>
+          <span class="card-code">${c.d}</span>
+          <div class="card-meta">
+            <span class="pulse ${c.ok ? 'healthy' : 'unhealthy'}"></span>
+            ${c.ok ? '✓ online' : '✗ offline'}
+          </div>
+        </a>
+      `).join('');
+    }
+
+    document.getElementById('searchInput').addEventListener('input', render);
+    document.getElementById('statusFilter').addEventListener('change', render);
+    document.getElementById('refreshBtn').addEventListener('click', verify);
+    document.querySelectorAll('.group-bar button').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.group-bar button').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        render();
+      });
+    });
+
+    verify();
+    setInterval(verify, 60000);
+  </script>
+</body>
+</html>

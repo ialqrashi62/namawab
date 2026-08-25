@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier4_coe_106_bariatric_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier4-coe-bariatric' }));
+router.post('/certification', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.bariatricCOECertification(req.body) }));
+router.post('/selection', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.bariatricPatientSelection(req.body) }));
+router.post('/postop', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.bariatricPostOpManagement(req.body) }));
+router.post('/outcomes', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.bariatricOutcomesRegistry(req.body) }));
+router.post('/revisional', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.bariatricRevisionalSurgery(req.body) }));
+module.exports = router;

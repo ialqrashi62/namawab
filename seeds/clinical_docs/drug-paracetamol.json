@@ -1,0 +1,7 @@
+{
+  "doc_id": "drug-paracetamol",
+  "doc_kind": "drug",
+  "title": "Paracetamol (Acetaminophen) - Drug Reference",
+  "title_ar": "باراسيتامول - مرجع الدواء",
+  "content": "# Paracetamol (Acetaminophen)\n\n## Class\nNon-opioid analgesic and antipyretic\n\n## Indications\n- Mild to moderate pain\n- Fever\n- Headache, dental pain, musculoskeletal pain\n\n## Dosing\n- Adults: 500-1000mg PO/IV q4-6h, max 4g/day\n- Children: 10-15 mg/kg q4-6h, max 75 mg/kg/day\n- Saudi MOH: max 3g/day for chronic use\n\n## Hepatic Dosing\n- Child-Pugh A: no adjustment\n- Child-Pugh B: avoid or reduce\n- Child-Pugh C: contraindicated\n\n## Contraindications\n- Severe hepatic impairment\n- Active liver disease\n- Hypersensitivity\n\n## Adverse Effects\n- Generally well-tolerated\n- Hepatotoxicity at >10g acute or >4g/day chronic\n- Rash (rare)\n- Hypersensitivity (rare)\n\n## Overdose\n- 4-hour level >150 μg/mL = hepatotoxic\n- N-acetylcysteine (NAC) antidote\n- NAC: 150 mg/kg IV over 1h, then 50 mg/kg over 4h, then 100 mg/kg over 16h\n- Most effective within 8 hours of ingestion\n\n## Drug Interactions\n- Warfarin: increased INR with chronic use\n- Alcohol: increased hepatotoxicity\n- Isoniazid: increased hepatotoxicity"
+}

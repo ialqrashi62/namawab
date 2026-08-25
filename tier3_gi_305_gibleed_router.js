@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_gi_305_gibleed_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-gibleed' }));
+router.post('/score', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.glasgowBlatchford(req.body) }));
+router.post('/risk', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.bleedingRiskStratification(req.body) }));
+router.post('/resuscitation', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.transfusionStrategy(req.body) }));
+router.post('/endoscopy', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.endoscopyTiming(req.body) }));
+router.post('/variceal', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.varicealBleedingManagement(req.body) }));
+module.exports = router;

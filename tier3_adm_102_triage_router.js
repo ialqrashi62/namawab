@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_adm_102_triage_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-adm-triage' }));
+router.post('/esi', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.esiTriageLevel(req.body) }));
+router.post('/sats', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.southAfricanTriage(req.body) }));
+router.post('/fast-track', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.fastTrackCriteria(req.body) }));
+router.post('/wait-times', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.waitTimeMonitoring(req.body) }));
+router.post('/diversion', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ambulanceDiversionPolicy(req.body) }));
+module.exports = router;

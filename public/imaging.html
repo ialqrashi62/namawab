@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Imaging Studies - NamaMedical</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #f1f5f9; margin: 0; padding: 0; }
+    .header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 20px 24px; }
+    .header h1 { margin: 0; font-size: 22px; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .search-bar { background: #1e293b; padding: 14px; border-radius: 12px; margin-bottom: 16px; display: flex; gap: 10px; }
+    .search-bar input { flex: 1; padding: 10px; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 6px; }
+    .search-bar button { padding: 10px 16px; background: #3b82f6; color: white; border: 0; border-radius: 6px; cursor: pointer; }
+    .modality-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tab { padding: 8px 14px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; cursor: pointer; font-size: 13px; }
+    .tab.active { background: #3b82f6; border-color: #3b82f6; }
+    .study-card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 14px; margin-bottom: 10px; cursor: pointer; }
+    .study-card:hover { border-color: #3b82f6; }
+    .study-card.critical { border-left: 4px solid #ef4444; }
+    .study-card h3 { margin: 0 0 6px 0; font-size: 15px; }
+    .study-meta { color: #94a3b8; font-size: 12px; }
+    .modal-bg { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 100; padding: 40px; }
+    .modal-bg.open { display: block; }
+    .modal { max-width: 800px; margin: 0 auto; background: #1e293b; border-radius: 12px; padding: 24px; }
+    .modal h2 { margin: 0 0 16px 0; }
+    .report-section { margin-bottom: 12px; }
+    .report-section strong { color: #3b82f6; display: block; margin-bottom: 4px; }
+    .report-section textarea { width: 100%; min-height: 80px; padding: 10px; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 6px; box-sizing: border-box; }
+    .status { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+    .status.scheduled { background: #3b82f6; color: white; }
+    .status.completed { background: #10b981; color: white; }
+    .status.cancelled { background: #6b7280; color: white; }
+    .status.in_progress { background: #f59e0b; color: white; }
+    .thumbnail { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 60px; text-align: center; color: #94a3b8; margin-bottom: 12px; }
+    .action-bar { display: flex; gap: 8px; margin-top: 16px; }
+    .btn { padding: 10px 16px; background: #3b82f6; color: white; border: 0; border-radius: 6px; cursor: pointer; }
+    .btn.secondary { background: #6b7280; }
+    .btn.danger { background: #dc2626; }
+    .empty { text-align: center; color: #94a3b8; padding: 40px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🩻 Imaging Studies & Radiology</h1>
+    <div style="font-size:13px;opacity:0.8;margin-top:4px;">DICOM studies, thumbnails & signed reports</div>
+  </div>
+  <div class="container">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search by patient ID or accession #...">
+      <button onclick="searchStudies()">🔍 Search</button>
+      <button onclick="document.getElementById('orderModal').classList.add('open')">➕ Order Study</button>
+    </div>
+    <div class="modality-tabs">
+      <div class="tab active" onclick="filterModality(this,'all')">All</div>
+      <div class="tab" onclick="filterModality(this,'XR')">X-Ray (XR)</div>
+      <div class="tab" onclick="filterModality(this,'CT')">CT</div>
+      <div class="tab" onclick="filterModality(this,'MRI')">MRI</div>
+      <div class="tab" onclick="filterModality(this,'US')">Ultrasound</div>
+      <div class="tab" onclick="filterModality(this,'NM')">Nuclear</div>
+    </div>
+    <div id="studiesList"></div>
+  </div>
+
+  <div class="modal-bg" id="viewModal">
+    <div class="modal">
+      <h2 id="viewTitle">Study Details</h2>
+      <div id="viewBody"></div>
+      <div class="action-bar">
+        <button class="btn secondary" onclick="document.getElementById('viewModal').classList.remove('open')">Close</button>
+        <button class="btn" onclick="document.getElementById('viewModal').classList.remove('open'); document.getElementById('reportModal').classList.add('open')">📝 Write Report</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="reportModal">
+    <div class="modal">
+      <h2>📝 Radiology Report</h2>
+      <input type="hidden" id="reportStudyId">
+      <div class="report-section">
+        <strong>Findings</strong>
+        <textarea id="reportFindings" placeholder="Describe findings..."></textarea>
+      </div>
+      <div class="report-section">
+        <strong>Impression</strong>
+        <textarea id="reportImpression" placeholder="Final impression..."></textarea>
+      </div>
+      <div class="report-section">
+        <strong>Recommendations</strong>
+        <textarea id="reportRecs" placeholder="Recommendations for follow-up..."></textarea>
+      </div>
+      <div class="report-section">
+        <label><input type="checkbox" id="reportCritical"> 🚨 Critical findings (STAT notification required)</label>
+      </div>
+      <div class="action-bar">
+        <button class="btn secondary" onclick="document.getElementById('reportModal').classList.remove('open')">Cancel</button>
+        <button class="btn" onclick="submitReport()">💾 Save Report</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="orderModal">
+    <div class="modal">
+      <h2>➕ Order Imaging Study</h2>
+      <div class="report-section">
+        <strong>Patient ID</strong>
+        <input type="number" id="orderPatientId" style="width:100%;padding:10px;background:#0f172a;color:white;border:1px solid #334155;border-radius:6px;box-sizing:border-box;">
+      </div>
+      <div class="report-section">
+        <strong>Modality</strong>
+        <select id="orderModality" style="width:100%;padding:10px;background:#0f172a;color:white;border:1px solid #334155;border-radius:6px;">
+          <option value="XR">X-Ray</option><option value="CT">CT</option><option value="MRI">MRI</option><option value="US">Ultrasound</option><option value="NM">Nuclear Medicine</option>
+        </select>
+      </div>
+      <div class="report-section">
+        <strong>Study Name</strong>
+        <input type="text" id="orderStudyName" style="width:100%;padding:10px;background:#0f172a;color:white;border:1px solid #334155;border-radius:6px;box-sizing:border-box;" placeholder="CT Head w/o contrast">
+      </div>
+      <div class="report-section">
+        <strong>Body Part</strong>
+        <input type="text" id="orderBodyPart" style="width:100%;padding:10px;background:#0f172a;color:white;border:1px solid #334155;border-radius:6px;box-sizing:border-box;" placeholder="Head, Chest, Abdomen...">
+      </div>
+      <div class="action-bar">
+        <button class="btn secondary" onclick="document.getElementById('orderModal').classList.remove('open')">Cancel</button>
+        <button class="btn" onclick="submitOrder()">Order</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(s) {
+        if (s === null || s === undefined) return '';
+        return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+
+    let allStudies = [];
+    let currentModality = 'all';
+
+    async function searchStudies() {
+        const q = document.getElementById('searchInput').value.trim();
+        // Search recent studies for any patient (simplified)
+        try {
+            // If q is a number, treat as patient_id; else load recent
+            const url = q ? `/api/imaging/studies?patient_id=${encodeURIComponent(q)}` : null;
+            // Need a patient_id - so require it
+            if (!q || isNaN(+q)) {
+                alert('Enter a numeric patient ID.');
+                return;
+            }
+            const res = await fetch(url, { credentials: 'include' });
+            if (!res.ok) { document.getElementById('studiesList').innerHTML = '<div class="empty">⚠️ Failed (status ' + res.status + ').</div>'; return; }
+            const data = await res.json();
+            allStudies = data.studies;
+            renderStudies();
+        } catch (e) {
+            document.getElementById('studiesList').innerHTML = '<div class="empty">⚠️ ' + escapeHtml(e.message) + '</div>';
+        }
+    }
+
+    function filterModality(el, m) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        currentModality = m;
+        renderStudies();
+    }
+
+    function renderStudies() {
+        const filtered = currentModality === 'all' ? allStudies : allStudies.filter(s => s.modality === currentModality);
+        const container = document.getElementById('studiesList');
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="empty">No studies to display.</div>';
+            return;
+        }
+        container.innerHTML = filtered.map(s => `
+            <div class="study-card" onclick="viewStudy(${s.id})">
+                <h3>${escapeHtml(s.modality)} · ${escapeHtml(s.study_name)}</h3>
+                <div class="study-meta">
+                    ${escapeHtml(s.body_part || '')} ·
+                    <span class="status ${escapeHtml(s.status)}">${escapeHtml(s.status)}</span>
+                    ${s.accession_no ? '· Acc# ' + escapeHtml(s.accession_no) : ''}
+                    ${s.performed_at ? '· ' + new Date(s.performed_at).toLocaleString() : (s.scheduled_at ? '· scheduled ' + new Date(s.scheduled_at).toLocaleString() : '')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function viewStudy(id) {
+        const study = allStudies.find(s => s.id === id);
+        if (!study) return;
+        document.getElementById('viewTitle').textContent = `${study.modality} · ${study.study_name}`;
+        // Fetch existing reports
+        let reportsHtml = '';
+        try {
+            const r = await fetch(`/api/imaging/reports?study_id=${id}`, { credentials: 'include' });
+            if (r.ok) {
+                const rd = await r.json();
+                if (rd.reports.length > 0) {
+                    reportsHtml = '<h3 style="margin-top:16px;color:#3b82f6;">Reports</h3>' + rd.reports.map(rep => `
+                        <div style="background:#0f172a;padding:12px;border-radius:8px;margin-bottom:8px;">
+                            ${rep.critical_findings ? '<div style="background:#7f1d1d;color:white;padding:4px 8px;border-radius:4px;display:inline-block;margin-bottom:6px;">🚨 CRITICAL FINDINGS</div>' : ''}
+                            <div style="font-size:12px;color:#94a3b8;margin-bottom:6px;">${rep.signed_at ? 'Signed ' + new Date(rep.signed_at).toLocaleString() : 'Draft · ' + new Date(rep.created_at).toLocaleString()}</div>
+                            <div><strong style="color:#3b82f6;">Findings:</strong> ${escapeHtml(rep.findings)}</div>
+                            <div style="margin-top:6px;"><strong style="color:#3b82f6;">Impression:</strong> ${escapeHtml(rep.impression)}</div>
+                            ${rep.recommendations ? '<div style="margin-top:6px;"><strong style="color:#3b82f6;">Recommendations:</strong> ' + escapeHtml(rep.recommendations) + '</div>' : ''}
+                        </div>
+                    `).join('');
+                }
+            }
+        } catch (e) {}
+        document.getElementById('viewBody').innerHTML = `
+            <div class="thumbnail">📁 ${escapeHtml(study.file_path || 'DICOM file')} · ${study.file_size_bytes ? Math.round(study.file_size_bytes/1024) + ' KB' : 'no size'}<br><span style="font-size:11px;">[DICOM thumbnail placeholder — actual viewer in next iteration]</span></div>
+            <div style="font-size:13px;line-height:1.6;">
+                <div><strong>Status:</strong> <span class="status ${escapeHtml(study.status)}">${escapeHtml(study.status)}</span></div>
+                <div><strong>Body Part:</strong> ${escapeHtml(study.body_part || 'n/a')}</div>
+                <div><strong>Accession #:</strong> ${escapeHtml(study.accession_no || 'n/a')}</div>
+                <div><strong>Study UID:</strong> ${escapeHtml(study.study_uid || 'n/a')}</div>
+                <div><strong>Scheduled:</strong> ${study.scheduled_at ? new Date(study.scheduled_at).toLocaleString() : 'n/a'}</div>
+                <div><strong>Performed:</strong> ${study.performed_at ? new Date(study.performed_at).toLocaleString() : 'n/a'}</div>
+            </div>
+            ${reportsHtml}
+        `;
+        document.getElementById('reportStudyId').value = id;
+        document.getElementById('viewModal').classList.add('open');
+    }
+
+    async function submitReport() {
+        const studyId = +document.getElementById('reportStudyId').value;
+        const findings = document.getElementById('reportFindings').value;
+        const impression = document.getElementById('reportImpression').value;
+        const recommendations = document.getElementById('reportRecs').value;
+        const critical = document.getElementById('reportCritical').checked;
+        try {
+            const res = await fetch('/api/imaging/reports', {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ study_id: studyId, findings, impression, recommendations, critical_findings: critical })
+            });
+            if (!res.ok) { alert('Save failed: ' + res.status); return; }
+            document.getElementById('reportModal').classList.remove('open');
+            document.getElementById('viewModal').classList.remove('open');
+            alert('Report saved' + (critical ? ' — ⚠️ CRITICAL FINDINGS flagged for STAT notification' : ''));
+            searchStudies();
+        } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function submitOrder() {
+        const patient_id = +document.getElementById('orderPatientId').value;
+        const modality = document.getElementById('orderModality').value;
+        const study_name = document.getElementById('orderStudyName').value;
+        const body_part = document.getElementById('orderBodyPart').value;
+        if (!patient_id || !study_name) { alert('Patient ID and study name required.'); return; }
+        try {
+            const res = await fetch('/api/imaging/studies', {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ patient_id, modality, study_name, body_part })
+            });
+            if (!res.ok) { alert('Order failed: ' + res.status); return; }
+            document.getElementById('orderModal').classList.remove('open');
+            alert('Study ordered.');
+        } catch (e) { alert('Error: ' + e.message); }
+    }
+  </script>
+</body>
+</html>

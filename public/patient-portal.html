@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Patient Portal - NamaMedical</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f0fdfa; margin: 0; padding: 0; color: #0f172a; }
+    .header { background: linear-gradient(135deg, #0d9488 0%, #2dd4bf 100%); color: white; padding: 24px; }
+    .header h1 { margin: 0; font-size: 22px; }
+    .header .sub { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 24px; }
+    .greeting { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 16px; }
+    .greeting h2 { margin: 0 0 8px 0; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .card h3 { margin: 0 0 12px 0; color: #0d9488; font-size: 16px; }
+    .card .num { font-size: 28px; font-weight: 700; }
+    .list-item { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+    .list-item:last-child { border-bottom: 0; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .pill.scheduled { background: #dbeafe; color: #1e40af; }
+    .pill.completed { background: #d1fae5; color: #065f46; }
+    .pill.cancelled { background: #fee2e2; color: #991b1b; }
+    .pill.anaphylaxis { background: #7f1d1d; color: white; }
+    .pill.severe { background: #fee2e2; color: #991b1b; }
+    .pill.moderate { background: #fef3c7; color: #78350f; }
+    .pill.low { background: #d1fae5; color: #065f46; }
+    .btn { padding: 10px 16px; background: #0d9488; color: white; border: 0; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .btn.secondary { background: #94a3b8; }
+    .modal-bg { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; padding: 40px; }
+    .modal-bg.open { display: block; }
+    .modal { max-width: 500px; margin: 0 auto; background: white; border-radius: 12px; padding: 24px; }
+    .modal input, .modal select, .modal textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 10px; box-sizing: border-box; }
+    .empty { color: #94a3b8; padding: 20px; text-align: center; }
+    .abnormal { background: #fee2e2; padding: 6px 10px; border-radius: 6px; margin: 4px 0; font-size: 13px; }
+    .abnormal.critical { background: #7f1d1d; color: white; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>👤 Patient Portal</h1>
+    <div class="sub">Your appointments · lab results · allergies · request new appointment</div>
+  </div>
+  <div class="container">
+    <div class="greeting" id="greeting">
+      <h2>⏳ Loading your portal...</h2>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <h3>📅 Upcoming Appointments</h3>
+        <div class="num" id="upcomingCount">-</div>
+        <button class="btn" onclick="openRequest()" style="margin-top:10px;">➕ Request Appointment</button>
+      </div>
+      <div class="card">
+        <h3>🧪 Recent Lab Results</h3>
+        <div class="num" id="labsCount">-</div>
+        <div style="font-size:12px;color:#64748b;">Last 90 days</div>
+      </div>
+      <div class="card">
+        <h3>⚠️ Active Allergies</h3>
+        <div class="num" id="allergyCount">-</div>
+        <div style="font-size:12px;color:#64748b;">On file</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h3>📋 Your Appointments</h3>
+      <div id="apptList"><div class="empty">Loading...</div></div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h3>🧪 Recent Lab Results (highlighted abnormal)</h3>
+      <div id="labsList"><div class="empty">Loading...</div></div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h3>⚠️ Active Allergies</h3>
+      <div id="allergyList"><div class="empty">Loading...</div></div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="requestModal">
+    <div class="modal">
+      <h3>📅 Request Appointment</h3>
+      <label>Preferred Date</label>
+      <input type="date" id="reqDate">
+      <label>Preferred Time</label>
+      <input type="time" id="reqTime">
+      <label>Department</label>
+      <select id="reqDept">
+        <option>family_medicine</option><option>cardiology</option><option>neurology</option>
+        <option>pediatrics</option><option>dermatology</option><option>orthopedics</option>
+        <option>general</option>
+      </select>
+      <label>Reason (optional)</label>
+      <textarea id="reqReason" rows="3"></textarea>
+      <button class="btn" onclick="submitRequest()">Submit Request</button>
+      <button class="btn secondary" onclick="document.getElementById('requestModal').classList.remove('open')">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+
+    async function loadPortal() {
+        try {
+            const meRes = await fetch('/api/patient-portal/me', { credentials: 'include' });
+            if (!meRes.ok) {
+                document.getElementById('greeting').innerHTML = '<h2>⚠️ Portal Unavailable</h2><p>Patient record not linked to this account. Please contact reception.</p>';
+                return;
+            }
+            const me = await meRes.json();
+            const p = me.patient;
+            document.getElementById('greeting').innerHTML = `<h2>👋 Welcome, ${escapeHtml(p.name_en || p.name_ar)}</h2>
+                <div style="font-size:14px;color:#475569;">ID: ${p.id} · Age: ${p.age || 'n/a'} · Sex: ${p.sex || 'n/a'}</div>`;
+
+            // Load all sections in parallel
+            const [apptsRes, labsRes, allergiesRes] = await Promise.all([
+                fetch('/api/patient-portal/appointments', { credentials: 'include' }),
+                fetch('/api/patient-portal/labs', { credentials: 'include' }),
+                fetch('/api/patient-portal/allergies', { credentials: 'include' })
+            ]);
+            const appts = apptsRes.ok ? await apptsRes.json() : { appointments: [] };
+            const labs = labsRes.ok ? await labsRes.json() : { results: [] };
+            const allergies = allergiesRes.ok ? await allergiesRes.json() : { allergies: [] };
+
+            const today = new Date().toISOString().slice(0, 10);
+            const upcoming = appts.appointments.filter(a => a.appt_date >= today && (a.status === 'scheduled' || a.status === 'confirmed'));
+
+            document.getElementById('upcomingCount').textContent = upcoming.length;
+            document.getElementById('labsCount').textContent = labs.results.length;
+            document.getElementById('allergyCount').textContent = allergies.allergies.length;
+
+            document.getElementById('apptList').innerHTML = appts.appointments.length === 0
+                ? '<div class="empty">No appointments on file.</div>'
+                : appts.appointments.slice(0, 15).map(a => `<div class="list-item">
+                    <strong>${escapeHtml(a.appt_date)} at ${escapeHtml(a.appt_time)}</strong>
+                    <span class="pill ${escapeHtml(a.status)}">${escapeHtml(a.status)}</span>
+                    <div style="color:#64748b;font-size:12px;">${escapeHtml(a.department)} · ${escapeHtml(a.doctor_name || 'any provider')}</div>
+                </div>`).join('');
+
+            document.getElementById('labsList').innerHTML = labs.results.length === 0
+                ? '<div class="empty">No lab results in the last 90 days.</div>'
+                : labs.results.slice(0, 20).map(l => {
+                    const abnormal = l.abnormal_flag && l.abnormal_flag !== 'N';
+                    const critical = l.is_critical === 1;
+                    return `<div class="${abnormal ? 'abnormal' + (critical ? ' critical' : '') : 'list-item'}">
+                        <strong>${escapeHtml(l.test_name)}</strong>: ${escapeHtml(l.value)} ${escapeHtml(l.unit || '')}
+                        ${abnormal ? '<span style="background:rgba(0,0,0,0.2);padding:1px 6px;border-radius:3px;font-size:10px;margin-left:6px;">' + escapeHtml(l.abnormal_flag) + '</span>' : ''}
+                        <span style="float:right;color:#64748b;font-size:11px;">${new Date(l.reported_at).toLocaleDateString()}</span>
+                    </div>`;
+                }).join('');
+
+            document.getElementById('allergyList').innerHTML = allergies.allergies.length === 0
+                ? '<div class="empty" style="color:#065f46;">✓ No known allergies on file.</div>'
+                : allergies.allergies.map(a => `<div class="list-item">
+                    <strong>${escapeHtml(a.allergen)}</strong>
+                    <span class="pill ${escapeHtml(a.severity)}">${escapeHtml(a.severity)}</span>
+                    <div style="color:#64748b;font-size:12px;">${escapeHtml(a.allergen_type)}${a.reaction ? ' · reaction: ' + escapeHtml(a.reaction) : ''}</div>
+                </div>`).join('');
+        } catch (e) {
+            document.getElementById('greeting').innerHTML = '<h2>⚠️ Error</h2><p>' + escapeHtml(e.message) + '</p>';
+        }
+    }
+
+    function openRequest() {
+        document.getElementById('reqDate').value = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+        document.getElementById('reqTime').value = '10:00';
+        document.getElementById('requestModal').classList.add('open');
+    }
+
+    async function submitRequest() {
+        const appt_date = document.getElementById('reqDate').value;
+        const appt_time = document.getElementById('reqTime').value;
+        const department = document.getElementById('reqDept').value;
+        const reason = document.getElementById('reqReason').value;
+        try {
+            const res = await fetch('/api/patient-portal/appointments/request', {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ appt_date, appt_time, department, reason })
+            });
+            if (!res.ok) { alert('Failed: ' + res.status); return; }
+            document.getElementById('requestModal').classList.remove('open');
+            alert('Appointment request submitted. Staff will confirm.');
+            loadPortal();
+        } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    loadPortal();
+  </script>
+</body>
+</html>

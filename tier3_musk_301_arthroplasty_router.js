@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_musk_301_arthroplasty_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-arthroplasty' }));
+router.post('/tha-indication', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.thaIndications(req.body) }));
+router.post('/tka-indication', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.tkaIndications(req.body) }));
+router.post('/proms', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.hoosKoosScore(req.body) }));
+router.post('/preop', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.preOpOptimization(req.body) }));
+router.post('/dvt-proph', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.dvtProphylaxis(req.body) }));
+router.post('/los', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.lengthOfStayPathway(req.body) }));
+module.exports = router;

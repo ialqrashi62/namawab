@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_renal_301_ckd_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-ckd' }));
+router.post('/egfr', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => { try { res.json({ ok: true, result: engine.ckdEpiEgfr(req.body) }); } catch (e) { res.status(400).json({ ok: false, error: e.message }); } });
+router.post('/kdigo', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.kdigoStaging(req.body) }));
+router.post('/anemia', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.anemiaManagement(req.body) }));
+router.post('/mbd', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ckdMbd(req.body) }));
+router.post('/progression', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ckdProgression(req.body) }));
+router.post('/dialysis-readiness', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.dialysisReadiness(req.body) }));
+module.exports = router;

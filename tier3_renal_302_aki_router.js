@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_renal_302_aki_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-aki' }));
+router.post('/stage', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => { try { res.json({ ok: true, result: engine.akiStaging(req.body) }); } catch (e) { res.status(400).json({ ok: false, error: e.message }); } });
+router.post('/cause', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.causeWorkup(req.body) }));
+router.post('/rrt', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.rrtInitiation(req.body) }));
+router.post('/recovery', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.akiRecoveryTracking(req.body) }));
+router.post('/contrast', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.contrastNephropathyRisk(req.body) }));
+module.exports = router;

@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_pulm_303_ild_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-ild' }));
+router.post('/gap', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.gapIndex(req.body) }));
+router.post('/antifibrotic', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.antifibroticEligibility(req.body) }));
+router.post('/progression', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.progressionMonitoring(req.body) }));
+router.post('/oxygen', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.oxygenRequirement(req.body) }));
+router.post('/sarcoidosis', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.sarcoidosisStaging(req.body) }));
+module.exports = router;

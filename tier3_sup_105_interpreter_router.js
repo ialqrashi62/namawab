@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_sup_105_interpreter_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-sup-interpreter' }));
+router.post('/access', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.interpreterAccessDetermination(req.body) }));
+router.post('/qualified', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.qualifiedInterpreterVerification(req.body) }));
+router.post('/translate', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.documentTranslation(req.body) }));
+router.post('/literacy', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.healthLiteracyCommunication(req.body) }));
+router.post('/vri', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.remoteVideoInterpreter(req.body) }));
+module.exports = router;

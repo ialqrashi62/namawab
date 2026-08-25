@@ -27,3 +27,15 @@ This document provides a structured guide to the public features and modules of 
 
 ## Excluded Private Modules (Noindex/Nofollow)
 - All administrative, super-admin, and internal client dashboards are disallowed in robots.txt and sitemap to preserve tenant isolation and data privacy.
+
+## PCC (Patient Care Components) Catalog
+- **PCC Catalog Page**: https://jumanasoft.com/pcc-catalog/ - Public-facing auto-discovered catalog of 789 PCC modules covering clinical, financial, operational, diagnostic, and administrative domains.
+- **PCC Catalog API**: https://jumanasoft.com/api/v1/pcc-catalog/modules - Returns JSON list of all 789 PCC module directories with their extension numbers and route counts.
+- **Sample Module**: https://jumanasoft.com/api/v1/pcc-general-medicine-ext102/list - Each PCC module exposes /list (function listing), /<function_name> (callable endpoints), and standard CRUD operations.
+- **Module Categories**: clinical (cardiology, oncology, pediatrics, etc.), diagnostic (lab, imaging, pathology), financial (billing, insurance, NPHIES, ZATCA), operational (HR, inventory, maintenance), administrative.
+
+## PCC Capabilities
+- Auto-discovered at runtime via filesystem scan (regex `/^pcc_.*_ext\\d+$/`)
+- Tenant-isolated with RBAC enforcement
+- Idempotent for money/claim operations
+- Real-time listing without restart

@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_nephro_301_ckd_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-ckd' }));
+router.post('/stage', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ckdStagingKdigo(req.body) }));
+router.post('/progression', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ckdProgressionRisk(req.body) }));
+router.post('/anemia', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ckdAnemiaEpoManagement(req.body) }));
+router.post('/mbd', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.mineralBoneDisorder(req.body) }));
+router.post('/hypertension', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.hypertensionInCkd(req.body) }));
+module.exports = router;

@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_onc_102_markers_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-onc-markers' }));
+router.post('/interpretation', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.tumorMarkerInterpretation(req.body) }));
+router.post('/screening', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.screeningCancerMarkers(req.body) }));
+router.post('/monitor', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.treatmentResponseMonitoring(req.body) }));
+router.post('/surveillance', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.surveillanceProtocol(req.body) }));
+router.post('/false-positive', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.falsePositiveSources(req.body) }));
+module.exports = router;

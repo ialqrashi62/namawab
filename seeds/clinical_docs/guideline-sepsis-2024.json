@@ -1,0 +1,7 @@
+{
+  "doc_id": "guideline-sepsis-2024",
+  "doc_kind": "guideline",
+  "title": "Sepsis Management - Surviving Sepsis 2021",
+  "title_ar": "إدارة الإنتان - Surviving Sepsis 2021",
+  "content": "# Sepsis Management - Surviving Sepsis Campaign 2021\n\n## Hour-1 Bundle\n1. Measure lactate\n2. Obtain blood cultures BEFORE antibiotics\n3. Administer broad-spectrum antibiotics within 1 hour\n4. Begin rapid administration of 30 mL/kg crystalloid for hypotension or lactate ≥4 mmol/L\n5. Apply vasopressors if hypotensive during/after fluid resuscitation to maintain MAP ≥65 mmHg\n\n## qSOFA Screening (≥2 = high risk)\n- Altered mental status (GCS <15)\n- Respiratory rate ≥22/min\n- Systolic BP ≤100 mmHg\n\n## Initial Antibiotics\n- Community-acquired pneumonia: ceftriaxone 2g + azithromycin 500mg\n- Urosepsis: ceftriaxone 2g\n- Abdominal source: piperacillin-tazobactam 4.5g\n- MRSA risk: add vancomycin 25-30 mg/kg loading\n- MDR organism risk: add meropenem 1g\n\n## Source Control\n- Identify source within 6 hours\n- Drainage of abscess, removal of infected device\n- Surgical intervention if indicated\n\n## Monitoring\n- Lactate every 2-4 hours until normalized\n- MAP target ≥65 mmHg\n- Urine output ≥0.5 mL/kg/hr\n- ScvO2 ≥70%"
+}

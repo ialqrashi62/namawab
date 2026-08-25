@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_anesth_304_pain_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-pain-management' }));
+router.post('/vas', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.vasPainScale(req.body) }));
+router.post('/who-ladder', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.whoAnalgesicLadder(req.body) }));
+router.post('/pca', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.pcaDosingCalculation(req.body) }));
+router.post('/equianalgesic', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.opioidEquianalgesicConversion(req.body) }));
+router.post('/multimodal', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.multimodalAnalgesiaProtocol(req.body) }));
+module.exports = router;

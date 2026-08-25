@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/img/icon-192.svg" type="image/svg+xml">
+  <meta name="description" content="NamaMedical — Mobile clinical station">
+  <title>NamaMedical Mobile Station</title>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; background: #0f172a; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; height: 100%; overflow-x: hidden; }
+    body { padding-top: env(safe-area-inset-top, 0); padding-bottom: env(safe-area-inset-bottom, 0); }
+
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+      padding: 14px 16px; padding-top: calc(14px + env(safe-area-inset-top, 0));
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .topbar h1 { margin: 0; font-size: 17px; font-weight: 600; }
+    .topbar .menu-btn { background: rgba(255,255,255,0.15); border: 0; color: white; width: 36px; height: 36px; border-radius: 8px; font-size: 20px; cursor: pointer; }
+
+    .drawer {
+      position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+      background: rgba(15, 23, 42, 0.85); z-index: 200;
+      display: none;
+    }
+    .drawer.open { display: block; }
+    .drawer-panel {
+      position: absolute; top: 0; right: 0; bottom: 0; width: min(85vw, 360px);
+      background: #1e293b; padding: 20px; padding-top: calc(20px + env(safe-area-inset-top, 0));
+      overflow-y: auto; box-shadow: -4px 0 20px rgba(0,0,0,0.5);
+    }
+    .drawer-panel h2 { margin: 0 0 16px 0; color: #14b8a6; font-size: 18px; }
+    .drawer a { display: block; padding: 12px 14px; color: #cbd5e1; text-decoration: none; border-radius: 8px; margin-bottom: 4px; font-size: 14px; }
+    .drawer a:active { background: #334155; }
+
+    .main { padding: 16px; }
+    .search-wrap {
+      position: sticky; top: 56px; z-index: 50;
+      background: #0f172a; padding: 12px 0; margin-bottom: 12px;
+    }
+    .search-wrap input {
+      width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid #334155;
+      background: #1e293b; color: white; font-size: 16px;
+    }
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      background: #1e293b; border-radius: 12px; padding: 18px 14px;
+      text-align: center; cursor: pointer; transition: transform 0.1s;
+      border: 1px solid #334155;
+    }
+    .card:active { transform: scale(0.96); background: #334155; }
+    .card .icon { font-size: 32px; margin-bottom: 8px; }
+    .card .name { font-size: 13px; font-weight: 600; color: #f1f5f9; }
+    .card .meta { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+
+    .quick-actions {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      margin-bottom: 18px;
+    }
+    .qa-btn {
+      background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+      color: white; border: 0; padding: 18px 12px; border-radius: 12px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .qa-btn:active { transform: scale(0.97); }
+    .qa-btn.secondary { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); }
+
+    .status {
+      position: fixed; bottom: 16px; left: 16px; right: 16px;
+      background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+      padding: 12px 14px; font-size: 12px; color: #94a3b8;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .status .dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; margin-right: 6px; display: inline-block; }
+    .status .dot.offline { background: #ef4444; }
+
+    .empty { text-align: center; color: #94a3b8; padding: 40px 20px; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <h1>📱 Mobile Station</h1>
+    <button class="menu-btn" id="menuBtn">☰</button>
+  </header>
+
+  <div class="drawer" id="drawer">
+    <div class="drawer-panel">
+      <h2>Quick Links</h2>
+      <a href="/patient.html">👤 Patient Dashboard</a>
+      <a href="/station-index.html">🏥 All Stations</a>
+      <a href="/station-mobile.html">📱 Mobile Station</a>
+      <a href="/hub.html">🎯 Department Hub</a>
+      <a href="/rls-dashboard.html">🔒 RLS Dashboard</a>
+      <a href="/admin.html">⚙️ Admin</a>
+      <a href="/api/hub/health" target="_blank">🩺 API Health</a>
+    </div>
+  </div>
+
+  <main class="main">
+    <div class="quick-actions">
+      <button class="qa-btn" onclick="goToPatient()">🔍 Find Patient</button>
+      <button class="qa-btn secondary" onclick="goToStations()">🏥 Stations</button>
+    </div>
+
+    <div class="search-wrap">
+      <input type="search" id="searchInput" placeholder="Search stations..." inputmode="search">
+    </div>
+
+    <div id="grid" class="grid"></div>
+  </main>
+
+  <div class="status">
+    <span><span class="dot" id="statusDot"></span><span id="statusText">Online</span></span>
+    <span id="statusTime"></span>
+  </div>
+
+  <script>
+    const STATIONS = [
+      { name: 'Cardiology', icon: '❤️', group: 'Medical' },
+      { name: 'Pediatrics', icon: '👶', group: 'Medical' },
+      { name: 'Oncology', icon: '🎗️', group: 'Medical' },
+      { name: 'Neurology', icon: '🧠', group: 'Medical' },
+      { name: 'Nephrology', icon: '🫘', group: 'Medical' },
+      { name: 'Pulmonology', icon: '🫁', group: 'Medical' },
+      { name: 'Gastroenterology', icon: '🥼', group: 'Medical' },
+      { name: 'Endocrinology', icon: '🧬', group: 'Medical' },
+      { name: 'Rheumatology', icon: '🦴', group: 'Medical' },
+      { name: 'Dermatology', icon: '🧴', group: 'Medical' },
+      { name: 'Psychiatry', icon: '🧘', group: 'Medical' },
+      { name: 'Infectious Disease', icon: '🦠', group: 'Medical' },
+      { name: 'Family Medicine', icon: '👨‍👩‍👧', group: 'Medical' },
+      { name: 'Allergy', icon: '🌸', group: 'Medical' },
+      { name: 'Hematology', icon: '🩸', group: 'Medical' },
+      { name: 'Surgery', icon: '🔪', group: 'Surgical' },
+      { name: 'Anesthesia', icon: '💉', group: 'Surgical' },
+      { name: 'Neurosurgery', icon: '🧠', group: 'Surgical' },
+      { name: 'Orthopedics', icon: '🦴', group: 'Surgical' },
+      { name: 'Ophthalmology', icon: '👁️', group: 'Surgical' },
+      { name: 'ENT', icon: '👂', group: 'Surgical' },
+      { name: 'Urology', icon: '🩺', group: 'Surgical' },
+      { name: 'Dental', icon: '🦷', group: 'Surgical' },
+      { name: 'OB/GYN', icon: '🤰', group: 'Women' },
+      { name: 'Maternal Fetal', icon: '👶', group: 'Women' },
+      { name: 'Reproductive', icon: '🌸', group: 'Women' },
+      { name: 'Neonatology (NICU)', icon: '🍼', group: 'Critical' },
+      { name: 'Pediatric ICU (PICU)', icon: '🏥', group: 'Critical' },
+      { name: 'Adult ICU', icon: '🏨', group: 'Critical' },
+      { name: 'CCU', icon: '❤️', group: 'Critical' },
+      { name: 'CICU', icon: '🫀', group: 'Critical' },
+      { name: 'Burn Unit', icon: '🔥', group: 'Critical' },
+      { name: 'Dialysis', icon: '💧', group: 'Critical' },
+      { name: 'Stroke Unit', icon: '⚡', group: 'Critical' },
+      { name: 'Pain Management', icon: '🩹', group: 'Care' },
+      { name: 'Palliative Care', icon: '🕊️', group: 'Care' },
+      { name: 'Physiotherapy', icon: '🏃', group: 'Care' },
+      { name: 'Occupational Therapy', icon: '🖐️', group: 'Care' },
+      { name: 'Cardiac Rehab', icon: '❤️', group: 'Care' },
+      { name: 'Speech Therapy', icon: '🗣️', group: 'Care' },
+      { name: 'Nutrition', icon: '🥗', group: 'Care' },
+      { name: 'Audiology', icon: '👂', group: 'Diagnostic' },
+      { name: 'Pathology', icon: '🔬', group: 'Diagnostic' },
+      { name: 'Radiology', icon: '🩻', group: 'Diagnostic' },
+      { name: 'Sleep Medicine', icon: '😴', group: 'Diagnostic' },
+      { name: 'Genetics', icon: '🧬', group: 'Diagnostic' },
+      { name: 'Pharmacology', icon: '💊', group: 'Therapy' },
+      { name: 'Blood Bank', icon: '🩸', group: 'Therapy' },
+      { name: 'Hyperbaric', icon: '🌊', group: 'Therapy' },
+      { name: 'Wound Care', icon: '🩹', group: 'Therapy' },
+      { name: 'IV Therapy', icon: '💉', group: 'Therapy' },
+      { name: 'Chaplaincy', icon: '🙏', group: 'Support' },
+      { name: 'Social Work', icon: '🤝', group: 'Support' },
+      { name: 'Case Management', icon: '📋', group: 'Support' },
+      { name: 'Discharge Planning', icon: '🚪', group: 'Support' },
+      { name: 'Mental Health', icon: '🧘', group: 'Support' },
+      { name: 'Geriatrics', icon: '👵', group: 'Support' },
+      { name: 'Adolescent Med', icon: '🧑', group: 'Support' },
+      { name: 'Travel Medicine', icon: '✈️', group: 'Support' },
+      { name: 'Sports Medicine', icon: '⚽', group: 'Support' },
+      { name: 'Integrative Med', icon: '🌿', group: 'Support' },
+      { name: 'Military Medicine', icon: '🪖', group: 'Support' },
+      { name: 'Forensic Medicine', icon: '🔍', group: 'Support' },
+      { name: 'TB Clinic', icon: '🦠', group: 'Specialty' },
+      { name: 'HIV Clinic', icon: '🎀', group: 'Specialty' },
+      { name: 'Diabetes Center', icon: '🩸', group: 'Specialty' }
+    ];
+
+    function renderGrid(filter) {
+      const grid = document.getElementById('grid');
+      const items = STATIONS.filter(s => !filter || s.name.toLowerCase().includes(filter.toLowerCase()));
+      if (items.length === 0) {
+        grid.innerHTML = '<div class="empty">No stations match.</div>';
+        return;
+      }
+      grid.innerHTML = items.map(s => `
+        <div class="card" onclick="goToStation('${s.name}')">
+          <div class="icon">${s.icon}</div>
+          <div class="name">${s.name}</div>
+          <div class="meta">${s.group}</div>
+        </div>
+      `).join('');
+    }
+
+    function goToStation(name) {
+      const code = name.toLowerCase().replace(/[^a-z]/g, '').slice(0, 12);
+      window.location.href = '/api/' + code + '/health';
+    }
+    function goToPatient() { window.location.href = '/patient.html'; }
+    function goToStations() { window.location.href = '/station-index.html'; }
+
+    document.getElementById('searchInput').addEventListener('input', e => renderGrid(e.target.value));
+
+    document.getElementById('menuBtn').addEventListener('click', () => {
+      document.getElementById('drawer').classList.add('open');
+    });
+    document.getElementById('drawer').addEventListener('click', e => {
+      if (e.target.id === 'drawer') document.getElementById('drawer').classList.remove('open');
+    });
+
+    async function checkStatus() {
+      try {
+        const res = await fetch('/api/hub/health', { credentials: 'include' });
+        if (res.ok) {
+          document.getElementById('statusDot').classList.remove('offline');
+          document.getElementById('statusText').textContent = 'Online · ' + new Date().toLocaleTimeString();
+        } else {
+          throw new Error('status ' + res.status);
+        }
+      } catch (e) {
+        document.getElementById('statusDot').classList.add('offline');
+        document.getElementById('statusText').textContent = 'Offline';
+      }
+      document.getElementById('statusTime').textContent = new Date().toLocaleTimeString();
+    }
+
+    renderGrid('');
+    checkStatus();
+    setInterval(checkStatus, 30000);
+
+    // Register service worker for offline support + push
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+            console.log('[PWA] Service worker registered:', reg.scope);
+            // Request notification permission
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then(perm => {
+                    if (perm === 'granted') {
+                        // Subscribe to push (placeholder — server push not wired)
+                        reg.pushManager.subscribe({ userVisibleOnly: true }).catch(e => console.warn('push subscribe:', e.message));
+                    }
+                });
+            }
+        }).catch(e => console.warn('[PWA] SW registration failed:', e));
+    }
+  </script>
+</body>
+</html>

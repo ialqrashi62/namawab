@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_hemonc_305_hsct_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-hsct' }));
+router.post('/indication', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.transplantIndication(req.body) }));
+router.post('/donor-match', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.donorMatching(req.body) }));
+router.post('/conditioning', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.conditioningRegimen(req.body) }));
+router.post('/gvhd', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.gvhdProphylaxis(req.body) }));
+router.post('/engraftment', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.engraftmentMonitoring(req.body) }));
+router.post('/long-term', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.longTermFollowup(req.body) }));
+module.exports = router;

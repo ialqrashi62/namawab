@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_sup_104_experience_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-sup-experience' }));
+router.post('/hcahps', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.hcahpsDomainTargeting(req.body) }));
+router.post('/complaint', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.complaintManagement(req.body) }));
+router.post('/rounding', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.leaderRoundingOnPatients(req.body) }));
+router.post('/communication', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.patientCommunicationBestPractices(req.body) }));
+router.post('/experience-mgmt', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.experienceMetricsDashboard(req.body) }));
+module.exports = router;

@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_neuro_303_ms_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-ms' }));
+router.post('/classify', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.msPhenotype(req.body) }));
+router.post('/edss', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.edssScore(req.body) }));
+router.post('/relapse', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.relapseTreatment(req.body) }));
+router.post('/dmt', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.dmtSelection(req.body) }));
+router.post('/monitor', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.monitoringProtocol(req.body) }));
+module.exports = router;

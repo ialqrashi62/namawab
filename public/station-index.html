@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="station.title">🏥 Live Station Index</title>
+  <meta name="description" content="Live index of all 59 clinical departments at NamaMedical Hospital Platform.">
+  <link rel="stylesheet" href="/css/tailwind-compiled.css">
+  <script src="/js/i18n.js"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; margin: 0; padding: 0; }
+    body[dir="rtl"] { font-family: 'Tahoma', sans-serif; }
+    .header { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); color: white; padding: 32px 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .header h1 { margin: 0 0 8px 0; font-size: 32px; font-weight: 700; }
+    .header p { margin: 0; opacity: 0.9; }
+    .header-meta { display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
+    .header-stat { background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 8px; font-size: 14px; }
+    .header-stat strong { display: block; font-size: 20px; }
+    .lang-switcher { background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; }
+    .lang-switcher select { background: white; color: #0f172a; border: 0; padding: 4px 8px; border-radius: 4px; font-size: 14px; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .toolbar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
+    .toolbar input { flex: 1; min-width: 200px; padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
+    .toolbar select { padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; }
+    .toolbar button { padding: 10px 20px; background: #0f766e; color: white; border: 0; border-radius: 8px; font-size: 14px; cursor: pointer; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .summary-card { background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; }
+    .summary-card .label { font-size: 13px; color: #64748b; text-transform: uppercase; }
+    .summary-card .value { font-size: 28px; font-weight: 700; margin-top: 4px; }
+    .summary-card .value.success { color: #10b981; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .tile { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; transition: all 0.2s; cursor: pointer; }
+    .tile:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); border-color: #14b8a6; }
+    .pulse { width: 10px; height: 10px; border-radius: 50%; animation: pulse 2s infinite; display: inline-block; margin-right: 4px; }
+    .pulse.healthy { background: #10b981; }
+    .pulse.unhealthy { background: #ef4444; }
+    .pulse.unknown { background: #f59e0b; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .badge.live { background: #d1fae5; color: #065f46; }
+    .badge.ai { background: #ede9fe; color: #5b21b6; }
+    .badge.new { background: #fef3c7; color: #78350f; }
+    .empty { grid-column: 1 / -1; text-align: center; padding: 48px; color: #64748b; }
+    .footer { text-align: center; padding: 32px; color: #64748b; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="container">
+      <h1 data-i18n="station.title">🏥 Live Station Index</h1>
+      <p data-i18n="station.subtitle">All 59 clinical departments running live on jumanasoft.com</p>
+      <div class="header-meta">
+        <div class="header-stat"><strong id="tTotal">59</strong><span data-i18n="station.total_depts">Total Departments</span></div>
+        <div class="header-stat"><strong id="tHealthy">—</strong><span data-i18n="hub.healthy">Healthy</span></div>
+        <div class="header-stat"><strong id="tNew">53</strong><span data-i18n="station.new_wave">New This Wave</span></div>
+        <div class="header-stat"><strong id="tLast">Just now</strong><span data-i18n="station.last_verified">Last Verified</span></div>
+        <div class="lang-switcher">
+          <label for="langSelect" data-i18n="common.select_lang">Language</label>
+          <select id="langSelect">
+            <option value="ar">العربية</option>
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+            <option value="ur">اردو</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="toolbar">
+      <input type="text" id="searchInput" data-i18n-placeholder="hub.search" placeholder="Search departments...">
+      <select id="statusFilter">
+        <option value="all" data-i18n="hub.all_status">All Status</option>
+        <option value="healthy" data-i18n="hub.healthy_only">Healthy</option>
+        <option value="unhealthy" data-i18n="hub.issues_only">Issues</option>
+      </select>
+      <button id="refreshBtn" data-i18n="hub.reverify">↻ Re-verify</button>
+    </div>
+
+    <div class="summary">
+      <div class="summary-card">
+        <div class="label" data-i18n="hub.total_depts">Total Departments</div>
+        <div class="value" id="sTotal">59</div>
+      </div>
+      <div class="summary-card">
+        <div class="label" data-i18n="hub.healthy">Healthy</div>
+        <div class="value success" id="sHealthy">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="label" data-i18n="common.health">Health</div>
+        <div class="value" id="sOnline">—</div>
+      </div>
+    </div>
+
+    <div class="grid" id="grid">
+      <div class="empty" data-i18n="common.checking">⏳ checking...</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>NamaMedical Hospital Platform · Live at jumanasoft.com · <span id="lastUpdate"></span></p>
+  </div>
+
+  <script>
+    const STATIONS = [
+      { code: 'FAM', name: 'family_medicine', dept: 'family_medicine', wave: 'legacy', tag: 'live' },
+      { code: 'GER', name: 'geriatrics', dept: 'geriatrics', wave: 'legacy', tag: 'live' },
+      { code: 'DNT', name: 'dental', dept: 'dental', wave: 'legacy', tag: 'live' },
+      { code: 'OPH', name: 'ophthalmology', dept: 'ophthalmology', wave: 'legacy', tag: 'live' },
+      { code: 'ENT', name: 'ent', dept: 'ent', wave: 'legacy', tag: 'live' },
+      { code: 'SPT', name: 'sports_medicine', dept: 'sports_medicine', wave: 'legacy', tag: 'live' },
+      { code: 'NEU', name: 'neurology', dept: 'neurology', wave: 'legacy', tag: 'live' },
+      { code: 'ORT', name: 'orthopedics', dept: 'orthopedics', wave: 'legacy', tag: 'live' },
+      { code: 'SUR', name: 'surgery', dept: 'surgery', wave: 'legacy', tag: 'live' },
+      { code: 'CAR', name: 'cardiology', dept: 'cardiology', wave: 'legacy', tag: 'live' },
+      { code: 'ONC', name: 'oncology', dept: 'oncology', wave: 'legacy', tag: 'live' },
+      { code: 'ALL', name: 'allergy', dept: 'allergy', wave: 'new', tag: 'new' },
+      { code: 'ANE', name: 'anesthesia', dept: 'anesthesia', wave: 'new', tag: 'new' },
+      { code: 'AUD', name: 'audiology', dept: 'audiology', wave: 'new', tag: 'new' },
+      { code: 'BRN', name: 'burn_unit', dept: 'burn_unit', wave: 'new', tag: 'new' },
+      { code: 'CRH', name: 'cardiac_rehab', dept: 'cardiac_rehab', wave: 'new', tag: 'new' },
+      { code: 'CCU', name: 'ccu', dept: 'ccu', wave: 'new', tag: 'new' },
+      { code: 'CHP', name: 'chaplaincy', dept: 'chaplaincy', wave: 'new', tag: 'new' },
+      { code: 'CICU', name: 'cicu', dept: 'cicu', wave: 'new', tag: 'new' },
+      { code: 'CTU', name: 'ctu', dept: 'ctu', wave: 'new', tag: 'new' },
+      { code: 'DER', name: 'dermatology', dept: 'dermatology', wave: 'new', tag: 'new' },
+      { code: 'DIA', name: 'dialysis', dept: 'dialysis', wave: 'new', tag: 'new' },
+      { code: 'EPI', name: 'epilepsy', dept: 'epilepsy', wave: 'new', tag: 'new' },
+      { code: 'FEM', name: 'fetal_medicine', dept: 'fetal_medicine', wave: 'new', tag: 'new' },
+      { code: 'GEN', name: 'genetics', dept: 'genetics', wave: 'new', tag: 'new' },
+      { code: 'HDA', name: 'headache', dept: 'headache', wave: 'new', tag: 'new' },
+      { code: 'HEM', name: 'hematology', dept: 'hematology', wave: 'new', tag: 'new' },
+      { code: 'ICU', name: 'icu', dept: 'icu', wave: 'new', tag: 'new' },
+      { code: 'IMM', name: 'immunology', dept: 'immunology', wave: 'new', tag: 'new' },
+      { code: 'ICN', name: 'infection_control', dept: 'infection_control', wave: 'new', tag: 'new' },
+      { code: 'IFD', name: 'infectious_disease', dept: 'infectious_disease', wave: 'new', tag: 'new' },
+      { code: 'IVF', name: 'ivf', dept: 'ivf', wave: 'new', tag: 'new' },
+      { code: 'MTF', name: 'maternal_fetal', dept: 'maternal_fetal', wave: 'new', tag: 'new' },
+      { code: 'MEM', name: 'memory_clinic', dept: 'memory_clinic', wave: 'new', tag: 'new' },
+      { code: 'MOV', name: 'movement', dept: 'movement', wave: 'new', tag: 'new' },
+      { code: 'MVD', name: 'movement_disorders', dept: 'movement_disorders', wave: 'new', tag: 'new' },
+      { code: 'MSC', name: 'multiple_sclerosis', dept: 'multiple_sclerosis', wave: 'new', tag: 'new' },
+      { code: 'NEO', name: 'neonatology', dept: 'neonatology', wave: 'new', tag: 'new' },
+      { code: 'NRO', name: 'neuro_oncology', dept: 'neuro_oncology', wave: 'new', tag: 'new' },
+      { code: 'NRS', name: 'neurosurgery', dept: 'neurosurgery', wave: 'new', tag: 'new' },
+      { code: 'NICU', name: 'nicu', dept: 'nicu', wave: 'new', tag: 'new' },
+      { code: 'NUC', name: 'nuclear_medicine', dept: 'nuclear_medicine', wave: 'new', tag: 'new' },
+      { code: 'NUT', name: 'nutrition', dept: 'nutrition', wave: 'new', tag: 'new' },
+      { code: 'OCT', name: 'occupational_therapy', dept: 'occupational_therapy', wave: 'new', tag: 'new' },
+      { code: 'PAI', name: 'pain_management', dept: 'pain_management', wave: 'new', tag: 'new' },
+      { code: 'PAL', name: 'palliative_care', dept: 'palliative_care', wave: 'new', tag: 'new' },
+      { code: 'PTH', name: 'pathology', dept: 'pathology', wave: 'new', tag: 'new' },
+      { code: 'PHY', name: 'physiotherapy', dept: 'physiotherapy', wave: 'new', tag: 'new' },
+      { code: 'PIC', name: 'picu', dept: 'picu', wave: 'new', tag: 'new' },
+      { code: 'PLA', name: 'plastic_surgery', dept: 'plastic_surgery', wave: 'new', tag: 'new' },
+      { code: 'PSY', name: 'psychiatry', dept: 'psychiatry', wave: 'new', tag: 'new' },
+      { code: 'PRH', name: 'pulmonary_rehab', dept: 'pulmonary_rehab', wave: 'new', tag: 'new' },
+      { code: 'RAD', name: 'radiology', dept: 'radiology', wave: 'new', tag: 'new' },
+      { code: 'REH', name: 'rehabilitation', dept: 'rehabilitation', wave: 'new', tag: 'new' },
+      { code: 'SLP', name: 'sleep_medicine', dept: 'sleep_medicine', wave: 'new', tag: 'new' },
+      { code: 'SOW', name: 'social_work', dept: 'social_work', wave: 'new', tag: 'new' },
+      { code: 'SPH', name: 'speech_therapy', dept: 'speech_therapy', wave: 'new', tag: 'new' },
+      { code: 'STR', name: 'stroke_unit', dept: 'stroke_unit', wave: 'new', tag: 'new' },
+      { code: 'THS', name: 'thoracic_surgery', dept: 'thoracic_surgery', wave: 'new', tag: 'new' },
+      { code: 'TRP', name: 'transplant', dept: 'transplant', wave: 'new', tag: 'new' },
+      { code: 'TRM', name: 'trauma_surgery', dept: 'trauma_surgery', wave: 'new', tag: 'new' },
+      { code: 'URL', name: 'urology', dept: 'urology', wave: 'new', tag: 'new' },
+      { code: 'VAS', name: 'vascular_surgery', dept: 'vascular_surgery', wave: 'new', tag: 'new' },
+      { code: 'WND', name: 'wound_care', dept: 'wound_care', wave: 'new', tag: 'new' },
+      { code: 'AI', name: 'ai', dept: 'ai', wave: 'special', tag: 'ai' }
+    ];
+
+    async function checkHealth(d) {
+      try {
+        const r = await fetch(`/api/${d}/health`, { credentials: 'include' });
+        if (r.ok) return { ok: true };
+        return { ok: false };
+      } catch (e) { return { ok: false }; }
+    }
+
+    async function verify() {
+      const checks = await Promise.all(STATIONS.map(async s => {
+        const r = await checkHealth(s.dept);
+        return { ...s, ...r };
+      }));
+      const healthy = checks.filter(c => c.ok).length;
+      document.getElementById('sHealthy').textContent = healthy;
+      document.getElementById('sTotal').textContent = checks.length;
+      document.getElementById('sOnline').textContent = `${healthy}/${checks.length}`;
+      document.getElementById('tHealthy').textContent = healthy;
+      document.getElementById('tTotal').textContent = checks.length;
+      document.getElementById('tLast').textContent = new Date().toLocaleTimeString();
+      document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
+      window._checks = checks;
+      render();
+    }
+
+    function render() {
+      const checks = window._checks || [];
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const statusFilter = document.getElementById('statusFilter').value;
+      const filtered = checks.filter(c => {
+        if (search) {
+          const deptName = i18n.t('dept.' + c.dept) || c.name;
+          if (!deptName.toLowerCase().includes(search) && !c.dept.toLowerCase().includes(search)) return false;
+        }
+        if (statusFilter === 'healthy' && !c.ok) return false;
+        if (statusFilter === 'unhealthy' && c.ok) return false;
+        return true;
+      });
+      const grid = document.getElementById('grid');
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div class="empty">' + i18n.t('hub.empty') + '</div>';
+        return;
+      }
+      grid.innerHTML = filtered.map(c => {
+        const deptName = i18n.t('dept.' + c.dept) || c.name;
+        const liveLabel = c.tag === 'ai' ? i18n.t('station.ai') : (c.tag === 'new' ? i18n.t('station.new_label') : i18n.t('station.live_label'));
+        const statusText = c.ok ? i18n.t('station.online') : i18n.t('common.offline');
+        const offlineClass = c.ok ? 'healthy' : 'unhealthy';
+        return `
+        <div class="tile" onclick="window.open('/api/${c.dept}/health', '_blank')">
+          <div style="display:flex;justify-content:space-between;align-items:start;">
+            <div>
+              <div style="font-weight:600;font-size:15px;">${deptName}</div>
+              <span style="font-size:11px;color:#64748b;">${c.code}</span>
+            </div>
+            <span class="badge ${c.tag}">${liveLabel}</span>
+          </div>
+          <div style="margin-top:8px;font-size:12px;color:#64748b;">
+            <span class="pulse ${offlineClass}"></span>${statusText}
+          </div>
+        </div>
+      `}).join('');
+    }
+
+    document.getElementById('searchInput').addEventListener('input', () => { i18n.apply(); render(); });
+    document.getElementById('statusFilter').addEventListener('change', () => render());
+    document.getElementById('refreshBtn').addEventListener('click', () => verify());
+
+    verify();
+    setInterval(verify, 60000);
+  </script>
+</body>
+</html>

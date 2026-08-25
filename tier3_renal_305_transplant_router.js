@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_renal_305_transplant_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-renal-transplant' }));
+router.post('/kdpi', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.donorKDPI(req.body) }));
+router.post('/epts', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.recipientEPTS(req.body) }));
+router.post('/immuno-risk', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.immunologicalRisk(req.body) }));
+router.post('/rejection', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.rejectionDetection(req.body) }));
+router.post('/drug-level', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.immunosuppressionMonitoring(req.body) }));
+router.post('/scot', requireAuth, requireTenantScope, requireRole('admin'), (req, res) => res.json({ ok: true, result: engine.scotLinkage(req.body) }));
+module.exports = router;

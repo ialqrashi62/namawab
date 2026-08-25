@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_obgyn_301_anc_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-anc' }));
+router.post('/booking', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ancBooking(req.body) }));
+router.post('/risk', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.riskStratification(req.body) }));
+router.post('/visits', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.ancVisitSchedule(req.body) }));
+router.post('/gdm', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.gestationalDiabetesScreening(req.body) }));
+router.post('/preeclampsia', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.preeclampsiaPrevention(req.body) }));
+router.post('/fetal-monitoring', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.fetalMonitoringInterpretation(req.body) }));
+module.exports = router;

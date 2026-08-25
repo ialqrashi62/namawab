@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_adm_108_quality_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-adm-quality' }));
+router.post('/metrics', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.qualityMetricsDashboard(req.body) }));
+router.post('/capa', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.capaActionPlan(req.body) }));
+router.post('/benchmark', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.clinicalBenchmarking(req.body) }));
+router.post('/audit', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.clinicalAuditCycle(req.body) }));
+router.post('/qi-method', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.qualityImprovementMethodology(req.body) }));
+module.exports = router;

@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier4_coe_104_transplant_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier4-coe-transplant' }));
+router.post('/certification', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.transplantCOECertification(req.body) }));
+router.post('/donor', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.donorSelectionAndManagement(req.body) }));
+router.post('/immunosuppression', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.immunosuppressionProtocol(req.body) }));
+router.post('/outcomes', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.transplantOutcomesAndQuality(req.body) }));
+router.post('/followup', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.postTransplantFollowUp(req.body) }));
+module.exports = router;

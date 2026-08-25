@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_adm_103_bed_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-adm-bed' }));
+router.post('/assign', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.bedAssignment(req.body) }));
+router.post('/capacity', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.bedCapacityManagement(req.body) }));
+router.post('/transfer', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.patientTransferInternal(req.body) }));
+router.post('/isolation', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.isolationRoomAllocation(req.body) }));
+router.post('/housekeeping', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.housekeepingWorkflow(req.body) }));
+module.exports = router;

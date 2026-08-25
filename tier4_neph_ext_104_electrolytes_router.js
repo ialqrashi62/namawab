@@ -1,0 +1,11 @@
+'use strict';
+const express = require('express');
+const engine = require('./tier4_neph_ext_104_electrolytes_engine');
+const asyncH = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+const r = express.Router();
+r.post('/sodium', asyncH((req, res) => res.json(engine.sodium(req.body || {}))));
+r.post('/potassium', asyncH((req, res) => res.json(engine.potassium(req.body || {}))));
+r.post('/calcium', asyncH((req, res) => res.json(engine.calcium(req.body || {}))));
+r.post('/phosphorus', asyncH((req, res) => res.json(engine.phosphorus(req.body || {}))));
+r.post('/magnesium', asyncH((req, res) => res.json(engine.magnesium(req.body || {}))));
+module.exports = r;

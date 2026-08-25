@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_sup_102_social_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-sup-social' }));
+router.post('/screen', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.socialWorkScreening(req.body) }));
+router.post('/dispo', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.dischargeBarriersAddressal(req.body) }));
+router.post('/abuse', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.suspectedAbuseNeglect(req.body) }));
+router.post('/financial', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.financialAssistanceAndCounseling(req.body) }));
+router.post('/community', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.communityResourceConnection(req.body) }));
+module.exports = router;

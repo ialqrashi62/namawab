@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier4_coe_105_trauma_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier4-coe-trauma' }));
+router.post('/certification', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.traumaCenterLevelVerification(req.body) }));
+router.post('/mtp', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.massiveTransfusionProtocol(req.body) }));
+router.post('/dcs', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.damageControlSurgery(req.body) }));
+router.post('/outcomes', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.traumaOutcomesAndRegistry(req.body) }));
+router.post('/pediatric', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.pediatricTraumaCare(req.body) }));
+module.exports = router;

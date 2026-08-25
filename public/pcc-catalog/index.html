@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كتالوج وحدات PCC | جمانة الطبي - jumanaMedical ERP</title>
+    <meta name="description" content="اكتشف جميع وحدات PCC (Patient Care Components) v3.316.31 — 1,322 وحدة طبية وإدارية في 255 فئة و 13,282 وظيفة لإدارة المستشفيات.">
+    <link rel="canonical" href="https://jumanasoft.com/pcc-catalog/" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://jumanasoft.com/pcc-catalog/">
+    <meta property="og:title" content="كتالوج وحدات PCC - نظام إدارة المستشفيات المتكامل">
+    <meta property="og:description" content="1,322 وحدة PCC طبية وإدارية ومالية في 255 فئة و 13,282 وظيفة — متاحة عبر واجهة موحدة v3.316.31.">
+    <meta property="og:image" content="https://jumanasoft.com/img/og-preview.jpg">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/tailwind-compiled.css">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+    <style>
+        body { font-family: 'IBM Plex Sans Arabic', sans-serif; background-color: #f8f9fa; }
+        .glass-nav { background: rgba(248, 249, 250, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .hero-gradient { background: linear-gradient(135deg, #001629 0%, #006970 100%); }
+
+        /* Catalog-specific styles */
+        .pcc-module-card {
+            background: white; border: 1px solid #e5e7eb; border-radius: 12px;
+            padding: 16px; transition: all 0.2s ease; cursor: pointer;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .pcc-module-card:hover {
+            transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+            border-color: #006970;
+        }
+        .pcc-module-card .icon {
+            width: 40px; height: 40px; border-radius: 10px;
+            background: linear-gradient(135deg, #001629 0%, #006970 100%);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 20px;
+        }
+        .pcc-module-card .badge {
+            display: inline-block; padding: 2px 8px; border-radius: 999px;
+            font-size: 11px; font-weight: 600;
+        }
+        .badge-clinical { background: #dbeafe; color: #1e40af; }
+        .badge-financial { background: #dcfce7; color: #166534; }
+        .badge-operational { background: #fef3c7; color: #854d0e; }
+        .badge-diagnostic { background: #fce7f3; color: #9d174d; }
+        .badge-admin { background: #e9d5ff; color: #6b21a8; }
+
+        .pcc-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .pcc-modal {
+            display: none; position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            align-items: center; justify-content: center;
+        }
+        .pcc-modal.open { display: flex; }
+        .pcc-modal-content {
+            background: white; border-radius: 16px; max-width: 700px; width: 90%;
+            max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;
+        }
+        .pcc-modal-header {
+            padding: 16px 20px; border-bottom: 1px solid #e5e7eb;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .pcc-modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+
+        .pcc-fn-button {
+            padding: 10px 14px; background: #f3f4f6; border: 1px solid #e5e7eb;
+            border-radius: 8px; cursor: pointer; font-family: monospace; font-size: 13px;
+            transition: all 0.15s; text-align: right; width: 100%;
+        }
+        .pcc-fn-button:hover {
+            background: #006970; color: white; border-color: #006970;
+        }
+        .pcc-fn-button.loading { opacity: 0.6; pointer-events: none; }
+
+        .pcc-search {
+            width: 100%; padding: 12px 16px 12px 44px;
+            border: 1px solid #e5e7eb; border-radius: 12px;
+            font-size: 15px; background: white;
+        }
+        .pcc-search:focus { outline: none; border-color: #006970; box-shadow: 0 0 0 3px rgba(0,105,112,0.1); }
+
+        .pcc-stats-card {
+            background: white; border-radius: 12px; padding: 16px;
+            border: 1px solid #e5e7eb; display: flex; gap: 12px; align-items: center;
+        }
+        .pcc-stats-card .num { font-size: 28px; font-weight: 700; color: #001629; }
+
+        .pcc-response {
+            background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 8px;
+            padding: 12px; font-family: monospace; font-size: 12px;
+            white-space: pre-wrap; word-break: break-word; max-height: 300px; overflow-y: auto;
+        }
+    </style>
+
+    <!-- Schema JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "كتالوج وحدات PCC - جمانة الطبي",
+      "applicationCategory": "HealthcareApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "SAR"
+      },
+      "description": "1,322 وحدة PCC طبية وإدارية ومالية في 255 فئة ضمن نظام إدارة المستشفيات v3.316.31"
+    }
+    </script>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="glass-nav fixed top-0 left-0 right-0 z-50 border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <a href="/" class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-3xl">medical_services</span>
+                <span class="text-xl font-bold text-primary">جمانة الطبي</span>
+            </a>
+            <div class="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-700">
+                <a href="/" class="hover:text-primary">الرئيسية</a>
+                <a href="/departments/" class="hover:text-primary">الأقسام</a>
+                <a href="/about/" class="hover:text-primary">من نحن</a>
+                <a href="/pcc-catalog/" class="text-primary">PCC</a>
+                <a href="/contact/" class="hover:text-primary">تواصل معنا</a>
+            </div>
+            <a href="/login.html" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-opacity-90">
+                تسجيل الدخول
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero-gradient text-white pt-24 pb-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center gap-3 mb-3">
+            <span class="material-symbols-outlined text-4xl">apps</span>
+            <h1 class="text-3xl md:text-4xl font-bold">كتالوج وحدات PCC</h1>
+        </div>
+        <p class="text-lg text-white/90 max-w-3xl">
+            1,322 وحدة PCC (Patient Care Components) متاحة في نظام جمانة الطبي v3.316.31 — تشمل 255 فئة و 13,282 وظيفة. تغطي
+            <strong>الطب السريري، التشخيص، المالية، العمليات، الموارد البشرية، الامتثال السعودي، والتكاملات الحكومية</strong>.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-4 text-sm">
+            <div class="bg-white/10 backdrop-blur px-4 py-2 rounded-lg border border-white/20">
+                <span class="material-symbols-outlined text-base align-middle">verified</span>
+                معتمد لـ CBAHI · NPHIES · ZATCA · PDPL
+            </div>
+            <div class="bg-white/10 backdrop-blur px-4 py-2 rounded-lg border border-white/20">
+                <span class="material-symbols-outlined text-base align-middle">bolt</span>
+                Auto-discovered من السيرفر
+            </div>
+            <div class="bg-white/10 backdrop-blur px-4 py-2 rounded-lg border border-white/20">
+                <span class="material-symbols-outlined text-base align-middle">lock</span>
+                Tenant-isolated · RBAC enforced
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- MAIN -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- STATS -->
+    <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6" id="pccStats">
+        <div class="pcc-stats-card">
+            <div class="icon" style="background:linear-gradient(135deg,#001629,#006970);width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;">
+                <span class="material-symbols-outlined">apps</span>
+            </div>
+            <div>
+                <div class="num" id="totalCount">...</div>
+                <div class="text-xs text-gray-500">إجمالي الوحدات</div>
+            </div>
+        </div>
+        <div class="pcc-stats-card">
+            <div class="icon" style="background:linear-gradient(135deg,#1e40af,#3b82f6);width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;">
+                <span class="material-symbols-outlined">medical_services</span>
+            </div>
+            <div>
+                <div class="num" id="clinicalCount">...</div>
+                <div class="text-xs text-gray-500">وحدات سريرية</div>
+            </div>
+        </div>
+        <div class="pcc-stats-card">
+            <div class="icon" style="background:linear-gradient(135deg,#166534,#22c55e);width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;">
+                <span class="material-symbols-outlined">payments</span>
+            </div>
+            <div>
+                <div class="num" id="financialCount">...</div>
+                <div class="text-xs text-gray-500">وحدات مالية</div>
+            </div>
+        </div>
+        <div class="pcc-stats-card">
+            <div class="icon" style="background:linear-gradient(135deg,#854d0e,#f59e0b);width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;">
+                <span class="material-symbols-outlined">settings</span>
+            </div>
+            <div>
+                <div class="num" id="operationalCount">...</div>
+                <div class="text-xs text-gray-500">وحدات تشغيلية</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEARCH & FILTERS -->
+    <section class="bg-white rounded-2xl p-6 border border-gray-200 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+            <div class="md:col-span-7 relative">
+                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                <input type="text" id="searchInput" class="pcc-search" placeholder="ابحث عن وحدة... (مثل: cardiology, pharmacy, billing)">
+            </div>
+            <div class="md:col-span-3">
+                <label class="block text-xs font-semibold text-gray-600 mb-1">التصنيف</label>
+                <select id="categoryFilter" class="w-full p-3 border border-gray-300 rounded-lg">
+                    <option value="">جميع التصنيفات</option>
+                    <option value="clinical">سريرية</option>
+                    <option value="diagnostic">تشخيصية</option>
+                    <option value="financial">مالية</option>
+                    <option value="operational">تشغيلية</option>
+                    <option value="admin">إدارية</option>
+                </select>
+            </div>
+            <div class="md:col-span-2">
+                <button id="refreshBtn" class="w-full p-3 bg-primary text-white rounded-lg font-semibold hover:bg-opacity-90 flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-base">refresh</span>
+                    تحديث
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- MODULES GRID -->
+    <section>
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-gray-800">الوحدات المتاحة</h2>
+            <span id="visibleCount" class="text-sm text-gray-500"></span>
+        </div>
+        <div class="pcc-grid" id="modulesGrid">
+            <div class="col-span-full text-center py-12 text-gray-500">
+                <span class="material-symbols-outlined text-5xl animate-spin">progress_activity</span>
+                <p class="mt-3">جاري تحميل الـ 1,322 وحدة الطبية...</p>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- MODAL -->
+<div class="pcc-modal" id="pccModal">
+    <div class="pcc-modal-content">
+        <div class="pcc-modal-header">
+            <div>
+                <h3 class="text-lg font-bold text-gray-800" id="modalTitle">اسم الوحدة</h3>
+                <p class="text-xs text-gray-500" id="modalSubtitle">pcc-module-ext</p>
+            </div>
+            <button id="closeModal" class="text-gray-400 hover:text-gray-700">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="pcc-modal-body">
+            <h4 class="text-sm font-semibold text-gray-700 mb-3">الوظائف المتاحة (انقر للاستدعاء):</h4>
+            <div id="fnList" class="space-y-2"></div>
+            <div id="responseArea" class="mt-4 hidden">
+                <h4 class="text-sm font-semibold text-gray-700 mb-2">النتيجة:</h4>
+                <pre class="pcc-response" id="responseBox">{}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="bg-gray-900 text-white py-8 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <p class="text-gray-400 text-sm">
+            © 2026 جمانة الطبي - jumanaMedical ERP · جميع الحقوق محفوظة
+        </p>
+        <p class="text-gray-500 text-xs mt-2">
+            PCC Catalog auto-discovers 1,322 modules from the server at runtime — v3.316.31 across 255 categories
+        </p>
+    </div>
+</footer>
+
+<!-- PCC Catalog UI Module -->
+<script src="/js/pcc-catalog-ui.js?v=20260729_6"></script>
+<script>
+(function() {
+    var API_BASE = '/api/v1';
+    var cache = { ts: 0, ttl: 300000, modules: null };
+    var allModules = [];
+    var currentModule = null;
+
+    function esc(s) {
+        if (s == null) return '';
+        return String(s).replace(/[&<>"']/g, function(c) {
+            return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c];
+        });
+    }
+
+    function classify(name) {
+        if (!name) return 'admin';
+        var n = String(name).toLowerCase();
+        if (/cardio|onco|pedia|obgyn|surg|icu|er_|anes|nurs|radi|pathol|hema|endo|neuro|psy|derm|ophth|ortho|uro|nephro|pulmo|gastr|hepa|rheum|infect|allerg|immun|fam_|geria|rehab|pain|emerge|trauma|burn|plasti|vasc|ent_|dental|oral|maxillo/.test(n)) return 'clinical';
+        if (/lab_|imaging|diag|screen|test_|echo|ct_|mri|xray|ultra|scope|biop|cytol|histol|microbio|bacter|serol|immunol|toxic|drug_|med_|chem|hormone|enzyme/.test(n)) return 'diagnostic';
+        if (/bill|finan|invoice|payment|insur|claim|nphies|vat|zatca|account|revenue|cost|pricing|charge|refund|credit|debit|cash|bank|tax/.test(n)) return 'financial';
+        if (/hr_|staff|employ|schedul|shift|leave|payroll|recruit|training|perform|attend|invent|stock|warehouse|procur|suppl|vendor|asset|equipment|maintain/.test(n)) return 'operational';
+        return 'admin';
+    }
+
+    function getName(m) {
+        if (!m) return '';
+        return (typeof m === 'string') ? m : (m.name || '');
+    }
+
+    function getRouteCount(m) {
+        if (!m) return 0;
+        return (typeof m === 'string') ? 0 : (m.route_count || 0);
+    }
+
+    function getExtension(m) {
+        if (!m) return '?';
+        if (typeof m === 'string') {
+            var match = m.match(/ext(\d+)/);
+            return match ? match[1] : '?';
+        }
+        return m.extension || '?';
+    }
+
+    function badge(cat) {
+        var map = {
+            clinical: ['سريرية', 'badge-clinical'],
+            diagnostic: ['تشخيصية', 'badge-diagnostic'],
+            financial: ['مالية', 'badge-financial'],
+            operational: ['تشغيلية', 'badge-operational'],
+            admin: ['إدارية', 'badge-admin']
+        };
+        var m = map[cat] || ['إدارية', 'badge-admin'];
+        return '<span class="badge ' + m[1] + '">' + m[0] + '</span>';
+    }
+
+    function icon(cat) {
+        var map = {
+            clinical: 'medical_services',
+            diagnostic: 'science',
+            financial: 'payments',
+            operational: 'settings',
+            admin: 'admin_panel_settings'
+        };
+        return map[cat] || 'extension';
+    }
+
+    function humanize(name) {
+        if (!name) return '';
+        return String(name).replace(/^pcc[_-]/, '')
+                   .replace(/[_-]/g, ' ')
+                   .replace(/\bext(\d+)\b/i, '')
+                   .replace(/\s+/g, ' ')
+                   .trim()
+                   .replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+    }
+
+    function toDash(name) {
+        return name.replace(/_/g, '-');
+    }
+
+    function loadModules() {
+        var now = Date.now();
+        if (cache.modules && (now - cache.ts) < cache.ttl) {
+            return Promise.resolve(cache.modules);
+        }
+        return fetch(API_BASE + '/pcc-catalog/modules').then(function(r) { return r.json(); }).then(function(data) {
+            cache.modules = data.modules || [];
+            cache.ts = now;
+            return cache.modules;
+        });
+    }
+
+    function renderStats(modules) {
+        document.getElementById('totalCount').textContent = modules.length;
+        var counts = { clinical: 0, diagnostic: 0, financial: 0, operational: 0, admin: 0 };
+        modules.forEach(function(m) {
+            var n = getName(m);
+            if (n) counts[classify(n)]++;
+        });
+        document.getElementById('clinicalCount').textContent = counts.clinical;
+        document.getElementById('financialCount').textContent = counts.financial;
+        document.getElementById('operationalCount').textContent = counts.operational + counts.diagnostic;
+    }
+
+    function renderGrid(modules) {
+        var grid = document.getElementById('modulesGrid');
+        var search = (document.getElementById('searchInput').value || '').toLowerCase();
+        var cat = document.getElementById('categoryFilter').value;
+
+        var filtered = modules.filter(function(m) {
+            var n = getName(m);
+            if (!n) return false;
+            var mc = classify(n);
+            if (cat && mc !== cat) return false;
+            if (search && n.toLowerCase().indexOf(search) === -1) return false;
+            return true;
+        });
+
+        document.getElementById('visibleCount').textContent = filtered.length + ' وحدة';
+
+        if (filtered.length === 0) {
+            grid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">لا توجد وحدات مطابقة</div>';
+            return;
+        }
+
+        var html = '';
+        for (var i = 0; i < filtered.length; i++) {
+            var m = filtered[i];
+            var n = getName(m);
+            var c = classify(n);
+            html += '<div class="pcc-module-card" data-name="' + esc(n) + '">';
+            html += '<div class="flex items-start justify-between">';
+            html += '<div class="icon"><span class="material-symbols-outlined">' + icon(c) + '</span></div>';
+            html += badge(c);
+            html += '</div>';
+            html += '<h3 class="font-bold text-gray-800 text-sm">' + esc(humanize(n)) + '</h3>';
+            html += '<code class="text-xs text-gray-500 dir-ltr text-left">' + esc(n) + '</code>';
+            html += '<div class="text-xs text-gray-400 mt-auto">' + getRouteCount(m) + ' route · ext ' + getExtension(m) + '</div>';
+            html += '</div>';
+        }
+        grid.innerHTML = html;
+
+        Array.prototype.forEach.call(grid.querySelectorAll('.pcc-module-card'), function(card) {
+            card.addEventListener('click', function() {
+                openModule(card.getAttribute('data-name'));
+            });
+        });
+    }
+
+    function openModule(name) {
+        if (!name) return;
+        currentModule = name;
+        document.getElementById('modalTitle').textContent = humanize(name);
+        document.getElementById('modalSubtitle').textContent = name;
+        document.getElementById('fnList').innerHTML = '<div class="text-gray-500 text-sm">جاري التحميل...</div>';
+        document.getElementById('responseArea').classList.add('hidden');
+        document.getElementById('pccModal').classList.add('open');
+
+        // Convert underscore name to dash route (Express uses dash format)
+        var routeName = name.replace(/_/g, '-');
+        fetch(API_BASE + '/' + routeName + '/list', { credentials: 'same-origin' }).then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status + ' من السيرفر');
+            return r.json();
+        }).then(function(data) {
+            var fns = data.functions || data.endpoints || [];
+            if (!fns.length && data.data && Array.isArray(data.data)) fns = data.data;
+            if (!fns.length) {
+                document.getElementById('fnList').innerHTML = '<div class="text-gray-500 text-sm">لا توجد وظائف مسجلة (استخدم /api/v1/' + esc(routeName) + '/call/&lt;fn&gt;)</div>';
+                return;
+            }
+            var html = '';
+            fns.forEach(function(fn) {
+                var n = typeof fn === 'string' ? fn : (fn.name || fn.path || JSON.stringify(fn));
+                html += '<button class="pcc-fn-button" data-fn="' + esc(n) + '">› ' + esc(n) + '</button>';
+            });
+            document.getElementById('fnList').innerHTML = html;
+
+            Array.prototype.forEach.call(document.querySelectorAll('.pcc-fn-button'), function(btn) {
+                btn.addEventListener('click', function() {
+                    var fnName = btn.getAttribute('data-fn');
+                    btn.classList.add('loading');
+                    btn.textContent = '⏳ جاري الاستدعاء...';
+                    // Use POST /call/:fn as per PCC route spec
+                    fetch(API_BASE + '/' + routeName + '/call/' + fnName, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({})
+                    }).then(function(r) {
+                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                        return r.json();
+                    }).then(function(resp) {
+                        document.getElementById('responseArea').classList.remove('hidden');
+                        document.getElementById('responseBox').textContent = JSON.stringify(resp, null, 2);
+                        btn.classList.remove('loading');
+                        btn.textContent = '› ' + fnName + ' ✓';
+                    }).catch(function(err) {
+                        document.getElementById('responseArea').classList.remove('hidden');
+                        document.getElementById('responseBox').textContent = 'Error: ' + err.message;
+                        btn.classList.remove('loading');
+                        btn.textContent = '› ' + fnName + ' ✗';
+                    });
+                });
+            });
+        }).catch(function(err) {
+            document.getElementById('fnList').innerHTML =
+                '<div class="text-red-500 text-sm">' +
+                'تعذر الاتصال بـ API. تأكد أن الوحدة على السيرفر.<br>' +
+                '<small>التفاصيل: ' + esc(err.message) + ' | routeName=' + esc(routeName) + '</small>' +
+                '</div>';
+        });
+    }
+
+    document.getElementById('closeModal').addEventListener('click', function() {
+        document.getElementById('pccModal').classList.remove('open');
+    });
+
+    document.getElementById('pccModal').addEventListener('click', function(e) {
+        if (e.target.id === 'pccModal') {
+            document.getElementById('pccModal').classList.remove('open');
+        }
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', function() {
+        cache.ts = 0;
+        init();
+    });
+
+    document.getElementById('searchInput').addEventListener('input', function() {
+        if (allModules.length) renderGrid(allModules);
+    });
+
+    document.getElementById('categoryFilter').addEventListener('change', function() {
+        if (allModules.length) renderGrid(allModules);
+    });
+
+    function init() {
+        loadModules().then(function(modules) {
+            allModules = modules;
+            renderStats(modules);
+            renderGrid(modules);
+        }).catch(function(err) {
+            document.getElementById('modulesGrid').innerHTML = '<div class="col-span-full text-center py-12 text-red-500">خطأ في التحميل: ' + err.message + '</div>';
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+</script>
+
+</body>
+</html>

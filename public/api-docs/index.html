@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>توثيق واجهة API · جمانة الطبي</title>
+<meta name="description" content="PCC Catalog API documentation for jumanaMedical ERP — Arabic + English">
+<link rel="canonical" href="https://jumanasoft.com/api-docs/">
+<link rel="stylesheet" href="/css/tailwind-compiled.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Material+Symbols+Outlined" rel="stylesheet">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"jumanaMedical PCC Catalog API","inLanguage":"ar,en","url":"https://jumanasoft.com/api-docs/","publisher":{"@type":"Organization","name":"jumanaMedical"}}</script>
+<style>:root{--nm-dark:#001629;--nm-teal:#006970;--nm-teal-2:#0a8a8a;--nm-bg:#f8f9fa;--nm-border:#e5e7eb;--nm-muted:#6b7280;--get:#10b981;--post:#3b82f6;--put:#f59e0b;--del:#ef4444;--pat:#8b5cf6;--code-bg:#0b1f33}html,body{margin:0;padding:0;background:var(--nm-bg);font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,sans-serif;color:#0f172a}.nm-header{background:linear-gradient(90deg,var(--nm-dark),var(--nm-teal));color:#fff;padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,22,41,.15);position:sticky;top:0;z-index:30}.nm-header h1{font-size:17px;margin:0;font-weight:600}.nm-header .pill,.nm-header select.server-sel{font-size:11px;padding:3px 9px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:12px;font-weight:500;color:#fff;cursor:pointer;font-family:inherit}.nm-header .pill{text-decoration:none}.nm-header .pill:hover{background:rgba(255,255,255,.28)}.nm-header .pill.v{background:rgba(255,255,255,.25);font-weight:700}.nm-header select.server-sel{outline:none;max-width:230px;padding:3px 8px}.nm-header select.server-sel option{background:var(--nm-dark)}.crumb{font-size:12px;opacity:.85;display:block;color:#fff}.crumb a{color:#fff}.layout{display:grid;grid-template-columns:280px 1fr;min-height:calc(100vh - 60px)}aside{background:#fff;border-left:1px solid var(--nm-border);padding:14px;overflow:auto;max-height:calc(100vh - 60px);position:sticky;top:60px}aside .search{position:relative;margin-bottom:10px}aside .search input{width:100%;padding:8px 34px 8px 10px;border:1px solid var(--nm-border);border-radius:8px;font-size:12px;background:#f9fafb;outline:none;font-family:inherit}aside .search input:focus{border-color:var(--nm-teal);background:#fff;box-shadow:0 0 0 3px rgba(0,105,112,.12)}aside .search .icon{position:absolute;right:9px;top:50%;transform:translateY(-50%);color:var(--nm-muted);font-size:18px;pointer-events:none}aside .tag-h{font-size:11px;font-weight:700;color:var(--nm-teal);margin:12px 0 4px;padding:5px 8px;background:#f1f5f9;border-radius:5px;border-right:3px solid var(--nm-teal);text-transform:uppercase;letter-spacing:.5px}aside ul{list-style:none;padding:0;margin:0}aside a.nav{display:flex;align-items:center;gap:5px;padding:6px 8px;font-size:12px;color:#334155;text-decoration:none;border-radius:5px;margin:1px 0;line-height:1.3}aside a.nav:hover{background:#f1f5f9;color:var(--nm-teal)}aside a.nav .m{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;color:#fff;min-width:30px;text-align:center}aside a.nav .m.GET{background:var(--get)}aside a.nav .m.POST{background:var(--post)}aside a.nav .m.PUT{background:var(--put)}aside a.nav .m.DELETE{background:var(--del)}aside a.nav .m.PATCH{background:var(--pat)}main{padding:18px 22px;min-width:0}main .api-intro,.stats-panel,article.endpoint{background:#fff;border:1px solid var(--nm-border);border-radius:8px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}main .api-intro{padding:14px 18px}main .api-intro h2{font-size:18px;margin:0 0 8px;color:var(--nm-dark)}main .api-intro .ar,main .api-intro .en{padding:8px 12px;margin:6px 0;border-radius:4px;line-height:1.65}main .api-intro .ar{background:#f0f9ff;border-right:3px solid var(--nm-teal);font-size:13px}main .api-intro .en{background:#f8fafc;border-right:3px solid #94a3b8;font-size:12px;color:#475569;direction:ltr;text-align:left}main .api-intro .meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:var(--nm-muted)}main .api-intro .meta b{color:var(--nm-dark)}.status-bar{padding:9px 14px;border-radius:6px;margin-bottom:12px;font-size:12.5px;display:flex;align-items:center;gap:7px;font-weight:500}.status-bar.ok{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}.status-bar.err{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}.status-bar.warn{background:#fffbeb;color:#92400e;border:1px solid #fde68a}.stats-panel{background:linear-gradient(135deg,#fff,#f0f9ff);padding:12px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.stat-cell{display:flex;flex-direction:column;gap:2px;padding:8px 10px;background:#fff;border-radius:6px;border:1px solid #e0e7ff}.stat-cell .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--nm-muted);font-weight:600}.stat-cell .val{font-size:18px;font-weight:700;color:var(--nm-dark);font-family:monospace;line-height:1.1}article.endpoint{overflow:hidden}article.endpoint>header{padding:11px 16px;background:linear-gradient(90deg,#f8fafc,#fff);border-bottom:1px solid var(--nm-border);display:flex;align-items:center;gap:9px;flex-wrap:wrap}article.endpoint>header .method{font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;color:#fff;letter-spacing:.5px}article.endpoint>header .method.GET{background:var(--get)}article.endpoint>header .method.POST{background:var(--post)}article.endpoint>header .method.PUT{background:var(--put)}article.endpoint>header .method.DELETE{background:var(--del)}article.endpoint>header .method.PATCH{background:var(--pat)}article.endpoint>header .path{font-family:Consolas,monospace;font-size:13px;color:var(--nm-dark);font-weight:600;direction:ltr;flex:1;min-width:0;word-break:break-all}article.endpoint>header .sum{font-size:12.5px;color:#334155;font-weight:500}article.endpoint>header .opid{font-size:10.5px;color:var(--nm-muted);font-family:monospace;direction:ltr}article.endpoint .body{padding:13px 16px}article.endpoint .body p.desc{color:#475569;line-height:1.55;margin:0 0 9px;font-size:12.5px}details.coll{border:1px solid var(--nm-border);border-radius:6px;margin:9px 0;background:#fff}details.coll summary{padding:7px 12px;font-size:12px;font-weight:600;color:var(--nm-teal);cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;user-select:none}details.coll summary::-webkit-details-marker{display:none}details.coll summary .ms{font-size:16px;transition:transform .2s}details.coll[open] summary .ms{transform:rotate(90deg)}details.coll .body{padding:6px 11px 11px}table.params{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:4px}table.params th,table.params td{text-align:start;padding:6px 8px;border-bottom:1px solid var(--nm-border);vertical-align:top}table.params th{background:#f1f5f9;color:var(--nm-dark);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px}table.params td.name{font-family:monospace;color:var(--nm-dark);font-weight:600;direction:ltr;text-align:left}table.params td.type{color:var(--nm-teal);font-family:monospace;font-size:10.5px;direction:ltr}table.params td.req{font-weight:600;font-size:10.5px}table.params td.req.y{color:var(--del)}table.params td.req.n{color:var(--nm-muted)}table.params td.desc{color:#475569;line-height:1.45}pre.code{background:var(--code-bg);color:#e2e8f0;padding:9px 11px;border-radius:6px;font-family:Consolas,monospace;font-size:11px;overflow-x:auto;line-height:1.5;margin:5px 0 0;direction:ltr;text-align:left;white-space:pre}pre.code .c-key{color:#7dd3fc}pre.code .c-str{color:#86efac}pre.code .c-num{color:#fcd34d}.resp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:5px;margin-top:5px}.resp{background:#fff;border:1px solid var(--nm-border);border-radius:5px;padding:6px 9px}.resp .code{font-family:monospace;font-size:12px;font-weight:700}.resp .desc{font-size:10.5px;color:var(--nm-muted);margin-top:1px;line-height:1.35}.resp.c2 .code{color:var(--get)}.resp.c4 .code{color:var(--put)}.badge{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:#e0f2f3;color:var(--nm-teal);font-weight:600;margin-inline-start:3px}.copy-btn,.tryit-btn{border:0;padding:5px 9px;border-radius:5px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-family:inherit;font-weight:500;transition:background .15s;color:#fff}.copy-btn{background:var(--nm-teal)}.copy-btn:hover{background:var(--nm-teal-2)}.copy-btn.copied{background:var(--get)}.tryit-btn{background:#f59e0b;margin-inline-start:4px}.tryit-btn:hover{background:#d97706}.tryit-btn:disabled{background:#cbd5e1;cursor:not-allowed}.samples-tabs{display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap}.samples-tabs button{background:#f1f5f9;border:1px solid var(--nm-border);padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;color:#334155;font-family:inherit}.samples-tabs button.on{background:var(--nm-teal);color:#fff;border-color:var(--nm-teal)}.filter-empty{text-align:center;padding:40px;color:var(--nm-muted)}.filter-empty .ms{font-size:48px;opacity:.3}.sch-tree{margin:2px 0;padding:2px 0 2px 8px;border-left:2px solid #cbd5e1;font-size:12px;line-height:1.55}.sch-tree .k{font-weight:600;color:var(--nm-dark);font-family:monospace}.sch-tree .t{color:var(--nm-teal);font-weight:600;font-family:monospace;font-size:11px}.sch-tree ul{list-style:none;padding:0;margin:4px 0 4px 12px;border-left:1px dashed #e2e8f0}.tryit-panel{background:#f8fafc;border:1px solid var(--nm-teal);border-radius:6px;padding:10px 12px;margin-top:8px;font-size:12px}.tryit-panel h4{margin:0 0 8px;font-size:12px;color:var(--nm-teal);display:flex;align-items:center;gap:5px;font-weight:600}.tryit-panel label{display:block;font-size:11px;color:#475569;margin:6px 0 3px;font-weight:500}.tryit-panel input,.tryit-panel textarea{width:100%;padding:6px 9px;border:1px solid var(--nm-border);border-radius:4px;font-family:monospace;font-size:11.5px;background:#fff;outline:none;box-sizing:border-box;direction:ltr;text-align:left}.tryit-panel input:focus,.tryit-panel textarea:focus{border-color:var(--nm-teal);box-shadow:0 0 0 2px rgba(0,105,112,.12)}.tryit-panel textarea{min-height:60px;resize:vertical}.tryit-actions{display:flex;gap:6px;margin-top:9px;align-items:center;flex-wrap:wrap}.tryit-actions button{font-size:11.5px;cursor:pointer;font-family:inherit;border-radius:5px;padding:6px 14px;font-weight:600;display:inline-flex;align-items:center;gap:5px}.tryit-actions button.exec{background:var(--nm-teal);color:#fff;border:0}.tryit-actions button.exec:hover{background:var(--nm-teal-2)}.tryit-actions button.cancel{background:#fff;color:#64748b;border:1px solid var(--nm-border);padding:6px 12px;font-weight:500}.tryit-result{margin-top:9px;padding:9px 11px;border-radius:5px;font-size:11.5px;display:none;line-height:1.5}.tryit-result.show{display:block}.tryit-result.pending{background:#fffbeb;border:1px solid #fde68a;color:#92400e}.tryit-result.ok{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46}.tryit-result.err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}.tryit-result .meta-line{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px;font-weight:600;font-size:11.5px}.tryit-result .timing{color:#6366f1}.tryit-result .body-pre{background:#0b1f33;color:#e2e8f0;padding:8px 10px;border-radius:4px;overflow-x:auto;max-height:280px;overflow-y:auto;font-family:monospace;font-size:10.5px;line-height:1.45;white-space:pre;margin:4px 0 0;direction:ltr;text-align:left}@media(max-width:880px){.layout{grid-template-columns:1fr}aside{position:static;max-height:none}.nm-header select.server-sel{max-width:160px}}</style>
+</head>
+<body>
+<header class="nm-header">
+  <span class="material-symbols-outlined" style="font-size:24px;">api</span>
+  <div><h1>توثيق واجهة PCC API</h1><span class="crumb"><a href="/">الرئيسية</a> · <a href="/api-docs/">API Docs</a></span></div>
+  <span class="pill v" id="apiVersion">v—</span>
+  <span class="pill" id="apiCount">—</span>
+  <select class="server-sel" id="serverSel" title="اختر الخادم · Choose server" aria-label="API server">
+    <option value="https://jumanasoft.com/api/v1">Production · jumanasoft.com</option>
+    <option value="http://127.0.0.1:3101/api/v1">PCC local · :3101</option>
+    <option value="http://127.0.0.1:3000/api/v1">ERP local · :3000</option>
+  </select>
+  <button class="pill" id="exportBtn" type="button" title="تنزيل JSON · Download spec as JSON"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;">download</span> JSON</button>
+  <span style="margin-inline-start:auto;display:flex;gap:5px;">
+    <a href="/openapi-pcc.yaml" class="pill" target="_blank" rel="noopener">YAML</a>
+    <a href="/pcc-catalog/" class="pill">PCC Catalog</a>
+  </span>
+</header>
+<div class="layout">
+  <aside>
+    <div class="search"><input id="q" type="search" placeholder="بحث... (path, summary)" autocomplete="off"><span class="material-symbols-outlined icon">search</span></div>
+    <nav id="sidebar"></nav>
+  </aside>
+  <main id="content">
+    <div class="stats-panel" id="statsPanel">
+      <div class="stat-cell"><span class="lbl">Paths</span><span class="val" id="statPaths">—</span></div>
+      <div class="stat-cell"><span class="lbl">Operations</span><span class="val" id="statOps">—</span></div>
+      <div class="stat-cell"><span class="lbl">Schemas</span><span class="val" id="statSchemas">—</span></div>
+      <div class="stat-cell"><span class="lbl">Security</span><span class="val" id="statSec">—</span></div>
+      <div class="stat-cell"><span class="lbl">Spec size</span><span class="val" id="statSize">—</span></div>
+    </div>
+    <div id="intro"></div>
+    <div id="endpoints"></div>
+  </main>
+</div>
+<script type="application/json" id="fallback-spec">{"openapi":"3.0.3","info":{"title":"PCC Catalog API (Fallback)","version":"3.77.77.0","description":"## Overview\nFallback used when YAML fetch fails."},"tags":[{"name":"PCC Catalog"},{"name":"PCC Module"}],"paths":{"/pcc-catalog/modules":{"get":{"tags":["PCC Catalog"],"operationId":"listPccModules","summary":"List all PCC modules","responses":{"200":{"description":"OK"}},"x-codeSamples":[{"lang":"curl","label":"Production","source":"curl -sk https://jumanasoft.com/api/v1/pcc-catalog/modules"}]}},"/pcc-catalog/{module}/list":{"get":{"tags":["PCC Module"],"operationId":"listPccModuleFunctions","summary":"List functions of a module","parameters":[{"name":"module","in":"path","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK"}},"x-codeSamples":[{"lang":"curl","label":"Production","source":"curl -sk https://jumanasoft.com/api/v1/pcc-cardiology-ext102/list"}]}},"/pcc-catalog/{module}/call/{fn}":{"post":{"tags":["PCC Module"],"operationId":"callPccModuleFunction","summary":"Invoke a PCC function","parameters":[{"name":"module","in":"path","required":true,"schema":{"type":"string"}},{"name":"fn","in":"path","required":true,"schema":{"type":"string"}}],"requestBody":{"content":{"application/json":{"schema":{"type":"object"}}}},"responses":{"200":{"description":"OK"}},"x-codeSamples":[{"lang":"curl","label":"Production","source":"curl -sk -X POST https://jumanasoft.com/api/v1/pcc-cardiology-ext102/call/CardGenExt -H 'Content-Type: application/json' -d '{}'"}]}}}}}</script>
+<script type="module">
+const APP={spec:null,yamlText:'',server:'https://jumanasoft.com/api/v1'};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hlJson=o=>{const r=JSON.stringify(o,null,2);if(!r)return'';return esc(r).replace(/(&quot;)([^&]+?)(&quot;)(\s*:)/g,'<span class="c-key">$1$2$3</span>$4').replace(/:\s*(&quot;[^&]*?&quot;)/g,': <span class="c-str">$1</span>').replace(/:\s*(-?\d+\.?\d*)/g,': <span class="c-num">$1</span>').replace(/:\s*(true|false|null)/g,': <span class="c-num">$1</span>');};
+const resolveRef=(root,ref)=>{if(!ref||!ref.startsWith('#/'))return null;return ref.slice(2).split('/').reduce((a,k)=>a&&a[k],root)||null;};
+const renderSchema=(root,schema,depth=0,name='')=>{if(!schema)return'';if(schema.$ref){const r=resolveRef(root,schema.$ref);return r?renderSchema(root,r,depth,name):`<div class="sch-tree"><span class="d">${esc(schema.$ref)}</span></div>`;}const t=schema.type||(schema.properties?'object':(schema.items?'array':'any'));let h=`<div class="sch-tree">`;if(name)h+=`<span class="k">${esc(name)}</span>: `;h+=`<span class="t">${esc(t)}</span>`;if(schema.format)h+=` <span class="d">&lt;${esc(schema.format)}&gt;</span>`;if(schema.enum)h+=` <span class="d">[enum: ${schema.enum.map(esc).join(', ')}]</span>`;if(schema.example!==undefined)h+=` <span class="d">e.g. ${esc(JSON.stringify(schema.example))}</span>`;if(schema.pattern)h+=` <span class="d">/${esc(schema.pattern)}/</span>`;if(t==='object'&&schema.properties){const req=new Set(schema.required||[]);h+=`<ul>`;for(const[k,v]of Object.entries(schema.properties))h+=`<li>${req.has(k)?'<b style="color:var(--del);">*</b> ':''}${renderSchema(root,v,depth+1,k)}</li>`;h+=`</ul>`;}else if(t==='array'&&schema.items)h+=renderSchema(root,schema.items,depth+1,'[]');h+=`</div>`;return h;};
+const renderPath=(root,path,method,op)=>{
+  const m=method.toUpperCase();
+  const sum=op.summary||'';
+  const desc=op.description||'';
+  const paramsHtml=(op.parameters||[]).map(p=>{if(p.$ref)p=resolveRef(root,p.$ref)||{};const s=p.schema||{};const type=s.type?(s.format?`${s.type} (${s.format})`:s.type):(s.$ref?s.$ref.split('/').pop():'any');const ex=p.example!==undefined?p.example:(s.example!==undefined?s.example:'');return`<tr><td class="name">${esc(p.name)}${p.in==='path'?'<span class="badge">path</span>':''}${p.in==='header'?`<span class="badge">header</span>`:''}</td><td class="type">${esc(type)}</td><td class="req ${p.required?'y':'n'}">${p.required?'نعم':'اختياري'}</td><td class="desc">${esc(p.description||'')}</td><td class="type">${ex!==''?esc(JSON.stringify(ex)):'—'}</td></tr>`;}).join('');
+  const samples=op['x-codeSamples']||[];
+  const samplesHtml=samples.length?`<details class="coll" open><summary><span class="ms material-symbols-outlined">chevron_right</span>أمثلة curl · Code samples (${samples.length})</summary><div class="body"><div class="samples-tabs">${samples.map((s,i)=>`<button data-s="${i}" class="${i===0?'on':''}">${esc(s.label||s.lang)}</button>`).join('')}</div>${samples.map((s,i)=>`<pre class="code sample-${i}" style="${i?'display:none;':''}">${esc(s.source||'')}</pre>`).join('')}<div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap;"><button class="copy-btn" data-curl="${esc(samples[0]?.source||'')}" type="button"><span class="ms material-symbols-outlined" style="font-size:13px;">content_copy</span>نسخ</button><button class="tryit-btn" data-tryit="${esc(path)}" data-method="${m}" type="button"><span class="ms material-symbols-outlined" style="font-size:13px;">play_arrow</span>جربه · Try it</button></div></div></details>`:'';
+  const reqBody=op.requestBody||null;
+  let reqBodyHtml='';
+  if(reqBody){
+    const json=reqBody.content&&reqBody.content['application/json'];
+    const schema=json?json.schema:null;
+    const example=json?json.example:null;
+    reqBodyHtml=`<details class="coll" open><summary><span class="ms material-symbols-outlined">chevron_right</span>Request body${reqBody.required?' <span class="badge">required</span>':''}</summary><div class="body">${schema?renderSchema(root,schema):'<i style="color:var(--nm-muted);">no schema</i>'}${example?`<div style="margin-top:6px;"><b style="font-size:10.5px;color:var(--nm-teal);">Example:</b><pre class="code">${hlJson(example)}</pre></div>`:''}</div></details>`;
+  }
+  const respHtml=(op.responses&&Object.keys(op.responses).length)?`<details class="coll" open><summary><span class="ms material-symbols-outlined">chevron_right</span>الاستجابات · Responses (${Object.keys(op.responses).length})</summary><div class="body"><div class="resp-grid">${Object.entries(op.responses).map(([code,r])=>{const cls=code[0]==='2'?'c2':(code[0]==='4'?'c4':(code[0]==='5'?'c5':''));return`<div class="resp ${cls}"><div class="code">${esc(code)}</div><div class="desc">${esc(r.description||'')}</div></div>`;}).join('')}</div></div></details>`:'';
+  const paramsArr=op.parameters||[];
+  const opId=op.operationId||path.replace(/[^a-z0-9]/gi,'-')+'-'+m;
+  const id='op-'+opId;
+  return`<article class="endpoint" id="${esc(id)}"><header><span class="method ${m}">${m}</span><span class="path">${esc(path)}</span><span class="sum">${esc(sum)}</span>${op.operationId?`<span class="opid">${esc(op.operationId)}</span>`:''}</header><div class="body">${desc?`<p class="desc">${esc(desc)}</p>`:''}${paramsArr.length?`<details class="coll" open><summary><span class="ms material-symbols-outlined">chevron_right</span>المعاملات · Parameters (${paramsArr.length})</summary><div class="body"><table class="params"><thead><tr><th>الاسم</th><th>النوع</th><th>مطلوب</th><th>الوصف</th><th>مثال</th></tr></thead><tbody>${paramsHtml}</tbody></table></div></details>`:''}${reqBodyHtml}${samplesHtml}${respHtml}<div class="tryit-host" data-tryit-host="${esc(path)}" data-tryit-method="${m}"></div></div></article>`;
+};
+const renderIntro=(info)=>{const desc=info.description||'';const parts=desc.split(/##\s+/).filter(Boolean);let ar='',en='';for(const p of parts){if(/Arabic|عربي|نظرة/.test(p))ar=p;if(/English|Overview/i.test(p))en=p;}return`<div class="api-intro"><h2>${esc(info.title||'API')} <span class="pill v" style="background:var(--nm-teal);font-size:11px;padding:2px 7px;">${esc(info.version||'')}</span></h2>${ar?`<div class="ar">${esc(ar).replace(/\n/g,'<br>')}</div>`:''}${en?`<div class="en">${esc(en).replace(/\n/g,'<br>')}</div>`:''}<div class="meta"><span><b>OpenAPI:</b> 3.0.3</span><span><b>Server:</b> <span id="introServer">${esc(APP.server)}</span></span></div></div>`;};
+const renderSidebar=(root)=>{const tagMap={};for(const[pathStr,methods]of Object.entries(root.paths||{})){for(const[m,op]of Object.entries(methods)){if(!['get','post','put','delete','patch'].includes(m))continue;const tag=(op.tags&&op.tags[0])||'Default';if(!tagMap[tag])tagMap[tag]={name:tag,ops:[]};tagMap[tag].ops.push({path:pathStr,method:m.toUpperCase(),sum:op.summary||'',opId:op.operationId||pathStr});}}let html='';for(const t of Object.values(tagMap)){if(!t||!t.ops||!t.ops.length)continue;html+=`<div class="tag-h">${esc(t.name)} (${t.ops.length})</div><ul>`;for(const o of t.ops){const id='op-'+(o.opId||o.path.replace(/[^a-z0-9]/gi,'-')+'-'+o.method);html+=`<li><a class="nav" href="#${id}" data-q="${esc((o.path+' '+o.sum+' '+o.opId).toLowerCase())}"><span class="m ${o.method}">${o.method}</span><span>${esc(o.path)}</span></a></li>`;}html+=`</ul>`;}return html;};
+const setupFilter=()=>{const q=document.getElementById('q');const sides=document.querySelectorAll('aside a.nav');const articles=document.querySelectorAll('article.endpoint');const apply=()=>{const v=(q.value||'').toLowerCase().trim();sides.forEach(a=>{a.parentElement.style.display=(!v||(a.dataset.q||'').includes(v))?'':'none';});let vc=0;articles.forEach(art=>{const txt=art.innerText.toLowerCase();const match=!v||txt.includes(v);art.style.display=match?'':'none';if(match)vc++;});let e=document.getElementById('empty');if(vc===0&&v){if(!e){e=document.createElement('div');e.id='empty';e.className='filter-empty';e.innerHTML='<div class="ms material-symbols-outlined">search_off</div><div>لا توجد نتائج لـ "'+esc(v)+'"</div>';document.getElementById('endpoints').appendChild(e);}}else if(e)e.remove();};q.addEventListener('input',apply);};
+const showStats=(spec)=>{
+  const paths=Object.keys(spec.paths||{}).length;
+  let ops=0;
+  for(const m of Object.values(spec.paths||{}))for(const k of Object.keys(m))if('get,post,put,delete,patch'.includes(k))ops++;
+  const sz=APP.yamlText.length||0;
+  document.getElementById('statPaths').textContent=paths;
+  document.getElementById('statOps').textContent=ops;
+  document.getElementById('statSchemas').textContent=Object.keys(spec.components?.schemas||{}).length;
+  document.getElementById('statSec').textContent=Object.keys(spec.components?.securitySchemes||{}).length;
+  document.getElementById('statSize').textContent=sz>1024?(sz/1024).toFixed(1)+' KB':sz+' B';
+};
+const exportSpec=()=>{
+  if(!APP.spec){alert('لا توجد مواصفات محمّلة · Spec not loaded yet');return;}
+  const blob=new Blob([JSON.stringify(APP.spec,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='pcc-openapi.json';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},100);
+};
+const buildTryItPanel=(pathTpl,method,op)=>{
+  const pathParams=(op.parameters||[]).filter(p=>p.in==='path');
+  const headerParams=(op.parameters||[]).filter(p=>p.in==='header');
+  const hasBody=op.requestBody && op.requestBody.content && op.requestBody.content['application/json'];
+  const exampleBody=hasBody?(op.requestBody.content['application/json'].example||{ts:Date.now()}):null;
+  const f=p=>{const ex=p.example||(p.schema&&p.schema.example)||'';return`<label>${esc(p.name)} <span class="badge">${p.in}</span></label><input data-try${p.in}="${esc(p.name)}" value="${esc(ex)}" placeholder="${esc(ex||p.name)}" autocomplete="off">`;};
+  const fields=pathParams.map(f).join('');
+  const hdrs=headerParams.map(f).join('');
+  const bodyField=hasBody?`<label>Request body (JSON)</label><textarea data-trybody>${esc(JSON.stringify(exampleBody,null,2))}</textarea>`:'';
+  return`<div class="tryit-panel" data-tryit-panel="${esc(pathTpl)}" data-tryit-method="${method}">
+    <h4><span class="material-symbols-outlined" style="font-size:14px;">play_circle</span> جرّب الآن · Try it live</h4>
+    <div style="font-size:10.5px;color:var(--nm-muted);margin-bottom:4px;font-family:monospace;direction:ltr;text-align:left;">${esc(method)} <span data-tryit-url>${esc(APP.server+pathTpl)}</span></div>
+    ${fields}${hdrs}${bodyField}
+    <div class="tryit-actions">
+      <button class="exec" data-exec="${esc(pathTpl)}" data-method="${method}" type="button"><span class="material-symbols-outlined" style="font-size:13px;">send</span> تنفيذ · Execute</button>
+      <button class="cancel" data-cancel="${esc(pathTpl)}" type="button">إلغاء</button>
+      <span data-srvlabel style="margin-inline-start:auto;font-size:10.5px;color:var(--nm-muted);">→ ${esc(APP.server)}</span>
+    </div>
+    <div class="tryit-result" data-result="${esc(pathTpl)}"></div>
+  </div>`;
+};
+const executeTryIt=async(pathTpl,method)=>{
+  const panel=document.querySelector(`[data-tryit-panel="${CSS.escape(pathTpl)}"]`);
+  if(!panel)return;
+  const result=panel.querySelector('[data-result]');
+  const execBtn=panel.querySelector('[data-exec]');
+  let url=APP.server+pathTpl;
+  panel.querySelectorAll('[data-trypath]').forEach(inp=>{
+    url=url.replace(new RegExp('\\{'+inp.dataset.trypath+'\\}','g'),encodeURIComponent((inp.value||'').trim()||inp.placeholder||inp.dataset.trypath));
+  });
+  result.className='tryit-result show pending';
+  result.innerHTML='<div class="meta-line"><span>⏳ جاري الإرسال · Sending…</span></div>';
+  if(execBtn){execBtn.disabled=true;execBtn.innerHTML='<span class="material-symbols-outlined" style="font-size:13px;">hourglass_empty</span> انتظر…';}
+  const t0=performance.now();
+  const headers={'Accept':'application/json'};
+  panel.querySelectorAll('[data-tryheader]').forEach(inp=>{const v=(inp.value||'').trim();if(v)headers[inp.dataset.tryheader]=v;});
+  let body=undefined;
+  if(method!=='GET' && method!=='HEAD'){
+    const ta=panel.querySelector('[data-trybody]');
+    if(ta && ta.value.trim()){
+      try{JSON.parse(ta.value);headers['Content-Type']='application/json';body=ta.value;}
+      catch(e){
+        result.className='tryit-result show err';
+        result.innerHTML=`<div class="meta-line"><span>✗ JSON غير صالح · Invalid JSON</span></div><div style="font-size:11px;">${esc(e.message)}</div>`;
+        if(execBtn){execBtn.disabled=false;execBtn.innerHTML='<span class="material-symbols-outlined" style="font-size:13px;">send</span> تنفيذ · Execute';}
+        return;
+      }
+    }
+  }
+  try{
+    const r=await fetch(url,{method,headers,body,credentials:'include'});
+    const dt=Math.round(performance.now()-t0);
+    const text=await r.text();
+    let pretty=text;
+    const ct=r.headers.get('content-type')||'';
+    if(ct.includes('json')){try{pretty=JSON.stringify(JSON.parse(text),null,2);}catch(_){}}
+    result.className='tryit-result show '+(r.ok?'ok':'err');
+    result.innerHTML=`<div class="meta-line"><span>${r.ok?'✓':'✗'} ${esc(method)} ${esc(url)}</span><span class="timing">${dt} ms</span></div><div class="meta-line"><span><b>Status:</b> ${r.status} ${esc(r.statusText||'')}</span><span><b>Size:</b> ${pretty.length} B</span><span><b>Type:</b> ${esc(ct||'unknown')}</span></div><pre class="body-pre">${esc(pretty)}</pre>`;
+  }catch(err){
+    const dt=Math.round(performance.now()-t0);
+    result.className='tryit-result show err';
+    result.innerHTML=`<div class="meta-line"><span>✗ خطأ شبكة · Network error (${dt} ms)</span></div><div style="font-size:11px;">${esc(err.message||String(err))}</div>`;
+  }finally{
+    if(execBtn){execBtn.disabled=false;execBtn.innerHTML='<span class="material-symbols-outlined" style="font-size:13px;">send</span> تنفيذ · Execute';}
+  }
+};
+const findOp=(spec,path,method)=>{if(!spec||!spec.paths)return null;const p=spec.paths[path];if(!p)return null;return p[method.toLowerCase()]||null;};
+const showTryItForOp=(op,pathTpl,method)=>{const host=document.querySelector(`[data-tryit-host="${CSS.escape(pathTpl)}"][data-tryit-method="${method}"]`);if(!host||host.dataset.built)return;host.innerHTML=buildTryItPanel(pathTpl,method,op);host.dataset.built='1';};
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('.copy-btn');
+  if(btn){const txt=btn.dataset.curl||'';navigator.clipboard?.writeText(txt).then(()=>{const o=btn.innerHTML;btn.classList.add('copied');btn.innerHTML='<span class="ms material-symbols-outlined">check</span>تم النسخ';setTimeout(()=>{btn.classList.remove('copied');btn.innerHTML=o;},1500);});return;}
+  const tab=e.target.closest('.samples-tabs button');
+  if(tab){const cont=tab.parentElement;cont.querySelectorAll('button').forEach(b=>b.classList.remove('on'));tab.classList.add('on');const ep=tab.closest('.coll').querySelector('.body');ep.querySelectorAll('pre.code').forEach(p=>p.style.display='none');const target=ep.querySelectorAll('pre.code')[parseInt(tab.dataset.s)];if(target)target.style.display='';return;}
+  const tbtn=e.target.closest('.tryit-btn');
+  if(tbtn){const op=findOp(APP.spec,tbtn.dataset.tryit,tbtn.dataset.method);if(!op)return;showTryItForOp(op,tbtn.dataset.tryit,tbtn.dataset.method);setTimeout(()=>{const p=document.querySelector(`[data-tryit-panel="${CSS.escape(tbtn.dataset.tryit)}"]`);if(p)p.scrollIntoView({behavior:'smooth',block:'nearest'});},50);return;}
+  const ebtn=e.target.closest('[data-exec]');
+  if(ebtn){executeTryIt(ebtn.dataset.exec,ebtn.dataset.method);return;}
+  const cbtn=e.target.closest('[data-cancel]');
+  if(cbtn){const host=document.querySelector(`[data-tryit-host="${CSS.escape(cbtn.dataset.cancel)}"]`);if(host){host.innerHTML='';delete host.dataset.built;}return;}
+});
+const status=(msg,type='ok')=>{let bar=document.getElementById('status-bar');if(!bar){bar=document.createElement('div');bar.id='status-bar';bar.className='status-bar '+type;document.getElementById('content').prepend(bar);}else{bar.className='status-bar '+type;}bar.innerHTML=msg;};
+const loadSpec=async()=>{
+  status('⏳ تحميل المواصفات · Loading spec from same-origin YAML…','warn');
+  try{
+    const r=await fetch('/openapi-pcc.yaml',{cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const yaml=await r.text();
+    const mod=await import('https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.mjs');
+    const root=mod.default.load(yaml);
+    APP.spec=root; APP.yamlText=yaml;
+    status('✓ تم تحميل المواصفات ('+yaml.length+' bytes, '+Object.keys(root.paths||{}).length+' paths) · الخادم: '+esc(APP.server),'ok');
+    renderAll();
+  }catch(err){
+    try{const root=JSON.parse(document.getElementById('fallback-spec').textContent);APP.spec=root;APP.yamlText=JSON.stringify(root);status('⚠ تعذّر YAML ('+esc(err.message)+') — استخدام المضمّنة','err');renderAll();}
+    catch(e2){status('✗ فشل التحميل: '+esc(e2.message),'err');}
+  }
+};
+const renderAll=()=>{
+  if(!APP.spec)return;
+  document.getElementById('intro').innerHTML=renderIntro(APP.spec.info||{});
+  document.getElementById('apiVersion').textContent='v'+(APP.spec.info?.version||'—');
+  let count=0;
+  for(const[,methods]of Object.entries(APP.spec.paths||{})){for(const[m]of Object.entries(methods)){if(['get','post','put','delete','patch'].includes(m))count++;}}
+  document.getElementById('apiCount').textContent=count+' endpoints';
+  document.getElementById('sidebar').innerHTML=renderSidebar(APP.spec);
+  const cont=document.getElementById('endpoints');cont.innerHTML='';
+  for(const[p,methods]of Object.entries(APP.spec.paths||{})){for(const[m,op]of Object.entries(methods)){if(!['get','post','put','delete','patch'].includes(m))continue;cont.insertAdjacentHTML('beforeend',renderPath(APP.spec,p,m,op));}}
+  setupFilter();showStats(APP.spec);
+  document.querySelectorAll('aside a.nav').forEach(a=>{a.addEventListener('click',e=>{e.preventDefault();const id=a.getAttribute('href').slice(1);const el=document.getElementById(id);if(el){el.scrollIntoView({behavior:'smooth',block:'start'});history.replaceState(null,'','#'+id);}});});
+};
+document.getElementById('serverSel').addEventListener('change',e=>{
+  APP.server=e.target.value;
+  const intro=document.getElementById('introServer');if(intro)intro.textContent=APP.server;
+  status('✓ الخادم: '+esc(APP.server)+' · YAML يُحمَّل من نفس الأصل؛ Try-it يستخدم القاعدة المحددة','ok');
+  document.querySelectorAll('.tryit-panel').forEach(p=>{const pathTpl=p.dataset.tryitPanel;const urlEl=p.querySelector('[data-tryit-url]');if(urlEl)urlEl.textContent=APP.server+pathTpl;const srvLabel=p.querySelector('[data-srvlabel]');if(srvLabel)srvLabel.textContent='→ '+APP.server;});
+  loadSpec();
+});
+document.getElementById('exportBtn').addEventListener('click',exportSpec);
+loadSpec();
+</script>
+</body>
+</html>

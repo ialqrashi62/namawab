@@ -247,6 +247,8 @@ if (process.env.REDIS_URL || process.env.REDIS_HOST) {
         });
         const store = new RedisStore({ client: redisClient, prefix: "nama_session:" });
         sessionStore = new FallbackSessionStore(store);
+        // Expose for /api/health diagnostics (no-op if Redis is down)
+        if (!app.locals.redisClient) app.locals.redisClient = redisClient;
     } catch (e) {
         console.warn('[SESSION WARNING] Redis dependencies or connection failed, falling back to MemoryStore:', e.message);
     }
@@ -971,14 +973,116 @@ app.post('/api/mfa/admin-reset', requireAuth, requireTenantAdmin({ action: 'BLOC
 });
 
 app.get('/api/health', async (req, res) => {
-    // Liveness + DB readiness: a lightweight SELECT 1 so the check reflects DB connectivity,
-    // not just process liveness. No detail leaked on failure. (No tenant context -> unscoped pool.)
+    // Liveness + DB readiness + diagnostics.
+    // Backwards-compatible: returns the original {status, db} shape plus optional
+    // diagnostic fields when the client sends `?detail=1` (used by the local
+    // sync script and ops dashboards). Never leaks secrets/PHI.
+    const startTime = process.hrtime.bigint();
+    const wantDetail = req.query.detail === '1' || req.query.detail === 'true';
+    const checks = { db: false, redis: false };
+    const meta = {};
     try {
-        await pool.query('SELECT 1');
-        return res.status(200).json({ status: 'UP', db: 'up' });
+        const t0 = Date.now();
+        const r = await pool.query('SELECT 1 AS ok, current_database() AS db, current_user AS usr, version() AS pg_version, now() AS server_time');
+        checks.db = true;
+        meta.db = {
+            roundtrip_ms: Date.now() - t0,
+            database: r.rows[0].db,
+            user: r.rows[0].usr,
+            pg_version: r.rows[0].pg_version ? r.rows[0].pg_version.split(' ').slice(0, 2).join(' ') : null,
+            server_time: r.rows[0].server_time
+        };
     } catch (e) {
-        return res.status(503).json({ status: 'DEGRADED', db: 'down' });
+        // swallow; reported via checks.db=false below
     }
+    // Redis check is best-effort: we don't fail the health if Redis is unreachable
+    // because sessions can fall back to MemoryStore (see session middleware).
+    // The redis client is defined inside the session middleware closure, so we
+    // can't reach it from here. Instead we attempt a no-op via the global
+    // `app.locals.redisClient` if it was exposed at boot.
+    try {
+        const t0 = Date.now();
+        const rc = res.app && res.app.locals && res.app.locals.redisClient;
+        if (rc && typeof rc.ping === 'function') {
+            await rc.ping();
+            checks.redis = true;
+            meta.redis = { roundtrip_ms: Date.now() - t0 };
+        } else {
+            meta.redis = { status: 'unknown', note: 'redis client not exposed via app.locals' };
+        }
+    } catch (e) {
+        meta.redis = { error: 'unreachable' };
+    }
+
+    const allUp = checks.db; // db is the only hard requirement
+    const elapsed_ms = Number(process.hrtime.bigint() - startTime) / 1e6;
+    const body = {
+        status: allUp ? 'UP' : 'DEGRADED',
+        db: checks.db ? 'up' : 'down',
+        redis: checks.redis ? 'up' : 'down',
+        uptime_seconds: Math.round(process.uptime()),
+        node_version: process.version,
+        pid: process.pid,
+        env: process.env.NODE_ENV || 'development',
+        timestamp: new Date().toISOString(),
+        elapsed_ms: Math.round(elapsed_ms * 100) / 100
+    };
+    if (wantDetail) {
+        body.meta = meta;
+    }
+    return res.status(allUp ? 200 : 503).json(body);
+});
+
+// New: GET /api/system/info
+// Public endpoint: deployment + build metadata. NO secrets, NO PHI, NO tenant data.
+// Safe to call without auth so that external monitors (Cloudflare, Hetzner, etc.) can
+// verify the deployed version matches the expected one.
+app.get('/api/system/info', (req, res) => {
+    // Count engines + AI orchestrators at request time (cheap, just file I/O once per process).
+    // We cache the counts in a module-level variable on first hit so we don't rescan
+    // the filesystem on every monitor poll.
+    if (!app.locals.systemCounts) {
+        const fs = require('fs');
+        const path = require('path');
+        const here = __dirname;
+        let engines = 0;
+        let aiOrchestrators = 0;
+        let specialtyStations = 0;
+        try {
+            for (const f of fs.readdirSync(here)) {
+                if (/^[a-z0-9_]+_engine\.js$/.test(f)) engines++;
+                if (/^ai_[a-z0-9_]+_orchestrator\.js$/.test(f)) aiOrchestrators++;
+                if (/_station\.js$/.test(f)) specialtyStations++;
+            }
+        } catch (e) { /* swallow */ }
+        app.locals.systemCounts = { engines, aiOrchestrators, specialtyStations, scanned_at: new Date().toISOString() };
+    }
+    res.json({
+        ok: true,
+        name: 'jumanaMedical ERP',
+        version: '2026.07.23-001',
+        node_version: process.version,
+        pid: process.pid,
+        env: process.env.NODE_ENV || 'development',
+        uptime_seconds: Math.round(process.uptime()),
+        platform: process.platform,
+        arch: process.arch,
+        counts: app.locals.systemCounts,
+        timestamp: new Date().toISOString(),
+        modules: {
+            engines: app.locals.systemCounts.engines,
+            ai_orchestrators: app.locals.systemCounts.aiOrchestrators,
+            specialty_stations: app.locals.systemCounts.specialtyStations
+        },
+        capabilities: {
+            rag: true,
+            multi_tenant: true,
+            phi_encryption: true,
+            idempotency: true,
+            audit_chain: true,
+            mfa: true
+        }
+    });
 });
 
 app.get('/api/auth/me', (req, res) => {
@@ -14703,6 +14807,718 @@ app.post('/api/hr/competencies', requireAuth, requireRole('hr'), requireTenantSc
 // [MOVED] catch-all to end of routes
 
 // ===== INIT & START =====
+try { app.use('/api/eng/tier145-ed-689', require('./tier145_ed_689_router.js')); } catch(e) { console.error('mount tier145_ed_689_router.js fail', e.message); }
+try { app.use('/api/eng/tier145-nep-690', require('./tier145_nep_690_router.js')); } catch(e) { console.error('mount tier145_nep_690_router.js fail', e.message); }
+try { app.use('/api/eng/tier145-pt-691', require('./tier145_pt_691_router.js')); } catch(e) { console.error('mount tier145_pt_691_router.js fail', e.message); }
+try { app.use('/api/eng/tier145-cos-692', require('./tier145_cos_692_router.js')); } catch(e) { console.error('mount tier145_cos_692_router.js fail', e.message); }
+try { app.use('/api/eng/tier146-ane-693', require('./tier146_ane_693_router.js')); } catch(e) { console.error('mount tier146_ane_693_router.js fail', e.message); }
+try { app.use('/api/eng/tier146-hem-694', require('./tier146_hem_694_router.js')); } catch(e) { console.error('mount tier146_hem_694_router.js fail', e.message); }
+try { app.use('/api/eng/tier146-neu-695', require('./tier146_neu_695_router.js')); } catch(e) { console.error('mount tier146_neu_695_router.js fail', e.message); }
+try { app.use('/api/eng/tier146-irr-696', require('./tier146_irr_696_router.js')); } catch(e) { console.error('mount tier146_irr_696_router.js fail', e.message); }
+try { app.use('/api/eng/tier147-rad-697', require('./tier147_rad_697_router.js')); } catch(e) { console.error('mount tier147_rad_697_router.js fail', e.message); }
+try { app.use('/api/eng/tier147-pat-698', require('./tier147_pat_698_router.js')); } catch(e) { console.error('mount tier147_pat_698_router.js fail', e.message); }
+try { app.use('/api/eng/tier147-pha-699', require('./tier147_pha_699_router.js')); } catch(e) { console.error('mount tier147_pha_699_router.js fail', e.message); }
+try { app.use('/api/eng/tier147-pal-700', require('./tier147_pal_700_router.js')); } catch(e) { console.error('mount tier147_pal_700_router.js fail', e.message); }
+try { app.use('/api/eng/tier148-onc-701', require('./tier148_onc_701_router.js')); } catch(e) { console.error('mount tier148_onc_701_router.js fail', e.message); }
+try { app.use('/api/eng/tier148-obg-702', require('./tier148_obg_702_router.js')); } catch(e) { console.error('mount tier148_obg_702_router.js fail', e.message); }
+try { app.use('/api/eng/tier148-nic-703', require('./tier148_nic_703_router.js')); } catch(e) { console.error('mount tier148_nic_703_router.js fail', e.message); }
+try { app.use('/api/eng/tier148-bld-704', require('./tier148_bld_704_router.js')); } catch(e) { console.error('mount tier148_bld_704_router.js fail', e.message); }
+try { app.use('/api/eng/tier149-car-705', require('./tier149_car_705_router.js')); } catch(e) { console.error('mount tier149_car_705_router.js fail', e.message); }
+try { app.use('/api/eng/tier149-pul-706', require('./tier149_pul_706_router.js')); } catch(e) { console.error('mount tier149_pul_706_router.js fail', e.message); }
+try { app.use('/api/eng/tier149-gi-707', require('./tier149_gi_707_router.js')); } catch(e) { console.error('mount tier149_gi_707_router.js fail', e.message); }
+try { app.use('/api/eng/tier149-nep-708', require('./tier149_nep_708_router.js')); } catch(e) { console.error('mount tier149_nep_708_router.js fail', e.message); }
+try { app.use('/api/eng/tier150-neu-709', require('./tier150_neu_709_router.js')); } catch(e) { console.error('mount tier150_neu_709_router.js fail', e.message); }
+try { app.use('/api/eng/tier150-end-710', require('./tier150_end_710_router.js')); } catch(e) { console.error('mount tier150_end_710_router.js fail', e.message); }
+try { app.use('/api/eng/tier150-rhe-711', require('./tier150_rhe_711_router.js')); } catch(e) { console.error('mount tier150_rhe_711_router.js fail', e.message); }
+try { app.use('/api/eng/tier150-hem-712', require('./tier150_hem_712_router.js')); } catch(e) { console.error('mount tier150_hem_712_router.js fail', e.message); }
+try { app.use('/api/eng/tier151-pls-713', require('./tier151_pls_713_router.js')); } catch(e) { console.error('mount tier151_pls_713_router.js fail', e.message); }
+try { app.use('/api/eng/tier151-wou-714', require('./tier151_wou_714_router.js')); } catch(e) { console.error('mount tier151_wou_714_router.js fail', e.message); }
+try { app.use('/api/eng/tier151-pod-715', require('./tier151_pod_715_router.js')); } catch(e) { console.error('mount tier151_pod_715_router.js fail', e.message); }
+try { app.use('/api/eng/tier151-sle-716', require('./tier151_sle_716_router.js')); } catch(e) { console.error('mount tier151_sle_716_router.js fail', e.message); }
+try { app.use('/api/eng/tier152-pdc-717', require('./tier152_pdc_717_router.js')); } catch(e) { console.error('mount tier152_pdc_717_router.js fail', e.message); }
+try { app.use('/api/eng/tier152-pcs-718', require('./tier152_pcs_718_router.js')); } catch(e) { console.error('mount tier152_pcs_718_router.js fail', e.message); }
+try { app.use('/api/eng/tier152-pgu-719', require('./tier152_pgu_719_router.js')); } catch(e) { console.error('mount tier152_pgu_719_router.js fail', e.message); }
+try { app.use('/api/eng/tier152-chi-720', require('./tier152_chi_720_router.js')); } catch(e) { console.error('mount tier152_chi_720_router.js fail', e.message); }
+try { app.use('/api/eng/tier153-pon-721', require('./tier153_pon_721_router.js')); } catch(e) { console.error('mount tier153_pon_721_router.js fail', e.message); }
+try { app.use('/api/eng/tier153-bmt-722', require('./tier153_bmt_722_router.js')); } catch(e) { console.error('mount tier153_bmt_722_router.js fail', e.message); }
+try { app.use('/api/eng/tier153-phem-723', require('./tier153_phem_723_router.js')); } catch(e) { console.error('mount tier153_phem_723_router.js fail', e.message); }
+try { app.use('/api/eng/tier153-pic-724', require('./tier153_pic_724_router.js')); } catch(e) { console.error('mount tier153_pic_724_router.js fail', e.message); }
+try { app.use('/api/eng/tier154-ent-725', require('./tier154_ent_725_router.js')); } catch(e) { console.error('mount tier154_ent_725_router.js fail', e.message); }
+try { app.use('/api/eng/tier154-oms-728', require('./tier154_oms_728_router.js')); } catch(e) { console.error('mount tier154_oms_728_router.js fail', e.message); }
+try { app.use('/api/eng/tier154-ort-729', require('./tier154_ort_729_router.js')); } catch(e) { console.error('mount tier154_ort_729_router.js fail', e.message); }
+try { app.use('/api/eng/tier154-per-730', require('./tier154_per_730_router.js')); } catch(e) { console.error('mount tier154_per_730_router.js fail', e.message); }
+try { app.use('/api/eng/tier155-spn-731', require('./tier155_spn_731_router.js')); } catch(e) { console.error('mount tier155_spn_731_router.js fail', e.message); }
+try { app.use('/api/eng/tier155-spt-732', require('./tier155_spt_732_router.js')); } catch(e) { console.error('mount tier155_spt_732_router.js fail', e.message); }
+try { app.use('/api/eng/tier155-pmn-733', require('./tier155_pmn_733_router.js')); } catch(e) { console.error('mount tier155_pmn_733_router.js fail', e.message); }
+try { app.use('/api/eng/tier155-pmr-734', require('./tier155_pmr_734_router.js')); } catch(e) { console.error('mount tier155_pmr_734_router.js fail', e.message); }
+try { app.use('/api/eng/tier156-crs-735', require('./tier156_crs_735_router.js')); } catch(e) { console.error('mount tier156_crs_735_router.js fail', e.message); }
+try { app.use('/api/eng/tier156-hpb-736', require('./tier156_hpb_736_router.js')); } catch(e) { console.error('mount tier156_hpb_736_router.js fail', e.message); }
+try { app.use('/api/eng/tier156-txp-737', require('./tier156_txp_737_router.js')); } catch(e) { console.error('mount tier156_txp_737_router.js fail', e.message); }
+try { app.use('/api/eng/tier156-tra-738', require('./tier156_tra_738_router.js')); } catch(e) { console.error('mount tier156_tra_738_router.js fail', e.message); }
+try { app.use('/api/eng/tier157-fm-739', require('./tier157_fm_739_router.js')); } catch(e) { console.error('mount tier157_fm_739_router.js fail', e.message); }
+try { app.use('/api/eng/tier157-ger-740', require('./tier157_ger_740_router.js')); } catch(e) { console.error('mount tier157_ger_740_router.js fail', e.message); }
+try { app.use('/api/eng/tier157-sm-741', require('./tier157_sm_741_router.js')); } catch(e) { console.error('mount tier157_sm_741_router.js fail', e.message); }
+try { app.use('/api/eng/tier157-vac-742', require('./tier157_vac_742_router.js')); } catch(e) { console.error('mount tier157_vac_742_router.js fail', e.message); }
+try { app.use('/api/eng/tier158-ivf-743', require('./tier158_ivf_743_router.js')); } catch(e) { console.error('mount tier158_ivf_743_router.js fail', e.message); }
+try { app.use('/api/eng/tier158-and-744', require('./tier158_and_744_router.js')); } catch(e) { console.error('mount tier158_and_744_router.js fail', e.message); }
+try { app.use('/api/eng/tier158-men-745', require('./tier158_men_745_router.js')); } catch(e) { console.error('mount tier158_men_745_router.js fail', e.message); }
+try { app.use('/api/eng/tier158-mif-746', require('./tier158_mif_746_router.js')); } catch(e) { console.error('mount tier158_mif_746_router.js fail', e.message); }
+try { app.use('/api/eng/tier159-hos-747', require('./tier159_hos_747_router.js')); } catch(e) { console.error('mount tier159_hos_747_router.js fail', e.message); }
+try { app.use('/api/eng/tier159-cmp-748', require('./tier159_cmp_748_router.js')); } catch(e) { console.error('mount tier159_cmp_748_router.js fail', e.message); }
+try { app.use('/api/eng/tier159-inv-749', require('./tier159_inv_749_router.js')); } catch(e) { console.error('mount tier159_inv_749_router.js fail', e.message); }
+try { app.use('/api/eng/tier159-fin-750', require('./tier159_fin_750_router.js')); } catch(e) { console.error('mount tier159_fin_750_router.js fail', e.message); }
+try { app.use('/api/eng/tier160-tel-751', require('./tier160_tel_751_router.js')); } catch(e) { console.error('mount tier160_tel_751_router.js fail', e.message); }
+try { app.use('/api/eng/tier160-ai-752', require('./tier160_ai_752_router.js')); } catch(e) { console.error('mount tier160_ai_752_router.js fail', e.message); }
+try { app.use('/api/eng/tier160-rs-753', require('./tier160_rs_753_router.js')); } catch(e) { console.error('mount tier160_rs_753_router.js fail', e.message); }
+try { app.use('/api/eng/tier160-lab-754', require('./tier160_lab_754_router.js')); } catch(e) { console.error('mount tier160_lab_754_router.js fail', e.message); }
+try { app.use('/api/eng/tier161-imu-755', require('./tier161_imu_755_router.js')); } catch(e) { console.error('mount tier161_imu_755_router.js fail', e.message); }
+try { app.use('/api/eng/tier161-hem-756', require('./tier161_hem_756_router.js')); } catch(e) { console.error('mount tier161_hem_756_router.js fail', e.message); }
+try { app.use('/api/eng/tier161-max-757', require('./tier161_max_757_router.js')); } catch(e) { console.error('mount tier161_max_757_router.js fail', e.message); }
+try { app.use('/api/eng/tier161-pod-758', require('./tier161_pod_758_router.js')); } catch(e) { console.error('mount tier161_pod_758_router.js fail', e.message); }
+try { app.use('/api/eng/tier162-pub-759', require('./tier162_pub_759_router.js')); } catch(e) { console.error('mount tier162_pub_759_router.js fail', e.message); }
+try { app.use('/api/eng/tier162-prev-760', require('./tier162_prev_760_router.js')); } catch(e) { console.error('mount tier162_prev_760_router.js fail', e.message); }
+try { app.use('/api/eng/tier162-occ-761', require('./tier162_occ_761_router.js')); } catch(e) { console.error('mount tier162_occ_761_router.js fail', e.message); }
+try { app.use('/api/eng/tier162-avi-762', require('./tier162_avi_762_router.js')); } catch(e) { console.error('mount tier162_avi_762_router.js fail', e.message); }
+try { app.use('/api/eng/tier163-aes-763', require('./tier163_aes_763_router.js')); } catch(e) { console.error('mount tier163_aes_763_router.js fail', e.message); }
+try { app.use('/api/eng/tier163-div-764', require('./tier163_div_764_router.js')); } catch(e) { console.error('mount tier163_div_764_router.js fail', e.message); }
+try { app.use('/api/eng/tier163-mar-765', require('./tier163_mar_765_router.js')); } catch(e) { console.error('mount tier163_mar_765_router.js fail', e.message); }
+try { app.use('/api/eng/tier163-mil-766', require('./tier163_mil_766_router.js')); } catch(e) { console.error('mount tier163_mil_766_router.js fail', e.message); }
+try { app.use('/api/eng/tier164-hum-767', require('./tier164_hum_767_router.js')); } catch(e) { console.error('mount tier164_hum_767_router.js fail', e.message); }
+try { app.use('/api/eng/tier164-tel-768', require('./tier164_tel_768_router.js')); } catch(e) { console.error('mount tier164_tel_768_router.js fail', e.message); }
+try { app.use('/api/eng/tier164-pal-769', require('./tier164_pal_769_router.js')); } catch(e) { console.error('mount tier164_pal_769_router.js fail', e.message); }
+try { app.use('/api/eng/tier164-int-770', require('./tier164_int_770_router.js')); } catch(e) { console.error('mount tier164_int_770_router.js fail', e.message); }
+try { app.use('/api/eng/tier165-gen-771', require('./tier165_gen_771_router.js')); } catch(e) { console.error('mount tier165_gen_771_router.js fail', e.message); }
+try { app.use('/api/eng/tier165-phr-772', require('./tier165_phr_772_router.js')); } catch(e) { console.error('mount tier165_phr_772_router.js fail', e.message); }
+try { app.use('/api/eng/tier165-bio-773', require('./tier165_bio_773_router.js')); } catch(e) { console.error('mount tier165_bio_773_router.js fail', e.message); }
+try { app.use('/api/eng/tier165-eth-774', require('./tier165_eth_774_router.js')); } catch(e) { console.error('mount tier165_eth_774_router.js fail', e.message); }
+try { app.use('/api/eng/tier166-cul-775', require('./tier166_cul_775_router.js')); } catch(e) { console.error('mount tier166_cul_775_router.js fail', e.message); }
+try { app.use('/api/eng/tier166-psy-776', require('./tier166_psy_776_router.js')); } catch(e) { console.error('mount tier166_psy_776_router.js fail', e.message); }
+try { app.use('/api/eng/tier166-den-777', require('./tier166_den_777_router.js')); } catch(e) { console.error('mount tier166_den_777_router.js fail', e.message); }
+try { app.use('/api/eng/tier166-vis-778', require('./tier166_vis_778_router.js')); } catch(e) { console.error('mount tier166_vis_778_router.js fail', e.message); }
+try { app.use('/api/eng/tier167-aud-779', require('./tier167_aud_779_router.js')); } catch(e) { console.error('mount tier167_aud_779_router.js fail', e.message); }
+try { app.use('/api/eng/tier167-spe-780', require('./tier167_spe_780_router.js')); } catch(e) { console.error('mount tier167_spe_780_router.js fail', e.message); }
+try { app.use('/api/eng/tier167-drm-781', require('./tier167_drm_781_router.js')); } catch(e) { console.error('mount tier167_drm_781_router.js fail', e.message); }
+try { app.use('/api/eng/tier167-onc-782', require('./tier167_onc_782_router.js')); } catch(e) { console.error('mount tier167_onc_782_router.js fail', e.message); }
+try { app.use('/api/eng/tier168-reh-783', require('./tier168_reh_783_router.js')); } catch(e) { console.error('mount tier168_reh_783_router.js fail', e.message); }
+try { app.use('/api/eng/tier168-ped-784', require('./tier168_ped_784_router.js')); } catch(e) { console.error('mount tier168_ped_784_router.js fail', e.message); }
+try { app.use('/api/eng/tier168-gyn-785', require('./tier168_gyn_785_router.js')); } catch(e) { console.error('mount tier168_gyn_785_router.js fail', e.message); }
+try { app.use('/api/eng/tier168-obg-786', require('./tier168_obg_786_router.js')); } catch(e) { console.error('mount tier168_obg_786_router.js fail', e.message); }
+try { app.use('/api/eng/tier169-icu-787', require('./tier169_icu_787_router.js')); } catch(e) { console.error('mount tier169_icu_787_router.js fail', e.message); }
+try { app.use('/api/eng/tier169-emr-788', require('./tier169_emr_788_router.js')); } catch(e) { console.error('mount tier169_emr_788_router.js fail', e.message); }
+try { app.use('/api/eng/tier169-tra-789', require('./tier169_tra_789_router.js')); } catch(e) { console.error('mount tier169_tra_789_router.js fail', e.message); }
+try { app.use('/api/eng/tier169-cad-790', require('./tier169_cad_790_router.js')); } catch(e) { console.error('mount tier169_cad_790_router.js fail', e.message); }
+try { app.use('/api/eng/tier170-nrs-791', require('./tier170_nrs_791_router.js')); } catch(e) { console.error('mount tier170_nrs_791_router.js fail', e.message); }
+try { app.use('/api/eng/tier170-rad-792', require('./tier170_rad_792_router.js')); } catch(e) { console.error('mount tier170_rad_792_router.js fail', e.message); }
+try { app.use('/api/eng/tier170-lab-793', require('./tier170_lab_793_router.js')); } catch(e) { console.error('mount tier170_lab_793_router.js fail', e.message); }
+try { app.use('/api/eng/tier170-ane-794', require('./tier170_ane_794_router.js')); } catch(e) { console.error('mount tier170_ane_794_router.js fail', e.message); }
+// Auto-mount generated tier routers (171-310): unified loader, path='/'+base
+for (const f of require('fs').readdirSync(__dirname).sort()) {
+  if (!/^tier(?:17[1-9]|1[89]\d|2\d\d|3[01]\d)_\w+_\d+_router\.js$/.test(f)) continue;
+  try { app.use('/' + f.replace(/_router\.js$/, ''), require('./' + f)); }
+  catch(e) { console.error('mount ' + f + ' fail', e.message); }
+}
+
+  app.use("/tier171_inf_795", require("./tier171_inf_795_router"));
+  app.use("/tier171_emp_796", require("./tier171_emp_796_router"));
+  app.use("/tier171_phr_797", require("./tier171_phr_797_router"));
+  app.use("/tier171_qui_798", require("./tier171_qui_798_router"));
+  app.use("/tier172_bun_799", require("./tier172_bun_799_router"));
+  app.use("/tier172_car_805", require("./tier172_car_805_router"));
+  app.use("/tier172_neu_802", require("./tier172_neu_802_router"));
+  app.use("/tier172_bre_803", require("./tier172_bre_803_router"));
+  app.use("/tier172_gyn_804", require("./tier172_gyn_804_router"));
+  app.use("/tier173_pul_806", require("./tier173_pul_806_router"));
+  app.use("/tier173_skp_807", require("./tier173_skp_807_router"));
+  app.use("/tier173_mus_808", require("./tier173_mus_808_router"));
+  app.use("/tier173_int_809", require("./tier173_int_809_router"));
+  app.use("/tier173_ped_810", require("./tier173_ped_810_router"));
+  app.use("/tier174_hem_811", require("./tier174_hem_811_router"));
+  app.use("/tier174_onc_812", require("./tier174_onc_812_router"));
+  app.use("/tier174_car_813", require("./tier174_car_813_router"));
+  app.use("/tier174_nep_814", require("./tier174_nep_814_router"));
+  app.use("/tier174_pal_815", require("./tier174_pal_815_router"));
+  app.use("/tier175_eye_816", require("./tier175_eye_816_router"));
+  app.use("/tier175_ent_817", require("./tier175_ent_817_router"));
+  app.use("/tier175_ski_818", require("./tier175_ski_818_router"));
+  app.use("/tier175_mus_819", require("./tier175_mus_819_router"));
+  app.use("/tier175_psy_820", require("./tier175_psy_820_router"));
+
+  app.use("/tier176_car_821", require("./tier176_car_821_router"));
+  app.use("/tier176_onc_822", require("./tier176_onc_822_router"));
+  app.use("/tier176_emr_823", require("./tier176_emr_823_router"));
+  app.use("/tier176_lab_824", require("./tier176_lab_824_router"));
+  app.use("/tier176_rad_825", require("./tier176_rad_825_router"));
+  app.use("/tier177_ort_826", require("./tier177_ort_826_router"));
+  app.use("/tier177_ent_827", require("./tier177_ent_827_router"));
+  app.use("/tier177_eye_828", require("./tier177_eye_828_router"));
+  app.use("/tier177_der_829", require("./tier177_der_829_router"));
+  app.use("/tier177_rhe_830", require("./tier177_rhe_830_router"));
+  app.use("/tier178_gi_831", require("./tier178_gi_831_router"));
+  app.use("/tier178_end_832", require("./tier178_end_832_router"));
+  app.use("/tier178_neu_833", require("./tier178_neu_833_router"));
+  app.use("/tier178_psy_834", require("./tier178_psy_834_router"));
+  app.use("/tier178_pal_835", require("./tier178_pal_835_router"));
+  app.use("/tier179_uro_836", require("./tier179_uro_836_router"));
+  app.use("/tier179_nep_837", require("./tier179_nep_837_router"));
+  app.use("/tier179_pul_838", require("./tier179_pul_838_router"));
+  app.use("/tier179_sle_839", require("./tier179_sle_839_router"));
+  app.use("/tier179_all_840", require("./tier179_all_840_router"));
+  app.use("/tier180_obg_841", require("./tier180_obg_841_router"));
+  app.use("/tier180_ped_842", require("./tier180_ped_842_router"));
+  app.use("/tier180_gen_843", require("./tier180_gen_843_router"));
+  app.use("/tier180_sur_844", require("./tier180_sur_844_router"));
+  app.use("/tier180_eme_845", require("./tier180_eme_845_router"));
+
+  app.use("/tier181_cdi_846", require("./tier181_cdi_846_router"));
+  app.use("/tier181_cdp_847", require("./tier181_cdp_847_router"));
+  app.use("/tier181_cdt_848", require("./tier181_cdt_848_router"));
+  app.use("/tier181_cdm_849", require("./tier181_cdm_849_router"));
+  app.use("/tier181_cdx_850", require("./tier181_cdx_850_router"));
+  app.use("/tier182_phl_851", require("./tier182_phl_851_router"));
+  app.use("/tier182_phm_852", require("./tier182_phm_852_router"));
+  app.use("/tier182_php_853", require("./tier182_php_853_router"));
+  app.use("/tier182_phb_854", require("./tier182_phb_854_router"));
+  app.use("/tier182_phg_855", require("./tier182_phg_855_router"));
+  app.use("/tier183_imx_856", require("./tier183_imx_856_router"));
+  app.use("/tier183_imc_857", require("./tier183_imc_857_router"));
+  app.use("/tier183_imm_858", require("./tier183_imm_858_router"));
+  app.use("/tier183_imu_859", require("./tier183_imu_859_router"));
+  app.use("/tier183_imn_860", require("./tier183_imn_860_router"));
+  app.use("/tier184_sx1_861", require("./tier184_sx1_861_router"));
+  app.use("/tier184_sx2_862", require("./tier184_sx2_862_router"));
+  app.use("/tier184_sx3_863", require("./tier184_sx3_863_router"));
+  app.use("/tier184_sx4_864", require("./tier184_sx4_864_router"));
+  app.use("/tier184_sx5_865", require("./tier184_sx5_865_router"));
+  app.use("/tier185_rx1_866", require("./tier185_rx1_866_router"));
+  app.use("/tier185_rx2_867", require("./tier185_rx2_867_router"));
+  app.use("/tier185_rx3_868", require("./tier185_rx3_868_router"));
+  app.use("/tier185_rx4_869", require("./tier185_rx4_869_router"));
+  app.use("/tier185_rx5_870", require("./tier185_rx5_870_router"));
+
+  app.use("/tier186_mt1_871", require("./tier186_mt1_871_router"));
+  app.use("/tier186_mt2_872", require("./tier186_mt2_872_router"));
+  app.use("/tier186_mt3_873", require("./tier186_mt3_873_router"));
+  app.use("/tier186_mt4_874", require("./tier186_mt4_874_router"));
+  app.use("/tier186_mt5_875", require("./tier186_mt5_875_router"));
+  app.use("/tier187_ed1_876", require("./tier187_ed1_876_router"));
+  app.use("/tier187_ed2_877", require("./tier187_ed2_877_router"));
+  app.use("/tier187_ed3_878", require("./tier187_ed3_878_router"));
+  app.use("/tier187_ed4_879", require("./tier187_ed4_879_router"));
+  app.use("/tier187_ed5_880", require("./tier187_ed5_880_router"));
+  app.use("/tier188_wh1_881", require("./tier188_wh1_881_router"));
+  app.use("/tier188_wh2_882", require("./tier188_wh2_882_router"));
+  app.use("/tier188_wh3_883", require("./tier188_wh3_883_router"));
+  app.use("/tier188_wh4_884", require("./tier188_wh4_884_router"));
+  app.use("/tier188_wh5_885", require("./tier188_wh5_885_router"));
+  app.use("/tier189_ip1_886", require("./tier189_ip1_886_router"));
+  app.use("/tier189_ip2_887", require("./tier189_ip2_887_router"));
+  app.use("/tier189_ip3_888", require("./tier189_ip3_888_router"));
+  app.use("/tier189_ip4_889", require("./tier189_ip4_889_router"));
+  app.use("/tier189_ip5_890", require("./tier189_ip5_890_router"));
+  app.use("/tier190_op1_891", require("./tier190_op1_891_router"));
+  app.use("/tier190_op2_892", require("./tier190_op2_892_router"));
+  app.use("/tier190_op3_893", require("./tier190_op3_893_router"));
+  app.use("/tier190_op4_894", require("./tier190_op4_894_router"));
+  app.use("/tier190_op5_895", require("./tier190_op5_895_router"));
+
+  app.use("/tier191_rx1_896", require("./tier191_rx1_896_router"));
+  app.use("/tier191_rx2_897", require("./tier191_rx2_897_router"));
+  app.use("/tier191_rx3_898", require("./tier191_rx3_898_router"));
+  app.use("/tier191_rx4_899", require("./tier191_rx4_899_router"));
+  app.use("/tier191_rx5_900", require("./tier191_rx5_900_router"));
+  app.use("/tier192_lx1_901", require("./tier192_lx1_901_router"));
+  app.use("/tier192_lx2_902", require("./tier192_lx2_902_router"));
+  app.use("/tier192_lx3_903", require("./tier192_lx3_903_router"));
+  app.use("/tier192_lx4_904", require("./tier192_lx4_904_router"));
+  app.use("/tier192_lx5_905", require("./tier192_lx5_905_router"));
+  app.use("/tier193_dx1_906", require("./tier193_dx1_906_router"));
+  app.use("/tier193_dx2_907", require("./tier193_dx2_907_router"));
+  app.use("/tier193_dx3_908", require("./tier193_dx3_908_router"));
+  app.use("/tier193_dx4_909", require("./tier193_dx4_909_router"));
+  app.use("/tier193_dx5_910", require("./tier193_dx5_910_router"));
+  app.use("/tier194_px1_911", require("./tier194_px1_911_router"));
+  app.use("/tier194_px2_912", require("./tier194_px2_912_router"));
+  app.use("/tier194_px3_913", require("./tier194_px3_913_router"));
+  app.use("/tier194_px4_914", require("./tier194_px4_914_router"));
+  app.use("/tier194_px5_915", require("./tier194_px5_915_router"));
+  app.use("/tier195_qx1_916", require("./tier195_qx1_916_router"));
+  app.use("/tier195_qx2_917", require("./tier195_qx2_917_router"));
+  app.use("/tier195_qx3_918", require("./tier195_qx3_918_router"));
+  app.use("/tier195_qx4_919", require("./tier195_qx4_919_router"));
+  app.use("/tier195_qx5_920", require("./tier195_qx5_920_router"));
+
+  app.use("/tier196_sx1_921", require("./tier196_sx1_921_router"));
+  app.use("/tier196_sx2_922", require("./tier196_sx2_922_router"));
+  app.use("/tier196_sx3_923", require("./tier196_sx3_923_router"));
+  app.use("/tier196_sx4_924", require("./tier196_sx4_924_router"));
+  app.use("/tier196_sx5_925", require("./tier196_sx5_925_router"));
+  app.use("/tier197_mh1_926", require("./tier197_mh1_926_router"));
+  app.use("/tier197_mh2_927", require("./tier197_mh2_927_router"));
+  app.use("/tier197_mh3_928", require("./tier197_mh3_928_router"));
+  app.use("/tier197_mh4_929", require("./tier197_mh4_929_router"));
+  app.use("/tier197_mh5_930", require("./tier197_mh5_930_router"));
+  app.use("/tier198_re1_931", require("./tier198_re1_931_router"));
+  app.use("/tier198_re2_932", require("./tier198_re2_932_router"));
+  app.use("/tier198_re3_933", require("./tier198_re3_933_router"));
+  app.use("/tier198_re4_934", require("./tier198_re4_934_router"));
+  app.use("/tier198_re5_935", require("./tier198_re5_935_router"));
+  app.use("/tier199_pc1_936", require("./tier199_pc1_936_router"));
+  app.use("/tier199_pc2_937", require("./tier199_pc2_937_router"));
+  app.use("/tier199_pc3_938", require("./tier199_pc3_938_router"));
+  app.use("/tier199_pc4_939", require("./tier199_pc4_939_router"));
+  app.use("/tier199_pc5_940", require("./tier199_pc5_940_router"));
+  app.use("/tier200_fn1_941", require("./tier200_fn1_941_router"));
+  app.use("/tier200_fn2_942", require("./tier200_fn2_942_router"));
+  app.use("/tier200_fn3_943", require("./tier200_fn3_943_router"));
+  app.use("/tier200_fn4_944", require("./tier200_fn4_944_router"));
+  app.use("/tier200_fn5_945", require("./tier200_fn5_945_router"));
+
+  app.use("/tier201_ch1_946", require("./tier201_ch1_946_router"));
+  app.use("/tier201_ch2_947", require("./tier201_ch2_947_router"));
+  app.use("/tier201_ch3_948", require("./tier201_ch3_948_router"));
+  app.use("/tier201_ch4_949", require("./tier201_ch4_949_router"));
+  app.use("/tier201_ch5_950", require("./tier201_ch5_950_router"));
+  app.use("/tier202_nu1_951", require("./tier202_nu1_951_router"));
+  app.use("/tier202_nu2_952", require("./tier202_nu2_952_router"));
+  app.use("/tier202_nu3_953", require("./tier202_nu3_953_router"));
+  app.use("/tier202_nu4_954", require("./tier202_nu4_954_router"));
+  app.use("/tier202_nu5_955", require("./tier202_nu5_955_router"));
+  app.use("/tier203_sw1_956", require("./tier203_sw1_956_router"));
+  app.use("/tier203_sw2_957", require("./tier203_sw2_957_router"));
+  app.use("/tier203_sw3_958", require("./tier203_sw3_958_router"));
+  app.use("/tier203_sw4_959", require("./tier203_sw4_959_router"));
+  app.use("/tier203_sw5_960", require("./tier203_sw5_960_router"));
+  app.use("/tier204_cp1_961", require("./tier204_cp1_961_router"));
+  app.use("/tier204_cp2_962", require("./tier204_cp2_962_router"));
+  app.use("/tier204_cp3_963", require("./tier204_cp3_963_router"));
+  app.use("/tier204_cp4_964", require("./tier204_cp4_964_router"));
+  app.use("/tier204_cp5_965", require("./tier204_cp5_965_router"));
+  app.use("/tier205_ad1_966", require("./tier205_ad1_966_router"));
+  app.use("/tier205_ad2_967", require("./tier205_ad2_967_router"));
+  app.use("/tier205_ad3_968", require("./tier205_ad3_968_router"));
+  app.use("/tier205_ad4_969", require("./tier205_ad4_969_router"));
+  app.use("/tier205_ad5_970", require("./tier205_ad5_970_router"));
+
+  app.use("/tier206_a1_946", require("./tier206_a1_946_router"));
+  app.use("/tier206_a2_947", require("./tier206_a2_947_router"));
+  app.use("/tier206_a3_948", require("./tier206_a3_948_router"));
+  app.use("/tier206_a4_949", require("./tier206_a4_949_router"));
+  app.use("/tier206_a5_950", require("./tier206_a5_950_router"));
+  app.use("/tier207_b1_951", require("./tier207_b1_951_router"));
+  app.use("/tier207_b2_952", require("./tier207_b2_952_router"));
+  app.use("/tier207_b3_953", require("./tier207_b3_953_router"));
+  app.use("/tier207_b4_954", require("./tier207_b4_954_router"));
+  app.use("/tier207_b5_955", require("./tier207_b5_955_router"));
+  app.use("/tier208_c1_956", require("./tier208_c1_956_router"));
+  app.use("/tier208_c2_957", require("./tier208_c2_957_router"));
+  app.use("/tier208_c3_958", require("./tier208_c3_958_router"));
+  app.use("/tier208_c4_959", require("./tier208_c4_959_router"));
+  app.use("/tier208_c5_960", require("./tier208_c5_960_router"));
+  app.use("/tier209_d1_961", require("./tier209_d1_961_router"));
+  app.use("/tier209_d2_962", require("./tier209_d2_962_router"));
+  app.use("/tier209_d3_963", require("./tier209_d3_963_router"));
+  app.use("/tier209_d4_964", require("./tier209_d4_964_router"));
+  app.use("/tier209_d5_965", require("./tier209_d5_965_router"));
+  app.use("/tier210_e1_966", require("./tier210_e1_966_router"));
+  app.use("/tier210_e2_967", require("./tier210_e2_967_router"));
+  app.use("/tier210_e3_968", require("./tier210_e3_968_router"));
+  app.use("/tier210_e4_969", require("./tier210_e4_969_router"));
+  app.use("/tier210_e5_970", require("./tier210_e5_970_router"));
+
+  app.use("/tier211_a1_996", require("./tier211_a1_996_router"));
+  app.use("/tier211_a2_997", require("./tier211_a2_997_router"));
+  app.use("/tier211_a3_998", require("./tier211_a3_998_router"));
+  app.use("/tier211_a4_999", require("./tier211_a4_999_router"));
+  app.use("/tier211_a5_1000", require("./tier211_a5_1000_router"));
+  app.use("/tier212_b1_1001", require("./tier212_b1_1001_router"));
+  app.use("/tier212_b2_1002", require("./tier212_b2_1002_router"));
+  app.use("/tier212_b3_1003", require("./tier212_b3_1003_router"));
+  app.use("/tier212_b4_1004", require("./tier212_b4_1004_router"));
+  app.use("/tier212_b5_1005", require("./tier212_b5_1005_router"));
+  app.use("/tier213_c1_1006", require("./tier213_c1_1006_router"));
+  app.use("/tier213_c2_1007", require("./tier213_c2_1007_router"));
+  app.use("/tier213_c3_1008", require("./tier213_c3_1008_router"));
+  app.use("/tier213_c4_1009", require("./tier213_c4_1009_router"));
+  app.use("/tier213_c5_1010", require("./tier213_c5_1010_router"));
+  app.use("/tier214_d1_1011", require("./tier214_d1_1011_router"));
+  app.use("/tier214_d2_1012", require("./tier214_d2_1012_router"));
+  app.use("/tier214_d3_1013", require("./tier214_d3_1013_router"));
+  app.use("/tier214_d4_1014", require("./tier214_d4_1014_router"));
+  app.use("/tier214_d5_1015", require("./tier214_d5_1015_router"));
+  app.use("/tier215_e1_1016", require("./tier215_e1_1016_router"));
+  app.use("/tier215_e2_1017", require("./tier215_e2_1017_router"));
+  app.use("/tier215_e3_1018", require("./tier215_e3_1018_router"));
+  app.use("/tier215_e4_1019", require("./tier215_e4_1019_router"));
+  app.use("/tier215_e5_1020", require("./tier215_e5_1020_router"));
+
+  app.use("/tier211_a1_996", require("./tier211_a1_996_router"));
+  app.use("/tier211_a2_997", require("./tier211_a2_997_router"));
+  app.use("/tier211_a3_998", require("./tier211_a3_998_router"));
+  app.use("/tier211_a4_999", require("./tier211_a4_999_router"));
+  app.use("/tier211_a5_1000", require("./tier211_a5_1000_router"));
+  app.use("/tier212_b1_1001", require("./tier212_b1_1001_router"));
+  app.use("/tier212_b2_1002", require("./tier212_b2_1002_router"));
+  app.use("/tier212_b3_1003", require("./tier212_b3_1003_router"));
+  app.use("/tier212_b4_1004", require("./tier212_b4_1004_router"));
+  app.use("/tier212_b5_1005", require("./tier212_b5_1005_router"));
+  app.use("/tier213_c1_1006", require("./tier213_c1_1006_router"));
+  app.use("/tier213_c2_1007", require("./tier213_c2_1007_router"));
+  app.use("/tier213_c3_1008", require("./tier213_c3_1008_router"));
+  app.use("/tier213_c4_1009", require("./tier213_c4_1009_router"));
+  app.use("/tier213_c5_1010", require("./tier213_c5_1010_router"));
+  app.use("/tier214_d1_1011", require("./tier214_d1_1011_router"));
+  app.use("/tier214_d2_1012", require("./tier214_d2_1012_router"));
+  app.use("/tier214_d3_1013", require("./tier214_d3_1013_router"));
+  app.use("/tier214_d4_1014", require("./tier214_d4_1014_router"));
+  app.use("/tier214_d5_1015", require("./tier214_d5_1015_router"));
+  app.use("/tier215_e1_1016", require("./tier215_e1_1016_router"));
+  app.use("/tier215_e2_1017", require("./tier215_e2_1017_router"));
+  app.use("/tier215_e3_1018", require("./tier215_e3_1018_router"));
+  app.use("/tier215_e4_1019", require("./tier215_e4_1019_router"));
+  app.use("/tier215_e5_1020", require("./tier215_e5_1020_router"));
+
+  app.use("/tier216_a1_1021", require("./tier216_a1_1021_router"));
+  app.use("/tier216_a2_1022", require("./tier216_a2_1022_router"));
+  app.use("/tier216_a3_1023", require("./tier216_a3_1023_router"));
+  app.use("/tier216_a4_1024", require("./tier216_a4_1024_router"));
+  app.use("/tier216_a5_1025", require("./tier216_a5_1025_router"));
+  app.use("/tier217_b1_1026", require("./tier217_b1_1026_router"));
+  app.use("/tier217_b2_1027", require("./tier217_b2_1027_router"));
+  app.use("/tier217_b3_1028", require("./tier217_b3_1028_router"));
+  app.use("/tier217_b4_1029", require("./tier217_b4_1029_router"));
+  app.use("/tier217_b5_1030", require("./tier217_b5_1030_router"));
+  app.use("/tier218_c1_1031", require("./tier218_c1_1031_router"));
+  app.use("/tier218_c2_1032", require("./tier218_c2_1032_router"));
+  app.use("/tier218_c3_1033", require("./tier218_c3_1033_router"));
+  app.use("/tier218_c4_1034", require("./tier218_c4_1034_router"));
+  app.use("/tier218_c5_1035", require("./tier218_c5_1035_router"));
+  app.use("/tier219_d1_1036", require("./tier219_d1_1036_router"));
+  app.use("/tier219_d2_1037", require("./tier219_d2_1037_router"));
+  app.use("/tier219_d3_1038", require("./tier219_d3_1038_router"));
+  app.use("/tier219_d4_1039", require("./tier219_d4_1039_router"));
+  app.use("/tier219_d5_1040", require("./tier219_d5_1040_router"));
+  app.use("/tier220_e1_1041", require("./tier220_e1_1041_router"));
+  app.use("/tier220_e2_1042", require("./tier220_e2_1042_router"));
+  app.use("/tier220_e3_1043", require("./tier220_e3_1043_router"));
+  app.use("/tier220_e4_1044", require("./tier220_e4_1044_router"));
+  app.use("/tier220_e5_1045", require("./tier220_e5_1045_router"));
+
+  app.use("/tier221_a1_1046", require("./tier221_a1_1046_router"));
+  app.use("/tier221_a2_1047", require("./tier221_a2_1047_router"));
+  app.use("/tier221_a3_1048", require("./tier221_a3_1048_router"));
+  app.use("/tier221_a4_1049", require("./tier221_a4_1049_router"));
+  app.use("/tier221_a5_1050", require("./tier221_a5_1050_router"));
+  app.use("/tier222_b1_1051", require("./tier222_b1_1051_router"));
+  app.use("/tier222_b2_1052", require("./tier222_b2_1052_router"));
+  app.use("/tier222_b3_1053", require("./tier222_b3_1053_router"));
+  app.use("/tier222_b4_1054", require("./tier222_b4_1054_router"));
+  app.use("/tier222_b5_1055", require("./tier222_b5_1055_router"));
+  app.use("/tier223_c1_1056", require("./tier223_c1_1056_router"));
+  app.use("/tier223_c2_1057", require("./tier223_c2_1057_router"));
+  app.use("/tier223_c3_1058", require("./tier223_c3_1058_router"));
+  app.use("/tier223_c4_1059", require("./tier223_c4_1059_router"));
+  app.use("/tier223_c5_1060", require("./tier223_c5_1060_router"));
+  app.use("/tier224_d1_1061", require("./tier224_d1_1061_router"));
+  app.use("/tier224_d2_1062", require("./tier224_d2_1062_router"));
+  app.use("/tier224_d3_1063", require("./tier224_d3_1063_router"));
+  app.use("/tier224_d4_1064", require("./tier224_d4_1064_router"));
+  app.use("/tier224_d5_1065", require("./tier224_d5_1065_router"));
+  app.use("/tier225_e1_1066", require("./tier225_e1_1066_router"));
+  app.use("/tier225_e2_1067", require("./tier225_e2_1067_router"));
+  app.use("/tier225_e3_1068", require("./tier225_e3_1068_router"));
+  app.use("/tier225_e4_1069", require("./tier225_e4_1069_router"));
+  app.use("/tier225_e5_1070", require("./tier225_e5_1070_router"));
+
+  app.use("/tier226_a1_1071", require("./tier226_a1_1071_router"));
+  app.use("/tier226_a2_1072", require("./tier226_a2_1072_router"));
+  app.use("/tier226_a3_1073", require("./tier226_a3_1073_router"));
+  app.use("/tier226_a4_1074", require("./tier226_a4_1074_router"));
+  app.use("/tier226_a5_1075", require("./tier226_a5_1075_router"));
+  app.use("/tier227_b1_1076", require("./tier227_b1_1076_router"));
+  app.use("/tier227_b2_1077", require("./tier227_b2_1077_router"));
+  app.use("/tier227_b3_1078", require("./tier227_b3_1078_router"));
+  app.use("/tier227_b4_1079", require("./tier227_b4_1079_router"));
+  app.use("/tier227_b5_1080", require("./tier227_b5_1080_router"));
+  app.use("/tier228_c1_1081", require("./tier228_c1_1081_router"));
+  app.use("/tier228_c2_1082", require("./tier228_c2_1082_router"));
+  app.use("/tier228_c3_1083", require("./tier228_c3_1083_router"));
+  app.use("/tier228_c4_1084", require("./tier228_c4_1084_router"));
+  app.use("/tier228_c5_1085", require("./tier228_c5_1085_router"));
+  app.use("/tier229_d1_1086", require("./tier229_d1_1086_router"));
+  app.use("/tier229_d2_1087", require("./tier229_d2_1087_router"));
+  app.use("/tier229_d3_1088", require("./tier229_d3_1088_router"));
+  app.use("/tier229_d4_1089", require("./tier229_d4_1089_router"));
+  app.use("/tier229_d5_1090", require("./tier229_d5_1090_router"));
+  app.use("/tier230_e1_1091", require("./tier230_e1_1091_router"));
+  app.use("/tier230_e2_1092", require("./tier230_e2_1092_router"));
+  app.use("/tier230_e3_1093", require("./tier230_e3_1093_router"));
+  app.use("/tier230_e4_1094", require("./tier230_e4_1094_router"));
+  app.use("/tier230_e5_1095", require("./tier230_e5_1095_router"));
+
+  app.use("/tier231_a1_1096", require("./tier231_a1_1096_router"));
+  app.use("/tier231_a2_1097", require("./tier231_a2_1097_router"));
+  app.use("/tier231_a3_1098", require("./tier231_a3_1098_router"));
+  app.use("/tier231_a4_1099", require("./tier231_a4_1099_router"));
+  app.use("/tier231_a5_1100", require("./tier231_a5_1100_router"));
+  app.use("/tier232_b1_1101", require("./tier232_b1_1101_router"));
+  app.use("/tier232_b2_1102", require("./tier232_b2_1102_router"));
+  app.use("/tier232_b3_1103", require("./tier232_b3_1103_router"));
+  app.use("/tier232_b4_1104", require("./tier232_b4_1104_router"));
+  app.use("/tier232_b5_1105", require("./tier232_b5_1105_router"));
+  app.use("/tier233_c1_1106", require("./tier233_c1_1106_router"));
+  app.use("/tier233_c2_1107", require("./tier233_c2_1107_router"));
+  app.use("/tier233_c3_1108", require("./tier233_c3_1108_router"));
+  app.use("/tier233_c4_1109", require("./tier233_c4_1109_router"));
+  app.use("/tier233_c5_1110", require("./tier233_c5_1110_router"));
+  app.use("/tier234_d1_1111", require("./tier234_d1_1111_router"));
+  app.use("/tier234_d2_1112", require("./tier234_d2_1112_router"));
+  app.use("/tier234_d3_1113", require("./tier234_d3_1113_router"));
+  app.use("/tier234_d4_1114", require("./tier234_d4_1114_router"));
+  app.use("/tier234_d5_1115", require("./tier234_d5_1115_router"));
+  app.use("/tier235_e1_1116", require("./tier235_e1_1116_router"));
+  app.use("/tier235_e2_1117", require("./tier235_e2_1117_router"));
+  app.use("/tier235_e3_1118", require("./tier235_e3_1118_router"));
+  app.use("/tier235_e4_1119", require("./tier235_e4_1119_router"));
+  app.use("/tier235_e5_1120", require("./tier235_e5_1120_router"));
+
+  app.use("/tier236_a1_1121", require("./tier236_a1_1121_router"));
+  app.use("/tier236_a2_1122", require("./tier236_a2_1122_router"));
+  app.use("/tier236_a3_1123", require("./tier236_a3_1123_router"));
+  app.use("/tier236_a4_1124", require("./tier236_a4_1124_router"));
+  app.use("/tier236_a5_1125", require("./tier236_a5_1125_router"));
+  app.use("/tier237_b1_1126", require("./tier237_b1_1126_router"));
+  app.use("/tier237_b2_1127", require("./tier237_b2_1127_router"));
+  app.use("/tier237_b3_1128", require("./tier237_b3_1128_router"));
+  app.use("/tier237_b4_1129", require("./tier237_b4_1129_router"));
+  app.use("/tier237_b5_1130", require("./tier237_b5_1130_router"));
+  app.use("/tier238_c1_1131", require("./tier238_c1_1131_router"));
+  app.use("/tier238_c2_1132", require("./tier238_c2_1132_router"));
+  app.use("/tier238_c3_1133", require("./tier238_c3_1133_router"));
+  app.use("/tier238_c4_1134", require("./tier238_c4_1134_router"));
+  app.use("/tier238_c5_1135", require("./tier238_c5_1135_router"));
+  app.use("/tier239_d1_1136", require("./tier239_d1_1136_router"));
+  app.use("/tier239_d2_1137", require("./tier239_d2_1137_router"));
+  app.use("/tier239_d3_1138", require("./tier239_d3_1138_router"));
+  app.use("/tier239_d4_1139", require("./tier239_d4_1139_router"));
+  app.use("/tier239_d5_1140", require("./tier239_d5_1140_router"));
+  app.use("/tier240_e1_1141", require("./tier240_e1_1141_router"));
+  app.use("/tier240_e2_1142", require("./tier240_e2_1142_router"));
+  app.use("/tier240_e3_1143", require("./tier240_e3_1143_router"));
+  app.use("/tier240_e4_1144", require("./tier240_e4_1144_router"));
+  app.use("/tier240_e5_1145", require("./tier240_e5_1145_router"));
+
+  app.use("/tier241_a1_1146", require("./tier241_a1_1146_router"));
+  app.use("/tier241_a2_1147", require("./tier241_a2_1147_router"));
+  app.use("/tier241_a3_1148", require("./tier241_a3_1148_router"));
+  app.use("/tier241_a4_1149", require("./tier241_a4_1149_router"));
+  app.use("/tier241_a5_1150", require("./tier241_a5_1150_router"));
+  app.use("/tier242_b1_1151", require("./tier242_b1_1151_router"));
+  app.use("/tier242_b2_1152", require("./tier242_b2_1152_router"));
+  app.use("/tier242_b3_1153", require("./tier242_b3_1153_router"));
+  app.use("/tier242_b4_1154", require("./tier242_b4_1154_router"));
+  app.use("/tier242_b5_1155", require("./tier242_b5_1155_router"));
+  app.use("/tier243_c1_1156", require("./tier243_c1_1156_router"));
+  app.use("/tier243_c2_1157", require("./tier243_c2_1157_router"));
+  app.use("/tier243_c3_1158", require("./tier243_c3_1158_router"));
+  app.use("/tier243_c4_1159", require("./tier243_c4_1159_router"));
+  app.use("/tier243_c5_1160", require("./tier243_c5_1160_router"));
+  app.use("/tier244_d1_1161", require("./tier244_d1_1161_router"));
+  app.use("/tier244_d2_1162", require("./tier244_d2_1162_router"));
+  app.use("/tier244_d3_1163", require("./tier244_d3_1163_router"));
+  app.use("/tier244_d4_1164", require("./tier244_d4_1164_router"));
+  app.use("/tier244_d5_1165", require("./tier244_d5_1165_router"));
+  app.use("/tier245_e1_1166", require("./tier245_e1_1166_router"));
+  app.use("/tier245_e2_1167", require("./tier245_e2_1167_router"));
+  app.use("/tier245_e3_1168", require("./tier245_e3_1168_router"));
+  app.use("/tier245_e4_1169", require("./tier245_e4_1169_router"));
+  app.use("/tier245_e5_1170", require("./tier245_e5_1170_router"));
+
+  app.use("/tier246_a1_1171", require("./tier246_a1_1171_router"));
+  app.use("/tier246_a2_1172", require("./tier246_a2_1172_router"));
+  app.use("/tier246_a3_1173", require("./tier246_a3_1173_router"));
+  app.use("/tier246_a4_1174", require("./tier246_a4_1174_router"));
+  app.use("/tier246_a5_1175", require("./tier246_a5_1175_router"));
+  app.use("/tier247_b1_1176", require("./tier247_b1_1176_router"));
+  app.use("/tier247_b2_1177", require("./tier247_b2_1177_router"));
+  app.use("/tier247_b3_1178", require("./tier247_b3_1178_router"));
+  app.use("/tier247_b4_1179", require("./tier247_b4_1179_router"));
+  app.use("/tier247_b5_1180", require("./tier247_b5_1180_router"));
+  app.use("/tier248_c1_1181", require("./tier248_c1_1181_router"));
+  app.use("/tier248_c2_1182", require("./tier248_c2_1182_router"));
+  app.use("/tier248_c3_1183", require("./tier248_c3_1183_router"));
+  app.use("/tier248_c4_1184", require("./tier248_c4_1184_router"));
+  app.use("/tier248_c5_1185", require("./tier248_c5_1185_router"));
+  app.use("/tier249_d1_1186", require("./tier249_d1_1186_router"));
+  app.use("/tier249_d2_1187", require("./tier249_d2_1187_router"));
+  app.use("/tier249_d3_1188", require("./tier249_d3_1188_router"));
+  app.use("/tier249_d4_1189", require("./tier249_d4_1189_router"));
+  app.use("/tier249_d5_1190", require("./tier249_d5_1190_router"));
+  app.use("/tier250_e1_1191", require("./tier250_e1_1191_router"));
+  app.use("/tier250_e2_1192", require("./tier250_e2_1192_router"));
+  app.use("/tier250_e3_1193", require("./tier250_e3_1193_router"));
+  app.use("/tier250_e4_1194", require("./tier250_e4_1194_router"));
+  app.use("/tier250_e5_1195", require("./tier250_e5_1195_router"));
+
+  app.use("/tier251_a1_1196", require("./tier251_a1_1196_router"));
+  app.use("/tier251_a2_1197", require("./tier251_a2_1197_router"));
+  app.use("/tier251_a3_1198", require("./tier251_a3_1198_router"));
+  app.use("/tier251_a4_1199", require("./tier251_a4_1199_router"));
+  app.use("/tier251_a5_1200", require("./tier251_a5_1200_router"));
+  app.use("/tier252_b1_1201", require("./tier252_b1_1201_router"));
+  app.use("/tier252_b2_1202", require("./tier252_b2_1202_router"));
+  app.use("/tier252_b3_1203", require("./tier252_b3_1203_router"));
+  app.use("/tier252_b4_1204", require("./tier252_b4_1204_router"));
+  app.use("/tier252_b5_1205", require("./tier252_b5_1205_router"));
+  app.use("/tier253_c1_1206", require("./tier253_c1_1206_router"));
+  app.use("/tier253_c2_1207", require("./tier253_c2_1207_router"));
+  app.use("/tier253_c3_1208", require("./tier253_c3_1208_router"));
+  app.use("/tier253_c4_1209", require("./tier253_c4_1209_router"));
+  app.use("/tier253_c5_1210", require("./tier253_c5_1210_router"));
+  app.use("/tier254_d1_1211", require("./tier254_d1_1211_router"));
+  app.use("/tier254_d2_1212", require("./tier254_d2_1212_router"));
+  app.use("/tier254_d3_1213", require("./tier254_d3_1213_router"));
+  app.use("/tier254_d4_1214", require("./tier254_d4_1214_router"));
+  app.use("/tier254_d5_1215", require("./tier254_d5_1215_router"));
+  app.use("/tier255_e1_1216", require("./tier255_e1_1216_router"));
+  app.use("/tier255_e2_1217", require("./tier255_e2_1217_router"));
+  app.use("/tier255_e3_1218", require("./tier255_e3_1218_router"));
+  app.use("/tier255_e4_1219", require("./tier255_e4_1219_router"));
+  app.use("/tier255_e5_1220", require("./tier255_e5_1220_router"));
+
+  app.use("/tier256_a1_1221", require("./tier256_a1_1221_router"));
+  app.use("/tier256_a2_1222", require("./tier256_a2_1222_router"));
+  app.use("/tier256_a3_1223", require("./tier256_a3_1223_router"));
+  app.use("/tier256_a4_1224", require("./tier256_a4_1224_router"));
+  app.use("/tier256_a5_1225", require("./tier256_a5_1225_router"));
+  app.use("/tier257_b1_1226", require("./tier257_b1_1226_router"));
+  app.use("/tier257_b2_1227", require("./tier257_b2_1227_router"));
+  app.use("/tier257_b3_1228", require("./tier257_b3_1228_router"));
+  app.use("/tier257_b4_1229", require("./tier257_b4_1229_router"));
+  app.use("/tier257_b5_1230", require("./tier257_b5_1230_router"));
+  app.use("/tier258_c1_1231", require("./tier258_c1_1231_router"));
+  app.use("/tier258_c2_1232", require("./tier258_c2_1232_router"));
+  app.use("/tier258_c3_1233", require("./tier258_c3_1233_router"));
+  app.use("/tier258_c4_1234", require("./tier258_c4_1234_router"));
+  app.use("/tier258_c5_1235", require("./tier258_c5_1235_router"));
+  app.use("/tier259_d1_1236", require("./tier259_d1_1236_router"));
+  app.use("/tier259_d2_1237", require("./tier259_d2_1237_router"));
+  app.use("/tier259_d3_1238", require("./tier259_d3_1238_router"));
+  app.use("/tier259_d4_1239", require("./tier259_d4_1239_router"));
+  app.use("/tier259_d5_1240", require("./tier259_d5_1240_router"));
+  app.use("/tier260_e1_1241", require("./tier260_e1_1241_router"));
+  app.use("/tier260_e2_1242", require("./tier260_e2_1242_router"));
+  app.use("/tier260_e3_1243", require("./tier260_e3_1243_router"));
+  app.use("/tier260_e4_1244", require("./tier260_e4_1244_router"));
+  app.use("/tier260_e5_1245", require("./tier260_e5_1245_router"));
+
+  app.use("/tier261_a1_1246", require("./tier261_a1_1246_router"));
+  app.use("/tier261_a2_1247", require("./tier261_a2_1247_router"));
+  app.use("/tier261_a3_1248", require("./tier261_a3_1248_router"));
+  app.use("/tier261_a4_1249", require("./tier261_a4_1249_router"));
+  app.use("/tier261_a5_1250", require("./tier261_a5_1250_router"));
+  app.use("/tier262_b1_1251", require("./tier262_b1_1251_router"));
+  app.use("/tier262_b2_1252", require("./tier262_b2_1252_router"));
+  app.use("/tier262_b3_1253", require("./tier262_b3_1253_router"));
+  app.use("/tier262_b4_1254", require("./tier262_b4_1254_router"));
+  app.use("/tier262_b5_1255", require("./tier262_b5_1255_router"));
+  app.use("/tier263_c1_1256", require("./tier263_c1_1256_router"));
+  app.use("/tier263_c2_1257", require("./tier263_c2_1257_router"));
+  app.use("/tier263_c3_1258", require("./tier263_c3_1258_router"));
+  app.use("/tier263_c4_1259", require("./tier263_c4_1259_router"));
+  app.use("/tier263_c5_1260", require("./tier263_c5_1260_router"));
+  app.use("/tier264_d1_1261", require("./tier264_d1_1261_router"));
+  app.use("/tier264_d2_1262", require("./tier264_d2_1262_router"));
+  app.use("/tier264_d3_1263", require("./tier264_d3_1263_router"));
+  app.use("/tier264_d4_1264", require("./tier264_d4_1264_router"));
+  app.use("/tier264_d5_1265", require("./tier264_d5_1265_router"));
+  app.use("/tier265_e1_1266", require("./tier265_e1_1266_router"));
+  app.use("/tier265_e2_1267", require("./tier265_e2_1267_router"));
+  app.use("/tier265_e3_1268", require("./tier265_e3_1268_router"));
+  app.use("/tier265_e4_1269", require("./tier265_e4_1269_router"));
+  app.use("/tier265_e5_1270", require("./tier265_e5_1270_router"));
+
+  app.use("/tier266_a1_1271", require("./tier266_a1_1271_router"));
+  app.use("/tier266_a2_1272", require("./tier266_a2_1272_router"));
+  app.use("/tier266_a3_1273", require("./tier266_a3_1273_router"));
+  app.use("/tier266_a4_1274", require("./tier266_a4_1274_router"));
+  app.use("/tier266_a5_1275", require("./tier266_a5_1275_router"));
+  app.use("/tier267_b1_1276", require("./tier267_b1_1276_router"));
+  app.use("/tier267_b2_1277", require("./tier267_b2_1277_router"));
+  app.use("/tier267_b3_1278", require("./tier267_b3_1278_router"));
+  app.use("/tier267_b4_1279", require("./tier267_b4_1279_router"));
+  app.use("/tier267_b5_1280", require("./tier267_b5_1280_router"));
+  app.use("/tier268_c1_1281", require("./tier268_c1_1281_router"));
+  app.use("/tier268_c2_1282", require("./tier268_c2_1282_router"));
+  app.use("/tier268_c3_1283", require("./tier268_c3_1283_router"));
+  app.use("/tier268_c4_1284", require("./tier268_c4_1284_router"));
+  app.use("/tier268_c5_1285", require("./tier268_c5_1285_router"));
+  app.use("/tier269_d1_1286", require("./tier269_d1_1286_router"));
+  app.use("/tier269_d2_1287", require("./tier269_d2_1287_router"));
+  app.use("/tier269_d3_1288", require("./tier269_d3_1288_router"));
+  app.use("/tier269_d4_1289", require("./tier269_d4_1289_router"));
+  app.use("/tier269_d5_1290", require("./tier269_d5_1290_router"));
+  app.use("/tier270_e1_1291", require("./tier270_e1_1291_router"));
+  app.use("/tier270_e2_1292", require("./tier270_e2_1292_router"));
+  app.use("/tier270_e3_1293", require("./tier270_e3_1293_router"));
+  app.use("/tier270_e4_1294", require("./tier270_e4_1294_router"));
+  app.use("/tier270_e5_1295", require("./tier270_e5_1295_router"));
+
+  app.use("/tier281_a1_1346", require("./tier281_a1_1346_router"));
+  app.use("/tier281_a2_1347", require("./tier281_a2_1347_router"));
+  app.use("/tier281_a3_1348", require("./tier281_a3_1348_router"));
+  app.use("/tier281_a4_1349", require("./tier281_a4_1349_router"));
+  app.use("/tier281_a5_1350", require("./tier281_a5_1350_router"));
+  app.use("/tier282_b1_1351", require("./tier282_b1_1351_router"));
+  app.use("/tier282_b2_1352", require("./tier282_b2_1352_router"));
+  app.use("/tier282_b3_1353", require("./tier282_b3_1353_router"));
+  app.use("/tier282_b4_1354", require("./tier282_b4_1354_router"));
+  app.use("/tier282_b5_1355", require("./tier282_b5_1355_router"));
+  app.use("/tier283_c1_1356", require("./tier283_c1_1356_router"));
+  app.use("/tier283_c2_1357", require("./tier283_c2_1357_router"));
+  app.use("/tier283_c3_1358", require("./tier283_c3_1358_router"));
+  app.use("/tier283_c4_1359", require("./tier283_c4_1359_router"));
+  app.use("/tier283_c5_1360", require("./tier283_c5_1360_router"));
+  app.use("/tier284_d1_1361", require("./tier284_d1_1361_router"));
+  app.use("/tier284_d2_1362", require("./tier284_d2_1362_router"));
+  app.use("/tier284_d3_1363", require("./tier284_d3_1363_router"));
+  app.use("/tier284_d4_1364", require("./tier284_d4_1364_router"));
+  app.use("/tier284_d5_1365", require("./tier284_d5_1365_router"));
+  app.use("/tier285_e1_1366", require("./tier285_e1_1366_router"));
+  app.use("/tier285_e2_1367", require("./tier285_e2_1367_router"));
+  app.use("/tier285_e3_1368", require("./tier285_e3_1368_router"));
+  app.use("/tier285_e4_1369", require("./tier285_e4_1369_router"));
+  app.use("/tier285_e5_1370", require("./tier285_e5_1370_router"));
+  app.use("/tier286_f1_1371", require("./tier286_f1_1371_router"));
+  app.use("/tier286_f2_1372", require("./tier286_f2_1372_router"));
+  app.use("/tier286_f3_1373", require("./tier286_f3_1373_router"));
+  app.use("/tier286_f4_1374", require("./tier286_f4_1374_router"));
+  app.use("/tier286_f5_1375", require("./tier286_f5_1375_router"));
+  app.use("/tier287_g1_1376", require("./tier287_g1_1376_router"));
+  app.use("/tier287_g2_1377", require("./tier287_g2_1377_router"));
+  app.use("/tier287_g3_1378", require("./tier287_g3_1378_router"));
+  app.use("/tier287_g4_1379", require("./tier287_g4_1379_router"));
+  app.use("/tier287_g5_1380", require("./tier287_g5_1380_router"));
+  app.use("/tier288_h1_1381", require("./tier288_h1_1381_router"));
+  app.use("/tier288_h2_1382", require("./tier288_h2_1382_router"));
+  app.use("/tier288_h3_1383", require("./tier288_h3_1383_router"));
+  app.use("/tier288_h4_1384", require("./tier288_h4_1384_router"));
+  app.use("/tier288_h5_1385", require("./tier288_h5_1385_router"));
+  app.use("/tier289_a1_1386", require("./tier289_a1_1386_router"));
+  app.use("/tier289_a2_1387", require("./tier289_a2_1387_router"));
+  app.use("/tier289_a3_1388", require("./tier289_a3_1388_router"));
+  app.use("/tier289_a4_1389", require("./tier289_a4_1389_router"));
+  app.use("/tier289_a5_1390", require("./tier289_a5_1390_router"));
+
+
+
+
+
+
+  app.use('/tier290_a1_1391', require('./tier290_a1_1391_router'));
+  app.use('/tier290_a2_1392', require('./tier290_a2_1392_router'));
+  app.use('/tier290_a3_1393', require('./tier290_a3_1393_router'));
+  app.use('/tier290_a4_1394', require('./tier290_a4_1394_router'));
+  app.use('/tier290_a5_1395', require('./tier290_a5_1395_router'));
 async function startServer() {
     try {
         console.log('\n  🐘 Connecting to PostgreSQL...');
@@ -14728,7 +15544,153 @@ async function startServer() {
         } else {
             console.log('[DB INFO] Skipping demo seed + catalog population.');
         }
-        app.listen(PORT, () => {
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+try { app.use('/tier291_k1_1396', require('./tier291_k1_1396_router.js')); } catch(e) { console.error('mount tier291_k1_1396_router.js fail', e.message); }
+try { app.use('/tier291_k2_1397', require('./tier291_k2_1397_router.js')); } catch(e) { console.error('mount tier291_k2_1397_router.js fail', e.message); }
+try { app.use('/tier291_k3_1398', require('./tier291_k3_1398_router.js')); } catch(e) { console.error('mount tier291_k3_1398_router.js fail', e.message); }
+try { app.use('/tier291_k4_1399', require('./tier291_k4_1399_router.js')); } catch(e) { console.error('mount tier291_k4_1399_router.js fail', e.message); }
+try { app.use('/tier291_k5_1400', require('./tier291_k5_1400_router.js')); } catch(e) { console.error('mount tier291_k5_1400_router.js fail', e.message); }
+try { app.use('/tier292_l1_1401', require('./tier292_l1_1401_router.js')); } catch(e) { console.error('mount tier292_l1_1401_router.js fail', e.message); }
+try { app.use('/tier292_l2_1402', require('./tier292_l2_1402_router.js')); } catch(e) { console.error('mount tier292_l2_1402_router.js fail', e.message); }
+try { app.use('/tier292_l3_1403', require('./tier292_l3_1403_router.js')); } catch(e) { console.error('mount tier292_l3_1403_router.js fail', e.message); }
+try { app.use('/tier292_l4_1404', require('./tier292_l4_1404_router.js')); } catch(e) { console.error('mount tier292_l4_1404_router.js fail', e.message); }
+try { app.use('/tier292_l5_1405', require('./tier292_l5_1405_router.js')); } catch(e) { console.error('mount tier292_l5_1405_router.js fail', e.message); }
+try { app.use('/tier293_m1_1406', require('./tier293_m1_1406_router.js')); } catch(e) { console.error('mount tier293_m1_1406_router.js fail', e.message); }
+try { app.use('/tier293_m2_1407', require('./tier293_m2_1407_router.js')); } catch(e) { console.error('mount tier293_m2_1407_router.js fail', e.message); }
+try { app.use('/tier293_m3_1408', require('./tier293_m3_1408_router.js')); } catch(e) { console.error('mount tier293_m3_1408_router.js fail', e.message); }
+try { app.use('/tier293_m4_1409', require('./tier293_m4_1409_router.js')); } catch(e) { console.error('mount tier293_m4_1409_router.js fail', e.message); }
+try { app.use('/tier293_m5_1410', require('./tier293_m5_1410_router.js')); } catch(e) { console.error('mount tier293_m5_1410_router.js fail', e.message); }
+try { app.use('/tier294_n1_1411', require('./tier294_n1_1411_router.js')); } catch(e) { console.error('mount tier294_n1_1411_router.js fail', e.message); }
+try { app.use('/tier294_n2_1412', require('./tier294_n2_1412_router.js')); } catch(e) { console.error('mount tier294_n2_1412_router.js fail', e.message); }
+try { app.use('/tier294_n3_1413', require('./tier294_n3_1413_router.js')); } catch(e) { console.error('mount tier294_n3_1413_router.js fail', e.message); }
+try { app.use('/tier294_n4_1414', require('./tier294_n4_1414_router.js')); } catch(e) { console.error('mount tier294_n4_1414_router.js fail', e.message); }
+try { app.use('/tier294_n5_1415', require('./tier294_n5_1415_router.js')); } catch(e) { console.error('mount tier294_n5_1415_router.js fail', e.message); }
+try { app.use('/tier295_o1_1416', require('./tier295_o1_1416_router.js')); } catch(e) { console.error('mount tier295_o1_1416_router.js fail', e.message); }
+try { app.use('/tier295_o2_1417', require('./tier295_o2_1417_router.js')); } catch(e) { console.error('mount tier295_o2_1417_router.js fail', e.message); }
+try { app.use('/tier295_o3_1418', require('./tier295_o3_1418_router.js')); } catch(e) { console.error('mount tier295_o3_1418_router.js fail', e.message); }
+try { app.use('/tier295_o4_1419', require('./tier295_o4_1419_router.js')); } catch(e) { console.error('mount tier295_o4_1419_router.js fail', e.message); }
+try { app.use('/tier295_o5_1420', require('./tier295_o5_1420_router.js')); } catch(e) { console.error('mount tier295_o5_1420_router.js fail', e.message); }
+try { app.use('/tier296_p1_1421', require('./tier296_p1_1421_router.js')); } catch(e) { console.error('mount tier296_p1_1421_router.js fail', e.message); }
+try { app.use('/tier296_p2_1422', require('./tier296_p2_1422_router.js')); } catch(e) { console.error('mount tier296_p2_1422_router.js fail', e.message); }
+try { app.use('/tier296_p3_1423', require('./tier296_p3_1423_router.js')); } catch(e) { console.error('mount tier296_p3_1423_router.js fail', e.message); }
+try { app.use('/tier296_p4_1424', require('./tier296_p4_1424_router.js')); } catch(e) { console.error('mount tier296_p4_1424_router.js fail', e.message); }
+try { app.use('/tier296_p5_1425', require('./tier296_p5_1425_router.js')); } catch(e) { console.error('mount tier296_p5_1425_router.js fail', e.message); }
+try { app.use('/tier297_q1_1426', require('./tier297_q1_1426_router.js')); } catch(e) { console.error('mount tier297_q1_1426_router.js fail', e.message); }
+try { app.use('/tier297_q2_1427', require('./tier297_q2_1427_router.js')); } catch(e) { console.error('mount tier297_q2_1427_router.js fail', e.message); }
+try { app.use('/tier297_q3_1428', require('./tier297_q3_1428_router.js')); } catch(e) { console.error('mount tier297_q3_1428_router.js fail', e.message); }
+try { app.use('/tier297_q4_1429', require('./tier297_q4_1429_router.js')); } catch(e) { console.error('mount tier297_q4_1429_router.js fail', e.message); }
+try { app.use('/tier297_q5_1430', require('./tier297_q5_1430_router.js')); } catch(e) { console.error('mount tier297_q5_1430_router.js fail', e.message); }
+try { app.use('/tier298_r1_1431', require('./tier298_r1_1431_router.js')); } catch(e) { console.error('mount tier298_r1_1431_router.js fail', e.message); }
+try { app.use('/tier298_r2_1432', require('./tier298_r2_1432_router.js')); } catch(e) { console.error('mount tier298_r2_1432_router.js fail', e.message); }
+try { app.use('/tier298_r3_1433', require('./tier298_r3_1433_router.js')); } catch(e) { console.error('mount tier298_r3_1433_router.js fail', e.message); }
+try { app.use('/tier298_r4_1434', require('./tier298_r4_1434_router.js')); } catch(e) { console.error('mount tier298_r4_1434_router.js fail', e.message); }
+try { app.use('/tier298_r5_1435', require('./tier298_r5_1435_router.js')); } catch(e) { console.error('mount tier298_r5_1435_router.js fail', e.message); }
+try { app.use('/tier299_s1_1436', require('./tier299_s1_1436_router.js')); } catch(e) { console.error('mount tier299_s1_1436_router.js fail', e.message); }
+try { app.use('/tier299_s2_1437', require('./tier299_s2_1437_router.js')); } catch(e) { console.error('mount tier299_s2_1437_router.js fail', e.message); }
+try { app.use('/tier299_s3_1438', require('./tier299_s3_1438_router.js')); } catch(e) { console.error('mount tier299_s3_1438_router.js fail', e.message); }
+try { app.use('/tier299_s4_1439', require('./tier299_s4_1439_router.js')); } catch(e) { console.error('mount tier299_s4_1439_router.js fail', e.message); }
+try { app.use('/tier299_s5_1440', require('./tier299_s5_1440_router.js')); } catch(e) { console.error('mount tier299_s5_1440_router.js fail', e.message); }
+try { app.use('/tier300_t1_1441', require('./tier300_t1_1441_router.js')); } catch(e) { console.error('mount tier300_t1_1441_router.js fail', e.message); }
+try { app.use('/tier300_t2_1442', require('./tier300_t2_1442_router.js')); } catch(e) { console.error('mount tier300_t2_1442_router.js fail', e.message); }
+try { app.use('/tier300_t3_1443', require('./tier300_t3_1443_router.js')); } catch(e) { console.error('mount tier300_t3_1443_router.js fail', e.message); }
+try { app.use('/tier300_t4_1444', require('./tier300_t4_1444_router.js')); } catch(e) { console.error('mount tier300_t4_1444_router.js fail', e.message); }
+try { app.use('/tier300_t5_1445', require('./tier300_t5_1445_router.js')); } catch(e) { console.error('mount tier300_t5_1445_router.js fail', e.message); }
+
+try { app.use('/tier301_u1_1442', require('./tier301_u1_1442_router.js')); } catch(e) { console.error('mount tier301_u1_1442_router.js fail', e.message); }
+try { app.use('/tier301_u2_1443', require('./tier301_u2_1443_router.js')); } catch(e) { console.error('mount tier301_u2_1443_router.js fail', e.message); }
+try { app.use('/tier301_u3_1444', require('./tier301_u3_1444_router.js')); } catch(e) { console.error('mount tier301_u3_1444_router.js fail', e.message); }
+try { app.use('/tier301_u4_1445', require('./tier301_u4_1445_router.js')); } catch(e) { console.error('mount tier301_u4_1445_router.js fail', e.message); }
+try { app.use('/tier301_u5_1446', require('./tier301_u5_1446_router.js')); } catch(e) { console.error('mount tier301_u5_1446_router.js fail', e.message); }
+try { app.use('/tier302_v1_1447', require('./tier302_v1_1447_router.js')); } catch(e) { console.error('mount tier302_v1_1447_router.js fail', e.message); }
+try { app.use('/tier302_v2_1448', require('./tier302_v2_1448_router.js')); } catch(e) { console.error('mount tier302_v2_1448_router.js fail', e.message); }
+try { app.use('/tier302_v3_1449', require('./tier302_v3_1449_router.js')); } catch(e) { console.error('mount tier302_v3_1449_router.js fail', e.message); }
+try { app.use('/tier302_v4_1450', require('./tier302_v4_1450_router.js')); } catch(e) { console.error('mount tier302_v4_1450_router.js fail', e.message); }
+try { app.use('/tier302_v5_1451', require('./tier302_v5_1451_router.js')); } catch(e) { console.error('mount tier302_v5_1451_router.js fail', e.message); }
+try { app.use('/tier303_w1_1452', require('./tier303_w1_1452_router.js')); } catch(e) { console.error('mount tier303_w1_1452_router.js fail', e.message); }
+try { app.use('/tier303_w2_1453', require('./tier303_w2_1453_router.js')); } catch(e) { console.error('mount tier303_w2_1453_router.js fail', e.message); }
+try { app.use('/tier303_w3_1454', require('./tier303_w3_1454_router.js')); } catch(e) { console.error('mount tier303_w3_1454_router.js fail', e.message); }
+try { app.use('/tier303_w4_1455', require('./tier303_w4_1455_router.js')); } catch(e) { console.error('mount tier303_w4_1455_router.js fail', e.message); }
+try { app.use('/tier303_w5_1456', require('./tier303_w5_1456_router.js')); } catch(e) { console.error('mount tier303_w5_1456_router.js fail', e.message); }
+try { app.use('/tier304_x1_1457', require('./tier304_x1_1457_router.js')); } catch(e) { console.error('mount tier304_x1_1457_router.js fail', e.message); }
+try { app.use('/tier304_x2_1458', require('./tier304_x2_1458_router.js')); } catch(e) { console.error('mount tier304_x2_1458_router.js fail', e.message); }
+try { app.use('/tier304_x3_1459', require('./tier304_x3_1459_router.js')); } catch(e) { console.error('mount tier304_x3_1459_router.js fail', e.message); }
+try { app.use('/tier304_x4_1460', require('./tier304_x4_1460_router.js')); } catch(e) { console.error('mount tier304_x4_1460_router.js fail', e.message); }
+try { app.use('/tier304_x5_1461', require('./tier304_x5_1461_router.js')); } catch(e) { console.error('mount tier304_x5_1461_router.js fail', e.message); }
+try { app.use('/tier305_y1_1462', require('./tier305_y1_1462_router.js')); } catch(e) { console.error('mount tier305_y1_1462_router.js fail', e.message); }
+try { app.use('/tier305_y2_1463', require('./tier305_y2_1463_router.js')); } catch(e) { console.error('mount tier305_y2_1463_router.js fail', e.message); }
+try { app.use('/tier305_y3_1464', require('./tier305_y3_1464_router.js')); } catch(e) { console.error('mount tier305_y3_1464_router.js fail', e.message); }
+try { app.use('/tier305_y4_1465', require('./tier305_y4_1465_router.js')); } catch(e) { console.error('mount tier305_y4_1465_router.js fail', e.message); }
+try { app.use('/tier305_y5_1466', require('./tier305_y5_1466_router.js')); } catch(e) { console.error('mount tier305_y5_1466_router.js fail', e.message); }
+try { app.use('/tier306_z1_1467', require('./tier306_z1_1467_router.js')); } catch(e) { console.error('mount tier306_z1_1467_router.js fail', e.message); }
+try { app.use('/tier306_z2_1468', require('./tier306_z2_1468_router.js')); } catch(e) { console.error('mount tier306_z2_1468_router.js fail', e.message); }
+try { app.use('/tier306_z3_1469', require('./tier306_z3_1469_router.js')); } catch(e) { console.error('mount tier306_z3_1469_router.js fail', e.message); }
+try { app.use('/tier306_z4_1470', require('./tier306_z4_1470_router.js')); } catch(e) { console.error('mount tier306_z4_1470_router.js fail', e.message); }
+try { app.use('/tier306_z5_1471', require('./tier306_z5_1471_router.js')); } catch(e) { console.error('mount tier306_z5_1471_router.js fail', e.message); }
+try { app.use('/tier307_aa1_1472', require('./tier307_aa1_1472_router.js')); } catch(e) { console.error('mount tier307_aa1_1472_router.js fail', e.message); }
+try { app.use('/tier307_aa2_1473', require('./tier307_aa2_1473_router.js')); } catch(e) { console.error('mount tier307_aa2_1473_router.js fail', e.message); }
+try { app.use('/tier307_aa3_1474', require('./tier307_aa3_1474_router.js')); } catch(e) { console.error('mount tier307_aa3_1474_router.js fail', e.message); }
+try { app.use('/tier307_aa4_1475', require('./tier307_aa4_1475_router.js')); } catch(e) { console.error('mount tier307_aa4_1475_router.js fail', e.message); }
+try { app.use('/tier307_aa5_1476', require('./tier307_aa5_1476_router.js')); } catch(e) { console.error('mount tier307_aa5_1476_router.js fail', e.message); }
+try { app.use('/tier308_ab1_1477', require('./tier308_ab1_1477_router.js')); } catch(e) { console.error('mount tier308_ab1_1477_router.js fail', e.message); }
+try { app.use('/tier308_ab2_1478', require('./tier308_ab2_1478_router.js')); } catch(e) { console.error('mount tier308_ab2_1478_router.js fail', e.message); }
+try { app.use('/tier308_ab3_1479', require('./tier308_ab3_1479_router.js')); } catch(e) { console.error('mount tier308_ab3_1479_router.js fail', e.message); }
+try { app.use('/tier308_ab4_1480', require('./tier308_ab4_1480_router.js')); } catch(e) { console.error('mount tier308_ab4_1480_router.js fail', e.message); }
+try { app.use('/tier308_ab5_1481', require('./tier308_ab5_1481_router.js')); } catch(e) { console.error('mount tier308_ab5_1481_router.js fail', e.message); }
+try { app.use('/tier309_ac1_1482', require('./tier309_ac1_1482_router.js')); } catch(e) { console.error('mount tier309_ac1_1482_router.js fail', e.message); }
+try { app.use('/tier309_ac2_1483', require('./tier309_ac2_1483_router.js')); } catch(e) { console.error('mount tier309_ac2_1483_router.js fail', e.message); }
+try { app.use('/tier309_ac3_1484', require('./tier309_ac3_1484_router.js')); } catch(e) { console.error('mount tier309_ac3_1484_router.js fail', e.message); }
+try { app.use('/tier309_ac4_1485', require('./tier309_ac4_1485_router.js')); } catch(e) { console.error('mount tier309_ac4_1485_router.js fail', e.message); }
+try { app.use('/tier309_ac5_1486', require('./tier309_ac5_1486_router.js')); } catch(e) { console.error('mount tier309_ac5_1486_router.js fail', e.message); }
+try { app.use('/tier310_ad1_1487', require('./tier310_ad1_1487_router.js')); } catch(e) { console.error('mount tier310_ad1_1487_router.js fail', e.message); }
+try { app.use('/tier310_ad2_1488', require('./tier310_ad2_1488_router.js')); } catch(e) { console.error('mount tier310_ad2_1488_router.js fail', e.message); }
+try { app.use('/tier310_ad3_1489', require('./tier310_ad3_1489_router.js')); } catch(e) { console.error('mount tier310_ad3_1489_router.js fail', e.message); }
+try { app.use('/tier310_ad4_1490', require('./tier310_ad4_1490_router.js')); } catch(e) { console.error('mount tier310_ad4_1490_router.js fail', e.message); }
+try { app.use('/tier310_ad5_1491', require('./tier310_ad5_1491_router.js')); } catch(e) { console.error('mount tier310_ad5_1491_router.js fail', e.message); }
+app.listen(PORT, () => {
             console.log(`\n  ✅ jumanaMedical Web is running!`);
             console.log(`  🌐 Open: http://localhost:${PORT}`);
             console.log(`  📦 Database: PostgreSQL (nama_medical_web)\n`);
@@ -18001,6 +18963,21 @@ if (process.env.SUPER_ADMIN_ENABLED === 'true') {
 const { makePublicPlansRouter } = require('./plans');
 app.use('/api/public', makePublicPlansRouter({ pool }));
 
+// ===== Plans public alias under /api/v1 namespace (added 2026-07-29, additive) =====
+// Re-mounts the SAME public-plans router at /api/v1/plans and /api/v1/plans/list.
+// No auth (mirrors /api/public/plans). Same marketing-safe fields, same empty-on-missing
+// catalog behavior. Closes the /api/v1/plans/list 404 gap.
+const plansPublicAlias = require('./plans_public_alias');
+app.use('/api/v1/plans', plansPublicAlias);
+
+// ===== NPHIES v1 API stubs under /api/v1/nphies (added 2026-07-29, additive) =====
+// Sandbox-mode stubs (NPHIES_ENV=sandbox by default). requireAuth is applied here for
+// defense-in-depth even though the stubs are read-only. PRODUCTION (real CSID/OTP) must
+// add makeIdempotencyGuard + requireTenantScope on the money/claim routes and swap
+// each stub body for a real HTTP call into the existing ./nphies_client.js NphiesClient.
+const nphiesV1 = require('./nphies_v1_stub');
+app.use('/api/v1/nphies', requireAuth, nphiesV1);
+
 // ===== CLINICAL CALCULATOR ROUTERS — Phase 2E2 (18 fns) + Phase 3 (48 fns across 26 engines) =====
 // Both routers are READ-ONLY clinical decision-support: no DB writes, no PHI, no PII.
 // requireAuth + requireTenantScope are applied INSIDE each router (router-level middleware).
@@ -18016,6 +18993,12 @@ app.use('/api/phase3', makePhase3CalculatorsRouter({ requireAuth, requireTenantS
 // Mounted at /api/phase3/v2/* to avoid shadowing the 26 endpoints in the legacy router.
 const { makePhase3V2Router } = require('./phase3_v2_calculators_router');
 app.use('/api/phase3/v2', makePhase3V2Router({ requireAuth, requireTenantScope }));
+
+// ===== FHIR R4 Public Surface (additive 2026-08-03, RAIL-5) =====
+// Mounted at /fhir/*. Tenant scoping is enforced INSIDE the router via
+// lib/route-guards (requireTenant + requireTenantScope, fail-closed).
+// No new global middleware — purely additive `app.use('/fhir', ...)`.
+app.use('/fhir', require('./routes/fhir_router'));
 
 // ===== SaaS Batch 4A: Entitlements Runtime Resolver — OBSERVE-ONLY read surface, flag-gated =====
 // Inert unless ENTITLEMENTS_ENABLED=true (zero behavior change otherwise). No creation point is gated.
@@ -20811,10 +21794,573 @@ app.post('/api/safety/waste-logs', requireAuth, requireTenantScope, async (req, 
     }
 });
 
+// AUTO-MOUNT: dept_api_v4 (P3-E v6 owner-flagged) — reuses pg pool + session from main app
+try {
+  app.use('/api/v4/dept', require('./routes/dept_router'));
+// ===== autowire_all_v23 (2026-08-03) — 28 routers =====
+try { (function(){var _m=require("./routes/fhir_router");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/fhir",_r);}else{console.warn('[autowire] /fhir skipped: no router');}})(); } catch (e) { console.warn('[autowire] /fhir skipped:', e.message); }
+try { (function(){var _m=require("./routes/careplans");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/careplans",_r);}else{console.warn('[autowire] /api/v4/careplans skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/careplans skipped:', e.message); }
+try { (function(){var _m=require("./routes/discharge");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/discharge",_r);}else{console.warn('[autowire] /api/v4/discharge skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/discharge skipped:', e.message); }
+try { (function(){var _m=require("./routes/billing_v2");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/billing_v2",_r);}else{console.warn('[autowire] /api/v4/billing_v2 skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/billing_v2 skipped:', e.message); }
+try { (function(){var _m=require("./routes/dicomweb");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/dicom",_r);}else{console.warn('[autowire] /api/dicom skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/dicom skipped:', e.message); }
+try { (function(){var _m=require("./routes/hl7v2");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/hl7",_r);}else{console.warn('[autowire] /api/v4/hl7 skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/hl7 skipped:', e.message); }
+try { (function(){var _m=require("./routes/portal");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/portal",_r);}else{console.warn('[autowire] /api/v4/portal skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/portal skipped:', e.message); }
+try { (function(){var _m=require("./routes/olap");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/olap",_r);}else{console.warn('[autowire] /api/v4/olap skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/olap skipped:', e.message); }
+try { (function(){var _m=require("./routes/mobile");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/mobile",_r);}else{console.warn('[autowire] /api/mobile skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/mobile skipped:', e.message); }
+try { (function(){var _m=require("./routes/telehealth");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/telehealth",_r);}else{console.warn('[autowire] /api/v4/telehealth skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/telehealth skipped:', e.message); }
+try { (function(){var _m=require("./routes/genomic");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/genomic",_r);}else{console.warn('[autowire] /api/v4/genomic skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/genomic skipped:', e.message); }
+try { (function(){var _m=require("./routes/compounding");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/compounding",_r);}else{console.warn('[autowire] /api/v4/compounding skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/compounding skipped:', e.message); }
+try { (function(){var _m=require("./routes/cqm");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/cqm",_r);}else{console.warn('[autowire] /api/v4/cqm skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/cqm skipped:', e.message); }
+try { (function(){var _m=require("./routes/anesthesia");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/anesthesia",_r);}else{console.warn('[autowire] /api/v4/anesthesia skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/anesthesia skipped:', e.message); }
+try { (function(){var _m=require("./routes/cardiology");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/cardiology",_r);}else{console.warn('[autowire] /api/v4/cardiology skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/cardiology skipped:', e.message); }
+try { (function(){var _m=require("./routes/tumorBoard");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/mdt",_r);}else{console.warn('[autowire] /api/v4/mdt skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/mdt skipped:', e.message); }
+try { (function(){var _m=require("./routes/denial");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/denial",_r);}else{console.warn('[autowire] /api/v4/denial skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/denial skipped:', e.message); }
+try { (function(){var _m=require("./routes/homeHealth");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/home-health",_r);}else{console.warn('[autowire] /api/v4/home-health skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/home-health skipped:', e.message); }
+try { (function(){var _m=require("./routes/trials");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/trials",_r);}else{console.warn('[autowire] /api/v4/trials skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/trials skipped:', e.message); }
+try { (function(){var _m=require("./routes/populationHealth");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/population",_r);}else{console.warn('[autowire] /api/v4/population skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/population skipped:', e.message); }
+try { (function(){var _m=require("./routes/pgx");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/pgx",_r);}else{console.warn('[autowire] /api/v4/pgx skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/pgx skipped:', e.message); }
+try { (function(){var _m=require("./routes/voice");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/voice",_r);}else{console.warn('[autowire] /api/v4/voice skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/voice skipped:', e.message); }
+try { (function(){var _m=require("./routes/aiCoPilot");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/ai",_r);}else{console.warn('[autowire] /api/v4/ai skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/ai skipped:', e.message); }
+try { (function(){var _m=require("./routes/interop");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/interop",_r);}else{console.warn('[autowire] /api/v4/interop skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/interop skipped:', e.message); }
+try { (function(){var _m=require("./routes/dr");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/dr",_r);}else{console.warn('[autowire] /api/v4/dr skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/dr skipped:', e.message); }
+try { (function(){var _m=require("./routes/bi");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/bi",_r);}else{console.warn('[autowire] /api/v4/bi skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/bi skipped:', e.message); }
+try { (function(){var _m=require("./routes/compliance");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/compliance",_r);}else{console.warn('[autowire] /api/v4/compliance skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/compliance skipped:', e.message); }
+try { (function(){var _m=require("./routes/salesforce");var _r=(_m&&_m.router)||(_m&&_m.default)||_m;if(_r&&(typeof _r==='function'||_r.stack)){app.use("/api/v4/integrations/sf",_r);}else{console.warn('[autowire] /api/v4/integrations/sf skipped: no router');}})(); } catch (e) { console.warn('[autowire] /api/v4/integrations/sf skipped:', e.message); }
+} catch (e) { console.warn('[mount] /api/v4/dept not mounted:', e.message); }
+
+try { app.use('/api/v4/dept', require('./routes/dept_router')); } catch (e) { console.warn('[mount] /api/v4/dept not mounted:', e.message); }
+
+// AUTO-MOUNT: mynama_portal (P3-E v6 owner-flagged) — patient portal sub-app
+try {
+  const _mynamaApp = require('./mynama/server');
+  if (_mynamaApp && (_mynamaApp.handle || typeof _mynamaApp === 'function')) app.use('/mynama', _mynamaApp);
+} catch (e) { console.warn('[mount] /mynama not mounted:', e.message); }
 // ===== SPA CATCH-ALL (must be LAST route) =====
 app.get('*', (req, res) => {
     if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+
+try { app.use('/api/pharm_order', require('./tier14_pharm_ext_101_order_router')); } catch(e) { console.error('pharm_order mount failed', e.message); }
+try { app.use('/api/pharm_compounding', require('./tier14_pharm_ext_102_compounding_router')); } catch(e) { console.error('pharm_compounding mount failed', e.message); }
+try { app.use('/api/pharm_interaction', require('./tier14_pharm_ext_103_interaction_router')); } catch(e) { console.error('pharm_interaction mount failed', e.message); }
+try { app.use('/api/pharm_formulary', require('./tier14_pharm_ext_104_formulary_router')); } catch(e) { console.error('pharm_formulary mount failed', e.message); }
+try { app.use('/api/pharm_inventory', require('./tier14_pharm_ext_105_inventory_router')); } catch(e) { console.error('pharm_inventory mount failed', e.message); }
+try { app.use('/api/pharm_stewardship', require('./tier14_pharm_ext_106_stewardship_router')); } catch(e) { console.error('pharm_stewardship mount failed', e.message); }
+try { app.use('/api/icu_vitals', require('./tier15_icu_ext_107_vitals_router')); } catch(e) { console.error('icu_vitals mount failed', e.message); }
+try { app.use('/api/icu_hemodynamics', require('./tier15_icu_ext_108_hemodynamics_router')); } catch(e) { console.error('icu_hemodynamics mount failed', e.message); }
+try { app.use('/api/icu_renal', require('./tier15_icu_ext_109_renal_router')); } catch(e) { console.error('icu_renal mount failed', e.message); }
+try { app.use('/api/icu_nutrition', require('./tier15_icu_ext_110_nutrition_router')); } catch(e) { console.error('icu_nutrition mount failed', e.message); }
+try { app.use('/api/icu_admin', require('./tier15_icu_ext_111_icu_admin_router')); } catch(e) { console.error('icu_admin mount failed', e.message); }
+try { app.use('/api/or_preop', require('./tier16_or_ext_112_preop_router')); } catch(e) { console.error('or_preop mount failed', e.message); }
+try { app.use('/api/or_intraop', require('./tier16_or_ext_113_intraop_router')); } catch(e) { console.error('or_intraop mount failed', e.message); }
+try { app.use('/api/or_postop', require('./tier16_or_ext_114_postop_router')); } catch(e) { console.error('or_postop mount failed', e.message); }
+try { app.use('/api/or_scheduling', require('./tier16_or_ext_115_scheduling_router')); } catch(e) { console.error('or_scheduling mount failed', e.message); }
+try { app.use('/api/or_surgical', require('./tier16_or_ext_116_surgical_router')); } catch(e) { console.error('or_surgical mount failed', e.message); }
+try { app.use('/api/portal_auth', require('./tier17_portal_ext_117_auth_router')); } catch(e) { console.error('portal_auth mount failed', e.message); }
+try { app.use('/api/portal_records', require('./tier17_portal_ext_118_records_router')); } catch(e) { console.error('portal_records mount failed', e.message); }
+try { app.use('/api/portal_appointments', require('./tier17_portal_ext_119_appointments_router')); } catch(e) { console.error('portal_appointments mount failed', e.message); }
+try { app.use('/api/portal_billing', require('./tier17_portal_ext_120_billing_router')); } catch(e) { console.error('portal_billing mount failed', e.message); }
+try { app.use('/api/portal_messaging', require('./tier17_portal_ext_121_messaging_router')); } catch(e) { console.error('portal_messaging mount failed', e.message); }
+try { app.use('/api/infx_outbreak', require('./tier18_infx_ext_122_outbreak_router')); } catch(e) { console.error('infx_outbreak mount failed', e.message); }
+try { app.use('/api/infx_isolation', require('./tier18_infx_ext_123_isolation_router')); } catch(e) { console.error('infx_isolation mount failed', e.message); }
+try { app.use('/api/infx_mdro', require('./tier18_infx_ext_124_mdro_router')); } catch(e) { console.error('infx_mdro mount failed', e.message); }
+try { app.use('/api/infx_surveillance', require('./tier18_infx_ext_125_surveillance_router')); } catch(e) { console.error('infx_surveillance mount failed', e.message); }
+try { app.use('/api/infx_employee', require('./tier18_infx_ext_126_employee_router')); } catch(e) { console.error('infx_employee mount failed', e.message); }
+try { app.use('/api/him_coding', require('./tier19_him_ext_127_coding_router')); } catch(e) { console.error('him_coding mount failed', e.message); }
+try { app.use('/api/him_roi', require('./tier19_him_ext_128_roi_router')); } catch(e) { console.error('him_roi mount failed', e.message); }
+try { app.use('/api/him_deficiency', require('./tier19_him_ext_129_deficiency_router')); } catch(e) { console.error('him_deficiency mount failed', e.message); }
+try { app.use('/api/him_audit', require('./tier19_him_ext_130_audit_router')); } catch(e) { console.error('him_audit mount failed', e.message); }
+try { app.use('/api/him_release', require('./tier19_him_ext_131_release_router')); } catch(e) { console.error('him_release mount failed', e.message); }
+try { app.use('/api/research_trial', require('./tier20_research_ext_132_trial_router')); } catch(e) { console.error('research_trial mount failed', e.message); }
+try { app.use('/api/research_consent', require('./tier20_research_ext_133_consent_router')); } catch(e) { console.error('research_consent mount failed', e.message); }
+try { app.use('/api/research_irb', require('./tier20_research_ext_134_irb_router')); } catch(e) { console.error('research_irb mount failed', e.message); }
+try { app.use('/api/research_recruitment', require('./tier20_research_ext_135_recruitment_router')); } catch(e) { console.error('research_recruitment mount failed', e.message); }
+try { app.use('/api/research_biobank', require('./tier20_research_ext_136_biobank_router')); } catch(e) { console.error('research_biobank mount failed', e.message); }
+try { app.use('/api/sched_provider', require('./tier21_sched_ext_137_provider_router')); } catch(e) { console.error('sched_provider mount failed', e.message); }
+try { app.use('/api/sched_call', require('./tier21_sched_ext_138_call_router')); } catch(e) { console.error('sched_call mount failed', e.message); }
+try { app.use('/api/sched_template', require('./tier21_sched_ext_139_template_router')); } catch(e) { console.error('sched_template mount failed', e.message); }
+try { app.use('/api/sched_waitlist', require('./tier21_sched_ext_140_waitlist_router')); } catch(e) { console.error('sched_waitlist mount failed', e.message); }
+try { app.use('/api/sched_appointment', require('./tier21_sched_ext_141_appointment_router')); } catch(e) { console.error('sched_appointment mount failed', e.message); }
+try { app.use('/api/sched_staff', require('./tier21_sched_ext_142_staff_router')); } catch(e) { console.error('sched_staff mount failed', e.message); }
+try { app.use('/api/wound_assessment', require('./tier22_wound_ext_143_assessment_router')); } catch(e) { console.error('wound_assessment mount failed', e.message); }
+try { app.use('/api/wound_dressing', require('./tier22_wound_ext_144_dressing_router')); } catch(e) { console.error('wound_dressing mount failed', e.message); }
+try { app.use('/api/wound_healing', require('./tier22_wound_ext_145_healing_router')); } catch(e) { console.error('wound_healing mount failed', e.message); }
+try { app.use('/api/wound_measurement', require('./tier22_wound_ext_146_measurement_router')); } catch(e) { console.error('wound_measurement mount failed', e.message); }
+try { app.use('/api/wound_staging', require('./tier22_wound_ext_147_staging_router')); } catch(e) { console.error('wound_staging mount failed', e.message); }
+try { app.use('/api/dialysis_access', require('./tier23_dialysis_ext_148_access_router')); } catch(e) { console.error('dialysis_access mount failed', e.message); }
+try { app.use('/api/dialysis_adequacy', require('./tier23_dialysis_ext_149_adequacy_router')); } catch(e) { console.error('dialysis_adequacy mount failed', e.message); }
+try { app.use('/api/dialysis_complication', require('./tier23_dialysis_ext_150_complication_router')); } catch(e) { console.error('dialysis_complication mount failed', e.message); }
+try { app.use('/api/dialysis_peritoneal', require('./tier23_dialysis_ext_151_peritoneal_router')); } catch(e) { console.error('dialysis_peritoneal mount failed', e.message); }
+try { app.use('/api/dialysis_dialyzer', require('./tier23_dialysis_ext_152_dialyzer_router')); } catch(e) { console.error('dialysis_dialyzer mount failed', e.message); }
+try { app.use('/api/tx_candidate', require('./tier24_transplant_ext_153_candidate_router')); } catch(e) { console.error('tx_candidate mount failed', e.message); }
+try { app.use('/api/tx_donor', require('./tier24_transplant_ext_154_donor_router')); } catch(e) { console.error('tx_donor mount failed', e.message); }
+try { app.use('/api/tx_immuno', require('./tier24_transplant_ext_155_immuno_router')); } catch(e) { console.error('tx_immuno mount failed', e.message); }
+try { app.use('/api/tx_outcome', require('./tier24_transplant_ext_156_outcome_router')); } catch(e) { console.error('tx_outcome mount failed', e.message); }
+try { app.use('/api/tx_followup', require('./tier24_transplant_ext_157_followup_router')); } catch(e) { console.error('tx_followup mount failed', e.message); }
+try { app.use('/api/rehab_function', require('./tier25_rehab_ext_158_function_router')); } catch(e) { console.error('rehab_function mount failed', e.message); }
+try { app.use('/api/rehab_therapy', require('./tier25_rehab_ext_159_therapy_router')); } catch(e) { console.error('rehab_therapy mount failed', e.message); }
+try { app.use('/api/rehab_prosthetic', require('./tier25_rehab_ext_160_prosthetic_router')); } catch(e) { console.error('rehab_prosthetic mount failed', e.message); }
+try { app.use('/api/rehab_neuro', require('./tier25_rehab_ext_161_neuro_router')); } catch(e) { console.error('rehab_neuro mount failed', e.message); }
+try { app.use('/api/rehab_pediatric', require('./tier25_rehab_ext_162_pediatric_router')); } catch(e) { console.error('rehab_pediatric mount failed', e.message); }
+try { app.use('/api/oncology_tumor', require('./tier26_oncology_ext_163_tumor_router')); } catch(e) { console.error('oncology_tumor mount failed', e.message); }
+try { app.use('/api/oncology_chemo', require('./tier26_oncology_ext_164_chemo_router')); } catch(e) { console.error('oncology_chemo mount failed', e.message); }
+try { app.use('/api/oncology_radiation', require('./tier26_oncology_ext_165_radiation_router')); } catch(e) { console.error('oncology_radiation mount failed', e.message); }
+try { app.use('/api/oncology_palliative', require('./tier26_oncology_ext_166_palliative_router')); } catch(e) { console.error('oncology_palliative mount failed', e.message); }
+try { app.use('/api/oncology_survivor', require('./tier26_oncology_ext_167_survivor_router')); } catch(e) { console.error('oncology_survivor mount failed', e.message); }
+try { app.use('/api/ed_triage', require('./tier27_emergency_ext_168_triage_router')); } catch(e) { console.error('ed_triage mount failed', e.message); }
+try { app.use('/api/ed_resus', require('./tier27_emergency_ext_169_resuscitation_router')); } catch(e) { console.error('ed_resus mount failed', e.message); }
+try { app.use('/api/ed_trauma', require('./tier27_emergency_ext_170_trauma_router')); } catch(e) { console.error('ed_trauma mount failed', e.message); }
+try { app.use('/api/ed_tox', require('./tier27_emergency_ext_171_toxicology_router')); } catch(e) { console.error('ed_tox mount failed', e.message); }
+try { app.use('/api/ed_ems', require('./tier27_emergency_ext_172_ems_router')); } catch(e) { console.error('ed_ems mount failed', e.message); }
+try { app.use('/api/ob_prenatal', require('./tier28_obstetrics_ext_173_prenatal_router')); } catch(e) { console.error('ob_prenatal mount failed', e.message); }
+try { app.use('/api/ob_labor', require('./tier28_obstetrics_ext_174_labor_router')); } catch(e) { console.error('ob_labor mount failed', e.message); }
+try { app.use('/api/ob_gynecology', require('./tier28_obstetrics_ext_175_gynecology_router')); } catch(e) { console.error('ob_gynecology mount failed', e.message); }
+try { app.use('/api/ob_neonatal', require('./tier28_obstetrics_ext_176_neonatal_router')); } catch(e) { console.error('ob_neonatal mount failed', e.message); }
+try { app.use('/api/ob_reproduction', require('./tier28_obstetrics_ext_177_reproduction_router')); } catch(e) { console.error('ob_reproduction mount failed', e.message); }
+try { app.use('/api/cardio_stress', require('./tier29_cardiology_ext_178_stress_router')); } catch(e) { console.error('cardio_stress mount failed', e.message); }
+try { app.use('/api/cardio_echo', require('./tier29_cardiology_ext_179_echo_router')); } catch(e) { console.error('cardio_echo mount failed', e.message); }
+try { app.use('/api/cardio_cath', require('./tier29_cardiology_ext_180_cath_router')); } catch(e) { console.error('cardio_cath mount failed', e.message); }
+try { app.use('/api/cardio_ep', require('./tier29_cardiology_ext_181_ep_router')); } catch(e) { console.error('cardio_ep mount failed', e.message); }
+try { app.use('/api/cardio_hf', require('./tier29_cardiology_ext_182_hf_router')); } catch(e) { console.error('cardio_hf mount failed', e.message); }
+try { app.use('/api/hem_transfusion', require('./tier30_hematology_ext_183_transfusion_router')); } catch(e) { console.error('hem_transfusion mount failed', e.message); }
+try { app.use('/api/hem_apheresis', require('./tier30_hematology_ext_184_apheresis_router')); } catch(e) { console.error('hem_apheresis mount failed', e.message); }
+try { app.use('/api/hem_stem_cell', require('./tier30_hematology_ext_185_stem_cell_router')); } catch(e) { console.error('hem_stem_cell mount failed', e.message); }
+try { app.use('/api/hem_cell_therapy', require('./tier30_hematology_ext_186_cell_therapy_router')); } catch(e) { console.error('hem_cell_therapy mount failed', e.message); }
+try { app.use('/api/hem_coag_ext', require('./tier30_hematology_ext_187_coag_ext_router')); } catch(e) { console.error('hem_coag_ext mount failed', e.message); }
+try { app.use('/api/nephro_ckd', require('./tier31_nephrology_ext_188_ckd_router')); } catch(e) { console.error('nephro_ckd mount failed', e.message); }
+try { app.use('/api/nephro_da', require('./tier31_nephrology_ext_189_dialysis_access_router')); } catch(e) { console.error('nephro_da mount failed', e.message); }
+try { app.use('/api/nephro_immuno', require('./tier31_nephrology_ext_190_transplant_immuno_router')); } catch(e) { console.error('nephro_immuno mount failed', e.message); }
+try { app.use('/api/nephro_ext', require('./tier31_nephrology_ext_191_nephro_ext_router')); } catch(e) { console.error('nephro_ext mount failed', e.message); }
+try { app.use('/api/nephro_nutrition', require('./tier31_nephrology_ext_192_renal_nutrition_router')); } catch(e) { console.error('nephro_nutrition mount failed', e.message); }
+try { app.use('/api/pulm_copd', require('./tier32_pulmonology_ext_193_copd_router')); } catch(e) { console.error('pulm_copd mount failed', e.message); }
+try { app.use('/api/pulm_asthma', require('./tier32_pulmonology_ext_194_asthma_router')); } catch(e) { console.error('pulm_asthma mount failed', e.message); }
+try { app.use('/api/pulm_sleep', require('./tier32_pulmonology_ext_195_sleep_router')); } catch(e) { console.error('pulm_sleep mount failed', e.message); }
+try { app.use('/api/pulm_ild', require('./tier32_pulmonology_ext_196_ild_router')); } catch(e) { console.error('pulm_ild mount failed', e.message); }
+try { app.use('/api/pulm_pc', require('./tier32_pulmonology_ext_197_pulm_critical_router')); } catch(e) { console.error('pulm_pc mount failed', e.message); }
+try { app.use('/api/endo_diabetes', require('./tier33_endocrinology_ext_198_diabetes_router')); } catch(e) { console.error('endo_diabetes mount failed', e.message); }
+try { app.use('/api/endo_thyroid', require('./tier33_endocrinology_ext_199_thyroid_router')); } catch(e) { console.error('endo_thyroid mount failed', e.message); }
+try { app.use('/api/endo_adrenal', require('./tier33_endocrinology_ext_200_adrenal_router')); } catch(e) { console.error('endo_adrenal mount failed', e.message); }
+try { app.use('/api/endo_pituitary', require('./tier33_endocrinology_ext_201_pituitary_router')); } catch(e) { console.error('endo_pituitary mount failed', e.message); }
+try { app.use('/api/endo_metabolic', require('./tier33_endocrinology_ext_202_metabolic_router')); } catch(e) { console.error('endo_metabolic mount failed', e.message); }
+try { app.use('/api/gi_ibd', require('./tier34_gastroenterology_ext_203_ibd_router')); } catch(e) { console.error('gi_ibd mount failed', e.message); }
+try { app.use('/api/gi_hepa', require('./tier34_gastroenterology_ext_204_hepatology_router')); } catch(e) { console.error('gi_hepa mount failed', e.message); }
+try { app.use('/api/gi_end', require('./tier34_gastroenterology_ext_205_endoscopy_router')); } catch(e) { console.error('gi_end mount failed', e.message); }
+try { app.use('/api/gi_onco', require('./tier34_gastroenterology_ext_206_gi_oncology_router')); } catch(e) { console.error('gi_onco mount failed', e.message); }
+try { app.use('/api/gi_nut', require('./tier34_gastroenterology_ext_207_gi_nutrition_router')); } catch(e) { console.error('gi_nut mount failed', e.message); }
+try { app.use('/api/rheum_ra', require('./tier35_rheumatology_ext_208_ra_router')); } catch(e) { console.error('rheum_ra mount failed', e.message); }
+try { app.use('/api/rheum_lupus', require('./tier35_rheumatology_ext_209_lupus_router')); } catch(e) { console.error('rheum_lupus mount failed', e.message); }
+try { app.use('/api/rheum_vasculitis', require('./tier35_rheumatology_ext_210_vasculitis_router')); } catch(e) { console.error('rheum_vasculitis mount failed', e.message); }
+try { app.use('/api/rheum_myo', require('./tier35_rheumatology_ext_211_myositis_router')); } catch(e) { console.error('rheum_myo mount failed', e.message); }
+try { app.use('/api/rheum_spine', require('./tier35_rheumatology_ext_212_spine_router')); } catch(e) { console.error('rheum_spine mount failed', e.message); }
+try { app.use('/api/infx_hiv', require('./tier36_infectious_disease_ext_213_hiv_router')); } catch(e) { console.error('infx_hiv mount failed', e.message); }
+try { app.use('/api/infx_tb', require('./tier36_infectious_disease_ext_214_tb_router')); } catch(e) { console.error('infx_tb mount failed', e.message); }
+try { app.use('/api/infx_hepa', require('./tier36_infectious_disease_ext_215_hepatitis_router')); } catch(e) { console.error('infx_hepa mount failed', e.message); }
+try { app.use('/api/infx_trop', require('./tier36_infectious_disease_ext_216_tropical_router')); } catch(e) { console.error('infx_trop mount failed', e.message); }
+try { app.use('/api/infx_stew', require('./tier36_infectious_disease_ext_217_stewardship_router')); } catch(e) { console.error('infx_stew mount failed', e.message); }
+try { app.use('/api/neuro_stroke', require('./tier37_neurology_ext_218_stroke_router')); } catch(e) { console.error('neuro_stroke mount failed', e.message); }
+try { app.use('/api/neuro_epi', require('./tier37_neurology_ext_219_epilepsy_router')); } catch(e) { console.error('neuro_epi mount failed', e.message); }
+try { app.use('/api/neuro_ms', require('./tier37_neurology_ext_220_ms_router')); } catch(e) { console.error('neuro_ms mount failed', e.message); }
+try { app.use('/api/neuro_mov', require('./tier37_neurology_ext_221_movement_router')); } catch(e) { console.error('neuro_mov mount failed', e.message); }
+try { app.use('/api/neuro_nm', require('./tier37_neurology_ext_222_neuro_musc_router')); } catch(e) { console.error('neuro_nm mount failed', e.message); }
+try { app.use('/api/derm_psor', require('./tier38_dermatology_ext_223_psoriasis_router')); } catch(e) { console.error('derm_psor mount failed', e.message); }
+try { app.use('/api/derm_ecz', require('./tier38_dermatology_ext_224_eczema_router')); } catch(e) { console.error('derm_ecz mount failed', e.message); }
+try { app.use('/api/derm_skin', require('./tier38_dermatology_ext_225_skin_cancer_router')); } catch(e) { console.error('derm_skin mount failed', e.message); }
+try { app.use('/api/derm_acne', require('./tier38_dermatology_ext_226_acne_router')); } catch(e) { console.error('derm_acne mount failed', e.message); }
+try { app.use('/api/derm_hair', require('./tier38_dermatology_ext_227_hair_nails_router')); } catch(e) { console.error('derm_hair mount failed', e.message); }
+try { app.use('/api/ent_oto', require('./tier39_ent_ext_228_otology_router')); } catch(e) { console.error('ent_oto mount failed', e.message); }
+try { app.use('/api/ent_rhino', require('./tier39_ent_ext_229_rhinology_router')); } catch(e) { console.error('ent_rhino mount failed', e.message); }
+try { app.use('/api/ent_laryn', require('./tier39_ent_ext_230_laryngology_router')); } catch(e) { console.error('ent_laryn mount failed', e.message); }
+try { app.use('/api/ent_hn', require('./tier39_ent_ext_231_head_neck_router')); } catch(e) { console.error('ent_hn mount failed', e.message); }
+try { app.use('/api/ent_ped', require('./tier39_ent_ext_232_ped_ent_router')); } catch(e) { console.error('ent_ped mount failed', e.message); }
+try { app.use('/api/ophth_glaucoma', require('./tier40_ophthalmology_ext_233_glaucoma_router')); } catch(e) { console.error('ophth_glaucoma mount failed', e.message); }
+try { app.use('/api/ophth_retina', require('./tier40_ophthalmology_ext_234_retina_router')); } catch(e) { console.error('ophth_retina mount failed', e.message); }
+try { app.use('/api/ophth_cornea', require('./tier40_ophthalmology_ext_235_cornea_router')); } catch(e) { console.error('ophth_cornea mount failed', e.message); }
+try { app.use('/api/ophth_plas', require('./tier40_ophthalmology_ext_236_oculoplast_router')); } catch(e) { console.error('ophth_plas mount failed', e.message); }
+try { app.use('/api/ophth_no', require('./tier40_ophthalmology_ext_237_neuro_ophth_router')); } catch(e) { console.error('ophth_no mount failed', e.message); }
+try { app.use('/api/ob_high_risk', require('./tier41_obstetrics_ext_238_high_risk_router')); } catch(e) { console.error('ob_high_risk mount failed', e.message); }
+try { app.use('/api/ob_fetal', require('./tier41_obstetrics_ext_239_fetal_mon_router')); } catch(e) { console.error('ob_fetal mount failed', e.message); }
+try { app.use('/api/ob_procedures', require('./tier41_obstetrics_ext_240_ob_procedures_router')); } catch(e) { console.error('ob_procedures mount failed', e.message); }
+try { app.use('/api/ob_postpartum', require('./tier41_obstetrics_ext_241_postpartum_router')); } catch(e) { console.error('ob_postpartum mount failed', e.message); }
+try { app.use('/api/ob_lactation', require('./tier41_obstetrics_ext_242_lactation_router')); } catch(e) { console.error('ob_lactation mount failed', e.message); }
+try { app.use('/api/psych_mood', require('./tier42_psychiatry_ext_243_mood_anx_router')); } catch(e) { console.error('psych_mood mount failed', e.message); }
+try { app.use('/api/psych_psychotic', require('./tier42_psychiatry_ext_244_psychotic_router')); } catch(e) { console.error('psych_psychotic mount failed', e.message); }
+try { app.use('/api/psych_trauma', require('./tier42_psychiatry_ext_245_trauma_router')); } catch(e) { console.error('psych_trauma mount failed', e.message); }
+try { app.use('/api/psych_substance', require('./tier42_psychiatry_ext_246_substance_router')); } catch(e) { console.error('psych_substance mount failed', e.message); }
+try { app.use('/api/psych_neurodev', require('./tier42_psychiatry_ext_247_neurodev_router')); } catch(e) { console.error('psych_neurodev mount failed', e.message); }
+try { app.use('/api/surg_gi', require('./tier43_surgery_ext_248_gi_surg_router')); } catch(e) { console.error('surg_gi mount failed', e.message); }
+try { app.use('/api/surg_ortho', require('./tier43_surgery_ext_249_ortho_surg_router')); } catch(e) { console.error('surg_ortho mount failed', e.message); }
+try { app.use('/api/surg_vasc', require('./tier43_surgery_ext_250_vascular_router')); } catch(e) { console.error('surg_vasc mount failed', e.message); }
+try { app.use('/api/surg_trauma', require('./tier43_surgery_ext_251_trauma_router')); } catch(e) { console.error('surg_trauma mount failed', e.message); }
+try { app.use('/api/surg_transplant', require('./tier43_surgery_ext_252_transplant_router')); } catch(e) { console.error('surg_transplant mount failed', e.message); }
+try { app.use('/api/ped_resp', require('./tier44_pediatrics_ext_253_ped_resp_router')); } catch(e) { console.error('ped_resp mount failed', e.message); }
+try { app.use('/api/ped_neonat', require('./tier44_pediatrics_ext_254_ped_neonat_router')); } catch(e) { console.error('ped_neonat mount failed', e.message); }
+try { app.use('/api/ped_gastro', require('./tier44_pediatrics_ext_255_ped_gastro_router')); } catch(e) { console.error('ped_gastro mount failed', e.message); }
+try { app.use('/api/ped_endo', require('./tier44_pediatrics_ext_256_ped_endo_router')); } catch(e) { console.error('ped_endo mount failed', e.message); }
+try { app.use('/api/ped_immuno', require('./tier44_pediatrics_ext_257_ped_immuno_router')); } catch(e) { console.error('ped_immuno mount failed', e.message); }
+try { app.use('/api/icu_vent', require('./tier45_icu_ext_258_icu_vent_router')); } catch(e) { console.error('icu_vent mount failed', e.message); }
+try { app.use('/api/icu_sepsis', require('./tier45_icu_ext_259_icu_sepsis_router')); } catch(e) { console.error('icu_sepsis mount failed', e.message); }
+try { app.use('/api/icu_hemodyn', require('./tier45_icu_ext_260_icu_hemodyn_router')); } catch(e) { console.error('icu_hemodyn mount failed', e.message); }
+try { app.use('/api/icu_neuro', require('./tier45_icu_ext_261_icu_neuro_router')); } catch(e) { console.error('icu_neuro mount failed', e.message); }
+try { app.use('/api/icu_renal', require('./tier45_icu_ext_262_icu_renal_router')); } catch(e) { console.error('icu_renal mount failed', e.message); }
+try { app.use('/api/pharm_onco', require('./tier46_pharmacy_ext_263_pharm_onco_router')); } catch(e) { console.error('pharm_onco mount failed', e.message); }
+try { app.use('/api/pharm_antinf', require('./tier46_pharmacy_ext_264_pharm_antinf_router')); } catch(e) { console.error('pharm_antinf mount failed', e.message); }
+try { app.use('/api/pharm_chronic', require('./tier46_pharmacy_ext_265_pharm_chronic_router')); } catch(e) { console.error('pharm_chronic mount failed', e.message); }
+try { app.use('/api/pharm_pain', require('./tier46_pharmacy_ext_266_pharm_pain_router')); } catch(e) { console.error('pharm_pain mount failed', e.message); }
+try { app.use('/api/pharm_special', require('./tier46_pharmacy_ext_267_pharm_special_router')); } catch(e) { console.error('pharm_special mount failed', e.message); }
+try { app.use('/api/rad_body', require('./tier47_radiology_ext_268_rad_body_router')); } catch(e) { console.error('rad_body mount failed', e.message); }
+try { app.use('/api/rad_neuro', require('./tier47_radiology_ext_269_rad_neuro_router')); } catch(e) { console.error('rad_neuro mount failed', e.message); }
+try { app.use('/api/rad_cardio', require('./tier47_radiology_ext_270_rad_cardio_router')); } catch(e) { console.error('rad_cardio mount failed', e.message); }
+try { app.use('/api/rad_gu_gi', require('./tier47_radiology_ext_271_rad_gu_gi_router')); } catch(e) { console.error('rad_gu_gi mount failed', e.message); }
+try { app.use('/api/rad_interv', require('./tier47_radiology_ext_272_rad_interv_router')); } catch(e) { console.error('rad_interv mount failed', e.message); }
+try { app.use('/api/lab_heme', require('./tier48_laboratory_ext_273_lab_heme_router')); } catch(e) { console.error('lab_heme mount failed', e.message); }
+try { app.use('/api/lab_chem', require('./tier48_laboratory_ext_274_lab_chem_router')); } catch(e) { console.error('lab_chem mount failed', e.message); }
+try { app.use('/api/lab_micro', require('./tier48_laboratory_ext_275_lab_micro_router')); } catch(e) { console.error('lab_micro mount failed', e.message); }
+try { app.use('/api/lab_immuno', require('./tier48_laboratory_ext_276_lab_immuno_router')); } catch(e) { console.error('lab_immuno mount failed', e.message); }
+try { app.use('/api/lab_mol', require('./tier48_laboratory_ext_277_lab_mol_router')); } catch(e) { console.error('lab_mol mount failed', e.message); }
+try { app.use('/api/nurs_assess', require('./tier49_nursing_ext_278_nurs_assess_router')); } catch(e) { console.error('nurs_assess mount failed', e.message); }
+try { app.use('/api/nurs_med', require('./tier49_nursing_ext_279_nurs_med_router')); } catch(e) { console.error('nurs_med mount failed', e.message); }
+try { app.use('/api/nurs_wound', require('./tier49_nursing_ext_280_nurs_wound_router')); } catch(e) { console.error('nurs_wound mount failed', e.message); }
+try { app.use('/api/nurs_resp', require('./tier49_nursing_ext_281_nurs_resp_router')); } catch(e) { console.error('nurs_resp mount failed', e.message); }
+try { app.use('/api/nurs_safety', require('./tier49_nursing_ext_282_nurs_safety_router')); } catch(e) { console.error('nurs_safety mount failed', e.message); }
+try { app.use('/api/card_failure', require('./tier50_cardiology_ext_283_card_failure_router')); } catch(e) { console.error('card_failure mount failed', e.message); }
+try { app.use('/api/card_arr', require('./tier50_cardiology_ext_284_card_arr_router')); } catch(e) { console.error('card_arr mount failed', e.message); }
+try { app.use('/api/card_valve', require('./tier50_cardiology_ext_285_card_valve_router')); } catch(e) { console.error('card_valve mount failed', e.message); }
+try { app.use('/api/card_ischemic', require('./tier50_cardiology_ext_286_card_ischemic_router')); } catch(e) { console.error('card_ischemic mount failed', e.message); }
+try { app.use('/api/card_cong', require('./tier50_cardiology_ext_287_card_cong_router')); } catch(e) { console.error('card_cong mount failed', e.message); }
+try { app.use('/api/derm_infla', require('./tier51_dermatology_ext_288_derm_infla_router')); } catch(e) { console.error('derm_infla mount failed', e.message); }
+try { app.use('/api/derm_inf', require('./tier51_dermatology_ext_289_derm_inf_router')); } catch(e) { console.error('derm_inf mount failed', e.message); }
+try { app.use('/api/derm_neo', require('./tier51_dermatology_ext_290_derm_neo_router')); } catch(e) { console.error('derm_neo mount failed', e.message); }
+try { app.use('/api/derm_pig', require('./tier51_dermatology_ext_291_derm_pig_router')); } catch(e) { console.error('derm_pig mount failed', e.message); }
+try { app.use('/api/derm_proced', require('./tier51_dermatology_ext_292_derm_proced_router')); } catch(e) { console.error('derm_proced mount failed', e.message); }
+try { app.use('/api/rehab_pt', require('./tier52_rehabilitation_ext_293_rehab_pt_router')); } catch(e) { console.error('rehab_pt mount failed', e.message); }
+try { app.use('/api/rehab_ot', require('./tier52_rehabilitation_ext_294_rehab_ot_router')); } catch(e) { console.error('rehab_ot mount failed', e.message); }
+try { app.use('/api/rehab_slp', require('./tier52_rehabilitation_ext_295_rehab_slp_router')); } catch(e) { console.error('rehab_slp mount failed', e.message); }
+try { app.use('/api/rehab_prosth', require('./tier52_rehabilitation_ext_296_rehab_prosth_router')); } catch(e) { console.error('rehab_prosth mount failed', e.message); }
+try { app.use('/api/rehab_pain', require('./tier52_rehabilitation_ext_297_rehab_pain_router')); } catch(e) { console.error('rehab_pain mount failed', e.message); }
+try { app.use('/api/onc_breast', require('./tier53_oncology_ext_298_onc_breast_router')); } catch(e) { console.error('onc_breast mount failed', e.message); }
+try { app.use('/api/onc_lung', require('./tier53_oncology_ext_299_onc_lung_router')); } catch(e) { console.error('onc_lung mount failed', e.message); }
+try { app.use('/api/onc_gi', require('./tier53_oncology_ext_300_onc_gi_router')); } catch(e) { console.error('onc_gi mount failed', e.message); }
+try { app.use('/api/onc_gu', require('./tier53_oncology_ext_301_onc_gu_router')); } catch(e) { console.error('onc_gu mount failed', e.message); }
+try { app.use('/api/onc_heme', require('./tier53_oncology_ext_302_onc_heme_router')); } catch(e) { console.error('onc_heme mount failed', e.message); }
+try { app.use('/api/er_trauma', require('./tier54_emergency_ext_303_er_trauma_router')); } catch(e) { console.error('er_trauma mount failed', e.message); }
+try { app.use('/api/er_cardio', require('./tier54_emergency_ext_304_er_cardio_router')); } catch(e) { console.error('er_cardio mount failed', e.message); }
+try { app.use('/api/er_neuro', require('./tier54_emergency_ext_305_er_neuro_router')); } catch(e) { console.error('er_neuro mount failed', e.message); }
+try { app.use('/api/er_resp', require('./tier54_emergency_ext_306_er_resp_router')); } catch(e) { console.error('er_resp mount failed', e.message); }
+try { app.use('/api/er_gi_gi', require('./tier54_emergency_ext_307_er_gi_gi_router')); } catch(e) { console.error('er_gi_gi mount failed', e.message); }
+try { app.use('/api/triage_acu', require('./tier55_triage_ext_308_triage_acu_router')); } catch(e) { console.error('triage_acu mount failed', e.message); }
+try { app.use('/api/triage_intake', require('./tier55_triage_ext_309_triage_intake_router')); } catch(e) { console.error('triage_intake mount failed', e.message); }
+try { app.use('/api/triage_screen', require('./tier55_triage_ext_310_triage_screen_router')); } catch(e) { console.error('triage_screen mount failed', e.message); }
+try { app.use('/api/triage_ped', require('./tier55_triage_ext_311_triage_ped_router')); } catch(e) { console.error('triage_ped mount failed', e.message); }
+try { app.use('/api/triage_disp', require('./tier55_triage_ext_312_triage_disp_router')); } catch(e) { console.error('triage_disp mount failed', e.message); }
+try { app.use('/api/surg_neuro', require('./tier56_surgical_specialties_313_surg_neuro_router')); } catch(e) { console.error('surg_neuro mount failed', e.message); }
+try { app.use('/api/surg_plastic', require('./tier56_surgical_specialties_314_surg_plastic_router')); } catch(e) { console.error('surg_plastic mount failed', e.message); }
+try { app.use('/api/surg_urology', require('./tier56_surgical_specialties_315_surg_urology_router')); } catch(e) { console.error('surg_urology mount failed', e.message); }
+try { app.use('/api/surg_ent_surg', require('./tier56_surgical_specialties_316_surg_ent_surg_router')); } catch(e) { console.error('surg_ent_surg mount failed', e.message); }
+try { app.use('/api/surg_thoracic', require('./tier56_surgical_specialties_317_surg_thoracic_router')); } catch(e) { console.error('surg_thoracic mount failed', e.message); }
+try { app.use('/api/img_advanced', require('./tier57_imaging_ext_318_img_advanced_router')); } catch(e) { console.error('img_advanced mount failed', e.message); }
+try { app.use('/api/img_us_ext', require('./tier57_imaging_ext_319_img_us_ext_router')); } catch(e) { console.error('img_us_ext mount failed', e.message); }
+try { app.use('/api/img_breast', require('./tier57_imaging_ext_320_img_breast_router')); } catch(e) { console.error('img_breast mount failed', e.message); }
+try { app.use('/api/img_msk', require('./tier57_imaging_ext_321_img_msk_router')); } catch(e) { console.error('img_msk mount failed', e.message); }
+try { app.use('/api/img_emergent', require('./tier57_imaging_ext_322_img_emergent_router')); } catch(e) { console.error('img_emergent mount failed', e.message); }
+try { app.use('/api/res_trial', require('./tier58_research_ext_323_res_trial_router')); } catch(e) { console.error('res_trial mount failed', e.message); }
+try { app.use('/api/res_pub', require('./tier58_research_ext_324_res_pub_router')); } catch(e) { console.error('res_pub mount failed', e.message); }
+try { app.use('/api/res_grant', require('./tier58_research_ext_325_res_grant_router')); } catch(e) { console.error('res_grant mount failed', e.message); }
+try { app.use('/api/res_data', require('./tier58_research_ext_326_res_data_router')); } catch(e) { console.error('res_data mount failed', e.message); }
+try { app.use('/api/res_ethics', require('./tier58_research_ext_327_res_ethics_router')); } catch(e) { console.error('res_ethics mount failed', e.message); }
+try { app.use('/api/tele_visit', require('./tier59_telemedicine_328_tele_visit_router')); } catch(e) { console.error('tele_visit mount failed', e.message); }
+try { app.use('/api/tele_monitor', require('./tier59_telemedicine_329_tele_monitor_router')); } catch(e) { console.error('tele_monitor mount failed', e.message); }
+try { app.use('/api/tele_surg', require('./tier59_telemedicine_330_tele_surg_router')); } catch(e) { console.error('tele_surg mount failed', e.message); }
+try { app.use('/api/tele_psy', require('./tier59_telemedicine_331_tele_psy_router')); } catch(e) { console.error('tele_psy mount failed', e.message); }
+try { app.use('/api/tele_admin', require('./tier59_telemedicine_332_tele_admin_router')); } catch(e) { console.error('tele_admin mount failed', e.message); }
+try { app.use('/api/ai_clin_dec', require('./tier60_ai_brain_ext_333_ai_clin_dec_router')); } catch(e) { console.error('ai_clin_dec mount failed', e.message); }
+try { app.use('/api/ai_diag_img', require('./tier60_ai_brain_ext_334_ai_diag_img_router')); } catch(e) { console.error('ai_diag_img mount failed', e.message); }
+try { app.use('/api/ai_nlp_doc', require('./tier60_ai_brain_ext_335_ai_nlp_doc_router')); } catch(e) { console.error('ai_nlp_doc mount failed', e.message); }
+try { app.use('/api/ai_forecast', require('./tier60_ai_brain_ext_336_ai_forecast_router')); } catch(e) { console.error('ai_forecast mount failed', e.message); }
+try { app.use('/api/ai_chatbot', require('./tier60_ai_brain_ext_337_ai_chatbot_router')); } catch(e) { console.error('ai_chatbot mount failed', e.message); }
+try { app.use('/api/ops_facility', require('./tier61_ops_ext_338_ops_facility_router')); } catch(e) { console.error('ops_facility mount failed', e.message); }
+try { app.use('/api/ops_assets', require('./tier61_ops_ext_339_ops_assets_router')); } catch(e) { console.error('ops_assets mount failed', e.message); }
+try { app.use('/api/ops_vendor', require('./tier61_ops_ext_340_ops_vendor_router')); } catch(e) { console.error('ops_vendor mount failed', e.message); }
+try { app.use('/api/ops_legal', require('./tier61_ops_ext_341_ops_legal_router')); } catch(e) { console.error('ops_legal mount failed', e.message); }
+try { app.use('/api/ops_quality', require('./tier61_ops_ext_342_ops_quality_router')); } catch(e) { console.error('ops_quality mount failed', e.message); }
+try { app.use('/api/sp_geri', require('./tier62_spec_care_ext_343_sp_geri_router')); } catch(e) { console.error('sp_geri mount failed', e.message); }
+try { app.use('/api/sp_pall', require('./tier62_spec_care_ext_344_sp_pall_router')); } catch(e) { console.error('sp_pall mount failed', e.message); }
+try { app.use('/api/sp_home', require('./tier62_spec_care_ext_345_sp_home_router')); } catch(e) { console.error('sp_home mount failed', e.message); }
+try { app.use('/api/sp_rehab', require('./tier62_spec_care_ext_346_sp_rehab_router')); } catch(e) { console.error('sp_rehab mount failed', e.message); }
+try { app.use('/api/sp_mat', require('./tier62_spec_care_ext_347_sp_mat_router')); } catch(e) { console.error('sp_mat mount failed', e.message); }
+try { app.use('/api/px_satis', require('./tier63_px_348_px_satis_router')); } catch(e) { console.error('px_satis mount failed', e.message); }
+try { app.use('/api/px_engage', require('./tier63_px_349_px_engage_router')); } catch(e) { console.error('px_engage mount failed', e.message); }
+try { app.use('/api/px_access', require('./tier63_px_350_px_access_router')); } catch(e) { console.error('px_access mount failed', e.message); }
+try { app.use('/api/px_feedback', require('./tier63_px_351_px_feedback_router')); } catch(e) { console.error('px_feedback mount failed', e.message); }
+try { app.use('/api/px_journey', require('./tier63_px_352_px_journey_router')); } catch(e) { console.error('px_journey mount failed', e.message); }
+try { app.use('/api/pop_registries', require('./tier64_pop_health_348_pop_registries_router')); } catch(e) { console.error('pop_registries mount failed', e.message); }
+try { app.use('/api/pop_screen', require('./tier64_pop_health_349_pop_screen_router')); } catch(e) { console.error('pop_screen mount failed', e.message); }
+try { app.use('/api/pop_cohort', require('./tier64_pop_health_350_pop_cohort_router')); } catch(e) { console.error('pop_cohort mount failed', e.message); }
+try { app.use('/api/pop_outreach', require('./tier64_pop_health_351_pop_outreach_router')); } catch(e) { console.error('pop_outreach mount failed', e.message); }
+try { app.use('/api/pop_metrics', require('./tier64_pop_health_352_pop_metrics_router')); } catch(e) { console.error('pop_metrics mount failed', e.message); }
+try { app.use('/api/rev_charge', require('./tier65_rev_cycle_353_rev_charge_router')); } catch(e) { console.error('rev_charge mount failed', e.message); }
+try { app.use('/api/rev_claim', require('./tier65_rev_cycle_354_rev_claim_router')); } catch(e) { console.error('rev_claim mount failed', e.message); }
+try { app.use('/api/rev_payment', require('./tier65_rev_cycle_355_rev_payment_router')); } catch(e) { console.error('rev_payment mount failed', e.message); }
+try { app.use('/api/rev_audit', require('./tier65_rev_cycle_356_rev_audit_router')); } catch(e) { console.error('rev_audit mount failed', e.message); }
+try { app.use('/api/rev_contract', require('./tier65_rev_cycle_357_rev_contract_router')); } catch(e) { console.error('rev_contract mount failed', e.message); }
+try { app.use('/api/lab_specimen', require('./tier66_lab_diag_358_lab_specimen_router')); } catch(e) { console.error('lab_specimen mount failed', e.message); }
+try { app.use('/api/lab_result', require('./tier66_lab_diag_359_lab_result_router')); } catch(e) { console.error('lab_result mount failed', e.message); }
+try { app.use('/api/lab_micro', require('./tier66_lab_diag_360_lab_micro_router')); } catch(e) { console.error('lab_micro mount failed', e.message); }
+try { app.use('/api/lab_path', require('./tier66_lab_diag_361_lab_path_router')); } catch(e) { console.error('lab_path mount failed', e.message); }
+try { app.use('/api/lab_qc', require('./tier66_lab_diag_362_lab_qc_router')); } catch(e) { console.error('lab_qc mount failed', e.message); }
+try { app.use('/api/surg_pre_admit', require('./tier67_surg_periop_363_surg_pre_admit_router')); } catch(e) { console.error('surg_pre_admit mount failed', e.message); }
+try { app.use('/api/surg_intraop', require('./tier67_surg_periop_364_surg_intraop_router')); } catch(e) { console.error('surg_intraop mount failed', e.message); }
+try { app.use('/api/surg_postop', require('./tier67_surg_periop_365_surg_postop_router')); } catch(e) { console.error('surg_postop mount failed', e.message); }
+try { app.use('/api/surg_complications', require('./tier67_surg_periop_366_surg_complications_router')); } catch(e) { console.error('surg_complications mount failed', e.message); }
+try { app.use('/api/surg_quality', require('./tier67_surg_periop_367_surg_quality_router')); } catch(e) { console.error('surg_quality mount failed', e.message); }
+try { app.use('/api/rx_clinical', require('./tier68_rx_368_rx_clinical_router')); } catch(e) { console.error('rx_clinical mount failed', e.message); }
+try { app.use('/api/rx_oncology', require('./tier68_rx_369_rx_oncology_router')); } catch(e) { console.error('rx_oncology mount failed', e.message); }
+try { app.use('/api/rx_specialty', require('./tier68_rx_370_rx_specialty_router')); } catch(e) { console.error('rx_specialty mount failed', e.message); }
+try { app.use('/api/rx_clinical_pharm', require('./tier68_rx_371_rx_clinical_pharm_router')); } catch(e) { console.error('rx_clinical_pharm mount failed', e.message); }
+try { app.use('/api/rx_informatics', require('./tier68_rx_372_rx_informatics_router')); } catch(e) { console.error('rx_informatics mount failed', e.message); }
+try { app.use('/api/mh_assess', require('./tier69_mh_373_mh_assess_router')); } catch(e) { console.error('mh_assess mount failed', e.message); }
+try { app.use('/api/mh_therapy', require('./tier69_mh_374_mh_therapy_router')); } catch(e) { console.error('mh_therapy mount failed', e.message); }
+try { app.use('/api/mh_psychopharm', require('./tier69_mh_375_mh_psychopharm_router')); } catch(e) { console.error('mh_psychopharm mount failed', e.message); }
+try { app.use('/api/mh_addiction', require('./tier69_mh_376_mh_addiction_router')); } catch(e) { console.error('mh_addiction mount failed', e.message); }
+try { app.use('/api/mh_community', require('./tier69_mh_377_mh_community_router')); } catch(e) { console.error('mh_community mount failed', e.message); }
+try { app.use('/api/img_proc', require('./tier70_img_diag_378_img_proc_router')); } catch(e) { console.error('img_proc mount failed', e.message); }
+try { app.use('/api/img_interp', require('./tier70_img_diag_379_img_interp_router')); } catch(e) { console.error('img_interp mount failed', e.message); }
+try { app.use('/api/img_admin', require('./tier70_img_diag_380_img_admin_router')); } catch(e) { console.error('img_admin mount failed', e.message); }
+try { app.use('/api/img_specialty', require('./tier70_img_diag_381_img_specialty_router')); } catch(e) { console.error('img_specialty mount failed', e.message); }
+try { app.use('/api/img_safety', require('./tier70_img_diag_382_img_safety_router')); } catch(e) { console.error('img_safety mount failed', e.message); }
+try { app.use('/api/nut_assess', require('./tier71_nut_383_nut_assess_router')); } catch(e) { console.error('nut_assess mount failed', e.message); }
+try { app.use('/api/nut_intervention', require('./tier71_nut_384_nut_intervention_router')); } catch(e) { console.error('nut_intervention mount failed', e.message); }
+try { app.use('/api/nut_clinical', require('./tier71_nut_385_nut_clinical_router')); } catch(e) { console.error('nut_clinical mount failed', e.message); }
+try { app.use('/api/nut_pediatric', require('./tier71_nut_386_nut_pediatric_router')); } catch(e) { console.error('nut_pediatric mount failed', e.message); }
+try { app.use('/api/nut_admin', require('./tier71_nut_387_nut_admin_router')); } catch(e) { console.error('nut_admin mount failed', e.message); }
+try { app.use('/api/er_triage', require('./tier72_er_388_er_triage_router')); } catch(e) { console.error('er_triage mount failed', e.message); }
+try { app.use('/api/er_resus', require('./tier72_er_389_er_resus_router')); } catch(e) { console.error('er_resus mount failed', e.message); }
+try { app.use('/api/er_medic', require('./tier72_er_390_er_medic_router')); } catch(e) { console.error('er_medic mount failed', e.message); }
+try { app.use('/api/er_trauma', require('./tier72_er_391_er_trauma_router')); } catch(e) { console.error('er_trauma mount failed', e.message); }
+try { app.use('/api/er_dispos', require('./tier72_er_392_er_dispos_router')); } catch(e) { console.error('er_dispos mount failed', e.message); }
+try { app.use('/api/cardio_ext_ep', require('./tier73_cardio_ext_383_cardio_ep_router')); } catch(e) { console.error('cardio_ext_ep mount failed', e.message); }
+try { app.use('/api/cardio_ext_imaging', require('./tier73_cardio_ext_384_cardio_imaging_router')); } catch(e) { console.error('cardio_ext_imaging mount failed', e.message); }
+try { app.use('/api/cardio_ext_chf', require('./tier73_cardio_ext_385_cardio_chf_router')); } catch(e) { console.error('cardio_ext_chf mount failed', e.message); }
+try { app.use('/api/cardio_ext_rehab', require('./tier73_cardio_ext_386_cardio_rehab_router')); } catch(e) { console.error('cardio_ext_rehab mount failed', e.message); }
+try { app.use('/api/cardio_ext_prevention', require('./tier73_cardio_ext_387_cardio_prevention_router')); } catch(e) { console.error('cardio_ext_prevention mount failed', e.message); }
+try { app.use('/api/onc_ext_treat', require('./tier74_onc_ext_393_onc_ext_treat_router')); } catch(e) { console.error('onc_ext_treat mount failed', e.message); }
+try { app.use('/api/onc_ext_followup', require('./tier74_onc_ext_394_onc_ext_followup_router')); } catch(e) { console.error('onc_ext_followup mount failed', e.message); }
+try { app.use('/api/onc_ext_special', require('./tier74_onc_ext_395_onc_ext_special_router')); } catch(e) { console.error('onc_ext_special mount failed', e.message); }
+try { app.use('/api/onc_ext_symptom', require('./tier74_onc_ext_396_onc_ext_symptom_router')); } catch(e) { console.error('onc_ext_symptom mount failed', e.message); }
+try { app.use('/api/onc_ext_support', require('./tier74_onc_ext_397_onc_ext_support_router')); } catch(e) { console.error('onc_ext_support mount failed', e.message); }
+try { app.use('/api/pulm_assess', require('./tier75_pulm_ext_398_pulm_assess_router')); } catch(e) { console.error('pulm_assess mount failed', e.message); }
+try { app.use('/api/pulm_disease', require('./tier75_pulm_ext_399_pulm_disease_router')); } catch(e) { console.error('pulm_disease mount failed', e.message); }
+try { app.use('/api/pulm_proc', require('./tier75_pulm_ext_400_pulm_proc_router')); } catch(e) { console.error('pulm_proc mount failed', e.message); }
+try { app.use('/api/pulm_special', require('./tier75_pulm_ext_401_pulm_special_router')); } catch(e) { console.error('pulm_special mount failed', e.message); }
+try { app.use('/api/pulm_icu', require('./tier75_pulm_ext_402_pulm_icu_router')); } catch(e) { console.error('pulm_icu mount failed', e.message); }
+try { app.use('/api/endo_diabetes_v2', require('./tier76_endo_ext_403_endo_diabetes_router')); } catch(e) { console.error('endo_diabetes_v2 mount failed', e.message); }
+try { app.use('/api/endo_thyroid_v2', require('./tier76_endo_ext_404_endo_thyroid_router')); } catch(e) { console.error('endo_thyroid_v2 mount failed', e.message); }
+try { app.use('/api/endo_adrenal_v2', require('./tier76_endo_ext_405_endo_adrenal_router')); } catch(e) { console.error('endo_adrenal_v2 mount failed', e.message); }
+try { app.use('/api/endo_pituitary_v2', require('./tier76_endo_ext_406_endo_pituitary_router')); } catch(e) { console.error('endo_pituitary_v2 mount failed', e.message); }
+try { app.use('/api/endo_special_v2', require('./tier76_endo_ext_407_endo_special_router')); } catch(e) { console.error('endo_special_v2 mount failed', e.message); }
+try { app.use('/api/neuro_stroke_v2', require('./tier77_neuro_ext_408_neuro_stroke_router')); } catch(e) { console.error('neuro_stroke_v2 mount failed', e.message); }
+try { app.use('/api/neuro_epilepsy_v2', require('./tier77_neuro_ext_409_neuro_epilepsy_router')); } catch(e) { console.error('neuro_epilepsy_v2 mount failed', e.message); }
+try { app.use('/api/neuro_movement_v2', require('./tier77_neuro_ext_410_neuro_movement_router')); } catch(e) { console.error('neuro_movement_v2 mount failed', e.message); }
+try { app.use('/api/neuro_neuromuscular_v2', require('./tier77_neuro_ext_411_neuro_neuromuscular_router')); } catch(e) { console.error('neuro_neuromuscular_v2 mount failed', e.message); }
+try { app.use('/api/neuro_headache_v2', require('./tier77_neuro_ext_412_neuro_headache_router')); } catch(e) { console.error('neuro_headache_v2 mount failed', e.message); }
+try { app.use('/api/ortho_trauma_v2', require('./tier78_ortho_ext_413_ortho_trauma_router')); } catch(e) { console.error('ortho_trauma_v2 mount failed', e.message); }
+try { app.use('/api/ortho_joint_v2', require('./tier78_ortho_ext_414_ortho_joint_router')); } catch(e) { console.error('ortho_joint_v2 mount failed', e.message); }
+try { app.use('/api/ortho_spine_v2', require('./tier78_ortho_ext_415_ortho_spine_router')); } catch(e) { console.error('ortho_spine_v2 mount failed', e.message); }
+try { app.use('/api/ortho_sports_v2', require('./tier78_ortho_ext_416_ortho_sports_router')); } catch(e) { console.error('ortho_sports_v2 mount failed', e.message); }
+try { app.use('/api/ortho_pediatric_v2', require('./tier78_ortho_ext_417_ortho_pediatric_router')); } catch(e) { console.error('ortho_pediatric_v2 mount failed', e.message); }
+try { app.use('/api/ophth_general_v2', require('./tier79_ophth_ext_418_ophth_general_router')); } catch(e) { console.error('ophth_general_v2 mount failed', e.message); }
+try { app.use('/api/ophth_retina_v2', require('./tier79_ophth_ext_419_ophth_retina_router')); } catch(e) { console.error('ophth_retina_v2 mount failed', e.message); }
+try { app.use('/api/ophth_cataract_v2', require('./tier79_ophth_ext_420_ophth_cataract_router')); } catch(e) { console.error('ophth_cataract_v2 mount failed', e.message); }
+try { app.use('/api/ophth_glaucoma_v2', require('./tier79_ophth_ext_421_ophth_glaucoma_router')); } catch(e) { console.error('ophth_glaucoma_v2 mount failed', e.message); }
+try { app.use('/api/ophth_pediatric_v2', require('./tier79_ophth_ext_422_ophth_pediatric_router')); } catch(e) { console.error('ophth_pediatric_v2 mount failed', e.message); }
+try { app.use('/api/ent_general_v2', require('./tier80_ent_ext_423_ent_general_router')); } catch(e) { console.error('ent_general_v2 mount failed', e.message); }
+try { app.use('/api/ent_sinus_v2', require('./tier80_ent_ext_424_ent_sinus_router')); } catch(e) { console.error('ent_sinus_v2 mount failed', e.message); }
+try { app.use('/api/ent_throat_v2', require('./tier80_ent_ext_425_ent_throat_router')); } catch(e) { console.error('ent_throat_v2 mount failed', e.message); }
+try { app.use('/api/ent_head_neck_v2', require('./tier80_ent_ext_426_ent_head_neck_router')); } catch(e) { console.error('ent_head_neck_v2 mount failed', e.message); }
+try { app.use('/api/ent_pediatric_v2', require('./tier80_ent_ext_427_ent_pediatric_router')); } catch(e) { console.error('ent_pediatric_v2 mount failed', e.message); }
+try { app.use('/api/uro_general_v2', require('./tier81_uro_ext_428_uro_general_router')); } catch(e) { console.error('uro_general_v2 mount failed', e.message); }
+try { app.use('/api/uro_renal_v2', require('./tier81_uro_ext_429_uro_renal_router')); } catch(e) { console.error('uro_renal_v2 mount failed', e.message); }
+try { app.use('/api/uro_onco_v2', require('./tier81_uro_ext_430_uro_onco_router')); } catch(e) { console.error('uro_onco_v2 mount failed', e.message); }
+try { app.use('/api/uro_peds_v2', require('./tier81_uro_ext_431_uro_peds_router')); } catch(e) { console.error('uro_peds_v2 mount failed', e.message); }
+try { app.use('/api/uro_andrology_v2', require('./tier81_uro_ext_432_uro_andrology_router')); } catch(e) { console.error('uro_andrology_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_antenatal_v2', require('./tier82_obgyn_ext_433_obgyn_antenatal_router')); } catch(e) { console.error('obgyn_antenatal_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_gyne_v2', require('./tier82_obgyn_ext_434_obgyn_gyne_router')); } catch(e) { console.error('obgyn_gyne_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_onc_v2', require('./tier82_obgyn_ext_435_obgyn_onc_router')); } catch(e) { console.error('obgyn_onc_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_labor_v2', require('./tier82_obgyn_ext_436_obgyn_labor_router')); } catch(e) { console.error('obgyn_labor_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_repro_v2', require('./tier82_obgyn_ext_437_obgyn_repro_router')); } catch(e) { console.error('obgyn_repro_v2 mount failed', e.message); }
+try { app.use('/api/derm_general_v2', require('./tier83_derm_ext_438_derm_general_router')); } catch(e) { console.error('derm_general_v2 mount failed', e.message); }
+try { app.use('/api/derm_onc_v2', require('./tier83_derm_ext_439_derm_onc_router')); } catch(e) { console.error('derm_onc_v2 mount failed', e.message); }
+try { app.use('/api/derm_immuno_v2', require('./tier83_derm_ext_440_derm_immuno_router')); } catch(e) { console.error('derm_immuno_v2 mount failed', e.message); }
+try { app.use('/api/derm_cosmetic_v2', require('./tier83_derm_ext_441_derm_cosmetic_router')); } catch(e) { console.error('derm_cosmetic_v2 mount failed', e.message); }
+try { app.use('/api/derm_peds_v2', require('./tier83_derm_ext_442_derm_peds_router')); } catch(e) { console.error('derm_peds_v2 mount failed', e.message); }
+try { app.use('/api/psych_general_v2', require('./tier84_psych_ext_443_psych_general_router')); } catch(e) { console.error('psych_general_v2 mount failed', e.message); }
+try { app.use('/api/psych_anxiety_v2', require('./tier84_psych_ext_444_psych_anxiety_router')); } catch(e) { console.error('psych_anxiety_v2 mount failed', e.message); }
+try { app.use('/api/psych_mood_v2', require('./tier84_psych_ext_445_psych_mood_router')); } catch(e) { console.error('psych_mood_v2 mount failed', e.message); }
+try { app.use('/api/psych_sud_v2', require('./tier84_psych_ext_446_psych_sud_router')); } catch(e) { console.error('psych_sud_v2 mount failed', e.message); }
+try { app.use('/api/psych_emerg_v2', require('./tier84_psych_ext_447_psych_emerg_router')); } catch(e) { console.error('psych_emerg_v2 mount failed', e.message); }
+try { app.use('/api/pain_acute_v2', require('./tier85_pain_ext_448_pain_acute_router')); } catch(e) { console.error('pain_acute_v2 mount failed', e.message); }
+try { app.use('/api/pain_chronic_v2', require('./tier85_pain_ext_449_pain_chronic_router')); } catch(e) { console.error('pain_chronic_v2 mount failed', e.message); }
+try { app.use('/api/pain_procedures_v2', require('./tier85_pain_ext_450_pain_procedures_router')); } catch(e) { console.error('pain_procedures_v2 mount failed', e.message); }
+try { app.use('/api/pain_rehab_v2', require('./tier85_pain_ext_451_pain_rehab_router')); } catch(e) { console.error('pain_rehab_v2 mount failed', e.message); }
+try { app.use('/api/pain_specialty_v2', require('./tier85_pain_ext_452_pain_specialty_router')); } catch(e) { console.error('pain_specialty_v2 mount failed', e.message); }
+try { app.use('/api/card_heart_failure_v2', require('./tier86_card_ext_453_card_heart_failure_router')); } catch(e) { console.error('card_heart_failure_v2 mount failed', e.message); }
+try { app.use('/api/card_intervention_v2', require('./tier86_card_ext_454_card_intervention_router')); } catch(e) { console.error('card_intervention_v2 mount failed', e.message); }
+try { app.use('/api/card_imaging_v2', require('./tier86_card_ext_455_card_imaging_router')); } catch(e) { console.error('card_imaging_v2 mount failed', e.message); }
+try { app.use('/api/card_rehab_v2', require('./tier86_card_ext_456_card_rehab_router')); } catch(e) { console.error('card_rehab_v2 mount failed', e.message); }
+try { app.use('/api/card_arrhythmia_v2', require('./tier86_card_ext_457_card_arrhythmia_router')); } catch(e) { console.error('card_arrhythmia_v2 mount failed', e.message); }
+try { app.use('/api/neph_general_v2', require('./tier87_neph_ext_458_neph_general_router')); } catch(e) { console.error('neph_general_v2 mount failed', e.message); }
+try { app.use('/api/neph_dialysis_v2', require('./tier87_neph_ext_459_neph_dialysis_router')); } catch(e) { console.error('neph_dialysis_v2 mount failed', e.message); }
+try { app.use('/api/neph_nephrology_v2', require('./tier87_neph_ext_460_neph_nephrology_router')); } catch(e) { console.error('neph_nephrology_v2 mount failed', e.message); }
+try { app.use('/api/neph_geri_v2', require('./tier87_neph_ext_461_neph_geri_router')); } catch(e) { console.error('neph_geri_v2 mount failed', e.message); }
+try { app.use('/api/neph_advanced_v2', require('./tier87_neph_ext_462_neph_advanced_router')); } catch(e) { console.error('neph_advanced_v2 mount failed', e.message); }
+try { app.use('/api/id_general_v2', require('./tier88_id_general_463_router')); } catch(e) { console.error('id_general_v2 mount failed', e.message); }
+try { app.use('/api/id_syndromes_v2', require('./tier88_id_syndromes_464_router')); } catch(e) { console.error('id_syndromes_v2 mount failed', e.message); }
+try { app.use('/api/gi_luminal_v2', require('./tier88_gi_luminal_465_router')); } catch(e) { console.error('gi_luminal_v2 mount failed', e.message); }
+try { app.use('/api/gi_liver_v2', require('./tier88_gi_liver_466_router')); } catch(e) { console.error('gi_liver_v2 mount failed', e.message); }
+try { app.use('/api/id_specialty_v2', require('./tier88_id_specialty_467_router')); } catch(e) { console.error('id_specialty_v2 mount failed', e.message); }
+try { app.use('/api/oncology_chemo_v2', require('./tier89_oncology_chemo_468_router')); } catch(e) { console.error('oncology_chemo_v2 mount failed', e.message); }
+try { app.use('/api/oncology_radiation_v2', require('./tier89_oncology_radiation_469_router')); } catch(e) { console.error('oncology_radiation_v2 mount failed', e.message); }
+try { app.use('/api/hematology_benign_v2', require('./tier89_hematology_benign_470_router')); } catch(e) { console.error('hematology_benign_v2 mount failed', e.message); }
+try { app.use('/api/oncology_support_v2', require('./tier89_oncology_support_471_router')); } catch(e) { console.error('oncology_support_v2 mount failed', e.message); }
+try { app.use('/api/oncology_survivorship_v2', require('./tier89_oncology_survivorship_472_router')); } catch(e) { console.error('oncology_survivorship_v2 mount failed', e.message); }
+try { app.use('/api/genetics_cancer_v2', require('./tier90_genetics_cancer_473_router')); } catch(e) { console.error('genetics_cancer_v2 mount failed', e.message); }
+try { app.use('/api/genetics_rare_v2', require('./tier90_genetics_rare_474_router')); } catch(e) { console.error('genetics_rare_v2 mount failed', e.message); }
+try { app.use('/api/genetics_adult_v2', require('./tier90_genetics_adult_475_router')); } catch(e) { console.error('genetics_adult_v2 mount failed', e.message); }
+try { app.use('/api/genetics_counseling_v2', require('./tier90_genetics_counseling_476_router')); } catch(e) { console.error('genetics_counseling_v2 mount failed', e.message); }
+try { app.use('/api/genetics_lab_v2', require('./tier90_genetics_lab_477_router')); } catch(e) { console.error('genetics_lab_v2 mount failed', e.message); }
+try { app.use('/api/geriatric_assessment_v2', require('./tier91_geriatric_assessment_478_router')); } catch(e) { console.error('geriatric_assessment_v2 mount failed', e.message); }
+try { app.use('/api/geriatric_falls_v2', require('./tier91_geriatric_falls_479_router')); } catch(e) { console.error('geriatric_falls_v2 mount failed', e.message); }
+try { app.use('/api/geriatric_polypharmacy_v2', require('./tier91_geriatric_polypharmacy_480_router')); } catch(e) { console.error('geriatric_polypharmacy_v2 mount failed', e.message); }
+try { app.use('/api/geriatric_dementia_v2', require('./tier91_geriatric_dementia_481_router')); } catch(e) { console.error('geriatric_dementia_v2 mount failed', e.message); }
+try { app.use('/api/geriatric_palliative_v2', require('./tier91_geriatric_palliative_482_router')); } catch(e) { console.error('geriatric_palliative_v2 mount failed', e.message); }
+try { app.use('/api/immunodeficiency_v2', require('./tier92_immunodeficiency_483_router')); } catch(e) { console.error('immunodeficiency_v2 mount failed', e.message); }
+try { app.use('/api/allergy_clinical_v2', require('./tier92_allergy_clinical_484_router')); } catch(e) { console.error('allergy_clinical_v2 mount failed', e.message); }
+try { app.use('/api/immunology_lab_v2', require('./tier92_immunology_lab_485_router')); } catch(e) { console.error('immunology_lab_v2 mount failed', e.message); }
+try { app.use('/api/immunotherapy_v2', require('./tier92_immunotherapy_486_router')); } catch(e) { console.error('immunotherapy_v2 mount failed', e.message); }
+try { app.use('/api/autoimmune_v2', require('./tier92_autoimmune_487_router')); } catch(e) { console.error('autoimmune_v2 mount failed', e.message); }
+try { app.use('/api/rheumatoid_v2', require('./tier93_rheumatoid_488_router')); } catch(e) { console.error('rheumatoid_v2 mount failed', e.message); }
+try { app.use('/api/spondyloarthropathy_v2', require('./tier93_spondyloarthropathy_489_router')); } catch(e) { console.error('spondyloarthropathy_v2 mount failed', e.message); }
+try { app.use('/api/crystal_arthritis_v2', require('./tier93_crystal_arthritis_490_router')); } catch(e) { console.error('crystal_arthritis_v2 mount failed', e.message); }
+try { app.use('/api/connective_tissue_v2', require('./tier93_connective_tissue_491_router')); } catch(e) { console.error('connective_tissue_v2 mount failed', e.message); }
+try { app.use('/api/vasculitis_v2', require('./tier93_vasculitis_492_router')); } catch(e) { console.error('vasculitis_v2 mount failed', e.message); }
+try { app.use('/api/pulm_function_v2', require('./tier94_pulm_function_493_router')); } catch(e) { console.error('pulm_function_v2 mount failed', e.message); }
+try { app.use('/api/pulm_sleep_v2', require('./tier94_pulm_sleep_494_router')); } catch(e) { console.error('pulm_sleep_v2 mount failed', e.message); }
+try { app.use('/api/pulm_interstitial_v2', require('./tier94_pulm_interstitial_495_router')); } catch(e) { console.error('pulm_interstitial_v2 mount failed', e.message); }
+try { app.use('/api/pulm_vascular_v2', require('./tier94_pulm_vascular_496_router')); } catch(e) { console.error('pulm_vascular_v2 mount failed', e.message); }
+try { app.use('/api/pulm_pleural_v2', require('./tier94_pulm_pleural_497_router')); } catch(e) { console.error('pulm_pleural_v2 mount failed', e.message); }
+try { app.use('/api/hepatology_viral_v2', require('./tier95_hepatology_viral_498_router')); } catch(e) { console.error('hepatology_viral_v2 mount failed', e.message); }
+try { app.use('/api/hepatology_cirrhosis_v2', require('./tier95_hepatology_cirrhosis_499_router')); } catch(e) { console.error('hepatology_cirrhosis_v2 mount failed', e.message); }
+try { app.use('/api/hepatology_liver_failure_v2', require('./tier95_hepatology_liver_failure_500_router')); } catch(e) { console.error('hepatology_liver_failure_v2 mount failed', e.message); }
+try { app.use('/api/hepatology_pediatric_v2', require('./tier95_hepatology_pediatric_501_router')); } catch(e) { console.error('hepatology_pediatric_v2 mount failed', e.message); }
+try { app.use('/api/hepatology_metabolic_v2', require('./tier95_hepatology_metabolic_502_router')); } catch(e) { console.error('hepatology_metabolic_v2 mount failed', e.message); }
+try { app.use('/api/diabetes_t1dm_v2', require('./tier96_diabetes_t1dm_503_router')); } catch(e) { console.error('diabetes_t1dm_v2 mount failed', e.message); }
+try { app.use('/api/diabetes_t2dm_v2', require('./tier96_diabetes_t2dm_504_router')); } catch(e) { console.error('diabetes_t2dm_v2 mount failed', e.message); }
+try { app.use('/api/thyroid_extended_v2', require('./tier96_thyroid_extended_505_router')); } catch(e) { console.error('thyroid_extended_v2 mount failed', e.message); }
+try { app.use('/api/adrenal_pituitary_v2', require('./tier96_adrenal_pituitary_506_router')); } catch(e) { console.error('adrenal_pituitary_v2 mount failed', e.message); }
+try { app.use('/api/bone_metabolic_v2', require('./tier96_bone_metabolic_507_router')); } catch(e) { console.error('bone_metabolic_v2 mount failed', e.message); }
+try { app.use('/api/neph_acute_v2', require('./tier97_neph_acute_508_router')); } catch(e) { console.error('neph_acute_v2 mount failed', e.message); }
+try { app.use('/api/neph_glomerular_v2', require('./tier97_neph_glomerular_509_router')); } catch(e) { console.error('neph_glomerular_v2 mount failed', e.message); }
+try { app.use('/api/neph_vascular_v2', require('./tier97_neph_vascular_510_router')); } catch(e) { console.error('neph_vascular_v2 mount failed', e.message); }
+try { app.use('/api/neph_dialysis_v2', require('./tier97_neph_dialysis_511_router')); } catch(e) { console.error('neph_dialysis_v2 mount failed', e.message); }
+try { app.use('/api/neph_imaging_v2', require('./tier97_neph_imaging_512_router')); } catch(e) { console.error('neph_imaging_v2 mount failed', e.message); }
+try { app.use('/api/cardio_acute_v2', require('./tier98_cardio_acute_513_router')); } catch(e) { console.error('cardio_acute_v2 mount failed', e.message); }
+try { app.use('/api/cardio_imaging_v2', require('./tier98_cardio_imaging_514_router')); } catch(e) { console.error('cardio_imaging_v2 mount failed', e.message); }
+try { app.use('/api/cardio_intervention_v2', require('./tier98_cardio_intervention_515_router')); } catch(e) { console.error('cardio_intervention_v2 mount failed', e.message); }
+try { app.use('/api/cardio_ep_v2', require('./tier98_cardio_electrophysiology_516_router')); } catch(e) { console.error('cardio_ep_v2 mount failed', e.message); }
+try { app.use('/api/cardio_valve_v2', require('./tier98_cardio_valve_517_router')); } catch(e) { console.error('cardio_valve_v2 mount failed', e.message); }
+try { app.use('/api/icu_extended_v2', require('./tier99_icu_extended_518_router')); } catch(e) { console.error('icu_extended_v2 mount failed', e.message); }
+try { app.use('/api/ed_extended_v2', require('./tier99_ed_extended_519_router')); } catch(e) { console.error('ed_extended_v2 mount failed', e.message); }
+try { app.use('/api/perioperative_v2', require('./tier99_perioperative_520_router')); } catch(e) { console.error('perioperative_v2 mount failed', e.message); }
+try { app.use('/api/rehab_v2', require('./tier99_rehab_521_router')); } catch(e) { console.error('rehab_v2 mount failed', e.message); }
+try { app.use('/api/oncology_extended_v2', require('./tier99_oncology_extended_522_router')); } catch(e) { console.error('oncology_extended_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_mfm_v2', require('./tier100_obgyn_mfm_523_router')); } catch(e) { console.error('obgyn_mfm_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_gyn_onc_v2', require('./tier100_obgyn_gyn_onc_524_router')); } catch(e) { console.error('obgyn_gyn_onc_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_rei_v2', require('./tier100_obgyn_rei_525_router')); } catch(e) { console.error('obgyn_rei_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_menopause_v2', require('./tier100_obgyn_menopause_526_router')); } catch(e) { console.error('obgyn_menopause_v2 mount failed', e.message); }
+try { app.use('/api/obgyn_reproductive_v2', require('./tier100_obgyn_reproductive_527_router')); } catch(e) { console.error('obgyn_reproductive_v2 mount failed', e.message); }
+try { app.use('/api/peds_neonatal_v2', require('./tier101_peds_neonatal_528_router')); } catch(e) { console.error('peds_neonatal_v2 mount failed', e.message); }
+try { app.use('/api/peds_picu_v2', require('./tier101_peds_picu_529_router')); } catch(e) { console.error('peds_picu_v2 mount failed', e.message); }
+try { app.use('/api/peds_cardiology_v2', require('./tier101_peds_cardiology_530_router')); } catch(e) { console.error('peds_cardiology_v2 mount failed', e.message); }
+try { app.use('/api/peds_pulmonology_v2', require('./tier101_peds_pulmonology_531_router')); } catch(e) { console.error('peds_pulmonology_v2 mount failed', e.message); }
+try { app.use('/api/peds_development_v2', require('./tier101_peds_development_532_router')); } catch(e) { console.error('peds_development_v2 mount failed', e.message); }
+try { app.use('/api/surg_general_v2', require('./tier102_surg_general_533_router')); } catch(e) { console.error('surg_general_v2 mount failed', e.message); }
+try { app.use('/api/surg_oncology_v2', require('./tier102_surg_oncology_534_router')); } catch(e) { console.error('surg_oncology_v2 mount failed', e.message); }
+try { app.use('/api/surg_vascular_v2', require('./tier102_surg_vascular_535_router')); } catch(e) { console.error('surg_vascular_v2 mount failed', e.message); }
+try { app.use('/api/surg_trauma_v2', require('./tier102_surg_trauma_536_router')); } catch(e) { console.error('surg_trauma_v2 mount failed', e.message); }
+try { app.use('/api/surg_transplant_v2', require('./tier102_surg_transplant_537_router')); } catch(e) { console.error('surg_transplant_v2 mount failed', e.message); }
+try { app.use('/api/pathology_v2', require('./tier103_pathology_538_router')); } catch(e) { console.error('pathology_v2 mount failed', e.message); }
+try { app.use('/api/radiology_extended_v2', require('./tier103_radiology_extended_539_router')); } catch(e) { console.error('radiology_extended_v2 mount failed', e.message); }
+try { app.use('/api/nuclear_medicine_v2', require('./tier103_nuclear_medicine_540_router')); } catch(e) { console.error('nuclear_medicine_v2 mount failed', e.message); }
+try { app.use('/api/lab_management_v2', require('./tier103_lab_management_541_router')); } catch(e) { console.error('lab_management_v2 mount failed', e.message); }
+try { app.use('/api/blood_bank_v2', require('./tier103_blood_bank_542_router')); } catch(e) { console.error('blood_bank_v2 mount failed', e.message); }
+try { app.use('/api/quality_v2', require('./tier104_quality_543_router')); } catch(e) { console.error('quality_v2 mount failed', e.message); }
+try { app.use('/api/compliance_v2', require('./tier104_compliance_544_router')); } catch(e) { console.error('compliance_v2 mount failed', e.message); }
+try { app.use('/api/epidemiology_v2', require('./tier104_epidemiology_545_router')); } catch(e) { console.error('epidemiology_v2 mount failed', e.message); }
+try { app.use('/api/public_health_v2', require('./tier104_public_health_546_router')); } catch(e) { console.error('public_health_v2 mount failed', e.message); }
+try { app.use('/api/qi_v2', require('./tier104_qi_547_router')); } catch(e) { console.error('qi_v2 mount failed', e.message); }
+try { app.use('/api/research_v2', require('./tier104_research_548_router')); } catch(e) { console.error('research_v2 mount failed', e.message); }
+try { app.use('/api/telemedicine_v2', require('./tier104_telemedicine_549_router')); } catch(e) { console.error('telemedicine_v2 mount failed', e.message); }
+try { app.use('/api/scheduling_v2', require('./tier105_scheduling_550_router')); } catch(e) { console.error('scheduling_v2 mount failed', e.message); }
+try { app.use('/api/billing_ext_v2', require('./tier105_billing_extended_551_router')); } catch(e) { console.error('billing_ext_v2 mount failed', e.message); }
+try { app.use('/api/insurance_v2', require('./tier105_insurance_552_router')); } catch(e) { console.error('insurance_v2 mount failed', e.message); }
+try { app.use('/api/administrative_v2', require('./tier105_administrative_553_router')); } catch(e) { console.error('administrative_v2 mount failed', e.message); }
+try { app.use('/api/communication_v2', require('./tier105_communication_554_router')); } catch(e) { console.error('communication_v2 mount failed', e.message); }
+try { app.use('/api/er_ext_v2', require('./tier106_er_extended_555_router')); } catch(e) { console.error('er_ext_v2 mount failed', e.message); }
+try { app.use('/api/trauma_center_v2', require('./tier106_trauma_center_556_router')); } catch(e) { console.error('trauma_center_v2 mount failed', e.message); }
+try { app.use('/api/disaster_v2', require('./tier106_disaster_557_router')); } catch(e) { console.error('disaster_v2 mount failed', e.message); }
+try { app.use('/api/poison_control_v2', require('./tier106_poison_control_558_router')); } catch(e) { console.error('poison_control_v2 mount failed', e.message); }
+try { app.use('/api/pre_hospital_v2', require('./tier106_pre_hospital_559_router')); } catch(e) { console.error('pre_hospital_v2 mount failed', e.message); }
+try { app.use('/api/nursing_assess_v2', require('./tier107_nursing_assess_561_router')); } catch(e) { console.error('nursing_assess_v2 mount failed', e.message); }
+try { app.use('/api/nursing_med_admin_v2', require('./tier107_nursing_med_admin_562_router')); } catch(e) { console.error('nursing_med_admin_v2 mount failed', e.message); }
+try { app.use('/api/wound_care_v2', require('./tier107_wound_care_563_router')); } catch(e) { console.error('wound_care_v2 mount failed', e.message); }
+try { app.use('/api/iv_therapy_v2', require('./tier107_iv_therapy_564_router')); } catch(e) { console.error('iv_therapy_v2 mount failed', e.message); }
+try { app.use('/api/allied_health_v2', require('./tier107_allied_health_565_router')); } catch(e) { console.error('allied_health_v2 mount failed', e.message); }
+try { app.use('/api/ct_advanced_v2', require('./tier108_ct_advanced_566_router')); } catch(e) { console.error('ct_advanced_v2 mount failed', e.message); }
+try { app.use('/api/mri_advanced_v2', require('./tier108_mri_advanced_567_router')); } catch(e) { console.error('mri_advanced_v2 mount failed', e.message); }
+try { app.use('/api/ultrasound_advanced_v2', require('./tier108_ultrasound_advanced_568_router')); } catch(e) { console.error('ultrasound_advanced_v2 mount failed', e.message); }
+try { app.use('/api/imaging_ai_v2', require('./tier108_imaging_ai_569_router')); } catch(e) { console.error('imaging_ai_v2 mount failed', e.message); }
+try { app.use('/api/imaging_quality_v2', require('./tier108_imaging_quality_570_router')); } catch(e) { console.error('imaging_quality_v2 mount failed', e.message); }
+try { app.use('/api/pain_mgmt_v2', require('./tier109_pain_management_571_router')); } catch(e) { console.error('pain_mgmt_v2 mount failed', e.message); }
+try { app.use('/api/palliative_care_v2', require('./tier109_palliative_care_572_router')); } catch(e) { console.error('palliative_care_v2 mount failed', e.message); }
+try { app.use('/api/spine_care_v2', require('./tier109_spine_care_573_router')); } catch(e) { console.error('spine_care_v2 mount failed', e.message); }
+try { app.use('/api/sports_medicine_v2', require('./tier109_sports_medicine_574_router')); } catch(e) { console.error('sports_medicine_v2 mount failed', e.message); }
+try { app.use('/api/sleep_medicine_v2', require('./tier109_sleep_medicine_575_router')); } catch(e) { console.error('sleep_medicine_v2 mount failed', e.message); }
+try { app.use('/api/pharmacy_clinical_v2', require('./tier110_pharmacy_clinical_580_router')); } catch(e) { console.error('pharmacy_clinical_v2 mount failed', e.message); }
+try { app.use('/api/antimicrobial_stewardship_v2', require('./tier110_antimicrobial_stewardship_581_router')); } catch(e) { console.error('antimicrobial_stewardship_v2 mount failed', e.message); }
+try { app.use('/api/chemotherapy_pharmacy_v2', require('./tier110_chemotherapy_pharmacy_582_router')); } catch(e) { console.error('chemotherapy_pharmacy_v2 mount failed', e.message); }
+try { app.use('/api/adverse_drug_reaction_v2', require('./tier110_adverse_drug_reaction_583_router')); } catch(e) { console.error('adverse_drug_reaction_v2 mount failed', e.message); }
+try { app.use('/api/medication_safety_v2', require('./tier110_medication_safety_584_router')); } catch(e) { console.error('medication_safety_v2 mount failed', e.message); }
+try { app.use('/api/cardiac_cath_v2', require('./tier111_cardiac_cath_585_router')); } catch(e) { console.error('cardiac_cath_v2 mount failed', e.message); }
+try { app.use('/api/cardiac_rehab_v2', require('./tier111_cardiac_rehab_586_router')); } catch(e) { console.error('cardiac_rehab_v2 mount failed', e.message); }
+try { app.use('/api/electrophysiology_v2', require('./tier111_electrophysiology_587_router')); } catch(e) { console.error('electrophysiology_v2 mount failed', e.message); }
+try { app.use('/api/dialysis_v2', require('./tier111_dialysis_588_router')); } catch(e) { console.error('dialysis_v2 mount failed', e.message); }
+try { app.use('/api/neuro_diag_v2', require('./tier111_neuro_diagnostic_589_router')); } catch(e) { console.error('neuro_diag_v2 mount failed', e.message); }
+try { app.use('/api/infection_control_v2', require('./tier112_infection_control_590_router')); } catch(e) { console.error('infection_control_v2 mount failed', e.message); }
+try { app.use('/api/pathogen_tracking_v2', require('./tier112_pathogen_tracking_591_router')); } catch(e) { console.error('pathogen_tracking_v2 mount failed', e.message); }
+try { app.use('/api/immunization_v2', require('./tier112_immunization_592_router')); } catch(e) { console.error('immunization_v2 mount failed', e.message); }
+try { app.use('/api/sterilization_v2', require('./tier112_sterilization_593_router')); } catch(e) { console.error('sterilization_v2 mount failed', e.message); }
+try { app.use('/api/stew_extended_v2', require('./tier112_stew_extended_594_router')); } catch(e) { console.error('stew_extended_v2 mount failed', e.message); }
+try { app.use('/api/ob_extended_v2', require('./tier113_ob_extended_595_router')); } catch(e) { console.error('ob_extended_v2 mount failed', e.message); }
+try { app.use('/api/maternal_med_v2', require('./tier113_maternal_medicine_596_router')); } catch(e) { console.error('maternal_med_v2 mount failed', e.message); }
+try { app.use('/api/reproductive_endocrine_v2', require('./tier113_reproductive_endocrine_597_router')); } catch(e) { console.error('reproductive_endocrine_v2 mount failed', e.message); }
+try { app.use('/api/fertility_v2', require('./tier113_fertility_598_router')); } catch(e) { console.error('fertility_v2 mount failed', e.message); }
+try { app.use('/api/gyne_onc_extended_v2', require('./tier113_gyne_oncology_extended_599_router')); } catch(e) { console.error('gyne_onc_extended_v2 mount failed', e.message); }
+try { app.use('/api/anxiety_v2', require('./tier114_anxiety_600_router')); } catch(e) { console.error('anxiety_v2 mount failed', e.message); }
+try { app.use('/api/mood_v2', require('./tier114_mood_601_router')); } catch(e) { console.error('mood_v2 mount failed', e.message); }
+try { app.use('/api/psychotic_v2', require('./tier114_psychotic_602_router')); } catch(e) { console.error('psychotic_v2 mount failed', e.message); }
+try { app.use('/api/trauma_v2', require('./tier114_trauma_603_router')); } catch(e) { console.error('trauma_v2 mount failed', e.message); }
+try { app.use('/api/substance_use_v2', require('./tier114_substance_use_604_router')); } catch(e) { console.error('substance_use_v2 mount failed', e.message); }
+try { app.use('/api/neurosurgery_v2', require('./tier115_neurosurgery_605_router')); } catch(e) { console.error('neurosurgery_v2 mount failed', e.message); }
+try { app.use('/api/orthopedics_ext_v2', require('./tier115_orthopedics_extended_606_router')); } catch(e) { console.error('orthopedics_ext_v2 mount failed', e.message); }
+try { app.use('/api/otolaryngology_v2', require('./tier115_otolaryngology_607_router')); } catch(e) { console.error('otolaryngology_v2 mount failed', e.message); }
+try { app.use('/api/ophthalmology_v2', require('./tier115_ophthalmology_608_router')); } catch(e) { console.error('ophthalmology_v2 mount failed', e.message); }
+try { app.use('/api/dentistry_v2', require('./tier115_dentistry_609_router')); } catch(e) { console.error('dentistry_v2 mount failed', e.message); }
+try { app.use('/api/pt_extended_v2', require('./tier116_pt_extended_610_router')); } catch(e) { console.error('pt_extended_v2 mount failed', e.message); }
+try { app.use('/api/ot_extended_v2', require('./tier116_ot_extended_611_router')); } catch(e) { console.error('ot_extended_v2 mount failed', e.message); }
+try { app.use('/api/st_voice_v2', require('./tier116_st_voice_612_router')); } catch(e) { console.error('st_voice_v2 mount failed', e.message); }
+try { app.use('/api/rehab_engineering_v2', require('./tier116_rehab_engineering_613_router')); } catch(e) { console.error('rehab_engineering_v2 mount failed', e.message); }
+try { app.use('/api/specialty_rehab_v2', require('./tier116_specialty_rehab_614_router')); } catch(e) { console.error('specialty_rehab_v2 mount failed', e.message); }
+
 startServer();
+

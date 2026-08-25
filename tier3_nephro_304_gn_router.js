@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_nephro_304_gn_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-gn' }));
+router.post('/nephrotic', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.nephroticSyndromeAdult(req.body) }));
+router.post('/nephritic', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.nephriticSyndrome(req.body) }));
+router.post('/iga', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.igaNephropathy(req.body) }));
+router.post('/mpgn', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.mpgnClassification(req.body) }));
+router.post('/rpgn', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.rapidlyProgressiveGn(req.body) }));
+module.exports = router;

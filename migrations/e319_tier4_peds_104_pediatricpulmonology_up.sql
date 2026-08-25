@@ -1,0 +1,15 @@
+-- e319 TIER4_PEDS-104 Pediatric Pulmonology UP
+CREATE TABLE IF NOT EXISTS peds_ppulm_metrics (
+  id SERIAL PRIMARY KEY,
+  tenant_id INTEGER NOT NULL DEFAULT 1,
+  metric_id VARCHAR(50) UNIQUE NOT NULL,
+  age_years INTEGER,
+  asthma_step INTEGER,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE peds_ppulm_metrics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE peds_ppulm_metrics FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS peds_ppm_tenant_isolation ON peds_ppulm_metrics;
+CREATE POLICY peds_ppm_tenant_isolation ON peds_ppulm_metrics
+  USING (tenant_id::text = current_setting('app.tenant_id', true))
+  WITH CHECK (tenant_id::text = current_setting('app.tenant_id', true));

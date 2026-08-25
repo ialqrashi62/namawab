@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_sup_101_nutrition_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-sup-nutrition' }));
+router.post('/screening', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.nutritionScreening(req.body) }));
+router.post('/assessment', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.nutritionAssessment(req.body) }));
+router.post('/support', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.enteralParenteralNutrition(req.body) }));
+router.post('/special-diets', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.therapeuticDiets(req.body) }));
+router.post('/education', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.dietaryEducationAndDischarge(req.body) }));
+module.exports = router;

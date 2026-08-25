@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_icu_101_vent_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-icu-vent' }));
+router.post('/ards', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ardsVentilationManagement(req.body) }));
+router.post('/wean', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ventilatorWeaning(req.body) }));
+router.post('/vili', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ventilatorInducedLungInjury(req.body) }));
+router.post('/niv', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.nonInvasiveVentilation(req.body) }));
+router.post('/difficult-airway', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.difficultAirwayManagement(req.body) }));
+module.exports = router;

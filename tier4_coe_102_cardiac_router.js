@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier4_coe_102_cardiac_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier4-coe-cardiac' }));
+router.post('/certification', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.cardiacCOECertification(req.body) }));
+router.post('/stemi', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.stemiProgramActivation(req.body) }));
+router.post('/tavr', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.tavrProgramOptimization(req.body) }));
+router.post('/ecmo', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ecmoProgramManagement(req.body) }));
+router.post('/lvad', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.lvadProgramManagement(req.body) }));
+module.exports = router;

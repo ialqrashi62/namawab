@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_rehab_103_speech_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-rehab-speech' }));
+router.post('/pediatric', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.pediatricSpeechDelay(req.body) }));
+router.post('/voice', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.adultVoiceDisorders(req.body) }));
+router.post('/cog-comm', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.cognitiveCommunicationTherapy(req.body) }));
+router.post('/aac', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.augmentativeAlternativeCommunication(req.body) }));
+router.post('/stuttering', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.stutteringManagement(req.body) }));
+module.exports = router;

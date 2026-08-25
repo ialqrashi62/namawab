@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_hemonc_302_leukemia_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-leukemia' }));
+router.post('/classify', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.leukemiaClassification(req.body) }));
+router.post('/risk', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.allRiskStratification(req.body) }));
+router.post('/supportive-care', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.supportiveCareNeutropenia(req.body) }));
+router.post('/tumor-lysis', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.tumorLysisRisk(req.body) }));
+router.post('/induction', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.amlInduction(req.body) }));
+router.post('/transfusion', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.transfusionThresholds(req.body) }));
+module.exports = router;

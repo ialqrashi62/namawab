@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_psych_302_mood_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-mood-anxiety' }));
+router.post('/phq9', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.phq9Depression(req.body) }));
+router.post('/gad7', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.gad7Anxiety(req.body) }));
+router.post('/bipolar', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.bipolarScreening(req.body) }));
+router.post('/panic', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.panicDisorderAssessment(req.body) }));
+router.post('/ptsd', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ptsdScreeningPcl5(req.body) }));
+module.exports = router;

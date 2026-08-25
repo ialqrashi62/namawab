@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_er_303_toxicology_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-toxicology' }));
+router.post('/acetaminophen', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.acetaminophenToxicity(req.body) }));
+router.post('/salicylate', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.salicylateToxicity(req.body) }));
+router.post('/opioid', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.opioidOverdose(req.body) }));
+router.post('/tca', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.tcaOverdose(req.body) }));
+router.post('/screen', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.toxicologyScreening(req.body) }));
+module.exports = router;

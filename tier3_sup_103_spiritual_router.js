@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_sup_103_spiritual_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-sup-spiritual' }));
+router.post('/spiritual', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.spiritualCareAssessment(req.body) }));
+router.post('/end-of-life', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.endOfLifeCareCoordination(req.body) }));
+router.post('/grief', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.griefAndBereavement(req.body) }));
+router.post('/cultural', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.culturalAndReligiousConsiderations(req.body) }));
+router.post('/prayer', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.facilityChaplainReferral(req.body) }));
+module.exports = router;

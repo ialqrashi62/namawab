@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_allergy_302_fooddrug_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-food-drug-allergy' }));
+router.post('/food-anaphylaxis', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.anaphylaxisFoodAllergen(req.body) }));
+router.post('/oit', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.oralImmunotherapyCandidacy(req.body) }));
+router.post('/delabel', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.drugAllergyDelabeling(req.body) }));
+router.post('/penicillin', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.penicillinAllergyTesting(req.body) }));
+router.post('/latex', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.latexAllergyAssessment(req.body) }));
+module.exports = router;

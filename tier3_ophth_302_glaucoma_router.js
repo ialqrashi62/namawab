@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_ophth_302_glaucoma_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-glaucoma' }));
+router.post('/iop', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.iopMeasurement(req.body) }));
+router.post('/angle-closure', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.angleClosureGlaucomaAcute(req.body) }));
+router.post('/oag-progression', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.openAngleGlaucomaProgression(req.body) }));
+router.post('/cd-ratio', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.opticNerveCupToDisc(req.body) }));
+router.post('/vf', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.visualFieldHumphreyInterpretation(req.body) }));
+module.exports = router;

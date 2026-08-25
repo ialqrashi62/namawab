@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_adm_105_flow_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-adm-flow' }));
+router.post('/dashboard', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.patientFlowDashboard(req.body) }));
+router.post('/bottleneck', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.bottleneckIdentification(req.body) }));
+router.post('/throughput', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.throughputMetrics(req.body) }));
+router.post('/inter-facility', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.interFacilityTransfer(req.body) }));
+router.post('/command', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.commandCenterProtocol(req.body) }));
+module.exports = router;

@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_icu_103_shock_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-icu-shock' }));
+router.post('/classification', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.shockClassification(req.body) }));
+router.post('/fluid-response', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.fluidResponsivenessAssessment(req.body) }));
+router.post('/cardiogenic', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.cardiogenicShock(req.body) }));
+router.post('/distributive', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.distributiveShockManagement(req.body) }));
+router.post('/obstructive', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.obstructiveShockRecognition(req.body) }));
+module.exports = router;

@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_ophth_301_cataract_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-cataract' }));
+router.post('/grade', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.cataractGradeLocsIii(req.body) }));
+router.post('/iol-calc', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.preoperativeIolCalculation(req.body) }));
+router.post('/endophthalmitis', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.postoperativeEndophthalmitis(req.body) }));
+router.post('/yag', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.yagCapsulotomyDecision(req.body) }));
+router.post('/dry-eye', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.dryEyeOsdi(req.body) }));
+module.exports = router;

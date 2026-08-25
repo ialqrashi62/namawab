@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_musk_303_spine_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-spine' }));
+router.post('/cervical-myelopathy', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.cervicalMyelopathyScreen(req.body) }));
+router.post('/odi', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.oswestryDisabilityIndex(req.body) }));
+router.post('/stenosis', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.lumbarStenosisSurgery(req.body) }));
+router.post('/spondylolisthesis', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.spondylolisthesisClass(req.body) }));
+router.post('/tlics', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.tlicsScore(req.body) }));
+router.post('/deformity', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.deformityClassificationSrsSchwab(req.body) }));
+module.exports = router;

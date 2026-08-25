@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_musk_305_hand_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-hand-microvascular' }));
+router.post('/zone', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.zoneOfInjury(req.body) }));
+router.post('/tendon', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.tendonTietelClassification(req.body) }));
+router.post('/nerve', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.sunderlandNerveInjury(req.body) }));
+router.post('/replant', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.replantationDecision(req.body) }));
+router.post('/compartment', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.compartmentSyndrome(req.body) }));
+router.post('/dupuytren', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.dupuytrenContracture(req.body) }));
+module.exports = router;

@@ -1,0 +1,7 @@
+{
+  "doc_id": "drug-metformin",
+  "doc_kind": "drug",
+  "title": "Metformin - Drug Reference",
+  "title_ar": "ميتفورمين - مرجع الدواء",
+  "content": "# Metformin\n\n## Class\nBiguanide antihyperglycemic\n\n## Indications\n- Type 2 diabetes mellitus\n- Polycystic ovary syndrome (off-label)\n- Prediabetes (off-label)\n\n## Dosing\n- Initial: 500mg PO BID with meals\n- Titrate: increase by 500mg every 1-2 weeks\n- Maximum: 2000mg/day (850mg TID or 1000mg BID)\n- Extended-release: 500-2000mg daily with evening meal\n\n## Renal Dosing\n- eGFR ≥45: full dose\n- eGFR 30-44: max 500mg BID\n- eGFR <30: contraindicated\n\n## Contraindications\n- eGFR <30\n- Metabolic acidosis\n- Acute or chronic heart failure (caution)\n- Hepatic impairment\n- Alcohol abuse\n- Hypersensitivity\n\n## Adverse Effects\n- GI: nausea, diarrhea, abdominal pain (30%)\n- Lactic acidosis (rare, <1/100,000)\n- B12 deficiency (long-term)\n\n## Monitoring\n- HbA1c every 3-6 months\n- Renal function annually\n- Vitamin B12 every 2-3 years if long-term use\n\n## Drug Interactions\n- Iodinated contrast: hold 48h before/after\n- Cimetidine: increases metformin levels\n- Alcohol: increases lactic acidosis risk"
+}

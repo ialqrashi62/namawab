@@ -1,0 +1,100 @@
+-- TIER133 Population Health Extensions (g153)
+DO $$ BEGIN
+  CREATE TABLE pop_cohorts (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, cohort_name TEXT NOT NULL, criteria TEXT NOT NULL, age_min INTEGER NOT NULL, age_max INTEGER NOT NULL, size INTEGER NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE pop_cohorts ENABLE ROW LEVEL SECURITY; ALTER TABLE pop_cohorts FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE pop_risk_strata (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, patient_id TEXT NOT NULL, risk_score DOUBLE PRECISION NOT NULL, risk_tier TEXT NOT NULL, factors TEXT NOT NULL, stratified_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE pop_risk_strata ENABLE ROW LEVEL SECURITY; ALTER TABLE pop_risk_strata FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE pop_outreach_campaigns (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, campaign_name TEXT NOT NULL, target_count INTEGER NOT NULL, channel TEXT NOT NULL, status TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE pop_outreach_campaigns ENABLE ROW LEVEL SECURITY; ALTER TABLE pop_outreach_campaigns FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE pop_sdoh_assessments (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, patient_id TEXT NOT NULL, domain TEXT NOT NULL, need_level TEXT NOT NULL, notes TEXT NOT NULL, assessed_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE pop_sdoh_assessments ENABLE ROW LEVEL SECURITY; ALTER TABLE pop_sdoh_assessments FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE pop_equity_metrics (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, metric_name TEXT NOT NULL, disparity_score DOUBLE PRECISION NOT NULL, population TEXT NOT NULL, recommendation TEXT NOT NULL, measured_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE pop_equity_metrics ENABLE ROW LEVEL SECURITY; ALTER TABLE pop_equity_metrics FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE php_disease_surveillance (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, disease TEXT NOT NULL, case_count INTEGER NOT NULL, region TEXT NOT NULL, severity TEXT NOT NULL, reported_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE php_disease_surveillance ENABLE ROW LEVEL SECURITY; ALTER TABLE php_disease_surveillance FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE php_immunization_records (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, vaccine TEXT NOT NULL, doses_given INTEGER NOT NULL, coverage_pct DOUBLE PRECISION NOT NULL, age_group TEXT NOT NULL, recorded_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE php_immunization_records ENABLE ROW LEVEL SECURITY; ALTER TABLE php_immunization_records FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE php_outbreaks (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, outbreak_id TEXT NOT NULL, pathogen TEXT NOT NULL, cases INTEGER NOT NULL, status TEXT NOT NULL, reported_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE php_outbreaks ENABLE ROW LEVEL SECURITY; ALTER TABLE php_outbreaks FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE php_environmental_health (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, site TEXT NOT NULL, hazard TEXT NOT NULL, reading DOUBLE PRECISION NOT NULL, compliance TEXT NOT NULL, measured_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE php_environmental_health ENABLE ROW LEVEL SECURITY; ALTER TABLE php_environmental_health FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE php_health_promotion (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, program TEXT NOT NULL, participants INTEGER NOT NULL, outcome TEXT NOT NULL, effectiveness DOUBLE PRECISION NOT NULL, recorded_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE php_health_promotion ENABLE ROW LEVEL SECURITY; ALTER TABLE php_health_promotion FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE epi_incidence (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, condition TEXT NOT NULL, new_cases INTEGER NOT NULL, population INTEGER NOT NULL, rate_per_100k DOUBLE PRECISION NOT NULL, period TEXT NOT NULL, computed_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE epi_incidence ENABLE ROW LEVEL SECURITY; ALTER TABLE epi_incidence FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE epi_prevalence (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, condition TEXT NOT NULL, existing_cases INTEGER NOT NULL, population INTEGER NOT NULL, rate_pct DOUBLE PRECISION NOT NULL, period TEXT NOT NULL, computed_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE epi_prevalence ENABLE ROW LEVEL SECURITY; ALTER TABLE epi_prevalence FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE epi_outbreak_analysis (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, outbreak_id TEXT NOT NULL, attack_rate DOUBLE PRECISION NOT NULL, r0 DOUBLE PRECISION NOT NULL, trend TEXT NOT NULL, analyzed_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE epi_outbreak_analysis ENABLE ROW LEVEL SECURITY; ALTER TABLE epi_outbreak_analysis FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE epi_risk_factors (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, outcome TEXT NOT NULL, exposure TEXT NOT NULL, odds_ratio DOUBLE PRECISION NOT NULL, ci_lower DOUBLE PRECISION NOT NULL, ci_upper DOUBLE PRECISION NOT NULL, recorded_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE epi_risk_factors ENABLE ROW LEVEL SECURITY; ALTER TABLE epi_risk_factors FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE epi_mortality (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, cause TEXT NOT NULL, deaths INTEGER NOT NULL, population INTEGER NOT NULL, rate_per_100k DOUBLE PRECISION NOT NULL, age_group TEXT NOT NULL, recorded_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE epi_mortality ENABLE ROW LEVEL SECURITY; ALTER TABLE epi_mortality FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE vax_administrations (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, patient_id TEXT NOT NULL, vaccine TEXT NOT NULL, dose_number INTEGER NOT NULL, lot TEXT NOT NULL, site TEXT NOT NULL, administered_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE vax_administrations ENABLE ROW LEVEL SECURITY; ALTER TABLE vax_administrations FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE vax_schedule_recs (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, patient_id TEXT NOT NULL, recommended_vaccine TEXT NOT NULL, due_date TEXT NOT NULL, priority TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE vax_schedule_recs ENABLE ROW LEVEL SECURITY; ALTER TABLE vax_schedule_recs FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE vax_adverse_events (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, admin_id TEXT NOT NULL, event TEXT NOT NULL, severity TEXT NOT NULL, outcome TEXT NOT NULL, reported_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE vax_adverse_events ENABLE ROW LEVEL SECURITY; ALTER TABLE vax_adverse_events FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE vax_contraindications (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, patient_id TEXT NOT NULL, vaccine TEXT NOT NULL, type TEXT NOT NULL, reason TEXT NOT NULL, recorded_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE vax_contraindications ENABLE ROW LEVEL SECURITY; ALTER TABLE vax_contraindications FORCE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE TABLE vax_coverage_reports (id SERIAL PRIMARY KEY, tenant_id TEXT NOT NULL, vaccine TEXT NOT NULL, target_population INTEGER NOT NULL, vaccinated INTEGER NOT NULL, coverage_pct DOUBLE PRECISION NOT NULL, period TEXT NOT NULL, generated_at TIMESTAMPTZ DEFAULT NOW());
+EXCEPTION WHEN duplicate_table THEN NULL; END $$;
+ALTER TABLE vax_coverage_reports ENABLE ROW LEVEL SECURITY; ALTER TABLE vax_coverage_reports FORCE ROW LEVEL SECURITY;

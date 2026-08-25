@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_ent_303_laryngology_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-laryngology' }));
+router.post('/dysphonia', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.dysphoniaEvaluation(req.body) }));
+router.post('/vcp', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.vocalCordParalysis(req.body) }));
+router.post('/lpr', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.laryngopharyngealReflux(req.body) }));
+router.post('/voice-therapy', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.voiceTherapyCandidacy(req.body) }));
+router.post('/spasmodic', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.spasmodicDysphonia(req.body) }));
+module.exports = router;

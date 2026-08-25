@@ -1,0 +1,3 @@
+Applied at 2026-07-29: portal_api mount + idempotencyGuard passed to makePlansRouter.
+Original backup: /var/www/namaweb/server.js.bak-pre-wireup-2026-07-29
+New md5: 5c79144abb56771dc5399a24fb7e9e51

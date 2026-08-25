@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_adm_101_admit_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-adm-admission' }));
+router.post('/registration', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.admissionRegistration(req.body) }));
+router.post('/verify', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.identityVerification(req.body) }));
+router.post('/consent', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.informedConsentDocumentation(req.body) }));
+router.post('/insurance', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.insuranceAuthorization(req.body) }));
+router.post('/preop', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.preAdmissionScreening(req.body) }));
+module.exports = router;

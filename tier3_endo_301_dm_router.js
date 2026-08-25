@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_endo_301_dm_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-dm' }));
+router.post('/classify', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.dmDiagnosisClassification(req.body) }));
+router.post('/dka', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.dkaManagement(req.body) }));
+router.post('/hhs', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.hhsManagement(req.body) }));
+router.post('/insulin', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.insulinDosingBasalBolus(req.body) }));
+router.post('/screening', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.complicationsScreening(req.body) }));
+router.post('/cgm', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.cgmInterpretation(req.body) }));
+module.exports = router;

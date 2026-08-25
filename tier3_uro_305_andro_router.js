@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_uro_305_andro_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-uro-andrology' }));
+router.post('/semen', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.semenAnalysisInterpretation(req.body) }));
+router.post('/hypogonadism', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.maleHypogonadism(req.body) }));
+router.post('/ed', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.erectileDysfunction(req.body) }));
+router.post('/vasectomy-reversal', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.vasectomyReversal(req.body) }));
+router.post('/pain', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.testicularPainEvaluation(req.body) }));
+module.exports = router;

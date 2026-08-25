@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_nephro_302_aki_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-aki' }));
+router.post('/stage', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.akiStagingKdigo(req.body) }));
+router.post('/classification', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.preRenalVsIntrinsicVsPostRenal(req.body) }));
+router.post('/workup', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.akiWorkupStandardized(req.body) }));
+router.post('/rrt', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.rrtInitiationCriteria(req.body) }));
+router.post('/contrast-prevention', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.contrastInducedAkiPrevention(req.body) }));
+module.exports = router;

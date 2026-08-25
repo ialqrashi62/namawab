@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_neuro_305_dementia_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-dementia' }));
+router.post('/screen', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.cognitiveScreening(req.body) }));
+router.post('/differential', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.dementiaDifferential(req.body) }));
+router.post('/mmse', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.mmseInterpretation(req.body) }));
+router.post('/cdr', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.cdrStaging(req.body) }));
+router.post('/management', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.alzheimersTreatment(req.body) }));
+module.exports = router;

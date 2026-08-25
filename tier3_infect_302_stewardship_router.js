@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_infect_302_stewardship_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-antimicrobial-stewardship' }));
+router.post('/de-escalate', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.deEscalationReview(req.body) }));
+router.post('/iv-to-po', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ivToPoConversion(req.body) }));
+router.post('/restricted-approval', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.restrictedAntibioticApproval(req.body) }));
+router.post('/culture-directed', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.cultureDirectedTherapy(req.body) }));
+router.post('/ddd-tracking', requireAuth, requireTenantScope, requireRole('admin'), (req, res) => res.json({ ok: true, result: engine.dddTracking(req.body) }));
+router.post('/opat', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.opatPathway(req.body) }));
+module.exports = router;

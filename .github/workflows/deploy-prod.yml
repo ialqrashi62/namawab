@@ -1,0 +1,37 @@
+name: deploy-prod
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Build Docker image
+        run: docker build -t registry.jumanasoft.com/nama-medical-erp:${{ github.sha }} -f namaweb/Dockerfile .
+      - name: Push to registry
+        run: |
+          echo "${{ secrets.JUMANASOFT_REGISTRY_TOKEN }}" | docker login registry.jumanasoft.com -u iceman --password-stdin
+          docker push registry.jumanasoft.com/nama-medical-erp:${{ github.sha }}
+      - name: ArgoCD sync
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.29.0'
+      - name: Apply ArgoCD app
+        run: kubectl apply -f namaweb/deploy/argocd/app.yaml
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/nama-medical-erp -n nama --timeout=300s
+      - name: Smoke against live
+        run: |
+          sleep 30
+          curl -sf https://jumanasoft.com/health || exit 1
+          curl -sf https://jumanasoft.com/api/v4/dept/list | grep -q cardiology

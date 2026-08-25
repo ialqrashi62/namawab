@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quality Metrics Dashboard - NamaMedical</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f1f5f9; margin: 0; padding: 0; color: #0f172a; }
+    .header { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); color: white; padding: 24px; }
+    .header h1 { margin: 0; font-size: 24px; }
+    .header .sub { font-size: 14px; opacity: 0.85; margin-top: 4px; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .period-selector { display: flex; gap: 8px; margin-bottom: 16px; }
+    .period-selector button { padding: 8px 14px; background: white; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; }
+    .period-selector button.active { background: #0f766e; color: white; border-color: #0f766e; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .kpi { background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0; }
+    .kpi .label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi .value { font-size: 32px; font-weight: 700; margin: 6px 0; color: #0f172a; }
+    .kpi .meta { font-size: 11px; color: #94a3b8; }
+    .kpi.critical .value { color: #dc2626; }
+    .kpi.success .value { color: #10b981; }
+    .kpi.warn .value { color: #f59e0b; }
+    .section { background: white; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 16px; }
+    .section h2 { margin: 0 0 12px 0; font-size: 18px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    th { background: #f8fafc; font-size: 12px; color: #475569; text-transform: uppercase; }
+    .progress { display: inline-block; padding: 4px 10px; background: #d1fae5; color: #065f46; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .progress.low { background: #fee2e2; color: #991b1b; }
+    .progress.mid { background: #fef3c7; color: #78350f; }
+    .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 180px; padding: 16px; background: #f8fafc; border-radius: 8px; }
+    .bar { flex: 1; background: #0f766e; border-radius: 4px 4px 0 0; min-height: 2px; position: relative; }
+    .bar .lbl { position: absolute; bottom: -22px; left: 0; right: 0; text-align: center; font-size: 10px; color: #475569; }
+    .bar .val { position: absolute; top: -18px; left: 0; right: 0; text-align: center; font-size: 11px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📊 Quality Metrics Dashboard</h1>
+    <div class="sub">Hospital operations, clinical quality, safety KPIs · Live data from across all departments</div>
+  </div>
+  <div class="container">
+    <div class="period-selector">
+      <button onclick="setPeriod(7, this)" class="active">Last 7 days</button>
+      <button onclick="setPeriod(30, this)">Last 30 days</button>
+      <button onclick="setPeriod(90, this)">Last 90 days</button>
+      <button onclick="setPeriod(365, this)">Last year</button>
+    </div>
+    <div id="dash"></div>
+  </div>
+
+  <script>
+    function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+    function pctClass(p) { return p >= 90 ? '' : (p >= 70 ? 'mid' : 'low'); }
+    let currentDays = 7;
+
+    async function setPeriod(d, el) {
+        document.querySelectorAll('.period-selector button').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        currentDays = d;
+        await loadDash();
+    }
+
+    async function loadDash() {
+        const container = document.getElementById('dash');
+        container.innerHTML = '<div class="section">⏳ Loading...</div>';
+        try {
+            const [ovRes, deptRes] = await Promise.all([
+                fetch('/api/quality-metrics/overview?days=' + currentDays, { credentials: 'include' }),
+                fetch('/api/quality-metrics/departments?days=' + currentDays, { credentials: 'include' })
+            ]);
+            if (!ovRes.ok || !deptRes.ok) {
+                container.innerHTML = '<div class="section">⚠️ Failed to load metrics (auth or error). Status: ' + ovRes.status + '/' + deptRes.status + '</div>';
+                return;
+            }
+            const ov = await ovRes.json();
+            const dept = await deptRes.json();
+            renderDash(ov, dept);
+        } catch (e) {
+            container.innerHTML = '<div class="section">⚠️ Error: ' + escapeHtml(e.message) + '</div>';
+        }
+    }
+
+    function renderDash(ov, dept) {
+        const container = document.getElementById('dash');
+        const maxDept = Math.max(...dept.departments.map(d => +d.assessment_count), 1);
+        container.innerHTML = `
+            <div class="kpi-grid">
+                <div class="kpi critical">
+                    <div class="label">🚨 Active CDS Alerts</div>
+                    <div class="value">${ov.cds_alerts_active.total}</div>
+                    <div class="meta">${ov.cds_alerts_active.critical} critical · ${ov.cds_alerts_active.high} high</div>
+                </div>
+                <div class="kpi">
+                    <div class="label">📝 SOAP Notes</div>
+                    <div class="value">${ov.soap_notes.total}</div>
+                    <div class="meta">${ov.soap_notes.completion_rate_pct}% signed · ${ov.soap_notes.recent_30d} last 30d</div>
+                </div>
+                <div class="kpi">
+                    <div class="label">💓 Vital Signs</div>
+                    <div class="value">${ov.vital_signs.total}</div>
+                    <div class="meta">${ov.vital_signs.unique_patients} unique patients · ${ov.vital_signs.recent_30d} last 30d</div>
+                </div>
+                <div class="kpi ${ov.labs.critical > 0 ? 'critical' : ''}">
+                    <div class="label">🧪 Lab Results</div>
+                    <div class="value">${ov.labs.total}</div>
+                    <div class="meta">${ov.labs.abnormal_rate_pct}% abnormal · ${ov.labs.critical} critical</div>
+                </div>
+                <div class="kpi">
+                    <div class="label">🩻 Imaging</div>
+                    <div class="value">${ov.imaging.total}</div>
+                    <div class="meta">${ov.imaging.completed} completed · ${ov.imaging.scheduled} scheduled</div>
+                </div>
+                <div class="kpi ${ov.discharge_summaries.completion_rate_pct >= 90 ? 'success' : (ov.discharge_summaries.completion_rate_pct < 70 ? 'critical' : 'warn')}">
+                    <div class="label">🏁 Discharge Summaries</div>
+                    <div class="value">${ov.discharge_summaries.total}</div>
+                    <div class="meta">${ov.discharge_summaries.completion_rate_pct}% signed</div>
+                </div>
+                <div class="kpi">
+                    <div class="label">📋 Care Plans</div>
+                    <div class="value">${ov.care_plans.total}</div>
+                    <div class="meta">${ov.care_plans.active} active · ${ov.care_plans.completed} completed</div>
+                </div>
+                <div class="kpi">
+                    <div class="label">🛤️ Pathways (30d)</div>
+                    <div class="value">${ov.pathways_recent_30d.total}</div>
+                    <div class="meta">${ov.pathways_recent_30d.completed} completed</div>
+                </div>
+                <div class="kpi ${ov.drug_interactions_recent_30d.total_high_findings > 0 ? 'warn' : ''}">
+                    <div class="label">💊 Drug Checks (30d)</div>
+                    <div class="value">${ov.drug_interactions_recent_30d.checks}</div>
+                    <div class="meta">${ov.drug_interactions_recent_30d.total_high_findings} high-severity findings</div>
+                </div>
+                <div class="kpi ${ov.allergies_active.anaphylaxis > 0 ? 'critical' : ''}">
+                    <div class="label">⚠️ Active Allergies</div>
+                    <div class="value">${ov.allergies_active.total}</div>
+                    <div class="meta">${ov.allergies_active.anaphylaxis} anaphylaxis · ${ov.allergies_active.severe} severe</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🛏️ Department Activity (last ${currentDays} days)</h2>
+                ${dept.departments.length === 0 ? '<p style="color:#94a3b8;">No department activity recorded.</p>' : `
+                <div class="bar-chart" style="margin-bottom:32px;">
+                    ${dept.departments.map(d => {
+                        const h = Math.max(2, (+d.assessment_count / maxDept) * 150);
+                        return `<div class="bar" style="height:${h}px;" title="${d.assessment_count} assessments in ${d.dept_code}">
+                            <span class="val">${d.assessment_count}</span>
+                            <span class="lbl">${escapeHtml(d.dept_code)}</span>
+                        </div>`;
+                    }).join('')}
+                </div>
+                <table style="margin-top:24px;">
+                    <thead><tr><th>Department</th><th>Assessments</th><th>Unique Patients</th><th>High-Risk</th><th>Last Activity</th></tr></thead>
+                    <tbody>
+                        ${dept.departments.map(d => `<tr>
+                            <td><strong>${escapeHtml(d.dept_code)}</strong></td>
+                            <td>${d.assessment_count}</td>
+                            <td>${d.unique_patients}</td>
+                            <td>${d.high_risk_count > 0 ? '<span style="color:#dc2626;font-weight:600;">' + d.high_risk_count + '</span>' : '0'}</td>
+                            <td>${d.last_activity ? new Date(d.last_activity).toLocaleString() : 'n/a'}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>`}
+            </div>
+
+            <div class="section">
+                <h2>📈 Clinical Quality Indicators</h2>
+                <table>
+                    <thead><tr><th>Metric</th><th>Numerator</th><th>Denominator</th><th>Rate</th><th>Status</th></tr></thead>
+                    <tbody>
+                        <tr><td>SOAP Note Completion</td><td>${ov.soap_notes.signed}</td><td>${ov.soap_notes.total}</td><td>${ov.soap_notes.completion_rate_pct}%</td><td><span class="progress ${pctClass(ov.soap_notes.completion_rate_pct)}">${ov.soap_notes.completion_rate_pct >= 90 ? 'PASS' : 'NEEDS IMPROVEMENT'}</span></td></tr>
+                        <tr><td>Discharge Summary Completion</td><td>${ov.discharge_summaries.signed}</td><td>${ov.discharge_summaries.total}</td><td>${ov.discharge_summaries.completion_rate_pct}%</td><td><span class="progress ${pctClass(ov.discharge_summaries.completion_rate_pct)}">${ov.discharge_summaries.completion_rate_pct >= 90 ? 'PASS' : 'NEEDS IMPROVEMENT'}</span></td></tr>
+                        <tr><td>Critical Lab Alerts</td><td>${ov.labs.critical}</td><td>${ov.labs.total}</td><td>${ov.labs.total > 0 ? (ov.labs.critical / ov.labs.total * 100).toFixed(2) : '0'}%</td><td>${ov.labs.critical === 0 ? '<span class="progress">OK</span>' : '<span class="progress low">REVIEW</span>'}</td></tr>
+                        <tr><td>Anaphylaxis Allergies</td><td>${ov.allergies_active.anaphylaxis}</td><td>${ov.allergies_active.total}</td><td>${ov.allergies_active.total > 0 ? (ov.allergies_active.anaphylaxis / ov.allergies_active.total * 100).toFixed(1) : '0'}%</td><td>${ov.allergies_active.anaphylaxis === 0 ? '<span class="progress">OK</span>' : '<span class="progress low">HIGH RISK</span>'}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    loadDash();
+  </script>
+</body>
+</html>

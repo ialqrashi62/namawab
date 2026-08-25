@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Telehealth - NamaMedical</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #f1f5f9; margin: 0; padding: 0; }
+    .header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 24px; }
+    .header h1 { margin: 0; font-size: 22px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .panel { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; }
+    .panel h2 { margin: 0 0 12px 0; font-size: 16px; color: #3b82f6; }
+    .session-card { padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; margin-bottom: 8px; }
+    .session-card.active { border-color: #10b981; background: #064e3b; }
+    .btn { padding: 8px 14px; background: #3b82f6; color: white; border: 0; border-radius: 6px; cursor: pointer; }
+    .btn.success { background: #10b981; }
+    .btn.danger { background: #ef4444; }
+    .video-area { background: #000; border-radius: 8px; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; color: #94a3b8; flex-direction: column; }
+    .room-id { font-family: monospace; background: #0f172a; padding: 6px 12px; border-radius: 6px; color: #fbbf24; font-size: 12px; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📹 Telehealth Sessions</h1>
+    <div style="font-size:13px;opacity:0.85;margin-top:4px;">Video consultation management · Sessions and room IDs</div>
+  </div>
+  <div class="container">
+    <div class="layout">
+      <div class="panel">
+        <h2>📋 Active & Recent Sessions</h2>
+        <div id="sessionsList">⏳ Loading...</div>
+      </div>
+      <div class="panel">
+        <h2>🎥 Current Session</h2>
+        <div id="currentSession">
+          <div class="video-area">
+            <div style="font-size:48px;margin-bottom:12px;">📹</div>
+            <div>Select a session to begin</div>
+            <div style="font-size:11px;margin-top:8px;opacity:0.7;">WebRTC peer-to-peer video requires signaling server (out of scope for this version)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:16px;">
+      <h2>➕ Schedule Telehealth Session</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;">
+        <input id="newPatient" type="number" placeholder="Patient ID" style="padding:8px;background:#0f172a;color:white;border:1px solid #334155;border-radius:6px;">
+        <input id="newProvider" type="number" placeholder="Provider ID" style="padding:8px;background:#0f172a;color:white;border:1px solid #334155;border-radius:6px;">
+        <input id="newStart" type="datetime-local" style="padding:8px;background:#0f172a;color:white;border:1px solid #334155;border-radius:6px;">
+        <input id="newChief" type="text" placeholder="Chief complaint" style="padding:8px;background:#0f172a;color:white;border:1px solid #334155;border-radius:6px;">
+        <button class="btn" onclick="scheduleSession()">Schedule</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+
+    async function loadSessions() {
+        try {
+            const res = await fetch('/api/telehealth/sessions', { credentials: 'include' });
+            if (!res.ok) { document.getElementById('sessionsList').innerHTML = '⚠️ Failed (status ' + res.status + ').'; return; }
+            const data = await res.json();
+            if (data.total === 0) {
+                document.getElementById('sessionsList').innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">No sessions yet.</div>';
+                return;
+            }
+            document.getElementById('sessionsList').innerHTML = data.sessions.slice(0, 20).map(s => `
+                <div class="session-card ${s.status === 'active' ? 'active' : ''}" onclick="openSession(${s.id})">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <strong>Session #${s.id}</strong>
+                        <span style="font-size:10px;background:#3b82f6;padding:1px 6px;border-radius:3px;color:white;">${escapeHtml(s.status)}</span>
+                    </div>
+                    <div style="font-size:12px;color:#94a3b8;margin-top:4px;">${escapeHtml(s.chief_complaint || '')}</div>
+                    <div style="font-size:11px;color:#64748b;margin-top:4px;">Patient: ${s.patient_id} · Provider: ${s.provider_id}</div>
+                    <div style="font-size:11px;color:#64748b;">Scheduled: ${new Date(s.scheduled_start).toLocaleString()}</div>
+                    ${s.status === 'scheduled' || s.status === 'waiting' ? `<button class="btn success" style="margin-top:6px;font-size:11px;" onclick="event.stopPropagation(); startSession(${s.id})">▶ Start</button>` : ''}
+                    ${s.status === 'active' ? `<button class="btn danger" style="margin-top:6px;font-size:11px;" onclick="event.stopPropagation(); endSession(${s.id})">⏹ End</button>` : ''}
+                </div>
+            `).join('');
+        } catch (e) {
+            document.getElementById('sessionsList').innerHTML = '⚠️ Error: ' + escapeHtml(e.message);
+        }
+    }
+
+    async function openSession(id) {
+        try {
+            const res = await fetch('/api/telehealth/sessions/' + id, { credentials: 'include' });
+            const data = await res.json();
+            const s = data.session;
+            document.getElementById('currentSession').innerHTML = `
+                <div class="video-area">
+                    <div style="font-size:48px;margin-bottom:12px;">${s.status === 'active' ? '🟢' : '⚪'}</div>
+                    <div style="font-size:14px;">Session #${s.id}</div>
+                    <div class="room-id" style="margin-top:8px;">${escapeHtml(s.room_id)}</div>
+                    <div style="font-size:11px;margin-top:8px;opacity:0.7;">Status: ${escapeHtml(s.status)}</div>
+                    ${s.chief_complaint ? '<div style="font-size:12px;margin-top:8px;">' + escapeHtml(s.chief_complaint) + '</div>' : ''}
+                    ${s.status === 'scheduled' || s.status === 'waiting' ? '<button class="btn success" style="margin-top:12px;" onclick="startSession(' + s.id + ')">▶ Start Session</button>' : ''}
+                    ${s.status === 'active' ? '<button class="btn danger" style="margin-top:12px;" onclick="endSession(' + s.id + ')">⏹ End Session</button>' : ''}
+                </div>
+            `;
+        } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function startSession(id) {
+        try {
+            await fetch('/api/telehealth/sessions/' + id + '/start', { method: 'POST', credentials: 'include' });
+            loadSessions(); openSession(id);
+        } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function endSession(id) {
+        const notes = prompt('Session notes (optional):');
+        try {
+            await fetch('/api/telehealth/sessions/' + id + '/end', {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ notes: notes || '' })
+            });
+            loadSessions(); openSession(id);
+        } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function scheduleSession() {
+        const patient_id = +document.getElementById('newPatient').value;
+        const provider_id = +document.getElementById('newProvider').value;
+        const scheduled_start = document.getElementById('newStart').value;
+        const chief_complaint = document.getElementById('newChief').value;
+        if (!patient_id || !provider_id || !scheduled_start) { alert('Patient ID, Provider ID, and Start time required.'); return; }
+        try {
+            const res = await fetch('/api/telehealth/sessions', {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ patient_id, provider_id, scheduled_start: new Date(scheduled_start).toISOString(), chief_complaint })
+            });
+            if (!res.ok) { alert('Failed: ' + res.status); return; }
+            loadSessions();
+        } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    loadSessions();
+  </script>
+</body>
+</html>

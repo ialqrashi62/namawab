@@ -1,0 +1,23 @@
+-- migrations/e999-g124_health_system_ext.sql
+SET search_path = public;
+CREATE TABLE IF NOT EXISTS quality_records (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, patient_id TEXT, reference_id TEXT, payload JSONB, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+ALTER TABLE quality_records ENABLE ROW LEVEL SECURITY; ALTER TABLE quality_records FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS quality_records_t ON quality_records; CREATE POLICY quality_records_t ON quality_records USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+CREATE TABLE IF NOT EXISTS compliance_records (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, patient_id TEXT, reference_id TEXT, payload JSONB, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+ALTER TABLE compliance_records ENABLE ROW LEVEL SECURITY; ALTER TABLE compliance_records FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS compliance_records_t ON compliance_records; CREATE POLICY compliance_records_t ON compliance_records USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+CREATE TABLE IF NOT EXISTS epidemiology_records (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, patient_id TEXT, reference_id TEXT, payload JSONB, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+ALTER TABLE epidemiology_records ENABLE ROW LEVEL SECURITY; ALTER TABLE epidemiology_records FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS epidemiology_records_t ON epidemiology_records; CREATE POLICY epidemiology_records_t ON epidemiology_records USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+CREATE TABLE IF NOT EXISTS public_health_records (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, patient_id TEXT, reference_id TEXT, payload JSONB, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+ALTER TABLE public_health_records ENABLE ROW LEVEL SECURITY; ALTER TABLE public_health_records FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS public_health_records_t ON public_health_records; CREATE POLICY public_health_records_t ON public_health_records USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+CREATE TABLE IF NOT EXISTS qi_records (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, patient_id TEXT, reference_id TEXT, payload JSONB, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+ALTER TABLE qi_records ENABLE ROW LEVEL SECURITY; ALTER TABLE qi_records FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS qi_records_t ON qi_records; CREATE POLICY qi_records_t ON qi_records USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+CREATE TABLE IF NOT EXISTS research_records (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, patient_id TEXT, reference_id TEXT, payload JSONB, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+ALTER TABLE research_records ENABLE ROW LEVEL SECURITY; ALTER TABLE research_records FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS research_records_t ON research_records; CREATE POLICY research_records_t ON research_records USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+CREATE TABLE IF NOT EXISTS telemedicine_records (id BIGSERIAL PRIMARY KEY, tenant_id UUID NOT NULL, patient_id TEXT, reference_id TEXT, payload JSONB, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+ALTER TABLE telemedicine_records ENABLE ROW LEVEL SECURITY; ALTER TABLE telemedicine_records FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS telemedicine_records_t ON telemedicine_records; CREATE POLICY telemedicine_records_t ON telemedicine_records USING (tenant_id = current_setting('app.tenant_id', true)::uuid);

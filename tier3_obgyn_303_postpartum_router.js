@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_obgyn_303_postpartum_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-postpartum' }));
+router.post('/discharge', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.postpartumDischargeReadiness(req.body) }));
+router.post('/ppd', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.postpartumDepressionScreen(req.body) }));
+router.post('/mastitis', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.mastitisManagement(req.body) }));
+router.post('/contraception', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.contraceptionPostpartum(req.body) }));
+router.post('/follow-up', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.postpartumFollowUp(req.body) }));
+module.exports = router;

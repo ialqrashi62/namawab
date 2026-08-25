@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Patient Cross-Department Dashboard - NamaMedical</title>
+  <link rel="stylesheet" href="/css/tailwind-compiled.css">
+  <script src="/js/i18n.js"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; margin: 0; padding: 0; }
+    .header { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); color: white; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .search-bar { display: flex; gap: 12px; margin-bottom: 24px; background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; }
+    .search-bar input { flex: 1; padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
+    .search-bar button { padding: 10px 20px; background: #0f766e; color: white; border: 0; border-radius: 8px; cursor: pointer; }
+    .patient-header { background: white; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 16px; }
+    .patient-name { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; }
+    .patient-meta { color: #64748b; font-size: 14px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .stat-card { background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; }
+    .stat-value { font-size: 24px; font-weight: 700; }
+    .stat-value.danger { color: #ef4444; }
+    .stat-value.success { color: #10b981; }
+    .stat-label { font-size: 12px; color: #64748b; text-transform: uppercase; }
+    .dept-section { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .dept-section h3 { margin: 0 0 12px 0; color: #0f766e; }
+    .assessment-item { padding: 8px; border-bottom: 1px solid #f1f5f9; }
+    .assessment-item:last-child { border-bottom: 0; }
+    .risk-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 8px; }
+    .risk-badge.high { background: #fee2e2; color: #991b1b; }
+    .risk-badge.moderate { background: #fef3c7; color: #78350f; }
+    .risk-badge.low { background: #d1fae5; color: #065f46; }
+    .search-results { background: white; border: 1px solid #e2e8f0; border-radius: 8px; max-height: 200px; overflow-y: auto; }
+    .search-result { padding: 12px; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
+    .search-result:hover { background: #f0fdfa; }
+    .empty { color: #64748b; padding: 24px; text-align: center; }
+    .summary-card { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 1px solid #10b981; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .summary-card h3 { margin: 0 0 12px 0; color: #065f46; }
+    .summary-text { font-size: 14px; line-height: 1.7; color: #1e293b; }
+    .chart-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    .chart-card img { max-width: 100%; }
+    .rag-hit { padding: 8px; background: #f0fdfa; border-left: 3px solid #14b8a6; margin: 6px 0; font-size: 13px; border-radius: 4px; }
+    .loading { color: #0f766e; font-style: italic; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="container">
+      <h1>👤 Patient Cross-Department Dashboard</h1>
+      <p>Search for a patient to see all assessments across 62 departments</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search by name, national ID...">
+      <button id="searchBtn">🔍 Search</button>
+    </div>
+
+    <div id="searchResults" class="search-results" style="display:none;"></div>
+
+    <div id="patientData" style="display:none;">
+      <div class="actions" style="margin-bottom:16px;">
+        <button id="summaryBtn" style="padding:10px 20px;background:#0f766e;color:white;border:0;border-radius:8px;cursor:pointer;">🤖 AI Summary</button>
+        <button id="chartBtn" style="padding:10px 20px;background:#3b82f6;color:white;border:0;border-radius:8px;cursor:pointer;margin-left:8px;">📈 Vitals Trend</button>
+        <button id="drugBtn" style="padding:10px 20px;background:#dc2626;color:white;border:0;border-radius:8px;cursor:pointer;margin-left:8px;">💊 Drug Check</button>
+        <button id="soapBtn" style="padding:10px 20px;background:#7c3aed;color:white;border:0;border-radius:8px;cursor:pointer;margin-left:8px;">📝 SOAP Note</button>
+        <button id="allergyBtn" style="padding:10px 20px;background:#ea580c;color:white;border:0;border-radius:8px;cursor:pointer;margin-left:8px;">⚠️ Allergies</button>
+        <button id="labBtn" style="padding:10px 20px;background:#0891b2;color:white;border:0;border-radius:8px;cursor:pointer;margin-left:8px;">🧪 Labs</button>
+        <button id="pathwayBtn" style="padding:10px 20px;background:#be185d;color:white;border:0;border-radius:8px;cursor:pointer;margin-left:8px;">🛤️ Pathways</button>
+        <button id="cdsBtn" style="padding:10px 20px;background:#b91c1c;color:white;border:0;border-radius:8px;cursor:pointer;margin-left:8px;">🚨 CDS Alerts</button>
+        <button id="dischargeBtn" style="padding:10px 20px;background:#1e40af;color:white;border:0;border-radius:8px;cursor:pointer;margin-left:8px;">🏁 Discharge</button>
+      </div>
+      <div id="summaryContainer"></div>
+      <div id="chartContainer"></div>
+      <div id="assessmentsContainer"></div>
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(s) {
+        if (s === null || s === undefined) return '';
+        return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+
+    async function search() {
+        const q = document.getElementById('searchInput').value.trim();
+        if (!q) return;
+        try {
+            const res = await fetch('/api/patient?q=' + encodeURIComponent(q), { credentials: 'include' });
+            if (!res.ok) {
+                document.getElementById('searchResults').style.display = 'none';
+                if (res.status === 401) alert('Please log in to search patients.');
+                return;
+            }
+            const data = await res.json();
+            const container = document.getElementById('searchResults');
+            if (data.patients.length === 0) {
+                container.innerHTML = '<div class="empty">No patients found.</div>';
+                container.style.display = 'block';
+                return;
+            }
+            container.innerHTML = data.patients.map(p => `
+                <div class="search-result" onclick="showPatient(${p.id})">
+                    <strong>${escapeHtml(p.name_en || p.name_ar || 'Patient ' + p.id)}</strong>
+                    <span style="color:#64748b;margin-left:8px;">ID: ${p.id}</span>
+                    <span style="color:#64748b;margin-left:8px;">${p.national_id ? 'NID: ' + escapeHtml(p.national_id) : ''}</span>
+                    <span style="color:#64748b;margin-left:8px;">${p.age ? 'Age: ' + p.age : ''} ${p.sex ? 'Sex: ' + p.sex : ''}</span>
+                </div>
+            `).join('');
+            container.style.display = 'block';
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function showPatient(patientId) {
+        try {
+            const res = await fetch('/api/patient/' + patientId + '/overview', { credentials: 'include' });
+            if (!res.ok) {
+                if (res.status === 401) alert('Please log in to view patient.');
+                return;
+            }
+            const data = await res.json();
+            const p = data.patient;
+            const container = document.getElementById('patientData');
+            const depts = Object.keys(data.by_dept);
+            let html = `
+                <div class="patient-header">
+                    <h2 class="patient-name">${escapeHtml(p.name_en || p.name_ar || 'Patient ' + p.id)}</h2>
+                    <div class="patient-meta">
+                        ID: ${p.id} | NID: ${escapeHtml(p.national_id || 'n/a')} | Age: ${p.age || 'n/a'} | Sex: ${p.sex || 'n/a'} | Phone: ${escapeHtml(p.phone || 'n/a')}
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Assessments</div>
+                        <div class="stat-value">${data.total_assessments}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">High Risk</div>
+                        <div class="stat-value ${data.high_risk_count > 0 ? 'danger' : 'success'}">${data.high_risk_count}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Departments</div>
+                        <div class="stat-value">${depts.length}</div>
+                    </div>
+                </div>`;
+            container.innerHTML = html;
+            container.style.display = 'block';
+            const assessmentsContainer = document.getElementById('assessmentsContainer');
+            assessmentsContainer.innerHTML = depts.map(dept => `
+                <div class="dept-section">
+                    <h3>${escapeHtml(dept)} (${data.by_dept[dept].length})</h3>
+                    ${data.by_dept[dept].map(a => `
+                        <div class="assessment-item">
+                            <strong>${escapeHtml(a.engine_name || 'Assessment')}</strong>
+                            <span>score: ${a.score !== null ? a.score : 'n/a'}</span>
+                            <span class="risk-badge ${a.risk_level === 'high' || a.risk_level === 'very_high' ? 'high' : (a.risk_level === 'moderate' ? 'moderate' : 'low')}">${escapeHtml(a.risk_level || 'unknown')}</span>
+                            <span style="color:#94a3b8;margin-left:8px;font-size:12px;">${new Date(a.created_at).toLocaleString()}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+            document.getElementById('searchResults').style.display = 'none';
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', search);
+    document.getElementById('searchInput').addEventListener('keypress', e => { if (e.key === 'Enter') search(); });
+
+    let currentPatientId = null;
+    const originalShow = showPatient;
+    showPatient = async function(pid) {
+        currentPatientId = pid;
+        await originalShow(pid);
+        document.getElementById('summaryBtn').onclick = () => loadAiSummary(pid);
+        document.getElementById('chartBtn').onclick = () => loadVitalsChart(pid);
+        document.getElementById('drugBtn').onclick = () => loadDrugCheck(pid);
+        document.getElementById('soapBtn').onclick = () => loadSoapNote(pid);
+        document.getElementById('allergyBtn').onclick = () => loadAllergies(pid);
+        document.getElementById('labBtn').onclick = () => loadLabs(pid);
+        document.getElementById('pathwayBtn').onclick = () => loadPathways(pid);
+        document.getElementById('cdsBtn').onclick = () => loadCdsAlerts(pid);
+        document.getElementById('dischargeBtn').onclick = () => loadDischarge(pid);
+    };
+
+    async function loadAiSummary(pid) {
+        const btn = document.getElementById('summaryBtn');
+        btn.disabled = true; btn.textContent = '⏳ Generating...';
+        const container = document.getElementById('summaryContainer');
+        container.innerHTML = '<div class="summary-card loading">Generating AI summary...</div>';
+        try {
+            const res = await fetch('/api/patient/' + pid + '/ai-summary?q=clinical+context', { credentials: 'include' });
+            if (!res.ok) {
+                container.innerHTML = '<div class="summary-card">⚠️ Failed to generate summary (status ' + res.status + ').</div>';
+                btn.disabled = false; btn.textContent = '🤖 AI Summary';
+                return;
+            }
+            const data = await res.json();
+            const rag = data.sources.rag_hits || [];
+            container.innerHTML = `
+                <div class="summary-card">
+                    <h3>🤖 AI Patient Summary</h3>
+                    <div class="summary-text">${escapeHtml(data.summary)}</div>
+                    <div style="margin-top:12px;font-size:12px;color:#475569;">
+                        Sources: ${data.stats.source_count} assessments · ${data.stats.high_risk_count} high-risk · ${data.stats.vector_hits} RAG hits · ${data.stats.generation_ms}ms
+                    </div>
+                    ${rag.length > 0 ? '<h4 style="margin-top:12px;color:#065f46;">Guideline Context</h4>' + rag.map(h => `
+                        <div class="rag-hit">
+                            <strong>${escapeHtml(h.doc_id || 'doc')}</strong>
+                            <span style="color:#64748b;margin-left:6px;">sim ${h.similarity}</span>
+                            <div style="margin-top:4px;">${escapeHtml(h.text || '')}</div>
+                        </div>
+                    `).join('') : ''}
+                </div>
+            `;
+        } catch (e) {
+            container.innerHTML = '<div class="summary-card">⚠️ Error: ' + escapeHtml(e.message) + '</div>';
+        }
+        btn.disabled = false; btn.textContent = '🤖 AI Summary';
+    }
+
+    async function loadVitalsChart(pid) {
+        const btn = document.getElementById('chartBtn');
+        btn.disabled = true; btn.textContent = '⏳ Loading...';
+        const container = document.getElementById('chartContainer');
+        container.innerHTML = '<div class="chart-card loading">Loading vitals trend...</div>';
+        try {
+            const res = await fetch('/api/patient/' + pid + '/vitals/trend.svg', { credentials: 'include' });
+            if (!res.ok) {
+                container.innerHTML = '<div class="chart-card">⚠️ Failed to load chart (status ' + res.status + ').</div>';
+                btn.disabled = false; btn.textContent = '📈 Vitals Trend';
+                return;
+            }
+            const svg = await res.text();
+            container.innerHTML = '<div class="chart-card">' + svg + '</div>';
+        } catch (e) {
+            container.innerHTML = '<div class="chart-card">⚠️ Error: ' + escapeHtml(e.message) + '</div>';
+        }
+        btn.disabled = false; btn.textContent = '📈 Vitals Trend';
+    }
+
+    async function loadDrugCheck(pid) {
+        const btn = document.getElementById('drugBtn');
+        btn.disabled = true; btn.textContent = '⏳ Loading...';
+        const container = document.getElementById('chartContainer');
+        const drugs = prompt('Enter drug names (comma-separated):', 'warfarin, aspirin, ibuprofen');
+        if (!drugs) { btn.disabled = false; btn.textContent = '💊 Drug Check'; return; }
+        const drugList = drugs.split(',').map(d => d.trim()).filter(Boolean);
+        try {
+            const res = await fetch('/api/drug-interactions/check', {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ drugs: drugList, patient_id: pid })
+            });
+            if (!res.ok) {
+                container.innerHTML = '<div class="chart-card">⚠️ Drug check failed (status ' + res.status + ').</div>';
+                btn.disabled = false; btn.textContent = '💊 Drug Check';
+                return;
+            }
+            const data = await res.json();
+            const sevColor = s => s === 'contraindicated' ? '#fee2e2;color:#991b1b' : s === 'major' ? '#fef3c7;color:#78350f' : s === 'moderate' ? '#dbeafe;color:#1e3a8a' : '#f1f5f9;color:#475569';
+            let html = `<div class="chart-card"><h3 style="margin:0 0 12px 0;color:#dc2626;">💊 Drug Interaction Check</h3>
+                <div style="margin-bottom:12px;font-size:14px;">Checked ${data.drugs_checked} drug(s) · Found ${data.interactions_found} interaction(s) · ${data.high_severity_count} high-severity</div>`;
+            if (data.interactions.length === 0) {
+                html += '<div style="padding:16px;background:#d1fae5;color:#065f46;border-radius:8px;">✓ No known interactions in the curated database.</div>';
+            } else {
+                html += data.interactions.map(i => `
+                    <div style="padding:12px;margin:8px 0;background:${sevColor(i.severity)};border-radius:8px;">
+                        <strong>${escapeHtml(i.drug_a)} + ${escapeHtml(i.drug_b)}</strong>
+                        <span style="font-size:11px;text-transform:uppercase;margin-left:8px;padding:2px 6px;background:rgba(0,0,0,0.1);border-radius:4px;">${escapeHtml(i.severity)}</span>
+                        <div style="margin-top:6px;font-size:13px;"><em>Mechanism:</em> ${escapeHtml(i.mechanism)}</div>
+                        <div style="margin-top:4px;font-size:13px;"><em>Recommendation:</em> ${escapeHtml(i.recommendation)}</div>
+                    </div>
+                `).join('');
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        } catch (e) {
+            container.innerHTML = '<div class="chart-card">⚠️ Error: ' + escapeHtml(e.message) + '</div>';
+        }
+        btn.disabled = false; btn.textContent = '💊 Drug Check';
+    }
+
+    async function loadSoapNote(pid) {
+        const btn = document.getElementById('soapBtn');
+        btn.disabled = true; btn.textContent = '⏳ Generating...';
+        const container = document.getElementById('chartContainer');
+        const chief = prompt('Chief complaint (or leave blank):', 'General follow-up');
+        if (chief === null) { btn.disabled = false; btn.textContent = '📝 SOAP Note'; return; }
+        try {
+            const res = await fetch('/api/soap-notes/generate', {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ patient_id: pid, chief_complaint: chief })
+            });
+            if (!res.ok) {
+                container.innerHTML = '<div class="chart-card">⚠️ SOAP generation failed (status ' + res.status + ').</div>';
+                btn.disabled = false; btn.textContent = '📝 SOAP Note';
+                return;
+            }
+            const data = await res.json();
+            container.innerHTML = `
+                <div class="chart-card">
+                    <h3 style="margin:0 0 12px 0;color:#7c3aed;">📝 SOAP Note (Generated)</h3>
+                    <div style="font-size:11px;color:#64748b;margin-bottom:12px;">
+                        Chief: ${escapeHtml(data.chief_complaint)} · ${data.sources.depts_assessed} depts · ${data.sources.high_risk_count} high-risk · ${data.sources.allergies_count} allergies
+                    </div>
+                    <div style="margin-bottom:10px;"><strong style="color:#1e293b;">S</strong>ubjective: <span style="color:#475569;">${escapeHtml(data.subjective)}</span></div>
+                    <div style="margin-bottom:10px;"><strong style="color:#1e293b;">O</strong>bjective: <span style="color:#475569;">${escapeHtml(data.objective)}</span></div>
+                    <div style="margin-bottom:10px;"><strong style="color:#1e293b;">A</strong>ssessment: <span style="color:#475569;">${escapeHtml(data.assessment)}</span></div>
+                    <div style="margin-bottom:10px;"><strong style="color:#1e293b;">P</strong>lan: <span style="color:#475569;">${escapeHtml(data.plan)}</span></div>
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;">Generated ${escapeHtml(data.sources.generated_at)} · review and edit before signing</div>
+                </div>
+            `;
+        } catch (e) {
+            container.innerHTML = '<div class="chart-card">⚠️ Error: ' + escapeHtml(e.message) + '</div>';
+        }
+        btn.disabled = false; btn.textContent = '📝 SOAP Note';
+    }
+
+    async function loadAllergies(pid) {
+        const btn = document.getElementById('allergyBtn');
+        btn.disabled = true; btn.textContent = '⏳ Loading...';
+        const container = document.getElementById('chartContainer');
+        try {
+            const res = await fetch('/api/allergies?patient_id=' + pid, { credentials: 'include' });
+            if (!res.ok) {
+                container.innerHTML = '<div class="chart-card">⚠️ Allergies load failed (status ' + res.status + ').</div>';
+                btn.disabled = false; btn.textContent = '⚠️ Allergies';
+                return;
+            }
+            const data = await res.json();
+            const sevColor = s => s === 'anaphylaxis' ? '#7f1d1d;color:white' : s === 'severe' ? '#fee2e2;color:#991b1b' : s === 'moderate' ? '#fef3c7;color:#78350f' : '#f1f5f9;color:#475569';
+            let html = `<div class="chart-card"><h3 style="margin:0 0 12px 0;color:#ea580c;">⚠️ Active Allergies (${data.total})</h3>`;
+            if (data.total === 0) {
+                html += '<div style="padding:12px;background:#d1fae5;color:#065f46;border-radius:8px;">✓ No known active allergies on file.</div>';
+            } else {
+                html += data.allergies.map(a => `
+                    <div style="padding:10px;margin:6px 0;background:${sevColor(a.severity)};border-radius:6px;font-size:13px;">
+                        <strong>${escapeHtml(a.allergen)}</strong>
+                        <span style="font-size:10px;background:rgba(0,0,0,0.1);padding:1px 6px;border-radius:3px;margin-left:6px;">${escapeHtml(a.allergen_type)}</span>
+                        <span style="font-size:10px;background:rgba(0,0,0,0.15);padding:1px 6px;border-radius:3px;margin-left:4px;text-transform:uppercase;">${escapeHtml(a.severity)}</span>
+                        ${a.reaction ? '<div style="margin-top:4px;color:#475569;">Reaction: ' + escapeHtml(a.reaction) + '</div>' : ''}
+                    </div>
+                `).join('');
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        } catch (e) {
+            container.innerHTML = '<div class="chart-card">⚠️ Error: ' + escapeHtml(e.message) + '</div>';
+        }
+        btn.disabled = false; btn.textContent = '⚠️ Allergies';
+    }
+
+    async function loadLabs(pid) {
+        const btn = document.getElementById('labBtn');
+        btn.disabled = true; btn.textContent = '⏳ Loading...';
+        const container = document.getElementById('chartContainer');
+        try {
+            const testsRes = await fetch('/api/labs/tests?patient_id=' + pid, { credentials: 'include' });
+            const tests = testsRes.ok ? (await testsRes.json()).tests : [];
+            if (tests.length === 0) {
+                container.innerHTML = '<div class="chart-card"><h3 style="margin:0 0 12px 0;color:#0891b2;">🧪 Lab Results</h3><div style="padding:16px;background:#f0f9ff;color:#0c4a6e;border-radius:8px;">No lab results recorded for this patient.</div></div>';
+                btn.disabled = false; btn.textContent = '🧪 Labs';
+                return;
+            }
+            const abnormalRes = await fetch('/api/labs/abnormal?patient_id=' + pid, { credentials: 'include' });
+            const abnormalData = abnormalRes.ok ? await abnormalRes.json() : { count: 0, critical: [], flagged: [] };
+            const firstTest = tests[0].test_name;
+            let html = `<div class="chart-card">
+                <h3 style="margin:0 0 12px 0;color:#0891b2;">🧪 Lab Results (${tests.length} test type${tests.length === 1 ? '' : 's'})</h3>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:16px;">
+                    ${tests.map(t => `<button onclick="showLabTrend(${pid},'${escapeHtml(t.test_name).replace(/'/g, "\\'")}')" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:white;cursor:pointer;text-align:left;font-size:12px;">
+                        <strong>${escapeHtml(t.test_name)}</strong>
+                        <div style="color:#64748b;font-size:11px;">${t.cnt} reading${t.cnt === '1' ? '' : 's'}</div>
+                    </button>`).join('')}
+                </div>
+                ${abnormalData.count > 0 ? `
+                    <div style="padding:10px;background:#fee2e2;border-radius:8px;margin-bottom:12px;">
+                        <strong style="color:#991b1b;">⚠️ ${abnormalData.count} abnormal in last 90 days</strong>
+                        ${abnormalData.critical.length > 0 ? '<div style="margin-top:6px;color:#7f1d1d;">🚨 ' + abnormalData.critical.length + ' CRITICAL: ' + abnormalData.critical.slice(0,3).map(c => escapeHtml(c.test_name) + ' = ' + escapeHtml(c.value)).join(', ') + '</div>' : ''}
+                    </div>` : ''}
+                <div id="labTrendContainer"></div>
+            </div>`;
+            container.innerHTML = html;
+            // Auto-load first test trend
+            showLabTrend(pid, firstTest);
+        } catch (e) {
+            container.innerHTML = '<div class="chart-card">⚠️ Error: ' + escapeHtml(e.message) + '</div>';
+        }
+        btn.disabled = false; btn.textContent = '🧪 Labs';
+    }
+
+    async function showLabTrend(pid, testName) {
+        const trendContainer = document.getElementById('labTrendContainer');
+        if (!trendContainer) return;
+        try {
+            const res = await fetch('/api/labs/trend.svg?patient_id=' + pid + '&test_name=' + encodeURIComponent(testName), { credentials: 'include' });
+            if (!res.ok) { trendContainer.innerHTML = '<div style="color:#94a3b8;font-size:12px;">Failed to load trend</div>'; return; }
+            const svg = await res.text();
+            trendContainer.innerHTML = '<div style="margin-top:8px;border:1px solid #e2e8f0;border-radius:8px;padding:8px;">' + svg + '</div>';
+        } catch (e) {
+            trendContainer.innerHTML = '<div style="color:#94a3b8;font-size:12px;">Error: ' + escapeHtml(e.message) + '</div>';
+        }
+    }
+    window.showLabTrend = showLabTrend;
+
+    async function loadPathways(pid) {
+        const btn = document.getElementById('pathwayBtn');
+        btn.disabled = true; btn.textContent = '⏳ Loading...';
+        const container = document.getElementById('chartContainer');
+        try {
+            // List templates + active instances in parallel
+            const [tplRes, instRes] = await Promise.all([
+                fetch('/api/pathways/templates', { credentials: 'include' }),
+                fetch('/api/pathways/instances?patient_id=' + pid, { credentials: 'include' })
+            ]);
+            const templates = tplRes.ok ? (await tplRes.json()).templates : [];
+            const instances = instRes.ok ? (await instRes.json()).instances : [];
+            let html = `<div class="chart-card">
+                <h3 style="margin:0 0 12px 0;color:#be185d;">🛤️ Clinical Pathways</h3>
+                <div style="font-size:12px;color:#64748b;margin-bottom:12px;">${instances.length} active instance${instances.length === 1 ? '' : 's'} · ${templates.length} template${templates.length === 1 ? '' : 's'} available</div>
+                ${instances.length > 0 ? '<h4 style="margin:12px 0 6px 0;color:#475569;">Active/Recent Pathways</h4>' + instances.map(i => `
+                    <div style="padding:12px;margin:6px 0;background:#fdf2f8;border-radius:8px;font-size:13px;">
+                        <strong>${escapeHtml(i.pathway_name)}</strong>
+                        <span style="font-size:10px;background:${i.status === 'completed' ? '#10b981' : i.status === 'active' ? '#3b82f6' : '#94a3b8'};color:white;padding:1px 6px;border-radius:3px;margin-left:6px;text-transform:uppercase;">${escapeHtml(i.status)}</span>
+                        <div style="margin-top:6px;font-size:11px;color:#64748b;">Step ${i.current_step + 1} of ${i.total_steps} · Started ${new Date(i.started_at).toLocaleString()}</div>
+                        <div style="margin-top:6px;display:flex;gap:2px;">
+                            ${i.step_state.map(s => `<div style="flex:1;height:6px;background:${s.status === 'completed' ? '#10b981' : '#e2e8f0'};border-radius:3px;"></div>`).join('')}
+                        </div>
+                    </div>
+                `).join('') : ''}
+                <h4 style="margin:12px 0 6px 0;color:#475569;">Start New Pathway</h4>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;">
+                    ${templates.map(t => `<button onclick="startPathway(${pid},'${escapeHtml(t.code).replace(/'/g, "\\'")}')" style="padding:12px;border:1px solid #fbcfe8;border-radius:8px;background:#fdf2f8;cursor:pointer;text-align:left;font-size:13px;">
+                        <strong>${escapeHtml(t.name_en)}</strong>
+                        <div style="color:#64748b;font-size:11px;margin-top:4px;">${t.step_count} step${t.step_count === 1 ? '' : 's'} · ${escapeHtml(t.department)}</div>
+                        <div style="color:#94a3b8;font-size:11px;margin-top:4px;">${escapeHtml(t.description || '')}</div>
+                    </button>`).join('')}
+                </div>
+            </div>`;
+            container.innerHTML = html;
+        } catch (e) {
+            container.innerHTML = '<div class="chart-card">⚠️ Error: ' + escapeHtml(e.message) + '</div>';
+        }
+        btn.disabled = false; btn.textContent = '🛤️ Pathways';
+    }
+
+    async function startPathway(pid, code) {
+        try {
+            const tplRes = await fetch('/api/pathways?patient_id=' + pid, { credentials: 'include' });
+            // We need pathway_id from DB; the templates list has code, but start endpoint needs ID
+            // For now: just show a notice to seed first
+            alert('To start "' + code + '", an admin must POST /api/pathways/seed once to install templates in this tenant. After that, pathways will appear here.');
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+    window.startPathway = startPathway;
+
+    async function loadCdsAlerts(pid) {
+        const btn = document.getElementById('cdsBtn');
+        btn.disabled = true; btn.textContent = '⏳ Evaluating...';
+        const container = document.getElementById('chartContainer');
+        try {
+            const drugsInput = prompt('Optional: drugs to check (comma-separated):', 'warfarin, amoxicillin, ibuprofen');
+            const drugs = drugsInput ? drugsInput.split(',').map(d => d.trim()).filter(Boolean) : [];
+            // Run evaluation (creates new alerts) then fetch all active
+            await fetch('/api/cds/evaluate', {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ patient_id: pid, drugs })
+            });
+            const res = await fetch('/api/cds/alerts?patient_id=' + pid, { credentials: 'include' });
+            if (!res.ok) {
+                container.innerHTML = '<div class="chart-card">⚠️ CDS load failed (status ' + res.status + ').</div>';
+                btn.disabled = false; btn.textContent = '🚨 CDS Alerts';
+                return;
+            }
+            const data = await res.json();
+            const sevColor = s => s === 'critical' ? '#7f1d1d;color:white' : s === 'high' ? '#fee2e2;color:#991b1b' : s === 'moderate' ? '#fef3c7;color:#78350f' : '#f1f5f9;color:#475569';
+            let html = `<div class="chart-card"><h3 style="margin:0 0 12px 0;color:#b91c1c;">🚨 Clinical Decision Support</h3>
+                <div style="font-size:12px;color:#64748b;margin-bottom:12px;">${data.total} active alert${data.total === 1 ? '' : 's'} (evaluated ${drugs.length} drug${drugs.length === 1 ? '' : 's'} + vitals + labs)</div>`;
+            if (data.total === 0) {
+                html += '<div style="padding:16px;background:#d1fae5;color:#065f46;border-radius:8px;">✓ No active CDS alerts. All clear.</div>';
+            } else {
+                html += data.alerts.map(a => `
+                    <div style="padding:12px;margin:8px 0;background:${sevColor(a.severity)};border-radius:8px;font-size:13px;">
+                        <strong>${escapeHtml(a.title)}</strong>
+                        <span style="font-size:10px;background:rgba(0,0,0,0.15);padding:1px 6px;border-radius:3px;margin-left:6px;text-transform:uppercase;">${escapeHtml(a.severity)}</span>
+                        <span style="font-size:10px;background:rgba(0,0,0,0.1);padding:1px 6px;border-radius:3px;margin-left:4px;">${escapeHtml(a.alert_type)}</span>
+                        <div style="margin-top:6px;color:rgba(0,0,0,0.7);">${escapeHtml(a.message)}</div>
+                        <div style="margin-top:8px;">
+                            <button onclick="acknowledgeCds(${a.id})" style="padding:4px 10px;background:#3b82f6;color:white;border:0;border-radius:4px;cursor:pointer;font-size:11px;">✓ Acknowledge</button>
+                            <button onclick="dismissCds(${a.id})" style="padding:4px 10px;background:#94a3b8;color:white;border:0;border-radius:4px;cursor:pointer;font-size:11px;margin-left:4px;">✕ Dismiss</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        } catch (e) {
+            container.innerHTML = '<div class="chart-card">⚠️ Error: ' + escapeHtml(e.message) + '</div>';
+        }
+        btn.disabled = false; btn.textContent = '🚨 CDS Alerts';
+    }
+
+    async function acknowledgeCds(id) {
+        await fetch('/api/cds/alerts/' + id + '/acknowledge', { method: 'POST', credentials: 'include' });
+    }
+    async function dismissCds(id) {
+        await fetch('/api/cds/alerts/' + id + '/dismiss', { method: 'POST', credentials: 'include' });
+    }
+    window.acknowledgeCds = acknowledgeCds;
+    window.dismissCds = dismissCds;
+
+    async function loadDischarge(pid) {
+        const btn = document.getElementById('dischargeBtn');
+        btn.disabled = true; btn.textContent = '⏳ Generating...';
+        const container = document.getElementById('chartContainer');
+        try {
+            const res = await fetch('/api/discharge/generate', {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ patient_id: pid })
+            });
+            if (!res.ok) {
+                container.innerHTML = '<div class="chart-card">⚠️ Discharge generation failed (status ' + res.status + ').</div>';
+                btn.disabled = false; btn.textContent = '🏁 Discharge';
+                return;
+            }
+            const data = await res.json();
+            const sec = (label, body) => `<div style="margin-bottom:14px;"><strong style="color:#1e40af;">${label}</strong><div style="margin-top:4px;color:#475569;font-size:13px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(body)}</div></div>`;
+            container.innerHTML = `
+                <div class="chart-card">
+                    <h3 style="margin:0 0 12px 0;color:#1e40af;">🏁 Discharge Summary (Generated)</h3>
+                    <div style="font-size:11px;color:#64748b;margin-bottom:12px;">
+                        Patient: ${escapeHtml(data.patient.name_en || data.patient.name_ar)} · Discharge date: ${data.discharge_date} · ${data.sources.depts_assessed} depts · ${data.sources.labs_abnormal_14d} abnormal labs · ${data.sources.soap_notes} SOAP notes
+                    </div>
+                    ${sec('Primary Diagnosis', data.diagnosis_primary || '(to be specified)')}
+                    ${sec('Hospital Course', data.hospital_course)}
+                    ${sec('Discharge Medications', data.discharge_medications.length > 0 ? data.discharge_medications.join(', ') : '(Provider to complete)')}
+                    ${sec('Diet / Activity / Restrictions', data.diet_activity_restrictions)}
+                    ${sec('Patient Instructions', data.patient_instructions)}
+                    ${sec('Follow-Up Plan', data.follow_up)}
+                    ${sec('Pending Results', data.pending_results)}
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;">Generated ${escapeHtml(data.sources.generated_at)} · review and edit before signing</div>
+                </div>
+            `;
+        } catch (e) {
+            container.innerHTML = '<div class="chart-card">⚠️ Error: ' + escapeHtml(e.message) + '</div>';
+        }
+        btn.disabled = false; btn.textContent = '🏁 Discharge';
+    }
+  </script>
+</body>
+</html>

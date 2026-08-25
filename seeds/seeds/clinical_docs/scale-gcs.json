@@ -1,0 +1,7 @@
+{
+  "doc_id": "scale-gcs",
+  "doc_kind": "scale",
+  "title": "Glasgow Coma Scale (GCS)",
+  "title_ar": "مقياس غلاسكو للغيبوبة",
+  "content": "# Glasgow Coma Scale (GCS)\n\n## Eye Opening (E) - 1-4\n- 4: Spontaneous\n- 3: To voice\n- 2: To pain\n- 1: None\n\n## Verbal Response (V) - 1-5\n- 5: Oriented\n- 4: Confused conversation\n- 3: Inappropriate words\n- 2: Incomprehensible sounds\n- 1: None\n\n## Motor Response (M) - 1-6\n- 6: Obeys commands\n- 5: Localizes to pain\n- 4: Withdraws from pain\n- 3: Abnormal flexion (decorticate)\n- 2: Extension (decerebrate)\n- 1: None\n\n## Total Score\n- Maximum: 15 (E4 V5 M6)\n- Severe: ≤8 (intubation indicated)\n- Moderate: 9-12\n- Mild: 13-15\n\n## Pediatric GCS Modifications\n- Verbal: appropriate words, cries, irritable cry, moans, none\n- Motor: same as adults"
+}

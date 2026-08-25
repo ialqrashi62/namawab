@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_peds_305_pedsurg_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-peds-surgery' }));
+router.post('/intussusception', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.intussusception(req.body) }));
+router.post('/hirschsprung', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.hirschsprungDisease(req.body) }));
+router.post('/pyloric', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.pyloricStenosis(req.body) }));
+router.post('/appendicitis', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.pediatricAppendicitisPas(req.body) }));
+router.post('/cdh', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.congenitalDiaphragmaticHernia(req.body) }));
+module.exports = router;

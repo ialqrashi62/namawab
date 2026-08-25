@@ -1,0 +1,15 @@
+-- e364 TIER4_ENT-102 Rhinology UP
+CREATE TABLE IF NOT EXISTS ent_rhino_metrics (
+  id SERIAL PRIMARY KEY,
+  tenant_id INTEGER NOT NULL DEFAULT 1,
+  metric_id VARCHAR(50) UNIQUE NOT NULL,
+  diagnosis VARCHAR(30),
+  polyp_grade INTEGER,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE ent_rhino_metrics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ent_rhino_metrics FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS ent_rh_tenant_isolation ON ent_rhino_metrics;
+CREATE POLICY ent_rh_tenant_isolation ON ent_rhino_metrics
+  USING (tenant_id::text = current_setting('app.tenant_id', true))
+  WITH CHECK (tenant_id::text = current_setting('app.tenant_id', true));

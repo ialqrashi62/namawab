@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_adm_107_preop_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-adm-preop' }));
+router.post('/checklist', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.preOpChecklist(req.body) }));
+router.post('/clearance', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.anesthesiaClearance(req.body) }));
+router.post('/risk', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.surgicalRiskStratification(req.body) }));
+router.post('/npo', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.npoGuidelines(req.body) }));
+router.post('/labs', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.preOpLabsTargetedVsRoutine(req.body) }));
+module.exports = router;

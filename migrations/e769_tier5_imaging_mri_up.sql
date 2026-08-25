@@ -1,0 +1,13 @@
+-- e769 tier5 imaging mri
+CREATE TABLE IF NOT EXISTS imaging_mri (
+  id BIGSERIAL PRIMARY KEY,
+  tenant_id TEXT NOT NULL,
+  patient_id TEXT NOT NULL,
+  record_date DATE NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_immri_t ON imaging_mri(tenant_id, patient_id);
+ALTER TABLE imaging_mri ENABLE ROW LEVEL SECURITY;
+ALTER TABLE imaging_mri FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS p_immri_t ON imaging_mri;
+CREATE POLICY p_immri_t ON imaging_mri USING (tenant_id = current_setting('app.tenant_id', true));

@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_sup_106_transport_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-sup-transport' }));
+router.post('/level', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.transportLevelDetermination(req.body) }));
+router.post('/handoff', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.transportHandoffCommunication(req.body) }));
+router.post('/equipment', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.transportEquipment(req.body) }));
+router.post('/critical', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.intrahospitalTransportCritical(req.body) }));
+router.post('/delay', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.transportDelayEscalation(req.body) }));
+module.exports = router;

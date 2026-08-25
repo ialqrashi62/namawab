@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Neonatology — NamaMedical</title>
+  <link rel="stylesheet" href="/css/tailwind-compiled.css">
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f8fafc; margin: 0; padding: 0; }
+    .header { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); color: white; padding: 24px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .engine-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .engine-card h3 { margin: 0 0 12px 0; color: #0f172a; }
+    .engine-card textarea { width: 100%; min-height: 80px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-family: monospace; font-size: 13px; box-sizing: border-box; }
+    .engine-card button { padding: 8px 16px; background: #0f766e; color: white; border: 0; border-radius: 6px; cursor: pointer; margin-top: 8px; }
+    .engine-card button:hover { background: #14b8a6; }
+    .result { background: #f1f5f9; padding: 12px; border-radius: 6px; margin-top: 12px; font-family: monospace; font-size: 12px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .status-healthy { background: #d1fae5; color: #065f46; }
+    .status-unhealthy { background: #fee2e2; color: #991b1b; }
+    .status-unknown { background: #fef3c7; color: #78350f; }
+    .breadcrumb { margin-bottom: 16px; font-size: 14px; color: #64748b; }
+    .breadcrumb a { color: #0f766e; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">Home</a> / <a href="/departments/hub.html">Departments</a> / Neonatology</div>
+      <h1 style="margin: 0 0 8px 0;">Neonatology</h1>
+      <p style="margin: 0; opacity: 0.9;">Clinical assessments for neonatology department</p>
+      <p style="margin: 8px 0 0 0;"><span id="statusBadge" class="status-badge status-unknown">checking...</span></p>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>Available Assessments</h2>
+    <p style="color: #64748b; margin-bottom: 24px;">Click "Run" to execute an assessment engine. Input is JSON.</p>
+    
+    <div class="engine-card">
+      <h3>apgarScore</h3>
+      <p style="color: #64748b; font-size: 13px; margin: 0 0 8px 0;">POST /api/neonatology/assessments/apgarScore</p>
+      <textarea id="input-apgarScore" placeholder='{"patientId": "p1", "age": 45}'></textarea>
+      <button onclick="runEngine('apgarScore')">Run apgarScore</button>
+      <div class="result" id="result-apgarScore" style="display:none"></div>
+    </div>
+    
+
+    <div class="engine-card">
+      <h3>silvermanScore</h3>
+      <p style="color: #64748b; font-size: 13px; margin: 0 0 8px 0;">POST /api/neonatology/assessments/silvermanScore</p>
+      <textarea id="input-silvermanScore" placeholder='{"patientId": "p1", "age": 45}'></textarea>
+      <button onclick="runEngine('silvermanScore')">Run silvermanScore</button>
+      <div class="result" id="result-silvermanScore" style="display:none"></div>
+    </div>
+    
+
+    <div class="engine-card">
+      <h3>ballardScore</h3>
+      <p style="color: #64748b; font-size: 13px; margin: 0 0 8px 0;">POST /api/neonatology/assessments/ballardScore</p>
+      <textarea id="input-ballardScore" placeholder='{"patientId": "p1", "age": 45}'></textarea>
+      <button onclick="runEngine('ballardScore')">Run ballardScore</button>
+      <div class="result" id="result-ballardScore" style="display:none"></div>
+    </div>
+    
+
+    <div class="engine-card">
+      <h3>neonatalSepsisRisk</h3>
+      <p style="color: #64748b; font-size: 13px; margin: 0 0 8px 0;">POST /api/neonatology/assessments/neonatalSepsisRisk</p>
+      <textarea id="input-neonatalSepsisRisk" placeholder='{"patientId": "p1", "age": 45}'></textarea>
+      <button onclick="runEngine('neonatalSepsisRisk')">Run neonatalSepsisRisk</button>
+      <div class="result" id="result-neonatalSepsisRisk" style="display:none"></div>
+    </div>
+    
+
+    <div class="engine-card">
+      <h3>bronchopulmonaryDysplasia</h3>
+      <p style="color: #64748b; font-size: 13px; margin: 0 0 8px 0;">POST /api/neonatology/assessments/bronchopulmonaryDysplasia</p>
+      <textarea id="input-bronchopulmonaryDysplasia" placeholder='{"patientId": "p1", "age": 45}'></textarea>
+      <button onclick="runEngine('bronchopulmonaryDysplasia')">Run bronchopulmonaryDysplasia</button>
+      <div class="result" id="result-bronchopulmonaryDysplasia" style="display:none"></div>
+    </div>
+    
+    
+  </div>
+
+  <script>
+    async function checkHealth() {
+      try {
+        const res = await fetch('/api/neonatology/health', { credentials: 'include' });
+        const badge = document.getElementById('statusBadge');
+        if (res.ok) {
+          badge.className = 'status-badge status-healthy';
+          badge.textContent = '✓ API online';
+        } else {
+          badge.className = 'status-badge status-unhealthy';
+          badge.textContent = '✗ API error: ' + res.status;
+        }
+      } catch (e) {
+        const badge = document.getElementById('statusBadge');
+        badge.className = 'status-badge status-unhealthy';
+        badge.textContent = '✗ Connection failed';
+      }
+    }
+
+    async function runEngine(engineName) {
+      const inputEl = document.getElementById('input-' + engineName);
+      const resultEl = document.getElementById('result-' + engineName);
+      let input;
+      try {
+        input = JSON.parse(inputEl.value || '{}');
+      } catch (e) {
+        resultEl.textContent = 'Invalid JSON: ' + e.message;
+        resultEl.style.display = 'block';
+        return;
+      }
+      resultEl.textContent = 'Running...';
+      resultEl.style.display = 'block';
+      try {
+        const res = await fetch('/api/neonatology/assessments/' + engineName, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(input)
+        });
+        const data = await res.json();
+        resultEl.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        resultEl.textContent = 'Error: ' + e.message;
+      }
+    }
+
+    checkHealth();
+  </script>
+</body>
+</html>

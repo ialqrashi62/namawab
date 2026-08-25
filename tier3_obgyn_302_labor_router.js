@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_obgyn_302_labor_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-labor' }));
+router.post('/stage', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.laborStage(req.body) }));
+router.post('/fhr', requireAuth, requireTenantScope, requireRole('nurse'), (req, res) => res.json({ ok: true, result: engine.fetalHeartRateCategory(req.body) }));
+router.post('/partogram', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.partogramInterpretation(req.body) }));
+router.post('/mode', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.deliveryModeDecision(req.body) }));
+router.post('/induction', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.inductionOfLabor(req.body) }));
+router.post('/pph', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.postpartumHemorrhageMgmt(req.body) }));
+module.exports = router;

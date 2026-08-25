@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_gi_304_pancreasbiliary_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-pancreas-biliary' }));
+router.post('/pancreatitis', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.acutePancreatitisBisap(req.body) }));
+router.post('/chronic-pancreatitis', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.chronicPancreatitis(req.body) }));
+router.post('/gallstone', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.gallstoneDisease(req.body) }));
+router.post('/cholangitis', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.acuteCholangitis(req.body) }));
+router.post('/stricture', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.biliaryStrictureManagement(req.body) }));
+module.exports = router;

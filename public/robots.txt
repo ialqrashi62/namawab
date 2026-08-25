@@ -9,6 +9,7 @@ Allow: /solutions/
 Allow: /departments/
 Allow: /docs/
 Allow: /faq/
+Allow: /pcc-catalog/
 Allow: /contact/
 Allow: /privacy/
 Allow: /terms/

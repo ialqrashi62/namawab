@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_pulm_305_sleep_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-sleep' }));
+router.post('/stopbang', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.stopBang(req.body) }));
+router.post('/osa', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.osaSeverity(req.body) }));
+router.post('/cpap', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.cpapTitration(req.body) }));
+router.post('/cbti', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.insomniaCBTI(req.body) }));
+router.post('/rls', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.restlessLegsSeverity(req.body) }));
+module.exports = router;

@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_adm_110_compliance_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-adm-compliance' }));
+router.post('/regulatory', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.regulatoryComplianceDashboard(req.body) }));
+router.post('/accreditation', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.accreditationReadiness(req.body) }));
+router.post('/privacy', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.privacyComplianceCheck(req.body) }));
+router.post('/reporting', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.mandatoryReportingRequirements(req.body) }));
+router.post('/contract', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.contractManagement(req.body) }));
+module.exports = router;

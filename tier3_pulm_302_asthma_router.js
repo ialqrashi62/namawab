@@ -1,0 +1,13 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_pulm_302_asthma_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-asthma' }));
+router.post('/control', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.ginaControl(req.body) }));
+router.post('/act', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.actScore(req.body) }));
+router.post('/step', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.stepTherapy(req.body) }));
+router.post('/biologic', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.biologicsEligibility(req.body) }));
+router.post('/eib', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.exerciseInducedBronchoconstriction(req.body) }));
+router.post('/action-plan', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.asthmaActionPlan(req.body) }));
+module.exports = router;

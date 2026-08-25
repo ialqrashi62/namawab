@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_anesth_305_icu_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-icu-sedation' }));
+router.post('/rass', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.rassSedationScale(req.body) }));
+router.post('/cam-icu', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.camIcuDelirium(req.body) }));
+router.post('/sat-sbt', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.satSbtWeaning(req.body) }));
+router.post('/titration', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.propofolFentanylTitration(req.body) }));
+router.post('/icp', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.icpManagement(req.body) }));
+module.exports = router;

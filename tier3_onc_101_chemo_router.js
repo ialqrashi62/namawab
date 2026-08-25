@@ -1,0 +1,12 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const { requireAuth, requireTenantScope, requireRole } = require('./mw');
+const engine = require('./tier3_onc_101_chemo_engine');
+router.get('/health', (req, res) => res.json({ ok: true, module: 'tier3-onc-chemo' }));
+router.post('/dose', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.chemotherapyDoseCalculation(req.body) }));
+router.post('/adjustment', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.renalHepaticDoseAdjustment(req.body) }));
+router.post('/interactions', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.chemoDrugInteractions(req.body) }));
+router.post('/toxicity', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.chemotherapyToxicityMonitoring(req.body) }));
+router.post('/extravasation', requireAuth, requireTenantScope, requireRole('doctor'), (req, res) => res.json({ ok: true, result: engine.chemoExtravasationManagement(req.body) }));
+module.exports = router;
