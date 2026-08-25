@@ -104,6 +104,10 @@
 47. إصلاح error-handling في tier322 (ValidationError→400 بدل 500) اكتشفه السويت الآلي — **دليل عملي أن الـ suite يعمل**
 48. السويت النهائي: routers=734 · ALIVE=719 · DEAD=0 · ERROR=0 · **GREEN**
 
+## ✅ إغلاق أمني — إنقاذ عمل الجلسة الموازية
+49. **سناب شوت عبر plumbing** (GIT_INDEX_FILE معزول — صفر لمسة لعملهم): برانش `wip-untracked-snapshot-20260825` = 20a073cb على GitHub يشمل 129 عنصر (34 routes جديدة + tier279/280 + mynama/server.js)
+50. `COORDINATION.md` — خريطة الفروع والمناطق النشطة وقواعد النشر ونقاط قرار المالك
+
 ## ⏳ Backlog (موثّق — يحتاج جلسات قادمة)
 - W2: منصة — pgvector schema رسمي داخل التطبيق، helpdesk module، SEO sitemap، APM/langfuse wiring، i18n consolidation، analytics events، BI pack، DR automation
 - W3: ربط بلوبيرنتات .ai-brain بكود فعلي (engine generation from blueprints)
