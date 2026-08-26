@@ -115,6 +115,14 @@
 54. السويت المفتاحي النهائي: **719/719 ALIVE · DEEP 5/5** — محفوظ `E2E_SWEEP_POST_GATE_KEYED.txt`
 55. السويت نفسه حدّث ليُرسل x-api-key من env تلقائياً
 
+## ✅ P4-UPGRADED — pgvector حقيقي مبني من المصدر
+56. بناء pgvector v0.7.4 من المصدر على السيرفر (build-essential + postgresql-server-dev-14) → `CREATE EXTENSION vector` ✓
+57. تطبيق f015 فعلياً: جدول knowledge_chunks (vector(1536)+ivfflat+RLS text-compare)
+58. راوتر tier322 ترقّى لـ **dual-mode**: pgvector ANN (`<=>`) عند توفر الامتداد / JSONB+cosine fallback وإلا — كشف تلقائي وقت التشغيل
+59. توحيد fallback embeddings على **1536d** (متوافق مع OpenAI مستقبلاً وبالجدول)
+60. **إثبات حي:** INGEST mode=pgvector ✓ · SEARCH score=**0.5669** ('stroke activation' ↔ chunk) · rows=1
+61. commits: `bbab8fa3` dev · integration متزامن
+
 ## ⏳ Backlog (موثّق — يحتاج جلسات قادمة)
 - W2: منصة — pgvector schema رسمي داخل التطبيق، helpdesk module، SEO sitemap، APM/langfuse wiring، i18n consolidation، analytics events، BI pack، DR automation
 - W3: ربط بلوبيرنتات .ai-brain بكود فعلي (engine generation from blueprints)
