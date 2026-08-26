@@ -128,6 +128,11 @@
 63. `P5_DECISION_PACKETS.md` — 6 حزم قرارات جاهزة (BCMA عتاد/EPCS وطني/Portal/فصل مستودعات/دمج هيكلي/tierGate UI)
 64. commits: cdss registry push · docs push
 
+## 🔒 VERIFIED — SWEEP GREEN خلف البوابة المفعّلة
+70. السويت المفتاحي على الإنتاج: routers=734 · probed=719 · **ALIVE=719 DEAD=0 ERROR=0** · DEEP 5/5 · **SWEEP GREEN** (`E2E_SWEEP_GATE_FINAL.txt`)
+71. لغز "env undefined" السابق: عملية قديمة عالقة كانت ترد؛ بعد تنظيف العلامات وإعادة التحميل — الفرض تعمل (ANON 401 مؤكد)
+72. حالة الإنتاج النهائية: بوابة مفعّلة + مفتاح تكامل في /root/.env و .env التطبيق + كل الوحدات الحية خلفها تعمل
+
 ## ⏳ Backlog النهائي (قرارات مالك فقط)
 - PKT-1..6 أعلاه = كل ما تبقى. لا يوجد عمل تقني ذاتي متبقٍ.
 
