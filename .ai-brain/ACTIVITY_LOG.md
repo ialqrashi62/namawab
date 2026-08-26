@@ -131,6 +131,13 @@
 ## ⏳ Backlog النهائي (قرارات مالك فقط)
 - PKT-1..6 أعلاه = كل ما تبقى. لا يوجد عمل تقني ذاتي متبقٍ.
 
+## ✅ RAG-CORPUS — تغذية المحتوى الطبي الحقيقي (36 قسم)
+65. بناء كوربوس من البلوبيرنتات: red_flags + workflows لكل قسم كامل → 36 payload
+66. تغذية الإنتاج عبر /ingest بالمفتاح: **36/36 PASS**
+67. **اختبار دلالي عابر للأقسام:** sepsis→infectious_diseases 🎯 · cauda equina→neurosurgery_spine 🎯 · mirels→خارج الكوربوس (lexical، متوقع)
+68. CDSS registry توسع إلى **9 قواعد** (+ed_trauma ·+ed_toxicology يلفّان t145 القديم) — منشور
+69. ملاحظة: الترقية للبحث الدلالي العميق = ضخ OpenAI key أو رفع جودة الكوربوس بملخصات لكل قسم
+
 ## ⏳ Backlog (موثّق — يحتاج جلسات قادمة)
 - W2: منصة — pgvector schema رسمي داخل التطبيق، helpdesk module، SEO sitemap، APM/langfuse wiring، i18n consolidation، analytics events، BI pack، DR automation
 - W3: ربط بلوبيرنتات .ai-brain بكود فعلي (engine generation from blueprints)
