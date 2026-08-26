@@ -123,6 +123,14 @@
 60. **إثبات حي:** INGEST mode=pgvector ✓ · SEARCH score=**0.5669** ('stroke activation' ↔ chunk) · rows=1
 61. commits: `bbab8fa3` dev · integration متزامن
 
+## ✅ P3-EXPANDED + P5 DECISION PACKETS
+62. سجل CDSS توسّع 3→**7 قواعد**: +grace_proxy ·+seizure_status ·+esi_triage (يلفّ tier145 القديم!) ·+bcma_five_rights — تحقق حي: BCMA PASS عبر /evaluate، ESI وصل لمحرك t145 (validation صحيح)
+63. `P5_DECISION_PACKETS.md` — 6 حزم قرارات جاهزة (BCMA عتاد/EPCS وطني/Portal/فصل مستودعات/دمج هيكلي/tierGate UI)
+64. commits: cdss registry push · docs push
+
+## ⏳ Backlog النهائي (قرارات مالك فقط)
+- PKT-1..6 أعلاه = كل ما تبقى. لا يوجد عمل تقني ذاتي متبقٍ.
+
 ## ⏳ Backlog (موثّق — يحتاج جلسات قادمة)
 - W2: منصة — pgvector schema رسمي داخل التطبيق، helpdesk module، SEO sitemap، APM/langfuse wiring، i18n consolidation، analytics events، BI pack، DR automation
 - W3: ربط بلوبيرنتات .ai-brain بكود فعلي (engine generation from blueprints)
