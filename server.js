@@ -159,6 +159,7 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
+if (process.env.TIER_AUTH_REQUIRED === '1') app.use(require('./lib/middleware/tierGate')()); // tier surface auth gate (env-gated)
 app.use(express.urlencoded({ extended: true }));
 class FallbackSessionStore extends session.Store {
     constructor(redisStore) {
